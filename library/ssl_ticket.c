@@ -187,9 +187,11 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
 
 /*
  * Serialize a session in the following format:
- *  0   .   n-1     session structure, n = sizeof(mbedtls_ssl_session)
- *  n   .   n+2     peer_cert length = m (0 if no certificate)
- *  n+3 .   n+2+m   peer cert ASN.1
+ *  0       .   n-1     session structure, n = sizeof(mbedtls_ssl_session)
+ *  n       .   n+2     peer_cert length = m (0 if no certificate)
+ *  n+3     .   n+2+m   peer cert ASN.1
+ *  n+3+m   .   n+3+m   length of peer certificate digest = k (0 if n digest)
+ *  n+4+m   .   n+4+k   peer certificate digest (digest type encoded in session)
  */
 static int ssl_save_session( const mbedtls_ssl_session *session,
                              unsigned char *buf, size_t buf_len,
@@ -199,6 +201,9 @@ static int ssl_save_session( const mbedtls_ssl_session *session,
     size_t left = buf_len;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     size_t cert_len;
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    size_t cert_digest_len;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( left < sizeof( mbedtls_ssl_session ) )
@@ -223,11 +228,32 @@ static int ssl_save_session( const mbedtls_ssl_session *session,
     *p++ = (unsigned char)( ( cert_len >> 16 ) & 0xFF );
     *p++ = (unsigned char)( ( cert_len >>  8 ) & 0xFF );
     *p++ = (unsigned char)( ( cert_len       ) & 0xFF );
+    left -= 3;
 
     if( session->peer_cert != NULL )
         memcpy( p, session->peer_cert->raw.p, cert_len );
 
     p += cert_len;
+    left -= cert_len;
+
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    if( session->peer_cert_digest != NULL )
+        cert_digest_len = 0;
+    else
+        cert_digest_len = session->peer_cert_digest_len;
+
+    if( left < 1 + cert_digest_len )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    *p++ = (unsigned char) cert_digest_len;
+    left--;
+
+    if( session->peer_cert_digest != NULL )
+        memcpy( p, session->peer_cert_digest, cert_digest_len );
+
+    p    += cert_digest_len;
+    left -= cert_digest_len;
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     *olen = p - buf;
@@ -245,6 +271,9 @@ static int ssl_load_session( mbedtls_ssl_session *session,
     const unsigned char * const end = buf + len;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     size_t cert_len;
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    size_t cert_digest_len;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( sizeof( mbedtls_ssl_session ) > (size_t)( end - p ) )
@@ -257,6 +286,9 @@ static int ssl_load_session( mbedtls_ssl_session *session,
      * and potentially harmful. Zeroize them for safety. */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     session->peer_cert = NULL;
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    session->peer_cert_digest = NULL;
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     session->ticket = NULL;
@@ -295,6 +327,30 @@ static int ssl_load_session( mbedtls_ssl_session *session,
 
         p += cert_len;
     }
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    /* Deserialize CRT digest from the end of the ticket. */
+    if( 1 > (size_t)( end - p ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    cert_digest_len = (size_t) p[0];
+    p++;
+
+    if( cert_digest_len != 0 )
+    {
+        if( cert_digest_len > (size_t)( end - p ) ||
+            cert_digest_len != session->peer_cert_digest_len )
+        {
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        }
+
+        session->peer_cert_digest = mbedtls_calloc( 1, cert_digest_len );
+        if( session->peer_cert_digest == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+        memcpy( session->peer_cert_digest, p, cert_digest_len );
+        p += cert_digest_len;
+    }
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( p != end )

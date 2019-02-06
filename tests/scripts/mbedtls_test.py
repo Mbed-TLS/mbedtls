@@ -75,11 +75,10 @@ class TestDataParser(object):
         :param split_char: Split character
         :return: List of splits
         """
+        split_colon_fn = lambda x: re.sub(r'\\' + split_char, split_char, x)
         if len(split_char) > 1:
             raise ValueError('Expected split character. Found string!')
-        out = re.sub(r'(\\.)|' + split_char,
-                     lambda m: m.group(1) or '\n', inp_str,
-                     len(inp_str)).split('\n')
+        out = map(split_colon_fn, re.split(r'(?<!\\)' + split_char, inp_str))
         out = [x for x in out if x]
         return out
 
@@ -112,8 +111,8 @@ class TestDataParser(object):
             args = parts[1:]
             args_count = len(args)
             if args_count % 2 != 0:
-                raise TestDataParserError("Number of test arguments should "
-                                          "be even: %s" % line)
+                err_str_fmt = "Number of test arguments({}) should be even: {}"
+                raise TestDataParserError(err_str_fmt.format(args_count, line))
             grouped_args = [(args[i * 2], args[(i * 2) + 1])
                             for i in range(len(args)/2)]
             self.tests.append((name, function_name, dependencies,
@@ -163,6 +162,7 @@ class MbedTlsTest(BaseHostTest):
         self.tests = []
         self.test_index = -1
         self.dep_index = 0
+        self.suite_passed = True
         self.error_str = dict()
         self.error_str[self.DEPENDENCY_SUPPORTED] = \
             'DEPENDENCY_SUPPORTED'
@@ -293,7 +293,7 @@ class MbedTlsTest(BaseHostTest):
             name, function_id, dependencies, args = self.tests[self.test_index]
             self.run_test(name, function_id, dependencies, args)
         else:
-            self.notify_complete(True)
+            self.notify_complete(self.suite_passed)
 
     def run_test(self, name, function_id, dependencies, args):
         """
@@ -353,6 +353,8 @@ class MbedTlsTest(BaseHostTest):
         self.log('{{__testcase_start;%s}}' % name)
         self.log('{{__testcase_finish;%s;%d;%d}}' % (name, int_val == 0,
                                                      int_val != 0))
+        if int_val != 0:
+            self.suite_passed = False
         self.run_next_test()
 
     @event_callback("F")

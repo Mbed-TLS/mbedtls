@@ -368,8 +368,8 @@ static unsigned int ssl_mfl_code_to_length( int mfl )
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_CLI_C)
-static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session *src )
+int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
+                              const mbedtls_ssl_session *src )
 {
     mbedtls_ssl_session_free( dst );
     memcpy( dst, src, sizeof( mbedtls_ssl_session ) );
@@ -408,7 +408,6 @@ static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
 int (*mbedtls_ssl_hw_record_init)( mbedtls_ssl_context *ssl,
@@ -7979,7 +7978,8 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    if( ( ret = ssl_session_copy( ssl->session_negotiate, session ) ) != 0 )
+    if( ( ret = mbedtls_ssl_session_copy( ssl->session_negotiate,
+                                          session ) ) != 0 )
         return( ret );
 
     ssl->handshake->resume = 1;
@@ -8849,7 +8849,7 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    return( ssl_session_copy( dst, ssl->session ) );
+    return( mbedtls_ssl_session_copy( dst, ssl->session ) );
 }
 #endif /* MBEDTLS_SSL_CLI_C */
 

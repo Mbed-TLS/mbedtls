@@ -63,7 +63,7 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     } else if (PSA_ALG_IS_AEAD(alg)) {
         core_alg = PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(alg);
         if (core_alg == 0) {
-            /* For unkonwn AEAD algorithms, there is no "default tag length". */
+            /* For unknown AEAD algorithms, there is no "default tag length". */
             core_alg = alg;
         } else if (core_alg != alg) {
             append(&buffer, buffer_size, &required_size,

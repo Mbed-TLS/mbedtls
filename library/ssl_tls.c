@@ -9104,7 +9104,9 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
     uint64_t start;
 #endif
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     size_t cert_len;
+#endif
 #endif
 
     /*
@@ -9175,6 +9177,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
      * Peer's end-entity certificate
      */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     if( session->peer_cert == NULL )
         cert_len = 0;
     else
@@ -9195,8 +9198,8 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
         }
     }
 
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     /* Digest of peer certificate */
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     if( session->peer_cert_digest != NULL )
     {
         used += 1 /* type */ + 1 /* length */ + session->peer_cert_digest_len;
@@ -9295,8 +9298,10 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     uint64_t start;
 #endif
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     size_t cert_len;
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif
+#endif
 
     /*
      * Check version identifier
@@ -9359,10 +9364,11 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     /* Immediately clear invalid pointer values that have been read, in case
      * we exit early before we replaced them with valid ones. */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     session->peer_cert = NULL;
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#else
     session->peer_cert_digest = NULL;
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     session->ticket = NULL;
@@ -9372,6 +9378,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
      * Peer certificate
      */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     if( 3 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
@@ -9407,8 +9414,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 
         p += cert_len;
     }
-
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#else /* defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     /* Deserialize CRT digest from the end of the ticket. */
     if( 2 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );

@@ -2288,6 +2288,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     int ret;
     size_t len_bytes = ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
     unsigned char *p = ssl->handshake->premaster + pms_offset;
+    mbedtls_pk_context * peer_pk;
 
     if( offset + len_bytes > MBEDTLS_SSL_OUT_CONTENT_LEN )
     {
@@ -2313,23 +2314,27 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
 
     ssl->handshake->pmslen = 48;
 
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    peer_pk = &ssl->handshake->peer_pubkey;
+#else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     if( ssl->session_negotiate->peer_cert == NULL )
     {
         /* Should never happen */
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
+    peer_pk = &ssl->session_negotiate->peer_cert->pk;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     /*
      * Now write it out, encrypted
      */
-    if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
-                MBEDTLS_PK_RSA ) )
+    if( ! mbedtls_pk_can_do( peer_pk, MBEDTLS_PK_RSA ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate key type mismatch" ) );
         return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
     }
 
-    if( ( ret = mbedtls_pk_encrypt( &ssl->session_negotiate->peer_cert->pk,
+    if( ( ret = mbedtls_pk_encrypt( peer_pk,
                             p, ssl->handshake->pmslen,
                             ssl->out_msg + offset + len_bytes, olen,
                             MBEDTLS_SSL_OUT_CONTENT_LEN - offset - len_bytes,

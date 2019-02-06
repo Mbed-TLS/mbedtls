@@ -766,6 +766,9 @@ int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
 
+int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
+                              const mbedtls_ssl_session *src );
+
 /* constant-time buffer comparison */
 static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {

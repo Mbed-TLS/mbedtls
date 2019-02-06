@@ -604,15 +604,6 @@ component_test_default_cmake_gcc_asan () {
     if_build_succeeded tests/compat.sh
 }
 
-component_test_psa_constant_names () {
-    msg "build: cmake, gcc, ASan" # ~ 1 min 50s
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test psa_constant_names" # ~ 1s
-    record_status tests/scripts/test_psa_constant_names.py
-}
-
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -716,6 +707,9 @@ component_test_full_cmake_clang () {
 
     msg "test: main suites (full config)" # ~ 5s
     make test
+
+    msg "test: psa_constant_names (full config)" # ~ 1s
+    record_status tests/scripts/test_psa_constant_names.py
 
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
     if_build_succeeded tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'

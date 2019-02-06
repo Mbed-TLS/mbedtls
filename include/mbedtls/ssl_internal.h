@@ -336,6 +336,10 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     size_t ecrs_n;                      /*!< place for saving a length      */
 #endif
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    mbedtls_pk_context peer_pubkey;     /*!< The public key from the peer.  */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
     unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */

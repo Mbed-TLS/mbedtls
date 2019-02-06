@@ -131,6 +131,12 @@ extern "C" {
 #define mbedtls_malloc     MBEDTLS_PLATFORM_MALLOC_MACRO
 #define mbedtls_calloc     MBEDTLS_PLATFORM_CALLOC_MACRO
 #define mbedtls_realloc    MBEDTLS_PLATFORM_REALLOC_MACRO
+#elif defined(MBEDTLS_PLATFORM_FREE_MACRO)    && \
+      !defined(MBEDTLS_PLATFORM_MALLOC_MACRO) && \
+      defined(MBEDTLS_PLATFORM_CALLOC_MACRO)  && \
+      !defined(MBEDTLS_PLATFORM_REALLOC_MACRO)
+#define mbedtls_free       MBEDTLS_PLATFORM_FREE_MACRO
+#define mbedtls_calloc     MBEDTLS_PLATFORM_CALLOC_MACRO
 #else
 /* For size_t */
 #include <stddef.h>
@@ -138,6 +144,19 @@ extern void *mbedtls_malloc( size_t size );
 extern void *mbedtls_calloc( size_t n, size_t size );
 extern void *mbedtls_realloc( void *ptr, size_t new_size );
 extern void mbedtls_free( void *ptr );
+
+/**
+ * \brief               This function dynamically sets the memory-management
+ *                      functions used by the library, during runtime.
+ *
+ * \param calloc_func   The \c calloc function implementation.
+ * \param free_func     The \c free function implementation.
+ *
+ * \return              \c 0.
+ */
+int mbedtls_platform_set_calloc_free(
+        void * (*calloc_func)( size_t, size_t ),
+        void (*free_func)( void * ) );
 
 /**
  * \brief               This function dynamically sets the memory-management

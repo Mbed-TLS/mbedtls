@@ -32,8 +32,10 @@
 
 /* The compile time configuration of memory allocation via the macros
  * MBEDTLS_PLATFORM_{FREE/CALLOC}_MACRO takes precedence over the runtime
- * configuration via mbedtls_platform_set_calloc_free(). So, omit everything
- * related to the latter if MBEDTLS_PLATFORM_{FREE/CALLOC}_MACRO are defined. */
+ * configuration via mbedtls_platform_set_calloc_free() or via
+ * mbedtls_platform_set_malloc_calloc_realloc_free(). So, omit everything
+ * related to the latter if MBEDTLS_PLATFORM_{FREE/MALLOC/CALLOC/REALLOC}_MACRO
+ * are defined. */
 #if defined(MBEDTLS_PLATFORM_MEMORY) &&                 \
     !( defined(MBEDTLS_PLATFORM_MALLOC_MACRO) &&        \
        defined(MBEDTLS_PLATFORM_CALLOC_MACRO) &&        \
@@ -104,6 +106,20 @@ void * mbedtls_realloc( void *ptr, size_t new_size )
 void mbedtls_free( void * ptr )
 {
     (*mbedtls_free_func)( ptr );
+}
+
+int mbedtls_platform_set_calloc_and_free(
+        void * (*calloc_func)( size_t, size_t ),
+        void (*free_func)( void * ) )
+{
+    return(
+        mbedtls_platform_set_malloc_calloc_realloc_free(
+            NULL,
+            calloc_func,
+            NULL,
+            free_func
+        )
+    );
 }
 
 int mbedtls_platform_set_malloc_calloc_realloc_free(

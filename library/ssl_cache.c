@@ -100,7 +100,8 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
             goto exit;
         }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
         /*
          * Restore peer certificate (without rest of the original chain)
          */
@@ -127,7 +128,7 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
                 goto exit;
             }
         }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
         ret = 0;
         goto exit;
@@ -247,7 +248,8 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
 #endif
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /*
      * If we're reusing an entry, free its certificate first
      */
@@ -256,7 +258,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
         mbedtls_free( cur->peer_cert.p );
         memset( &cur->peer_cert, 0, sizeof(mbedtls_x509_buf) );
     }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     /* Copy the entire session; this temporarily makes a copy of the
      * X.509 CRT structure even though we only want to store the raw CRT.
@@ -270,7 +272,8 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
         goto exit;
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /* If present, free the X.509 structure and only store the raw CRT data. */
     if( cur->session.peer_cert != NULL )
     {
@@ -291,7 +294,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
         mbedtls_free( cur->session.peer_cert );
         cur->session.peer_cert = NULL;
     }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     ret = 0;
 
@@ -333,9 +336,10 @@ void mbedtls_ssl_cache_free( mbedtls_ssl_cache_context *cache )
 
         mbedtls_ssl_session_free( &prv->session );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
         mbedtls_free( prv->peer_cert.p );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
         mbedtls_free( prv );
     }

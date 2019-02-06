@@ -108,14 +108,9 @@ int mbedtls_platform_set_calloc_and_free(
         void * (*calloc_func)( size_t, size_t ),
         void (*free_func)( void * ) )
 {
-    return(
-        mbedtls_platform_set_malloc_calloc_realloc_free(
-            NULL,
-            calloc_func,
-            NULL,
-            free_func
-        )
-    );
+    mbedtls_calloc_func = calloc_func;
+    mbedtls_free_func = free_func;
+    return( 0 );
 }
 
 int mbedtls_platform_set_malloc_calloc_realloc_free(
@@ -130,11 +125,7 @@ int mbedtls_platform_set_malloc_calloc_realloc_free(
     mbedtls_free_func = free_func;
     return( 0 );
 }
-#endif /* MBEDTLS_PLATFORM_MEMORY &&
-          !( defined(MBEDTLS_PLATFORM_MALLOC_MACRO) &&
-             defined(MBEDTLS_PLATFORM_CALLOC_MACRO) &&
-             defined(MBEDTLS_PLATFORM_REALLOC_MACRO) &&
-             defined(MBEDTLS_PLATFORM_FREE_MACRO) ) */
+#endif /* MBEDTLS_PLATFORM_MEMORY */
 
 #if defined(MBEDTLS_PLATFORM_HAS_NON_CONFORMING_SNPRINTF)
 #include <stdarg.h>

@@ -3258,19 +3258,19 @@ void asymmetric_decrypt_fail( int key_type_arg,
                               int alg_arg,
                               data_t *input_data,
                               data_t *label,
+                              int output_size_arg,
                               int expected_status_arg  )
 {
     psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char *output = NULL;
-    size_t output_size = 0;
+    size_t output_size = output_size_arg;
     size_t output_length = ~0;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
-    output_size = key_data->len;
     ASSERT_ALLOC( output, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );

@@ -2655,6 +2655,8 @@ start_processing:
         size_t params_len = p - params;
         void *rs_ctx = NULL;
 
+        mbedtls_pk_context * peer_pk;
+
         /*
          * Handle the digitally-signed structure
          */
@@ -2757,16 +2759,21 @@ start_processing:
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+        peer_pk = &ssl->handshake->peer_pubkey;
+#else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
         if( ssl->session_negotiate->peer_cert == NULL )
         {
             /* Should never happen */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
+        peer_pk = &ssl->session_negotiate->peer_cert->pk;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
         /*
          * Verify signature
          */
-        if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, pk_alg ) )
+        if( !mbedtls_pk_can_do( peer_pk, pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -2779,8 +2786,7 @@ start_processing:
             rs_ctx = &ssl->handshake->ecrs_ctx.pk;
 #endif
 
-        if( ( ret = mbedtls_pk_verify_restartable(
-                        &ssl->session_negotiate->peer_cert->pk,
+        if( ( ret = mbedtls_pk_verify_restartable( peer_pk,
                         md_alg, hash, hashlen, p, sig_len, rs_ctx ) ) != 0 )
         {
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)

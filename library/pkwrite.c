@@ -696,12 +696,8 @@ int mbedtls_pkcs8_write_key_pem( mbedtls_pk_context *key,
                                     buf,
                                     size,
                                     &olen );
-    if( ret != 0 )
-    {
-        return( ret );
-    }
 
-    return( 0 );
+    return( ret );
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 

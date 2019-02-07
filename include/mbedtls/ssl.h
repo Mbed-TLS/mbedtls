@@ -818,14 +818,15 @@ struct mbedtls_ssl_session
     unsigned char master[48];   /*!< the master secret  */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     mbedtls_x509_crt *peer_cert;       /*!< peer X.509 cert chain */
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     /*! The digest of the peer's end-CRT. This must be kept to detect CRT
      *  changes during renegotiation, mitigating the triple handshake attack. */
     unsigned char *peer_cert_digest;
     size_t peer_cert_digest_len;
     mbedtls_md_type_t peer_cert_digest_type;
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     uint32_t verify_result;          /*!<  verification result     */
 

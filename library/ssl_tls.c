@@ -6301,10 +6301,10 @@ crt_verify:
             goto exit;
         }
     }
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-
+#else
     ssl->session_negotiate->peer_cert = chain;
     chain = NULL;
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
 

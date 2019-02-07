@@ -313,7 +313,7 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "syntax" ) == 0 )
         {
-            if( strcmp( p, "pkcs1") == 0 )
+            if( strcmp( q, "pkcs1") == 0 )
                 opt.syntax = SYNTAX_PKCS1;
             else if( strcmp( q, "pkcs8" ) == 0 )
                 opt.syntax = SYNTAX_PKCS8;

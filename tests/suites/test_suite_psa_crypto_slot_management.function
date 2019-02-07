@@ -294,6 +294,321 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
+                            int source_usage_arg, int source_alg_arg,
+                            int type_arg, data_t *material,
+                            int target_lifetime_arg, int target_id_arg,
+                            int target_usage_arg, int target_alg_arg,
+                            int expected_usage_arg, int expected_alg_arg )
+{
+    psa_key_lifetime_t source_lifetime = source_lifetime_arg;
+    psa_key_id_t source_id = source_id_arg;
+    psa_key_usage_t source_usage = source_usage_arg;
+    psa_algorithm_t source_alg = source_alg_arg;
+    psa_key_handle_t source_handle = 0;
+    psa_key_policy_t source_policy = PSA_KEY_POLICY_INIT;
+    psa_key_type_t source_type = type_arg;
+    size_t source_bits;
+    psa_key_lifetime_t target_lifetime = target_lifetime_arg;
+    psa_key_id_t target_id = target_id_arg;
+    psa_key_usage_t target_usage = target_usage_arg;
+    psa_algorithm_t target_alg = target_alg_arg;
+    psa_key_handle_t target_handle = 0;
+    psa_key_policy_t target_policy = PSA_KEY_POLICY_INIT;
+    psa_key_type_t target_type;
+    size_t target_bits;
+    psa_key_usage_t expected_usage = expected_usage_arg;
+    psa_algorithm_t expected_alg = expected_alg_arg;
+    uint8_t *export_buffer = NULL;
+
+    TEST_MAX_KEY_ID( source_id );
+    TEST_MAX_KEY_ID( target_id );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Populate the source slot. */
+    if( source_lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        PSA_ASSERT( psa_allocate_key( &source_handle ) );
+    else
+        PSA_ASSERT( psa_create_key( source_lifetime, source_id,
+                                    &source_handle ) );
+    psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
+    PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
+    PSA_ASSERT( psa_import_key( source_handle, source_type,
+                                material->x, material->len ) );
+    PSA_ASSERT( psa_get_key_information( source_handle, NULL, &source_bits ) );
+
+    /* Prepare the target slot. */
+    if( target_lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        PSA_ASSERT( psa_allocate_key( &target_handle ) );
+    else
+        PSA_ASSERT( psa_create_key( target_lifetime, target_id,
+                                    &target_handle ) );
+    psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
+    PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
+    target_policy = psa_key_policy_init();
+
+    /* Copy the key. */
+    PSA_ASSERT( psa_copy_key( source_handle, target_handle, NULL ) );
+
+    /* Destroy the source to ensure that this doesn't affect the target. */
+    PSA_ASSERT( psa_destroy_key( source_handle ) );
+
+    /* If the target key is persistent, restart the system to make
+     * sure that the material is still alive. */
+    if( target_lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    {
+        mbedtls_psa_crypto_free( );
+        PSA_ASSERT( psa_crypto_init( ) );
+        PSA_ASSERT( psa_open_key( target_lifetime, target_id,
+                                  &target_handle ) );
+    }
+
+    /* Test that the target slot has the expected content. */
+    PSA_ASSERT( psa_get_key_information( target_handle,
+                                         &target_type, &target_bits ) );
+    TEST_EQUAL( source_type, target_type );
+    TEST_EQUAL( source_bits, target_bits );
+    PSA_ASSERT( psa_get_key_policy( target_handle, &target_policy ) );
+    TEST_EQUAL( expected_usage, psa_key_policy_get_usage( &target_policy ) );
+    TEST_EQUAL( expected_alg, psa_key_policy_get_algorithm( &target_policy ) );
+    if( expected_usage & PSA_KEY_USAGE_EXPORT )
+    {
+        size_t length;
+        ASSERT_ALLOC( export_buffer, material->len );
+        PSA_ASSERT( psa_export_key( target_handle, export_buffer,
+                                    material->len, &length ) );
+        ASSERT_COMPARE( material->x, material->len,
+                        export_buffer, length );
+    }
+
+exit:
+    mbedtls_psa_crypto_free( );
+    mbedtls_free( export_buffer );
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    psa_purge_key_storage( );
+#endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void copy_from_empty( int source_lifetime_arg, int source_id_arg,
+                       int source_usage_arg, int source_alg_arg,
+                       int target_lifetime_arg, int target_id_arg,
+                       int target_usage_arg, int target_alg_arg )
+{
+    psa_key_lifetime_t source_lifetime = source_lifetime_arg;
+    psa_key_id_t source_id = source_id_arg;
+    psa_key_usage_t source_usage = source_usage_arg;
+    psa_algorithm_t source_alg = source_alg_arg;
+    psa_key_handle_t source_handle = 0;
+    psa_key_policy_t source_policy = PSA_KEY_POLICY_INIT;
+    psa_key_lifetime_t target_lifetime = target_lifetime_arg;
+    psa_key_id_t target_id = target_id_arg;
+    psa_key_usage_t target_usage = target_usage_arg;
+    psa_algorithm_t target_alg = target_alg_arg;
+    psa_key_handle_t target_handle = 0;
+    psa_key_policy_t target_policy = PSA_KEY_POLICY_INIT;
+    psa_key_policy_t got_policy;
+
+    TEST_MAX_KEY_ID( source_id );
+    TEST_MAX_KEY_ID( target_id );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Prepare the source slot. */
+    if( source_lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        PSA_ASSERT( psa_allocate_key( &source_handle ) );
+    else
+        PSA_ASSERT( psa_create_key( source_lifetime, source_id,
+                                    &source_handle ) );
+    psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
+    PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
+
+    /* Prepare the target slot. */
+    if( target_lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        PSA_ASSERT( psa_allocate_key( &target_handle ) );
+    else
+        PSA_ASSERT( psa_create_key( target_lifetime, target_id,
+                                    &target_handle ) );
+    psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
+    PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
+
+    /* Copy the key. */
+    TEST_EQUAL( psa_copy_key( source_handle, target_handle, NULL ),
+                PSA_ERROR_EMPTY_SLOT );
+
+    /* Test that the slots are unaffected. */
+    PSA_ASSERT( psa_get_key_policy( source_handle, &got_policy ) );
+    TEST_EQUAL( source_usage, psa_key_policy_get_usage( &got_policy ) );
+    TEST_EQUAL( source_alg, psa_key_policy_get_algorithm( &got_policy ) );
+    PSA_ASSERT( psa_get_key_policy( target_handle, &got_policy ) );
+    TEST_EQUAL( target_usage, psa_key_policy_get_usage( &got_policy ) );
+    TEST_EQUAL( target_alg, psa_key_policy_get_algorithm( &got_policy ) );
+
+exit:
+    mbedtls_psa_crypto_free( );
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    psa_purge_key_storage( );
+#endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
+                       int source_usage_arg, int source_alg_arg,
+                       int source_type_arg, data_t *source_material,
+                       int target_lifetime_arg, int target_id_arg,
+                       int target_usage_arg, int target_alg_arg,
+                       int target_type_arg, data_t *target_material )
+{
+    psa_key_lifetime_t source_lifetime = source_lifetime_arg;
+    psa_key_id_t source_id = source_id_arg;
+    psa_key_usage_t source_usage = source_usage_arg;
+    psa_algorithm_t source_alg = source_alg_arg;
+    psa_key_handle_t source_handle = 0;
+    psa_key_policy_t source_policy = PSA_KEY_POLICY_INIT;
+    psa_key_type_t source_type = source_type_arg;
+    size_t source_bits;
+    psa_key_lifetime_t target_lifetime = target_lifetime_arg;
+    psa_key_id_t target_id = target_id_arg;
+    psa_key_usage_t target_usage = target_usage_arg;
+    psa_algorithm_t target_alg = target_alg_arg;
+    psa_key_handle_t target_handle = 0;
+    psa_key_policy_t target_policy = PSA_KEY_POLICY_INIT;
+    psa_key_type_t target_type = target_type_arg;
+    size_t target_bits;
+    psa_key_policy_t got_policy;
+    psa_key_type_t got_type;
+    size_t got_bits;
+    uint8_t *export_buffer = NULL;
+
+    TEST_MAX_KEY_ID( source_id );
+    TEST_MAX_KEY_ID( target_id );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Populate the source slot. */
+    if( source_lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        PSA_ASSERT( psa_allocate_key( &source_handle ) );
+    else
+        PSA_ASSERT( psa_create_key( source_lifetime, source_id,
+                                    &source_handle ) );
+    psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
+    PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
+    PSA_ASSERT( psa_import_key( source_handle, source_type,
+                                source_material->x, source_material->len ) );
+    PSA_ASSERT( psa_get_key_information( source_handle, NULL, &source_bits ) );
+
+    /* Populate the target slot. */
+    if( target_lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        PSA_ASSERT( psa_allocate_key( &target_handle ) );
+    else
+        PSA_ASSERT( psa_create_key( target_lifetime, target_id,
+                                    &target_handle ) );
+    psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
+    PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
+    PSA_ASSERT( psa_import_key( target_handle, target_type,
+                                target_material->x, target_material->len ) );
+    PSA_ASSERT( psa_get_key_information( target_handle, NULL, &target_bits ) );
+
+    /* Copy the key. */
+    TEST_EQUAL( psa_copy_key( source_handle, target_handle, NULL ),
+                PSA_ERROR_OCCUPIED_SLOT );
+
+    /* Test that the target slot is unaffected. */
+    PSA_ASSERT( psa_get_key_information( target_handle,
+                                         &got_type, &got_bits ) );
+    TEST_EQUAL( target_type, got_type );
+    TEST_EQUAL( target_bits, got_bits );
+    PSA_ASSERT( psa_get_key_policy( target_handle, &got_policy ) );
+    TEST_EQUAL( target_usage, psa_key_policy_get_usage( &got_policy ) );
+    TEST_EQUAL( target_alg, psa_key_policy_get_algorithm( &got_policy ) );
+    if( target_usage & PSA_KEY_USAGE_EXPORT )
+    {
+        size_t length;
+        ASSERT_ALLOC( export_buffer, target_material->len );
+        PSA_ASSERT( psa_export_key( target_handle, export_buffer,
+                                    target_material->len, &length ) );
+        ASSERT_COMPARE( target_material->x, target_material->len,
+                        export_buffer, length );
+    }
+
+exit:
+    mbedtls_psa_crypto_free( );
+    mbedtls_free( export_buffer );
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    psa_purge_key_storage( );
+#endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void copy_to_same( int lifetime_arg, int id_arg,
+                   int usage_arg, int alg_arg,
+                   int type_arg, data_t *material )
+{
+    psa_key_lifetime_t lifetime = lifetime_arg;
+    psa_key_id_t id = id_arg;
+    psa_key_usage_t usage = usage_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_handle_t handle = 0;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_type_t type = type_arg;
+    size_t bits;
+    psa_key_policy_t got_policy;
+    psa_key_type_t got_type;
+    size_t got_bits;
+    uint8_t *export_buffer = NULL;
+
+    TEST_MAX_KEY_ID( id );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Populate the slot. */
+    if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        PSA_ASSERT( psa_allocate_key( &handle ) );
+    else
+        PSA_ASSERT( psa_create_key( lifetime, id,
+                                    &handle ) );
+    psa_key_policy_set_usage( &policy, usage, alg );
+    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+    PSA_ASSERT( psa_import_key( handle, type,
+                                material->x, material->len ) );
+    PSA_ASSERT( psa_get_key_information( handle, NULL, &bits ) );
+
+    /* Copy the key. */
+    TEST_EQUAL( psa_copy_key( handle, handle, NULL ),
+                PSA_ERROR_OCCUPIED_SLOT );
+
+    /* Test that the slot is unaffected. */
+    PSA_ASSERT( psa_get_key_information( handle,
+                                         &got_type, &got_bits ) );
+    TEST_EQUAL( type, got_type );
+    TEST_EQUAL( bits, got_bits );
+    PSA_ASSERT( psa_get_key_policy( handle, &got_policy ) );
+    TEST_EQUAL( usage, psa_key_policy_get_usage( &got_policy ) );
+    TEST_EQUAL( alg, psa_key_policy_get_algorithm( &got_policy ) );
+    if( usage & PSA_KEY_USAGE_EXPORT )
+    {
+        size_t length;
+        ASSERT_ALLOC( export_buffer, material->len );
+        PSA_ASSERT( psa_export_key( handle, export_buffer,
+                                    material->len, &length ) );
+        ASSERT_COMPARE( material->x, material->len,
+                        export_buffer, length );
+    }
+
+exit:
+    mbedtls_psa_crypto_free( );
+    mbedtls_free( export_buffer );
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    psa_purge_key_storage( );
+#endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void invalid_handle( )
 {
     psa_key_handle_t handle1 = 0;

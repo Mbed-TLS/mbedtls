@@ -42,6 +42,13 @@ Features
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.
      See the Features section for more information.
+   * Allow to opt in to the removal the API mbedtls_ssl_get_peer_cert()
+     for the benefit of saving RAM, by disabling the new compile-time
+     option MBEDTLS_SSL_KEEP_PEER_CERTIFICATE (enabled by default for
+     API stability). Disabling this option makes mbedtls_ssl_get_peer_cert()
+     always return NULL, and removes the peer_cert field from the
+     mbedtls_ssl_session structure which otherwise stores the peer's
+     certificate.
 
 Bugfix
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

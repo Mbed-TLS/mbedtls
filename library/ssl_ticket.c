@@ -292,8 +292,9 @@ static int ssl_load_session( mbedtls_ssl_session *session,
     /* Non-NULL pointer fields of `session` are meaningless
      * and potentially harmful. Zeroize them for safety. */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     session->peer_cert = NULL;
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#else
     session->peer_cert_digest = NULL;
 #endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

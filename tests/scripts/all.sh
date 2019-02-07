@@ -137,6 +137,9 @@ pre_initialize_variables () {
         export MAKEFLAGS="-j"
     fi
 
+    # Include more verbose output for failing tests run by CMake
+    export CTEST_OUTPUT_ON_FAILURE=1
+
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
     # Parse the script with sed, because in sh there is no way to list

@@ -168,26 +168,32 @@ struct options
     int use_dev_random;         /* use /dev/random as entropy source    */
 } opt;
 
+#define KEY_OUTPUT_BUFFER_LEN       16000
+
 static int write_private_key( mbedtls_pk_context *key, const char *output_file )
 {
     int ret;
     FILE *f;
-    unsigned char output_buf[16000];
+    unsigned char output_buf[KEY_OUTPUT_BUFFER_LEN];
     unsigned char *c = output_buf;
     size_t len = 0;
 
-    memset(output_buf, 0, 16000);
+    memset( output_buf, 0, sizeof( output_buf ) );
     if( opt.format == FORMAT_PEM )
     {
         if( opt.syntax == SYNTAX_PKCS1 )
         {
-            ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 );
+            ret = mbedtls_pk_write_key_pem( key,
+                                            output_buf,
+                                            sizeof( output_buf ) );
             if( ret != 0 )
                 return( ret );
         }
         else
         {
-            ret = mbedtls_pkcs8_write_key_pem( key, output_buf, 16000 );
+            ret = mbedtls_pkcs8_write_key_pem( key,
+                                               output_buf,
+                                               sizeof( output_buf ) );
             if( ret != 0 )
                 return( ret );
         }
@@ -198,19 +204,23 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
     {
         if( opt.syntax == SYNTAX_PKCS1 )
         {
-            ret = mbedtls_pk_write_key_der( key, output_buf, 16000 );
+            ret = mbedtls_pk_write_key_der( key,
+                                            output_buf,
+                                            sizeof( output_buf ) );
             if( ret < 0 )
                 return( ret );
         }
         else
         {
-            ret = mbedtls_pkcs8_write_key_der( key, output_buf, 16000 );
+            ret = mbedtls_pkcs8_write_key_der( key,
+                                               output_buf,
+                                               sizeof( output_buf ) );
             if( ret < 0 )
                 return( ret );
         }
 
         len = ret;
-        c = output_buf + sizeof(output_buf) - len;
+        c = output_buf + sizeof( output_buf ) - len;
     }
 
     if( ( f = fopen( output_file, "wb" ) ) == NULL )

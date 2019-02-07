@@ -286,6 +286,8 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
     memcpy( dst, src, sizeof( mbedtls_ssl_session ) );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     if( src->peer_cert != NULL )
     {
         int ret;
@@ -304,8 +306,7 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
             return( ret );
         }
     }
-
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     if( src->peer_cert_digest != NULL )
     {
         dst->peer_cert_digest_len = src->peer_cert_digest_len;

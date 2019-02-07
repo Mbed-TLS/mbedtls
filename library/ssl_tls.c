@@ -8967,7 +8967,11 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
     if( ssl == NULL || ssl->session == NULL )
         return( NULL );
 
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     return( ssl->session->peer_cert );
+#else
+    return( NULL );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

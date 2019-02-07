@@ -6358,11 +6358,49 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_SRV_C */
 
+/* Check if a certificate message is expected.
+ * Return either
+ * - SSL_CERTIFICATE_EXPECTED, or
+ * - SSL_CERTIFICATE_SKIP
+ * indicating whether a Certificate message is expected or not.
+ */
+#define SSL_CERTIFICATE_EXPECTED 0
+#define SSL_CERTIFICATE_SKIP     1
+static int ssl_parse_certificate_coordinate( mbedtls_ssl_context *ssl,
+                                             int authmode )
+{
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        ssl->handshake->ciphersuite_info;
+
+    if( !mbedtls_ssl_ciphersuite_uses_srv_cert( ciphersuite_info ) )
+        return( SSL_CERTIFICATE_SKIP );
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+            return( SSL_CERTIFICATE_SKIP );
+
+        if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+        {
+            /* NOTE: Is it intentional that we set verify_result
+             * to SKIP_VERIFY on server-side only? */
+            ssl->session_negotiate->verify_result =
+                MBEDTLS_X509_BADCERT_SKIP_VERIFY;
+            return( SSL_CERTIFICATE_SKIP );
+        }
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
+
+    return( SSL_CERTIFICATE_EXPECTED );
+}
+
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-    const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
-          ssl->handshake->ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        ssl->handshake->ciphersuite_info;
+    int crt_expected;
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
                        ? ssl->handshake->sni_authmode
@@ -6374,28 +6412,12 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
-    if( !mbedtls_ssl_ciphersuite_uses_srv_cert( ciphersuite_info ) )
+    crt_expected = ssl_parse_certificate_coordinate( ssl, authmode );
+    if( crt_expected == SSL_CERTIFICATE_SKIP )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
         goto exit;
     }
-
-#if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        goto exit;
-    }
-
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-        authmode == MBEDTLS_SSL_VERIFY_NONE )
-    {
-        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        goto exit;
-    }
-#endif
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ssl->handshake->ecrs_enabled &&

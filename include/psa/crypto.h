@@ -3129,9 +3129,9 @@ psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
  *                          public key type corresponding to the type of
  *                          private_key. That is, this function performs the
  *                          equivalent of
- *                          `psa_import_key(internal_public_key_handle,
- *                          PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(private_key_type),
- *                          peer_key, peer_key_length)` where
+ *                          #psa_import_key(`internal_public_key_handle`,
+ *                          #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(`private_key_type`),
+ *                          `peer_key`, `peer_key_length`) where
  *                          `private_key_type` is the type of `private_key`.
  *                          For example, for EC keys, this means that peer_key
  *                          is interpreted as a point on the curve that the
@@ -3175,6 +3175,10 @@ psa_status_t psa_key_agreement(psa_crypto_generator_t *generator,
  * a key derivation, use psa_key_agreement() and other functions from
  * the key derivation and generator interface.
  *
+ * \param alg                     The key agreement algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)
+ *                                is true).
  * \param private_key             Handle to the private key to use.
  * \param[in] peer_key            Public key of the peer. It must be
  *                                in the same format that psa_import_key()

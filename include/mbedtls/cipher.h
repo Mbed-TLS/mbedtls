@@ -682,10 +682,10 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
  * \param ctx           The generic cipher context. This must be initialized.
  * \param ad            The additional data to use. This must be a readable
  *                      buffer of at least \p ad_len Bytes.
- * \param ad_len        the Length of \p ad Bytes.
+ * \param ad_len        The Length of \p ad Bytes.
  *
- * \return            \c 0 on success.
- * \return            A specific error code on failure.
+ * \return              \c 0 on success.
+ * \return              A specific error code on failure.
  */
 int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len );

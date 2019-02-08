@@ -6324,7 +6324,13 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
         /* Parse the next certificate in the chain. */
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
         ret = mbedtls_x509_crt_parse_der( chain, ssl->in_msg + i, n );
+#else
+        /* If we don't need to store the CRT chani permanently, parse
+         * it in-place from the input buffer instead of making a copy. */
+        ret = mbedtls_x509_crt_parse_der_nocopy( chain, ssl->in_msg + i, n );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
         switch( ret )
         {
             case 0: /*ok*/

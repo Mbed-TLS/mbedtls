@@ -6173,6 +6173,58 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
     return( ret );
 }
 
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+static int ssl_remember_peer_crt_digest( mbedtls_ssl_context *ssl,
+                                         unsigned char *start, size_t len )
+{
+    int ret;
+    /* Remember digest of the peer's end-CRT. */
+    ssl->session_negotiate->peer_cert_digest =
+        mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
+    if( ssl->session_negotiate->peer_cert_digest == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
+                                    sizeof( MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN ) ) );
+        mbedtls_ssl_send_alert_message( ssl,
+                                        MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    }
+
+    ret = mbedtls_md( mbedtls_md_info_from_type(
+                          MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE ),
+                      start, len,
+                      ssl->session_negotiate->peer_cert_digest );
+
+    ssl->session_negotiate->peer_cert_digest_type =
+        MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE;
+    ssl->session_negotiate->peer_cert_digest_len =
+        MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN;
+
+    return( ret );
+}
+
+static int ssl_remember_peer_pubkey( mbedtls_ssl_context *ssl,
+                                     unsigned char *start, size_t len )
+{
+    unsigned char *end = start + len;
+    int ret;
+
+    /* Make a copy of the peer's raw public key. */
+    mbedtls_pk_init( &ssl->handshake->peer_pubkey );
+    ret = mbedtls_pk_parse_subpubkey( &start, end,
+                                      &ssl->handshake->peer_pubkey );
+    if( ret != 0 )
+    {
+        /* We should have parsed the public key before. */
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    return( 0 );
+}
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
@@ -6265,54 +6317,40 @@ crt_verify:
         goto exit;
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-
-    /* Remember digest of the peer's end-CRT. */
-    ssl->session_negotiate->peer_cert_digest =
-        mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
-    if( ssl->session_negotiate->peer_cert_digest == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
-                             sizeof( MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN ) ) );
-        mbedtls_ssl_send_alert_message( ssl,
-                                        MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+        unsigned char *crt_start, *pk_start;
+        size_t crt_len, pk_len;
 
-        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        goto exit;
-    }
-    ret = mbedtls_md( mbedtls_md_info_from_type(
-                      MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE ),
-                      chain->raw.p, chain->raw.len,
-                      ssl->session_negotiate->peer_cert_digest );
-    if( ret != 0 )
-        goto exit;
+        /* We parse the CRT chain without copying, so
+         * these pointers point into the input buffer,
+         * and are hence still valid after freeing the
+         * CRT chain. */
 
-    ssl->session_negotiate->peer_cert_digest_type =
-        MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE;
-    ssl->session_negotiate->peer_cert_digest_len =
-        MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN;
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+        crt_start = chain->raw.p;
+        crt_len   = chain->raw.len;
 
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    /* Make a copy of the peer's raw public key. */
-    mbedtls_pk_init( &ssl->handshake->peer_pubkey );
-    {
-        unsigned char *p, *end;
-        p = chain->pk_raw.p;
-        end = p + chain->pk_raw.len;
-        ret = mbedtls_pk_parse_subpubkey( &p, end,
-                                          &ssl->handshake->peer_pubkey );
+        pk_start = chain->pk_raw.p;
+        pk_len   = chain->pk_raw.len;
+
+        /* Free the CRT structures before computing
+         * digest and copying the peer's public key. */
+        mbedtls_x509_crt_free( chain );
+        mbedtls_free( chain );
+        chain = NULL;
+
+        ret = ssl_remember_peer_crt_digest( ssl, crt_start, crt_len );
         if( ret != 0 )
-        {
-            /* We should have parsed the public key before. */
-            ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
             goto exit;
-        }
+
+        ret = ssl_remember_peer_pubkey( ssl, pk_start, pk_len );
+        if( ret != 0 )
+            goto exit;
     }
-#else
+#else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    /* Pass ownership to session structure. */
     ssl->session_negotiate->peer_cert = chain;
     chain = NULL;
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
 

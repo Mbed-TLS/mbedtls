@@ -4,6 +4,13 @@ compiler:
 - gcc
 sudo: false
 cache: ccache
+
+# blocklist
+branches:
+  except:
+  - development-psa
+  - coverity_scan
+
 script:
 - tests/scripts/recursion.pl library/*.c
 - tests/scripts/check-generated-files.sh
@@ -34,7 +41,7 @@ addons:
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"
-    notification_email: p.j.bakker@polarssl.org
+    notification_email: simon.butcher@arm.com
     build_command_prepend:
     build_command: make
     branch_pattern: coverity_scan

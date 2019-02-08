@@ -1135,7 +1135,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
                       mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( output != NULL );
-    RSA_VALIDATE_RET( input != NULL );
+    RSA_VALIDATE_RET( ilen == 0 || input != NULL );
     RSA_VALIDATE_RET( label_len == 0 || label != NULL );
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
@@ -1218,7 +1218,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
                       mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( output != NULL );
-    RSA_VALIDATE_RET( input != NULL );
+    RSA_VALIDATE_RET( ilen == 0 || input != NULL );
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1285,7 +1285,7 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
                       mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( output != NULL );
-    RSA_VALIDATE_RET( input != NULL );
+    RSA_VALIDATE_RET( ilen == 0 || input != NULL );
 
     switch( ctx->padding )
     {

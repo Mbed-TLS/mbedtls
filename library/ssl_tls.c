@@ -5570,6 +5570,29 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
+{
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    if( session->peer_cert != NULL )
+    {
+        mbedtls_x509_crt_free( session->peer_cert );
+        mbedtls_free( session->peer_cert );
+        session->peer_cert = NULL;
+    }
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    if( session->peer_cert_digest != NULL )
+    {
+        /* Zeroization is not necessary. */
+        mbedtls_free( session->peer_cert_digest );
+        session->peer_cert_digest      = NULL;
+        session->peer_cert_digest_type = MBEDTLS_MD_NONE;
+        session->peer_cert_digest_len  = 0;
+    }
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+}
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
 /*
  * Handshake functions
  */
@@ -5772,27 +5795,6 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
-
-static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
-{
-#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    if( session->peer_cert != NULL )
-    {
-        mbedtls_x509_crt_free( session->peer_cert );
-        mbedtls_free( session->peer_cert );
-        session->peer_cert = NULL;
-    }
-#else
-    if( session->peer_cert_digest != NULL )
-    {
-        /* Zeroization is not necessary. */
-        mbedtls_free( session->peer_cert_digest );
-        session->peer_cert_digest      = NULL;
-        session->peer_cert_digest_type = MBEDTLS_MD_NONE;
-        session->peer_cert_digest_len  = 0;
-    }
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-}
 
 /*
  * Once the certificate message is read, parse it into a cert chain and

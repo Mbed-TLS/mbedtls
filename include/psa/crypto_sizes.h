@@ -286,7 +286,7 @@
  *                            correct size for an AEAD algorithm that it
  *                            recognizes, but does not support.
  */
-#define PSA_AEAD_FINISH_OUTPUT_SIZE(alg, plaintext_length)      \
+#define PSA_AEAD_FINISH_OUTPUT_SIZE(alg)      \
     ((size_t)0)
 
 /** The maximum size of the output of psa_aead_decrypt(), in bytes.

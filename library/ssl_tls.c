@@ -6133,7 +6133,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
     if( peer_crt->raw.len != crt_buf_len )
         return( -1 );
 
-    return( memcmp( peer_crt->raw.p, crt_buf, crt_buf_len) );
+    return( memcmp( peer_crt->raw.p, crt_buf, crt_buf_len ) );
 }
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
@@ -6277,10 +6277,10 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
         /* Check if we're handling the first CRT in the chain. */
         if( ssl->session_negotiate->peer_cert == NULL )
         {
-            /* During client-side renegotiation, check the server's end-CRTs
-             * hasn't changed compared to the initial handshake, mitigating
-             * the triple handshake attack. On success, reuse the original
-             * end-CRT instead of parsing it again. */
+            /* During client-side renegotiation, check that the server's
+             * end-CRTs hasn't changed compared to the initial handshake,
+             * mitigating the triple handshake attack. On success, reuse
+             * the original end-CRT instead of parsing it again. */
 #if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
             if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
                 ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )

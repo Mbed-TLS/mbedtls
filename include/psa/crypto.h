@@ -1962,7 +1962,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *                                #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\p alg,
  *                                \p plaintext_length).
  * \param[out] ciphertext_length  On success, the size of the output
- *                                in the \b ciphertext buffer.
+ *                                in the \p ciphertext buffer.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -2018,7 +2018,7 @@ psa_status_t psa_aead_encrypt(psa_key_handle_t handle,
  *                                #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p alg,
  *                                \p ciphertext_length).
  * \param[out] plaintext_length   On success, the size of the output
- *                                in the \b plaintext buffer.
+ *                                in the \p plaintext buffer.
  *
  * \retval #PSA_SUCCESS
  *         Success.

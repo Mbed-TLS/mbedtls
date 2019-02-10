@@ -382,7 +382,7 @@ static void *buffer_alloc_calloc( size_t n, size_t size )
     else if( len > (size_t)-MBEDTLS_MEMORY_ALIGN_MULTIPLE )
         return( NULL );
     
-    ret = buffer_alloc_malloc(len);
+    ret = buffer_alloc_malloc( len );
     if( ret == NULL )
         return( NULL );
     memset( ret, 0, len );
@@ -513,26 +513,26 @@ static void *buffer_alloc_realloc( void *ptr, size_t new_size )
     size_t         ptr_dim;
     void          *new_ptr;
 
-    if(!ptr)
-        return buffer_alloc_malloc(new_size);
+    if( ptr == NULL )
+        return buffer_alloc_malloc( new_size );
 
     ptr_hdr = (memory_header *)( (unsigned char *)ptr - sizeof( memory_header ) );
     ptr_dim = ptr_hdr->size;
 
-    buffer_alloc_free(ptr);
+    buffer_alloc_free( ptr );
 
-    if(new_size == 0)
-        return NULL;
+    if( new_size == 0 )
+        return( NULL );
 
-    new_ptr = buffer_alloc_malloc(new_size);
+    new_ptr = buffer_alloc_malloc( new_size );
 
-    if(!new_ptr)
-        return buffer_alloc_malloc(ptr_dim);
+    if( new_ptr == NULL )
+        return buffer_alloc_malloc( ptr_dim );
 
-    if(new_ptr != ptr)
-        memmove(new_ptr, ptr, (ptr_dim < new_size) ? ptr_dim : new_size);
+    if( new_ptr != ptr )
+        memmove( new_ptr, ptr, ( ptr_dim < new_size ) ? ptr_dim : new_size );
 
-    return new_ptr;
+    return( new_ptr );
 }
 
 void mbedtls_memory_buffer_set_verify( int verify )

@@ -847,7 +847,7 @@ int mbedtls_memory_buffer_alloc_self_test( int verbose )
     p = mbedtls_realloc( p, 128 );
     q = mbedtls_malloc( 64 );
                            
-    TEST_ASSERT_DEBUG( p == _p, "after realloc");
+    TEST_ASSERT( p == _p );
     TEST_ASSERT( q == _q );
 
     mbedtls_memory_buffer_alloc_free( );

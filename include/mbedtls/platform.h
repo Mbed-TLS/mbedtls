@@ -206,7 +206,7 @@ int mbedtls_platform_set_malloc_calloc_realloc_free(
 #define mbedtls_malloc     malloc
 #define mbedtls_calloc     calloc
 #define mbedtls_realloc    realloc
-#endif /* MBEDTLS_PLATFORM_MEMORY
+#endif /* MBEDTLS_PLATFORM_MEMORY */
 
 /*
  * The function pointers for fprintf

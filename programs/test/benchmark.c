@@ -922,6 +922,9 @@ int main( int argc, char *argv[] )
              curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
              curve_info++ )
         {
+            if( ! mbedtls_ecdh_can_do( curve_info->grp_id ) )
+                continue;
+
             mbedtls_ecdh_init( &ecdh );
 
             CHECK_AND_CONTINUE( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) );
@@ -967,6 +970,9 @@ int main( int argc, char *argv[] )
              curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
              curve_info++ )
         {
+            if( ! mbedtls_ecdh_can_do( curve_info->grp_id ) )
+                continue;
+
             mbedtls_ecdh_init( &ecdh );
 
             CHECK_AND_CONTINUE( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) );
@@ -1023,6 +1029,9 @@ int main( int argc, char *argv[] )
             curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
             curve_info++ )
         {
+            if( ! mbedtls_ecdh_can_do( curve_info->grp_id ) )
+                continue;
+
             mbedtls_ecdh_init( &ecdh_srv );
             mbedtls_ecdh_init( &ecdh_cli );
             CHECK_AND_CONTINUE( mbedtls_ecdh_setup( &ecdh_srv, curve_info->grp_id ) );

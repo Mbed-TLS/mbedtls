@@ -286,6 +286,11 @@ API Changes
      that it is now optional with the MBEDTLS_CHECK_PARAMS flag which by default
      is off. That means that checks which were previously present by default
      will no longer be.
+   * The functions mbedtls_ecp_curve_list() and mbedtls_ecp_grp_id_list() now
+     list all curves for which at least one of ECDH or ECDSA is supported, not
+     just curves for which both are supported. Call mbedtls_ecdsa_can_do() or
+     mbedtls_ecdh_can_do() on each result to check whether each algorithm is
+     supported.
 
 New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update

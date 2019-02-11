@@ -713,6 +713,9 @@ int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
     int ret;
     size_t len;
 
+    /* Extension structure use EXPLICIT tagging. That is, the actual
+     * `Extensions` structure is wrapped by a tag-length pair using
+     * the respective context-specific tag. */
     ret = mbedtls_asn1_get_tag( p, end, &ext->len,
               MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | tag );
     if( ret != 0 )
@@ -724,11 +727,6 @@ int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
 
     /*
      * Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
-     *
-     * Extension  ::=  SEQUENCE  {
-     *      extnID      OBJECT IDENTIFIER,
-     *      critical    BOOLEAN DEFAULT FALSE,
-     *      extnValue   OCTET STRING  }
      */
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )

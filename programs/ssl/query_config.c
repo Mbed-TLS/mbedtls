@@ -234,6 +234,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PLATFORM_SNPRINTF_ALT */
 
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT)
+    if( strcmp( "MBEDTLS_PLATFORM_VSNPRINTF_ALT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PLATFORM_VSNPRINTF_ALT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PLATFORM_VSNPRINTF_ALT */
+
 #if defined(MBEDTLS_PLATFORM_NV_SEED_ALT)
     if( strcmp( "MBEDTLS_PLATFORM_NV_SEED_ALT", config ) == 0 )
     {
@@ -2361,6 +2369,14 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_PLATFORM_SNPRINTF_MACRO */
+
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO)
+    if( strcmp( "MBEDTLS_PLATFORM_VSNPRINTF_MACRO", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PLATFORM_VSNPRINTF_MACRO );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PLATFORM_VSNPRINTF_MACRO */
 
 #if defined(MBEDTLS_PLATFORM_NV_SEED_READ_MACRO)
     if( strcmp( "MBEDTLS_PLATFORM_NV_SEED_READ_MACRO", config ) == 0 )

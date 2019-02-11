@@ -104,7 +104,7 @@ void mbedtls_free( void * ptr )
     (*mbedtls_free_func)( ptr );
 }
 
-int mbedtls_platform_set_calloc_and_free(
+int mbedtls_platform_set_calloc_free(
         void * (*calloc_func)( size_t, size_t ),
         void (*free_func)( void * ) )
 {

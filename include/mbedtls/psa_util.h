@@ -91,6 +91,7 @@ static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
             if( taglen == 0 )
                 return( PSA_ALG_CBC_NO_PADDING );
             /* Intentional fallthrough for taglen != 0 */
+            /* fallthrough */
         default:
             return( 0 );
     }

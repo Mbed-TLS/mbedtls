@@ -618,6 +618,18 @@ static void usage( void )
     mbedtls_printf( "                    and the same sequence of labels.\n" );
 }
 
+#if defined(MBEDTLS_CHECK_PARAMS)
+#include "mbedtls/platform_util.h"
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
+                           int line )
+{
+    mbedtls_printf( "%s:%i: Input param failed - %s\n",
+                    file, line, failure_condition );
+    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+}
+#endif
+
 int main( int argc, char *argv[] )
 {
     const char *key_file_name = "master.key";

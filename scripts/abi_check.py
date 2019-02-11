@@ -64,7 +64,7 @@ class AbiChecker(object):
         )
         git_worktree_path = tempfile.mkdtemp()
         worktree_process = subprocess.Popen(
-            [self.git_command, "worktree", "add", git_worktree_path, git_rev],
+            [self.git_command, "worktree", "add", "--detach", git_worktree_path, git_rev],
             cwd=self.repo_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
@@ -74,6 +74,18 @@ class AbiChecker(object):
         if worktree_process.returncode != 0:
             raise Exception("Checking out worktree failed, aborting")
         return git_worktree_path
+
+    def update_git_submodules(self, git_worktree_path):
+        process = subprocess.Popen(
+            [self.git_command, "submodule", "update", "--init", '--recursive'],
+            cwd=git_worktree_path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT
+        )
+        output, _ = process.communicate()
+        self.log.info(output.decode("utf-8"))
+        if process.returncode != 0:
+            raise Exception("git submodule update failed, aborting")
 
     def build_shared_libraries(self, git_worktree_path):
         my_environment = os.environ.copy()
@@ -131,6 +143,7 @@ class AbiChecker(object):
 
     def get_abi_dump_for_ref(self, git_rev):
         git_worktree_path = self.get_clean_worktree_for_git_revision(git_rev)
+        self.update_git_submodules(git_worktree_path)
         self.build_shared_libraries(git_worktree_path)
         abi_dumps = self.get_abi_dumps_from_shared_libraries(
             git_rev, git_worktree_path

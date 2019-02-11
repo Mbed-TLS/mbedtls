@@ -1,3 +1,9 @@
+MPI - Valid parameters
+mpi_valid_param:
+
+MPI - Invalid parameters
+mpi_invalid_param:
+
 Arguments with no value
 mpi_null:
 

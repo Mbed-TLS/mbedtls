@@ -1,6 +1,12 @@
 CCM self test
 mbedtls_ccm_self_test:
 
+CCM - Invalid parameters
+ccm_invalid_param:
+
+CCM - Valid parameters
+ccm_valid_param:
+
 CCM init #1 AES-128: OK
 depends_on:MBEDTLS_AES_C
 mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_AES:128:0
@@ -35,7 +41,8 @@ ccm_lengths:5:10:5:18:MBEDTLS_ERR_CCM_BAD_INPUT
 CCM lengths #6 tag length not even
 ccm_lengths:5:10:5:7:MBEDTLS_ERR_CCM_BAD_INPUT
 
-CCM lenghts #7 AD too long (2^16 - 2^8 + 1)
+CCM lengths #7 AD too long (2^16 - 2^8 + 1)
+depends_on:!MBEDTLS_CCM_ALT
 ccm_lengths:5:10:65281:8:MBEDTLS_ERR_CCM_BAD_INPUT
 
 CCM lengths #8 msg too long for this IV length (2^16, q = 2)

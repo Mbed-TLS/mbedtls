@@ -26,7 +26,7 @@ if cd $( dirname $0 ); then :; else
     exit 1
 fi
 
-# default values, can be overriden by the environment
+# default values, can be overridden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
 : ${P_PXY:=../programs/test/udp_proxy}
@@ -689,7 +689,7 @@ run_test() {
 
                 # The filtering in the following two options (-u and -U) do the following
                 #   - ignore valgrind output
-                #   - filter out everything but lines right after the pattern occurances
+                #   - filter out everything but lines right after the pattern occurrences
                 #   - keep one of each non-unique line
                 #   - count how many lines remain
                 # A line with '--' will remain in the result from previous outputs, so the number of lines in the result will be 1
@@ -755,16 +755,21 @@ run_test() {
 run_test_psa() {
     requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     run_test    "PSA-supported ciphersuite: $1" \
-                "$P_SRV debug_level=1 force_version=tls1_2" \
-                "$P_CLI debug_level=1 force_version=tls1_2 force_ciphersuite=$1" \
+                "$P_SRV debug_level=2 force_version=tls1_2" \
+                "$P_CLI debug_level=2 force_version=tls1_2 force_ciphersuite=$1" \
                 0 \
                 -c "Successfully setup PSA-based decryption cipher context" \
                 -c "Successfully setup PSA-based encryption cipher context" \
+                -c "PSA calc verify" \
+                -c "calc PSA finished" \
                 -s "Successfully setup PSA-based decryption cipher context" \
                 -s "Successfully setup PSA-based encryption cipher context" \
+                -s "PSA calc verify" \
+                -s "calc PSA finished" \
                 -C "Failed to setup PSA-based cipher context"\
                 -S "Failed to setup PSA-based cipher context"\
                 -s "Protocol is TLSv1.2" \
+                -c "Perform PSA-based computation of digest of ServerKeyExchange" \
                 -S "error" \
                 -C "error"
 }
@@ -2802,7 +2807,7 @@ run_test    "Authentication: server max_int chain, client default" \
                     key_file=data_files/dir-maxpath/09.key" \
             "$P_CLI server_name=CA09 ca_file=data_files/dir-maxpath/00.crt" \
             0 \
-            -C "X509 - A fatal error occured"
+            -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client default" \
@@ -2810,7 +2815,7 @@ run_test    "Authentication: server max_int+1 chain, client default" \
                     key_file=data_files/dir-maxpath/10.key" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt" \
             1 \
-            -c "X509 - A fatal error occured"
+            -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client optional" \
@@ -2819,7 +2824,7 @@ run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=optional" \
             1 \
-            -c "X509 - A fatal error occured"
+            -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client none" \
@@ -2828,7 +2833,7 @@ run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=none" \
             0 \
-            -C "X509 - A fatal error occured"
+            -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server default" \
@@ -2836,7 +2841,7 @@ run_test    "Authentication: client max_int+1 chain, server default" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             0 \
-            -S "X509 - A fatal error occured"
+            -S "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server optional" \
@@ -2844,7 +2849,7 @@ run_test    "Authentication: client max_int+1 chain, server optional" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "X509 - A fatal error occured"
+            -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server required" \
@@ -2852,7 +2857,7 @@ run_test    "Authentication: client max_int+1 chain, server required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "X509 - A fatal error occured"
+            -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int chain, server required" \
@@ -2860,7 +2865,7 @@ run_test    "Authentication: client max_int chain, server required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
             0 \
-            -S "X509 - A fatal error occured"
+            -S "X509 - A fatal error occurred"
 
 # Tests for CA list in CertificateRequest messages
 
@@ -7602,6 +7607,11 @@ run_test    "DTLS proxy: 3d, gnutls server" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
+# The next two test are disabled because they tend to trigger a bug in the
+# version of GnuTLS that's currently installed on our CI. The bug occurs when
+# different fragments of the same handshake message are received out-of-order
+# by GnuTLS and results in a timeout. It's been fixed in GnuTLS 3.5.2.
+skip_next_test
 requires_gnutls
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
@@ -7613,6 +7623,7 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
+skip_next_test
 requires_gnutls
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out

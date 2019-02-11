@@ -373,7 +373,7 @@ static void x509_crt_verify_chain_reset(
     for( i = 0; i < MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE; i++ )
     {
         ver_chain->items[i].crt = NULL;
-        ver_chain->items[i].flags = -1;
+        ver_chain->items[i].flags = (uint32_t) -1;
     }
 
     ver_chain->len = 0;
@@ -2261,7 +2261,7 @@ static int x509_crt_check_ee_locally_trusted(
  * Tests for (aspects of) this function should include at least:
  * - trusted EE
  * - EE -> trusted root
- * - EE -> intermedate CA -> trusted root
+ * - EE -> intermediate CA -> trusted root
  * - if relevant: EE untrusted
  * - if relevant: EE -> intermediate, untrusted
  * with the aspect under test checked at each relevant level (EE, int, root).

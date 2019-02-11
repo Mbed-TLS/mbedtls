@@ -1,12 +1,117 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.xx.x branch released xxxx-xx-xx
+= mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix a compilation issue with mbedtls_ecp_restart_ctx not being defined
+     when MBEDTLS_ECP_ALT is defined. Reported by jwhui. Fixes #2242.
+   * Run the AD too long test only if MBEDTLS_CCM_ALT is not defined.
+     Raised as a comment in #1996.
+   * Reduce the stack consumption of mbedtls_mpi_fill_random() which could
+     previously lead to a stack overflow on constrained targets.
+   * Add `MBEDTLS_SELF_TEST` for the mbedtls_self_test functions
+     in the header files, which missed the precompilation check. #971
+   * Fix returning the value 1 when mbedtls_ecdsa_genkey failed.
+   * Remove a duplicate #include in a sample program. Fixed by Masashi Honma #2326.
+   * Remove the mbedtls namespacing from the header file, to fix a "file not found"
+     build error. Fixed by Haijun Gu #2319.
+   * Fix signed-to-unsigned integer conversion warning
+     in X.509 module. Fixes #2212.
+   * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
+     Fixes #2190.
 
 Changes
-   * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
-     from the cipher abstraction layer. Fixes #2198.
+   * Include configuration file in all header files that use configuration,
+     instead of relying on other header files that they include.
+     Inserted as an enhancement for #1371
+   * Add support for alternative CSR headers, as used by Microsoft and defined
+     in RFC 7468. Found by Michael Ernst. Fixes #767.
+   * Correct many misspellings. Fixed by MisterDA #2371.
+   * Provide an abstraction of vsnprintf to allow alternative implementations
+     for platforms that don't provide it. Based on contributions by Joris Aerts
+     and Nathaniel Wesley Filardo.
+   * Fix clobber list in MIPS assembly for large integer multiplication.
+     Previously, this could lead to functionally incorrect assembly being
+     produced by some optimizing compilers, showing up as failures in
+     e.g. RSA or ECC signature operations. Reported in #1722, fix suggested
+     by Aurelien Jarno and submitted by Jeffrey Martin.
 
-= mbed TLS 2.14.0+01b34fb316a5 branch released xxxx-xx-xx
+= mbed TLS 2.16.0 branch released 2018-12-21
+
+Features
+   * Add a new config.h option of MBEDTLS_CHECK_PARAMS that enables validation
+     of parameters in the API. This allows detection of obvious misuses of the
+     API, such as passing NULL pointers. The API of existing functions hasn't
+     changed, but requirements on parameters have been made more explicit in
+     the documentation. See the corresponding API documentation for each
+     function to see for which parameter values it is defined. This feature is
+     disabled by default. See its API documentation in config.h for additional
+     steps you have to take when enabling it.
+
+API Changes
+   * The following functions in the random generator modules have been
+     deprecated and replaced as shown below. The new functions change
+     the return type from void to int to allow returning error codes when
+     using MBEDTLS_<MODULE>_ALT for the underlying AES or message digest
+     primitive. Fixes #1798.
+     mbedtls_ctr_drbg_update() -> mbedtls_ctr_drbg_update_ret()
+     mbedtls_hmac_drbg_update() -> mbedtls_hmac_drbg_update_ret()
+   * Extend ECDH interface to enable alternative implementations.
+   * Deprecate error codes of the form MBEDTLS_ERR_xxx_INVALID_KEY_LENGTH for
+     ARIA, CAMELLIA and Blowfish. These error codes will be replaced by
+     the more generic per-module error codes MBEDTLS_ERR_xxx_BAD_INPUT_DATA.
+   * Additional parameter validation checks have been added for the following
+     modules - AES, ARIA, Blowfish, CAMELLIA, CCM, GCM, DHM, ECP, ECDSA, ECDH,
+     ECJPAKE, SHA, Chacha20 and Poly1305, cipher, pk, RSA, and MPI.
+     Where modules have had parameter validation added, existing parameter
+     checks may have changed. Some modules, such as Chacha20 had existing
+     parameter validation whereas other modules had little. This has now been
+     changed so that the same level of validation is present in all modules, and
+     that it is now optional with the MBEDTLS_CHECK_PARAMS flag which by default
+     is off. That means that checks which were previously present by default
+     will no longer be.
+
+New deprecations
+   * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update
+     in favor of functions that can return an error code.
+
+Bugfix
+   * Fix for Clang, which was reporting a warning for the bignum.c inline
+     assembly for AMD64 targets creating string literals greater than those
+     permitted by the ISO C99 standard. Found by Aaron Jones. Fixes #482.
+   * Fix runtime error in `mbedtls_platform_entropy_poll()` when run
+     through qemu user emulation. Reported and fix suggested by randombit
+     in #1212. Fixes #1212.
+   * Fix an unsafe bounds check when restoring an SSL session from a ticket.
+     This could lead to a buffer overflow, but only in case ticket authentication
+     was broken. Reported and fix suggested by Guido Vranken in #659.
+   * Add explicit integer to enumeration type casts to example program
+     programs/pkey/gen_key which previously led to compilation failure
+     on some toolchains. Reported by phoenixmcallister. Fixes #2170.
+   * Fix double initialization of ECC hardware that made some accelerators
+     hang.
+   * Clarify documentation of mbedtls_ssl_set_own_cert() regarding the absence
+     of check for certificate/key matching. Reported by Attila Molnar, #507.
+
+ = mbed TLS 2.15.1 branch released 2018-11-30
+
+ Changes
+    * Update the Mbed Crypto submodule to version 0.1.0b2.
+
+ = mbed TLS 2.15.0 branch released 2018-11-23
+
+ Features
+    * Add an experimental build option, USE_CRYPTO_SUBMODULE, to enable use of
+      Mbed Crypto as the source of the cryptography implementation.
+    * Add an experimental configuration option, MBEDTLS_PSA_CRYPTO_C, to enable
+      the PSA Crypto API from Mbed Crypto when additionally used with the
+      USE_CRYPTO_SUBMODULE build option.
+
+ Changes
+    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
+      from the cipher abstraction layer. Fixes #2198.
+
+= mbed TLS 2.14.1 branch released 2018-11-30
 
 Security
    * Fix timing variations and memory access variations in RSA PKCS#1 v1.5
@@ -29,34 +134,11 @@ Security
      modules.
 
 API Changes
-   * The following functions in the random generator modules have been
-     deprecated and replaced as shown below. The new functions change
-     the return type from void to int to allow returning error codes when
-     using MBEDTLS_<MODULE>_ALT for the underlying AES or message digest
-     primitive. Fixes #1798.
-     mbedtls_ctr_drbg_update() -> mbedtls_ctr_drbg_update_ret()
-     mbedtls_hmac_drbg_update() -> mbedtls_hmac_drbg_update_ret()
-   * Extend ECDH interface to enable alternative implementations.
-
-New deprecations
-   * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update
-     in favor of functions that can return an error code.
-
-Bugfix
-   * Fix for Clang, which was reporting a warning for the bignum.c inline
-     assembly for AMD64 targets creating string literals greater than those
-     permitted by the ISO C99 standard. Found by Aaron Jones. Fixes #482.
-   * Fix runtime error in `mbedtls_platform_entropy_poll()` when run
-     through qemu user emulation. Reported and fix suggested by randombit
-     in #1212. Fixes #1212.
-   * Fix an unsafe bounds check when restoring an SSL session from a ticket.
-     This could lead to a buffer overflow, but only in case ticket authentication
-     was broken. Reported and fix suggested by Guido Vranken in #659.
-   * Add explicit integer to enumeration type casts to example program
-     programs/pkey/gen_key which previously led to compilation failure
-     on some toolchains. Reported by phoenixmcallister. Fixes #2170.
-   * Fix double initialization of ECC hardware that made some accelerators
-     hang.
+   * The new functions mbedtls_ctr_drbg_update_ret() and
+     mbedtls_hmac_drbg_update_ret() are similar to mbedtls_ctr_drbg_update()
+     and mbedtls_hmac_drbg_update() respectively, but the new functions
+     report errors whereas the old functions return void. We recommend that
+     applications use the new functions.
 
 = mbed TLS 2.14.0 branch released 2018-11-19
 
@@ -281,7 +363,7 @@ Security
      1.2, that allowed a local attacker, able to execute code on the local
      machine as well as manipulate network packets, to partially recover the
      plaintext of messages under some conditions by using a cache attack
-     targetting an internal MD/SHA buffer. With TLS or if
+     targeting an internal MD/SHA buffer. With TLS or if
      mbedtls_ssl_conf_dtls_badmac_limit() was used, the attack only worked if
      the same secret (for example a HTTP Cookie) has been repeatedly sent over
      connections manipulated by the attacker. Connections using GCM or CCM
@@ -1167,7 +1249,7 @@ Bugfix
    * Fix potential build failures related to the 'apidoc' target, introduced
      in the previous patch release. Found by Robert Scheck. #390 #391
    * Fix issue in Makefile that prevented building using armar. #386
-   * Fix memory leak that occured only when ECJPAKE was enabled and ECDHE and
+   * Fix memory leak that occurred only when ECJPAKE was enabled and ECDHE and
      ECDSA was disabled in config.h . The leak didn't occur by default.
    * Fix an issue that caused valid certificates to be rejected whenever an
      expired or not yet valid certificate was parsed before a valid certificate
@@ -1409,7 +1491,7 @@ API Changes
      You now need to link to all of them if you use TLS for example.
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.
      Some names have been further changed to make them more consistent.
-     Migration helpers scripts/rename.pl and include/mbedlts/compat-1.3.h are
+     Migration helpers scripts/rename.pl and include/mbedtls/compat-1.3.h are
      provided. Full list of renamings in scripts/data_files/rename-1.3-2.0.txt
    * Renamings of fields inside structures, not covered by the previous list:
      mbedtls_cipher_info_t.key_length -> key_bitlen
@@ -1464,7 +1546,7 @@ API Changes
    * net_accept() gained new arguments for the size of the client_ip buffer.
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.
-   * ecdsa_write_signature() gained an addtional md_alg argument and
+   * ecdsa_write_signature() gained an additional md_alg argument and
      ecdsa_write_signature_det() was deprecated.
    * pk_sign() no longer accepts md_alg == POLARSSL_MD_NONE with ECDSA.
    * Last argument of x509_crt_check_key_usage() and
@@ -2999,7 +3081,7 @@ XySSL ChangeLog
       not swapped on PadLock; also fixed compilation on older versions
       of gcc (bug reported by David Barrett)
     * Correctly handle the case in padlock_xcryptcbc() when input or
-      ouput data is non-aligned by falling back to the software
+      output data is non-aligned by falling back to the software
       implementation, as VIA Nehemiah cannot handle non-aligned buffers
     * Fixed a memory leak in x509parse_crt() which was reported by Greg
       Robson-Garth; some x509write.c fixes by Pascal Vizeli, thanks to

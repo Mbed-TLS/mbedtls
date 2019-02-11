@@ -564,7 +564,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     /* mbedtls_pk_write_pubkey() expects a full PK context;
-     * re-construct one to make it happy. */
+     * re-construct one to make it happy */
     key.pk_info = &pk_info;
     key.pk_ctx = ctx;
     p = buf + sizeof( buf );

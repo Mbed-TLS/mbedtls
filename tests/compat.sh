@@ -21,7 +21,7 @@ FAILED=0
 SKIPPED=0
 SRVMEM=0
 
-# default commands, can be overriden by the environment
+# default commands, can be overridden by the environment
 : ${M_SRV:=../programs/ssl/ssl_server2}
 : ${M_CLI:=../programs/ssl/ssl_client2}
 : ${OPENSSL_CMD:=openssl} # OPENSSL would conflict with the build system

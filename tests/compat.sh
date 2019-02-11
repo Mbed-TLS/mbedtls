@@ -57,6 +57,7 @@ FILTER=""
 # - NULL: excluded from our default config
 # - RC4, single-DES: requires legacy OpenSSL/GnuTLS versions
 #   avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
+# - 3DES: not in default config
 EXCLUDE='NULL\|DES-CBC-\|RC4\|3DES\|ARCFOUR'
 VERBOSE=""
 MEMCHECK=0

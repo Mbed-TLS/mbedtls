@@ -118,6 +118,13 @@ Features
      changed its IP or port. The feature is enabled at compile-time by setting
      MBEDTLS_SSL_DTLS_CONNECTION_ID (disabled by default), and at run-time
      through the new APIs mbedtls_ssl_conf_cid() and mbedtls_ssl_set_cid().
+   * New implementation of X25519 (ECDH using Curve25519) from Project Everest
+     (https://project-everest.github.io/). It can be enabled at compile time
+     with MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED. This implementation is formally
+     verified and significantly faster, but is only supported on x86 platforms
+     (32-bit and 64-bit) using GCC, Clang or Visual Studio. Contributed by
+     Christoph Wintersteiger from Microsoft Research.
+
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

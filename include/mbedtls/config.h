@@ -696,7 +696,7 @@
  * to enable (some of) them with mbedtls_ssl_conf_ciphersuites() by including
  * them explicitly.
  *
- * A man-in-the browser attacker can recover authentication tokens sent through
+ * A man-in-the-browser attacker can recover authentication tokens sent through
  * a TLS connection using a 3DES based cipher suite (see "On the Practical
  * (In-)Security of 64-bit Block Ciphers" by Karthikeyan Bhargavan and Gaëtan
  * Leurent, see https://sweet32.info/SWEET32_CCS16.pdf). If this attack falls

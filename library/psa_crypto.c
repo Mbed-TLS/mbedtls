@@ -1235,7 +1235,8 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     status = psa_import_key( target, source->type, buffer, length );
 
 exit:
-    mbedtls_platform_zeroize( buffer, buffer_size );
+    if( buffer_size != 0 )
+        mbedtls_platform_zeroize( buffer, buffer_size );
     mbedtls_free( buffer );
     return( status );
 }

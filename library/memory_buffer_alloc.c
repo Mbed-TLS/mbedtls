@@ -381,7 +381,7 @@ static void *buffer_alloc_calloc( size_t n, size_t size )
         return( NULL );
     else if( len > (size_t)-MBEDTLS_MEMORY_ALIGN_MULTIPLE )
         return( NULL );
-    
+
     ret = buffer_alloc_malloc( len );
     if( ret == NULL )
         return( NULL );
@@ -846,7 +846,7 @@ int mbedtls_memory_buffer_alloc_self_test( int verbose )
 
     p = mbedtls_realloc( p, 128 );
     q = mbedtls_malloc( 64 );
-                           
+
     TEST_ASSERT( p == _p );
     TEST_ASSERT( q == _q );
 

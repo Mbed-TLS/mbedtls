@@ -1227,7 +1227,7 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     buffer_size = PSA_KEY_EXPORT_MAX_SIZE( source->type,
                                            psa_get_key_bits( source ) );
     buffer = mbedtls_calloc( 1, buffer_size );
-    if( buffer == NULL )
+    if( buffer == NULL && buffer_size != 0 )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
     status = psa_internal_export_key( source, buffer, buffer_size, &length, 0 );
     if( status != PSA_SUCCESS )
@@ -1235,7 +1235,8 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     status = psa_import_key( target, source->type, buffer, length );
 
 exit:
-    mbedtls_platform_zeroize( buffer, buffer_size );
+    if( buffer_size != 0 )
+        mbedtls_platform_zeroize( buffer, buffer_size );
     mbedtls_free( buffer );
     return( status );
 }

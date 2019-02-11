@@ -232,12 +232,12 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
 
 #define CHECK_AND_CONTINUE( R )                                         \
     {                                                                   \
-        int ret = ( R );                                                \
-        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) {         \
+        int CHECK_AND_CONTINUE_ret = ( R );                             \
+        if( CHECK_AND_CONTINUE_ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) { \
             mbedtls_printf( "Feature not supported. Skipping.\n" );     \
             continue;                                                   \
         }                                                               \
-        else if( ret != 0 ) {                                           \
+        else if( CHECK_AND_CONTINUE_ret != 0 ) {                        \
             mbedtls_exit( 1 );                                          \
         }                                                               \
     }

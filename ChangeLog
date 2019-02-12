@@ -101,6 +101,7 @@ Changes
      been disabled for lack of a sufficiently recent version of GnuTLS on the CI.
    * Ciphersuites based on 3DES now have the lowest priority by default when
      they are enabled.
+   * Replace multiple uses of MD2 by SHA-256 in X.509 test suite. Fixes #821.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

@@ -5,7 +5,10 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
+#include <stdlib.h>
+#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #define mbedtls_printf printf
+#define mbedtls_exit exit
 #endif
 
 #define ASSERT( predicate )                                                   \

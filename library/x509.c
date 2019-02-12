@@ -357,6 +357,8 @@ static int x509_get_attr_type_value( unsigned char **p,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
 
+    end = *p + len;
+
     if( ( end - *p ) < 1 )
         return( MBEDTLS_ERR_X509_INVALID_NAME +
                 MBEDTLS_ERR_ASN1_OUT_OF_DATA );
@@ -389,6 +391,12 @@ static int x509_get_attr_type_value( unsigned char **p,
 
     val->p = *p;
     *p += val->len;
+
+    if( *p != end )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_NAME +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+    }
 
     cur->next = NULL;
 

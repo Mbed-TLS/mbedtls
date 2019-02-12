@@ -1441,15 +1441,15 @@ void key_policy_init( )
 
     memset( &zero, 0, sizeof( zero ) );
 
-    /* Although not technically guaranteed by the C standard nor the PSA Crypto
-     * specification, we test that all valid ways of initializing the object
-     * have the same bit pattern. This is a stronger requirement that may not
-     * be valid on all platforms or PSA Crypto implementations, but implies the
-     * weaker actual requirement is met: that a freshly initialized object, no
-     * matter how it was initialized, acts the same as any other valid
-     * initialization. */
-    TEST_EQUAL( memcmp( &func, &zero, sizeof( zero ) ), 0 );
-    TEST_EQUAL( memcmp( &init, &zero, sizeof( zero ) ), 0 );
+    /* A default key policy should not permit any usage. */
+    TEST_EQUAL( psa_key_policy_get_usage( &func ), 0 );
+    TEST_EQUAL( psa_key_policy_get_usage( &init ), 0 );
+    TEST_EQUAL( psa_key_policy_get_usage( &zero ), 0 );
+
+    /* A default key policy should not permit any algorithm. */
+    TEST_EQUAL( psa_key_policy_get_algorithm( &func ), 0 );
+    TEST_EQUAL( psa_key_policy_get_algorithm( &init ), 0 );
+    TEST_EQUAL( psa_key_policy_get_algorithm( &zero ), 0 );
 }
 /* END_CASE */
 
@@ -1960,15 +1960,10 @@ void hash_operation_init( )
 
     memset( &zero, 0, sizeof( zero ) );
 
-    /* Although not technically guaranteed by the C standard nor the PSA Crypto
-     * specification, we test that all valid ways of initializing the object
-     * have the same bit pattern. This is a stronger requirement that may not
-     * be valid on all platforms or PSA Crypto implementations, but implies the
-     * weaker actual requirement is met: that a freshly initialized object, no
-     * matter how it was initialized, acts the same as any other valid
-     * initialization. */
-    TEST_EQUAL( memcmp( &func, &zero, sizeof( zero ) ), 0 );
-    TEST_EQUAL( memcmp( &init, &zero, sizeof( zero ) ), 0 );
+    /* A default hash operation should be abortable without error. */
+    PSA_ASSERT( psa_hash_abort( &func ) );
+    PSA_ASSERT( psa_hash_abort( &init ) );
+    PSA_ASSERT( psa_hash_abort( &zero ) );
 }
 /* END_CASE */
 
@@ -2183,15 +2178,10 @@ void mac_operation_init( )
 
     memset( &zero, 0, sizeof( zero ) );
 
-    /* Although not technically guaranteed by the C standard nor the PSA Crypto
-     * specification, we test that all valid ways of initializing the object
-     * have the same bit pattern. This is a stronger requirement that may not
-     * be valid on all platforms or PSA Crypto implementations, but implies the
-     * weaker actual requirement is met: that a freshly initialized object, no
-     * matter how it was initialized, acts the same as any other valid
-     * initialization. */
-    TEST_EQUAL( memcmp( &func, &zero, sizeof( zero ) ), 0 );
-    TEST_EQUAL( memcmp( &init, &zero, sizeof( zero ) ), 0 );
+    /* A default MAC operation should be abortable without error. */
+    PSA_ASSERT( psa_mac_abort( &func ) );
+    PSA_ASSERT( psa_mac_abort( &init ) );
+    PSA_ASSERT( psa_mac_abort( &zero ) );
 }
 /* END_CASE */
 
@@ -2338,15 +2328,10 @@ void cipher_operation_init( )
 
     memset( &zero, 0, sizeof( zero ) );
 
-    /* Although not technically guaranteed by the C standard nor the PSA Crypto
-     * specification, we test that all valid ways of initializing the object
-     * have the same bit pattern. This is a stronger requirement that may not
-     * be valid on all platforms or PSA Crypto implementations, but implies the
-     * weaker actual requirement is met: that a freshly initialized object, no
-     * matter how it was initialized, acts the same as any other valid
-     * initialization. */
-    TEST_EQUAL( memcmp( &func, &zero, sizeof( zero ) ), 0 );
-    TEST_EQUAL( memcmp( &init, &zero, sizeof( zero ) ), 0 );
+    /* A default cipher operation should be abortable without error. */
+    PSA_ASSERT( psa_cipher_abort( &func ) );
+    PSA_ASSERT( psa_cipher_abort( &init ) );
+    PSA_ASSERT( psa_cipher_abort( &zero ) );
 }
 /* END_CASE */
 
@@ -3527,21 +3512,25 @@ void crypto_generator_init( )
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
      * to supress the Clang warning for the test. */
+    size_t capacity;
     psa_crypto_generator_t func = psa_crypto_generator_init( );
     psa_crypto_generator_t init = PSA_CRYPTO_GENERATOR_INIT;
     psa_crypto_generator_t zero;
 
     memset( &zero, 0, sizeof( zero ) );
 
-    /* Although not technically guaranteed by the C standard nor the PSA Crypto
-     * specification, we test that all valid ways of initializing the object
-     * have the same bit pattern. This is a stronger requirement that may not
-     * be valid on all platforms or PSA Crypto implementations, but implies the
-     * weaker actual requirement is met: that a freshly initialized object, no
-     * matter how it was initialized, acts the same as any other valid
-     * initialization. */
-    TEST_EQUAL( memcmp( &func, &zero, sizeof( zero ) ), 0 );
-    TEST_EQUAL( memcmp( &init, &zero, sizeof( zero ) ), 0 );
+    /* A default generator should have no capacity. */
+    PSA_ASSERT( psa_get_generator_capacity( &func, &capacity ) );
+    TEST_EQUAL( capacity, 0 );
+    PSA_ASSERT( psa_get_generator_capacity( &init, &capacity ) );
+    TEST_EQUAL( capacity, 0 );
+    PSA_ASSERT( psa_get_generator_capacity( &zero, &capacity ) );
+    TEST_EQUAL( capacity, 0 );
+
+    /* A default generator should be abortable without error. */
+    PSA_ASSERT( psa_generator_abort(&func) );
+    PSA_ASSERT( psa_generator_abort(&init) );
+    PSA_ASSERT( psa_generator_abort(&zero) );
 }
 /* END_CASE */
 

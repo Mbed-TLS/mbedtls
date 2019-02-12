@@ -36,7 +36,7 @@ We do not make any promises regarding key storage, or regarding the nonvolatile 
 
 Information about each key is stored in a dedicated file whose name is constructed from the key identifier. The way in which the file name is constructed depends on the storage backend. The content of the file is described [below](#key-file-format-for-0.1.0).
 
-The valid values for a key identifier are the range from 1 to 0xfffeffff. The range is not documented.
+The valid values for a key identifier are the range from 1 to 0xfffeffff. This limitation on the range is not documented in user-facing documentation: according to the user-facing documentation, arbitrary 32-bit values are valid.
 
 The code uses the following constant in an internal header (note that despite the name, this value is actually one plus the maximum permitted value):
 
@@ -108,14 +108,14 @@ Backward compatibility commitments: TBD
 
 Information about each key is stored in a dedicated file whose name is constructed from the 32-bit key identifier (`psa_key_id_t`) and, if applicable, the owner identifier. The way in which the file name is constructed depends on the storage backend. The content of the file is described [below](#key-file-format-for-0.2.0).
 
-The valid values for a key identifier are the range from 1 to 0xfffeffff. The range is not documented.
+The valid values for a key identifier are the range from 1 to 0xfffeffff. This limitation on the range is not documented in user-facing documentation: according to the user-facing documentation, arbitrary 32-bit values are valid.
 
 * Library integration: the key file name is just the key identifer. This is a 32-bit value.
 * PSA service integration: the key file name is `key_id << 32 | owner_uid` where `key_id` is the key identifier specified by the application and `owner_uid` is the calling partition identifier provided to the serve by the partition manager. This is a 64-bit value.
 
 ### Key file format for 0.2.0
 
-The layout is identical to [0.1.0](#key-file-format-for-0.1.0) so far. However note that the encoding of key types, algorithms and key material has changed, therefore the storage format is not compatible (despite using the same version so far).
+The layout is identical to [0.1.0](#key-file-format-for-0.1.0) so far. However note that the encoding of key types, algorithms and key material has changed, therefore the storage format is not compatible (despite using the same value in the version field so far).
 
 ### Nonvolatile random seed file format for 0.2.0
 

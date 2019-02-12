@@ -704,22 +704,19 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
  * be either manually updated or extensions should be parsed!)
  */
 int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
-                  mbedtls_x509_buf *ext, int tag )
+                          mbedtls_x509_buf *ext, int tag )
 {
     int ret;
     size_t len;
 
-    if( *p == end )
-        return( 0 );
+    ret = mbedtls_asn1_get_tag( p, end, &ext->len,
+              MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | tag );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
-    ext->tag = **p;
-
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &ext->len,
-            MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | tag ) ) != 0 )
-        return( ret );
-
-    ext->p = *p;
-    end = *p + ext->len;
+    ext->tag = MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | tag;
+    ext->p   = *p;
+    end      = *p + ext->len;
 
     /*
      * Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension

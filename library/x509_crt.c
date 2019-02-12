@@ -699,6 +699,9 @@ static int x509_get_crt_ext( unsigned char **p,
     size_t len;
     unsigned char *end_ext_data, *end_ext_octet;
 
+    if( *p == end )
+        return( 0 );
+
     if( ( ret = mbedtls_x509_get_ext( p, end, &crt->v3_ext, 3 ) ) != 0 )
     {
         if( ret == MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
@@ -707,6 +710,7 @@ static int x509_get_crt_ext( unsigned char **p,
         return( ret );
     }
 
+    end = crt->v3_ext.p + crt->v3_ext.len;
     while( *p < end )
     {
         /*

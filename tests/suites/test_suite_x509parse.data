@@ -919,29 +919,41 @@ X509 Parse Selftest
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_CERTS_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_selftest:
 
-X509 Certificate ASN1 (Incorrect first tag)
+X509 Certificate ASN1 (Empty Certificate)
 x509parse_crt:"":"":MBEDTLS_ERR_X509_INVALID_FORMAT
 
-X509 Certificate ASN1 (Correct first tag, data length does not match)
-x509parse_crt:"300000":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
+X509 Certificate ASN1 (Invalid Certificate, bad tag)
+x509parse_crt:"00":"":MBEDTLS_ERR_X509_INVALID_FORMAT
 
-X509 Certificate ASN1 (Correct first tag, no more data)
-x509parse_crt:"3000":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
+X509 Certificate ASN1 (Invalid Certificate, no length)
+x509parse_crt:"30":"":MBEDTLS_ERR_X509_INVALID_FORMAT
 
-X509 Certificate ASN1 (Correct first tag, length data incorrect)
-x509parse_crt:"30023085":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_INVALID_LENGTH
+X509 Certificate ASN1 (Invalid Certificate, bad length encoding)
+x509parse_crt:"3085":"":MBEDTLS_ERR_X509_INVALID_FORMAT
 
-X509 Certificate ASN1 (Correct first tag, length data incomplete)
-x509parse_crt:"30023083":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
+X509 Certificate ASN1 (Invalid Certificate, length data incomplete)
+x509parse_crt:"308200":"":MBEDTLS_ERR_X509_INVALID_FORMAT
 
-X509 Certificate ASN1 (Correct first tag, length data incomplete)
-x509parse_crt:"30023081":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
-
-X509 Certificate ASN1 (Correct first tag, length data incomplete)
-x509parse_crt:"3003308200":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
+X509 Certificate ASN1 (Invalid Certificate, length out of bounds)
+x509parse_crt:"3001":"":MBEDTLS_ERR_X509_INVALID_FORMAT
 
 X509 Certificate ASN1 (Correct first tag, second tag no TBSCertificate)
 x509parse_crt:"300100":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+X509 Certificate ASN1 (Correct first tag, TBSCertificate tag correct, no more data)
+x509parse_crt:"300130":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
+
+X509 Certificate ASN1 (Correct first tag, TBSCertificate tag correct, invalid length data)
+x509parse_crt:"30023085":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_INVALID_LENGTH
+
+X509 Certificate ASN1 (Correct first tag, TBSCertificate tag correct, length data incomplete)
+x509parse_crt:"300430839999":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
+
+X509 Certificate ASN1 (Correct first tag, TBSCertificate tag correct, length too large)
+x509parse_crt:"30023003":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
+
+X509 Certificate ASN1 (TBSCertificate empty)
+x509parse_crt:"30153000300d06092a864886f70d01010b0500030200ff":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 Certificate ASN1 (TBSCertificate, no version tag, serial missing)
 x509parse_crt:"3003300100":"":MBEDTLS_ERR_X509_INVALID_SERIAL + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG

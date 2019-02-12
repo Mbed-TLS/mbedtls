@@ -62,7 +62,10 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
         }
     } else if (PSA_ALG_IS_AEAD(alg)) {
         core_alg = PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(alg);
-        if (core_alg != alg) {
+        if (core_alg == 0) {
+            /* For unknown AEAD algorithms, there is no "default tag length". */
+            core_alg = alg;
+        } else if (core_alg != alg) {
             append(&buffer, buffer_size, &required_size,
                    "PSA_ALG_AEAD_WITH_TAG_LENGTH(", 29);
             length_modifier = PSA_AEAD_TAG_LENGTH(alg);
@@ -73,7 +76,7 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     default:
         %(algorithm_code)s{
             append_integer(&buffer, buffer_size, &required_size,
-                           "0x%%08lx", (unsigned long) alg);
+                           "0x%%08lx", (unsigned long) core_alg);
         }
         break;
     }
@@ -273,10 +276,11 @@ class MacroCollector:
         data['key_usage_code'] = self.make_key_usage_code()
         output_file.write(output_template % data)
 
-def generate_psa_constants(header_file_name, output_file_name):
+def generate_psa_constants(header_file_names, output_file_name):
     collector = MacroCollector()
-    with open(header_file_name) as header_file:
-        collector.read_file(header_file)
+    for header_file_name in header_file_names:
+        with open(header_file_name) as header_file:
+            collector.read_file(header_file)
     temp_file_name = output_file_name + '.tmp'
     with open(temp_file_name, 'w') as output_file:
         collector.write_file(output_file)
@@ -285,5 +289,6 @@ def generate_psa_constants(header_file_name, output_file_name):
 if __name__ == '__main__':
     if not os.path.isdir('programs') and os.path.isdir('../programs'):
         os.chdir('..')
-    generate_psa_constants('include/psa/crypto_values.h',
+    generate_psa_constants(['include/psa/crypto_values.h',
+                            'include/psa/crypto_extra.h'],
                            'programs/psa/psa_constant_names_generated.c')

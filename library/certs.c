@@ -725,7 +725,7 @@
 "iEM9wW7hEMkwmk0h/sqZsrJsGH5YsF/VThSq/JVO1e2mZH2vruyZKJVBq+8tDNYp\r\n"  \
 "HkK6tSyVYQhzIt3StMJWKMl/o5k2AYz6tSC164+1oG+ML3LWg8XrGKa91H4UOKap\r\n"  \
 "Awgk0+4m0T25cNs=\r\n"                                                  \
-"-----END CERTIFICATE-----\r\n";
+"-----END CERTIFICATE-----\r\n"
 /* END FILE */
 
 /* This is taken from tests/data_files/server2.crt.der. */

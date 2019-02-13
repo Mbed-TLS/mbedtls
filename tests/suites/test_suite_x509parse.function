@@ -334,6 +334,10 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
     char *      cn_name = NULL;
     const mbedtls_x509_crt_profile *profile;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    TEST_ASSERT( psa_crypto_init() == 0 );
+#endif
+
     mbedtls_x509_crt_init( &crt );
     mbedtls_x509_crt_init( &ca );
     mbedtls_x509_crl_init( &crl );
@@ -386,6 +390,10 @@ void x509_verify_callback( char *crt_file, char *ca_file, char *name,
     mbedtls_x509_crt ca;
     uint32_t flags = 0;
     verify_print_context vrfy_ctx;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    TEST_ASSERT( psa_crypto_init() == 0 );
+#endif
 
     mbedtls_x509_crt_init( &crt );
     mbedtls_x509_crt_init( &ca );
@@ -605,6 +613,10 @@ void mbedtls_x509_crt_verify_max( char *ca_file, char *chain_dir, int nb_int,
     uint32_t flags;
     mbedtls_x509_crt trusted, chain;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    TEST_ASSERT( psa_crypto_init() == 0 );
+#endif
+
     /*
      * We expect chain_dir to contain certificates 00.crt, 01.crt, etc.
      * with NN.crt signed by NN-1.crt
@@ -645,6 +657,10 @@ void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca,
     int res;
     mbedtls_x509_crt trusted, chain;
     const mbedtls_x509_crt_profile *profile = NULL;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    TEST_ASSERT( psa_crypto_init() == 0 );
+#endif
 
     mbedtls_x509_crt_init( &chain );
     mbedtls_x509_crt_init( &trusted );

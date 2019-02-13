@@ -962,6 +962,8 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
 #else
     if( use_psa == 1 )
     {
+        TEST_ASSERT( psa_crypto_init() == 0 );
+
         /* PSA requires that the tag immediately follows the ciphertext. */
         tmp_cipher = mbedtls_calloc( 1, cipher->len + tag->len );
         TEST_ASSERT( tmp_cipher != NULL );
@@ -1104,6 +1106,7 @@ void test_vec_crypt( int cipher_id, int operation, char *hex_key,
 #else
     if( use_psa == 1 )
     {
+        TEST_ASSERT( psa_crypto_init() == 0 );
         TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
                               mbedtls_cipher_info_from_type( cipher_id ), 0 ) );
     }

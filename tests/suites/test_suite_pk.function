@@ -124,6 +124,8 @@ void pk_psa_utils(  )
     size_t len;
     mbedtls_pk_debug_item dbg;
 
+    TEST_ASSERT( psa_crypto_init() == 0 );
+
     mbedtls_pk_init( &pk );
     mbedtls_pk_init( &pk2 );
 

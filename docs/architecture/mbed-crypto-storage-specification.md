@@ -111,7 +111,7 @@ Information about each key is stored in a dedicated file whose name is construct
 The valid values for a key identifier are the range from 1 to 0xfffeffff. This limitation on the range is not documented in user-facing documentation: according to the user-facing documentation, arbitrary 32-bit values are valid.
 
 * Library integration: the key file name is just the key identifer. This is a 32-bit value.
-* PSA service integration: the key file name is `key_id << 32 | owner_uid` where `key_id` is the key identifier specified by the application and `owner_uid` is the calling partition identifier provided to the serve by the partition manager. This is a 64-bit value.
+* PSA service integration: the key file name is `key_id << 32 | owner_uid` where `key_id` is the key identifier specified by the application and `owner_uid` is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
 
 ### Key file format for 0.2.0
 
@@ -131,7 +131,7 @@ Assumption: ITS provides a 64-bit file identifier namespace. The Crypto service 
 
 ### File namespace on ITS as a library for 0.2.0
 
-Assumption: ITS provides a 64-bit file identifier namespace. The Crypto service can use arbitrary file identifiers and no other part of the system accesses the same file identifier namespace.
+Assumption: ITS provides a 64-bit file identifier namespace. The entity using the crypto library can use arbitrary file identifiers and no other part of the system accesses the same file identifier namespace.
 
 * File 0: unused.
 * Files 1 through 0xfffeffff: [content](#key-file-format-for-0.2.0) of the [key whose identifier is the file identifier](#key-names-for-0.2.0).

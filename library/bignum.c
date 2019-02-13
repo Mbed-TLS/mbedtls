@@ -814,6 +814,34 @@ static void mpi_bigendian_to_host( mbedtls_mpi_uint * const p, size_t limbs )
 }
 
 /*
+ * Import X from unsigned binary data, little endian
+ */
+int mbedtls_mpi_read_binary_le( mbedtls_mpi *X,
+                                const unsigned char *buf, size_t buflen )
+{
+    int ret;
+    size_t i;
+    size_t const limbs = CHARS_TO_LIMBS( buflen );
+
+    /* Ensure that target MPI has exactly the necessary number of limbs */
+    if( X->n != limbs )
+    {
+        mbedtls_mpi_free( X );
+        mbedtls_mpi_init( X );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, limbs ) );
+    }
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
+
+    for( i = 0; i < buflen; i++ )
+        X->p[i / ciL] |= ((mbedtls_mpi_uint) buf[i]) << ((i % ciL) << 3);
+
+cleanup:
+
+    return( ret );
+}
+
+/*
  * Import X from unsigned binary data, big endian
  */
 int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t buflen )

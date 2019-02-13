@@ -211,6 +211,12 @@ def remove_file_if_exists(filename):
 
 def run_c(options, type, names):
     '''Generate and run a program to print out numerical values for names.'''
+    if type == 'status':
+        cast_to = 'long'
+        printf_format = '%ld'
+    else:
+        cast_to = 'unsigned long'
+        printf_format = '0x%08lx'
     c_name = None
     exe_name = None
     try:
@@ -230,7 +236,8 @@ int main(void)
 {
 ''')
         for name in names:
-            c_file.write('    printf("0x%08x\\n", {});\n'.format(name))
+            c_file.write('    printf("{}\\n", ({}) {});\n'
+                         .format(printf_format, cast_to, name))
         c_file.write('''    return 0;
 }
 ''')

@@ -222,9 +222,7 @@ cleanup()
     fi
 
     command make clean
-    cd crypto
-    command make clean
-    cd ..
+    command make -C crypto clean
 
     # Remove CMake artefacts
     find . -name .git -prune -o \
@@ -236,11 +234,11 @@ cleanup()
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
     git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
-    cd crypto
-    rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
-    git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
-    git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
-    cd ..
+
+    # Crypto submodule cleaning
+    rm -f crypto/include/Makefile crypto/include/mbedtls/Makefile crypto/programs/*/Makefile
+    git -C crypto update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
+    git -C crypto checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
 
     if [ -f "$CONFIG_BAK" ]; then
         mv "$CONFIG_BAK" "$CONFIG_H"
@@ -300,6 +298,10 @@ check_tools()
             exit 1
         fi
     done
+}
+
+objdump_must_contain () {
+    objdump -g "$1" | grep -E "$2"
 }
 
 check_headers_in_cpp () {
@@ -791,9 +793,9 @@ component_test_submodule_cmake () {
     msg "test: top-level libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, cmake)"
     if_build_succeeded not test -f library/libmbedcrypto.a
     msg "test: libmbedcrypto symbols are from crypto files (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep -E 'crypto/library$' > /dev/null
+    if_build_succeeded objdump_must_contain crypto/library/libmbedcrypto.a 'crypto/library$'
     msg "test: libmbedcrypto uses top-level config (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep 'md4.c' > /dev/null
+    if_build_succeeded objdump_must_contain crypto/library/libmbedcrypto.a '^md4\.c'
     msg "test: main suites (USE_CRYPTO_SUBMODULE, cmake)"
     make test
     msg "test: ssl-opt.sh (USE_CRYPTO_SUBMODULE, cmake)"
@@ -809,9 +811,9 @@ component_test_submodule_make () {
     msg "test: top-level libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, make)"
     if_build_succeeded not test -f library/libmbedcrypto.a
     msg "test: libmbedcrypto symbols are from crypto files (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep -E 'crypto/library$' > /dev/null
+    if_build_succeeded objdump_must_contain crypto/library/libmbedcrypto.a 'crypto/library$'
     msg "test: libmbedcrypto uses top-level config (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep 'md4.c' > /dev/null
+    if_build_succeeded objdump_must_contain crypto/library/libmbedcrypto.a '^md4\.c'
     msg "test: main suites (USE_CRYPTO_SUBMODULE, make)"
     make CC=gcc USE_CRYPTO_SUBMODULE=1 test
     msg "test: ssl-opt.sh (USE_CRYPTO_SUBMODULE, make)"
@@ -820,25 +822,25 @@ component_test_submodule_make () {
 
 component_test_not_submodule_make () {
     # Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with make
-    msg "build: make, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
+    msg "build: make, full config without USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full
     make CC=gcc CFLAGS='-g'
     msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, make)"
     if_build_succeeded not test -f crypto/library/libmbedcrypto.a
     msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
+    if_build_succeeded objdump -g library/libmbedcrypto.a | if_build_succeeded grep -E 'library$' | if_build_succeeded not grep 'crypto' > /dev/null
 }
 
 component_test_not_submodule_cmake () {
     # Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with CMake
-    msg "build: cmake, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
+    msg "build: cmake, full config without USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full
     CC=gcc cmake -D CMAKE_BUILD_TYPE=Debug .
     make
     msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, cmake)"
     if_build_succeeded not test -f crypto/library/libmbedcrypto.a
     msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
+    if_build_succeeded objdump -g library/libmbedcrypto.a | if_build_succeeded grep -E 'library$' | if_build_succeeded not grep 'crypto' > /dev/null
 }
 
 component_test_use_psa_crypto_full_cmake_asan() {

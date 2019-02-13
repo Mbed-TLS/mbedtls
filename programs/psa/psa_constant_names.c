@@ -1,3 +1,5 @@
+#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -151,6 +153,40 @@ static void usage(const char *program_name)
 
 typedef enum {
     TYPE_STATUS,
+} signed_value_type;
+
+int process_signed(signed_value_type type, long min, long max, char **argp)
+{
+    for (; *argp != NULL; argp++) {
+        char buffer[200];
+        char *end;
+        long value = strtol(*argp, &end, 0);
+        if (*end) {
+            printf("Non-numeric value: %s\n", *argp);
+            return EXIT_FAILURE;
+        }
+        if (value < min || (errno == ERANGE && value < 0)) {
+            printf("Value too small: %s\n", *argp);
+            return EXIT_FAILURE;
+        }
+        if (value > max || (errno == ERANGE && value > 0)) {
+            printf("Value too large: %s\n", *argp);
+            return EXIT_FAILURE;
+        }
+
+        switch (type) {
+            case TYPE_STATUS:
+                psa_snprint_status(buffer, sizeof(buffer),
+                                   (psa_status_t) value);
+                break;
+        }
+        puts(buffer);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+typedef enum {
     TYPE_ALGORITHM,
     TYPE_ECC_CURVE,
     TYPE_KEY_TYPE,
@@ -167,16 +203,12 @@ int process_unsigned(unsigned_value_type type, unsigned long max, char **argp)
             printf("Non-numeric value: %s\n", *argp);
             return EXIT_FAILURE;
         }
-        if (value > max) {
+        if (value > max || errno == ERANGE) {
             printf("Value out of range: %s\n", *argp);
             return EXIT_FAILURE;
         }
 
         switch (type) {
-            case TYPE_STATUS:
-                psa_snprint_status(buffer, sizeof(buffer),
-                                   (psa_status_t) value);
-                break;
             case TYPE_ALGORITHM:
                 psa_snprint_algorithm(buffer, sizeof(buffer),
                                       (psa_algorithm_t) value);
@@ -211,9 +243,10 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(argv[1], "error") || !strcmp(argv[1], "status")) {
-        /* Wrong! psa_status_t is signed. */
-        return process_unsigned(TYPE_ALGORITHM, 0xffffffff,
-                                argv + 2);
+        /* There's no way to obtain the actual range of a signed type,
+         * so hard-code it here: psa_status_t is int32_t. */
+        return process_signed(TYPE_STATUS, INT32_MIN, INT32_MAX,
+                              argv + 2);
     } else if (!strcmp(argv[1], "alg") || !strcmp(argv[1], "algorithm")) {
         return process_unsigned(TYPE_ALGORITHM, (psa_algorithm_t) (-1),
                                 argv + 2);

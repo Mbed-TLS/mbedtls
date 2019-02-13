@@ -760,8 +760,23 @@ void ecp_read_binary( int id, data_t * buf, char * x, char * y, char * z,
     if( ret == 0 )
     {
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.X, &X ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Y, &Y ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Z, &Z ) == 0 );
+        /*
+         * At the time of writing, the following condition is equivalent with
+         * if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
+         * but has the advantage of not using internal symbols.
+         */
+        if( grp.G.Y.p == NULL )
+        {
+            TEST_ASSERT( mbedtls_mpi_cmp_int( &Y, 0 ) == 0 );
+            TEST_ASSERT( P.Y.p == NULL );
+            TEST_ASSERT( mbedtls_mpi_cmp_int( &Z, 1 ) == 0 );
+            TEST_ASSERT( mbedtls_mpi_cmp_int( &P.Z, 1 ) == 0 );
+        }
+        else
+        {
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Y, &Y ) == 0 );
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Z, &Z ) == 0 );
+        }
     }
 
 exit:

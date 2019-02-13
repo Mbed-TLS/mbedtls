@@ -788,7 +788,7 @@ cleanup:
 }
 
 /*
- * Import a point from unsigned binary data (SEC1 2.3.4)
+ * Import a point from unsigned binary data (SEC1 2.3.4 and RFC7748)
  */
 int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
                                    mbedtls_ecp_point *pt,
@@ -803,24 +803,45 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
     if( ilen < 1 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( buf[0] == 0x00 )
-    {
-        if( ilen == 1 )
-            return( mbedtls_ecp_set_zero( pt ) );
-        else
-            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-    }
-
     plen = mbedtls_mpi_size( &grp->P );
 
-    if( buf[0] != 0x04 )
-        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+#if defined(ECP_MONTGOMERY)
+    if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
+    {
+        if( plen != ilen )
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ilen != 2 * plen + 1 )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &pt->X, buf, plen ) );
+        mbedtls_mpi_free( &pt->Y );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->X, buf + 1, plen ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->Y, buf + 1 + plen, plen ) );
+        if( grp->id == MBEDTLS_ECP_DP_CURVE25519 )
+            /* Set most significant bit to 0 */
+            MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &pt->X, plen * 8 - 1, 0 ) );
+    }
+#endif
+#if defined(ECP_SHORTWEIERSTRASS)
+    if( ecp_get_type( grp ) != ECP_TYPE_MONTGOMERY )
+    {
+        if( buf[0] == 0x00 )
+        {
+            if( ilen == 1 )
+                return( mbedtls_ecp_set_zero( pt ) );
+            else
+                return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        }
+
+        if( buf[0] != 0x04 )
+            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+
+        if( ilen != 2 * plen + 1 )
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->X, buf + 1, plen ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->Y,
+                                                  buf + 1 + plen, plen ) );
+    }
+#endif
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
 
 cleanup:

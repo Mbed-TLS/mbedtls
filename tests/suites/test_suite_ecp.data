@@ -112,6 +112,18 @@ ECP read binary #6 (non-zero, OK)
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 ecp_read_binary:MBEDTLS_ECP_DP_SECP192R1:"0448d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc99336ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"48d8082a3a1e3112bc03a8ef2f6d40d0a77a6f8e00cc9933":"6ceed4d7cba482e288669ee1b6415626d6f34d28501e060c":"01":0
 
+ECP read binary #7 (Montgomery, OK)
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_CURVE25519:"8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a":"6a4e9baa8ea9a4ebf41a38260d3abf0d5af73eb4dc7d8b7454a7308909f02085":"0":"1":0
+
+ECP read binary #8 (Montgomery, masked first bit)
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_CURVE25519:"8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4efa":"7a4e9baa8ea9a4ebf41a38260d3abf0d5af73eb4dc7d8b7454a7308909f02085":"0":"1":0
+
+ECP read binary #9 (Montgomery, invalid length)
+depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
+ecp_read_binary:MBEDTLS_ECP_DP_CURVE25519:"20f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a":"6a4e9baa8ea9a4ebf41a38260d3abf0d5af73eb4dc7d8b7454a7308909f020":"0":"1":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+
 ECP tls read point #1 (zero, invalid length byte)
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 mbedtls_ecp_tls_read_point:MBEDTLS_ECP_DP_SECP192R1:"0200":"01":"01":"00":MBEDTLS_ERR_ECP_BAD_INPUT_DATA

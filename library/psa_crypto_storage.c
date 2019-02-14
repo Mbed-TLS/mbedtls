@@ -29,21 +29,8 @@
 
 #include <stdlib.h>
 #include <string.h>
-/*
- * When MBEDTLS_PSA_CRYPTO_SPM is defined, the code is being built for SPM
- * (Secure Partition Manager) integration which separates the code into two
- * parts: NSPE (Non-Secure Processing Environment) and SPE (Secure Processing
- * Environment). When building for the SPE, an additional header file should be
- * included.
- */
-#if defined(MBEDTLS_PSA_CRYPTO_SPM)
-/*
- * PSA_CRYPTO_SECURE means that this file is compiled for the SPE.
- * Some headers will be affected by this flag.
- */
-#define PSA_CRYPTO_SECURE 1
-#endif
 
+#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 #include "psa_crypto_storage.h"
 #include "psa_crypto_storage_backend.h"

@@ -2046,6 +2046,158 @@ cleanup:
 }
 
 /*
+ * Montgomery ladder exponentiation: X = A^E mod N
+ */
+int mbedtls_mpi_exp_mod_montladder( mbedtls_mpi *X, const mbedtls_mpi * A, const mbedtls_mpi * const E, const mbedtls_mpi *const N, mbedtls_mpi *_RR )
+{
+    int ret;
+
+    size_t j, nblimbs, ei;
+    size_t bufsize;
+    mbedtls_mpi_uint mm, state;
+    mbedtls_mpi RR, T, L0, L1, Apos;
+    int neg;
+
+
+    if( mbedtls_mpi_cmp_int( N, 0 ) <= 0 || ( N->p[0] & 1 ) == 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    if( mbedtls_mpi_cmp_int( E, 0 ) < 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    /*
+     * Init temps and window size
+     */
+    mpi_montg_init( &mm, N );
+    mbedtls_mpi_init( &RR );
+    mbedtls_mpi_init( &T );
+    mbedtls_mpi_init( &L0 );
+    mbedtls_mpi_init( &L1 );
+
+    mbedtls_mpi_init( &Apos );
+
+    j = N->n + 1;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &L0, j ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &L1, j ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T, j * 2 ) );
+
+    /*
+     * Compensate for negative A (and correct at the end)
+     */
+    neg = ( A->s == -1 );
+    if( neg )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &Apos, A ) );
+        Apos.s = 1;
+        A = &Apos;
+    }
+
+    /*
+     * If 1st call, pre-compute R^2 mod N
+     */
+    if( _RR == NULL || _RR->p == NULL )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &RR, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &RR, N->n * 2 * biL ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &RR, &RR, N ) );
+
+        if( _RR != NULL )
+            memcpy( _RR, &RR, sizeof( mbedtls_mpi ) );
+    }
+    else
+        memcpy( &RR, _RR, sizeof( mbedtls_mpi ) );
+
+
+    /*
+     * L[0] = R^2 * R^-1 mod N = R mod N
+     */
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &L0, &RR ) );
+    MBEDTLS_MPI_CHK( mpi_montred( &L0, N, mm, &T ) );
+
+    /*
+     * L[1] = A * R^2 * R^-1 mod N = A * R mod N
+     * */
+
+    if( mbedtls_mpi_cmp_mpi( A, N ) >= 0 )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &L1, A, N ) );
+    else MBEDTLS_MPI_CHK(mbedtls_mpi_copy(&L1, A));
+
+
+    MBEDTLS_MPI_CHK( mpi_montmul( &L1, &RR, N, mm, &T ) );
+
+
+    nblimbs = E->n;
+    bufsize = 0;
+    state = 0;
+
+
+    while( 1 )
+    {
+        if( bufsize == 0 )
+        {
+            if( nblimbs == 0 )
+                break;
+
+            nblimbs--;
+
+            bufsize = sizeof( mbedtls_mpi_uint ) << 3;
+        }
+
+
+        bufsize--;
+
+        ei = (E->p[nblimbs] >> bufsize) & 1;
+
+        if( ei == 0 && state == 0 ) continue;
+
+        state = 1;
+
+        if (ei == 0){
+            MBEDTLS_MPI_CHK( mpi_montmul( &L1, &L0, N, mm, &T ) );
+            MBEDTLS_MPI_CHK( mpi_montmul( &L0, &L0, N, mm, &T ) );
+        } else {
+            MBEDTLS_MPI_CHK( mpi_montmul( &L0, &L1, N, mm, &T ) );
+            MBEDTLS_MPI_CHK( mpi_montmul( &L1, &L1, N, mm, &T ) );
+        }
+
+
+    }
+
+    /*
+     * X = A^E * R * R^-1 mod N = A^E mod N
+     */
+
+
+    MBEDTLS_MPI_CHK( mpi_montred( &L0, N, mm, &T ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, &L0 ) );
+
+
+
+    if( neg && E->n != 0 && ( E->p[0] & 1 ) != 0 )
+    {
+        X->s = -1;
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( X, N, X ) );
+    }
+
+    cleanup:
+
+    mbedtls_mpi_free( &T );
+    mbedtls_mpi_free( &Apos );
+    mbedtls_mpi_free( &L0 );
+    mbedtls_mpi_free( &L1 );
+
+    if( _RR == NULL || _RR->p == NULL )
+        mbedtls_mpi_free( &RR );
+
+    return( ret );
+}
+
+
+/*
  * Greatest common divisor: G = gcd(A, B)  (HAC 14.54)
  */
 int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B )

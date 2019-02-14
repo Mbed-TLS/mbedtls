@@ -300,8 +300,10 @@ check_tools()
     done
 }
 
+# objdump_must_contain OBJECT_FILE MANDATORY_RE [MATCHING_LINES_MUST_NOT_INCLUDE]
 objdump_must_contain () {
-    objdump -g "$1" | grep -E "$2"
+    objdump -g "$1" | grep -E "$2" |
+    if [ -n "$3" ]; then ! grep -q -E "$3"; else cat; fi
 }
 
 check_headers_in_cpp () {
@@ -828,7 +830,7 @@ component_test_not_submodule_make () {
     msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, make)"
     if_build_succeeded not test -f crypto/library/libmbedcrypto.a
     msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded objdump -g library/libmbedcrypto.a | if_build_succeeded grep -E 'library$' | if_build_succeeded not grep 'crypto' > /dev/null
+    if_build_succeeded objdump_must_contain library/libmbedcrypto.a 'library$' 'crypto'
 }
 
 component_test_not_submodule_cmake () {
@@ -840,7 +842,7 @@ component_test_not_submodule_cmake () {
     msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, cmake)"
     if_build_succeeded not test -f crypto/library/libmbedcrypto.a
     msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded objdump -g library/libmbedcrypto.a | if_build_succeeded grep -E 'library$' | if_build_succeeded not grep 'crypto' > /dev/null
+    if_build_succeeded objdump_must_contain library/libmbedcrypto.a 'library$' 'crypto'
 }
 
 component_test_use_psa_crypto_full_cmake_asan() {

@@ -402,6 +402,12 @@ pre_check_git () {
     fi
 }
 
+pre_check_seedfile () {
+    if [ ! -f "./tests/seedfile" ]; then
+        dd if=/dev/urandom of=./tests/seedfile bs=32 count=1
+    fi
+}
+
 pre_setup_keep_going () {
     failure_summary=
     failure_count=0
@@ -1381,6 +1387,8 @@ pre_initialize_variables
 pre_parse_command_line "$@"
 
 pre_check_git
+pre_check_seedfile
+
 build_status=0
 if [ $KEEP_GOING -eq 1 ]; then
     pre_setup_keep_going

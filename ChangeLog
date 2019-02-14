@@ -69,6 +69,11 @@ Bugfix
      extensions in CSRs and CRTs that caused these bitstrings to not be encoded
      correctly as trailing zeroes were not accounted for as unused bits in the
      leading content octet. Fixes #1610.
+   * Fix missing bounds checks in X.509 parsing functions that could
+     lead to successful parsing of ill-formed X.509 CRTs. Fixes #2437.
+   * Fix multiple X.509 functions previously returning ASN.1 low-level error
+     codes to always wrap these codes into X.509 high level error codes before
+     returning. Fixes #2431.
 
 Changes
    * Include configuration file in all header files that use configuration,

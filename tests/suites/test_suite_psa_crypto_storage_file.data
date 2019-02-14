@@ -24,7 +24,7 @@ write_data_to_file:"deadbeef":PSA_SUCCESS
 
 PSA Storage Store into preexisting location, should fail
 depends_on:MBEDTLS_FS_IO
-write_data_to_prexisting_file:"psa_key_slot_1":"deadbeef":PSA_ERROR_OCCUPIED_SLOT
+write_data_to_prexisting_file:"psa_key_slot_1":"deadbeef":PSA_ERROR_ALREADY_EXISTS
 
 PSA Storage Store, preexisting temp_location file, should succeed
 depends_on:MBEDTLS_FS_IO
@@ -40,4 +40,4 @@ get_file_size:"":0:PSA_SUCCESS:1
 
 PSA Storage Get data size nonexistent file location, should fail
 depends_on:MBEDTLS_FS_IO
-get_file_size:"deadbeef":4:PSA_ERROR_EMPTY_SLOT:0
+get_file_size:"deadbeef":4:PSA_ERROR_DOES_NOT_EXIST:0

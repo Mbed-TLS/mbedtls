@@ -193,7 +193,7 @@ psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
  *         the policy has been saved to persistent storage. Implementations
  *         may defer saving the policy until the key material is created.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_OCCUPIED_SLOT
+ * \retval #PSA_ERROR_ALREADY_EXISTS
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -285,7 +285,7 @@ psa_status_t psa_allocate_key(psa_key_handle_t *handle);
  *         Success. The application can now use the value of `*handle`
  *         to access the newly allocated key slot.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p lifetime is invalid, for example #PSA_KEY_LIFETIME_VOLATILE.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -322,7 +322,7 @@ psa_status_t psa_open_key(psa_key_lifetime_t lifetime,
  *         to access the newly allocated key slot.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval #PSA_ERROR_OCCUPIED_SLOT
+ * \retval #PSA_ERROR_ALREADY_EXISTS
  *         There is already a key with the identifier \p id in the storage
  *         area designated by \p lifetime.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -401,7 +401,7 @@ psa_status_t psa_close_key(psa_key_handle_t handle);
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The key slot is invalid,
  *         or the key data is not correctly formatted.
- * \retval #PSA_ERROR_OCCUPIED_SLOT
+ * \retval #PSA_ERROR_ALREADY_EXISTS
  *         There is already a key in the specified slot.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
@@ -470,7 +470,7 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  *         The handle is to a key slot which does not contain key material yet.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -554,7 +554,7 @@ psa_status_t psa_get_key_information(psa_key_handle_t handle,
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
@@ -641,7 +641,7 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The key is neither a public key nor a key pair.
  * \retval #PSA_ERROR_NOT_SUPPORTED
@@ -710,9 +710,9 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_OCCUPIED_SLOT
+ * \retval #PSA_ERROR_ALREADY_EXISTS
  *         \p target already contains key material.
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  *         \p source does not contain key material.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The policy constraints on the source, on the target and
@@ -1071,7 +1071,7 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
@@ -1128,7 +1128,7 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c key is not compatible with \c alg.
@@ -1373,7 +1373,7 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
@@ -1432,7 +1432,7 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
@@ -1660,7 +1660,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p key is not compatible with \p alg.
@@ -1716,7 +1716,7 @@ psa_status_t psa_aead_encrypt(psa_key_handle_t handle,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The ciphertext is not authentic.
  * \retval #PSA_ERROR_NOT_PERMITTED
@@ -2034,7 +2034,7 @@ psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
  * \param output_length     Number of bytes to output.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INSUFFICIENT_CAPACITY
+ * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *                          There were fewer than \p output_length bytes
  *                          in the generator. Note that in this case, no
  *                          output is written to the output buffer.
@@ -2076,7 +2076,7 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *         Success.
  *         If the key is persistent, the key material and the key's metadata
  *         have been saved to persistent storage.
- * \retval #PSA_ERROR_INSUFFICIENT_CAPACITY
+ * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *                          There were fewer than \p output_length bytes
  *                          in the generator. Note that in this case, no
  *                          output is written to the output buffer.
@@ -2088,7 +2088,7 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *         implementation in general or in this particular slot.
  * \retval #PSA_ERROR_BAD_STATE
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_OCCUPIED_SLOT
+ * \retval #PSA_ERROR_ALREADY_EXISTS
  *         There is already a key in the specified slot.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
@@ -2172,7 +2172,7 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c key is not compatible with \c alg,
@@ -2233,7 +2233,7 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c private_key is not compatible with \c alg,
@@ -2332,7 +2332,7 @@ typedef struct {
  *         If the key is persistent, the key material and the key's metadata
  *         have been saved to persistent storage.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_OCCUPIED_SLOT
+ * \retval #PSA_ERROR_ALREADY_EXISTS
  *         There is already a key in the specified slot.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT

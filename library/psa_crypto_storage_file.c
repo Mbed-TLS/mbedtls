@@ -118,7 +118,7 @@ psa_status_t psa_crypto_storage_store( const psa_key_id_t key,
     key_id_to_location( key, slot_location, MAX_LOCATION_LEN );
 
     if( psa_is_key_present_in_storage( key ) == 1 )
-        return( PSA_ERROR_OCCUPIED_SLOT );
+        return( PSA_ERROR_ALREADY_EXISTS );
 
     file = fopen( temp_location, "wb" );
     if( file == NULL )
@@ -186,7 +186,7 @@ psa_status_t psa_crypto_storage_get_data_length( const psa_key_id_t key,
 
     file = fopen( slot_location, "rb" );
     if( file == NULL )
-        return( PSA_ERROR_EMPTY_SLOT );
+        return( PSA_ERROR_DOES_NOT_EXIST );
 
     if( fseek( file, 0, SEEK_END ) != 0 )
     {

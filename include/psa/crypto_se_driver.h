@@ -754,7 +754,7 @@ typedef psa_status_t (*psa_drv_destroy_key_t)(psa_key_slot_t key);
  *                              that make up the key data.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE

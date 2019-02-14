@@ -40,25 +40,17 @@
  * @{
  */
 
-#if !defined(PSA_SUCCESS)
-/* If PSA_SUCCESS is defined, assume that PSA crypto is being used
- * together with PSA IPC, which also defines the identifier
- * PSA_SUCCESS. We must not define PSA_SUCCESS ourselves in that case;
- * the other error code names don't clash. This is a temporary hack
- * until we unify error reporting in PSA IPC and PSA crypto.
- *
- * Note that psa_defs.h must be included before this header!
- */
+/* PSA error codes */
+
 /** The action was completed successfully. */
 #define PSA_SUCCESS ((psa_status_t)0)
-#endif /* !defined(PSA_SUCCESS) */
 
 /** An error occurred that does not correspond to any defined
  * failure cause.
  *
  * Implementations may use this error code if none of the other standard
  * error codes are applicable. */
-#define PSA_ERROR_UNKNOWN_ERROR         ((psa_status_t)1)
+#define PSA_ERROR_GENERIC_ERROR         ((psa_status_t)-132)
 
 /** The requested operation or a parameter is not supported
  * by this implementation.
@@ -67,7 +59,7 @@
  * parameter such as a key type, algorithm, etc. is not recognized.
  * If a combination of parameters is recognized and identified as
  * not valid, return #PSA_ERROR_INVALID_ARGUMENT instead. */
-#define PSA_ERROR_NOT_SUPPORTED         ((psa_status_t)2)
+#define PSA_ERROR_NOT_SUPPORTED         ((psa_status_t)-134)
 
 /** The requested action is denied by a policy.
  *
@@ -80,7 +72,7 @@
  * not valid or not supported, it is unspecified whether the function
  * returns #PSA_ERROR_NOT_PERMITTED, #PSA_ERROR_NOT_SUPPORTED or
  * #PSA_ERROR_INVALID_ARGUMENT. */
-#define PSA_ERROR_NOT_PERMITTED         ((psa_status_t)3)
+#define PSA_ERROR_NOT_PERMITTED         ((psa_status_t)-133)
 
 /** An output buffer is too small.
  *
@@ -92,23 +84,19 @@
  * buffer would succeed. However implementations may return this
  * error if a function has invalid or unsupported parameters in addition
  * to the parameters that determine the necessary output buffer size. */
-#define PSA_ERROR_BUFFER_TOO_SMALL      ((psa_status_t)4)
+#define PSA_ERROR_BUFFER_TOO_SMALL      ((psa_status_t)-138)
 
-/** A slot is occupied, but must be empty to carry out the
- * requested action.
+/** Asking for an item that already exists
  *
- * If a handle is invalid, it does not designate an occupied slot.
- * The error for an invalid handle is #PSA_ERROR_INVALID_HANDLE.
- */
-#define PSA_ERROR_OCCUPIED_SLOT         ((psa_status_t)5)
+ * Implementations should return this error, when attempting
+ * to write an item (like a key) that already exists. */
+#define PSA_ERROR_ALREADY_EXISTS        ((psa_status_t)-139)
 
-/** A slot is empty, but must be occupied to carry out the
- * requested action.
+/** Asking for an item that doesn't exist
  *
- * If a handle is invalid, it does not designate an empty slot.
- * The error for an invalid handle is #PSA_ERROR_INVALID_HANDLE.
- */
-#define PSA_ERROR_EMPTY_SLOT            ((psa_status_t)6)
+ * Implementations should return this error, if a requested item (like
+ * a key) does not exist. */
+#define PSA_ERROR_DOES_NOT_EXIST        ((psa_status_t)-140)
 
 /** The requested action cannot be performed in the current state.
  *
@@ -118,9 +106,9 @@
  *
  * Implementations shall not return this error code to indicate
  * that a key slot is occupied when it needs to be free or vice versa,
- * but shall return #PSA_ERROR_OCCUPIED_SLOT or #PSA_ERROR_EMPTY_SLOT
+ * but shall return #PSA_ERROR_ALREADY_EXISTS or #PSA_ERROR_DOES_NOT_EXIST
  * as applicable. */
-#define PSA_ERROR_BAD_STATE             ((psa_status_t)7)
+#define PSA_ERROR_BAD_STATE             ((psa_status_t)-137)
 
 /** The parameters passed to the function are invalid.
  *
@@ -129,20 +117,20 @@
  *
  * Implementations shall not return this error code to indicate
  * that a key slot is occupied when it needs to be free or vice versa,
- * but shall return #PSA_ERROR_OCCUPIED_SLOT or #PSA_ERROR_EMPTY_SLOT
+ * but shall return #PSA_ERROR_ALREADY_EXISTS or #PSA_ERROR_DOES_NOT_EXIST
  * as applicable.
  *
  * Implementation shall not return this error code to indicate that a
  * key handle is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
  * instead.
  */
-#define PSA_ERROR_INVALID_ARGUMENT      ((psa_status_t)8)
+#define PSA_ERROR_INVALID_ARGUMENT      ((psa_status_t)-135)
 
 /** There is not enough runtime memory.
  *
  * If the action is carried out across multiple security realms, this
  * error can refer to available memory in any of the security realms. */
-#define PSA_ERROR_INSUFFICIENT_MEMORY   ((psa_status_t)9)
+#define PSA_ERROR_INSUFFICIENT_MEMORY   ((psa_status_t)-141)
 
 /** There is not enough persistent storage.
  *
@@ -151,7 +139,7 @@
  * many functions that do not otherwise access storage may return this
  * error code if the implementation requires a mandatory log entry for
  * the requested action and the log storage space is full. */
-#define PSA_ERROR_INSUFFICIENT_STORAGE  ((psa_status_t)10)
+#define PSA_ERROR_INSUFFICIENT_STORAGE  ((psa_status_t)-142)
 
 /** There was a communication failure inside the implementation.
  *
@@ -168,7 +156,7 @@
  * cryptoprocessor but there was a breakdown of communication before
  * the cryptoprocessor could report the status to the application.
  */
-#define PSA_ERROR_COMMUNICATION_FAILURE ((psa_status_t)11)
+#define PSA_ERROR_COMMUNICATION_FAILURE ((psa_status_t)-145)
 
 /** There was a storage failure that may have led to data loss.
  *
@@ -193,13 +181,13 @@
  * permanent storage corruption. However application writers should
  * keep in mind that transient errors while reading the storage may be
  * reported using this error code. */
-#define PSA_ERROR_STORAGE_FAILURE       ((psa_status_t)12)
+#define PSA_ERROR_STORAGE_FAILURE       ((psa_status_t)-146)
 
 /** A hardware failure was detected.
  *
  * A hardware failure may be transient or permanent depending on the
  * cause. */
-#define PSA_ERROR_HARDWARE_FAILURE      ((psa_status_t)13)
+#define PSA_ERROR_HARDWARE_FAILURE      ((psa_status_t)-147)
 
 /** A tampering attempt was detected.
  *
@@ -230,7 +218,7 @@
  * This error indicates an attack against the application. Implementations
  * shall not return this error code as a consequence of the behavior of
  * the application itself. */
-#define PSA_ERROR_TAMPERING_DETECTED    ((psa_status_t)14)
+#define PSA_ERROR_TAMPERING_DETECTED    ((psa_status_t)-151)
 
 /** There is not enough entropy to generate random data needed
  * for the requested action.
@@ -249,7 +237,7 @@
  * secure pseudorandom generator (PRNG). However implementations may return
  * this error at any time if a policy requires the PRNG to be reseeded
  * during normal operation. */
-#define PSA_ERROR_INSUFFICIENT_ENTROPY  ((psa_status_t)15)
+#define PSA_ERROR_INSUFFICIENT_ENTROPY  ((psa_status_t)-148)
 
 /** The signature, MAC or hash is incorrect.
  *
@@ -259,7 +247,7 @@
  *
  * If the value to verify has an invalid size, implementations may return
  * either #PSA_ERROR_INVALID_ARGUMENT or #PSA_ERROR_INVALID_SIGNATURE. */
-#define PSA_ERROR_INVALID_SIGNATURE     ((psa_status_t)16)
+#define PSA_ERROR_INVALID_SIGNATURE     ((psa_status_t)-149)
 
 /** The decrypted padding is incorrect.
  *
@@ -275,17 +263,15 @@
  * as close as possible to indistinguishable to an external observer.
  * In particular, the timing of a decryption operation should not
  * depend on the validity of the padding. */
-#define PSA_ERROR_INVALID_PADDING       ((psa_status_t)17)
+#define PSA_ERROR_INVALID_PADDING       ((psa_status_t)-150)
 
-/** The generator has insufficient capacity left.
- *
- * Once a function returns this error, attempts to read from the
- * generator will always return this error. */
-#define PSA_ERROR_INSUFFICIENT_CAPACITY ((psa_status_t)18)
+/** Return this error when there's insufficient data when attempting
+ * to read from a resource. */
+#define PSA_ERROR_INSUFFICIENT_DATA     ((psa_status_t)-143)
 
 /** The key handle is not valid.
  */
-#define PSA_ERROR_INVALID_HANDLE        ((psa_status_t)19)
+#define PSA_ERROR_INVALID_HANDLE        ((psa_status_t)-136)
 
 /**@}*/
 

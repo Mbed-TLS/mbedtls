@@ -27,6 +27,7 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C)
 
+#include "psa/error.h"
 #include "psa/crypto.h"
 #include "psa_crypto_storage_backend.h"
 #include "psa/internal_trusted_storage.h"
@@ -43,7 +44,7 @@ static psa_status_t its_to_psa_error( psa_its_status_t ret )
             return( PSA_SUCCESS );
 
         case PSA_ITS_ERROR_UID_NOT_FOUND:
-            return( PSA_ERROR_EMPTY_SLOT );
+            return( PSA_ERROR_DOES_NOT_EXIST );
 
         case PSA_ITS_ERROR_STORAGE_FAILURE:
             return( PSA_ERROR_STORAGE_FAILURE );
@@ -60,7 +61,7 @@ static psa_status_t its_to_psa_error( psa_its_status_t ret )
             return( PSA_ERROR_NOT_SUPPORTED );
 
         case PSA_ITS_ERROR_WRITE_ONCE:
-            return( PSA_ERROR_OCCUPIED_SLOT );
+            return( PSA_ERROR_ALREADY_EXISTS );
 
         default:
             return( PSA_ERROR_UNKNOWN_ERROR );
@@ -114,7 +115,7 @@ psa_status_t psa_crypto_storage_store( const psa_key_id_t key,
     struct psa_its_info_t data_identifier_info;
 
     if( psa_is_key_present_in_storage( key ) == 1 )
-        return( PSA_ERROR_OCCUPIED_SLOT );
+        return( PSA_ERROR_ALREADY_EXISTS );
 
     ret = psa_its_set( data_identifier, data_length, data, 0 );
     status = its_to_psa_error( ret );

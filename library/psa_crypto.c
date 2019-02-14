@@ -346,7 +346,7 @@ static psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_HARDWARE_FAILURE );
 
         default:
-            return( PSA_ERROR_UNKNOWN_ERROR );
+            return( PSA_ERROR_GENERIC_ERROR );
     }
 }
 
@@ -742,7 +742,7 @@ static psa_status_t psa_get_empty_key_slot( psa_key_handle_t handle,
         return( status );
 
     if( slot->type != PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_OCCUPIED_SLOT );
+        return( PSA_ERROR_ALREADY_EXISTS );
 
     *p_slot = slot;
     return( status );
@@ -839,7 +839,7 @@ static psa_status_t psa_get_key_from_slot( psa_key_handle_t handle,
     if( status != PSA_SUCCESS )
         return( status );
     if( slot->type == PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_EMPTY_SLOT );
+        return( PSA_ERROR_DOES_NOT_EXIST );
 
     /* Enforce that usage policy for the key slot contains all the flags
      * required by the usage parameter. There is one exception: public
@@ -1001,7 +1001,7 @@ psa_status_t psa_get_key_information( psa_key_handle_t handle,
         return( status );
 
     if( slot->type == PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_EMPTY_SLOT );
+        return( PSA_ERROR_DOES_NOT_EXIST );
     if( type != NULL )
         *type = slot->type;
     if( bits != NULL )
@@ -3098,7 +3098,7 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
                                 size_t output_size,
                                 size_t *output_length )
 {
-    psa_status_t status = PSA_ERROR_UNKNOWN_ERROR;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     int cipher_ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
 
@@ -3855,7 +3855,7 @@ psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
         generator->capacity = 0;
         /* Go through the error path to wipe all confidential data now
          * that the generator object is useless. */
-        status = PSA_ERROR_INSUFFICIENT_CAPACITY;
+        status = PSA_ERROR_INSUFFICIENT_DATA;
         goto exit;
     }
     if( output_length == 0 &&
@@ -3867,7 +3867,7 @@ psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
          * INSUFFICIENT_CAPACITY, which is right for a finished
          * generator, for consistency with the case when
          * output_length > 0. */
-        return( PSA_ERROR_INSUFFICIENT_CAPACITY );
+        return( PSA_ERROR_INSUFFICIENT_DATA );
     }
     generator->capacity -= output_length;
 
@@ -4400,7 +4400,7 @@ static psa_status_t its_to_psa_error( psa_its_status_t ret )
             return( PSA_SUCCESS );
 
         case PSA_ITS_ERROR_UID_NOT_FOUND:
-            return( PSA_ERROR_EMPTY_SLOT );
+            return( PSA_ERROR_DOES_NOT_EXIST );
 
         case PSA_ITS_ERROR_STORAGE_FAILURE:
             return( PSA_ERROR_STORAGE_FAILURE );
@@ -4417,10 +4417,10 @@ static psa_status_t its_to_psa_error( psa_its_status_t ret )
             return( PSA_ERROR_NOT_SUPPORTED );
 
         case PSA_ITS_ERROR_WRITE_ONCE:
-            return( PSA_ERROR_OCCUPIED_SLOT );
+            return( PSA_ERROR_ALREADY_EXISTS );
 
         default:
-            return( PSA_ERROR_UNKNOWN_ERROR );
+            return( PSA_ERROR_GENERIC_ERROR );
     }
 }
 

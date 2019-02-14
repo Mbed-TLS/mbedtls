@@ -54,7 +54,7 @@ extern "C" {
  *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_STORAGE_FAILURE
- * \retval PSA_ERROR_EMPTY_SLOT
+ * \retval PSA_ERROR_DOES_NOT_EXIST
  */
 psa_status_t psa_crypto_storage_load( const psa_key_id_t key, uint8_t *data,
                                       size_t data_size );
@@ -73,7 +73,7 @@ psa_status_t psa_crypto_storage_load( const psa_key_id_t key, uint8_t *data,
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval PSA_ERROR_STORAGE_FAILURE
- * \retval PSA_ERROR_OCCUPIED_SLOT
+ * \retval PSA_ERROR_ALREADY_EXISTS
  */
 psa_status_t psa_crypto_storage_store( const psa_key_id_t key,
                                        const uint8_t *data,

@@ -82,7 +82,7 @@ OBJS_TLS=	debug.o		net_sockets.o		\
 
 include ../3rdparty/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
-OBJS_CRYPTO+=$(THIRDPARTY_OBJECTS)
+OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
 
 .SILENT:
 

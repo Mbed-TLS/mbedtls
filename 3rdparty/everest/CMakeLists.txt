@@ -11,7 +11,7 @@ if(${result} EQUAL 0)
     ${CMAKE_CURRENT_SOURCE_DIR}/library/kremlib/FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.c
   )
 
-  if (${CMAKE_LIBRARY_ARCHITECTURE} STREQUAL "x86_64-linux-gnu")
+  if ("${CMAKE_LIBRARY_ARCHITECTURE}" STREQUAL "x86_64-linux-gnu")
   list(APPEND everest_src ${CMAKE_CURRENT_SOURCE_DIR}/library/Hacl_Curve25519.c)
   else()
   list(APPEND everest_def -DKRML_VERIFIED_UINT128)

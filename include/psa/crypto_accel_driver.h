@@ -168,7 +168,7 @@ typedef void (*psa_drv_hash_abort_t)(psa_drv_hash_context_t *p_context);
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
-typedef struct psa_drv_mac_transparent_context_s psa_drv_mac_transparent_context_t;
+typedef struct psa_drv_accel_mac_context_s psa_drv_accel_mac_context_t;
 
 /** \brief The function prototype for the setup operation of a
  * transparent-key MAC operation
@@ -190,9 +190,9 @@ typedef struct psa_drv_mac_transparent_context_s psa_drv_mac_transparent_context
  * \retval  PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*psa_drv_mac_transparent_setup_t)(psa_drv_mac_transparent_context_t *p_context,
-                                                        const uint8_t *p_key,
-                                                        size_t key_length);
+typedef psa_status_t (*psa_drv_accel_mac_setup_t)(psa_drv_accel_mac_context_t *p_context,
+                                                  const uint8_t *p_key,
+                                                  size_t key_length);
 
 /** \brief The function prototype for the update operation of a
  * transparent-key MAC operation
@@ -212,9 +212,9 @@ typedef psa_status_t (*psa_drv_mac_transparent_setup_t)(psa_drv_mac_transparent_
  *                              to the MAC operation
  * \param[in] input_length      The size in bytes of the input message buffer
  */
-typedef psa_status_t (*psa_drv_mac_transparent_update_t)(psa_drv_mac_transparent_context_t *p_context,
-                                                         const uint8_t *p_input,
-                                                         size_t input_length);
+typedef psa_status_t (*psa_drv_accel_mac_update_t)(psa_drv_accel_mac_context_t *p_context,
+                                                   const uint8_t *p_input,
+                                                   size_t input_length);
 
 /** \brief  The function prototype for the finish operation of a
  * transparent-key MAC operation
@@ -237,9 +237,9 @@ typedef psa_status_t (*psa_drv_mac_transparent_update_t)(psa_drv_mac_transparent
  * \retval PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*psa_drv_mac_transparent_finish_t)(psa_drv_mac_transparent_context_t *p_context,
-                                                         uint8_t *p_mac,
-                                                         size_t mac_length);
+typedef psa_status_t (*psa_drv_accel_mac_finish_t)(psa_drv_accel_mac_context_t *p_context,
+                                                   uint8_t *p_mac,
+                                                   size_t mac_length);
 
 /** \brief The function prototype for the finish and verify operation of a
  * transparent-key MAC operation
@@ -263,9 +263,9 @@ typedef psa_status_t (*psa_drv_mac_transparent_finish_t)(psa_drv_mac_transparent
  * \retval PSA_SUCCESS
  *          The operation completed successfully and the comparison matched
  */
-typedef psa_status_t (*psa_drv_mac_transparent_finish_verify_t)(psa_drv_mac_transparent_context_t *p_context,
-                                                                const uint8_t *p_mac,
-                                                                size_t mac_length);
+typedef psa_status_t (*psa_drv_accel_mac_finish_verify_t)(psa_drv_accel_mac_context_t *p_context,
+                                                          const uint8_t *p_mac,
+                                                          size_t mac_length);
 
 /** \brief The function prototype for the abort operation for a previously
  * started transparent-key MAC operation
@@ -283,7 +283,7 @@ typedef psa_status_t (*psa_drv_mac_transparent_finish_verify_t)(psa_drv_mac_tran
  *                              aborted
  *
  */
-typedef psa_status_t (*psa_drv_mac_transparent_abort_t)(psa_drv_mac_transparent_context_t *p_context);
+typedef psa_status_t (*psa_drv_accel_mac_abort_t)(psa_drv_accel_mac_context_t *p_context);
 
 /** \brief The function prototype for a one-shot operation of a transparent-key
  * MAC operation
@@ -306,13 +306,13 @@ typedef psa_status_t (*psa_drv_mac_transparent_abort_t)(psa_drv_mac_transparent_
  *                           upon success
  * \param[in] mac_length     The length in bytes of the `p_mac` buffer
  */
-typedef psa_status_t (*psa_drv_mac_transparent_t)(const uint8_t *p_input,
-                                                  size_t input_length,
-                                                  const uint8_t *p_key,
-                                                  size_t key_length,
-                                                  psa_algorithm_t alg,
-                                                  uint8_t *p_mac,
-                                                  size_t mac_length);
+typedef psa_status_t (*psa_drv_accel_mac_t)(const uint8_t *p_input,
+                                            size_t input_length,
+                                            const uint8_t *p_key,
+                                            size_t key_length,
+                                            psa_algorithm_t alg,
+                                            uint8_t *p_mac,
+                                            size_t mac_length);
 
 /** \brief The function prototype for a one-shot operation of a transparent-key
  * MAC Verify operation
@@ -337,13 +337,13 @@ typedef psa_status_t (*psa_drv_mac_transparent_t)(const uint8_t *p_input,
  * \retval PSA_SUCCESS
  *  The operation completed successfully and the comparison matched
  */
-typedef psa_status_t (*psa_drv_mac_transparent_verify_t)(const uint8_t *p_input,
-                                                         size_t input_length,
-                                                         const uint8_t *p_key,
-                                                         size_t key_length,
-                                                         psa_algorithm_t alg,
-                                                         const uint8_t *p_mac,
-                                                         size_t mac_length);
+typedef psa_status_t (*psa_drv_accel_mac_verify_t)(const uint8_t *p_input,
+                                                   size_t input_length,
+                                                   const uint8_t *p_key,
+                                                   size_t key_length,
+                                                   psa_algorithm_t alg,
+                                                   const uint8_t *p_mac,
+                                                   size_t mac_length);
 /**@}*/
 
 /** \defgroup transparent_cipher Transparent Block Cipher
@@ -367,7 +367,7 @@ typedef psa_status_t (*psa_drv_mac_transparent_verify_t)(const uint8_t *p_input,
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
-typedef struct psa_drv_cipher_transparent_context_s psa_drv_cipher_transparent_context_t;
+typedef struct psa_drv_accel_cipher_context_s psa_drv_accel_cipher_context_t;
 
 /** \brief The function prototype for the setup operation of transparent-key
  * block cipher operations.
@@ -395,10 +395,10 @@ typedef struct psa_drv_cipher_transparent_context_s psa_drv_cipher_transparent_c
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_cipher_transparent_setup_t)(psa_drv_cipher_transparent_context_t *p_context,
-                                                           psa_encrypt_or_decrypt_t direction,
-                                                           const uint8_t *p_key_data,
-                                                           size_t key_data_size);
+typedef psa_status_t (*psa_drv_accel_cipher_setup_t)(psa_drv_accel_cipher_context_t *p_context,
+                                                     psa_encrypt_or_decrypt_t direction,
+                                                     const uint8_t *p_key_data,
+                                                     size_t key_data_size);
 
 /** \brief The function prototype for the set initialization vector operation
  * of transparent-key block cipher operations
@@ -418,9 +418,9 @@ typedef psa_status_t (*psa_drv_cipher_transparent_setup_t)(psa_drv_cipher_transp
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_cipher_transparent_set_iv_t)(psa_drv_cipher_transparent_context_t *p_context,
-                                                            const uint8_t *p_iv,
-                                                            size_t iv_length);
+typedef psa_status_t (*psa_drv_accel_cipher_set_iv_t)(psa_drv_accel_cipher_context_t *p_context,
+                                                      const uint8_t *p_iv,
+                                                      size_t iv_length);
 
 /** \brief The function prototype for the update operation of transparent-key
  * block cipher operations.
@@ -447,12 +447,12 @@ typedef psa_status_t (*psa_drv_cipher_transparent_set_iv_t)(psa_drv_cipher_trans
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_cipher_transparent_update_t)(psa_drv_cipher_transparent_context_t *p_context,
-                                                            const uint8_t *p_input,
-                                                            size_t input_size,
-                                                            uint8_t *p_output,
-                                                            size_t output_size,
-                                                            size_t *p_output_length);
+typedef psa_status_t (*psa_drv_accel_cipher_update_t)(psa_drv_accel_cipher_context_t *p_context,
+                                                      const uint8_t *p_input,
+                                                      size_t input_size,
+                                                      uint8_t *p_output,
+                                                      size_t output_size,
+                                                      size_t *p_output_length);
 
 /** \brief The function prototype for the finish operation of transparent-key
  * block cipher operations.
@@ -476,10 +476,10 @@ typedef psa_status_t (*psa_drv_cipher_transparent_update_t)(psa_drv_cipher_trans
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_cipher_transparent_finish_t)(psa_drv_cipher_transparent_context_t *p_context,
-                                                            uint8_t *p_output,
-                                                            size_t output_size,
-                                                            size_t *p_output_length);
+typedef psa_status_t (*psa_drv_accel_cipher_finish_t)(psa_drv_accel_cipher_context_t *p_context,
+                                                      uint8_t *p_output,
+                                                      size_t output_size,
+                                                      size_t *p_output_length);
 
 /** \brief The function prototype for the abort operation of transparent-key
  * block cipher operations.
@@ -498,7 +498,7 @@ typedef psa_status_t (*psa_drv_cipher_transparent_finish_t)(psa_drv_cipher_trans
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_cipher_transparent_abort_t)(psa_drv_cipher_transparent_context_t *p_context);
+typedef psa_status_t (*psa_drv_accel_cipher_abort_t)(psa_drv_accel_cipher_context_t *p_context);
 
 /**@}*/
 
@@ -553,18 +553,18 @@ typedef psa_status_t (*psa_drv_cipher_transparent_abort_t)(psa_drv_cipher_transp
  * \retval #PSA_SUCCESS
 
  */
-typedef psa_status_t (*psa_drv_aead_transparent_encrypt_t)(const uint8_t *p_key,
-                                                           size_t key_length,
-                                                           psa_algorithm_t alg,
-                                                           const uint8_t *nonce,
-                                                           size_t nonce_length,
-                                                           const uint8_t *additional_data,
-                                                           size_t additional_data_length,
-                                                           const uint8_t *plaintext,
-                                                           size_t plaintext_length,
-                                                           uint8_t *ciphertext,
-                                                           size_t ciphertext_size,
-                                                           size_t *ciphertext_length);
+typedef psa_status_t (*psa_drv_accel_aead_encrypt_t)(const uint8_t *p_key,
+                                                     size_t key_length,
+                                                     psa_algorithm_t alg,
+                                                     const uint8_t *nonce,
+                                                     size_t nonce_length,
+                                                     const uint8_t *additional_data,
+                                                     size_t additional_data_length,
+                                                     const uint8_t *plaintext,
+                                                     size_t plaintext_length,
+                                                     uint8_t *ciphertext,
+                                                     size_t ciphertext_size,
+                                                     size_t *ciphertext_length);
 
 /** Process an authenticated decryption operation using an opaque key.
  *
@@ -604,18 +604,18 @@ typedef psa_status_t (*psa_drv_aead_transparent_encrypt_t)(const uint8_t *p_key,
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_drv_aead_transparent_decrypt_t)(const uint8_t *p_key,
-                                                           size_t key_length,
-                                                           psa_algorithm_t alg,
-                                                           const uint8_t *nonce,
-                                                           size_t nonce_length,
-                                                           const uint8_t *additional_data,
-                                                           size_t additional_data_length,
-                                                           const uint8_t *ciphertext,
-                                                           size_t ciphertext_length,
-                                                           uint8_t *plaintext,
-                                                           size_t plaintext_size,
-                                                           size_t *plaintext_length);
+typedef psa_status_t (*psa_drv_accel_aead_decrypt_t)(const uint8_t *p_key,
+                                                     size_t key_length,
+                                                     psa_algorithm_t alg,
+                                                     const uint8_t *nonce,
+                                                     size_t nonce_length,
+                                                     const uint8_t *additional_data,
+                                                     size_t additional_data_length,
+                                                     const uint8_t *ciphertext,
+                                                     size_t ciphertext_length,
+                                                     uint8_t *plaintext,
+                                                     size_t plaintext_size,
+                                                     size_t *plaintext_length);
 
 /**@}*/
 
@@ -653,14 +653,14 @@ typedef psa_status_t (*psa_drv_aead_transparent_decrypt_t)(const uint8_t *p_key,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_asymmetric_transparent_sign_t)(const uint8_t *p_key,
-                                                              size_t key_size,
-                                                              psa_algorithm_t alg,
-                                                              const uint8_t *p_hash,
-                                                              size_t hash_length,
-                                                              uint8_t *p_signature,
-                                                              size_t signature_size,
-                                                              size_t *p_signature_length);
+typedef psa_status_t (*psa_drv_accel_asymmetric_sign_t)(const uint8_t *p_key,
+                                                        size_t key_size,
+                                                        psa_algorithm_t alg,
+                                                        const uint8_t *p_hash,
+                                                        size_t hash_length,
+                                                        uint8_t *p_signature,
+                                                        size_t signature_size,
+                                                        size_t *p_signature_length);
 
 /**
  * \brief A function that verifies the signature a hash or short message using
@@ -686,13 +686,13 @@ typedef psa_status_t (*psa_drv_asymmetric_transparent_sign_t)(const uint8_t *p_k
  * \retval PSA_SUCCESS
  *         The signature is valid.
  */
-typedef psa_status_t (*psa_drv_asymmetric_transparent_verify_t)(const uint8_t *p_key,
-                                                                size_t key_size,
-                                                                psa_algorithm_t alg,
-                                                                const uint8_t *p_hash,
-                                                                size_t hash_length,
-                                                                const uint8_t *p_signature,
-                                                                size_t signature_length);
+typedef psa_status_t (*psa_drv_accel_asymmetric_verify_t)(const uint8_t *p_key,
+                                                          size_t key_size,
+                                                          psa_algorithm_t alg,
+                                                          const uint8_t *p_hash,
+                                                          size_t hash_length,
+                                                          const uint8_t *p_signature,
+                                                          size_t signature_length);
 
 /**
  * \brief A function that encrypts a short message with a transparent
@@ -730,16 +730,16 @@ typedef psa_status_t (*psa_drv_asymmetric_transparent_verify_t)(const uint8_t *p
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_asymmetric_transparent_encrypt_t)(const uint8_t *p_key,
-                                                                 size_t key_size,
-                                                                 psa_algorithm_t alg,
-                                                                 const uint8_t *p_input,
-                                                                 size_t input_length,
-                                                                 const uint8_t *p_salt,
-                                                                 size_t salt_length,
-                                                                 uint8_t *p_output,
-                                                                 size_t output_size,
-                                                                 size_t *p_output_length);
+typedef psa_status_t (*psa_drv_accel_asymmetric_encrypt_t)(const uint8_t *p_key,
+                                                           size_t key_size,
+                                                           psa_algorithm_t alg,
+                                                           const uint8_t *p_input,
+                                                           size_t input_length,
+                                                           const uint8_t *p_salt,
+                                                           size_t salt_length,
+                                                           uint8_t *p_output,
+                                                           size_t output_size,
+                                                           size_t *p_output_length);
 
 /**
  * \brief Decrypt a short message with a transparent asymmetric private key
@@ -776,16 +776,16 @@ typedef psa_status_t (*psa_drv_asymmetric_transparent_encrypt_t)(const uint8_t *
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_asymmetric_transparent_decrypt_t)(const uint8_t *p_key,
-                                                                 size_t key_size,
-                                                                 psa_algorithm_t alg,
-                                                                 const uint8_t *p_input,
-                                                                 size_t input_length,
-                                                                 const uint8_t *p_salt,
-                                                                 size_t salt_length,
-                                                                 uint8_t *p_output,
-                                                                 size_t output_size,
-                                                                 size_t *p_output_length);
+typedef psa_status_t (*psa_drv_accel_asymmetric_decrypt_t)(const uint8_t *p_key,
+                                                           size_t key_size,
+                                                           psa_algorithm_t alg,
+                                                           const uint8_t *p_input,
+                                                           size_t input_length,
+                                                           const uint8_t *p_salt,
+                                                           size_t salt_length,
+                                                           uint8_t *p_output,
+                                                           size_t output_size,
+                                                           size_t *p_output_length);
 
 /**@}*/
 

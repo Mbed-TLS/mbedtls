@@ -535,10 +535,11 @@ static int x509_parse_subject_alt_name_cb( void *ctx,
                                            size_t data_len )
 {
     int ret;
-    mbedtls_x509_subject_alternative_name dummy_san_buf = { 0 };
+    mbedtls_x509_subject_alternative_name dummy_san_buf;
     mbedtls_x509_buf tmp_san_buf;
 
     ((void) ctx);
+    memset( &dummy_san_buf, 0, sizeof( dummy_san_buf ) );
 
     tmp_san_buf.p = data;
     tmp_san_buf.len = data_len;

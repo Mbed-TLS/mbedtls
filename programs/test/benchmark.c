@@ -1028,16 +1028,9 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
             CHECK_AND_CONTINUE( mbedtls_ecp_group_load(&ecdh_srv.grp, curve_info->grp_id));
-            CHECK_AND_CONTINUE( mbedtls_ecdh_gen_public(&ecdh_srv.grp,
-                                    &ecdh_srv.d,
-                                    &ecdh_srv.Q, myrand, NULL));
 #else
-            if( ecdh_srv.var == MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0 ) {
+            if( ecdh_srv.var == MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0 )
                 CHECK_AND_CONTINUE( mbedtls_ecp_group_load( &ecdh_srv.ctx.mbed_ecdh.grp, curve_info->grp_id ));
-                CHECK_AND_CONTINUE( mbedtls_ecdh_gen_public( &ecdh_srv.ctx.mbed_ecdh.grp,
-                                                &ecdh_srv.ctx.mbed_ecdh.d,
-                                                &ecdh_srv.ctx.mbed_ecdh.Q, myrand, NULL ));
-            }
 #endif
 
             mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s", curve_info->name );

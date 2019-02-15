@@ -874,7 +874,6 @@ typedef struct {
  * The contents of this structure are implementation dependent and are
  * therefore not described here
  */
-typedef struct psa_drv_key_derivation_context_s psa_drv_key_derivation_context_t;
 
 /** \brief Set up a key derivation operation by specifying the algorithm and
  * the source key sot
@@ -887,7 +886,7 @@ typedef struct psa_drv_key_derivation_context_s psa_drv_key_derivation_context_t
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(psa_drv_key_derivation_context_t *p_context,
+typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(void *p_context,
                                                           psa_algorithm_t kdf_alg,
                                                           psa_key_slot_number_t source_key);
 
@@ -906,7 +905,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(psa_drv_key_derivation
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(psa_drv_key_derivation_context_t *p_context,
+typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(void *p_context,
                                                                uint32_t collateral_id,
                                                                const uint8_t *p_collateral,
                                                                size_t collateral_size);
@@ -920,8 +919,8 @@ typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(psa_drv_key_deriv
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(psa_drv_key_derivation_context_t *p_context,
-                                                        psa_key_slot_number_t dest_key);
+typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(void *p_context,
+                                                          psa_key_slot_number_t dest_key);
 
 /** \brief Perform the final step of a key agreement and place the generated
  * key material in a buffer
@@ -934,9 +933,10 @@ typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(psa_drv_key_derivatio
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_key_derivation_export_t)(uint8_t *p_output,
-                                                        size_t output_size,
-                                                        size_t *p_output_length);
+typedef psa_status_t (*psa_drv_se_key_derivation_export_t)(void *p_context,
+                                                           uint8_t *p_output,
+                                                           size_t output_size,
+                                                           size_t *p_output_length);
 
 /**
  * \brief A struct containing all of the function pointers needed to for key
@@ -948,6 +948,8 @@ typedef psa_status_t (*psa_drv_se_key_derivation_export_t)(uint8_t *p_output,
  * If one of the functions is not implemented, it should be set to NULL.
  */
 typedef struct {
+    /** The driver-specific size of the key derivation context */
+    size_t                           context_size;
     /** Function that performs the key derivation setup */
     psa_drv_se_key_derivation_setup_t      p_setup;
     /** Function that sets the key derivation collateral */

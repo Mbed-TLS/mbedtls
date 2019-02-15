@@ -47,10 +47,6 @@
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
 typedef mbedtls_ecdh_context mbedtls_ecdh_context_mbed;
-#else
-#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
-#include "everest/everest.h"
-#endif
 #endif
 
 static mbedtls_ecp_group_id mbedtls_ecdh_grp_id(

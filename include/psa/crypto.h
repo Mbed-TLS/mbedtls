@@ -830,8 +830,7 @@ psa_status_t psa_copy_key(psa_key_handle_t source_handle,
  * \param hash_size         Size of the \p hash buffer in bytes.
  * \param[out] hash_length  On success, the number of bytes
  *                          that make up the hash value. This is always
- *                          #PSA_HASH_SIZE(\c alg) where \c alg is the
- *                          hash algorithm that is calculated.
+ *                          #PSA_HASH_SIZE(\p alg).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1145,9 +1144,7 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
  * \param[out] mac          Buffer where the MAC value is to be written.
  * \param mac_size          Size of the \p mac buffer in bytes.
  * \param[out] mac_length   On success, the number of bytes
- *                          that make up the mac value. This is always
- *                          #PSA_HASH_SIZE(\c alg) where \c alg is the
- *                          hash algorithm that is calculated.
+ *                          that make up the MAC value.
  *
  * \retval #PSA_SUCCESS
  *         Success.

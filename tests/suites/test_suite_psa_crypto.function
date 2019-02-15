@@ -1950,6 +1950,7 @@ exit:
 /* BEGIN_CASE */
 void hash_operation_init( )
 {
+    const uint8_t input[1] = { 0 };
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
@@ -1959,6 +1960,14 @@ void hash_operation_init( )
     psa_hash_operation_t zero;
 
     memset( &zero, 0, sizeof( zero ) );
+
+    /* A default hash operation should not be usable. */
+    TEST_EQUAL( psa_hash_update( &func, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_hash_update( &init, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_hash_update( &zero, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
 
     /* A default hash operation should be abortable without error. */
     PSA_ASSERT( psa_hash_abort( &func ) );
@@ -2004,18 +2013,18 @@ void hash_bad_order( )
     /* psa_hash_update without calling psa_hash_setup beforehand */
     memset( &operation, 0, sizeof( operation ) );
     TEST_EQUAL( psa_hash_update( &operation, input, sizeof( input ) ),
-                PSA_ERROR_INVALID_ARGUMENT );
+                PSA_ERROR_BAD_STATE );
 
     /* psa_hash_verify without calling psa_hash_setup beforehand */
     memset( &operation, 0, sizeof( operation ) );
     TEST_EQUAL( psa_hash_verify( &operation, hash, sizeof( hash ) ),
-                PSA_ERROR_INVALID_ARGUMENT );
+                PSA_ERROR_BAD_STATE );
 
     /* psa_hash_finish without calling psa_hash_setup beforehand */
     memset( &operation, 0, sizeof( operation ) );
     TEST_EQUAL( psa_hash_finish( &operation,
                                  hash, sizeof( hash ), &hash_len ),
-                PSA_ERROR_INVALID_ARGUMENT );
+                PSA_ERROR_BAD_STATE );
 
 exit:
     mbedtls_psa_crypto_free( );

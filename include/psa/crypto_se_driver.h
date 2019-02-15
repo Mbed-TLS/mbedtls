@@ -697,6 +697,7 @@ typedef struct {
  *         Success.
  */
 typedef psa_status_t (*psa_drv_se_import_key_t)(psa_key_slot_number_t key_slot,
+                                                psa_key_lifetime_t lifetime,
                                                 psa_key_type_t type,
                                                 psa_algorithm_t algorithm,
                                                 psa_key_usage_t usage,

@@ -392,8 +392,8 @@ typedef struct {
     /** The size in bytes of the hardware-specific Opaque Cipher context
      * structure
      */
-    size_t                      size;
-    /** Function that performs the setup operation */
+    size_t               context_size;
+    /** Function that performs a cipher setup operation */
     psa_drv_se_cipher_setup_t  p_setup;
     /** Function that sets the IV (if necessary) */
     psa_drv_se_cipher_set_iv_t p_set_iv;

@@ -43,7 +43,7 @@ extern "C" {
 /** An internal designation of a key slot between the core part of the
  * PSA Crypto implementation and the driver. The meaning of this value
  * is driver-dependent. */
-typedef uint32_t psa_key_slot_t;
+typedef uint32_t psa_key_slot_number_t; // TODO: Change this to psa_key_slot_t after psa_key_slot_t is removed from Mbed crypto
 
 /** \defgroup opaque_mac Opaque Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
@@ -76,7 +76,7 @@ typedef uint32_t psa_key_slot_t;
  *          Success.
  */
 typedef psa_status_t (*psa_drv_se_mac_setup_t)(void *p_context,
-                                               psa_key_slot_t key_slot,
+                                               psa_key_slot_number_t key_slot,
                                                psa_algorithm_t algorithm);
 
 /** \brief A function that continues a previously started MAC operation using
@@ -160,7 +160,7 @@ typedef psa_status_t (*psa_drv_se_mac_abort_t)(void *p_context);
  */
 typedef psa_status_t (*psa_drv_se_mac_generate_t)(const uint8_t *p_input,
                                                   size_t input_length,
-                                                  psa_key_slot_t key_slot,
+                                                  psa_key_slot_number_t key_slot,
                                                   psa_algorithm_t alg,
                                                   uint8_t *p_mac,
                                                   size_t mac_size,
@@ -187,7 +187,7 @@ typedef psa_status_t (*psa_drv_se_mac_generate_t)(const uint8_t *p_input,
  */
 typedef psa_status_t (*psa_drv_se_mac_verify_t)(const uint8_t *p_input,
                                                 size_t input_length,
-                                                psa_key_slot_t key_slot,
+                                                psa_key_slot_number_t key_slot,
                                                 psa_algorithm_t alg,
                                                 const uint8_t *p_mac,
                                                 size_t mac_length);
@@ -273,7 +273,7 @@ typedef struct {
  * \retval PSA_ERROR_NOT_SUPPORTED
  */
 typedef psa_status_t (*psa_drv_se_cipher_setup_t)(void *p_context,
-                                                  psa_key_slot_t key_slot,
+                                                  psa_key_slot_number_t key_slot,
                                                   psa_algorithm_t algorithm,
                                                   psa_encrypt_or_decrypt_t direction);
 
@@ -370,7 +370,7 @@ typedef psa_status_t (*psa_drv_se_cipher_abort_t)(void *p_context);
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_NOT_SUPPORTED
  */
-typedef psa_status_t (*psa_drv_se_cipher_ecb_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*psa_drv_se_cipher_ecb_t)(psa_key_slot_number_t key_slot,
                                                 psa_algorithm_t algorithm,
                                                 psa_encrypt_or_decrypt_t direction,
                                                 const uint8_t *p_input,
@@ -435,7 +435,7 @@ typedef struct {
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_asymmetric_sign_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*psa_drv_se_asymmetric_sign_t)(psa_key_slot_number_t key_slot,
                                                      psa_algorithm_t alg,
                                                      const uint8_t *p_hash,
                                                      size_t hash_length,
@@ -459,7 +459,7 @@ typedef psa_status_t (*psa_drv_se_asymmetric_sign_t)(psa_key_slot_t key_slot,
  * \retval PSA_SUCCESS
  *         The signature is valid.
  */
-typedef psa_status_t (*psa_drv_se_asymmetric_verify_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*psa_drv_se_asymmetric_verify_t)(psa_key_slot_number_t key_slot,
                                                        psa_algorithm_t alg,
                                                        const uint8_t *p_hash,
                                                        size_t hash_length,
@@ -495,7 +495,7 @@ typedef psa_status_t (*psa_drv_se_asymmetric_verify_t)(psa_key_slot_t key_slot,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_asymmetric_encrypt_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*psa_drv_se_asymmetric_encrypt_t)(psa_key_slot_number_t key_slot,
                                                         psa_algorithm_t alg,
                                                         const uint8_t *p_input,
                                                         size_t input_length,
@@ -532,7 +532,7 @@ typedef psa_status_t (*psa_drv_se_asymmetric_encrypt_t)(psa_key_slot_t key_slot,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_asymmetric_decrypt_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*psa_drv_se_asymmetric_decrypt_t)(psa_key_slot_number_t key_slot,
                                                         psa_algorithm_t alg,
                                                         const uint8_t *p_input,
                                                         size_t input_length,
@@ -602,7 +602,7 @@ typedef struct {
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_drv_se_aead_encrypt_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*psa_drv_se_aead_encrypt_t)(psa_key_slot_number_t key_slot,
                                                   psa_algorithm_t algorithm,
                                                   const uint8_t *p_nonce,
                                                   size_t nonce_length,
@@ -642,7 +642,7 @@ typedef psa_status_t (*psa_drv_se_aead_encrypt_t)(psa_key_slot_t key_slot,
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_drv_se_aead_decrypt_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*psa_drv_se_aead_decrypt_t)(psa_key_slot_number_t key_slot,
                                                   psa_algorithm_t algorithm,
                                                   const uint8_t *p_nonce,
                                                   size_t nonce_length,
@@ -696,7 +696,7 @@ typedef struct {
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_drv_se_import_key_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*psa_drv_se_import_key_t)(psa_key_slot_number_t key_slot,
                                                 psa_key_type_t type,
                                                 psa_algorithm_t algorithm,
                                                 psa_key_usage_t usage,
@@ -719,7 +719,7 @@ typedef psa_status_t (*psa_drv_se_import_key_t)(psa_key_slot_t key_slot,
  * \retval #PSA_SUCCESS
  *         The slot's content, if any, has been erased.
  */
-typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_t key);
+typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_number_t key);
 
 /**
  * \brief Export a key in binary format
@@ -761,7 +761,7 @@ typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_t key);
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_t key,
+typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
                                                 uint8_t *p_data,
                                                 size_t data_size,
                                                 size_t *p_data_length);
@@ -787,7 +787,7 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_t key,
  *
  * \retval #PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_export_public_key_t)(psa_key_slot_t key,
+typedef psa_status_t (*psa_drv_se_export_public_key_t)(psa_key_slot_number_t key,
                                                     uint8_t *p_data,
                                                     size_t data_size,
                                                     size_t *p_data_length);
@@ -883,7 +883,7 @@ typedef struct psa_drv_key_derivation_context_s psa_drv_key_derivation_context_t
  */
 typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(psa_drv_key_derivation_context_t *p_context,
                                                           psa_algorithm_t kdf_alg,
-                                                          psa_key_slot_t source_key);
+                                                          psa_key_slot_number_t source_key);
 
 /** \brief Provide collateral (parameters) needed for a key derivation or key
  * agreement operation
@@ -915,7 +915,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(psa_drv_key_deriv
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(psa_drv_key_derivation_context_t *p_context,
-                                                        psa_key_slot_t dest_key);
+                                                        psa_key_slot_number_t dest_key);
 
 /** \brief Perform the final step of a key agreement and place the generated
  * key material in a buffer

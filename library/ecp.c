@@ -2830,6 +2830,63 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
     return( mbedtls_ecp_gen_keypair( &key->grp, &key->d, &key->Q, f_rng, p_rng ) );
 }
 
+#define ECP_CURVE255_KEY_SIZE 32
+/*
+ * Read a private key.
+ */
+int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
+                          const unsigned char *buf, size_t buflen )
+{
+    int ret = 0;
+
+    if( ( ret = mbedtls_ecp_group_load( &key->grp, grp_id ) ) != 0 )
+        return( ret );
+
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+    /*
+     * If it is Curve25519 curve then mask the key as mandated by RFC7748
+     */
+    if( grp_id == MBEDTLS_ECP_DP_CURVE25519 )
+    {
+        if( buflen != ECP_CURVE255_KEY_SIZE )
+            return MBEDTLS_ERR_ECP_INVALID_KEY;
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &key->d, buf, buflen ) );
+
+        /* Set the three least significant bits to 0 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &key->d, 0, 0 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &key->d, 1, 0 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &key->d, 2, 0 ) );
+
+        /* Set the most significant bit to 0 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &key->d,
+                                              ECP_CURVE255_KEY_SIZE * 8 - 1,
+                                              0 ) );
+
+        /* Set the second most significant bit to 1 */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &key->d,
+                                              ECP_CURVE255_KEY_SIZE * 8 - 2,
+                                              1 ) );
+    }
+
+#endif
+#if defined(ECP_SHORTWEIERSTRASS)
+    if( ecp_get_type( &key->grp ) != ECP_TYPE_MONTGOMERY )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &key->d, buf, buflen ) );
+
+        MBEDTLS_MPI_CHK( mbedtls_ecp_check_privkey( &key->grp, &key->d ) );
+    }
+
+#endif
+cleanup:
+
+    if( ret != 0 )
+        mbedtls_mpi_free( &key->d );
+
+    return( ret );
+}
+
 /*
  * Check a public-private key pair
  */

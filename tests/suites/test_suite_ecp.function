@@ -1021,6 +1021,28 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mbedtls_ecp_read_key( int grp_id, data_t* in_key, int expected )
+{
+    int ret = 0;
+    mbedtls_ecp_keypair key;
+
+    mbedtls_ecp_keypair_init( &key );
+
+    ret = mbedtls_ecp_read_key( grp_id, &key, in_key->x, in_key->len );
+    TEST_ASSERT( ret == expected );
+
+    if( expected == 0 )
+    {
+        ret = mbedtls_ecp_check_privkey( &key.grp, &key.d );
+        TEST_ASSERT( ret == 0 );
+    }
+
+exit:
+    mbedtls_ecp_keypair_free( &key );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void ecp_selftest(  )
 {

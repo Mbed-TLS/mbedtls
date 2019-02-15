@@ -885,7 +885,12 @@
  */
 #define PSA_ALG_CBC_PKCS7                       ((psa_algorithm_t)0x04600101)
 
+/** The CCM authenticated encryption algorithm.
+ */
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x06001001)
+
+/** The GCM authenticated encryption algorithm.
+ */
 #define PSA_ALG_GCM                             ((psa_algorithm_t)0x06001002)
 
 /* In the encoding of a AEAD algorithm, the bits corresponding to
@@ -1007,6 +1012,20 @@
     (PSA_ALG_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 #define PSA_ALG_DETERMINISTIC_DSA_BASE          ((psa_algorithm_t)0x10050000)
 #define PSA_ALG_DSA_DETERMINISTIC_FLAG          ((psa_algorithm_t)0x00010000)
+/** Deterministic DSA signature with hashing.
+ *
+ * This is the deterministic variant defined by RFC 6979 of
+ * the signature scheme defined by FIPS 186-4.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
+ *
+ * \return              The corresponding DSA signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
 #define PSA_ALG_DETERMINISTIC_DSA(hash_alg)                             \
     (PSA_ALG_DETERMINISTIC_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 #define PSA_ALG_IS_DSA(alg)                                             \

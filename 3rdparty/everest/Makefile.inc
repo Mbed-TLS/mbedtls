@@ -11,7 +11,7 @@ THIRDPARTY_CRYPTO_OBJECTS+= \
 ifeq ($(shell getconf LONG_BIT),64)
 THIRDPARTY_CRYPTO_OBJECTS+=../3rdparty/everest/library/Hacl_Curve25519.o
 else
-CFLAGS+="-DKRML_VERIFIED_UINT128"
+LOCAL_CFLAGS+="-DKRML_VERIFIED_UINT128"
 THIRDPARTY_CRYPTO_OBJECTS+=../3rdparty/everest/library/legacy/Hacl_Curve25519.o \
 	../3rdparty/everest/library/kremlib/FStar_UInt128_extracted.o
 endif

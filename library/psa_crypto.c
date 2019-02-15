@@ -3621,6 +3621,12 @@ psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
 psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
                                         size_t *capacity)
 {
+    if( generator->alg == 0 )
+    {
+        /* This is a blank generator. */
+        return PSA_ERROR_BAD_STATE;
+    }
+
     *capacity = generator->capacity;
     return( PSA_SUCCESS );
 }
@@ -3850,6 +3856,12 @@ psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
 {
     psa_status_t status;
 
+    if( generator->alg == 0 )
+    {
+        /* This is a blank generator. */
+        return PSA_ERROR_BAD_STATE;
+    }
+
     if( output_length > generator->capacity )
     {
         generator->capacity = 0;
@@ -3858,11 +3870,10 @@ psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
         status = PSA_ERROR_INSUFFICIENT_DATA;
         goto exit;
     }
-    if( output_length == 0 &&
-        generator->capacity == 0 && generator->alg == 0 )
+    if( output_length == 0 && generator->capacity == 0 )
     {
-        /* Edge case: this is a blank or finished generator, and 0
-         * bytes were requested. The right error in this case could
+        /* Edge case: this is a finished generator, and 0 bytes
+         * were requested. The right error in this case could
          * be either INSUFFICIENT_CAPACITY or BAD_STATE. Return
          * INSUFFICIENT_CAPACITY, which is right for a finished
          * generator, for consistency with the case when
@@ -3911,7 +3922,13 @@ psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
 exit:
     if( status != PSA_SUCCESS )
     {
+        /* Preserve the algorithm upon errors, but clear all sensitive state.
+         * This allows us to differentiate between exhausted generators and
+         * blank generators, so we can return PSA_ERROR_BAD_STATE on blank
+         * generators. */
+        psa_algorithm_t alg = generator->alg;
         psa_generator_abort( generator );
+        generator->alg = alg;
         memset( output, '!', output_length );
     }
     return( status );

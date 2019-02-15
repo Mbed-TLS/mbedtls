@@ -788,10 +788,15 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
  *
  * \retval #PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_export_public_key_t)(psa_key_slot_number_t key,
-                                                    uint8_t *p_data,
-                                                    size_t data_size,
-                                                    size_t *p_data_length);
+typedef psa_status_t (*psa_drv_se_generate_key_t) (psa_key_slot_number_t key_slot,
+                                                   psa_key_type_t type,
+                                                   psa_key_usage_t usage,
+                                                   size_t bits,
+                                                   const void *extra,
+                                                   size_t extra_size,
+                                                   uint8_t *p_pubkey_out,
+                                                   size_t pubkey_out_size,
+                                                   size_t *p_pubkey_length);
 
 /**
  * \brief A struct containing all of the function pointers needed to for key
@@ -806,11 +811,11 @@ typedef struct {
     /** Function that performs the key import operation */
     psa_drv_se_import_key_t p_import;
     /** Function that performs the key destroy operation */
-    psa_drv_se_destroy_key_t       p_destroy;
+    psa_drv_se_generate_key_t   p_generate;
     /** Function that performs the key export operation */
-    psa_drv_se_export_key_t        p_export;
+    psa_drv_se_destroy_key_t    p_destroy;
     /** Function that perforsm the public key export operation */
-    psa_drv_se_export_public_key_t p_export_public;
+    psa_drv_se_export_key_t     p_export;
 } psa_drv_se_key_management_t;
 
 /**@}*/

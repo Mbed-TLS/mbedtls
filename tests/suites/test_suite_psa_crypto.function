@@ -2168,6 +2168,8 @@ exit:
 /* BEGIN_CASE */
 void mac_operation_init( )
 {
+    const uint8_t input[1] = { 0 };
+
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
@@ -2177,6 +2179,17 @@ void mac_operation_init( )
     psa_mac_operation_t zero;
 
     memset( &zero, 0, sizeof( zero ) );
+
+    /* A freshly-initialized MAC operation should not be usable. */
+    TEST_EQUAL( psa_mac_update( &func,
+                                input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_mac_update( &init,
+                                input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_mac_update( &zero,
+                                input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
 
     /* A default MAC operation should be abortable without error. */
     PSA_ASSERT( psa_mac_abort( &func ) );
@@ -2216,6 +2229,122 @@ void mac_setup( int key_type_arg,
 
 exit:
     psa_destroy_key( handle );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_bad_order( )
+{
+    psa_key_handle_t handle = 0;
+    psa_key_type_t key_type = PSA_KEY_TYPE_HMAC;
+    psa_algorithm_t alg = PSA_ALG_HMAC(PSA_ALG_SHA_256);
+    const uint8_t key[] = {
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa };
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    uint8_t sign_mac[PSA_MAC_MAX_SIZE + 10] = { 0 };
+    size_t sign_mac_length = 0;
+    const uint8_t input[] = { 0xbb, 0xbb, 0xbb, 0xbb };
+    const uint8_t verify_mac[] = {
+        0x74, 0x65, 0x93, 0x8c, 0xeb, 0x1d, 0xb3, 0x76, 0x5a, 0x38, 0xe7, 0xdd,
+        0x85, 0xc5, 0xad, 0x4f, 0x07, 0xe7, 0xd5, 0xb2, 0x64, 0xf0, 0x1a, 0x1a,
+        0x2c, 0xf9, 0x18, 0xca, 0x59, 0x7e, 0x5d, 0xf6 };
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    PSA_ASSERT( psa_allocate_key( &handle ) );
+    psa_key_policy_set_usage( &policy,
+                              PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY,
+                              alg );
+    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+
+    PSA_ASSERT( psa_import_key( handle, key_type,
+                                key, sizeof(key) ) );
+
+    /* Call update without calling setup beforehand. */
+    TEST_EQUAL( psa_mac_update( &operation, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call sign finish without calling setup beforehand. */
+    TEST_EQUAL( psa_mac_sign_finish( &operation, sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call verify finish without calling setup beforehand. */
+    TEST_EQUAL( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call update after sign finish. */
+    PSA_ASSERT( psa_mac_sign_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    PSA_ASSERT( psa_mac_sign_finish( &operation,
+                                     sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length ) );
+    TEST_EQUAL( psa_mac_update( &operation, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call update after verify finish. */
+    PSA_ASSERT( psa_mac_verify_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    PSA_ASSERT( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ) );
+    TEST_EQUAL( psa_mac_update( &operation, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call sign finish twice in a row. */
+    PSA_ASSERT( psa_mac_sign_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    PSA_ASSERT( psa_mac_sign_finish( &operation,
+                                     sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length ) );
+    TEST_EQUAL( psa_mac_sign_finish( &operation,
+                                     sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call verify finish twice in a row. */
+    PSA_ASSERT( psa_mac_verify_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    PSA_ASSERT( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ) );
+    TEST_EQUAL( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Setup sign but try verify. */
+    PSA_ASSERT( psa_mac_sign_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    TEST_EQUAL( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Setup verify but try sign. */
+    PSA_ASSERT( psa_mac_verify_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    TEST_EQUAL( psa_mac_sign_finish( &operation,
+                                     sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

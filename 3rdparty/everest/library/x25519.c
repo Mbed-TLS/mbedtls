@@ -52,8 +52,8 @@ void mbedtls_x25519_free( mbedtls_x25519_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_platform_zeroize( ctx->our_secret, 32 );
-    mbedtls_platform_zeroize( ctx->peer_point, 32 );
+    mbedtls_platform_zeroize( ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES );
+    mbedtls_platform_zeroize( ctx->peer_point, MBEDTLS_X25519_KEY_SIZE_BYTES );
 }
 
 int mbedtls_x25519_make_params( mbedtls_x25519_context *ctx, size_t *olen,
@@ -63,9 +63,9 @@ int mbedtls_x25519_make_params( mbedtls_x25519_context *ctx, size_t *olen,
 {
     int ret = 0;
 
-    uint8_t base[32] = {0};
+    uint8_t base[MBEDTLS_X25519_KEY_SIZE_BYTES] = {0};
 
-    if( ( ret = f_rng( p_rng, ctx->our_secret, 32 ) ) != 0 )
+    if( ( ret = f_rng( p_rng, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES ) ) != 0 )
         return ret;
 
     *olen = 36;
@@ -75,13 +75,13 @@ int mbedtls_x25519_make_params( mbedtls_x25519_context *ctx, size_t *olen,
     *buf++ = MBEDTLS_ECP_TLS_NAMED_CURVE;
     *buf++ = MBEDTLS_ECP_TLS_CURVE25519 >> 8;
     *buf++ = MBEDTLS_ECP_TLS_CURVE25519 & 0xFF;
-    *buf++ = 32;
+    *buf++ = MBEDTLS_X25519_KEY_SIZE_BYTES;
 
     base[0] = 9;
     Hacl_Curve25519_crypto_scalarmult( buf, ctx->our_secret, base );
 
     base[0] = 0;
-    if( memcmp( buf, base, 32) == 0 )
+    if( memcmp( buf, base, MBEDTLS_X25519_KEY_SIZE_BYTES) == 0 )
         return MBEDTLS_ERR_ECP_RANDOM_FAILED;
 
     return( 0 );
@@ -93,11 +93,11 @@ int mbedtls_x25519_read_params( mbedtls_x25519_context *ctx,
     if( end - *buf < 33 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    if( ( *(*buf)++ != 32 ) )
+    if( ( *(*buf)++ != MBEDTLS_X25519_KEY_SIZE_BYTES ) )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    memcpy( ctx->peer_point, *buf, 32 );
-    *buf += 32;
+    memcpy( ctx->peer_point, *buf, MBEDTLS_X25519_KEY_SIZE_BYTES );
+    *buf += MBEDTLS_X25519_KEY_SIZE_BYTES;
     return( 0 );
 }
 
@@ -108,11 +108,11 @@ int mbedtls_x25519_get_params( mbedtls_x25519_context *ctx, const mbedtls_ecp_ke
 
     switch( side ) {
     case MBEDTLS_X25519_ECDH_THEIRS:
-        mbedtls_ecp_point_write_binary( &key->grp, &key->Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, ctx->peer_point, 32 );
+        mbedtls_ecp_point_write_binary( &key->grp, &key->Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, ctx->peer_point, MBEDTLS_X25519_KEY_SIZE_BYTES );
         /* untested; defensively throw an error for now. */
         return(MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE);
     case MBEDTLS_X25519_ECDH_OURS:
-        mbedtls_mpi_write_binary( &key->d, ctx->our_secret, 32 );
+        mbedtls_mpi_write_binary( &key->d, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES );
         /* CMW: key->Q = key->d * base; do we need to set up ctx.peer_point here? */
         /* untested; defensively throw an error for now. */
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
@@ -130,7 +130,7 @@ int mbedtls_x25519_calc_secret( mbedtls_x25519_context *ctx, size_t *olen,
     (( void )f_rng);
     (( void )p_rng);
 
-    *olen = 32;
+    *olen = MBEDTLS_X25519_KEY_SIZE_BYTES;
 
     if( blen < *olen )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
@@ -138,8 +138,8 @@ int mbedtls_x25519_calc_secret( mbedtls_x25519_context *ctx, size_t *olen,
     Hacl_Curve25519_crypto_scalarmult( buf, ctx->our_secret, ctx->peer_point);
 
     /* Wipe the DH secret and don't let the peer chose a small subgroup point */
-    memset( ctx->our_secret, 0, 32 );
-    if( memcmp( buf, ctx->our_secret, 32) == 0 )
+    memset( ctx->our_secret, 0, MBEDTLS_X25519_KEY_SIZE_BYTES );
+    if( memcmp( buf, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES) == 0 )
         return MBEDTLS_ERR_ECP_RANDOM_FAILED;
 
     return( 0 );
@@ -150,7 +150,7 @@ int mbedtls_x25519_make_public( mbedtls_x25519_context *ctx, size_t *olen,
                         int( *f_rng )(void *, unsigned char *, size_t),
                         void *p_rng )
 {
-    unsigned char base[32] = { 0 };
+    unsigned char base[MBEDTLS_X25519_KEY_SIZE_BYTES] = { 0 };
 
     /* CMW: Is it okay that f_rng, p_rng are not used? */
     (( void )f_rng);
@@ -162,13 +162,13 @@ int mbedtls_x25519_make_public( mbedtls_x25519_context *ctx, size_t *olen,
     *olen = 33;
     if( blen < *olen )
         return(MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL);
-    *buf++ = 32;
+    *buf++ = MBEDTLS_X25519_KEY_SIZE_BYTES;
 
     base[0] = 9;
     Hacl_Curve25519_crypto_scalarmult( buf, ctx->our_secret, base );
 
     base[0] = 0;
-    if( memcmp( buf, base, 32 ) == 0 )
+    if( memcmp( buf, base, MBEDTLS_X25519_KEY_SIZE_BYTES ) == 0 )
         return MBEDTLS_ERR_ECP_RANDOM_FAILED;
 
     return(0);
@@ -179,9 +179,9 @@ int mbedtls_x25519_read_public( mbedtls_x25519_context *ctx,
 {
     if( blen < 33 )
         return(MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL);
-    if( (*buf++ != 32) )
+    if( (*buf++ != MBEDTLS_X25519_KEY_SIZE_BYTES) )
         return(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
-    memcpy( ctx->peer_point, buf, 32 );
+    memcpy( ctx->peer_point, buf, MBEDTLS_X25519_KEY_SIZE_BYTES );
     return(0);
 }
 

@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 #define MBEDTLS_ECP_TLS_CURVE25519 0x1d
+#define MBEDTLS_X25519_KEY_SIZE_BYTES 32
 
 /**
  * Defines the source of the imported EC key.
@@ -42,8 +43,8 @@ typedef enum
  */
 typedef struct
 {
-  unsigned char our_secret[32];
-  unsigned char peer_point[32];
+  unsigned char our_secret[MBEDTLS_X25519_KEY_SIZE_BYTES];
+  unsigned char peer_point[MBEDTLS_X25519_KEY_SIZE_BYTES];
 } mbedtls_x25519_context;
 
 /**

@@ -95,10 +95,10 @@ typedef struct {
     /** The driver-specific size of the entropy context */
     const size_t                context_size;
     /** Function that performs initialization for the entropy source */
-    psa_drv_entropy_init_t *p_init;
+    psa_drv_entropy_init_t 		p_init;
     /** Function that performs the get_bits operation for the entropy source
     */
-    psa_drv_entropy_get_bits_t *p_get_bits;
+    psa_drv_entropy_get_bits_t 	p_get_bits;
 } psa_drv_entropy_t;
 /**@}*/
 

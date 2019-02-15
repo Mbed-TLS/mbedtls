@@ -126,7 +126,8 @@ int mbedtls_x25519_calc_secret( mbedtls_x25519_context *ctx, size_t *olen,
                         int( *f_rng )(void *, unsigned char *, size_t),
                         void *p_rng )
 {
-    /* CMW: Is it okay that f_rng, p_rng are not used? */
+    /* f_rng and p_rng are not used here because this implementation does not
+       need blinding since it has constant trace. */
     (( void )f_rng);
     (( void )p_rng);
 

@@ -926,6 +926,10 @@ depends_on:MBEDTLS_ARC4_C:MBEDTLS_CIPHER_MODE_CTR
 # Either INVALID_ARGUMENT or NOT_SUPPORTED would be reasonable here
 cipher_setup:PSA_KEY_TYPE_ARC4:"000102030405060708090a0b0c0d0e0f":PSA_ALG_CTR:PSA_ERROR_NOT_SUPPORTED
 
+PSA cipher: bad order function calls
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_bad_order:
+
 PSA symmetric encrypt: AES-CBC-nopad, 16 bytes, good
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_encrypt:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":"a076ec9dfbe47d52afc357336f20743b":PSA_SUCCESS

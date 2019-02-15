@@ -1139,7 +1139,7 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
  *
  * \param handle            Handle to the key to use for the operation.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  * \param[in] input         Buffer containing the input message.
  * \param input_length      Size of the \p input buffer in bytes.
  * \param[out] mac          Buffer where the MAC value is to be written.
@@ -1179,7 +1179,7 @@ psa_status_t psa_mac_compute(psa_key_handle_t handle,
  *
  * \param handle            Handle to the key to use for the operation.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  * \param[in] input         Buffer containing the input message.
  * \param input_length      Size of the \p input buffer in bytes.
  * \param[out] mac          Buffer containing the expected MAC value.
@@ -1289,7 +1289,7 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  *                          It must remain valid until the operation
  *                          terminates.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.

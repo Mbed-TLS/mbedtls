@@ -41,7 +41,7 @@
  */
 void mbedtls_x25519_init( mbedtls_x25519_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_x25519_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_x25519_context ) );
 }
 
 /*
@@ -138,7 +138,8 @@ int mbedtls_x25519_calc_secret( mbedtls_x25519_context *ctx, size_t *olen,
     Hacl_Curve25519_crypto_scalarmult( buf, ctx->our_secret, ctx->peer_point);
 
     /* Wipe the DH secret and don't let the peer chose a small subgroup point */
-    memset( ctx->our_secret, 0, MBEDTLS_X25519_KEY_SIZE_BYTES );
+    mbedtls_platform_zeroize( ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES );
+
     if( memcmp( buf, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES) == 0 )
         return MBEDTLS_ERR_ECP_RANDOM_FAILED;
 

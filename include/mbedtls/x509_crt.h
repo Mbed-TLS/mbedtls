@@ -48,6 +48,59 @@ extern "C" {
  * \{
  */
 
+typedef struct mbedtls_x509_crt_frame
+{
+    /* Keep these 8-bit fields at the front of the structure to allow them to
+     * be fetched in a single instruction on Thumb2; putting them at the back
+     * requires an intermediate address calculation. */
+
+    uint8_t version;                        /**< The X.509 version. (1=v1, 2=v2, 3=v3)                          */
+    uint8_t ca_istrue;                      /**< Optional Basic Constraint extension value:
+                                             *   1 if this certificate belongs to a CA, 0 otherwise.            */
+    uint8_t max_pathlen;                    /**< Optional Basic Constraint extension value:
+                                             *   The maximum path length to the root certificate.
+                                             *   Path length is 1 higher than RFC 5280 'meaning', so 1+         */
+    uint8_t ns_cert_type;                   /**< Optional Netscape certificate type extension value:
+                                             *   See the values in x509.h                                       */
+
+    unsigned int key_usage;                 /**< Optional key usage extension value: See the values in x509.h   */
+    uint32_t ext_types;                     /**< Bitfield indicating which extensions are present.
+                                             *   See the values in x509.h.                                      */
+
+    mbedtls_md_type_t sig_md;               /**< The hash algorithm used to hash CRT before signing.            */
+    mbedtls_pk_type_t sig_pk;               /**< The signature algorithm used to sign the CRT hash.             */
+
+    mbedtls_x509_time valid_from;           /**< The start time of certificate validity.                        */
+    mbedtls_x509_time valid_to;             /**< The end time of certificate validity.                          */
+
+    mbedtls_x509_buf_raw raw;               /**< The raw certificate data in DER.                               */
+    mbedtls_x509_buf_raw tbs;               /**< The part of the CRT that is [T]o [B]e [S]igned.                */
+
+    mbedtls_x509_buf_raw serial;            /**< The unique ID for certificate issued by a specific CA.         */
+
+    mbedtls_x509_buf_raw pubkey_raw;        /**< The raw public key data (DER).                                 */
+
+    mbedtls_x509_buf_raw issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier.                 */
+    mbedtls_x509_buf_raw issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison.          */
+
+    mbedtls_x509_buf_raw subject_id;        /**< Optional X.509 v2/v3 subject unique identifier.                */
+    mbedtls_x509_buf_raw subject_raw;       /**< The raw subject data (DER). Used for quick comparison.         */
+
+    mbedtls_x509_buf_raw sig;               /**< Signature: hash of the tbs part signed with the private key.   */
+    mbedtls_x509_buf_raw sig_alg;           /**< The signature algorithm used for \p sig.                       */
+
+    mbedtls_x509_buf_raw v3_ext;            /**< The raw data for the extension list in the certificate.
+                                             *   Might be useful for manual inspection of extensions that
+                                             *   Mbed TLS doesn't yet support.                                  */
+    mbedtls_x509_buf_raw subject_alt_raw;   /**< The raw data for the SubjectAlternativeNames extension.        */
+    mbedtls_x509_buf_raw ext_key_usage_raw; /**< The raw data for the ExtendedKeyUsage extension.               */
+    mbedtls_x509_buf_raw crt_policies_raw;  /**< The raw data for the CertificatePolicies extension.            */
+
+    mbedtls_x509_buf_raw issuer_raw_with_hdr;
+    mbedtls_x509_buf_raw subject_raw_with_hdr;
+
+} mbedtls_x509_crt_frame;
+
 /**
  * Container for an X.509 certificate. The certificate may be chained.
  */

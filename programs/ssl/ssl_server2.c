@@ -36,6 +36,9 @@
 #define mbedtls_calloc    calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
+#define mbedtls_exit            exit
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
@@ -228,11 +231,12 @@ int main( void )
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK_RAW                                               \
-    "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
-    "    psk_identity=%%s     default: \"Client_identity\"\n"       \
+    "    psk=%%s              default: \"\" (in hex, without 0x)\n"     \
     "    psk_list=%%s         default: \"\"\n"                          \
-    "                          A list of (PSK identity, PSK value) pairs in (hex format, without 0x)\n" \
-    "                          id1,psk1[,id2,psk2[,...]]\n"
+    "                          A list of (PSK identity, PSK value) pairs.\n" \
+    "                          The PSK values are in hex, without 0x.\n" \
+    "                          id1,psk1[,id2,psk2[,...]]\n"             \
+    "    psk_identity=%%s     default: \"Client_identity\"\n"
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define USAGE_PSK_SLOT                          \
     "    psk_opaque=%%d       default: 0 (don't use opaque static PSK)\n"     \
@@ -459,6 +463,18 @@ int main( void )
     (out_be)[(i) + 6] = (unsigned char)( ( (in_le) >> 8  ) & 0xFF );    \
     (out_be)[(i) + 7] = (unsigned char)( ( (in_le) >> 0  ) & 0xFF );    \
 }
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+#include "mbedtls/platform_util.h"
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
+                           int line )
+{
+    mbedtls_printf( "%s:%i: Input param failed - %s\n",
+                    file, line, failure_condition );
+    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+}
+#endif
 
 /*
  * global options

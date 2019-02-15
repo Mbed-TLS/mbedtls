@@ -34,6 +34,12 @@
 #ifndef MBEDTLS_ECDH_H
 #define MBEDTLS_ECDH_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include "ecp.h"
 
 /*
@@ -149,11 +155,16 @@ mbedtls_ecdh_context;
  *
  * \see             ecp.h
  *
- * \param grp       The ECP group.
+ * \param grp       The ECP group to use. This must be initialized and have
+ *                  domain parameters loaded, for example through
+ *                  mbedtls_ecp_load() or mbedtls_ecp_tls_read_group().
  * \param d         The destination MPI (private key).
+ *                  This must be initialized.
  * \param Q         The destination point (public key).
- * \param f_rng     The RNG function.
- * \param p_rng     The RNG context.
+ *                  This must be initialized.
+ * \param f_rng     The RNG function to use. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be
+ *                  \c NULL in case \p f_rng doesn't need a context argument.
  *
  * \return          \c 0 on success.
  * \return          Another \c MBEDTLS_ERR_ECP_XXX or
@@ -176,12 +187,22 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
  *                  countermeasures against side-channel attacks.
  *                  For more information, see mbedtls_ecp_mul().
  *
- * \param grp       The ECP group.
+ * \param grp       The ECP group to use. This must be initialized and have
+ *                  domain parameters loaded, for example through
+ *                  mbedtls_ecp_load() or mbedtls_ecp_tls_read_group().
  * \param z         The destination MPI (shared secret).
+ *                  This must be initialized.
  * \param Q         The public key from another party.
+ *                  This must be initialized.
  * \param d         Our secret exponent (private key).
- * \param f_rng     The RNG function.
- * \param p_rng     The RNG context.
+ *                  This must be initialized.
+ * \param f_rng     The RNG function. This may be \c NULL if randomization
+ *                  of intermediate results during the ECP computations is
+ *                  not needed (discouraged). See the documentation of
+ *                  mbedtls_ecp_mul() for more.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be
+ *                  \c NULL if \p f_rng is \c NULL or doesn't need a
+ *                  context argument.
  *
  * \return          \c 0 on success.
  * \return          Another \c MBEDTLS_ERR_ECP_XXX or
@@ -195,7 +216,7 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
 /**
  * \brief           This function initializes an ECDH context.
  *
- * \param ctx       The ECDH context to initialize.
+ * \param ctx       The ECDH context to initialize. This must not be \c NULL.
  */
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx );
 
@@ -210,39 +231,42 @@ void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx );
  *                  This is the first function used by a TLS server for ECDHE
  *                  ciphersuites.
  *
- * \param ctx       The ECDH context to set up.
+ * \param ctx       The ECDH context to set up. This must be initialized.
  * \param grp_id    The group id of the group to set up the context for.
  *
  * \return          \c 0 on success.
  */
-int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id );
+int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx,
+                        mbedtls_ecp_group_id grp_id );
 
 /**
  * \brief           This function frees a context.
  *
- * \param ctx       The context to free.
+ * \param ctx       The context to free. This may be \c NULL, in which
+ *                  case this function does nothing. If it is not \c NULL,
+ *                  it must point to an initialized ECDH context.
  */
 void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx );
 
 /**
- * \brief           This function generates a public key and a TLS
- *                  ServerKeyExchange payload.
+ * \brief           This function generates an EC key pair and exports its
+ *                  in the format used in a TLS ServerKeyExchange handshake
+ *                  message.
  *
  *                  This is the second function used by a TLS server for ECDHE
  *                  ciphersuites. (It is called after mbedtls_ecdh_setup().)
  *
- * \note            This function assumes that the ECP group (grp) of the
- *                  \p ctx context has already been properly set,
- *                  for example, using mbedtls_ecp_group_load().
- *
  * \see             ecp.h
  *
- * \param ctx       The ECDH context.
- * \param olen      The number of characters written.
- * \param buf       The destination buffer.
- * \param blen      The length of the destination buffer.
- * \param f_rng     The RNG function.
- * \param p_rng     The RNG context.
+ * \param ctx       The ECDH context to use. This must be initialized
+ *                  and bound to a group, for example via mbedtls_ecdh_setup().
+ * \param olen      The address at which to store the number of Bytes written.
+ * \param buf       The destination buffer. This must be a writable buffer of
+ *                  length \p blen Bytes.
+ * \param blen      The length of the destination buffer \p buf in Bytes.
+ * \param f_rng     The RNG function to use. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be
+ *                  \c NULL in case \p f_rng doesn't need a context argument.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
@@ -255,24 +279,32 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng );
 
 /**
- * \brief           This function parses and processes a TLS ServerKeyExhange
- *                  payload.
+ * \brief           This function parses the ECDHE parameters in a
+ *                  TLS ServerKeyExchange handshake message.
  *
- *                  This is the first function used by a TLS client for ECDHE
- *                  ciphersuites.
+ * \note            In a TLS handshake, this is the how the client
+ *                  sets up its ECDHE context from the server's public
+ *                  ECDHE key material.
  *
  * \see             ecp.h
  *
- * \param ctx       The ECDH context.
- * \param buf       The pointer to the start of the input buffer.
- * \param end       The address for one Byte past the end of the buffer.
+ * \param ctx       The ECDHE context to use. This must be initialized.
+ * \param buf       On input, \c *buf must be the start of the input buffer.
+ *                  On output, \c *buf is updated to point to the end of the
+ *                  data that has been read. On success, this is the first byte
+ *                  past the end of the ServerKeyExchange parameters.
+ *                  On error, this is the point at which an error has been
+ *                  detected, which is usually not useful except to debug
+ *                  failures.
+ * \param end       The end of the input buffer.
  *
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */
 int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
-                      const unsigned char **buf, const unsigned char *end );
+                              const unsigned char **buf,
+                              const unsigned char *end );
 
 /**
  * \brief           This function sets up an ECDH context from an EC key.
@@ -283,33 +315,40 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
  *
  * \see             ecp.h
  *
- * \param ctx       The ECDH context to set up.
- * \param key       The EC key to use.
- * \param side      Defines the source of the key: 1: Our key, or
- *                  0: The key of the peer.
+ * \param ctx       The ECDH context to set up. This must be initialized.
+ * \param key       The EC key to use. This must be initialized.
+ * \param side      Defines the source of the key. Possible values are:
+ *                  - #MBEDTLS_ECDH_OURS: The key is ours.
+ *                  - #MBEDTLS_ECDH_THEIRS: The key is that of the peer.
  *
  * \return          \c 0 on success.
  * \return          Another \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */
-int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypair *key,
-                     mbedtls_ecdh_side side );
+int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx,
+                             const mbedtls_ecp_keypair *key,
+                             mbedtls_ecdh_side side );
 
 /**
- * \brief           This function generates a public key and a TLS
- *                  ClientKeyExchange payload.
+ * \brief           This function generates a public key and exports it
+ *                  as a TLS ClientKeyExchange payload.
  *
  *                  This is the second function used by a TLS client for ECDH(E)
  *                  ciphersuites.
  *
  * \see             ecp.h
  *
- * \param ctx       The ECDH context.
- * \param olen      The number of Bytes written.
- * \param buf       The destination buffer.
- * \param blen      The size of the destination buffer.
- * \param f_rng     The RNG function.
- * \param p_rng     The RNG context.
+ * \param ctx       The ECDH context to use. This must be initialized
+ *                  and bound to a group, the latter usually by
+ *                  mbedtls_ecdh_read_params().
+ * \param olen      The address at which to store the number of Bytes written.
+ *                  This must not be \c NULL.
+ * \param buf       The destination buffer. This must be a writable buffer
+ *                  of length \p blen Bytes.
+ * \param blen      The size of the destination buffer \p buf in Bytes.
+ * \param f_rng     The RNG function to use. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may be
+ *                  \c NULL in case \p f_rng doesn't need a context argument.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
@@ -322,8 +361,8 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng );
 
 /**
- * \brief       This function parses and processes a TLS ClientKeyExchange
- *              payload.
+ * \brief       This function parses and processes the ECDHE payload of a
+ *              TLS ClientKeyExchange message.
  *
  *              This is the third function used by a TLS server for ECDH(E)
  *              ciphersuites. (It is called after mbedtls_ecdh_setup() and
@@ -331,15 +370,17 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
  *
  * \see         ecp.h
  *
- * \param ctx   The ECDH context.
- * \param buf   The start of the input buffer.
- * \param blen  The length of the input buffer.
+ * \param ctx   The ECDH context to use. This must be initialized
+ *              and bound to a group, for example via mbedtls_ecdh_setup().
+ * \param buf   The pointer to the ClientKeyExchange payload. This must
+ *              be a readable buffer of length \p blen Bytes.
+ * \param blen  The length of the input buffer \p buf in Bytes.
  *
  * \return      \c 0 on success.
  * \return      An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
 int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
-                      const unsigned char *buf, size_t blen );
+                              const unsigned char *buf, size_t blen );
 
 /**
  * \brief           This function derives and exports the shared secret.
@@ -352,13 +393,19 @@ int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
  *                  For more information, see mbedtls_ecp_mul().
  *
  * \see             ecp.h
- *
- * \param ctx       The ECDH context.
- * \param olen      The number of Bytes written.
- * \param buf       The destination buffer.
- * \param blen      The length of the destination buffer.
- * \param f_rng     The RNG function.
- * \param p_rng     The RNG context.
+
+ * \param ctx       The ECDH context to use. This must be initialized
+ *                  and have its own private key generated and the peer's
+ *                  public key imported.
+ * \param olen      The address at which to store the total number of
+ *                  Bytes written on success. This must not be \c NULL.
+ * \param buf       The buffer to write the generated shared key to. This
+ *                  must be a writable buffer of size \p blen Bytes.
+ * \param blen      The length of the destination buffer \p buf in Bytes.
+ * \param f_rng     The RNG function, for blinding purposes. This may
+ *                  b \c NULL if blinding isn't needed.
+ * \param p_rng     The RNG context. This may be \c NULL if \p f_rng
+ *                  doesn't need a context argument.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
@@ -381,7 +428,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
  *                  computations once enabled, except by free-ing the context,
  *                  which cancels possible in-progress operations.
  *
- * \param ctx       The ECDH context.
+ * \param ctx       The ECDH context to use. This must be initialized.
  */
 void mbedtls_ecdh_enable_restart( mbedtls_ecdh_context *ctx );
 #endif /* MBEDTLS_ECP_RESTARTABLE */

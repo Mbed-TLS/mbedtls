@@ -50,15 +50,15 @@ When backporting to these branches please observe the following rules:
 
  2. All bug fixes that correct a defect that is also present in an LTS branch must be backported to that LTS branch. If a bug fix introduces a change to the API such as a new function, the fix should be reworked to avoid the API change. API changes without very strong justification are unlikely to be accepted.
 
- 3. If a contribution is a new feature or enhancement, no backporting is required. Exceptions to this may be addtional test cases or quality improvements such as changes to build or test scripts.
+ 3. If a contribution is a new feature or enhancement, no backporting is required. Exceptions to this may be additional test cases or quality improvements such as changes to build or test scripts.
 
 It would be highly appreciated if contributions are backported to LTS branches in addition to the [development branch](https://github.com/ARMmbed/mbedtls/tree/development) by contributors.
 
 Currently maintained LTS branches are:
 
-1. [mbedtls-2.1](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.1)
+1. [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7)
 
-2. [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7)
+1. [mbedtls-2.16](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
 
 
 Tests

@@ -51,6 +51,220 @@ int mbedtls_test_mpi_miller_rabin_determinizer( void* state,
  */
 
 /* BEGIN_CASE */
+void mpi_valid_param( )
+{
+    TEST_VALID_PARAM( mbedtls_mpi_free( NULL ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void mpi_invalid_param( )
+{
+    mbedtls_mpi X;
+    const char *s_in = "00101000101010";
+    char s_out[16] = { 0 };
+    unsigned char u_out[16] = { 0 };
+    unsigned char u_in[16] = { 0 };
+    size_t olen;
+    mbedtls_mpi_uint mpi_uint;
+
+    TEST_INVALID_PARAM( mbedtls_mpi_init( NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_grow( NULL, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_copy( NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_copy( &X, NULL ) );
+
+    TEST_INVALID_PARAM( mbedtls_mpi_swap( NULL, &X ) );
+    TEST_INVALID_PARAM( mbedtls_mpi_swap( &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_safe_cond_assign( NULL, &X, 0 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_safe_cond_assign( &X, NULL, 0 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_safe_cond_swap( NULL, &X, 0 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_safe_cond_swap( &X, NULL, 0 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_lset( NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_get_bit( NULL, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_set_bit( NULL, 42, 0 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_read_string( NULL, 2, s_in ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_read_string( &X, 2, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_write_string( NULL, 2,
+                                                      s_out, sizeof( s_out ),
+                                                      &olen ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_write_string( &X, 2,
+                                                      NULL, sizeof( s_out ),
+                                                      &olen ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_write_string( &X, 2,
+                                                      s_out, sizeof( s_out ),
+                                                      NULL ) );
+
+#if defined(MBEDTLS_FS_IO)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_read_file( NULL, 2, stdin ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_read_file( &X, 2, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_write_file( "", NULL, 2, NULL ) );
+#endif /* MBEDTLS_FS_IO */
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_read_binary( NULL, u_in,
+                                                     sizeof( u_in ) ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_read_binary( &X, NULL,
+                                                     sizeof( u_in ) ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_write_binary( NULL, u_out,
+                                                      sizeof( u_out ) ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_write_binary( &X, NULL,
+                                                      sizeof( u_out ) ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_shift_l( NULL, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_shift_r( NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_cmp_abs( NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_cmp_abs( &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_cmp_mpi( NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_cmp_mpi( &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_cmp_int( NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_add_abs( NULL, &X, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_add_abs( &X, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_add_abs( &X, &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_sub_abs( NULL, &X, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_sub_abs( &X, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_sub_abs( &X, &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_add_mpi( NULL, &X, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_add_mpi( &X, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_add_mpi( &X, &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_sub_mpi( NULL, &X, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_sub_mpi( &X, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_sub_mpi( &X, &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_add_int( NULL, &X, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_add_int( &X, NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_sub_int( NULL, &X, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_sub_int( &X, NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mul_mpi( NULL, &X, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mul_mpi( &X, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mul_mpi( &X, &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mul_int( NULL, &X, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mul_int( &X, NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_div_mpi( &X, &X, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_div_mpi( &X, &X, &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_div_int( &X, &X, NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( 0, mbedtls_mpi_lsb( NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mod_mpi( NULL, &X, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mod_mpi( &X, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mod_mpi( &X, &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mod_int( NULL, &X, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_mod_int( &mpi_uint, NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_exp_mod( NULL, &X, &X, &X, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_exp_mod( &X, NULL, &X, &X, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_exp_mod( &X, &X, NULL, &X, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_exp_mod( &X, &X, &X, NULL, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_fill_random( NULL, 42, rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_fill_random( &X, 42, NULL, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_gcd( NULL, &X, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_gcd( &X, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_gcd( &X, &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_inv_mod( NULL, &X, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_inv_mod( &X, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
+                            mbedtls_mpi_inv_mod( &X, &X, NULL ) );
+
+exit:
+    return;
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_null(  )
 {
     mbedtls_mpi X, Y, Z;

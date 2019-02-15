@@ -17,6 +17,454 @@
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void rsa_invalid_param( )
+{
+    mbedtls_rsa_context ctx;
+    const int valid_padding = MBEDTLS_RSA_PKCS_V21;
+    const int invalid_padding = 42;
+    const int valid_mode = MBEDTLS_RSA_PRIVATE;
+    const int invalid_mode = 42;
+    unsigned char buf[42] = { 0 };
+    size_t olen;
+
+    TEST_INVALID_PARAM( mbedtls_rsa_init( NULL, valid_padding, 0 ) );
+    TEST_INVALID_PARAM( mbedtls_rsa_init( &ctx, invalid_padding, 0 ) );
+    TEST_VALID_PARAM( mbedtls_rsa_free( NULL ) );
+
+    /* No more variants because only the first argument must be non-NULL. */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_import( NULL, NULL, NULL,
+                                                NULL, NULL, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_import_raw( NULL,
+                                                    NULL, 0,
+                                                    NULL, 0,
+                                                    NULL, 0,
+                                                    NULL, 0,
+                                                    NULL, 0 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_complete( NULL ) );
+
+    /* No more variants because only the first argument must be non-NULL. */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_export( NULL, NULL, NULL,
+                                                NULL, NULL, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_export_raw( NULL,
+                                                    NULL, 0,
+                                                    NULL, 0,
+                                                    NULL, 0,
+                                                    NULL, 0,
+                                                    NULL, 0 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_export_crt( NULL, NULL, NULL, NULL ) );
+
+    TEST_INVALID_PARAM( mbedtls_rsa_set_padding( NULL,
+                                                 valid_padding, 0 ) );
+    TEST_INVALID_PARAM( mbedtls_rsa_set_padding( &ctx,
+                                                 invalid_padding, 0 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_gen_key( NULL, rnd_std_rand,
+                                                 NULL, 0, 0 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_gen_key( &ctx, NULL,
+                                                 NULL, 0, 0 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_check_pubkey( NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_check_privkey( NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_check_pub_priv( NULL, &ctx ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_check_pub_priv( &ctx, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_public( NULL, buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_public( &ctx, NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_public( &ctx, buf, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_private( NULL, NULL, NULL,
+                                                 buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_private( &ctx, NULL, NULL,
+                                                 NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_private( &ctx, NULL, NULL,
+                                                 buf, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_encrypt( NULL, NULL, NULL,
+                                                       valid_mode,
+                                                       sizeof( buf ), buf,
+                                                       buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_encrypt( &ctx, NULL, NULL,
+                                                       invalid_mode,
+                                                       sizeof( buf ), buf,
+                                                       buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_encrypt( &ctx, NULL, NULL,
+                                                       valid_mode,
+                                                       sizeof( buf ), NULL,
+                                                       buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_encrypt( &ctx, NULL, NULL,
+                                                       valid_mode,
+                                                       sizeof( buf ), buf,
+                                                       NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_pkcs1_v15_encrypt( NULL, NULL,
+                                                           NULL,
+                                                           valid_mode,
+                                                           sizeof( buf ), buf,
+                                                           buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, NULL,
+                                                           NULL,
+                                                           invalid_mode,
+                                                           sizeof( buf ), buf,
+                                                           buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, NULL,
+                                                           NULL,
+                                                           valid_mode,
+                                                           sizeof( buf ), NULL,
+                                                           buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, NULL,
+                                                           NULL,
+                                                           valid_mode,
+                                                           sizeof( buf ), buf,
+                                                           NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_encrypt( NULL, NULL, NULL,
+                                                            valid_mode,
+                                                            buf, sizeof( buf ),
+                                                            sizeof( buf ), buf,
+                                                            buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_encrypt( &ctx, NULL, NULL,
+                                                            invalid_mode,
+                                                            buf, sizeof( buf ),
+                                                            sizeof( buf ), buf,
+                                                            buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_encrypt( &ctx, NULL, NULL,
+                                                            valid_mode,
+                                                            NULL, sizeof( buf ),
+                                                            sizeof( buf ), buf,
+                                                            buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_encrypt( &ctx, NULL, NULL,
+                                                            valid_mode,
+                                                            buf, sizeof( buf ),
+                                                            sizeof( buf ), NULL,
+                                                            buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_encrypt( &ctx, NULL, NULL,
+                                                            valid_mode,
+                                                            buf, sizeof( buf ),
+                                                            sizeof( buf ), buf,
+                                                            NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_decrypt( NULL, NULL, NULL,
+                                                       valid_mode, &olen,
+                                                       buf, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_decrypt( &ctx, NULL, NULL,
+                                                       invalid_mode, &olen,
+                                                       buf, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_decrypt( &ctx, NULL, NULL,
+                                                       valid_mode, NULL,
+                                                       buf, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_decrypt( &ctx, NULL, NULL,
+                                                       valid_mode, &olen,
+                                                       NULL, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_decrypt( &ctx, NULL, NULL,
+                                                       valid_mode, &olen,
+                                                       buf, NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_pkcs1_v15_decrypt( NULL, NULL,
+                                                           NULL,
+                                                           valid_mode, &olen,
+                                                           buf, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx, NULL,
+                                                           NULL,
+                                                           invalid_mode, &olen,
+                                                           buf, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx, NULL,
+                                                           NULL,
+                                                           valid_mode, NULL,
+                                                           buf, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx, NULL,
+                                                           NULL,
+                                                           valid_mode, &olen,
+                                                           NULL, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx, NULL,
+                                                           NULL,
+                                                           valid_mode, &olen,
+                                                           buf, NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_decrypt( NULL, NULL, NULL,
+                                                            valid_mode,
+                                                            buf, sizeof( buf ),
+                                                            &olen,
+                                                            buf, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_decrypt( &ctx, NULL, NULL,
+                                                            invalid_mode,
+                                                            buf, sizeof( buf ),
+                                                            &olen,
+                                                            buf, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_decrypt( &ctx, NULL, NULL,
+                                                            valid_mode,
+                                                            NULL, sizeof( buf ),
+                                                            NULL,
+                                                            buf, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_decrypt( &ctx, NULL, NULL,
+                                                            valid_mode,
+                                                            buf, sizeof( buf ),
+                                                            &olen,
+                                                            NULL, buf, 42 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsaes_oaep_decrypt( &ctx, NULL, NULL,
+                                                            valid_mode,
+                                                            buf, sizeof( buf ),
+                                                            &olen,
+                                                            buf, NULL, 42 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_sign( NULL, NULL, NULL,
+                                                    valid_mode,
+                                                    0, sizeof( buf ), buf,
+                                                    buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_sign( &ctx, NULL, NULL,
+                                                    invalid_mode,
+                                                    0, sizeof( buf ), buf,
+                                                    buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_sign( &ctx, NULL, NULL,
+                                                    valid_mode,
+                                                    0, sizeof( buf ), NULL,
+                                                    buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_sign( &ctx, NULL, NULL,
+                                                    valid_mode,
+                                                    0, sizeof( buf ), buf,
+                                                    NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_sign( &ctx, NULL, NULL,
+                                                    valid_mode,
+                                                    MBEDTLS_MD_SHA1,
+                                                    0, NULL,
+                                                    buf ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_sign( NULL, NULL, NULL,
+                                                        valid_mode,
+                                                        0, sizeof( buf ), buf,
+                                                        buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_sign( &ctx, NULL, NULL,
+                                                        invalid_mode,
+                                                        0, sizeof( buf ), buf,
+                                                        buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_sign( &ctx, NULL, NULL,
+                                                        valid_mode,
+                                                        0, sizeof( buf ), NULL,
+                                                        buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_sign( &ctx, NULL, NULL,
+                                                        valid_mode,
+                                                        0, sizeof( buf ), buf,
+                                                        NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_sign( &ctx, NULL, NULL,
+                                                        valid_mode,
+                                                        MBEDTLS_MD_SHA1,
+                                                        0, NULL,
+                                                        buf ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_sign( NULL, NULL, NULL,
+                                                         valid_mode,
+                                                         0, sizeof( buf ), buf,
+                                                         buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_sign( &ctx, NULL, NULL,
+                                                         invalid_mode,
+                                                         0, sizeof( buf ), buf,
+                                                         buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_sign( &ctx, NULL, NULL,
+                                                         valid_mode,
+                                                         0, sizeof( buf ), NULL,
+                                                         buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_sign( &ctx, NULL, NULL,
+                                                         valid_mode,
+                                                         0, sizeof( buf ), buf,
+                                                         NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_sign( &ctx, NULL, NULL,
+                                                         valid_mode,
+                                                         MBEDTLS_MD_SHA1,
+                                                         0, NULL,
+                                                         buf ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_verify( NULL, NULL, NULL,
+                                                      valid_mode,
+                                                      0, sizeof( buf ), buf,
+                                                      buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL,
+                                                      invalid_mode,
+                                                      0, sizeof( buf ), buf,
+                                                      buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL,
+                                                      valid_mode,
+                                                      0, sizeof( buf ), NULL,
+                                                      buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL,
+                                                      valid_mode,
+                                                      0, sizeof( buf ), buf,
+                                                      NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL,
+                                                      valid_mode,
+                                                      MBEDTLS_MD_SHA1, 0, NULL,
+                                                      buf ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_verify( NULL, NULL,
+                                                          NULL,
+                                                          valid_mode,
+                                                          0, sizeof( buf ), buf,
+                                                          buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_verify( &ctx, NULL,
+                                                          NULL,
+                                                          invalid_mode,
+                                                          0, sizeof( buf ), buf,
+                                                          buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_verify( &ctx, NULL,
+                                                          NULL,
+                                                          valid_mode,
+                                                          0, sizeof( buf ),
+                                                          NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_verify( &ctx, NULL,
+                                                          NULL,
+                                                          valid_mode,
+                                                          0, sizeof( buf ), buf,
+                                                          NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pkcs1_v15_verify( &ctx, NULL,
+                                                          NULL,
+                                                          valid_mode,
+                                                          MBEDTLS_MD_SHA1,
+                                                          0, NULL,
+                                                          buf ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify( NULL, NULL, NULL,
+                                                           valid_mode,
+                                                           0, sizeof( buf ),
+                                                           buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL, NULL,
+                                                           invalid_mode,
+                                                           0, sizeof( buf ),
+                                                           buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL, NULL,
+                                                           valid_mode,
+                                                           0, sizeof( buf ),
+                                                           NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL, NULL,
+                                                           valid_mode,
+                                                           0, sizeof( buf ),
+                                                           buf, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify( &ctx, NULL, NULL,
+                                                           valid_mode,
+                                                           MBEDTLS_MD_SHA1,
+                                                           0, NULL,
+                                                           buf ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify_ext( NULL, NULL, NULL,
+                                                               valid_mode,
+                                                               0, sizeof( buf ),
+                                                               buf,
+                                                               0, 0,
+                                                               buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify_ext( &ctx, NULL, NULL,
+                                                               invalid_mode,
+                                                               0, sizeof( buf ),
+                                                               buf,
+                                                               0, 0,
+                                                               buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify_ext( &ctx, NULL, NULL,
+                                                               valid_mode,
+                                                               0, sizeof( buf ),
+                                                               NULL, 0, 0,
+                                                               buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify_ext( &ctx, NULL, NULL,
+                                                               valid_mode,
+                                                               0, sizeof( buf ),
+                                                               buf, 0, 0,
+                                                               NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_rsassa_pss_verify_ext( &ctx, NULL, NULL,
+                                                               valid_mode,
+                                                               MBEDTLS_MD_SHA1,
+                                                               0, NULL,
+                                                               0, 0,
+                                                               buf ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_copy( NULL, &ctx ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_copy( &ctx, NULL ) );
+
+exit:
+    return;
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
                              int digest, int mod, int radix_P, char * input_P,

@@ -66,6 +66,7 @@
 #define mbedtls_calloc       calloc
 #define mbedtls_free         free
 #define mbedtls_printf       printf
+#define mbedtls_exit         exit
 #endif
 #include <stdio.h>
 #include <string.h>
@@ -617,6 +618,18 @@ static void usage( void )
     mbedtls_printf( "                    To get the same key, you must use the same master key\n" );
     mbedtls_printf( "                    and the same sequence of labels.\n" );
 }
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+#include "mbedtls/platform_util.h"
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
+                           int line )
+{
+    mbedtls_printf( "%s:%i: Input param failed - %s\n",
+                    file, line, failure_condition );
+    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+}
+#endif
 
 int main( int argc, char *argv[] )
 {

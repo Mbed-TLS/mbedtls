@@ -8,6 +8,148 @@
  */
 
 /* BEGIN_CASE */
+void ecdh_valid_param( )
+{
+    TEST_VALID_PARAM( mbedtls_ecdh_free( NULL ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void ecdh_invalid_param( )
+{
+    mbedtls_ecp_group grp;
+    mbedtls_ecdh_context ctx;
+    mbedtls_mpi m;
+    mbedtls_ecp_point P;
+    mbedtls_ecp_keypair kp;
+    size_t olen;
+    unsigned char buf[42] = { 0 };
+    const unsigned char *buf_null = NULL;
+    size_t const buflen = sizeof( buf );
+    int invalid_side = 42;
+    mbedtls_ecp_group_id valid_grp = MBEDTLS_ECP_DP_SECP192R1;
+
+    TEST_INVALID_PARAM( mbedtls_ecdh_init( NULL ) );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    TEST_INVALID_PARAM( mbedtls_ecdh_enable_restart( NULL ) );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_gen_public( NULL, &m, &P,
+                                                     rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_gen_public( &grp, NULL, &P,
+                                                     rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_gen_public( &grp, &m, NULL,
+                                                     rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_gen_public( &grp, &m, &P,
+                                                     NULL, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_compute_shared( NULL, &m, &P, &m,
+                                                         rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_compute_shared( &grp, NULL, &P, &m,
+                                                         rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_compute_shared( &grp, &m, NULL, &m,
+                                                         rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_compute_shared( &grp, &m, &P, NULL,
+                                                         rnd_std_rand, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_setup( NULL, valid_grp ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_make_params( NULL, &olen,
+                                                      buf, buflen,
+                                                      rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_make_params( &ctx, NULL,
+                                                      buf, buflen,
+                                                      rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_make_params( &ctx, &olen,
+                                                      NULL, buflen,
+                                                      rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_make_params( &ctx, &olen,
+                                                      buf, buflen,
+                                                      NULL, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_read_params( NULL,
+                                                  (const unsigned char**) &buf,
+                                                  buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_read_params( &ctx, &buf_null,
+                                                      buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_read_params( &ctx, NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_read_params( &ctx,
+                                                  (const unsigned char**) &buf,
+                                                  NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_get_params( NULL, &kp,
+                                                     MBEDTLS_ECDH_OURS ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_get_params( &ctx, NULL,
+                                                     MBEDTLS_ECDH_OURS ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_get_params( &ctx, &kp,
+                                                     invalid_side ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_make_public( NULL, &olen,
+                                                      buf, buflen,
+                                                      rnd_std_rand,
+                                                      NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_make_public( &ctx, NULL,
+                                                      buf, buflen,
+                                                      rnd_std_rand,
+                                                      NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_make_public( &ctx, &olen,
+                                                      NULL, buflen,
+                                                      rnd_std_rand,
+                                                      NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_make_public( &ctx, &olen,
+                                                      buf, buflen,
+                                                      NULL,
+                                                      NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_read_public( NULL, buf, buflen ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_read_public( &ctx, NULL, buflen ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_calc_secret( NULL, &olen, buf, buflen,
+                                                      rnd_std_rand,
+                                                      NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_calc_secret( &ctx, NULL, buf, buflen,
+                                                      rnd_std_rand,
+                                                      NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdh_calc_secret( &ctx, &olen, NULL, buflen,
+                                                      rnd_std_rand,
+                                                      NULL ) );
+
+exit:
+    return;
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void ecdh_primitive_random( int id )
 {
     mbedtls_ecp_group grp;
@@ -209,7 +351,7 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
         mbedtls_ecdh_enable_restart( &cli );
     }
 
-    /* server writes its paramaters */
+    /* server writes its parameters */
     memset( buf, 0x00, sizeof( buf ) );
     len = 0;
 

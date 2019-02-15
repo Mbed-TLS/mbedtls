@@ -38,11 +38,12 @@
 extern "C" {
 #endif
 
-/** \defgroup driver_digest Message Digests
+/** \defgroup driver_digest Hardware-Accelerated Message Digests
  *
  * Generation and authentication of Message Digests (aka hashes) must be done
  * in parts using the following sequence:
  * - `psa_drv_hash_setup_t`
+ * - `psa_drv_hash_update_t`
  * - `psa_drv_hash_update_t`
  * - ...
  * - `psa_drv_hash_finish_t`
@@ -64,7 +65,7 @@ typedef struct psa_drv_hash_context_s psa_drv_hash_context_t;
 /** \brief The function prototype for the start operation of a hash (message
  * digest) operation
  *
- *  Functions that implement the prototype should be named in the following
+ *  Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
  * psa_drv_hash_<ALGO>_setup
@@ -81,7 +82,7 @@ typedef psa_status_t (*psa_drv_hash_setup_t)(psa_drv_hash_context_t *p_context);
 /** \brief The function prototype for the update operation of a hash (message
  * digest) operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
  * psa_drv_hash_<ALGO>_update
@@ -99,10 +100,10 @@ typedef psa_status_t (*psa_drv_hash_update_t)(psa_drv_hash_context_t *p_context,
                                               const uint8_t *p_input,
                                               size_t input_length);
 
-/** \brief  The prototype for the finish operation of a hash (message digest)
- * operation
+/** \brief  The function prototype for the finish operation of a hash (message
+ * digest) operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
  * psa_drv_hash_<ALGO>_finish
@@ -130,7 +131,7 @@ typedef psa_status_t (*psa_drv_hash_finish_t)(psa_drv_hash_context_t *p_context,
 /** \brief The function prototype for the abort operation of a hash (message
  * digest) operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
  * psa_drv_hash_<ALGO>_abort
@@ -144,26 +145,26 @@ typedef void (*psa_drv_hash_abort_t)(psa_drv_hash_context_t *p_context);
 
 /**@}*/
 
-/** \defgroup transparent_mac Transparent Message Authentication Code
+/** \defgroup accel_mac Hardware-Accelerated Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
- * transparent keys can be done either as a single function call (via the
- * `psa_drv_mac_transparent_generate_t` or `psa_drv_mac_transparent_verify_t`
+ * cryptographic accelerators can be done either as a single function call (via the
+ * `psa_drv_accel_mac_generate_t` or `psa_drv_accel_mac_verify_t`
  * functions), or in parts using the following sequence:
- * - `psa_drv_mac_transparent_setup_t`
- * - `psa_drv_mac_transparent_update_t`
- * - `psa_drv_mac_transparent_update_t`
+ * - `psa_drv_accel_mac_setup_t`
+ * - `psa_drv_accel_mac_update_t`
+ * - `psa_drv_accel_mac_update_t`
  * - ...
- * - `psa_drv_mac_transparent_finish_t` or `psa_drv_mac_transparent_finish_verify_t`
+ * - `psa_drv_accel_mac_finish_t` or `psa_drv_accel_mac_finish_verify_t`
  *
- * If a previously started Transparent MAC operation needs to be terminated, it
- * should be done so by the `psa_drv_mac_transparent_abort_t`. Failure to do so may
+ * If a previously started MAC operation needs to be terminated, it
+ * should be done so by the `psa_drv_accel_mac_abort_t`. Failure to do so may
  * result in allocated resources not being freed or in other undefined
  * behavior.
  *
  */
 /**@{*/
 
-/** \brief The hardware-specific transparent-key MAC context structure
+/** \brief The hardware-accelerator-specific MAC context structure
  *
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
@@ -171,12 +172,12 @@ typedef void (*psa_drv_hash_abort_t)(psa_drv_hash_context_t *p_context);
 typedef struct psa_drv_accel_mac_context_s psa_drv_accel_mac_context_t;
 
 /** \brief The function prototype for the setup operation of a
- * transparent-key MAC operation
+ * hardware-accelerated MAC operation
  *
- *  Functions that implement the prototype should be named in the following
+ *  Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_setup
+ * psa_drv_accel_mac_<ALGO>_<MAC_VARIANT>_setup
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying primitive, and `MAC_VARIANT`
  * is the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -195,12 +196,12 @@ typedef psa_status_t (*psa_drv_accel_mac_setup_t)(psa_drv_accel_mac_context_t *p
                                                   size_t key_length);
 
 /** \brief The function prototype for the update operation of a
- * transparent-key MAC operation
+ * hardware-accelerated MAC operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_update
+ * psa_drv_accel_mac_<ALGO>_<MAC_VARIANT>_update
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT`
  * is the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -217,12 +218,12 @@ typedef psa_status_t (*psa_drv_accel_mac_update_t)(psa_drv_accel_mac_context_t *
                                                    size_t input_length);
 
 /** \brief  The function prototype for the finish operation of a
- * transparent-key MAC operation
+ * hardware-accelerated MAC operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  *  convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_finish
+ * psa_drv_accel_mac_<ALGO>_<MAC_VARIANT>_finish
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -242,12 +243,12 @@ typedef psa_status_t (*psa_drv_accel_mac_finish_t)(psa_drv_accel_mac_context_t *
                                                    size_t mac_length);
 
 /** \brief The function prototype for the finish and verify operation of a
- * transparent-key MAC operation
+ * hardware-accelerated MAC operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_finish_verify
+ * psa_drv_accel_mac_<ALGO>_<MAC_VARIANT>_finish_verify
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -268,12 +269,12 @@ typedef psa_status_t (*psa_drv_accel_mac_finish_verify_t)(psa_drv_accel_mac_cont
                                                           size_t mac_length);
 
 /** \brief The function prototype for the abort operation for a previously
- * started transparent-key MAC operation
+ * started hardware-accelerated MAC operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_abort
+ * psa_drv_accel_mac_<ALGO>_<MAC_VARIANT>_abort
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -285,13 +286,13 @@ typedef psa_status_t (*psa_drv_accel_mac_finish_verify_t)(psa_drv_accel_mac_cont
  */
 typedef psa_status_t (*psa_drv_accel_mac_abort_t)(psa_drv_accel_mac_context_t *p_context);
 
-/** \brief The function prototype for a one-shot operation of a transparent-key
- * MAC operation
+/** \brief The function prototype for the one-shot operation of a
+ * hardware-accelerated MAC operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>
+ * psa_drv_accel_mac_<ALGO>_<MAC_VARIANT>
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -314,13 +315,13 @@ typedef psa_status_t (*psa_drv_accel_mac_t)(const uint8_t *p_input,
                                             uint8_t *p_mac,
                                             size_t mac_length);
 
-/** \brief The function prototype for a one-shot operation of a transparent-key
- * MAC Verify operation
+/** \brief The function prototype for the one-shot hardware-accelerated MAC
+ * Verify operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_verify
+ * psa_drv_accel_mac_<ALGO>_<MAC_VARIANT>_verify
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -346,42 +347,44 @@ typedef psa_status_t (*psa_drv_accel_mac_verify_t)(const uint8_t *p_input,
                                                    size_t mac_length);
 /**@}*/
 
-/** \defgroup transparent_cipher Transparent Block Cipher
- * Encryption and Decryption using transparent keys in block modes other than
- * ECB must be done in multiple parts, using the following flow:
- * - `psa_drv_cipher_transparent_setup_t`
- * - `psa_drv_cipher_transparent_set_iv_t` (optional depending upon block mode)
- * - `psa_drv_cipher_transparent_update_t`
+/** \defgroup accel_cipher Hardware-Accelerated Block Ciphers
+ * Encryption and Decryption using hardware-acceleration in block modes other
+ * than ECB must be done in multiple parts, using the following flow:
+ * - `psa_drv_accel_ciphersetup_t`
+ * - `psa_drv_accel_cipher_set_iv_t` (optional depending upon block mode)
+ * - `psa_drv_accel_cipher_update_t`
+ * - `psa_drv_accel_cipher_update_t`
  * - ...
- * - `psa_drv_cipher_transparent_finish_t`
+ * - `psa_drv_accel_cipher_finish_t`
 
- * If a previously started Transparent Cipher operation needs to be terminated,
- * it should be done so by the `psa_drv_cipher_transparent_abort_t`. Failure to do
- * so may result in allocated resources not being freed or in other undefined
- * behavior.
+ * If a previously started hardware-accelerated Cipher operation needs to be
+ * terminated, it should be done so by the `psa_drv_accel_cipher_abort_t`.
+ * Failure to do so may result in allocated resources not being freed or in
+ * other undefined behavior.
  */
 /**@{*/
 
-/** \brief The hardware-specific transparent-key Cipher context structure
+/** \brief The hardware-accelerator-specific cipher context structure
  *
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
 typedef struct psa_drv_accel_cipher_context_s psa_drv_accel_cipher_context_t;
 
-/** \brief The function prototype for the setup operation of transparent-key
- * block cipher operations.
- *  Functions that implement the prototype should be named in the following
+/** \brief The function prototype for the setup operation of
+ * hardware-accelerated block cipher operations.
+ *  Functions that implement this prototype should be named in the following
  * conventions:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_cipher_transparent_setup_<CIPHER_NAME>_<MODE>
+ * psa_drv_accel_cipher_setup_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
  * - `MODE` is the block mode of the cipher operation (i.e. CBC or CTR)
- * or for stream ciphers:
+ * 
+ * For stream ciphers:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_cipher_transparent_setup_<CIPHER_NAME>
+ * psa_drv_accel_cipher_setup_<CIPHER_NAME>
  * ~~~~~~~~~~~~~
  * Where `CIPHER_NAME` is the name of a stream cipher (i.e. RC4)
  *
@@ -401,11 +404,11 @@ typedef psa_status_t (*psa_drv_accel_cipher_setup_t)(psa_drv_accel_cipher_contex
                                                      size_t key_data_size);
 
 /** \brief The function prototype for the set initialization vector operation
- * of transparent-key block cipher operations
- * Functions that implement the prototype should be named in the following
+ * of hardware-accelerated block cipher operations
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_cipher_transparent_set_iv_<CIPHER_NAME>_<MODE>
+ * psa_drv_accel_cipher_set_iv_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
@@ -422,13 +425,13 @@ typedef psa_status_t (*psa_drv_accel_cipher_set_iv_t)(psa_drv_accel_cipher_conte
                                                       const uint8_t *p_iv,
                                                       size_t iv_length);
 
-/** \brief The function prototype for the update operation of transparent-key
- * block cipher operations.
+/** \brief The function prototype for the update operation of
+ * hardware-accelerated block cipher operations.
  *
- *  Functions that implement the prototype should be named in the following
+ *  Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_cipher_transparent_update_<CIPHER_NAME>_<MODE>
+ * psa_drv_accel_cipher_update_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
@@ -454,13 +457,13 @@ typedef psa_status_t (*psa_drv_accel_cipher_update_t)(psa_drv_accel_cipher_conte
                                                       size_t output_size,
                                                       size_t *p_output_length);
 
-/** \brief The function prototype for the finish operation of transparent-key
- * block cipher operations.
+/** \brief The function prototype for the finish operation of
+ * hardware-accelerated block cipher operations.
  *
- *  Functions that implement the prototype should be named in the following
+ *  Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_cipher_transparent_finish_<CIPHER_NAME>_<MODE>
+ * psa_drv_accel_cipher_finish_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
@@ -481,13 +484,13 @@ typedef psa_status_t (*psa_drv_accel_cipher_finish_t)(psa_drv_accel_cipher_conte
                                                       size_t output_size,
                                                       size_t *p_output_length);
 
-/** \brief The function prototype for the abort operation of transparent-key
- * block cipher operations.
+/** \brief The function prototype for the abort operation of
+ * hardware-accelerated block cipher operations.
  *
  *  Functions that implement the following prototype should be named in the
  * following convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_cipher_transparent_abort_<CIPHER_NAME>_<MODE>
+ * psa_drv_accel_cipher_abort_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
@@ -502,23 +505,23 @@ typedef psa_status_t (*psa_drv_accel_cipher_abort_t)(psa_drv_accel_cipher_contex
 
 /**@}*/
 
-/** \defgroup aead_transparent AEAD Transparent
+/** \defgroup accel_aead Hardware-Accelerated Authenticated Encryption with Additional Data
  *
- * Authenticated Encryption with Additional Data (AEAD) operations with
- * transparent keys must be done in one function call. While this creates a
- * burden for implementers as there must be sufficient space in memory for the
- * entire message, it prevents decrypted data from being made available before
- * the authentication operation is complete and the data is known to be
- * authentic.
+ * Hardware-accelerated Authenticated Encryption with Additional Data (AEAD)
+ * operations must be done in one function call. While this creates a burden
+ * for implementers as there must be sufficient space in memory for the entire
+ * message, it prevents decrypted data from being made available before the
+ * authentication operation is complete and the data is known to be authentic.
  */
 /**@{*/
 
-/** Process an authenticated encryption operation using an opaque key.
+/** \brief The function prototype for the hardware-accelerated authenticated
+ * encryption operation.
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_aead_<ALGO>_encrypt
+ * psa_drv_accel_aead_<ALGO>_encrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the AEAD algorithm
  *
@@ -566,12 +569,13 @@ typedef psa_status_t (*psa_drv_accel_aead_encrypt_t)(const uint8_t *p_key,
                                                      size_t ciphertext_size,
                                                      size_t *ciphertext_length);
 
-/** Process an authenticated decryption operation using an opaque key.
+/** \brief The function prototype for the hardware-accelerated authenticated
+ * decryption operation.
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_aead_<ALGO>_decrypt
+ * psa_drv_accel_aead_<ALGO>_decrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the AEAD algorithm
  * \param[in] p_key                     A pointer to the key material
@@ -619,26 +623,30 @@ typedef psa_status_t (*psa_drv_accel_aead_decrypt_t)(const uint8_t *p_key,
 
 /**@}*/
 
-/** \defgroup transparent_asymmetric Transparent Asymmetric Cryptography
+/** \defgroup accel_asymmetric Hardware-Accelerated Asymmetric Cryptography
  *
  * Since the amount of data that can (or should) be encrypted or signed using
- * asymmetric keys is limited by the key size, asymmetric key operations using
- * transparent keys must be done in single function calls.
+ * asymmetric keys is limited by the key size, hardware-accelerated asymmetric
+ * key operations must be done in single function calls.
  */
 /**@{*/
 
 
 /**
- * \brief A function that signs a hash or short message with a transparent
- * asymmetric private key
+ * \brief The function prototype for the hardware-accelerated asymmetric sign
+ * operation.
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_asymmetric_<ALGO>_sign
+ * psa_drv_accel_asymmetric_<ALGO>_sign
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the signing algorithm
  *
+ * This function supports any asymmetric-key output from psa_export_key() as 
+ * the buffer in \ref p_key. Refer to the documentation of \ref
+ * psa_export_key() for the formats.
+ * 
  * \param[in] p_key                 A buffer containing the private key
  *                                  material
  * \param[in] key_size              The size in bytes of the `p_key` data
@@ -664,16 +672,21 @@ typedef psa_status_t (*psa_drv_accel_asymmetric_sign_t)(const uint8_t *p_key,
                                                         size_t *p_signature_length);
 
 /**
- * \brief A function that verifies the signature a hash or short message using
- * a transparent asymmetric public key
+ * \brief The function prototype for the hardware-accelerated signature verify
+ * operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_asymmetric_<ALGO>_verify
+ * psa_drv_accel_asymmetric_<ALGO>_verify
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the signing algorithm
  *
+ * This function supports any output from \ref psa_export_public_key() as the
+ * buffer in \ref p_key. Refer to the documentation of \ref
+ * psa_export_public_key() for the format of public keys and to the
+ * documentation of \ref psa_export_key() for the format for other key types.
+ * 
  * \param[in] p_key             A buffer containing the public key material
  * \param[in] key_size          The size in bytes of the `p_key` data
  * \param[in] alg               A signature algorithm that is compatible with
@@ -697,15 +710,20 @@ typedef psa_status_t (*psa_drv_accel_asymmetric_verify_t)(const uint8_t *p_key,
                                                           size_t signature_length);
 
 /**
- * \brief A function that encrypts a short message with a transparent
- * asymmetric public key
+ * \brief The function prototype for the hardware-accelerated asymmetric
+ * encrypt operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_asymmetric_<ALGO>_encrypt
+ * psa_drv_accel_asymmetric_<ALGO>_encrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the encryption algorithm
+ * 
+ * This function supports any output from \ref psa_export_public_key() as the
+ * buffer in \ref p_key. Refer to the documentation of \ref
+ * psa_export_public_key() for the format of public keys and to the
+ * documentation of \ref psa_export_key() for the format for other key types.
  *
  * \param[in] p_key             A buffer containing the public key material
  * \param[in] key_size          The size in bytes of the `p_key` data
@@ -745,14 +763,19 @@ typedef psa_status_t (*psa_drv_accel_asymmetric_encrypt_t)(const uint8_t *p_key,
                                                            size_t *p_output_length);
 
 /**
- * \brief Decrypt a short message with a transparent asymmetric private key
+ * \brief The function prototype for the hardware=acce;erated asymmetric
+ * decrypt operation
  *
- * Functions that implement the prototype should be named in the following
+ * Functions that implement this prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * psa_drv_asymmetric_<ALGO>_decrypt
+ * psa_drv_accel_asymmetric_<ALGO>_decrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the encryption algorithm
+ * 
+ * This function supports any asymmetric-key output from psa_export_key() as 
+ * the buffer in \ref p_key. Refer to the documentation of \ref
+ * psa_export_key() for the formats.
  *
  * \param[in] p_key             A buffer containing the private key material
  * \param[in] key_size          The size in bytes of the `p_key` data

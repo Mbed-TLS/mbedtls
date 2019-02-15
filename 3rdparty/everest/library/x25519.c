@@ -152,14 +152,14 @@ int mbedtls_x25519_make_public( mbedtls_x25519_context *ctx, size_t *olen,
                         int( *f_rng )(void *, unsigned char *, size_t),
                         void *p_rng )
 {
+    int ret = 0;
     unsigned char base[MBEDTLS_X25519_KEY_SIZE_BYTES] = { 0 };
 
-    /* CMW: Is it okay that f_rng, p_rng are not used? */
-    (( void )f_rng);
-    (( void )p_rng);
-
     if( ctx == NULL )
-        return(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    if( ( ret = f_rng( p_rng, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES ) ) != 0 )
+        return ret;
 
     *olen = 33;
     if( blen < *olen )
@@ -173,7 +173,7 @@ int mbedtls_x25519_make_public( mbedtls_x25519_context *ctx, size_t *olen,
     if( memcmp( buf, base, MBEDTLS_X25519_KEY_SIZE_BYTES ) == 0 )
         return MBEDTLS_ERR_ECP_RANDOM_FAILED;
 
-    return(0);
+    return( ret );
 }
 
 int mbedtls_x25519_read_public( mbedtls_x25519_context *ctx,
@@ -184,7 +184,7 @@ int mbedtls_x25519_read_public( mbedtls_x25519_context *ctx,
     if( (*buf++ != MBEDTLS_X25519_KEY_SIZE_BYTES) )
         return(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     memcpy( ctx->peer_point, buf, MBEDTLS_X25519_KEY_SIZE_BYTES );
-    return(0);
+    return( 0 );
 }
 
 

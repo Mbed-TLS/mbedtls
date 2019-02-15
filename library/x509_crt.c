@@ -2641,14 +2641,33 @@ void mbedtls_x509_crt_init( mbedtls_x509_crt *crt )
 /*
  * Unallocate all certificate data
  */
+
+static void x509_free_sequence( mbedtls_x509_sequence *seq )
+{
+    while( seq != NULL )
+    {
+        mbedtls_x509_sequence *next = seq->next;
+        mbedtls_platform_zeroize( seq, sizeof( *seq ) );
+        mbedtls_free( seq );
+        seq = next;
+    }
+}
+
+static void x509_free_name( mbedtls_x509_name *name )
+{
+    while( name != NULL )
+    {
+        mbedtls_x509_name *next = name->next;
+        mbedtls_platform_zeroize( name, sizeof( *name ) );
+        mbedtls_free( name );
+        name = next;
+    }
+}
+
 void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
 {
     mbedtls_x509_crt *cert_cur = crt;
     mbedtls_x509_crt *cert_prv;
-    mbedtls_x509_name *name_cur;
-    mbedtls_x509_name *name_prv;
-    mbedtls_x509_sequence *seq_cur;
-    mbedtls_x509_sequence *seq_prv;
 
     if( crt == NULL )
         return;
@@ -2661,43 +2680,10 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         mbedtls_free( cert_cur->sig_opts );
 #endif
 
-        name_cur = cert_cur->issuer.next;
-        while( name_cur != NULL )
-        {
-            name_prv = name_cur;
-            name_cur = name_cur->next;
-            mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
-            mbedtls_free( name_prv );
-        }
-
-        name_cur = cert_cur->subject.next;
-        while( name_cur != NULL )
-        {
-            name_prv = name_cur;
-            name_cur = name_cur->next;
-            mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
-            mbedtls_free( name_prv );
-        }
-
-        seq_cur = cert_cur->ext_key_usage.next;
-        while( seq_cur != NULL )
-        {
-            seq_prv = seq_cur;
-            seq_cur = seq_cur->next;
-            mbedtls_platform_zeroize( seq_prv,
-                                      sizeof( mbedtls_x509_sequence ) );
-            mbedtls_free( seq_prv );
-        }
-
-        seq_cur = cert_cur->subject_alt_names.next;
-        while( seq_cur != NULL )
-        {
-            seq_prv = seq_cur;
-            seq_cur = seq_cur->next;
-            mbedtls_platform_zeroize( seq_prv,
-                                      sizeof( mbedtls_x509_sequence ) );
-            mbedtls_free( seq_prv );
-        }
+        x509_free_name( cert_cur->issuer.next );
+        x509_free_name( cert_cur->subject.next );
+        x509_free_sequence( cert_cur->ext_key_usage.next );
+        x509_free_sequence( cert_cur->subject_alt_names.next );
 
         if( cert_cur->raw.p != NULL && cert_cur->own_buffer )
         {

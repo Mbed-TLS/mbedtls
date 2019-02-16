@@ -3607,9 +3607,8 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
                                       size_t peer_pmssize )
 {
     int ret;
+    size_t len = (size_t)( end - p ); /* Cast is safe because p <= end. */
     mbedtls_pk_context *private_key = mbedtls_ssl_own_key( ssl );
-    mbedtls_pk_context *public_key = &mbedtls_ssl_own_cert( ssl )->pk;
-    size_t len = mbedtls_pk_get_len( public_key );
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /* If we have already started decoding the message and there is an ongoing
@@ -3627,12 +3626,17 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 )
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
     {
-        if ( p + 2 > end ) {
+        if( len < 2 )
+        {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
+        len -= 2;
+
         if( *p++ != ( ( len >> 8 ) & 0xFF ) ||
             *p++ != ( ( len      ) & 0xFF ) )
         {
@@ -3641,12 +3645,6 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
         }
     }
 #endif
-
-    if( p + len != end )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
-    }
 
     /*
      * Decrypt the premaster secret

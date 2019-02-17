@@ -839,10 +839,19 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
     for( cur = list; cur != NULL; cur = cur->next )
     {
-        MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
-                          cur->cert );
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+        /* ASYNC_PRIVATE may use a NULL entry for the opaque private key, so
+         * we have to use the public key context to infer the capabilities
+         * of the key. */
+        mbedtls_pk_context *pk = &cur->cert->pk;
+#else
+        /* Outside of ASYNC_PRIVATE, use private key context directly
+         * instead of querying for the public key context from the
+         * certificate, so save a few bytes of code. */
+        mbedtls_pk_context *pk = cur->key;
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
-        if( ! mbedtls_pk_can_do( &cur->cert->pk, pk_alg ) )
+        if( ! mbedtls_pk_can_do( pk, pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: key type" ) );
             continue;
@@ -866,7 +875,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECDSA_C)
         if( pk_alg == MBEDTLS_PK_ECDSA &&
-            ssl_check_key_curve( &cur->cert->pk, ssl->handshake->curves ) != 0 )
+            ssl_check_key_curve( pk, ssl->handshake->curves ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );
             continue;

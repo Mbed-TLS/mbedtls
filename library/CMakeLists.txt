@@ -182,20 +182,20 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 if(USE_SHARED_MBEDTLS_LIBRARY)
     if(NOT USE_CRYPTO_SUBMODULE)
         add_library(mbedcrypto SHARED ${src_crypto})
-        set_target_properties(mbedcrypto PROPERTIES VERSION 2.16.0 SOVERSION 3)
+        set_target_properties(mbedcrypto PROPERTIES VERSION 0.0.0 SOVERSION 3)
         target_link_libraries(mbedcrypto ${libs})
         target_include_directories(mbedcrypto PUBLIC ${CMAKE_SOURCE_DIR}/include/)
     endif()
 
     add_library(mbedx509 SHARED ${src_x509})
-    set_target_properties(mbedx509 PROPERTIES VERSION 2.16.0 SOVERSION 0)
+    set_target_properties(mbedx509 PROPERTIES VERSION 0.0.0 SOVERSION 0)
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
     target_include_directories(mbedx509
         PUBLIC ${CMAKE_SOURCE_DIR}/include/
         PUBLIC ${CMAKE_SOURCE_DIR}/crypto/include/)
 
     add_library(mbedtls SHARED ${src_tls})
-    set_target_properties(mbedtls PROPERTIES VERSION 2.16.0 SOVERSION 12)
+    set_target_properties(mbedtls PROPERTIES VERSION 0.0.0 SOVERSION 12)
     target_link_libraries(mbedtls ${libs} mbedx509)
     target_include_directories(mbedtls
         PUBLIC ${CMAKE_SOURCE_DIR}/include/

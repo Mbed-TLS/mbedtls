@@ -178,7 +178,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
             break;
         case CLOSE_BY_DESTROY:
             TEST_EQUAL( psa_open_key( lifetime, id, &handle ),
-                        PSA_ERROR_EMPTY_SLOT );
+                        PSA_ERROR_DOES_NOT_EXIST );
             break;
     }
 
@@ -223,7 +223,7 @@ void create_existent( int lifetime_arg, int id_arg,
 
     /* Attempt to create a new key in the same slot. */
     TEST_EQUAL( psa_create_key( lifetime, id, &handle2 ),
-                PSA_ERROR_OCCUPIED_SLOT );
+                PSA_ERROR_ALREADY_EXISTS );
     TEST_EQUAL( handle2, 0 );
 
     if( reopen_policy == CLOSE_AFTER )
@@ -436,7 +436,7 @@ void copy_from_empty( int source_lifetime_arg, int source_id_arg,
 
     /* Copy the key. */
     TEST_EQUAL( psa_copy_key( source_handle, target_handle, NULL ),
-                PSA_ERROR_EMPTY_SLOT );
+                PSA_ERROR_DOES_NOT_EXIST );
 
     /* Test that the slots are unaffected. */
     PSA_ASSERT( psa_get_key_policy( source_handle, &got_policy ) );
@@ -514,7 +514,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
 
     /* Copy the key. */
     TEST_EQUAL( psa_copy_key( source_handle, target_handle, NULL ),
-                PSA_ERROR_OCCUPIED_SLOT );
+                PSA_ERROR_ALREADY_EXISTS );
 
     /* Test that the target slot is unaffected. */
     PSA_ASSERT( psa_get_key_information( target_handle,
@@ -579,7 +579,7 @@ void copy_to_same( int lifetime_arg, int id_arg,
 
     /* Copy the key. */
     TEST_EQUAL( psa_copy_key( handle, handle, NULL ),
-                PSA_ERROR_OCCUPIED_SLOT );
+                PSA_ERROR_ALREADY_EXISTS );
 
     /* Test that the slot is unaffected. */
     PSA_ASSERT( psa_get_key_information( handle,

@@ -419,10 +419,10 @@ static psa_status_t key_agreement_with_self( psa_crypto_generator_t *generator,
     size_t key_bits;
     uint8_t *public_key = NULL;
     size_t public_key_length;
-    /* Return UNKNOWN_ERROR if something other than the final call to
+    /* Return GENERIC_ERROR if something other than the final call to
      * psa_key_agreement fails. This isn't fully satisfactory, but it's
      * good enough: callers will report it as a failed test anyway. */
-    psa_status_t status = PSA_ERROR_UNKNOWN_ERROR;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
     PSA_ASSERT( psa_get_key_information( handle,
                                          &private_key_type,
@@ -1027,7 +1027,7 @@ void import_export( data_t *data,
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
 
     TEST_EQUAL( psa_get_key_information( handle, NULL, NULL ),
-                PSA_ERROR_EMPTY_SLOT );
+                PSA_ERROR_DOES_NOT_EXIST );
 
     /* Import the key */
     PSA_ASSERT( psa_import_key( handle, type,
@@ -1114,7 +1114,7 @@ void import_key_nonempty_slot( )
 
     /* Import the key again */
     status = psa_import_key( handle, type, data, sizeof( data ) );
-    TEST_EQUAL( status, PSA_ERROR_OCCUPIED_SLOT );
+    TEST_EQUAL( status, PSA_ERROR_ALREADY_EXISTS );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -1164,7 +1164,7 @@ void export_with_no_key_activity( )
     status = psa_export_key( handle,
                              exported, export_size,
                              &exported_length );
-    TEST_EQUAL( status, PSA_ERROR_EMPTY_SLOT );
+    TEST_EQUAL( status, PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -1187,7 +1187,7 @@ void cipher_with_no_key_activity( )
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
 
     status = psa_cipher_encrypt_setup( &operation, handle, exercise_alg );
-    TEST_EQUAL( status, PSA_ERROR_EMPTY_SLOT );
+    TEST_EQUAL( status, PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     psa_cipher_abort( &operation );
@@ -1220,7 +1220,7 @@ void export_after_import_failure( data_t *data, int type_arg,
     status = psa_export_key( handle,
                              exported, export_size,
                              &exported_length );
-    TEST_EQUAL( status, PSA_ERROR_EMPTY_SLOT );
+    TEST_EQUAL( status, PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -1248,7 +1248,7 @@ void cipher_after_import_failure( data_t *data, int type_arg,
     TEST_EQUAL( status, expected_import_status );
 
     status = psa_cipher_encrypt_setup( &operation, handle, exercise_alg );
-    TEST_EQUAL( status, PSA_ERROR_EMPTY_SLOT );
+    TEST_EQUAL( status, PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     psa_cipher_abort( &operation );
@@ -1937,7 +1937,7 @@ void copy_fail( int source_usage_arg, int source_alg_arg,
     /* Test that the target slot is unaffected. */
     TEST_EQUAL( psa_get_key_information( target_handle,
                                          &target_type, &target_bits ),
-                PSA_ERROR_EMPTY_SLOT );
+                PSA_ERROR_DOES_NOT_EXIST );
     PSA_ASSERT( psa_get_key_policy( target_handle, &target_policy ) );
     TEST_EQUAL( target_usage, psa_key_policy_get_usage( &target_policy ) );
     TEST_EQUAL( target_alg, psa_key_policy_get_algorithm( &target_policy ) );
@@ -3614,7 +3614,7 @@ void test_derive_invalid_generator_state( )
     PSA_ASSERT( psa_generator_read( &generator, buffer, capacity ) );
 
     TEST_EQUAL( psa_generator_read( &generator, buffer, capacity ),
-                PSA_ERROR_INSUFFICIENT_CAPACITY );
+                PSA_ERROR_INSUFFICIENT_DATA );
 
 exit:
     psa_generator_abort( &generator );
@@ -3632,7 +3632,7 @@ void test_derive_invalid_generator_tests( )
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
 
     TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size )
-                 == PSA_ERROR_INSUFFICIENT_CAPACITY ); // should be PSA_ERROR_BAD_STATE:#183
+                 == PSA_ERROR_INSUFFICIENT_DATA ); // should be PSA_ERROR_BAD_STATE:#183
 
     TEST_ASSERT( psa_get_generator_capacity( &generator, &capacity )
                  == PSA_SUCCESS ); // should be PSA_ERROR_BAD_STATE:#183
@@ -3640,7 +3640,7 @@ void test_derive_invalid_generator_tests( )
     PSA_ASSERT( psa_generator_abort( &generator ) );
 
     TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size )
-                 == PSA_ERROR_INSUFFICIENT_CAPACITY ); // should be PSA_ERROR_BAD_STATE:#183
+                 == PSA_ERROR_INSUFFICIENT_DATA ); // should be PSA_ERROR_BAD_STATE:#183
 
     TEST_ASSERT( psa_get_generator_capacity( &generator, &capacity )
                  == PSA_SUCCESS );// should be PSA_ERROR_BAD_STATE:#183
@@ -3713,14 +3713,14 @@ void derive_output( int alg_arg,
         {
             /* Reading 0 bytes when 0 bytes are available can go either way. */
             TEST_ASSERT( status == PSA_SUCCESS ||
-                         status == PSA_ERROR_INSUFFICIENT_CAPACITY );
+                         status == PSA_ERROR_INSUFFICIENT_DATA );
             continue;
         }
         else if( expected_capacity == 0 ||
                  output_sizes[i] > expected_capacity )
         {
             /* Capacity exceeded. */
-            TEST_EQUAL( status, PSA_ERROR_INSUFFICIENT_CAPACITY );
+            TEST_EQUAL( status, PSA_ERROR_INSUFFICIENT_DATA );
             expected_capacity = 0;
             continue;
         }
@@ -3797,7 +3797,7 @@ void derive_full( int alg_arg,
 
     /* Check that the generator refuses to go over capacity. */
     TEST_EQUAL( psa_generator_read( &generator, output_buffer, 1 ),
-                PSA_ERROR_INSUFFICIENT_CAPACITY );
+                PSA_ERROR_INSUFFICIENT_DATA );
 
     PSA_ASSERT( psa_generator_abort( &generator ) );
 
@@ -4033,7 +4033,7 @@ void key_agreement_capacity( int alg_arg,
     PSA_ASSERT( psa_generator_read( &generator,
                                     output, actual_capacity ) );
     TEST_EQUAL( psa_generator_read( &generator, output, 1 ),
-                PSA_ERROR_INSUFFICIENT_CAPACITY );
+                PSA_ERROR_INSUFFICIENT_DATA );
 
 exit:
     psa_generator_abort( &generator );
@@ -4161,7 +4161,7 @@ void generate_key( int type_arg,
     psa_key_type_t got_type;
     size_t got_bits;
     psa_status_t expected_info_status =
-        expected_status == PSA_SUCCESS ? PSA_SUCCESS : PSA_ERROR_EMPTY_SLOT;
+        expected_status == PSA_SUCCESS ? PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );

@@ -194,7 +194,7 @@ exit:
  *
  * \retval #PSA_SUCCESS
  *         The slot content was loaded successfully.
- * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
  *         There is no content for this slot in persistent storage.
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -274,11 +274,11 @@ psa_status_t psa_create_key( psa_key_lifetime_t lifetime,
     psa_status_t status;
 
     status = persistent_key_setup( lifetime, id, handle,
-                                   PSA_ERROR_EMPTY_SLOT );
+                                   PSA_ERROR_DOES_NOT_EXIST );
     switch( status )
     {
-        case PSA_SUCCESS: return( PSA_ERROR_OCCUPIED_SLOT );
-        case PSA_ERROR_EMPTY_SLOT: return( PSA_SUCCESS );
+        case PSA_SUCCESS: return( PSA_ERROR_ALREADY_EXISTS );
+        case PSA_ERROR_DOES_NOT_EXIST: return( PSA_SUCCESS );
         default: return( status );
     }
 }

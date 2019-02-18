@@ -702,7 +702,7 @@ static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) && \
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
 static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
 {
@@ -722,7 +722,7 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
     return( 0 );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+          MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
 
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {

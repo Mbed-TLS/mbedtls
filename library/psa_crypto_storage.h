@@ -59,7 +59,7 @@ extern "C" {
  * This limitation will probably become moot when we implement client
  * separation for key storage.
  */
-#define PSA_MAX_PERSISTENT_KEY_IDENTIFIER 0xffff0000
+#define PSA_MAX_PERSISTENT_KEY_IDENTIFIER 0xfffeffff
 
 /**
  * \brief Format key data and metadata and save to a location for given key

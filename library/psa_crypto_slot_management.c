@@ -201,7 +201,7 @@ static int psa_is_key_id_valid( psa_key_id_t key_id )
         return( 0 );
     /* Reject high values because the file names are reserved for the
      * library's internal use. */
-    if( key_id >= PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
+    if( key_id > PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
         return( 0 );
     return( 1 );
 }

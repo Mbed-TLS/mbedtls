@@ -283,8 +283,6 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             mbedtls_everest_free( &ctx->ctx.everest_ecdh );
-            ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
-            ctx->grp_id = MBEDTLS_ECP_DP_NONE;
             break;
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:

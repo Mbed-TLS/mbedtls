@@ -235,7 +235,85 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
      return( -1 );
 }
 
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH 256
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH 1
+
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
+
 
 static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group_id grpid )
 {
@@ -297,6 +375,7 @@ static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group
             return( 0 );
     }
 }
+
 
 #define MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE( curve )                \
     ( curve == PSA_ECC_CURVE_SECP192R1        ? 192 :             \

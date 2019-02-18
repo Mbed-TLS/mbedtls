@@ -68,7 +68,7 @@ int mbedtls_x25519_make_params( mbedtls_x25519_context *ctx, size_t *olen,
     if( ( ret = f_rng( p_rng, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES ) ) != 0 )
         return ret;
 
-    *olen = 36;
+    *olen = MBEDTLS_X25519_KEY_SIZE_BYTES + 4;
     if( blen < *olen )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
@@ -90,7 +90,7 @@ int mbedtls_x25519_make_params( mbedtls_x25519_context *ctx, size_t *olen,
 int mbedtls_x25519_read_params( mbedtls_x25519_context *ctx,
                         const unsigned char **buf, const unsigned char *end )
 {
-    if( end - *buf < 33 )
+    if( end - *buf < MBEDTLS_X25519_KEY_SIZE_BYTES + 1 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( *(*buf)++ != MBEDTLS_X25519_KEY_SIZE_BYTES ) )
@@ -161,7 +161,7 @@ int mbedtls_x25519_make_public( mbedtls_x25519_context *ctx, size_t *olen,
     if( ( ret = f_rng( p_rng, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES ) ) != 0 )
         return ret;
 
-    *olen = 33;
+    *olen = MBEDTLS_X25519_KEY_SIZE_BYTES + 1;
     if( blen < *olen )
         return(MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL);
     *buf++ = MBEDTLS_X25519_KEY_SIZE_BYTES;
@@ -179,7 +179,7 @@ int mbedtls_x25519_make_public( mbedtls_x25519_context *ctx, size_t *olen,
 int mbedtls_x25519_read_public( mbedtls_x25519_context *ctx,
                         const unsigned char *buf, size_t blen )
 {
-    if( blen < 33 )
+    if( blen < MBEDTLS_X25519_KEY_SIZE_BYTES + 1 )
         return(MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL);
     if( (*buf++ != MBEDTLS_X25519_KEY_SIZE_BYTES) )
         return(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);

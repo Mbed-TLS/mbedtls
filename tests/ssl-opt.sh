@@ -769,6 +769,7 @@ run_test_psa() {
                 -C "Failed to setup PSA-based cipher context"\
                 -S "Failed to setup PSA-based cipher context"\
                 -s "Protocol is TLSv1.2" \
+                -c "Perform PSA-based ECDH computation."\
                 -c "Perform PSA-based computation of digest of ServerKeyExchange" \
                 -S "error" \
                 -C "error"
@@ -780,7 +781,19 @@ run_test_psa_force_curve() {
                 "$P_SRV debug_level=4 force_version=tls1_2" \
                 "$P_CLI debug_level=4 force_version=tls1_2 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 curves=$1" \
                 0 \
+                -c "Successfully setup PSA-based decryption cipher context" \
+                -c "Successfully setup PSA-based encryption cipher context" \
+                -c "PSA calc verify" \
+                -c "calc PSA finished" \
+                -s "Successfully setup PSA-based decryption cipher context" \
+                -s "Successfully setup PSA-based encryption cipher context" \
+                -s "PSA calc verify" \
+                -s "calc PSA finished" \
+                -C "Failed to setup PSA-based cipher context"\
+                -S "Failed to setup PSA-based cipher context"\
                 -s "Protocol is TLSv1.2" \
+                -c "Perform PSA-based ECDH computation."\
+                -c "Perform PSA-based computation of digest of ServerKeyExchange" \
                 -S "error" \
                 -C "error"
 }

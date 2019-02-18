@@ -3519,13 +3519,13 @@ void crypto_generator_init( )
 
     memset( &zero, 0, sizeof( zero ) );
 
-    /* A default generator should have no capacity. */
-    PSA_ASSERT( psa_get_generator_capacity( &func, &capacity ) );
-    TEST_EQUAL( capacity, 0 );
-    PSA_ASSERT( psa_get_generator_capacity( &init, &capacity ) );
-    TEST_EQUAL( capacity, 0 );
-    PSA_ASSERT( psa_get_generator_capacity( &zero, &capacity ) );
-    TEST_EQUAL( capacity, 0 );
+    /* A default generator should not be able to report its capacity. */
+    TEST_EQUAL( psa_get_generator_capacity( &func, &capacity ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_get_generator_capacity( &init, &capacity ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_get_generator_capacity( &zero, &capacity ),
+                PSA_ERROR_BAD_STATE );
 
     /* A default generator should be abortable without error. */
     PSA_ASSERT( psa_generator_abort(&func) );
@@ -3632,18 +3632,18 @@ void test_derive_invalid_generator_tests( )
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
 
     TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size )
-                 == PSA_ERROR_INSUFFICIENT_DATA ); // should be PSA_ERROR_BAD_STATE:#183
+                 == PSA_ERROR_BAD_STATE );
 
     TEST_ASSERT( psa_get_generator_capacity( &generator, &capacity )
-                 == PSA_SUCCESS ); // should be PSA_ERROR_BAD_STATE:#183
+                 == PSA_ERROR_BAD_STATE );
 
     PSA_ASSERT( psa_generator_abort( &generator ) );
 
     TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size )
-                 == PSA_ERROR_INSUFFICIENT_DATA ); // should be PSA_ERROR_BAD_STATE:#183
+                 == PSA_ERROR_BAD_STATE );
 
     TEST_ASSERT( psa_get_generator_capacity( &generator, &capacity )
-                 == PSA_SUCCESS );// should be PSA_ERROR_BAD_STATE:#183
+                 == PSA_ERROR_BAD_STATE );
 
 exit:
     psa_generator_abort( &generator );

@@ -111,7 +111,6 @@ void mbedtls_psa_crypto_free( void );
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p seed_size is out of range.
  * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval `PSA_ITS_ERROR_XXX`
  *         There was a failure reading or writing from storage.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The library has already been initialized. It is no longer

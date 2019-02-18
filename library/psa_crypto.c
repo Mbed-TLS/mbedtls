@@ -4391,45 +4391,11 @@ psa_status_t psa_generate_random( uint8_t *output,
 
 #if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
 
-/* Support function for error conversion between psa_its error codes to psa crypto */
-static psa_status_t its_to_psa_error( psa_its_status_t ret )
-{
-    switch( ret )
-    {
-        case PSA_ITS_SUCCESS:
-            return( PSA_SUCCESS );
-
-        case PSA_ITS_ERROR_UID_NOT_FOUND:
-            return( PSA_ERROR_DOES_NOT_EXIST );
-
-        case PSA_ITS_ERROR_STORAGE_FAILURE:
-            return( PSA_ERROR_STORAGE_FAILURE );
-
-        case PSA_ITS_ERROR_INSUFFICIENT_SPACE:
-            return( PSA_ERROR_INSUFFICIENT_STORAGE );
-
-        case PSA_ITS_ERROR_OFFSET_INVALID:
-        case PSA_ITS_ERROR_INCORRECT_SIZE:
-        case PSA_ITS_ERROR_INVALID_ARGUMENTS:
-            return( PSA_ERROR_INVALID_ARGUMENT );
-
-        case PSA_ITS_ERROR_FLAGS_NOT_SUPPORTED:
-            return( PSA_ERROR_NOT_SUPPORTED );
-
-        case PSA_ITS_ERROR_WRITE_ONCE:
-            return( PSA_ERROR_ALREADY_EXISTS );
-
-        default:
-            return( PSA_ERROR_GENERIC_ERROR );
-    }
-}
-
 psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
                                          size_t seed_size )
 {
     psa_status_t status;
-    psa_its_status_t its_status;
-    struct psa_its_info_t p_info;
+    struct psa_storage_info_t p_info;
     if( global_data.initialized )
         return( PSA_ERROR_NOT_PERMITTED );
 
@@ -4438,15 +4404,13 @@ psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
           ( seed_size > MBEDTLS_ENTROPY_MAX_SEED_SIZE ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
-    its_status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
-    status = its_to_psa_error( its_status );
+    status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
 
-    if( PSA_ITS_ERROR_UID_NOT_FOUND == its_status ) /* No seed exists */
+    if( PSA_ERROR_DOES_NOT_EXIST == status ) /* No seed exists */
     {
-        its_status = psa_its_set( PSA_CRYPTO_ITS_RANDOM_SEED_UID, seed_size, seed, 0 );
-        status = its_to_psa_error( its_status );
+        status = psa_its_set( PSA_CRYPTO_ITS_RANDOM_SEED_UID, seed_size, seed, 0 );
     }
-    else if( PSA_ITS_SUCCESS == its_status )
+    else if( PSA_SUCCESS == status )
     {
         /* You should not be here. Seed needs to be injected only once */
         status = PSA_ERROR_NOT_PERMITTED;

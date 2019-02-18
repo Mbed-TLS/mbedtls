@@ -45,6 +45,10 @@
 #include "ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -83,6 +87,7 @@ typedef enum {
     MBEDTLS_PK_ECDSA,
     MBEDTLS_PK_RSA_ALT,
     MBEDTLS_PK_RSASSA_PSS,
+    MBEDTLS_PK_OPAQUE,
 } mbedtls_pk_type_t;
 
 /**
@@ -209,6 +214,11 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx );
  *
  * \param ctx       The context to clear. It must have been initialized.
  *                  If this is \c NULL, this function does nothing.
+ *
+ * \note            For contexts that have been set up with
+ *                  mbedtls_pk_setup_opaque(), this does not free the underlying
+ *                  key slot and you still need to call psa_destroy_key()
+ *                  independently if you want to destroy that key.
  */
 void mbedtls_pk_free( mbedtls_pk_context *ctx );
 
@@ -246,6 +256,38 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
  */
 int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief           Initialize a PK context to wrap a PSA key slot.
+ *
+ * \note            This function replaces mbedtls_pk_setup() for contexts
+ *                  that wrap a (possibly opaque) PSA key slot instead of
+ *                  storing and manipulating the key material directly.
+ *
+ * \param ctx       The context to initialize. It must be empty (type NONE).
+ * \param key       The PSA key slot to wrap, which must hold an ECC key pair
+ *                  (see notes below).
+ *
+ * \note            The wrapped key slot must remain valid as long as the
+ *                  wrapping PK context is in use, that is at least between
+ *                  the point this function is called and the point
+ *                  mbedtls_pk_free() is called on this context. The wrapped
+ *                  key slot might then be independently used or destroyed.
+ *
+ * \note            This function is currently only available for ECC key
+ *                  pairs (that is, ECC keys containing private key material).
+ *                  Support for other key types may be added later.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input
+ *                  (context already used, invalid key slot).
+ * \return          #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if the key is not an
+ *                  ECC key pair.
+ * \return          #MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
+ */
+int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_handle_t key );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
@@ -501,7 +543,11 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  * \param pub       Context holding a public key.
  * \param prv       Context holding a private (and public) key.
  *
- * \return          0 on success or MBEDTLS_ERR_PK_BAD_INPUT_DATA
+ * \return          \c 0 on success (keys were checked and match each other).
+ * \return          #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if the keys could not
+ *                  be checked - in that case they may or may not match.
+ * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA if a context is invalid.
+ * \return          Another non-zero value if the keys do not match.
  */
 int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
@@ -739,6 +785,31 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
 #if defined(MBEDTLS_FS_IO)
 int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
 #endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief           Turn an EC key into an Opaque one
+ *
+ * \warning         This is a temporary utility function for tests. It might
+ *                  change or be removed at any time without notice.
+ *
+ * \note            Only ECDSA keys are supported so far. Signing with the
+ *                  specified hash is the only allowed use of that key.
+ *
+ * \param pk        Input: the EC key to transfer to a PSA key slot.
+ *                  Output: a PK context wrapping that PSA key slot.
+ * \param slot      Output: the chosen slot for storing the key.
+ *                  It's the caller's responsibility to destroy that slot
+ *                  after calling mbedtls_pk_free() on the PK context.
+ * \param hash_alg  The hash algorithm to allow for use with that key.
+ *
+ * \return          \c 0 if successful.
+ * \return          An Mbed TLS error code otherwise.
+ */
+int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
+                               psa_key_handle_t *slot,
+                               psa_algorithm_t hash_alg );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #ifdef __cplusplus
 }

@@ -41,6 +41,10 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/psa_util.h"
+#endif
+
 #include <limits.h>
 #include <stdint.h>
 
@@ -146,6 +150,38 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
 
     return( 0 );
 }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/*
+ * Initialise a PSA-wrapping context
+ */
+int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_handle_t key )
+{
+    const mbedtls_pk_info_t * const info = &mbedtls_pk_opaque_info;
+    psa_key_handle_t *pk_ctx;
+    psa_key_type_t type;
+
+    if( ctx == NULL || ctx->pk_info != NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( PSA_SUCCESS != psa_get_key_information( key, &type, NULL ) )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    /* Current implementation of can_do() relies on this. */
+    if( ! PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) )
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE) ;
+
+    if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
+        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+
+    ctx->pk_info = info;
+
+    pk_ctx = (psa_key_handle_t *) ctx->pk_ctx;
+    *pk_ctx = key;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*
@@ -472,11 +508,13 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
     PK_VALIDATE_RET( prv != NULL );
 
     if( pub->pk_info == NULL ||
-        prv->pk_info == NULL ||
-        prv->pk_info->check_pair_func == NULL )
+        prv->pk_info == NULL )
     {
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
     }
+
+    if( prv->pk_info->check_pair_func == NULL )
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
     if( prv->pk_info->type == MBEDTLS_PK_RSA_ALT )
     {
@@ -543,4 +581,66 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
     return( ctx->pk_info->type );
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/*
+ * Load the key to a PSA key slot,
+ * then turn the PK context into a wrapper for that key slot.
+ *
+ * Currently only works for EC private keys.
+ */
+int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
+                               psa_key_handle_t *slot,
+                               psa_algorithm_t hash_alg )
+{
+#if !defined(MBEDTLS_ECP_C)
+    return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+#else
+    psa_key_handle_t key;
+    const mbedtls_ecp_keypair *ec;
+    unsigned char d[MBEDTLS_ECP_MAX_BYTES];
+    size_t d_len;
+    psa_ecc_curve_t curve_id;
+    psa_key_type_t key_type;
+    psa_key_policy_t policy;
+    int ret;
+
+    /* export the private key material in the format PSA wants */
+    if( mbedtls_pk_get_type( pk ) != MBEDTLS_PK_ECKEY )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+
+    ec = mbedtls_pk_ec( *pk );
+    d_len = ( ec->grp.nbits + 7 ) / 8;
+    if( ( ret = mbedtls_mpi_write_binary( &ec->d, d, d_len ) ) != 0 )
+        return( ret );
+
+    curve_id = mbedtls_ecp_curve_info_from_grp_id( ec->grp.id )->tls_id;
+    key_type = PSA_KEY_TYPE_ECC_KEYPAIR(
+                                 mbedtls_psa_parse_tls_ecc_group ( curve_id ) );
+
+    /* allocate a key slot */
+    if( PSA_SUCCESS != psa_allocate_key( &key ) )
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+
+    /* set policy */
+    policy = psa_key_policy_init();
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN,
+                                       PSA_ALG_ECDSA(hash_alg) );
+    if( PSA_SUCCESS != psa_set_key_policy( key, &policy ) )
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+
+    /* import private key in slot */
+    if( PSA_SUCCESS != psa_import_key( key, key_type, d, d_len ) )
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+
+    /* remember slot number to be destroyed later by caller */
+    *slot = key;
+
+    /* make PK context wrap the key slot */
+    mbedtls_pk_free( pk );
+    mbedtls_pk_init( pk );
+
+    return( mbedtls_pk_setup_opaque( pk, key ) );
+#endif /* MBEDTLS_ECP_C */
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_PK_C */

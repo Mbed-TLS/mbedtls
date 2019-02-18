@@ -1203,6 +1203,30 @@
 #define MBEDTLS_PKCS1_V21
 
 /**
+ * \def MBEDTLS_PSA_CRYPTO_SPM
+ *
+ * When MBEDTLS_PSA_CRYPTO_SPM is defined, the code is built for SPM (Secure
+ * Partition Manager) integration which separates the code into two parts: a
+ * NSPE (Non-Secure Process Environment) and an SPE (Secure Process
+ * Environment).
+ *
+ * Module:  library/psa_crypto.c
+ * Requires: MBEDTLS_PSA_CRYPTO_C
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_SPM
+
+/**
+ * \def MBEDTLS_PSA_HAS_ITS_IO
+ *
+ * Enable the non-volatile secure storage usage.
+ *
+ * This is crucial on systems that do not have a HW TRNG support.
+ *
+ */
+//#define MBEDTLS_PSA_HAS_ITS_IO
+
+/**
  * \def MBEDTLS_RSA_NO_CRT
  *
  * Do not use the Chinese Remainder Theorem
@@ -1624,6 +1648,24 @@
  * Uncomment this to enable pthread mutexes.
  */
 //#define MBEDTLS_THREADING_PTHREAD
+
+/**
+ * \def MBEDTLS_USE_PSA_CRYPTO
+ *
+ * Make the X.509 and TLS library use PSA for cryptographic operations, see
+ * #MBEDTLS_PSA_CRYPTO_C.
+ *
+ * Note: this option is still in progress, the full X.509 and TLS modules are
+ * not covered yet, but parts that are not ported to PSA yet will still work
+ * as usual, so enabling this option should not break backwards compatibility.
+ *
+ * \warning  Support for PSA is still an experimental feature.
+ *           Any public API that depends on this option may change
+ *           at any time until this warning is removed.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C.
+ */
+//#define MBEDTLS_USE_PSA_CRYPTO
 
 /**
  * \def MBEDTLS_VERSION_FEATURES
@@ -2632,6 +2674,65 @@
  * Caller:  library/chachapoly.c
  */
 #define MBEDTLS_POLY1305_C
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_C
+ *
+ * Enable the Platform Security Architecture cryptography API.
+ *
+ * \note This option only has an effect when the build option
+ * USE_CRYPTO_SUBMODULE is also in use.
+ *
+ * \warning This feature is experimental and available on an opt-in basis only.
+ * PSA APIs are subject to change at any time. The implementation comes with
+ * less assurance and support than the rest of Mbed TLS.
+ *
+ * Module:  crypto/library/psa_crypto.c
+ *
+ * Requires: MBEDTLS_CTR_DRBG_C, MBEDTLS_ENTROPY_C
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_C
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_STORAGE_C
+ *
+ * Enable the Platform Security Architecture persistent key storage.
+ *
+ * Module:  library/psa_crypto_storage.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C and one of either
+ * MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C or MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
+ * (but not both)
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_STORAGE_C
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+ *
+ * Enable persistent key storage over files for the
+ * Platform Security Architecture cryptography API.
+ *
+ * Module:  library/psa_crypto_storage_file.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_FS_IO
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
+ *
+ * Enable persistent key storage over PSA ITS for the
+ * Platform Security Architecture cryptography API.
+ *
+ * Module:  library/psa_crypto_storage_its.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_HAS_ITS_IO
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
 
 /**
  * \def MBEDTLS_RIPEMD160_C

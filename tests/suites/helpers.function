@@ -97,6 +97,14 @@ typedef enum
  *          This macro is not suitable for negative parameter validation tests,
  *          as it assumes the test step will not create an error.
  *
+ *          Failing the test means:
+ *          - Mark this test case as failed.
+ *          - Print a message identifying the failure.
+ *          - Jump to the \c exit label.
+ *
+ *          This macro expands to an instruction, not an expression.
+ *          It may jump to the \c exit label.
+ *
  * \param   TEST    The test expression to be tested.
  */
 #define TEST_ASSERT( TEST )                                 \

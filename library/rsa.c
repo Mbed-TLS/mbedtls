@@ -1135,7 +1135,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
                       mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( output != NULL );
-    RSA_VALIDATE_RET( input != NULL );
+    RSA_VALIDATE_RET( ilen == 0 || input != NULL );
     RSA_VALIDATE_RET( label_len == 0 || label != NULL );
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
@@ -1171,7 +1171,8 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     p += hlen;
     p += olen - 2 * hlen - 2 - ilen;
     *p++ = 1;
-    memcpy( p, input, ilen );
+    if( ilen != 0 )
+        memcpy( p, input, ilen );
 
     mbedtls_md_init( &md_ctx );
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
@@ -1218,7 +1219,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
                       mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( output != NULL );
-    RSA_VALIDATE_RET( input != NULL );
+    RSA_VALIDATE_RET( ilen == 0 || input != NULL );
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1263,7 +1264,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     }
 
     *p++ = 0;
-    memcpy( p, input, ilen );
+    if( ilen != 0 )
+        memcpy( p, input, ilen );
 
     return( ( mode == MBEDTLS_RSA_PUBLIC )
             ? mbedtls_rsa_public(  ctx, output, output )
@@ -1285,7 +1287,7 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
                       mode == MBEDTLS_RSA_PUBLIC );
     RSA_VALIDATE_RET( output != NULL );
-    RSA_VALIDATE_RET( input != NULL );
+    RSA_VALIDATE_RET( ilen == 0 || input != NULL );
 
     switch( ctx->padding )
     {
@@ -1441,7 +1443,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     }
 
     *olen = ilen - (p - buf);
-    memcpy( output, p, *olen );
+    if( *olen != 0 )
+        memcpy( output, p, *olen );
     ret = 0;
 
 cleanup:
@@ -1693,9 +1696,15 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
                       plaintext_max_size,
                       plaintext_max_size - plaintext_size );
 
-    /* Finally copy the decrypted plaintext plus trailing zeros
-     * into the output buffer. */
-    memcpy( output, buf + ilen - plaintext_max_size, plaintext_max_size );
+    /* Finally copy the decrypted plaintext plus trailing zeros into the output
+     * buffer. If output_max_len is 0, then output may be an invalid pointer
+     * and the result of memcpy() would be undefined; prevent undefined
+     * behavior making sure to depend only on output_max_len (the size of the
+     * user-provided output buffer), which is independent from plaintext
+     * length, validity of padding, success of the decryption, and other
+     * secrets. */
+    if( output_max_len != 0 )
+        memcpy( output, buf + ilen - plaintext_max_size, plaintext_max_size );
 
     /* Report the amount of data we copied to the output buffer. In case
      * of errors (bad padding or output too large), the value of *olen

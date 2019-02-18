@@ -25,6 +25,9 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /*----------------------------------------------------------------------------*/
 /* Common helper code */
@@ -251,8 +254,8 @@ int main( int argc, const char *argv[] )
                          ret );
         return( -1 );
     }
+
     ret = execute_tests( argc, argv );
     platform_teardown();
     return( ret );
 }
-

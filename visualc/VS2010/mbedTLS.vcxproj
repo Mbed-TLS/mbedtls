@@ -204,6 +204,7 @@
     <ClInclude Include="..\..\include\mbedtls\platform_time.h" />
     <ClInclude Include="..\..\include\mbedtls\platform_util.h" />
     <ClInclude Include="..\..\include\mbedtls\poly1305.h" />
+    <ClInclude Include="..\..\include\mbedtls\psa_util.h" />
     <ClInclude Include="..\..\include\mbedtls\ripemd160.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa_internal.h" />

@@ -1,0 +1,4 @@
+[submodule "crypto"]
+	path = crypto
+	url = https://github.com/ARMmbed/mbed-crypto
+	branch = development

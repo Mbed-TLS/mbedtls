@@ -235,6 +235,8 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
      return( -1 );
 }
 
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH 256
+
 static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group_id grpid )
 {
     switch( grpid )

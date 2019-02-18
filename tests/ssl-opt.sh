@@ -6701,13 +6701,7 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
             -c "fragmenting handshake message" \
             -C "error"
 
-## The two tests below are disabled due to a bug in GnuTLS client that causes
-## handshake failures when the NewSessionTicket message is lost, see
-## https://gitlab.com/gnutls/gnutls/issues/543
-## We can re-enable them when a fixed version fo GnuTLS is available
-## and installed in our CI system.
-skip_next_test
-requires_gnutls
+requires_gnutls_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6719,12 +6713,11 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
-           "$G_CLI -u --insecure 127.0.0.1" \
+           "$G_NEXT_CLI -u --insecure 127.0.0.1" \
             0 \
             -s "fragmenting handshake message"
 
-skip_next_test
-requires_gnutls
+requires_gnutls_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6736,7 +6729,7 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
-           "$G_CLI -u --insecure 127.0.0.1" \
+           "$G_NEXT_CLI -u --insecure 127.0.0.1" \
             0 \
             -s "fragmenting handshake message"
 
@@ -7306,29 +7299,23 @@ run_test    "DTLS proxy: 3d, gnutls server" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
-# The next two test are disabled because they tend to trigger a bug in the
-# version of GnuTLS that's currently installed on our CI. The bug occurs when
-# different fragments of the same handshake message are received out-of-order
-# by GnuTLS and results in a timeout. It's been fixed in GnuTLS 3.5.2.
-skip_next_test
-requires_gnutls
+requires_gnutls_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$G_SRV -u --mtu 512" \
+            "$G_NEXT_SRV -u --mtu 512" \
             "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"
 
-skip_next_test
-requires_gnutls
+requires_gnutls_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$G_SRV -u --mtu 512" \
+            "$G_NEXT_SRV -u --mtu 512" \
             "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2" \
             0 \
             -s "Extra-header:" \

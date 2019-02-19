@@ -58,7 +58,7 @@ FILTER=""
 # - RC4, single-DES: requires legacy OpenSSL/GnuTLS versions
 #   avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
 # - 3DES: not in default config
-EXCLUDE='NULL\|DES-CBC-\|RC4\|3DES\|ARCFOUR'
+EXCLUDE='NULL\|DES\|RC4\|ARCFOUR'
 VERBOSE=""
 MEMCHECK=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"

@@ -90,7 +90,14 @@ typedef uint32_t psa_key_lifetime_t;
 
 /** Encoding of identifiers of persistent keys.
  */
+/* Implementation-specific quirk: The Mbed Crypto library can be built as
+ * part of a multi-client service that exposes the PSA Crypto API in each
+ * client and encodes the client identity in the key id argument of functions
+ * such as psa_open_key(). In this build configuration, we define
+ * psa_key_id_t in crypto_platform.h instead of here. */
+#if !defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
 typedef uint32_t psa_key_id_t;
+#endif
 
 /**@}*/
 

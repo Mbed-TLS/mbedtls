@@ -2058,6 +2058,10 @@ int mbedtls_mpi_exp_mod_montladder( mbedtls_mpi *X, const mbedtls_mpi * A, const
     mbedtls_mpi RR, T, L0, L1, Apos;
     int neg;
 
+    MPI_VALIDATE_RET( X != NULL );
+    MPI_VALIDATE_RET( A != NULL );
+    MPI_VALIDATE_RET( E != NULL );
+    MPI_VALIDATE_RET( N != NULL );
 
     if( mbedtls_mpi_cmp_int( N, 0 ) <= 0 || ( N->p[0] & 1 ) == 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );

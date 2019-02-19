@@ -36,12 +36,12 @@
 #include "mbedtls/platform.h"
 #endif
 
-static psa_storage_uid_t psa_its_identifier_of_slot( psa_key_id_t key )
+static psa_storage_uid_t psa_its_identifier_of_slot( psa_key_file_id_t key )
 {
     return( key );
 }
 
-psa_status_t psa_crypto_storage_load( const psa_key_id_t key, uint8_t *data,
+psa_status_t psa_crypto_storage_load( const psa_key_file_id_t key, uint8_t *data,
                                       size_t data_size )
 {
     psa_status_t status;
@@ -57,7 +57,7 @@ psa_status_t psa_crypto_storage_load( const psa_key_id_t key, uint8_t *data,
     return( status );
 }
 
-int psa_is_key_present_in_storage( const psa_key_id_t key )
+int psa_is_key_present_in_storage( const psa_key_file_id_t key )
 {
     psa_status_t ret;
     psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
@@ -70,7 +70,7 @@ int psa_is_key_present_in_storage( const psa_key_id_t key )
     return( 1 );
 }
 
-psa_status_t psa_crypto_storage_store( const psa_key_id_t key,
+psa_status_t psa_crypto_storage_store( const psa_key_file_id_t key,
                                        const uint8_t *data,
                                        size_t data_length )
 {
@@ -105,7 +105,7 @@ exit:
     return( status );
 }
 
-psa_status_t psa_destroy_persistent_key( const psa_key_id_t key )
+psa_status_t psa_destroy_persistent_key( const psa_key_file_id_t key )
 {
     psa_status_t ret;
     psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
@@ -125,7 +125,7 @@ psa_status_t psa_destroy_persistent_key( const psa_key_id_t key )
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_crypto_storage_get_data_length( const psa_key_id_t key,
+psa_status_t psa_crypto_storage_get_data_length( const psa_key_file_id_t key,
                                                  size_t *data_length )
 {
     psa_status_t status;

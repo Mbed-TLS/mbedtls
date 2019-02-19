@@ -148,7 +148,7 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_save_persistent_key( const psa_key_id_t key,
+psa_status_t psa_save_persistent_key( const psa_key_file_id_t key,
                                       const psa_key_type_t type,
                                       const psa_key_policy_t *policy,
                                       const uint8_t *data,
@@ -186,7 +186,7 @@ void psa_free_persistent_key_data( uint8_t *key_data, size_t key_data_length )
     mbedtls_free( key_data );
 }
 
-psa_status_t psa_load_persistent_key( psa_key_id_t key,
+psa_status_t psa_load_persistent_key( psa_key_file_id_t key,
                                       psa_key_type_t *type,
                                       psa_key_policy_t *policy,
                                       uint8_t **data,

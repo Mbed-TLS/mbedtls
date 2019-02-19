@@ -49,7 +49,7 @@
 
 enum { MAX_LOCATION_LEN = sizeof(CRYPTO_STORAGE_FILE_LOCATION) + 40 };
 
-static void key_id_to_location( const psa_key_id_t key,
+static void key_id_to_location( const psa_key_file_id_t key,
                                 char *location,
                                 size_t location_size )
 {
@@ -58,7 +58,7 @@ static void key_id_to_location( const psa_key_id_t key,
                       (unsigned long) key );
 }
 
-psa_status_t psa_crypto_storage_load( const psa_key_id_t key, uint8_t *data,
+psa_status_t psa_crypto_storage_load( const psa_key_file_id_t key, uint8_t *data,
                                       size_t data_size )
 {
     psa_status_t status = PSA_SUCCESS;
@@ -83,7 +83,7 @@ exit:
     return( status );
 }
 
-int psa_is_key_present_in_storage( const psa_key_id_t key )
+int psa_is_key_present_in_storage( const psa_key_file_id_t key )
 {
     char slot_location[MAX_LOCATION_LEN];
     FILE *file;
@@ -101,7 +101,7 @@ int psa_is_key_present_in_storage( const psa_key_id_t key )
     return( 1 );
 }
 
-psa_status_t psa_crypto_storage_store( const psa_key_id_t key,
+psa_status_t psa_crypto_storage_store( const psa_key_file_id_t key,
                                        const uint8_t *data,
                                        size_t data_length )
 {
@@ -156,7 +156,7 @@ exit:
     return( status );
 }
 
-psa_status_t psa_destroy_persistent_key( const psa_key_id_t key )
+psa_status_t psa_destroy_persistent_key( const psa_key_file_id_t key )
 {
     FILE *file;
     char slot_location[MAX_LOCATION_LEN];
@@ -175,7 +175,7 @@ psa_status_t psa_destroy_persistent_key( const psa_key_id_t key )
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_crypto_storage_get_data_length( const psa_key_id_t key,
+psa_status_t psa_crypto_storage_get_data_length( const psa_key_file_id_t key,
                                                  size_t *data_length )
 {
     psa_status_t status = PSA_SUCCESS;

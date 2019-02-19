@@ -26,7 +26,8 @@ Changes
      produced by some optimizing compilers, showing up as failures in
      e.g. RSA or ECC signature operations. Reported in #1722, fix suggested
      by Aurelien Jarno and submitted by Jeffrey Martin.
-   * Ciphersuites based on 3DES now have the lowest priority by default.
+   * Ciphersuites based on 3DES now have the lowest priority by default when
+     they are enabled.
 
 = mbed TLS 2.7.9 branch released 2018-12-21
 

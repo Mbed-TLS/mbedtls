@@ -70,6 +70,12 @@ typedef uint32_t psa_app_key_id_t;
 
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
 
+#if defined(PSA_CRYPTO_SECURE)
+/* Building for the PSA Crypto service on a PSA platform. */
+/* A key owner is a PSA partition identifier. */
+typedef int32_t psa_key_owner_id_t;
+#endif
+
 typedef struct
 {
     uint32_t key_id;

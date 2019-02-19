@@ -42,7 +42,8 @@ Changes
    * Ensure that ssl-opt.h can be run in OS X. #2029
    * Reduce the complexity of the timing tests. They were assuming more than the
      underlying OS actually guarantees.
-   * Ciphersuites based on 3DES now have the lowest priority by default.
+   * Ciphersuites based on 3DES now have the lowest priority by default when
+     they are enabled.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

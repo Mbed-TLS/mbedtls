@@ -655,6 +655,7 @@ depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 hash_setup:PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_ERROR_INVALID_ARGUMENT
 
 PSA hash: bad order function calls
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 hash_bad_order:
 
 PSA hash verify: bad arguments

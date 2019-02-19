@@ -1379,7 +1379,13 @@ psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
                              psa_algorithm_t alg )
 {
     int ret;
-    operation->alg = 0;
+
+    /* A context must be freshly initialized before it can be set up. */
+    if( operation->alg != 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
     switch( alg )
     {
 #if defined(MBEDTLS_MD2_C)
@@ -1997,6 +2003,12 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         is_sign ? PSA_KEY_USAGE_SIGN : PSA_KEY_USAGE_VERIFY;
     unsigned char truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
     psa_algorithm_t full_length_alg = PSA_ALG_FULL_LENGTH_MAC( alg );
+
+    /* A context must be freshly initialized before it can be set up. */
+    if( operation->alg != 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
 
     status = psa_mac_init( operation, full_length_alg );
     if( status != PSA_SUCCESS )
@@ -2908,6 +2920,12 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     psa_key_usage_t usage = ( cipher_operation == MBEDTLS_ENCRYPT ?
                               PSA_KEY_USAGE_ENCRYPT :
                               PSA_KEY_USAGE_DECRYPT );
+
+    /* A context must be freshly initialized before it can be set up. */
+    if( operation->alg != 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
 
     status = psa_cipher_init( operation, alg );
     if( status != PSA_SUCCESS )

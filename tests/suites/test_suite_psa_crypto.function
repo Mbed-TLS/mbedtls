@@ -2012,6 +2012,12 @@ void hash_bad_order( )
 
     PSA_ASSERT( psa_crypto_init( ) );
 
+    /* Call setup twice in a row. */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( psa_hash_setup( &operation, alg ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+
     /* Call update without calling setup beforehand. */
     TEST_EQUAL( psa_hash_update( &operation, input, sizeof( input ) ),
                 PSA_ERROR_BAD_STATE );
@@ -2336,6 +2342,14 @@ void mac_bad_order( )
                 PSA_ERROR_BAD_STATE );
     PSA_ASSERT( psa_mac_abort( &operation ) );
 
+    /* Call setup twice in a row. */
+    PSA_ASSERT( psa_mac_sign_setup( &operation,
+                                    handle, alg ) );
+    TEST_EQUAL( psa_mac_sign_setup( &operation,
+                                    handle, alg ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
     /* Call update after sign finish. */
     PSA_ASSERT( psa_mac_sign_setup( &operation,
                                     handle, alg ) );
@@ -2600,6 +2614,18 @@ void cipher_bad_order( )
     PSA_ASSERT( psa_import_key( handle, key_type,
                                 key, sizeof(key) ) );
 
+
+    /* Call encrypt setup twice in a row. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, handle, alg ) );
+    TEST_EQUAL( psa_cipher_encrypt_setup( &operation, handle, alg ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Call decrypt setup twice in a row. */
+    PSA_ASSERT( psa_cipher_decrypt_setup( &operation, handle, alg ) );
+    TEST_EQUAL( psa_cipher_decrypt_setup( &operation, handle, alg ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
 
     /* Generate an IV without calling setup beforehand. */
     TEST_EQUAL( psa_cipher_generate_iv( &operation,

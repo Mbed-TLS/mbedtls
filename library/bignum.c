@@ -889,6 +889,45 @@ cleanup:
 }
 
 /*
+ * Export X into unsigned binary data, little endian
+ */
+int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X,
+                                 unsigned char *buf, size_t buflen )
+{
+    size_t stored_bytes = X->n * ciL;
+    size_t bytes_to_copy;
+    size_t i;
+
+    if( stored_bytes < buflen )
+    {
+        bytes_to_copy = stored_bytes;
+    }
+    else
+    {
+        bytes_to_copy = buflen;
+
+        /* The output buffer is smaller than the allocated size of X.
+         * However X may fit if its leading bytes are zero. */
+        for( i = bytes_to_copy; i < stored_bytes; i++ )
+        {
+            if( GET_BYTE( X, i ) != 0 )
+                return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
+        }
+    }
+
+    for( i = 0; i < bytes_to_copy; i++ )
+        buf[i] = GET_BYTE( X, i );
+
+    if( stored_bytes < buflen )
+    {
+        /* Write trailing 0 bytes */
+        memset( buf + stored_bytes, 0, buflen - stored_bytes );
+    }
+
+    return( 0 );
+}
+
+/*
  * Export X into unsigned binary data, big endian
  */
 int mbedtls_mpi_write_binary( const mbedtls_mpi *X,

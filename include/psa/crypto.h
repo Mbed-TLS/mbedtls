@@ -782,7 +782,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  */
 static psa_hash_operation_t psa_hash_operation_init(void);
 
-/** Start a multipart hash operation.
+/** Set up a multipart hash operation.
  *
  * The sequence of operations to calculate a hash (message digest)
  * is as follows:
@@ -816,6 +816,9 @@ static psa_hash_operation_t psa_hash_operation_init(void);
  *         Success.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a hash algorithm.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (already set up and not
+ *         subsequently completed).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -837,7 +840,7 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -874,7 +877,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p hash buffer is too small. You can determine a
  *         sufficient buffer size by calling #PSA_HASH_SIZE(\c alg)
@@ -914,7 +917,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
  *         The hash of the message was calculated successfully, but it
  *         differs from the expected hash.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -1032,7 +1035,7 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  */
 static psa_mac_operation_t psa_mac_operation_init(void);
 
-/** Start a multipart MAC calculation operation.
+/** Set up a multipart MAC calculation operation.
  *
  * This function sets up the calculation of the MAC
  * (message authentication code) of a byte string.
@@ -1082,6 +1085,9 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (already set up and not
+ *         subsequently completed).
+ * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
@@ -1090,7 +1096,7 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
                                 psa_key_handle_t handle,
                                 psa_algorithm_t alg);
 
-/** Start a multipart MAC verification operation.
+/** Set up a multipart MAC verification operation.
  *
  * This function sets up the verification of the MAC
  * (message authentication code) of a byte string against an expected value.
@@ -1139,6 +1145,9 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (already set up and not
+ *         subsequently completed).
+ * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
@@ -1162,7 +1171,7 @@ psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -1201,7 +1210,7 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p mac buffer is too small. You can determine a
  *         sufficient buffer size by calling PSA_MAC_FINAL_SIZE().
@@ -1240,7 +1249,7 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
  *         The MAC of the message was calculated successfully, but it
  *         differs from the expected MAC.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -1384,6 +1393,9 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (already set up and not
+ *         subsequently completed).
+ * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
@@ -1443,6 +1455,9 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (already set up and not
+ *         subsequently completed).
+ * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
@@ -1471,7 +1486,7 @@ psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or IV already set).
+ *         The operation state is not valid (not set up, or IV already set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p iv buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -1505,7 +1520,7 @@ psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or IV already set).
+ *         The operation state is not valid (not set up, or IV already set).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The size of \p iv is not acceptable for the chosen algorithm,
  *         or the chosen algorithm does not use an IV.
@@ -1541,7 +1556,7 @@ psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, IV required but
+ *         The operation state is not valid (not set up, IV required but
  *         not set, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
@@ -1579,7 +1594,7 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, IV required but
+ *         The operation state is not valid (not set up, IV required but
  *         not set, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.

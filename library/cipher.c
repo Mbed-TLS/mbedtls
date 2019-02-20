@@ -1238,7 +1238,7 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
             (mbedtls_cipher_context_psa *) ctx->cipher_ctx;
 
         psa_status_t status;
-        psa_cipher_operation_t cipher_op;
+        psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
         size_t part_len;
 
         if( ctx->operation == MBEDTLS_DECRYPT )

@@ -32,4 +32,5 @@ massif-*
 /visualc/VS2010/.vs/
 /visualc/VS2010/Debug/
 /visualc/VS2010/Release/
+/visualc/VS2010/*.vcxproj.filters
 /visualc/VS2010/*.vcxproj.user

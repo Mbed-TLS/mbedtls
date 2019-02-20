@@ -583,6 +583,57 @@ int mbedtls_x509_name_cmp( const mbedtls_x509_name *a,
     return( 0 );
 }
 
+int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
+                               mbedtls_x509_buf_raw const *b )
+{
+    int ret;
+
+    unsigned char *p_a, *end_a, *set_a;
+    unsigned char *p_b, *end_b, *set_b;
+
+    p_a = set_a = (unsigned char*) a->p;
+    p_b = set_b = (unsigned char*) b->p;
+
+    end_a = p_a + a->len;
+    end_b = p_b + b->len;
+
+    while( 1 )
+    {
+         mbedtls_x509_buf oid_a, val_a, oid_b, val_b;
+
+        ret = x509_set_sequence_iterate( &p_a, (const unsigned char **) &set_a,
+                                         end_a, &oid_a, &val_a );
+        if( ret != 0 )
+            goto exit;
+
+        ret = x509_set_sequence_iterate( &p_b, (const unsigned char **) &set_b,
+                                         end_b, &oid_b, &val_b );
+        if( ret != 0 )
+            goto exit;
+
+        if( oid_a.len != oid_b.len ||
+            memcmp( oid_a.p, oid_b.p, oid_b.len ) != 0 )
+        {
+            return( 1 );
+        }
+
+        if( x509_string_cmp( &val_a, &val_b ) != 0 )
+            return( 1 );
+
+        if( ( set_a == p_a ) != ( set_b == p_b ) )
+            return( 1 );
+
+        if( p_a == end_a && p_b == end_b )
+            break;
+    }
+
+exit:
+    if( ret < 0 )
+        ret += MBEDTLS_ERR_X509_INVALID_NAME;
+
+    return( ret );
+}
+
 static int x509_parse_int( unsigned char **p, size_t n, int *res )
 {
     *res = 0;

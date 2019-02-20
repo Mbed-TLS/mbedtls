@@ -295,15 +295,12 @@ int mbedtls_asn1_get_alg( unsigned char **p,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         return( ret );
 
-    if( ( end - *p ) < 1 )
-        return( MBEDTLS_ERR_ASN1_OUT_OF_DATA );
-
-    alg->tag = **p;
     end = *p + len;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &alg->len, MBEDTLS_ASN1_OID ) ) != 0 )
         return( ret );
 
+    alg->tag = MBEDTLS_ASN1_OID;
     alg->p = *p;
     *p += alg->len;
 

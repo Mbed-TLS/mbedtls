@@ -64,6 +64,9 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison. */
     mbedtls_x509_buf subject_raw;       /**< The raw subject data (DER). Used for quick comparison. */
 
+    mbedtls_x509_buf_raw subject_raw_no_hdr;
+    mbedtls_x509_buf_raw issuer_raw_no_hdr;
+
     mbedtls_x509_name issuer;           /**< The parsed issuer data (named information object). */
     mbedtls_x509_name subject;          /**< The parsed subject data (named information object). */
 

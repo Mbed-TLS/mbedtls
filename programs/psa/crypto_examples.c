@@ -109,7 +109,7 @@ static psa_status_t cipher_encrypt( psa_key_handle_t key_handle,
                                     size_t *output_len )
 {
     psa_status_t status;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     size_t iv_len = 0;
 
     memset( &operation, 0, sizeof( operation ) );
@@ -140,7 +140,7 @@ static psa_status_t cipher_decrypt( psa_key_handle_t key_handle,
                                     size_t *output_len )
 {
     psa_status_t status;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
 
     memset( &operation, 0, sizeof( operation ) );
     status = psa_cipher_decrypt_setup( &operation, key_handle, alg );

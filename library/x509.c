@@ -356,15 +356,17 @@ static int x509_get_attr_type_value( unsigned char **p,
     int ret;
     size_t len;
 
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
-            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-        return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
+    ret = mbedtls_asn1_get_tag( p, end, &len,
+                                MBEDTLS_ASN1_CONSTRUCTED |
+                                MBEDTLS_ASN1_SEQUENCE );
+    if( ret != 0 )
+        goto exit;
 
     end = *p + len;
 
     ret = mbedtls_asn1_get_tag( p, end, &oid->len, MBEDTLS_ASN1_OID );
     if( ret != 0 )
-        return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
+        goto exit;
 
     oid->tag = MBEDTLS_ASN1_OID;
     oid->p = *p;
@@ -372,30 +374,30 @@ static int x509_get_attr_type_value( unsigned char **p,
 
     if( *p == end )
     {
-        return( MBEDTLS_ERR_X509_INVALID_NAME +
-                MBEDTLS_ERR_ASN1_OUT_OF_DATA );
+        ret = MBEDTLS_ERR_ASN1_OUT_OF_DATA;
+        goto exit;
     }
 
     if( !MBEDTLS_ASN1_IS_STRING_TAG( **p ) )
     {
-        return( MBEDTLS_ERR_X509_INVALID_NAME +
-                MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+        ret = MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
+        goto exit;
     }
 
     val->tag = *(*p)++;
 
-    if( ( ret = mbedtls_asn1_get_len( p, end, &val->len ) ) != 0 )
-        return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
+    ret = mbedtls_asn1_get_len( p, end, &val->len );
+    if( ret != 0 )
+        goto exit;
 
     val->p = *p;
     *p += val->len;
 
     if( *p != end )
-    {
-        return( MBEDTLS_ERR_X509_INVALID_NAME +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-    }
-    return( 0 );
+        ret = MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+
+exit:
+    return( ret );
 }
 
 /*
@@ -437,12 +439,15 @@ static int x509_set_sequence_iterate( unsigned char **p,
                                     MBEDTLS_ASN1_CONSTRUCTED |
                                     MBEDTLS_ASN1_SET );
         if( ret != 0 )
-            return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
+            goto exit;
 
         *end_set = *p + set_len;
     }
 
-    return( x509_get_attr_type_value( p, *end_set, oid, val ) );
+    ret = x509_get_attr_type_value( p, *end_set, oid, val );
+
+exit:
+    return( ret );
 }
 
 int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
@@ -457,7 +462,7 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
         ret = x509_set_sequence_iterate( p, &end_set, end,
                                          &cur->oid, &cur->val );
         if( ret != 0 )
-            return( ret );
+            return( ret + MBEDTLS_ERR_X509_INVALID_NAME );
 
         if( *p != end_set )
             cur->next_merged = 1;

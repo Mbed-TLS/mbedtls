@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 #include "psa_crypto_storage.h"
 #include "psa_crypto_storage_backend.h"

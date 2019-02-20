@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C)
 
 #include "psa/error.h"
+#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 #include "psa_crypto_storage_backend.h"
 #include "psa/internal_trusted_storage.h"

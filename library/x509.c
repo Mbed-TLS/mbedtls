@@ -375,12 +375,11 @@ static int x509_get_attr_type_value( unsigned char **p,
         return( MBEDTLS_ERR_X509_INVALID_NAME +
                 MBEDTLS_ERR_ASN1_OUT_OF_DATA );
 
-    if( **p != MBEDTLS_ASN1_BMP_STRING && **p != MBEDTLS_ASN1_UTF8_STRING      &&
-        **p != MBEDTLS_ASN1_T61_STRING && **p != MBEDTLS_ASN1_PRINTABLE_STRING &&
-        **p != MBEDTLS_ASN1_IA5_STRING && **p != MBEDTLS_ASN1_UNIVERSAL_STRING &&
-        **p != MBEDTLS_ASN1_BIT_STRING )
+    if( !MBEDTLS_ASN1_IS_STRING_TAG( **p ) )
+    {
         return( MBEDTLS_ERR_X509_INVALID_NAME +
                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+    }
 
     val = &cur->val;
     val->tag = *(*p)++;

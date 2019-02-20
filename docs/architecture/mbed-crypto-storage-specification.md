@@ -91,7 +91,7 @@ Mbed Crypto 0.2.0
 
 To be released for Mbed OS 5.12.
 
-Supported backends:
+Supported integrations:
 
 * [PSA platform](#file-namespace-on-a-psa-platform-for-0.2.0)
 * [library using PSA ITS](#file-namespace-on-its-as-a-library-for-0.2.0)
@@ -106,12 +106,14 @@ Backward compatibility commitments: TBD
 
 ### Key names for 0.2.0
 
-Information about each key is stored in a dedicated file whose name is constructed from the 32-bit key identifier (`psa_key_id_t`) and, if applicable, the owner identifier. The way in which the file name is constructed depends on the storage backend. The content of the file is described [below](#key-file-format-for-0.2.0).
+Information about each key is stored in a dedicated file designated by a _key file identifier_ (`psa_key_file_id_t`). The key file identifier is constructed from the 32-bit key identifier (`psa_key_id_t`) and, if applicable, an identifier of the owner of the key. In integrations where there is no concept of key owner (in particular, in library integrations), the key file identifier is exactly the key identifier. When the library is integrated into a service, the service determines the semantics of the owner identifier.
+
+The way in which the file name is constructed from the key file identifier depends on the storage backend. The content of the file is described [below](#key-file-format-for-0.2.0).
 
 The valid values for a key identifier are the range from 1 to 0xfffeffff. This limitation on the range is not documented in user-facing documentation: according to the user-facing documentation, arbitrary 32-bit values are valid.
 
 * Library integration: the key file name is just the key identifer. This is a 32-bit value.
-* PSA service integration: the key file name is `key_id << 32 | owner_uid` where `key_id` is the key identifier specified by the application and `owner_uid` is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
+* PSA service integration: the key file identifier is `(uint32_t)owner_uid << 32 | key_id` where `key_id` is the key identifier specified by the application and `owner_uid` (of type `int32_t`) is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
 
 ### Key file format for 0.2.0
 
@@ -125,13 +127,17 @@ The layout is identical to [0.1.0](#key-file-format-for-0.1.0) so far. However n
 
 Assumption: ITS provides a 64-bit file identifier namespace. The Crypto service can use arbitrary file identifiers and no other part of the system accesses the same file identifier namespace.
 
-* Files 0 through 0xffffff51, 0xffffff53 through 0xffffffff: unused.
+Assumption: the owner identifier is a nonzero value of type `int32_t`.
+
+* Files 0 through 0xffffff51, 0xffffff53 through 0xffffffff: unused, reserved for internal use of the crypto library or crypto service.
 * File 0xffffff52 (`PSA_CRYPTO_ITS_RANDOM_SEED_UID`): [nonvolatile random seed](#nonvolatile-random-seed-file-format-for-0.1.0).
-* Files 0x100000000 through 0xffffffffffff: [content](#key-file-format-for-0.2.0) of the [key whose identifier is the file identifier](#key-names-for-0.2.0).
+* Files 0x100000000 through 0xffffffffffff: [content](#key-file-format-for-0.2.0) of the [key whose identifier is the file identifier](#key-names-for-0.2.0). The upper 32 bits determine the owner.
 
 ### File namespace on ITS as a library for 0.2.0
 
 Assumption: ITS provides a 64-bit file identifier namespace. The entity using the crypto library can use arbitrary file identifiers and no other part of the system accesses the same file identifier namespace.
+
+This is a library integration, so there is no owner. The key file identifier is identical to the key identifier.
 
 * File 0: unused.
 * Files 1 through 0xfffeffff: [content](#key-file-format-for-0.2.0) of the [key whose identifier is the file identifier](#key-names-for-0.2.0).
@@ -139,6 +145,8 @@ Assumption: ITS provides a 64-bit file identifier namespace. The entity using th
 * Files 0xffff0000 through 0xffffff51, 0xffffff53 through 0xffffffff, 0x100000000 through 0xffffffffffffffff: unused.
 
 ### File namespace on stdio for 0.2.0
+
+This is a library integration, so there is no owner. The key file identifier is identical to the key identifier.
 
 [Identical to 0.1.0](#file-namespace-on-stdio-for-0.1.0).
 

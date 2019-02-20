@@ -362,17 +362,12 @@ static int x509_get_attr_type_value( unsigned char **p,
         return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
 
     end = *p + len;
-
-    if( ( end - *p ) < 1 )
-        return( MBEDTLS_ERR_X509_INVALID_NAME +
-                MBEDTLS_ERR_ASN1_OUT_OF_DATA );
-
     oid = &cur->oid;
-    oid->tag = **p;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &oid->len, MBEDTLS_ASN1_OID ) ) != 0 )
         return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
 
+    oid->tag = MBEDTLS_ASN1_OID;
     oid->p = *p;
     *p += oid->len;
 

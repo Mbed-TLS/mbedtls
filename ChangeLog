@@ -38,6 +38,7 @@ Changes
      Found by Coverity, reported and fixed by Peter Kolbus (Garmin). Fixes #2309.
    * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
      Contributed by Peter Kolbus (Garmin).
+   * Extended .gitignore to ignore Visual Studio artifacts (ConfusedSushi)
 
 = mbed TLS 2.17.0 branch released 2019-03-19
 

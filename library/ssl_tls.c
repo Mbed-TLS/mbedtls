@@ -6529,7 +6529,7 @@ static void ssl_calc_finished_tls_sha256(
     unsigned char padbuf[32];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t hash_size;
-    psa_hash_operation_t sha256_psa;
+    psa_hash_operation_t sha256_psa = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
 #else
     mbedtls_sha256_context sha256;
@@ -6605,7 +6605,7 @@ static void ssl_calc_finished_tls_sha384(
     unsigned char padbuf[48];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t hash_size;
-    psa_hash_operation_t sha384_psa;
+    psa_hash_operation_t sha384_psa = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
 #else
     mbedtls_sha512_context sha512;
@@ -10203,7 +10203,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
                                             mbedtls_md_type_t md_alg )
 {
     psa_status_t status;
-    psa_hash_operation_t hash_operation;
+    psa_hash_operation_t hash_operation = PSA_HASH_OPERATION_INIT;
     psa_algorithm_t hash_alg = mbedtls_psa_translate_md( md_alg );
 
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based computation of digest of ServerKeyExchange" ) );

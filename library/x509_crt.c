@@ -1908,7 +1908,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
     if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
         return( -1 );
 #else
-    psa_hash_operation_t hash_operation;
+    psa_hash_operation_t hash_operation = PSA_HASH_OPERATION_INIT;
     psa_algorithm_t hash_alg = mbedtls_psa_translate_md( child->sig_md );
 
     if( psa_hash_setup( &hash_operation, hash_alg ) != PSA_SUCCESS )

@@ -428,6 +428,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
         mbedtls_x509_crl_free( crl );
         return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
+    crl->issuer_raw_no_hdr.p = p;
 
     if( ( ret = mbedtls_x509_get_name( &p, p + len, &crl->issuer ) ) != 0 )
     {
@@ -435,6 +436,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
         return( ret );
     }
 
+    crl->issuer_raw_no_hdr.len = p - crl->issuer_raw_no_hdr.p;
     crl->issuer_raw.len = p - crl->issuer_raw.p;
 
     /*

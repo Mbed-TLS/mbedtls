@@ -168,6 +168,30 @@ exit:
     psa_free_persistent_key_data( key_data, key_data_length );
     return( status );
 }
+
+/** Check whether a key identifier is acceptable.
+ *
+ * For backward compatibility, key identifiers that were valid in a
+ * past released version must remain valid, unless a migration path
+ * is provided.
+ *
+ * \param file_id       The key identifier to check.
+ *
+ * \return              1 if \p file_id is acceptable, otherwise 0.
+ */
+static int psa_is_key_id_valid( psa_key_file_id_t file_id )
+{
+    psa_app_key_id_t key_id = PSA_KEY_FILE_GET_KEY_ID( file_id );
+    /* Reject id=0 because by general library conventions, 0 is an invalid
+     * value wherever possible. */
+    if( key_id == 0 )
+        return( 0 );
+    /* Reject high values because the file names are reserved for the
+     * library's internal use. */
+    if( key_id > PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
+        return( 0 );
+    return( 1 );
+}
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 /** Declare a slot as persistent and load it from storage.
@@ -189,19 +213,13 @@ exit:
  * \retval #PSA_ERROR_STORAGE_FAILURE
  */
 static psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
-                                                      psa_key_id_t id )
+                                                      psa_key_file_id_t id )
 {
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_key_slot_t *slot;
     psa_status_t status;
 
-    /* Reject id=0 because by general library conventions, 0 is an invalid
-     * value wherever possible. */
-    if( id == 0 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    /* Reject high values because the file names are reserved for the
-     * library's internal use. */
-    if( id >= PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
+    if( ! psa_is_key_id_valid( id ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_key_slot( handle, &slot );
@@ -222,7 +240,7 @@ static psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
 }
 
 static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
-                                          psa_key_id_t id,
+                                          psa_key_file_id_t id,
                                           psa_key_handle_t *handle,
                                           psa_status_t wanted_load_status )
 {
@@ -247,14 +265,14 @@ static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
 }
 
 psa_status_t psa_open_key( psa_key_lifetime_t lifetime,
-                           psa_key_id_t id,
+                           psa_key_file_id_t id,
                            psa_key_handle_t *handle )
 {
     return( persistent_key_setup( lifetime, id, handle, PSA_SUCCESS ) );
 }
 
 psa_status_t psa_create_key( psa_key_lifetime_t lifetime,
-                             psa_key_id_t id,
+                             psa_key_file_id_t id,
                              psa_key_handle_t *handle )
 {
     psa_status_t status;

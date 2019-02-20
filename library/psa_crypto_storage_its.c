@@ -37,12 +37,31 @@
 #include "mbedtls/platform.h"
 #endif
 
-static psa_storage_uid_t psa_its_identifier_of_slot( psa_key_id_t key )
+/* Determine a file name (ITS file identifier) for the given key file
+ * identifier. The file name must be distinct from any file that is used
+ * for a purpose other than storing a key. Currently, the only such file
+ * is the random seed file whose name is PSA_CRYPTO_ITS_RANDOM_SEED_UID
+ * and whose value is 0xFFFFFF52. */
+static psa_storage_uid_t psa_its_identifier_of_slot( psa_key_file_id_t file_id )
 {
-    return( key );
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER) && \
+    defined(PSA_CRYPTO_SECURE)
+    /* Encode the owner in the upper 32 bits. This means that if
+     * owner values are nonzero (as they are on a PSA platform),
+     * no key file will ever have a value less than 0x100000000, so
+     * the whole range 0..0xffffffff is available for non-key files. */
+    uint32_t unsigned_owner = (uint32_t) file_id.owner;
+    return( (uint64_t) unsigned_owner << 32 | file_id.key_id );
+#else
+    /* Use the key id directly as a file name.
+     * psa_is_key_file_id_valid() in psa_crypto_slot_management.c
+     * is responsible for ensuring that key identifiers do not have a
+     * value that is reserved for non-key files. */
+    return( file_id );
+#endif
 }
 
-psa_status_t psa_crypto_storage_load( const psa_key_id_t key, uint8_t *data,
+psa_status_t psa_crypto_storage_load( const psa_key_file_id_t key, uint8_t *data,
                                       size_t data_size )
 {
     psa_status_t status;
@@ -58,7 +77,7 @@ psa_status_t psa_crypto_storage_load( const psa_key_id_t key, uint8_t *data,
     return( status );
 }
 
-int psa_is_key_present_in_storage( const psa_key_id_t key )
+int psa_is_key_present_in_storage( const psa_key_file_id_t key )
 {
     psa_status_t ret;
     psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
@@ -71,7 +90,7 @@ int psa_is_key_present_in_storage( const psa_key_id_t key )
     return( 1 );
 }
 
-psa_status_t psa_crypto_storage_store( const psa_key_id_t key,
+psa_status_t psa_crypto_storage_store( const psa_key_file_id_t key,
                                        const uint8_t *data,
                                        size_t data_length )
 {
@@ -106,7 +125,7 @@ exit:
     return( status );
 }
 
-psa_status_t psa_destroy_persistent_key( const psa_key_id_t key )
+psa_status_t psa_destroy_persistent_key( const psa_key_file_id_t key )
 {
     psa_status_t ret;
     psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
@@ -126,7 +145,7 @@ psa_status_t psa_destroy_persistent_key( const psa_key_id_t key )
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_crypto_storage_get_data_length( const psa_key_id_t key,
+psa_status_t psa_crypto_storage_get_data_length( const psa_key_file_id_t key,
                                                  size_t *data_length )
 {
     psa_status_t status;

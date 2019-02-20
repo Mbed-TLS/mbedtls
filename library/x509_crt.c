@@ -848,6 +848,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         mbedtls_x509_crt_free( crt );
         return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
+    crt->issuer_raw_no_hdr.p = p;
 
     if( ( ret = mbedtls_x509_get_name( &p, p + len, &crt->issuer ) ) != 0 )
     {
@@ -855,6 +856,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         return( ret );
     }
 
+    crt->issuer_raw_no_hdr.len = p - crt->issuer_raw_no_hdr.p;
     crt->issuer_raw.len = p - crt->issuer_raw.p;
 
     /*
@@ -882,12 +884,15 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
 
+    crt->subject_raw_no_hdr.p = p;
+
     if( len && ( ret = mbedtls_x509_get_name( &p, p + len, &crt->subject ) ) != 0 )
     {
         mbedtls_x509_crt_free( crt );
         return( ret );
     }
 
+    crt->subject_raw_no_hdr.len = p - crt->subject_raw_no_hdr.p;
     crt->subject_raw.len = p - crt->subject_raw.p;
 
     /*

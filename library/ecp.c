@@ -729,7 +729,7 @@ cleanup:
 }
 
 /*
- * Export a point into unsigned binary data (SEC1 2.3.3)
+ * Export a point into unsigned binary data (SEC1 2.3.3 and RFC7748)
  */
 int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
                                     const mbedtls_ecp_point *P,
@@ -745,43 +745,58 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
     ECP_VALIDATE_RET( format == MBEDTLS_ECP_PF_UNCOMPRESSED ||
                       format == MBEDTLS_ECP_PF_COMPRESSED );
 
-    /*
-     * Common case: P == 0
-     */
-    if( mbedtls_mpi_cmp_int( &P->Z, 0 ) == 0 )
-    {
-        if( buflen < 1 )
-            return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-
-        buf[0] = 0x00;
-        *olen = 1;
-
-        return( 0 );
-    }
-
     plen = mbedtls_mpi_size( &grp->P );
 
-    if( format == MBEDTLS_ECP_PF_UNCOMPRESSED )
+#if defined(ECP_MONTGOMERY)
+    if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
     {
-        *olen = 2 * plen + 1;
-
+        *olen = plen;
         if( buflen < *olen )
-            return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
-        buf[0] = 0x04;
-        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->X, buf + 1, plen ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->Y, buf + 1 + plen, plen ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->X, buf, plen ) );
     }
-    else if( format == MBEDTLS_ECP_PF_COMPRESSED )
+#endif
+#if defined(ECP_SHORTWEIERSTRASS)
+    if( ecp_get_type( grp ) != ECP_TYPE_MONTGOMERY )
     {
-        *olen = plen + 1;
+        /*
+         * Common case: P == 0
+         */
+        if( mbedtls_mpi_cmp_int( &P->Z, 0 ) == 0 )
+        {
+            if( buflen < 1 )
+                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
-        if( buflen < *olen )
-            return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+            buf[0] = 0x00;
+            *olen = 1;
 
-        buf[0] = 0x02 + mbedtls_mpi_get_bit( &P->Y, 0 );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->X, buf + 1, plen ) );
+            return( 0 );
+        }
+
+        if( format == MBEDTLS_ECP_PF_UNCOMPRESSED )
+        {
+            *olen = 2 * plen + 1;
+
+            if( buflen < *olen )
+                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+            buf[0] = 0x04;
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->X, buf + 1, plen ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->Y, buf + 1 + plen, plen ) );
+        }
+        else if( format == MBEDTLS_ECP_PF_COMPRESSED )
+        {
+            *olen = plen + 1;
+
+            if( buflen < *olen )
+                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+            buf[0] = 0x02 + mbedtls_mpi_get_bit( &P->Y, 0 );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->X, buf + 1, plen ) );
+        }
     }
+#endif
 
 cleanup:
     return( ret );

@@ -18,6 +18,10 @@ Bugfix
      correctly as trailing zeroes were not accounted for as unused bits in the
      leading content octet. Fixes #1610.
 
+Features
+   * Add a new function mbedtls_asn1_write_named_bitstring() to write ASN.1
+     named bitstring in DER as required by RFC 5280 Appendix B.
+
 = mbed TLS 2.16.0 branch released 2018-12-21
 
 Features
@@ -29,8 +33,6 @@ Features
      function to see for which parameter values it is defined. This feature is
      disabled by default. See its API documentation in config.h for additional
      steps you have to take when enabling it.
-   * Add a new function mbedtls_asn1_write_named_bitstring() to write ASN.1
-     named bitstring in DER as required by RFC 5280 Appendix B.
 
 API Changes
    * The following functions in the random generator modules have been

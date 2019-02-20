@@ -251,7 +251,7 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
     if( *p + len != end )
         return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
-    while( *p < end )
+    while( 1 )
     {
         buf = &(cur->buf);
         buf->tag = **p;
@@ -262,24 +262,19 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
         buf->p = *p;
         *p += buf->len;
 
-        /* Allocate and assign next pointer */
-        if( *p < end )
+        if( *p == end )
         {
-            cur->next = (mbedtls_asn1_sequence*)mbedtls_calloc( 1,
-                                            sizeof( mbedtls_asn1_sequence ) );
-
-            if( cur->next == NULL )
-                return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
-
-            cur = cur->next;
+            cur->next = NULL;
+            break;
         }
+
+        cur->next = (mbedtls_asn1_sequence*)mbedtls_calloc( 1,
+                                            sizeof( mbedtls_asn1_sequence ) );
+        if( cur->next == NULL )
+            return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+
+        cur = cur->next;
     }
-
-    /* Set final sequence entry's next pointer to NULL */
-    cur->next = NULL;
-
-    if( *p != end )
-        return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
 }

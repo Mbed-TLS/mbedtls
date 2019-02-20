@@ -350,30 +350,31 @@ int mbedtls_x509_get_rsassa_pss_params( const mbedtls_x509_buf *params,
  */
 static int x509_get_attr_type_value( unsigned char **p,
                                      const unsigned char *end,
-                                     mbedtls_x509_name *cur )
+                                     mbedtls_x509_buf *oid,
+                                     mbedtls_x509_buf *val )
 {
     int ret;
     size_t len;
-    mbedtls_x509_buf *oid;
-    mbedtls_x509_buf *val;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
 
     end = *p + len;
-    oid = &cur->oid;
 
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &oid->len, MBEDTLS_ASN1_OID ) ) != 0 )
+    ret = mbedtls_asn1_get_tag( p, end, &oid->len, MBEDTLS_ASN1_OID );
+    if( ret != 0 )
         return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
 
     oid->tag = MBEDTLS_ASN1_OID;
     oid->p = *p;
     *p += oid->len;
 
-    if( ( end - *p ) < 1 )
+    if( *p == end )
+    {
         return( MBEDTLS_ERR_X509_INVALID_NAME +
                 MBEDTLS_ERR_ASN1_OUT_OF_DATA );
+    }
 
     if( !MBEDTLS_ASN1_IS_STRING_TAG( **p ) )
     {
@@ -381,7 +382,6 @@ static int x509_get_attr_type_value( unsigned char **p,
                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
     }
 
-    val = &cur->val;
     val->tag = *(*p)++;
 
     if( ( ret = mbedtls_asn1_get_len( p, end, &val->len ) ) != 0 )
@@ -395,9 +395,6 @@ static int x509_get_attr_type_value( unsigned char **p,
         return( MBEDTLS_ERR_X509_INVALID_NAME +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
-
-    cur->next = NULL;
-
     return( 0 );
 }
 
@@ -424,57 +421,61 @@ static int x509_get_attr_type_value( unsigned char **p,
  * same set so that they are "merged" together in the functions that consume
  * this list, eg mbedtls_x509_dn_gets().
  */
-int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
-                   mbedtls_x509_name *cur )
+static int x509_set_sequence_iterate( unsigned char **p,
+                                      unsigned char const **end_set,
+                                      unsigned char const *end,
+                                      mbedtls_x509_buf *oid,
+                                      mbedtls_x509_buf *val )
 {
     int ret;
     size_t set_len;
-    const unsigned char *end_set;
 
-    /* don't use recursion, we'd risk stack overflow if not optimized */
-    while( 1 )
+    if( *p == *end_set )
     {
-        /*
-         * parse SET
-         */
-        if( ( ret = mbedtls_asn1_get_tag( p, end, &set_len,
-                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET ) ) != 0 )
+        /* Parse next TLV of ASN.1 SET structure. */
+        ret = mbedtls_asn1_get_tag( p, end, &set_len,
+                                    MBEDTLS_ASN1_CONSTRUCTED |
+                                    MBEDTLS_ASN1_SET );
+        if( ret != 0 )
             return( MBEDTLS_ERR_X509_INVALID_NAME + ret );
 
-        end_set  = *p + set_len;
+        *end_set = *p + set_len;
+    }
 
-        while( 1 )
-        {
-            if( ( ret = x509_get_attr_type_value( p, end_set, cur ) ) != 0 )
-                return( ret );
+    return( x509_get_attr_type_value( p, *end_set, oid, val ) );
+}
 
-            if( *p == end_set )
-                break;
+int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
+                           mbedtls_x509_name *cur )
+{
+    int ret;
+    const unsigned char *end_set;
 
-            /* Mark this item as being no the only one in a set */
+    end_set = *p;
+    while( 1 )
+    {
+        ret = x509_set_sequence_iterate( p, &end_set, end,
+                                         &cur->oid, &cur->val );
+        if( ret != 0 )
+            return( ret );
+
+        if( *p != end_set )
             cur->next_merged = 1;
 
-            cur->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
-
-            if( cur->next == NULL )
-                return( MBEDTLS_ERR_X509_ALLOC_FAILED );
-
-            cur = cur->next;
+        if( *p == end )
+        {
+            cur->next = NULL;
+            break;
         }
 
-        /*
-         * continue until end of SEQUENCE is reached
-         */
-        if( *p == end )
-            return( 0 );
-
         cur->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
-
         if( cur->next == NULL )
             return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 
         cur = cur->next;
     }
+
+    return( 0 );
 }
 
 static int x509_parse_int( unsigned char **p, size_t n, int *res )

@@ -184,6 +184,15 @@ extern "C" {
  */
 
 /**
+ * Basic length-value buffer structure
+ */
+typedef struct mbedtls_x509_buf_raw
+{
+    unsigned char *p;    /*!< The address of the first byte in the buffer. */
+    size_t len;          /*!< The number of Bytes in the buffer.           */
+} mbedtls_x509_buf_raw;
+
+/**
  * Type-length-value structure that allows for ASN1 using DER.
  */
 typedef mbedtls_asn1_buf mbedtls_x509_buf;

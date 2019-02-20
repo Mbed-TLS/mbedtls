@@ -2128,9 +2128,9 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_BAD_STATE;
     if( ! operation->key_set )
-        goto cleanup;
+        return( PSA_ERROR_BAD_STATE );
     if( operation->iv_required && ! operation->iv_set )
-        goto cleanup;
+        return( PSA_ERROR_BAD_STATE );
     operation->has_input = 1;
 
 #if defined(MBEDTLS_CMAC_C)
@@ -2153,10 +2153,9 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
     {
         /* This shouldn't happen if `operation` was initialized by
          * a setup function. */
-        status = PSA_ERROR_BAD_STATE;
+        return( PSA_ERROR_BAD_STATE );
     }
 
-cleanup:
     if( status != PSA_SUCCESS )
         psa_mac_abort( operation );
     return( status );
@@ -2264,13 +2263,11 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
 
     if( ! operation->is_sign )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto cleanup;
+        return( PSA_ERROR_BAD_STATE );
     }
 
     status = psa_mac_finish_internal( operation, mac, mac_size );
 
-cleanup:
     if( status == PSA_SUCCESS )
     {
         status = psa_mac_abort( operation );
@@ -2298,8 +2295,7 @@ psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
 
     if( operation->is_sign )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto cleanup;
+        return( PSA_ERROR_BAD_STATE );
     }
     if( operation->mac_size != mac_length )
     {
@@ -3028,8 +3024,7 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
     int ret;
     if( operation->iv_set || ! operation->iv_required )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto exit;
+        return( PSA_ERROR_BAD_STATE );
     }
     if( iv_size < operation->iv_size )
     {
@@ -3061,8 +3056,7 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
     int ret;
     if( operation->iv_set || ! operation->iv_required )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto exit;
+        return( PSA_ERROR_BAD_STATE );
     }
     if( iv_length != operation->iv_size )
     {
@@ -3136,13 +3130,11 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
 
     if( ! operation->key_set )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto error;
+        return( PSA_ERROR_BAD_STATE );
     }
     if( operation->iv_required && ! operation->iv_set )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto error;
+        return( PSA_ERROR_BAD_STATE );
     }
 
     if( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT &&

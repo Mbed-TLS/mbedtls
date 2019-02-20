@@ -7,6 +7,8 @@ Features
      which allows copy-less parsing of DER encoded X.509 CRTs,
      at the cost of additional lifetime constraints on the input
      buffer, but at the benefit of reduced RAM consumption.
+   * Add a new function mbedtls_asn1_write_named_bitstring() to write ASN.1
+     named bitstring in DER as required by RFC 5280 Appendix B.
 
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.
@@ -71,8 +73,6 @@ Features
      function to see for which parameter values it is defined. This feature is
      disabled by default. See its API documentation in config.h for additional
      steps you have to take when enabling it.
-   * Add a new function mbedtls_asn1_write_named_bitstring() to write ASN.1
-     named bitstring in DER as required by RFC 5280 Appendix B.
 
 API Changes
    * The following functions in the random generator modules have been

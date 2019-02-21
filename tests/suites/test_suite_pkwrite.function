@@ -92,7 +92,7 @@ void pkcs8_write_key_check( char *key_file )
     mbedtls_pk_init( &key );
     TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL ) == 0 );
 
-    ret = mbedtls_pkcs8_write_key_pem( &key, buf, buf_len );
+    ret = mbedtls_pkcs8_write_unencrypted_key_pem( &key, buf, buf_len );
     TEST_ASSERT( ret == 0 );
 
     f = fopen( key_file, "r" );

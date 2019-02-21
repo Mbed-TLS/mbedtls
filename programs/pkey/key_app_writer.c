@@ -197,9 +197,9 @@ static int write_private_key( mbedtls_pk_context *key,
         }
         else
         {
-            ret = mbedtls_pkcs8_write_key_pem( key,
-                                               output_buf,
-                                               sizeof( output_buf ) );
+            ret = mbedtls_pkcs8_write_unencrypted_key_pem( key,
+                                                        output_buf,
+                                                        sizeof( output_buf ) );
             if( ret != 0 )
                 return( ret );
         }
@@ -219,9 +219,9 @@ static int write_private_key( mbedtls_pk_context *key,
         }
         else
         {
-            ret = mbedtls_pkcs8_write_key_der( key,
-                                               output_buf,
-                                               sizeof( output_buf ) );
+            ret = mbedtls_pkcs8_write_unencrypted_key_der( key,
+                                                        output_buf,
+                                                        sizeof( output_buf ) );
             if( ret < 0 )
                 return( ret );
         }

@@ -292,9 +292,9 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     return( (int) len );
 }
 
-int mbedtls_pkcs8_write_key_der( mbedtls_pk_context *key,
-                                 unsigned char *buf,
-                                 size_t size )
+int mbedtls_pkcs8_write_unencrypted_key_der( mbedtls_pk_context *key,
+                                             unsigned char *buf,
+                                             size_t size )
 {
     int ret;
     size_t len;
@@ -672,9 +672,9 @@ int mbedtls_pk_write_key_pem( mbedtls_pk_context *key, unsigned char *buf, size_
     return( 0 );
 }
 
-int mbedtls_pkcs8_write_key_pem( mbedtls_pk_context *key,
-                                 unsigned char *buf,
-                                 size_t size )
+int mbedtls_pkcs8_write_unencrypted_key_pem( mbedtls_pk_context *key,
+                                             unsigned char *buf,
+                                             size_t size )
 {
     int ret;
     unsigned char output_buf[PRV_PKCS8_DER_MAX_BYTES];
@@ -683,7 +683,9 @@ int mbedtls_pkcs8_write_key_pem( mbedtls_pk_context *key,
     size_t olen = 0;
     size_t len = 0;
 
-    ret = mbedtls_pkcs8_write_key_der( key, output_buf, sizeof( output_buf ) );
+    ret = mbedtls_pkcs8_write_unencrypted_key_der( key,
+                                                   output_buf,
+                                                   sizeof( output_buf ) );
     if( ret < 0 )
         return( ret );
 

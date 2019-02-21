@@ -558,7 +558,11 @@ static int x509_string_cmp( const mbedtls_x509_buf *a,
  * ASN.1 encoded X.509 name by calling it with equal parameters.
  */
 int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
-                               mbedtls_x509_buf_raw const *b )
+                               mbedtls_x509_buf_raw const *b,
+                               int (*abort_check)( void *ctx,
+                                             mbedtls_x509_buf *oid,
+                                             mbedtls_x509_buf *val ),
+                               void *abort_check_ctx )
 {
     int ret;
 
@@ -596,6 +600,13 @@ int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
 
         if( ( set_a == p_a ) != ( set_b == p_b ) )
             return( 1 );
+
+        if( abort_check != NULL )
+        {
+            ret = abort_check( abort_check_ctx, &oid_a, &val_a );
+            if( ret != 0 )
+                return( 1 );
+        }
 
         if( p_a == end_a && p_b == end_b )
             break;

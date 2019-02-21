@@ -517,6 +517,56 @@ static int x509_get_ext_key_usage( unsigned char **p,
  *
  * NOTE: we only parse and use dNSName at this point.
  */
+static int x509_subject_alt_name_traverse( unsigned char *p,
+                                           const unsigned char *end,
+                                           int (*cb)( void *ctx,
+                                                      int tag,
+                                                      unsigned char *data,
+                                                      size_t data_len ),
+                                           void *ctx )
+{
+    int ret;
+    size_t len;
+
+    /* Get main sequence tag */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+    }
+
+    if( p + len != end )
+    {
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+    }
+
+    while( p < end )
+    {
+        unsigned char const tag = *p++;
+        if( ( ret = mbedtls_asn1_get_len( &p, end, &len ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+        if( ( tag & MBEDTLS_ASN1_TAG_CLASS_MASK ) !=
+            MBEDTLS_ASN1_CONTEXT_SPECIFIC )
+        {
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                    MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+        }
+
+        if( cb != NULL )
+        {
+            ret = cb( ctx, tag, p, len );
+            if( ret != 0 )
+                return( ret );
+        }
+
+        p += len;
+    }
+
+    return( 0 );
+}
+
 static int x509_get_subject_alt_name( unsigned char **p,
                                       const unsigned char *end,
                                       mbedtls_x509_sequence *subject_alt_name )

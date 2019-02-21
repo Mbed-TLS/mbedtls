@@ -96,10 +96,6 @@
 #include "mbedtls/threading.h"
 #include "mbedtls/timing.h"
 #include "mbedtls/version.h"
-#include "mbedtls/x509.h"
-#include "mbedtls/x509_crl.h"
-#include "mbedtls/x509_crt.h"
-#include "mbedtls/x509_csr.h"
 #include "mbedtls/xtea.h"
 
 #if defined(MBEDTLS_PLATFORM_C)

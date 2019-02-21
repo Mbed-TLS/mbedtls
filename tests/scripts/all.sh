@@ -303,7 +303,7 @@ check_tools()
 }
 
 check_headers_in_cpp () {
-    ls include/mbedtls >headers.txt
+    ls include/mbedtls | grep "\.h$" >headers.txt
     <programs/test/cpp_dummy_build.cpp sed -n 's/"$//; s!^#include "mbedtls/!!p' |
     sort |
     diff headers.txt -

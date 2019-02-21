@@ -19,6 +19,8 @@ Bugfix
      in X.509 module. Fixes #2212.
    * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
      Fixes #2190.
+   * Fix false failure in all.sh when backup files exist in include/mbedtls
+     (e.g. config.h.bak). Fixed by Peter Kolbus (Garmin) #2407.
 
 Changes
    * Include configuration file in all header files that use configuration,

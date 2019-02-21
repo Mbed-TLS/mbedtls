@@ -3005,6 +3005,24 @@ static int x509_crt_check_name( void *ctx,
     return( 0 );
 }
 
+/* Returns 1 on a match and 0 on a mismatch.
+ * This is because this function is used as a callback for
+ * mbedtls_asn1_traverse_sequence_of(), which continues the
+ * traversal as long as the callback returns 0. */
+static int x509_crt_subject_alt_check_name( void *ctx,
+                                            int tag,
+                                            unsigned char *data,
+                                            size_t data_len )
+{
+    char const *cn = (char const*) ctx;
+    size_t cn_len = strlen( cn );
+
+    if( x509_crt_check_cn( data, data_len, cn, cn_len ) == 0 )
+        return( 1 );
+
+    return( 0 );
+}
+
 /*
  * Verify the requested CN - only call this if cn is not NULL!
  */
@@ -3012,30 +3030,27 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
                                   const char *cn,
                                   uint32_t *flags )
 {
-    const mbedtls_x509_sequence *cur;
-    size_t cn_len = strlen( cn );
+    int ret;
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
-        for( cur = &crt->subject_alt_names; cur != NULL; cur = cur->next )
-        {
-            if( x509_crt_check_cn( cur->buf.p, cur->buf.len,
-                                   cn, cn_len ) == 0 )
-                break;
-        }
+        const unsigned char *end =
+            crt->subject_alt_raw.p + crt->subject_alt_raw.len;
 
-        if( cur == NULL )
-            *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
+        ret = x509_subject_alt_name_traverse( crt->subject_alt_raw.p,
+                                              end,
+                                              x509_crt_subject_alt_check_name,
+                                              (void*) cn );
     }
     else
     {
-        int ret;
         ret = mbedtls_x509_name_cmp_raw( &crt->subject_raw_no_hdr,
                                          &crt->subject_raw_no_hdr,
                                          x509_crt_check_name, (void*) cn );
-        if( ret != 1 )
-            *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
     }
+
+    if( ret != 1 )
+        *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
 }
 
 /*

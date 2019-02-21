@@ -291,6 +291,58 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
                           mbedtls_asn1_sequence *cur,
                           int tag);
 
+/**
+ * \brief                Traverse an ASN.1 SEQUENCE container and
+ *                       call a callback for each entry.
+ *
+ * \warning              This function is still experimental and may change
+ *                       at any time.
+ *
+ * \param p              The address of the pointer to the beginning of
+ *                       the ASN.1 SEQUENCE header. This is updated to
+ *                       point to the end of the ASN.1 SEQUENCE container
+ *                       on a successful invocation.
+ * \param end            The end of the ASN.1 SEQUENCE container.
+ * \param tag_must_mask  A mask to be applied to the ASN.1 tags found within
+ *                       the SEQUENCE before comparing to \p tag_must_value.
+ * \param tag_must_val   The required value of each ASN.1 tag found in the
+ *                       SEQUENCE, after masking with \p tag_must_mask.
+ *                       Mismatching tags lead to an error.
+ *                       For example, a value of \c 0 for both \p tag_must_mask
+ *                       and \p tag_must_val means that every tag is allowed,
+ *                       while a value of \c 0xFF for \p tag_must_mask means
+ *                       that \p tag_must_val is the only allowed tag.
+ * \param tag_may_mask   A mask to be applied to the ASN.1 tags found within
+ *                       the SEQUENCE before comparing to \p tag_may_value.
+ * \param tag_may_val    The desired value of each ASN.1 tag found in the
+ *                       SEQUENCE, after masking with \p tag_may_mask.
+ *                       Mismatching tags will be silently ignored.
+ *                       For example, a value of \c 0 for \p tag_may_mask and
+ *                       \p tag_may_val means that any tag will be considered,
+ *                       while a value of \c 0xFF for \p tag_may_mask means
+ *                       that all tags with value different from \p tag_may_val
+ *                       will be ignored.
+ * \param cb             The callback to trigger for each component
+ *                       in the ASN.1 SEQUENCE. If the callback returns
+ *                       a non-zero value, the function stops immediately,
+ *                       forwarding the callback's return value.
+ * \param ctx            The context to be passed to the callback \p cb.
+ *
+ * \return               \c 0 if successful the entire ASN.1 SEQUENCE
+ *                       was traversed without parsing or callback errors.
+ * \return               A negative ASN.1 error code on a parsing failure.
+ * \return               A non-zero error code forwarded from the callback
+ *                       \p cb in case the latter returns a non-zero value.
+ */
+int mbedtls_asn1_traverse_sequence_of(
+    unsigned char **p,
+    const unsigned char *end,
+    uint8_t tag_must_mask, uint8_t tag_must_val,
+    uint8_t tag_may_mask, uint8_t tag_may_val,
+    int (*cb)( void *ctx, int tag,
+               unsigned char* start, size_t len ),
+    void *ctx );
+
 #if defined(MBEDTLS_BIGNUM_C)
 /**
  * \brief       Retrieve a MPI value from an integer ASN.1 tag.

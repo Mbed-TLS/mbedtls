@@ -2369,6 +2369,26 @@ static int x509_crt_check_cn( const mbedtls_x509_buf *name,
     return( -1 );
 }
 
+/* Returns 1 on a match and 0 on a mismatch.
+ * This is because this function is used as a callback for
+ * mbedtls_x509_name_cmp_raw(), which continues the name
+ * traversal as long as the callback returns 0. */
+static int x509_crt_check_name( void *ctx,
+                                mbedtls_x509_buf *oid,
+                                mbedtls_x509_buf *val )
+{
+    char const *cn = (char const*) ctx;
+    size_t cn_len = strlen( cn );
+
+    if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, oid ) == 0 &&
+        x509_crt_check_cn( val, cn, cn_len ) == 0 )
+    {
+        return( 1 );
+    }
+
+    return( 0 );
+}
+
 /*
  * Verify the requested CN - only call this if cn is not NULL!
  */
@@ -2376,7 +2396,6 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
                                   const char *cn,
                                   uint32_t *flags )
 {
-    const mbedtls_x509_name *name;
     const mbedtls_x509_sequence *cur;
     size_t cn_len = strlen( cn );
 
@@ -2393,16 +2412,11 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
     }
     else
     {
-        for( name = &crt->subject; name != NULL; name = name->next )
-        {
-            if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, &name->oid ) == 0 &&
-                x509_crt_check_cn( &name->val, cn, cn_len ) == 0 )
-            {
-                break;
-            }
-        }
-
-        if( name == NULL )
+        int ret;
+        ret = mbedtls_x509_name_cmp_raw( &crt->subject_raw_no_hdr,
+                                         &crt->subject_raw_no_hdr,
+                                         x509_crt_check_name, (void*) cn );
+        if( ret != 1 )
             *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
     }
 }

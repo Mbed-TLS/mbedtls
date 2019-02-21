@@ -33,6 +33,8 @@ Changes
      in RFC 7468. Found by Michael Ernst. Fixes #767.
    * Fix configuration queries in ssl-opt.h. #2030
    * Ensure that ssl-opt.h can be run in OS X. #2029
+   * Reduce the complexity of the timing tests. They were assuming more than the
+     underlying OS actually guarantees.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

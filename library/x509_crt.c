@@ -2227,7 +2227,8 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
     {
         if( crl_list->version == 0 ||
             mbedtls_x509_name_cmp_raw( &crl_list->issuer_raw_no_hdr,
-                                       &ca->subject_raw_no_hdr ) != 0 )
+                                       &ca->subject_raw_no_hdr,
+                                       NULL, NULL ) != 0 )
         {
             crl_list = crl_list->next;
             continue;
@@ -2368,7 +2369,8 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
 
     /* Parent must be the issuer */
     if( mbedtls_x509_name_cmp_raw( &child->issuer_raw_no_hdr,
-                                   &parent->subject_raw_no_hdr ) != 0 )
+                                   &parent->subject_raw_no_hdr,
+                                   NULL, NULL ) != 0 )
     {
         return( -1 );
     }
@@ -2635,7 +2637,8 @@ static int x509_crt_check_ee_locally_trusted(
 
     /* must be self-issued */
     if( mbedtls_x509_name_cmp_raw( &crt->issuer_raw_no_hdr,
-                                   &crt->subject_raw_no_hdr ) != 0 )
+                                   &crt->subject_raw_no_hdr,
+                                   NULL, NULL ) != 0 )
     {
         return( -1 );
     }
@@ -2830,7 +2833,8 @@ find_parent:
          * and should be excluded from max_pathlen checks. */
         if( ver_chain->len != 1 &&
             mbedtls_x509_name_cmp_raw( &child->issuer_raw_no_hdr,
-                                       &child->subject_raw_no_hdr ) == 0 )
+                                       &child->subject_raw_no_hdr,
+                                       NULL, NULL ) == 0 )
         {
             self_cnt++;
         }

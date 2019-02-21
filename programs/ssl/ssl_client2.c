@@ -312,6 +312,10 @@ int main( void )
     "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
+    "    query_config=<name>         return 0 if the specified\n"       \
+    "                                configuration macro is defined and 1\n"  \
+    "                                otherwise. The expansion of the macro\n" \
+    "                                is printed if it is defined\n"     \
     " acceptable ciphersuite names:\n"
 
 #define ALPN_LIST_SIZE  10
@@ -382,6 +386,8 @@ struct options
     int extended_ms;            /* negotiate extended master secret?        */
     int etm;                    /* negotiate encrypt then mac?              */
 } opt;
+
+int query_config( const char *config );
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -991,6 +997,10 @@ int main( int argc, char *argv[] )
             opt.dhmlen = atoi( q );
             if( opt.dhmlen < 0 )
                 goto usage;
+        }
+        else if( strcmp( p, "query_config" ) == 0 )
+        {
+            return query_config( q );
         }
         else
             goto usage;

@@ -49,6 +49,7 @@ test/cpp_dummy_build
 test/ssl_cert_test
 test/udp_proxy
 test/zeroize
+test/query_compile_time_config
 util/pem2der
 util/strerror
 x509/cert_app

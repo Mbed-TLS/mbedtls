@@ -715,6 +715,8 @@ static int x509_get_crt_ext( unsigned char **p,
 
         case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
             /* Parse subject alt name */
+            crt->subject_alt_raw.p = *p;
+            crt->subject_alt_raw.len = end_ext_octet - *p;
             if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
                     &crt->subject_alt_names ) ) != 0 )
                 return( ret );

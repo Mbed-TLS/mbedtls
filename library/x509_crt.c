@@ -527,6 +527,45 @@ static int x509_get_ext_key_usage( unsigned char **p,
  * NOTE: we list all types, but only use dNSName and otherName
  * of type HwModuleName, as defined in RFC 4108, at this point.
  */
+static int x509_get_subject_alt_name_cb( void *ctx,
+                                         int tag,
+                                         unsigned char *data,
+                                         size_t data_len )
+{
+    int ret;
+    mbedtls_x509_subject_alternative_name dummy_san_buf = { 0 };
+    mbedtls_asn1_sequence **cur_ptr = (mbedtls_asn1_sequence **) ctx;
+    mbedtls_asn1_sequence *cur = *cur_ptr;
+
+    mbedtls_x509_buf tmp_san_buf;
+    tmp_san_buf.p = data;
+    tmp_san_buf.len = data_len;
+    tmp_san_buf.tag = tag;
+
+    /*
+     * Check that the SAN are structured correctly.
+     */
+    ret = mbedtls_x509_parse_subject_alt_name( &tmp_san_buf, &dummy_san_buf );
+    if( ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+        return( ret );
+
+    /* Allocate and assign next pointer */
+    if( cur->buf.p != NULL )
+    {
+        cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
+        if( cur->next == NULL )
+        {
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                    MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+        }
+        cur = cur->next;
+    }
+
+    cur->buf = tmp_san_buf;
+    *cur_ptr = cur;
+    return( 0 );
+}
+
 static int x509_subject_alt_name_traverse( unsigned char *p,
                                            const unsigned char *end,
                                            int (*cb)( void *ctx,
@@ -577,100 +616,13 @@ static int x509_subject_alt_name_traverse( unsigned char *p,
     return( 0 );
 }
 
-static int x509_get_subject_alt_name( unsigned char **p,
+static int x509_get_subject_alt_name( unsigned char *p,
                                       const unsigned char *end,
                                       mbedtls_x509_sequence *subject_alt_name )
 {
-    int ret;
-    size_t len, tag_len;
-    mbedtls_asn1_sequence *cur = subject_alt_name;
-
-    /* Get main sequence tag */
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
-            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
-
-    if( *p + len != end )
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-
-    while( *p < end )
-    {
-        mbedtls_x509_subject_alternative_name dummy_san_buf;
-        mbedtls_x509_buf tmp_san_buf;
-        memset( &dummy_san_buf, 0, sizeof( dummy_san_buf ) );
-
-        if( ( end - *p ) < 1 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_OUT_OF_DATA );
-
-        tmp_san_buf.tag = **p;
-        (*p)++;
-
-        if( ( ret = mbedtls_asn1_get_len( p, end, &tag_len ) ) != 0 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
-
-        tmp_san_buf.p = *p;
-        tmp_san_buf.len = tag_len;
-
-        if( ( tmp_san_buf.tag & MBEDTLS_ASN1_TAG_CLASS_MASK ) !=
-                MBEDTLS_ASN1_CONTEXT_SPECIFIC )
-        {
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
-        }
-
-        /*
-         * Check that the SAN are structured correct.
-         */
-        ret = mbedtls_x509_parse_subject_alt_name( &tmp_san_buf, &dummy_san_buf );
-        /*
-         * In case the extension is malformed, return an error,
-         * and clear the allocated sequences.
-         */
-        if( ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
-        {
-            mbedtls_x509_sequence *seq_cur = subject_alt_name->next;
-            mbedtls_x509_sequence *seq_prv;
-            while( seq_cur != NULL )
-            {
-                seq_prv = seq_cur;
-                seq_cur = seq_cur->next;
-                mbedtls_platform_zeroize( seq_prv,
-                                          sizeof( mbedtls_x509_sequence ) );
-                mbedtls_free( seq_prv );
-            }
-            subject_alt_name->next = NULL;
-            return( ret );
-        }
-
-        /* Allocate and assign next pointer */
-        if( cur->buf.p != NULL )
-        {
-            if( cur->next != NULL )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
-
-            cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
-
-            if( cur->next == NULL )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                        MBEDTLS_ERR_ASN1_ALLOC_FAILED );
-
-            cur = cur->next;
-        }
-
-        cur->buf = tmp_san_buf;
-        *p += tmp_san_buf.len;
-    }
-
-    /* Set final sequence entry's next pointer to NULL */
-    cur->next = NULL;
-
-    if( *p != end )
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-
-    return( 0 );
+    return( x509_subject_alt_name_traverse( p, end,
+                                            x509_get_subject_alt_name_cb,
+                                            (void*) &subject_alt_name ) );
 }
 
 /*
@@ -953,9 +905,12 @@ static int x509_get_crt_ext( unsigned char **p,
             /* Parse subject alt name */
             crt->subject_alt_raw.p = *p;
             crt->subject_alt_raw.len = end_ext_octet - *p;
-            if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
+            if( ( ret = x509_get_subject_alt_name( *p, end_ext_octet,
                     &crt->subject_alt_names ) ) != 0 )
+            {
                 return( ret );
+            }
+            *p = end_ext_octet;
             break;
 
         case MBEDTLS_X509_EXT_NS_CERT_TYPE:

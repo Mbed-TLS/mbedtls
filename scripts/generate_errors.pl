@@ -36,7 +36,7 @@ my @low_level_modules = qw( AES ARC4 ARIA ASN1 BASE64 BIGNUM BLOWFISH
                             SHA1 SHA256 SHA512 THREADING XTEA );
 my @high_level_modules = qw( CIPHER DHM ECP MD
                              PEM PK PKCS12 PKCS5
-                             RSA SSL X509 );
+                             RSA X509 );
 
 my $line_separator = $/;
 undef $/;
@@ -92,7 +92,6 @@ foreach my $line (@matches)
     my $define_name = $module_name;
     $define_name = "X509_USE,X509_CREATE" if ($define_name eq "X509");
     $define_name = "ASN1_PARSE" if ($define_name eq "ASN1");
-    $define_name = "SSL_TLS" if ($define_name eq "SSL");
     $define_name = "PEM_PARSE,PEM_WRITE" if ($define_name eq "PEM");
 
     my $include_name = $module_name;
@@ -160,19 +159,8 @@ foreach my $line (@matches)
         ${$old_define} = $define_name;
     }
 
-    if ($error_name eq "MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE")
-    {
-        ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
-                          "${white_space}\{\n".
-                          "${white_space}    mbedtls_snprintf( buf, buflen, \"$module_name - $description\" );\n".
-                          "${white_space}    return;\n".
-                          "${white_space}}\n"
-    }
-    else
-    {
-        ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
-                          "${white_space}    mbedtls_snprintf( buf, buflen, \"$module_name - $description\" );\n"
-    }
+    ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
+                      "${white_space}    mbedtls_snprintf( buf, buflen, \"$module_name - $description\" );\n"
 };
 
 if ($ll_old_define ne "")

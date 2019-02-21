@@ -142,7 +142,7 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, s
     size_t len = 0;
     mbedtls_pk_type_t pk_alg;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_operation_t hash_operation;
+    psa_hash_operation_t hash_operation = PSA_HASH_OPERATION_INIT;
     size_t hash_len;
     psa_algorithm_t hash_alg = mbedtls_psa_translate_md( ctx->md_alg );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

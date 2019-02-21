@@ -540,48 +540,22 @@ static int x509_string_cmp( const mbedtls_x509_buf *a,
 }
 
 /*
- * Compare two X.509 Names (aka rdnSequence).
+ * Compare two X.509 Names (aka rdnSequence) given as raw ASN.1 data.
  *
  * See RFC 5280 section 7.1, though we don't implement the whole algorithm:
- * we sometimes return unequal when the full algorithm would return equal,
+ * We sometimes return unequal when the full algorithm would return equal,
  * but never the other way. (In particular, we don't do Unicode normalisation
  * or space folding.)
  *
- * Return 0 if equal, -1 otherwise.
+ * Returns:
+ * - 0 if both sequences are well-formed and present the same X.509 name.
+ * - 1 if a difference was detected.
+ * - A negative error code if a parsing error occurred in either
+ *   of the two buffers.
+ *
+ * This function can be used to verify that a buffer contains a well-formed
+ * ASN.1 encoded X.509 name by calling it with equal parameters.
  */
-int mbedtls_x509_name_cmp( const mbedtls_x509_name *a,
-                           const mbedtls_x509_name *b )
-{
-    /* Avoid recursion, it might not be optimised by the compiler */
-    while( a != NULL || b != NULL )
-    {
-        if( a == NULL || b == NULL )
-            return( -1 );
-
-        /* type */
-        if( a->oid.tag != b->oid.tag ||
-            a->oid.len != b->oid.len ||
-            memcmp( a->oid.p, b->oid.p, b->oid.len ) != 0 )
-        {
-            return( -1 );
-        }
-
-        /* value */
-        if( x509_string_cmp( &a->val, &b->val ) != 0 )
-            return( -1 );
-
-        /* structure of the list of sets */
-        if( a->next_merged != b->next_merged )
-            return( -1 );
-
-        a = a->next;
-        b = b->next;
-    }
-
-    /* a == NULL == b */
-    return( 0 );
-}
-
 int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
                                mbedtls_x509_buf_raw const *b )
 {

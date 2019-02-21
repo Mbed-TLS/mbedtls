@@ -36,7 +36,7 @@ my @low_level_modules = qw( AES ARC4 ARIA ASN1 BASE64 BIGNUM BLOWFISH
                             SHA1 SHA256 SHA512 THREADING XTEA );
 my @high_level_modules = qw( CIPHER DHM ECP MD
                              PEM PK PKCS12 PKCS5
-                             RSA X509 );
+                             RSA );
 
 my $line_separator = $/;
 undef $/;
@@ -90,7 +90,6 @@ foreach my $line (@matches)
     $module_name = "HMAC_DRBG" if ($module_name eq "HMAC");
 
     my $define_name = $module_name;
-    $define_name = "X509_USE,X509_CREATE" if ($define_name eq "X509");
     $define_name = "ASN1_PARSE" if ($define_name eq "ASN1");
     $define_name = "PEM_PARSE,PEM_WRITE" if ($define_name eq "PEM");
 

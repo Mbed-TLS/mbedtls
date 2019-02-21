@@ -706,6 +706,8 @@ static int x509_get_crt_ext( unsigned char **p,
 
         case MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE:
             /* Parse extended key usage */
+            crt->ext_key_usage_raw.p = *p;
+            crt->ext_key_usage_raw.len = end_ext_octet - *p;
             if( ( ret = x509_get_ext_key_usage( p, end_ext_octet,
                     &crt->ext_key_usage ) ) != 0 )
                 return( ret );

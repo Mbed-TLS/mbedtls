@@ -2157,33 +2157,66 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
 
 #if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
 int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
-                                       const char *usage_oid,
-                                       size_t usage_len )
+                                               const char *usage_oid,
+                                               size_t usage_len )
 {
-    const mbedtls_x509_sequence *cur;
+    int ret;
+    size_t len;
+    unsigned ext_types;
+    unsigned char *p, *end;
 
     /* Extension is not mandatory, absent means no restriction */
-    if( ( crt->ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE ) == 0 )
+    ext_types = crt->ext_types;
+    if( ( ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE ) == 0 )
         return( 0 );
 
-    /*
-     * Look for the requested usage (or wildcard ANY) in our list
-     */
-    for( cur = &crt->ext_key_usage; cur != NULL; cur = cur->next )
-    {
-        const mbedtls_x509_buf *cur_oid = &cur->buf;
+    p = crt->ext_key_usage_raw.p;
+    end = p + crt->ext_key_usage_raw.len;
 
-        if( cur_oid->len == usage_len &&
-            memcmp( cur_oid->p, usage_oid, usage_len ) == 0 )
+    ret = mbedtls_asn1_get_tag( &p, end, &len,
+                                MBEDTLS_ASN1_CONSTRUCTED |
+                                MBEDTLS_ASN1_SEQUENCE );
+    if( ret != 0 )
+        goto exit;
+
+    if( end != p + len )
+    {
+        ret = MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+        goto exit;
+    }
+
+    if( len == 0 )
+    {
+        ret = MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+        goto exit;
+    }
+
+    while( p < end )
+    {
+        ret = mbedtls_asn1_get_tag( &p, end, &len,
+                                    MBEDTLS_ASN1_OID );
+        if( ret != 0 )
+            goto exit;
+
+        if( usage_oid != NULL )
         {
-            return( 0 );
+            if( len == usage_len && memcmp( p, usage_oid, len ) == 0 )
+                return( 0 );
+
+            if( MBEDTLS_OID_CMP_RAW( MBEDTLS_OID_ANY_EXTENDED_KEY_USAGE,
+                                     p, len ) == 0 )
+            {
+                return( 0 );
+            }
         }
 
-        if( MBEDTLS_OID_CMP( MBEDTLS_OID_ANY_EXTENDED_KEY_USAGE, cur_oid ) == 0 )
-            return( 0 );
+        p += len;
     }
 
     return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+
+exit:
+    return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 }
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 

@@ -167,6 +167,16 @@ class MacroCollector:
             return
         elif (name.startswith('PSA_ERROR_') or name == 'PSA_SUCCESS') \
            and not parameter:
+            if name in [
+                        'PSA_ERROR_UNKNOWN_ERROR',
+                        'PSA_ERROR_OCCUPIED_SLOT',
+                        'PSA_ERROR_EMPTY_SLOT',
+                        'PSA_ERROR_INSUFFICIENT_CAPACITY',
+                        ]:
+                # Ad hoc skipping of deprecated error codes, which share
+                # numerical values with non-deprecated error codes
+                return
+
             self.statuses.add(name)
         elif name.startswith('PSA_KEY_TYPE_') and not parameter:
             self.key_types.add(name)

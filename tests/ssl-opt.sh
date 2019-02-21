@@ -67,7 +67,7 @@ TESTS=0
 FAILS=0
 SKIPS=0
 
-CONFIG_H='../include/mbedtls/config.h'
+CONFIG_H='../include/mbedtls/mbedtls_config.h'
 
 MEMCHECK=0
 FILTER='.*'
@@ -150,14 +150,14 @@ skip_next_test() {
     SKIP_NEXT="YES"
 }
 
-# skip next test if the flag is not enabled in config.h
+# skip next test if the flag is not enabled in mbedtls_config.h
 requires_config_enabled() {
     if grep "^#define $1" $CONFIG_H > /dev/null; then :; else
         SKIP_NEXT="YES"
     fi
 }
 
-# skip next test if the flag is enabled in config.h
+# skip next test if the flag is enabled in mbedtls_config.h
 requires_config_disabled() {
     if grep "^#define $1" $CONFIG_H > /dev/null; then
         SKIP_NEXT="YES"
@@ -166,7 +166,7 @@ requires_config_disabled() {
 
 get_config_value_or_default() {
     NAME="$1"
-    DEF_VAL=$( grep ".*#define.*${NAME}" ../include/mbedtls/config.h |
+    DEF_VAL=$( grep ".*#define.*${NAME}" ../include/mbedtls/mbedtls_config.h |
                sed 's/^.* \([0-9]*\)$/\1/' )
     ../scripts/config.pl get $NAME || echo "$DEF_VAL"
 }
@@ -2038,7 +2038,7 @@ run_test    "Renegotiation: server-initiated" \
 
 # Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
 # the server did not parse the Signature Algorithm extension. This test is valid only if an MD
-# algorithm stronger than SHA-1 is enabled in config.h
+# algorithm stronger than SHA-1 is enabled in mbedtls_config.h
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional" \
@@ -2056,7 +2056,7 @@ run_test    "Renegotiation: Signature Algorithms parsing, client-initiated" \
 
 # Checks that no Signature Algorithm with SHA-1 gets negotiated. Negotiating SHA-1 would mean that
 # the server did not parse the Signature Algorithm extension. This test is valid only if an MD
-# algorithm stronger than SHA-1 is enabled in config.h
+# algorithm stronger than SHA-1 is enabled in mbedtls_config.h
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: Signature Algorithms parsing, server-initiated" \
             "$P_SRV debug_level=3 exchanges=2 renegotiation=1 auth_mode=optional renegotiate=1" \

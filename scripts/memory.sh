@@ -8,7 +8,7 @@
 
 set -eu
 
-CONFIG_H='include/mbedtls/config.h'
+CONFIG_H='include/mbedtls/mbedtls_config.h'
 
 CLIENT='mini_client'
 
@@ -31,7 +31,7 @@ if [ $( uname ) != Linux ]; then
 fi
 
 if git status | grep -F $CONFIG_H >/dev/null 2>&1; then
-    echo "config.h not clean" >&2
+    echo "mbedtls_config.h not clean" >&2
     exit 1
 fi
 

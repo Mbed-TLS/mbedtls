@@ -9,7 +9,7 @@
 # Comments and uncomments #define lines in the given header file and optionally
 # sets their value or can get the value. This is to provide scripting control of
 # what preprocessor symbols, and therefore what build time configuration flags
-# are set in the 'config.h' file.
+# are set in the 'mbedtls_config.h' file.
 #
 # Usage: config.pl [-f <file> | --file <file>] [-o | --force]
 #                   [set <symbol> <value> | unset <symbol> | get <symbol> |
@@ -50,7 +50,7 @@
 use warnings;
 use strict;
 
-my $config_file = "include/mbedtls/config.h";
+my $config_file = "include/mbedtls/mbedtls_config.h";
 my $usage = <<EOU;
 $0 [-f <file> | --file <file>] [-o | --force]
                    [set <symbol> <value> | unset <symbol> | get <symbol> |

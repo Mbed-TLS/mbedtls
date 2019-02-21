@@ -1,5 +1,5 @@
 
-# Also see "include/mbedtls/config.h"
+# Also see "include/mbedtls/mbedtls_config.h"
 
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement

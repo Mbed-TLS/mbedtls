@@ -29,7 +29,7 @@ use strict;
 
 -d 'library' && -d 'include' && -d 'tests' or die "Must be run from root\n";
 
-my $config_h = 'include/mbedtls/config.h';
+my $config_h = 'include/mbedtls/mbedtls_config.h';
 
 # as many SSL options depend on specific hashes,
 # and SSL is not in the test suites anyways,

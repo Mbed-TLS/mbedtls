@@ -26,7 +26,7 @@
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls_config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
@@ -41,7 +41,7 @@
 #define MBEDTLS_COMPAT13_H
 
 /*
- * config.h options
+ * mbedtls_config.h options
  */
 #if defined MBEDTLS_AESNI_C
 #define POLARSSL_AESNI_C MBEDTLS_AESNI_C

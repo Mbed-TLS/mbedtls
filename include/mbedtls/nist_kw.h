@@ -38,7 +38,7 @@
 #define MBEDTLS_NIST_KW_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls_config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif

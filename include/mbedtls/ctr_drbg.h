@@ -37,7 +37,7 @@
 #define MBEDTLS_CTR_DRBG_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls_config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
@@ -68,7 +68,7 @@
  * \name SECTION: Module settings
  *
  * The configuration options you can set for this module are in this section.
- * Either change them in config.h or define them using the compiler command
+ * Either change them in mbedtls_config.h or define them using the compiler command
  * line.
  * \{
  */

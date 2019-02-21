@@ -166,7 +166,7 @@
     <ClInclude Include="..\..\include\mbedtls\cipher_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\cmac.h" />
     <ClInclude Include="..\..\include\mbedtls\compat-1.3.h" />
-    <ClInclude Include="..\..\include\mbedtls\config.h" />
+    <ClInclude Include="..\..\include\mbedtls\mbedtls_config.h" />
     <ClInclude Include="..\..\include\mbedtls\ctr_drbg.h" />
     <ClInclude Include="..\..\include\mbedtls\debug.h" />
     <ClInclude Include="..\..\include\mbedtls\des.h" />

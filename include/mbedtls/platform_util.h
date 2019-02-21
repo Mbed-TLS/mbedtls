@@ -26,7 +26,7 @@
 #define MBEDTLS_PLATFORM_UTIL_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls_config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
@@ -44,7 +44,7 @@ extern "C" {
 #if defined(MBEDTLS_CHECK_PARAMS)
 
 #if defined(MBEDTLS_PARAM_FAILED)
-/** An alternative definition of MBEDTLS_PARAM_FAILED has been set in config.h.
+/** An alternative definition of MBEDTLS_PARAM_FAILED has been set in mbedtls_config.h.
  *
  * This flag can be used to check whether it is safe to assume that
  * MBEDTLS_PARAM_FAILED() will expand to a call to mbedtls_param_failed().

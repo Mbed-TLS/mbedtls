@@ -23,7 +23,7 @@
  */
 
 /*
- * It is recommended to include this file from your config.h
+ * It is recommended to include this file from your mbedtls_config.h
  * in order to catch dependency issues early.
  */
 
@@ -44,7 +44,7 @@
 #error "MBEDTLS_PLATFORM_C is required on Windows"
 #endif
 
-/* Fix the config here. Not convenient to put an #ifdef _WIN32 in config.h as
+/* Fix the config here. Not convenient to put an #ifdef _WIN32 in mbedtls_config.h as
  * it would confuse config.pl. */
 #if !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && \
     !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)

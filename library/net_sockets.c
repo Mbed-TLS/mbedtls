@@ -20,12 +20,12 @@
  */
 
 /* Enable definition of getaddrinfo() even when compiling with -std=c99. Must
- * be set before config.h, which pulls in glibc's features.h indirectly.
+ * be set before mbedtls_config.h, which pulls in glibc's features.h indirectly.
  * Harmless on other platforms. */
 #define _POSIX_C_SOURCE 200112L
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
+#include "mbedtls/mbedtls_config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
@@ -35,7 +35,7 @@
 #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
     !defined(__HAIKU__)
-#error "This module only works on Unix and Windows, see MBEDTLS_NET_C in config.h"
+#error "This module only works on Unix and Windows, see MBEDTLS_NET_C in mbedtls_config.h"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)

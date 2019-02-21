@@ -1,5 +1,5 @@
 /**
- * \file config.h
+ * \file mbedtls_config.h
  *
  * \brief Configuration options (set of defines)
  *

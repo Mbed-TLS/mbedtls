@@ -35,7 +35,7 @@
 #define MBEDTLS_ECDH_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls_config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
@@ -50,7 +50,7 @@
  * The configuration option in question may have a different name.
  *
  * Features undefining this flag, must have a warning in their description in
- * config.h stating that the feature breaks backward compatibility.
+ * mbedtls_config.h stating that the feature breaks backward compatibility.
  */
 #define MBEDTLS_ECDH_LEGACY_CONTEXT
 

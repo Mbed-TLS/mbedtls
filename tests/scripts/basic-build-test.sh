@@ -19,7 +19,7 @@
 #
 # The tests focus on functionality and do not consider performance.
 #
-# Note the tests self-adapt due to configurations in include/mbedtls/config.h
+# Note the tests self-adapt due to configurations in include/mbedtls/mbedtls_config.h
 # which can lead to some tests being skipped, and can cause the number of
 # available tests to fluctuate.
 #
@@ -49,7 +49,7 @@ export OPENSSL_CMD="$OPENSSL"
 export GNUTLS_CLI="$GNUTLS_CLI"
 export GNUTLS_SERV="$GNUTLS_SERV"
 
-CONFIG_H='include/mbedtls/config.h'
+CONFIG_H='include/mbedtls/mbedtls_config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
 # Step 0 - print build environment info

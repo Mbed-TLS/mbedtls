@@ -4,7 +4,7 @@ README for Mbed TLS
 Configuration
 -------------
 
-Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Perl script `scripts/config.pl` (use `--help` for usage instructions).
+Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/mbedtls_config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Perl script `scripts/config.pl` (use `--help` for usage instructions).
 
 Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
 
@@ -151,7 +151,7 @@ For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, ad
 -   `tests/compat.sh` tests interoperability of every ciphersuite with other implementations.
 -   `tests/scripts/test-ref-configs.pl` test builds in various reduced configurations.
 -   `tests/scripts/key-exchanges.pl` test builds in configurations with a single key exchange enabled
--   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `config.h`, etc).
+-   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `mbedtls_config.h`, etc).
 
 Configurations
 --------------
@@ -170,7 +170,7 @@ To enable the use of Mbed Crypto as a submodule:
         git submodule init crypto
         git submodule update crypto
 
-2. (Optional) TO enable the PSA Crypto API, set the build configuration option `MBEDTLS_PSA_CRYPTO_C`. You can either edit `include/mbedtls/config.h` directly or use the configuration script:
+2. (Optional) TO enable the PSA Crypto API, set the build configuration option `MBEDTLS_PSA_CRYPTO_C`. You can either edit `include/mbedtls/mbedtls_config.h` directly or use the configuration script:
 
         scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
 
@@ -180,7 +180,7 @@ To enable the use of Mbed Crypto as a submodule:
         make USE_CRYPTO_SUBMODULE=1 test
         tests/ssl-opt.sh -f Default
 
-   Note that you need to pass `USE_CRYPTO_SUBMODULE=1` even to `make clean`. For example, if you change `config.h`, run this before rebuilding:
+   Note that you need to pass `USE_CRYPTO_SUBMODULE=1` even to `make clean`. For example, if you change `mbedtls_config.h`, run this before rebuilding:
 
         make USE_CRYPTO_SUBMODULE=1 clean
 

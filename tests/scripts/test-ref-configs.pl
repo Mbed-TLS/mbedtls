@@ -48,7 +48,7 @@ if ($#ARGV >= 0) {
 
 -d 'library' && -d 'include' && -d 'tests' or die "Must be run from root\n";
 
-my $config_h = 'include/mbedtls/config.h';
+my $config_h = 'include/mbedtls/mbedtls_config.h';
 
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {

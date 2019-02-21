@@ -842,20 +842,34 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
 /*
  * Helper for writing signature algorithms
  */
-int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *sig_oid,
-                       mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg,
-                       const void *sig_opts )
+int mbedtls_x509_sig_alg_gets( char *buf, size_t size, mbedtls_pk_type_t pk_alg,
+                               mbedtls_md_type_t md_alg, const void *sig_opts )
 {
     int ret;
     char *p = buf;
     size_t n = size;
     const char *desc = NULL;
+    mbedtls_x509_buf sig_oid;
+    mbedtls_md_type_t tmp_md_alg = md_alg;
 
-    ret = mbedtls_oid_get_sig_alg_desc( sig_oid, &desc );
-    if( ret != 0 )
-        ret = mbedtls_snprintf( p, n, "???"  );
-    else
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+    /* The hash for RSASSA is determined by the algorithm parameters;
+     * in the OID list, the hash is set to MBEDTLS_MD_NONE. */
+    if( pk_alg == MBEDTLS_PK_RSASSA_PSS )
+        tmp_md_alg = MBEDTLS_MD_NONE;
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+
+    sig_oid.tag = MBEDTLS_ASN1_OID;
+    ret = mbedtls_oid_get_oid_by_sig_alg( pk_alg, tmp_md_alg,
+                                          (const char**) &sig_oid.p,
+                                          &sig_oid.len );
+    if( ret == 0 &&
+        mbedtls_oid_get_sig_alg_desc( &sig_oid, &desc ) == 0 )
+    {
         ret = mbedtls_snprintf( p, n, "%s", desc );
+    }
+    else
+        ret = mbedtls_snprintf( p, n, "???" );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)

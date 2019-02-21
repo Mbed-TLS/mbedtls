@@ -329,7 +329,7 @@ int mbedtls_x509_get_serial( unsigned char **p, const unsigned char *end,
                      mbedtls_x509_buf *serial );
 int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
                   mbedtls_x509_buf *ext, int tag );
-int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *sig_oid,
+int mbedtls_x509_sig_alg_gets( char *buf, size_t size,
                        mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg,
                        const void *sig_opts );
 int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name );

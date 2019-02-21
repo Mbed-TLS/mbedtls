@@ -1746,7 +1746,8 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
     while( crl_list != NULL )
     {
         if( crl_list->version == 0 ||
-            mbedtls_x509_name_cmp( &crl_list->issuer, &ca->subject ) != 0 )
+            mbedtls_x509_name_cmp_raw( &crl_list->issuer_raw_no_hdr,
+                                       &ca->subject_raw_no_hdr ) != 0 )
         {
             crl_list = crl_list->next;
             continue;
@@ -1867,8 +1868,11 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
     int need_ca_bit;
 
     /* Parent must be the issuer */
-    if( mbedtls_x509_name_cmp( &child->issuer, &parent->subject ) != 0 )
+    if( mbedtls_x509_name_cmp_raw( &child->issuer_raw_no_hdr,
+                                   &parent->subject_raw_no_hdr ) != 0 )
+    {
         return( -1 );
+    }
 
     /* Parent must have the basicConstraints CA bit set as a general rule */
     need_ca_bit = 1;
@@ -2133,8 +2137,11 @@ static int x509_crt_check_ee_locally_trusted(
     mbedtls_x509_crt *cur;
 
     /* must be self-issued */
-    if( mbedtls_x509_name_cmp( &crt->issuer, &crt->subject ) != 0 )
+    if( mbedtls_x509_name_cmp_raw( &crt->issuer_raw_no_hdr,
+                                   &crt->subject_raw_no_hdr ) != 0 )
+    {
         return( -1 );
+    }
 
     /* look for an exact match with trusted cert */
     for( cur = trust_ca; cur != NULL; cur = cur->next )
@@ -2298,7 +2305,8 @@ find_parent:
          * These can occur with some strategies for key rollover, see [SIRO],
          * and should be excluded from max_pathlen checks. */
         if( ver_chain->len != 1 &&
-            mbedtls_x509_name_cmp( &child->issuer, &child->subject ) == 0 )
+            mbedtls_x509_name_cmp_raw( &child->issuer_raw_no_hdr,
+                                       &child->subject_raw_no_hdr ) == 0 )
         {
             self_cnt++;
         }

@@ -9,10 +9,10 @@ Purpose
 This script is a small wrapper around the abi-compliance-checker and
 abi-dumper tools, applying them to compare the ABI and API of the library
 files from two different Git revisions within an Mbed TLS repository.
-The results of the comparison are formatted as HTML and stored at
-a configurable location. Returns 0 on success, 1 on ABI/API non-compliance,
-and 2 if there is an error while running the script.
-Note: must be run from Mbed TLS root.
+The results of the comparison are either formatted as HTML and stored at
+a configurable location, or a brief list of problems found is output.
+Returns 0 on success, 1 on ABI/API non-compliance, and 2 if there is an error
+while running the script. Note: must be run from Mbed TLS root.
 """
 
 import os
@@ -24,12 +24,14 @@ import argparse
 import logging
 import tempfile
 
+import xml.etree.ElementTree as ET
+
 
 class AbiChecker(object):
     """API and ABI checker."""
 
     def __init__(self, report_dir, old_repo, old_rev, new_repo, new_rev,
-                 keep_all_reports, skip_file=None):
+                 keep_all_reports, brief, skip_file=None):
         """Instantiate the API/ABI checker.
 
         report_dir: directory for output files
@@ -38,6 +40,7 @@ class AbiChecker(object):
         new_repo: repository for git revision to check
         new_rev: git revision to check
         keep_all_reports: if false, delete old reports
+        brief: if true, output shorter report to stdout
         skip_file: path to file containing symbols and types to skip
         """
         self.repo_path = "."
@@ -51,6 +54,7 @@ class AbiChecker(object):
         self.new_repo = new_repo
         self.new_rev = new_rev
         self.skip_file = skip_file
+        self.brief = brief
         self.mbedtls_modules = ["libmbedcrypto", "libmbedtls", "libmbedx509"]
         self.old_dumps = {}
         self.new_dumps = {}
@@ -198,6 +202,24 @@ class AbiChecker(object):
         self.cleanup_worktree(git_worktree_path)
         return abi_dumps
 
+    def remove_children_with_tag(self, parent, tag):
+        children = parent.getchildren()
+        for child in children:
+            if child.tag == tag:
+                parent.remove(child)
+            else:
+                self.remove_children_with_tag(child, tag)
+
+    def remove_extra_detail_from_report(self, report_root):
+        for tag in ['test_info', 'test_results', 'problem_summary',
+                'added_symbols', 'removed_symbols', 'affected']:
+            self.remove_children_with_tag(report_root, tag)
+
+        for report in report_root:
+            for problems in report.getchildren()[:]:
+                if not problems.getchildren():
+                    report.remove(problems)
+
     def get_abi_compatibility_report(self):
         """Generate a report of the differences between the reference ABI
         and the new ABI. ABI dumps from self.old_rev and self.new_rev must
@@ -216,31 +238,41 @@ class AbiChecker(object):
                 "-old", self.old_dumps[mbed_module],
                 "-new", self.new_dumps[mbed_module],
                 "-strict",
-                "-report-path", output_path
+                "-report-path", output_path,
             ]
             if self.skip_file:
                 abi_compliance_command += ["-skip-symbols", self.skip_file,
                                            "-skip-types", self.skip_file]
+            if self.brief:
+                abi_compliance_command += ["-report-format", "xml",
+                                           "-stdout"]
             abi_compliance_process = subprocess.Popen(
                 abi_compliance_command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
             abi_compliance_output, _ = abi_compliance_process.communicate()
-            self.log.info(abi_compliance_output.decode("utf-8"))
             if abi_compliance_process.returncode == 0:
                 compatibility_report += (
                     "No compatibility issues for {}\n".format(mbed_module)
                 )
-                if not self.keep_all_reports:
+                if not (self.keep_all_reports or self.brief):
                     os.remove(output_path)
             elif abi_compliance_process.returncode == 1:
-                compliance_return_code = 1
-                self.should_keep_report_dir = True
-                compatibility_report += (
-                    "Compatibility issues found for {}, "
-                    "for details see {}\n".format(mbed_module, output_path)
-                )
+                if self.brief:
+                    self.log.info(
+                        "Compatibility issues found for {}".format(mbed_module)
+                    )
+                    report_root = ET.fromstring(abi_compliance_output.decode("utf-8"))
+                    self.remove_extra_detail_from_report(report_root)
+                    self.log.info(ET.tostring(report_root).decode("utf-8"))
+                else:
+                    compliance_return_code = 1
+                    self.can_remove_report_dir = False
+                    compatibility_report += (
+                        "Compatibility issues found for {}, "
+                        "for details see {}\n".format(mbed_module, output_path)
+                    )
             else:
                 raise Exception(
                     "abi-compliance-checker failed with a return code of {},"
@@ -271,8 +303,9 @@ def run_main():
                 abi-compliance-checker and abi-dumper tools, applying them
                 to compare the ABI and API of the library files from two
                 different Git revisions within an Mbed TLS repository.
-                The results of the comparison are formatted as HTML and stored
-                at a configurable location. Returns 0 on success, 1 on ABI/API
+                The results of the comparison are either formatted as HTML and
+                stored at a configurable location, or a brief list of problems
+                found is output. Returns 0 on success, 1 on ABI/API
                 non-compliance, and 2 if there is an error while running the
                 script. Note: must be run from Mbed TLS root."""
             )
@@ -301,6 +334,10 @@ def run_main():
             "-s", "--skip-file", type=str,
             help="path to file containing symbols and types to skip"
         )
+        parser.add_argument(
+            "-b", "--brief", action="store_true",
+            help="output only the list of issues to stdout, instead of a full report",
+        )
         abi_args = parser.parse_args()
         if len(abi_args.old_rev) == 1:
             old_repo = None
@@ -321,7 +358,7 @@ def run_main():
         abi_check = AbiChecker(
             abi_args.report_dir, old_repo, old_rev,
             new_repo, new_rev, abi_args.keep_all_reports,
-            abi_args.skip_file
+            abi_args.brief, abi_args.skip_file
         )
         return_code = abi_check.check_for_abi_changes()
         sys.exit(return_code)

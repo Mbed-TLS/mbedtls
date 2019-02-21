@@ -235,13 +235,16 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
 /*
  * Return 0 if name matches wildcard, -1 otherwise
  */
-static int x509_check_wildcard( const char *cn, const mbedtls_x509_buf *name )
+static int x509_check_wildcard( char const *cn,
+                                size_t cn_len,
+                                unsigned char const *buf,
+                                size_t buf_len )
 {
     size_t i;
-    size_t cn_idx = 0, cn_len = strlen( cn );
+    size_t cn_idx = 0;
 
     /* We can't have a match if there is no wildcard to match */
-    if( name->len < 3 || name->p[0] != '*' || name->p[1] != '.' )
+    if( buf_len < 3 || buf[0] != '*' || buf[1] != '.' )
         return( -1 );
 
     for( i = 0; i < cn_len; ++i )
@@ -256,8 +259,8 @@ static int x509_check_wildcard( const char *cn, const mbedtls_x509_buf *name )
     if( cn_idx == 0 )
         return( -1 );
 
-    if( cn_len - cn_idx == name->len - 1 &&
-        mbedtls_x509_memcasecmp( name->p + 1, cn + cn_idx, name->len - 1 ) == 0 )
+    if( cn_len - cn_idx == buf_len - 1 &&
+        mbedtls_x509_memcasecmp( buf + 1, cn + cn_idx, buf_len - 1 ) == 0 )
     {
         return( 0 );
     }
@@ -2450,18 +2453,20 @@ find_parent:
 /*
  * Check for CN match
  */
-static int x509_crt_check_cn( const mbedtls_x509_buf *name,
-                              const char *cn, size_t cn_len )
+static int x509_crt_check_cn( unsigned char const *buf,
+                              size_t buflen,
+                              const char *cn,
+                              size_t cn_len )
 {
-    /* try exact match */
-    if( name->len == cn_len &&
-        mbedtls_x509_memcasecmp( cn, name->p, cn_len ) == 0 )
+    /* Try exact match */
+    if( buflen == cn_len &&
+        mbedtls_x509_memcasecmp( cn, buf, cn_len ) == 0 )
     {
         return( 0 );
     }
 
     /* try wildcard match */
-    if( x509_check_wildcard( cn, name ) == 0 )
+    if( x509_check_wildcard( cn, cn_len, buf, buflen ) == 0 )
     {
         return( 0 );
     }
@@ -2477,7 +2482,7 @@ static int x509_crt_check_name( void *ctx,
     size_t cn_len = strlen( cn );
 
     if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, oid ) == 0 &&
-        x509_crt_check_cn( val, cn, cn_len ) == 0 )
+        x509_crt_check_cn( val->p, val->len, cn, cn_len ) == 0 )
     {
         return( 1 );
     }
@@ -2499,7 +2504,8 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
     {
         for( cur = &crt->subject_alt_names; cur != NULL; cur = cur->next )
         {
-            if( x509_crt_check_cn( &cur->buf, cn, cn_len ) == 0 )
+            if( x509_crt_check_cn( cur->buf.p, cur->buf.len,
+                                   cn, cn_len ) == 0 )
                 break;
         }
 

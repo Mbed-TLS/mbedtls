@@ -525,19 +525,12 @@ static int x509_get_subject_alt_name_cb( void *ctx,
     mbedtls_asn1_sequence **cur_ptr = (mbedtls_asn1_sequence **) ctx;
     mbedtls_asn1_sequence *cur = *cur_ptr;
 
-    /* Skip everything but DNS name */
-    if( tag != ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2 ) )
-        return( 0 );
-
     /* Allocate and assign next pointer */
     if( cur->buf.p != NULL )
     {
         cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
         if( cur->next == NULL )
-        {
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_ALLOC_FAILED );
-        }
+            return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
         cur = cur->next;
     }
 
@@ -549,63 +542,21 @@ static int x509_get_subject_alt_name_cb( void *ctx,
     return( 0 );
 }
 
-static int x509_subject_alt_name_traverse( unsigned char *p,
-                                           const unsigned char *end,
-                                           int (*cb)( void *ctx,
-                                                      int tag,
-                                                      unsigned char *data,
-                                                      size_t data_len ),
-                                           void *ctx )
-{
-    int ret;
-    size_t len;
-
-    /* Get main sequence tag */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
-            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
-    }
-
-    if( p + len != end )
-    {
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-    }
-
-    while( p < end )
-    {
-        unsigned char const tag = *p++;
-        if( ( ret = mbedtls_asn1_get_len( &p, end, &len ) ) != 0 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
-
-        if( ( tag & MBEDTLS_ASN1_TAG_CLASS_MASK ) !=
-            MBEDTLS_ASN1_CONTEXT_SPECIFIC )
-        {
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
-        }
-
-        if( cb != NULL )
-        {
-            ret = cb( ctx, tag, p, len );
-            if( ret != 0 )
-                return( ret );
-        }
-
-        p += len;
-    }
-
-    return( 0 );
-}
-
 static int x509_get_subject_alt_name( unsigned char *p,
                                       const unsigned char *end,
                                       mbedtls_x509_sequence *subject_alt_name )
 {
-    return( x509_subject_alt_name_traverse( p, end,
-                                            x509_get_subject_alt_name_cb,
-                                            (void*) &subject_alt_name ) );
+    int ret;
+    ret = mbedtls_asn1_traverse_sequence_of( &p, end,
+                                             MBEDTLS_ASN1_TAG_CLASS_MASK,
+                                             MBEDTLS_ASN1_CONTEXT_SPECIFIC,
+                                             MBEDTLS_ASN1_TAG_VALUE_MASK,
+                                             2 /* SubjectAlt DNS */,
+                                             x509_get_subject_alt_name_cb,
+                                             (void*) &subject_alt_name );
+    if( ret != 0 )
+        ret += MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+    return( ret );
 }
 
 /*
@@ -2460,10 +2411,7 @@ static int x509_crt_subject_alt_check_name( void *ctx,
 {
     char const *cn = (char const*) ctx;
     size_t cn_len = strlen( cn );
-
-    /* Skip everything but DNS name */
-    if( tag != ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2 ) )
-        return( 0 );
+    ((void) tag);
 
     if( x509_crt_check_cn( data, data_len, cn, cn_len ) == 0 )
         return( 1 );
@@ -2482,13 +2430,18 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
+        unsigned char *p =
+            crt->subject_alt_raw.p;
         const unsigned char *end =
             crt->subject_alt_raw.p + crt->subject_alt_raw.len;
 
-        ret = x509_subject_alt_name_traverse( crt->subject_alt_raw.p,
-                                              end,
-                                              x509_crt_subject_alt_check_name,
-                                              (void*) cn );
+        ret = mbedtls_asn1_traverse_sequence_of( &p, end,
+                                      MBEDTLS_ASN1_TAG_CLASS_MASK,
+                                      MBEDTLS_ASN1_CONTEXT_SPECIFIC,
+                                      MBEDTLS_ASN1_TAG_VALUE_MASK,
+                                      2 /* SubjectAlt DNS */,
+                                      x509_crt_subject_alt_check_name,
+                                      (void*) cn );
     }
     else
     {

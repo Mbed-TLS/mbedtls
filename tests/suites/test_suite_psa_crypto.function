@@ -1950,6 +1950,7 @@ exit:
 /* BEGIN_CASE */
 void hash_operation_init( )
 {
+    const uint8_t input[1] = { 0 };
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
@@ -1959,6 +1960,14 @@ void hash_operation_init( )
     psa_hash_operation_t zero;
 
     memset( &zero, 0, sizeof( zero ) );
+
+    /* A freshly-initialized hash operation should not be usable. */
+    TEST_EQUAL( psa_hash_update( &func, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_hash_update( &init, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_hash_update( &zero, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
 
     /* A default hash operation should be abortable without error. */
     PSA_ASSERT( psa_hash_abort( &func ) );
@@ -1990,32 +1999,85 @@ exit:
 /* BEGIN_CASE */
 void hash_bad_order( )
 {
+    psa_algorithm_t alg = PSA_ALG_SHA_256;
     unsigned char input[] = "";
     /* SHA-256 hash of an empty string */
-    unsigned char hash[] = {
+    const unsigned char valid_hash[] = {
         0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8,
         0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c,
         0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55 };
+    unsigned char hash[sizeof(valid_hash)] = { 0 };
     size_t hash_len;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    /* psa_hash_update without calling psa_hash_setup beforehand */
-    memset( &operation, 0, sizeof( operation ) );
+    /* Call setup twice in a row. */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    TEST_EQUAL( psa_hash_setup( &operation, alg ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+
+    /* Call update without calling setup beforehand. */
     TEST_EQUAL( psa_hash_update( &operation, input, sizeof( input ) ),
-                PSA_ERROR_INVALID_ARGUMENT );
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
 
-    /* psa_hash_verify without calling psa_hash_setup beforehand */
-    memset( &operation, 0, sizeof( operation ) );
-    TEST_EQUAL( psa_hash_verify( &operation, hash, sizeof( hash ) ),
-                PSA_ERROR_INVALID_ARGUMENT );
+    /* Call update after finish. */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_finish( &operation,
+                                 hash, sizeof( hash ), &hash_len ) );
+    TEST_EQUAL( psa_hash_update( &operation, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
 
-    /* psa_hash_finish without calling psa_hash_setup beforehand */
-    memset( &operation, 0, sizeof( operation ) );
+    /* Call verify without calling setup beforehand. */
+    TEST_EQUAL( psa_hash_verify( &operation,
+                                 valid_hash, sizeof( valid_hash ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+
+    /* Call verify after finish. */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_finish( &operation,
+                                 hash, sizeof( hash ), &hash_len ) );
+    TEST_EQUAL( psa_hash_verify( &operation,
+                                 valid_hash, sizeof( valid_hash ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+
+    /* Call verify twice in a row. */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_verify( &operation,
+                                 valid_hash, sizeof( valid_hash ) ) );
+    TEST_EQUAL( psa_hash_verify( &operation,
+                                 valid_hash, sizeof( valid_hash ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+
+    /* Call finish without calling setup beforehand. */
     TEST_EQUAL( psa_hash_finish( &operation,
                                  hash, sizeof( hash ), &hash_len ),
-                PSA_ERROR_INVALID_ARGUMENT );
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+
+    /* Call finish twice in a row. */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_finish( &operation,
+                                 hash, sizeof( hash ), &hash_len ) );
+    TEST_EQUAL( psa_hash_finish( &operation,
+                                 hash, sizeof( hash ), &hash_len ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+
+    /* Call finish after calling verify. */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_verify( &operation,
+                                 valid_hash, sizeof( valid_hash ) ) );
+    TEST_EQUAL( psa_hash_finish( &operation,
+                                 hash, sizeof( hash ), &hash_len ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_hash_abort( &operation ) );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -2168,6 +2230,8 @@ exit:
 /* BEGIN_CASE */
 void mac_operation_init( )
 {
+    const uint8_t input[1] = { 0 };
+
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
@@ -2177,6 +2241,17 @@ void mac_operation_init( )
     psa_mac_operation_t zero;
 
     memset( &zero, 0, sizeof( zero ) );
+
+    /* A freshly-initialized MAC operation should not be usable. */
+    TEST_EQUAL( psa_mac_update( &func,
+                                input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_mac_update( &init,
+                                input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_mac_update( &zero,
+                                input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
 
     /* A default MAC operation should be abortable without error. */
     PSA_ASSERT( psa_mac_abort( &func ) );
@@ -2216,6 +2291,130 @@ void mac_setup( int key_type_arg,
 
 exit:
     psa_destroy_key( handle );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_bad_order( )
+{
+    psa_key_handle_t handle = 0;
+    psa_key_type_t key_type = PSA_KEY_TYPE_HMAC;
+    psa_algorithm_t alg = PSA_ALG_HMAC(PSA_ALG_SHA_256);
+    const uint8_t key[] = {
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa };
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    uint8_t sign_mac[PSA_MAC_MAX_SIZE + 10] = { 0 };
+    size_t sign_mac_length = 0;
+    const uint8_t input[] = { 0xbb, 0xbb, 0xbb, 0xbb };
+    const uint8_t verify_mac[] = {
+        0x74, 0x65, 0x93, 0x8c, 0xeb, 0x1d, 0xb3, 0x76, 0x5a, 0x38, 0xe7, 0xdd,
+        0x85, 0xc5, 0xad, 0x4f, 0x07, 0xe7, 0xd5, 0xb2, 0x64, 0xf0, 0x1a, 0x1a,
+        0x2c, 0xf9, 0x18, 0xca, 0x59, 0x7e, 0x5d, 0xf6 };
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    PSA_ASSERT( psa_allocate_key( &handle ) );
+    psa_key_policy_set_usage( &policy,
+                              PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY,
+                              alg );
+    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+
+    PSA_ASSERT( psa_import_key( handle, key_type,
+                                key, sizeof(key) ) );
+
+    /* Call update without calling setup beforehand. */
+    TEST_EQUAL( psa_mac_update( &operation, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call sign finish without calling setup beforehand. */
+    TEST_EQUAL( psa_mac_sign_finish( &operation, sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call verify finish without calling setup beforehand. */
+    TEST_EQUAL( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call setup twice in a row. */
+    PSA_ASSERT( psa_mac_sign_setup( &operation,
+                                    handle, alg ) );
+    TEST_EQUAL( psa_mac_sign_setup( &operation,
+                                    handle, alg ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call update after sign finish. */
+    PSA_ASSERT( psa_mac_sign_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    PSA_ASSERT( psa_mac_sign_finish( &operation,
+                                     sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length ) );
+    TEST_EQUAL( psa_mac_update( &operation, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call update after verify finish. */
+    PSA_ASSERT( psa_mac_verify_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    PSA_ASSERT( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ) );
+    TEST_EQUAL( psa_mac_update( &operation, input, sizeof( input ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call sign finish twice in a row. */
+    PSA_ASSERT( psa_mac_sign_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    PSA_ASSERT( psa_mac_sign_finish( &operation,
+                                     sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length ) );
+    TEST_EQUAL( psa_mac_sign_finish( &operation,
+                                     sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Call verify finish twice in a row. */
+    PSA_ASSERT( psa_mac_verify_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    PSA_ASSERT( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ) );
+    TEST_EQUAL( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Setup sign but try verify. */
+    PSA_ASSERT( psa_mac_sign_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    TEST_EQUAL( psa_mac_verify_finish( &operation,
+                                       verify_mac, sizeof( verify_mac ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+    /* Setup verify but try sign. */
+    PSA_ASSERT( psa_mac_verify_setup( &operation,
+                                    handle, alg ) );
+    PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
+    TEST_EQUAL( psa_mac_sign_finish( &operation,
+                                     sign_mac, sizeof( sign_mac ),
+                                     &sign_mac_length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
+exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2318,6 +2517,9 @@ exit:
 /* BEGIN_CASE */
 void cipher_operation_init( )
 {
+    const uint8_t input[1] = { 0 };
+    unsigned char output[1] = { 0 };
+    size_t output_length;
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
@@ -2327,6 +2529,23 @@ void cipher_operation_init( )
     psa_cipher_operation_t zero;
 
     memset( &zero, 0, sizeof( zero ) );
+
+    /* A freshly-initialized cipher operation should not be usable. */
+    TEST_EQUAL( psa_cipher_update( &func,
+                                   input, sizeof( input ),
+                                   output, sizeof( output ),
+                                   &output_length ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_cipher_update( &init,
+                                   input, sizeof( input ),
+                                   output, sizeof( output ),
+                                   &output_length ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_cipher_update( &zero,
+                                   input, sizeof( input ),
+                                   output, sizeof( output ),
+                                   &output_length ),
+                PSA_ERROR_BAD_STATE );
 
     /* A default cipher operation should be abortable without error. */
     PSA_ASSERT( psa_cipher_abort( &func ) );
@@ -2364,6 +2583,159 @@ void cipher_setup( int key_type_arg,
 
 exit:
     psa_destroy_key( handle );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cipher_bad_order( )
+{
+    psa_key_handle_t handle = 0;
+    psa_key_type_t key_type = PSA_KEY_TYPE_AES;
+    psa_algorithm_t alg = PSA_ALG_CBC_PKCS7;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    unsigned char iv[PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES)] = { 0 };
+    const uint8_t key[] = {
+        0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+        0xaa, 0xaa, 0xaa, 0xaa };
+    const uint8_t text[] = {
+        0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb,
+        0xbb, 0xbb, 0xbb, 0xbb };
+    uint8_t buffer[PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES)] = { 0 };
+    size_t length = 0;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    PSA_ASSERT( psa_allocate_key( &handle ) );
+    psa_key_policy_set_usage( &policy,
+                              PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT,
+                              alg );
+    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+    PSA_ASSERT( psa_import_key( handle, key_type,
+                                key, sizeof(key) ) );
+
+
+    /* Call encrypt setup twice in a row. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, handle, alg ) );
+    TEST_EQUAL( psa_cipher_encrypt_setup( &operation, handle, alg ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Call decrypt setup twice in a row. */
+    PSA_ASSERT( psa_cipher_decrypt_setup( &operation, handle, alg ) );
+    TEST_EQUAL( psa_cipher_decrypt_setup( &operation, handle, alg ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Generate an IV without calling setup beforehand. */
+    TEST_EQUAL( psa_cipher_generate_iv( &operation,
+                                        buffer, sizeof( buffer ),
+                                        &length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Generate an IV twice in a row. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, handle, alg ) );
+    PSA_ASSERT( psa_cipher_generate_iv( &operation,
+                                        buffer, sizeof( buffer ),
+                                        &length ) );
+    TEST_EQUAL( psa_cipher_generate_iv( &operation,
+                                        buffer, sizeof( buffer ),
+                                        &length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Generate an IV after it's already set. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, handle, alg ) );
+    PSA_ASSERT( psa_cipher_set_iv( &operation,
+                                   iv, sizeof( iv ) ) );
+    TEST_EQUAL( psa_cipher_generate_iv( &operation,
+                                        buffer, sizeof( buffer ),
+                                        &length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Set an IV without calling setup beforehand. */
+    TEST_EQUAL( psa_cipher_set_iv( &operation,
+                                   iv, sizeof( iv ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Set an IV after it's already set. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, handle, alg ) );
+    PSA_ASSERT( psa_cipher_set_iv( &operation,
+                                   iv, sizeof( iv ) ) );
+    TEST_EQUAL( psa_cipher_set_iv( &operation,
+                                   iv, sizeof( iv ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Set an IV after it's already generated. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, handle, alg ) );
+    PSA_ASSERT( psa_cipher_generate_iv( &operation,
+                                        buffer, sizeof( buffer ),
+                                        &length ) );
+    TEST_EQUAL( psa_cipher_set_iv( &operation,
+                                   iv, sizeof( iv ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Call update without calling setup beforehand. */
+    TEST_EQUAL( psa_cipher_update( &operation,
+                                   text, sizeof( text ),
+                                   buffer, sizeof( buffer ),
+                                   &length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Call update without an IV where an IV is required. */
+    TEST_EQUAL( psa_cipher_update( &operation,
+                                   text, sizeof( text ),
+                                   buffer, sizeof( buffer ),
+                                   &length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Call update after finish. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, handle, alg ) );
+    PSA_ASSERT( psa_cipher_set_iv( &operation,
+                                   iv, sizeof( iv ) ) );
+    PSA_ASSERT( psa_cipher_finish( &operation,
+                                   buffer, sizeof( buffer ), &length ) );
+    TEST_EQUAL( psa_cipher_update( &operation,
+                                   text, sizeof( text ),
+                                   buffer, sizeof( buffer ),
+                                   &length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Call finish without calling setup beforehand. */
+    TEST_EQUAL( psa_cipher_finish( &operation,
+                                   buffer, sizeof( buffer ), &length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Call finish without an IV where an IV is required. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, handle, alg ) );
+    /* Not calling update means we are encrypting an empty buffer, which is OK
+     * for cipher modes with padding. */
+    TEST_EQUAL( psa_cipher_finish( &operation,
+                                   buffer, sizeof( buffer ), &length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    /* Call finish twice in a row. */
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, handle, alg ) );
+    PSA_ASSERT( psa_cipher_set_iv( &operation,
+                                   iv, sizeof( iv ) ) );
+    PSA_ASSERT( psa_cipher_finish( &operation,
+                                   buffer, sizeof( buffer ), &length ) );
+    TEST_EQUAL( psa_cipher_finish( &operation,
+                                   buffer, sizeof( buffer ), &length ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

@@ -1373,7 +1373,13 @@ psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
                              psa_algorithm_t alg )
 {
     int ret;
-    operation->alg = 0;
+
+    /* A context must be freshly initialized before it can be set up. */
+    if( operation->alg != 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
     switch( alg )
     {
 #if defined(MBEDTLS_MD2_C)
@@ -1496,8 +1502,7 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
             break;
 #endif
         default:
-            ret = MBEDTLS_ERR_MD_BAD_INPUT_DATA;
-            break;
+            return( PSA_ERROR_BAD_STATE );
     }
 
     if( ret != 0 )
@@ -1569,8 +1574,7 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
             break;
 #endif
         default:
-            ret = MBEDTLS_ERR_MD_BAD_INPUT_DATA;
-            break;
+            return( PSA_ERROR_BAD_STATE );
     }
     status = mbedtls_to_psa_error( ret );
 
@@ -1994,6 +1998,12 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     unsigned char truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
     psa_algorithm_t full_length_alg = PSA_ALG_FULL_LENGTH_MAC( alg );
 
+    /* A context must be freshly initialized before it can be set up. */
+    if( operation->alg != 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
     status = psa_mac_init( operation, full_length_alg );
     if( status != PSA_SUCCESS )
         return( status );
@@ -2112,9 +2122,9 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_BAD_STATE;
     if( ! operation->key_set )
-        goto cleanup;
+        return( PSA_ERROR_BAD_STATE );
     if( operation->iv_required && ! operation->iv_set )
-        goto cleanup;
+        return( PSA_ERROR_BAD_STATE );
     operation->has_input = 1;
 
 #if defined(MBEDTLS_CMAC_C)
@@ -2137,10 +2147,9 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
     {
         /* This shouldn't happen if `operation` was initialized by
          * a setup function. */
-        status = PSA_ERROR_BAD_STATE;
+        return( PSA_ERROR_BAD_STATE );
     }
 
-cleanup:
     if( status != PSA_SUCCESS )
         psa_mac_abort( operation );
     return( status );
@@ -2232,6 +2241,11 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
 {
     psa_status_t status;
 
+    if( operation->alg == 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
     /* Fill the output buffer with something that isn't a valid mac
      * (barring an attack on the mac and deliberately-crafted input),
      * in case the caller doesn't check the return status properly. */
@@ -2243,13 +2257,11 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
 
     if( ! operation->is_sign )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto cleanup;
+        return( PSA_ERROR_BAD_STATE );
     }
 
     status = psa_mac_finish_internal( operation, mac, mac_size );
 
-cleanup:
     if( status == PSA_SUCCESS )
     {
         status = psa_mac_abort( operation );
@@ -2270,10 +2282,14 @@ psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
     uint8_t actual_mac[PSA_MAC_MAX_SIZE];
     psa_status_t status;
 
+    if( operation->alg == 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
     if( operation->is_sign )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto cleanup;
+        return( PSA_ERROR_BAD_STATE );
     }
     if( operation->mac_size != mac_length )
     {
@@ -2895,6 +2911,12 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                               PSA_KEY_USAGE_ENCRYPT :
                               PSA_KEY_USAGE_DECRYPT );
 
+    /* A context must be freshly initialized before it can be set up. */
+    if( operation->alg != 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
     status = psa_cipher_init( operation, alg );
     if( status != PSA_SUCCESS )
         return( status );
@@ -2996,8 +3018,7 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
     int ret;
     if( operation->iv_set || ! operation->iv_required )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto exit;
+        return( PSA_ERROR_BAD_STATE );
     }
     if( iv_size < operation->iv_size )
     {
@@ -3029,8 +3050,7 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
     int ret;
     if( operation->iv_set || ! operation->iv_required )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto exit;
+        return( PSA_ERROR_BAD_STATE );
     }
     if( iv_length != operation->iv_size )
     {
@@ -3057,6 +3077,12 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
     psa_status_t status;
     int ret;
     size_t expected_output_size;
+
+    if( operation->alg == 0 )
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
     if( ! PSA_ALG_IS_STREAM_CIPHER( operation->alg ) )
     {
         /* Take the unprocessed partial block left over from previous
@@ -3098,13 +3124,11 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
 
     if( ! operation->key_set )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto error;
+        return( PSA_ERROR_BAD_STATE );
     }
     if( operation->iv_required && ! operation->iv_set )
     {
-        status = PSA_ERROR_BAD_STATE;
-        goto error;
+        return( PSA_ERROR_BAD_STATE );
     }
 
     if( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT &&

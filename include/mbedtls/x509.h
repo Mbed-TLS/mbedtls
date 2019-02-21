@@ -314,8 +314,12 @@ int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
                    mbedtls_x509_time *t );
 int mbedtls_x509_get_serial( unsigned char **p, const unsigned char *end,
                      mbedtls_x509_buf *serial );
-int mbedtls_x509_name_cmp_raw( const mbedtls_x509_buf_raw *a,
-                               const mbedtls_x509_buf_raw *b );
+int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
+                               mbedtls_x509_buf_raw const *b,
+                               int (*check)( void *ctx,
+                                             mbedtls_x509_buf *oid,
+                                             mbedtls_x509_buf *val ),
+                               void *check_ctx );
 int mbedtls_x509_memcasecmp( const void *s1, const void *s2, size_t len );
 int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
                   mbedtls_x509_buf *ext, int tag );

@@ -804,9 +804,6 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
 {
     int ret;
 
-    if( *sig_opts != NULL )
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
-
     if( ( ret = mbedtls_oid_get_sig_alg( sig_oid, md_alg, pk_alg ) ) != 0 )
         return( MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG + ret );
 
@@ -829,7 +826,10 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
             return( ret );
         }
 
-        *sig_opts = (void *) pss_opts;
+        if( sig_opts != NULL )
+            *sig_opts = (void *) pss_opts;
+        else
+            mbedtls_free( pss_opts );
     }
     else
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
@@ -837,7 +837,10 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
         /* Make sure parameters are absent or NULL */
         if( ( sig_params->tag != MBEDTLS_ASN1_NULL && sig_params->tag != 0 ) ||
               sig_params->len != 0 )
-        return( MBEDTLS_ERR_X509_INVALID_ALG );
+            return( MBEDTLS_ERR_X509_INVALID_ALG );
+
+        if( sig_opts != NULL )
+            *sig_opts = NULL;
     }
 
     return( 0 );

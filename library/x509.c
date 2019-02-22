@@ -486,13 +486,17 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
 /*
  * Like memcmp, but case-insensitive and always returns -1 if different
  */
-int mbedtls_x509_memcasecmp( const void *s1, const void *s2, size_t len )
+int mbedtls_x509_memcasecmp( const void *s1, const void *s2,
+                             size_t len1, size_t len2 )
 {
     size_t i;
     unsigned char diff;
     const unsigned char *n1 = s1, *n2 = s2;
 
-    for( i = 0; i < len; i++ )
+    if( len1 != len2 )
+        return( -1 );
+
+    for( i = 0; i < len1; i++ )
     {
         diff = n1[i] ^ n2[i];
 
@@ -530,8 +534,8 @@ static int x509_string_cmp( const mbedtls_x509_buf *a,
 
     if( ( a->tag == MBEDTLS_ASN1_UTF8_STRING || a->tag == MBEDTLS_ASN1_PRINTABLE_STRING ) &&
         ( b->tag == MBEDTLS_ASN1_UTF8_STRING || b->tag == MBEDTLS_ASN1_PRINTABLE_STRING ) &&
-        a->len == b->len &&
-        mbedtls_x509_memcasecmp( a->p, b->p, b->len ) == 0 )
+        mbedtls_x509_memcasecmp( a->p, b->p,
+                                 a->len, b->len ) == 0 )
     {
         return( 0 );
     }

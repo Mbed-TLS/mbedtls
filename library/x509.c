@@ -802,6 +802,21 @@ int mbedtls_x509_get_sig( unsigned char **p, const unsigned char *end, mbedtls_x
     return( 0 );
 }
 
+int mbedtls_x509_get_sig_alg_raw( unsigned char **p, unsigned char const *end,
+                                  mbedtls_md_type_t *md_alg,
+                                  mbedtls_pk_type_t *pk_alg,
+                                  void **sig_opts )
+{
+    int ret;
+    mbedtls_asn1_buf alg, params;
+    ret = mbedtls_asn1_get_alg( p, end, &alg, &params );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_ALG + ret );
+
+    return( mbedtls_x509_get_sig_alg( &alg, &params, md_alg,
+                                      pk_alg, sig_opts ) );
+}
+
 /*
  * Get signature algorithm from alg OID and optional parameters
  */

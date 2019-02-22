@@ -5,7 +5,7 @@ static int load_public_key( int grp_id, const char *point_str,
                             mbedtls_ecp_keypair *ecp )
 {
     int ok = 0;
-    unsigned char point_buf[MBEDTLS_ECP_MAX_BYTES];
+    unsigned char point_buf[MBEDTLS_ECP_MAX_PT_LEN];
     size_t point_len = unhexify( point_buf, point_str );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &ecp->grp, grp_id ) == 0 );

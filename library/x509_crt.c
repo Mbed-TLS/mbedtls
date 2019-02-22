@@ -259,8 +259,8 @@ static int x509_check_wildcard( char const *cn,
     if( cn_idx == 0 )
         return( -1 );
 
-    if( cn_len - cn_idx == buf_len - 1 &&
-        mbedtls_x509_memcasecmp( buf + 1, cn + cn_idx, buf_len - 1 ) == 0 )
+    if( mbedtls_x509_memcasecmp( buf + 1, cn + cn_idx,
+                                 buf_len - 1, cn_len - cn_idx ) == 0 )
     {
         return( 0 );
     }
@@ -2889,11 +2889,8 @@ static int x509_crt_check_cn( unsigned char const *buf,
                               size_t cn_len )
 {
     /* Try exact match */
-    if( buflen == cn_len &&
-        mbedtls_x509_memcasecmp( cn, buf, cn_len ) == 0 )
-    {
+    if( mbedtls_x509_memcasecmp( cn, buf, buflen, cn_len ) == 0 )
         return( 0 );
-    }
 
     /* try wildcard match */
     if( x509_check_wildcard( cn, cn_len, buf, buflen ) == 0 )

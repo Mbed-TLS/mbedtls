@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\programs\ssl\ssl_server2.c" />
+    <ClCompile Include="..\..\programs\test\query_compile_time_config.c" />
     <ClCompile Include="..\..\programs\ssl\query_config.c" />
   </ItemGroup>
   <ItemGroup>
@@ -29,9 +29,9 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A4DA7463-1047-BDF5-E1B3-5632CB573F41}</ProjectGuid>
+    <ProjectGuid>{D6F58AF2-9D80-562A-E2B0-F743281522B9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ssl_server2</RootNamespace>
+    <RootNamespace>query_compile_time_config</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

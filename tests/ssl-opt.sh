@@ -165,22 +165,34 @@ requires_config_disabled() {
 }
 
 get_config_value_or_default() {
-    NAME="$1"
-    DEF_VAL=$( grep ".*#define.*${NAME}" ../include/mbedtls/config.h |
-               sed 's/^.* \([0-9]*\)$/\1/' )
-    ../scripts/config.pl get $NAME || echo "$DEF_VAL"
+    # This function uses the query_config command line option to query the
+    # required Mbed TLS compile time configuration from the ssl_server2
+    # program. The command will always return a success value if the
+    # configuration is defined and the value will be printed to stdout.
+    #
+    # Note that if the configuration is not defined or is defined to nothing,
+    # the output of this function will be an empty string.
+    ${P_SRV} "query_config=${1}"
 }
 
 requires_config_value_at_least() {
-    VAL=$( get_config_value_or_default "$1" )
-    if [ "$VAL" -lt "$2" ]; then
+    VAL="$( get_config_value_or_default "$1" )"
+    if [ -z "$VAL" ]; then
+        # Should never happen
+        echo "Mbed TLS configuration $1 is not defined"
+        exit 1
+    elif [ "$VAL" -lt "$2" ]; then
        SKIP_NEXT="YES"
     fi
 }
 
 requires_config_value_at_most() {
     VAL=$( get_config_value_or_default "$1" )
-    if [ "$VAL" -gt "$2" ]; then
+    if [ -z "$VAL" ]; then
+        # Should never happen
+        echo "Mbed TLS configuration $1 is not defined"
+        exit 1
+    elif [ "$VAL" -gt "$2" ]; then
        SKIP_NEXT="YES"
     fi
 }

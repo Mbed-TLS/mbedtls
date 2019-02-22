@@ -49,6 +49,16 @@
 typedef mbedtls_ecdh_context mbedtls_ecdh_context_mbed;
 #endif
 
+static mbedtls_ecp_group_id mbedtls_ecdh_grp_id(
+    const mbedtls_ecdh_context *ctx )
+{
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    return( ctx->grp.id );
+#else
+    return( ctx->grp_id );
+#endif
+}
+
 #if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
 /*
  * Generate public key (restartable version)
@@ -442,7 +452,7 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx,
     ECDH_VALIDATE_RET( side == MBEDTLS_ECDH_OURS ||
                        side == MBEDTLS_ECDH_THEIRS );
 
-    if( ctx->grp.id == MBEDTLS_ECP_DP_NONE )
+    if( mbedtls_ecdh_grp_id( ctx ) == MBEDTLS_ECP_DP_NONE )
     {
         /* This is the first call to get_params(). Set up the context
          * for use with the group. */
@@ -454,7 +464,7 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx,
         /* This is not the first call to get_params(). Check that the
          * current key's group is the same as the context's, which was set
          * from the first key's group. */
-        if( ctx->grp.id != key->grp.id )
+        if( mbedtls_ecdh_grp_id( ctx ) != key->grp.id )
             return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
     }
 

@@ -187,7 +187,7 @@
  * the global integrity of the keystore. Depending on the global
  * integrity guarantees offered by the implementation, access to other
  * data may or may not fail even if the data is still readable but
- * its integrity canont be guaranteed.
+ * its integrity cannot be guaranteed.
  *
  * Implementations should only use this error code to report a
  * permanent storage corruption. However application writers should

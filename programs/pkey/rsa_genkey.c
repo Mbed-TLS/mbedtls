@@ -160,19 +160,6 @@ int main( void )
         mbedtls_printf( " failed\n  ! mbedtls_mpi_write_file returned %d\n\n", ret );
         goto exit;
     }
-/*
-    mbedtls_printf( " ok\n  . Generating the certificate..." );
-
-    x509write_init_raw( &cert );
-    x509write_add_pubkey( &cert, &rsa );
-    x509write_add_subject( &cert, "CN='localhost'" );
-    x509write_add_validity( &cert, "2007-09-06 17:00:32",
-                                   "2010-09-06 17:00:32" );
-    x509write_create_selfsign( &cert, &rsa );
-    x509write_crtfile( &cert, "cert.der", X509_OUTPUT_DER );
-    x509write_crtfile( &cert, "cert.pem", X509_OUTPUT_PEM );
-    x509write_free_raw( &cert );
-*/
     mbedtls_printf( " ok\n\n" );
 
     exit_code = MBEDTLS_EXIT_SUCCESS;

@@ -1748,14 +1748,16 @@ int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
 /*
  * Return 1 if the certificate is revoked, or 0 otherwise.
  */
-int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl )
+static int x509_serial_is_revoked( unsigned char const *serial,
+                                 size_t serial_len,
+                                 const mbedtls_x509_crl *crl )
 {
     const mbedtls_x509_crl_entry *cur = &crl->entry;
 
     while( cur != NULL && cur->serial.len != 0 )
     {
-        if( crt->serial.len == cur->serial.len &&
-            memcmp( crt->serial.p, cur->serial.p, crt->serial.len ) == 0 )
+        if( serial_len == cur->serial.len &&
+            memcmp( serial, cur->serial.p, serial_len ) == 0 )
         {
             if( mbedtls_x509_time_is_past( &cur->revocation_date ) )
                 return( 1 );
@@ -1767,11 +1769,21 @@ int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509
     return( 0 );
 }
 
+int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt,
+                                 const mbedtls_x509_crl *crl )
+{
+    return( x509_serial_is_revoked( crt->serial.p,
+                                    crt->serial.len,
+                                    crl ) );
+}
+
 /*
  * Check that the given certificate is not revoked according to the CRL.
  * Skip validation if no CRL for the given CA is present.
  */
-static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
+static int x509_crt_verifycrl( unsigned char *crt_serial,
+                               size_t crt_serial_len,
+                               mbedtls_x509_crt *ca,
                                mbedtls_x509_crl *crl_list,
                                const mbedtls_x509_crt_profile *profile )
 {
@@ -1845,7 +1857,8 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         /*
          * Check if certificate is revoked
          */
-        if( mbedtls_x509_crt_is_revoked( crt, crl_list ) )
+        if( x509_serial_is_revoked( crt_serial, crt_serial_len,
+                                    crl_list ) )
         {
             flags |= MBEDTLS_X509_BADCERT_REVOKED;
             break;
@@ -2419,7 +2432,9 @@ find_parent:
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the given crt */
-        *flags |= x509_crt_verifycrl( child, parent, ca_crl, profile );
+        *flags |= x509_crt_verifycrl( child->serial.p,
+                                      child->serial.len,
+                                      parent, ca_crl, profile );
 #else
         (void) ca_crl;
 #endif

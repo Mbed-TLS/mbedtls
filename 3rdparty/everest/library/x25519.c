@@ -25,9 +25,13 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_ECDH_C) && defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
 
 #include <mbedtls/ecdh.h>
+
+#if !(defined(__SIZEOF_INT128__) && (__SIZEOF_INT128__ == 16))
+#define KRML_VERIFIED_UINT128
+#endif
 
 #include <Hacl_Curve25519.h>
 #include <mbedtls/platform_util.h>
@@ -188,4 +192,4 @@ int mbedtls_x25519_read_public( mbedtls_x25519_context *ctx,
 }
 
 
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_ECDH_C && MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */

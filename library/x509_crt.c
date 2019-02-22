@@ -2305,8 +2305,6 @@ static int x509_crt_verify_chain(
         /* restore derived state */
         cur = &ver_chain->items[ver_chain->len - 1];
         child = cur->crt;
-        flags = &cur->flags;
-
         goto find_parent;
     }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
@@ -2322,6 +2320,11 @@ static int x509_crt_verify_chain(
         cur->crt = child;
         cur->flags = 0;
         ver_chain->len++;
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+find_parent:
+#endif
+
         flags = &cur->flags;
 
         /* Check time-validity (all certificates) */
@@ -2348,10 +2351,6 @@ static int x509_crt_verify_chain(
         {
             return( 0 );
         }
-
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-find_parent:
-#endif
 
         /* Obtain list of potential trusted signers from CA callback,
          * or use statically provided list. */

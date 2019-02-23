@@ -451,39 +451,6 @@ exit:
     return( ret );
 }
 
-int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
-                           mbedtls_x509_name *cur )
-{
-    int ret;
-    const unsigned char *end_set;
-
-    end_set = *p;
-    while( 1 )
-    {
-        ret = x509_set_sequence_iterate( p, &end_set, end,
-                                         &cur->oid, &cur->val );
-        if( ret != 0 )
-            return( ret + MBEDTLS_ERR_X509_INVALID_NAME );
-
-        if( *p != end_set )
-            cur->next_merged = 1;
-
-        if( *p == end )
-        {
-            cur->next = NULL;
-            break;
-        }
-
-        cur->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
-        if( cur->next == NULL )
-            return( MBEDTLS_ERR_X509_ALLOC_FAILED );
-
-        cur = cur->next;
-    }
-
-    return( 0 );
-}
-
 /*
  * Like memcmp, but case-insensitive and always returns -1 if different
  */
@@ -565,7 +532,8 @@ int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
                                mbedtls_x509_buf_raw const *b,
                                int (*abort_check)( void *ctx,
                                              mbedtls_x509_buf *oid,
-                                             mbedtls_x509_buf *val ),
+                                             mbedtls_x509_buf *val,
+                                             int next_merged ),
                                void *abort_check_ctx )
 {
     int ret;
@@ -581,7 +549,8 @@ int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
 
     while( 1 )
     {
-         mbedtls_x509_buf oid_a, val_a, oid_b, val_b;
+        int next_merged;
+        mbedtls_x509_buf oid_a, val_a, oid_b, val_b;
 
         ret = x509_set_sequence_iterate( &p_a, (const unsigned char **) &set_a,
                                          end_a, &oid_a, &val_a );
@@ -602,12 +571,14 @@ int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
         if( x509_string_cmp( &val_a, &val_b ) != 0 )
             return( 1 );
 
-        if( ( set_a == p_a ) != ( set_b == p_b ) )
+        next_merged = ( set_a != p_a );
+        if( next_merged != ( set_b != p_b ) )
             return( 1 );
 
         if( abort_check != NULL )
         {
-            ret = abort_check( abort_check_ctx, &oid_a, &val_a );
+            ret = abort_check( abort_check_ctx, &oid_a, &val_a,
+                               next_merged );
             if( ret != 0 )
                 return( 1 );
         }
@@ -622,6 +593,41 @@ exit:
 
     return( ret );
 }
+
+
+int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
+                           mbedtls_x509_name *cur )
+{
+    int ret;
+    const unsigned char *end_set;
+
+    end_set = *p;
+    while( 1 )
+    {
+        ret = x509_set_sequence_iterate( p, &end_set, end,
+                                         &cur->oid, &cur->val );
+        if( ret != 0 )
+            return( ret + MBEDTLS_ERR_X509_INVALID_NAME );
+
+        if( *p != end_set )
+            cur->next_merged = 1;
+
+        if( *p == end )
+        {
+            cur->next = NULL;
+            break;
+        }
+
+        cur->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
+        if( cur->next == NULL )
+            return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+        cur = cur->next;
+    }
+
+    return( 0 );
+}
+
 
 static int x509_parse_int( unsigned char **p, size_t n, int *res )
 {

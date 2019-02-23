@@ -2420,10 +2420,12 @@ static int x509_crt_check_cn( unsigned char const *buf,
  * traversal as long as the callback returns 0. */
 static int x509_crt_check_name( void *ctx,
                                 mbedtls_x509_buf *oid,
-                                mbedtls_x509_buf *val )
+                                mbedtls_x509_buf *val,
+                                int next_merged )
 {
     char const *cn = (char const*) ctx;
     size_t cn_len = strlen( cn );
+    ((void) next_merged);
 
     if( MBEDTLS_OID_CMP( MBEDTLS_OID_AT_CN, oid ) == 0 &&
         x509_crt_check_cn( val->p, val->len, cn, cn_len ) == 0 )

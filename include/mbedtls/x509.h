@@ -376,6 +376,18 @@ int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
         p += (size_t) ret;                                  \
     } while( 0 )
 
+#define MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP             \
+    do {                                                    \
+        if( ret < 0 || (size_t) ret >= n )                  \
+        {                                                   \
+            ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;        \
+            goto cleanup;                                   \
+        }                                                   \
+                                                            \
+        n -= (size_t) ret;                                  \
+        p += (size_t) ret;                                  \
+    } while( 0 )
+
 #ifdef __cplusplus
 }
 #endif

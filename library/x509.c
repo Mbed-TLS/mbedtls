@@ -594,40 +594,47 @@ exit:
     return( ret );
 }
 
-
-int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
-                           mbedtls_x509_name *cur )
+static int x509_get_name_cb( void *ctx,
+                             mbedtls_x509_buf *oid,
+                             mbedtls_x509_buf *val,
+                             int next_merged )
 {
-    int ret;
-    const unsigned char *end_set;
+    mbedtls_x509_name **cur_ptr = (mbedtls_x509_name**) ctx;
+    mbedtls_x509_name *cur = *cur_ptr;
 
-    end_set = *p;
-    while( 1 )
+    if( cur->oid.p != NULL )
     {
-        ret = x509_set_sequence_iterate( p, &end_set, end,
-                                         &cur->oid, &cur->val );
-        if( ret != 0 )
-            return( ret + MBEDTLS_ERR_X509_INVALID_NAME );
-
-        if( *p != end_set )
-            cur->next_merged = 1;
-
-        if( *p == end )
-        {
-            cur->next = NULL;
-            break;
-        }
-
         cur->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
         if( cur->next == NULL )
-            return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+            return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
 
         cur = cur->next;
     }
 
+    cur->oid = *oid;
+    cur->val = *val;
+    cur->next_merged = next_merged;
+
+    *cur_ptr = cur;
     return( 0 );
 }
 
+/* `cur` MUST be zero-initialized when calling this function. */
+int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
+                           mbedtls_x509_name *cur )
+{
+    int ret;
+    mbedtls_x509_buf_raw name_buf = { *p, end - *p };
+    memset( cur, 0, sizeof( mbedtls_x509_name ) );
+    ret = mbedtls_x509_name_cmp_raw( &name_buf, &name_buf,
+                                     x509_get_name_cb,
+                                     &cur );
+    if( ret != 0 )
+        return( ret );
+
+    *p = (unsigned char*) end;
+    return( 0 );
+}
 
 static int x509_parse_int( unsigned char **p, size_t n, int *res )
 {

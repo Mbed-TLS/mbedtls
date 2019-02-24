@@ -411,9 +411,6 @@ static const char *features[] = {
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
     "MBEDTLS_ENTROPY_NV_SEED",
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
-#if defined(MBEDTLS_PSA_HAS_ITS_IO)
-    "MBEDTLS_PSA_HAS_ITS_IO",
-#endif /* MBEDTLS_PSA_HAS_ITS_IO */
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
     "MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER",
 #endif /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
@@ -435,9 +432,6 @@ static const char *features[] = {
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
     "MBEDTLS_PSA_CRYPTO_SPM",
 #endif /* MBEDTLS_PSA_CRYPTO_SPM */
-#if defined(MBEDTLS_PSA_HAS_ITS_IO)
-    "MBEDTLS_PSA_HAS_ITS_IO",
-#endif /* MBEDTLS_PSA_HAS_ITS_IO */
 #if defined(MBEDTLS_RSA_NO_CRT)
     "MBEDTLS_RSA_NO_CRT",
 #endif /* MBEDTLS_RSA_NO_CRT */

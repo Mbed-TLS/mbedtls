@@ -78,10 +78,6 @@
 #include "mbedtls/sha512.h"
 #include "mbedtls/xtea.h"
 
-#if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
-#include "psa/internal_trusted_storage.h"
-#endif
-
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
 
 /* constant-time buffer comparison */
@@ -4423,8 +4419,8 @@ psa_status_t psa_generate_random( uint8_t *output,
     return( mbedtls_to_psa_error( ret ) );
 }
 
-#if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
-
+#if defined(MBEDTLS_ENTROPY_NV_SEED) && \
+    defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
                                          size_t seed_size )
 {

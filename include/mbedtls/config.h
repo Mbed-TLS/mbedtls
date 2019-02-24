@@ -1166,16 +1166,6 @@
  */
 //#define MBEDTLS_ENTROPY_NV_SEED
 
-/**
- * \def MBEDTLS_PSA_HAS_ITS_IO
- *
- * Enable the non-volatile secure storage usage.
- *
- * This is crucial on systems that do not have a HW TRNG support.
- *
- */
-//#define MBEDTLS_PSA_HAS_ITS_IO
-
 /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
  *
  * In PSA key storage, encode the owner of the key.
@@ -1260,16 +1250,6 @@
  *
  */
 //#define MBEDTLS_PSA_CRYPTO_SPM
-
-/**
- * \def MBEDTLS_PSA_HAS_ITS_IO
- *
- * Enable the non-volatile secure storage usage.
- *
- * This is crucial on systems that do not have a HW TRNG support.
- *
- */
-//#define MBEDTLS_PSA_HAS_ITS_IO
 
 /**
  * \def MBEDTLS_RSA_NO_CRT

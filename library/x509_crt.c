@@ -2843,21 +2843,35 @@ static int x509_crt_find_parent_in(
 
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
-        /* basic parenting skills (name, CA bit, key usage) */
-        if( x509_crt_check_parent( child, parent, top ) != 0 )
-            continue;
+        int parent_valid, parent_match, path_len_ok;
 
-        /* +1 because stored max_pathlen is 1 higher that the actual value */
-        if( parent->max_pathlen > 0 &&
-            (size_t) parent->max_pathlen < 1 + path_cnt - self_cnt )
-        {
-            continue;
-        }
-
-        /* Signature */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 check_signature:
 #endif
+
+        parent_valid = parent_match = path_len_ok = 0;
+
+        if( mbedtls_x509_time_is_past( &parent->valid_from ) &&
+            mbedtls_x509_time_is_future( &parent->valid_to ) )
+        {
+            parent_valid = 1;
+        }
+
+        /* basic parenting skills (name, CA bit, key usage) */
+        if( x509_crt_check_parent( child, parent, top ) == 0 )
+            parent_match = 1;
+
+        /* +1 because stored max_pathlen is 1 higher that the actual value */
+        if( !( parent->max_pathlen > 0 &&
+               (size_t) parent->max_pathlen < 1 + path_cnt - self_cnt ) )
+        {
+            path_len_ok = 1;
+        }
+
+        if( parent_match == 0 || path_len_ok == 0 )
+            continue;
+
+        /* Signature */
         ret = x509_crt_check_signature( child, parent, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2879,8 +2893,7 @@ check_signature:
             continue;
 
         /* optional time check */
-        if( mbedtls_x509_time_is_past( &parent->valid_to ) ||
-            mbedtls_x509_time_is_future( &parent->valid_from ) )
+        if( !parent_valid )
         {
             if( fallback_parent == NULL )
             {

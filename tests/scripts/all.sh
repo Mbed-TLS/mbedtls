@@ -689,8 +689,9 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
@@ -870,7 +871,8 @@ component_build_arm_none_eabi_gcc () {
     scripts/config.pl unset MBEDTLS_NET_C
     scripts/config.pl unset MBEDTLS_TIMING_C
     scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
@@ -889,7 +891,8 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
     scripts/config.pl unset MBEDTLS_NET_C
     scripts/config.pl unset MBEDTLS_TIMING_C
     scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
@@ -911,7 +914,8 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     scripts/config.pl unset MBEDTLS_NET_C
     scripts/config.pl unset MBEDTLS_TIMING_C
     scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
@@ -933,7 +937,8 @@ component_build_armcc () {
     scripts/config.pl unset MBEDTLS_NET_C
     scripts/config.pl unset MBEDTLS_TIMING_C
     scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl unset MBEDTLS_HAVE_TIME

@@ -85,7 +85,6 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		psa_crypto.o					\
 		psa_crypto_slot_management.o			\
 		psa_crypto_storage.o				\
-		psa_crypto_storage_file.o			\
 		psa_crypto_storage_its.o			\
 		psa_its_file.o					\
 		ripemd160.o	rsa_internal.o	rsa.o  		\

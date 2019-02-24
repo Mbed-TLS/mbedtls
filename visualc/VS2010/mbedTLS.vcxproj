@@ -302,7 +302,6 @@
     <ClCompile Include="..\..\library\psa_crypto.c" />
     <ClCompile Include="..\..\library\psa_crypto_slot_management.c" />
     <ClCompile Include="..\..\library\psa_crypto_storage.c" />
-    <ClCompile Include="..\..\library\psa_crypto_storage_file.c" />
     <ClCompile Include="..\..\library\psa_crypto_storage_its.c" />
     <ClCompile Include="..\..\library\psa_its_file.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />

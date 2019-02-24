@@ -62,6 +62,21 @@ extern "C" {
 #define PSA_MAX_PERSISTENT_KEY_IDENTIFIER 0xfffeffff
 
 /**
+ * \brief Checks if persistent data is stored for the given key slot number
+ *
+ * This function checks if any key data or metadata exists for the key slot in
+ * the persistent storage.
+ *
+ * \param key           Persistent identifier to check.
+ *
+ * \retval 0
+ *         No persistent data present for slot number
+ * \retval 1
+ *         Persistent data present for slot number
+ */
+int psa_is_key_present_in_storage( const psa_key_file_id_t key );
+
+/**
  * \brief Format key data and metadata and save to a location for given key
  *        slot.
  *

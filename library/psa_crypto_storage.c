@@ -33,8 +33,14 @@
 #include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 #include "psa_crypto_storage.h"
-#include "psa_crypto_storage_backend.h"
 #include "mbedtls/platform_util.h"
+
+#if defined(MBEDTLS_PSA_ITS_FILE_C)
+#include "psa_crypto_its.h"
+#else /* Native ITS implementation */
+#include "psa/error.h"
+#include "psa/internal_trusted_storage.h"
+#endif
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -42,14 +48,6 @@
 #include <stdlib.h>
 #define mbedtls_calloc   calloc
 #define mbedtls_free     free
-#endif
-
-#if defined(MBEDTLS_PSA_ITS_FILE_C)
-#include "psa_crypto_its.h"
-#else /* Native ITS implementation */
-#include "psa/error.h"
-#include "psa_crypto_service_integration.h"
-#include "psa/internal_trusted_storage.h"
 #endif
 
 /* Determine a file name (ITS file identifier) for the given key file
@@ -76,8 +74,24 @@ static psa_storage_uid_t psa_its_identifier_of_slot( psa_key_file_id_t file_id )
 #endif
 }
 
-psa_status_t psa_crypto_storage_load( const psa_key_file_id_t key, uint8_t *data,
-                                      size_t data_size )
+/**
+ * \brief Load persistent data for the given key slot number.
+ *
+ * This function reads data from a storage backend and returns the data in a
+ * buffer.
+ *
+ * \param key               Persistent identifier of the key to be loaded. This
+ *                          should be an occupied storage location.
+ * \param[out] data         Buffer where the data is to be written.
+ * \param data_size         Size of the \c data buffer in bytes.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval PSA_ERROR_DOES_NOT_EXIST
+ */
+static psa_status_t psa_crypto_storage_load( const psa_key_file_id_t key,
+                                             uint8_t *data,
+                                             size_t data_size )
 {
     psa_status_t status;
     psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
@@ -105,9 +119,25 @@ int psa_is_key_present_in_storage( const psa_key_file_id_t key )
     return( 1 );
 }
 
-psa_status_t psa_crypto_storage_store( const psa_key_file_id_t key,
-                                       const uint8_t *data,
-                                       size_t data_length )
+/**
+ * \brief Store persistent data for the given key slot number.
+ *
+ * This function stores the given data buffer to a persistent storage.
+ *
+ * \param key           Persistent identifier of the key to be stored. This
+ *                      should be an unoccupied storage location.
+ * \param[in] data      Buffer containing the data to be stored.
+ * \param data_length   The number of bytes
+ *                      that make up the data.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval PSA_ERROR_ALREADY_EXISTS
+ */
+static psa_status_t psa_crypto_storage_store( const psa_key_file_id_t key,
+                                              const uint8_t *data,
+                                              size_t data_length )
 {
     psa_status_t status;
     psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
@@ -160,8 +190,19 @@ psa_status_t psa_destroy_persistent_key( const psa_key_file_id_t key )
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_crypto_storage_get_data_length( const psa_key_file_id_t key,
-                                                 size_t *data_length )
+/**
+ * \brief Get data length for given key slot number.
+ *
+ * \param key               Persistent identifier whose stored data length
+ *                          is to be obtained.
+ * \param[out] data_length  The number of bytes that make up the data.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_STORAGE_FAILURE
+ */
+static psa_status_t psa_crypto_storage_get_data_length(
+    const psa_key_file_id_t key,
+    size_t *data_length )
 {
     psa_status_t status;
     psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );

@@ -2719,24 +2719,11 @@
  *
  * Module:  library/psa_crypto_storage.c
  *
- * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
- *
+ * Requires: MBEDTLS_PSA_CRYPTO_C,
+ *           either MBEDTLS_PSA_ITS_FILE_C or a native implementation of
+ *           the PSA ITS interface
  */
 #define MBEDTLS_PSA_CRYPTO_STORAGE_C
-
-/**
- * \def MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
- *
- * Enable persistent key storage over PSA ITS for the
- * Platform Security Architecture cryptography API.
- *
- * Module:  library/psa_crypto_storage_its.c
- *
- * Requires: MBEDTLS_PSA_CRYPTO_C,
- *           either MBEDTLS_PSA_HAS_ITS_IO or MBEDTLS_PSA_ITS_FILE_C
- *
- */
-#define MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
 
 /**
  * \def MBEDTLS_PSA_ITS_FILE_C

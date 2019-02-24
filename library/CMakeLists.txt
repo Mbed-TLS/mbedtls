@@ -56,7 +56,6 @@ set(src_crypto
     psa_crypto.c
     psa_crypto_slot_management.c
     psa_crypto_storage.c
-    psa_crypto_storage_its.c
     psa_its_file.c
     ripemd160.c
     rsa.c

@@ -27,11 +27,16 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C)
 
+#if defined(MBEDTLS_PSA_ITS_FILE_C)
+#include "psa_crypto_its.h"
+#else /* Native ITS implementation */
 #include "psa/error.h"
 #include "psa_crypto_service_integration.h"
+#include "psa/internal_trusted_storage.h"
+#endif
+
 #include "psa/crypto.h"
 #include "psa_crypto_storage_backend.h"
-#include "psa/internal_trusted_storage.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

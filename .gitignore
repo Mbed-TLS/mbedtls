@@ -1,3 +1,6 @@
+# Random seed file created by test scripts and sample programs
+seedfile
+
 # CMake build artifacts:
 CMakeCache.txt
 CMakeFiles
@@ -28,6 +31,8 @@ massif-*
 # Python build artifacts:
 *.pyc
 
+# Generated documentation:
+/apidoc
 
 # Editor navigation files:
 /GPATH

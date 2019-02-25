@@ -2653,29 +2653,45 @@ static int x509_crt_check_signature( const mbedtls_x509_crt_sig_info *sig_info,
                                      mbedtls_x509_crt *parent,
                                      mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
-    /* Skip expensive computation on obvious mismatch */
-    if( ! mbedtls_pk_can_do( &parent->pk, sig_info->sig_pk ) )
-        return( -1 );
+    int ret;
+    mbedtls_pk_context *pk;
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    if( rs_ctx != NULL && child->sig_pk == MBEDTLS_PK_ECDSA )
+    ret = x509_crt_pk_acquire( parent, &pk );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+    /* Skip expensive computation on obvious mismatch */
+    if( ! mbedtls_pk_can_do( pk, sig_info->sig_pk ) )
     {
-        return( mbedtls_pk_verify_restartable( &parent->pk,
+        ret = -1;
+        goto exit;
+    }
+
+#if !( defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE) )
+    ((void) rs_ctx);
+#else
+    if( rs_ctx != NULL && sig_info->sig_pk == MBEDTLS_PK_ECDSA )
+    {
+        ret = mbedtls_pk_verify_restartable( pk,
                     sig_info->sig_md,
                     sig_info->crt_hash, sig_info->crt_hash_len,
                     sig_info->sig.p, sig_info->sig.len,
-                                               &rs_ctx->pk ) );
+                    &rs_ctx->pk );
     }
-#else
-    (void) rs_ctx;
+    else
 #endif
+    {
+        ret = mbedtls_pk_verify_ext( sig_info->sig_pk,
+                                     sig_info->sig_opts,
+                                     pk,
+                                     sig_info->sig_md,
+                                     sig_info->crt_hash, sig_info->crt_hash_len,
+                                     sig_info->sig.p, sig_info->sig.len );
+    }
 
-    return( mbedtls_pk_verify_ext( sig_info->sig_pk,
-                                   sig_info->sig_opts,
-                                   &parent->pk,
-                                   sig_info->sig_md,
-                                   sig_info->crt_hash, sig_info->crt_hash_len,
-                                   sig_info->sig.p, sig_info->sig.len ) );
+exit:
+    x509_crt_pk_release( parent, pk );
+    return( ret );
 }
 
 /*

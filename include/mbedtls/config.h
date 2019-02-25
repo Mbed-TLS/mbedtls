@@ -1357,7 +1357,7 @@
 /**
  * \def MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
  *
- * This option controls the presence of the API mbedtls_ssl_get_peer_cert()
+ * This option controls the availability of the API mbedtls_ssl_get_peer_cert()
  * giving access to the peer's certificate after completion of the handshake.
  *
  * Unless you need mbedtls_ssl_peer_cert() in your application, it is

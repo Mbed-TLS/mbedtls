@@ -2845,7 +2845,7 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
     return( mbedtls_ecp_gen_keypair( &key->grp, &key->d, &key->Q, f_rng, p_rng ) );
 }
 
-#define ECP_CURVE255_KEY_SIZE 32
+#define ECP_CURVE25519_KEY_SIZE 32
 /*
  * Read a private key.
  */
@@ -2863,7 +2863,7 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
      */
     if( grp_id == MBEDTLS_ECP_DP_CURVE25519 )
     {
-        if( buflen != ECP_CURVE255_KEY_SIZE )
+        if( buflen != ECP_CURVE25519_KEY_SIZE )
             return MBEDTLS_ERR_ECP_INVALID_KEY;
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &key->d, buf, buflen ) );
@@ -2875,12 +2875,12 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 
         /* Set the most significant bit to 0 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &key->d,
-                                              ECP_CURVE255_KEY_SIZE * 8 - 1,
+                                              ECP_CURVE25519_KEY_SIZE * 8 - 1,
                                               0 ) );
 
         /* Set the second most significant bit to 1 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &key->d,
-                                              ECP_CURVE255_KEY_SIZE * 8 - 2,
+                                              ECP_CURVE25519_KEY_SIZE * 8 - 2,
                                               1 ) );
     }
 

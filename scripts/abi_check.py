@@ -23,6 +23,7 @@ import subprocess
 import argparse
 import logging
 import tempfile
+import fnmatch
 
 import xml.etree.ElementTree as ET
 
@@ -30,15 +31,18 @@ import xml.etree.ElementTree as ET
 class AbiChecker(object):
     """API and ABI checker."""
 
-    def __init__(self, report_dir, old_repo, old_rev, new_repo, new_rev,
-                 keep_all_reports, brief, skip_file=None):
+    def __init__(self, report_dir, old_repo, old_rev, old_crypto_rev,
+                 new_repo, new_rev, new_crypto_rev, keep_all_reports, brief,
+                 skip_file=None):
         """Instantiate the API/ABI checker.
 
         report_dir: directory for output files
         old_repo: repository for git revision to compare against
         old_rev: reference git revision to compare against
+        old_crypto_rev: reference git revision for old crypto submodule
         new_repo: repository for git revision to check
         new_rev: git revision to check
+        new_crypto_rev: reference git revision for new crypto submodule
         keep_all_reports: if false, delete old reports
         brief: if true, output shorter report to stdout
         skip_file: path to file containing symbols and types to skip
@@ -52,11 +56,13 @@ class AbiChecker(object):
                                           keep_all_reports)
         self.old_repo = old_repo
         self.old_rev = old_rev
+        self.old_crypto_rev = old_crypto_rev
         self.new_repo = new_repo
         self.new_rev = new_rev
+        self.new_crypto_rev = new_crypto_rev
         self.skip_file = skip_file
         self.brief = brief
-        self.mbedtls_modules = ["libmbedcrypto", "libmbedtls", "libmbedx509"]
+        self.mbedtls_modules = {}
         self.old_dumps = {}
         self.new_dumps = {}
         self.git_command = "git"
@@ -119,7 +125,7 @@ class AbiChecker(object):
             raise Exception("Checking out worktree failed, aborting")
         return git_worktree_path
 
-    def update_git_submodules(self, git_worktree_path):
+    def update_git_submodules(self, git_worktree_path, crypto_rev):
         process = subprocess.Popen(
             [self.git_command, "submodule", "update", "--init", '--recursive'],
             cwd=git_worktree_path,
@@ -130,12 +136,25 @@ class AbiChecker(object):
         self.log.info(output.decode("utf-8"))
         if process.returncode != 0:
             raise Exception("git submodule update failed, aborting")
+        if (os.path.exists(os.path.join(git_worktree_path, "crypto"))
+                and crypto_rev):
+            checkout_process = subprocess.Popen(
+                [self.git_command, "checkout", crypto_rev],
+                cwd=os.path.join(git_worktree_path, "crypto"),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+            )
+            checkout_output, _ = checkout_process.communicate()
+            self.log.info(checkout_output.decode("utf-8"))
+            if checkout_process.returncode != 0:
+                raise Exception("git checkout failed, aborting")
 
     def build_shared_libraries(self, git_worktree_path):
         """Build the shared libraries in the specified worktree."""
         my_environment = os.environ.copy()
         my_environment["CFLAGS"] = "-g -Og"
         my_environment["SHARED"] = "1"
+        my_environment["USE_CRYPTO_SUBMODULE"] = "1"
         make_process = subprocess.Popen(
             self.make_command,
             env=my_environment,
@@ -145,6 +164,11 @@ class AbiChecker(object):
         )
         make_output, _ = make_process.communicate()
         self.log.info(make_output.decode("utf-8"))
+        for root, dirs, files in os.walk(git_worktree_path):
+            for file in fnmatch.filter(files, "*.so"):
+                self.mbedtls_modules[os.path.splitext(file)[0]] = os.path.join(
+                    root, file
+                )
         if make_process.returncode != 0:
             raise Exception("make failed, aborting")
 
@@ -153,14 +177,13 @@ class AbiChecker(object):
         It must be checked out in git_worktree_path and the shared libraries
         must have been built."""
         abi_dumps = {}
-        for mbed_module in self.mbedtls_modules:
+        for mbed_module, module_path in self.mbedtls_modules.items():
             output_path = os.path.join(
                 self.report_dir, "{}-{}.dump".format(mbed_module, git_ref)
             )
             abi_dump_command = [
                 "abi-dumper",
-                os.path.join(
-                    git_worktree_path, "library", mbed_module + ".so"),
+                module_path,
                 "-o", output_path,
                 "-lver", git_ref
             ]
@@ -190,12 +213,12 @@ class AbiChecker(object):
         if worktree_process.returncode != 0:
             raise Exception("Worktree cleanup failed, aborting")
 
-    def get_abi_dump_for_ref(self, remote_repo, git_rev):
+    def get_abi_dump_for_ref(self, remote_repo, git_rev, crypto_rev):
         """Generate the ABI dumps for the specified git revision."""
         git_worktree_path = self.get_clean_worktree_for_git_revision(
             remote_repo, git_rev
         )
-        self.update_git_submodules(git_worktree_path)
+        self.update_git_submodules(git_worktree_path, crypto_rev)
         self.build_shared_libraries(git_worktree_path)
         abi_dumps = self.get_abi_dumps_from_shared_libraries(
             git_rev, git_worktree_path
@@ -227,7 +250,7 @@ class AbiChecker(object):
         be available."""
         compatibility_report = ""
         compliance_return_code = 0
-        for mbed_module in self.mbedtls_modules:
+        for mbed_module, module_path in self.mbedtls_modules.items():
             output_path = os.path.join(
                 self.report_dir, "{}-{}-{}.html".format(
                     mbed_module, self.old_rev, self.new_rev
@@ -291,8 +314,10 @@ class AbiChecker(object):
         between self.old_rev and self.new_rev."""
         self.check_repo_path()
         self.check_abi_tools_are_installed()
-        self.old_dumps = self.get_abi_dump_for_ref(self.old_repo, self.old_rev)
-        self.new_dumps = self.get_abi_dump_for_ref(self.new_repo, self.new_rev)
+        self.old_dumps = self.get_abi_dump_for_ref(self.old_repo, self.old_rev,
+                                                   self.old_crypto_rev)
+        self.new_dumps = self.get_abi_dump_for_ref(self.new_repo, self.new_rev,
+                                                   self.new_crypto_rev)
         return self.get_abi_compatibility_report()
 
 
@@ -326,10 +351,18 @@ def run_main():
             required=True, nargs="+"
         )
         parser.add_argument(
+            "-oc", "--old-crypto-rev", type=str,
+            help="revision for old crypto version",
+        )
+        parser.add_argument(
             "-n", "--new-rev", type=str,
             help=("revision for new version"
                   "Can include repository before revision"),
             required=True, nargs="+"
+        )
+        parser.add_argument(
+            "-nc", "--new-crypto-rev", type=str,
+            help="revision for new crypto version",
         )
         parser.add_argument(
             "-s", "--skip-file", type=str,
@@ -357,9 +390,9 @@ def run_main():
         else:
             raise Exception("Too many arguments passed for new version")
         abi_check = AbiChecker(
-            abi_args.report_dir, old_repo, old_rev,
-            new_repo, new_rev, abi_args.keep_all_reports,
-            abi_args.brief, abi_args.skip_file
+            abi_args.report_dir, old_repo, old_rev, abi_args.old_crypto_rev,
+            new_repo, new_rev, abi_args.new_crypto_rev,
+            abi_args.keep_all_reports, abi_args.brief, abi_args.skip_file
         )
         return_code = abi_check.check_for_abi_changes()
         sys.exit(return_code)

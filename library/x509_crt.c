@@ -2785,7 +2785,7 @@ static int x509_crt_verify_chain(
     uint32_t *flags;
     mbedtls_x509_crt_verify_chain_item *cur;
     mbedtls_x509_crt *child_crt;
-    mbedtls_x509_crt *parent;
+    mbedtls_x509_crt *parent_crt;
     int parent_is_trusted;
     int child_is_trusted;
     int signature_is_good;
@@ -2889,7 +2889,7 @@ find_parent:
 
             /* Look for a parent in trusted CAs or up the chain */
             ret = x509_crt_find_parent( &child_sig, child_crt->next,
-                                        trust_ca, &parent,
+                                        trust_ca, &parent_crt,
                                         &parent_is_trusted, &signature_is_good,
                                         ver_chain->len - 1, self_cnt, rs_ctx );
 
@@ -2910,7 +2910,7 @@ find_parent:
 #endif
 
         /* No parent? We're done here */
-        if( parent == NULL )
+        if( parent_crt == NULL )
         {
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
             return( 0 );
@@ -2935,22 +2935,31 @@ find_parent:
         if( ! signature_is_good )
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
 
-        /* check size of signing key */
-        if( x509_profile_check_key( profile, &parent->pk ) != 0 )
-            *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+        {
+            mbedtls_pk_context *parent_pk;
+            ret = x509_crt_pk_acquire( parent_crt, &parent_pk );
+            if( ret != 0 )
+                return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+            /* check size of signing key */
+            if( x509_profile_check_key( profile, parent_pk ) != 0 )
+                *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
+            x509_crt_pk_release( parent_crt, parent_pk );
+        }
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         /* Check trusted CA's CRL for the given crt */
         *flags |= x509_crt_verifycrl( child_serial.p,
                                       child_serial.len,
-                                      parent, ca_crl, profile );
+                                      parent_crt, ca_crl, profile );
 #else
         (void) ca_crl;
 #endif
 
         /* prepare for next iteration */
-        child_crt = parent;
-        parent = NULL;
+        child_crt = parent_crt;
+        parent_crt = NULL;
         child_is_trusted = parent_is_trusted;
         signature_is_good = 0;
     }

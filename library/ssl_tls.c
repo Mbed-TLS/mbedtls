@@ -309,15 +309,15 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
 #else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     if( src->peer_cert_digest != NULL )
     {
-        dst->peer_cert_digest_len = src->peer_cert_digest_len;
         dst->peer_cert_digest =
-            mbedtls_calloc( 1, dst->peer_cert_digest_len );
+            mbedtls_calloc( 1, src->peer_cert_digest_len );
         if( dst->peer_cert_digest == NULL )
             return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
         memcpy( dst->peer_cert_digest, src->peer_cert_digest,
                 src->peer_cert_digest_len );
         dst->peer_cert_digest_type = src->peer_cert_digest_type;
+        dst->peer_cert_digest_len = src->peer_cert_digest_len;
     }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 

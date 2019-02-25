@@ -1958,8 +1958,8 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 #endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
-int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
-                                      unsigned int usage )
+static int x509_crt_check_key_usage_frame( const mbedtls_x509_crt_frame *crt,
+                                           unsigned int usage )
 {
     unsigned int usage_must, usage_may;
     unsigned int may_mask = MBEDTLS_X509_KU_ENCIPHER_ONLY
@@ -1979,6 +1979,21 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
     return( 0 );
+}
+
+int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
+                                      unsigned int usage )
+{
+    int ret;
+    mbedtls_x509_crt_frame *frame;
+    ret = x509_crt_frame_acquire( crt, (mbedtls_x509_crt_frame**) &frame );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+    ret = x509_crt_check_key_usage_frame( frame, usage );
+    x509_crt_frame_release( crt, (mbedtls_x509_crt_frame*) frame );
+
+    return( ret );
 }
 #endif
 

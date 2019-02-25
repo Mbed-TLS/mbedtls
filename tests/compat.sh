@@ -170,16 +170,24 @@ filter()
 {
   LIST="$1"
   NEW_LIST=""
+  EXCLMODE=""
+  CMP=""
 
   if is_dtls "$MODE"; then
-      EXCLMODE="$EXCLUDE"'\|RC4\|ARCFOUR'
-  else
-      EXCLMODE="$EXCLUDE"
+    EXCLMODE='RC4\|ARCFOUR'
+  fi
+
+  if [ "X" != "X$EXCLUDE" ]; then
+    EXCLMODE="$EXCLUDE\|$EXCLMODE"
   fi
 
   for i in $LIST;
   do
-    NEW_LIST="$NEW_LIST $( echo "$i" | grep "$FILTER" | grep -v "$EXCLMODE" )"
+    CMP="$( echo "$i" | grep "$FILTER" )"
+    if [ "X" != "X$EXCLMODE" ]; then
+      CMP="$( echo "$CMP" | grep -v "$EXCLMODE" )"
+    fi
+    NEW_LIST="$NEW_LIST $CMP"
   done
 
   # normalize whitespace

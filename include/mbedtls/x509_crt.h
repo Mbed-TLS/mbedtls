@@ -33,6 +33,7 @@
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crl.h"
 #include "mbedtls/bignum.h"
+#include "mbedtls/threading.h"
 
 /**
  * \addtogroup x509_module
@@ -101,6 +102,22 @@ typedef struct mbedtls_x509_crt_frame
 
 } mbedtls_x509_crt_frame;
 
+/* This is an internal structure used for caching parsed data from an X.509 CRT.
+ *
+ * This structure may change at any time, and it is discouraged
+ * to access it directly.
+ */
+typedef struct mbedtls_x509_crt_cache
+{
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t frame_mutex;
+    mbedtls_threading_mutex_t pk_mutex;
+#endif
+    mbedtls_x509_buf_raw pk_raw;
+    mbedtls_x509_crt_frame *frame;
+    mbedtls_pk_context *pk;
+} mbedtls_x509_crt_cache;
+
 /**
  * Container for an X.509 certificate. The certificate may be chained.
  */
@@ -154,6 +171,8 @@ typedef struct mbedtls_x509_crt
     mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
     mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
     void *sig_opts;             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
+
+    mbedtls_x509_crt_cache *cache;     /**< Internal parsing cache. */
 
     struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */
 }
@@ -813,6 +832,127 @@ void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx );
  */
 void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
+
+/**
+ * \brief           Flush internal X.509 CRT parsing cache, if present.
+ *
+ * \param crt       The CRT structure whose cache to flush.
+ *
+ * \note            Calling this function frequently reduces RAM usage
+ *                  at the cost of performance.
+ *
+ * \return          \c 0 on success.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt );
+
+/* Internal X.509 CRT cache handling functions.
+ * They are not part of the public API and may change
+ * at any time. */
+
+int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt );
+int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt );
+
+static inline int mbedtls_x509_crt_cache_frame_set(
+    mbedtls_x509_crt_cache *cache )
+{
+    return( cache->frame != NULL );
+}
+
+static inline mbedtls_x509_crt_frame* mbedtls_x509_crt_cache_get_frame(
+    mbedtls_x509_crt_cache *cache )
+{
+    return( cache->frame );
+}
+
+static inline int mbedtls_x509_crt_cache_pk_set(
+    mbedtls_x509_crt_cache *cache )
+{
+    return( cache->pk != NULL );
+}
+
+static inline mbedtls_pk_context* mbedtls_x509_crt_cache_get_pk(
+    mbedtls_x509_crt_cache *cache )
+{
+    return( cache->pk );
+}
+
+static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
+                                         mbedtls_x509_crt_frame **frame_ptr )
+{
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    if( !mbedtls_x509_crt_cache_frame_set( crt->cache ) )
+    {
+        int ret;
+        ret = mbedtls_x509_crt_cache_provide_frame( crt );
+        if( ret != 0 )
+        {
+#if defined(MBEDTLS_THREADING_C)
+            if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
+                return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+            return( ret );
+        }
+    }
+
+    *frame_ptr = mbedtls_x509_crt_cache_get_frame( crt->cache );
+    return( 0 );
+}
+
+static inline void mbedtls_x509_crt_frame_release(
+    mbedtls_x509_crt const *crt,
+    mbedtls_x509_crt_frame *frame )
+{
+    ((void) frame);
+    ((void) crt);
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock( &crt->cache->frame_mutex );
+#endif
+}
+
+static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt *crt,
+                                               mbedtls_pk_context **pk_ptr )
+{
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    if( !mbedtls_x509_crt_cache_pk_set( crt->cache ) )
+    {
+        int ret;
+        ret = mbedtls_x509_crt_cache_provide_pk( crt );
+        if( ret != 0 )
+        {
+#if defined(MBEDTLS_THREADING_C)
+            if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
+                return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+            return( ret );
+        }
+    }
+
+    *pk_ptr = mbedtls_x509_crt_cache_get_pk( crt->cache );
+    return( 0 );
+}
+
+static inline void mbedtls_x509_crt_pk_release( mbedtls_x509_crt *crt,
+                                                mbedtls_pk_context *pk )
+{
+    ((void) pk);
+    ((void) crt);
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock( &crt->cache->pk_mutex );
+#endif
+}
+
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /* \} name */

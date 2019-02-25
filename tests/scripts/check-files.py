@@ -66,6 +66,9 @@ class IssueTracker(object):
 
 
 class PermissionIssueTracker(IssueTracker):
+    """Track files with bad permissions.
+
+    Files that are not executable scripts must not be executable."""
 
     def __init__(self):
         super().__init__()
@@ -78,6 +81,8 @@ class PermissionIssueTracker(IssueTracker):
 
 
 class EndOfFileNewlineIssueTracker(IssueTracker):
+    """Track files that end with an incomplete line
+    (no newline character at the end of the last line)."""
 
     def __init__(self):
         super().__init__()
@@ -90,6 +95,8 @@ class EndOfFileNewlineIssueTracker(IssueTracker):
 
 
 class Utf8BomIssueTracker(IssueTracker):
+    """Track files that start with a UTF-8 BOM.
+    Files should be ASCII or UTF-8. Valid UTF-8 does not start with a BOM."""
 
     def __init__(self):
         super().__init__()
@@ -102,6 +109,7 @@ class Utf8BomIssueTracker(IssueTracker):
 
 
 class LineEndingIssueTracker(IssueTracker):
+    """Track files with non-Unix line endings (i.e. files with CR)."""
 
     def __init__(self):
         super().__init__()
@@ -112,6 +120,7 @@ class LineEndingIssueTracker(IssueTracker):
 
 
 class TrailingWhitespaceIssueTracker(IssueTracker):
+    """Track lines with trailing whitespace."""
 
     def __init__(self):
         super().__init__()
@@ -123,6 +132,7 @@ class TrailingWhitespaceIssueTracker(IssueTracker):
 
 
 class TabIssueTracker(IssueTracker):
+    """Track lines with tabs."""
 
     def __init__(self):
         super().__init__()
@@ -136,6 +146,8 @@ class TabIssueTracker(IssueTracker):
 
 
 class MergeArtifactIssueTracker(IssueTracker):
+    """Track lines with merge artifacts.
+    These are leftovers from a ``git merge`` that wasn't fully edited."""
 
     def __init__(self):
         super().__init__()
@@ -157,6 +169,7 @@ class MergeArtifactIssueTracker(IssueTracker):
             self.record_issue(filepath, line_number)
 
 class TodoIssueTracker(IssueTracker):
+    """Track lines containing ``TODO``."""
 
     def __init__(self):
         super().__init__()
@@ -172,8 +185,12 @@ class TodoIssueTracker(IssueTracker):
 
 
 class IntegrityChecker(object):
+    """Sanity-check files under the current directory."""
 
     def __init__(self, log_file):
+        """Instantiate the sanity checker.
+        Check files under the current directory.
+        Write a report of issues to log_file."""
         self.check_repo_path()
         self.logger = None
         self.setup_logger(log_file)
@@ -197,7 +214,8 @@ class IntegrityChecker(object):
             TodoIssueTracker(),
         ]
 
-    def check_repo_path(self):
+    @staticmethod
+    def check_repo_path():
         if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
             raise Exception("Must be run from Mbed TLS root")
 

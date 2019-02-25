@@ -3183,7 +3183,6 @@ static int x509_crt_verify_restartable_ca_cb( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
-    mbedtls_pk_type_t pk_type;
     mbedtls_x509_crt_verify_chain ver_chain;
     uint32_t ee_flags;
 
@@ -3199,16 +3198,31 @@ static int x509_crt_verify_restartable_ca_cb( mbedtls_x509_crt *crt,
 
     /* check name if requested */
     if( cn != NULL )
-        x509_crt_verify_name( crt, cn, &ee_flags );
+    {
+        ret = x509_crt_verify_name( crt, cn, &ee_flags );
+        if( ret != 0 )
+            return( ret );
+    }
 
-    /* Check the type and size of the key */
-    pk_type = mbedtls_pk_get_type( &crt->pk );
+    {
+        mbedtls_pk_context *pk;
+        mbedtls_pk_type_t pk_type;
 
-    if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
-        ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+        ret = x509_crt_pk_acquire( crt, &pk );
+        if( ret != 0 )
+            return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
-    if( x509_profile_check_key( profile, &crt->pk ) != 0 )
-        ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+        /* Check the type and size of the key */
+        pk_type = mbedtls_pk_get_type( pk );
+
+        if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
+            ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
+        if( x509_profile_check_key( profile, pk ) != 0 )
+            ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
+        x509_crt_pk_release( crt, pk );
+    }
 
     /* Check the chain */
     ret = x509_crt_verify_chain( crt, trust_ca, ca_crl,

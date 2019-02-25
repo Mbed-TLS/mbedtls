@@ -2280,23 +2280,48 @@ int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt,
  */
 static int x509_crt_verifycrl( unsigned char *crt_serial,
                                size_t crt_serial_len,
-                               mbedtls_x509_crt *ca,
+                               mbedtls_x509_crt *ca_crt,
                                mbedtls_x509_crl *crl_list,
                                const mbedtls_x509_crt_profile *profile )
 {
+    int ret;
     int flags = 0;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
+    mbedtls_x509_buf_raw ca_subject;
+    mbedtls_pk_context *pk;
+    int can_sign;
 
-    if( ca == NULL )
+    if( ca_crt == NULL )
         return( flags );
+
+    {
+        mbedtls_x509_crt_frame *ca;
+        ret = x509_crt_frame_acquire( ca_crt, &ca );
+        if( ret != 0 )
+            return( MBEDTLS_X509_BADCRL_NOT_TRUSTED );
+
+        ca_subject = ca->subject_raw;
+
+        can_sign = 0;
+        if( x509_crt_check_key_usage_frame( ca,
+                                            MBEDTLS_X509_KU_CRL_SIGN ) == 0 )
+        {
+            can_sign = 1;
+        }
+
+        x509_crt_frame_release( ca_crt, ca );
+    }
+
+    ret = x509_crt_pk_acquire( ca_crt, &pk );
+    if( ret != 0 )
+        return( MBEDTLS_X509_BADCRL_NOT_TRUSTED );
 
     while( crl_list != NULL )
     {
         if( crl_list->version == 0 ||
             mbedtls_x509_name_cmp_raw( &crl_list->issuer_raw_no_hdr,
-                                       &ca->subject_raw_no_hdr,
-                                       NULL, NULL ) != 0 )
+                                       &ca_subject, NULL, NULL ) != 0 )
         {
             crl_list = crl_list->next;
             continue;
@@ -2306,8 +2331,7 @@ static int x509_crt_verifycrl( unsigned char *crt_serial,
          * Check if the CA is configured to sign CRLs
          */
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
-        if( mbedtls_x509_crt_check_key_usage( ca,
-                                              MBEDTLS_X509_KU_CRL_SIGN ) != 0 )
+        if( !can_sign )
         {
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;
@@ -2331,10 +2355,10 @@ static int x509_crt_verifycrl( unsigned char *crt_serial,
             break;
         }
 
-        if( x509_profile_check_key( profile, &ca->pk ) != 0 )
+        if( x509_profile_check_key( profile, pk ) != 0 )
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
-        if( mbedtls_pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, &ca->pk,
+        if( mbedtls_pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, pk,
                            crl_list->sig_md, hash, mbedtls_md_get_size( md_info ),
                            crl_list->sig.p, crl_list->sig.len ) != 0 )
         {
@@ -2364,6 +2388,7 @@ static int x509_crt_verifycrl( unsigned char *crt_serial,
         crl_list = crl_list->next;
     }
 
+    x509_crt_pk_release( ca_crt, pk );
     return( flags );
 }
 #endif /* MBEDTLS_X509_CRL_PARSE_C */

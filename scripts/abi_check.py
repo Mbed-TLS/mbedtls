@@ -48,7 +48,8 @@ class AbiChecker(object):
         self.setup_logger()
         self.report_dir = os.path.abspath(report_dir)
         self.keep_all_reports = keep_all_reports
-        self.should_keep_report_dir = os.path.isdir(self.report_dir)
+        self.can_remove_report_dir = not (os.path.isdir(self.report_dir) or
+                                          keep_all_reports)
         self.old_repo = old_repo
         self.old_rev = old_rev
         self.new_repo = new_repo
@@ -280,7 +281,7 @@ class AbiChecker(object):
                 )
             os.remove(self.old_dumps[mbed_module])
             os.remove(self.new_dumps[mbed_module])
-        if not self.should_keep_report_dir and not self.keep_all_reports:
+        if self.can_remove_report_dir:
             os.rmdir(self.report_dir)
         self.log.info(compatibility_report)
         return compliance_return_code

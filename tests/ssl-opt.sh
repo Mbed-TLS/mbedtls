@@ -3597,7 +3597,6 @@ run_test    "Authentication: send CA list in CertificateRequest, client self sig
 # Tests for certificate selection based on SHA verson
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -3609,7 +3608,6 @@ run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
             -C "signed using.*ECDSA with SHA1"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "Certificate hash: client TLS 1.1 -> SHA-1" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -3621,7 +3619,6 @@ run_test    "Certificate hash: client TLS 1.1 -> SHA-1" \
             -c "signed using.*ECDSA with SHA1"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "Certificate hash: client TLS 1.0 -> SHA-1" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -3633,7 +3630,6 @@ run_test    "Certificate hash: client TLS 1.0 -> SHA-1" \
             -c "signed using.*ECDSA with SHA1"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 1)" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -3646,7 +3642,6 @@ run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 1)" \
             -C "signed using.*ECDSA with SHA1"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 2)" \
             "$P_SRV crt_file=data_files/server6.crt \
                     key_file=data_files/server6.key \
@@ -3661,7 +3656,6 @@ run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 2)" \
 # tests for SNI
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "SNI: no SNI callback" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
@@ -3672,7 +3666,6 @@ run_test    "SNI: no SNI callback" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "SNI: matching cert 1" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -3684,7 +3677,6 @@ run_test    "SNI: matching cert 1" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "SNI: matching cert 2" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -3806,7 +3798,6 @@ run_test    "SNI: CA override with CRL" \
 # Tests for SNI and DTLS
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "SNI: DTLS, no SNI callback" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
@@ -3817,7 +3808,6 @@ run_test    "SNI: DTLS, no SNI callback" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "SNI: DTLS, matching cert 1" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -3829,7 +3819,6 @@ run_test    "SNI: DTLS, matching cert 1" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 run_test    "SNI: DTLS, matching cert 2" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \

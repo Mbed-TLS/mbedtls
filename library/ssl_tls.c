@@ -6015,8 +6015,6 @@ static int ssl_parse_certificate_coordinate( mbedtls_ssl_context *ssl,
 
         if( authmode == MBEDTLS_SSL_VERIFY_NONE )
         {
-            /* NOTE: Is it intentional that we set verify_result
-             * to SKIP_VERIFY on server-side only? */
             ssl->session_negotiate->verify_result =
                 MBEDTLS_X509_BADCERT_SKIP_VERIFY;
             return( SSL_CERTIFICATE_SKIP );

@@ -2694,26 +2694,34 @@ int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
                                                size_t usage_len )
 {
     int ret;
+    mbedtls_x509_crt_frame *frame;
     unsigned ext_types;
     unsigned char *p, *end;
     x509_crt_check_ext_key_usage_cb_ctx_t cb_ctx = { usage_oid, usage_len };
 
+    ret = x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
     /* Extension is not mandatory, absent means no restriction */
-    ext_types = crt->ext_types;
-    if( ( ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE ) == 0 )
-        return( 0 );
+    ext_types = frame->ext_types;
+    if( ( ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE ) != 0 )
+    {
+        p = frame->ext_key_usage_raw.p;
+        end = p + frame->ext_key_usage_raw.len;
 
-    p = crt->ext_key_usage_raw.p;
-    end = p + crt->ext_key_usage_raw.len;
+        ret = mbedtls_asn1_traverse_sequence_of( &p, end,
+                                                 0xFF, MBEDTLS_ASN1_OID, 0, 0,
+                                                 x509_crt_check_ext_key_usage_cb,
+                                                 &cb_ctx );
+        if( ret == 1 )
+            ret = 0;
+        else
+            ret = MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
 
-    ret = mbedtls_asn1_traverse_sequence_of( &p, end,
-                                             0xFF, MBEDTLS_ASN1_OID, 0, 0,
-                                             x509_crt_check_ext_key_usage_cb,
-                                             &cb_ctx );
-    if( ret == 1 )
-        return( 0 );
-
-    return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+    x509_crt_frame_release( crt, frame );
+    return( ret );
 }
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 

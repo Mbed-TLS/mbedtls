@@ -2222,15 +2222,15 @@ exit:
  *
  * top means parent is a locally-trusted certificate
  */
-static int x509_crt_check_parent( const mbedtls_x509_crt_sig_info *child_sig,
-                                  const mbedtls_x509_crt *parent,
+static int x509_crt_check_parent( const mbedtls_x509_crt_sig_info *sig_info,
+                                  const mbedtls_x509_crt_frame *parent,
                                   int top )
 {
     int need_ca_bit;
 
     /* Parent must be the issuer */
-    if( mbedtls_x509_name_cmp_raw( &child_sig->issuer_raw,
-                                   &parent->subject_raw_no_hdr,
+    if( mbedtls_x509_name_cmp_raw( &sig_info->issuer_raw,
+                                   &parent->subject_raw,
                                    NULL, NULL ) != 0 )
     {
         return( -1 );
@@ -2248,7 +2248,8 @@ static int x509_crt_check_parent( const mbedtls_x509_crt_sig_info *child_sig,
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
     if( need_ca_bit &&
-        mbedtls_x509_crt_check_key_usage( parent, MBEDTLS_X509_KU_KEY_CERT_SIGN ) != 0 )
+        x509_crt_check_key_usage_frame( parent,
+                                        MBEDTLS_X509_KU_KEY_CERT_SIGN ) != 0 )
     {
         return( -1 );
     }
@@ -2376,7 +2377,7 @@ static int x509_crt_find_parent_in(
                         mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
-    mbedtls_x509_crt *parent, *fallback_parent;
+    mbedtls_x509_crt *parent_crt, *fallback_parent;
     int signature_is_good, fallback_signature_is_good;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2384,7 +2385,7 @@ static int x509_crt_find_parent_in(
     if( rs_ctx != NULL && rs_ctx->parent != NULL )
     {
         /* restore saved state */
-        parent = rs_ctx->parent;
+        parent_crt = rs_ctx->parent;
         fallback_parent = rs_ctx->fallback_parent;
         fallback_signature_is_good = rs_ctx->fallback_signature_is_good;
 
@@ -2401,7 +2402,8 @@ static int x509_crt_find_parent_in(
     fallback_parent = NULL;
     fallback_signature_is_good = 0;
 
-    for( parent = candidates; parent != NULL; parent = parent->next )
+    for( parent_crt = candidates; parent_crt != NULL;
+         parent_crt = parent_crt->next )
     {
         int parent_valid, parent_match, path_len_ok;
 
@@ -2410,35 +2412,45 @@ check_signature:
 #endif
 
         parent_valid = parent_match = path_len_ok = 0;
-
-        if( mbedtls_x509_time_is_past( &parent->valid_from ) &&
-            mbedtls_x509_time_is_future( &parent->valid_to ) )
         {
-            parent_valid = 1;
-        }
+            mbedtls_x509_crt_frame *parent;
 
-        /* basic parenting skills (name, CA bit, key usage) */
-        if( x509_crt_check_parent( child_sig, parent, top ) == 0 )
-            parent_match = 1;
+            ret = x509_crt_frame_acquire( parent_crt, &parent );
+            if( ret != 0 )
+                return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
-        /* +1 because stored max_pathlen is 1 higher that the actual value */
-        if( !( parent->max_pathlen > 0 &&
-               (size_t) parent->max_pathlen < 1 + path_cnt - self_cnt ) )
-        {
-            path_len_ok = 1;
+            if( mbedtls_x509_time_is_past( &parent->valid_from ) &&
+                mbedtls_x509_time_is_future( &parent->valid_to ) )
+            {
+                parent_valid = 1;
+            }
+
+            /* basic parenting skills (name, CA bit, key usage) */
+            if( x509_crt_check_parent( child_sig, parent, top ) == 0 )
+                parent_match = 1;
+
+            /* +1 because the stored max_pathlen is 1 higher
+             * than the actual value */
+            if( !( parent->max_pathlen > 0 &&
+                   (size_t) parent->max_pathlen < 1 + path_cnt - self_cnt ) )
+            {
+                path_len_ok = 1;
+            }
+
+            x509_crt_frame_release( parent_crt, parent );
         }
 
         if( parent_match == 0 || path_len_ok == 0 )
             continue;
 
         /* Signature */
-        ret = x509_crt_check_signature( child_sig, parent, rs_ctx );
+        ret = x509_crt_check_signature( child_sig, parent_crt, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
         {
             /* save state */
-            rs_ctx->parent = parent;
+            rs_ctx->parent = parent_crt;
             rs_ctx->fallback_parent = fallback_parent;
             rs_ctx->fallback_signature_is_good = fallback_signature_is_good;
 
@@ -2457,7 +2469,7 @@ check_signature:
         {
             if( fallback_parent == NULL )
             {
-                fallback_parent = parent;
+                fallback_parent = parent_crt;
                 fallback_signature_is_good = signature_is_good;
             }
 
@@ -2467,9 +2479,9 @@ check_signature:
         break;
     }
 
-    if( parent != NULL )
+    if( parent_crt != NULL )
     {
-        *r_parent = parent;
+        *r_parent = parent_crt;
         *r_signature_is_good = signature_is_good;
     }
     else

@@ -219,9 +219,14 @@ int exercise_mac_setup( psa_key_type_t key_type,
     PSA_ASSERT( psa_import_key( handle, key_type, key_bytes, key_length ) );
 
     *status = psa_mac_sign_setup( operation, handle, alg );
-    if( *status == PSA_SUCCESS )
+    /* Whether setup succeeded or failed, abort must succeed. */
+    PSA_ASSERT( psa_mac_abort( operation ) );
+    /* If setup failed, reproduce the failure, so that the caller can
+     * test the resulting state of the operation object. */
+    if( *status != PSA_SUCCESS )
     {
-        PSA_ASSERT( psa_mac_abort( operation ) );
+        TEST_EQUAL( psa_mac_sign_setup( operation, handle, alg ),
+                    *status );
     }
 
     psa_destroy_key( handle );
@@ -248,9 +253,14 @@ int exercise_cipher_setup( psa_key_type_t key_type,
     PSA_ASSERT( psa_import_key( handle, key_type, key_bytes, key_length ) );
 
     *status = psa_cipher_encrypt_setup( operation, handle, alg );
-    if( *status == PSA_SUCCESS )
+    /* Whether setup succeeded or failed, abort must succeed. */
+    PSA_ASSERT( psa_cipher_abort( operation ) );
+    /* If setup failed, reproduce the failure, so that the caller can
+     * test the resulting state of the operation object. */
+    if( *status != PSA_SUCCESS )
     {
-        PSA_ASSERT( psa_cipher_abort( operation ) );
+        TEST_EQUAL( psa_cipher_encrypt_setup( operation, handle, alg ),
+                    *status );
     }
 
     psa_destroy_key( handle );
@@ -2118,8 +2128,14 @@ void hash_setup( int alg_arg,
     status = psa_hash_setup( &operation, alg );
     TEST_EQUAL( status, expected_status );
 
-    if( status == PSA_SUCCESS )
-        PSA_ASSERT( psa_hash_abort( &operation ) );
+    /* Whether setup succeeded or failed, abort must succeed. */
+    PSA_ASSERT( psa_hash_abort( &operation ) );
+
+    /* If setup failed, reproduce the failure, so as to
+     * test the resulting state of the operation object. */
+    if( status != PSA_SUCCESS )
+        TEST_EQUAL( psa_hash_setup( &operation, alg ), status );
+
     /* Now the operation object should be reusable. */
 #if defined(KNOWN_SUPPORTED_HASH_ALG)
     PSA_ASSERT( psa_hash_setup( &operation, KNOWN_SUPPORTED_HASH_ALG ) );

@@ -1094,7 +1094,7 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                          void *p_rng );
 
 /**
- * \brief           This function reads an ECP key.
+ * \brief           This function reads an elliptic curve private key.
  *
  * \param grp_id    The ECP group identifier.
  * \param key       The destination key.
@@ -1104,8 +1104,10 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  * \param buflen    The length of the buffer in bytes.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
- *                  on failure.
+ * \return          #MBEDTLS_ERR_ECP_INVALID_KEY error if the key is
+ *                  invalid.
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
+ * \return          Another negative error code on different kinds of failure.
  */
 int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                           const unsigned char *buf, size_t buflen );

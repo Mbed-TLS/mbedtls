@@ -101,7 +101,7 @@ static psa_status_t psa_crypto_storage_load( const psa_key_file_id_t key,
     if( status  != PSA_SUCCESS )
         return( status );
 
-    status = psa_its_get( data_identifier, 0, data_size, data );
+    status = psa_its_get( data_identifier, 0, (uint32_t) data_size, data );
 
     return( status );
 }
@@ -146,7 +146,7 @@ static psa_status_t psa_crypto_storage_store( const psa_key_file_id_t key,
     if( psa_is_key_present_in_storage( key ) == 1 )
         return( PSA_ERROR_ALREADY_EXISTS );
 
-    status = psa_its_set( data_identifier, data_length, data, 0 );
+    status = psa_its_set( data_identifier, (uint32_t) data_length, data, 0 );
     if( status != PSA_SUCCESS )
     {
         return( PSA_ERROR_STORAGE_FAILURE );

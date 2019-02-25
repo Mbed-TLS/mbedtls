@@ -1331,7 +1331,7 @@ static int mbedtls_x509_crt_parse_der_internal( mbedtls_x509_crt *chain,
     if( crt == NULL || buf == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    while( crt->version != 0 && crt->next != NULL )
+    while( crt->raw.p != NULL && crt->next != NULL )
     {
         prev = crt;
         crt = crt->next;
@@ -1340,7 +1340,7 @@ static int mbedtls_x509_crt_parse_der_internal( mbedtls_x509_crt *chain,
     /*
      * Add new certificate on the end of the chain if needed.
      */
-    if( crt->version != 0 && crt->next == NULL )
+    if( crt->raw.p != NULL && crt->next == NULL )
     {
         crt->next = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
 

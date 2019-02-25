@@ -23,12 +23,19 @@ class FileIssueTracker(object):
     """Base class for file-wide issue tracking.
 
     To implement a checker that processes a file as a whole, inherit from
-    this class and implement `check_file_for_issue`.
+    this class and implement `check_file_for_issue` and define ``heading``.
+
+    ``files_exemptions``: files whose name ends with a string in this set
+     will not be checked.
+
+    ``heading``: human-readable description of the issue
     """
 
+    files_exemptions = frozenset()
+    # heading must be defined in derived classes.
+    # pylint: disable=no-member
+
     def __init__(self):
-        self.heading = ""
-        self.files_exemptions = []
         self.files_with_issues = {}
 
     def should_check_file(self, filepath):
@@ -81,9 +88,7 @@ class PermissionIssueTracker(FileIssueTracker):
 
     Files that are not executable scripts must not be executable."""
 
-    def __init__(self):
-        super().__init__()
-        self.heading = "Incorrect permissions:"
+    heading = "Incorrect permissions:"
 
     def check_file_for_issue(self, filepath):
         if not (os.access(filepath, os.X_OK) ==
@@ -95,9 +100,7 @@ class EndOfFileNewlineIssueTracker(FileIssueTracker):
     """Track files that end with an incomplete line
     (no newline character at the end of the last line)."""
 
-    def __init__(self):
-        super().__init__()
-        self.heading = "Missing newline at end of file:"
+    heading = "Missing newline at end of file:"
 
     def check_file_for_issue(self, filepath):
         with open(filepath, "rb") as f:
@@ -109,9 +112,7 @@ class Utf8BomIssueTracker(FileIssueTracker):
     """Track files that start with a UTF-8 BOM.
     Files should be ASCII or UTF-8. Valid UTF-8 does not start with a BOM."""
 
-    def __init__(self):
-        super().__init__()
-        self.heading = "UTF-8 BOM present:"
+    heading = "UTF-8 BOM present:"
 
     def check_file_for_issue(self, filepath):
         with open(filepath, "rb") as f:
@@ -122,9 +123,7 @@ class Utf8BomIssueTracker(FileIssueTracker):
 class LineEndingIssueTracker(LineIssueTracker):
     """Track files with non-Unix line endings (i.e. files with CR)."""
 
-    def __init__(self):
-        super().__init__()
-        self.heading = "Non Unix line endings:"
+    heading = "Non Unix line endings:"
 
     def issue_with_line(self, line, _filepath):
         return b"\r" in line
@@ -133,10 +132,8 @@ class LineEndingIssueTracker(LineIssueTracker):
 class TrailingWhitespaceIssueTracker(LineIssueTracker):
     """Track lines with trailing whitespace."""
 
-    def __init__(self):
-        super().__init__()
-        self.heading = "Trailing whitespace:"
-        self.files_exemptions = [".md"]
+    heading = "Trailing whitespace:"
+    files_exemptions = frozenset(".md")
 
     def issue_with_line(self, line, _filepath):
         return line.rstrip(b"\r\n") != line.rstrip()
@@ -145,12 +142,11 @@ class TrailingWhitespaceIssueTracker(LineIssueTracker):
 class TabIssueTracker(LineIssueTracker):
     """Track lines with tabs."""
 
-    def __init__(self):
-        super().__init__()
-        self.heading = "Tabs present:"
-        self.files_exemptions = [
-            "Makefile", "generate_visualc_files.pl"
-        ]
+    heading = "Tabs present:"
+    files_exemptions = frozenset([
+        "Makefile",
+        "generate_visualc_files.pl",
+    ])
 
     def issue_with_line(self, line, _filepath):
         return b"\t" in line
@@ -160,9 +156,7 @@ class MergeArtifactIssueTracker(LineIssueTracker):
     """Track lines with merge artifacts.
     These are leftovers from a ``git merge`` that wasn't fully edited."""
 
-    def __init__(self):
-        super().__init__()
-        self.heading = "Merge artifact:"
+    heading = "Merge artifact:"
 
     def issue_with_line(self, line, _filepath):
         # Detect leftover git conflict markers.
@@ -178,14 +172,12 @@ class MergeArtifactIssueTracker(LineIssueTracker):
 class TodoIssueTracker(LineIssueTracker):
     """Track lines containing ``TODO``."""
 
-    def __init__(self):
-        super().__init__()
-        self.heading = "TODO present:"
-        self.files_exemptions = [
-            os.path.basename(__file__),
-            "benchmark.c",
-            "pull_request_template.md",
-        ]
+    heading = "TODO present:"
+    files_exemptions = frozenset([
+        os.path.basename(__file__),
+        "benchmark.c",
+        "pull_request_template.md",
+    ])
 
     def issue_with_line(self, line, _filepath):
         return b"todo" in line.lower()

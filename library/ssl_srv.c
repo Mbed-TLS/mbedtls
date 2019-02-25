@@ -2955,7 +2955,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 #endif
             crt = ssl->conf->ca_chain;
 
-        while( crt != NULL && crt->version != 0 )
+        while( crt != NULL && crt->raw.p != NULL )
         {
             dn_size = crt->subject_raw.len;
 

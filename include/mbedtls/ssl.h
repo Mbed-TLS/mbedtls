@@ -3256,20 +3256,16 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
 /**
  * \brief          Return the peer certificate from the current connection.
  *
- *                 For ciphersuites not using certificate-based peer
- *                 authentication (such as PSK-based ciphersuites), no
- *                 peer certificate is available, and this function returns
- *                 \c NULL.
- *
  * \param  ssl     The SSL context to use. This must be initialized and setup.
  *
- * \return         The current peer certificate, or \c NULL if
- *                 none is available, which might be because the chosen
- *                 ciphersuite does not use peer certificates, or because
- *                 #MBEDTLS_SSL_KEEP_PEER_CERTIFICATE has been disabled.
- *                 If this functions does not return \c NULL, the returned
- *                 certificate is owned by the SSL context and valid only
- *                 until the next call to the SSL API.
+ * \return         The current peer certificate, if available.
+ *                 The returned certificate is owned by the SSL context and
+ *                 is valid only until the next call to the SSL API.
+ * \return         \c NULL if no peer certificate is available. This might
+ *                 be because the chosen ciphersuite doesn't use CRTs
+ *                 (PSK-based ciphersuites, for example), or because
+ *                 #MBEDTLS_SSL_KEEP_PEER_CERTIFICATE has been disabled,
+ *                 allowing the stack to free the peer's CRT to save memory.
  *
  * \note           For one-time inspection of the peer's certificate during
  *                 the handshake, consider registering an X.509 CRT verification

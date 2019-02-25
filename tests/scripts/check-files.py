@@ -91,8 +91,9 @@ class PermissionIssueTracker(FileIssueTracker):
     heading = "Incorrect permissions:"
 
     def check_file_for_issue(self, filepath):
-        if not (os.access(filepath, os.X_OK) ==
-                filepath.endswith((".sh", ".pl", ".py"))):
+        is_executable = os.access(filepath, os.X_OK)
+        should_be_executable = filepath.endswith((".sh", ".pl", ".py"))
+        if is_executable != should_be_executable:
             self.files_with_issues[filepath] = None
 
 

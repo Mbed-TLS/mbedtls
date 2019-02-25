@@ -2170,21 +2170,52 @@ static int x509_crt_verifycrl( unsigned char *crt_serial,
 /*
  * Check the signature of a certificate by its parent
  */
-static int x509_crt_check_signature( const mbedtls_x509_crt *child,
+static int x509_crt_check_signature( const mbedtls_x509_crt_frame *child,
                                      mbedtls_x509_crt *parent,
                                      mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    int ret;
     size_t hash_len;
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+
+    mbedtls_md_type_t sig_md;
+    mbedtls_pk_type_t sig_pk;
+    void *sig_opts;
+
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     const mbedtls_md_info_t *md_info;
-    md_info = mbedtls_md_info_from_type( child->sig_md );
-    hash_len = mbedtls_md_get_size( md_info );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    /* Note: hash errors can happen only after an internal error */
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+    {
+        /* Get signature options -- currently only
+         * necessary for RSASSA-PSS. */
+        unsigned char *p = child->sig_alg.p;
+        unsigned char *end = p + child->sig_alg.len;
+        ret = mbedtls_x509_get_sig_alg_raw( &p, end, &sig_md,
+                                            &sig_pk, &sig_opts );
+        if( ret != 0 )
+        {
+            /* Note: this can't happen except after an internal error */
+            return( -1 );
+        }
+    }
+#else /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+    sig_md   = child->sig_md;
+    sig_pk   = child->sig_pk;
+    sig_opts = NULL;
+#endif /* !MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+
+    md_info = mbedtls_md_info_from_type( sig_md );
     if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
         return( -1 );
-#else
+
+    hash_len = mbedtls_md_get_size( md_info );
+
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+
     psa_hash_operation_t hash_operation = PSA_HASH_OPERATION_INIT;
     psa_algorithm_t hash_alg = mbedtls_psa_translate_md( child->sig_md );
 
@@ -2203,24 +2234,27 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
         return( -1 );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     /* Skip expensive computation on obvious mismatch */
-    if( ! mbedtls_pk_can_do( &parent->pk, child->sig_pk ) )
+    if( ! mbedtls_pk_can_do( &parent->pk, sig_pk ) )
         return( -1 );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && child->sig_pk == MBEDTLS_PK_ECDSA )
     {
         return( mbedtls_pk_verify_restartable( &parent->pk,
-                    child->sig_md, hash, hash_len,
+                    sig_md, hash, mbedtls_md_get_size( md_info ),
                     child->sig.p, child->sig.len, &rs_ctx->pk ) );
     }
 #else
     (void) rs_ctx;
 #endif
 
-    return( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
-                child->sig_md, hash, hash_len,
-                child->sig.p, child->sig.len ) );
+    ret = mbedtls_pk_verify_ext( sig_pk, sig_opts, &parent->pk,
+                                 sig_md, hash, hash_len,
+                                 child->sig.p, child->sig.len );
+    mbedtls_free( sig_opts );
+    return( ret );
 }
 
 /*
@@ -2229,14 +2263,14 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
  *
  * top means parent is a locally-trusted certificate
  */
-static int x509_crt_check_parent( const mbedtls_x509_crt *child,
+static int x509_crt_check_parent( const mbedtls_x509_crt_frame *child,
                                   const mbedtls_x509_crt *parent,
                                   int top )
 {
     int need_ca_bit;
 
     /* Parent must be the issuer */
-    if( mbedtls_x509_name_cmp_raw( &child->issuer_raw_no_hdr,
+    if( mbedtls_x509_name_cmp_raw( &child->issuer_raw,
                                    &parent->subject_raw_no_hdr,
                                    NULL, NULL ) != 0 )
     {
@@ -2308,7 +2342,7 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  *  - MBEDTLS_ERR_ECP_IN_PROGRESS otherwise
  */
 static int x509_crt_find_parent_in(
-                        mbedtls_x509_crt *child,
+                        mbedtls_x509_crt_frame const *child,
                         mbedtls_x509_crt *candidates,
                         mbedtls_x509_crt **r_parent,
                         int *r_signature_is_good,
@@ -2433,7 +2467,8 @@ check_signature:
  *  - MBEDTLS_ERR_ECP_IN_PROGRESS otherwise
  */
 static int x509_crt_find_parent(
-                        mbedtls_x509_crt *child,
+                        mbedtls_x509_crt_frame const *child,
+                        mbedtls_x509_crt *rest,
                         mbedtls_x509_crt *trust_ca,
                         mbedtls_x509_crt **parent,
                         int *parent_is_trusted,
@@ -2457,7 +2492,7 @@ static int x509_crt_find_parent(
 #endif
 
     while( 1 ) {
-        search_list = *parent_is_trusted ? trust_ca : child->next;
+        search_list = *parent_is_trusted ? trust_ca : rest;
 
         ret = x509_crt_find_parent_in( child, search_list,
                                        parent, signature_is_good,
@@ -2500,14 +2535,14 @@ static int x509_crt_find_parent(
  * check for self-issued as self-signatures are not checked)
  */
 static int x509_crt_check_ee_locally_trusted(
-                    mbedtls_x509_crt *crt,
-                    mbedtls_x509_crt *trust_ca )
+                    mbedtls_x509_crt_frame const *crt,
+                    mbedtls_x509_crt const *trust_ca )
 {
-    mbedtls_x509_crt *cur;
+    mbedtls_x509_crt const *cur;
 
     /* must be self-issued */
-    if( mbedtls_x509_name_cmp_raw( &crt->issuer_raw_no_hdr,
-                                   &crt->subject_raw_no_hdr,
+    if( mbedtls_x509_name_cmp_raw( &crt->issuer_raw,
+                                   &crt->subject_raw,
                                    NULL, NULL ) != 0 )
     {
         return( -1 );
@@ -2582,7 +2617,7 @@ static int x509_crt_verify_chain(
     int ret;
     uint32_t *flags;
     mbedtls_x509_crt_verify_chain_item *cur;
-    mbedtls_x509_crt *child;
+    mbedtls_x509_crt *child_crt;
     mbedtls_x509_crt *parent;
     int parent_is_trusted;
     int child_is_trusted;
@@ -2600,53 +2635,30 @@ static int x509_crt_verify_chain(
 
         /* restore derived state */
         cur = &ver_chain->items[ver_chain->len - 1];
-        child = cur->crt;
+        child_crt = cur->crt;
+
+        child_is_trusted = 0;
         goto find_parent;
     }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-    child = crt;
+    child_crt = crt;
     self_cnt = 0;
     parent_is_trusted = 0;
     child_is_trusted = 0;
 
     while( 1 ) {
+        mbedtls_x509_crt_frame *child;
+
         /* Add certificate to the verification chain */
         cur = &ver_chain->items[ver_chain->len];
-        cur->crt = child;
+        cur->crt = child_crt;
         cur->flags = 0;
         ver_chain->len++;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 find_parent:
 #endif
-
-        flags = &cur->flags;
-
-        /* Check time-validity (all certificates) */
-        if( mbedtls_x509_time_is_past( &child->valid_to ) )
-            *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
-
-        if( mbedtls_x509_time_is_future( &child->valid_from ) )
-            *flags |= MBEDTLS_X509_BADCERT_FUTURE;
-
-        /* Stop here for trusted roots (but not for trusted EE certs) */
-        if( child_is_trusted )
-            return( 0 );
-
-        /* Check signature algorithm: MD & PK algs */
-        if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
-            *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
-
-        if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
-            *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
-
-        /* Special case: EE certs that are locally trusted */
-        if( ver_chain->len == 1 &&
-            x509_crt_check_ee_locally_trusted( child, trust_ca ) == 0 )
-        {
-            return( 0 );
-        }
 
         /* Obtain list of potential trusted signers from CA callback,
          * or use statically provided list. */
@@ -2657,7 +2669,7 @@ find_parent:
             mbedtls_free( ver_chain->trust_ca_cb_result );
             ver_chain->trust_ca_cb_result = NULL;
 
-            ret = f_ca_cb( p_ca_cb, child, &ver_chain->trust_ca_cb_result );
+            ret = f_ca_cb( p_ca_cb, child_crt, &ver_chain->trust_ca_cb_result );
             if( ret != 0 )
                 return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
@@ -2671,10 +2683,41 @@ find_parent:
             cur_trust_ca = trust_ca;
         }
 
+        ret = x509_crt_frame_acquire( child_crt, &child );
+        if( ret != 0 )
+            return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+        flags = &cur->flags;
+
+        /* Check time-validity (all certificates) */
+        if( mbedtls_x509_time_is_past( &child->valid_to ) )
+            *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
+
+        if( mbedtls_x509_time_is_future( &child->valid_from ) )
+            *flags |= MBEDTLS_X509_BADCERT_FUTURE;
+
+        /* Stop here for trusted roots (but not for trusted EE certs) */
+        if( child_is_trusted )
+            goto release;
+
+        /* Check signature algorithm: MD & PK algs */
+        if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
+            *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
+
+        if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
+            *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+
+        /* Special case: EE certs that are locally trusted */
+        if( ver_chain->len == 1 &&
+            x509_crt_check_ee_locally_trusted( child, trust_ca ) == 0 )
+        {
+            goto release;
+        }
+
         /* Look for a parent in trusted CAs or up the chain */
         ret = x509_crt_find_parent( child, cur_trust_ca, &parent,
-                                       &parent_is_trusted, &signature_is_good,
-                                       ver_chain->len - 1, self_cnt, rs_ctx );
+                                    &parent_is_trusted, &signature_is_good,
+                                    ver_chain->len - 1, self_cnt, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
@@ -2684,7 +2727,7 @@ find_parent:
             rs_ctx->self_cnt = self_cnt;
             rs_ctx->ver_chain = *ver_chain; /* struct copy */
 
-            return( ret );
+            goto release;
         }
 #else
         (void) ret;
@@ -2694,15 +2737,15 @@ find_parent:
         if( parent == NULL )
         {
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
-            return( 0 );
+            goto release;
         }
 
         /* Count intermediate self-issued (not necessarily self-signed) certs.
          * These can occur with some strategies for key rollover, see [SIRO],
          * and should be excluded from max_pathlen checks. */
         if( ver_chain->len != 1 &&
-            mbedtls_x509_name_cmp_raw( &child->issuer_raw_no_hdr,
-                                       &child->subject_raw_no_hdr,
+            mbedtls_x509_name_cmp_raw( &child->issuer_raw,
+                                       &child->subject_raw,
                                        NULL, NULL ) == 0 )
         {
             self_cnt++;
@@ -2714,7 +2757,8 @@ find_parent:
             ver_chain->len > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
         {
             /* return immediately to avoid overflow the chain array */
-            return( MBEDTLS_ERR_X509_FATAL_ERROR );
+            ret = MBEDTLS_ERR_X509_FATAL_ERROR;
+            goto release;
         }
 
         /* signature was checked while searching parent */
@@ -2735,11 +2779,16 @@ find_parent:
 #endif
 
         /* prepare for next iteration */
-        child = parent;
+        x509_crt_frame_release( child_crt, child );
+        child_crt = parent;
         parent = NULL;
         child_is_trusted = parent_is_trusted;
         signature_is_good = 0;
     }
+
+release:
+    x509_crt_frame_release( child_crt, child );
+    return( ret );
 }
 
 /*

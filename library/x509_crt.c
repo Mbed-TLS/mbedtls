@@ -2753,9 +2753,18 @@ static int x509_serial_is_revoked( unsigned char const *serial,
 int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt,
                                  const mbedtls_x509_crl *crl )
 {
-    return( x509_serial_is_revoked( crt->serial.p,
-                                    crt->serial.len,
-                                    crl ) );
+    int ret;
+    mbedtls_x509_crt_frame *frame;
+
+    ret = x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+    ret = x509_serial_is_revoked( frame->serial.p,
+                                  frame->serial.len,
+                                  crl );
+    x509_crt_frame_release( crt, frame );
+    return( ret );
 }
 
 /*

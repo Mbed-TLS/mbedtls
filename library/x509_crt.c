@@ -3080,18 +3080,23 @@ static int x509_crt_subject_alt_check_name( void *ctx,
 /*
  * Verify the requested CN - only call this if cn is not NULL!
  */
-static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
-                                  const char *cn,
-                                  uint32_t *flags )
+static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
+                                 const char *cn,
+                                 uint32_t *flags )
 {
     int ret;
+    mbedtls_x509_crt_frame *frame;
 
-    if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
+    ret = x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+    if( frame->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
         unsigned char *p =
-            crt->subject_alt_raw.p;
+            frame->subject_alt_raw.p;
         const unsigned char *end =
-            crt->subject_alt_raw.p + crt->subject_alt_raw.len;
+            frame->subject_alt_raw.p + frame->subject_alt_raw.len;
 
         ret = mbedtls_asn1_traverse_sequence_of( &p, end,
                                       MBEDTLS_ASN1_TAG_CLASS_MASK,
@@ -3103,13 +3108,21 @@ static void x509_crt_verify_name( const mbedtls_x509_crt *crt,
     }
     else
     {
-        ret = mbedtls_x509_name_cmp_raw( &crt->subject_raw_no_hdr,
-                                         &crt->subject_raw_no_hdr,
+        ret = mbedtls_x509_name_cmp_raw( &frame->subject_raw,
+                                         &frame->subject_raw,
                                          x509_crt_check_name, (void*) cn );
     }
 
-    if( ret != 1 )
-        *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
+    x509_crt_frame_release( crt, frame );
+
+    if( ret == 1 )
+        return( 0 );
+
+    if( ret != 0 )
+        ret = MBEDTLS_ERR_X509_FATAL_ERROR;
+
+    *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
+    return( ret );
 }
 
 /*

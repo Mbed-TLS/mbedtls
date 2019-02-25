@@ -203,6 +203,22 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
                                               psa_key_type_t *type,
                                               psa_key_policy_t *policy );
 
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+/** Backend side of mbedtls_psa_inject_entropy().
+ *
+ * This function stores the supplied data into the entropy seed file.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The entropy seed file already exists.
+ */
+psa_status_t mbedtls_psa_storage_inject_entropy( const unsigned char *seed,
+                                                 size_t seed_size );
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
 #ifdef __cplusplus
 }
 #endif

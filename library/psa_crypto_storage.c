@@ -391,4 +391,26 @@ exit:
     return( status );
 }
 
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+psa_status_t mbedtls_psa_storage_inject_entropy( const unsigned char *seed,
+                                                 size_t seed_size )
+{
+    psa_status_t status;
+    struct psa_storage_info_t p_info;
+
+    status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
+
+    if( PSA_ERROR_DOES_NOT_EXIST == status ) /* No seed exists */
+    {
+        status = psa_its_set( PSA_CRYPTO_ITS_RANDOM_SEED_UID, seed_size, seed, 0 );
+    }
+    else if( PSA_SUCCESS == status )
+    {
+        /* You should not be here. Seed needs to be injected only once */
+        status = PSA_ERROR_NOT_PERMITTED;
+    }
+    return( status );
+}
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */

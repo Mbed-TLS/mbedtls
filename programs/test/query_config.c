@@ -1194,6 +1194,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SPM */
 
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+    if( strcmp( "MBEDTLS_PSA_INJECT_ENTROPY", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_INJECT_ENTROPY );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
 #if defined(MBEDTLS_RSA_NO_CRT)
     if( strcmp( "MBEDTLS_RSA_NO_CRT", config ) == 0 )
     {

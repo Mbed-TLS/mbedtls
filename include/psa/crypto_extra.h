@@ -114,10 +114,9 @@ void mbedtls_psa_crypto_free( void );
  * This is an Mbed TLS extension.
  *
  * \note This function is only available on the following platforms:
- * * If the compile-time options MBEDTLS_ENTROPY_NV_SEED and
- *   MBEDTLS_PSA_CRYPTO_STORAGE_C are both enabled. Note that you
- *   must provide compatible implementations of mbedtls_nv_seed_read
- *   and mbedtls_nv_seed_write.
+ * * If the compile-time option MBEDTLS_PSA_INJECT_ENTROPY is enabled.
+ *   Note that you must provide compatible implementations of
+ *   mbedtls_nv_seed_read and mbedtls_nv_seed_write.
  * * In a client-server integration of PSA Cryptography, on the client side,
  *   if the server supports this feature.
  * \param[in] seed          Buffer containing the seed value to inject.

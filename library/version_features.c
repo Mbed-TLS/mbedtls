@@ -432,6 +432,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
     "MBEDTLS_PSA_CRYPTO_SPM",
 #endif /* MBEDTLS_PSA_CRYPTO_SPM */
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+    "MBEDTLS_PSA_INJECT_ENTROPY",
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 #if defined(MBEDTLS_RSA_NO_CRT)
     "MBEDTLS_RSA_NO_CRT",
 #endif /* MBEDTLS_RSA_NO_CRT */

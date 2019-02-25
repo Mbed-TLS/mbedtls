@@ -95,6 +95,51 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame *frame,
 static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame *frame,
                                         mbedtls_x509_sequence *ext_key_usage );
 
+static void x509_free_sequence( mbedtls_x509_sequence *seq );
+static void x509_free_name( mbedtls_x509_name *name );
+
+static int x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
+                                   mbedtls_x509_crt_frame **frame_ptr )
+{
+    int ret;
+    mbedtls_x509_crt_frame *frame;
+
+    frame = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_frame ) );
+    if( frame == NULL )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    ret = x509_crt_parse_frame( crt->raw.p, crt->raw.p + crt->raw.len,
+                                frame );
+    if( ret != 0 )
+        return( ret );
+
+    *frame_ptr = frame;
+    return( 0 );
+}
+
+static void x509_crt_frame_release( mbedtls_x509_crt const *crt,
+                                    mbedtls_x509_crt_frame *frame )
+{
+    ((void) crt);
+    if( frame == NULL )
+        return;
+    mbedtls_free( frame );
+}
+static int x509_crt_pk_acquire( mbedtls_x509_crt *crt,
+                                mbedtls_pk_context **pk )
+{
+    *pk = &crt->pk;
+    return( 0 );
+}
+
+static void x509_crt_pk_release( mbedtls_x509_crt *crt,
+                                 mbedtls_pk_context *pk )
+{
+    ((void) crt);
+    ((void) pk);
+    return;
+}
+
 /*
  * Item in a verification chain: cert and flags for it
  */

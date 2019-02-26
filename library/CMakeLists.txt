@@ -123,10 +123,6 @@ if(HAIKU)
     set(libs ${libs} network)
 endif(HAIKU)
 
-if(ENABLE_ZLIB_SUPPORT)
-    set(libs ${libs} ${ZLIB_LIBRARIES})
-endif(ENABLE_ZLIB_SUPPORT)
-
 if(LINK_WITH_PTHREAD)
     set(libs ${libs} pthread)
 endif()

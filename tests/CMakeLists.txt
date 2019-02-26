@@ -2,10 +2,6 @@ set(libs
     mbedtls
 )
 
-if(ENABLE_ZLIB_SUPPORT)
-    set(libs ${libs} ${ZLIB_LIBRARIES})
-endif(ENABLE_ZLIB_SUPPORT)
-
 find_package(Perl)
 if(NOT PERL_FOUND)
     message(FATAL_ERROR "Cannot build test suites without Perl")

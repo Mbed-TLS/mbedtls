@@ -41,11 +41,6 @@ EXEXT=
 SHARED_SUFFIX=
 endif
 
-# Zlib shared library extensions:
-ifdef ZLIB
-LOCAL_LDFLAGS += -lz
-endif
-
 APPS = \
 	aes/aescrypt2$(EXEXT) \
 	aes/crypt_and_hash$(EXEXT) \

@@ -48,11 +48,6 @@ SHARED_SUFFIX=
 PYTHON ?= python2
 endif
 
-# Zlib shared library extensions:
-ifdef ZLIB
-LOCAL_LDFLAGS += -lz
-endif
-
 # A test application is built for each suites/test_suite_*.data file.
 # Application name is same as .data file's base name and can be
 # constructed by stripping path 'suites/' and extension .data.

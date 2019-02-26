@@ -2902,8 +2902,8 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                                       psa_algorithm_t alg,
                                       mbedtls_operation_t cipher_operation )
 {
-    int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    psa_status_t status;
+    int ret = 0;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_key_slot_t *slot;
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
@@ -2923,19 +2923,19 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
 
     status = psa_get_key_from_slot( handle, &slot, usage, alg);
     if( status != PSA_SUCCESS )
-        return( status );
+        goto exit;
     key_bits = psa_get_key_bits( slot );
 
     cipher_info = mbedtls_cipher_info_from_psa( alg, slot->type, key_bits, NULL );
     if( cipher_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
+    {
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
+    }
 
     ret = mbedtls_cipher_setup( &operation->ctx.cipher, cipher_info );
     if( ret != 0 )
-    {
-        psa_cipher_abort( operation );
-        return( mbedtls_to_psa_error( ret ) );
-    }
+        goto exit;
 
 #if defined(MBEDTLS_DES_C)
     if( slot->type == PSA_KEY_TYPE_DES && key_bits == 128 )
@@ -2956,10 +2956,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                                      (int) key_bits, cipher_operation );
     }
     if( ret != 0 )
-    {
-        psa_cipher_abort( operation );
-        return( mbedtls_to_psa_error( ret ) );
-    }
+        goto exit;
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     switch( alg )
@@ -2978,10 +2975,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
             break;
     }
     if( ret != 0 )
-    {
-        psa_cipher_abort( operation );
-        return( mbedtls_to_psa_error( ret ) );
-    }
+        goto exit;
 #endif //MBEDTLS_CIPHER_MODE_WITH_PADDING
 
     operation->key_set = 1;
@@ -2992,7 +2986,12 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type );
     }
 
-    return( PSA_SUCCESS );
+exit:
+    if( status == 0 )
+        status = mbedtls_to_psa_error( ret );
+    if( status != 0 )
+        psa_cipher_abort( operation );
+    return( status );
 }
 
 psa_status_t psa_cipher_encrypt_setup( psa_cipher_operation_t *operation,

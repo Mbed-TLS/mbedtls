@@ -8,7 +8,6 @@
 *.o
 *.exe
 
-aes/aescrypt2
 aes/crypt_and_hash
 hash/generic_sum
 hash/hello

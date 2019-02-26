@@ -2442,6 +2442,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
     if( ssl->session_negotiate->peer_cert == NULL )
     {
         /* Should never happen */
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
     peer_pk = &ssl->session_negotiate->peer_cert->pk;
@@ -2777,6 +2778,7 @@ start_processing:
         if( ssl->session_negotiate->peer_cert == NULL )
         {
             /* Should never happen */
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
         peer_pk = &ssl->session_negotiate->peer_cert->pk;

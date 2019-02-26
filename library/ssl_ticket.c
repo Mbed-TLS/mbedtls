@@ -195,7 +195,7 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
  *
  * - If MBEDTLS_SSL_KEEP_PEER_CERTIFICATE is disabled:
  *    0       .   n-1   session structure, n = sizeof(mbedtls_ssl_session)
- *    n       .   n     length of peer certificate digest = k (0 if n digest)
+ *    n       .   n     length of peer certificate digest = k (0 if no digest)
  *    n+1     .   n+k   peer certificate digest (digest type encoded in session)
  */
 static int ssl_save_session( const mbedtls_ssl_session *session,

@@ -280,6 +280,26 @@ int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
  */
 int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
 
+/**
+ * \brief          Free a dynamic linked list presentation of an X.509 name
+ *                 as returned e.g. by mbedtls_x509_crt_get_subject().
+ *
+ * \param name     The address of the first name component. This may
+ *                 be \c NULL, in which case this functions returns
+ *                 immediately.
+ */
+void mbedtls_x509_name_free( mbedtls_x509_name *name );
+
+/**
+ * \brief          Free a dynamic linked list presentation of an X.509 sequence
+ *                 as returned e.g. by mbedtls_x509_crt_get_subject_alt_name().
+ *
+ * \param seq      The address of the first sequence component. This may
+ *                 be \c NULL, in which case this functions returns
+ *                 immediately.
+ */
+void mbedtls_x509_sequence_free( mbedtls_x509_sequence *seq );
+
 #if defined(MBEDTLS_SELF_TEST)
 
 /**

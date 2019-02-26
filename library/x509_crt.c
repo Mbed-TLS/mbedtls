@@ -90,9 +90,6 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame *frame,
 static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame *frame,
                                         mbedtls_x509_sequence *ext_key_usage );
 
-static void x509_free_sequence( mbedtls_x509_sequence *seq );
-static void x509_free_name( mbedtls_x509_name *name );
-
 int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
 {
     mbedtls_x509_crt_cache *cache = crt->cache;
@@ -2225,10 +2222,10 @@ cleanup:
     mbedtls_x509_crt_pk_release( (mbedtls_x509_crt*) crt_raw, pk );
 
     x509_crt_free_sig_info( &sig_info );
-    x509_free_name( issuer.next );
-    x509_free_name( subject.next );
-    x509_free_sequence( ext_key_usage.next );
-    x509_free_sequence( subject_alt_names.next );
+    mbedtls_x509_name_free( issuer.next );
+    mbedtls_x509_name_free( subject.next );
+    mbedtls_x509_sequence_free( ext_key_usage.next );
+    mbedtls_x509_sequence_free( subject_alt_names.next );
 
     return( ret );
 }
@@ -3445,28 +3442,6 @@ void mbedtls_x509_crt_init( mbedtls_x509_crt *crt )
  * Unallocate all certificate data
  */
 
-static void x509_free_sequence( mbedtls_x509_sequence *seq )
-{
-    while( seq != NULL )
-    {
-        mbedtls_x509_sequence *next = seq->next;
-        mbedtls_platform_zeroize( seq, sizeof( *seq ) );
-        mbedtls_free( seq );
-        seq = next;
-    }
-}
-
-static void x509_free_name( mbedtls_x509_name *name )
-{
-    while( name != NULL )
-    {
-        mbedtls_x509_name *next = name->next;
-        mbedtls_platform_zeroize( name, sizeof( *name ) );
-        mbedtls_free( name );
-        name = next;
-    }
-}
-
 void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
 {
     mbedtls_x509_crt *cert_cur = crt;
@@ -3487,10 +3462,10 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         mbedtls_free( cert_cur->sig_opts );
 #endif
 
-        x509_free_name( cert_cur->issuer.next );
-        x509_free_name( cert_cur->subject.next );
-        x509_free_sequence( cert_cur->ext_key_usage.next );
-        x509_free_sequence( cert_cur->subject_alt_names.next );
+        mbedtls_x509_name_free( cert_cur->issuer.next );
+        mbedtls_x509_name_free( cert_cur->subject.next );
+        mbedtls_x509_sequence_free( cert_cur->ext_key_usage.next );
+        mbedtls_x509_sequence_free( cert_cur->subject_alt_names.next );
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 
         if( cert_cur->raw.p != NULL && cert_cur->own_buffer )

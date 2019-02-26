@@ -1194,6 +1194,28 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
 }
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
+void mbedtls_x509_name_free( mbedtls_x509_name *name )
+{
+    while( name != NULL )
+    {
+        mbedtls_x509_name *next = name->next;
+        mbedtls_platform_zeroize( name, sizeof( *name ) );
+        mbedtls_free( name );
+        name = next;
+    }
+}
+
+void mbedtls_x509_sequence_free( mbedtls_x509_sequence *seq )
+{
+    while( seq != NULL )
+    {
+        mbedtls_x509_sequence *next = seq->next;
+        mbedtls_platform_zeroize( seq, sizeof( *seq ) );
+        mbedtls_free( seq );
+        seq = next;
+    }
+}
+
 #if defined(MBEDTLS_SELF_TEST)
 
 #include "mbedtls/x509_crt.h"

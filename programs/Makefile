@@ -47,7 +47,7 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
-APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
+APPS =	aes/crypt_and_hash$(EXEXT)	\
 	cipher/pbcrypt$(EXEXT)		\
 	hash/hello$(EXEXT)		hash/generic_sum$(EXEXT)	\
 					pkey/dh_client$(EXEXT)		\
@@ -93,10 +93,6 @@ all: $(APPS)
 
 $(DEP):
 	$(MAKE) -C ../library
-
-aes/aescrypt2$(EXEXT): aes/aescrypt2.c $(DEP)
-	echo "  CC    aes/aescrypt2.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/aescrypt2.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
 	echo "  CC    aes/crypt_and_hash.c"

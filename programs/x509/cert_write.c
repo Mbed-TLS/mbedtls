@@ -524,6 +524,8 @@ int main( int argc, char *argv[] )
     //
     if( !opt.selfsign && strlen( opt.issuer_crt ) )
     {
+        mbedtls_x509_name *subject;
+
         /*
          * 1.0.a. Load the certificates
          */
@@ -538,8 +540,17 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
+        ret = mbedtls_x509_crt_get_subject( &issuer_crt, &subject );
+        if( ret != 0 )
+        {
+            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_get_subject "
+                            "returned -0x%04x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
         ret = mbedtls_x509_dn_gets( issuer_name, sizeof(issuer_name),
-                                 &issuer_crt.subject );
+                                    subject );
         if( ret < 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
@@ -549,6 +560,8 @@ int main( int argc, char *argv[] )
         }
 
         opt.issuer_name = issuer_name;
+
+        mbedtls_x509_name_free( subject );
 
         mbedtls_printf( " ok\n" );
     }
@@ -627,12 +640,24 @@ int main( int argc, char *argv[] )
     //
     if( strlen( opt.issuer_crt ) )
     {
-        if( mbedtls_pk_check_pair( &issuer_crt.pk, issuer_key ) != 0 )
+        mbedtls_pk_context pk;
+        ret = mbedtls_x509_crt_get_pk( &issuer_crt, &pk );
+        if( ret != 0 )
+        {
+            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_get_pk "
+                            "returned -0x%04x - %s\n\n", -ret, buf );
+            goto exit;
+        }
+
+        if( mbedtls_pk_check_pair( &pk, issuer_key ) != 0 )
         {
             mbedtls_printf( " failed\n  !  issuer_key does not match "
                             "issuer certificate\n\n" );
             goto exit;
         }
+
+        mbedtls_pk_free( &pk );
     }
 
     mbedtls_printf( " ok\n" );

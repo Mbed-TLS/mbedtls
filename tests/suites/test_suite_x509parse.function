@@ -24,6 +24,17 @@ const mbedtls_x509_crt_profile profile_all =
     1024,
 };
 
+static void x509_free_name( mbedtls_x509_name *name )
+{
+    while( name != NULL )
+    {
+        mbedtls_x509_name *next = name->next;
+        mbedtls_platform_zeroize( name, sizeof( *name ) );
+        mbedtls_free( name );
+        name = next;
+    }
+}
+
 /* Profile for backward compatibility. Allows SHA-1, unlike the default
    profile. */
 const mbedtls_x509_crt_profile compat_profile =
@@ -142,24 +153,54 @@ int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint
     verify_print_context *ctx = (verify_print_context *) data;
     char *p = ctx->p;
     size_t n = ctx->buf + sizeof( ctx->buf ) - ctx->p;
+    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_name subject;
     ((void) flags);
 
-    ret = mbedtls_snprintf( p, n, "depth %d - serial ", certificate_depth );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( ret );
 
-    ret = mbedtls_x509_serial_gets( p, n, &crt->serial );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    /* Get linked list presentation of issuer which
+     * `mbedtls_x509_dn_gets()` understands. */
+    {
+        unsigned char *subject_start = frame->subject_raw.p;
+        unsigned char *subject_end = frame->subject_raw.p + frame->subject_raw.len;
+
+        ret = mbedtls_x509_get_name( &subject_start, subject_end, &subject );
+        if( ret != 0 )
+            goto cleanup;
+    }
+
+    ret = mbedtls_snprintf( p, n, "depth %d - serial ", certificate_depth );
+    MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
+
+    {
+        mbedtls_x509_buf serial;
+        serial.p   = frame->serial.p;
+        serial.len = frame->serial.len;
+        ret = mbedtls_x509_serial_gets( p, n, &serial );
+        MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
+    }
 
     ret = mbedtls_snprintf( p, n, " - subject " );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
 
-    ret = mbedtls_x509_dn_gets( p, n, &crt->subject );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    ret = mbedtls_x509_dn_gets( p, n, &subject );
+    MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
 
     ret = mbedtls_snprintf( p, n, " - flags 0x%08x\n", *flags );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
 
     ctx->p = p;
+
+cleanup:
+
+    x509_free_name( subject.next );
+    mbedtls_x509_crt_frame_release( crt, frame );
+
+    if( ret < 0 )
+        return( ret );
 
     return( 0 );
 }

@@ -904,6 +904,8 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
             continue;
         }
 
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
         /*
          * Try to select a SHA-1 certificate for pre-1.2 clients, but still
          * present them a SHA-higher cert rather than failing if it's the only
@@ -932,6 +934,9 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
                 continue;
             }
         }
+#endif /* MBEDTLS_SSL_PROTO_TLS1   ||
+          MBEDTLS_SSL_PROTO_TLS1_1 ||
+          MBEDTLS_SSL_PROTO_SSL3 */
 
         /* If we get there, we got a winner */
         break;

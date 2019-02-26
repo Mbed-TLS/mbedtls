@@ -200,6 +200,52 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt )
     return( 0 );
 }
 
+int mbedtls_x509_crt_get_subject( mbedtls_x509_crt const *crt,
+                                  mbedtls_x509_name **subject )
+{
+    int ret;
+    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_name *name;
+
+    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( ret );
+
+    name = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
+    if( name == NULL )
+        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
+    else
+        ret = x509_crt_subject_from_frame( frame, name );
+
+    mbedtls_x509_crt_frame_release( crt, frame );
+
+    *subject = name;
+    return( ret );
+}
+
+int mbedtls_x509_crt_get_issuer( mbedtls_x509_crt const *crt,
+                                 mbedtls_x509_name **issuer )
+{
+    int ret;
+    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_name *name;
+
+    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( ret );
+
+    name = mbedtls_calloc( 1, sizeof( mbedtls_x509_name ) );
+    if( name == NULL )
+        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
+    else
+        ret = x509_crt_issuer_from_frame( frame, name );
+
+    mbedtls_x509_crt_frame_release( crt, frame );
+
+    *issuer = name;
+    return( ret );
+}
+
 int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
                                 mbedtls_x509_crt_frame *dst )
 {

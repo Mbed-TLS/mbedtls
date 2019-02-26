@@ -48,6 +48,7 @@ LOCAL_LDFLAGS += -lz
 endif
 
 APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
+	cipher/pbcrypt$(EXEXT)		\
 	hash/hello$(EXEXT)		hash/generic_sum$(EXEXT)	\
 					pkey/dh_client$(EXEXT)		\
 	pkey/dh_genprime$(EXEXT)	pkey/dh_server$(EXEXT)		\
@@ -100,6 +101,10 @@ aes/aescrypt2$(EXEXT): aes/aescrypt2.c $(DEP)
 aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
 	echo "  CC    aes/crypt_and_hash.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+cipher/pbcrypt$(EXEXT): cipher/pbcrypt.c $(DEP)
+	echo "  CC    cipher/pbcrypt.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) cipher/pbcrypt.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 hash/hello$(EXEXT): hash/hello.c $(DEP)
 	echo "  CC    hash/hello.c"

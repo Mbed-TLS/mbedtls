@@ -4,6 +4,7 @@
 
 aes/aescrypt2
 aes/crypt_and_hash
+cipher/pbcrypt
 hash/generic_sum
 hash/hello
 hash/md5sum

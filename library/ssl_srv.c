@@ -797,23 +797,54 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
     for( cur = list; cur != NULL; cur = cur->next )
     {
+        int match = 1;
+        mbedtls_pk_context *pk;
+
+        /* WARNING: With the current X.509 caching architecture, this MUST
+         * happen outside of the PK acquire/release block, because it moves
+         * the cached PK context. In a threading-enabled build, this would
+         * rightfully fail, but lead to a use-after-free otherwise. */
+        MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
+                               cur->cert );
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         /* ASYNC_PRIVATE may use a NULL entry for the opaque private key, so
          * we have to use the public key context to infer the capabilities
          * of the key. */
-        mbedtls_pk_context *pk = &cur->cert->pk;
+        {
+            int ret;
+            ret = mbedtls_x509_crt_pk_acquire( cur->cert, &pk );
+            if( ret != 0 )
+                return( ret );
+        }
 #else
         /* Outside of ASYNC_PRIVATE, use private key context directly
          * instead of querying for the public key context from the
          * certificate, so save a few bytes of code. */
-        mbedtls_pk_context *pk = cur->key;
+        pk = cur->key;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
         if( ! mbedtls_pk_can_do( pk, pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: key type" ) );
-            continue;
+            match = 0;
         }
+
+#if defined(MBEDTLS_ECDSA_C)
+        if( pk_alg == MBEDTLS_PK_ECDSA &&
+            ssl_check_key_curve( pk, ssl->handshake->curves ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );
+            match = 0;
+        }
+#endif
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+        mbedtls_x509_crt_pk_release( cur->cert, pk );
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+         if( match == 0 )
+            continue;
 
         /*
          * This avoids sending the client a cert it'll reject based on
@@ -831,29 +862,32 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
             continue;
         }
 
-#if defined(MBEDTLS_ECDSA_C)
-        if( pk_alg == MBEDTLS_PK_ECDSA &&
-            ssl_check_key_curve( pk, ssl->handshake->curves ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );
-            continue;
-        }
-#endif
-
         /*
          * Try to select a SHA-1 certificate for pre-1.2 clients, but still
          * present them a SHA-higher cert rather than failing if it's the only
          * one we got that satisfies the other conditions.
          */
-        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 &&
-            cur->cert->sig_md != MBEDTLS_MD_SHA1 )
+        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
         {
-            if( fallback == NULL )
-                fallback = cur;
+            mbedtls_md_type_t sig_md;
             {
+                int ret;
+                mbedtls_x509_crt_frame *frame;
+                ret = mbedtls_x509_crt_frame_acquire( cur->cert, &frame );
+                if( ret != 0 )
+                    return( ret );
+                sig_md = frame->sig_md;
+                mbedtls_x509_crt_frame_release( cur->cert, frame );
+            }
+
+            if( sig_md != MBEDTLS_MD_SHA1 )
+            {
+                if( fallback == NULL )
+                    fallback = cur;
+
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate not preferred: "
-                                    "sha-2 with pre-TLS 1.2 client" ) );
-            continue;
+                                            "sha-2 with pre-TLS 1.2 client" ) );
+                continue;
             }
         }
 

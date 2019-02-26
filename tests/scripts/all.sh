@@ -643,6 +643,22 @@ component_test_default_cmake_gcc_asan () {
     if_build_succeeded tests/compat.sh
 }
 
+component_test_full_cmake_gcc_asan () {
+    msg "build: full config, cmake, gcc, ASan"
+    scripts/config.pl full
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: main suites (inc. selftests) (full config, ASan build)"
+    make test
+
+    msg "test: ssl-opt.sh (full config, ASan build)"
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: compat.sh (full config, ASan build)"
+    if_build_succeeded tests/compat.sh
+}
+
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

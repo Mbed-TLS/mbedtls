@@ -638,7 +638,7 @@ static int ecdh_calc_secret_internal( mbedtls_ecdh_context_mbed *ctx,
 
     *olen = ctx->grp.pbits / 8 + ( ( ctx->grp.pbits % 8 ) != 0 );
 
-    if( ctx->grp.id == MBEDTLS_ECP_DP_CURVE25519 )
+    if( mbedtls_ecp_get_type( &ctx->grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
         return mbedtls_mpi_write_binary_le( &ctx->z, buf, *olen );
 
     return mbedtls_mpi_write_binary( &ctx->z, buf, *olen );

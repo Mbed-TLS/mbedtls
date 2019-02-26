@@ -2360,6 +2360,8 @@ send_request:
         mbedtls_printf( "  . Restarting connection from same port..." );
         fflush( stdout );
 
+        memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",

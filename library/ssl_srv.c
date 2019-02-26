@@ -2991,24 +2991,33 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
         while( crt != NULL && crt->raw.p != NULL )
         {
-            dn_size = crt->subject_raw.len;
+            mbedtls_x509_crt_frame *frame;
+            ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+            if( ret != 0 )
+                return( ret );
+
+            dn_size = frame->subject_raw_with_hdr.len;
 
             if( end < p ||
                 (size_t)( end - p ) < dn_size ||
                 (size_t)( end - p ) < 2 + dn_size )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "skipping CAs: buffer too short" ) );
+                mbedtls_x509_crt_frame_release( crt, frame );
                 break;
             }
 
             *p++ = (unsigned char)( dn_size >> 8 );
             *p++ = (unsigned char)( dn_size      );
-            memcpy( p, crt->subject_raw.p, dn_size );
+            memcpy( p, frame->subject_raw_with_hdr.p, dn_size );
             p += dn_size;
 
             MBEDTLS_SSL_DEBUG_BUF( 3, "requested DN", p - dn_size, dn_size );
 
             total_dn_size += 2 + dn_size;
+
+            mbedtls_x509_crt_frame_release( crt, frame );
+
             crt = crt->next;
         }
     }

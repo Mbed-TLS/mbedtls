@@ -478,7 +478,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-static unsigned char peer_crt_info[1024] = { 0 };
+static unsigned char peer_crt_info[1024];
 
 /*
  * Enabled if debug_level > 1 in code below
@@ -1512,6 +1512,7 @@ int main( int argc, char *argv[] )
     }
 
     mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+    memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
@@ -2216,6 +2217,8 @@ reconnect:
 #endif
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
+
+        memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {

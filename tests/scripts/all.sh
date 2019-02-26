@@ -682,7 +682,6 @@ component_test_rsa_no_crt () {
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
     make
 
@@ -754,7 +753,6 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_FS_IO
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
@@ -857,8 +855,6 @@ component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
     make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
@@ -931,8 +927,6 @@ component_build_arm_none_eabi_gcc () {
     scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
     scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
     scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
 }
 
@@ -948,8 +942,6 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
     scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
     scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
     scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
     scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
@@ -971,8 +963,6 @@ component_build_armcc () {
     scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
     scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
     scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib

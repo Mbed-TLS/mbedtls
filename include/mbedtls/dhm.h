@@ -350,11 +350,10 @@ int mbedtls_dhm_self_test( int verbose );
 #endif
 
 /**
- * RFC 3526, RFC 5114 and RFC 7919 standardize a number of
- * Diffie-Hellman groups, some of which are included here
- * for use within the SSL/TLS module and the user's convenience
- * when configuring the Diffie-Hellman parameters by hand
- * through \c mbedtls_ssl_conf_dh_param.
+ * RFC 3526, RFC 5114 and RFC 7919 standardize a number of Diffie-Hellman
+ * groups, some of which are included here for use by Mbed TLS's SSL/TLS module
+ * and the user's convenience when configuring the Diffie-Hellman parameters by
+ * hand through Mbed TLS's \c mbedtls_ssl_conf_dh_param.
  *
  * The following lists the source of the above groups in the standards:
  * - RFC 5114 section 2.2:  2048-bit MODP Group with 224-bit Prime Order Subgroup

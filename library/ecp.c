@@ -364,16 +364,6 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
 #endif
 
 /*
- * Curve types: internal for now, might be exposed later
- */
-typedef enum
-{
-    ECP_TYPE_NONE = 0,
-    ECP_TYPE_SHORT_WEIERSTRASS,    /* y^2 = x^3 + a x + b      */
-    ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
-} ecp_curve_type;
-
-/*
  * List of supported curves:
  *  - internal ID
  *  - TLS NamedCurve ID (RFC 4492 sec. 5.1.1, RFC 7071 sec. 2)
@@ -522,15 +512,15 @@ const mbedtls_ecp_curve_info *mbedtls_ecp_curve_info_from_name( const char *name
 /*
  * Get the type of a curve
  */
-static inline ecp_curve_type ecp_get_type( const mbedtls_ecp_group *grp )
+mbedtls_ecp_curve_type mbedtls_ecp_get_type( const mbedtls_ecp_group *grp )
 {
     if( grp->G.X.p == NULL )
-        return( ECP_TYPE_NONE );
+        return( MBEDTLS_ECP_TYPE_NONE );
 
     if( grp->G.Y.p == NULL )
-        return( ECP_TYPE_MONTGOMERY );
+        return( MBEDTLS_ECP_TYPE_MONTGOMERY );
     else
-        return( ECP_TYPE_SHORT_WEIERSTRASS );
+        return( MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS );
 }
 
 /*
@@ -748,7 +738,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
     plen = mbedtls_mpi_size( &grp->P );
 
 #if defined(ECP_MONTGOMERY)
-    if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
     {
         *olen = plen;
         if( buflen < *olen )
@@ -758,7 +748,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
     }
 #endif
 #if defined(ECP_SHORTWEIERSTRASS)
-    if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
     {
         /*
          * Common case: P == 0
@@ -821,7 +811,7 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
     plen = mbedtls_mpi_size( &grp->P );
 
 #if defined(ECP_MONTGOMERY)
-    if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
     {
         if( plen != ilen )
             return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -837,7 +827,7 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
     }
 #endif
 #if defined(ECP_SHORTWEIERSTRASS)
-    if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
     {
         if( buf[0] == 0x00 )
         {
@@ -2394,11 +2384,11 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
 #if defined(ECP_MONTGOMERY)
-    if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
         MBEDTLS_MPI_CHK( ecp_mul_mxz( grp, R, m, P, f_rng, p_rng ) );
 #endif
 #if defined(ECP_SHORTWEIERSTRASS)
-    if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
         MBEDTLS_MPI_CHK( ecp_mul_comb( grp, R, m, P, f_rng, p_rng, rs_ctx ) );
 #endif
 
@@ -2537,7 +2527,7 @@ int mbedtls_ecp_muladd_restartable(
     ECP_VALIDATE_RET( n   != NULL );
     ECP_VALIDATE_RET( Q   != NULL );
 
-    if( ecp_get_type( grp ) != ECP_TYPE_SHORT_WEIERSTRASS )
+    if( mbedtls_ecp_get_type( grp ) != MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 
     mbedtls_ecp_point_init( &mP );
@@ -2657,11 +2647,11 @@ int mbedtls_ecp_check_pubkey( const mbedtls_ecp_group *grp,
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
 #if defined(ECP_MONTGOMERY)
-    if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
         return( ecp_check_pubkey_mx( grp, pt ) );
 #endif
 #if defined(ECP_SHORTWEIERSTRASS)
-    if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
         return( ecp_check_pubkey_sw( grp, pt ) );
 #endif
     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -2677,7 +2667,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp,
     ECP_VALIDATE_RET( d   != NULL );
 
 #if defined(ECP_MONTGOMERY)
-    if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
     {
         /* see RFC 7748 sec. 5 para. 5 */
         if( mbedtls_mpi_get_bit( d, 0 ) != 0 ||
@@ -2693,7 +2683,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp,
     }
 #endif /* ECP_MONTGOMERY */
 #if defined(ECP_SHORTWEIERSTRASS)
-    if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
     {
         /* see SEC1 3.2 */
         if( mbedtls_mpi_cmp_int( d, 1 ) < 0 ||
@@ -2725,7 +2715,7 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
     n_size = ( grp->nbits + 7 ) / 8;
 
 #if defined(ECP_MONTGOMERY)
-    if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
     {
         /* [M225] page 5 */
         size_t b;
@@ -2753,7 +2743,7 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
 #endif /* ECP_MONTGOMERY */
 
 #if defined(ECP_SHORTWEIERSTRASS)
-    if( ecp_get_type( grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
     {
         /* SEC1 3.2.1: Generate d such that 1 <= n < N */
         int count = 0;
@@ -2864,7 +2854,7 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
     ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
 
 #if defined(ECP_MONTGOMERY)
-    if( ecp_get_type( &key->grp ) == ECP_TYPE_MONTGOMERY )
+    if( mbedtls_ecp_get_type( &key->grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
     {
         /*
          * If it is Curve25519 curve then mask the key as mandated by RFC7748
@@ -2899,7 +2889,7 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 
 #endif
 #if defined(ECP_SHORTWEIERSTRASS)
-    if( ecp_get_type( &key->grp ) == ECP_TYPE_SHORT_WEIERSTRASS )
+    if( mbedtls_ecp_get_type( &key->grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &key->d, buf, buflen ) );
 

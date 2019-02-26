@@ -99,6 +99,16 @@ typedef enum
  */
 #define MBEDTLS_ECP_DP_MAX     12
 
+/*
+ * Curve types
+ */
+typedef enum
+{
+    MBEDTLS_ECP_TYPE_NONE = 0,
+    MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS,    /* y^2 = x^3 + a x + b      */
+    MBEDTLS_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
+} mbedtls_ecp_curve_type;
+
 /**
  * Curve information, for use by other modules.
  */
@@ -416,6 +426,11 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops );
  */
 int mbedtls_ecp_restart_is_enabled( void );
 #endif /* MBEDTLS_ECP_RESTARTABLE */
+
+/*
+ * Get the type of a curve
+ */
+mbedtls_ecp_curve_type mbedtls_ecp_get_type( const mbedtls_ecp_group *grp );
 
 /**
  * \brief           This function retrieves the information defined in

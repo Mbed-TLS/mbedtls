@@ -899,6 +899,20 @@ component_build_no_sockets () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' lib
 }
 
+component_test_memory_buffer_allocator () {
+    msg "build: default config with memory buffer allocator enabled"
+    scripts/config.pl set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_MEMORY_BACKTRACE
+    CC=gcc cmake .
+    make
+
+    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
+    make test
+
+    msg "test: ssl-opt.sh, MBEDTLS_MEMORY_BUFFER_ALLOC_C"
+    if_build_succeeded tests/ssl-opt.sh
+}
+
 component_test_no_max_fragment_length () {
     # Run max fragment length tests with MFL disabled
     msg "build: default config except MFL extension (ASan build)" # ~ 30s

@@ -808,7 +808,8 @@ int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
  *
  * \return          \c 0 on success. In this case, the user takes ownership
  *                  of the name context, and is responsible for freeing it
- *                  once it's no longer needed.
+ *                  through a call to mbedtls_x509_name_free() once it's no
+ *                  longer needed.
  * \return          A negative error code on failure.
  */
 int mbedtls_x509_crt_get_subject( mbedtls_x509_crt const *crt,
@@ -831,7 +832,8 @@ int mbedtls_x509_crt_get_subject( mbedtls_x509_crt const *crt,
  *
  * \return          \c 0 on success. In this case, the user takes ownership
  *                  of the name context, and is responsible for freeing it
- *                  once it's no longer needed.
+ *                  through a call to mbedtls_x509_name_free() once it's no
+ *                  longer needed.
  * \return          A negative error code on failure.
  */
 int mbedtls_x509_crt_get_issuer( mbedtls_x509_crt const *crt,

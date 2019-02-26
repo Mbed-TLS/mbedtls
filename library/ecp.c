@@ -742,7 +742,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
     {
         *olen = plen;
         if( buflen < *olen )
-                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+            return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->X, buf, plen ) );
     }

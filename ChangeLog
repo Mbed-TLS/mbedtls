@@ -53,6 +53,16 @@ Changes
      underlying OS actually guarantees.
    * Fix configuration queries in ssl-opt.h. #2030
    * Ensure that ssl-opt.h can be run in OS X. #2029
+   * Ensure that unused bits are zero when writing ASN.1 bitstrings when using
+     mbedtls_asn1_write_bitstring().
+   * Fix issue when writing the named bitstrings in KeyUsage and NsCertType
+     extensions in CSRs and CRTs that caused these bitstrings to not be encoded
+     correctly as trailing zeroes were not accounted for as unused bits in the
+     leading content octet. Fixes #1610.
+
+Features
+   * Add a new function mbedtls_asn1_write_named_bitstring() to write ASN.1
+     named bitstring in DER as required by RFC 5280 Appendix B.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

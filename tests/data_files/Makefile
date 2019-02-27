@@ -785,6 +785,14 @@ server1.req.ku-ct: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation,key_encipherment ns_cert_type=ssl_server subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
 all_final += server1.req.ku-ct
 
+server1.req.key_usage_empty: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1 force_key_usage=1
+all_final += server1.req.key_usage_empty
+
+server1.req.cert_type_empty: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1 force_ns_cert_type=1
+all_final += server1.req.cert_type_empty
+
 # server2*
 
 server2.req.sha256: server2.key

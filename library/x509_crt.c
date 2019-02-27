@@ -200,6 +200,52 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt )
     return( 0 );
 }
 
+int mbedtls_x509_crt_get_subject_alt_names( mbedtls_x509_crt const *crt,
+                                            mbedtls_x509_sequence **subj_alt )
+{
+    int ret;
+    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_sequence *seq;
+
+    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( ret );
+
+    seq = mbedtls_calloc( 1, sizeof( mbedtls_x509_sequence ) );
+    if( seq == NULL )
+        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
+    else
+        ret = x509_crt_subject_alt_from_frame( frame, seq );
+
+    mbedtls_x509_crt_frame_release( crt, frame );
+
+    *subj_alt = seq;
+    return( ret );
+}
+
+int mbedtls_x509_crt_get_ext_key_usage( mbedtls_x509_crt const *crt,
+                                        mbedtls_x509_sequence **ext_key_usage )
+{
+    int ret;
+    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_sequence *seq;
+
+    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( ret );
+
+    seq = mbedtls_calloc( 1, sizeof( mbedtls_x509_sequence ) );
+    if( seq == NULL )
+        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
+    else
+        ret = x509_crt_ext_key_usage_from_frame( frame, seq );
+
+    mbedtls_x509_crt_frame_release( crt, frame );
+
+    *ext_key_usage = seq;
+    return( ret );
+}
+
 int mbedtls_x509_crt_get_subject( mbedtls_x509_crt const *crt,
                                   mbedtls_x509_name **subject )
 {

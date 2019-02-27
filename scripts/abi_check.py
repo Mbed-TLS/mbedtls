@@ -62,7 +62,7 @@ class AbiChecker(object):
         self.new_crypto_rev = new_crypto_rev
         self.skip_file = skip_file
         self.brief = brief
-        self.mbedtls_modules = {}
+        self.mbedtls_modules = {"old": {}, "new": {}}
         self.old_dumps = {}
         self.new_dumps = {}
         self.git_command = "git"
@@ -149,7 +149,7 @@ class AbiChecker(object):
             if checkout_process.returncode != 0:
                 raise Exception("git checkout failed, aborting")
 
-    def build_shared_libraries(self, git_worktree_path):
+    def build_shared_libraries(self, git_worktree_path, version):
         """Build the shared libraries in the specified worktree."""
         my_environment = os.environ.copy()
         my_environment["CFLAGS"] = "-g -Og"
@@ -166,20 +166,23 @@ class AbiChecker(object):
         self.log.info(make_output.decode("utf-8"))
         for root, dirs, files in os.walk(git_worktree_path):
             for file in fnmatch.filter(files, "*.so"):
-                self.mbedtls_modules[os.path.splitext(file)[0]] = os.path.join(
-                    root, file
+                self.mbedtls_modules[version][os.path.splitext(file)[0]] = (
+                    os.path.join(root, file)
                 )
         if make_process.returncode != 0:
             raise Exception("make failed, aborting")
 
-    def get_abi_dumps_from_shared_libraries(self, git_ref, git_worktree_path):
+    def get_abi_dumps_from_shared_libraries(self, git_ref, git_worktree_path,
+                                            version):
         """Generate the ABI dumps for the specified git revision.
         It must be checked out in git_worktree_path and the shared libraries
         must have been built."""
         abi_dumps = {}
-        for mbed_module, module_path in self.mbedtls_modules.items():
+        for mbed_module, module_path in self.mbedtls_modules[version].items():
             output_path = os.path.join(
-                self.report_dir, "{}-{}.dump".format(mbed_module, git_ref)
+                self.report_dir, version, "{}-{}.dump".format(
+                    mbed_module, git_ref
+                )
             )
             abi_dump_command = [
                 "abi-dumper",
@@ -213,15 +216,15 @@ class AbiChecker(object):
         if worktree_process.returncode != 0:
             raise Exception("Worktree cleanup failed, aborting")
 
-    def get_abi_dump_for_ref(self, remote_repo, git_rev, crypto_rev):
+    def get_abi_dump_for_ref(self, remote_repo, git_rev, crypto_rev, version):
         """Generate the ABI dumps for the specified git revision."""
         git_worktree_path = self.get_clean_worktree_for_git_revision(
             remote_repo, git_rev
         )
         self.update_git_submodules(git_worktree_path, crypto_rev)
-        self.build_shared_libraries(git_worktree_path)
+        self.build_shared_libraries(git_worktree_path, version)
         abi_dumps = self.get_abi_dumps_from_shared_libraries(
-            git_rev, git_worktree_path
+            git_rev, git_worktree_path, version
         )
         self.cleanup_worktree(git_worktree_path)
         return abi_dumps
@@ -250,7 +253,9 @@ class AbiChecker(object):
         be available."""
         compatibility_report = ""
         compliance_return_code = 0
-        for mbed_module, module_path in self.mbedtls_modules.items():
+        shared_modules = list(set(self.mbedtls_modules["old"].keys()) &
+                              set(self.mbedtls_modules["new"].keys()))
+        for mbed_module in shared_modules:
             output_path = os.path.join(
                 self.report_dir, "{}-{}-{}.html".format(
                     mbed_module, self.old_rev, self.new_rev
@@ -315,9 +320,9 @@ class AbiChecker(object):
         self.check_repo_path()
         self.check_abi_tools_are_installed()
         self.old_dumps = self.get_abi_dump_for_ref(self.old_repo, self.old_rev,
-                                                   self.old_crypto_rev)
+                                                   self.old_crypto_rev, "old")
         self.new_dumps = self.get_abi_dump_for_ref(self.new_repo, self.new_rev,
-                                                   self.new_crypto_rev)
+                                                   self.new_crypto_rev, "new")
         return self.get_abi_compatibility_report()
 
 

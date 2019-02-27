@@ -1708,12 +1708,24 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         goto exit;
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 
+    /* Free the frame before parsing the public key to
+     * keep peak RAM usage low. This is slightly inefficient
+     * because the frame will need to be parsed again on the
+     * first usage of the CRT, but that seems acceptable.
+     * As soon as the frame gets used multiple times, it
+     * will be cached by default. */
+    x509_crt_cache_clear_frame( crt->cache );
+
     /* The cache just references the PK structure from the legacy
      * implementation, so set up the latter first before setting up
-     * the cache. */
+     * the cache.
+     *
+     * We're not actually using the parsed PK context here;
+     * we just parse it to check that it's well-formed. */
     ret = mbedtls_x509_crt_cache_provide_pk( crt );
     if( ret != 0 )
         goto exit;
+    x509_crt_cache_clear_pk( crt->cache );
 
 exit:
     if( ret != 0 )

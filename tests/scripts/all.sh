@@ -298,7 +298,7 @@ check_tools()
 }
 
 check_headers_in_cpp () {
-    ls include/mbedtls >headers.txt
+    ls include/mbedtls | grep "\.h$" >headers.txt
     <programs/test/cpp_dummy_build.cpp sed -n 's/"$//; s!^#include "mbedtls/!!p' |
     sort |
     diff headers.txt -
@@ -785,6 +785,7 @@ component_test_use_psa_crypto_full_cmake_asan() {
     msg "build: cmake, full config + MBEDTLS_USE_PSA_CRYPTO, ASan"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl unset MBEDTLS_ECP_RESTARTABLE  # restartable ECC not supported through PSA
     scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
     scripts/config.pl set MBEDTLS_USE_PSA_CRYPTO
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

@@ -57,6 +57,11 @@
 #include "ecjpake.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#include "psa_util.h"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -280,7 +285,15 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
-#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_ecc_curve_t ecdh_psa_curve;
+    psa_key_handle_t ecdh_psa_privkey;
+    unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
+    size_t ecdh_psa_peerkey_len;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_ECDH_C */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
 #if defined(MBEDTLS_SSL_CLI_C)

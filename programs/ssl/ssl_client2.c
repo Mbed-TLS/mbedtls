@@ -2360,7 +2360,9 @@ send_request:
         mbedtls_printf( "  . Restarting connection from same port..." );
         fflush( stdout );
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
@@ -2516,7 +2518,9 @@ reconnect:
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {

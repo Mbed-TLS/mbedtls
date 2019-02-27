@@ -52,10 +52,17 @@ extern "C" {
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
 /**
  * \brief           This function performs PKCS#5 with PBES2, and writes the
  *                  result to the output buffer.
  *
+ * \deprecated      Superseded by mbedtls_pkcs5_pbes2_ext().
  *
  * \param pbe_params The ASN.1 algorithm parameters.
  * \param mode       The operation mode (either #MBEDTLS_PKCS5_DECRYPT or
@@ -69,10 +76,15 @@ extern "C" {
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
  */
-int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
-                         const unsigned char *pwd,  size_t pwdlen,
-                         const unsigned char *data, size_t datalen,
-                         unsigned char *output );
+MBEDTLS_DEPRECATED int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params,
+                                            int mode,
+                                            const unsigned char *pwd,
+                                            size_t pwdlen,
+                                            const unsigned char *data,
+                                            size_t datalen,
+                                            unsigned char *output );
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief           This function performs PKCS#5 with PBES2, and writes the

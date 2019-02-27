@@ -110,15 +110,18 @@ static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
                  const unsigned char *pwd,  size_t pwdlen,
                  const unsigned char *data, size_t datalen,
                  unsigned char *output )
 {
     size_t olen = 0;
+
     return mbedtls_pkcs5_pbes2_ext( pbe_params, mode, pwd, pwdlen, data, datalen,
             output, &olen );
 }
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 int mbedtls_pkcs5_pbes2_ext( const mbedtls_asn1_buf *pbe_params, int mode,
                  const unsigned char *pwd,  size_t pwdlen,

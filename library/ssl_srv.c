@@ -4173,7 +4173,15 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         /* Should never happen */
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    peer_pk = &ssl->session_negotiate->peer_cert->pk;
+
+    ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
+                                       &peer_pk );
+    if( ret != 0 )
+    {
+        /* Should never happen */
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     /*
@@ -4206,7 +4214,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         if( i + 2 > ssl->in_hslen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+            goto exit;
         }
 
         /*
@@ -4218,7 +4227,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+            goto exit;
         }
 
 #if !defined(MBEDTLS_MD_SHA1)
@@ -4239,7 +4249,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+            goto exit;
         }
 
         /*
@@ -4248,7 +4259,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         if( !mbedtls_pk_can_do( peer_pk, pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "sig_alg doesn't match cert key" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+            goto exit;
         }
 
         i++;
@@ -4263,7 +4275,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( i + 2 > ssl->in_hslen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+        goto exit;
     }
 
     sig_len = ( ssl->in_msg[i] << 8 ) | ssl->in_msg[i+1];
@@ -4272,7 +4285,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( i + sig_len != ssl->in_hslen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+        goto exit;
     }
 
     /* Calculate hash and verify signature */
@@ -4283,12 +4297,19 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
                            ssl->in_msg + i, sig_len ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
-        return( ret );
+        goto exit;
     }
 
     mbedtls_ssl_update_handshake_status( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
+
+exit:
+
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert,
+                                 peer_pk );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     return( ret );
 }

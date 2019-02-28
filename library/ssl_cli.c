@@ -2817,7 +2817,15 @@ start_processing:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
-        peer_pk = &ssl->session_negotiate->peer_cert->pk;
+
+        ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
+                                           &peer_pk );
+        if( ret != 0 )
+        {
+            /* Should never happen */
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
         /*
@@ -2828,6 +2836,10 @@ start_processing:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                             MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+            mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert,
+                                         peer_pk );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
             return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
         }
 
@@ -2849,6 +2861,10 @@ start_processing:
             if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
                 ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
 #endif
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+            mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert,
+                                         peer_pk );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
             return( ret );
         }
 
@@ -2857,7 +2873,10 @@ start_processing:
          * so that more RAM is available for upcoming expensive
          * operations like ECDHE. */
         mbedtls_pk_free( peer_pk );
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#else
+        mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert,
+                                     peer_pk );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 

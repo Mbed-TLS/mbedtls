@@ -202,6 +202,45 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt )
     return( 0 );
 }
 
+int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
+                                mbedtls_x509_crt_frame *dst )
+{
+    int ret;
+    mbedtls_x509_crt_frame *frame;
+    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( ret );
+    *dst = *frame;
+    mbedtls_x509_crt_frame_release( crt, frame );
+    return( 0 );
+}
+
+int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
+                             mbedtls_pk_context *dst )
+{
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+    mbedtls_x509_buf_raw pk_raw = crt->cache->pk_raw;
+    return( mbedtls_pk_parse_subpubkey( &pk_raw.p,
+                                        pk_raw.p + pk_raw.len,
+                                        dst ) );
+#else /* !MBEDTLS_X509_ON_DEMAND_PARSING */
+    int ret;
+    mbedtls_pk_context *pk;
+    ret = mbedtls_x509_crt_pk_acquire( crt, &pk );
+    if( ret != 0 )
+        return( ret );
+
+    /* Move PK from CRT cache to destination pointer
+     * to avoid a copy. */
+    *dst = *pk;
+    mbedtls_free( crt->cache->pk );
+    crt->cache->pk = NULL;
+
+    mbedtls_x509_crt_pk_release( crt, pk );
+    return( 0 );
+#endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
+}
+
 /*
  * Item in a verification chain: cert and flags for it
  */

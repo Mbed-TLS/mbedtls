@@ -175,7 +175,7 @@ class AbiChecker(object):
         my_environment["SHARED"] = "1"
         my_environment["USE_CRYPTO_SUBMODULE"] = "1"
         make_process = subprocess.Popen(
-            self.make_command,
+            [self.make_command, "lib"],
             env=my_environment,
             cwd=git_worktree_path,
             stdout=subprocess.PIPE,

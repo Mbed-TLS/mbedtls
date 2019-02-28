@@ -49,6 +49,13 @@ API Changes
      always return NULL, and removes the peer_cert field from the
      mbedtls_ssl_session structure which otherwise stores the peer's
      certificate.
+   * Add a new compile-time option `MBEDTLS_X509_ON_DEMAND_PARSING`,
+     disabled by default, which allows to parse and cache X.509 CRTs
+     on demand only, at the benefit of lower RAM usage. Enabling
+     this option breaks the structure API of X.509 in that most
+     fields of `mbedtls_x509_crt` are removed, but it keeps the
+     X.509 function API. See the API changes section as well as
+     the documentation in `config.h` for more information.
 
 Bugfix
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

@@ -2300,7 +2300,15 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    peer_pk = &ssl->session_negotiate->peer_cert->pk;
+
+    ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
+                                       &peer_pk );
+    if( ret != 0 )
+    {
+        /* Should never happen */
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     /*
@@ -2309,7 +2317,8 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     if( ! mbedtls_pk_can_do( peer_pk, MBEDTLS_PK_RSA ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate key type mismatch" ) );
-        return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
+        ret = MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
+        goto cleanup;
     }
 
     if( ( ret = mbedtls_pk_encrypt( peer_pk,
@@ -2319,7 +2328,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
                             ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_rsa_pkcs1_encrypt", ret );
-        return( ret );
+        goto cleanup;
     }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
@@ -2332,11 +2341,16 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     }
 #endif
 
+cleanup:
+
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /* We don't need the peer's public key anymore. Free it. */
     mbedtls_pk_free( peer_pk );
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    return( 0 );
+#else
+    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert, peer_pk );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+    return( ret );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */

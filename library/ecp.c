@@ -879,6 +879,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
     plen = mbedtls_mpi_size( &grp->P );
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+    (void) format; /* Montgomery curves always use the same point format */
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
     {
         *olen = plen;
@@ -2653,6 +2654,8 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* reset ops count for this call if top-level */
     if( rs_ctx != NULL && rs_ctx->depth++ == 0 )
         rs_ctx->ops_done = 0;
+#else
+    (void) rs_ctx;
 #endif
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)

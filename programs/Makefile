@@ -249,17 +249,17 @@ ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c $(DEP)
 	echo "  CC    ssl/ssl_client1.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client1.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ssl/ssl_client2$(EXEXT): ssl/ssl_client2.c ssl/query_config.c $(DEP)
+ssl/ssl_client2$(EXEXT): ssl/ssl_client2.c test/query_config.c $(DEP)
 	echo "  CC    ssl/ssl_client2.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client2.c ssl/query_config.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client2.c test/query_config.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_server$(EXEXT): ssl/ssl_server.c $(DEP)
 	echo "  CC    ssl/ssl_server.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c ssl/query_config.c $(DEP)
+ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c test/query_config.c $(DEP)
 	echo "  CC    ssl/ssl_server2.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c ssl/query_config.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c test/query_config.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_fork_server$(EXEXT): ssl/ssl_fork_server.c $(DEP)
 	echo "  CC    ssl/ssl_fork_server.c"
@@ -301,9 +301,9 @@ test/zeroize$(EXEXT): test/zeroize.c $(DEP)
 	echo "  CC    test/zeroize.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/zeroize.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/query_compile_time_config$(EXEXT): test/query_compile_time_config.c ssl/query_config.c $(DEP)
+test/query_compile_time_config$(EXEXT): test/query_compile_time_config.c test/query_config.c $(DEP)
 	echo "  CC    test/query_compile_time_config.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_compile_time_config.c ssl/query_config.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/query_compile_time_config.c test/query_config.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 util/pem2der$(EXEXT): util/pem2der.c $(DEP)
 	echo "  CC    util/pem2der.c"

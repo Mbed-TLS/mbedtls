@@ -755,6 +755,41 @@ void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx );
 void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
+/**
+ * \brief           Request CRT frame giving access to basic CRT fields
+ *                  and raw ASN.1 data of complex fields.
+ *
+ * \param crt       The CRT to use. This must be initialized and setup.
+ * \param dst       The address of the destination frame structure.
+ *                  This need not be initialized.
+ *
+ * \note            mbedtls_x509_crt_frame does not contain dynamic
+ *                  references and hence need not be freed. Users may
+ *                  e.g. allocate an instance of mbedtls_x509_crt_frame
+ *                  on the stack and call this function on it, in which
+ *                  case no allocation/freeing has to be done.
+ *
+ * \return          \c 0 on success. In this case, \p dst is updated
+ *                  to hold the frame for the given CRT.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
+                                mbedtls_x509_crt_frame *dst );
+
+/**
+ * \brief           Request a PK context for the public key within a CRT.
+ *
+ * \param crt       The CRT to use. This must be initialized and setup.
+ * \param pk        The address of the destination PK context to fill.
+ *                  This must be initialized via mbedtls_pk_init().
+ *
+ * \return          \c 0 on success. In this case, the user takes ownership
+ *                  of the destination PK context, and is responsible for
+ *                  calling mbedtls_pk_free() on it once it's no longer needed.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
+                             mbedtls_pk_context *pk );
 
 /**
  * \brief           Flush internal X.509 CRT parsing cache, if present.

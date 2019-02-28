@@ -122,8 +122,14 @@ typedef struct mbedtls_x509_crt_cache
 typedef struct mbedtls_x509_crt
 {
     int own_buffer;                     /**< Indicates if \c raw is owned
-                                         *   by the structure or not.        */
-    mbedtls_x509_buf raw;               /**< The raw certificate data (DER). */
+                                         *   by the structure or not.         */
+    mbedtls_x509_buf raw;               /**< The raw certificate data (DER).  */
+    mbedtls_x509_crt_cache *cache;      /**< Internal parsing cache.          */
+
+    struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */
+
+    /* Legacy fields */
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
     mbedtls_x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
 
     int version;                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
@@ -166,10 +172,7 @@ typedef struct mbedtls_x509_crt
     mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
     mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
     void *sig_opts;             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
-
-    mbedtls_x509_crt_cache *cache;     /**< Internal parsing cache. */
-
-    struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */
+#endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 }
 mbedtls_x509_crt;
 
@@ -746,7 +749,7 @@ static inline void mbedtls_x509_crt_frame_release(
 #endif
 }
 
-static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt *crt,
+static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
                                                mbedtls_pk_context **pk_ptr )
 {
 #if defined(MBEDTLS_THREADING_C)
@@ -772,7 +775,7 @@ static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt *crt,
     return( 0 );
 }
 
-static inline void mbedtls_x509_crt_pk_release( mbedtls_x509_crt *crt,
+static inline void mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt,
                                                 mbedtls_pk_context *pk )
 {
     ((void) pk);

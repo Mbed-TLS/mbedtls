@@ -116,10 +116,19 @@ int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
     pk = mbedtls_calloc( 1, sizeof( mbedtls_pk_context ) );
     if( pk == NULL )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
-    *pk = crt->pk;
-
     cache->pk = pk;
+
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+    *pk = crt->pk;
     return( 0 );
+#else
+    {
+        mbedtls_x509_buf_raw pk_raw = cache->pk_raw;
+        return( mbedtls_pk_parse_subpubkey( &pk_raw.p,
+                                            pk_raw.p + pk_raw.len,
+                                            pk ) );
+    }
+#endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
 }
 
 static void x509_crt_cache_init( mbedtls_x509_crt_cache *cache )
@@ -133,9 +142,15 @@ static void x509_crt_cache_init( mbedtls_x509_crt_cache *cache )
 
 static void x509_crt_cache_clear_pk( mbedtls_x509_crt_cache *cache )
 {
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
     /* The cache holds a shallow copy of the PK context
      * in the legacy struct, so don't free PK context. */
     mbedtls_free( cache->pk );
+#else
+    mbedtls_pk_free( cache->pk );
+    mbedtls_free( cache->pk );
+#endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
+
     cache->pk = NULL;
 }
 
@@ -1182,6 +1197,7 @@ static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame *frame,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
 static int x509_crt_pk_from_frame( mbedtls_x509_crt_frame *frame,
                                    mbedtls_pk_context *pk )
 {
@@ -1189,6 +1205,7 @@ static int x509_crt_pk_from_frame( mbedtls_x509_crt_frame *frame,
     unsigned char *end = p + frame->pubkey_raw.len;
     return( mbedtls_pk_parse_subpubkey( &p, end, pk ) );
 }
+#endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 
 /*
  * Parse and fill a single X.509 certificate in DER format
@@ -1248,6 +1265,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
 
     cache->pk_raw = frame->pubkey_raw;
 
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
     /* Copy frame to legacy CRT structure -- that's inefficient, but if
      * memory matters, the new CRT structure should be used anyway. */
     crt->tbs.p   = frame->tbs.p;
@@ -1336,7 +1354,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     ret = x509_crt_ext_key_usage_from_frame( frame, &crt->ext_key_usage );
     if( ret != 0 )
         goto exit;
-
+#endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 
     /* The cache just references the PK structure from the legacy
      * implementation, so set up the latter first before setting up
@@ -3330,6 +3348,8 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
     {
         x509_crt_cache_free( cert_cur->cache );
         mbedtls_free( cert_cur->cache );
+
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
         mbedtls_pk_free( &cert_cur->pk );
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
@@ -3340,6 +3360,7 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         x509_free_name( cert_cur->subject.next );
         x509_free_sequence( cert_cur->ext_key_usage.next );
         x509_free_sequence( cert_cur->subject_alt_names.next );
+#endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 
         if( cert_cur->raw.p != NULL && cert_cur->own_buffer )
         {

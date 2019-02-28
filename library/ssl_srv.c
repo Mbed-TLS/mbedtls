@@ -4253,7 +4253,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     mbedtls_md_type_t md_alg;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
-    mbedtls_pk_context * peer_pk;
+    mbedtls_pk_context * peer_pk = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
@@ -4264,21 +4264,39 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    if( ssl->session_negotiate->peer_cert == NULL )
+    /* Skip if we haven't received a certificate from the client.
+     * If MBEDTLS_SSL_KEEP_PEER_CERTIFICATE is set, this can be
+     * inferred from the setting of mbedtls_ssl_session::peer_cert.
+     * If MBEDTLS_SSL_KEEP_PEER_CERTIFICATE is not set, it can
+     * be inferred from whether we've held back the peer CRT's
+     * public key in mbedtls_ssl_handshake_params::peer_pubkey. */
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    /* Because the peer CRT pubkey is embedded into the handshake
+     * params currently, and there's no 'is_init' functions for PK
+     * contexts, we need to break the abstraction and peek into
+     * the PK context to see if it has been initialized. */
+    if( ssl->handshake->peer_pubkey.pk_info != NULL )
+        peer_pk = &ssl->handshake->peer_pubkey;
+#else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    if( ssl->session_negotiate->peer_cert != NULL )
+    {
+        ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
+                                           &peer_pk );
+        if( ret != 0 )
+        {
+            /* Should never happen */
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+    }
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+    if( peer_pk == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
         ssl->state++;
         return( 0 );
     }
-#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    if( ssl->session_negotiate->peer_cert_digest == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
-        return( 0 );
-    }
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     /* Read the message without adding it to the checksum */
     ret = mbedtls_ssl_read_record( ssl, 0 /* no checksum update */ );
@@ -4300,17 +4318,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     }
 
     i = mbedtls_ssl_hs_hdr_len( ssl );
-
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    peer_pk = &ssl->handshake->peer_pubkey;
-#else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    if( ssl->session_negotiate->peer_cert == NULL )
-    {
-        /* Should never happen */
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-    peer_pk = &ssl->session_negotiate->peer_cert->pk;
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     /*
      *  struct {
@@ -4342,7 +4349,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         if( i + 2 > ssl->in_hslen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+            goto exit;
         }
 
         /*
@@ -4354,7 +4362,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+            goto exit;
         }
 
 #if !defined(MBEDTLS_MD_SHA1)
@@ -4375,7 +4384,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+            goto exit;
         }
 
         /*
@@ -4384,7 +4394,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         if( !mbedtls_pk_can_do( peer_pk, pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "sig_alg doesn't match cert key" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+            goto exit;
         }
 
         i++;
@@ -4399,7 +4410,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( i + 2 > ssl->in_hslen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+        goto exit;
     }
 
     sig_len = ( ssl->in_msg[i] << 8 ) | ssl->in_msg[i+1];
@@ -4408,7 +4420,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( i + sig_len != ssl->in_hslen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+        goto exit;
     }
 
     /* Calculate hash and verify signature */
@@ -4422,12 +4435,19 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
                            ssl->in_msg + i, sig_len ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
-        return( ret );
+        goto exit;
     }
 
     mbedtls_ssl_update_handshake_status( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
+
+exit:
+
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert,
+                                 peer_pk );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     return( ret );
 }

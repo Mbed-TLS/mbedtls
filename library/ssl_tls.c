@@ -6020,6 +6020,8 @@ static int ssl_parse_certificate_coordinate( mbedtls_ssl_context *ssl,
             return( SSL_CERTIFICATE_SKIP );
         }
     }
+#else
+    ((void) authmode);
 #endif /* MBEDTLS_SSL_SRV_C */
 
     return( SSL_CERTIFICATE_EXPECTED );

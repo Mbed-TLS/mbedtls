@@ -372,26 +372,34 @@ def run_main():
             help="keep all reports, even if there are no compatibility issues",
         )
         parser.add_argument(
-            "-o", "--old-rev", type=str,
-            help=("revision for old version."
-                  "Can include repository before revision"),
-            required=True, nargs="+"
+            "-o", "--old-rev", type=str, help="revision for old version.",
+            required=True,
         )
         parser.add_argument(
-            "-oc", "--old-crypto-rev", type=str, nargs="+",
-            help=("revision for old crypto version."
-                  "Can include repository before revision"),
+            "-or", "--old-repo", type=str, help="repository for old version."
         )
         parser.add_argument(
-            "-n", "--new-rev", type=str,
-            help=("revision for new version"
-                  "Can include repository before revision"),
-            required=True, nargs="+"
+            "-oc", "--old-crypto-rev", type=str,
+            help="revision for old crypto submodule."
         )
         parser.add_argument(
-            "-nc", "--new-crypto-rev", type=str, nargs="+",
-            help=("revision for new crypto version"
-                  "Can include repository before revision"),
+            "-ocr", "--old-crypto-repo", type=str,
+            help="repository for old crypto submodule."
+        )
+        parser.add_argument(
+            "-n", "--new-rev", type=str, help="revision for new version",
+            required=True,
+        )
+        parser.add_argument(
+            "-nr", "--new-repo", type=str, help="repository for new version."
+        )
+        parser.add_argument(
+            "-nc", "--new-crypto-rev", type=str,
+            help="revision for new crypto version"
+        )
+        parser.add_argument(
+            "-ncr", "--new-crypto-repo", type=str,
+            help="repository for new crypto submodule."
         )
         parser.add_argument(
             "-s", "--skip-file", type=str,
@@ -402,46 +410,12 @@ def run_main():
             help="output only the list of issues to stdout, instead of a full report",
         )
         abi_args = parser.parse_args()
-        if len(abi_args.old_rev) == 1:
-            old_repo = None
-            old_rev = abi_args.old_rev[0]
-        elif len(abi_args.old_rev) == 2:
-            old_repo = abi_args.old_rev[0]
-            old_rev = abi_args.old_rev[1]
-        else:
-            raise Exception("Too many arguments passed for old version")
-        if len(abi_args.new_rev) == 1:
-            new_repo = None
-            new_rev = abi_args.new_rev[0]
-        elif len(abi_args.new_rev) == 2:
-            new_repo = abi_args.new_rev[0]
-            new_rev = abi_args.new_rev[1]
-        else:
-            raise Exception("Too many arguments passed for new version")
-        old_crypto_repo = None
-        old_crypto_rev = None
-        if abi_args.old_crypto_rev:
-            if len(abi_args.old_crypto_rev) == 1:
-                old_crypto_rev = abi_args.old_crypto_rev[0]
-            elif len(abi_args.old_crypto_rev) == 2:
-                old_crypto_repo = abi_args.old_crypto_rev[0]
-                old_crypto_rev = abi_args.old_crypto_rev[1]
-            else:
-                raise Exception("Too many arguments passed for old crypto version")
-        new_crypto_repo = None
-        new_crypto_rev = None
-        if abi_args.new_crypto_rev:
-            if len(abi_args.new_crypto_rev) == 1:
-                new_crypto_rev = abi_args.new_crypto_rev[0]
-            elif len(abi_args.new_crypto_rev) == 2:
-                new_crypto_repo = abi_args.new_crypto_rev[0]
-                new_crypto_rev = abi_args.new_crypto_rev[1]
-            else:
-                raise Exception("Too many arguments passed for new crypto version")
         abi_check = AbiChecker(
-            abi_args.report_dir, old_repo, old_rev, old_crypto_rev,
-            old_crypto_repo, new_repo, new_rev, new_crypto_rev, new_crypto_repo,
-            abi_args.keep_all_reports, abi_args.brief, abi_args.skip_file
+            abi_args.report_dir, abi_args.old_repo, abi_args.old_rev,
+            abi_args.old_crypto_rev, abi_args.old_crypto_repo,
+            abi_args.new_repo, abi_args.new_rev, abi_args.new_crypto_rev,
+            abi_args.new_crypto_repo, abi_args.keep_all_reports,
+            abi_args.brief, abi_args.skip_file
         )
         return_code = abi_check.check_for_abi_changes()
         sys.exit(return_code)

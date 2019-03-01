@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.7.x branch released xxxx-xx-xx
 
+Features
+   * Add MBEDTLS_REMOVE_3DES_CIPHERSUITES to allow removing 3DES ciphersuites
+     from the default list (enabled by default). See
+     https://sweet32.info/SWEET32_CCS16.pdf.
+
 Bugfix
    * Run the AD too long test only if MBEDTLS_CCM_ALT is not defined.
      Raised as a comment in #1996.
@@ -9,11 +14,6 @@ Bugfix
    * Remove a duplicate #include in a sample program. Fixed by Masashi Honma #2326.
    * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
      Fixes #2190.
-
-Features
-   * Add MBEDTLS_REMOVE_3DES_CIPHERSUITES to allow removing 3DES ciphersuites
-     from the default list (enabled by default). See
-     https://sweet32.info/SWEET32_CCS16.pdf.
 
 Changes
    * Include configuration file in all header files that use configuration,

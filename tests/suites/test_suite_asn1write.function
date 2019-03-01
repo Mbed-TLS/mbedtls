@@ -114,6 +114,8 @@ void mbedtls_asn1_write_mpi( data_t *val, data_t *expected )
         ret = mbedtls_asn1_write_mpi( &data.p, data.start, &mpi );
         if( ! generic_write_finish_step( &data, expected, ret ) )
             goto exit;
+        if( expected->len > 10 && data.size == 8 )
+            data.size = expected->len - 2;
     }
 
 exit:
@@ -123,70 +125,49 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_asn1_write_octet_string( data_t * str, data_t * asn1,
-                                      int buf_len, int result )
+void mbedtls_asn1_write_string( int tag, data_t *content, data_t *expected )
 {
+    generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
     int ret;
-    unsigned char buf[150];
-    size_t i;
-    unsigned char *p;
 
-    memset( buf, GUARD_VAL, sizeof( buf ) );
-
-
-    p = buf + GUARD_LEN + buf_len;
-
-    ret = mbedtls_asn1_write_octet_string( &p, buf + GUARD_LEN, str->x, str->len );
-
-    /* Check for buffer overwrite on both sides */
-    for( i = 0; i < GUARD_LEN; i++ )
+    for( data.size = 0; data.size < expected->len + 1; data.size++ )
     {
-        TEST_ASSERT( buf[i] == GUARD_VAL );
-        TEST_ASSERT( buf[GUARD_LEN + buf_len + i] == GUARD_VAL );
+        if( ! generic_write_start_step( &data ) )
+            goto exit;
+        switch( tag )
+        {
+            case MBEDTLS_ASN1_OCTET_STRING:
+                ret = mbedtls_asn1_write_octet_string(
+                    &data.p, data.start, content->x, content->len );
+                break;
+            case MBEDTLS_ASN1_UTF8_STRING:
+                ret = mbedtls_asn1_write_utf8_string(
+                    &data.p, data.start,
+                    (const char *) content->x, content->len );
+                break;
+            case MBEDTLS_ASN1_PRINTABLE_STRING:
+                ret = mbedtls_asn1_write_printable_string(
+                    &data.p, data.start,
+                    (const char *) content->x, content->len );
+                break;
+            case MBEDTLS_ASN1_IA5_STRING:
+                ret = mbedtls_asn1_write_ia5_string(
+                    &data.p, data.start,
+                    (const char *) content->x, content->len );
+                break;
+            default:
+                ret = mbedtls_asn1_write_tagged_string(
+                    &data.p, data.start, tag,
+                    (const char *) content->x, content->len );
+        }
+        if( ! generic_write_finish_step( &data, expected, ret ) )
+            goto exit;
+        if( expected->len > 10 && data.size == 8 )
+            data.size = expected->len - 2;
     }
 
-    if( result >= 0 )
-    {
-        TEST_ASSERT( (size_t) ret == asn1->len );
-        TEST_ASSERT( p + asn1->len == buf + GUARD_LEN + buf_len );
-
-        TEST_ASSERT( memcmp( p, asn1->x, asn1->len ) == 0 );
-    }
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void mbedtls_asn1_write_ia5_string( char * str, data_t * asn1,
-                                    int buf_len, int result )
-{
-    int ret;
-    unsigned char buf[150];
-    size_t str_len;
-    size_t i;
-    unsigned char *p;
-
-    memset( buf, GUARD_VAL, sizeof( buf ) );
-
-    str_len = strlen( str );
-
-    p = buf + GUARD_LEN + buf_len;
-
-    ret = mbedtls_asn1_write_ia5_string( &p, buf + GUARD_LEN, str, str_len );
-
-    /* Check for buffer overwrite on both sides */
-    for( i = 0; i < GUARD_LEN; i++ )
-    {
-        TEST_ASSERT( buf[i] == GUARD_VAL );
-        TEST_ASSERT( buf[GUARD_LEN + buf_len + i] == GUARD_VAL );
-    }
-
-    if( result >= 0 )
-    {
-        TEST_ASSERT( (size_t) ret == asn1->len );
-        TEST_ASSERT( p + asn1->len == buf + GUARD_LEN + buf_len );
-
-        TEST_ASSERT( memcmp( p, asn1->x, asn1->len ) == 0 );
-    }
+exit:
+    mbedtls_free( data.output );
 }
 /* END_CASE */
 
@@ -243,44 +224,25 @@ void mbedtls_asn1_write_len( int len, data_t * asn1, int buf_len,
 
 /* BEGIN_CASE */
 void test_asn1_write_bitstrings( data_t *bitstring, int bits,
-                                 data_t *expected_asn1, int result,
-                                 int is_named )
+                                 data_t *expected, int is_named )
 {
+    generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
     int ret;
-    size_t i;
-    unsigned char buf[150];
-    unsigned char *p;
+    int ( *func )( unsigned char **p, unsigned char *start,
+                   const unsigned char *buf, size_t bits ) =
+        ( is_named ? mbedtls_asn1_write_named_bitstring :
+          mbedtls_asn1_write_bitstring );
 
-    memset( buf, GUARD_VAL, sizeof( buf ) );
-
-    p = buf + GUARD_LEN + expected_asn1->len;
-
-    if ( is_named == 0 )
+    for( data.size = 0; data.size < expected->len + 1; data.size++ )
     {
-        ret = mbedtls_asn1_write_bitstring( &p,
-                                            buf,
-                                            (unsigned char *)bitstring->x,
-                                            (size_t) bits );
-    }
-    else
-    {
-        ret = mbedtls_asn1_write_named_bitstring( &p,
-                                                  buf,
-                                                  (unsigned char *)bitstring->x,
-                                                  (size_t) bits );
-    }
-    TEST_ASSERT( ret == result );
-
-    /* Check for buffer overwrite on both sides */
-    for( i = 0; i < GUARD_LEN; i++ )
-    {
-        TEST_ASSERT( buf[i] == GUARD_VAL );
-        TEST_ASSERT( buf[GUARD_LEN + expected_asn1->len + i] == GUARD_VAL );
+        if( ! generic_write_start_step( &data ) )
+            goto exit;
+        ret = ( *func )( &data.p, data.start, bitstring->x, bits );
+        if( ! generic_write_finish_step( &data, expected, ret ) )
+            goto exit;
     }
 
-    if ( result >= 0 )
-    {
-        TEST_ASSERT( memcmp( p, expected_asn1->x, expected_asn1->len ) == 0 );
-    }
+exit:
+    mbedtls_free( data.output );
 }
 /* END_CASE */

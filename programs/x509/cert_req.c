@@ -65,7 +65,9 @@ int main( void )
 #define DFL_OUTPUT_FILENAME     "cert.req"
 #define DFL_SUBJECT_NAME        "CN=Cert,O=mbed TLS,C=UK"
 #define DFL_KEY_USAGE           0
+#define DFL_FORCE_KEY_USAGE     0
 #define DFL_NS_CERT_TYPE        0
+#define DFL_FORCE_NS_CERT_TYPE  0
 #define DFL_MD_ALG              MBEDTLS_MD_SHA256
 
 #define USAGE \
@@ -85,6 +87,8 @@ int main( void )
     "                          key_agreement\n"         \
     "                          key_cert_sign\n"  \
     "                          crl_sign\n"              \
+    "    force_key_usage=0/1  default: off\n"           \
+    "                          Add KeyUsage even if it is empty\n"  \
     "    ns_cert_type=%%s     default: (empty)\n"       \
     "                        Comma-separated-list of values:\n"     \
     "                          ssl_client\n"            \
@@ -94,6 +98,8 @@ int main( void )
     "                          ssl_ca\n"                \
     "                          email_ca\n"              \
     "                          object_signing_ca\n"     \
+    "    force_ns_cert_type=0/1 default: off\n"         \
+    "                          Add NsCertType even if it is empty\n"    \
     "    md=%%s               default: SHA256\n"       \
     "                          possible values:\n"     \
     "                          MD4, MD5, SHA1\n"       \
@@ -123,7 +129,9 @@ struct options
     const char *output_file;    /* where to store the constructed key file  */
     const char *subject_name;   /* subject name for certificate request */
     unsigned char key_usage;    /* key usage flags                      */
+    int force_key_usage;        /* Force adding the KeyUsage extension  */
     unsigned char ns_cert_type; /* NS cert type                         */
+    int force_ns_cert_type;     /* Force adding NsCertType extension    */
     mbedtls_md_type_t md_alg;   /* Hash algorithm used for signature.   */
 } opt;
 
@@ -190,7 +198,9 @@ int main( int argc, char *argv[] )
     opt.output_file         = DFL_OUTPUT_FILENAME;
     opt.subject_name        = DFL_SUBJECT_NAME;
     opt.key_usage           = DFL_KEY_USAGE;
+    opt.force_key_usage     = DFL_FORCE_KEY_USAGE;
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
+    opt.force_ns_cert_type  = DFL_FORCE_NS_CERT_TYPE;
     opt.md_alg              = DFL_MD_ALG;
 
     for( i = 1; i < argc; i++ )
@@ -292,6 +302,15 @@ int main( int argc, char *argv[] )
                 q = r;
             }
         }
+        else if( strcmp( p, "force_key_usage" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0: opt.force_key_usage = 0; break;
+                case 1: opt.force_key_usage = 1; break;
+                default: goto usage;
+            }
+        }
         else if( strcmp( p, "ns_cert_type" ) == 0 )
         {
             while( q != NULL )
@@ -319,16 +338,25 @@ int main( int argc, char *argv[] )
                 q = r;
             }
         }
+        else if( strcmp( p, "force_ns_cert_type" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0: opt.force_ns_cert_type = 0; break;
+                case 1: opt.force_ns_cert_type = 1; break;
+                default: goto usage;
+            }
+        }
         else
             goto usage;
     }
 
     mbedtls_x509write_csr_set_md_alg( &req, opt.md_alg );
 
-    if( opt.key_usage )
+    if( opt.key_usage || opt.force_key_usage == 1 )
         mbedtls_x509write_csr_set_key_usage( &req, opt.key_usage );
 
-    if( opt.ns_cert_type )
+    if( opt.ns_cert_type || opt.force_ns_cert_type == 1 )
         mbedtls_x509write_csr_set_ns_cert_type( &req, opt.ns_cert_type );
 
     /*

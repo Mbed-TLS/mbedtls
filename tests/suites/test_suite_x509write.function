@@ -37,7 +37,8 @@ size_t mbedtls_rsa_key_len_func( void *ctx )
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C:MBEDTLS_X509_CSR_WRITE_C */
 void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
-                     int key_usage, int cert_type )
+                     int key_usage, int set_key_usage, int cert_type,
+                     int set_cert_type )
 {
     mbedtls_pk_context key;
     mbedtls_x509write_csr req;
@@ -59,9 +60,9 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
     mbedtls_x509write_csr_set_md_alg( &req, md_type );
     mbedtls_x509write_csr_set_key( &req, &key );
     TEST_ASSERT( mbedtls_x509write_csr_set_subject_name( &req, subject_name ) == 0 );
-    if( key_usage != 0 )
+    if( set_key_usage != 0 )
         TEST_ASSERT( mbedtls_x509write_csr_set_key_usage( &req, key_usage ) == 0 );
-    if( cert_type != 0 )
+    if( set_cert_type != 0 )
         TEST_ASSERT( mbedtls_x509write_csr_set_ns_cert_type( &req, cert_type ) == 0 );
 
     ret = mbedtls_x509write_csr_pem( &req, buf, sizeof( buf ),
@@ -100,7 +101,8 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      char *subject_name, char *issuer_key_file,
                      char *issuer_pwd, char *issuer_name,
                      char *serial_str, char *not_before, char *not_after,
-                     int md_type, int key_usage, int cert_type, int auth_ident,
+                     int md_type, int key_usage, int set_key_usage,
+                     int cert_type, int set_cert_type, int auth_ident,
                      int ver, char *cert_check_file, int rsa_alt )
 {
     mbedtls_pk_context subject_key, issuer_key, issuer_key_alt;
@@ -168,9 +170,9 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
         TEST_ASSERT( mbedtls_x509write_crt_set_subject_key_identifier( &crt ) == 0 );
         if( auth_ident )
             TEST_ASSERT( mbedtls_x509write_crt_set_authority_key_identifier( &crt ) == 0 );
-        if( key_usage != 0 )
+        if( set_key_usage != 0 )
             TEST_ASSERT( mbedtls_x509write_crt_set_key_usage( &crt, key_usage ) == 0 );
-        if( cert_type != 0 )
+        if( set_cert_type != 0 )
             TEST_ASSERT( mbedtls_x509write_crt_set_ns_cert_type( &crt, cert_type ) == 0 );
     }
 

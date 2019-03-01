@@ -291,3 +291,51 @@ test_asn1_write_bitstrings:"":0:"030100":0
 
 ASN.1 Write Bitstring / long string all bits unset except trailing bits
 test_asn1_write_bitstrings:"000000000007":45:"030703000000000000":0
+
+Store named data: not found
+store_named_data_find:"414141":"424242":"434343":"444444":"7f7f7f":0:-1
+
+Store named data: empty haystack
+store_named_data_find:"414141":"424242":"434343":"444444":"7f7f7f":4:-1
+
+Store named data: first
+store_named_data_find:"414141":"424242":"434343":"444444":"414141":0:0
+
+Store named data: last
+store_named_data_find:"414141":"424242":"434343":"444444":"444444":0:3
+
+Store named data: skip suffix
+store_named_data_find:"41414141":"414141":"434343":"444444":"414141":0:1
+
+Store named data: skip prefix
+store_named_data_find:"4141":"414141":"434343":"444444":"414141":0:1
+
+Store named data: first match
+store_named_data_find:"414141":"414141":"434343":"444444":"414141":0:0
+
+Store named data: found, null to zero
+store_named_data_val_found:0:0
+
+Store named data: found, null to data
+store_named_data_val_found:0:9
+
+Store named data: found, data to zero
+store_named_data_val_found:9:0
+
+Store named data: found, smaller data
+store_named_data_val_found:9:2
+
+Store named data: found, same-size data
+store_named_data_val_found:9:9
+
+Store named data: found, larger data
+store_named_data_val_found:4:9
+
+Store named data: new, val_len=0
+store_named_data_val_new:0
+
+Store named data: new, val_len=4
+store_named_data_val_new:4
+
+Store named data: new, val_len=4, val=NULL
+store_named_data_val_new:-4

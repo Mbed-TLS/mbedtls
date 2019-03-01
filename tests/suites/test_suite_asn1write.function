@@ -301,3 +301,152 @@ exit:
     mbedtls_free( data.output );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void store_named_data_find( data_t *oid0, data_t *oid1,
+                            data_t *oid2, data_t *oid3,
+                            data_t *needle, int from, int position )
+{
+    data_t *oid[4] = {oid0, oid1, oid2, oid3};
+    mbedtls_asn1_named_data nd[] ={
+        { {0x06, 0, NULL}, {0, 0, NULL}, NULL, 0 },
+        { {0x06, 0, NULL}, {0, 0, NULL}, NULL, 0 },
+        { {0x06, 0, NULL}, {0, 0, NULL}, NULL, 0 },
+        { {0x06, 0, NULL}, {0, 0, NULL}, NULL, 0 },
+    };
+    mbedtls_asn1_named_data *pointers[ARRAY_LENGTH( nd ) + 1];
+    size_t i;
+    mbedtls_asn1_named_data *head = NULL;
+    mbedtls_asn1_named_data *found = NULL;
+
+    for( i = 0; i < ARRAY_LENGTH( nd ); i++ )
+        pointers[i] = &nd[i];
+    pointers[ARRAY_LENGTH( nd )] = NULL;
+    for( i = 0; i < ARRAY_LENGTH( nd ); i++ )
+    {
+        ASSERT_ALLOC( nd[i].oid.p, oid[i]->len );
+        memcpy( nd[i].oid.p, oid[i]->x, oid[i]->len );
+        nd[i].oid.len = oid[i]->len;
+        nd[i].next = pointers[i+1];
+    }
+
+    head = pointers[from];
+    found = mbedtls_asn1_store_named_data( &head,
+                                           (const char *) needle->x,
+                                           needle->len,
+                                           NULL, 0 );
+
+    /* In any case, the existing list structure must be unchanged. */
+    for( i = 0; i < ARRAY_LENGTH( nd ); i++ )
+        TEST_ASSERT( nd[i].next == pointers[i+1] );
+
+    if( position >= 0 )
+    {
+        /* position should have been found and modified. */
+        TEST_ASSERT( head == pointers[from] );
+        TEST_ASSERT( found == pointers[position] );
+    }
+    else
+    {
+        /* A new entry should have been created. */
+        TEST_ASSERT( found == head );
+        TEST_ASSERT( head->next == pointers[from] );
+        for( i = 0; i < ARRAY_LENGTH( nd ); i++ )
+            TEST_ASSERT( found != &nd[i] );
+    }
+
+exit:
+    if( found != NULL && found == head && found != pointers[from] )
+    {
+        mbedtls_free( found->oid.p );
+        mbedtls_free( found );
+    }
+    for( i = 0; i < ARRAY_LENGTH( nd ); i++ )
+        mbedtls_free( nd[i].oid.p );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void store_named_data_val_found( int old_len, int new_len )
+{
+    mbedtls_asn1_named_data nd =
+        { {0x06, 3, (unsigned char *) "OID"}, {0, 0, NULL}, NULL, 0 };
+    mbedtls_asn1_named_data *head = &nd;
+    mbedtls_asn1_named_data *found = NULL;
+    unsigned char *old_val = NULL;
+    unsigned char *new_val = (unsigned char *) "new value";
+
+    if( old_len != 0 )
+    {
+        ASSERT_ALLOC( nd.val.p, (size_t) old_len );
+        old_val = nd.val.p;
+        nd.val.len = old_len;
+        memset( old_val, 'x', old_len );
+    }
+    if( new_len <= 0 )
+    {
+        new_len = - new_len;
+        new_val = NULL;
+    }
+
+    found = mbedtls_asn1_store_named_data( &head, "OID", 3,
+                                           new_val, new_len );
+    TEST_ASSERT( head == &nd );
+    TEST_ASSERT( found == head );
+
+    if( new_val != NULL)
+        ASSERT_COMPARE( found->val.p, found->val.len,
+                        new_val, (size_t) new_len );
+    if( new_len == 0)
+        TEST_ASSERT( found->val.p == NULL );
+    else if( new_len == old_len )
+        TEST_ASSERT( found->val.p == old_val );
+    else
+        TEST_ASSERT( found->val.p != old_val );
+
+exit:
+    mbedtls_free( nd.val.p );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void store_named_data_val_new( int new_len )
+{
+    mbedtls_asn1_named_data *head = NULL;
+    mbedtls_asn1_named_data *found = NULL;
+    const unsigned char *oid = (unsigned char *) "OID";
+    size_t oid_len = strlen( (const char *) oid );
+    const unsigned char *new_val = (unsigned char *) "new value";
+
+    if( new_len <= 0 )
+        new_val = NULL;
+    if( new_len < 0 )
+        new_len = - new_len;
+
+    found = mbedtls_asn1_store_named_data( &head,
+                                           (const char *) oid, oid_len,
+                                           new_val, (size_t) new_len );
+    TEST_ASSERT( found != NULL );
+    TEST_ASSERT( found == head );
+    TEST_ASSERT( found->oid.p != oid );
+    ASSERT_COMPARE( found->oid.p, found->oid.len, oid, oid_len );
+    if( new_len == 0 )
+        TEST_ASSERT( found->val.p == NULL );
+    else if( new_val == NULL )
+        TEST_ASSERT( found->val.p != NULL );
+    else
+    {
+        TEST_ASSERT( found->val.p != new_val );
+        ASSERT_COMPARE( found->val.p, found->val.len,
+                        new_val, (size_t) new_len );
+    }
+
+exit:
+    if( found != NULL )
+    {
+        mbedtls_free( found->oid.p );
+        mbedtls_free( found->val.p );
+    }
+    mbedtls_free( found );
+}
+/* END_CASE */

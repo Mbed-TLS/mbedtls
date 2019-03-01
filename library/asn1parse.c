@@ -230,8 +230,13 @@ int mbedtls_asn1_get_bitstring_null( unsigned char **p, const unsigned char *end
     if( ( ret = mbedtls_asn1_get_tag( p, end, len, MBEDTLS_ASN1_BIT_STRING ) ) != 0 )
         return( ret );
 
-    if( (*len)-- < 2 || *(*p)++ != 0 )
+    if( *len == 0 )
         return( MBEDTLS_ERR_ASN1_INVALID_DATA );
+    --( *len );
+
+    if( **p != 0 )
+        return( MBEDTLS_ERR_ASN1_INVALID_DATA );
+    ++( *p );
 
     return( 0 );
 }

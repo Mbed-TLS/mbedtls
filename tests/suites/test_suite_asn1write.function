@@ -3,12 +3,124 @@
 
 #define GUARD_LEN 4
 #define GUARD_VAL 0x2a
+
+typedef struct
+{
+    unsigned char *output;
+    unsigned char *start;
+    unsigned char *end;
+    unsigned char *p;
+    size_t size;
+} generic_write_data_t;
+
+int generic_write_start_step( generic_write_data_t *data )
+{
+    test_set_step( data->size );
+    ASSERT_ALLOC( data->output, data->size == 0 ? 1 : data->size );
+    data->end = data->output + data->size;
+    data->p = data->end;
+    data->start = data->end - data->size;
+    return( 1 );
+exit:
+    return( 0 );
+}
+
+int generic_write_finish_step( generic_write_data_t *data,
+                               const data_t *expected, int ret )
+{
+    int ok = 0;
+
+    if( data->size < expected->len )
+    {
+        TEST_EQUAL( ret, MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+    }
+    else
+    {
+        TEST_EQUAL( ret, data->end - data->p );
+        TEST_ASSERT( data->p >= data->start );
+        TEST_ASSERT( data->p <= data->end );
+        ASSERT_COMPARE( data->p, (size_t)( data->end - data->p ),
+                        expected->x, expected->len );
+    }
+    ok = 1;
+
+exit:
+    mbedtls_free( data->output );
+    data->output = NULL;
+    return( ok );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
  * depends_on:MBEDTLS_ASN1_WRITE_C
  * END_DEPENDENCIES
  */
+
+/* BEGIN_CASE */
+void mbedtls_asn1_write_bool( int val, data_t *expected )
+{
+    generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
+    int ret;
+
+    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    {
+        if( ! generic_write_start_step( &data ) )
+            goto exit;
+        ret = mbedtls_asn1_write_bool( &data.p, data.start, val );
+        if( ! generic_write_finish_step( &data, expected, ret ) )
+            goto exit;
+    }
+
+exit:
+    mbedtls_free( data.output );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_asn1_write_int( int val, data_t *expected )
+{
+    generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
+    int ret;
+
+    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    {
+        if( ! generic_write_start_step( &data ) )
+            goto exit;
+        ret = mbedtls_asn1_write_int( &data.p, data.start, val );
+        if( ! generic_write_finish_step( &data, expected, ret ) )
+            goto exit;
+    }
+
+exit:
+    mbedtls_free( data.output );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_BIGNUM_C */
+void mbedtls_asn1_write_mpi( data_t *val, data_t *expected )
+{
+    generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
+    mbedtls_mpi mpi;
+    int ret;
+
+    mbedtls_mpi_init( &mpi );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &mpi, val->x, val->len ) == 0 );
+
+    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    {
+        if( ! generic_write_start_step( &data ) )
+            goto exit;
+        ret = mbedtls_asn1_write_mpi( &data.p, data.start, &mpi );
+        if( ! generic_write_finish_step( &data, expected, ret ) )
+            goto exit;
+    }
+
+exit:
+    mbedtls_mpi_free( &mpi );
+    mbedtls_free( data.output );
+}
+/* END_CASE */
 
 /* BEGIN_CASE */
 void mbedtls_asn1_write_octet_string( data_t * str, data_t * asn1,

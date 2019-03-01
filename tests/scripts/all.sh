@@ -968,6 +968,22 @@ component_test_no_max_fragment_length () {
     if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
 }
 
+component_test_asan_remove_peer_certificate () {
+    msg "build: default config with MBEDTLS_SSL_KEEP_PEER_CERTIFICATE disabled (ASan build)"
+    scripts/config.pl unset MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    make test
+
+    msg "test: ssl-opt.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: compat.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    if_build_succeeded tests/compat.sh
+}
+
 component_test_no_max_fragment_length_small_ssl_out_content_len () {
     msg "build: no MFL extension, small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH

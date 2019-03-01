@@ -280,6 +280,14 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) &&        \
+    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) &&              \
+    ( !defined(MBEDTLS_SHA256_C) &&                             \
+      !defined(MBEDTLS_SHA512_C) &&                             \
+      !defined(MBEDTLS_SHA1_C) )
+#error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires MBEDTLS_SHA512_C, MBEDTLS_SHA256_C or MBEDTLS_SHA1_C"
+#endif
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \
     ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
 #error "MBEDTLS_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"

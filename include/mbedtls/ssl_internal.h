@@ -331,8 +331,13 @@ struct mbedtls_ssl_handshake_params
         ssl_ecrs_cke_ecdh_calc_secret,  /*!< ClientKeyExchange: ECDH step 2 */
         ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
     } ecrs_state;                       /*!< current (or last) operation    */
+    mbedtls_x509_crt *ecrs_peer_cert;   /*!< The peer's CRT chain.          */
     size_t ecrs_n;                      /*!< place for saving a length      */
 #endif
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    mbedtls_pk_context peer_pubkey;     /*!< The public key from the peer.  */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
     unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
@@ -765,6 +770,9 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
+
+int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
+                              const mbedtls_ssl_session *src );
 
 /* constant-time buffer comparison */
 static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )

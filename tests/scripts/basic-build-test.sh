@@ -91,7 +91,7 @@ OPENSSL_CMD="$OPENSSL_LEGACY"                               \
 OPENSSL_CMD="$OPENSSL_LEGACY"                                       \
     GNUTLS_CLI="$GNUTLS_LEGACY_CLI"                                 \
     GNUTLS_SERV="$GNUTLS_LEGACY_SERV"                               \
-    sh compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR' | \
+    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'         |     \
     tee -a compat-test-$TEST_OUTPUT
 OPENSSL_CMD="$OPENSSL_NEXT"                     \
     sh compat.sh -e '^$' -f 'ARIA\|CHACHA' |    \

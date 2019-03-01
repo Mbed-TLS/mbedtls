@@ -9,6 +9,12 @@ Bugfix
    * Remove a duplicate #include in a sample program. Fixed by Masashi Honma #2326.
    * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
      Fixes #2190.
+   * Ensure that unused bits are zero when writing ASN.1 bitstrings when using
+     mbedtls_asn1_write_bitstring().
+   * Fix issue when writing the named bitstrings in KeyUsage and NsCertType
+     extensions in CSRs and CRTs that caused these bitstrings to not be encoded
+     correctly as trailing zeroes were not accounted for as unused bits in the
+     leading content octet. Fixes #1610.
 
 Changes
    * Include configuration file in all header files that use configuration,

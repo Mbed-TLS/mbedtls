@@ -7,6 +7,8 @@ Features
      which allows copy-less parsing of DER encoded X.509 CRTs,
      at the cost of additional lifetime constraints on the input
      buffer, but at the benefit of reduced RAM consumption.
+   * Add a new function mbedtls_asn1_write_named_bitstring() to write ASN.1
+     named bitstring in DER as required by RFC 5280 Appendix B.
 
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.
@@ -31,6 +33,12 @@ Bugfix
      Fixes #2190.
    * Fix false failure in all.sh when backup files exist in include/mbedtls
      (e.g. config.h.bak). Fixed by Peter Kolbus (Garmin) #2407.
+   * Ensure that unused bits are zero when writing ASN.1 bitstrings when using
+     mbedtls_asn1_write_bitstring().
+   * Fix issue when writing the named bitstrings in KeyUsage and NsCertType
+     extensions in CSRs and CRTs that caused these bitstrings to not be encoded
+     correctly as trailing zeroes were not accounted for as unused bits in the
+     leading content octet. Fixes #1610.
 
 Changes
    * Reduce RAM consumption during session renegotiation by not storing

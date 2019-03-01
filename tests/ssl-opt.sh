@@ -4341,26 +4341,37 @@ run_test    "ECJPAKE: working, DTLS, nolog" \
 # Tests for ciphersuites per version
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+requires_config_enabled MBEDTLS_CAMELLIA_C
+requires_config_enabled MBEDTLS_AES_C
 run_test    "Per-version suites: SSL3" \
-            "$P_SRV min_version=ssl3 version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_SRV min_version=ssl3 version_suites=TLS-RSA-WITH-CAMELLIA-128-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
             "$P_CLI force_version=ssl3" \
             0 \
-            -c "Ciphersuite is TLS-RSA-WITH-3DES-EDE-CBC-SHA"
+            -c "Ciphersuite is TLS-RSA-WITH-CAMELLIA-128-CBC-SHA"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1
+requires_config_enabled MBEDTLS_CAMELLIA_C
+requires_config_enabled MBEDTLS_AES_C
 run_test    "Per-version suites: TLS 1.0" \
-            "$P_SRV arc4=1 version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_SRV version_suites=TLS-RSA-WITH-CAMELLIA-128-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
             "$P_CLI force_version=tls1 arc4=1" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-AES-256-CBC-SHA"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+requires_config_enabled MBEDTLS_CAMELLIA_C
+requires_config_enabled MBEDTLS_AES_C
 run_test    "Per-version suites: TLS 1.1" \
-            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_SRV version_suites=TLS-RSA-WITH-CAMELLIA-128-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
             "$P_CLI force_version=tls1_1" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-AES-128-CBC-SHA"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_CAMELLIA_C
+requires_config_enabled MBEDTLS_AES_C
 run_test    "Per-version suites: TLS 1.2" \
-            "$P_SRV version_suites=TLS-RSA-WITH-3DES-EDE-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
+            "$P_SRV version_suites=TLS-RSA-WITH-CAMELLIA-128-CBC-SHA,TLS-RSA-WITH-AES-256-CBC-SHA,TLS-RSA-WITH-AES-128-CBC-SHA,TLS-RSA-WITH-AES-128-GCM-SHA256" \
             "$P_CLI force_version=tls1_2" \
             0 \
             -c "Ciphersuite is TLS-RSA-WITH-AES-128-GCM-SHA256"

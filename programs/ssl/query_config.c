@@ -850,6 +850,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_REMOVE_ARC4_CIPHERSUITES */
 
+#if defined(MBEDTLS_REMOVE_3DES_CIPHERSUITES)
+    if( strcmp( "MBEDTLS_REMOVE_3DES_CIPHERSUITES", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_REMOVE_3DES_CIPHERSUITES );
+        return( 0 );
+    }
+#endif /* MBEDTLS_REMOVE_3DES_CIPHERSUITES */
+
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
     if( strcmp( "MBEDTLS_ECP_DP_SECP192R1_ENABLED", config ) == 0 )
     {

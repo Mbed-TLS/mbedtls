@@ -338,6 +338,17 @@ struct mbedtls_mps_l2_config
 {
     mps_l1 *l1;              /*!< The underlying buffering / datagram layer.  */
 
+    /* OPTIMIZATION:
+     * Consider allowing to fix these fields at compile-time.
+     * Concretely, for `version` e.g., consider adding a compile-time constant
+     *   #define MBEDTLS_MPS_FIX_VERSION XXX
+     * and omit the declaration of `version` in case it is set.
+     * In the code, replace every usage of `version` with a getter macro
+     * which unfolds to the field access if the version isn't fixed at
+     * compile-time, or to the defined constant if it is.
+     * This would apply to most of the fields in this config, thereby
+     * allowing to (significantly?) reduce code-size and memory footprint. */
+
     uint8_t mode;            /*!< This specifies whether the Layer 2 instance
                               *   the TLS (0) or DTLS (1) record protocol.    */
     uint8_t version;         /*!< This field indicates the TLS/DTLS version

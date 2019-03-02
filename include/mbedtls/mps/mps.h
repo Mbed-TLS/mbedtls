@@ -691,6 +691,7 @@ struct mbedtls_mps
 
     } out;
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
     /* DTLS retransmission state machine. */
     struct
     {
@@ -1003,6 +1004,7 @@ struct mbedtls_mps
          */
 
     } dtls;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 };
 

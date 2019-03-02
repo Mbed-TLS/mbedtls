@@ -1083,14 +1083,15 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             RETURN( res );
     }
 
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
-        len = out->frag_len;
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         len = out->len;
 #endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
+        len = out->frag_len;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     TRACE( trace_comment, "Bind raw writer to extended writer" );
     res = mbedtls_writer_attach( &l3->io.out.hs.wr_ext, l3->io.out.raw_out,

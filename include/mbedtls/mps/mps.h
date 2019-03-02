@@ -774,7 +774,6 @@ struct mbedtls_mps
 
         } outgoing;
 
-
         /*! Incoming message buffering and reassembly
          *
          *  Contains all state related to message reassembly

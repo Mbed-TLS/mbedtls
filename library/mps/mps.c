@@ -251,12 +251,17 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_init( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_retransmit_in_free( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_retransmit_in_forget( mbedtls_mps *mps );
 
+MBEDTLS_MPS_STATIC int mps_check_retransmit( mbedtls_mps *mps );
+
 /*
  * Retransmission timer handling
  */
 
+MBEDTLS_MPS_STATIC int mps_retransmission_timer_stop( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_retransmission_timer_update( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_retransmission_timer_check( mbedtls_mps *mps );
+MBEDTLS_MPS_STATIC int mps_retransmission_timer_increase_timeout(
+    mbedtls_mps *mps );
 
 /*
  * Sending of outgoing flights.
@@ -1957,8 +1962,8 @@ exit:
  * Incoming flight retransmission detection
  */
 
-MBEDTLS_MPS_STATIC int mps_recognition_info_match( mbedtls_mps_recognition_info *info,
-                                       mps_l3_handshake_in *hs_in )
+MBEDTLS_MPS_STATIC int mps_recognition_info_match(
+    mbedtls_mps_recognition_info *info, mps_l3_handshake_in *hs_in )
 {
     if( info->epoch  == hs_in->epoch &&
         info->seq_nr == hs_in->seq_nr )
@@ -1969,7 +1974,7 @@ MBEDTLS_MPS_STATIC int mps_recognition_info_match( mbedtls_mps_recognition_info 
 }
 
 MBEDTLS_MPS_STATIC int mps_retransmit_in_check( mbedtls_mps *mps,
-                                    mps_l3_handshake_in *hs )
+                                                mps_l3_handshake_in *hs )
 {
     uint8_t flight_len, msg_idx;
     uint8_t match_idx, match_status;
@@ -2018,7 +2023,8 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_check( mbedtls_mps *mps,
         /* Observed a retransmission - move all messages to 'on hold'
          * state to omit triggering multiple retransmissions from a
          * single retransmission of the peer. */
-        TRACE( trace_comment, "Retransmission active for message - retransmit and put all other messages on hold." );
+        TRACE( trace_comment, "Retransmission active for message"
+               " - retransmit and put all other messages on hold." );
 
         status = &mps->dtls.retransmission_detection.msg_state[0];
         for( msg_idx=0; msg_idx < flight_len; msg_idx++, status++ )
@@ -2029,7 +2035,8 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_check( mbedtls_mps *mps,
     else
     {
         /* Re-activate retransmission detection for message. */
-        TRACE( trace_comment, "Retransmission currently put on hold for this messsage - reactivate." );
+        TRACE( trace_comment, "Retransmission currently put on hold "
+               "for this messsage - reactivate." );
         *status = MBEDTLS_MPS_RETRANSMISSION_DETECTION_ENABLED;
         RETURN( 0 );
     }
@@ -2091,7 +2098,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_forget( mbedtls_mps *mps )
  * Mark bits in bitmask (used for DTLS HS reassembly)
  */
 MBEDTLS_MPS_STATIC void mps_bitmask_set( unsigned char *mask, size_t first_bit,
-                                   size_t bitlen )
+                                         size_t bitlen )
 {
     /* Set one bit a time and (tail-)recurse. This is not efficient,
      * but short, and this part of the code isn't time critical. */
@@ -2217,7 +2224,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
             msg_len     = hs->len;
             /* Slightly overapproximate the size of the bitmask, at the
              * benefit of simplifying the call to mps_bitmask_set() below
-             * and the implementation of mps_bitmask_check(). */
+             * as well as the implementation of mps_bitmask_check(). */
             bitmask_len = msg_len / 8 + 2;
             bitmask     = mbedtls_calloc( 1, bitmask_len );
             buf         = mbedtls_calloc( 1, msg_len );

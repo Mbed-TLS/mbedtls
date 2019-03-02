@@ -776,7 +776,7 @@ struct mbedtls_mps_l2
          * of epochs in [D]TLS 1.3, never more than two are used at once. */
 
         /*! The first epoch ID within the current epoch window. */
-        mbedtls_mps_epoch_id base;
+        mbedtls_mps_stored_epoch_id base;
 
 #define MPS_L2_INV_EPOCH_WINDOW_VALID( p )                              \
         ( 0 <= (p)->epochs.base                 &&                      \
@@ -787,11 +787,6 @@ struct mbedtls_mps_l2
         mbedtls_mps_epoch_offset_t next;
 #define MPS_L2_INV_NEXT_EPOCH_BOUNDS( p )                               \
         ( (p)->epochs.next <= MPS_L2_EPOCH_WINDOW_SIZE )
-
-        /*! The window of connection states for the epochs of ID
-         *  <code> base, ..., base +
-         *         MPS_L2_EPOCH_WINDOW_SIZE - 1.</code> */
-        mbedtls_mps_l2_epoch_t window[ MPS_L2_EPOCH_WINDOW_SIZE ];
 
         /*! The epoch usage permissions. */
         union
@@ -819,6 +814,11 @@ struct mbedtls_mps_l2
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
         } permissions;
+
+        /*! The window of connection states for the epochs of ID
+         *  <code> base, ..., base +
+         *         MPS_L2_EPOCH_WINDOW_SIZE - 1.</code> */
+        mbedtls_mps_l2_epoch_t window[ MPS_L2_EPOCH_WINDOW_SIZE ];
 
     } epochs;
 };

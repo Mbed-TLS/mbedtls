@@ -101,7 +101,7 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
  *
  * \param ctx      The SHA-512 context to use. This must be initialized.
  * \param is384    Determines which function to use. This must be
- *                 either \c for SHA-512, or \c 1 for SHA-384.
+ *                 either \c 0 for SHA-512, or \c 1 for SHA-384.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.

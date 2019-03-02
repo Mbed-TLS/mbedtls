@@ -492,269 +492,274 @@ struct mbedtls_mps_l2
      */
     struct
     {
+        struct
+        {
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-        /*! The queue for outgoing data of pausable record content types. */
-        unsigned char *queue;
-        /*! The size of the queue in Bytes. */
-        mbedtls_mps_stored_size_t queue_len;
+            /*! The queue for outgoing data of pausable record content types. */
+            unsigned char *queue;
+            /*! The size of the queue in Bytes. */
+            mbedtls_mps_stored_size_t queue_len;
 
-#define MPS_L2_INV_QUEUE_VALID( p )                         \
-        ( (p)->out.queue != NULL ==>                        \
-          ( \forall integer i; 0 <= i < (p)->out.queue_len  \
-            ==> \valid( (p)->out.queue+i ) ) )
+#define MPS_L2_INV_QUEUE_VALID( p )                             \
+            ( (p)->out.queue != NULL ==>                        \
+              ( \forall integer i; 0 <= i < (p)->out.queue_len  \
+                ==> \valid( (p)->out.queue+i ) ) )
 #else
 #define MPS_L2_INV_QUEUE_VALID( p ) 1
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-        /** This variable indicates if preparation of a new outgoing
-         *  record must be preceded by a flush on the underlying Layer 1 first.
-         *
-         *  The rationale for having this as a separate field as opposed
-         *  to triggering the flush immediately once the necessity arises
-         *  is that it allows the user to be in control of which Layer 2
-         *  API calls will require interfacing with the underlying transport. */
-        uint8_t clearing;
+            /** This variable indicates if preparation of a new outgoing record
+             *  must be preceded by a flush on the underlying Layer 1 first.
+             *
+             *  The rationale for having this as a separate field as opposed
+             *  to triggering the flush immediately once the necessity arises
+             *  is that it allows the user to be in control of which Layer 2 API
+             *  calls will require interfacing with the underlying transport. */
+            uint8_t clearing;
 
-#define MPS_L2_INV_IF_CLEARING_NO_WRITE( p )                       \
-        ( (p)->out.clearing == 1 ==>                               \
-          (p)->out.state == MPS_L2_WRITER_STATE_UNSET    ||        \
-          (p)->out.state == MPS_L2_WRITER_STATE_QUEUEING )
+#define MPS_L2_INV_IF_CLEARING_NO_WRITE( p )                    \
+            ( (p)->out.clearing == 1 ==>                        \
+              (p)->out.state == MPS_L2_WRITER_STATE_UNSET    || \
+              (p)->out.state == MPS_L2_WRITER_STATE_QUEUEING )
 
-        /** This variable indicates if all pending outgoing data
-         *  needs to be flushed before the next write can happen.
-         *
-         * This flag cannot be set while serving a write request. */
-        uint8_t flush;
+            /** This variable indicates if all pending outgoing data
+             *  needs to be flushed before the next write can happen.
+             *
+             * This flag cannot be set while serving a write request. */
+            uint8_t flush;
 
-#define MPS_L2_INV_IF_FLUSH_NO_WRITE( p )                          \
-        ( (p)->out.flush == 1 ==>                                  \
-          (p)->out.state == MPS_L2_WRITER_STATE_UNSET    ||        \
-          (p)->out.state == MPS_L2_WRITER_STATE_QUEUEING )
+#define MPS_L2_INV_IF_FLUSH_NO_WRITE( p )                       \
+            ( (p)->out.flush == 1 ==>                           \
+              (p)->out.state == MPS_L2_WRITER_STATE_UNSET    || \
+              (p)->out.state == MPS_L2_WRITER_STATE_QUEUEING )
 
-        /* Further explanation on the meaning and difference
-         * between `flush` and `clearing`:
-         *
-         * The `flush` state lives at a higher level than `clearing`:
-         * If `flush` is set, Layer 2 must make sure that everything
-         * that has been dispatched by the user is delivered before
-         * the writing can continue. Internally, this splits into ...
-         * (1) ... the data that has been dispatched by the user
-         *     but which Layer 2 didn't yet dispatch to Layer 1,
-         *     e.g. because Layer 2 waiting to see if it can put
-         *     more data in the present record.
-         * (2) ... the data that has been dispatched to Layer 1, but
-         *     which Layer 1 might not yet have flushed.
-         * Handling the `flush` state means dispatching the pending
-         * data of type (1) first, ensuring that nothing of type (1)
-         * is left, and then calling a flush on Layer 1 to handle
-         * the data of type (2).
-         *
-         * In contrast, `clearing` solely deals with the data
-         * of type (2): If it is set, the data of type (2) must
-         * be flushed before any progress on writing can be made.
-         *
-         * Handling `flush` is done by dispatching the data of type (1)
-         * to Layer 1, and then setting `clearing` to ensure the handling
-         * of data of type (2) through a flush. If no progress can be
-         * made on the clearing of (1) because Layer 1 is out of writing
-         * space, `clearing` needs to be set in order to flush Layer 1
-         * first, emptying (2), before the processing of type (1) data
-         * can continue. This flow is implemented in l2_clear_pending().
-         *
-         */
+            /* Further explanation on the meaning and difference
+             * between `flush` and `clearing`:
+             *
+             * The `flush` state lives at a higher level than `clearing`:
+             * If `flush` is set, Layer 2 must make sure that everything
+             * that has been dispatched by the user is delivered before
+             * the writing can continue. Internally, this splits into ...
+             * (1) ... the data that has been dispatched by the user
+             *     but which Layer 2 didn't yet dispatch to Layer 1,
+             *     e.g. because Layer 2 waiting to see if it can put
+             *     more data in the present record.
+             * (2) ... the data that has been dispatched to Layer 1, but
+             *     which Layer 1 might not yet have flushed.
+             * Handling the `flush` state means dispatching the pending
+             * data of type (1) first, ensuring that nothing of type (1)
+             * is left, and then calling a flush on Layer 1 to handle
+             * the data of type (2).
+             *
+             * In contrast, `clearing` solely deals with the data
+             * of type (2): If it is set, the data of type (2) must
+             * be flushed before any progress on writing can be made.
+             *
+             * Handling `flush` is done by dispatching the data of type (1)
+             * to Layer 1, and then setting `clearing` to ensure the handling
+             * of data of type (2) through a flush. If no progress can be
+             * made on the clearing of (1) because Layer 1 is out of writing
+             * space, `clearing` needs to be set in order to flush Layer 1
+             * first, emptying (2), before the processing of type (1) data
+             * can continue. This flow is implemented in l2_clear_pending().
+             *
+             */
 
-        /* Layer 2 manages two types of data related to outgoing records:
-         *
-         * 1) The raw buffers holding the header, plaintext and ciphertext
-         *    of the current outgoing record. They are internal and never
-         *    passed to the user.
-         *    The relevant fields are `hdr`, `hdr_len` and `payload`
-         *    and they are explained in more detail below.
-         *
-         * 2) The structure `writer` representing the ongoing write from
-         *    the perspective of the user, consisting of an epoch,
-         *    a record content type and a writer object.
-         *
-         * The basic states during writing are the following:
-         * 1. Initially -- and whenever no outgoing record has been prepared --
-         *    hdr, hdr_len and payload are unset, as is the writer.
-         * 2. After preparing an outgoing record, hdr and payload are
-         *    set up with buffers from Layer 1, while the writer is UNSET.
-         * 3. The writer manages `payload` and is in INTERNAL state, indicating
-         *    that is hasn't yet been provided to the user.
-         * 4. The writer manages `payload` and is in EXTERNAL state, indicating
-         *    that is has been provided to the user who then can use the writer
-         *    API to provide the record contents.
-         *
-         * State 2 is not visible at the API boundary, but used internally
-         * as an intermediate step when transitioning between the states,
-         * which is done by the following functions:
-         *
-         * - l2_out_prepare_record transitions from state 1 to 2.
-         * - l2_out_dispatch_record transitions from state 2 to 1.
-         * - l2_out_track_record transitions from state 2 to 3.
-         * - l2_out_release_record transitions from 3 to 2.
-         */
+            /* Layer 2 manages two types of data related to outgoing records:
+             *
+             * 1) The raw buffers holding the header, plaintext and ciphertext
+             *    of the current outgoing record. They are internal and never
+             *    passed to the user.
+             *    The relevant fields are `hdr`, `hdr_len` and `payload`
+             *    and they are explained in more detail below.
+             *
+             * 2) The structure `writer` representing the ongoing write from
+             *    the perspective of the user, consisting of an epoch,
+             *    a record content type and a writer object.
+             *
+             * The basic states during writing are the following:
+             * 1. Initially,and whenever no outgoing record has been prepared,
+             *    hdr, hdr_len and payload are unset, as is the writer.
+             * 2. After preparing an outgoing record, hdr and payload are
+             *    set up with buffers from Layer 1, while the writer is UNSET.
+             * 3. The writer manages `payload` and is in INTERNAL state,
+             *    indicating that is hasn't yet been provided to the user.
+             * 4. The writer manages `payload` and is in EXTERNAL state,
+             *    indicating that is has been provided to the user who then can
+             *    use the writer API to provide the record contents.
+             *
+             * State 2 is not visible at the API boundary, but used internally
+             * as an intermediate step when transitioning between the states,
+             * which is done by the following functions:
+             *
+             * - l2_out_prepare_record transitions from state 1 to 2.
+             * - l2_out_dispatch_record transitions from state 2 to 1.
+             * - l2_out_track_record transitions from state 2 to 3.
+             * - l2_out_release_record transitions from 3 to 2.
+             */
 
-        /* Once an outgoing record has been prepared, we're maintaining
-         * three buffers:
-         * 1. The header buffer, holding the record header in the end.
-         * 2. The content buffer, holding the plaintext or ciphertext,
-         *    depending on the state of encryption.
-         * 3. The work buffer, surrounding the plaintext/ciphertext buffer.
-         *
-         * The concatenation of header buffer and the work buffer is the
-         * write buffer obtained from the underlying Layer 1 instance.
-         *
-         * During record encryption, the content buffer grows within the
-         * work buffer due to the addition of MAC, IV, or the inner plaintext
-         * record header in case of TLS 1.3. The offset of the content buffer
-         * from the work buffer should be zero after encryption, and is
-         * chosen during record preparation to ensure this property.
-         *
-         *    +-----------+---------------------------------------------------+
-         *    |           |                     +------------------------+    |
-         *    |  header   |                     | plaintext / ciphertext |    |
-         *    |           |                     +------------------------+    |
-         *    |           |                      \__ payload.data_len __/     |
-         *    |           | payload.data_offset                               |
-         *    |           |---------------------|                             |
-         *    +-----------+---------------------------------------------------+
-         *    hdr          payload.buf
-         *    \_ hdr_len _/\______________ payload.buf_len ___________________/
-         *
-         */
+            /* Once an outgoing record has been prepared, we're maintaining
+             * three buffers:
+             * 1. The header buffer, holding the record header in the end.
+             * 2. The content buffer, holding the plaintext or ciphertext,
+             *    depending on the state of encryption.
+             * 3. The work buffer, surrounding the plaintext/ciphertext buffer.
+             *
+             * The concatenation of header buffer and the work buffer is the
+             * write buffer obtained from the underlying Layer 1 instance.
+             *
+             * During record encryption, the content buffer grows within the
+             * work buffer due to the addition of MAC, IV, or the inner
+             * plaintext record header in case of TLS 1.3. The offset of the
+             * content buffer from the work buffer should be zero after
+             * encryption, and is chosen during record preparation to ensure
+             * this property.
+             *
+             * +-----------+---------------------------------------------------+
+             * |           |                     +------------------------+    |
+             * |  header   |                     | plaintext / ciphertext |    |
+             * |           |                     +------------------------+    |
+             * |           |                      \__ payload.data_len __/     |
+             * |           | payload.data_offset                               |
+             * |           |---------------------|                             |
+             * +-----------+---------------------------------------------------+
+             *  hdr          payload.buf
+             * \_ hdr_len _/\______________ payload.buf_len ___________________/
+             *
+             */
 
-#define MPS_L2_INV_OUT_HDR_VALID( p )                           \
-        ( (p)->out.hdr == NULL ==> (p)->out.hdr_len == 0 ) &&   \
-        ( (p)->out.hdr != NULL ==>                              \
-          ( \forall integer i; 0 <= i < (p)->out.hdr_len        \
-            ==> \valid( (p)->out.hdr+i ) ) )
+#define MPS_L2_INV_OUT_HDR_VALID( p )                                   \
+            ( (p)->out.hdr == NULL ==> (p)->out.hdr_len == 0 ) &&       \
+            ( (p)->out.hdr != NULL ==>                                  \
+              ( \forall integer i; 0 <= i < (p)->out.hdr_len            \
+                ==> \valid( (p)->out.hdr+i ) ) )
 
-#define MPS_L2_INV_OUT_PAYLOAD_VALID( p )                \
-        MPS_L2_BUFPAIR_INV( &(p)->out.payload )
+#define MPS_L2_INV_OUT_PAYLOAD_VALID( p )               \
+            MPS_L2_BUFPAIR_INV( &(p)->out.payload )
 
-#define MPS_L2_INV_OUT_HDR_PAYLOAD_SET                   \
-        ( ( (p)->out.hdr == NULL <==> (                  \
-                (p)->out.payload.buf         == NULL &&  \
-                (p)->out.payload.buf_len     == 0    &&  \
-                (p)->out.payload.data_len    == 0    &&  \
-                (p)->out.payload.data_offset == 0 ) ) && \
-          ( (p)->hdr != NULL ==>                         \
-            ( (p)->out.payload.buf ==                    \
-              (p)->out.hdr + (p)->out.hdr_len ) ) )
+#define MPS_L2_INV_OUT_HDR_PAYLOAD_SET                          \
+            ( ( (p)->out.hdr == NULL <==> (                     \
+                    (p)->out.payload.buf         == NULL &&     \
+                    (p)->out.payload.buf_len     == 0    &&     \
+                    (p)->out.payload.data_len    == 0    &&     \
+                    (p)->out.payload.data_offset == 0 ) ) &&    \
+              ( (p)->hdr != NULL ==>                            \
+                ( (p)->out.payload.buf ==                       \
+                  (p)->out.hdr + (p)->out.hdr_len ) ) )
 
 
-        /** The address of the header of the current outgoing record,
-         *  or \c NULL if there is no such. */
-        /* OPTIMIZATION:
-         * This is the same as the buffer obtained from
-         * Layer 1. Consider removing this reference
-         * and querying Layer 1 when it's needed instead. */
-        unsigned char *hdr;
-        /** The length of the header buffer pointed to by \c hdr.          */
-        /* OPTIMIZATION:
-         * This can be inferred from the epoch through l2_get_header_len().
-         * Consider removing this field. */
-        mbedtls_mps_stored_size_t hdr_len;
+            /** The address of the header of the current outgoing record,
+             *  or \c NULL if there is no such. */
+            /* OPTIMIZATION:
+             * This is the same as the buffer obtained from
+             * Layer 1. Consider removing this reference
+             * and querying Layer 1 when it's needed instead. */
+            unsigned char *hdr;
+            /** The length of the header buffer pointed to by \c hdr.         */
+            /* OPTIMIZATION:
+             * This can be inferred from the epoch through l2_get_header_len().
+             * Consider removing this field. */
+            mbedtls_mps_stored_size_t hdr_len;
 
-        /** The buffer pair consisting of content buffer
-         *  (plaintext or ciphertext) and work buffer.                     */
-        /* OPTIMIZATION:
-         * This has overlap with \c hdr: the outer buffer in the
-         * \c payload buffer pair always starts at `hdr + hdr_len`.
-         * Consider removing this redundancy provided (?) it's possible
-         * to do so without sacrifing structure and clarity of the code. */
-        mps_l2_bufpair payload;
+            /** The buffer pair consisting of content buffer
+             *  (plaintext or ciphertext) and work buffer.                    */
+            /* OPTIMIZATION:
+             * This has overlap with \c hdr: the outer buffer in the
+             * \c payload buffer pair always starts at `hdr + hdr_len`.
+             * Consider removing this redundancy provided (?) it's possible
+             * to do so without sacrifing structure and clarity of the code.  */
+            mps_l2_bufpair payload;
 
-        /** The structure through which the content type, the epoch
-         *  and the state of plaintext writing of the current outgoing
-         *  record is tracked. */
-        /* OPTIMIZATION:
-         * The fragment managed by the writer the inner
-         * buffer in the \c payload buffer pair before
-         * encryption. Consider removing this redundancy
-         * provided (?) it's possible to do so without
-         * sacrificing structure and clarity of the code. */
-        mbedtls_mps_l2_out_internal writer;
+            /** The structure through which the content type, the epoch
+             *  and the state of plaintext writing of the current outgoing
+             *  record is tracked. */
+            /* OPTIMIZATION:
+             * The fragment managed by the writer the inner
+             * buffer in the \c payload buffer pair before
+             * encryption. Consider removing this redundancy
+             * provided (?) it's possible to do so without
+             * sacrificing structure and clarity of the code. */
+            mbedtls_mps_l2_out_internal writer;
 
 #define MPS_L2_INV_OUT_WRITER_INV( p )          \
-        WRITER_INV( &(p)->out.writer.wr )
+            WRITER_INV( &(p)->out.writer.wr )
 
-        /** The state of the \c writer field. See the documentation of
-         *  l2_writer_state for more information.                          */
-        mbedtls_mps_l2_writer_state state;
+            /** The state of the \c writer field. See the documentation of
+             *  l2_writer_state for more information.                         */
+            mbedtls_mps_l2_writer_state state;
 
-#define MPS_L2_INV_OUT_WRITER_STATE( p )                           \
-        ( (p)->out.state == MPS_L2_WRITER_STATE_UNSET    ||        \
-          (p)->out.state == MPS_L2_WRITER_STATE_QUEUEING ||        \
-          (p)->out.state == MPS_L2_WRITER_STATE_INTERNAL ||        \
-          (p)->out.state == MPS_L2_WRITER_STATE_EXTERNAL )
+#define MPS_L2_INV_OUT_WRITER_STATE( p )                                \
+            ( (p)->out.state == MPS_L2_WRITER_STATE_UNSET    ||         \
+                (p)->out.state == MPS_L2_WRITER_STATE_QUEUEING ||       \
+                (p)->out.state == MPS_L2_WRITER_STATE_INTERNAL ||       \
+                (p)->out.state == MPS_L2_WRITER_STATE_EXTERNAL )
 
 #define MPS_L2_INV_OUT_ACTIVE_IS_VALID( p )                             \
-        ( ( (p)->out.state != MPS_L2_WRITER_STATE_UNSET )               \
-          ==> ( ( ( (uint32_t) 1u << (p)->out.writer.type ) & (p)->conf.type_flag ) != 0 ) )
+            ( ( (p)->out.state != MPS_L2_WRITER_STATE_UNSET )           \
+            ==> ( ( ( (uint32_t) 1u << (p)->out.writer.type ) & (p)->conf.type_flag ) != 0 ) )
 
-#define MPS_L2_INV_OUT_QUEUEING_IS_PAUSABLE( p )                     \
-        ( ( (p)->out.state != MPS_L2_WRITER_STATE_QUEUEING )         \
-          ==> ( ( ( (uint32_t) 1u << (p)->out.writer.type ) & (p)->conf.pause_flag ) != 0 ) )
+#define MPS_L2_INV_OUT_QUEUEING_IS_PAUSABLE( p )                        \
+            ( ( (p)->out.state != MPS_L2_WRITER_STATE_QUEUEING )        \
+            ==> ( ( ( (uint32_t) 1u << (p)->out.writer.type ) & (p)->conf.pause_flag ) != 0 ) )
 
-    } out;
+        } out;
 
-    /**
-     * \brief The substructure holding all data related to incoming records.
-     */
-
-    /* OPTIMIZATION:
-     * Consider making reading and writing mutually exclusive and using
-     * a union for store the incoming and outgoing data structures.
-     * Together with the corresponding changes in the other layers, this
-     * might save a significant amount of RAM.
-     */
-    struct
-    {
-        /* Note: In contrast to the write-side, the read-side of Layer 2 does
-         * not remember the raw record buffers obtained from Layer 1 as they
-         * can be handled on the stack when a new record is fetched. */
-
-        /** The current TLS implementation allows a single paused reader,
-         *  allowing e.g. to pause the reading of a handshake message while
-         *  processing other content types; on the other hand, it is not
-         *  capable of dealing with a fragmented alert followed by a fragmented
-         *  handshake message. However, while allowed in TLS up to version 1.2,
-         *  this is more of an academic use case, and the limitation seems
-         *  acceptable. In fact, TLS 1.3 forbids any interleaving of record
-         *  content types, and for that purpose, a single active or paused
-         *  reader would be sufficient.
-         *
-         *  The Layer 2 implementation doesn't use this directly, but
-         *  only through the following internal interface. Re-implement
-         *  this interface to change the number of paused readers in TLS.
-         *  - mps_l2_readers_active_state
-         *  - mps_l2_readers_get_active
-         *  - mps_l2_setup_free_slot
-         *  - mps_l2_readers_update
-         *  - mps_l2_find_paused_slot (TLS only)
+        /**
+         * \brief The substructure holding all data related to incoming records.
          */
 
-        mbedtls_mps_l2_in_internal active;
+        /* OPTIMIZATION:
+         * Consider making reading and writing mutually exclusive and using
+         * a union for store the incoming and outgoing data structures.
+         * Together with the corresponding changes in the other layers, this
+         * might save a significant amount of RAM.
+         */
+        struct
+        {
+            /* Note: In contrast to the write-side, the read-side of Layer 2 does
+             * not remember the raw record buffers obtained from Layer 1 as they
+             * can be handled on the stack when a new record is fetched. */
+
+            /** The current TLS implementation allows a single paused reader,
+             *  allowing e.g. to pause the reading of a handshake message while
+             *  processing other content types; on the other hand, it is not
+             *  capable of dealing with a fragmented alert followed by a fragmented
+             *  handshake message. However, while allowed in TLS up to version 1.2,
+             *  this is more of an academic use case, and the limitation seems
+             *  acceptable. In fact, TLS 1.3 forbids any interleaving of record
+             *  content types, and for that purpose, a single active or paused
+             *  reader would be sufficient.
+             *
+             *  The Layer 2 implementation doesn't use this directly, but
+             *  only through the following internal interface. Re-implement
+             *  this interface to change the number of paused readers in TLS.
+             *  - mps_l2_readers_active_state
+             *  - mps_l2_readers_get_active
+             *  - mps_l2_setup_free_slot
+             *  - mps_l2_readers_update
+             *  - mps_l2_find_paused_slot (TLS only)
+             */
+
+            mbedtls_mps_l2_in_internal active;
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-        /*! The accumulator for incoming data of pausable
-         *  record content types.    */
-        unsigned char *accumulator;
-        /*! The size of the accumulator in Bytes.*/
-        mbedtls_mps_stored_size_t acc_len;
+            /*! The accumulator for incoming data of pausable
+             *  record content types.    */
+            unsigned char *accumulator;
+            /*! The size of the accumulator in Bytes.*/
+            mbedtls_mps_stored_size_t acc_len;
 
-        mbedtls_mps_l2_in_internal paused;
+            mbedtls_mps_l2_in_internal paused;
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-        uint32_t bad_mac_ctr; /* The number of records with bad MAC that have
-                               * been received so far. DTLS only. */
+            uint32_t bad_mac_ctr; /* The number of records with bad MAC that
+                                   * have been received so far. DTLS only. */
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-    } in;
+        } in;
+
+    } io;
 
     /**
      * \brief The substructure holding all data related

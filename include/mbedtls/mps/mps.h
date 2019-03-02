@@ -586,6 +586,15 @@ struct mbedtls_mps_config
     uint8_t mode;
     mps_l3 *l3;
 
+    /* OPTIMIZATION:
+     * Consider allowing to fix some of these fields at compile-time,
+     * for example the minimum and maxium timeout.
+     * In the code, replace every usage of the respective field by
+     * a getter macro which unfolds to the field access if the field
+     * isn't fixed at compile-time, or to the defined constant if it is.
+     *
+     * This allows to reduce RAM and code footprint. */
+
     /*! The initial value of the retransmission timeout (ms). */
     uint32_t hs_timeout_min;
     /*! The maximum value of the retransmission timeout (ms). */
@@ -734,6 +743,14 @@ struct mbedtls_mps
             uint8_t resend_offset;
 
         } wait;
+
+        /*
+         * OPTIMIZATION:
+         * Do we need to store outgoing and incoming flights simultaneously,
+         * or can we use a union here?
+         * Or is it better to only reference them here, and allocate
+         * them on the heap on demand?
+         */
 
         /*! The state of outgoing flights. */
         struct

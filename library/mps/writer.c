@@ -210,9 +210,13 @@ int mbedtls_writer_bytes_written( mbedtls_writer *wr,
     unsigned char state;
     TRACE_INIT( "writer_bytes_written" );
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     state = wr->state;
     if( state != MBEDTLS_WRITER_PROVIDING )
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+#else
+    ((void) state);
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     commit = wr->committed;
     *written = commit;
@@ -585,8 +589,10 @@ int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
                            int pass )
 {
     TRACE_INIT( "mbedtls_writer_attach" );
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( wr_ext->wr != NULL )
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     wr_ext->passthrough = pass;
     wr_ext->wr = wr;

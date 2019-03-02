@@ -1929,7 +1929,7 @@ void mbedtls_reader_inconsistent_usage( int option )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER:MBEDTLS_MPS_STATE_VALIDATION */
 void mbedtls_mps_reader_random_usage( int num_out_chunks,
                                       int max_chunk_size,
                                       int max_request,
@@ -2884,7 +2884,7 @@ void mbedtls_mps_writer_queue_multiple_rounds()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER:MBEDTLS_MPS_STATE_VALIDATION */
 void mbedtls_mps_writer_random_usage( int data_amount,
                                       int max_chunk_size,
                                       int max_request,
@@ -6009,7 +6009,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2:MBEDTLS_MPS_STATE_VALIDATION */
 void mbedtls_mps_l2_random( int allocator_buffer_sz,
                             int layer0_buffer_sz,
                             int num_epochs,
@@ -6798,12 +6798,14 @@ void mbedtls_mps_l3_basic_handshake(
                                                     additional_fetch ) == 0 );
     }
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     /* Check that writer is blocked. */
     if( !length_known && partial_commit )
     {
         TEST_ASSERT( mbedtls_writer_get_ext( hs_out.wr_ext, 10, &tmp, NULL ) ==
                      MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Dispatch handshake message */
     TEST_ASSERT( mps_l3_dispatch( &cli ) == 0 );
@@ -8491,7 +8493,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3 */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3:MBEDTLS_MPS_STATE_VALIDATION */
 void mbedtls_mps_l3_random( int allocator_buffer_sz,
                             int layer0_buffer_sz,
                             int num_epochs,
@@ -9413,12 +9415,14 @@ void mbedtls_mps_l4_basic_handshake(
                                                     additional_fetch ) == 0 );
     }
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     /* Check that writer is blocked. */
     if( mode == MBEDTLS_MPS_MODE_STREAM && !length_known && partial_commit )
     {
         TEST_ASSERT( mbedtls_writer_get_ext( hs_out.handle, 10, &tmp, NULL ) ==
                      MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Dispatch handshake message */
     TEST_ASSERT( mbedtls_mps_dispatch( &cli ) == 0 );

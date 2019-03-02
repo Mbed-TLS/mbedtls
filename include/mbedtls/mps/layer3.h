@@ -423,110 +423,114 @@ struct mps_l3
 
     struct
     {
-        /* Global reading state */
+        struct
+        {
+            /* Global reading state */
 
-        /*! Indicates if and which record type is currently open for reading. */
-        mbedtls_mps_stored_msg_type_t state;
+            /*! Indicates if and which record type is currently open for reading. */
+            mbedtls_mps_stored_msg_type_t state;
 
-#define MPS_L3_INV_IN_STATE( p )                          \
-        ( (p)->in.state == MBEDTLS_MPS_MSG_NONE        ||    \
-          (p)->in.state == MBEDTLS_MPS_MSG_APP ||    \
-          (p)->in.state == MBEDTLS_MPS_MSG_HS   ||    \
-          (p)->in.state == MBEDTLS_MPS_MSG_ALERT       ||    \
-          (p)->in.state == MBEDTLS_MPS_MSG_CCS )
+#define MPS_L3_INV_IN_STATE( p )                                \
+            ( (p)->in.state == MBEDTLS_MPS_MSG_NONE        ||   \
+              (p)->in.state == MBEDTLS_MPS_MSG_APP ||           \
+              (p)->in.state == MBEDTLS_MPS_MSG_HS   ||          \
+              (p)->in.state == MBEDTLS_MPS_MSG_ALERT       ||   \
+              (p)->in.state == MBEDTLS_MPS_MSG_CCS )
 
-        /* Raw record data. */
+            /* Raw record data. */
 
-        /*! Epoch of current incoming message.  */
-        mbedtls_mps_stored_epoch_id epoch;
-        mbedtls_reader *raw_in; /*!< Reader providing raw access to incoming
-                                 *   data of the type indicated by \c state
-                                 *   (including headers in case of handshake
-                                 *    messages).                             */
+            /*! Epoch of current incoming message.  */
+            mbedtls_mps_stored_epoch_id epoch;
+            mbedtls_reader *raw_in; /*!< Reader providing raw access to incoming
+                                     *   data of the type indicated by \c state
+                                     *   (including headers in case of handshake
+                                     *    messages).                             */
 
-#define MPS_L3_INV_IN_RAW_READER_SET( p )               \
-        ( (p)->in.state != MBEDTLS_MPS_MSG_NONE <==>       \
-          (p)->in.raw_in != NULL )
+#define MPS_L3_INV_IN_RAW_READER_SET( p )                       \
+            ( (p)->in.state != MBEDTLS_MPS_MSG_NONE <==>        \
+              (p)->in.raw_in != NULL )
 
-#define MPS_L3_INV_IN_RAW_READER( p )                   \
-        ( (p)->in.raw_in != NULL ==>                    \
-          READER_INV( (p)->in.raw_in ) )
+#define MPS_L3_INV_IN_RAW_READER( p )           \
+            ( (p)->in.raw_in != NULL ==>        \
+              READER_INV( (p)->in.raw_in ) )
 
-        /* Type-specific structures for accessing the contents of
-         * of the messages of the given type. */
+            /* Type-specific structures for accessing the contents of
+             * of the messages of the given type. */
 
-        mps_l3_hs_in_internal hs;        /*!< Handle to incoming
-                                          *   handshake message.              */
+            mps_l3_hs_in_internal hs;        /*!< Handle to incoming
+                                              *   handshake message.              */
 
-#define MPS_L3_INV_IN_HS_ACTIVE_STATE( p )             \
-        ( (p)->in.hs.state == MPS_L3_HS_ACTIVE <==>    \
-          (p)->in.state == MBEDTLS_MPS_MSG_HS )
+#define MPS_L3_INV_IN_HS_ACTIVE_STATE( p )              \
+            ( (p)->in.hs.state == MPS_L3_HS_ACTIVE <==> \
+              (p)->in.state == MBEDTLS_MPS_MSG_HS )
 
-        mps_l3_alert_in_internal alert;  /*!< Type + Level of incoming alert. */
+            mps_l3_alert_in_internal alert;  /*!< Type + Level of incoming alert. */
 
-    } in;
+        } in;
 
-    struct
-    {
-        uint8_t clearing;    /*!< This indicates if preparation of a new
-                              *   outgoing record necessitates a flush on
-                              *   the underlying Layer 2 first.
-                              *   The rationale for having this as a separate
-                              *   field as opposed to triggering the flush
-                              *   immediately once the necessity arises is
-                              *   that it allows the user to be in control
-                              *   of which Layer 3 API calls will require
-                              *   interfacing with the underlying transport.  */
+        struct
+        {
+            uint8_t clearing;    /*!< This indicates if preparation of a new
+                                  *   outgoing record necessitates a flush on
+                                  *   the underlying Layer 2 first.
+                                  *   The rationale for having this as a separate
+                                  *   field as opposed to triggering the flush
+                                  *   immediately once the necessity arises is
+                                  *   that it allows the user to be in control
+                                  *   of which Layer 3 API calls will require
+                                  *   interfacing with the underlying transport.  */
 
-        /* Note that there is no distinction between `flush` and `clearing`
-         * as in the Layer 2 implementation because Layer 3 doesn't buffer
-         * outgoing data but always passes it to Layer 2 immediately.         */
+            /* Note that there is no distinction between `flush` and `clearing`
+             * as in the Layer 2 implementation because Layer 3 doesn't buffer
+             * outgoing data but always passes it to Layer 2 immediately.         */
 
-        /* Global writing state */
+            /* Global writing state */
 
-        /*!< Indicates which record type is currently open for writing. */
-        mbedtls_mps_stored_msg_type_t state;
+            /*!< Indicates which record type is currently open for writing. */
+            mbedtls_mps_stored_msg_type_t state;
 
-#define MPS_L3_INV_OUT_STATE( p )                          \
-        ( (p)->out.state == MBEDTLS_MPS_MSG_NONE        ||    \
-          (p)->out.state == MBEDTLS_MPS_MSG_APP ||    \
-          (p)->out.state == MBEDTLS_MPS_MSG_HS   ||    \
-          (p)->out.state == MBEDTLS_MPS_MSG_ALERT       ||    \
-          (p)->out.state == MBEDTLS_MPS_MSG_CCS )
+#define MPS_L3_INV_OUT_STATE( p )                               \
+            ( (p)->out.state == MBEDTLS_MPS_MSG_NONE        ||  \
+              (p)->out.state == MBEDTLS_MPS_MSG_APP ||          \
+              (p)->out.state == MBEDTLS_MPS_MSG_HS   ||         \
+              (p)->out.state == MBEDTLS_MPS_MSG_ALERT       ||  \
+              (p)->out.state == MBEDTLS_MPS_MSG_CCS )
 
-        /* Raw outgoing record data */
+            /* Raw outgoing record data */
 
-        /* OPTIMIZATION:
-         * If not NULL, this always points to the writer
-         * maintained by the underlying Layer 2 instance.
-         * Consider using this instance directly. */
-        mbedtls_writer *raw_out; /*!< Writer providing raw access to outgoing
-                                  *   data buffers (including such to be used
-                                  *   for headers in case of handshake
-                                  *   messages).                              */
+            /* OPTIMIZATION:
+             * If not NULL, this always points to the writer
+             * maintained by the underlying Layer 2 instance.
+             * Consider using this instance directly. */
+            mbedtls_writer *raw_out; /*!< Writer providing raw access to outgoing
+                                      *   data buffers (including such to be used
+                                      *   for headers in case of handshake
+                                      *   messages).                              */
 
-#define MPS_L3_INV_OUT_RAW_WRITER_SET( p )               \
-        ( (p)->out.state != MBEDTLS_MPS_MSG_NONE <==>       \
-          (p)->out.raw_out != NULL )
+#define MPS_L3_INV_OUT_RAW_WRITER_SET( p )                      \
+            ( (p)->out.state != MBEDTLS_MPS_MSG_NONE <==>       \
+              (p)->out.raw_out != NULL )
 
-#define MPS_L3_INV_OUT_RAW_WRITER( p )                   \
-        ( (p)->out.raw_out != NULL ==>                   \
-          WRITER_INV( (p)->out.raw_out ) )
+#define MPS_L3_INV_OUT_RAW_WRITER( p )          \
+            ( (p)->out.raw_out != NULL ==>      \
+              WRITER_INV( (p)->out.raw_out ) )
 
-        /* Type-specific structures */
+            /* Type-specific structures */
 
-        /* OPTIMIZATION:
-         * Why do we need to store meta-data such as the handshake
-         * sequence number here? We should be able to write the
-         * handshake header in mps_l3_write_handshake(), and afterwards
-         * the sequence number isn't needed anymore -- or is it? */
-        mps_l3_hs_out_internal hs; /*!< Handle to outgoing handshake message. */
+            /* OPTIMIZATION:
+             * Why do we need to store meta-data such as the handshake
+             * sequence number here? We should be able to write the
+             * handshake header in mps_l3_write_handshake(), and afterwards
+             * the sequence number isn't needed anymore -- or is it? */
+            mps_l3_hs_out_internal hs; /*!< Handle to outgoing handshake message. */
 
-#define MPS_L3_INV_OUT_HS_ACTIVE_STATE( p )             \
-        ( (p)->out.hs.state == MPS_L3_HS_ACTIVE <==>    \
-          (p)->out.state == MBEDTLS_MPS_MSG_HS )
+#define MPS_L3_INV_OUT_HS_ACTIVE_STATE( p )                     \
+            ( (p)->out.hs.state == MPS_L3_HS_ACTIVE <==>        \
+              (p)->out.state == MBEDTLS_MPS_MSG_HS )
 
-    } out;
+        } out;
+
+    } io;
 
 };
 

@@ -88,14 +88,14 @@ int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode )
     l3->conf.l2 = l2;
     l3->conf.mode = mode;
 
-    l3->in.state = MBEDTLS_MPS_MSG_NONE;
-    l3->in.hs.state = MPS_L3_HS_NONE;
-    l3->in.raw_in = NULL;
+    l3->io.in.state = MBEDTLS_MPS_MSG_NONE;
+    l3->io.in.hs.state = MPS_L3_HS_NONE;
+    l3->io.in.raw_in = NULL;
 
-    l3->out.state    = MBEDTLS_MPS_MSG_NONE;
-    l3->out.hs.state = MPS_L3_HS_NONE;
-    l3->out.raw_out  = NULL;
-    l3->out.clearing = 0;
+    l3->io.out.state    = MBEDTLS_MPS_MSG_NONE;
+    l3->io.out.hs.state = MPS_L3_HS_NONE;
+    l3->io.out.raw_out  = NULL;
+    l3->io.out.clearing = 0;
 
     /* TODO Configure Layer 2
      * - Add allowed record types
@@ -119,7 +119,7 @@ int mps_l3_free( mps_l3 *l3 )
 /* Check if a message is ready to be processed. */
 int mps_l3_read_check( mps_l3 *l3 )
 {
-    return( l3->in.state );
+    return( l3->io.in.state );
 }
 
 /* Attempt to receive an incoming message from Layer 2. */
@@ -157,7 +157,7 @@ int mps_l3_read( mps_l3 *l3 )
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     /* 1 */
-    if( l3->in.state != MBEDTLS_MPS_MSG_NONE )
+    if( l3->io.in.state != MBEDTLS_MPS_MSG_NONE )
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -194,7 +194,7 @@ int mps_l3_read( mps_l3 *l3 )
              * - For DTLS, an incomplete alert message
              *   is treated as a fatal error.
              */
-            res = l3_parse_alert( in.rd, &l3->in.alert );
+            res = l3_parse_alert( in.rd, &l3->io.in.alert );
             if( res == MBEDTLS_ERR_READER_OUT_OF_DATA )
             {
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
@@ -281,7 +281,7 @@ int mps_l3_read( mps_l3 *l3 )
              */
 
             /* Check if a handshake message is currently being paused. */
-            switch( l3->in.hs.state )
+            switch( l3->io.in.hs.state )
             {
                 /* 3.2.1 */
                 case MPS_L3_HS_NONE:
@@ -299,7 +299,7 @@ int mps_l3_read( mps_l3 *l3 )
                      *   is treated as a fatal error.
                      */
                     res = l3_parse_hs_header( l3->conf.mode, in.rd,
-                                              &l3->in.hs );
+                                              &l3->io.in.hs );
                     if( res == MBEDTLS_ERR_READER_OUT_OF_DATA )
                     {
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
@@ -341,15 +341,15 @@ int mps_l3_read( mps_l3 *l3 )
 #if defined(MBEDTLS_MPS_PROTO_TLS)
                     if( MBEDTLS_MPS_IS_TLS( mode ) )
                     {
-                        mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
-                                                 l3->in.hs.len );
+                        mbedtls_reader_init_ext( &l3->io.in.hs.rd_ext,
+                                                 l3->io.in.hs.len );
                     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
                     if( MBEDTLS_MPS_IS_DTLS( mode ) )
                     {
-                        mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
-                                                 l3->in.hs.frag_len );
+                        mbedtls_reader_init_ext( &l3->io.in.hs.rd_ext,
+                                                 l3->io.in.hs.frag_len );
                     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -359,7 +359,7 @@ int mps_l3_read( mps_l3 *l3 )
                 case MPS_L3_HS_PAUSED:
                     TRACE( trace_comment, "A handshake message currently paused" );
 #if defined(MBEDTLS_MPS_ASSERT)
-                    if( l3->in.hs.epoch != in.epoch )
+                    if( l3->io.in.hs.epoch != in.epoch )
                     {
                         /* This should never happen, as we don't allow switching
                          * the incoming epoch while pausing the reading of a
@@ -375,7 +375,7 @@ int mps_l3_read( mps_l3 *l3 )
                 default:
                     /* Should never happen -- if a handshake message
                      * is active, then this must be reflected in the
-                     * state variable l3->in.state. */
+                     * state variable l3->io.in.state. */
                     TRACE( trace_error, "ASSERTION FAILURE!" );
                     RETURN( MPS_ERR_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
@@ -383,14 +383,14 @@ int mps_l3_read( mps_l3 *l3 )
 
             /* Bind the raw reader (supplying record contents) to the
              * extended reader (keeping track of global message bounds). */
-            res = mbedtls_reader_attach( &l3->in.hs.rd_ext, in.rd );
+            res = mbedtls_reader_attach( &l3->io.in.hs.rd_ext, in.rd );
             if( res != 0 )
                 RETURN( res );
 
             /* Make changes to internal structures only now
              * that we know that everything went well. */
-            l3->in.hs.epoch = in.epoch;
-            l3->in.hs.state = MPS_L3_HS_ACTIVE;
+            l3->io.in.hs.epoch = in.epoch;
+            l3->io.in.hs.state = MPS_L3_HS_ACTIVE;
 
             break;
 
@@ -403,17 +403,17 @@ int mps_l3_read( mps_l3 *l3 )
 #endif /* MBEDTLS_MPS_ASSERT */
     }
 
-    l3->in.raw_in = in.rd;
-    l3->in.epoch  = in.epoch;
-    l3->in.state  = in.type;
+    l3->io.in.raw_in = in.rd;
+    l3->io.in.epoch  = in.epoch;
+    l3->io.in.state  = in.type;
 
     TRACE( trace_comment, "New state" );
     TRACE( trace_comment, "* External state:  %u",
-           (unsigned) l3->in.state );
+           (unsigned) l3->io.in.state );
     TRACE( trace_comment, "* Handshake state: %u",
-           (unsigned) l3->in.hs.state );
+           (unsigned) l3->io.in.hs.state );
 
-    RETURN( l3->in.state );
+    RETURN( l3->io.in.state );
 }
 
 /* Mark an incoming message as fully processed. */
@@ -422,7 +422,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
     int res;
     TRACE_INIT( "mps_l3_read_consume" );
 
-    switch( l3->in.state )
+    switch( l3->io.in.state )
     {
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
         case MBEDTLS_MPS_MSG_NONE:
@@ -438,19 +438,19 @@ int mps_l3_read_consume( mps_l3 *l3 )
             /* Attempt to close the extended reader.
              * This in particular checks whether the entire
              * message has been fetched and committed. */
-            if( mbedtls_reader_check_done( &l3->in.hs.rd_ext ) != 0 )
+            if( mbedtls_reader_check_done( &l3->io.in.hs.rd_ext ) != 0 )
             {
                 TRACE( trace_error, "Attempting to close a not fully processed handshake message." );
                 RETURN( MPS_ERR_UNFINISHED_HS_MSG );
             }
 
             /* Remove reference to raw reader from extended reader. */
-            res = mbedtls_reader_detach( &l3->in.hs.rd_ext );
+            res = mbedtls_reader_detach( &l3->io.in.hs.rd_ext );
             if( res != 0 )
                 RETURN( res );
 
             /* Reset extended reader. */
-            mbedtls_reader_free_ext( &l3->in.hs.rd_ext );
+            mbedtls_reader_free_ext( &l3->io.in.hs.rd_ext );
 
             break;
 
@@ -470,7 +470,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
 
     /* Remove reference to the raw reader borrowed from Layer 2
      * before calling mps_l2_read_done(), which invalidates it. */
-    l3->in.raw_in = NULL;
+    l3->io.in.raw_in = NULL;
 
     /* Signal that incoming data is fully processed. */
     res = mps_l2_read_done( l3->conf.l2 );
@@ -478,9 +478,9 @@ int mps_l3_read_consume( mps_l3 *l3 )
         RETURN( res );
 
     /* Reset state */
-    if( l3->in.state == MBEDTLS_MPS_MSG_HS )
-        l3->in.hs.state = MPS_L3_HS_NONE;
-    l3->in.state = MBEDTLS_MPS_MSG_NONE;
+    if( l3->io.in.state == MBEDTLS_MPS_MSG_HS )
+        l3->io.in.hs.state = MPS_L3_HS_NONE;
+    l3->io.in.state = MBEDTLS_MPS_MSG_NONE;
     RETURN( 0 );
 }
 
@@ -496,21 +496,21 @@ int mps_l3_read_pause_handshake( mps_l3 *l3 )
      * to handle pausing of handshake messages. */
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->in.state != MBEDTLS_MPS_MSG_HS ||
-        l3->in.hs.state != MPS_L3_HS_ACTIVE )
+    if( l3->io.in.state != MBEDTLS_MPS_MSG_HS ||
+        l3->io.in.hs.state != MPS_L3_HS_ACTIVE )
     {
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Remove reference to raw reader from extended reader. */
-    res = mbedtls_reader_detach( &l3->in.hs.rd_ext );
+    res = mbedtls_reader_detach( &l3->io.in.hs.rd_ext );
     if( res != 0 )
         RETURN( res );
 
     /* Remove reference to the raw reader borrowed from Layer 2
      * before calling mps_l2_read_done(), which invalidates it. */
-    l3->in.raw_in = NULL;
+    l3->io.in.raw_in = NULL;
 
     /* Signal to Layer 2 that incoming data is fully processed. */
     res = mps_l2_read_done( l3->conf.l2 );
@@ -518,8 +518,8 @@ int mps_l3_read_pause_handshake( mps_l3 *l3 )
         RETURN( res );
 
     /* Switch to paused state. */
-    l3->in.state    = MBEDTLS_MPS_MSG_NONE;
-    l3->in.hs.state = MPS_L3_HS_PAUSED;
+    l3->io.in.state    = MBEDTLS_MPS_MSG_NONE;
+    l3->io.in.hs.state = MPS_L3_HS_PAUSED;
     RETURN( 0 );
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
@@ -792,24 +792,24 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
     TRACE_INIT( "mps_l3_read_handshake" );
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->in.state    != MBEDTLS_MPS_MSG_HS ||
-        l3->in.hs.state != MPS_L3_HS_ACTIVE )
+    if( l3->io.in.state    != MBEDTLS_MPS_MSG_HS ||
+        l3->io.in.hs.state != MPS_L3_HS_ACTIVE )
     {
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
-    hs->epoch  = l3->in.epoch;
-    hs->len    = l3->in.hs.len;
-    hs->type   = l3->in.hs.type;
-    hs->rd_ext = &l3->in.hs.rd_ext;
+    hs->epoch  = l3->io.in.epoch;
+    hs->len    = l3->io.in.hs.len;
+    hs->type   = l3->io.in.hs.type;
+    hs->rd_ext = &l3->io.in.hs.rd_ext;
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
-        hs->seq_nr      = l3->in.hs.seq_nr;
-        hs->frag_offset = l3->in.hs.frag_offset;
-        hs->frag_len    = l3->in.hs.frag_len;
+        hs->seq_nr      = l3->io.in.hs.seq_nr;
+        hs->frag_offset = l3->io.in.hs.frag_offset;
+        hs->frag_len    = l3->io.in.hs.frag_len;
     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -820,15 +820,15 @@ int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app )
 {
     TRACE_INIT( "mps_l3_read_app" );
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->in.state != MBEDTLS_MPS_MSG_APP )
+    if( l3->io.in.state != MBEDTLS_MPS_MSG_APP )
     {
         TRACE( trace_comment, "No application data message opened" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
-    app->epoch = l3->in.epoch;
-    app->rd = l3->in.raw_in;
+    app->epoch = l3->io.in.epoch;
+    app->rd = l3->io.in.raw_in;
     RETURN( 0 );
 }
 
@@ -836,16 +836,16 @@ int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert )
 {
     TRACE_INIT( "mps_l3_read_alert" );
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->in.state != MBEDTLS_MPS_MSG_ALERT )
+    if( l3->io.in.state != MBEDTLS_MPS_MSG_ALERT )
     {
         TRACE( trace_comment, "No alert message opened" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
-    alert->epoch = l3->in.epoch;
-    alert->type  = l3->in.alert.type;
-    alert->level = l3->in.alert.level;
+    alert->epoch = l3->io.in.epoch;
+    alert->type  = l3->io.in.alert.type;
+    alert->level = l3->io.in.alert.level;
     RETURN( 0 );
 }
 
@@ -853,14 +853,14 @@ int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs )
 {
     TRACE_INIT( "mps_l3_read_ccs" );
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->in.state != MBEDTLS_MPS_MSG_CCS )
+    if( l3->io.in.state != MBEDTLS_MPS_MSG_CCS )
     {
         TRACE( trace_comment, "No CCS message opened" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
-    ccs->epoch = l3->in.epoch;
+    ccs->epoch = l3->io.in.epoch;
     RETURN( 0 );
 }
 
@@ -871,7 +871,7 @@ int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs )
 int mps_l3_flush( mps_l3 *l3 )
 {
     TRACE_INIT( "mps_l3_flush" );
-    l3->out.clearing = 1;
+    l3->io.out.clearing = 1;
     RETURN( l3_check_clear( l3 ) );
 }
 
@@ -879,7 +879,7 @@ int mps_l3_flush( mps_l3 *l3 )
 MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr_tls( mps_l3 *l3 )
 {
     int res;
-    mps_l3_hs_out_internal *hs = &l3->out.hs;
+    mps_l3_hs_out_internal *hs = &l3->io.out.hs;
 
     if( hs->hdr != NULL &&
         hs->len != MBEDTLS_MPS_SIZE_UNKNOWN )
@@ -900,7 +900,7 @@ MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr_tls( mps_l3 *l3 )
 MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
 {
     int res;
-    mps_l3_hs_out_internal *hs = &l3->out.hs;
+    mps_l3_hs_out_internal *hs = &l3->io.out.hs;
 
     if( hs->hdr      != NULL &&
         hs->len      != MBEDTLS_MPS_SIZE_UNKNOWN &&
@@ -962,10 +962,10 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
      */
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->out.hs.state == MPS_L3_HS_PAUSED &&
-        ( l3->out.hs.epoch != out->epoch ||
-          l3->out.hs.type  != out->type  ||
-          l3->out.hs.len   != out->len ) )
+    if( l3->io.out.hs.state == MPS_L3_HS_PAUSED &&
+        ( l3->io.out.hs.epoch != out->epoch ||
+          l3->io.out.hs.type  != out->type  ||
+          l3->io.out.hs.len   != out->len ) )
     {
         TRACE( trace_error, "Inconsistent parameters on continuation." );
         RETURN( MPS_ERR_INCONSISTENT_ARGS );
@@ -976,19 +976,19 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
     if( res != 0 )
         RETURN( res );
 
-    if( l3->out.hs.state == MPS_L3_HS_NONE )
+    if( l3->io.out.hs.state == MPS_L3_HS_NONE )
     {
         TRACE( trace_comment, "No handshake message currently paused" );
 
-        l3->out.hs.epoch = out->epoch;
-        l3->out.hs.len   = out->len;
-        l3->out.hs.type  = out->type;
+        l3->io.out.hs.epoch = out->epoch;
+        l3->io.out.hs.len   = out->len;
+        l3->io.out.hs.type  = out->type;
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
         if( MBEDTLS_MPS_IS_DTLS( mode ) )
         {
-            l3->out.hs.seq_nr      = out->seq_nr;
-            l3->out.hs.frag_len    = out->frag_len;
-            l3->out.hs.frag_offset = out->frag_offset;
+            l3->io.out.hs.seq_nr      = out->seq_nr;
+            l3->io.out.hs.frag_len    = out->frag_len;
+            l3->io.out.hs.frag_offset = out->frag_offset;
 
 #if defined(MBEDTLS_MPS_ASSERT)
             /* If the total length isn't specified, then
@@ -1015,29 +1015,29 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             }
 #endif /* MBEDTLS_MPS_ASSERT */
 
-            l3->out.hs.hdr_len = MPS_DTLS_HS_HDR_SIZE;
+            l3->io.out.hs.hdr_len = MPS_DTLS_HS_HDR_SIZE;
         }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 #if defined(MBEDTLS_MPS_PROTO_TLS)
         if( MBEDTLS_MPS_IS_TLS( mode ) )
-            l3->out.hs.hdr_len = MPS_TLS_HS_HDR_SIZE;
+            l3->io.out.hs.hdr_len = MPS_TLS_HS_HDR_SIZE;
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-        res = mbedtls_writer_get( l3->out.raw_out,
-                                  l3->out.hs.hdr_len,
-                                  &l3->out.hs.hdr, NULL );
+        res = mbedtls_writer_get( l3->io.out.raw_out,
+                                  l3->io.out.hs.hdr_len,
+                                  &l3->io.out.hs.hdr, NULL );
 
         /* It might happen that we're at the end of a record
          * and there's not enough space left to write the
          * handshake header. In this case, abort the write
          * and make sure Layer 2 is flushed before we attempt
-         * again. */
+         * agaio.in. */
         if( res == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
         {
             TRACE( trace_comment, "Not enough space to write handshake header - flush." );
             /* Remember that we must flush. */
-            l3->out.clearing = 1;
-            l3->out.state = MBEDTLS_MPS_MSG_NONE;
+            l3->io.out.clearing = 1;
+            l3->io.out.state = MBEDTLS_MPS_MSG_NONE;
             res = mps_l2_write_done( l3->conf.l2 );
             if( res != 0 )
                 RETURN( res );
@@ -1068,14 +1068,14 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 #if defined(MBEDTLS_MPS_PROTO_TLS)
         if( MBEDTLS_MPS_IS_TLS( mode ) )
         {
-            mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
+            mbedtls_writer_init_ext( &l3->io.out.hs.wr_ext,
                                      out->len );
         }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
         if( MBEDTLS_MPS_IS_DTLS( mode ) )
         {
-            mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
+            mbedtls_writer_init_ext( &l3->io.out.hs.wr_ext,
                                      out->frag_len );
         }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
@@ -1093,15 +1093,15 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     TRACE( trace_comment, "Bind raw writer to extended writer" );
-    res = mbedtls_writer_attach( &l3->out.hs.wr_ext, l3->out.raw_out,
+    res = mbedtls_writer_attach( &l3->io.out.hs.wr_ext, l3->io.out.raw_out,
                                  len != MBEDTLS_MPS_SIZE_UNKNOWN
                                  ? MBEDTLS_WRITER_EXT_PASS
                                  : MBEDTLS_WRITER_EXT_HOLD );
     if( res != 0 )
         RETURN( res );
 
-    l3->out.hs.state = MPS_L3_HS_ACTIVE;
-    out->wr_ext = &l3->out.hs.wr_ext;
+    l3->io.out.hs.state = MPS_L3_HS_ACTIVE;
+    out->wr_ext = &l3->io.out.hs.wr_ext;
     RETURN( 0 );
 }
 
@@ -1115,7 +1115,7 @@ int mps_l3_write_app( mps_l3 *l3, mps_l3_app_out *app )
     if( res != 0 )
         RETURN( res );
 
-    app->wr = l3->out.raw_out;
+    app->wr = l3->io.out.raw_out;
     RETURN( 0 );
 }
 
@@ -1130,11 +1130,11 @@ int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert )
     if( res != 0 )
         RETURN( res );
 
-    res = mbedtls_writer_get( l3->out.raw_out, 2, &tmp, NULL );
+    res = mbedtls_writer_get( l3->io.out.raw_out, 2, &tmp, NULL );
     if( res == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
     {
-        l3->out.clearing = 1;
-        l3->out.state = MBEDTLS_MPS_MSG_NONE;
+        l3->io.out.clearing = 1;
+        l3->io.out.state = MBEDTLS_MPS_MSG_NONE;
         res = mps_l2_write_done( l3->conf.l2 );
         if( res != 0 )
             RETURN( res );
@@ -1159,11 +1159,11 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs )
     if( res != 0 )
         RETURN( res );
 
-    res = mbedtls_writer_get( l3->out.raw_out, 1, &tmp, NULL );
+    res = mbedtls_writer_get( l3->io.out.raw_out, 1, &tmp, NULL );
     if( res == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
     {
-        l3->out.clearing = 1;
-        l3->out.state = MBEDTLS_MPS_MSG_NONE;
+        l3->io.out.clearing = 1;
+        l3->io.out.state = MBEDTLS_MPS_MSG_NONE;
         res = mps_l2_write_done( l3->conf.l2 );
         if( res != 0 )
             RETURN( res );
@@ -1190,16 +1190,16 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
      * of outgoing handshake messages is analogous. */
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->out.state    != MBEDTLS_MPS_MSG_HS       ||
-        l3->out.hs.state != MPS_L3_HS_ACTIVE         ||
-        l3->out.hs.len   == MBEDTLS_MPS_SIZE_UNKNOWN )
+    if( l3->io.out.state    != MBEDTLS_MPS_MSG_HS       ||
+        l3->io.out.hs.state != MPS_L3_HS_ACTIVE         ||
+        l3->io.out.hs.len   == MBEDTLS_MPS_SIZE_UNKNOWN )
     {
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Remove reference to raw writer from writer. */
-    res = mbedtls_writer_detach( &l3->out.hs.wr_ext,
+    res = mbedtls_writer_detach( &l3->io.out.hs.wr_ext,
                                  NULL,
                                  &uncommitted );
     if( res != 0 )
@@ -1210,14 +1210,14 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
      * that the user pauses the writing before
      * any data has been committed. In this case,
      * we must make sure to commit the handshake header. */
-    res = mbedtls_writer_commit_partial( l3->out.raw_out,
+    res = mbedtls_writer_commit_partial( l3->io.out.raw_out,
                                          uncommitted );
     if( res != 0 )
         RETURN( res );
 
     /* Remove reference to the raw writer borrowed from Layer 2
      * before calling mps_l2_write_done(), which invalidates it. */
-    l3->out.raw_out = NULL;
+    l3->io.out.raw_out = NULL;
 
     /* Signal to Layer 2 that we've finished acquiring and
      * writing to the outgoing data buffers. */
@@ -1226,8 +1226,8 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
         RETURN( res );
 
     /* Switch to paused state. */
-    l3->out.hs.state = MPS_L3_HS_PAUSED;
-    l3->out.state    = MBEDTLS_MPS_MSG_NONE;
+    l3->io.out.hs.state = MPS_L3_HS_PAUSED;
+    l3->io.out.state    = MBEDTLS_MPS_MSG_NONE;
     RETURN( 0 );
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
@@ -1239,22 +1239,22 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
     size_t committed;
      TRACE_INIT( "mps_l3_write_abort_handshake" );
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->out.state  != MBEDTLS_MPS_MSG_HS ||
-        l3->out.hs.state != MPS_L3_HS_ACTIVE )
+    if( l3->io.out.state  != MBEDTLS_MPS_MSG_HS ||
+        l3->io.out.hs.state != MPS_L3_HS_ACTIVE )
     {
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Remove reference to raw writer from writer. */
-    res = mbedtls_writer_detach( &l3->out.hs.wr_ext,
+    res = mbedtls_writer_detach( &l3->io.out.hs.wr_ext,
                                  &committed,
                                  NULL );
     if( res != 0 )
         RETURN( res );
 
     /* Reset extended writer. */
-    mbedtls_writer_free_ext( &l3->out.hs.wr_ext );
+    mbedtls_writer_free_ext( &l3->io.out.hs.wr_ext );
 
     if( committed > 0 )
     {
@@ -1264,7 +1264,7 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
 
     /* Remove reference to the raw writer borrowed from Layer 2
      * before calling mps_l2_write_done(), which invalidates it. */
-    l3->out.raw_out = NULL;
+    l3->io.out.raw_out = NULL;
 
     /* Signal to Layer 2 that we've finished acquiring and
      * writing to the outgoing data buffers. */
@@ -1272,8 +1272,8 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
     if( res != 0 )
         RETURN( res );
 
-    l3->out.hs.state = MPS_L3_HS_NONE;
-    l3->out.state    = MBEDTLS_MPS_MSG_NONE;
+    l3->io.out.hs.state = MPS_L3_HS_NONE;
+    l3->io.out.state    = MBEDTLS_MPS_MSG_NONE;
     RETURN( 0 );
 }
 
@@ -1288,7 +1288,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
 
     TRACE_INIT( "mps_l3_dispatch" );
 
-    switch( l3->out.state )
+    switch( l3->io.out.state )
     {
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
         case MBEDTLS_MPS_MSG_NONE:
@@ -1299,34 +1299,34 @@ int mps_l3_dispatch( mps_l3 *l3 )
             TRACE( trace_comment, "Dispatch handshake message" );
 
 #if defined(MBEDTLS_MPS_ASSERT)
-            if( l3->out.hs.state != MPS_L3_HS_ACTIVE )
+            if( l3->io.out.hs.state != MPS_L3_HS_ACTIVE )
             {
                 TRACE( trace_error, "ASSERTION FAILURE!" );
                 RETURN( MPS_ERR_INTERNAL_ERROR );
             }
 #endif /* MBEDTLS_MPS_ASSERT */
 
-            res = mbedtls_writer_check_done( &l3->out.hs.wr_ext );
+            res = mbedtls_writer_check_done( &l3->io.out.hs.wr_ext );
             if( res != 0 )
             {
                 TRACE( trace_error, "Attempting to close not yet fully written handshake message." );
                 RETURN( MPS_ERR_UNFINISHED_HS_MSG );
             }
 
-            res = mbedtls_writer_detach( &l3->out.hs.wr_ext,
+            res = mbedtls_writer_detach( &l3->io.out.hs.wr_ext,
                                          &committed,
                                          &uncommitted );
             if( res != 0 )
                 RETURN( res );
 
             /* Reset extended writer. */
-            mbedtls_writer_free_ext( &l3->out.hs.wr_ext );
+            mbedtls_writer_free_ext( &l3->io.out.hs.wr_ext );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
             if( MBEDTLS_MPS_IS_TLS( mode ) )
             {
-                if( l3->out.hs.len == MBEDTLS_MPS_SIZE_UNKNOWN )
-                    l3->out.hs.len = committed;
+                if( l3->io.out.hs.len == MBEDTLS_MPS_SIZE_UNKNOWN )
+                    l3->io.out.hs.len = committed;
             }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
@@ -1336,10 +1336,10 @@ int mps_l3_dispatch( mps_l3 *l3 )
                  * that if the total length of the handshake message
                  * is unknown, then the fragment length is unknown, too,
                  * and the fragment offset is 0. */
-                if( l3->out.hs.len == MBEDTLS_MPS_SIZE_UNKNOWN )
-                    l3->out.hs.len = committed;
-                if( l3->out.hs.frag_len == MBEDTLS_MPS_SIZE_UNKNOWN )
-                    l3->out.hs.frag_len = committed;
+                if( l3->io.out.hs.len == MBEDTLS_MPS_SIZE_UNKNOWN )
+                    l3->io.out.hs.len = committed;
+                if( l3->io.out.hs.frag_len == MBEDTLS_MPS_SIZE_UNKNOWN )
+                    l3->io.out.hs.frag_len = committed;
             }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -1351,17 +1351,17 @@ int mps_l3_dispatch( mps_l3 *l3 )
             if( res != 0 )
                 RETURN( res );
 
-            res = mbedtls_writer_commit_partial( l3->out.raw_out,
+            res = mbedtls_writer_commit_partial( l3->io.out.raw_out,
                                                  uncommitted );
             if( res != 0 )
                 RETURN( res );
 
-            l3->out.hs.state = MPS_L3_HS_NONE;
+            l3->io.out.hs.state = MPS_L3_HS_NONE;
             break;
 
         case MBEDTLS_MPS_MSG_ALERT:
             TRACE( trace_comment, "Dispatch alert message" );
-            res = mbedtls_writer_commit( l3->out.raw_out );
+            res = mbedtls_writer_commit( l3->io.out.raw_out );
             if( res != 0 )
                 RETURN( res );
 
@@ -1369,7 +1369,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
 
         case MBEDTLS_MPS_MSG_CCS:
             TRACE( trace_comment, "Dispatch CCS message" );
-            res = mbedtls_writer_commit( l3->out.raw_out );
+            res = mbedtls_writer_commit( l3->io.out.raw_out );
             if( res != 0 )
                 RETURN( res );
 
@@ -1390,14 +1390,14 @@ int mps_l3_dispatch( mps_l3 *l3 )
 
     /* Remove reference to the raw writer borrowed from Layer 2
      * before calling mps_l2_write_done(), which invalidates it. */
-    l3->out.raw_out = NULL;
+    l3->io.out.raw_out = NULL;
 
     res = mps_l2_write_done( l3->conf.l2 );
     if( res != 0 )
         RETURN( res );
 
     TRACE( trace_comment, "Done" );
-    l3->out.state = MBEDTLS_MPS_MSG_NONE;
+    l3->io.out.state = MBEDTLS_MPS_MSG_NONE;
     RETURN( 0 );
 }
 
@@ -1536,14 +1536,14 @@ MBEDTLS_MPS_STATIC int l3_check_clear( mps_l3 *l3 )
 {
     int res;
     TRACE_INIT( "l3_check_clear" );
-    if( l3->out.clearing == 0 )
+    if( l3->io.out.clearing == 0 )
         RETURN( 0 );
 
     res = mps_l2_write_flush( l3->conf.l2 );
     if( res != 0 )
         RETURN( res );
 
-    l3->out.clearing = 0;
+    l3->io.out.clearing = 0;
     RETURN( 0 );
 }
 
@@ -1562,7 +1562,7 @@ MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port
     TRACE( trace_comment, "* Epoch: %u", (unsigned) epoch );
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( l3->out.state != MBEDTLS_MPS_MSG_NONE )
+    if( l3->io.out.state != MBEDTLS_MPS_MSG_NONE )
     {
         TRACE( trace_error, "Unexpected state" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
@@ -1570,7 +1570,7 @@ MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
 #if !defined(MPS_L3_ALLOW_INTERLEAVED_SENDING)
-    if( l3->out.hs.state == MPS_L3_HS_PAUSED && port != MBEDTLS_MPS_MSG_HS )
+    if( l3->io.out.hs.state == MPS_L3_HS_PAUSED && port != MBEDTLS_MPS_MSG_HS )
     {
         TRACE( trace_error, "Interleaving of outgoing messages is disabled." );
         RETURN( MPS_ERR_NO_INTERLEAVING );
@@ -1587,8 +1587,8 @@ MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port
     if( res != 0 )
         RETURN( res );
 
-    l3->out.raw_out = out.wr;
-    l3->out.state   = port;
+    l3->io.out.raw_out = out.wr;
+    l3->io.out.state   = port;
     RETURN( 0 );
 }
 

@@ -49,6 +49,7 @@ typedef struct mbedtls_mps_msg_metadata mbedtls_mps_msg_metadata;
 typedef struct mbedtls_mps_handshake_out_internal mbedtls_mps_handshake_out_internal;
 typedef struct mbedtls_mps_retransmission_handle mbedtls_mps_retransmission_handle;
 typedef struct mbedtls_mps_recognition_info mbedtls_mps_recognition_info;
+typedef struct mbedtls_mps_retransmission_detection mbedtls_mps_retransmission_detection;
 typedef struct mbedtls_mps_config mbedtls_mps_config;
 typedef struct mbedtls_mps mbedtls_mps;
 typedef struct mbedtls_mps_reassembly mbedtls_mps_reassembly;
@@ -965,7 +966,7 @@ struct mbedtls_mps
          *  This way, there will never be more than one retransmission
          *  triggered per peer-retransmitted incoming flight.
          */
-        struct
+        struct mbedtls_mps_retransmission_detection
         {
             /*! The number of handshake messages in the current or last
              *  incoming flight that we use for flight retransmission

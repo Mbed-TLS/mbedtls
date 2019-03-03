@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.7.x branch released xxxx-xx-xx
 
+Features
+   * Add MBEDTLS_REMOVE_3DES_CIPHERSUITES to allow removing 3DES ciphersuites
+     from the default list (enabled by default). See
+     https://sweet32.info/SWEET32_CCS16.pdf.
+
 Bugfix
    * Run the AD too long test only if MBEDTLS_CCM_ALT is not defined.
      Raised as a comment in #1996.
@@ -29,6 +34,8 @@ Changes
      by Aurelien Jarno and submitted by Jeffrey Martin.
    * Reduce the complexity of the timing tests. They were assuming more than the
      underlying OS actually guarantees.
+   * Ciphersuites based on 3DES now have the lowest priority by default when
+     they are enabled.
 
 = mbed TLS 2.7.9 branch released 2018-12-21
 

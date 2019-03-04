@@ -95,9 +95,6 @@ typedef struct mbedtls_x509_crt_frame
     mbedtls_x509_buf_raw subject_alt_raw;   /**< The raw data for the SubjectAlternativeNames extension.        */
     mbedtls_x509_buf_raw ext_key_usage_raw; /**< The raw data for the ExtendedKeyUsage extension.               */
 
-    mbedtls_x509_buf_raw issuer_raw_with_hdr;
-    mbedtls_x509_buf_raw subject_raw_with_hdr;
-
 } mbedtls_x509_crt_frame;
 
 /* This is an internal structure used for caching parsed data from an X.509 CRT.
@@ -138,9 +135,6 @@ typedef struct mbedtls_x509_crt
 
     mbedtls_x509_buf issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison. */
     mbedtls_x509_buf subject_raw;       /**< The raw subject data (DER). Used for quick comparison. */
-
-    mbedtls_x509_buf_raw subject_raw_no_hdr;
-    mbedtls_x509_buf_raw issuer_raw_no_hdr;
 
     mbedtls_x509_name issuer;           /**< The parsed issuer data (named information object). */
     mbedtls_x509_name subject;          /**< The parsed subject data (named information object). */

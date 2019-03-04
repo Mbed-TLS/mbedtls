@@ -2885,7 +2885,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
             if( ret != 0 )
                 return( ret );
 
-            dn_size = frame->subject_raw_with_hdr.len;
+            dn_size = frame->subject_raw.len;
 
             if( end < p ||
                 (size_t)( end - p ) < dn_size ||
@@ -2898,7 +2898,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
             *p++ = (unsigned char)( dn_size >> 8 );
             *p++ = (unsigned char)( dn_size      );
-            memcpy( p, frame->subject_raw_with_hdr.p, dn_size );
+            memcpy( p, frame->subject_raw.p, dn_size );
             p += dn_size;
 
             MBEDTLS_SSL_DEBUG_BUF( 3, "requested DN", p - dn_size, dn_size );

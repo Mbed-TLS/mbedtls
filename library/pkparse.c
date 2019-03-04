@@ -1053,6 +1053,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
 #if defined(MBEDTLS_PKCS12_C)
     mbedtls_cipher_type_t cipher_alg;
     mbedtls_md_type_t md_alg;
+    size_t olen;
 #endif
 
     p = key;
@@ -1098,9 +1099,10 @@ static int pk_parse_key_pkcs8_encrypted_der(
 #if defined(MBEDTLS_PKCS12_C)
     if( mbedtls_oid_get_pkcs12_pbe_alg( &pbe_alg_oid, &md_alg, &cipher_alg ) == 0 )
     {
-        if( ( ret = mbedtls_pkcs12_pbe( &pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
-                                cipher_alg, md_alg,
-                                pwd, pwdlen, p, len, buf ) ) != 0 )
+        ret = mbedtls_pkcs12_pbe_ext( &pbe_params, MBEDTLS_PKCS12_PBE_DECRYPT,
+                                      cipher_alg, md_alg,
+                                      pwd, pwdlen, p, len, buf, &olen );
+        if( ret != 0 )
         {
             if( ret == MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH )
                 return( MBEDTLS_ERR_PK_PASSWORD_MISMATCH );

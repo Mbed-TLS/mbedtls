@@ -94,7 +94,7 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
     mbedtls_x509write_csr_set_key( &req, &key );
     TEST_ASSERT( mbedtls_x509write_csr_set_subject_name( &req, subject_name ) == 0 );
     if( set_key_usage != 0 )
-        TEST_ASSERT( mbedtls_x509write_csr_set_key_usage( &req, key_usage ) == 0 );
+        TEST_ASSERT( mbedtls_x509write_csr_set_key_usage_ext( &req, key_usage ) == 0 );
     if( set_cert_type != 0 )
         TEST_ASSERT( mbedtls_x509write_csr_set_ns_cert_type( &req, cert_type ) == 0 );
 
@@ -158,7 +158,7 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
     mbedtls_x509write_csr_set_key( &req, &key );
     TEST_ASSERT( mbedtls_x509write_csr_set_subject_name( &req, subject_name ) == 0 );
     if( key_usage != 0 )
-        TEST_ASSERT( mbedtls_x509write_csr_set_key_usage( &req, key_usage ) == 0 );
+        TEST_ASSERT( mbedtls_x509write_csr_set_key_usage_ext( &req, key_usage ) == 0 );
     if( cert_type != 0 )
         TEST_ASSERT( mbedtls_x509write_csr_set_ns_cert_type( &req, cert_type ) == 0 );
 

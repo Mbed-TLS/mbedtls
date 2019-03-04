@@ -509,6 +509,15 @@ detect_dtls() {
     fi
 }
 
+filter()
+{
+    if [ "X" != "X$EXCLUDE" ]; then
+        echo "$1" | grep "$FILTER" | grep -v "$EXCLUDE"
+    else
+        echo "$1" | grep "$FILTER"
+    fi
+}
+
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -522,7 +531,7 @@ run_test() {
     NAME="$1"
     shift 1
 
-    if echo "$NAME" | grep "$FILTER" | grep -v "$EXCLUDE" >/dev/null; then :
+    if filter "$NAME" >/dev/null; then :
     else
         SKIP_NEXT="NO"
         return

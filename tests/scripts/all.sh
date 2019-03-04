@@ -922,6 +922,8 @@ component_test_asan_on_demand_parsing_remove_peer_cert () {
     msg "build: default config, no peer CRT, on-demand CRT parsing (ASan build)"
     scripts/config.pl unset MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
     scripts/config.pl set MBEDTLS_X509_ON_DEMAND_PARSING
+    scripts/config.pl set MBEDTLS_THREADING_C
+    scripts/config.pl set MBEDTLS_THREADING_PTHREAD
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 

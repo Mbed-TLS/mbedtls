@@ -432,18 +432,26 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data(
         memcpy( cur->oid.p, oid, oid_len );
 
         cur->val.len = val_len;
-        cur->val.p = mbedtls_calloc( 1, val_len );
-        if( cur->val.p == NULL )
+        if( val_len != 0 )
         {
-            mbedtls_free( cur->oid.p );
-            mbedtls_free( cur );
-            return( NULL );
+            cur->val.p = mbedtls_calloc( 1, val_len );
+            if( cur->val.p == NULL )
+            {
+                mbedtls_free( cur->oid.p );
+                mbedtls_free( cur );
+                return( NULL );
+            }
         }
 
         cur->next = *head;
         *head = cur;
     }
-    else if( cur->val.len < val_len )
+    else if( val_len == 0 )
+    {
+        mbedtls_free( cur->val.p );
+        cur->val.p = NULL;
+    }
+    else if( cur->val.len != val_len )
     {
         /*
          * Enlarge existing value buffer if needed

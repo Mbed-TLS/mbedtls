@@ -334,9 +334,13 @@ int mbedtls_asn1_write_octet_string( unsigned char **p, unsigned char *start,
  *                  through (will be updated in case of a new entry).
  * \param oid       The OID to look for.
  * \param oid_len   The size of the OID.
- * \param val       The data to store (can be \c NULL if you want to fill
- *                  it by hand).
+ * \param val       The associated data to store. If this is \c NULL,
+ *                  no data is copied to the new or existing buffer.
  * \param val_len   The minimum length of the data buffer needed.
+ *                  If this is 0, do not allocate a buffer for the associated
+ *                  data.
+ *                  If the OID was already present, enlarge, shrink or free
+ *                  the existing buffer to fit \p val_len.
  *
  * \return          A pointer to the new / existing entry on success.
  * \return          \c NULL if if there was a memory allocation error.

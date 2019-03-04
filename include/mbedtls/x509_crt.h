@@ -155,7 +155,6 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
     mbedtls_x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only dNSName supported). */
-    mbedtls_x509_buf_raw subject_alt_raw; /**< Raw data for SubjectAlternativeNames extension. */
 
     int ext_types;              /**< Bit string containing detected and parsed extensions */
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
@@ -164,7 +163,6 @@ typedef struct mbedtls_x509_crt
     unsigned int key_usage;     /**< Optional key usage extension value: See the values in x509.h */
 
     mbedtls_x509_sequence ext_key_usage;    /**< Optional list of extended key usage OIDs. */
-    mbedtls_x509_buf_raw ext_key_usage_raw; /**< Raw data of ExtendedKeyUsage extensions.  */
 
     unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
 

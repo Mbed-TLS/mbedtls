@@ -130,7 +130,7 @@ int get_len_step( const data_t *input, size_t buffer_size,
     }
     else
     {
-        ASSERT_ALLOC( buf, buffer_size );
+        ASSERT_ALLOC_WEAK( buf, buffer_size );
         if( buffer_size > input->len )
         {
             memcpy( buf, input->x, input->len );
@@ -159,12 +159,6 @@ int get_len_step( const data_t *input, size_t buffer_size,
     return( 1 );
 
 exit:
-    /* It may be impossible to allocate large lengths on embedded platforms.
-     * Pass in this case (though it would be better to mark the test
-     * as skipped). */
-    if( buf == NULL )
-        return( 1 );
-
     mbedtls_free( buf );
     return( 0 );
 }

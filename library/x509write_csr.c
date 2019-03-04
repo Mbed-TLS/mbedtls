@@ -86,25 +86,47 @@ int mbedtls_x509write_csr_set_extension( mbedtls_x509write_csr *ctx,
                                0, val, val_len );
 }
 
-int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage )
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx,
+                                         unsigned char key_usage )
 {
-    unsigned char buf[4];
+   return( mbedtls_x509write_csr_set_key_usage_ext( ctx,
+                                                    (unsigned int)key_usage) );
+}
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
+int mbedtls_x509write_csr_set_key_usage_ext( mbedtls_x509write_csr *ctx,
+                                             unsigned int key_usage )
+{
+    unsigned char buf[5], ku[2];
     unsigned char *c;
     int ret;
+    const unsigned int allowed_bits = MBEDTLS_X509_KU_DIGITAL_SIGNATURE |
+        MBEDTLS_X509_KU_NON_REPUDIATION   |
+        MBEDTLS_X509_KU_KEY_ENCIPHERMENT  |
+        MBEDTLS_X509_KU_DATA_ENCIPHERMENT |
+        MBEDTLS_X509_KU_KEY_AGREEMENT     |
+        MBEDTLS_X509_KU_KEY_CERT_SIGN     |
+        MBEDTLS_X509_KU_CRL_SIGN          |
+        MBEDTLS_X509_KU_ENCIPHER_ONLY     |
+        MBEDTLS_X509_KU_DECIPHER_ONLY;
 
-    c = buf + 4;
+    /* Check that nothing other than the allowed flags is set */
+    if( ( key_usage & ~allowed_bits ) != 0 )
+        return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
 
-    ret = mbedtls_asn1_write_named_bitstring( &c, buf, &key_usage, 8 );
-    if( ret < 3 || ret > 4 )
+    c = buf + 5;
+    ku[0] = (unsigned char)( key_usage      );
+    ku[1] = (unsigned char)( key_usage >> 8 );
+    ret = mbedtls_asn1_write_named_bitstring( &c, buf, ku, 9 );
+
+    if( ret < 3 || ret > 5 )
         return( ret );
 
     ret = mbedtls_x509write_csr_set_extension( ctx, MBEDTLS_OID_KEY_USAGE,
-                                       MBEDTLS_OID_SIZE( MBEDTLS_OID_KEY_USAGE ),
-                                       c, (size_t)ret );
-    if( ret != 0 )
-        return( ret );
-
-    return( 0 );
+                                    MBEDTLS_OID_SIZE( MBEDTLS_OID_KEY_USAGE ),
+                                    c, (size_t)ret );
+    return( ret );
 }
 
 int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,

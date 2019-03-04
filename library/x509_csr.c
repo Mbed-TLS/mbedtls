@@ -183,14 +183,16 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
         mbedtls_x509_csr_free( csr );
         return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
+    p += len;
+    csr->subject_raw.len = p - csr->subject_raw.p;
 
-    if( ( ret = mbedtls_x509_get_name( &p, p + len, &csr->subject ) ) != 0 )
+    if( ( ret = mbedtls_x509_get_name( csr->subject_raw.p,
+                                       csr->subject_raw.len,
+                                       &csr->subject ) ) != 0 )
     {
         mbedtls_x509_csr_free( csr );
         return( ret );
     }
-
-    csr->subject_raw.len = p - csr->subject_raw.p;
 
     /*
      *  subjectPKInfo SubjectPublicKeyInfo

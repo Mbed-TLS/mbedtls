@@ -171,6 +171,7 @@ exit:
 #endif /* MBEDTLS_ARC4_C */
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_pkcs12_pbe( mbedtls_asn1_buf *pbe_params, int mode,
                 mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
                 const unsigned char *pwd,  size_t pwdlen,
@@ -178,15 +179,22 @@ int mbedtls_pkcs12_pbe( mbedtls_asn1_buf *pbe_params, int mode,
                 unsigned char *output )
 {
     size_t olen = 0;
-    return mbedtls_pkcs12_pbe_ext(pbe_params, mode, cipher_type, md_type,
-            pwd, pwdlen, data, len, output, &olen);
-}
 
-int mbedtls_pkcs12_pbe_ext( mbedtls_asn1_buf *pbe_params, int mode,
-                mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
-                const unsigned char *pwd,  size_t pwdlen,
-                const unsigned char *data, size_t len,
-                unsigned char *output, size_t *olen )
+    return mbedtls_pkcs12_pbe_ext( pbe_params, mode, cipher_type, md_type,
+                                   pwd, pwdlen, data, len, output, &olen );
+}
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
+int mbedtls_pkcs12_pbe_ext( mbedtls_asn1_buf *pbe_params,
+                            int mode,
+                            mbedtls_cipher_type_t cipher_type,
+                            mbedtls_md_type_t md_type,
+                            const unsigned char *pwd,
+                            size_t pwdlen,
+                            const unsigned char *data,
+                            size_t len,
+                            unsigned char *output,
+                            size_t *olen )
 {
     int ret, keylen = 0;
     unsigned char key[32];

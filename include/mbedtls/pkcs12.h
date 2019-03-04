@@ -73,52 +73,70 @@ int mbedtls_pkcs12_pbe_sha1_rc4_128( mbedtls_asn1_buf *pbe_params, int mode,
                              const unsigned char *input, size_t len,
                              unsigned char *output );
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
 /**
- * \brief            PKCS12 Password Based function (encryption / decryption)
- *                   for cipher-based and mbedtls_md-based PBE's
+ * \brief            This function performs Password Based PKCS#12 (encryption
+ *                   / decryption) for cipher-based and message digest-based
+ *                   PBEs.
  *
- * \param pbe_params an ASN1 buffer containing the pkcs-12PbeParams structure
- * \param mode       either MBEDTLS_PKCS12_PBE_ENCRYPT or MBEDTLS_PKCS12_PBE_DECRYPT
- * \param cipher_type the cipher used
- * \param md_type     the mbedtls_md used
- * \param pwd        the password used (may be NULL if no password is used)
- * \param pwdlen     length of the password (may be 0)
- * \param input      the input data
- * \param len        data length
- * \param output     the output buffer
+ * \param pbe_params  The ASN.1 algorithm params.
+ * \param mode        The operation mode (either #MBEDTLS_PKCS12_PBE_ENCRYPT or
+ *                    #MBEDTLS_PKCS12_PBE_DECRYPT).
+ * \param cipher_type The cipher used.
+ * \param md_type     The message digest used.
+ * \param pwd         The password to use (may be NULL if no password is used).
+ * \param pwdlen      The length of the password at \p pwd (may be 0).
+ * \param input       The buffer with the input data to process.
+ * \param len         The length of the input data buffer at \c input.
+ * \param output      The buffer to hold the output data.
  *
- * \return           0 if successful, or a MBEDTLS_ERR_XXX code
+ * \return           \c 0 on successful.
+ * \return           A negative error code on failure.
  */
-int mbedtls_pkcs12_pbe( mbedtls_asn1_buf *pbe_params, int mode,
-                mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
-                const unsigned char *pwd,  size_t pwdlen,
-                const unsigned char *input, size_t len,
-                unsigned char *output );
+MBEDTLS_DEPRECATED int mbedtls_pkcs12_pbe( mbedtls_asn1_buf *pbe_params,
+                                           int mode,
+                                           mbedtls_cipher_type_t cipher_type,
+                                           mbedtls_md_type_t md_type,
+                                           const unsigned char *pwd,
+                                           size_t pwdlen,
+                                           const unsigned char *input,
+                                           size_t len,
+                                           unsigned char *output );
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
 /**
- * \brief            PKCS12 Password Based function (encryption / decryption)
- *                   for cipher-based and mbedtls_md-based PBE's
+ * \brief            This function performs Password Based PKCS#12 (encryption
+ *                   / decryption) for cipher-based and message digest-based
+ *                   PBEs.
  *
- *                   Added output parameter that return actual number of bytes
- *                   written to the output buffer
+ * \param pbe_params  The ASN.1 algorithm params.
+ * \param mode        The operation mode (either #MBEDTLS_PKCS12_PBE_ENCRYPT or
+ *                    #MBEDTLS_PKCS12_PBE_DECRYPT).
+ * \param cipher_type The cipher used.
+ * \param md_type     The message digest used.
+ * \param pwd         The password to use (may be NULL if no password is used).
+ * \param pwdlen      The length of the password at \p pwd (may be 0).
+ * \param input       The buffer with the input data to process.
+ * \param len         The length of the input data buffer at \c input.
+ * \param output      The buffer to hold the output data.
+ * \param olen        The number of bytes written to the output buffer
+ *                    \p output.
  *
- * \param pbe_params an ASN1 buffer containing the pkcs-12PbeParams structure
- * \param mode       either MBEDTLS_PKCS12_PBE_ENCRYPT or MBEDTLS_PKCS12_PBE_DECRYPT
- * \param cipher_type the cipher used
- * \param md_type     the mbedtls_md used
- * \param pwd        the password used (may be NULL if no password is used)
- * \param pwdlen     length of the password (may be 0)
- * \param input      the input data
- * \param len        data length
- * \param output     the output buffer
- * \param olen       actual number of bytes written to output
- *
- * \return           0 if successful, or a MBEDTLS_ERR_XXX code
+ * \return           \c 0 on successful.
+ * \return           A negative error code on failure.
  */
 int mbedtls_pkcs12_pbe_ext( mbedtls_asn1_buf *pbe_params, int mode,
-                mbedtls_cipher_type_t cipher_type, mbedtls_md_type_t md_type,
-                const unsigned char *pwd,  size_t pwdlen,
-                const unsigned char *input, size_t len,
-                unsigned char *output, size_t *olen );
+                            mbedtls_cipher_type_t cipher_type,
+                            mbedtls_md_type_t md_type,
+                            const unsigned char *pwd,  size_t pwdlen,
+                            const unsigned char *input, size_t len,
+                            unsigned char *output, size_t *olen );
 
 #endif /* MBEDTLS_ASN1_PARSE_C */
 

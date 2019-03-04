@@ -134,8 +134,10 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
     frame->serial.len = crt->serial.len;
     frame->pubkey_raw.p   = crt->pk_raw.p;
     frame->pubkey_raw.len = crt->pk_raw.len;
-    frame->issuer_raw = crt->issuer_raw_no_hdr;
-    frame->subject_raw = crt->subject_raw_no_hdr;
+    frame->issuer_raw.p = crt->issuer_raw.p;
+    frame->issuer_raw.len = crt->issuer_raw.len;
+    frame->subject_raw.p = crt->subject_raw.p;
+    frame->subject_raw.len = crt->subject_raw.len;
     frame->issuer_id.p   = crt->issuer_id.p;
     frame->issuer_id.len = crt->issuer_id.len;
     frame->subject_id.p   = crt->subject_id.p;
@@ -144,10 +146,6 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
     frame->sig.len = crt->sig.len;
     frame->v3_ext.p   = crt->v3_ext.p;
     frame->v3_ext.len = crt->v3_ext.len;
-    frame->issuer_raw_with_hdr.p   = crt->issuer_raw.p;
-    frame->issuer_raw_with_hdr.len = crt->issuer_raw.len;
-    frame->subject_raw_with_hdr.p   = crt->subject_raw.p;
-    frame->subject_raw_with_hdr.len = crt->subject_raw.len;
 
     /* The legacy CRT structure doesn't explicitly contain
      * the `AlgorithmIdentifier` bounds; however, those can
@@ -1354,15 +1352,14 @@ static int x509_crt_parse_frame( unsigned char *start,
      *
      * RDNSequence ::= SEQUENCE OF RelativeDistinguishedName
      */
-    frame->issuer_raw_with_hdr.p = p;
+    frame->issuer_raw.p = p;
 
     ret = mbedtls_asn1_get_tag( &p, end, &len,
                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE );
     if( ret != 0 )
         return( ret + MBEDTLS_ERR_X509_INVALID_FORMAT );
-    frame->issuer_raw.p   = p;
-    frame->issuer_raw.len = len;
     p += len;
+    frame->issuer_raw.len = p - frame->issuer_raw.p;
 
     /* Comparing the raw buffer to itself amounts to structural validation. */
     ret = mbedtls_x509_name_cmp_raw( &frame->issuer_raw,
@@ -1370,8 +1367,6 @@ static int x509_crt_parse_frame( unsigned char *start,
                                      NULL, NULL );
     if( ret != 0 )
         return( ret );
-
-    frame->issuer_raw_with_hdr.len = p - frame->issuer_raw_with_hdr.p;
 
     /*
      * Validity ::= SEQUENCE { ...
@@ -1388,15 +1383,14 @@ static int x509_crt_parse_frame( unsigned char *start,
      *
      * RDNSequence ::= SEQUENCE OF RelativeDistinguishedName
      */
-    frame->subject_raw_with_hdr.p = p;
+    frame->subject_raw.p = p;
 
     ret = mbedtls_asn1_get_tag( &p, end, &len,
                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE );
     if( ret != 0 )
         return( ret + MBEDTLS_ERR_X509_INVALID_FORMAT );
-    frame->subject_raw.p   = p;
-    frame->subject_raw.len = len;
     p += len;
+    frame->subject_raw.len = p - frame->subject_raw.p;
 
     /* Comparing the raw buffer to itself amounts to structural validation. */
     ret = mbedtls_x509_name_cmp_raw( &frame->subject_raw,
@@ -1404,8 +1398,6 @@ static int x509_crt_parse_frame( unsigned char *start,
                                      NULL, NULL );
     if( ret != 0 )
         return( ret );
-
-    frame->subject_raw_with_hdr.len = p - frame->subject_raw_with_hdr.p;
 
     /*
      * SubjectPublicKeyInfo
@@ -1488,19 +1480,17 @@ static int x509_crt_parse_frame( unsigned char *start,
 static int x509_crt_subject_from_frame( mbedtls_x509_crt_frame *frame,
                                         mbedtls_x509_name *subject )
 {
-    unsigned char *p = frame->subject_raw.p;
-    unsigned char *end = p + frame->subject_raw.len;
-
-    return( mbedtls_x509_get_name( &p, end, subject ) );
+    return( mbedtls_x509_get_name( frame->subject_raw.p,
+                                   frame->subject_raw.len,
+                                   subject ) );
 }
 
 static int x509_crt_issuer_from_frame( mbedtls_x509_crt_frame *frame,
                                        mbedtls_x509_name *issuer )
 {
-    unsigned char *p = frame->issuer_raw.p;
-    unsigned char *end = p + frame->issuer_raw.len;
-
-    return( mbedtls_x509_get_name( &p, end, issuer ) );
+    return( mbedtls_x509_get_name( frame->issuer_raw.p,
+                                   frame->issuer_raw.len,
+                                   issuer ) );
 }
 
 static int x509_crt_certificate_policies_from_frame(
@@ -1673,12 +1663,10 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     crt->tbs.len = frame->tbs.len;
     crt->serial.p   = frame->serial.p;
     crt->serial.len = frame->serial.len;
-    crt->issuer_raw.p   = frame->issuer_raw_with_hdr.p;
-    crt->issuer_raw.len = frame->issuer_raw_with_hdr.len;
-    crt->subject_raw.p   = frame->subject_raw_with_hdr.p;
-    crt->subject_raw.len = frame->subject_raw_with_hdr.len;
-    crt->issuer_raw_no_hdr = frame->issuer_raw;
-    crt->subject_raw_no_hdr = frame->subject_raw;
+    crt->issuer_raw.p   = frame->issuer_raw.p;
+    crt->issuer_raw.len = frame->issuer_raw.len;
+    crt->subject_raw.p   = frame->subject_raw.p;
+    crt->subject_raw.len = frame->subject_raw.len;
     crt->issuer_id.p   = frame->issuer_id.p;
     crt->issuer_id.len = frame->issuer_id.len;
     crt->subject_id.p   = frame->subject_id.p;
@@ -3087,7 +3075,7 @@ static int x509_crt_verifycrl( unsigned char *crt_serial,
     while( crl_list != NULL )
     {
         if( crl_list->version == 0 ||
-            mbedtls_x509_name_cmp_raw( &crl_list->issuer_raw_no_hdr,
+            mbedtls_x509_name_cmp_raw( &crl_list->issuer_raw,
                                        &ca_subject, NULL, NULL ) != 0 )
         {
             crl_list = crl_list->next;

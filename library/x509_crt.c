@@ -90,6 +90,7 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame *frame,
 static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame *frame,
                                         mbedtls_x509_sequence *ext_key_usage );
 
+static int x509_crt_frame_parse_ext( mbedtls_x509_crt_frame *frame );
 int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
 {
     mbedtls_x509_crt_cache *cache = crt->cache;
@@ -100,9 +101,57 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
     cache->frame = frame;
 
+#if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+    /* This would work with !MBEDTLS_X509_ON_DEMAND_PARSING, too,
+     * but is inefficient compared to copying the respective fields
+     * from the legacy mbedtls_x509_crt. */
     return( x509_crt_parse_frame( crt->raw.p,
                                   crt->raw.p + crt->raw.len,
                                   frame ) );
+#else /* MBEDTLS_X509_ON_DEMAND_PARSING */
+    /* Make sure all extension related fields are properly initialized. */
+    frame->ca_istrue = 0;
+    frame->max_pathlen = 0;
+    frame->ext_types = 0;
+    frame->version = crt->version;
+    frame->sig_md = crt->sig_md;
+    frame->sig_pk = crt->sig_pk;
+    frame->valid_from = crt->valid_from;
+    frame->valid_to = crt->valid_to;
+    frame->raw.p   = crt->raw.p;
+    frame->raw.len = crt->raw.len;
+    frame->tbs.p   = crt->tbs.p;
+    frame->tbs.len = crt->tbs.len;
+    frame->serial.p   = crt->serial.p;
+    frame->serial.len = crt->serial.len;
+    frame->pubkey_raw.p   = crt->pk_raw.p;
+    frame->pubkey_raw.len = crt->pk_raw.len;
+    frame->issuer_raw = crt->issuer_raw_no_hdr;
+    frame->subject_raw = crt->subject_raw_no_hdr;
+    frame->issuer_id.p   = crt->issuer_id.p;
+    frame->issuer_id.len = crt->issuer_id.len;
+    frame->subject_id.p   = crt->subject_id.p;
+    frame->subject_id.len = crt->subject_id.len;
+    frame->sig.p   = crt->sig.p;
+    frame->sig.len = crt->sig.len;
+    frame->v3_ext.p   = crt->v3_ext.p;
+    frame->v3_ext.len = crt->v3_ext.len;
+    frame->subject_alt_raw = crt->subject_alt_raw;
+    frame->ext_key_usage_raw = crt->ext_key_usage_raw;
+    frame->issuer_raw_with_hdr.p   = crt->issuer_raw.p;
+    frame->issuer_raw_with_hdr.len = crt->issuer_raw.len;
+    frame->subject_raw_with_hdr.p   = crt->subject_raw.p;
+    frame->subject_raw_with_hdr.len = crt->subject_raw.len;
+
+    /* The legacy CRT structure doesn't explicitly contain
+     * the `AlgorithmIdentifier` bounds; however, those can
+     * be inferred from the surrounding (mandatory) `SerialNumber`
+     * and `Issuer` fields. */
+    frame->sig_alg.p = crt->serial.p + crt->serial.len;
+    frame->sig_alg.len = crt->issuer_raw.p - frame->sig_alg.p;
+
+    return( x509_crt_frame_parse_ext( frame ) );
+#endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 }
 
 int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
@@ -1376,24 +1425,30 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     crt->cache = cache;
     x509_crt_cache_init( cache );
 
+#if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+
     ret = mbedtls_x509_crt_cache_provide_frame( crt );
     if( ret != 0 )
         goto exit;
 
     frame = mbedtls_x509_crt_cache_get_frame( crt->cache );
 
-    /* Currently, we accept DER encoded CRTs with trailing garbage
-     * and promise to not account for the garbage in the `raw` field.
-     *
-     * Note that this means that `crt->raw.len` is not necessarily the
-     * full size of the heap buffer allocated at `crt->raw.p` in case
-     * of copy-mode, but this is not a problem: freeing the buffer doesn't
-     * need the size, and the garbage data doesn't need zeroization. */
-    crt->raw.len = frame->raw.len;
+#else /* MBEDTLS_X509_ON_DEMAND_PARSING */
 
-    cache->pk_raw = frame->pubkey_raw;
+    frame = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_frame ) );
+    if( frame == NULL )
+    {
+        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
+        goto exit;
+    }
+    cache->frame = frame;
 
-#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+    ret = x509_crt_parse_frame( crt->raw.p,
+                                crt->raw.p + crt->raw.len,
+                                frame );
+    if( ret != 0 )
+        goto exit;
+
     /* Copy frame to legacy CRT structure -- that's inefficient, but if
      * memory matters, the new CRT structure should be used anyway. */
     crt->tbs.p   = frame->tbs.p;
@@ -1483,6 +1538,17 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     if( ret != 0 )
         goto exit;
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
+
+    /* Currently, we accept DER encoded CRTs with trailing garbage
+     * and promise to not account for the garbage in the `raw` field.
+     *
+     * Note that this means that `crt->raw.len` is not necessarily the
+     * full size of the heap buffer allocated at `crt->raw.p` in case
+     * of copy-mode, but this is not a problem: freeing the buffer doesn't
+     * need the size, and the garbage data doesn't need zeroization. */
+    crt->raw.len = frame->raw.len;
+
+    cache->pk_raw = frame->pubkey_raw;
 
     /* Free the frame before parsing the public key to
      * keep peak RAM usage low. This is slightly inefficient

@@ -2052,9 +2052,10 @@ int mbedtls_mpi_exp_mod_montladder( mbedtls_mpi *X, const mbedtls_mpi * A, const
 {
     int ret;
 
-    size_t j, nblimbs, ei;
+    size_t j, nblimbs;
+    unsigned char ei, s=0;
     size_t bufsize;
-    mbedtls_mpi_uint mm, state;
+    mbedtls_mpi_uint mm;
     mbedtls_mpi RR, T, L0, L1, Apos;
     int neg;
 
@@ -2135,7 +2136,6 @@ int mbedtls_mpi_exp_mod_montladder( mbedtls_mpi *X, const mbedtls_mpi * A, const
 
     nblimbs = E->n;
     bufsize = 0;
-    state = 0;
 
 
     while( 1 )
@@ -2153,19 +2153,15 @@ int mbedtls_mpi_exp_mod_montladder( mbedtls_mpi *X, const mbedtls_mpi * A, const
 
         bufsize--;
 
-        ei = (E->p[nblimbs] >> bufsize) & 1;
+        ei = (unsigned char)((E->p[nblimbs] >> bufsize) & 0x0000000000000001);
+        s = s^ei;
 
-        if( ei == 0 && state == 0 ) continue;
+        MBEDTLS_MPI_CHK(mbedtls_mpi_safe_cond_swap(&L0, &L1, s));
+        s = ei;
 
-        state = 1;
+        MBEDTLS_MPI_CHK( mpi_montmul( &L1, &L0, N, mm, &T ) );
+        MBEDTLS_MPI_CHK( mpi_montmul( &L0, &L0, N, mm, &T ) );
 
-        if (ei == 0){
-            MBEDTLS_MPI_CHK( mpi_montmul( &L1, &L0, N, mm, &T ) );
-            MBEDTLS_MPI_CHK( mpi_montmul( &L0, &L0, N, mm, &T ) );
-        } else {
-            MBEDTLS_MPI_CHK( mpi_montmul( &L0, &L1, N, mm, &T ) );
-            MBEDTLS_MPI_CHK( mpi_montmul( &L1, &L1, N, mm, &T ) );
-        }
 
 
     }
@@ -2174,6 +2170,7 @@ int mbedtls_mpi_exp_mod_montladder( mbedtls_mpi *X, const mbedtls_mpi * A, const
      * X = A^E * R * R^-1 mod N = A^E mod N
      */
 
+    MBEDTLS_MPI_CHK(mbedtls_mpi_safe_cond_swap(&L0, &L1, s));
 
     MBEDTLS_MPI_CHK( mpi_montred( &L0, N, mm, &T ) );
 

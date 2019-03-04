@@ -166,6 +166,14 @@ void mbedtls_param_failed( const char *failure_condition,
 }
 #endif
 
+static int mpi_read_string_ext( mbedtls_mpi *mpi, const char *str )
+{
+    if( str[0] == '0' && ( str[1] == 'x' || str[1] == 'X' ) )
+        return( mbedtls_mpi_read_string( mpi, 16, str + 2 ) );
+    else
+        return( mbedtls_mpi_read_string( mpi, 10, str ) );
+}
+
 /*
  * global options
  */
@@ -506,7 +514,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Reading serial number..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
+    if( ( ret = mpi_read_string_ext( &serial, opt.serial ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  mbedtls_mpi_read_string "

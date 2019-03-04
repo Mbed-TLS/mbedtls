@@ -158,7 +158,6 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
 
     mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
-    mbedtls_x509_buf_raw subject_alt_raw; /**< Raw data for SubjectAlternativeNames extension. */
 
     mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
@@ -169,7 +168,6 @@ typedef struct mbedtls_x509_crt
     unsigned int key_usage;     /**< Optional key usage extension value: See the values in x509.h */
 
     mbedtls_x509_sequence ext_key_usage;    /**< Optional list of extended key usage OIDs. */
-    mbedtls_x509_buf_raw ext_key_usage_raw; /**< Raw data of ExtendedKeyUsage extensions.  */
 
     unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
 

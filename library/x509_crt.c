@@ -144,8 +144,6 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
     frame->sig.len = crt->sig.len;
     frame->v3_ext.p   = crt->v3_ext.p;
     frame->v3_ext.len = crt->v3_ext.len;
-    frame->subject_alt_raw = crt->subject_alt_raw;
-    frame->ext_key_usage_raw = crt->ext_key_usage_raw;
     frame->issuer_raw_with_hdr.p   = crt->issuer_raw.p;
     frame->issuer_raw_with_hdr.len = crt->issuer_raw.len;
     frame->subject_raw_with_hdr.p   = crt->subject_raw.p;
@@ -1687,8 +1685,6 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     crt->subject_id.len = frame->subject_id.len;
     crt->pk_raw.p   = frame->pubkey_raw.p;
     crt->pk_raw.len = frame->pubkey_raw.len;
-    crt->ext_key_usage_raw = frame->ext_key_usage_raw;
-    crt->subject_alt_raw = frame->subject_alt_raw;
     crt->sig.p   = frame->sig.p;
     crt->sig.len = frame->sig.len;
     crt->valid_from = frame->valid_from;

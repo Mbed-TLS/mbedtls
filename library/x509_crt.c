@@ -83,6 +83,20 @@
 #endif /* !_WIN32 || EFIX64 || EFI32 */
 #endif
 
+static void x509_buf_to_buf_raw( mbedtls_x509_buf_raw *dst,
+                                 mbedtls_x509_buf const *src )
+{
+    dst->p = src->p;
+    dst->len = src->len;
+}
+
+static void x509_buf_raw_to_buf( mbedtls_x509_buf *dst,
+                                 mbedtls_x509_buf_raw const *src )
+{
+    dst->p = src->p;
+    dst->len = src->len;
+}
+
 static int x509_crt_parse_frame( unsigned char *start,
                                  unsigned char *end,
                                  mbedtls_x509_crt_frame *frame );
@@ -126,26 +140,16 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
     frame->sig_pk = crt->sig_pk;
     frame->valid_from = crt->valid_from;
     frame->valid_to = crt->valid_to;
-    frame->raw.p   = crt->raw.p;
-    frame->raw.len = crt->raw.len;
-    frame->tbs.p   = crt->tbs.p;
-    frame->tbs.len = crt->tbs.len;
-    frame->serial.p   = crt->serial.p;
-    frame->serial.len = crt->serial.len;
-    frame->pubkey_raw.p   = crt->pk_raw.p;
-    frame->pubkey_raw.len = crt->pk_raw.len;
-    frame->issuer_raw.p = crt->issuer_raw.p;
-    frame->issuer_raw.len = crt->issuer_raw.len;
-    frame->subject_raw.p = crt->subject_raw.p;
-    frame->subject_raw.len = crt->subject_raw.len;
-    frame->issuer_id.p   = crt->issuer_id.p;
-    frame->issuer_id.len = crt->issuer_id.len;
-    frame->subject_id.p   = crt->subject_id.p;
-    frame->subject_id.len = crt->subject_id.len;
-    frame->sig.p   = crt->sig.p;
-    frame->sig.len = crt->sig.len;
-    frame->v3_ext.p   = crt->v3_ext.p;
-    frame->v3_ext.len = crt->v3_ext.len;
+    x509_buf_to_buf_raw( &frame->raw, &crt->raw );
+    x509_buf_to_buf_raw( &frame->tbs, &crt->tbs );
+    x509_buf_to_buf_raw( &frame->serial, &crt->serial );
+    x509_buf_to_buf_raw( &frame->pubkey_raw, &crt->pk_raw );
+    x509_buf_to_buf_raw( &frame->issuer_raw, &crt->issuer_raw );
+    x509_buf_to_buf_raw( &frame->subject_raw, &crt->subject_raw );
+    x509_buf_to_buf_raw( &frame->subject_id, &crt->subject_id );
+    x509_buf_to_buf_raw( &frame->issuer_id, &crt->issuer_id );
+    x509_buf_to_buf_raw( &frame->sig, &crt->sig );
+    x509_buf_to_buf_raw( &frame->v3_ext, &crt->v3_ext );
 
     /* The legacy CRT structure doesn't explicitly contain
      * the `AlgorithmIdentifier` bounds; however, those can
@@ -1521,16 +1525,13 @@ static int x509_crt_certificate_policies_from_frame(
     while( certificate_policies != NULL )
     {
         mbedtls_x509_buf_raw policy;
-        policy.p   = certificate_policies->buf.p;
-        policy.len = certificate_policies->buf.len;
+        x509_buf_to_buf_raw( &policy, &certificate_policies->buf );
 
         ret = x509_extract_policy_id( &policy );
         if( ret != 0 )
             return( ret );
 
-        certificate_policies->buf.p = policy.p;
-        certificate_policies->buf.len = policy.len;
-
+        x509_buf_raw_to_buf( &certificate_policies->buf, &policy );
         certificate_policies = certificate_policies->next;
     }
 
@@ -1659,26 +1660,17 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
 
     /* Copy frame to legacy CRT structure -- that's inefficient, but if
      * memory matters, the new CRT structure should be used anyway. */
-    crt->tbs.p   = frame->tbs.p;
-    crt->tbs.len = frame->tbs.len;
-    crt->serial.p   = frame->serial.p;
-    crt->serial.len = frame->serial.len;
-    crt->issuer_raw.p   = frame->issuer_raw.p;
-    crt->issuer_raw.len = frame->issuer_raw.len;
-    crt->subject_raw.p   = frame->subject_raw.p;
-    crt->subject_raw.len = frame->subject_raw.len;
-    crt->issuer_id.p   = frame->issuer_id.p;
-    crt->issuer_id.len = frame->issuer_id.len;
-    crt->subject_id.p   = frame->subject_id.p;
-    crt->subject_id.len = frame->subject_id.len;
-    crt->pk_raw.p   = frame->pubkey_raw.p;
-    crt->pk_raw.len = frame->pubkey_raw.len;
-    crt->sig.p   = frame->sig.p;
-    crt->sig.len = frame->sig.len;
+    x509_buf_raw_to_buf( &crt->tbs, &frame->tbs );
+    x509_buf_raw_to_buf( &crt->serial, &frame->serial );
+    x509_buf_raw_to_buf( &crt->issuer_raw, &frame->issuer_raw );
+    x509_buf_raw_to_buf( &crt->subject_raw, &frame->subject_raw );
+    x509_buf_raw_to_buf( &crt->issuer_id, &frame->issuer_id );
+    x509_buf_raw_to_buf( &crt->subject_id, &frame->subject_id );
+    x509_buf_raw_to_buf( &crt->pk_raw, &frame->pubkey_raw );
+    x509_buf_raw_to_buf( &crt->sig, &frame->sig );
+    x509_buf_raw_to_buf( &crt->v3_ext, &frame->v3_ext );
     crt->valid_from = frame->valid_from;
     crt->valid_to = frame->valid_to;
-    crt->v3_ext.p   = frame->v3_ext.p;
-    crt->v3_ext.len = frame->v3_ext.len;
     crt->version      = frame->version;
     crt->ca_istrue    = frame->ca_istrue;
     crt->max_pathlen  = frame->max_pathlen;

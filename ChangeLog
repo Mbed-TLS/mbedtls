@@ -23,6 +23,12 @@ API Changes
      always return NULL, and removes the peer_cert field from the
      mbedtls_ssl_session structure which otherwise stores the peer's
      certificate.
+   * Deprecate the function mbedtls_x509write_csr_set_key_usage() as its input
+     parameter cannot represent the full 9 flags in the KeyUsage extension, so
+     the decipherOnly flag could not be written in a CSR. A new function
+     mbedtls_x509write_csr_set_key_usage_ext() was added that performs the
+     same operation as the deprecated function, but has an unsigned int input
+     parameter as oposed to an unsigned char and can write all 9 flags.
 
 Bugfix
    * Fix a compilation issue with mbedtls_ecp_restart_ctx not being defined

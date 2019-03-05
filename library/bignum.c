@@ -1869,8 +1869,10 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     wsize = ( i > 671 ) ? 6 : ( i > 239 ) ? 5 :
             ( i >  79 ) ? 4 : ( i >  23 ) ? 3 : 1;
 
+#if( MBEDTLS_MPI_WINDOW_SIZE < 6 )
     if( wsize > MBEDTLS_MPI_WINDOW_SIZE )
         wsize = MBEDTLS_MPI_WINDOW_SIZE;
+#endif
 
     j = N->n + 1;
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );

@@ -2,21 +2,31 @@
 
 # mbed-build.sh
 #
-# This file is part of mbed TLS (https://tls.mbed.org)
+# This file is part of Mbed TLS (https://tls.mbed.org)
 #
-# Copyright (c) 2019, ARM Limited, All Rights Reserved
+# Copyright (c) 2019, Arm Limited, All Rights Reserved
 #
 # Purpose
 #
 # To run test builds of the mbed OS module for all specified targets.
 # Usage: mbed-build <folder to import to> <optinally string of space seperated targets>
 
-set -eu
-
+if [ -z "$1" ]
+then
+    echo "expected folder to import not given as parameter"
+    exit 1
+fi
 OUT_OF_SOURCE_DIR=$1
-MBED_APP='mbed-os-example-tls'
-REMOTE_URL="git@github.com:ARMmbed"
 
+if [ -z "$MBED_APP" ]
+then
+    MBED_APP='mbed-os-example-tls'
+fi
+if [ -z "$REMOTE_URL" ]
+then
+    REMOTE_URL="git@github.com:ARMmbed"
+fi
+FAILED=0
 check_tools()
 {
     for TOOL in "$@"; do
@@ -34,9 +44,17 @@ mbed_build()
 
     echo "*** $PLATFORM (release $COMPILER) ***"
     mbed compile -t $COMPILER -m $PLATFORM -c
+    if [ $? -ne 0 ]
+    then
+        FAILED=1
+    fi
 
     echo "*** $PLATFORM (debug $COMPILER) ***"
     mbed compile -t $COMPILER -m $PLATFORM --profile mbed-os/tools/profiles/debug.json -c
+    if [ $? -ne 0 ]
+    then
+        FAILED=1
+    fi
 }
 
 create_module()
@@ -74,3 +92,5 @@ for f in *; do
         cd -
     fi
 done
+
+exit $FAILED

@@ -43,6 +43,8 @@ Changes
      underlying OS actually guarantees.
    * Ciphersuites based on 3DES now have the lowest priority by default when
      they are enabled.
+   * Return from various debugging routines immediately if the
+     provided SSL context is unset.
 
 = mbed TLS 2.7.9 branch released 2018-12-21
 

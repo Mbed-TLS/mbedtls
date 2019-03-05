@@ -171,6 +171,9 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
     mbedtls_x509_crt_cache *cache = crt->cache;
     mbedtls_x509_crt_frame *frame;
 
+    if( cache->frame != NULL )
+        return( 0 );
+
     frame = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_frame ) );
     if( frame == NULL )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
@@ -219,6 +222,9 @@ int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
 {
     mbedtls_x509_crt_cache *cache = crt->cache;
     mbedtls_pk_context *pk;
+
+    if( cache->pk != NULL )
+        return( 0 );
 
     pk = mbedtls_calloc( 1, sizeof( mbedtls_pk_context ) );
     if( pk == NULL )
@@ -1674,7 +1680,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     if( ret != 0 )
         goto exit;
 
-    frame = mbedtls_x509_crt_cache_get_frame( crt->cache );
+    frame = crt->cache->frame;
 
 #else /* MBEDTLS_X509_ON_DEMAND_PARSING */
 

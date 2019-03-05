@@ -1788,6 +1788,19 @@
 //#define MBEDTLS_X509_ON_DEMAND_PARSING
 
 /**
+ * \def MBEDTLS_X509_ALWAYS_FLUSH
+ *
+ * Save RAM by always flushing caches for parsed X.509 structures
+ * if the respective structure is not in use. This leads to minimal
+ * RAM usage of the X.509 module at the cost of performance penalties
+ * when dealing using X.509 structures multiple times (such as trusted
+ * CRTs on systems serving many connections).
+ *
+ * Uncomment this to always flush caches for unused X.509 structures.
+ */
+#define MBEDTLS_X509_ALWAYS_FLUSH
+
+/**
  * \def MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate

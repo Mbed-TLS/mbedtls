@@ -2509,8 +2509,6 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (not set up, nonce not set,
  *         encryption, or already completed).
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p output buffer is too small.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously

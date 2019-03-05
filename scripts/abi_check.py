@@ -141,32 +141,34 @@ class AbiChecker(object):
         self.log.info(output.decode("utf-8"))
         if process.returncode != 0:
             raise Exception("git submodule update failed, aborting")
-        if (os.path.exists(os.path.join(git_worktree_path, "crypto"))
+        if not (os.path.exists(os.path.join(git_worktree_path, "crypto"))
                 and crypto_rev):
-            if crypto_repo:
-                shutil.rmtree(os.path.join(git_worktree_path, "crypto"))
-                clone_process = subprocess.Popen(
-                    [self.git_command, "clone", crypto_repo,
-                     "--branch", crypto_rev, "crypto"],
-                    cwd=git_worktree_path,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT
-                )
-                clone_output, _ = clone_process.communicate()
-                self.log.info(clone_output.decode("utf-8"))
-                if clone_process.returncode != 0:
-                    raise Exception("git clone failed, aborting")
-            else:
-                checkout_process = subprocess.Popen(
-                    [self.git_command, "checkout", crypto_rev],
-                    cwd=os.path.join(git_worktree_path, "crypto"),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT
-                )
-                checkout_output, _ = checkout_process.communicate()
-                self.log.info(checkout_output.decode("utf-8"))
-                if checkout_process.returncode != 0:
-                    raise Exception("git checkout failed, aborting")
+            return
+
+        if crypto_repo:
+            shutil.rmtree(os.path.join(git_worktree_path, "crypto"))
+            clone_process = subprocess.Popen(
+                [self.git_command, "clone", crypto_repo,
+                 "--branch", crypto_rev, "crypto"],
+                cwd=git_worktree_path,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+            )
+            clone_output, _ = clone_process.communicate()
+            self.log.info(clone_output.decode("utf-8"))
+            if clone_process.returncode != 0:
+                raise Exception("git clone failed, aborting")
+        else:
+            checkout_process = subprocess.Popen(
+                [self.git_command, "checkout", crypto_rev],
+                cwd=os.path.join(git_worktree_path, "crypto"),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+            )
+            checkout_output, _ = checkout_process.communicate()
+            self.log.info(checkout_output.decode("utf-8"))
+            if checkout_process.returncode != 0:
+                raise Exception("git checkout failed, aborting")
 
     def build_shared_libraries(self, git_worktree_path, version):
         """Build the shared libraries in the specified worktree."""

@@ -27,6 +27,9 @@ Bugfix
      due to an unacceptable hash signature. The certificate has been
      updated to one that is SHA-256 signed. Fix contributed by
      Illya Gerasymchuk.
+   * Fix private key DER output in the key_app_writer example. File contents
+     were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
+     Christian Walther in #2239.
 
 Changes
    * Include configuration file in all header files that use configuration,

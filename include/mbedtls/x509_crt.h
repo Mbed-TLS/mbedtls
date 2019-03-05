@@ -811,6 +811,9 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt );
  * They are not part of the public API and may change
  * at any time. */
 
+int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt );
+int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt );
+
 int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt );
 int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt );
 
@@ -839,7 +842,7 @@ static inline mbedtls_pk_context* mbedtls_x509_crt_cache_get_pk(
 }
 
 static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
-                                         mbedtls_x509_crt_frame **frame_ptr )
+                                                  mbedtls_x509_crt_frame **frame_ptr )
 {
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
@@ -871,6 +874,10 @@ static inline void mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_unlock( &crt->cache->frame_mutex );
 #endif
+
+#if defined(MBEDTLS_X509_ALWAYS_FLUSH)
+    (void) mbedtls_x509_crt_flush_cache_frame( crt );
+#endif /* MBEDTLS_X509_ALWAYS_FLUSH */
 }
 
 static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
@@ -906,6 +913,10 @@ static inline void mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_unlock( &crt->cache->pk_mutex );
 #endif
+
+#if defined(MBEDTLS_X509_ALWAYS_FLUSH)
+    (void) mbedtls_x509_crt_flush_cache_pk( crt );
+#endif /* MBEDTLS_X509_ALWAYS_FLUSH */
 }
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

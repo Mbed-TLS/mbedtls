@@ -106,6 +106,59 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame *frame,
 static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame *frame,
                                         mbedtls_x509_sequence *ext_key_usage );
 
+int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
+{
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+    /* The cache holds a shallow copy of the PK context
+     * in the legacy struct, so don't free PK context. */
+    mbedtls_free( crt->cache->pk );
+#else
+    mbedtls_pk_free( crt->cache->pk );
+    mbedtls_free( crt->cache->pk );
+#endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
+    crt->cache->pk = NULL;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+    return( 0 );
+}
+
+int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt )
+{
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+
+    mbedtls_free( crt->cache->frame );
+    crt->cache->frame = NULL;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
+    return( 0 );
+}
+
+int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt )
+{
+    int ret;
+    ret = mbedtls_x509_crt_flush_cache_frame( crt );
+    if( ret != 0 )
+        return( ret );
+    ret = mbedtls_x509_crt_flush_cache_pk( crt );
+    if( ret != 0 )
+        return( ret );
+    return( 0 );
+}
+
 static int x509_crt_frame_parse_ext( mbedtls_x509_crt_frame *frame );
 int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
 {
@@ -222,25 +275,6 @@ static void x509_crt_cache_free( mbedtls_x509_crt_cache *cache )
     x509_crt_cache_clear_pk( cache );
 
     memset( cache, 0, sizeof( *cache ) );
-}
-
-int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt )
-{
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-    if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
-    x509_crt_cache_clear_frame( crt->cache );
-    x509_crt_cache_clear_pk( crt->cache );
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-    if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
-    return( 0 );
 }
 
 int mbedtls_x509_crt_get_subject_alt_names( mbedtls_x509_crt const *crt,

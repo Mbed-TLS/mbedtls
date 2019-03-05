@@ -1342,8 +1342,7 @@
 
 /** The finite-field Diffie-Hellman (DH) key agreement algorithm.
  *
- * The shared secret produced by key agreement and passed as input to the
- * derivation or selection algorithm \p kdf_alg is the shared secret
+ * The shared secret produced by key agreement is
  * `g^{ab}` in big-endian format.
  * It is `ceiling(m / 8)` bytes long where `m` is the size of the prime `p`
  * in bits.
@@ -1352,8 +1351,9 @@
 
 /** Whether the specified algorithm is a finite field Diffie-Hellman algorithm.
  *
- * This includes every supported key selection or key agreement algorithm
- * for the output of the Diffie-Hellman calculation.
+ * This includes the raw finite field Diffie-Hellman algorithm as well as
+ * finite-field Diffie-Hellman followed by any supporter key derivation
+ * algorithm.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *
@@ -1394,8 +1394,9 @@
 /** Whether the specified algorithm is an elliptic curve Diffie-Hellman
  * algorithm.
  *
- * This includes every supported key selection or key agreement algorithm
- * for the output of the Diffie-Hellman calculation.
+ * This includes the raw elliptic curve Diffie-Hellman algorithm as well as
+ * elliptic curve Diffie-Hellman followed by any supporter key derivation
+ * algorithm.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *

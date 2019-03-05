@@ -82,6 +82,8 @@ Changes
      due to an unacceptable hash signature. The certificate has been
      updated to one that is SHA-256 signed. Fix contributed by
      Illya Gerasymchuk.
+   * Return from various debugging routines immediately if the
+     provided SSL context is unset.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

@@ -900,53 +900,26 @@ int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt );
 int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt );
 int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt );
 
-static inline int mbedtls_x509_crt_cache_frame_set(
-    mbedtls_x509_crt_cache *cache )
-{
-    return( cache->frame != NULL );
-}
-
-static inline mbedtls_x509_crt_frame* mbedtls_x509_crt_cache_get_frame(
-    mbedtls_x509_crt_cache *cache )
-{
-    return( cache->frame );
-}
-
-static inline int mbedtls_x509_crt_cache_pk_set(
-    mbedtls_x509_crt_cache *cache )
-{
-    return( cache->pk != NULL );
-}
-
-static inline mbedtls_pk_context* mbedtls_x509_crt_cache_get_pk(
-    mbedtls_x509_crt_cache *cache )
-{
-    return( cache->pk );
-}
-
 static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
                                                   mbedtls_x509_crt_frame **frame_ptr )
 {
+    int ret;
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
-    if( !mbedtls_x509_crt_cache_frame_set( crt->cache ) )
+    ret = mbedtls_x509_crt_cache_provide_frame( crt );
+    if( ret != 0 )
     {
-        int ret;
-        ret = mbedtls_x509_crt_cache_provide_frame( crt );
-        if( ret != 0 )
-        {
 #if defined(MBEDTLS_THREADING_C)
-            if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
-                return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
+            return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
-            return( ret );
-        }
+        return( ret );
     }
 
-    *frame_ptr = mbedtls_x509_crt_cache_get_frame( crt->cache );
+    *frame_ptr = crt->cache->frame;
     return( 0 );
 }
 
@@ -966,26 +939,23 @@ static inline void mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
 static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
                                                mbedtls_pk_context **pk_ptr )
 {
+    int ret;
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
-    if( !mbedtls_x509_crt_cache_pk_set( crt->cache ) )
+    ret = mbedtls_x509_crt_cache_provide_pk( crt );
+    if( ret != 0 )
     {
-        int ret;
-        ret = mbedtls_x509_crt_cache_provide_pk( crt );
-        if( ret != 0 )
-        {
 #if defined(MBEDTLS_THREADING_C)
-            if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
-                return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
+            return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
-            return( ret );
-        }
+        return( ret );
     }
 
-    *pk_ptr = mbedtls_x509_crt_cache_get_pk( crt->cache );
+    *pk_ptr = crt->cache->pk;
     return( 0 );
 }
 

@@ -20,6 +20,13 @@ endif()
 # on non-POSIX platforms.
 add_definitions("-D_POSIX_C_SOURCE=200809L")
 
+# Test suites caught by SKIP_TEST_SUITES are built but not executed.
+# "foo" as a skip pattern skips "test_suite_foo" and "test_suite_foo.bar"
+# but not "test_suite_foobar".
+string(REGEX REPLACE "[ ,;]" "|" SKIP_TEST_SUITES_REGEX "${SKIP_TEST_SUITES}")
+string(REPLACE "." "\\." SKIP_TEST_SUITES_REGEX "${SKIP_TEST_SUITES_REGEX}")
+set(SKIP_TEST_SUITES_REGEX "^(${SKIP_TEST_SUITES_REGEX})(\$|\\.)")
+
 function(add_test_suite suite_name)
     if(ARGV1)
         set(data_name ${ARGV1})
@@ -36,7 +43,11 @@ function(add_test_suite suite_name)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
     add_executable(test_suite_${data_name} test_suite_${data_name}.c)
     target_link_libraries(test_suite_${data_name} ${libs})
-    add_test(${data_name}-suite test_suite_${data_name} --verbose)
+    if(${data_name} MATCHES ${SKIP_TEST_SUITES_REGEX})
+        message(STATUS "The test suite ${data_name} will not be executed.")
+    else()
+        add_test(${data_name}-suite test_suite_${data_name} --verbose)
+    endif()
 endfunction(add_test_suite)
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
@@ -52,6 +63,7 @@ endif(MSVC)
 add_test_suite(aes aes.ecb)
 add_test_suite(aes aes.cbc)
 add_test_suite(aes aes.cfb)
+add_test_suite(aes aes.ofb)
 add_test_suite(aes aes.rest)
 add_test_suite(aes aes.xts)
 add_test_suite(arc4)

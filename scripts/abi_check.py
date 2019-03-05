@@ -65,7 +65,7 @@ class AbiChecker(object):
         """
         self.repo_path = "."
         self.log = None
-        self.setup_logger()
+        self._setup_logger()
         self.report_dir = os.path.abspath(report_dir)
         self.keep_all_reports = keep_all_reports
         self.can_remove_report_dir = not (os.path.isdir(self.report_dir) or
@@ -84,7 +84,7 @@ class AbiChecker(object):
         if current_dir != root_dir:
             raise Exception("Must be run from Mbed TLS root")
 
-    def setup_logger(self):
+    def _setup_logger(self):
         self.log = logging.getLogger()
         self.log.setLevel(logging.INFO)
         self.log.addHandler(logging.StreamHandler())
@@ -95,7 +95,7 @@ class AbiChecker(object):
             if not shutil.which(command):
                 raise Exception("{} not installed, aborting".format(command))
 
-    def get_clean_worktree_for_git_revision(self, version):
+    def _get_clean_worktree_for_git_revision(self, version):
         """Make a separate worktree with version.revision checked out.
         Do not modify the current worktree."""
         git_worktree_path = tempfile.mkdtemp()
@@ -135,7 +135,7 @@ class AbiChecker(object):
             raise Exception("Checking out worktree failed, aborting")
         return git_worktree_path
 
-    def update_git_submodules(self, git_worktree_path, version):
+    def _update_git_submodules(self, git_worktree_path, version):
         process = subprocess.Popen(
             [self.git_command, "submodule", "update", "--init", '--recursive'],
             cwd=git_worktree_path,
@@ -175,7 +175,7 @@ class AbiChecker(object):
             if checkout_process.returncode != 0:
                 raise Exception("git checkout failed, aborting")
 
-    def build_shared_libraries(self, git_worktree_path, version):
+    def _build_shared_libraries(self, git_worktree_path, version):
         """Build the shared libraries in the specified worktree."""
         my_environment = os.environ.copy()
         my_environment["CFLAGS"] = "-g -Og"
@@ -198,8 +198,8 @@ class AbiChecker(object):
         if make_process.returncode != 0:
             raise Exception("make failed, aborting")
 
-    def get_abi_dumps_from_shared_libraries(self, git_worktree_path,
-                                            version):
+    def _get_abi_dumps_from_shared_libraries(self, git_worktree_path,
+                                             version):
         """Generate the ABI dumps for the specified git revision.
         It must be checked out in git_worktree_path and the shared libraries
         must have been built."""
@@ -226,7 +226,7 @@ class AbiChecker(object):
                 raise Exception("abi-dumper failed, aborting")
             version.abi_dumps[mbed_module] = output_path
 
-    def cleanup_worktree(self, git_worktree_path):
+    def _cleanup_worktree(self, git_worktree_path):
         """Remove the specified git worktree."""
         shutil.rmtree(git_worktree_path)
         worktree_process = subprocess.Popen(
@@ -240,26 +240,26 @@ class AbiChecker(object):
         if worktree_process.returncode != 0:
             raise Exception("Worktree cleanup failed, aborting")
 
-    def get_abi_dump_for_ref(self, version):
+    def _get_abi_dump_for_ref(self, version):
         """Generate the ABI dumps for the specified git revision."""
-        git_worktree_path = self.get_clean_worktree_for_git_revision(version)
-        self.update_git_submodules(git_worktree_path, version)
-        self.build_shared_libraries(git_worktree_path, version)
-        self.get_abi_dumps_from_shared_libraries(git_worktree_path, version)
-        self.cleanup_worktree(git_worktree_path)
+        git_worktree_path = self._get_clean_worktree_for_git_revision(version)
+        self._update_git_submodules(git_worktree_path, version)
+        self._build_shared_libraries(git_worktree_path, version)
+        self._get_abi_dumps_from_shared_libraries(git_worktree_path, version)
+        self._cleanup_worktree(git_worktree_path)
 
-    def remove_children_with_tag(self, parent, tag):
+    def _remove_children_with_tag(self, parent, tag):
         children = parent.getchildren()
         for child in children:
             if child.tag == tag:
                 parent.remove(child)
             else:
-                self.remove_children_with_tag(child, tag)
+                self._remove_children_with_tag(child, tag)
 
-    def remove_extra_detail_from_report(self, report_root):
+    def _remove_extra_detail_from_report(self, report_root):
         for tag in ['test_info', 'test_results', 'problem_summary',
                 'added_symbols', 'removed_symbols', 'affected']:
-            self.remove_children_with_tag(report_root, tag)
+            self._remove_children_with_tag(report_root, tag)
 
         for report in report_root:
             for problems in report.getchildren()[:]:
@@ -313,7 +313,7 @@ class AbiChecker(object):
                         "Compatibility issues found for {}".format(mbed_module)
                     )
                     report_root = ET.fromstring(abi_compliance_output.decode("utf-8"))
-                    self.remove_extra_detail_from_report(report_root)
+                    self._remove_extra_detail_from_report(report_root)
                     self.log.info(ET.tostring(report_root).decode("utf-8"))
                 else:
                     compliance_return_code = 1
@@ -339,8 +339,8 @@ class AbiChecker(object):
         between self.old_rev and self.new_rev."""
         self.check_repo_path()
         self.check_abi_tools_are_installed()
-        self.get_abi_dump_for_ref(self.old_version)
-        self.get_abi_dump_for_ref(self.new_version)
+        self._get_abi_dump_for_ref(self.old_version)
+        self._get_abi_dump_for_ref(self.new_version)
         return self.get_abi_compatibility_report()
 
 

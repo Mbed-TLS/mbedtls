@@ -6513,7 +6513,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) )
             ret = mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id );
 
-        mbedtls_x509_crt_pk_release( chain, pk );
+        mbedtls_x509_crt_pk_release( chain );
 
         if( ret != 0 )
         {

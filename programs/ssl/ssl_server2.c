@@ -1099,7 +1099,7 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
         if( ret != 0 )
             return( ret );
         match = mbedtls_pk_check_pair( pk, config_data->slots[slot].pk );
-        mbedtls_x509_crt_pk_release( cert, pk );
+        mbedtls_x509_crt_pk_release( cert );
         if( match == 0 )
             break;
     }

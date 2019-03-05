@@ -402,7 +402,7 @@ void mbedtls_debug_print_crt( const mbedtls_ssl_context *ssl, int level,
             return;
         }
         debug_print_pk( ssl, level, file, line, "crt->", pk );
-        mbedtls_x509_crt_pk_release( crt, pk );
+        mbedtls_x509_crt_pk_release( crt );
 
         crt = crt->next;
     }

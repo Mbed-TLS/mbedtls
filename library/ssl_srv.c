@@ -840,7 +840,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-        mbedtls_x509_crt_pk_release( cur->cert, pk );
+        mbedtls_x509_crt_pk_release( cur->cert );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
          if( match == 0 )
@@ -879,7 +879,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
                 if( ret != 0 )
                     return( ret );
                 sig_md = frame->sig_md;
-                mbedtls_x509_crt_frame_release( cur->cert, frame );
+                mbedtls_x509_crt_frame_release( cur->cert );
             }
 
             if( sig_md != MBEDTLS_MD_SHA1 )
@@ -3008,7 +3008,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
                 (size_t)( end - p ) < 2 + dn_size )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "skipping CAs: buffer too short" ) );
-                mbedtls_x509_crt_frame_release( crt, frame );
+                mbedtls_x509_crt_frame_release( crt );
                 break;
             }
 
@@ -3021,7 +3021,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
             total_dn_size += 2 + dn_size;
 
-            mbedtls_x509_crt_frame_release( crt, frame );
+            mbedtls_x509_crt_frame_release( crt );
 
             crt = crt->next;
         }
@@ -4407,8 +4407,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 exit:
 
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert,
-                                 peer_pk );
+    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     return( ret );

@@ -10,7 +10,7 @@ This script is a small wrapper around the abi-compliance-checker and
 abi-dumper tools, applying them to compare the ABI and API of the library
 files from two different Git revisions within an Mbed TLS repository.
 The results of the comparison are either formatted as HTML and stored at
-a configurable location, or a brief list of problems found is output.
+a configurable location, or are given as a brief list of problems.
 Returns 0 on success, 1 on ABI/API non-compliance, and 2 if there is an error
 while running the script. Note: must be run from Mbed TLS root.
 """
@@ -357,10 +357,10 @@ def run_main():
                 to compare the ABI and API of the library files from two
                 different Git revisions within an Mbed TLS repository.
                 The results of the comparison are either formatted as HTML and
-                stored at a configurable location, or a brief list of problems
-                found is output. Returns 0 on success, 1 on ABI/API
-                non-compliance, and 2 if there is an error while running the
-                script. Note: must be run from Mbed TLS root."""
+                stored at a configurable location, or are given as a brief list
+                of problems. Returns 0 on success, 1 on ABI/API non-compliance,
+                and 2 if there is an error while running the script.
+                Note: must be run from Mbed TLS root."""
             )
         )
         parser.add_argument(

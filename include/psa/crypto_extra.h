@@ -125,7 +125,7 @@ psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
  * FIMXE This function is no longer part of the official API. Its prototype
  * is only kept around for the sake of tests that haven't been updated yet.
  *
- * A key derivation algorithm takes three inputs: a secret input \p key and
+ * A key derivation algorithm takes three inputs: a secret input \p handle and
  * two non-secret inputs \p label and p salt.
  * The result of this function is a byte generator which can
  * be used to produce keys and other cryptographic material.

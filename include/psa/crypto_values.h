@@ -691,7 +691,7 @@
  *
  * This value may not be used to build other algorithms that are
  * parametrized over a hash. For any valid use of this macro to build
- * an algorithm `\p alg`, #PSA_ALG_IS_HASH_AND_SIGN(\p alg) is true.
+ * an algorithm \c alg, #PSA_ALG_IS_HASH_AND_SIGN(\c alg) is true.
  *
  * This value may not be used to build an algorithm specification to
  * perform an operation. It is only valid to build policies.
@@ -708,7 +708,7 @@
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding HMAC algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_HMAC(hash_alg)                                  \
@@ -954,7 +954,7 @@
  *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding RSA PKCS#1 v1.5 signature algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_RSA_PKCS1V15_SIGN(hash_alg)                             \
@@ -985,7 +985,7 @@
  *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding RSA PSS signature algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_RSA_PSS(hash_alg)                               \
@@ -1005,7 +1005,7 @@
  *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding DSA signature algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_DSA(hash_alg)                             \
@@ -1023,7 +1023,7 @@
  *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding DSA signature algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_DETERMINISTIC_DSA(hash_alg)                             \
@@ -1056,7 +1056,7 @@
  *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding ECDSA signature algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_ECDSA(hash_alg)                                 \
@@ -1091,7 +1091,7 @@
  *
  * \return              The corresponding deterministic ECDSA signature
  *                      algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_DETERMINISTIC_ECDSA(hash_alg)                           \
@@ -1163,7 +1163,7 @@
  *                      for MGF1.
  *
  * \return              The corresponding RSA OAEP signature algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_RSA_OAEP(hash_alg)                              \
@@ -1193,7 +1193,7 @@
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding HKDF algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_HKDF(hash_alg)                                  \
@@ -1234,7 +1234,7 @@
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding TLS-1.2 PRF algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_TLS12_PRF(hash_alg)                                  \
@@ -1274,7 +1274,7 @@
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding TLS-1.2 PSK to MS algorithm.
- * \return              Unspecified if \p alg is not a supported
+ * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
 #define PSA_ALG_TLS12_PSK_TO_MS(hash_alg)                                  \

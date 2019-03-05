@@ -187,7 +187,7 @@
  * the global integrity of the keystore. Depending on the global
  * integrity guarantees offered by the implementation, access to other
  * data may or may not fail even if the data is still readable but
- * its integrity canont be guaranteed.
+ * its integrity cannot be guaranteed.
  *
  * Implementations should only use this error code to report a
  * permanent storage corruption. However application writers should
@@ -613,7 +613,6 @@
 #define PSA_ALG_IS_ASYMMETRIC_ENCRYPTION(alg)                           \
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION)
 
-#define PSA_ALG_KEY_SELECTION_FLAG              ((psa_algorithm_t)0x01000000)
 /** Whether the specified algorithm is a key agreement algorithm.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
@@ -623,8 +622,7 @@
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_KEY_AGREEMENT(alg)                                   \
-    (((alg) & PSA_ALG_CATEGORY_MASK & ~PSA_ALG_KEY_SELECTION_FLAG) ==   \
-     PSA_ALG_CATEGORY_KEY_AGREEMENT)
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_AGREEMENT)
 
 /** Whether the specified algorithm is a key derivation algorithm.
  *
@@ -636,17 +634,6 @@
  */
 #define PSA_ALG_IS_KEY_DERIVATION(alg)                                  \
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_DERIVATION)
-
-/** Whether the specified algorithm is a key selection algorithm.
- *
- * \param alg An algorithm identifier (value of type #psa_algorithm_t).
- *
- * \return 1 if \p alg is a key selection algorithm, 0 otherwise.
- *         This macro may return either 0 or 1 if \p alg is not a supported
- *         algorithm identifier.
- */
-#define PSA_ALG_IS_KEY_SELECTION(alg)                                   \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_SELECTION)
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 
@@ -898,7 +885,12 @@
  */
 #define PSA_ALG_CBC_PKCS7                       ((psa_algorithm_t)0x04600101)
 
+/** The CCM authenticated encryption algorithm.
+ */
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x06001001)
+
+/** The GCM authenticated encryption algorithm.
+ */
 #define PSA_ALG_GCM                             ((psa_algorithm_t)0x06001002)
 
 /* In the encoding of a AEAD algorithm, the bits corresponding to
@@ -1020,6 +1012,20 @@
     (PSA_ALG_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 #define PSA_ALG_DETERMINISTIC_DSA_BASE          ((psa_algorithm_t)0x10050000)
 #define PSA_ALG_DSA_DETERMINISTIC_FLAG          ((psa_algorithm_t)0x00010000)
+/** Deterministic DSA signature with hashing.
+ *
+ * This is the deterministic variant defined by RFC 6979 of
+ * the signature scheme defined by FIPS 186-4.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
+ *
+ * \return              The corresponding DSA signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
 #define PSA_ALG_DETERMINISTIC_DSA(hash_alg)                             \
     (PSA_ALG_DETERMINISTIC_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 #define PSA_ALG_IS_DSA(alg)                                             \
@@ -1313,8 +1319,23 @@
 #define PSA_ALG_KEY_AGREEMENT_GET_BASE(alg)                             \
     (((alg) & PSA_ALG_KEY_AGREEMENT_MASK) | PSA_ALG_CATEGORY_KEY_AGREEMENT)
 
+/** Whether the specified algorithm is a raw key agreement algorithm.
+ *
+ * A raw key agreement algorithm is one that does not specify
+ * a key derivation function.
+ * Usually, raw key agreement algorithms are constructed directly with
+ * a \c PSA_ALG_xxx macro while non-raw key agreement algorithms are
+ * constructed with PSA_ALG_KEY_AGREEMENT().
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a raw key agreement algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
 #define PSA_ALG_IS_RAW_KEY_AGREEMENT(alg)                               \
-    (PSA_ALG_KEY_AGREEMENT_GET_KDF(alg) == PSA_ALG_CATEGORY_KEY_DERIVATION)
+    (PSA_ALG_IS_KEY_AGREEMENT(alg) &&                                   \
+     PSA_ALG_KEY_AGREEMENT_GET_KDF(alg) == PSA_ALG_CATEGORY_KEY_DERIVATION)
 
 #define PSA_ALG_IS_KEY_DERIVATION_OR_AGREEMENT(alg)     \
     ((PSA_ALG_IS_KEY_DERIVATION(alg) || PSA_ALG_IS_KEY_AGREEMENT(alg)))
@@ -1385,24 +1406,6 @@
  */
 #define PSA_ALG_IS_ECDH(alg) \
     (PSA_ALG_KEY_AGREEMENT_GET_BASE(alg) == PSA_ALG_ECDH)
-
-/** Whether the specified algorithm encoding is a wildcard.
- *
- * Wildcard values may only be used to set the usage algorithm field in
- * a policy, not to perform an operation.
- *
- * \param alg An algorithm identifier (value of type #psa_algorithm_t).
- *
- * \return 1 if \c alg is a wildcard algorithm encoding.
- * \return 0 if \c alg is a non-wildcard algorithm encoding (suitable for
- *         an operation).
- * \return This macro may return either 0 or 1 if \c alg is not a supported
- *         algorithm identifier.
- */
-#define PSA_ALG_IS_WILDCARD(alg)                        \
-    (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                    \
-     PSA_ALG_SIGN_GET_HASH(alg) == PSA_ALG_ANY_HASH :   \
-     (alg) == PSA_ALG_ANY_HASH)
 
 /** Whether the specified algorithm encoding is a wildcard.
  *

@@ -754,7 +754,7 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * to another. The target key retains its lifetime and location.
  *
  * In an implementation where slots have different ownerships,
- * this functin may be used to share a key with a different party,
+ * this function may be used to share a key with a different party,
  * subject to implementation-defined restrictions on key sharing.
  * In this case \p constraint would typically prevent the recipient
  * from exporting the key.
@@ -830,8 +830,7 @@ psa_status_t psa_copy_key(psa_key_handle_t source_handle,
  * \param hash_size         Size of the \p hash buffer in bytes.
  * \param[out] hash_length  On success, the number of bytes
  *                          that make up the hash value. This is always
- *                          #PSA_HASH_SIZE(\c alg) where \c alg is the
- *                          hash algorithm that is calculated.
+ *                          #PSA_HASH_SIZE(\p alg).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1139,15 +1138,13 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
  *
  * \param handle            Handle to the key to use for the operation.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  * \param[in] input         Buffer containing the input message.
  * \param input_length      Size of the \p input buffer in bytes.
  * \param[out] mac          Buffer where the MAC value is to be written.
  * \param mac_size          Size of the \p mac buffer in bytes.
  * \param[out] mac_length   On success, the number of bytes
- *                          that make up the mac value. This is always
- *                          #PSA_HASH_SIZE(\c alg) where \c alg is the
- *                          hash algorithm that is calculated.
+ *                          that make up the MAC value.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1179,7 +1176,7 @@ psa_status_t psa_mac_compute(psa_key_handle_t handle,
  *
  * \param handle            Handle to the key to use for the operation.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  * \param[in] input         Buffer containing the input message.
  * \param input_length      Size of the \p input buffer in bytes.
  * \param[out] mac          Buffer containing the expected MAC value.
@@ -1289,7 +1286,7 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  *                          It must remain valid until the operation
  *                          terminates.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1962,7 +1959,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *                                #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\p alg,
  *                                \p plaintext_length).
  * \param[out] ciphertext_length  On success, the size of the output
- *                                in the \b ciphertext buffer.
+ *                                in the \p ciphertext buffer.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -2018,7 +2015,7 @@ psa_status_t psa_aead_encrypt(psa_key_handle_t handle,
  *                                #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p alg,
  *                                \p ciphertext_length).
  * \param[out] plaintext_length   On success, the size of the output
- *                                in the \b plaintext buffer.
+ *                                in the \p plaintext buffer.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -3129,9 +3126,9 @@ psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
  *                          public key type corresponding to the type of
  *                          private_key. That is, this function performs the
  *                          equivalent of
- *                          `psa_import_key(internal_public_key_handle,
- *                          PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(private_key_type),
- *                          peer_key, peer_key_length)` where
+ *                          #psa_import_key(`internal_public_key_handle`,
+ *                          #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(`private_key_type`),
+ *                          `peer_key`, `peer_key_length`) where
  *                          `private_key_type` is the type of `private_key`.
  *                          For example, for EC keys, this means that peer_key
  *                          is interpreted as a point on the curve that the
@@ -3175,6 +3172,10 @@ psa_status_t psa_key_agreement(psa_crypto_generator_t *generator,
  * a key derivation, use psa_key_agreement() and other functions from
  * the key derivation and generator interface.
  *
+ * \param alg                     The key agreement algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)
+ *                                is true).
  * \param private_key             Handle to the private key to use.
  * \param[in] peer_key            Public key of the peer. It must be
  *                                in the same format that psa_import_key()

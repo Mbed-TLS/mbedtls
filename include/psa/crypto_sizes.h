@@ -228,7 +228,7 @@
  * \param key_type      The type of the MAC key.
  * \param key_bits      The size of the MAC key in bits.
  * \param alg           A MAC algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_MAC(alg) is true).
+ *                      #PSA_ALG_IS_MAC(\p alg) is true).
  *
  * \return              The MAC size for the specified algorithm with
  *                      the specified key parameters.
@@ -253,7 +253,7 @@
  *
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
- *                            #PSA_ALG_IS_AEAD(alg) is true).
+ *                            #PSA_ALG_IS_AEAD(\p alg) is true).
  * \param plaintext_length    Size of the plaintext in bytes.
  *
  * \return                    The AEAD ciphertext size for the specified
@@ -277,7 +277,7 @@
  *
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
- *                            #PSA_ALG_IS_AEAD(alg) is true).
+ *                            #PSA_ALG_IS_AEAD(\p alg) is true).
  *
  * \return                    The maximum trailing ciphertext size for the
  *                            specified algorithm.
@@ -286,7 +286,7 @@
  *                            correct size for an AEAD algorithm that it
  *                            recognizes, but does not support.
  */
-#define PSA_AEAD_FINISH_OUTPUT_SIZE(alg, plaintext_length)      \
+#define PSA_AEAD_FINISH_OUTPUT_SIZE(alg)      \
     ((size_t)0)
 
 /** The maximum size of the output of psa_aead_decrypt(), in bytes.
@@ -298,7 +298,7 @@
  *
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
- *                            #PSA_ALG_IS_AEAD(alg) is true).
+ *                            #PSA_ALG_IS_AEAD(\p alg) is true).
  * \param ciphertext_length   Size of the plaintext in bytes.
  *
  * \return                    The AEAD ciphertext size for the specified

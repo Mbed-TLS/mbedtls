@@ -45,6 +45,10 @@ Changes
      they are enabled.
    * Return from various debugging routines immediately if the
      provided SSL context is unset.
+   * Remove dead code from bignum.c in the default configuration.
+     Found by Coverity, reported and fixed by Peter Kolbus (Garmin). Fixes #2309.
+   * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
+     Contributed by Peter Kolbus (Garmin).
 
 = mbed TLS 2.7.9 branch released 2018-12-21
 

@@ -2347,7 +2347,7 @@ cleanup:
     /* We don't need the peer's public key anymore. Free it. */
     mbedtls_pk_free( peer_pk );
 #else
-    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert, peer_pk );
+    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     return( ret );
@@ -2478,7 +2478,7 @@ cleanup:
      * operations like ECDHE. */
     mbedtls_pk_free( peer_pk );
 #else
-    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert, peer_pk );
+    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     return( ret );
@@ -2824,8 +2824,7 @@ start_processing:
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                             MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-            mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert,
-                                         peer_pk );
+            mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
             return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
         }
@@ -2849,8 +2848,7 @@ start_processing:
                 ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
 #endif
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-            mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert,
-                                         peer_pk );
+            mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
             return( ret );
         }
@@ -2861,8 +2859,7 @@ start_processing:
          * operations like ECDHE. */
         mbedtls_pk_free( peer_pk );
 #else
-        mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert,
-                                     peer_pk );
+        mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */

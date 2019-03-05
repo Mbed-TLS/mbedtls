@@ -947,11 +947,8 @@ static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
     return( 0 );
 }
 
-static inline void mbedtls_x509_crt_frame_release(
-    mbedtls_x509_crt const *crt,
-    mbedtls_x509_crt_frame *frame )
+static inline void mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
 {
-    ((void) frame);
     ((void) crt);
 
 #if defined(MBEDTLS_THREADING_C)
@@ -985,10 +982,8 @@ static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
     return( 0 );
 }
 
-static inline void mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt,
-                                                mbedtls_pk_context *pk )
+static inline void mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
 {
-    ((void) pk);
     ((void) crt);
 
 #if defined(MBEDTLS_THREADING_C)

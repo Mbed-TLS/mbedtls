@@ -36,6 +36,9 @@ Changes
      underlying OS actually guarantees.
    * Ciphersuites based on 3DES now have the lowest priority by default when
      they are enabled.
+   * Improve debug output of ssl_client2 and ssl_server2 in case suitable
+     test CRTs are available because MBEDTLS_PEM_PARSE_C is disabled.
+     Fixes #2254.
 
 = mbed TLS 2.7.9 branch released 2018-12-21
 

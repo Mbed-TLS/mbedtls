@@ -75,6 +75,13 @@ Changes
      been disabled for lack of a sufficiently recent version of GnuTLS on the CI.
    * Ciphersuites based on 3DES now have the lowest priority by default when
      they are enabled.
+   * Server's RSA certificate in certs.c was SHA-1 signed. In the default
+     mbedTLS configuration only SHA-2 signed certificates are accepted.
+     This certificate is used in the demo server programs, which lead the
+     client programs to fail at the peer's certificate verification
+     due to an unacceptable hash signature. The certificate has been
+     updated to one that is SHA-256 signed. Fix contributed by
+     Illya Gerasymchuk.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

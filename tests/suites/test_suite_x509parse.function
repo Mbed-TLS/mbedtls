@@ -235,7 +235,7 @@ int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint
 cleanup:
 
     mbedtls_x509_name_free( subject );
-    mbedtls_x509_crt_frame_release( crt, frame );
+    mbedtls_x509_crt_frame_release( crt );
 
     if( ret < 0 )
         return( ret );

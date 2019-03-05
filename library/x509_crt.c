@@ -265,7 +265,7 @@ int mbedtls_x509_crt_get_subject_alt_names( mbedtls_x509_crt const *crt,
     else
         ret = x509_crt_subject_alt_from_frame( frame, seq );
 
-    mbedtls_x509_crt_frame_release( crt, frame );
+    mbedtls_x509_crt_frame_release( crt );
 
     *subj_alt = seq;
     return( ret );
@@ -288,7 +288,7 @@ int mbedtls_x509_crt_get_ext_key_usage( mbedtls_x509_crt const *crt,
     else
         ret = x509_crt_ext_key_usage_from_frame( frame, seq );
 
-    mbedtls_x509_crt_frame_release( crt, frame );
+    mbedtls_x509_crt_frame_release( crt );
 
     *ext_key_usage = seq;
     return( ret );
@@ -311,7 +311,7 @@ int mbedtls_x509_crt_get_subject( mbedtls_x509_crt const *crt,
     else
         ret = x509_crt_subject_from_frame( frame, name );
 
-    mbedtls_x509_crt_frame_release( crt, frame );
+    mbedtls_x509_crt_frame_release( crt );
 
     *subject = name;
     return( ret );
@@ -334,7 +334,7 @@ int mbedtls_x509_crt_get_issuer( mbedtls_x509_crt const *crt,
     else
         ret = x509_crt_issuer_from_frame( frame, name );
 
-    mbedtls_x509_crt_frame_release( crt, frame );
+    mbedtls_x509_crt_frame_release( crt );
 
     *issuer = name;
     return( ret );
@@ -349,7 +349,7 @@ int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
     if( ret != 0 )
         return( ret );
     *dst = *frame;
-    mbedtls_x509_crt_frame_release( crt, frame );
+    mbedtls_x509_crt_frame_release( crt );
     return( 0 );
 }
 
@@ -374,7 +374,7 @@ int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
     mbedtls_free( crt->cache->pk );
     crt->cache->pk = NULL;
 
-    mbedtls_x509_crt_pk_release( crt, pk );
+    mbedtls_x509_crt_pk_release( crt );
     return( 0 );
 #endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
 }
@@ -2411,13 +2411,12 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
 {
     int ret;
     mbedtls_x509_crt_frame *frame;
-    ret = mbedtls_x509_crt_frame_acquire( crt,
-                                          (mbedtls_x509_crt_frame**) &frame );
+    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
     if( ret != 0 )
         return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
     ret = x509_crt_check_key_usage_frame( frame, usage );
-    mbedtls_x509_crt_frame_release( crt, (mbedtls_x509_crt_frame*) frame );
+    mbedtls_x509_crt_frame_release( crt );
 
     return( ret );
 }
@@ -2485,7 +2484,7 @@ int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
             ret = MBEDTLS_ERR_X509_BAD_INPUT_DATA;
     }
 
-    mbedtls_x509_crt_frame_release( crt, frame );
+    mbedtls_x509_crt_frame_release( crt );
     return( ret );
 }
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
@@ -2528,7 +2527,7 @@ int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt,
     ret = x509_serial_is_revoked( frame->serial.p,
                                   frame->serial.len,
                                   crl );
-    mbedtls_x509_crt_frame_release( crt, frame );
+    mbedtls_x509_crt_frame_release( crt );
     return( ret );
 }
 
@@ -2568,7 +2567,7 @@ static int x509_crt_verifycrl( unsigned char *crt_serial,
             can_sign = 1;
         }
 
-        mbedtls_x509_crt_frame_release( ca_crt, ca );
+        mbedtls_x509_crt_frame_release( ca_crt );
     }
 
     ret = mbedtls_x509_crt_pk_acquire( ca_crt, &pk );
@@ -2646,7 +2645,7 @@ static int x509_crt_verifycrl( unsigned char *crt_serial,
         crl_list = crl_list->next;
     }
 
-    mbedtls_x509_crt_pk_release( ca_crt, pk );
+    mbedtls_x509_crt_pk_release( ca_crt );
     return( flags );
 }
 #endif /* MBEDTLS_X509_CRL_PARSE_C */
@@ -2695,7 +2694,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt_sig_info *sig_info,
     }
 
 exit:
-    mbedtls_x509_crt_pk_release( parent, pk );
+    mbedtls_x509_crt_pk_release( parent );
     return( ret );
 }
 
@@ -2855,7 +2854,7 @@ check_signature:
                 path_len_ok = 1;
             }
 
-            mbedtls_x509_crt_frame_release( parent_crt, parent );
+            mbedtls_x509_crt_frame_release( parent_crt );
         }
 
         if( parent_match == 0 || path_len_ok == 0 )
@@ -3165,7 +3164,7 @@ find_parent:
                 /* Stop here for trusted roots (but not for trusted EE certs) */
                 if( child_is_trusted )
                 {
-                    mbedtls_x509_crt_frame_release( child_crt, child );
+                    mbedtls_x509_crt_frame_release( child_crt );
                     return( 0 );
                 }
 
@@ -3188,7 +3187,7 @@ find_parent:
                 if( ver_chain->len == 1 && self_issued &&
                     x509_crt_check_ee_locally_trusted( child, trust_ca ) == 0 )
                 {
-                    mbedtls_x509_crt_frame_release( child_crt, child );
+                    mbedtls_x509_crt_frame_release( child_crt );
                     return( 0 );
                 }
 
@@ -3197,7 +3196,7 @@ find_parent:
 #endif /* MBEDTLS_X509_CRL_PARSE_C */
 
                 ret = x509_crt_get_sig_info( child, &child_sig );
-                mbedtls_x509_crt_frame_release( child_crt, child );
+                mbedtls_x509_crt_frame_release( child_crt );
 
                 if( ret != 0 )
                     return( MBEDTLS_ERR_X509_FATAL_ERROR );
@@ -3261,7 +3260,7 @@ find_parent:
             if( x509_profile_check_key( profile, parent_pk ) != 0 )
                 *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
-            mbedtls_x509_crt_pk_release( parent_crt, parent_pk );
+            mbedtls_x509_crt_pk_release( parent_crt );
         }
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
@@ -3371,7 +3370,7 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
                                          x509_crt_check_name, (void*) cn );
     }
 
-    mbedtls_x509_crt_frame_release( crt, frame );
+    mbedtls_x509_crt_frame_release( crt );
 
     if( ret == 1 )
         return( 0 );
@@ -3479,7 +3478,7 @@ static int x509_crt_verify_restartable_ca_cb( mbedtls_x509_crt *crt,
         if( x509_profile_check_key( profile, pk ) != 0 )
             ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
-        mbedtls_x509_crt_pk_release( crt, pk );
+        mbedtls_x509_crt_pk_release( crt );
     }
 
     /* Check the chain */

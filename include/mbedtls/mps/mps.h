@@ -212,6 +212,11 @@ typedef uint8_t mbedtls_mps_connection_state_t;
  *    received our last outgoing flight. In this mode, we're sending
  *    retransmission requests on a timeout, but not necessarily fully
  *    retransmit our last outgoing flight.
+ *  - #MBEDTLS_MPS_FLIGHT_PREPARE
+ *    We're preparing out next outgoing flight. This is treated as a
+ *    separate state from #MBEDTLS_MPS_FLIGHT_SEND because we can potentially
+ *    temporarily free large parts of the MPS structure in that state,
+ *    allowing other costly operations to have more RAM available.
  *  - #MBEDTLS_MPS_FLIGHT_SEND,
  *    We're in the process of sending our next outgoing flight.
  *  - #MBEDTLS_MPS_FLIGHT_FINALIZE
@@ -222,8 +227,9 @@ typedef uint8_t mbedtls_mps_flight_state_t;
 #define MBEDTLS_MPS_FLIGHT_DONE     ( (mbedtls_mps_flight_state_t) ( 1u << 0 ) )
 #define MBEDTLS_MPS_FLIGHT_AWAIT    ( (mbedtls_mps_flight_state_t) ( 1u << 1 ) )
 #define MBEDTLS_MPS_FLIGHT_RECEIVE  ( (mbedtls_mps_flight_state_t) ( 1u << 2 ) )
-#define MBEDTLS_MPS_FLIGHT_SEND     ( (mbedtls_mps_flight_state_t) ( 1u << 3 ) )
-#define MBEDTLS_MPS_FLIGHT_FINALIZE ( (mbedtls_mps_flight_state_t) ( 1u << 4 ) )
+#define MBEDTLS_MPS_FLIGHT_PREPARE  ( (mbedtls_mps_flight_state_t) ( 1u << 3 ) )
+#define MBEDTLS_MPS_FLIGHT_SEND     ( (mbedtls_mps_flight_state_t) ( 1u << 4 ) )
+#define MBEDTLS_MPS_FLIGHT_FINALIZE ( (mbedtls_mps_flight_state_t) ( 1u << 5 ) )
 
 /* This works only if the values have no bit in common.
  * I'd expect it to generate slightly smaller code. Is it actually true? */

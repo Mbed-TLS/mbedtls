@@ -419,7 +419,8 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
     {
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
         /* Reject read requests when sending flights. */
-        if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_SEND )
+        if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_SEND ||
+            mps->dtls.state == MBEDTLS_MPS_FLIGHT_PREPARE )
         {
             TRACE( trace_error, "Refuse read request when sending flights." );
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
@@ -1367,7 +1368,8 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
         /* No `else` because we want to fall through. */
         if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_DONE )
         {
-            TRACE( trace_comment, "No flight-exchange in progress." );
+            TRACE( trace_comment, "No flight-exchange in progress. Start a new one" );
+
             /* It is possible that we have already received some handshake
              * message fragments from the peer -- delete these. See the
              * documentation of mbedtls_mps_retransmission_handle_incoming_fragment()
@@ -2814,7 +2816,7 @@ MBEDTLS_MPS_STATIC int mps_retransmission_finish_incoming_message( mbedtls_mps *
 
     if( flags == MBEDTLS_MPS_FLIGHT_END )
     {
-        TRACE( trace_comment, "Incoming message ends a flight. Switch to SEND state." );
+        TRACE( trace_comment, "Incoming message ends a flight. Switch to PREPARE state." );
         /* Clear the reassembly module; this fails if we attempt
          * to close a flight if there are still some future messages
          * buffered; this could happen e.g. if a Client sends its
@@ -2834,9 +2836,9 @@ MBEDTLS_MPS_STATIC int mps_retransmission_finish_incoming_message( mbedtls_mps *
          *       for more. */
         MPS_CHK( mps_out_flight_forget( mps ) );
 
-        /* Switch to sending state, but keep memory of last
+        /* Switch to prepare state, but keep memory of last
          * incoming flight intact. */
-        mps->dtls.state = MBEDTLS_MPS_FLIGHT_SEND;
+        mps->dtls.state = MBEDTLS_MPS_FLIGHT_PREPARE;
     }
     else if( flags == MBEDTLS_MPS_FLIGHT_FINISHED )
     {

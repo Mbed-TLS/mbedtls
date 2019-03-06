@@ -356,7 +356,7 @@ typedef psa_status_t (*psa_drv_accel_mac_verify_t)(const uint8_t *p_input,
  * - `psa_drv_accel_cipher_update_t`
  * - ...
  * - `psa_drv_accel_cipher_finish_t`
-
+ *
  * If a previously started hardware-accelerated Cipher operation needs to be
  * terminated, it should be done so by the `psa_drv_accel_cipher_abort_t`.
  * Failure to do so may result in allocated resources not being freed or in
@@ -554,7 +554,7 @@ typedef psa_status_t (*psa_drv_accel_cipher_abort_t)(psa_drv_accel_cipher_contex
  *                                      the `ciphertext` buffer
  *
  * \retval #PSA_SUCCESS
-
+ *
  */
 typedef psa_status_t (*psa_drv_accel_aead_encrypt_t)(const uint8_t *p_key,
                                                      size_t key_length,

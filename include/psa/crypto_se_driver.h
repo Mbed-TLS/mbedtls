@@ -136,7 +136,7 @@ typedef psa_status_t (*psa_drv_se_mac_finish_verify_t)(void *p_context,
 
 /** \brief A function that aborts a previous started secure element MAC
  * operation
-
+ *
  * \param[in,out] p_context A hardware-specific structure for the previously
  *                          started MAC operation to be aborted
  */
@@ -247,7 +247,7 @@ typedef struct {
  * - `psa_drv_se_cipher_update_t`
  * - ...
  * - `psa_drv_se_cipher_finish_t`
-
+ *
  * If a previously started secure element Cipher operation needs to be
  * terminated, it should be done so by the `psa_drv_se_cipher_abort_t`. Failure
  * to do so may result in allocated resources not being freed or in other
@@ -791,15 +791,15 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
  * \param[out] p_pubkey_length  Upon successful completion, will contain the
  *                              size of the data placed in `p_pubkey_out`.
  */
-typedef psa_status_t (*psa_drv_se_generate_key_t) (psa_key_slot_number_t key_slot,
-                                                   psa_key_type_t type,
-                                                   psa_key_usage_t usage,
-                                                   size_t bits,
-                                                   const void *extra,
-                                                   size_t extra_size,
-                                                   uint8_t *p_pubkey_out,
-                                                   size_t pubkey_out_size,
-                                                   size_t *p_pubkey_length);
+typedef psa_status_t (*psa_drv_se_generate_key_t)(psa_key_slot_number_t key_slot,
+                                                  psa_key_type_t type,
+                                                  psa_key_usage_t usage,
+                                                  size_t bits,
+                                                  const void *extra,
+                                                  size_t extra_size,
+                                                  uint8_t *p_pubkey_out,
+                                                  size_t pubkey_out_size,
+                                                  size_t *p_pubkey_length);
 
 /**
  * \brief A struct containing all of the function pointers needed to for secure

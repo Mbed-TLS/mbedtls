@@ -2226,15 +2226,11 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
              * benefit of simplifying the call to mps_bitmask_set() below
              * as well as the implementation of mps_bitmask_check(). */
             bitmask_len = msg_len / 8 + 2;
-            bitmask     = mbedtls_calloc( 1, bitmask_len );
-            buf         = mbedtls_calloc( 1, msg_len );
+            buf         = mbedtls_calloc( 1, msg_len + bitmask_len );
+            bitmask     = buf + msg_len;
 
-            if( bitmask == NULL || buf == NULL )
-            {
-                mbedtls_free( bitmask );
-                mbedtls_free( buf );
+            if( buf == NULL )
                 MPS_CHK( MBEDTLS_ERR_MPS_OUT_OF_MEMORY );
-            }
 
             memset( bitmask, 0xFF, bitmask_len );
             mps_bitmask_set( bitmask, msg_len, 8 );
@@ -2290,7 +2286,6 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
             {
                 /* Free bitmask to indicate that the message is complete. */
                 TRACE( trace_comment, "Message fully reassembled." );
-                mbedtls_free( bitmask );
                 reassembly->data.window.bitmask = NULL;
                 MPS_CHK( mps_reassembly_next_msg_complete( mps ) );
             }

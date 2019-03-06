@@ -202,6 +202,17 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
  */
 //#define MBEDTLS_MPS_INTERNAL_SMALL_TYPES
 
+/*! This determines whether structure fields always use the
+ *  smallest possible type to hold the possible values.
+ *
+ *  This is just to make it easier to investigate the effect
+ *  on code size that the choice of integer type has.
+ *
+ *  Enabling this significantly reduces RAM usage of MPS structures,
+ *  but slightly increases its code-size.
+ */
+#define MBEDTLS_MPS_STORED_SMALL_TYPES
+
 typedef uint8_t mbedtls_mps_transport_type;
 /* MBEDTLS_SSL_TRANSPORT_STREAM   */
 #define MBEDTLS_MPS_MODE_STREAM   ((mbedtls_mps_transport_type) 0)
@@ -244,7 +255,12 @@ typedef uint8_t mbedtls_mps_transport_type;
  * \note     The values are aligned to the ContentType field in [D]TLS records.
  */
 
+#if defined(MBEDTLS_MPS_STORED_SMALL_TYPES)
 typedef uint8_t mbedtls_mps_stored_msg_type_t;
+#else
+typedef unsigned mbedtls_mps_stored_msg_type_t;
+#endif /* MBEDTLS_MPS_STORED_SMALL_TYPES */
+
 #if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
 typedef mbedtls_mps_stored_msg_type_t mbedtls_mps_msg_type_t;
 #else
@@ -268,7 +284,12 @@ typedef uint_fast8_t mbedtls_mps_msg_type_t;
 #define MBEDTLS_MPS_MSG_MAX ( (mbedtls_mps_msg_type_t) 31 )
 
 /* TODO: Document */
+#if defined(MBEDTLS_MPS_STORED_SMALL_TYPES)
 typedef uint8_t mbedtls_mps_stored_hs_type;
+#else
+typedef unsigned mbedtls_mps_stored_hs_type;
+#endif /* MBEDTLS_MPS_STORED_SMALL_TYPES */
+
 #if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
 typedef mbedtls_mps_stored_hs_type mbedtls_mps_hs_type;
 #else
@@ -277,7 +298,12 @@ typedef uint_fast8_t mbedtls_mps_hs_type;
 
 
 /** \brief The type of epoch IDs. */
+#if defined(MBEDTLS_MPS_STORED_SMALL_TYPES)
 typedef int8_t mbedtls_mps_stored_epoch_id;
+#else
+typedef int mbedtls_mps_stored_epoch_id;
+#endif /* MBEDTLS_MPS_STORED_SMALL_TYPES */
+
 #if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
 typedef mbedtls_mps_stored_epoch_id mbedtls_mps_epoch_id;
 #else
@@ -302,7 +328,12 @@ typedef int_fast8_t mbedtls_mps_epoch_id;
  *           than ::mbedtls_mps_stored_hs_seq_nr_t here because of
  *           potential truncation during conversion.
  */
+#if defined(MBEDTLS_MPS_STORED_SMALL_TYPES)
 typedef uint8_t mbedtls_mps_stored_hs_seq_nr_t;
+#else
+typedef unsigned mbedtls_mps_stored_hs_seq_nr_t;
+#endif /* MBEDTLS_MPS_STORED_SMALL_TYPES */
+
 #define MBEDTLS_MPS_HS_SEQ_MAX ( (mbedtls_mps_stored_hs_seq_nr_t) -1 )
 
 /** \brief   The type of handshake sequence numbers used
@@ -332,8 +363,14 @@ typedef uint_fast8_t mbedtls_mps_hs_seq_nr_t;
  *           potential truncation during conversion.
  *
  */
+#if defined(MBEDTLS_MPS_STORED_SMALL_TYPES)
 typedef uint16_t mbedtls_mps_stored_size_t;
 typedef int16_t mbedtls_mps_stored_opt_size_t;
+#else
+typedef unsigned mbedtls_mps_stored_size_t;
+typedef int mbedtls_mps_stored_opt_size_t;
+#endif /* MBEDTLS_MPS_STORED_SMALL_TYPES */
+
 #define MBEDTLS_MPS_SIZE_MAX ( (mbedtls_mps_stored_size_t) -1 )
 #define MBEDTLS_MPS_SIZE_UNKNOWN ( (mbedtls_mps_stored_opt_size_t) -1 )
 

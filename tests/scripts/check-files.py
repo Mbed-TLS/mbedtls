@@ -21,17 +21,11 @@ class FileIssueTracker(object):
     """Base class for file-wide issue tracking.
 
     To implement a checker that processes a file as a whole, inherit from
-    this class and implement `check_file_for_issue` and define ``description``.
+    this class and implement `check_file_for_issue`.
 
     If a checker should omit certain files based on their names, override
     `should_check_file` accordingly.
-
-    ``decription``: human-readable description of the issue
     """
-
-    # description must be defined in derived classes that don't pass
-    # the ``description`` optional argument to `record_issue`.
-    # pylint: disable=no-member
 
     def __init__(self, issue_collection):
         self.issue_collection = issue_collection
@@ -43,11 +37,11 @@ class FileIssueTracker(object):
         return True
 
     def check_file_for_issue(self, filepath):
+        """If `filepath` has issues, call `record_issue` on each instance
+        of the issue."""
         raise NotImplementedError
 
-    def record_issue(self, filepath, line_number, description=None):
-        if description is None:
-            description = self.description # get subclass's description field
+    def record_issue(self, filepath, line_number, description):
         if filepath not in self.issue_collection:
             self.issue_collection[filepath] = []
         self.issue_collection[filepath].append((line_number, description))
@@ -95,13 +89,13 @@ class PermissionIssueTracker(FileIssueTracker):
 
     Files that are not executable scripts must not be executable."""
 
-    description = "Incorrect permissions"
-
     def check_file_for_issue(self, filepath):
         is_executable = os.access(filepath, os.X_OK)
         should_be_executable = filepath.endswith((".sh", ".pl", ".py"))
-        if is_executable != should_be_executable:
-            self.record_issue(filepath, 0)
+        if is_executable and not should_be_executable:
+            self.record_issue(filepath, 0, "File should not be executable")
+        elif not is_executable and should_be_executable:
+            self.record_issue(filepath, 0, "File should be executable")
 
 
 class EndOfFileNewlineIssueTracker(LineIssueTracker):

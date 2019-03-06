@@ -3,8 +3,6 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
 Bugfix
-   * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
-     used with negative inputs. Found by Guido Vranken in #2404.
    * Fix a compilation issue with mbedtls_ecp_restart_ctx not being defined
      when MBEDTLS_ECP_ALT is defined. Reported by jwhui. Fixes #2242.
    * Run the AD too long test only if MBEDTLS_CCM_ALT is not defined.
@@ -21,6 +19,8 @@ Bugfix
      in X.509 module. Fixes #2212.
    * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
      Fixes #2190.
+   * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
+     used with negative inputs. Found by Guido Vranken in #2404.
 
 Changes
    * Include configuration file in all header files that use configuration,

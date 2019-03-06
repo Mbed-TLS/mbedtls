@@ -1043,34 +1043,6 @@ component_test_platform_calloc_macro () {
     make test
 }
 
-component_test_aes_fewer_tables () {
-    msg "build: default config with AES_FEWER_TABLES enabled"
-    scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
-
-    msg "test: AES_FEWER_TABLES"
-    make test
-}
-
-component_test_aes_rom_tables () {
-    msg "build: default config with AES_ROM_TABLES enabled"
-    scripts/config.pl set MBEDTLS_AES_ROM_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
-
-    msg "test: AES_ROM_TABLES"
-    make test
-}
-
-component_test_aes_fewer_tables_and_rom_tables () {
-    msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
-    scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
-    scripts/config.pl set MBEDTLS_AES_ROM_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
-
-    msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
-    make test
-}
-
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check
@@ -1118,60 +1090,6 @@ support_test_mx32 () {
         amd64|x86_64) true;;
         *) false;;
     esac
-}
-
-component_test_min_mpi_window_size () {
-    msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
-    scripts/config.pl set MBEDTLS_MPI_WINDOW_SIZE 1
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
-    make test
-}
-
-component_test_have_int32 () {
-    msg "build: gcc, force 32-bit bignum limbs"
-    scripts/config.pl unset MBEDTLS_HAVE_ASM
-    scripts/config.pl unset MBEDTLS_AESNI_C
-    scripts/config.pl unset MBEDTLS_PADLOCK_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
-
-    msg "test: gcc, force 32-bit bignum limbs"
-    make test
-}
-
-component_test_have_int64 () {
-    msg "build: gcc, force 64-bit bignum limbs"
-    scripts/config.pl unset MBEDTLS_HAVE_ASM
-    scripts/config.pl unset MBEDTLS_AESNI_C
-    scripts/config.pl unset MBEDTLS_PADLOCK_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
-
-    msg "test: gcc, force 64-bit bignum limbs"
-    make test
-}
-
-component_test_no_udbl_division () {
-    msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
-    make CFLAGS='-Werror -O1'
-
-    msg "test: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
-    make test
-}
-
-component_test_no_64bit_multiplication () {
-    msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
-    make CFLAGS='-Werror -O1'
-
-    msg "test: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
-    make test
 }
 
 component_build_arm_none_eabi_gcc () {

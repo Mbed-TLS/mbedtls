@@ -81,8 +81,9 @@ class ContentIssueTracker(FileIssueTracker):
                         if tracker.should_check_file(basename)]
             for i, line in enumerate(iter(f.readline, b"")):
                 for tracker in trackers:
-                    if tracker.issue_with_line(line):
-                        self.record_issue(filepath, i + 1, tracker.description)
+                    description = tracker.issue_with_line(line)
+                    if description is not None:
+                        self.record_issue(filepath, i + 1, description)
 
 class PermissionIssueTracker(FileIssueTracker):
     """Track files with bad permissions.
@@ -102,48 +103,42 @@ class EndOfFileNewlineIssueTracker(LineIssueTracker):
     """Track files that end with an incomplete line
     (no newline character at the end of the last line)."""
 
-    description = "Missing newline at end of file"
-
     def issue_with_line(self, line):
-        return not line.endswith(b"\n")
+        if not line.endswith(b"\n"):
+            return "Missing newline at end of file"
 
 
 class Utf8BomIssueTracker(LineIssueTracker):
     """Track files that contain a line that starts with a UTF-8 BOM.
     Files should be ASCII or UTF-8. Valid UTF-8 does not contain BOM."""
 
-    description = "UTF-8 BOM present"
-
     def issue_with_line(self, line):
-        return line.startswith(codecs.BOM_UTF8)
+        if line.startswith(codecs.BOM_UTF8):
+            return "UTF-8 BOM present"
 
 
 class LineEndingIssueTracker(LineIssueTracker):
     """Track files with non-Unix line endings (i.e. files with CR)."""
 
-    description = "Non-Unix line ending"
-
     def issue_with_line(self, line):
-        return b"\r" in line
+        if b"\r" in line:
+            return "Non-Unix line ending"
 
 
 class TrailingWhitespaceIssueTracker(LineIssueTracker):
     """Track lines with trailing whitespace."""
-
-    description = "Trailing whitespace"
 
     @staticmethod
     def should_check_file(filepath):
         return not filepath.endswith('.md')
 
     def issue_with_line(self, line):
-        return line.rstrip(b"\r\n") != line.rstrip()
+        if line.rstrip(b"\r\n") != line.rstrip():
+            return "Trailing whitespace"
 
 
 class TabIssueTracker(LineIssueTracker):
     """Track lines with tabs."""
-
-    description = "Tab(s) present"
 
     @staticmethod
     def should_check_file(basename):
@@ -151,25 +146,22 @@ class TabIssueTracker(LineIssueTracker):
                     basename == 'generate_visualc_files.pl')
 
     def issue_with_line(self, line):
-        return b"\t" in line
+        if b"\t" in line:
+            return "Tab(s) present"
 
 
 class MergeArtifactIssueTracker(LineIssueTracker):
     """Track lines with merge artifacts.
     These are leftovers from a ``git merge`` that wasn't fully edited."""
 
-    description = "Merge artifact"
-
     def issue_with_line(self, line):
         # Detect leftover git conflict markers.
-        if line.startswith(b'<<<<<<< ') or line.startswith(b'>>>>>>> '):
-            return True
-        if line.startswith(b'||||||| '): # from merge.conflictStyle=diff3
-            return True
-        if line.rstrip(b'\r\n') == b'=======' and \
-           not self.filepath.endswith('.md'):
-            return True
-        return False
+        if (line.startswith(b'<<<<<<< ') or
+            line.startswith(b'||||||| ') or # from merge.conflictStyle=diff3
+            (line.rstrip(b'\r\n') == b'=======' and
+             not self.filepath.endswith('.md')) or
+            line.startswith(b'>>>>>>> ')):
+            return "Merge artifact"
 
 
 class IntegrityChecker(object):

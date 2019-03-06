@@ -23,13 +23,12 @@ class FileIssueTracker(object):
     To implement a checker that processes a file as a whole, inherit from
     this class and implement `check_file_for_issue` and define ``description``.
 
-    ``files_exemptions``: files whose name ends with a string in this set
-     will not be checked.
+    If a checker should omit certain files based on their names, override
+    `should_check_file` accordingly.
 
     ``decription``: human-readable description of the issue
     """
 
-    files_exemptions = frozenset()
     # description must be defined in derived classes that don't pass
     # the ``description`` optional argument to `record_issue`.
     # pylint: disable=no-member
@@ -37,10 +36,10 @@ class FileIssueTracker(object):
     def __init__(self, issue_collection):
         self.issue_collection = issue_collection
 
-    def should_check_file(self, filepath):
-        for files_exemption in self.files_exemptions:
-            if filepath.endswith(files_exemption):
-                return False
+    @staticmethod
+    def should_check_file(_filepath):
+        """If a file issue tracker should omit certain files, override this
+        method to return False on the files to omit."""
         return True
 
     def check_file_for_issue(self, filepath):
@@ -246,7 +245,8 @@ class IntegrityChecker(object):
                 if not filepath.endswith(self.files_to_check):
                     continue
                 for issue_to_check in self.issues_to_check:
-                    if issue_to_check.should_check_file(filepath):
+                    basename = os.path.basename(filepath)
+                    if issue_to_check.should_check_file(basename):
                         issue_to_check.check_file_for_issue(filepath)
 
     def output_issues(self):

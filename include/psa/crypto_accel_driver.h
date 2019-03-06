@@ -381,7 +381,7 @@ typedef struct psa_drv_accel_cipher_context_s psa_drv_accel_cipher_context_t;
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
  * - `MODE` is the block mode of the cipher operation (i.e. CBC or CTR)
- * 
+ *
  * For stream ciphers:
  * ~~~~~~~~~~~~~{.c}
  * psa_drv_accel_cipher_setup_<CIPHER_NAME>
@@ -643,10 +643,10 @@ typedef psa_status_t (*psa_drv_accel_aead_decrypt_t)(const uint8_t *p_key,
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the signing algorithm
  *
- * This function supports any asymmetric-key output from psa_export_key() as 
+ * This function supports any asymmetric-key output from psa_export_key() as
  * the buffer in \ref p_key. Refer to the documentation of \ref
  * psa_export_key() for the formats.
- * 
+ *
  * \param[in] p_key                 A buffer containing the private key
  *                                  material
  * \param[in] key_size              The size in bytes of the `p_key` data
@@ -686,7 +686,7 @@ typedef psa_status_t (*psa_drv_accel_asymmetric_sign_t)(const uint8_t *p_key,
  * buffer in \ref p_key. Refer to the documentation of \ref
  * psa_export_public_key() for the format of public keys and to the
  * documentation of \ref psa_export_key() for the format for other key types.
- * 
+ *
  * \param[in] p_key             A buffer containing the public key material
  * \param[in] key_size          The size in bytes of the `p_key` data
  * \param[in] alg               A signature algorithm that is compatible with
@@ -719,7 +719,7 @@ typedef psa_status_t (*psa_drv_accel_asymmetric_verify_t)(const uint8_t *p_key,
  * psa_drv_accel_asymmetric_<ALGO>_encrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the encryption algorithm
- * 
+ *
  * This function supports any output from \ref psa_export_public_key() as the
  * buffer in \ref p_key. Refer to the documentation of \ref
  * psa_export_public_key() for the format of public keys and to the
@@ -772,8 +772,8 @@ typedef psa_status_t (*psa_drv_accel_asymmetric_encrypt_t)(const uint8_t *p_key,
  * psa_drv_accel_asymmetric_<ALGO>_decrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the encryption algorithm
- * 
- * This function supports any asymmetric-key output from psa_export_key() as 
+ *
+ * This function supports any asymmetric-key output from psa_export_key() as
  * the buffer in \ref p_key. Refer to the documentation of \ref
  * psa_export_key() for the formats.
  *

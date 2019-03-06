@@ -766,16 +766,16 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
 /**
  * \brief A function that generates a symmetric or asymmetric key on a secure
  * element
- * 
- * If `type` is asymmetric (`#define PSA_KEY_TYPE_IS_ASYMMETRIC(type) == 1`), 
+ *
+ * If `type` is asymmetric (`#define PSA_KEY_TYPE_IS_ASYMMETRIC(type) == 1`),
  * the public component of the generated key will be placed in `p_pubkey_out`.
  * The format of the public key information will match the format specified for
  * the `psa_export_key()` function for the key type.
- * 
+ *
  * \param[in] key_slot      Slot where the generated key will be placed
  * \param[in] type          The type of the key to be generated
  * \param[in] usage         The prescribed usage of the generated key
- *                          Note: Not all Secure Elements support the same 
+ *                          Note: Not all Secure Elements support the same
  *                          restrictions that PSA Crypto does (and vice versa).
  *                          Driver developers should endeavor to match the
  *                          usages as close as possible.
@@ -785,7 +785,7 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
  *                          interpretation in the `extra` parameter is the
  *                          `psa_generate_key` function
  * \param[in] extra_size    The size in bytes of the \ref extra buffer
- * \param[out] p_pubkey_out The buffer where the public key information will 
+ * \param[out] p_pubkey_out The buffer where the public key information will
  *                          be placed
  * \param[in] pubkey_out_size   The size in bytes of the `p_pubkey_out` buffer
  * \param[out] p_pubkey_length  Upon successful completion, will contain the
@@ -909,7 +909,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(void *p_context,
 
 /** \brief A function that performs the final secure element key derivation
  * step and place the generated key material in a slot
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure containing any
  *                              context information for the implementation
  * \param[in] dest_key          The slot where the generated key material

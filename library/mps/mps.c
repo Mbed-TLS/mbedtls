@@ -2239,7 +2239,6 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
             memset( bitmask, 0xFF, bitmask_len );
             mps_bitmask_set( bitmask, msg_len, 8 );
 
-            reassembly->data.window.bitmask_len = bitmask_len;
             reassembly->data.window.bitmask     = bitmask;
             reassembly->data.window.buf_len     = msg_len;
             reassembly->data.window.buf         = buf;

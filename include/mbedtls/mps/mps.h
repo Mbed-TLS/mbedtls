@@ -922,8 +922,6 @@ struct mbedtls_mps
                                                  *   the state of reassembly. */
                         /*! The size of \c buf.                   */
                         mbedtls_mps_stored_size_t buf_len;
-                        /*! The length of the reassembly bitmask. */
-                        mbedtls_mps_stored_size_t bitmask_len;
                     } window;
 
                 } data;

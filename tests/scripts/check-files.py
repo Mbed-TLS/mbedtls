@@ -156,11 +156,12 @@ class MergeArtifactIssueTracker(LineIssueTracker):
 
     def issue_with_line(self, line):
         # Detect leftover git conflict markers.
-        if (line.startswith(b'<<<<<<< ') or
-            line.startswith(b'||||||| ') or # from merge.conflictStyle=diff3
-            (line.rstrip(b'\r\n') == b'=======' and
-             not self.filepath.endswith('.md')) or
-            line.startswith(b'>>>>>>> ')):
+        if line.startswith((b'<<<<<<< ',
+                            b'||||||| ', # from merge.conflictStyle=diff3
+                            b'>>>>>>> ')):
+            return "Merge artifact"
+        if not self.filepath.endswith('.md') and \
+           line.rstrip(b'\r\n') == b'=======':
             return "Merge artifact"
 
 

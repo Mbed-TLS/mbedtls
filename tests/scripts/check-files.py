@@ -104,29 +104,24 @@ class PermissionIssueTracker(FileIssueTracker):
             self.record_issue(filepath, 0)
 
 
-class EndOfFileNewlineIssueTracker(FileIssueTracker):
+class EndOfFileNewlineIssueTracker(LineIssueTracker):
     """Track files that end with an incomplete line
     (no newline character at the end of the last line)."""
 
     description = "Missing newline at end of file"
 
-    def check_file_for_issue(self, filepath):
-        with open(filepath, "rb") as f:
-            content = f.read()
-            if not content.endswith(b"\n"):
-                self.record_issue(filepath, content.count(b"\n") + 1)
+    def issue_with_line(self, line):
+        return not line.endswith(b"\n")
 
 
-class Utf8BomIssueTracker(FileIssueTracker):
-    """Track files that start with a UTF-8 BOM.
-    Files should be ASCII or UTF-8. Valid UTF-8 does not start with a BOM."""
+class Utf8BomIssueTracker(LineIssueTracker):
+    """Track files that contain a line that starts with a UTF-8 BOM.
+    Files should be ASCII or UTF-8. Valid UTF-8 does not contain BOM."""
 
     description = "UTF-8 BOM present"
 
-    def check_file_for_issue(self, filepath):
-        with open(filepath, "rb") as f:
-            if f.read().startswith(codecs.BOM_UTF8):
-                self.record_issue(filepath, 1)
+    def issue_with_line(self, line):
+        return line.startswith(codecs.BOM_UTF8)
 
 
 class LineEndingIssueTracker(LineIssueTracker):
@@ -205,9 +200,9 @@ class IntegrityChecker(object):
         self.issues = {}
         self.issues_to_check = [
             PermissionIssueTracker(self.issues),
-            EndOfFileNewlineIssueTracker(self.issues),
-            Utf8BomIssueTracker(self.issues),
             ContentIssueTracker(self.issues, [
+                EndOfFileNewlineIssueTracker,
+                Utf8BomIssueTracker,
                 LineEndingIssueTracker,
                 TrailingWhitespaceIssueTracker,
                 TabIssueTracker,

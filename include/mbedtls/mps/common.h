@@ -139,6 +139,16 @@
 typedef uint8_t mbedtls_mps_epoch_offset_t;
 #define MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE ( (mbedtls_mps_epoch_offset_t) 2 )
 
+/*! Whether MPS should support epoch window shifting.
+ *
+ *  Commenting this saves code and a bit of RAM, but
+ *  means that no more than MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE
+ *  epochs can be configured in MPS.
+ *
+ *  In practice, you may comment this if you don't need renegotiation.
+ */
+#define MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING
+
 #if defined(MBEDTLS_MPS_NO_STATIC_FUNCTIONS)
 #define MBEDTLS_MPS_STATIC
 #define MBEDTLS_MPS_INLINE

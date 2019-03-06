@@ -2741,6 +2741,17 @@ int l2_epoch_check( mbedtls_mps_l2 *ctx,
  * dispatched, which is only possible in TLS. This explains the checks below.
  *
  */
+#if !defined(MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING)
+
+MBEDTLS_MPS_STATIC
+int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
+{
+    ((void) ctx);
+    return( 0 );
+}
+
+#else /* MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING */
+
 MBEDTLS_MPS_STATIC
 int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
 {
@@ -2903,6 +2914,7 @@ int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     TRACE( trace_comment, "Epoch cleanup done" );
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING */
 
 MBEDTLS_MPS_STATIC
 int l2_epoch_lookup( mbedtls_mps_l2 *ctx,

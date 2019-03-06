@@ -5883,11 +5883,20 @@ void mbedtls_mps_l2_many_epochs( int mode,
 
         ret = mps_l2_epoch_add( &cli, epochs_c[rd + 1],
                                 &next_cli_epoch);
+#if defined(MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING)
         if( rd + 1 >= MBEDTLS_MPS_EPOCH_MAX )
         {
             TEST_ASSERT( ret == MPS_ERR_EPOCH_OVERFLOW );
             break;
         }
+#else
+        if( rd + 1 >= MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE )
+        {
+            TEST_ASSERT( ret == MPS_ERR_EPOCH_WINDOW_EXCEEDED );
+            break;
+        }
+#endif
+
         else
             TEST_ASSERT( ret == 0 );
 

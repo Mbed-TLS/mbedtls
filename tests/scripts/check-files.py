@@ -30,7 +30,8 @@ class FileIssueTracker(object):
     """
 
     files_exemptions = frozenset()
-    # description must be defined in derived classes.
+    # description must be defined in derived classes that don't pass
+    # the ``description`` optional argument to `record_issue`.
     # pylint: disable=no-member
 
     def __init__(self, issue_collection):
@@ -45,29 +46,50 @@ class FileIssueTracker(object):
     def check_file_for_issue(self, filepath):
         raise NotImplementedError
 
-    def record_issue(self, filepath, line_number):
+    def record_issue(self, filepath, line_number, description=None):
+        if description is None:
+            description = self.description # get subclass's description field
         if filepath not in self.issue_collection:
             self.issue_collection[filepath] = []
-        self.issue_collection[filepath].append((line_number, self.description))
+        self.issue_collection[filepath].append((line_number, description))
 
-class LineIssueTracker(FileIssueTracker):
-    """Base class for line-by-line issue tracking.
+class LineIssueTracker(object):
+    """Class for line-by-line issue tracking.
 
     To implement a checker that processes files line by line, inherit from
     this class and implement `line_with_issue`.
     """
 
-    def issue_with_line(self, line, filepath):
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+    @staticmethod
+    def should_check_file(_basename):
+        """If a line issue tracker should omit certain files, override this
+        method to return False on the files to omit. Files are identified
+        by their basename."""
+        return True
+
+    def issue_with_line(self, line):
         raise NotImplementedError
 
-    def check_file_line(self, filepath, line, line_number):
-        if self.issue_with_line(line, filepath):
-            self.record_issue(filepath, line_number)
+class ContentIssueTracker(FileIssueTracker):
+    """Class for line-by-line issue tracking.
+    """
+
+    def __init__(self, issue_collection, trackers):
+        super().__init__(issue_collection)
+        self.trackers = trackers
 
     def check_file_for_issue(self, filepath):
+        basename = os.path.basename(filepath)
         with open(filepath, "rb") as f:
+            trackers = [tracker(filepath) for tracker in self.trackers
+                        if tracker.should_check_file(basename)]
             for i, line in enumerate(iter(f.readline, b"")):
-                self.check_file_line(filepath, line, i + 1)
+                for tracker in trackers:
+                    if tracker.issue_with_line(line, filepath):
+                        self.record_issue(filepath, i + 1, tracker.description)
 
 class PermissionIssueTracker(FileIssueTracker):
     """Track files with bad permissions.
@@ -121,7 +143,10 @@ class TrailingWhitespaceIssueTracker(LineIssueTracker):
     """Track lines with trailing whitespace."""
 
     description = "Trailing whitespace"
-    files_exemptions = frozenset(".md")
+
+    @staticmethod
+    def should_check_file(filepath):
+        return not filepath.endswith('.md')
 
     def issue_with_line(self, line, _filepath):
         return line.rstrip(b"\r\n") != line.rstrip()
@@ -131,10 +156,11 @@ class TabIssueTracker(LineIssueTracker):
     """Track lines with tabs."""
 
     description = "Tab(s) present"
-    files_exemptions = frozenset([
-        "Makefile",
-        "generate_visualc_files.pl",
-    ])
+
+    @staticmethod
+    def should_check_file(basename):
+        return not (basename.endswith('Makefile') or
+                    basename == 'generate_visualc_files.pl')
 
     def issue_with_line(self, line, _filepath):
         return b"\t" in line
@@ -179,15 +205,16 @@ class IntegrityChecker(object):
         ]))
         self.issues = {}
         self.issues_to_check = [
-            tracker(self.issues) for tracker in [
-                PermissionIssueTracker,
-                EndOfFileNewlineIssueTracker,
-                Utf8BomIssueTracker,
+            PermissionIssueTracker(self.issues),
+            EndOfFileNewlineIssueTracker(self.issues),
+            Utf8BomIssueTracker(self.issues),
+            ContentIssueTracker(self.issues, [
                 LineEndingIssueTracker,
                 TrailingWhitespaceIssueTracker,
                 TabIssueTracker,
                 MergeArtifactIssueTracker,
-            ]]
+            ])
+        ]
 
     @staticmethod
     def check_repo_path():

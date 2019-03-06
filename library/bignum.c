@@ -560,7 +560,7 @@ int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix,
     if( radix >= 16 ) n >>= 1;   /* Number of hexadecimal digits necessary to
                                   * present `n`. */
 
-    n += 1; /* NULL termination */
+    n += 1; /* Terminating null byte */
     n += 1; /* Compensate for the divisions above, which round down `n`
              * in case it's not even. */
     n += 1; /* Potential '-'-sign. */

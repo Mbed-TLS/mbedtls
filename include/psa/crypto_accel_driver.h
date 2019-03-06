@@ -644,7 +644,7 @@ typedef psa_status_t (*psa_drv_accel_aead_decrypt_t)(const uint8_t *p_key,
  * Where `ALGO` is the name of the signing algorithm
  *
  * This function supports any asymmetric-key output from psa_export_key() as
- * the buffer in \ref p_key. Refer to the documentation of \ref
+ * the buffer in \p p_key. Refer to the documentation of \ref
  * psa_export_key() for the formats.
  *
  * \param[in] p_key                 A buffer containing the private key
@@ -683,7 +683,7 @@ typedef psa_status_t (*psa_drv_accel_asymmetric_sign_t)(const uint8_t *p_key,
  * Where `ALGO` is the name of the signing algorithm
  *
  * This function supports any output from \ref psa_export_public_key() as the
- * buffer in \ref p_key. Refer to the documentation of \ref
+ * buffer in \p p_key. Refer to the documentation of \ref
  * psa_export_public_key() for the format of public keys and to the
  * documentation of \ref psa_export_key() for the format for other key types.
  *
@@ -721,7 +721,7 @@ typedef psa_status_t (*psa_drv_accel_asymmetric_verify_t)(const uint8_t *p_key,
  * Where `ALGO` is the name of the encryption algorithm
  *
  * This function supports any output from \ref psa_export_public_key() as the
- * buffer in \ref p_key. Refer to the documentation of \ref
+ * buffer in \p p_key. Refer to the documentation of \ref
  * psa_export_public_key() for the format of public keys and to the
  * documentation of \ref psa_export_key() for the format for other key types.
  *
@@ -774,7 +774,7 @@ typedef psa_status_t (*psa_drv_accel_asymmetric_encrypt_t)(const uint8_t *p_key,
  * Where `ALGO` is the name of the encryption algorithm
  *
  * This function supports any asymmetric-key output from psa_export_key() as
- * the buffer in \ref p_key. Refer to the documentation of \ref
+ * the buffer in \p p_key. Refer to the documentation of \ref
  * psa_export_key() for the formats.
  *
  * \param[in] p_key             A buffer containing the private key material

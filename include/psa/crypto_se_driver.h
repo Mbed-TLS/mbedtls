@@ -767,10 +767,10 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
  * \brief A function that generates a symmetric or asymmetric key on a secure
  * element
  *
- * If `type` is asymmetric (`#define PSA_KEY_TYPE_IS_ASYMMETRIC(type) == 1`),
+ * If \p type is asymmetric (`#PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) == 1`),
  * the public component of the generated key will be placed in `p_pubkey_out`.
  * The format of the public key information will match the format specified for
- * the `psa_export_key()` function for the key type.
+ * the psa_export_key() function for the key type.
  *
  * \param[in] key_slot      Slot where the generated key will be placed
  * \param[in] type          The type of the key to be generated
@@ -784,7 +784,7 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
  *                          interpretation of this parameter should match the
  *                          interpretation in the `extra` parameter is the
  *                          `psa_generate_key` function
- * \param[in] extra_size    The size in bytes of the \ref extra buffer
+ * \param[in] extra_size    The size in bytes of the \p extra buffer
  * \param[out] p_pubkey_out The buffer where the public key information will
  *                          be placed
  * \param[in] pubkey_out_size   The size in bytes of the `p_pubkey_out` buffer

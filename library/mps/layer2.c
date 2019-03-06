@@ -552,7 +552,7 @@ int mps_l2_free( mbedtls_mps_l2 *ctx )
     ctx->io.out.queue_len = 0;
 #endif /* MBDTLS_MPS_PROTO_TLS */
 
-    for( offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
+    for( offset = 0; offset < MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
         l2_epoch_free( &ctx->epochs.window[offset] );
 
     RETURN( 0 );
@@ -2453,10 +2453,10 @@ int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
     uint8_t next_offset = ctx->epochs.next;
     TRACE_INIT( "mps_l2_epoch_add" );
 
-    if( next_offset == MPS_L2_EPOCH_WINDOW_SIZE )
+    if( next_offset == MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE )
     {
         TRACE( trace_error, "The epoch window of size %u is full.",
-               (unsigned) MPS_L2_EPOCH_WINDOW_SIZE );
+               (unsigned) MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE );
         RETURN( MPS_ERR_EPOCH_WINDOW_EXCEEDED );
     }
     *epoch_id = ctx->epochs.base + next_offset;
@@ -2853,7 +2853,7 @@ int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     }
 
     max_shift = MBEDTLS_MPS_EPOCH_MAX -
-        ( ctx->epochs.base + MPS_L2_EPOCH_WINDOW_SIZE );
+        ( ctx->epochs.base + MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE );
     if( shift >= max_shift )
     {
         TRACE( trace_comment, "Cannot shift epoch window further." );
@@ -2869,9 +2869,9 @@ int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     TRACE( trace_comment, "* New base: %u", (unsigned) ctx->epochs.base );
 
     /* Shift epochs. */
-    for( offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
+    for( offset = 0; offset < MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
     {
-        if( MPS_L2_EPOCH_WINDOW_SIZE - offset > shift )
+        if( MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE - offset > shift )
             ctx->epochs.window[offset] = ctx->epochs.window[offset + shift];
         else
             l2_epoch_init( &ctx->epochs.window[offset] );
@@ -2889,9 +2889,9 @@ int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
-        for( offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
+        for( offset = 0; offset < MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
         {
-            if( MPS_L2_EPOCH_WINDOW_SIZE - offset > shift )
+            if( MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE - offset > shift )
                 ctx->epochs.permissions.dtls[offset] =
                     ctx->epochs.permissions.dtls[offset + shift];
             else

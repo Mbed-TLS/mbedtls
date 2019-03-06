@@ -49,17 +49,6 @@
 
 #define MPS_L2_VERSION_UNSPECIFIED 0x3f
 
-/*! The number of epochs Layer 2 can handle simultaneously.
- *
- *  A value of \c 2 should be sufficient for all versions
- *  of TLS and DTLS. */
-#define MPS_L2_EPOCH_WINDOW_SIZE ( (mbedtls_mps_epoch_offset_t) 2 )
-typedef uint8_t mbedtls_mps_epoch_offset_t;
-
-/*
- * Compile-time configuration for Layer 2
- */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
 #define MBEDTLS_MPS_ANTI_REPLAY_DISABLED 0
 #define MBEDTLS_MPS_ANTI_REPLAY_ENABLED  1
@@ -130,21 +119,6 @@ typedef struct
     requires MPS_L2_BUFPAIR_INV_BUF_VALID( p );          \
     requires MPS_L2_BUFPAIR_INV_PAYLOAD_SUBBUF( p );
 
-
-/* TODO:
- * 1. Force next record sequence number (DTLS only)
- * 2. Force next version number if no global version
- *    number has been configured.
- * 3. Allow to abort writes (e.g. if output buffer size is too small)
- *    or to enforce a minimum size for the next write chunk.
- */
-
-/* Layer 2 configuration */
-
-/* Which record types are valid? */
-
-/* Map from epoch ID's to optional pairs of usage + transform */
-
 /*! The type of states of readers managed by Layer 2.
  *
  *  Possible values are:
@@ -192,11 +166,6 @@ typedef uint8_t mbedtls_mps_l2_writer_state;
 #if defined(MBEDTLS_MPS_PROTO_TLS)
 #define MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING ( (mbedtls_mps_l2_writer_state) 3 )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
-#define MPS_L2_MAX_RECORD_CONTENT (1u << 14)
-
-#define TLS_MAJOR_VER_DTLS 0xfe
-#define TLS_MAJOR_VER_TLS  0x03
 
 /**
  * \brief   Instances of this internal structure represent incoming
@@ -781,19 +750,19 @@ struct mbedtls_mps_l2
 #define MPS_L2_INV_EPOCH_WINDOW_VALID( p )                              \
         ( 0 <= (p)->epochs.base                 &&                      \
           (p)->epochs.base < MPS_L2_LIMIT_EPOCH &&                      \
-          MPS_L2_LIMIT_EPOCH - (p)->epochs.base >= MPS_L2_EPOCH_WINDOW_SIZE )
+          MPS_L2_LIMIT_EPOCH - (p)->epochs.base >= MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE )
 
         /* The offset of the next free epoch slot. */
         mbedtls_mps_epoch_offset_t next;
 #define MPS_L2_INV_NEXT_EPOCH_BOUNDS( p )                               \
-        ( (p)->epochs.next <= MPS_L2_EPOCH_WINDOW_SIZE )
+        ( (p)->epochs.next <= MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE )
 
         /*! The epoch usage permissions. */
         union
         {
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
             /*! The permissions for the epochs in the epoch window. */
-            mbedtls_mps_epoch_usage dtls[ MPS_L2_EPOCH_WINDOW_SIZE ];
+            mbedtls_mps_epoch_usage dtls[ MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE ];
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -817,8 +786,8 @@ struct mbedtls_mps_l2
 
         /*! The window of connection states for the epochs of ID
          *  <code> base, ..., base +
-         *         MPS_L2_EPOCH_WINDOW_SIZE - 1.</code> */
-        mbedtls_mps_l2_epoch_t window[ MPS_L2_EPOCH_WINDOW_SIZE ];
+         *         MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE - 1.</code> */
+        mbedtls_mps_l2_epoch_t window[ MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE ];
 
     } epochs;
 };

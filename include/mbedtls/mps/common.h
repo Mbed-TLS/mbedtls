@@ -108,6 +108,7 @@
  *  solely exposing the top-level MPS API.
  */
 #define MBEDTLS_MPS_SEPARATE_LAYERS
+
 /*! This test-only flag controls whether all usually static helper function
  *  in MPS should have external linkage.
  *
@@ -117,6 +118,26 @@
  *  making them visible in the generated object file.
  */
 #define MBEDTLS_MPS_NO_STATIC_FUNCTIONS
+
+/*! This flag enables support for the TLS protocol.
+ *
+ *  Uncomment if only DTLS is needed.
+ */
+//#define MBEDTLS_MPS_PROTO_TLS
+
+/*! This flag enables support for the DTLS protocol.
+ *
+ *  Uncomment if only TLS is needed.
+ */
+#define MBEDTLS_MPS_PROTO_DTLS
+
+/*! The number of epochs Layer 2 can handle simultaneously.
+ *
+ *  A value of \c 2 should be sufficient for all versions
+ *  of TLS and DTLS.
+ */
+typedef uint8_t mbedtls_mps_epoch_offset_t;
+#define MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE ( (mbedtls_mps_epoch_offset_t) 2 )
 
 #if defined(MBEDTLS_MPS_NO_STATIC_FUNCTIONS)
 #define MBEDTLS_MPS_STATIC
@@ -137,18 +158,6 @@
     !defined(MBEDTLS_MPS_SEPARATE_LAYERS)
 #error "Tracing (MBEDTLS_MPS_TRACE) is only possible in multi-unit MPS (MBEDTLS_MPS_SEPARATE_LAYERS)"
 #endif /* MBEDTLS_MPS_TRACE && !MBEDTLS_MPS_SEPARATE_LAYERS */
-
-/*! This flag enables support for the TLS protocol.
- *
- *  Uncomment if only DTLS is needed.
- */
-//#define MBEDTLS_MPS_PROTO_TLS
-
-/*! This flag enables support for the DTLS protocol.
- *
- *  Uncomment if only TLS is needed.
- */
-#define MBEDTLS_MPS_PROTO_DTLS
 
 /** Internal macro sanity check. */
 #if !defined(MBEDTLS_MPS_PROTO_TLS) && \

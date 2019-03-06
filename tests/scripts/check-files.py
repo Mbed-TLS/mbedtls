@@ -147,7 +147,7 @@ class TabIssueTracker(LineIssueTracker):
 
     @staticmethod
     def should_check_file(basename):
-        return not (basename.endswith('Makefile') or
+        return not ('Makefile' in basename or
                     basename == 'generate_visualc_files.pl')
 
     def issue_with_line(self, line):

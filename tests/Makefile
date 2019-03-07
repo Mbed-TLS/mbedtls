@@ -59,6 +59,15 @@ endif
 # constructed by stripping path 'suites/' and extension .data.
 APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
 
+# When this project is used as a submodule, exclude the following list of
+# tests, which will be run from the parent module instead.
+ifdef USE_CRYPTO_SUBMODULE
+APPS := $(filter-out \
+               test_suite_version \
+               ,$(APPS))
+endif
+
+
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
 

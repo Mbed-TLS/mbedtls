@@ -47,6 +47,9 @@ Bugfix
    * Fix private key DER output in the key_app_writer example. File contents
      were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
      Christian Walther in #2239.
+   * Fix bugs in the AEAD test suite which would be exposed by ciphers which
+     either used both encrypt and decrypt key schedules, or which perform padding.
+     GCM and CCM were not affected. Fixed by Jack Lloyd.
 
 Changes
    * Include configuration file in all header files that use configuration,

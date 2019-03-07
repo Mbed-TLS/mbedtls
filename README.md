@@ -30,10 +30,7 @@ There are currently a few deviations where the library does not yet implement th
 
 ### PSA Cryptography API
 
-The PSA cryptography API specification consists of the following documents:
-
-* The [PSA Cryptography API overview](https://github.com/ARMmbed/mbed-crypto/blob/psa-crypto-api/docs/PSA_Cryptography_API_Specification.pdf).
-* The [PSA Cryptography API detailed function reference](https://github.com/ARMmbed/mbed-crypto/blob/psa-crypto-api/docs/PSA_Cryptography_API_Reference.pdf), which you can also browse in [HTML format](https://htmlpreview.github.io/?https://github.com/ARMmbed/mbed-crypto/blob/psa-crypto-api/docs/html/modules.html).
+You can read the [complete PSA cryptography API specification as a PDF document](https://github.com/ARMmbed/mbed-crypto/blob/psa-crypto-api/docs/PSA_Cryptography_API_Specification.pdf). The API reference is also available in [HTML format](https://htmlpreview.github.io/?https://github.com/ARMmbed/mbed-crypto/blob/psa-crypto-api/docs/html/modules.html).
 
 ### Browsable library documentation
 

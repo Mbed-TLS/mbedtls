@@ -55,7 +55,7 @@ my $config_file = "include/mbedtls/config.h";
 my $usage = <<EOU;
 $0 [-f <file> | --file <file>] [-o | --force]
                    [set <symbol> <value> | unset <symbol> | get <symbol> |
-                        full | realfull | baremetal]
+                        full | realfull | baremetal | docfull]
 
 Commands
     set <symbol> [<value>]  - Uncomments or adds a #define for the <symbol> to
@@ -74,6 +74,8 @@ Commands
                               'Module configuration options' section
     realfull                - Uncomments all #define's with no exclusions
     baremetal               - Sets full configuration suitable for baremetal build.
+    docfull                 - Uncomments all #define's except for alternative
+                              implementations
 
 Options
     -f | --file <filename>  - The file or file path for the configuration file
@@ -136,7 +138,7 @@ MBEDTLS_PLATFORM_FPRINTF_ALT
 
 # Things that should be enabled in "full" even if they match @excluded
 my @non_excluded = qw(
-PLATFORM_[A-Z0-9]+_ALT
+PLATFORM_[_A-Z0-9]+_ALT
 );
 
 # Things that should be enabled in "baremetal"
@@ -168,7 +170,7 @@ while ($arg = shift) {
         # ...else assume it's a command
         $action = $arg;
 
-        if ($action eq "full" || $action eq "realfull" || $action eq "baremetal" ) {
+        if (grep {$action eq $_} qw(docfull full realfull baremetal)) {
             # No additional parameters
             die $usage if @ARGV;
 
@@ -220,6 +222,9 @@ my ($exclude_re, $no_exclude_re, $exclude_baremetal_re);
 if ($action eq "realfull") {
     $exclude_re = qr/^$/;
     $no_exclude_re = qr/./;
+} elsif ($action eq "docfull") {
+    $exclude_re = qr/_ALT\s*$/;
+    $no_exclude_re = qr/(?:PLATFORM|ECP)_[_A-Z0-9]+_ALT\s*$/;
 } else {
     $exclude_re = join '|', @excluded;
     $no_exclude_re = join '|', @non_excluded;
@@ -235,7 +240,7 @@ if ($action ne "get") {
 
 my $done;
 for my $line (@config_lines) {
-    if ($action eq "full" || $action eq "realfull" || $action eq "baremetal" ) {
+    if (grep {$action eq $_} qw(docfull full realfull baremetal)) {
         if ($line =~ /name SECTION: Module configuration options/) {
             $done = 1;
         }

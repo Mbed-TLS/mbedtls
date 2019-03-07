@@ -41,10 +41,6 @@
 #define mbedtls_snprintf snprintf
 #endif
 
-#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
-#include "mbedtls/x509.h"
-#endif
-
 /*
  * Macro to automatically add the size of #define'd OIDs
  */
@@ -152,7 +148,6 @@ int FN_NAME( ATTR1_TYPE ATTR1, ATTR2_TYPE ATTR2, const char **oid ,         \
     return( MBEDTLS_ERR_OID_NOT_FOUND );                                   \
 }
 
-#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
 /*
  * For X520 attribute types
  */
@@ -260,23 +255,23 @@ static const oid_x509_ext_t oid_x509_ext[] =
 {
     {
         { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",   "Basic Constraints" },
-        MBEDTLS_X509_EXT_BASIC_CONSTRAINTS,
+        MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS,
     },
     {
         { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),            "id-ce-keyUsage",           "Key Usage" },
-        MBEDTLS_X509_EXT_KEY_USAGE,
+        MBEDTLS_OID_X509_EXT_KEY_USAGE,
     },
     {
         { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",        "Extended Key Usage" },
-        MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE,
+        MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE,
     },
     {
         { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",     "Subject Alt Name" },
-        MBEDTLS_X509_EXT_SUBJECT_ALT_NAME,
+        MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME,
     },
     {
         { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),         "id-netscape-certtype",     "Netscape Certificate Type" },
-        MBEDTLS_X509_EXT_NS_CERT_TYPE,
+        MBEDTLS_OID_X509_EXT_NS_CERT_TYPE,
     },
     {
         { NULL, 0, NULL, NULL },
@@ -300,7 +295,6 @@ static const mbedtls_oid_descriptor_t oid_ext_key_usage[] =
 
 FN_OID_TYPED_FROM_ASN1(mbedtls_oid_descriptor_t, ext_key_usage, oid_ext_key_usage)
 FN_OID_GET_ATTR1(mbedtls_oid_get_extended_key_usage, mbedtls_oid_descriptor_t, ext_key_usage, const char *, description)
-#endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */
 
 #if defined(MBEDTLS_MD_C)
 /*

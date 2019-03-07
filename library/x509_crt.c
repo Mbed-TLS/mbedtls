@@ -996,11 +996,13 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     /*
      * SubjectPublicKeyInfo
      */
+    crt->pk_raw.p = p;
     if( ( ret = mbedtls_pk_parse_subpubkey( &p, end, &crt->pk ) ) != 0 )
     {
         mbedtls_x509_crt_free( crt );
         return( ret );
     }
+    crt->pk_raw.len = p - crt->pk_raw.p;
 
     /*
      *  issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,

@@ -787,6 +787,25 @@ typedef int mbedtls_ssl_async_resume_t( mbedtls_ssl_context *ssl,
 typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) &&        \
+    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN  48
+#if defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA256
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  32
+#elif defined(MBEDTLS_SHA512_C)
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA384
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  48
+#elif defined(MBEDTLS_SHA1_C)
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA1
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  20
+#else
+/* This is already checked in check_config.h, but be sure. */
+#error "Bad configuration - need SHA-1, SHA-256 or SHA-512 enabled to compute digest of peer CRT."
+#endif
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED &&
+          !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
 /*
  * This structure is used for storing current session data.
  */
@@ -802,7 +821,15 @@ struct mbedtls_ssl_session
     unsigned char master[48];   /*!< the master secret  */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    mbedtls_x509_crt *peer_cert;        /*!< peer X.509 cert chain */
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    mbedtls_x509_crt *peer_cert;       /*!< peer X.509 cert chain */
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    /*! The digest of the peer's end-CRT. This must be kept to detect CRT
+     *  changes during renegotiation, mitigating the triple handshake attack. */
+    unsigned char *peer_cert_digest;
+    size_t peer_cert_digest_len;
+    mbedtls_md_type_t peer_cert_digest_type;
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     uint32_t verify_result;          /*!<  verification result     */
 
@@ -2972,18 +2999,34 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
- * \brief          Return the peer certificate from the current connection
+ * \brief          Return the peer certificate from the current connection.
  *
- *                 Note: Can be NULL in case no certificate was sent during
- *                 the handshake. Different calls for the same connection can
- *                 return the same or different pointers for the same
- *                 certificate and even a different certificate altogether.
- *                 The peer cert CAN change in a single connection if
- *                 renegotiation is performed.
+ * \param  ssl     The SSL context to use. This must be initialized and setup.
  *
- * \param ssl      SSL context
+ * \return         The current peer certificate, if available.
+ *                 The returned certificate is owned by the SSL context and
+ *                 is valid only until the next call to the SSL API.
+ * \return         \c NULL if no peer certificate is available. This might
+ *                 be because the chosen ciphersuite doesn't use CRTs
+ *                 (PSK-based ciphersuites, for example), or because
+ *                 #MBEDTLS_SSL_KEEP_PEER_CERTIFICATE has been disabled,
+ *                 allowing the stack to free the peer's CRT to save memory.
  *
- * \return         the current peer certificate
+ * \note           For one-time inspection of the peer's certificate during
+ *                 the handshake, consider registering an X.509 CRT verification
+ *                 callback through mbedtls_ssl_conf_verify() instead of calling
+ *                 this function. Using mbedtls_ssl_conf_verify() also comes at
+ *                 the benefit of allowing you to influence the verification
+ *                 process, for example by masking expected and tolerated
+ *                 verification failures.
+ *
+ * \warning        You must not use the pointer returned by this function
+ *                 after any further call to the SSL API, including
+ *                 mbedtls_ssl_read() and mbedtls_ssl_write(); this is
+ *                 because the pointer might change during renegotiation,
+ *                 which happens transparently to the user.
+ *                 If you want to use the certificate across API calls,
+ *                 you must make a copy.
  */
 const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

@@ -478,6 +478,8 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+static unsigned char peer_crt_info[1024];
+
 /*
  * Enabled if debug_level > 1 in code below
  */
@@ -487,8 +489,14 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
     char buf[1024];
     ((void) data);
 
-    mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
     mbedtls_x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
+    if( depth == 0 )
+        memcpy( peer_crt_info, buf, sizeof( buf ) );
+
+    if( opt.debug_level == 0 )
+        return( 0 );
+
+    mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
     mbedtls_printf( "%s", buf );
 
     if ( ( *flags ) == 0 )
@@ -1503,8 +1511,8 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_sig_hashes( &conf, ssl_sig_hashes_for_test );
     }
 
-    if( opt.debug_level > 0 )
-        mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+    mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+    memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
@@ -1833,13 +1841,8 @@ int main( int argc, char *argv[] )
     else
         mbedtls_printf( " ok\n" );
 
-    if( mbedtls_ssl_get_peer_cert( &ssl ) != NULL )
-    {
-        mbedtls_printf( "  . Peer certificate information    ...\n" );
-        mbedtls_x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                       mbedtls_ssl_get_peer_cert( &ssl ) );
-        mbedtls_printf( "%s\n", buf );
-    }
+    mbedtls_printf( "  . Peer certificate information    ...\n" );
+    mbedtls_printf( "%s\n", peer_crt_info );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -2144,6 +2147,10 @@ send_request:
         mbedtls_printf( "  . Restarting connection from same port..." );
         fflush( stdout );
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",
@@ -2214,6 +2221,10 @@ reconnect:
 #endif
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {

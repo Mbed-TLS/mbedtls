@@ -850,6 +850,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_REMOVE_ARC4_CIPHERSUITES */
 
+#if defined(MBEDTLS_REMOVE_3DES_CIPHERSUITES)
+    if( strcmp( "MBEDTLS_REMOVE_3DES_CIPHERSUITES", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_REMOVE_3DES_CIPHERSUITES );
+        return( 0 );
+    }
+#endif /* MBEDTLS_REMOVE_3DES_CIPHERSUITES */
+
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
     if( strcmp( "MBEDTLS_ECP_DP_SECP192R1_ENABLED", config ) == 0 )
     {
@@ -1273,6 +1281,14 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_SSL_FALLBACK_SCSV */
+
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    if( strcmp( "MBEDTLS_SSL_KEEP_PEER_CERTIFICATE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_KEEP_PEER_CERTIFICATE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( strcmp( "MBEDTLS_SSL_HW_RECORD_ACCEL", config ) == 0 )

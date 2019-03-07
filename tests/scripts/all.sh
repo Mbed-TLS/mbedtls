@@ -723,8 +723,8 @@ component_test_full_cmake_clang () {
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
     if_build_succeeded tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
 
-    msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
-    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    msg "test: compat.sh RC4, DES, 3DES & NULL (full config)" # ~ 2 min
+    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
     msg "test: compat.sh ARIA + ChachaPoly"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
@@ -903,6 +903,22 @@ component_test_no_max_fragment_length () {
     if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
 }
 
+component_test_asan_remove_peer_certificate () {
+    msg "build: default config with MBEDTLS_SSL_KEEP_PEER_CERTIFICATE disabled (ASan build)"
+    scripts/config.pl unset MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    make test
+
+    msg "test: ssl-opt.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: compat.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    if_build_succeeded tests/compat.sh
+}
+
 component_test_no_max_fragment_length_small_ssl_out_content_len () {
     msg "build: no MFL extension, small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
@@ -1017,6 +1033,16 @@ support_test_mx32 () {
         amd64|x86_64) true;;
         *) false;;
     esac
+}
+
+component_test_min_mpi_window_size () {
+    msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
+    scripts/config.pl set MBEDTLS_MPI_WINDOW_SIZE 1
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
+    make test
 }
 
 component_test_have_int32 () {

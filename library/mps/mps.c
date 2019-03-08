@@ -2609,6 +2609,24 @@ int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 
+    if( old == MBEDTLS_MPS_FLIGHT_DONE &&
+        new == MBEDTLS_MPS_FLIGHT_RECVINIT )
+    {
+        /* Initialize reassembly module with provided sequence number */
+        TRACE( trace_comment, "Initialize reassembly module with seq nr %u",
+               (unsigned) seq );
+        MPS_CHK( mps_reassembly_init( mps, seq ) );
+    }
+    else
+    if( old == MBEDTLS_MPS_FLIGHT_RECVINIT &&
+        new == MBEDTLS_MPS_FLIGHT_RECEIVE )
+    {
+        ((void) seq);
+        MPS_CHK( mps_retransmit_in_init( mps ) );
+        mps->dtls.wait.retransmit_timeout = mps->conf.hs_timeout_min;
+        MPS_CHK( mps_retransmission_timer_update( mps ) );
+    }
+    else
 #if defined(MBEDTLS_MPS_ASSERT)
     {
         TRACE( trace_error, "Unknown state transition!" );
@@ -2759,17 +2777,37 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
         }
     }
 
-    /* 2. Feed the handshake fragment into the reassembly module. */
-    TRACE( trace_comment, "Feed fragment into reassembly module." );
-    ret = mps_reassembly_feed( mps, &hs_l3 );
-    if( ret == MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE )
+    if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_DONE )
     {
-        MPS_CHK( MBEDTLS_ERR_MPS_NO_FORWARD );
-    }
-    else
-        MPS_CHK( ret );
+        mbedtls_mps_hs_seq_nr_t seq_nr = hs_l3.seq_nr;
 
-    /* TLS-1.3-NOTE: In DTLS-1.3, we have to record the record
+        /* DTLS suffers from the following ambiguity:
+         * For the purpose of DoS mitigation a server receiving
+         * a cookieless ClientHello may reply with a HelloVerifyRequest
+         * including a cookie and wait for the client to
+         * retransmit the ClientHello+Cookie before allocating any state
+         * and continuing with the actual handshake. In this scenario,
+         * the second ClientHello and the ServerHello shall have
+         * sequence number 1 according to Sect 4.2.2 of RFC 6347.
+         * This is in conflict with the requirement that the server
+         * must not maintain state after sending its HelloVerifyRequest,
+         * as initially both the incoming and outgoing handshake sequence
+         * numbers are 0.
+         *
+         * MPS deals with this ambiguity in the same way as the
+         * previous messaging layer implementation does, by accepting
+         * any sequence number for an incoming handshake message initiating
+         * a handshake, and always using the same sequence number for its reply.
+         */
+        MPS_CHK( mps_retransmission_state_machine_transition( mps,
+                                                 MBEDTLS_MPS_FLIGHT_DONE,
+                                                 MBEDTLS_MPS_FLIGHT_RECVINIT,
+                                                 seq_nr ) );
+    }
+
+    /* 2. Feed the handshake fragment into the reassembly module.
+     *
+     * TLS-1.3-NOTE: In DTLS-1.3, we have to record the record
      *               sequence number of the incoming fragment
      *               somewhere to send ACK messages.
      *
@@ -2799,39 +2837,25 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
      *
      */
 
-    if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_DONE )
+    TRACE( trace_comment, "Feed fragment into reassembly module." );
+    ret = mps_reassembly_feed( mps, &hs_l3 );
+    if( ret == MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE )
     {
-        uint8_t seq_nr;
+        /* The current fragment didn't lead to the next handshake
+         * message being ready. That might be because it contributed
+         * to a future message, or because the next message isn't
+         * fully reassembled yet. */
+        MPS_CHK( MBEDTLS_ERR_MPS_NO_FORWARD );
+    }
+    else
+        MPS_CHK( ret );
 
-        /* DTLS suffers from the following ambiguity:
-         * For the purpose of DoS mitigation a server receiving
-         * a cookieless ClientHello may reply with a HelloVerifyRequest
-         * including a cookie and wait for the client to
-         * retransmit the ClientHello+Cookie before allocating any state
-         * and continuing with the actual handshake. In this scenario,
-         * the second ClientHello and the ServerHello shall have
-         * sequence number 1 according to Sect 4.2.2 of RFC 6347.
-         * This is in conflict with the requirement that the server
-         * must not maintain state after sending its HelloVerifyRequest,
-         * as initially both the incoming and outgoing handshake sequence
-         * numbers are 0.
-         *
-         * MPS deals with this ambiguity in the same way as the
-         * previous messaging layer implementation does, by accepting
-         * any sequence number for an incoming handshake message initiating
-         * a handshake, and always using the same sequence number for its reply.
-         */
-
-        MPS_CHK( mps_reassembly_get_seq( mps, &seq_nr ) );
-        TRACE( trace_comment, "Use incoming sequence number %u for response",
-               (unsigned) seq_nr );
-
-        MPS_CHK( mps_out_flight_init( mps, seq_nr ) );
-        MPS_CHK( mps_retransmit_in_init( mps ) );
-
-        mps->dtls.wait.retransmit_timeout = mps->conf.hs_timeout_min;
-        MPS_CHK( mps_retransmission_timer_update( mps ) );
-        mps->dtls.state = MBEDTLS_MPS_FLIGHT_RECEIVE;
+    if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_RECVINIT )
+    {
+        MPS_CHK( mps_retransmission_state_machine_transition(
+                     mps,
+                     MBEDTLS_MPS_FLIGHT_RECVINIT,
+                     MBEDTLS_MPS_FLIGHT_RECEIVE, 0 ) );
     }
 
     MPS_INTERNAL_FAILURE_HANDLER

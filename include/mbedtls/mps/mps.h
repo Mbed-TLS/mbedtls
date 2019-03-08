@@ -201,10 +201,22 @@ typedef uint8_t mbedtls_mps_connection_state_t;
  *  Possible values are:
  *  - #MBEDTLS_MPS_FLIGHT_DONE
  *    No flight exchange is in progress.
+ *  - #MBEDTLS_MPS_FLIGHT_RECVINIT
+ *    We're in the process of receiving and reassembling a handshake message
+ *    from the peer that initializes a flight exchange.
+ *    This state is the same as #MBEDTLS_MPS_FLIGHT_DONE to the user,
+ *    but internally it is different because the reassembly context
+ *    has already been setup.
  *  - #MBEDTLS_MPS_FLIGHT_AWAIT
  *    We're waiting for the first message of the next flight from the peer.
  *    In this state, we're not yet sure whether the peer has fully received
  *    our last outgoing flight, and we retransmit the latter on timeout.
+ *    This state is the same as #MBEDTLS_MPS_FLIGHT_RECEIVE to the user,
+ *    but internally it is different: During #MBEDTLS_MPS_FLIGHT_AWAIT, we
+ *    retain the memory of the last incoming flight but don't yet initialize
+ *    the reassembly context for the next incoming flight, while during
+ *    #MBEDTLS_MPS_FLIGHT_RECEIVE, the memory of the last incoming flight is
+ *    erased and the reassembly context for the next incoming flight is setup.
  *  - #MBEDTLS_MPS_FLIGHT_RECEIVE
  *    We're receiving the next flight from the peer. This is different
  *    from #MBEDTLS_MPS_FLIGHT_AWAIT in that we must already have received
@@ -212,6 +224,7 @@ typedef uint8_t mbedtls_mps_connection_state_t;
  *    received our last outgoing flight. In this mode, we're sending
  *    retransmission requests on a timeout, but not necessarily fully
  *    retransmit our last outgoing flight.
+ *    This state is the same as #MBEDTLS_MPS_FLIGHT_AWAIT to the user.
  *  - #MBEDTLS_MPS_FLIGHT_PREPARE
  *    We're preparing out next outgoing flight. This is treated as a
  *    separate state from #MBEDTLS_MPS_FLIGHT_SEND because we can potentially
@@ -222,14 +235,22 @@ typedef uint8_t mbedtls_mps_connection_state_t;
  *  - #MBEDTLS_MPS_FLIGHT_FINALIZE
  *    The flight exchange has been completed with an outgoing flight of ours,
  *    but we're holding it back in case the peer didn't receive it.
+ *    This state is the same as #MBEDTLS_MPS_FLIGHT_DONE to the user,
+ *    but internally it is different because we must remember the last
+ *    flight for potential retransmission.
+ *
+ *  The state transitions are as follows:
+ *
+ *      TODO: Draw state machine graph
  */
 typedef uint8_t mbedtls_mps_flight_state_t;
 #define MBEDTLS_MPS_FLIGHT_DONE     ( (mbedtls_mps_flight_state_t) ( 1u << 0 ) )
-#define MBEDTLS_MPS_FLIGHT_AWAIT    ( (mbedtls_mps_flight_state_t) ( 1u << 1 ) )
-#define MBEDTLS_MPS_FLIGHT_RECEIVE  ( (mbedtls_mps_flight_state_t) ( 1u << 2 ) )
-#define MBEDTLS_MPS_FLIGHT_PREPARE  ( (mbedtls_mps_flight_state_t) ( 1u << 3 ) )
-#define MBEDTLS_MPS_FLIGHT_SEND     ( (mbedtls_mps_flight_state_t) ( 1u << 4 ) )
-#define MBEDTLS_MPS_FLIGHT_FINALIZE ( (mbedtls_mps_flight_state_t) ( 1u << 5 ) )
+#define MBEDTLS_MPS_FLIGHT_RECVINIT ( (mbedtls_mps_flight_state_t) ( 1u << 1 ) )
+#define MBEDTLS_MPS_FLIGHT_AWAIT    ( (mbedtls_mps_flight_state_t) ( 1u << 2 ) )
+#define MBEDTLS_MPS_FLIGHT_RECEIVE  ( (mbedtls_mps_flight_state_t) ( 1u << 3 ) )
+#define MBEDTLS_MPS_FLIGHT_PREPARE  ( (mbedtls_mps_flight_state_t) ( 1u << 4 ) )
+#define MBEDTLS_MPS_FLIGHT_SEND     ( (mbedtls_mps_flight_state_t) ( 1u << 5 ) )
+#define MBEDTLS_MPS_FLIGHT_FINALIZE ( (mbedtls_mps_flight_state_t) ( 1u << 6 ) )
 
 /* This works only if the values have no bit in common.
  * I'd expect it to generate slightly smaller code. Is it actually true? */

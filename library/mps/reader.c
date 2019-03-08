@@ -101,10 +101,12 @@ int mbedtls_reader_feed( mbedtls_reader *rd, unsigned char *new_frag,
 
     /* Feeding is only possible in producing mode, i.e.
      * if no fragment is currently being processed. */
-    frag = rd->frag;
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
+    frag = rd->frag;
     if( frag != NULL )
         RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+#else
+    ((void) frag);
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     acc = rd->acc;

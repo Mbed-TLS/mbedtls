@@ -228,6 +228,16 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_bind( mbedtls_mps *mps );
 /* static int mps_dtls_frag_out_track( mbedtls_mps *mps ); */
 
 /*
+ * State interface for the retransmission state machine
+ */
+
+MBEDTLS_MPS_INLINE
+int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
+                                                 mbedtls_mps_flight_state_t old,
+                                                 mbedtls_mps_flight_state_t new,
+                                                 mbedtls_mps_hs_seq_nr_t seq );
+
+/*
  * Read interface to the retransmission state machine.
  */
 
@@ -2573,6 +2583,44 @@ MBEDTLS_MPS_STATIC int mps_request_resend( mbedtls_mps *mps )
      *               in DTLS 1.3. */
     RETURN( mps_retransmit_out_core( mps,
                                      MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS ) );
+}
+
+/* This function should only be called with compile-time constants
+ * for the `old` and `new` parameters, for the compiler to eliminate
+ * all but the relevant branch when inlining the function.
+ *
+ * The reason to provide the `old` parameter (as opposed to just reading it
+ * from `mps`) is just as a safe-guard. */
+MBEDTLS_MPS_INLINE
+int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
+                                                 mbedtls_mps_flight_state_t old,
+                                                 mbedtls_mps_flight_state_t new,
+                                                 mbedtls_mps_hs_seq_nr_t seq )
+{
+    int ret;
+    TRACE_INIT( "mps_retransmission_state_machine_transition, old %u, new %u",
+                (unsigned) old, (unsigned) new );
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( mps->dtls.state != old )
+    {
+        TRACE( trace_error, "Mismatched flight state: expected %u, got %u",
+               (unsigned) old, (unsigned) mps->dtls.state );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
+
+#if defined(MBEDTLS_MPS_ASSERT)
+    {
+        TRACE( trace_error, "Unknown state transition!" );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
+
+    mps->dtls.state = new;
+
+    TRACE( trace_comment, "State transition from %u to %u done.",
+           (unsigned) old, (unsigned) new );
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 /*

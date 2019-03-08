@@ -277,7 +277,7 @@ MBEDTLS_MPS_STATIC int mps_retransmission_timer_increase_timeout(
  * Sending of outgoing flights.
  */
 
-MBEDTLS_MPS_STATIC int mps_out_flight_init( mbedtls_mps *mps, uint8_t seq_nr );
+MBEDTLS_MPS_STATIC int mps_out_flight_init( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_out_flight_free( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_out_flight_forget( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_out_flight_msg_start(
@@ -784,7 +784,7 @@ int mbedtls_mps_init( mbedtls_mps *mps,
     mps->dtls.state            = MBEDTLS_MPS_FLIGHT_DONE;
     mps->dtls.retransmit_state = MBEDTLS_MPS_RETRANSMIT_NONE;
 
-    mps_out_flight_init( mps, 0 );
+    mps_out_flight_init( mps );
     mps_retransmit_in_init( mps );
     mps_reassembly_init( mps, 0 );
 
@@ -1386,7 +1386,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
             TRACE( trace_comment, "No flight-exchange in progress. Start a new one" );
             MPS_CHK( mps_retransmission_state_machine_transition(
                          mps,
-                         MBEDTLS_MPS_FLIGHT_DONE
+                         MBEDTLS_MPS_FLIGHT_DONE,
                          MBEDTLS_MPS_FLIGHT_SEND, 0 ) );
         }
 
@@ -2155,23 +2155,23 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
     TRACE( trace_comment, "* Fragment offset: %u", hs->frag_offset );
     TRACE( trace_comment, "* Fragment length: %u", hs->frag_len    );
     TRACE( trace_comment, "Sequence number of next HS message: %u",
-           (unsigned) in->next_seq_nr );
+           (unsigned) mps->dtls.seq_nr );
 
     seq_nr = hs->seq_nr;
-    seq_nr_offset = seq_nr - in->next_seq_nr;
+    seq_nr_offset = seq_nr - mps->dtls.seq_nr;
 
     /* Check if the sequence number belongs to the window
      * of messages that we're currently buffering - in particular,
      * if buffering is disabled, this checks if the fragment
      * belongs to the next handshake message. */
-    if( seq_nr < in->next_seq_nr ||
+    if( seq_nr < mps->dtls.seq_nr ||
         seq_nr_offset >= 1 + MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS )
     {
         unsigned char *tmp;
 
         TRACE( trace_error, "Sequence number %u outside current window [%u,%u]",
-          (unsigned) seq_nr, (unsigned) in->next_seq_nr,
-          (unsigned) ( in->next_seq_nr + MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS ) );
+          (unsigned) seq_nr, (unsigned) mps->dtls.seq_nr,
+          (unsigned) ( mps->dtls.seq_nr + MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS ) );
 
         /* Layer 3 will error out if we don't fully consume a fragment,
          * so fetch and commit it even if we don't consider the contents. */
@@ -2319,7 +2319,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_init( mbedtls_mps *mps,
                                uint8_t init_seq_nr )
 {
     uint8_t idx;
-    mps->dtls.incoming.next_seq_nr = init_seq_nr;
+    mps->dtls.seq_nr = init_seq_nr;
 
     for( idx = 0; idx < 1 + MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS; idx++ )
         mps->dtls.incoming.reassembly[idx].status = MBEDTLS_MPS_REASSEMBLY_NONE;
@@ -2330,7 +2330,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_init( mbedtls_mps *mps,
 MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps,
                                    uint8_t *seq_nr )
 {
-    *seq_nr = mps->dtls.incoming.next_seq_nr;
+    *seq_nr = mps->dtls.seq_nr;
     return( 0 );
 }
 
@@ -2427,8 +2427,8 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     reassembly = &in->reassembly[ MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS ];
     reassembly->status = MBEDTLS_MPS_REASSEMBLY_NONE;
 
-    in->next_seq_nr++;
-    if( in->next_seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
+    mps->dtls.seq_nr++;
+    if( mps->dtls.seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
     {
         TRACE( trace_error, "Reached maximum incoming sequence number %u",
                (unsigned) MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER );
@@ -2624,7 +2624,7 @@ int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
     if( old == MBEDTLS_MPS_FLIGHT_DONE &&
         new == MBEDTLS_MPS_FLIGHT_SEND )
     {
-        MPS_CHK( mps_out_flight_init( mps, MPS_INITIAL_HS_SEQ_NR ) );
+        MPS_CHK( mps_out_flight_init( mps ) );
         MPS_CHK( mps_retransmit_in_init( mps ) );
     }
     else
@@ -2992,10 +2992,9 @@ MBEDTLS_MPS_STATIC int mps_retransmission_pause_incoming_message( mbedtls_mps *m
     MPS_INTERNAL_FAILURE_HANDLER
 }
 
-MBEDTLS_MPS_STATIC int mps_out_flight_init( mbedtls_mps *mps, uint8_t seq_nr )
+MBEDTLS_MPS_STATIC int mps_out_flight_init( mbedtls_mps *mps )
 {
     mps->dtls.outgoing.flags      = 0;
-    mps->dtls.outgoing.seq_nr     = seq_nr;
     mps->dtls.outgoing.flight_len = 0;
     return( 0 );
 }
@@ -3449,7 +3448,7 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
 
     TRACE( trace_comment,
            "Add a new message to the current outgoing flight, seq nr %u",
-           (unsigned) mps->dtls.outgoing.seq_nr );
+           (unsigned) mps->dtls.seq_nr );
 
     cur_flight_len = mps->dtls.outgoing.flight_len;
     if( cur_flight_len == MBEDTLS_MPS_MAX_FLIGHT_LENGTH )
@@ -3459,7 +3458,7 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
         MPS_CHK( MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG );
     }
 
-    cur_seq_nr = mps->dtls.outgoing.seq_nr;
+    cur_seq_nr = mps->dtls.seq_nr;
     if( cur_seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
     {
         TRACE( trace_error, "Reached maximum outoing sequence number %u",
@@ -3482,7 +3481,7 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps )
 {
     /* It has been checked in mps_out_flight_msg_start()
      * that this does not wrap. */
-    mps->dtls.outgoing.seq_nr++;
+    mps->dtls.seq_nr++;
     return( 0 );
 }
 

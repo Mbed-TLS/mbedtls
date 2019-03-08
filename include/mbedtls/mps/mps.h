@@ -736,6 +736,10 @@ struct mbedtls_mps
          *  See the documentation of ::mbedtls_mps_flight_state_t. */
         mbedtls_mps_flight_state_t state;
 
+        /*! The handshake sequence number for the next incoming
+         *  or outgoing handshake message. */
+        mbedtls_mps_stored_hs_seq_nr_t seq_nr;
+
         /*! This indicates if we're currently retransmitting our last outgoing
          *  flight, or are requesting retransmission from the peer.
          *  See the documentation of ::mbedtls_mps_retransmit_state_t. */
@@ -786,9 +790,6 @@ struct mbedtls_mps
              *  message contributes to an ongoing handshake.
              *  See the documentation of ::mbedtls_mps_msg_flags. */
             mbedtls_mps_msg_flags flags;
-
-            /*! The sequence number of the next outgoing message. */
-            mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
             /*! The number of messages in the current/last outgoing flight. */
             uint8_t flight_len;
@@ -885,9 +886,6 @@ struct mbedtls_mps
              * Consider storing ::mps_reassembly on the heap
              * and only allocate it when necessary.
              */
-
-            /*! The next expected handshake sequence number. */
-            mbedtls_mps_stored_hs_seq_nr_t next_seq_nr;
 
             /*! The reader and extended reader managing the contents
              *  of the current incoming handshake message. */

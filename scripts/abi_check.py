@@ -151,29 +151,31 @@ class AbiChecker(object):
             return
 
         if version.crypto_repository:
-            shutil.rmtree(os.path.join(git_worktree_path, "crypto"))
-            clone_process = subprocess.Popen(
-                [self.git_command, "clone", version.crypto_repository,
-                 "--branch", version.crypto_revision, "crypto"],
-                cwd=git_worktree_path,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT
-            )
-            clone_output, _ = clone_process.communicate()
-            self.log.info(clone_output.decode("utf-8"))
-            if clone_process.returncode != 0:
-                raise Exception("git clone failed, aborting")
-        else:
-            checkout_process = subprocess.Popen(
-                [self.git_command, "checkout", version.crypto_revision],
+            fetch_process = subprocess.Popen(
+                [self.git_command, "fetch", version.crypto_repository,
+                 version.crypto_revision],
                 cwd=os.path.join(git_worktree_path, "crypto"),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
-            checkout_output, _ = checkout_process.communicate()
-            self.log.info(checkout_output.decode("utf-8"))
-            if checkout_process.returncode != 0:
-                raise Exception("git checkout failed, aborting")
+            fetch_output, _ = fetch_process.communicate()
+            self.log.info(fetch_output.decode("utf-8"))
+            if fetch_process.returncode != 0:
+                raise Exception("git fetch failed, aborting")
+            crypto_rev = "FETCH_HEAD"
+        else:
+            crypto_rev = version.crypto_revision
+
+        checkout_process = subprocess.Popen(
+            [self.git_command, "checkout", crypto_rev],
+            cwd=os.path.join(git_worktree_path, "crypto"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT
+        )
+        checkout_output, _ = checkout_process.communicate()
+        self.log.info(checkout_output.decode("utf-8"))
+        if checkout_process.returncode != 0:
+            raise Exception("git checkout failed, aborting")
 
     def _build_shared_libraries(self, git_worktree_path, version):
         """Build the shared libraries in the specified worktree."""

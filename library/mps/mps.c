@@ -2852,10 +2852,26 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
 
     if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_RECVINIT )
     {
+        uint64_t rec_ctr;
+
         MPS_CHK( mps_retransmission_state_machine_transition(
                      mps,
                      MBEDTLS_MPS_FLIGHT_RECVINIT,
                      MBEDTLS_MPS_FLIGHT_RECEIVE, 0 ) );
+
+        /* TODO: Move this logic to Layer 2 -- mirror the sequence
+         * number when the first operation is the receipt of an
+         * incoming record. That avoids the abstraction break
+         * and saves some code. */
+        MPS_CHK( mps_l3_get_last_sequence_number( mps->conf.l3,
+                                                  hs_l3.epoch,
+                                                  &rec_ctr ) );
+
+        TRACE( trace_comment, "Mirror record sequence number %u when responding to initial message.",
+               (unsigned) rec_ctr );
+        MPS_CHK( mps_l3_force_next_sequence_number( mps->conf.l3,
+                                                    hs_l3.epoch,
+                                                    rec_ctr ) );
     }
 
     MPS_INTERNAL_FAILURE_HANDLER

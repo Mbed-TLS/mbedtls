@@ -966,4 +966,18 @@ static inline int mps_l3_epoch_usage( mps_l3 *ctx,
     return( mps_l2_epoch_usage( ctx->conf.l2, epoch, usage ) );
 }
 
+static inline int mps_l3_force_next_sequence_number( mps_l3 *ctx,
+                                                mbedtls_mps_epoch_id epoch_id,
+                                                uint64_t ctr )
+{
+    return( mps_l2_force_next_sequence_number( ctx->conf.l2, epoch_id, ctr ) );
+}
+
+static inline int mps_l3_get_last_sequence_number( mps_l3 *ctx,
+                                                mbedtls_mps_epoch_id epoch_id,
+                                                uint64_t *ctr )
+{
+    return( mps_l2_get_last_sequence_number( ctx->conf.l2, epoch_id, ctr ) );
+}
+
 #endif /* MBEDTLS_MPS_MESSAGE_EXTRACTION_LAYER_H */

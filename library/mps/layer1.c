@@ -703,7 +703,8 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
     TRACE_INIT( "l1_ensure_in_dgram" );
 
     /* 1. Ensure that a buffer is available to receive data */
-    ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
+    /* TODO: Fix reinterpret cast */
+    ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_IN );
     if( ret != 0 )
         RETURN( ret );
@@ -896,7 +897,8 @@ int l1_write_dgram( mps_l1_dgram_write *p,
 
     /* Ensure that a buffer is available to hold them
      * outgoing datagram. */
-    ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
+    /* TODO: Fix reinterpret cast */
+    ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_OUT );
 
     bl = p->buf_len;

@@ -1847,9 +1847,9 @@ MBEDTLS_MPS_STATIC int mps_retransmission_timer_increase_timeout( mbedtls_mps *m
     new_timeout = 2 * cur_timeout;
 
     /* Avoid arithmetic overflow and range overflow */
-    /* overflow = ( new_timeout < cur_timeout ); */
-    /* if( overflow || new_timeout > max_timeout ) */
-    /*     new_timeout = max_timeout; */
+    overflow = ( new_timeout < cur_timeout );
+    if( overflow || new_timeout > max_timeout )
+        new_timeout = max_timeout;
 
     mps->dtls.wait.retransmit_timeout = new_timeout;
     TRACE( trace_comment, "Update timeout value to %u milliseonds",

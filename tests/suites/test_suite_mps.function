@@ -10189,7 +10189,6 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
     {
         while( 1 )
         {
-            int ret;
             ret = mbedtls_mps_read( &srv );
             TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
                          ret == MPS_ERR_WANT_READ  );
@@ -10447,18 +10446,8 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
             /* Indicate the end of the flight */
             if( iteration == (size_t) ( num_hs - 1 ) )
             {
-                /* After the initial exchange, reset the server. */
-                if( ( round == 1 ) && ( server_reset == 1 ) )
-                {
-                    printf( "SERVER RESET\n" );
-                    TEST_ASSERT( mbedtls_mps_write_set_flags( sender,
-                                           MBEDTLS_MPS_FLIGHT_FINISHED ) == 0 );
-                }
-                else
-                {
-                    TEST_ASSERT( mbedtls_mps_write_set_flags( sender,
-                                           MBEDTLS_MPS_FLIGHT_END ) == 0 );
-                }
+                TEST_ASSERT( mbedtls_mps_write_set_flags( sender,
+                                            MBEDTLS_MPS_FLIGHT_END ) == 0 );
             }
 
             if( retransmission_callback == 0 )
@@ -10496,18 +10485,68 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
                 break;
         }
 
-        /* The sender has switched to RECEIVE mode now, hence
-         * will check the retransmission timer to see if it
-         * should retransmit. The mock timer always fires, so
-         * we expect retransmission here. */
-        while( 1 )
+        /* After the initial flight, reset the server. */
+        if( ( round == 1 ) && ( server_reset == 1 ) )
         {
-            int ret;
-            ret = mbedtls_mps_read( sender );
-            TEST_ASSERT( ret == MPS_ERR_WANT_READ || ret == MPS_ERR_WANT_WRITE );
+            printf( "SERVER RESET\n" );
+            /* Reset entire server-side MPS stack. */
+            TEST_ASSERT( mbedtls_mps_free( &srv ) == 0 );
+            TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
+            TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
+            mps_l1_free( &srv_l1 );
+            TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-            if( ret == MPS_ERR_WANT_READ )
-                break;
+            mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+            TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
+                                      &srv_alloc,
+                                      layer0_dgram_write_srv,
+                                      layer0_dgram_read_srv ) == 0 );
+            TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
+                                      L2_DEFAULT_ACCUMULATOR_SIZE,
+                                      L2_DEFAULT_QUEUE_SIZE,
+                                      mbedtls_test_rnd_std_rand, NULL ) == 0 );
+            TEST_ASSERT( mps_l2_config_version( &srv_l2,
+                                                MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+            TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_HS,
+                                                 1, 1, 0 ) == 0 );
+            TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
+                                                 1, 1, 0 ) == 0 );
+            TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+            TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
+                                           MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+
+            /* MPS owns the transform once passed to it, hence will destroy
+             * it when being freed. Set it up again. */
+            dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+            dummy_s->type = 0;
+            dummy_s->mock.enabled = 1;
+            dummy_s->mock.pad = 5;
+            TEST_ASSERT( mbedtls_mps_add_key_material( &srv, dummy_s,
+                                                       &srv_epoch ) == 0 );
+            TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv, srv_epoch ) == 0 );
+            TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, srv_epoch ) == 0 );
+            if( use_mock_timer )
+            {
+                srv.conf.p_timer = &timer_srv;
+                srv.conf.f_set_timer = set_mock_timer;
+                srv.conf.f_get_timer = get_mock_timer;
+            }
+        }
+        else
+        {
+            /* The sender has switched to RECEIVE mode now, hence
+             * will check the retransmission timer to see if it
+             * should retransmit. The mock timer always fires, so
+             * we expect retransmission here. */
+            while( 1 )
+            {
+                int ret;
+                ret = mbedtls_mps_read( sender );
+                TEST_ASSERT( ret == MPS_ERR_WANT_READ || ret == MPS_ERR_WANT_WRITE );
+
+                if( ret == MPS_ERR_WANT_READ )
+                    break;
+            }
         }
 
         /*

@@ -1368,32 +1368,26 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
         if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_FINALIZE )
         {
             TRACE( trace_comment, "Last flight-exchange complete for us, but not necessarily for peer - ignore." );
-            mps_retransmission_timer_stop( mps );
-            MPS_CHK( mps_out_flight_free( mps ) );
-            MPS_CHK( mps_retransmit_in_free( mps ) );
-            mps->dtls.state = MBEDTLS_MPS_FLIGHT_DONE;
-
-            /* Clearing the reassembly is done in the next branch. */
+            MPS_CHK( mps_retransmission_state_machine_transition(
+                         mps,
+                         MBEDTLS_MPS_FLIGHT_FINALIZE,
+                         MBEDTLS_MPS_FLIGHT_DONE, 0 ) );
+        }
+        else if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_RECVINIT )
+        {
+            MPS_CHK( mps_retransmission_state_machine_transition(
+                         mps,
+                         MBEDTLS_MPS_FLIGHT_RECVINIT,
+                         MBEDTLS_MPS_FLIGHT_DONE, 0 ) );
         }
         /* No `else` because we want to fall through. */
         if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_DONE )
         {
             TRACE( trace_comment, "No flight-exchange in progress. Start a new one" );
-
-            /* It is possible that we have already received some handshake
-             * message fragments from the peer -- delete these. See the
-             * documentation of mbedtls_mps_retransmission_handle_incoming_fragment()
-             * for more information on this choice of behavior. */
-            MPS_CHK( mps_reassembly_free( mps ) );
-            MPS_CHK( mps_reassembly_init( mps, 0 ) );
-
-            /* Now the previous handshake is fully wrapped up
-             * and we can start a new one. */
-
-            MPS_CHK( mps_out_flight_init( mps, MPS_INITIAL_HS_SEQ_NR ) );
-            MPS_CHK( mps_retransmit_in_init( mps ) );
-
-            mps->dtls.state = MBEDTLS_MPS_FLIGHT_SEND;
+            MPS_CHK( mps_retransmission_state_machine_transition(
+                         mps,
+                         MBEDTLS_MPS_FLIGHT_DONE
+                         MBEDTLS_MPS_FLIGHT_SEND, 0 ) );
         }
 
         /* Check if a handshake message is currently paused or not. */
@@ -2618,6 +2612,22 @@ int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
         MPS_CHK( mps_reassembly_init( mps, seq ) );
     }
     else
+    if( old == MBEDTLS_MPS_FLIGHT_FINALIZE &&
+        new == MBEDTLS_MPS_FLIGHT_DONE )
+    {
+        ((void) seq);
+        mps_retransmission_timer_stop( mps );
+        MPS_CHK( mps_out_flight_free( mps ) );
+        MPS_CHK( mps_retransmit_in_free( mps ) );
+    }
+    else
+    if( old == MBEDTLS_MPS_FLIGHT_DONE &&
+        new == MBEDTLS_MPS_FLIGHT_SEND )
+    {
+        MPS_CHK( mps_out_flight_init( mps, MPS_INITIAL_HS_SEQ_NR ) );
+        MPS_CHK( mps_retransmit_in_init( mps ) );
+    }
+    else
     if( old == MBEDTLS_MPS_FLIGHT_RECVINIT &&
         new == MBEDTLS_MPS_FLIGHT_RECEIVE )
     {
@@ -2625,6 +2635,41 @@ int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
         MPS_CHK( mps_retransmit_in_init( mps ) );
         mps->dtls.wait.retransmit_timeout = mps->conf.hs_timeout_min;
         MPS_CHK( mps_retransmission_timer_update( mps ) );
+    }
+    else
+    if( old == MBEDTLS_MPS_FLIGHT_RECVINIT &&
+        new == MBEDTLS_MPS_FLIGHT_DONE )
+    {
+        /* It is possible that we have already received some handshake
+         * message fragments from the peer -- delete these. See the
+         * documentation of mbedtls_mps_retransmission_handle_incoming_fragment()
+         * for more information on this choice of behavior. */
+        MPS_CHK( mps_reassembly_free( mps ) );
+    }
+    else
+    if( old == MBEDTLS_MPS_FLIGHT_RECEIVE &&
+        new == MBEDTLS_MPS_FLIGHT_PREPARE )
+    {
+        /* Clear memory of last outgoing flight.
+         * NOTE: Logically, we should remove this when switching from state
+         *       #MBEDTLS_MPS_FLIGHT_AWAIT to #MBEDTLS_MPS_FLIGHT_RECEIVE;
+         *       see the corresponding comments in
+         *       \c mbedtls_mps_retransmission_handle_incoming_fragment()
+         *       for more. */
+        MPS_CHK( mps_out_flight_forget( mps ) );
+
+        /* Keep memory of last incoming flight intact. */
+    }
+    else
+    if( old == MBEDTLS_MPS_FLIGHT_RECEIVE &&
+        new == MBEDTLS_MPS_FLIGHT_DONE )
+    {
+        MPS_CHK( mps_out_flight_free( mps ) );
+        MPS_CHK( mps_retransmit_in_free( mps ) );
+        MPS_CHK( mps_reassembly_free( mps ) );
+        /* Force 0 as the initial sequence number on renegotiations. */
+        MPS_CHK( mps_reassembly_init( mps, 0 ) );
+        mps->dtls.state = MBEDTLS_MPS_FLIGHT_DONE;
     }
     else
 #if defined(MBEDTLS_MPS_ASSERT)
@@ -2905,6 +2950,7 @@ MBEDTLS_MPS_STATIC int mps_retransmission_finish_incoming_message( mbedtls_mps *
     if( flags == MBEDTLS_MPS_FLIGHT_END )
     {
         TRACE( trace_comment, "Incoming message ends a flight. Switch to PREPARE state." );
+
         /* Clear the reassembly module; this fails if we attempt
          * to close a flight if there are still some future messages
          * buffered; this could happen e.g. if a Client sends its
@@ -2916,27 +2962,18 @@ MBEDTLS_MPS_STATIC int mps_retransmission_finish_incoming_message( mbedtls_mps *
          * TODO: Does this endanger compatibility? */
         MPS_CHK( mps_reassembly_forget( mps ) );
 
-        /* Clear memory of last outgoing flight.
-         * NOTE: Logically, we should remove this when switching from state
-         *       #MBEDTLS_MPS_FLIGHT_AWAIT to #MBEDTLS_MPS_FLIGHT_RECEIVE;
-         *       see the corresponding comments in
-         *       \c mbedtls_mps_retransmission_handle_incoming_fragment()
-         *       for more. */
-        MPS_CHK( mps_out_flight_forget( mps ) );
-
-        /* Switch to prepare state, but keep memory of last
-         * incoming flight intact. */
-        mps->dtls.state = MBEDTLS_MPS_FLIGHT_PREPARE;
+        MPS_CHK( mps_retransmission_state_machine_transition(
+                     mps,
+                     MBEDTLS_MPS_FLIGHT_RECEIVE,
+                     MBEDTLS_MPS_FLIGHT_PREPARE, 0 ) );
     }
     else if( flags == MBEDTLS_MPS_FLIGHT_FINISHED )
     {
         TRACE( trace_comment, "Incoming message ends a flight-exchange. Switch to DONE state." );
-        MPS_CHK( mps_out_flight_free( mps ) );
-        MPS_CHK( mps_retransmit_in_free( mps ) );
-        MPS_CHK( mps_reassembly_free( mps ) );
-        /* Force 0 as the initial sequence number on renegotiations. */
-        MPS_CHK( mps_reassembly_init( mps, 0 ) );
-        mps->dtls.state = MBEDTLS_MPS_FLIGHT_DONE;
+        MPS_CHK( mps_retransmission_state_machine_transition(
+                     mps,
+                     MBEDTLS_MPS_FLIGHT_RECEIVE,
+                     MBEDTLS_MPS_FLIGHT_DONE, 0 ) );
     }
     else
     {

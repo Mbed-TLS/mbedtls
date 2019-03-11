@@ -2924,12 +2924,31 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *   for the output produced by psa_export_key().
  *   The following key types defined in this specification follow this scheme:
  *
- *     - #PSA_KEY_TYPE_DES;
- *     - #PSA_KEY_TYPE_DH_KEYPAIR;
- *     - #PSA_KEY_TYPE_DSA_KEYPAIR;
- *     - ECC keys on a Weierstrass elliptic curve, i.e.
- *       #PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a
- *       Weierstrass curve.
+ *     - #PSA_KEY_TYPE_DES.
+ *       Force-set the parity bits, but discard forbidden weak keys.
+ *       For 2-key and 3-key triple-DES, the three keys are generated
+ *       successively (for example, for 3-key triple-DES,
+ *       if the first 8 bytes specify a weak key and the next 8 bytes do not,
+ *       discard the first 8 bytes, use the next 8 bytes as the first key,
+ *       and continue reading output from the generator to derive the other
+ *       two keys).
+ *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEYPAIR),
+ *       DSA keys (#PSA_KEY_TYPE_DSA_KEYPAIR), and
+ *       ECC keys on a Weierstrass elliptic curve
+ *       (#PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a
+ *       Weierstrass curve).
+ *       For these key types, interpret the byte string as integer
+ *       in big-endian order. Discard it if it is not in the range
+ *       [0, *N* - 2] where *N* is the boundary of the private key domain
+ *       (the prime *p* for Diffie-Hellman, the subprime *q* for DSA,
+ *       or the order of the curve's coordinate field for ECC).
+ *       Add 1 to the resulting integer and use this as the private key *x*.
+ *       This is the method described as
+ *       "key-pair generation by testing candidates"
+ *       in NIST SP 800-56A &sect;5.6.1.1.4 for Diffie-Hellman,
+ *       in FIPS 186-4 &sect;B.1.2 for DSA, and
+ *       in NIST SP 800-56A &sect;5.6.1.2.2 or
+ *       FIPS 186-4 &sect;B.4.2 for elliptic curve keys.
  *
  * - For other key types, including #PSA_KEY_TYPE_RSA_KEYPAIR,
  *   the way in which the generator output is consumed is

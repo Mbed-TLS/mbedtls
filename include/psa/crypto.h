@@ -2878,24 +2878,73 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
                                 uint8_t *output,
                                 size_t output_length);
 
-/** Create a symmetric key from data read from a generator.
+/** Generate a key deterministically from data read from a generator.
  *
- * This function reads a sequence of bytes from a generator and imports
- * these bytes as a key.
- * The data that is read is discarded from the generator. The generator's
- * capacity is decreased by the number of bytes read.
+ * This function uses the output of a generator to derive a key.
+ * How much output it consumes and how the key is derived depends on the
+ * key type.
  *
- * This function is equivalent to calling #psa_generator_read and
- * passing the resulting output to #psa_import_key, but
- * if the implementation provides an isolation boundary then
- * the key material is not exposed outside the isolation boundary.
+ * - For key types for which the key is an arbitrary sequence of bytes
+ *   of a given size,
+ *   this function is functionally equivalent to calling #psa_generator_read
+ *   and passing the resulting output to #psa_import_key.
+ *   However, this function has a security benefit:
+ *   if the implementation provides an isolation boundary then
+ *   the key material is not exposed outside the isolation boundary.
+ *   As a consequence, for these key types, this function always consumes
+ *   exactly (\p bits / 8) bytes from the generator.
+ *   The following key types defined in this specification follow this scheme:
+ *
+ *     - #PSA_KEY_TYPE_AES;
+ *     - #PSA_KEY_TYPE_ARIA;
+ *     - #PSA_KEY_TYPE_ARC4;
+ *     - #PSA_KEY_TYPE_CAMELLIA;
+ *     - #PSA_KEY_TYPE_CHACHAPOLY;
+ *     - #PSA_KEY_TYPE_DERIVE;
+ *     - #PSA_KEY_TYPE_HMAC.
+ *
+ * - For ECC keys on a Montgomery elliptic curve
+ *   (#PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a
+ *   Montgomery curve), this function always draws a byte string whose
+ *   length is determined by the curve, and sets the mandatory bits
+ *   accordingly. That is:
+ *
+ *     - #PSA_ECC_CURVE_CURVE25519: draw a 32-byte string
+ *       and process it as specified in RFC 7748 &sect;5.
+ *     - #PSA_ECC_CURVE_CURVE448: draw a 56-byte string
+ *       and process it as specified in RFC 7748 &sect;5.
+ *
+ * - For key types for which the key is represented by a single sequence of
+ *   \p bits bits with constraints as to which bit sequences are acceptable,
+ *   this function draws a byte string of length (\p bits / 8) bytes rounded
+ *   up to the nearest whole number of bytes. If the resulting byte string
+ *   is acceptable, it becomes the key, otherwise the drawn bytes are discarded.
+ *   This process is repeated until an acceptable byte string is drawn.
+ *   The byte string drawn from the generator is interpreted as specified
+ *   for the output produced by psa_export_key().
+ *   The following key types defined in this specification follow this scheme:
+ *
+ *     - #PSA_KEY_TYPE_DES;
+ *     - #PSA_KEY_TYPE_DH_KEYPAIR;
+ *     - #PSA_KEY_TYPE_DSA_KEYPAIR;
+ *     - ECC keys on a Weierstrass elliptic curve, i.e.
+ *       #PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a
+ *       Weierstrass curve.
+ *
+ * - For other key types, including #PSA_KEY_TYPE_RSA_KEYPAIR,
+ *   the way in which the generator output is consumed is
+ *   implementation-defined.
+ *
+ * In all cases, the data that is read is discarded from the generator.
+ * The generator's capacity is decreased by the number of bytes read.
  *
  * \param handle            Handle to the slot where the key will be stored.
  *                          It must have been obtained by calling
  *                          psa_allocate_key() or psa_create_key() and must
  *                          not contain key material yet.
  * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
- *                          This must be a symmetric key type.
+ *                          This must be a secret key type or a key pair type
+ *                          .
  * \param bits              Key size in bits.
  * \param[in,out] generator The generator object to read from.
  *
@@ -2904,12 +2953,10 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *         If the key is persistent, the key material and the key's metadata
  *         have been saved to persistent storage.
  * \retval #PSA_ERROR_INSUFFICIENT_CAPACITY
- *                          There were fewer than \p bits * 8 bytes
- *                          in the generator. Note that in this case, no
- *                          output is written to the output buffer.
- *                          The generator's capacity is set to 0, thus
- *                          subsequent calls to this function will not
- *                          succeed, even with a smaller output buffer.
+ *         There was not enough data to create the desired key.
+ *         Note that in this case, no output is written to the output buffer.
+ *         The generator's capacity is set to 0, thus subsequent calls to
+ *         this function will not succeed, even with a smaller output buffer.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The key type or key size is not supported, either by the
  *         implementation in general or in this particular slot.

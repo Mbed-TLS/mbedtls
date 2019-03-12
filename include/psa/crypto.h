@@ -2896,10 +2896,8 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *   The following key types defined in this specification follow this scheme:
  *
  *     - #PSA_KEY_TYPE_AES;
- *     - #PSA_KEY_TYPE_ARIA;
  *     - #PSA_KEY_TYPE_ARC4;
  *     - #PSA_KEY_TYPE_CAMELLIA;
- *     - #PSA_KEY_TYPE_CHACHAPOLY;
  *     - #PSA_KEY_TYPE_DERIVE;
  *     - #PSA_KEY_TYPE_HMAC.
  *
@@ -2962,8 +2960,7 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *                          psa_allocate_key() or psa_create_key() and must
  *                          not contain key material yet.
  * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
- *                          This must be a secret key type or a key pair type
- *                          .
+ *                          This must be a secret key type or a key pair type.
  * \param bits              Key size in bits.
  * \param[in,out] generator The generator object to read from.
  *

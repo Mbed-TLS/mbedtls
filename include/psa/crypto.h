@@ -2941,10 +2941,10 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *       in big-endian order. Discard it if it is not in the range
  *       [0, *N* - 2] where *N* is the boundary of the private key domain
  *       (the prime *p* for Diffie-Hellman, the subprime *q* for DSA,
- *       or the order of the curve's coordinate field for ECC).
+ *       or the order of the curve's base point for ECC).
  *       Add 1 to the resulting integer and use this as the private key *x*.
- *       This is the method described as
- *       "key-pair generation by testing candidates"
+ *       This method allows compliance to NIST standards, specifically
+ *       the methods titled "key-pair generation by testing candidates"
  *       in NIST SP 800-56A &sect;5.6.1.1.4 for Diffie-Hellman,
  *       in FIPS 186-4 &sect;B.1.2 for DSA, and
  *       in NIST SP 800-56A &sect;5.6.1.2.2 or

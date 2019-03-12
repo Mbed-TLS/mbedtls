@@ -3,23 +3,28 @@
 # Generate error.c
 #
 # Usage: ./generate_errors.pl or scripts/generate_errors.pl without arguments,
-# or generate_errors.pl include_dir data_dir error_file
+# or generate_errors.pl include_dir data_dir error_file include_crypto
 
 use strict;
 
-my ($include_dir, $data_dir, $error_file);
+my ($include_dir, $data_dir, $error_file, $include_crypto);
+my $crypto_dir = "crypto";
 
 if( @ARGV ) {
-    die "Invalid number of arguments" if scalar @ARGV != 3;
-    ($include_dir, $data_dir, $error_file) = @ARGV;
+    die "Invalid number of arguments" if scalar @ARGV != 4;
+    ($include_dir, $data_dir, $error_file, $include_crypto) = @ARGV;
 
     -d $include_dir or die "No such directory: $include_dir\n";
     -d $data_dir or die "No such directory: $data_dir\n";
+    if( $include_crypto ) {
+        -d $crypto_dir or die "Crypto submodule not present\n";
+    }
 } else {
     $include_dir = 'include/mbedtls';
     $data_dir = 'scripts/data_files';
     $error_file = 'library/error.c';
-
+    $include_crypto = 1;
+    -d $crypto_dir or die "Crypto submodule not present\n";
     unless( -d $include_dir && -d $data_dir ) {
         chdir '..' or die;
         -d $include_dir && -d $data_dir
@@ -48,6 +53,11 @@ close(FORMAT_FILE);
 $/ = $line_separator;
 
 my @files = <$include_dir/*.h>;
+
+if( $include_crypto ) {
+    @files = (<$include_dir/*.h>,<$crypto_dir/$include_dir/*.h>);
+}
+
 my @matches;
 foreach my $file (@files) {
     open(FILE, "$file");
@@ -73,8 +83,15 @@ foreach my $line (@matches)
     my ($error_name, $error_code) = $line =~ /(MBEDTLS_ERR_\w+)\s+\-(0x\w+)/;
     my ($description) = $line =~ /\/\*\*< (.*?)\.? \*\//;
 
-    die "Duplicated error code: $error_code ($error_name)\n"
-        if( $error_codes_seen{$error_code}++ );
+    if( $error_codes_seen{$error_code}++ ) {
+        if( $include_crypto ) {
+            print "Duplicated error code: $error_code ($error_name)\n";
+            next;
+        }
+        else {
+             die "Duplicated error code: $error_code ($error_name)\n" ;
+        }
+    }
 
     $description =~ s/\\/\\\\/g;
     if ($description eq "") {

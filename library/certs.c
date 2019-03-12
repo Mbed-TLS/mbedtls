@@ -30,6 +30,7 @@
 #if defined(MBEDTLS_CERTS_C)
 
 #if defined(MBEDTLS_ECDSA_C)
+/* This is taken from tests/data_files/test-ca2.crt */
 #define TEST_CA_CRT_EC                                                  \
 "-----BEGIN CERTIFICATE-----\r\n"                                       \
 "MIICUjCCAdegAwIBAgIJAMFD4n5iQ8zoMAoGCCqGSM49BAMCMD4xCzAJBgNVBAYT\r\n"  \
@@ -49,6 +50,7 @@
 const char mbedtls_test_ca_crt_ec[] = TEST_CA_CRT_EC;
 const size_t mbedtls_test_ca_crt_ec_len = sizeof( mbedtls_test_ca_crt_ec );
 
+/* This is taken from tests/data_files/test-ca2.key */
 const char mbedtls_test_ca_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "Proc-Type: 4,ENCRYPTED\r\n"
@@ -64,6 +66,7 @@ const size_t mbedtls_test_ca_key_ec_len = sizeof( mbedtls_test_ca_key_ec );
 const char mbedtls_test_ca_pwd_ec[] = "PolarSSLTest";
 const size_t mbedtls_test_ca_pwd_ec_len = sizeof( mbedtls_test_ca_pwd_ec ) - 1;
 
+/* This is taken from tests/data_files/server5.crt */
 const char mbedtls_test_srv_crt_ec[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIICHzCCAaWgAwIBAgIBCTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n"
@@ -81,6 +84,7 @@ const char mbedtls_test_srv_crt_ec[] =
 "-----END CERTIFICATE-----\r\n";
 const size_t mbedtls_test_srv_crt_ec_len = sizeof( mbedtls_test_srv_crt_ec );
 
+/* This is taken from tests/data_files/server5.key */
 const char mbedtls_test_srv_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "MHcCAQEEIPEqEyB2AnCoPL/9U/YDHvdqXYbIogTywwyp6/UfDw6noAoGCCqGSM49\r\n"
@@ -89,6 +93,7 @@ const char mbedtls_test_srv_key_ec[] =
 "-----END EC PRIVATE KEY-----\r\n";
 const size_t mbedtls_test_srv_key_ec_len = sizeof( mbedtls_test_srv_key_ec );
 
+/* This is taken from tests/data_files/cli2.crt */
 const char mbedtls_test_cli_crt_ec[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIICLDCCAbKgAwIBAgIBDTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n"
@@ -106,6 +111,7 @@ const char mbedtls_test_cli_crt_ec[] =
 "-----END CERTIFICATE-----\r\n";
 const size_t mbedtls_test_cli_crt_ec_len = sizeof( mbedtls_test_cli_crt_ec );
 
+/* This is taken from tests/data_files/cli2.key */
 const char mbedtls_test_cli_key_ec[] =
 "-----BEGIN EC PRIVATE KEY-----\r\n"
 "MHcCAQEEIPb3hmTxZ3/mZI3vyk7p3U3wBf+WIop6hDhkFzJhmLcqoAoGCCqGSM49\r\n"
@@ -117,6 +123,7 @@ const size_t mbedtls_test_cli_key_ec_len = sizeof( mbedtls_test_cli_key_ec );
 
 #if defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SHA256_C)
+/* This is taken from tests/data_files/test-ca-sha256.crt */
 #define TEST_CA_CRT_RSA_SHA256                                          \
 "-----BEGIN CERTIFICATE-----\r\n"                                       \
 "MIIDhzCCAm+gAwIBAgIBADANBgkqhkiG9w0BAQsFADA7MQswCQYDVQQGEwJOTDER\r\n"  \
@@ -147,6 +154,7 @@ const size_t mbedtls_test_ca_crt_rsa_len = sizeof( mbedtls_test_ca_crt_rsa );
 #endif /* MBEDTLS_SHA256_C */
 
 #if !defined(TEST_CA_CRT_RSA_SOME) || defined(MBEDTLS_SHA1_C)
+/* This is taken from tests/data_files/test-ca-sha1.crt */
 #define TEST_CA_CRT_RSA_SHA1                                            \
 "-----BEGIN CERTIFICATE-----\r\n"                                       \
 "MIIDhzCCAm+gAwIBAgIBADANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n"  \
@@ -179,7 +187,7 @@ const size_t mbedtls_test_ca_crt_rsa_len = sizeof( mbedtls_test_ca_crt_rsa );
 #endif /* !TEST_CA_CRT_RSA_COME || MBEDTLS_SHA1_C */
 
 #if defined(MBEDTLS_SHA256_C)
-/* tests/data_files/server2-sha256.crt */
+/* This is taken from tests/data_files/server2-sha256.crt */
 #define TEST_SRV_CRT_RSA_SHA256                                          \
 "-----BEGIN CERTIFICATE-----\r\n"                                        \
 "MIIDNzCCAh+gAwIBAgIBAjANBgkqhkiG9w0BAQsFADA7MQswCQYDVQQGEwJOTDER\r\n"   \
@@ -208,7 +216,7 @@ const size_t mbedtls_test_srv_crt_rsa_len = sizeof( mbedtls_test_srv_crt_rsa );
 #endif /* MBEDTLS_SHA256_C */
 
 #if !defined(TEST_SRV_CRT_RSA_SOME) || defined(MBEDTLS_SHA1_C)
-/* tests/data_files/server2.crt */
+/* This is taken from tests/data_files/server2.crt */
 #define TEST_SRV_CRT_RSA_SHA1                                          \
 "-----BEGIN CERTIFICATE-----\r\n"                                      \
 "MIIDNzCCAh+gAwIBAgIBAjANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n" \
@@ -237,6 +245,7 @@ const size_t mbedtls_test_srv_crt_rsa_len = sizeof( mbedtls_test_srv_crt_rsa );
 #endif /* TEST_SRV_CRT_RSA_SOME */
 #endif /* !TEST_CA_CRT_RSA_SOME || MBEDTLS_SHA1_C */
 
+/* This is taken from tests/data_files/test-ca.key */
 const char mbedtls_test_ca_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "Proc-Type: 4,ENCRYPTED\r\n"
@@ -273,6 +282,7 @@ const size_t mbedtls_test_ca_key_rsa_len = sizeof( mbedtls_test_ca_key_rsa );
 const char mbedtls_test_ca_pwd_rsa[] = "PolarSSLTest";
 const size_t mbedtls_test_ca_pwd_rsa_len = sizeof( mbedtls_test_ca_pwd_rsa ) - 1;
 
+/* This is taken from tests/data_files/server2.key */
 const char mbedtls_test_srv_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEpAIBAAKCAQEAwU2j3efNHdEE10lyuJmsDnjkOjxKzzoTFtBa5M2jAIin7h5r\r\n"
@@ -303,7 +313,7 @@ const char mbedtls_test_srv_key_rsa[] =
 "-----END RSA PRIVATE KEY-----\r\n";
 const size_t mbedtls_test_srv_key_rsa_len = sizeof( mbedtls_test_srv_key_rsa );
 
-/* tests/data_files/cli-rsa-sha256.crt */
+/* This is taken from tests/data_files/cli-rsa-sha256.crt */
 const char mbedtls_test_cli_crt_rsa[] =
 "-----BEGIN CERTIFICATE-----\r\n"
 "MIIDPzCCAiegAwIBAgIBBDANBgkqhkiG9w0BAQsFADA7MQswCQYDVQQGEwJOTDER\r\n"
@@ -327,7 +337,7 @@ const char mbedtls_test_cli_crt_rsa[] =
 "-----END CERTIFICATE-----\r\n";
 const size_t mbedtls_test_cli_crt_rsa_len = sizeof( mbedtls_test_cli_crt_rsa );
 
-/* tests/data_files/cli-rsa.key */
+/* This is taken from tests/data_files/cli-rsa.key */
 const char mbedtls_test_cli_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"
 "MIIEpAIBAAKCAQEAyHTEzLn5tXnpRdkUYLB9u5Pyax6fM60Nj4o8VmXl3ETZzGaF\r\n"

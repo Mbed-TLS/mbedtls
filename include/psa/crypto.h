@@ -792,12 +792,12 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_OCCUPIED_SLOT
- *         \p target already contains key material.
+ *         \p target_handle already contains key material.
  * \retval #PSA_ERROR_EMPTY_SLOT
- *         \p source does not contain key material.
+ *         \p source_handle does not contain key material.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The policy constraints on the source, on the target and
- *         \p constraints are incompatible.
+ *         \p constraint are incompatible.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The source key is not exportable and its lifetime does not
  *         allow copying it to the target's lifetime.
@@ -1152,7 +1152,7 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a MAC algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -1191,7 +1191,7 @@ psa_status_t psa_mac_compute(psa_key_handle_t handle,
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a MAC algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -1294,7 +1294,7 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a MAC algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -1532,7 +1532,7 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a cipher algorithm.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
@@ -1574,7 +1574,7 @@ psa_status_t psa_cipher_encrypt(psa_key_handle_t handle,
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a cipher algorithm.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
@@ -1680,7 +1680,7 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a cipher algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -1739,7 +1739,7 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a cipher algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -1967,7 +1967,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2025,7 +2025,7 @@ psa_status_t psa_aead_encrypt(psa_key_handle_t handle,
  *         The ciphertext is not authentic.
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2144,7 +2144,7 @@ static psa_aead_operation_t psa_aead_operation_init(void);
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2206,7 +2206,7 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
+ *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not an AEAD algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2444,7 +2444,7 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  *   psa_aead_update() does not buffer any output and therefore \p ciphertext
  *   will not contain any output and can be a 0-sized buffer.
  * - \p tag contains the authentication tag. Its length is always
- *   #PSA_AEAD_TAG_LENGTH(\p alg) where \p alg is the AEAD algorithm
+ *   #PSA_AEAD_TAG_LENGTH(\c alg) where \c alg is the AEAD algorithm
  *   that the operation performs.
  *
  * When this function returns, the operation becomes inactive.
@@ -2467,7 +2467,7 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  *         The operation state is not valid (not set up, nonce not set,
  *         decryption, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p output buffer is too small.
+ *         The size of the \p ciphertext or \p tag buffer is too small.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -2509,8 +2509,6 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (not set up, nonce not set,
  *         encryption, or already completed).
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \p output buffer is too small.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -2576,7 +2574,7 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  * \param handle                Handle to the key to use for the operation.
  *                              It must be an asymmetric key pair.
  * \param alg                   A signature algorithm that is compatible with
- *                              the type of \p key.
+ *                              the type of \p handle.
  * \param[in] hash              The hash or message to sign.
  * \param hash_length           Size of the \p hash buffer in bytes.
  * \param[out] signature        Buffer where the signature is to be written.
@@ -2590,7 +2588,7 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *         determine a sufficient buffer size by calling
  *         #PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
  *         where \c key_type and \c key_bits are the type and bit-size
- *         respectively of \p key.
+ *         respectively of \p handle.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2623,7 +2621,7 @@ psa_status_t psa_asymmetric_sign(psa_key_handle_t handle,
  * \param handle            Handle to the key to use for the operation.
  *                          It must be a public key or an asymmetric key pair.
  * \param alg               A signature algorithm that is compatible with
- *                          the type of \p key.
+ *                          the type of \p handle.
  * \param[in] hash          The hash or message whose signature is to be
  *                          verified.
  * \param hash_length       Size of the \p hash buffer in bytes.
@@ -2660,7 +2658,7 @@ psa_status_t psa_asymmetric_verify(psa_key_handle_t handle,
  *                              It must be a public key or an asymmetric
  *                              key pair.
  * \param alg                   An asymmetric encryption algorithm that is
- *                              compatible with the type of \p key.
+ *                              compatible with the type of \p handle.
  * \param[in] input             The message to encrypt.
  * \param input_length          Size of the \p input buffer in bytes.
  * \param[in] salt              A salt or label, if supported by the
@@ -2687,7 +2685,7 @@ psa_status_t psa_asymmetric_verify(psa_key_handle_t handle,
  *         determine a sufficient buffer size by calling
  *         #PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
  *         where \c key_type and \c key_bits are the type and bit-size
- *         respectively of \p key.
+ *         respectively of \p handle.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2716,7 +2714,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_handle_t handle,
  * \param handle                Handle to the key to use for the operation.
  *                              It must be an asymmetric key pair.
  * \param alg                   An asymmetric encryption algorithm that is
- *                              compatible with the type of \p key.
+ *                              compatible with the type of \p handle.
  * \param[in] input             The message to decrypt.
  * \param input_length          Size of the \p input buffer in bytes.
  * \param[in] salt              A salt or label, if supported by the
@@ -2743,7 +2741,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_handle_t handle,
  *         determine a sufficient buffer size by calling
  *         #PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
  *         where \c key_type and \c key_bits are the type and bit-size
- *         respectively of \p key.
+ *         respectively of \p handle.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2880,24 +2878,89 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
                                 uint8_t *output,
                                 size_t output_length);
 
-/** Create a symmetric key from data read from a generator.
+/** Generate a key deterministically from data read from a generator.
  *
- * This function reads a sequence of bytes from a generator and imports
- * these bytes as a key.
- * The data that is read is discarded from the generator. The generator's
- * capacity is decreased by the number of bytes read.
+ * This function uses the output of a generator to derive a key.
+ * How much output it consumes and how the key is derived depends on the
+ * key type.
  *
- * This function is equivalent to calling #psa_generator_read and
- * passing the resulting output to #psa_import_key, but
- * if the implementation provides an isolation boundary then
- * the key material is not exposed outside the isolation boundary.
+ * - For key types for which the key is an arbitrary sequence of bytes
+ *   of a given size,
+ *   this function is functionally equivalent to calling #psa_generator_read
+ *   and passing the resulting output to #psa_import_key.
+ *   However, this function has a security benefit:
+ *   if the implementation provides an isolation boundary then
+ *   the key material is not exposed outside the isolation boundary.
+ *   As a consequence, for these key types, this function always consumes
+ *   exactly (\p bits / 8) bytes from the generator.
+ *   The following key types defined in this specification follow this scheme:
+ *
+ *     - #PSA_KEY_TYPE_AES;
+ *     - #PSA_KEY_TYPE_ARC4;
+ *     - #PSA_KEY_TYPE_CAMELLIA;
+ *     - #PSA_KEY_TYPE_DERIVE;
+ *     - #PSA_KEY_TYPE_HMAC.
+ *
+ * - For ECC keys on a Montgomery elliptic curve
+ *   (#PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a
+ *   Montgomery curve), this function always draws a byte string whose
+ *   length is determined by the curve, and sets the mandatory bits
+ *   accordingly. That is:
+ *
+ *     - #PSA_ECC_CURVE_CURVE25519: draw a 32-byte string
+ *       and process it as specified in RFC 7748 &sect;5.
+ *     - #PSA_ECC_CURVE_CURVE448: draw a 56-byte string
+ *       and process it as specified in RFC 7748 &sect;5.
+ *
+ * - For key types for which the key is represented by a single sequence of
+ *   \p bits bits with constraints as to which bit sequences are acceptable,
+ *   this function draws a byte string of length (\p bits / 8) bytes rounded
+ *   up to the nearest whole number of bytes. If the resulting byte string
+ *   is acceptable, it becomes the key, otherwise the drawn bytes are discarded.
+ *   This process is repeated until an acceptable byte string is drawn.
+ *   The byte string drawn from the generator is interpreted as specified
+ *   for the output produced by psa_export_key().
+ *   The following key types defined in this specification follow this scheme:
+ *
+ *     - #PSA_KEY_TYPE_DES.
+ *       Force-set the parity bits, but discard forbidden weak keys.
+ *       For 2-key and 3-key triple-DES, the three keys are generated
+ *       successively (for example, for 3-key triple-DES,
+ *       if the first 8 bytes specify a weak key and the next 8 bytes do not,
+ *       discard the first 8 bytes, use the next 8 bytes as the first key,
+ *       and continue reading output from the generator to derive the other
+ *       two keys).
+ *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEYPAIR),
+ *       DSA keys (#PSA_KEY_TYPE_DSA_KEYPAIR), and
+ *       ECC keys on a Weierstrass elliptic curve
+ *       (#PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a
+ *       Weierstrass curve).
+ *       For these key types, interpret the byte string as integer
+ *       in big-endian order. Discard it if it is not in the range
+ *       [0, *N* - 2] where *N* is the boundary of the private key domain
+ *       (the prime *p* for Diffie-Hellman, the subprime *q* for DSA,
+ *       or the order of the curve's base point for ECC).
+ *       Add 1 to the resulting integer and use this as the private key *x*.
+ *       This method allows compliance to NIST standards, specifically
+ *       the methods titled "key-pair generation by testing candidates"
+ *       in NIST SP 800-56A &sect;5.6.1.1.4 for Diffie-Hellman,
+ *       in FIPS 186-4 &sect;B.1.2 for DSA, and
+ *       in NIST SP 800-56A &sect;5.6.1.2.2 or
+ *       FIPS 186-4 &sect;B.4.2 for elliptic curve keys.
+ *
+ * - For other key types, including #PSA_KEY_TYPE_RSA_KEYPAIR,
+ *   the way in which the generator output is consumed is
+ *   implementation-defined.
+ *
+ * In all cases, the data that is read is discarded from the generator.
+ * The generator's capacity is decreased by the number of bytes read.
  *
  * \param handle            Handle to the slot where the key will be stored.
  *                          It must have been obtained by calling
  *                          psa_allocate_key() or psa_create_key() and must
  *                          not contain key material yet.
  * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
- *                          This must be a symmetric key type.
+ *                          This must be a secret key type or a key pair type.
  * \param bits              Key size in bits.
  * \param[in,out] generator The generator object to read from.
  *
@@ -2906,12 +2969,10 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *         If the key is persistent, the key material and the key's metadata
  *         have been saved to persistent storage.
  * \retval #PSA_ERROR_INSUFFICIENT_CAPACITY
- *                          There were fewer than \p output_length bytes
- *                          in the generator. Note that in this case, no
- *                          output is written to the output buffer.
- *                          The generator's capacity is set to 0, thus
- *                          subsequent calls to this function will not
- *                          succeed, even with a smaller output buffer.
+ *         There was not enough data to create the desired key.
+ *         Note that in this case, no output is written to the output buffer.
+ *         The generator's capacity is set to 0, thus subsequent calls to
+ *         this function will not succeed, even with a smaller output buffer.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The key type or key size is not supported, either by the
  *         implementation in general or in this particular slot.
@@ -3114,8 +3175,8 @@ psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
  *                                psa_key_derivation_setup() with a
  *                                key agreement and derivation algorithm
  *                                \c alg (\c PSA_ALG_XXX value such that
- *                                #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true
- *                                and #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)
+ *                                #PSA_ALG_IS_KEY_AGREEMENT(\c alg) is true
+ *                                and #PSA_ALG_IS_RAW_KEY_AGREEMENT(\c alg)
  *                                is false).
  *                                The generator must be ready for an
  *                                input of the type given by \p step.

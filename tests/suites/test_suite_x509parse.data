@@ -12,7 +12,7 @@ x509_cert_info:"data_files/server2.crt":"cert. version     \: 3\nserial number  
 
 X509 Certificate information #2 (DER)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/server2.der":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2011-02-12 14\:44\:06\nexpires on        \: 2021-02-12 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/server2.crt.der":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2011-02-12 14\:44\:06\nexpires on        \: 2021-02-12 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information #3
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
@@ -20,7 +20,7 @@ x509_cert_info:"data_files/test-ca.crt":"cert. version     \: 3\nserial number  
 
 X509 Certificate information #3 (DER)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/test-ca.der":"cert. version     \: 3\nserial number     \: 03\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2011-02-12 14\:44\:00\nexpires on        \: 2021-02-12 14\:44\:00\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\n"
+x509_cert_info:"data_files/test-ca.crt.der":"cert. version     \: 3\nserial number     \: 03\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2011-02-12 14\:44\:00\nexpires on        \: 2021-02-12 14\:44\:00\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\n"
 
 X509 Certificate information MD2 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD2_C

@@ -64,7 +64,7 @@ void mbedtls_pkcs5_pbes2( int params_tag, data_t *params_hex, data_t *pw,
 
     /* Execute the test without checking the length */
     my_ret = mbedtls_pkcs5_pbes2( &params, MBEDTLS_PKCS5_DECRYPT,
-                          pw->x, pw->len, data->x, data->len, my_out );
+                                  pw->x, pw->len, data->x, data->len, my_out );
     TEST_ASSERT( my_ret == ref_ret );
 
     if( ref_ret == 0 )

@@ -112,21 +112,23 @@ static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
-                 const unsigned char *pwd,  size_t pwdlen,
-                 const unsigned char *data, size_t datalen,
-                 unsigned char *output )
+                         const unsigned char *pwd,  size_t pwdlen,
+                         const unsigned char *data, size_t datalen,
+                         unsigned char *output )
 {
     size_t olen = 0;
 
-    return mbedtls_pkcs5_pbes2_ext( pbe_params, mode, pwd, pwdlen, data, datalen,
-            output, &olen );
+    return mbedtls_pkcs5_pbes2_ext( pbe_params, mode,
+                                    pwd, pwdlen,
+                                    data, datalen,
+                                    output, &olen );
 }
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 int mbedtls_pkcs5_pbes2_ext( const mbedtls_asn1_buf *pbe_params, int mode,
-                 const unsigned char *pwd,  size_t pwdlen,
-                 const unsigned char *data, size_t datalen,
-                 unsigned char *output, size_t *olen )
+                             const unsigned char *pwd,  size_t pwdlen,
+                             const unsigned char *data, size_t datalen,
+                             unsigned char *output, size_t *olen )
 {
     int ret, iterations = 0, keylen = 0;
     unsigned char *p, *end;
@@ -219,7 +221,7 @@ int mbedtls_pkcs5_pbes2_ext( const mbedtls_asn1_buf *pbe_params, int mode,
         goto exit;
 
     if( ( ret = mbedtls_cipher_crypt( &cipher_ctx, iv, enc_scheme_params.len,
-                              data, datalen, output, olen ) ) != 0 )
+                                      data, datalen, output, olen ) ) != 0 )
         ret = MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH;
 
 exit:

@@ -59,6 +59,7 @@ void mbedtls_pkcs5_pbes2( int params_tag, data_t *params_hex, data_t *pw,
         TEST_ASSERT( memcmp( my_out, ref_out->x, ref_out->len ) == 0 );
     }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
     /* Clear the output buffer */
     memset( my_out, 0, my_out_len );
 
@@ -69,6 +70,7 @@ void mbedtls_pkcs5_pbes2( int params_tag, data_t *params_hex, data_t *pw,
 
     if( ref_ret == 0 )
         TEST_ASSERT( memcmp( my_out, ref_out->x, ref_out->len ) == 0 );
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 exit:
     mbedtls_free( my_out );

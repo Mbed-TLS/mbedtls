@@ -68,12 +68,7 @@ APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
 
 ifdef USE_CRYPTO_SUBMODULE
 APPS := $(filter-out \
-		test_suite_aes.cbc \
-		test_suite_aes.cfb \
-		test_suite_aes.ecb \
-		test_suite_aes.ofb \
-		test_suite_aes.rest \
-		test_suite_aes.xts \
+		test_suite_aes.% \
 		test_suite_arc4 \
 		test_suite_aria \
 		test_suite_asn1write \
@@ -83,18 +78,7 @@ APPS := $(filter-out \
 		test_suite_ccm \
 		test_suite_chacha20 \
 		test_suite_chachapoly \
-		test_suite_cipher.aes \
-		test_suite_cipher.arc4 \
-		test_suite_cipher.blowfish \
-		test_suite_cipher.camellia \
-		test_suite_cipher.ccm \
-		test_suite_cipher.chacha20 \
-		test_suite_cipher.chachapoly \
-		test_suite_cipher.des \
-		test_suite_cipher.gcm \
-		test_suite_cipher.misc \
-		test_suite_cipher.null \
-		test_suite_cipher.padding \
+		test_suite_cipher.% \
 		test_suite_cmac \
 		test_suite_ctr_drbg \
 		test_suite_des \
@@ -105,19 +89,9 @@ APPS := $(filter-out \
 		test_suite_ecp \
 		test_suite_entropy \
 		test_suite_error \
-		test_suite_gcm.aes128_de \
-		test_suite_gcm.aes128_en \
-		test_suite_gcm.aes192_de \
-		test_suite_gcm.aes192_en \
-		test_suite_gcm.aes256_de \
-		test_suite_gcm.aes256_en \
-		test_suite_gcm.camellia \
-		test_suite_gcm.misc \
+		test_suite_gcm.% \
 		test_suite_hkdf \
-		test_suite_hmac_drbg.misc \
-		test_suite_hmac_drbg.nopr \
-		test_suite_hmac_drbg.no_reseed \
-		test_suite_hmac_drbg.pr \
+		test_suite_hmac_drbg.% \
 		test_suite_md \
 		test_suite_mdx \
 		test_suite_memory_buffer_alloc \

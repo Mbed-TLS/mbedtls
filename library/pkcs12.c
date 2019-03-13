@@ -232,7 +232,7 @@ int mbedtls_pkcs12_pbe_ext( mbedtls_asn1_buf *pbe_params,
         goto exit;
 
     if( ( ret = mbedtls_cipher_update( &cipher_ctx, data, len,
-                                output, &enclen ) ) != 0 )
+                                       output, &enclen ) ) != 0 )
     {
         goto exit;
     }

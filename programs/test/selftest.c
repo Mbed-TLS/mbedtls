@@ -51,7 +51,6 @@
 #include "mbedtls/base64.h"
 #include "mbedtls/bignum.h"
 #include "mbedtls/rsa.h"
-#include "mbedtls/x509.h"
 #include "mbedtls/xtea.h"
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/ecp.h"
@@ -244,9 +243,6 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_RSA_C)
     {"rsa", mbedtls_rsa_self_test},
-#endif
-#if defined(MBEDTLS_X509_USE_C)
-    {"x509", mbedtls_x509_self_test},
 #endif
 #if defined(MBEDTLS_XTEA_C)
     {"xtea", mbedtls_xtea_self_test},

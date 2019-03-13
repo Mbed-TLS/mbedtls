@@ -50,7 +50,7 @@
 #endif
 
 /*
- * Reminder: update profiles in x509_crt.c when adding a new hash!
+ * Reminder: update profiles in Mbed TLS's x509_crt.c when adding a new hash!
  */
 static const int supported_digests[] = {
 

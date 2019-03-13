@@ -21,7 +21,7 @@ use strict;
 my $config_file = "./include/mbedtls/config.h";
 
 my $query_config_format_file = "./scripts/data_files/query_config.fmt";
-my $query_config_file = "./programs/ssl/query_config.c";
+my $query_config_file = "./programs/test/query_config.c";
 
 # Excluded macros from the generated query_config.c. For example, macros that
 # have commas or function-like macros cannot be transformed into strings easily

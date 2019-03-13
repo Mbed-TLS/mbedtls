@@ -22,13 +22,8 @@ script:
 - make
 - make test
 - programs/test/selftest
-- OSSL_NO_DTLS=1 tests/compat.sh
-- tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl' --seed 4
 - tests/scripts/test-ref-configs.pl
 - tests/scripts/curves.pl
-- tests/scripts/key-exchanges.pl
-after_failure:
-- tests/scripts/travis-log-failure.sh
 env:
   global:
     secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="

@@ -1,23 +1,15 @@
 #include "psa/crypto.h"
 #include <string.h>
-
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
 #include <stdio.h>
 #include <stdlib.h>
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
-#define mbedtls_printf printf
-#define mbedtls_exit exit
-#endif
 
 #define ASSERT( predicate )                                                   \
     do                                                                        \
     {                                                                         \
         if( ! ( predicate ) )                                                 \
         {                                                                     \
-            mbedtls_printf( "\tassertion failed at %s:%d - '%s'\r\n",         \
-                            __FILE__, __LINE__, #predicate);                  \
+            printf( "\tassertion failed at %s:%d - '%s'\r\n",         \
+                    __FILE__, __LINE__, #predicate);                  \
             goto exit;                                                        \
         }                                                                     \
     } while ( 0 )
@@ -27,8 +19,8 @@
     {                                                                         \
         if( ( actual ) != ( expected ) )                                      \
         {                                                                     \
-            mbedtls_printf( "\tassertion failed at %s:%d - "                  \
-                            "actual:%d expected:%d\r\n", __FILE__, __LINE__,  \
+            printf( "\tassertion failed at %s:%d - "                  \
+                    "actual:%d expected:%d\r\n", __FILE__, __LINE__,  \
                             (psa_status_t) actual, (psa_status_t) expected ); \
             goto exit;                                                        \
         }                                                                     \
@@ -39,10 +31,10 @@
     !defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
 int main( void )
 {
-    mbedtls_printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_AES_C and/or "
-                    "MBEDTLS_CIPHER_MODE_CBC and/or MBEDTLS_CIPHER_MODE_CTR "
-                    "and/or MBEDTLS_CIPHER_MODE_WITH_PADDING "
-                    "not defined.\r\n" );
+    printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_AES_C and/or "
+            "MBEDTLS_CIPHER_MODE_CBC and/or MBEDTLS_CIPHER_MODE_CTR "
+            "and/or MBEDTLS_CIPHER_MODE_WITH_PADDING "
+            "not defined.\r\n" );
     return( 0 );
 }
 #else
@@ -311,20 +303,20 @@ static void cipher_examples( void )
 {
     psa_status_t status;
 
-    mbedtls_printf( "cipher encrypt/decrypt AES CBC no padding:\r\n" );
+    printf( "cipher encrypt/decrypt AES CBC no padding:\r\n" );
     status = cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( );
     if( status == PSA_SUCCESS )
-        mbedtls_printf( "\tsuccess!\r\n" );
+        printf( "\tsuccess!\r\n" );
 
-    mbedtls_printf( "cipher encrypt/decrypt AES CBC PKCS7 multipart:\r\n" );
+    printf( "cipher encrypt/decrypt AES CBC PKCS7 multipart:\r\n" );
     status = cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( );
     if( status == PSA_SUCCESS )
-        mbedtls_printf( "\tsuccess!\r\n" );
+        printf( "\tsuccess!\r\n" );
 
-    mbedtls_printf( "cipher encrypt/decrypt AES CTR multipart:\r\n" );
+    printf( "cipher encrypt/decrypt AES CTR multipart:\r\n" );
     status = cipher_example_encrypt_decrypt_aes_ctr_multi( );
     if( status == PSA_SUCCESS )
-        mbedtls_printf( "\tsuccess!\r\n" );
+        printf( "\tsuccess!\r\n" );
 }
 
 #if defined(MBEDTLS_CHECK_PARAMS)
@@ -333,9 +325,9 @@ void mbedtls_param_failed( const char *failure_condition,
                            const char *file,
                            int line )
 {
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
+    printf( "%s:%i: Input param failed - %s\n",
                     file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    exit( EXIT_FAILURE );
 }
 #endif
 

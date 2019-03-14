@@ -3765,7 +3765,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
 
-            ssl->out_msglen = rec.data_len;
+            ssl->out_msglen = len = rec.data_len;
             ssl->out_len[0] = (unsigned char)( rec.data_len >> 8 );
             ssl->out_len[1] = (unsigned char)( rec.data_len      );
         }

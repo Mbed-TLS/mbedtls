@@ -1754,6 +1754,10 @@ X509 CRT ASN1 (GeneralizedTime in notBefore, UTCTime in notAfter)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 x509parse_crt:"308198308182a0030201008204deadbeef300d06092a864886f70d01010b0500300c310a30080600130454657374301e180e3230313030313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092a864886f70d010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d01010b0500030200ff":"cert. version     \: 1\nserial number     \: DE\:AD\:BE\:EF\nissuer name       \: ?\?=Test\nsubject name      \: ?\?=Test\nissued  on        \: 2010-01-01 00\:00\:00\nexpires on        \: 2009-12-31 23\:59\:59\nsigned using      \: RSA with SHA-256\nRSA key size      \: 128 bits\n":0
 
+X509 CRT ASN1 (UTCTime in notBefore, GeneralizedTime in notAfter)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+x509parse_crt:"308198308182a0030201008204deadbeef300d06092a864886f70d01010b0500300c310a30080600130454657374301e170c303931323331323335393539180e3230313030313031303030303030300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d01010b0500030200ff":"cert. version     \: 1\nserial number     \: DE\:AD\:BE\:EF\nissuer name       \: ?\?=Test\nsubject name      \: ?\?=Test\nissued  on        \: 2009-12-31 23\:59\:59\nexpires on        \: 2010-01-01 00\:00\:00\nsigned using      \: RSA with SHA-256\nRSA key size      \: 128 bits\n":0
+
 X509 CRT ASN1 (Name with X520 CN)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 x509parse_crt:"308199308183a0030201008204deadbeef300d06092a864886f70d01010b0500300f310d300b0603550403130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092a864886f70d010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d01010b0500030200ff":"cert. version     \: 1\nserial number     \: DE\:AD\:BE\:EF\nissuer name       \: CN=Test\nsubject name      \: ?\?=Test\nissued  on        \: 2009-01-01 00\:00\:00\nexpires on        \: 2009-12-31 23\:59\:59\nsigned using      \: RSA with SHA-256\nRSA key size      \: 128 bits\n":0

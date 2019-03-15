@@ -97,7 +97,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
         mbedtls_fprintf(
-            stderr, "platofrm_setup returned %d\n", ret );
+            stderr, "platform_setup returned %d\n", ret );
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif

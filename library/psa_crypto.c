@@ -60,7 +60,6 @@
 #include "mbedtls/ecdh.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
 #include "mbedtls/error.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/md2.h"
@@ -77,10 +76,6 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/xtea.h"
-
-#if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
-#include "psa/internal_trusted_storage.h"
-#endif
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
 
@@ -4423,13 +4418,12 @@ psa_status_t psa_generate_random( uint8_t *output,
     return( mbedtls_to_psa_error( ret ) );
 }
 
-#if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+#include "mbedtls/entropy_poll.h"
 
 psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
                                          size_t seed_size )
 {
-    psa_status_t status;
-    struct psa_storage_info_t p_info;
     if( global_data.initialized )
         return( PSA_ERROR_NOT_PERMITTED );
 
@@ -4438,20 +4432,9 @@ psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
           ( seed_size > MBEDTLS_ENTROPY_MAX_SEED_SIZE ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
-
-    if( PSA_ERROR_DOES_NOT_EXIST == status ) /* No seed exists */
-    {
-        status = psa_its_set( PSA_CRYPTO_ITS_RANDOM_SEED_UID, seed_size, seed, 0 );
-    }
-    else if( PSA_SUCCESS == status )
-    {
-        /* You should not be here. Seed needs to be injected only once */
-        status = PSA_ERROR_NOT_PERMITTED;
-    }
-    return( status );
+    return( mbedtls_psa_storage_inject_entropy( seed, seed_size ) );
 }
-#endif
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
 psa_status_t psa_generate_key( psa_key_handle_t handle,
                                psa_key_type_t type,

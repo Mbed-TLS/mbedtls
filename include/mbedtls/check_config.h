@@ -525,26 +525,25 @@
 #error "MBEDTLS_PSA_CRYPTO_SPM defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C) && defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C)
-#error "Only one of MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C or MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C can be defined"
-#endif
-
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&            \
-    !( defined(MBEDTLS_PSA_CRYPTO_C) &&                 \
-       ( defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C) ||  \
-         defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C) ) )
+    ! defined(MBEDTLS_PSA_CRYPTO_C)
 #error "MBEDTLS_PSA_CRYPTO_STORAGE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C) &&            \
-    !( defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&           \
-       defined(MBEDTLS_FS_IO) )
-#error "MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY) &&      \
+    !( defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) && \
+       defined(MBEDTLS_ENTROPY_NV_SEED) )
+#error "MBEDTLS_PSA_INJECT_ENTROPY defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C) &&             \
-    ! defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-#error "MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY) &&              \
+    !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES)
+#error "MBEDTLS_PSA_INJECT_ENTROPY is not compatible with actual entropy sources"
+#endif
+
+#if defined(MBEDTLS_PSA_ITS_FILE_C) && \
+    !defined(MBEDTLS_FS_IO)
+#error "MBEDTLS_PSA_ITS_FILE_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \

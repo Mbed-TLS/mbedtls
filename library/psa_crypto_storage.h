@@ -62,6 +62,21 @@ extern "C" {
 #define PSA_MAX_PERSISTENT_KEY_IDENTIFIER 0xfffeffff
 
 /**
+ * \brief Checks if persistent data is stored for the given key slot number
+ *
+ * This function checks if any key data or metadata exists for the key slot in
+ * the persistent storage.
+ *
+ * \param key           Persistent identifier to check.
+ *
+ * \retval 0
+ *         No persistent data present for slot number
+ * \retval 1
+ *         Persistent data present for slot number
+ */
+int psa_is_key_present_in_storage( const psa_key_file_id_t key );
+
+/**
  * \brief Format key data and metadata and save to a location for given key
  *        slot.
  *
@@ -187,6 +202,22 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
                                               size_t *key_data_length,
                                               psa_key_type_t *type,
                                               psa_key_policy_t *policy );
+
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+/** Backend side of mbedtls_psa_inject_entropy().
+ *
+ * This function stores the supplied data into the entropy seed file.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The entropy seed file already exists.
+ */
+psa_status_t mbedtls_psa_storage_inject_entropy( const unsigned char *seed,
+                                                 size_t seed_size );
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
 #ifdef __cplusplus
 }

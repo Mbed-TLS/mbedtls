@@ -1138,14 +1138,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
-#if defined(MBEDTLS_PSA_HAS_ITS_IO)
-    if( strcmp( "MBEDTLS_PSA_HAS_ITS_IO", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_HAS_ITS_IO );
-        return( 0 );
-    }
-#endif /* MBEDTLS_PSA_HAS_ITS_IO */
-
 #if defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
     if( strcmp( "MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER", config ) == 0 )
     {
@@ -1202,13 +1194,13 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SPM */
 
-#if defined(MBEDTLS_PSA_HAS_ITS_IO)
-    if( strcmp( "MBEDTLS_PSA_HAS_ITS_IO", config ) == 0 )
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+    if( strcmp( "MBEDTLS_PSA_INJECT_ENTROPY", config ) == 0 )
     {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_HAS_ITS_IO );
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_INJECT_ENTROPY );
         return( 0 );
     }
-#endif /* MBEDTLS_PSA_HAS_ITS_IO */
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
 #if defined(MBEDTLS_RSA_NO_CRT)
     if( strcmp( "MBEDTLS_RSA_NO_CRT", config ) == 0 )
@@ -1946,21 +1938,13 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C)
-    if( strcmp( "MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C", config ) == 0 )
+#if defined(MBEDTLS_PSA_ITS_FILE_C)
+    if( strcmp( "MBEDTLS_PSA_ITS_FILE_C", config ) == 0 )
     {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C );
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_ITS_FILE_C );
         return( 0 );
     }
-#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C */
-
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C)
-    if( strcmp( "MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C );
-        return( 0 );
-    }
-#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C */
+#endif /* MBEDTLS_PSA_ITS_FILE_C */
 
 #if defined(MBEDTLS_RIPEMD160_C)
     if( strcmp( "MBEDTLS_RIPEMD160_C", config ) == 0 )

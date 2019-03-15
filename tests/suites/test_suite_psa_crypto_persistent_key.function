@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include "psa/crypto.h"
 #include "psa_crypto_storage.h"
-#include "psa_crypto_storage_backend.h"
 #include "mbedtls/md.h"
 
 #define PSA_KEY_STORAGE_MAGIC_HEADER "PSA\0KEY"

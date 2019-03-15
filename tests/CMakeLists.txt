@@ -52,7 +52,8 @@ function(add_test_suite suite_name)
     target_link_libraries(${exe_name} ${libs})
     target_include_directories(${exe_name}
         PUBLIC ${CMAKE_SOURCE_DIR}/include/
-        PUBLIC ${CMAKE_SOURCE_DIR}/crypto/include/)
+        PUBLIC ${CMAKE_SOURCE_DIR}/crypto/include/
+        PRIVATE ${CMAKE_SOURCE_DIR}/crypto/library/)
 
     if(${data_name} MATCHES ${SKIP_TEST_SUITES_REGEX})
         message(STATUS "The test suite ${data_name} will not be executed.")

@@ -48,6 +48,11 @@
 #include "ecdh.h"
 #endif
 
+#if defined(MBEDTLS_USE_UECC)
+#include "ecc.h"
+#include "ecc_dh.h"
+#endif
+
 #if defined(MBEDTLS_ZLIB_SUPPORT)
 
 #if defined(MBEDTLS_DEPRECATED_WARNING)

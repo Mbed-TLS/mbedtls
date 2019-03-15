@@ -274,9 +274,14 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
+#if defined(MBEDTLS_USE_UECC)
+    uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
+#else
 #if defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
-#endif
+#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_USE_UECC */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
 #if defined(MBEDTLS_SSL_CLI_C)

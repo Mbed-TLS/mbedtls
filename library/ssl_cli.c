@@ -248,7 +248,7 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
-
+//TODO: uECC write supported elliptic curve
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
@@ -2019,6 +2019,56 @@ static int ssl_parse_server_dh_params( mbedtls_ssl_context *ssl, unsigned char *
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
+#if defined(MBEDTLS_USE_UECC)
+static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
+                                         unsigned char **p,
+                                         unsigned char *end )
+{
+    uint16_t tls_id;
+    uint8_t ecpoint_len;
+
+    /*
+     * Parse ECC group
+     */
+
+    if( end - *p < 4 )
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+
+    /* First byte is curve_type; only named_curve is handled */
+    if( *(*p)++ != MBEDTLS_ECP_TLS_NAMED_CURVE )
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+
+    /* Next two bytes are the namedcurve value */
+    tls_id = *(*p)++;
+    tls_id <<= 8;
+    tls_id |= *(*p)++;
+
+    //NamedCurve value 23 is secp256r1
+    if(tls_id != 23) {
+        return (MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    }
+
+    /*
+     * Parse public key.
+     */
+
+    ecpoint_len = *(*p)++;
+    if( (size_t)( end - *p ) < ecpoint_len )
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+
+
+    if(ecpoint_len > 2*NUM_ECC_BYTES)
+        return ( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+
+    memcpy( ssl->handshake->ecdh_peerkey, *p, ecpoint_len);
+
+    *p += ecpoint_len;
+    return( 0 );
+    return 0;
+}
+
+#else
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
@@ -2101,6 +2151,8 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+
+#endif // MBEDTLS_USE_UECC
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
@@ -2936,6 +2988,28 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
+#if defined(MBEDTLS_USE_UECC)
+    if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA)
+    {
+        uint8_t own_pubkey[2*NUM_ECC_BYTES];
+        uint8_t own_privatekey[NUM_ECC_BYTES];
+
+        const struct uECC_Curve_t * curve = uECC_secp256r1();
+
+        //TODO: provide rng for uECC
+
+        if (!uECC_make_key(own_pubkey, own_privatekey, curve)) {
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+
+        if (!uECC_shared_secret(ssl->handshake->ecdh_peerkey, own_privatekey, ssl->handshake->premaster, curve)) {
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+
+        mbedtls_platform_zeroize(own_privatekey, NUM_ECC_BYTES);
+    }
+    else
+#else
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
@@ -3010,6 +3084,7 @@ ecdh_calc_secret:
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#endif //MBEDTLS_USE_UECC
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_psk( ciphersuite_info ) )
     {

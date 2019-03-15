@@ -46,6 +46,10 @@
 #include "mbedtls/ecp.h"
 #endif
 
+#if defined(MBEDTLS_USE_UECC)
+#include "mbedtls/ecc.h"
+#endif
+
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
 #endif

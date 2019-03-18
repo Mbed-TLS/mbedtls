@@ -10216,6 +10216,10 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 {
     memset( conf, 0, sizeof( mbedtls_ssl_config ) );
+
+#if !defined(MBEDTLS_SSL_PROTO_TLS)
+    conf->transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
+#endif
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)

@@ -248,7 +248,45 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
-//TODO: uECC write supported elliptic curve
+//TODO: Check buffer sizes
+#if defined(MBEDTLS_USE_UECC)
+static void ssl_write_uecc_elliptic_curves_ext( mbedtls_ssl_context *ssl,
+                                                unsigned char *buf,
+                                                size_t *olen )
+{
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( ( 2 + 2 ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( 2 + 2 )      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( ( 2     ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( 2     )      ) & 0xFF );
+
+    *p++ = (unsigned char)( ( ( 23     ) >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ( 23     )      ) & 0xFF );
+
+    *olen = 6 + 2;
+}
+
+//Only supporting uncompressed points for now
+static void ssl_write_uecc_point_format_ext( mbedtls_ssl_context * ssl,
+                                             unsigned char *buf,
+                                             size_t *olen )
+{
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS      ) & 0xFF );
+
+    *p++ = 0x00;
+    *p++ = 2;
+
+    *p++ = 1;
+    *p++ = MBEDTLS_ECP_PF_UNCOMPRESSED;
+
+    *olen = 6;
+}
+#endif /* MBEDTLS_USE_UECC */
+
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
@@ -1017,6 +1055,14 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(MBEDTLS_USE_UECC)
+    ssl_write_uecc_elliptic_curves_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+
+    ssl_write_uecc_point_formats_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+#else
+
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( uses_ec )
@@ -1028,6 +1074,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         ext_len += olen;
     }
 #endif
+
+#endif /* MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     ssl_write_ecjpake_kkpp_ext( ssl, p + 2 + ext_len, &olen );
@@ -1883,7 +1931,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
+    defined(MBEDTLS_USE_UECC)
         case MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found supported_point_formats extension" ) );
 

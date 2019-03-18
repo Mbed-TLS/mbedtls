@@ -604,7 +604,12 @@
 #if defined(MBEDTLS_SSL_TLS_C) && (!defined(MBEDTLS_SSL_PROTO_SSL3) && \
     !defined(MBEDTLS_SSL_PROTO_TLS1) && !defined(MBEDTLS_SSL_PROTO_TLS1_1) && \
     !defined(MBEDTLS_SSL_PROTO_TLS1_2))
-#error "MBEDTLS_SSL_TLS_C defined, but no protocols are active"
+#error "MBEDTLS_SSL_TLS_C defined, but no protocol version is active"
+#endif
+
+#if defined(MBEDTLS_SSL_TLS_C) && \
+    (!defined(MBEDTLS_SSL_PROTO_TLS) && !defined(MBEDTLS_SSL_PROTO_DTLS))
+#error "MBEDTLS_SSL_TLS_C defined, but neither TLS or DTLS is active"
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C) && (defined(MBEDTLS_SSL_PROTO_SSL3) && \

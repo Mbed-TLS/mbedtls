@@ -1472,7 +1472,7 @@
 /**
  * \def MBEDTLS_SSL_PROTO_SSL3
  *
- * Enable support for SSL 3.0.
+ * Enable support for SSL 3.0 (if TLS is enabled).
  *
  * Requires: MBEDTLS_MD5_C
  *           MBEDTLS_SHA1_C
@@ -1484,7 +1484,7 @@
 /**
  * \def MBEDTLS_SSL_PROTO_TLS1
  *
- * Enable support for TLS 1.0.
+ * Enable support for TLS 1.0 (if TLS is enabled).
  *
  * Requires: MBEDTLS_MD5_C
  *           MBEDTLS_SHA1_C
@@ -1496,7 +1496,8 @@
 /**
  * \def MBEDTLS_SSL_PROTO_TLS1_1
  *
- * Enable support for TLS 1.1 (and DTLS 1.0 if DTLS is enabled).
+ * Enable support for TLS 1.1 (if TLS is enabled) and DTLS 1.0 (if DTLS is
+ * enabled).
  *
  * Requires: MBEDTLS_MD5_C
  *           MBEDTLS_SHA1_C
@@ -1508,7 +1509,8 @@
 /**
  * \def MBEDTLS_SSL_PROTO_TLS1_2
  *
- * Enable support for TLS 1.2 (and DTLS 1.2 if DTLS is enabled).
+ * Enable support for TLS 1.2 (if TLS is enabled) and DTLS 1.2 (if DTLS is
+ * enabled).
  *
  * Requires: MBEDTLS_SHA1_C or MBEDTLS_SHA256_C or MBEDTLS_SHA512_C
  *           (Depends on ciphersuites)
@@ -1531,6 +1533,23 @@
  * Comment this macro to disable support for DTLS
  */
 #define MBEDTLS_SSL_PROTO_DTLS
+
+/**
+ * \def MBEDTLS_SSL_PROTO_TLS
+ *
+ * Enable support for TLS (all available versions).
+ *
+ * Enable this and MBEDTLS_SSL_PROTO_TLS1   to enable TLS 1.0,
+ * Enable this and MBEDTLS_SSL_PROTO_TLS1_1 to enable TLS 1.1,
+ * and/or this and MBEDTLS_SSL_PROTO_TLS1_2 to enable TLS 1.2.
+ *
+ * Requires: MBEDTLS_SSL_PROTO_TLS1_1
+ *        or MBEDTLS_SSL_PROTO_TLS1_1
+ *        or MBEDTLS_SSL_PROTO_TLS1_2
+ *
+ * Comment this macro to disable support for TLS
+ */
+#define MBEDTLS_SSL_PROTO_TLS
 
 /**
  * \def MBEDTLS_SSL_ALPN

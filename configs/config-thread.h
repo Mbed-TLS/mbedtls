@@ -29,6 +29,7 @@
  * Distinguishing features:
  * - no RSA or classic DH, fully based on ECC
  * - no X.509
+ * - no TLS, only DTLS
  * - support for experimental EC J-PAKE key exchange
  *
  * See README.txt for usage instructions.

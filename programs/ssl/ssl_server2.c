@@ -1018,19 +1018,16 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
     }
     if( slot == config_data->slots_used )
     {
-        mbedtls_fprintf(
-            stderr, "Async %s callback: no key matches this certificate.\n",
-            op_name );
+        mbedtls_printf( "Async %s callback: no key matches this certificate.\n",
+                        op_name );
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH );
     }
-    mbedtls_printf(
-        "Async %s callback: using key slot %u, delay=%u.\n",
-        op_name, slot, config_data->slots[slot].delay );
+    mbedtls_printf( "Async %s callback: using key slot %u, delay=%u.\n",
+                    op_name, slot, config_data->slots[slot].delay );
 
     if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_START )
     {
-        mbedtls_fprintf(
-            stderr, "Async %s callback: injected error\n", op_name );
+        mbedtls_printf( "Async %s callback: injected error\n", op_name );
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
 
@@ -1090,9 +1087,8 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
     if( ctx->remaining_delay > 0 )
     {
         --ctx->remaining_delay;
-        mbedtls_fprintf(
-            stderr, "Async resume (slot %u): call %u more times.\n",
-            ctx->slot, ctx->remaining_delay );
+        mbedtls_printf( "Async resume (slot %u): call %u more times.\n",
+                        ctx->slot, ctx->remaining_delay );
         return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
     }
 
@@ -1112,9 +1108,8 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
                                    config_data->f_rng, config_data->p_rng );
             break;
         default:
-            mbedtls_fprintf( stderr,
-                "Async resume (slot %u): unknown operation type %ld. This shouldn't happen.\n",
-                ctx->slot, (long) ctx->operation_type );
+            mbedtls_printf( "Async resume (slot %u): unknown operation type %ld. This shouldn't happen.\n",
+                            ctx->slot, (long) ctx->operation_type );
             mbedtls_free( ctx );
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
             break;
@@ -1124,9 +1119,8 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
 
     if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_RESUME )
     {
-        mbedtls_fprintf(
-            stderr, "Async resume callback: %s done but injected error\n",
-            op_name );
+        mbedtls_printf( "Async resume callback: %s done but injected error\n",
+                        op_name );
         mbedtls_free( ctx );
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
@@ -1331,16 +1325,14 @@ int main( int argc, char *argv[] )
         list = mbedtls_ssl_list_ciphersuites();
         while( *list )
         {
-            mbedtls_fprintf(
-                stderr, " %-42s", mbedtls_ssl_get_ciphersuite_name( *list ) );
+            mbedtls_printf( " %-42s", mbedtls_ssl_get_ciphersuite_name( *list ) );
             list++;
             if( !*list )
                 break;
-            mbedtls_fprintf(
-                stderr, " %s\n", mbedtls_ssl_get_ciphersuite_name( *list ) );
+            mbedtls_printf( " %s\n", mbedtls_ssl_get_ciphersuite_name( *list ) );
             list++;
         }
-        mbedtls_fprintf( stderr, "\n" );
+        mbedtls_printf( "\n" );
         goto exit;
     }
 
@@ -1809,16 +1801,14 @@ int main( int argc, char *argv[] )
         if( opt.max_version != -1 &&
             ciphersuite_info->min_minor_ver > opt.max_version )
         {
-            mbedtls_fprintf( stderr,
-                "forced ciphersuite not allowed with this protocol version\n" );
+            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
         if( opt.min_version != -1 &&
             ciphersuite_info->max_minor_ver < opt.min_version )
         {
-            mbedtls_fprintf( stderr,
-                "forced ciphersuite not allowed with this protocol version\n" );
+            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
@@ -1844,8 +1834,7 @@ int main( int argc, char *argv[] )
         {
             if( opt.arc4 == MBEDTLS_SSL_ARC4_DISABLED )
             {
-                mbedtls_fprintf(
-                    stderr, "forced RC4 ciphersuite with RC4 disabled\n");
+                mbedtls_printf("forced RC4 ciphersuite with RC4 disabled\n");
                 ret = 2;
                 goto usage;
             }
@@ -1874,7 +1863,7 @@ int main( int argc, char *argv[] )
 
         if( i != 4 )
         {
-            mbedtls_fprintf( stderr, "too few values for version_suites\n" );
+            mbedtls_printf( "too few values for version_suites\n" );
             ret = 1;
             goto exit;
         }
@@ -1888,8 +1877,7 @@ int main( int argc, char *argv[] )
 
             if( version_suites[i][0] == 0 )
             {
-                mbedtls_fprintf( stderr,
-                    "unknown ciphersuite: '%s'\n", name[i] );
+                mbedtls_printf( "unknown ciphersuite: '%s'\n", name[i] );
                 ret = 2;
                 goto usage;
             }
@@ -1902,7 +1890,7 @@ int main( int argc, char *argv[] )
      */
     if( unhexify( psk, opt.psk, &psk_len ) != 0 )
     {
-        mbedtls_fprintf( stderr, "pre-shared key not valid hex\n" );
+        mbedtls_printf( "pre-shared key not valid hex\n" );
         goto exit;
     }
 
@@ -1910,7 +1898,7 @@ int main( int argc, char *argv[] )
     {
         if( ( psk_info = psk_parse( opt.psk_list ) ) == NULL )
         {
-            mbedtls_fprintf( stderr, "psk_list invalid" );
+            mbedtls_printf( "psk_list invalid" );
             goto exit;
         }
     }
@@ -1945,15 +1933,15 @@ int main( int argc, char *argv[] )
                 }
                 else
                 {
-                    mbedtls_fprintf( stderr, "unknown curve %s\n", q );
-                    mbedtls_fprintf( stderr, "supported curves: " );
+                    mbedtls_printf( "unknown curve %s\n", q );
+                    mbedtls_printf( "supported curves: " );
                     for( curve_cur = mbedtls_ecp_curve_list();
                          curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
                          curve_cur++ )
                     {
-                        mbedtls_fprintf( stderr, "%s ", curve_cur->name );
+                        mbedtls_printf( "%s ", curve_cur->name );
                     }
-                    mbedtls_fprintf( stderr, "\n" );
+                    mbedtls_printf( "\n" );
                     goto exit;
                 }
             }
@@ -1962,8 +1950,8 @@ int main( int argc, char *argv[] )
 
             if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
-                mbedtls_fprintf( stderr,
-                    "curves list too long, maximum %d", CURVE_LIST_SIZE - 1  );
+                mbedtls_printf( "curves list too long, maximum %d",
+                                CURVE_LIST_SIZE - 1  );
                 goto exit;
             }
 
@@ -2003,7 +1991,7 @@ int main( int argc, char *argv[] )
                                        &entropy, (const unsigned char *) pers,
                                        strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04X\n",
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
                         -ret );
         goto exit;
     }
@@ -2042,12 +2030,12 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_fprintf( stderr, "MBEDTLS_CERTS_C not defined." );
+        mbedtls_printf("MBEDTLS_CERTS_C not defined.");
     }
 #endif
     if( ret < 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned -0x%04X\n\n", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -2065,7 +2053,7 @@ int main( int argc, char *argv[] )
         key_cert_init++;
         if( ( ret = mbedtls_x509_crt_parse_file( &srvcert, opt.crt_file ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse_file returned -0x%04X\n\n",
+            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file returned -0x%x\n\n",
                     -ret );
             goto exit;
         }
@@ -2075,13 +2063,13 @@ int main( int argc, char *argv[] )
         key_cert_init++;
         if( ( ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, "" ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_pk_parse_keyfile returned -0x%04X\n\n", -ret );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%x\n\n", -ret );
             goto exit;
         }
     }
     if( key_cert_init == 1 )
     {
-        mbedtls_printf( " failed\n  ! crt_file without key_file or vice-versa\n\n" );
+        mbedtls_printf( " failed\n  !  crt_file without key_file or vice-versa\n\n" );
         goto exit;
     }
 
@@ -2090,7 +2078,7 @@ int main( int argc, char *argv[] )
         key_cert_init2++;
         if( ( ret = mbedtls_x509_crt_parse_file( &srvcert2, opt.crt_file2 ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse_file(2) returned -0x%04X\n\n",
+            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file(2) returned -0x%x\n\n",
                     -ret );
             goto exit;
         }
@@ -2100,14 +2088,14 @@ int main( int argc, char *argv[] )
         key_cert_init2++;
         if( ( ret = mbedtls_pk_parse_keyfile( &pkey2, opt.key_file2, "" ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_pk_parse_keyfile(2) returned -0x%04X\n\n",
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile(2) returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
     }
     if( key_cert_init2 == 1 )
     {
-        mbedtls_printf( " failed\n  ! crt_file2 without key_file2 or vice-versa\n\n" );
+        mbedtls_printf( " failed\n  !  crt_file2 without key_file2 or vice-versa\n\n" );
         goto exit;
     }
 #endif
@@ -2119,8 +2107,7 @@ int main( int argc, char *argv[] )
         strcmp( opt.key_file2, "none" ) != 0 )
     {
 #if !defined(MBEDTLS_CERTS_C)
-        mbedtls_fprintf( stderr,
-            "Not certificated or key provided, and \nMBEDTLS_CERTS_C not defined!\n" );
+        mbedtls_printf( "Not certificated or key provided, and \nMBEDTLS_CERTS_C not defined!\n" );
         goto exit;
 #else
 #if defined(MBEDTLS_RSA_C)
@@ -2128,7 +2115,7 @@ int main( int argc, char *argv[] )
                                     (const unsigned char *) mbedtls_test_srv_crt_rsa,
                                     mbedtls_test_srv_crt_rsa_len ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned -0x%04X\n\n",
+            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
@@ -2136,7 +2123,7 @@ int main( int argc, char *argv[] )
                                   (const unsigned char *) mbedtls_test_srv_key_rsa,
                                   mbedtls_test_srv_key_rsa_len, NULL, 0 ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_pk_parse_key returned -0x%04X\n\n",
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
@@ -2147,7 +2134,7 @@ int main( int argc, char *argv[] )
                                     (const unsigned char *) mbedtls_test_srv_crt_ec,
                                     mbedtls_test_srv_crt_ec_len ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! x509_crt_parse2 returned -0x%04X\n\n",
+            mbedtls_printf( " failed\n  !  x509_crt_parse2 returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
@@ -2155,7 +2142,7 @@ int main( int argc, char *argv[] )
                                   (const unsigned char *) mbedtls_test_srv_key_ec,
                                   mbedtls_test_srv_key_ec_len, NULL, 0 ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! pk_parse_key2 returned -0x%04X\n\n",
+            mbedtls_printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
@@ -2213,7 +2200,7 @@ int main( int argc, char *argv[] )
                           opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
                           MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_net_bind returned -0x%04X\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_net_bind returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -2230,7 +2217,7 @@ int main( int argc, char *argv[] )
                     opt.transport,
                     MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned -0x%04X\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -2263,7 +2250,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     if( ( ret = mbedtls_ssl_conf_max_frag_len( &conf, opt.mfl_code ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_max_frag_len returned -0x%04X\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_max_frag_len returned %d\n\n", ret );
         goto exit;
     };
 #endif
@@ -2287,7 +2274,7 @@ int main( int argc, char *argv[] )
     if( opt.alpn_string != NULL )
         if( ( ret = mbedtls_ssl_conf_alpn_protocols( &conf, alpn_list ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_alpn_protocols returned -0x%04X\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_alpn_protocols returned %d\n\n", ret );
             goto exit;
         }
 #endif
@@ -2315,7 +2302,7 @@ int main( int argc, char *argv[] )
                         MBEDTLS_CIPHER_AES_256_GCM,
                         opt.ticket_timeout ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_ticket_setup returned -0x%04X\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n", ret );
             goto exit;
         }
 
@@ -2335,7 +2322,7 @@ int main( int argc, char *argv[] )
             if( ( ret = mbedtls_ssl_cookie_setup( &cookie_ctx,
                                           mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
             {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_cookie_setup returned -0x%04X\n\n", -ret );
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret );
                 goto exit;
             }
 
@@ -2422,8 +2409,8 @@ int main( int argc, char *argv[] )
                                      opt.async_private_delay1 );
             if( ret < 0 )
             {
-                mbedtls_fprintf( stderr,
-                    "  Test error: ssl_async_set_key failed (%d)\n", ret );
+                mbedtls_printf( "  Test error: ssl_async_set_key failed (%d)\n",
+                                ret );
                 goto exit;
             }
             pk = NULL;
@@ -2431,7 +2418,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
         if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, pk ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned -0x%04X\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
             goto exit;
         }
     }
@@ -2445,8 +2432,8 @@ int main( int argc, char *argv[] )
                                      opt.async_private_delay2 );
             if( ret < 0 )
             {
-                mbedtls_fprintf( stderr,
-                    "  Test error: ssl_async_set_key failed (%d)\n", ret );
+                mbedtls_printf( "  Test error: ssl_async_set_key failed (%d)\n",
+                                ret );
                 goto exit;
             }
             pk = NULL;
@@ -2454,7 +2441,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
         if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert2, pk ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned -0x%04X\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
             goto exit;
         }
     }
@@ -2507,8 +2494,8 @@ int main( int argc, char *argv[] )
                                          opt.async_private_delay2 );
                 if( ret < 0 )
                 {
-                    mbedtls_fprintf( stderr,
-                        "  Test error: ssl_async_set_key failed (%d)\n", ret );
+                    mbedtls_printf( "  Test error: ssl_async_set_key failed (%d)\n",
+                                    ret );
                     goto exit;
                 }
                 cur->key = NULL;
@@ -2566,7 +2553,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%04X\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -2592,8 +2579,7 @@ reset:
 #if !defined(_WIN32)
     if( received_sigterm )
     {
-        mbedtls_fprintf(
-            stderr, " interrupted by SIGTERM (not in net_accept())\n" );
+        mbedtls_printf( " interrupted by SIGTERM (not in net_accept())\n" );
         if( ret == MBEDTLS_ERR_NET_INVALID_CONTEXT )
             ret = 0;
 
@@ -2603,8 +2589,7 @@ reset:
 
     if( ret == MBEDTLS_ERR_SSL_CLIENT_RECONNECT )
     {
-        mbedtls_fprintf(
-            stderr, "  ! Client initiated reconnection from same port\n" );
+        mbedtls_printf( "  ! Client initiated reconnection from same port\n" );
         goto handshake;
     }
 
@@ -2613,8 +2598,7 @@ reset:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_fprintf(
-            stderr, "Last error was: %d - %s\n\n", ret, error_buf );
+        mbedtls_printf( "Last error was: %d - %s\n\n", ret, error_buf );
     }
 #endif
 
@@ -2634,8 +2618,7 @@ reset:
 #if !defined(_WIN32)
         if( received_sigterm )
         {
-            mbedtls_fprintf(
-                stderr, " interrupted by SIGTERM (in net_accept())\n" );
+            mbedtls_printf( " interrupted by SIGTERM (in net_accept())\n" );
             if( ret == MBEDTLS_ERR_NET_ACCEPT_FAILED )
                 ret = 0;
 
@@ -2643,7 +2626,7 @@ reset:
         }
 #endif
 
-        mbedtls_printf( " failed\n  ! mbedtls_net_accept returned -0x%04X\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_net_accept returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -2653,7 +2636,7 @@ reset:
         ret = mbedtls_net_set_block( &client_fd );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%04X\n\n", -ret );
+        mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n", -ret );
         goto exit;
     }
 
@@ -2665,7 +2648,7 @@ reset:
         if( ( ret = mbedtls_ssl_set_client_transport_id( &ssl,
                         client_ip, cliip_len ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_client_transport_id() returned -0x%04X\n\n",
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
@@ -2679,7 +2662,7 @@ reset:
                         (const unsigned char *) opt.ecjpake_pw,
                                         strlen( opt.ecjpake_pw ) ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned -0x%04X\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned %d\n\n", ret );
             goto exit;
         }
     }
@@ -2700,7 +2683,7 @@ handshake:
         if( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS &&
             ssl_async_keys.inject_error == SSL_ASYNC_INJECT_ERROR_CANCEL )
         {
-            mbedtls_fprintf( stderr, " cancelling on injected error\n" );
+            mbedtls_printf( " cancelling on injected error\n" );
             break;
         }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
@@ -2729,7 +2712,7 @@ handshake:
     }
     else if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%04X\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -ret );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
         if( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED )
@@ -2857,7 +2840,7 @@ data_exchange:
                         goto reset;
 
                     default:
-                        mbedtls_printf( " mbedtls_ssl_read returned -0x%04X\n", -ret );
+                        mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n", -ret );
                         goto reset;
                 }
             }
@@ -2971,7 +2954,7 @@ data_exchange:
                     goto close_notify;
 
                 default:
-                    mbedtls_printf( " mbedtls_ssl_read returned -0x%04X\n", -ret );
+                    mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n", -ret );
                     goto reset;
             }
         }
@@ -2996,7 +2979,7 @@ data_exchange:
         {
             if( ! mbedtls_status_is_ssl_in_progress( ret ) )
             {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_renegotiate returned -0x%04X\n\n", -ret );
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_renegotiate returned %d\n\n", ret );
                 goto reset;
             }
 
@@ -3058,7 +3041,7 @@ data_exchange:
 
                 if( ! mbedtls_status_is_ssl_in_progress( ret ) )
                 {
-                    mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned -0x%04X\n\n", -ret );
+                    mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
                     goto reset;
                 }
 
@@ -3096,7 +3079,7 @@ data_exchange:
 
         if( ret < 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned -0x%04X\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
             goto reset;
         }
 
@@ -3138,8 +3121,7 @@ exit:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_fprintf(
-            stderr, "Last error was: -0x%X - %s\n\n", -ret, error_buf );
+        mbedtls_printf( "Last error was: -0x%X - %s\n\n", -ret, error_buf );
     }
 #endif
 

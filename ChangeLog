@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.x.x branch released xxxx-xx-xx
+= mbed TLS 2.17.0 branch released 2019-03-19
 
 Features
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`

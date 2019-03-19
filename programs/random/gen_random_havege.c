@@ -105,7 +105,7 @@ int main( int argc, char *argv[] )
     {
         if( ( ret = mbedtls_havege_random( &hs, buf, sizeof( buf ) ) ) != 0 )
         {
-            mbedtls_fprintf( "havege_random returned -0x%04X", -ret );
+            mbedtls_fprintf( stderr, "havege_random returned -0x%04X", -ret );
             goto exit;
         }
 

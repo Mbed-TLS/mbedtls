@@ -1080,8 +1080,8 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
             op_name );
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH );
     }
-    mbedtls_fprintf(
-        stderr, "Async %s callback: using key slot %u, delay=%u.\n",
+    mbedtls_printf(
+        "Async %s callback: using key slot %u, delay=%u.\n",
         op_name, slot, config_data->slots[slot].delay );
 
     if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_START )

@@ -245,6 +245,52 @@
 #define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS_PRESENT (1 << 0)
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP_OK                 (1 << 1)
 
+/*
+ * Helpers for code specific to TLS or DTLS.
+ *
+ * Goals for these helpers:
+ *  - generate minimal code, eg don't test if mode is DTLS in a DTLS-only build
+ *  - make the flow clear to the compiler, ie that exactly one branch is taken,
+ *    in all builds
+ *  - preserve readability
+ *
+ * There are three macros:
+ *  - MBEDTLS_SSL_TRANSPORT_IF_TLS( transport )
+ *  - MBEDTLS_SSL_TRANSPORT_IF_DTLS( transport )
+ *  - MBEDTLS_SSL_TRANSPORT_ELSE
+ *
+ * Usage 1 (can replace DTLS with TLS):
+ *  #if defined(MBEDTLS_SSL_PROTO_DTLS)
+ *  MBEDTLS_SSL_TRANSPORT_IF_DTLS( transport )
+ *      // DTLS-specific code
+ *  #endif
+ *
+ * Usage 2 (can swap DTLS and TLS);
+ *  #if defined(MBEDTLS_SSL_PROTO_DTLS)
+ *  MBEDTLS_SSL_TRANSPORT_IF_DTLS( transport )
+ *      // DTLS-specific code
+ *  MBEDTLS_SSL_TRANSPORT_ELSE
+ *  #endif
+ *  #if defined(MBEDTLS_SSL_PROTO_TLS)
+ *      // TLS-specific code
+ *  #endif
+ */
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_PROTO_TLS) /* both */
+#define MBEDTLS_SSL_TRANSPORT_IF_TLS( transport ) \
+    if( (transport) == MBEDTLS_SSL_TRANSPORT_STREAM )
+#define MBEDTLS_SSL_TRANSPORT_IF_DTLS( transport ) \
+    if( (transport) == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+#define MBEDTLS_SSL_TRANSPORT_ELSE                  else
+#elif defined(MBEDTLS_SSL_PROTO_DTLS) /* DTLS only */
+#define MBEDTLS_SSL_TRANSPORT_IF_TLS( transport )   /* empty: never occurs */
+#define MBEDTLS_SSL_TRANSPORT_IF_DTLS( transport )  /* empty: always taken */
+#define MBEDTLS_SSL_TRANSPORT_ELSE                  /* empty: no other branch */
+#else /* TLS only */
+#define MBEDTLS_SSL_TRANSPORT_IF_TLS( transport )   /* empty: always taken */
+#define MBEDTLS_SSL_TRANSPORT_IF_DTLS( transport )  /* empty: never occurs */
+#define MBEDTLS_SSL_TRANSPORT_ELSE                  /* empty: no other branch */
+#endif /* TLS and/or DTLS */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -738,22 +784,26 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
 
 static inline size_t mbedtls_ssl_hdr_len( const mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 13 );
-#else
+#if !defined(MBEDTLS_SSL_PROTO_DTLS) || !defined(MBEDTLS_SSL_PROTO_TLS)
     ((void) ssl);
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    MBEDTLS_SSL_TRANSPORT_IF_DTLS( ssl->conf->transport )
+        return( 13 );
 #endif
     return( 5 );
 }
 
 static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 12 );
-#else
+#if !defined(MBEDTLS_SSL_PROTO_DTLS) || !defined(MBEDTLS_SSL_PROTO_TLS)
     ((void) ssl);
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    MBEDTLS_SSL_TRANSPORT_IF_DTLS( ssl->conf->transport )
+        return( 12 );
 #endif
     return( 4 );
 }

@@ -3023,7 +3023,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         uint32_t timeout;
 
@@ -3164,8 +3164,9 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
         ssl->in_left = ret;
     }
-    else
-#endif
+    MBEDTLS_SSL_TRANSPORT_ELSE
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+#if defined(MBEDTLS_SSL_PROTO_TLS)
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "in_left: %d, nb_want: %d",
                        ssl->in_left, nb_want ) );
@@ -3212,6 +3213,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
             ssl->in_left += ret;
         }
     }
+#endif /* MBEDTLS_SSL_PROTO_TLS */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= fetch input" ) );
 

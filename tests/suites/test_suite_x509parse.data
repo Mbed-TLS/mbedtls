@@ -122,6 +122,38 @@ X509 Certificate information, Subject Alt Name + Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_cert_info:"data_files/cert_example_multi_nocn.crt":"cert. version     \: 3\nserial number     \: F7\:C6\:7F\:F8\:E9\:A9\:63\:F9\nissuer name       \: C=NL\nsubject name      \: C=NL\nissued  on        \: 2014-01-22 10\:04\:33\nexpires on        \: 2024-01-22 10\:04\:33\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nsubject alt name  \:\n    dNSName \: www.shotokan-braunschweig.de\n    dNSName \: www.massimo-abate.eu\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
 
+X509 Certificate information, RSA Certificate Policy any
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+x509_cert_info:"data_files/test-ca-any_policy.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2019-03-21 16\:40\:59\nexpires on        \: 2029-03-21 16\:40\:59\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\ncertificate policies \: Any Policy\n"
+
+X509 Certificate information, ECDSA Certificate Policy any
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA256_C
+x509_cert_info:"data_files/test-ca-any_policy_ec.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nissued  on        \: 2019-03-25 09\:02\:45\nexpires on        \: 2029-03-25 09\:02\:45\nsigned using      \: ECDSA with SHA256\nEC key size       \: 384 bits\nbasic constraints \: CA=true\ncertificate policies \: Any Policy\n"
+
+X509 Certificate information, RSA Certificate Policy any with qualifier
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+x509_cert_info:"data_files/test-ca-any_policy_with_qualifier.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2019-04-28 13\:14\:31\nexpires on        \: 2029-04-28 13\:14\:31\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\ncertificate policies \: Any Policy\n"
+
+X509 Certificate information, ECDSA Certificate Policy any  with qualifier
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA256_C
+x509_cert_info:"data_files/test-ca-any_policy_with_qualifier_ec.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nissued  on        \: 2019-04-28 10\:16\:05\nexpires on        \: 2029-04-28 10\:16\:05\nsigned using      \: ECDSA with SHA256\nEC key size       \: 384 bits\nbasic constraints \: CA=true\ncertificate policies \: Any Policy\n"
+
+X509 Certificate information, RSA Certificate multiple Policies
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+x509_cert_info:"data_files/test-ca-multi_policy.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2019-04-28 12\:59\:19\nexpires on        \: 2029-04-28 12\:59\:19\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\ncertificate policies \: ???, Any Policy\n"
+
+X509 Certificate information, ECDSA Certificate multiple Policies
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA256_C
+x509_cert_info:"data_files/test-ca-multi_policy_ec.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nissued  on        \: 2019-04-28 12\:59\:51\nexpires on        \: 2029-04-28 12\:59\:51\nsigned using      \: ECDSA with SHA256\nEC key size       \: 384 bits\nbasic constraints \: CA=true\ncertificate policies \: ???, Any Policy\n"
+
+X509 Certificate information, RSA Certificate unsupported policy
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+x509_cert_info:"data_files/test-ca-unsupported_policy.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2019-04-28 13\:00\:13\nexpires on        \: 2029-04-28 13\:00\:13\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\ncertificate policies \: ???\n"
+
+X509 Certificate information, ECDSA Certificate unsupported policy
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA256_C
+x509_cert_info:"data_files/test-ca-unsupported_policy_ec.crt":"cert. version     \: 3\nserial number     \: 00\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nissued  on        \: 2019-04-28 13\:00\:19\nexpires on        \: 2029-04-28 13\:00\:19\nsigned using      \: ECDSA with SHA256\nEC key size       \: 384 bits\nbasic constraints \: CA=true\ncertificate policies \: ???\n"
+
 X509 Certificate information, Key Usage + Extended Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 x509_cert_info:"data_files/server1.ext_ku.crt":"cert. version     \: 3\nserial number     \: 21\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2014-04-01 14\:44\:43\nexpires on        \: 2024-03-29 14\:44\:43\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\next key usage     \: TLS Web Server Authentication\n"

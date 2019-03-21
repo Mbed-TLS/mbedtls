@@ -691,6 +691,139 @@ static int x509_get_subject_alt_name( unsigned char **p,
 }
 
 /*
+ * id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }
+ *
+ * anyPolicy OBJECT IDENTIFIER ::= { id-ce-certificatePolicies 0 }
+ *
+ * certificatePolicies ::= SEQUENCE SIZE (1..MAX) OF PolicyInformation
+ *
+ * PolicyInformation ::= SEQUENCE {
+ *     policyIdentifier   CertPolicyId,
+ *     policyQualifiers   SEQUENCE SIZE (1..MAX) OF
+ *                             PolicyQualifierInfo OPTIONAL }
+ *
+ * CertPolicyId ::= OBJECT IDENTIFIER
+ *
+ * PolicyQualifierInfo ::= SEQUENCE {
+ *      policyQualifierId  PolicyQualifierId,
+ *      qualifier          ANY DEFINED BY policyQualifierId }
+ *
+ * -- policyQualifierIds for Internet policy qualifiers
+ *
+ * id-qt          OBJECT IDENTIFIER ::=  { id-pkix 2 }
+ * id-qt-cps      OBJECT IDENTIFIER ::=  { id-qt 1 }
+ * id-qt-unotice  OBJECT IDENTIFIER ::=  { id-qt 2 }
+ *
+ * PolicyQualifierId ::= OBJECT IDENTIFIER ( id-qt-cps | id-qt-unotice )
+ *
+ * Qualifier ::= CHOICE {
+ *      cPSuri           CPSuri,
+ *      userNotice       UserNotice }
+ *
+ * CPSuri ::= IA5String
+ *
+ * UserNotice ::= SEQUENCE {
+ *      noticeRef        NoticeReference OPTIONAL,
+ *      explicitText     DisplayText OPTIONAL }
+ *
+ * NoticeReference ::= SEQUENCE {
+ *      organization     DisplayText,
+ *      noticeNumbers    SEQUENCE OF INTEGER }
+ *
+ * DisplayText ::= CHOICE {
+ *      ia5String        IA5String      (SIZE (1..200)),
+ *      visibleString    VisibleString  (SIZE (1..200)),
+ *      bmpString        BMPString      (SIZE (1..200)),
+ *      utf8String       UTF8String     (SIZE (1..200)) }
+ *
+ * NOTE: we only parse and use anyPolicy without qualifiers at this point
+ * as defined in RFC 5280.
+ */
+static int x509_get_certificate_policies( unsigned char **p,
+                                          const unsigned char *end,
+                                          mbedtls_x509_sequence *certificate_policies )
+{
+    int ret;
+    size_t len;
+    mbedtls_asn1_buf *buf;
+    mbedtls_asn1_sequence *cur = certificate_policies;
+
+    /* Get main sequence tag */
+    ret = mbedtls_asn1_get_tag( p, end, &len,
+                             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    if( *p + len != end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    /*
+     * Cannot be an empty sequence.
+     */
+    if( len == 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    while( *p < end )
+    {
+        mbedtls_x509_buf policy_oid;
+        const unsigned char *policy_end;
+
+        /*
+         * Get the policy sequence
+         */
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+        policy_end = *p + len;
+
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                          MBEDTLS_ASN1_OID ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+        policy_oid.tag = MBEDTLS_ASN1_OID;
+        policy_oid.len = len;
+        policy_oid.p = *p;
+
+        /* Allocate and assign next pointer */
+        if( cur->buf.p != NULL )
+        {
+            if( cur->next != NULL )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
+
+            cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
+
+            if( cur->next == NULL )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                        MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+
+            cur = cur->next;
+        }
+
+        buf = &( cur->buf );
+        buf->tag = policy_oid.tag;
+        buf->p = policy_oid.p;
+        buf->len = policy_oid.len;
+        /*
+         * Skip the optional policy qualifiers,
+         * and set the pointer to the end of the policy.
+         */
+        *p = (unsigned char *)policy_end;
+    }
+
+    /* Set final sequence entry's next pointer to NULL */
+    cur->next = NULL;
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+
+/*
  * X.509 v3 extensions
  *
  */
@@ -814,6 +947,13 @@ static int x509_get_crt_ext( unsigned char **p,
             /* Parse netscape certificate type */
             if( ( ret = x509_get_ns_cert_type( p, end_ext_octet,
                     &crt->ns_cert_type ) ) != 0 )
+                return( ret );
+            break;
+
+        case MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES:
+            /* Parse certificate policies type */
+            if( ( ret = x509_get_certificate_policies( p, end_ext_octet,
+                    &crt->certificate_policies ) ) != 0 )
                 return( ret );
             break;
 
@@ -1820,6 +1960,35 @@ static int x509_info_ext_key_usage( char **buf, size_t *size,
     return( 0 );
 }
 
+static int x509_info_cert_policies( char **buf, size_t *size,
+                                    const mbedtls_x509_sequence *certificate_policies )
+{
+    int ret;
+    const char *desc;
+    size_t n = *size;
+    char *p = *buf;
+    const mbedtls_x509_sequence *cur = certificate_policies;
+    const char *sep = "";
+
+    while( cur != NULL )
+    {
+        if( mbedtls_oid_get_certificate_policies( &cur->buf, &desc ) != 0 )
+            desc = "???";
+
+        ret = mbedtls_snprintf( p, n, "%s%s", sep, desc );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        sep = ", ";
+
+        cur = cur->next;
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 /*
  * Return an informational string about the certificate.
  */
@@ -1949,6 +2118,16 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
         if( ( ret = x509_info_ext_key_usage( &p, &n,
                                              &crt->ext_key_usage ) ) != 0 )
+            return( ret );
+    }
+
+    if( crt->ext_types & MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES )
+    {
+        ret = mbedtls_snprintf( p, n, "\n%scertificate policies : ", prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        if( ( ret = x509_info_cert_policies( &p, &n,
+                                             &crt->certificate_policies ) ) != 0 )
             return( ret );
     }
 
@@ -3069,6 +3248,16 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         }
 
         seq_cur = cert_cur->subject_alt_names.next;
+        while( seq_cur != NULL )
+        {
+            seq_prv = seq_cur;
+            seq_cur = seq_cur->next;
+            mbedtls_platform_zeroize( seq_prv,
+                                      sizeof( mbedtls_x509_sequence ) );
+            mbedtls_free( seq_prv );
+        }
+
+        seq_cur = cert_cur->certificate_policies.next;
         while( seq_cur != NULL )
         {
             seq_prv = seq_cur;

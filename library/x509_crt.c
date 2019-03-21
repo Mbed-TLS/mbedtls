@@ -591,6 +591,74 @@ static int x509_get_ext_key_usage( unsigned char **p,
 }
 
 /*
+ * OtherName ::= SEQUENCE {
+ *      type-id    OBJECT IDENTIFIER,
+ *      value      [0] EXPLICIT ANY DEFINED BY type-id }
+ * HardwareModuleName ::= SEQUENCE {
+ *                           hwType OBJECT IDENTIFIER,
+ *                           hwSerialNum OCTET STRING }
+ *
+ * NOTE: we only parse and use otherName of type HwModuleName,
+ * as defined in RFC 4108 at this point.
+ */
+static int x509_get_other_name( unsigned char **p,
+                                const unsigned char *end,
+                                mbedtls_x509_name *hardware_module_name )
+{
+    int ret;
+    size_t len;
+    unsigned char tag;
+    mbedtls_x509_buf cur_oid = { 0, 0, NULL };
+
+     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                       MBEDTLS_ASN1_OID ) ) != 0 )
+         return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+     cur_oid.tag = MBEDTLS_ASN1_OID;
+     cur_oid.p = *p;
+     cur_oid.len = len;
+
+     /*
+      * Skip other otherName SAN
+      */
+     if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME, &cur_oid ) != 0 )
+     {
+         *p += len;
+         return( 0 );
+     }
+     *p += len;
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+       return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    hardware_module_name->oid.tag = MBEDTLS_ASN1_OID;
+    hardware_module_name->oid.p = *p;
+    hardware_module_name->oid.len = len;
+
+    *p += len;
+    tag = **p;
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                      MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    hardware_module_name->val.tag = tag;
+    hardware_module_name->val.p = *p;
+    hardware_module_name->val.len = len;
+    hardware_module_name->next = NULL;
+    hardware_module_name->next_merged = 0;
+    *p += len;
+
+    return( 0 );
+}
+
+/*
  * SubjectAltName ::= GeneralNames
  *
  * GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
@@ -614,11 +682,13 @@ static int x509_get_ext_key_usage( unsigned char **p,
  *      nameAssigner            [0]     DirectoryString OPTIONAL,
  *      partyName               [1]     DirectoryString }
  *
- * NOTE: we only parse and use dNSName at this point.
+ * NOTE: we only parse and use dNSName at this point,
+ * and otherName of type HwModuleName, as defined in RFC 4108.
  */
 static int x509_get_subject_alt_name( unsigned char **p,
                                       const unsigned char *end,
-                                      mbedtls_x509_sequence *subject_alt_name )
+                                      mbedtls_x509_sequence *subject_alt_name,
+                                      mbedtls_x509_name *hardware_module_name )
 {
     int ret;
     size_t len, tag_len;
@@ -637,6 +707,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
 
     while( *p < end )
     {
+        unsigned char tag_mask;
         if( ( end - *p ) < 1 )
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                     MBEDTLS_ERR_ASN1_OUT_OF_DATA );
@@ -653,33 +724,44 @@ static int x509_get_subject_alt_name( unsigned char **p,
                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
         }
 
-        /* Skip everything but DNS name */
-        if( tag != ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2 ) )
+        tag_mask = tag & ( MBEDTLS_ASN1_TAG_CLASS_MASK | MBEDTLS_ASN1_TAG_VALUE_MASK );
+
+        switch( tag_mask )
         {
+        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0 ):
+            if( ( ret = x509_get_other_name( p, end,
+                                             hardware_module_name ) ) != 0 )
+                return( ret );
+        break;
+
+        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2 ):
+            /* Allocate and assign next pointer */
+            if( cur->buf.p != NULL )
+            {
+                if( cur->next != NULL )
+                    return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
+
+                cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
+
+                if( cur->next == NULL )
+                    return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                            MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+
+                cur = cur->next;
+            }
+
+            buf = &(cur->buf);
+            buf->tag = tag;
+            buf->p = *p;
+            buf->len = tag_len;
+            *p += buf->len;
+        break;
+
+        default:
+        /* Skip everything else*/
             *p += tag_len;
             continue;
         }
-
-        /* Allocate and assign next pointer */
-        if( cur->buf.p != NULL )
-        {
-            if( cur->next != NULL )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
-
-            cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
-
-            if( cur->next == NULL )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                        MBEDTLS_ERR_ASN1_ALLOC_FAILED );
-
-            cur = cur->next;
-        }
-
-        buf = &(cur->buf);
-        buf->tag = tag;
-        buf->p = *p;
-        buf->len = tag_len;
-        *p += buf->len;
     }
 
     /* Set final sequence entry's next pointer to NULL */
@@ -808,7 +890,8 @@ static int x509_get_crt_ext( unsigned char **p,
         case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
             /* Parse subject alt name */
             if( ( ret = x509_get_subject_alt_name( p, end_ext_octet,
-                    &crt->subject_alt_names ) ) != 0 )
+                    &crt->subject_alt_names,
+                    &crt->hardware_module_name  ) ) != 0 )
                 return( ret );
             break;
 
@@ -1459,6 +1542,42 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     return( 0 );
 }
 
+static int x509_info_hardware_module_name( char **buf, size_t *size,
+                                  const mbedtls_x509_name *hardware_module_name,
+                                  const char *prefix )
+{
+    int ret = 0;
+    size_t n = *size, i;
+    char *p = *buf;
+
+
+    if( hardware_module_name->val.len != 0 )
+    {
+        ret = mbedtls_snprintf( p, n, "\n%s    hardware module name  : ", prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        ret = mbedtls_snprintf( p, n, "\n%s        hardware type          : ", prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        ret = mbedtls_oid_get_numeric_string( p, n, &hardware_module_name->oid );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        ret = mbedtls_snprintf( p, n, "\n%s        hardware serial number : ", prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        for( i=0; i < hardware_module_name->val.len; i++ )
+        {
+            ret = mbedtls_snprintf( p, n, "%02x", hardware_module_name->val.p[i] );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+        }
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
 #define PRINT_ITEM(i)                           \
     {                                           \
         ret = mbedtls_snprintf( p, n, "%s" i, sep );    \
@@ -1650,6 +1769,11 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
         if( ( ret = x509_info_subject_alt_name( &p, &n,
                                             &crt->subject_alt_names ) ) != 0 )
+            return( ret );
+
+        if( ( ret = x509_info_hardware_module_name( &p, &n,
+                                                    &crt->hardware_module_name,
+                                                    prefix ) ) != 0 )
             return( ret );
     }
 

@@ -77,6 +77,16 @@ all_final += test-ca-good-alt.crt
 test_ca_crt_file_ec = test-ca2.crt
 test_ca_key_file_ec = test-ca2.key
 
+test-ca-any_policy.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
+	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.req.sha256 -out $@
+
+test-ca-any_policy_ec.crt: $(test_ca_key_file_ec) test-ca.req_ec.sha256
+	$(OPENSSL) req -x509 -config $(test_ca_config_file) -extensions v3_any_policy_ca -key $(test_ca_key_file_ec) -set_serial 0 -days 3653 -sha256 -in test-ca.req_ec.sha256 -out $@
+
+test-ca.req_ec.sha256: $(test_ca_key_file_ec)
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$(test_ca_key_file_ec) subject_name="C=NL, O=PolarSSL, CN=Polarssl Test EC CA" md=SHA256
+all_intermediate += test-ca.req_ec.sha256
+
 test_ca_crt_cat12 = test-ca_cat12.crt
 $(test_ca_crt_cat12): $(test_ca_crt) $(test_ca_crt_file_ec)
 	cat $(test_ca_crt) $(test_ca_crt_file_ec) > $@

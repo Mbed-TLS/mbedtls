@@ -12,6 +12,25 @@ subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid:always,issuer:always
 basicConstraints = CA:true
 
+[othername_san]
+subjectAltName=otherName:1.3.6.1.5.5.7.8.4;SEQ:hw_module_name
+
+[unsupoported_othername_san]
+subjectAltName=otherName:1.2.3.4;UTF8:some other identifier
+
+[alt_names]
+DNS.1=example.com
+otherName.1=1.3.6.1.5.5.7.8.4;SEQ:hw_module_name
+DNS.2=example.net
+DNS.3=*.example.org
+
+[multiple_san]
+subjectAltName=@alt_names
+
+[hw_module_name]
+hwtype = OID:1.3.6.1.4.1.17.3
+hwserial = OCT:123456
+
 [noext_ca]
 basicConstraints = CA:true
 

@@ -243,6 +243,79 @@ cleanup:
 
     return( 0 );
 }
+
+int verify_parse_san( mbedtls_x509_subject_alternative_name *san,
+                      char **buf, size_t *size )
+{
+    int ret;
+    size_t i;
+    char *p = *buf;
+    size_t n = *size;
+
+    ret = mbedtls_snprintf( p, n, "type : %u", san->type );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+
+    switch( san->type )
+    {
+       case( MBEDTLS_X509_SAN_OTHER_NAME ):
+           ret = mbedtls_snprintf( p, n, "\notherName :");
+           MBEDTLS_X509_SAFE_SNPRINTF;
+
+           if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
+                    &san->san.other_name.value.hardware_module_name.oid ) != 0 )
+           {
+               ret = mbedtls_snprintf( p, n, " hardware module name :" );
+               MBEDTLS_X509_SAFE_SNPRINTF;
+               ret = mbedtls_snprintf( p, n, " hardware type : " );
+               MBEDTLS_X509_SAFE_SNPRINTF;
+
+               ret = mbedtls_oid_get_numeric_string( p, n,
+                          &san->san.other_name.value.hardware_module_name.oid );
+               MBEDTLS_X509_SAFE_SNPRINTF;
+
+               ret = mbedtls_snprintf( p, n, ", hardware serial number : " );
+               MBEDTLS_X509_SAFE_SNPRINTF;
+
+               if( san->san.other_name.value.hardware_module_name.val.len >= n )
+               {
+                   *p = '\0';
+                   return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+               }
+
+               for( i=0; i < san->san.other_name.value.hardware_module_name.val.len; i++ )
+               {
+                   *p++ = san->san.other_name.value.hardware_module_name.val.p[i];
+               }
+               n -= san->san.other_name.value.hardware_module_name.val.len;
+            }
+        break;/* MBEDTLS_OID_ON_HW_MODULE_NAME */
+        case(  MBEDTLS_X509_SAN_DNS_NAME ):
+            ret = mbedtls_snprintf( p, n, "\ndNSName : " );
+            MBEDTLS_X509_SAFE_SNPRINTF;
+            if( san->san.unstructured_name.len >= n )
+            {
+                *p = '\0';
+                return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+            }
+            n -= san->san.unstructured_name.len;
+            for( i = 0; i < san->san.unstructured_name.len; i++ )
+                *p++ = san->san.unstructured_name.p[i];
+        break;/* MBEDTLS_X509_SAN_DNS_NAME */
+
+        default:
+        /*
+         * Should not happen.
+         */
+        return( -1 );
+    }
+    ret = mbedtls_snprintf( p, n, "\n" );
+    MBEDTLS_X509_SAFE_SNPRINTF;
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 /* END_HEADER */
 
@@ -250,6 +323,41 @@ cleanup:
  * depends_on:MBEDTLS_BIGNUM_C
  * END_DEPENDENCIES
  */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+void x509_parse_san( char * crt_file, char * result_str )
+{
+    mbedtls_x509_crt   crt;
+    mbedtls_x509_subject_alternative_name *cur, *next, *san = NULL;
+    char buf[2000];
+    char *p = buf;
+    size_t n = sizeof( buf );
+
+    mbedtls_x509_crt_init( &crt );
+    memset( buf, 0, 2000 );
+
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
+    TEST_ASSERT( mbedtls_x509_parse_subject_alternative_name( &crt, &san ) == 0 );
+    cur = san;
+    while( cur != NULL )
+    {
+        TEST_ASSERT( verify_parse_san( cur, &p, &n ) == 0 );
+        cur = cur->next;
+    }
+
+    TEST_ASSERT( strcmp( buf, result_str ) == 0 );
+
+exit:
+
+    for( cur = san; cur != NULL; cur = next )
+    {
+        next = cur->next;
+        mbedtls_free( cur );
+    }
+
+    mbedtls_x509_crt_free( &crt );
+}
+/* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
 void x509_cert_info( char * crt_file, char * result_str )

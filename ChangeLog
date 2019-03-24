@@ -68,6 +68,10 @@ Features
      fields of `mbedtls_x509_crt` are removed, but it keeps the
      X.509 function API. See the API changes section as well as
      the documentation in `config.h` for more information.
+   * Add support for parsing subject alternative name, of type otherName,
+     HardwareModuleName, as defined in rfc 4108 section 5.
+   * Add support for parsing certificate policies extension, as defined in
+     rfc 5280 section 4.2.1.4. Currently only supports "Any Policy" policy.
 
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.

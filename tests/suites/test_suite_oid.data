@@ -1,0 +1,8 @@
+OID get Any Policy certificate policy
+oid_get_certificate_policies:"551D2000":"Any Policy"
+
+OID get certificate policy invalid oid
+oid_get_certificate_policies:"5533445566":""
+
+OID get certificate policy wrong oid - id-ce-authorityKeyIdentifier
+oid_get_certificate_policies:"551D23":""

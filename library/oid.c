@@ -296,6 +296,15 @@ static const mbedtls_oid_descriptor_t oid_ext_key_usage[] =
 FN_OID_TYPED_FROM_ASN1(mbedtls_oid_descriptor_t, ext_key_usage, oid_ext_key_usage)
 FN_OID_GET_ATTR1(mbedtls_oid_get_extended_key_usage, mbedtls_oid_descriptor_t, ext_key_usage, const char *, description)
 
+static const mbedtls_oid_descriptor_t oid_certificate_policies[] =
+{
+    { ADD_LEN( MBEDTLS_OID_ANY_POLICY ),      "anyPolicy",       "Any Policy" },
+    { NULL, 0, NULL, NULL },
+};
+
+FN_OID_TYPED_FROM_ASN1(mbedtls_oid_descriptor_t, certificate_policies, oid_certificate_policies)
+FN_OID_GET_ATTR1(mbedtls_oid_get_certificate_policies, mbedtls_oid_descriptor_t, certificate_policies, const char *, description)
+
 #if defined(MBEDTLS_MD_C)
 /*
  * For SignatureAlgorithmIdentifier

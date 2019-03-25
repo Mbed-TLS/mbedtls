@@ -51,6 +51,9 @@ certificatePolicies = 1.2.3.4
 policyIdentifier = 2.5.29.32.0
 CPS.1 ="CPS uri string"
 
+[fan_cert]
+extendedKeyUsage = 1.3.6.1.4.1.45605.1
+
 [noext_ca]
 basicConstraints = CA:true
 

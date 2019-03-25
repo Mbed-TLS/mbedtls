@@ -294,6 +294,7 @@ static const mbedtls_oid_descriptor_t oid_ext_key_usage[] =
     { ADD_LEN( MBEDTLS_OID_EMAIL_PROTECTION ), "id-kp-emailProtection", "E-mail Protection" },
     { ADD_LEN( MBEDTLS_OID_TIME_STAMPING ),    "id-kp-timeStamping",    "Time Stamping" },
     { ADD_LEN( MBEDTLS_OID_OCSP_SIGNING ),     "id-kp-OCSPSigning",     "OCSP Signing" },
+    { ADD_LEN( MBEDTLS_OID_WISUN_FAN ),        "id-kp-wisun-fan-device","Wi-Sun alliance field area network" },
     { NULL, 0, NULL, NULL },
 };
 

@@ -23,6 +23,9 @@ hwserial = OCT:123456
 basicConstraints = CA:true
 certificatePolicies = 2.5.29.32.0
 
+[fan_cert]
+extendedKeyUsage = 1.3.6.1.4.1.45605.1
+
 [noext_ca]
 basicConstraints = CA:true
 

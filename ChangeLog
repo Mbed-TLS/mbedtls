@@ -1,6 +1,28 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.x.x branch released xxxx-xx-xx
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix private key DER output in the key_app_writer example. File contents
+     were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
+     Christian Walther in #2239.
+
+Changes
+   * Server's RSA certificate in certs.c was SHA-1 signed. In the default
+     mbedTLS configuration only SHA-2 signed certificates are accepted.
+     This certificate is used in the demo server programs, which lead the
+     client programs to fail at the peer's certificate verification
+     due to an unacceptable hash signature. The certificate has been
+     updated to one that is SHA-256 signed. Fix contributed by
+     Illya Gerasymchuk.
+   * Return from various debugging routines immediately if the
+     provided SSL context is unset.
+   * Remove dead code from bignum.c in the default configuration.
+     Found by Coverity, reported and fixed by Peter Kolbus (Garmin). Fixes #2309.
+   * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
+     Contributed by Peter Kolbus (Garmin).
+
+= mbed TLS 2.17.0 branch released 2019-03-19
 
 Features
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`
@@ -49,9 +71,6 @@ Bugfix
      extensions in CSRs and CRTs that caused these bitstrings to not be encoded
      correctly as trailing zeroes were not accounted for as unused bits in the
      leading content octet. Fixes #1610.
-   * Fix private key DER output in the key_app_writer example. File contents
-     were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
-     Christian Walther in #2239.
 
 Changes
    * Reduce RAM consumption during session renegotiation by not storing
@@ -78,19 +97,6 @@ Changes
      been disabled for lack of a sufficiently recent version of GnuTLS on the CI.
    * Ciphersuites based on 3DES now have the lowest priority by default when
      they are enabled.
-   * Server's RSA certificate in certs.c was SHA-1 signed. In the default
-     mbedTLS configuration only SHA-2 signed certificates are accepted.
-     This certificate is used in the demo server programs, which lead the
-     client programs to fail at the peer's certificate verification
-     due to an unacceptable hash signature. The certificate has been
-     updated to one that is SHA-256 signed. Fix contributed by
-     Illya Gerasymchuk.
-   * Return from various debugging routines immediately if the
-     provided SSL context is unset.
-   * Remove dead code from bignum.c in the default configuration.
-     Found by Coverity, reported and fixed by Peter Kolbus (Garmin). Fixes #2309.
-   * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
-     Contributed by Peter Kolbus (Garmin).
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

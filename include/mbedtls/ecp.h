@@ -482,7 +482,7 @@ void mbedtls_ecp_point_init( mbedtls_ecp_point *pt );
  *
  * \note            After this function is called, domain parameters
  *                  for various ECP groups can be loaded through the
- *                  mbedtls_ecp_load() or mbedtls_ecp_tls_read_group()
+ *                  mbedtls_ecp_group_load() or mbedtls_ecp_tls_read_group()
  *                  functions.
  */
 void mbedtls_ecp_group_init( mbedtls_ecp_group *grp );

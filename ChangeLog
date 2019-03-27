@@ -2,6 +2,14 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
+Security
+   * Make mbedtls_ecdh_get_params return an error if the second key
+     belongs to a different group from the first. Before, if an application
+     passed keys that belonged to different group, the first key's data was
+     interpreted according to the second group, which could lead to either
+     an error or a meaningless output from mbedtls_ecdh_get_params. In the
+     latter case, this could expose at most 5 bits of the private key.
+
 Bugfix
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default
      mbedTLS configuration only SHA-2 signed certificates are accepted.

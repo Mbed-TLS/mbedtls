@@ -84,13 +84,13 @@ void pkcs8_write_key_check( char *key_file )
     FILE *f;
     size_t ilen;
 
+    mbedtls_pk_init( &key );
+    TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL ) == 0 );
+
     buf = mbedtls_calloc( buf_len, sizeof( unsigned char ) );
     TEST_ASSERT( buf != NULL );
     check_buf = mbedtls_calloc( buf_len, sizeof( unsigned char ) );
     TEST_ASSERT( check_buf != NULL );
-
-    mbedtls_pk_init( &key );
-    TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL ) == 0 );
 
     ret = mbedtls_pkcs8_write_unencrypted_key_pem( &key, buf, buf_len );
     TEST_ASSERT( ret == 0 );
@@ -108,5 +108,6 @@ exit:
         mbedtls_free( buf );
     if( check_buf != NULL )
         mbedtls_free( check_buf );
+    mbedtls_pk_free( &key );
 }
 /* END_CASE */

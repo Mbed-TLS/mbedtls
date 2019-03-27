@@ -1,5 +1,47 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdh.h"
+
+static int load_public_key( int grp_id, const char *point_str,
+                            mbedtls_ecp_keypair *ecp )
+{
+    int ok = 0;
+    unsigned char point_buf[MBEDTLS_ECP_MAX_PT_LEN];
+    size_t point_len = unhexify( point_buf, point_str );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &ecp->grp, grp_id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_point_read_binary( &ecp->grp,
+                                                &ecp->Q,
+                                                point_buf,
+                                                point_len ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_check_pubkey( &ecp->grp,
+                                           &ecp->Q ) == 0 );
+    ok = 1;
+exit:
+    return( ok );
+}
+
+static int load_private_key( int grp_id, const char *private_key_str,
+                             mbedtls_ecp_keypair *ecp,
+                             rnd_pseudo_info *rnd_info )
+{
+    int ok = 0;
+    unsigned char private_key_buf[MBEDTLS_ECP_MAX_BYTES];
+    size_t private_key_len = unhexify( private_key_buf, private_key_str );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &ecp->grp, grp_id ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &ecp->d,
+                                          private_key_buf,
+                                          private_key_len ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_check_privkey( &ecp->grp, &ecp->d ) == 0 );
+    /* Calculate the public key from the private key. */
+    TEST_ASSERT( mbedtls_ecp_mul( &ecp->grp, &ecp->Q, &ecp->d,
+                                  &ecp->grp.G,
+                                  &rnd_pseudo_rand, rnd_info ) == 0 );
+    ok = 1;
+exit:
+    return( ok );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -156,5 +198,113 @@ void ecdh_exchange( int id )
 exit:
     mbedtls_ecdh_free( &srv );
     mbedtls_ecdh_free( &cli );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecdh_exchange_calc_secret( int grp_id,
+                                char *our_private_key,
+                                char *their_point,
+                                int ours_first,
+                                char *expected_str )
+{
+    rnd_pseudo_info rnd_info;
+    unsigned char expected_buf[MBEDTLS_ECP_MAX_BYTES];
+    size_t expected_len;
+    mbedtls_ecp_keypair our_key;
+    mbedtls_ecp_keypair their_key;
+    mbedtls_ecdh_context ecdh;
+    unsigned char shared_secret[MBEDTLS_ECP_MAX_BYTES];
+    size_t shared_secret_length = 0;
+
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    mbedtls_ecdh_init( &ecdh );
+    mbedtls_ecp_keypair_init( &our_key );
+    mbedtls_ecp_keypair_init( &their_key );
+
+    expected_len = unhexify( expected_buf, expected_str );
+
+    if( ! load_private_key( grp_id, our_private_key, &our_key, &rnd_info ) )
+        goto exit;
+    if( ! load_public_key( grp_id, their_point, &their_key ) )
+        goto exit;
+
+    /* Import the keys to the ECDH calculation. */
+    if( ours_first )
+    {
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &our_key, MBEDTLS_ECDH_OURS ) == 0 );
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &their_key, MBEDTLS_ECDH_THEIRS ) == 0 );
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &their_key, MBEDTLS_ECDH_THEIRS ) == 0 );
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &our_key, MBEDTLS_ECDH_OURS ) == 0 );
+    }
+
+    /* Perform the ECDH calculation. */
+    TEST_ASSERT( mbedtls_ecdh_calc_secret(
+                     &ecdh,
+                     &shared_secret_length,
+                     shared_secret, sizeof( shared_secret ),
+                     &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( shared_secret_length == expected_len );
+    TEST_ASSERT( memcmp( expected_buf, shared_secret,
+                         shared_secret_length ) == 0 );
+
+exit:
+    mbedtls_ecdh_free( &ecdh );
+    mbedtls_ecp_keypair_free( &our_key );
+    mbedtls_ecp_keypair_free( &their_key );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecdh_exchange_get_params_fail( int our_grp_id,
+                                    char *our_private_key,
+                                    int their_grp_id,
+                                    char *their_point,
+                                    int ours_first,
+                                    int expected_ret )
+{
+    rnd_pseudo_info rnd_info;
+    mbedtls_ecp_keypair our_key;
+    mbedtls_ecp_keypair their_key;
+    mbedtls_ecdh_context ecdh;
+
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    mbedtls_ecdh_init( &ecdh );
+    mbedtls_ecp_keypair_init( &our_key );
+    mbedtls_ecp_keypair_init( &their_key );
+
+    if( ! load_private_key( our_grp_id, our_private_key, &our_key, &rnd_info ) )
+        goto exit;
+    if( ! load_public_key( their_grp_id, their_point, &their_key ) )
+        goto exit;
+
+    if( ours_first )
+    {
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &our_key, MBEDTLS_ECDH_OURS ) == 0 );
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &their_key, MBEDTLS_ECDH_THEIRS ) ==
+                     expected_ret );
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &their_key, MBEDTLS_ECDH_THEIRS ) == 0 );
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &our_key, MBEDTLS_ECDH_OURS ) ==
+                     expected_ret );
+    }
+
+exit:
+    mbedtls_ecdh_free( &ecdh );
+    mbedtls_ecp_keypair_free( &our_key );
+    mbedtls_ecp_keypair_free( &their_key );
 }
 /* END_CASE */

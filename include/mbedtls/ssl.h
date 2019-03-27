@@ -928,6 +928,10 @@ struct mbedtls_ssl_config
     mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
     mbedtls_x509_crt *ca_chain;     /*!< trusted CAs                        */
     mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    mbedtls_x509_crt_ca_cb_t f_ca_cb;
+    void *p_ca_cb;
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

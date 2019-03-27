@@ -7875,7 +7875,29 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
 {
     conf->ca_chain   = ca_chain;
     conf->ca_crl     = ca_crl;
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    /* mbedtls_ssl_conf_ca_chain() and mbedtls_ssl_conf_ca_cb()
+     * cannot be used together. */
+    conf->f_ca_cb = NULL;
+    conf->p_ca_cb = NULL;
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 }
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+void mbedtls_ssl_conf_ca_cb( mbedtls_ssl_config *conf,
+                             mbedtls_x509_ca_cb_t f_ca_cb,
+                             void *p_ca_cb )
+{
+    conf->f_ca_cb = f_ca_cb;
+    conf->p_ca_cb = p_ca_cb;
+
+    /* mbedtls_ssl_conf_ca_chain() and mbedtls_ssl_conf_ca_cb()
+     * cannot be used together. */
+    conf->ca_chain   = NULL;
+    conf->ca_crl     = NULL;
+}
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)

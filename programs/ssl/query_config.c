@@ -978,6 +978,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    if( strcmp( "MBEDTLS_ECDH_LEGACY_CONTEXT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_ECDH_LEGACY_CONTEXT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     if( strcmp( "MBEDTLS_ECDSA_DETERMINISTIC", config ) == 0 )
     {

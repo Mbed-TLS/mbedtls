@@ -195,6 +195,9 @@ if(ENABLE_TESTING)
     enable_testing()
 
     add_subdirectory(tests)
+    if(USE_CRYPTO_SUBMODULE)
+        add_subdirectory(crypto/tests)
+    endif()
 
     # additional convenience targets for Unix only
     if(UNIX)

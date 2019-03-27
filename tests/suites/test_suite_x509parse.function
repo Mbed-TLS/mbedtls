@@ -69,7 +69,7 @@ int verify_all( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32
 }
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
-int verify_cb( void *data, mbedtls_x509_crt *child, mbedtls_x509_crt **candidates)
+int ca_callback( void *data, mbedtls_x509_crt *child, mbedtls_x509_crt **candidates)
 {
     mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
     
@@ -396,7 +396,7 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     flags = 0;
 
-    res = mbedtls_x509_crt_verify_with_cb( &crt, verify_cb, &ca, profile, cn_name, &flags, f_vrfy, NULL );
+    res = mbedtls_x509_crt_verify_with_cb( &crt, ca_callback, &ca, profile, cn_name, &flags, f_vrfy, NULL );
 
     TEST_ASSERT( res == ( result ) );
     TEST_ASSERT( flags == (uint32_t)( flags_result ) );

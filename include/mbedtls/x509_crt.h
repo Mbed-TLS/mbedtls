@@ -501,6 +501,70 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      void *p_vrfy,
                      mbedtls_x509_crt_restart_ctx *rs_ctx );
 
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+/**
+ * \brief               The type of trusted certificate callbacks.
+ *
+ *                      Callbacks of this type are passed to and used by the CRT
+ *                      verification routine mbedtls_x509_crt_verify_with_cb()
+ *                      when looking for trusted signers of a given certificate.
+ *
+ *                      On success, the callback returns a list of trusted
+ *                      certificates to be considered as potential signers
+ *                      for the input certificate.
+ *
+ * \param p_ctx         An opaque context passed to the callback.
+ * \param child         The certificate for which to search a potential signer.
+ *                      This must point to a readable certificate.
+ * \param candidate_cas The address at which to store the address of the first
+ *                      entry in the generated linked list of candidate signers.
+ *                      This must not be \c NULL.
+ *
+ * \note                The callback must only return a non-zero value on a
+ *                      fatal error. If, in contrast, the search for a potential
+ *                      signer completes without a single candidate, the
+ *                      callback must return \c 0 and get \c *candidate_cas
+ *                      to \c NULL.
+ *
+ * \return              \c 0 on success. In this case, \c *candidate_cas points
+ *                      to a heap-allocated linked list of instances of
+ *                      ::mbedtls_x509_crt, and ownership of this list is passed
+ *                      to the caller.
+ * \return              A negative error code on failure.
+ */
+typedef int (*mbedtls_x509_crt_ca_cb_t)( void *p_ctx,
+                                         mbedtls_x509_crt const *child,
+                                         mbedtls_x509_crt **candidate_cas );
+/**
+ * \brief          Version of \c mbedtls_x509_crt_verify_with_profile() which
+ *                 uses a callback to acquire the list of trusted CA
+ *                 certificates.
+ *
+ * \param crt      The certificate chain to be verified.
+ * \param f_ca_cb  The callback to be used to query for potential signers
+ *                 of a given child certificate. See the documentation of
+ *                 ::mbedtls_x509_crt_ca_cb_t for more information.
+ * \param p_ca_cb  The opaque context to be passed to \p f_ca_cb.
+ * \param profile  The security profile for the verification.
+ * \param cn       The expected Common Name. This may be \c NULL if the
+ *                 CN need not be verified.
+ * \param flags    The address at which to store the result of the verification.
+ * \param f_vrfy   The verification callback to use. See the documentation
+ *                 of mbedtls_x509_crt_verify() for more information.
+ * \param p_vrfy   The context to be passed to \p f_vrfy.
+ *
+ * \return         See \c mbedtls_crt_verify_with_profile().
+ */
+int mbedtls_x509_crt_verify_with_cb( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt_ca_cb_t f_ca_cb,
+                     void *p_ca_cb,
+                     const mbedtls_x509_crt_profile *profile,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy );
+
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
 /**
  * \brief          Check usage of certificate against keyUsage extension.

@@ -490,8 +490,24 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf,
                              size_t buflen );
 
 /**
- * \brief          Export an MPI into unsigned big endian binary data
- *                 of fixed size.
+ * \brief          Import X from unsigned binary data, little endian
+ *
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param buf      The input buffer. This must be a readable buffer of length
+ *                 \p buflen Bytes.
+ * \param buflen   The length of the input buffer \p p in Bytes.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
+ * \return         Another negative error code on different kinds of failure.
+ */
+int mbedtls_mpi_read_binary_le( mbedtls_mpi *X,
+                                const unsigned char *buf, size_t buflen );
+
+/**
+ * \brief          Export X into unsigned binary data, big endian.
+ *                 Always fills the whole buffer, which will start with zeros
+ *                 if the number is smaller.
  *
  * \param X        The source MPI. This must point to an initialized MPI.
  * \param buf      The output buffer. This must be a writable buffer of length
@@ -505,6 +521,24 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf,
  */
 int mbedtls_mpi_write_binary( const mbedtls_mpi *X, unsigned char *buf,
                               size_t buflen );
+
+/**
+ * \brief          Export X into unsigned binary data, little endian.
+ *                 Always fills the whole buffer, which will end with zeros
+ *                 if the number is smaller.
+ *
+ * \param X        The source MPI. This must point to an initialized MPI.
+ * \param buf      The output buffer. This must be a writable buffer of length
+ *                 \p buflen Bytes.
+ * \param buflen   The size of the output buffer \p buf in Bytes.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
+ *                 large enough to hold the value of \p X.
+ * \return         Another negative error code on different kinds of failure.
+ */
+int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X,
+                                 unsigned char *buf, size_t buflen );
 
 /**
  * \brief          Perform a left-shift on an MPI: X <<= count

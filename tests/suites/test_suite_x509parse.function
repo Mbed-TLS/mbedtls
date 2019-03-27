@@ -69,6 +69,15 @@ int verify_all( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32
 }
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+int ca_callback_fail( void *data, mbedtls_x509_crt *child, mbedtls_x509_crt **candidates)
+{
+    ((void) data);
+    ((void) child);
+    ((void) candidates);
+
+    return -1;
+}
+
 int ca_callback( void *data, mbedtls_x509_crt *child, mbedtls_x509_crt **candidates)
 {
     mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
@@ -405,6 +414,33 @@ exit:
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_free( &ca );
     mbedtls_x509_crl_free( &crl );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_CRL_PARSE_C:MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+void x509_verify_ca_cb_failure( char *crt_file, char *ca_file, char *name,
+                                int exp_ret, char *exp_vrfy_out )
+{
+    int ret;
+    mbedtls_x509_crt crt;
+    mbedtls_x509_crt ca;
+    uint32_t flags = 0;
+    
+    mbedtls_x509_crt_init( &crt );
+    mbedtls_x509_crt_init( &ca );
+
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &ca, ca_file ) == 0 );
+
+    if( strcmp( name, "NULL" ) == 0 )
+        name = NULL;
+    
+    ret = mbedtls_x509_crt_verify_with_cb( &crt, ca_callback_fail, &ca, &compat_profile, name, &flags, verify_all, NULL );
+
+    TEST_ASSERT( ret == exp_ret );
+exit:
+    mbedtls_x509_crt_free( &crt );
+    mbedtls_x509_crt_free( &ca );
 }
 /* END_CASE */
 

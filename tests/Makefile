@@ -97,6 +97,7 @@ APPS := $(filter-out \
 		test_suite_memory_buffer_alloc \
 		test_suite_mpi \
 		test_suite_nist_kw \
+		test_suite_oid \
 		test_suite_pem \
 		test_suite_pk \
 		test_suite_pkcs1_v15 \

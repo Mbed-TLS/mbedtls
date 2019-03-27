@@ -168,6 +168,11 @@
 #define MBEDTLS_OID_FRESHEST_CRL                MBEDTLS_OID_ID_CE "\x2E" /**< id-ce-freshestCRL OBJECT IDENTIFIER ::=  { id-ce 46 } */
 
 /*
+ * Certificate policies
+ */
+#define MBEDTLS_OID_ANY_POLICY              MBEDTLS_OID_CERTIFICATE_POLICIES "\x00" /**< anyPolicy OBJECT IDENTIFIER ::= { id-ce-certificatePolicies 0 } */
+
+/*
  * Netscape certificate extensions
  */
 #define MBEDTLS_OID_NS_CERT                 MBEDTLS_OID_NETSCAPE "\x01"
@@ -575,6 +580,16 @@ int mbedtls_oid_get_md_hmac( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_extended_key_usage( const mbedtls_asn1_buf *oid, const char **desc );
+
+/**
+ * \brief          Translate certificate policies OID into description
+ *
+ * \param oid      OID to use
+ * \param desc     place to store string pointer
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_certificate_policies( const mbedtls_asn1_buf *oid, const char **desc );
 
 /**
  * \brief          Translate md_type into hash algorithm OID

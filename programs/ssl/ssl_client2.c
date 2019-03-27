@@ -122,6 +122,8 @@ int main( void )
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_CA_CALLBACK         0
+
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -169,6 +171,13 @@ int main( void )
 #else
 #define USAGE_PSK_SLOT ""
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+#define USAGE_CA_CALLBACK                       \
+    "   ca_callback=%%d       default: 0 (disabled)\n"      \
+    "                         Enable this to use the trusted certificate callback function\n"
+#else
+#define USAGE_CA_CALLBACK ""
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 #define USAGE_PSK USAGE_PSK_RAW USAGE_PSK_SLOT
 #else
 #define USAGE_PSK ""
@@ -312,6 +321,7 @@ int main( void )
     "                        options: none, optional, required\n" \
     USAGE_IO                                                \
     USAGE_KEY_OPAQUE                                        \
+    USAGE_CA_CALLBACK                                       \
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
@@ -386,6 +396,9 @@ struct options
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     int psk_opaque;
 #endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    int use_ca_callback         /* Use a callback for a trusted certificate list */
+#endif
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
     const char *ecjpake_pw;     /* the EC J-PAKE password                   */
@@ -438,6 +451,25 @@ static void my_debug( void *ctx, int level,
                      basename, line, level, str );
     fflush(  (FILE *) ctx  );
 }
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+int ca_callback( void *data, mbedtls_x509_crt *child, mbedtls_x509_crt **candidates)
+{
+    mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
+    
+    mbedtls_x509_crt *first = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
+    TEST_ASSERT( first != NULL);
+    TEST_ASSERT( mbedtls_x509_crt_init( first ) == 0 );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) == 0);
+    while( ca->next != NULL )
+    {
+        ca = ca->next;
+        TEST_ASSERT( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) == 0);
+    }
+    *candidates = first;
+    return 0;
+}
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 /*
  * Test recv/send functions that make sure each try returns
@@ -698,6 +730,9 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     opt.psk_opaque          = DFL_PSK_OPAQUE;
 #endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    opt.ca_callback         = DFL_CA_CALLBACK;
+#endif
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
     opt.ec_max_ops          = DFL_EC_MAX_OPS;
@@ -805,6 +840,10 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         else if( strcmp( p, "psk_opaque" ) == 0 )
             opt.psk_opaque = atoi( q );
+#endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        else if( strcmp( p, "ca_callback" ) == 0)
+            opt.ca_callback = atoi( q );
 #endif
         else if( strcmp( p, "psk_identity" ) == 0 )
             opt.psk_identity = q;
@@ -1600,7 +1639,12 @@ int main( int argc, char *argv[] )
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
-        mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        if( opt.ca_callback != 0 )
+            mbedtls_ssl_conf_ca_cb( &conf, ca_callback, &cacert);
+        else
+#endif
+            mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
     }
     if( strcmp( opt.crt_file, "none" ) != 0 &&
         strcmp( opt.key_file, "none" ) != 0 )

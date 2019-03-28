@@ -377,6 +377,10 @@ static void x509_crt_verify_chain_reset(
     }
 
     ver_chain->len = 0;
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    ver_chain->trust_ca_cb_result = NULL;
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 }
 
 /*
@@ -2326,6 +2330,7 @@ static int x509_crt_verify_chain(
     int child_is_trusted;
     int signature_is_good;
     unsigned self_cnt;
+    mbedtls_x509_crt *cur_trust_ca = NULL;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* resume if we had an operation in progress */
@@ -2385,8 +2390,32 @@ static int x509_crt_verify_chain(
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 find_parent:
 #endif
+
+        /* Obtain list of potential trusted signers from CA callback,
+         * or use statically provided list. */
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        if( f_ca_cb != NULL )
+        {
+            mbedtls_x509_crt_free( ver_chain->trust_ca_cb_result );
+            mbedtls_free( ver_chain->trust_ca_cb_result );
+            ver_chain->trust_ca_cb_result = NULL;
+
+            ret = f_ca_cb( p_ca_cb, child, &ver_chain->trust_ca_cb_result );
+            if( ret != 0 )
+                return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+            cur_trust_ca = ver_chain->trust_ca_cb_result;
+        }
+        else
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+        {
+            ((void) f_ca_cb);
+            ((void) p_ca_cb);
+            cur_trust_ca = trust_ca;
+        }
+
         /* Look for a parent in trusted CAs or up the chain */
-        ret = x509_crt_find_parent( child, trust_ca, &parent,
+        ret = x509_crt_find_parent( child, cur_trust_ca, &parent,
                                        &parent_is_trusted, &signature_is_good,
                                        ver_chain->len - 1, self_cnt, rs_ctx );
 
@@ -2612,6 +2641,13 @@ static int mbedtls_x509_crt_verify_restartable_cb( mbedtls_x509_crt *crt,
     ret = x509_crt_merge_flags_with_cb( flags, &ver_chain, f_vrfy, p_vrfy );
 
 exit:
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    mbedtls_x509_crt_free( ver_chain.trust_ca_cb_result );
+    mbedtls_free( ver_chain.trust_ca_cb_result );
+    ver_chain.trust_ca_cb_result = NULL;
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
         mbedtls_x509_crt_restart_free( rs_ctx );

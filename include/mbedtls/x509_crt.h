@@ -166,6 +166,14 @@ typedef struct
 {
     mbedtls_x509_crt_verify_chain_item items[MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE];
     unsigned len;
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    /* This stores the list of potential trusted signers obtained from
+     * the CA callback used for the CRT verification, if configured.
+     * We must track it somewhere because the callback passes its
+     * ownership to the caller. */
+    mbedtls_x509_crt *trust_ca_cb_result;
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 } mbedtls_x509_crt_verify_chain;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

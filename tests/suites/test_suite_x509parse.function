@@ -467,7 +467,7 @@ void x509_verify_ca_cb_failure( char *crt_file, char *ca_file, char *name,
     mbedtls_x509_crt crt;
     mbedtls_x509_crt ca;
     uint32_t flags = 0;
-    
+
     mbedtls_x509_crt_init( &crt );
     mbedtls_x509_crt_init( &ca );
 

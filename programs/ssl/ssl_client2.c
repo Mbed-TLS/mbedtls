@@ -397,7 +397,7 @@ struct options
     int psk_opaque;
 #endif
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
-    int use_ca_callback         /* Use a callback for a trusted certificate list */
+    int ca_callback;            /* Use callback for trusted certificate list */
 #endif
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
@@ -453,21 +453,58 @@ static void my_debug( void *ctx, int level,
 }
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
-int ca_callback( void *data, mbedtls_x509_crt *child, mbedtls_x509_crt **candidates)
+int ca_callback( void *data, mbedtls_x509_crt const *child,
+                 mbedtls_x509_crt **candidates)
 {
+    int ret = 0;
     mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
-    
-    mbedtls_x509_crt *first = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
-    TEST_ASSERT( first != NULL);
-    TEST_ASSERT( mbedtls_x509_crt_init( first ) == 0 );
-    TEST_ASSERT( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) == 0);
+    mbedtls_x509_crt *first;
+
+    /* This is a test-only implementation of the CA callback
+     * which always returns the entire list of trusted certificates.
+     * Production implementations managing a large number of CAs
+     * should use an efficient presentation and lookup for the
+     * set of trusted certificates (such as a hashtable) and only
+     * return those trusted certificates which satisfy basic
+     * parental checks, such as the matching of child `Issuer`
+     * and parent `Subject` field. */
+    ((void) child);
+
+    first = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
+    if( first == NULL )
+    {
+        ret = -1;
+        goto exit;
+    }
+    mbedtls_x509_crt_init( first );
+
+    if( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) != 0 )
+    {
+        ret = -1;
+        goto exit;
+    }
+
     while( ca->next != NULL )
     {
         ca = ca->next;
-        TEST_ASSERT( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) == 0);
+        if( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) != 0 )
+        {
+            ret = -1;
+            goto exit;
+        }
     }
+
+exit:
+
+    if( ret != 0 )
+    {
+        mbedtls_x509_crt_free( first );
+        mbedtls_free( first );
+        first = NULL;
+    }
+
     *candidates = first;
-    return 0;
+    return( ret );
 }
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
@@ -1641,7 +1678,7 @@ int main( int argc, char *argv[] )
     {
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
         if( opt.ca_callback != 0 )
-            mbedtls_ssl_conf_ca_cb( &conf, ca_callback, &cacert);
+            mbedtls_ssl_conf_ca_cb( &conf, ca_callback, &cacert );
         else
 #endif
             mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );

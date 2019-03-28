@@ -313,14 +313,33 @@ exit:
 void mbedtls_mpi_read_binary( data_t * buf, int radix_A, char * input_A )
 {
     mbedtls_mpi X;
-    unsigned char str[1000];
+    char str[1000];
     size_t len;
 
     mbedtls_mpi_init( &X );
 
 
     TEST_ASSERT( mbedtls_mpi_read_binary( &X, buf->x, buf->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, (char *) str, sizeof( str ), &len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, str, sizeof( str ), &len ) == 0 );
+    TEST_ASSERT( strcmp( (char *) str, input_A ) == 0 );
+
+exit:
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_mpi_read_binary_le( data_t * buf, int radix_A, char * input_A )
+{
+    mbedtls_mpi X;
+    char str[1000];
+    size_t len;
+
+    mbedtls_mpi_init( &X );
+
+
+    TEST_ASSERT( mbedtls_mpi_read_binary_le( &X, buf->x, buf->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, str, sizeof( str ), &len ) == 0 );
     TEST_ASSERT( strcmp( (char *) str, input_A ) == 0 );
 
 exit:
@@ -348,6 +367,37 @@ void mbedtls_mpi_write_binary( int radix_X, char * input_X,
         buflen = (size_t) output_size;
 
     TEST_ASSERT( mbedtls_mpi_write_binary( &X, buf, buflen ) == result );
+    if( result == 0)
+    {
+
+        TEST_ASSERT( hexcmp( buf, input_A->x, buflen, input_A->len ) == 0 );
+    }
+
+exit:
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_mpi_write_binary_le( int radix_X, char * input_X,
+                                  data_t * input_A, int output_size,
+                                  int result )
+{
+    mbedtls_mpi X;
+    unsigned char buf[1000];
+    size_t buflen;
+
+    memset( buf, 0x00, 1000 );
+
+    mbedtls_mpi_init( &X );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
+
+    buflen = mbedtls_mpi_size( &X );
+    if( buflen > (size_t) output_size )
+        buflen = (size_t) output_size;
+
+    TEST_ASSERT( mbedtls_mpi_write_binary_le( &X, buf, buflen ) == result );
     if( result == 0)
     {
 

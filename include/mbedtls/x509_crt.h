@@ -519,7 +519,6 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      void *p_vrfy,
                      mbedtls_x509_crt_restart_ctx *rs_ctx );
 
-#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 /**
  * \brief               The type of trusted certificate callbacks.
  *
@@ -553,6 +552,8 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
 typedef int (*mbedtls_x509_crt_ca_cb_t)( void *p_ctx,
                                          mbedtls_x509_crt const *child,
                                          mbedtls_x509_crt **candidate_cas );
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 /**
  * \brief          Version of \c mbedtls_x509_crt_verify_with_profile() which
  *                 uses a callback to acquire the list of trusted CA

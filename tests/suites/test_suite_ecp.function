@@ -43,7 +43,9 @@ void ecp_invalid_param( )
     unsigned char buf[42] = { 0 };
     const unsigned char *null_buf = NULL;
     mbedtls_ecp_group_id valid_group = MBEDTLS_ECP_DP_SECP192R1;
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_ecp_restart_ctx restart_ctx;
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     TEST_INVALID_PARAM( mbedtls_ecp_point_init( NULL ) );
     TEST_INVALID_PARAM( mbedtls_ecp_keypair_init( NULL ) );
@@ -760,8 +762,18 @@ void ecp_read_binary( int id, data_t * buf, char * x, char * y, char * z,
     if( ret == 0 )
     {
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.X, &X ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Y, &Y ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Z, &Z ) == 0 );
+        if( mbedtls_ecp_get_type( &grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
+        {
+            TEST_ASSERT( mbedtls_mpi_cmp_int( &Y, 0 ) == 0 );
+            TEST_ASSERT( P.Y.p == NULL );
+            TEST_ASSERT( mbedtls_mpi_cmp_int( &Z, 1 ) == 0 );
+            TEST_ASSERT( mbedtls_mpi_cmp_int( &P.Z, 1 ) == 0 );
+        }
+        else
+        {
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Y, &Y ) == 0 );
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Z, &Z ) == 0 );
+        }
     }
 
 exit:
@@ -1000,6 +1012,28 @@ void mbedtls_ecp_gen_key( int id )
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &key.grp, &key.Q ) == 0 );
     TEST_ASSERT( mbedtls_ecp_check_privkey( &key.grp, &key.d ) == 0 );
+
+exit:
+    mbedtls_ecp_keypair_free( &key );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ecp_read_key( int grp_id, data_t* in_key, int expected )
+{
+    int ret = 0;
+    mbedtls_ecp_keypair key;
+
+    mbedtls_ecp_keypair_init( &key );
+
+    ret = mbedtls_ecp_read_key( grp_id, &key, in_key->x, in_key->len );
+    TEST_ASSERT( ret == expected );
+
+    if( expected == 0 )
+    {
+        ret = mbedtls_ecp_check_privkey( &key.grp, &key.d );
+        TEST_ASSERT( ret == 0 );
+    }
 
 exit:
     mbedtls_ecp_keypair_free( &key );

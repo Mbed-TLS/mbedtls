@@ -814,6 +814,39 @@ static void mpi_bigendian_to_host( mbedtls_mpi_uint * const p, size_t limbs )
 }
 
 /*
+ * Import X from unsigned binary data, little endian
+ */
+int mbedtls_mpi_read_binary_le( mbedtls_mpi *X,
+                                const unsigned char *buf, size_t buflen )
+{
+    int ret;
+    size_t i;
+    size_t const limbs = CHARS_TO_LIMBS( buflen );
+
+    /* Ensure that target MPI has exactly the necessary number of limbs */
+    if( X->n != limbs )
+    {
+        mbedtls_mpi_free( X );
+        mbedtls_mpi_init( X );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, limbs ) );
+    }
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
+
+    for( i = 0; i < buflen; i++ )
+        X->p[i / ciL] |= ((mbedtls_mpi_uint) buf[i]) << ((i % ciL) << 3);
+
+cleanup:
+
+    /*
+     * This function is also used to import keys. However, wiping the buffers
+     * upon failure is not necessary because failure only can happen before any
+     * input is copied.
+     */
+    return( ret );
+}
+
+/*
  * Import X from unsigned binary data, big endian
  */
 int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t buflen )
@@ -847,7 +880,51 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
 
 cleanup:
 
+    /*
+     * This function is also used to import keys. However, wiping the buffers
+     * upon failure is not necessary because failure only can happen before any
+     * input is copied.
+     */
     return( ret );
+}
+
+/*
+ * Export X into unsigned binary data, little endian
+ */
+int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X,
+                                 unsigned char *buf, size_t buflen )
+{
+    size_t stored_bytes = X->n * ciL;
+    size_t bytes_to_copy;
+    size_t i;
+
+    if( stored_bytes < buflen )
+    {
+        bytes_to_copy = stored_bytes;
+    }
+    else
+    {
+        bytes_to_copy = buflen;
+
+        /* The output buffer is smaller than the allocated size of X.
+         * However X may fit if its leading bytes are zero. */
+        for( i = bytes_to_copy; i < stored_bytes; i++ )
+        {
+            if( GET_BYTE( X, i ) != 0 )
+                return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
+        }
+    }
+
+    for( i = 0; i < bytes_to_copy; i++ )
+        buf[i] = GET_BYTE( X, i );
+
+    if( stored_bytes < buflen )
+    {
+        /* Write trailing 0 bytes */
+        memset( buf + stored_bytes, 0, buflen - stored_bytes );
+    }
+
+    return( 0 );
 }
 
 /*
@@ -1869,8 +1946,10 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     wsize = ( i > 671 ) ? 6 : ( i > 239 ) ? 5 :
             ( i >  79 ) ? 4 : ( i >  23 ) ? 3 : 1;
 
+#if( MBEDTLS_MPI_WINDOW_SIZE < 6 )
     if( wsize > MBEDTLS_MPI_WINDOW_SIZE )
         wsize = MBEDTLS_MPI_WINDOW_SIZE;
+#endif
 
     j = N->n + 1;
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );

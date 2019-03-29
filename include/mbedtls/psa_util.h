@@ -43,6 +43,8 @@
 #include "pk.h"
 #include "oid.h"
 
+#include <string.h>
+
 /* Translations for symmetric crypto. */
 
 static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
@@ -233,6 +235,86 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
      return( -1 );
 }
 
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH 1
+
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
+
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
+#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
+#endif
+#endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
+
+
 static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group_id grpid )
 {
     switch( grpid )
@@ -294,6 +376,7 @@ static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group
     }
 }
 
+
 #define MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE( curve )                \
     ( curve == PSA_ECC_CURVE_SECP192R1        ? 192 :             \
       curve == PSA_ECC_CURVE_SECP224R1        ? 224 :             \
@@ -350,6 +433,48 @@ static inline psa_ecc_curve_t mbedtls_psa_parse_tls_ecc_group(
     /* The PSA identifiers are currently aligned with those from
      * the TLS Supported Groups registry, so no conversion is necessary. */
     return( (psa_ecc_curve_t) tls_ecc_grp_reg_id );
+}
+
+/* This function takes a buffer holding an EC public key
+ * exported through psa_export_public_key(), and converts
+ * it into an ECPoint structure to be put into a ClientKeyExchange
+ * message in an ECDHE exchange.
+ *
+ * Both the present and the foreseeable future format of EC public keys
+ * used by PSA have the ECPoint structure contained in the exported key
+ * as a subbuffer, and the function merely selects this subbuffer instead
+ * of making a copy.
+ */
+static inline int mbedtls_psa_tls_psa_ec_to_ecpoint( unsigned char *src,
+                                                     size_t srclen,
+                                                     unsigned char **dst,
+                                                     size_t *dstlen )
+{
+    *dst = src;
+    *dstlen = srclen;
+    return( 0 );
+}
+
+/* This function takes a buffer holding an ECPoint structure
+ * (as contained in a TLS ServerKeyExchange message for ECDHE
+ * exchanges) and converts it into a format that the PSA key
+ * agreement API understands.
+ */
+static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( psa_ecc_curve_t curve,
+                                                     unsigned char const *src,
+                                                     size_t srclen,
+                                                     unsigned char *dst,
+                                                     size_t dstlen,
+                                                     size_t *olen )
+{
+    ((void) curve);
+
+    if( srclen > dstlen )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    memcpy( dst, src, srclen );
+    *olen = srclen;
+    return( 0 );
 }
 
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

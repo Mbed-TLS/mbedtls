@@ -42,18 +42,6 @@
 
 #include "ecp.h"
 
-/*
- * Use a backward compatible ECDH context.
- *
- * This flag is always enabled for now and future versions might add a
- * configuration option that conditionally undefines this flag.
- * The configuration option in question may have a different name.
- *
- * Features undefining this flag, must have a warning in their description in
- * config.h stating that the feature breaks backward compatibility.
- */
-#define MBEDTLS_ECDH_LEGACY_CONTEXT
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -1,0 +1,34 @@
+/* BEGIN_HEADER */
+#include "mbedtls/oid.h"
+#include "mbedtls/asn1.h"
+#include "mbedtls/asn1write.h"
+#include "string.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_OID_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_WRITE_C*/
+void oid_get_certificate_policies( data_t * oid, char * result_str )
+{
+    mbedtls_asn1_buf asn1_buf = { 0, 0, NULL };
+    int ret;
+    const char *desc;
+
+    asn1_buf.tag = MBEDTLS_ASN1_OID;
+    asn1_buf.p = oid->x;
+    asn1_buf.len = oid->len;
+
+    ret = mbedtls_oid_get_certificate_policies( &asn1_buf, &desc );
+    if( strlen( result_str ) == 0 )
+    {
+        TEST_ASSERT( ret == MBEDTLS_ERR_OID_NOT_FOUND );
+    }
+    else
+    {
+        TEST_ASSERT( strcmp( ( char* )desc, result_str ) == 0 );
+    }
+}
+/* END_CASE */

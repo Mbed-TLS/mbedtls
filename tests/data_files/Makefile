@@ -16,7 +16,6 @@ FAKETIME ?= faketime
 MBEDTLS_CERT_WRITE ?= $(PWD)/../../programs/x509/cert_write
 MBEDTLS_CERT_REQ ?= $(PWD)/../../programs/x509/cert_req
 
-
 ## Build the generated test data. Note that since the final outputs
 ## are committed to the repository, this target should do nothing on a
 ## fresh checkout. Furthermore, since the generation is randomized,
@@ -738,6 +737,37 @@ all_final += ec_prv.pk8nopubparam.pem
 ec_prv.pk8param.pem: ec_prv.pk8param.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_prv.pk8param.pem
+
+# server5*
+
+# The use of 'Server 1' in the DN is intentional here, as the DN is hardcoded in the x509_write test suite.'
+server5.req.ku.sha1: server5.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
+all_final += server5.req.ku.sha1
+
+################################################################
+### Generate CSRs for X.509 write test suite
+################################################################
+
+server1.req.cert_type: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< ns_cert_type=ssl_server subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
+all_final += server1.req.cert_type
+
+server1.req.key_usage: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation,key_encipherment subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
+all_final += server1.req.key_usage
+
+server1.req.ku-ct: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation,key_encipherment ns_cert_type=ssl_server subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
+all_final += server1.req.ku-ct
+
+server1.req.key_usage_empty: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1 force_key_usage=1
+all_final += server1.req.key_usage_empty
+
+server1.req.cert_type_empty: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1 force_ns_cert_type=1
+all_final += server1.req.cert_type_empty
 
 ################################################################
 ### Generate CSRs for X.509 write test suite

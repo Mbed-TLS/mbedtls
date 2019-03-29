@@ -2,6 +2,41 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
+Security
+   * Make mbedtls_ecdh_get_params return an error if the second key
+     belongs to a different group from the first. Before, if an application
+     passed keys that belonged to different group, the first key's data was
+     interpreted according to the second group, which could lead to either
+     an error or a meaningless output from mbedtls_ecdh_get_params. In the
+     latter case, this could expose at most 5 bits of the private key.
+
+Bugfix
+   * Server's RSA certificate in certs.c was SHA-1 signed. In the default
+     mbedTLS configuration only SHA-2 signed certificates are accepted.
+     This certificate is used in the demo server programs, which lead the
+     client programs to fail at the peer's certificate verification
+     due to an unacceptable hash signature. The certificate has been
+     updated to one that is SHA-256 signed. Fix contributed by
+     Illya Gerasymchuk.
+   * Fix private key DER output in the key_app_writer example. File contents
+     were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
+     Christian Walther in #2239.
+
+Changes
+   * Return from various debugging routines immediately if the
+     provided SSL context is unset.
+   * Remove dead code from bignum.c in the default configuration.
+     Found by Coverity, reported and fixed by Peter Kolbus (Garmin). Fixes #2309.
+   * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
+     Contributed by Peter Kolbus (Garmin).
+
+= mbed TLS 2.16.1 branch released 2019-03-19
+
+Features
+   * Add MBEDTLS_REMOVE_3DES_CIPHERSUITES to allow removing 3DES ciphersuites
+     from the default list (enabled by default). See
+     https://sweet32.info/SWEET32_CCS16.pdf.
+
 Bugfix
    * Fix a compilation issue with mbedtls_ecp_restart_ctx not being defined
      when MBEDTLS_ECP_ALT is defined. Reported by jwhui. Fixes #2242.
@@ -24,6 +59,14 @@ Bugfix
    * Remove the mbedtls namespacing from the header file, to fix a "file not found"
      build error. Fixed by Haijun Gu #2319.
    * Fix returning the value 1 when mbedtls_ecdsa_genkey failed.
+   * Fix false failure in all.sh when backup files exist in include/mbedtls
+     (e.g. config.h.bak). Fixed by Peter Kolbus (Garmin) #2407.
+   * Ensure that unused bits are zero when writing ASN.1 bitstrings when using
+     mbedtls_asn1_write_bitstring().
+   * Fix issue when writing the named bitstrings in KeyUsage and NsCertType
+     extensions in CSRs and CRTs that caused these bitstrings to not be encoded
+     correctly as trailing zeroes were not accounted for as unused bits in the
+     leading content octet. Fixes #1610.
 
 Changes
    * Include configuration file in all header files that use configuration,
@@ -31,6 +74,14 @@ Changes
      Inserted as an enhancement for #1371
    * Add support for alternative CSR headers, as used by Microsoft and defined
      in RFC 7468. Found by Michael Ernst. Fixes #767.
+   * Fix configuration queries in ssl-opt.h. #2030
+   * Ensure that ssl-opt.h can be run in OS X. #2029
+   * Reduce the complexity of the timing tests. They were assuming more than the
+     underlying OS actually guarantees.
+   * Re-enable certain interoperability tests in ssl-opt.sh which had previously
+     been disabled for lack of a sufficiently recent version of GnuTLS on the CI.
+   * Ciphersuites based on 3DES now have the lowest priority by default when
+     they are enabled.
    * Add calls to platform setup and teardown functions to all the example
      programs for which this is relevant. This change enables the example
      programs utilizing platform specific cryptographic features.

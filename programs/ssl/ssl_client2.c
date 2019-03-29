@@ -491,7 +491,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
         mbedtls_fprintf(
-            stderr,"platform_setup returned -0x%x\n\n", -ret );
+            stderr, "platform_setup returned -0x%x\n\n", -ret );
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
@@ -948,7 +948,7 @@ int main( int argc, char *argv[] )
 
         if( strlen( opt.psk ) % 2 != 0 )
         {
-            mbedtls_fprintf( stderr, "pre-shared key not valid hex\n" );
+            mbedtls_printf( "pre-shared key not valid hex\n" );
             goto exit;
         }
 
@@ -965,7 +965,7 @@ int main( int argc, char *argv[] )
                 c -= 'A' - 10;
             else
             {
-                mbedtls_fprintf( stderr, "pre-shared key not valid hex\n" );
+                mbedtls_printf( "pre-shared key not valid hex\n" );
                 goto exit;
             }
             psk[ j / 2 ] = c << 4;
@@ -979,7 +979,7 @@ int main( int argc, char *argv[] )
                 c -= 'A' - 10;
             else
             {
-                mbedtls_fprintf( stderr, "pre-shared key not valid hex\n" );
+                mbedtls_printf( "pre-shared key not valid hex\n" );
                 goto exit;
             }
             psk[ j / 2 ] |= c;
@@ -1016,15 +1016,15 @@ int main( int argc, char *argv[] )
                 }
                 else
                 {
-                    mbedtls_fprintf( stderr, "unknown curve %s\n", q );
-                    mbedtls_fprintf( stderr, "supported curves: " );
+                    mbedtls_printf( "unknown curve %s\n", q );
+                    mbedtls_printf( "supported curves: " );
                     for( curve_cur = mbedtls_ecp_curve_list();
                          curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
                          curve_cur++ )
                     {
-                        mbedtls_fprintf( stderr, "%s ", curve_cur->name );
+                        mbedtls_printf( "%s ", curve_cur->name );
                     }
-                    mbedtls_fprintf( stderr, "\n" );
+                    mbedtls_printf( "\n" );
                     goto exit;
                 }
             }
@@ -1033,7 +1033,7 @@ int main( int argc, char *argv[] )
 
             if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
-                mbedtls_fprintf( stderr, "curves list too long, maximum %d",
+                mbedtls_printf( "curves list too long, maximum %d",
                                 CURVE_LIST_SIZE - 1 );
                 goto exit;
             }
@@ -1112,12 +1112,12 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_fprintf( stderr, "MBEDTLS_CERTS_C not defined." );
+        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret < 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned -0x%x\n\n",
+        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
                         -ret );
         goto exit;
     }
@@ -1146,7 +1146,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_fprintf( stderr, "MBEDTLS_CERTS_C not defined." );
+        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )
@@ -1170,12 +1170,12 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_fprintf( stderr, "MBEDTLS_CERTS_C not defined." );
+        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_pk_parse_key returned -0x%x\n\n",
+        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
                         -ret );
         goto exit;
     }
@@ -1254,8 +1254,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     if( ( ret = mbedtls_ssl_conf_max_frag_len( &conf, opt.mfl_code ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_max_frag_len returned -0x%x\n\n",
-                        -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_max_frag_len returned %d\n\n",
+                        ret );
         goto exit;
     }
 #endif
@@ -1291,8 +1291,8 @@ int main( int argc, char *argv[] )
     if( opt.alpn_string != NULL )
         if( ( ret = mbedtls_ssl_conf_alpn_protocols( &conf, alpn_list ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_alpn_protocols returned -0x%x\n\n",
-                            -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_alpn_protocols returned %d\n\n",
+                            ret );
             goto exit;
         }
 #endif
@@ -1331,8 +1331,8 @@ int main( int argc, char *argv[] )
     {
         if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned -0x%x\n\n",
-                            -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n",
+                            ret );
             goto exit;
         }
     }
@@ -1351,8 +1351,8 @@ int main( int argc, char *argv[] )
                              (const unsigned char *) opt.psk_identity,
                              strlen( opt.psk_identity ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk returned -0x%x\n\n",
-                        -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk returned %d\n\n",
+                        ret );
         goto exit;
     }
 #endif
@@ -1377,8 +1377,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned -0x%x\n\n",
-                        -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n",
+                        ret );
         goto exit;
     }
 #endif
@@ -1390,8 +1390,8 @@ int main( int argc, char *argv[] )
                         (const unsigned char *) opt.ecjpake_pw,
                                         strlen( opt.ecjpake_pw ) ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned -0x%x\n\n",
-                            -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned %d\n\n",
+                            ret );
             goto exit;
         }
     }
@@ -1512,8 +1512,8 @@ int main( int argc, char *argv[] )
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE )
             {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_renegotiate returned -0x%x\n\n",
-                                -ret );
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_renegotiate returned %d\n\n",
+                                ret );
                 goto exit;
             }
         }
@@ -1586,8 +1586,8 @@ send_request:
 
         if( ret < 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned -0x%x\n\n",
-                            -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n",
+                            ret );
             goto exit;
         }
 
@@ -1779,8 +1779,8 @@ reconnect:
 
         if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session returned -0x%x\n\n",
-                            -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session returned %d\n\n",
+                            ret );
             goto exit;
         }
 
@@ -1827,8 +1827,7 @@ exit:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_fprintf(
-            stderr, "Last error was: -0x%X - %s\n\n", -ret, error_buf );
+        mbedtls_printf( "Last error was: -0x%X - %s\n\n", -ret, error_buf );
     }
 #endif
 

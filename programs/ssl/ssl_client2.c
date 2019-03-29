@@ -171,6 +171,11 @@ int main( void )
 #else
 #define USAGE_PSK_SLOT ""
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+#define USAGE_PSK USAGE_PSK_RAW USAGE_PSK_SLOT
+#else
+#define USAGE_PSK ""
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 #define USAGE_CA_CALLBACK                       \
     "   ca_callback=%%d       default: 0 (disabled)\n"      \
@@ -178,10 +183,6 @@ int main( void )
 #else
 #define USAGE_CA_CALLBACK ""
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
-#define USAGE_PSK USAGE_PSK_RAW USAGE_PSK_SLOT
-#else
-#define USAGE_PSK ""
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \

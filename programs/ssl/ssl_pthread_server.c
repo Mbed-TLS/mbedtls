@@ -30,6 +30,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
+#include <stdlib.h>
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
 #define mbedtls_snprintf   snprintf

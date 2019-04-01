@@ -2587,7 +2587,7 @@ static int x509_crt_merge_flags_with_cb(
  * of trusted signers, and `ca_crl` will be use as the static list
  * of CRLs.
  */
-static int mbedtls_x509_crt_verify_restartable_cb( mbedtls_x509_crt *crt,
+static int mbedtls_x509_crt_verify_restartable_ca_cb( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
                      mbedtls_x509_crt_ca_cb_t f_ca_cb,
@@ -2682,7 +2682,7 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
-    return( mbedtls_x509_crt_verify_restartable_cb( crt, trust_ca, ca_crl,
+    return( mbedtls_x509_crt_verify_restartable_ca_cb( crt, trust_ca, ca_crl,
                                          NULL, NULL,
                                          &mbedtls_x509_crt_profile_default,
                                          cn, flags,
@@ -2700,7 +2700,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
-    return( mbedtls_x509_crt_verify_restartable_cb( crt, trust_ca, ca_crl,
+    return( mbedtls_x509_crt_verify_restartable_ca_cb( crt, trust_ca, ca_crl,
                                                  NULL, NULL,
                                                  profile, cn, flags,
                                                  f_vrfy, p_vrfy, NULL ) );
@@ -2711,7 +2711,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
  * Verify the certificate validity (user-chosen profile, CA callback,
  *                                  not restartable).
  */
-int mbedtls_x509_crt_verify_with_cb( mbedtls_x509_crt *crt,
+int mbedtls_x509_crt_verify_with_ca_cb( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt_ca_cb_t f_ca_cb,
                      void *p_ca_cb,
                      const mbedtls_x509_crt_profile *profile,
@@ -2719,7 +2719,7 @@ int mbedtls_x509_crt_verify_with_cb( mbedtls_x509_crt *crt,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
-    return( mbedtls_x509_crt_verify_restartable_cb( crt, NULL, NULL,
+    return( mbedtls_x509_crt_verify_restartable_ca_cb( crt, NULL, NULL,
                                                  f_ca_cb, p_ca_cb,
                                                  profile, cn, flags,
                                                  f_vrfy, p_vrfy, NULL ) );
@@ -2735,7 +2735,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      void *p_vrfy,
                      mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
-    return( mbedtls_x509_crt_verify_restartable_cb( crt, trust_ca, ca_crl,
+    return( mbedtls_x509_crt_verify_restartable_ca_cb( crt, trust_ca, ca_crl,
                                                  NULL, NULL,
                                                  profile, cn, flags,
                                                  f_vrfy, p_vrfy, rs_ctx ) );

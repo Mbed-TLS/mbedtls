@@ -446,7 +446,7 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
     {
         flags = 0;
 
-        res = mbedtls_x509_crt_verify_with_cb( &crt, ca_callback, &ca, profile, cn_name, &flags, f_vrfy, NULL );
+        res = mbedtls_x509_crt_verify_with_ca_cb( &crt, ca_callback, &ca, profile, cn_name, &flags, f_vrfy, NULL );
 
         TEST_ASSERT( res == ( result ) );
         TEST_ASSERT( flags == (uint32_t)( flags_result ) );
@@ -477,7 +477,7 @@ void x509_verify_ca_cb_failure( char *crt_file, char *ca_file, char *name,
     if( strcmp( name, "NULL" ) == 0 )
         name = NULL;
 
-    ret = mbedtls_x509_crt_verify_with_cb( &crt, ca_callback_fail, &ca,
+    ret = mbedtls_x509_crt_verify_with_ca_cb( &crt, ca_callback_fail, &ca,
                                            &compat_profile, name, &flags,
                                            verify_all, NULL );
 

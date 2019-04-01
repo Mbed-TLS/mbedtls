@@ -523,7 +523,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
  * \brief               The type of trusted certificate callbacks.
  *
  *                      Callbacks of this type are passed to and used by the CRT
- *                      verification routine mbedtls_x509_crt_verify_with_cb()
+ *                      verification routine mbedtls_x509_crt_verify_with_ca_cb()
  *                      when looking for trusted signers of a given certificate.
  *
  *                      On success, the callback returns a list of trusted
@@ -574,7 +574,7 @@ typedef int (*mbedtls_x509_crt_ca_cb_t)( void *p_ctx,
  *
  * \return         See \c mbedtls_crt_verify_with_profile().
  */
-int mbedtls_x509_crt_verify_with_cb( mbedtls_x509_crt *crt,
+int mbedtls_x509_crt_verify_with_ca_cb( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt_ca_cb_t f_ca_cb,
                      void *p_ca_cb,
                      const mbedtls_x509_crt_profile *profile,

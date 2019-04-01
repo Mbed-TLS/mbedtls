@@ -1747,7 +1747,7 @@
 /**
  * \def MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
  *
- * If set, this enables the X.509 API `mbedtls_x509_crt_verify_with_cb()`
+ * If set, this enables the X.509 API `mbedtls_x509_crt_verify_with_ca_cb()`
  * and the SSL API `mbedtls_ssl_conf_ca_cb()` which allow users to configure
  * the set of trusted certificates through a callback instead of a linked
  * list.
@@ -1756,7 +1756,7 @@
  * certificates is present and storing them in a linked list isn't efficient
  * enough, or when the set of trusted certificates changes frequently.
  *
- * See the documentation of `mbedtls_x509_crt_verify_with_cb()` and
+ * See the documentation of `mbedtls_x509_crt_verify_with_ca_cb()` and
  * `mbedtls_ssl_conf_ca_cb()` for more information.
  *
  * Uncomment to enable trusted certificate callbacks.

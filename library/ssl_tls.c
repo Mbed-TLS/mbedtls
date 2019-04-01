@@ -6050,7 +6050,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         have_ca_chain = 1;
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "use CA callback for X.509 CRT verification" ) );
-        ret = mbedtls_x509_crt_verify_with_cb(
+        ret = mbedtls_x509_crt_verify_with_ca_cb(
             chain,
             ssl->conf->f_ca_cb,
             ssl->conf->p_ca_cb,

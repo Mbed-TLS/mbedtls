@@ -470,7 +470,7 @@ int ca_callback( void *data, mbedtls_x509_crt const *child,
      * set of trusted certificates (such as a hashtable) and only
      * return those trusted certificates which satisfy basic
      * parental checks, such as the matching of child `Issuer`
-     * and parent `Subject` field. */
+     * and parent `Subject` field or matching key identifiers. */
     ((void) child);
 
     first = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );

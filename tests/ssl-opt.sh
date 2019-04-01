@@ -947,10 +947,6 @@ run_test    "CA callback on client" \
             "$P_CLI ca_callback=1 debug_level=3 " \
             0 \
             -c "use CA callback for X.509 CRT verification"\
-            -s "Protocol is TLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256" \
-            -s "client hello v3, signature_algorithm ext: 6" \
-            -s "ECDHE curve: secp521r1" \
             -S "error" \
             -C "error"
 
@@ -2602,7 +2598,8 @@ run_test    "DER format: with 9 trailing random bytes" \
             0 \
             -c "Handshake was completed" \
 
-# Tests for auth_mode
+# Tests for auth_mode, there are duplicated tests using ca callback for authentication
+# When updating these tests, modify the matching authentication tests accordingly
 
 run_test    "Authentication: server badcert, client required" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
@@ -2981,7 +2978,8 @@ run_test    "Authentication: send CA list in CertificateRequest, client self sig
             -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 
-# Tests for auth_mode, using CA callback
+# Tests for auth_mode, using CA callback, these are duplicated from the authentication tests
+# When updating these tests, modify the matching authentication tests accordingly
 
 requires_config_enabled MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK
 run_test    "Authentication, CA callback: server badcert, client required" \

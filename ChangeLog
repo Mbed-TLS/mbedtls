@@ -5,6 +5,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Features
    * Add the Any Policy certificate policy oid, as defined in
      rfc 5280 section 4.2.1.4.
+   * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents

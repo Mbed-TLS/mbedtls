@@ -122,7 +122,8 @@
  * { iso(1) identified-organization(3) dod(6) internet(1)
  *                      security(5) mechanisms(5) pkix(7) }
  */
-#define MBEDTLS_OID_PKIX                        MBEDTLS_OID_ISO_IDENTIFIED_ORG MBEDTLS_OID_ORG_DOD "\x01\x05\x05\x07"
+#define MBEDTLS_OID_INTERNET                    MBEDTLS_OID_ISO_IDENTIFIED_ORG MBEDTLS_OID_ORG_DOD "\x01"
+#define MBEDTLS_OID_PKIX                        MBEDTLS_OID_INTERNET "\x05\x05\x07"
 
 /*
  * Arc for standard naming attributes
@@ -205,6 +206,13 @@
 #define MBEDTLS_OID_EMAIL_PROTECTION            MBEDTLS_OID_KP "\x04" /**< id-kp-emailProtection OBJECT IDENTIFIER ::= { id-kp 4 } */
 #define MBEDTLS_OID_TIME_STAMPING               MBEDTLS_OID_KP "\x08" /**< id-kp-timeStamping OBJECT IDENTIFIER ::= { id-kp 8 } */
 #define MBEDTLS_OID_OCSP_SIGNING                MBEDTLS_OID_KP "\x09" /**< id-kp-OCSPSigning OBJECT IDENTIFIER ::= { id-kp 9 } */
+
+/**
+ * Wi-SUN Alliance Field Area Network
+ * { iso(1) identified-organization(3) dod(6) internet(1)
+ *                      private(4) enterprise(1) WiSUN(45605) FieldAreaNetwork(1) }
+ */
+#define MBEDTLS_OID_WISUN_FAN                  MBEDTLS_OID_INTERNET "\x04\x01\x82\xe4\x25\x01"
 
 /*
  * PKCS definition OIDs

@@ -441,7 +441,7 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     /* CRLs aren't supported with CA callbacks, so skip the CA callback
-     * version of the test of CRLs are in use. */
+     * version of the test if CRLs are in use. */
     if( crl_file == NULL || strcmp( crl_file, "" ) == 0 )
     {
         flags = 0;
@@ -479,7 +479,7 @@ void x509_verify_ca_cb_failure( char *crt_file, char *ca_file, char *name,
 
     ret = mbedtls_x509_crt_verify_with_ca_cb( &crt, ca_callback_fail, &ca,
                                            &compat_profile, name, &flags,
-                                           verify_all, NULL );
+                                           NULL, NULL );
 
     TEST_ASSERT( ret == exp_ret );
 exit:

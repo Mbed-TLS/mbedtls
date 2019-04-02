@@ -1392,7 +1392,8 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
     }
 #endif /* MBEDTLS_CHACHAPOLY_C */
 #if defined(MBEDTLS_NIST_KW_C)
-    if( MBEDTLS_MODE_KW == ctx->cipher_info->mode || MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
+   if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
+       MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
     {
         mbedtls_nist_kw_mode_t mode = ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ) ?
                                         MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
@@ -1516,7 +1517,8 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
     }
 #endif /* MBEDTLS_CHACHAPOLY_C */
 #if defined(MBEDTLS_NIST_KW_C)
-    if( MBEDTLS_MODE_KW == ctx->cipher_info->mode || MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
+    if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
     {
         mbedtls_nist_kw_mode_t mode = ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ) ?
                                         MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;

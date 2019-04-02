@@ -2143,15 +2143,15 @@ static void kw_ctx_free( void *ctx )
 static int kw_aes_setkey_wrap( void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen )
 {
-    return mbedtls_nist_kw_setkey( (mbedtls_nist_kw_context *) ctx, MBEDTLS_CIPHER_ID_AES,
-                     key, key_bitlen, 1 );
+    return mbedtls_nist_kw_setkey( (mbedtls_nist_kw_context *) ctx,
+                                   MBEDTLS_CIPHER_ID_AES, key, key_bitlen, 1 );
 }
 
 static int kw_aes_setkey_unwrap( void *ctx, const unsigned char *key,
                                 unsigned int key_bitlen )
 {
-    return mbedtls_nist_kw_setkey( (mbedtls_nist_kw_context *) ctx, MBEDTLS_CIPHER_ID_AES,
-                     key, key_bitlen, 0 );
+   return mbedtls_nist_kw_setkey( (mbedtls_nist_kw_context *) ctx,
+                                  MBEDTLS_CIPHER_ID_AES, key, key_bitlen, 0 );
 }
 
 static const mbedtls_cipher_base_t kw_aes_info = {

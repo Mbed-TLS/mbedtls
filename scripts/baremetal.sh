@@ -171,6 +171,9 @@ baremetal_ram_build() {
     echo ""
 }
 
+# usage:
+# - `baremetal_ram_heap 0` for heap usage only
+# - `baremetal_ram_heap 1` for heap and stack usage
 baremetal_ram_heap() {
 
     : ${CLI:=./programs/ssl/ssl_client2}

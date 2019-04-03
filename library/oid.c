@@ -254,24 +254,28 @@ typedef struct {
 static const oid_x509_ext_t oid_x509_ext[] =
 {
     {
-        { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",   "Basic Constraints" },
+        { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",    "Basic Constraints" },
         MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),            "id-ce-keyUsage",           "Key Usage" },
+        { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),            "id-ce-keyUsage",            "Key Usage" },
         MBEDTLS_OID_X509_EXT_KEY_USAGE,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",        "Extended Key Usage" },
+        { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",         "Extended Key Usage" },
         MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",     "Subject Alt Name" },
+        { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",      "Subject Alt Name" },
         MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),         "id-netscape-certtype",     "Netscape Certificate Type" },
+        { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),         "id-netscape-certtype",      "Netscape Certificate Type" },
         MBEDTLS_OID_X509_EXT_NS_CERT_TYPE,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_CERTIFICATE_POLICIES ), "id-ce-certificatePolicies", "Certificate Policies" },
+        MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES,
     },
     {
         { NULL, 0, NULL, NULL },

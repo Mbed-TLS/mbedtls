@@ -87,9 +87,9 @@ baremetal_build_gcc()
     ROM_OUT_FILE="rom_files__${date}__${NAME}__gcc_${gcc_ver}"
     ROM_OUT_SYMS="rom_syms__${date}__${NAME}__gcc_${gcc_ver}"
     echo "Generate file statistics..."
-    ./scripts/generate_codesize_stats.sh --info "gcc_${gcc_ver}" --name $NAME --files > $ROM_OUT_FILE
+    ./scripts/extract_codesize_stats.sh --info "gcc_${gcc_ver}" --name $NAME --files > $ROM_OUT_FILE
     echo "Generate symbol statistics..."
-    ./scripts/generate_codesize_stats.sh --info "gcc_${gcc_ver}" --name $NAME --syms > $ROM_OUT_SYMS
+    ./scripts/extract_codesize_stats.sh --info "gcc_${gcc_ver}" --name $NAME --syms > $ROM_OUT_SYMS
 
     echo "ROM statistics written to:"
     echo "* $ROM_OUT_FILE"
@@ -115,9 +115,9 @@ baremetal_build_armc5()
     ROM_OUT_FILE="rom_files__${date}__${NAME}__armc5_${armc5_ver}"
     ROM_OUT_SYMS="rom_syms__${date}__${NAME}__armc5_${armc5_ver}"
     echo "Generate file statistics..."
-    ./scripts/generate_codesize_stats.sh --info "armc5_${armc5_ver}" --name $NAME --files > $ROM_OUT_FILE
+    ./scripts/extract_codesize_stats.sh --info "armc5_${armc5_ver}" --name $NAME --files > $ROM_OUT_FILE
     echo "Generate symbol statistics..."
-    ./scripts/generate_codesize_stats.sh --info "armc5_${armc5_ver}" --name $NAME --syms > $ROM_OUT_SYMS
+    ./scripts/extract_codesize_stats.sh --info "armc5_${armc5_ver}" --name $NAME --syms > $ROM_OUT_SYMS
 
     echo "ROM statistics written to:"
     echo "* $ROM_OUT_FILE"
@@ -143,9 +143,9 @@ baremetal_build_armc6()
     ROM_OUT_FILE="rom_files__${date}__${NAME}__armc6_${armc6_ver}"
     ROM_OUT_SYMS="rom_syms__${date}__${NAME}__armc6_${armc6_ver}"
     echo "Generate file statistics..."
-    ./scripts/generate_codesize_stats.sh --info "armc6_${armc6_ver}" --name $NAME --files > $ROM_OUT_FILE
+    ./scripts/extract_codesize_stats.sh --info "armc6_${armc6_ver}" --name $NAME --files > $ROM_OUT_FILE
     echo "Generate symbol statistics..."
-    ./scripts/generate_codesize_stats.sh --info "armc6_${armc6_ver}" --name $NAME --syms > $ROM_OUT_SYMS
+    ./scripts/extract_codesize_stats.sh --info "armc6_${armc6_ver}" --name $NAME --syms > $ROM_OUT_SYMS
 
     echo "ROM statistics written to:"
     echo "* $ROM_OUT_FILE"

@@ -266,7 +266,7 @@ baremetal_ram_stack() {
 }
 
 show_usage() {
-    echo "Usage: $0 [--rom [--gcc|--armc5|--armc6]|--ram]"
+    echo "Usage: $0 [--rom [--gcc] [--armc5] [--armc6]|--ram [--stack] [--heap]]"
 }
 
 test_build=0

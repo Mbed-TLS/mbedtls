@@ -263,12 +263,23 @@ baremetal_ram_stack() {
     kill $SRV_PID
     echo "Done"
 
+    # Extract callgraphs from source files directly
+    if [ -x "$(command -v cflow)" ]; then
+        RAM_CALLGRAPH_OUT="ram_cflow__${date}__$NAME"
+        cflow library/*.c > $RAM_CALLGRAPH_OUT 2> /dev/null
+    fi
+
     # Merge stack usage files
     cat library/*.su > ${RAM_STACK_OUT}_unsorted
     sort -r -k2 -n ${RAM_STACK_OUT}_unsorted > $RAM_STACK_OUT
     rm ${RAM_STACK_OUT}_unsorted
 
-    echo "SUCCESS - Statistics written to $RAM_STACK_OUT and $RAM_CALLGRIND_OUT\n"
+    echo "SUCCESS"
+    echo "* Stack usage statistics written to $RAM_STACK_OUT"
+    echo "* Callgrind output written to $RAM_CALLGRIND_OUT"
+    if [ -n $RAM_CALLGRAPH_OUT ]; then
+        echo "* Static call graph written to $RAM_CALLGRAPH_OUT"
+    fi
 }
 
 show_usage() {

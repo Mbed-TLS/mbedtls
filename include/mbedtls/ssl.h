@@ -1515,7 +1515,7 @@ void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
  *                 If mbedtls_ssl_conf_verify() and mbedtls_ssl_set_verify()
  *                 are both used, mbedtls_ssl_set_verify() takes precedence.
  *
- * \param conf     The SSL context to use.
+ * \param ssl      The SSL context to use.
  * \param f_vrfy   The verification callback to use during CRT verification.
  * \param p_vrfy   The opaque context to be passed to the callback.
  */

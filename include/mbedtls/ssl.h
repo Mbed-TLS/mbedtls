@@ -1366,13 +1366,17 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 /**
  * \brief          Set the verification callback (Optional).
  *
- *                 If set, the verify callback is called for each
- *                 certificate in the chain. For implementation
- *                 information, please see \c mbedtls_x509_crt_verify()
+ *                 If set, the provided verify callback is called for each
+ *                 certificate in the peer's CRT chain, including the trusted
+ *                 root. For more information, please see the documentation of
+ *                 \c mbedtls_x509_crt_verify().
  *
- * \param conf     SSL configuration
- * \param f_vrfy   verification function
- * \param p_vrfy   verification parameter
+ * \note           For per context callbacks and contexts, please use
+ *                 mbedtls_ssl_set_verify() instead.
+ *
+ * \param conf     The SSL configuration to use.
+ * \param f_vrfy   The verification callback to use during CRT verification.
+ * \param p_vrfy   The opaque context to be passed to the callback.
  */
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),

@@ -10,8 +10,8 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ASN1_WRITE_C*/
-void oid_get_certificate_policies( data_t * oid, char * result_str )
+/* BEGIN_CASE */
+void oid_get_certificate_policies( data_t *oid, char *result_str )
 {
     mbedtls_asn1_buf asn1_buf = { 0, 0, NULL };
     int ret;

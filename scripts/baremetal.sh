@@ -264,6 +264,7 @@ baremetal_ram_stack() {
     echo "Done"
 
     # Extract callgraphs from source files directly
+    RAM_CALLGRAPH_OUT=""
     if [ -x "$(command -v cflow)" ]; then
         RAM_CALLGRAPH_OUT="ram_cflow__${date}__$NAME"
         cflow library/*.c > $RAM_CALLGRAPH_OUT 2> /dev/null

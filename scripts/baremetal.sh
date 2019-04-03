@@ -155,7 +155,7 @@ baremetal_build_armc6()
 # 32-bit host-build of library, tests and example programs,
 # + heap usage measurements.
 baremetal_ram_build() {
-    : ${BASE_CFLAGS:="-g -m32"}
+    : ${BASE_CFLAGS:="-g -m32 -fstack-usage"}
     echo "Create 32-bit host-build (Config: $BAREMETAL_CONFIG + $BAREMETAL_USER_CONFIG)"
 
     echo "Cleanup..."
@@ -241,13 +241,14 @@ baremetal_ram_stack() {
     : ${VALGRIND:=valgrind}
     : ${VALGRIND_CALLGRIND_PARAMS:="--separate-callers=100"}
 
+    RAM_CALLGRIND_OUT="ram_callgrind__${date}__$NAME"
     RAM_STACK_OUT="ram_stack__${date}__$NAME"
 
     SRV_CMD="$SRV server_addr=127.0.0.1 server_port=4433 debug_level=4 $SRV_PARAMS"
     CLI_CMD="$CLI server_addr=127.0.0.1 server_port=4433 $CLI_PARAMS"
 
     VALGRIND_BASE="$VALGRIND --tool=callgrind $VALGRIND_CALLGRIND_PARAMS"
-    VALGRIND_CMD="$VALGRIND_BASE --callgrind-out-file=${RAM_STACK_OUT} $CLI_CMD"
+    VALGRIND_CMD="$VALGRIND_BASE --callgrind-out-file=${RAM_CALLGRIND_OUT} $CLI_CMD"
 
     $SRV_CMD  > /dev/null 2>&1 &
     SRV_PID=$!
@@ -262,7 +263,12 @@ baremetal_ram_stack() {
     kill $SRV_PID
     echo "Done"
 
-    echo "SUCCESS - Stack usage statistics written to: $RAM_STACK_OUT\n"
+    # Merge stack usage files
+    cat library/*.su > ${RAM_STACK_OUT}_unsorted
+    sort -r -k2 -n ${RAM_STACK_OUT}_unsorted > $RAM_STACK_OUT
+    rm ${RAM_STACK_OUT}_unsorted
+
+    echo "SUCCESS - Statistics written to $RAM_STACK_OUT and $RAM_CALLGRIND_OUT\n"
 }
 
 show_usage() {

@@ -197,12 +197,6 @@ baremetal_ram_heap() {
     VALGRIND_BASE="$VALGRIND --tool=massif $VALGRIND_MASSIF_PARAMS"
 
     FUNC_IGNORE=""
-    FUNC_IGNORE="mbedtls_ssl_setup           $FUNC_IGNORE"
-    FUNC_IGNORE="mbedtls_mpi_grow            $FUNC_IGNORE"
-    FUNC_IGNORE="mbedtls_mpi_shrink          $FUNC_IGNORE"
-    FUNC_IGNORE="ecp_mul_comb                $FUNC_IGNORE"
-    FUNC_IGNORE="mbedtls_ecp_mul_restartable $FUNC_IGNORE"
-    FUNC_IGNORE="ecp_normalize_jac_many      $FUNC_IGNORE"
     FUNC_IGNORE="__fopen_internal            $FUNC_IGNORE"
     FUNC_IGNORE="_IO_file_doallocate         $FUNC_IGNORE"
     FUNC_IGNORE="strdup                      $FUNC_IGNORE"

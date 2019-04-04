@@ -384,6 +384,12 @@
 #define MBEDTLS_PSK_MAX_LEN            32 /* 256 bits */
 #endif
 
+/* Global variables for RNG when using uECC */
+#if defined(MBEDTLS_USE_UECC)
+    extern int (*gf_rng)(void *, unsigned char *, size_t);
+    extern void *gp_rng;
+#endif
+
 /* Dummy type used only for its size */
 union mbedtls_ssl_premaster_secret
 {
@@ -917,10 +923,13 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     const int *sig_hashes;          /*!< allowed signature hashes           */
 #endif
-
+#if defined(MBEDTLS_USE_UECC)
+    const uint16_t curve;           /*!< allowed curve, only id 23 allowed  */
+#else
 #if defined(MBEDTLS_ECP_C)
     const mbedtls_ecp_group_id *curve_list; /*!< allowed curves             */
 #endif
+#endif /*MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_DHM_C)
     mbedtls_mpi dhm_P;              /*!< prime modulus for DHM              */

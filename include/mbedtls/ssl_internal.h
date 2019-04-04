@@ -274,13 +274,9 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
-#if defined(MBEDTLS_USE_UECC)
-    uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
-#else
 #if defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif /* MBEDTLS_ECDH_C */
-#endif /* MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
@@ -289,10 +285,17 @@ struct mbedtls_ssl_handshake_params
     size_t ecjpake_cache_len;                   /*!< Length of cached data */
 #endif
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#if defined(MBEDTLS_USE_UECC)
+    uint8_t ecdh_privkey[NUM_ECC_BYTES];
+    uint8_t ecdh_ownpubkey[2*NUM_ECC_BYTES];
+    uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
+    uint16_t curve_id;                          /*!< uECC supports only one curve */
+#else
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     const mbedtls_ecp_curve_info **curves;      /*!<  Supported elliptic curves */
 #endif
+#endif /* MBEDTLS_USE_UECC */
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
@@ -543,6 +546,10 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
+
+#if defined(MBEDTLS_USE_UECC)
+int mbetls_uecc_rng_wrapper( uint8_t *dest, unsigned int size );
+#endif
 
 /**
  * \brief       Update record layer

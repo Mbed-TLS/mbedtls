@@ -254,6 +254,8 @@ static void ssl_write_uecc_elliptic_curves_ext( mbedtls_ssl_context *ssl,
                                                 unsigned char *buf,
                                                 size_t *olen )
 {
+    unsigned char *p = buf;
+    ((void) ssl);
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES      ) & 0xFF );
 
@@ -274,6 +276,8 @@ static void ssl_write_uecc_point_format_ext( mbedtls_ssl_context * ssl,
                                              unsigned char *buf,
                                              size_t *olen )
 {
+    unsigned char *p = buf;
+    ((void) ssl);
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS      ) & 0xFF );
 
@@ -1059,7 +1063,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ssl_write_uecc_elliptic_curves_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 
-    ssl_write_uecc_point_formats_ext( ssl, p + 2 + ext_len, &olen );
+    ssl_write_uecc_point_format_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #else
 
@@ -1308,7 +1312,8 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
+    defined(MBEDTLS_USE_UECC)
 static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
                                                   const unsigned char *buf,
                                                   size_t len )
@@ -1351,7 +1356,8 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
     return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED ||
+          MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
@@ -3040,22 +3046,26 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_USE_UECC)
     if (ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA)
     {
-        uint8_t own_pubkey[2*NUM_ECC_BYTES];
-        uint8_t own_privatekey[NUM_ECC_BYTES];
+        const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
 
-        const struct uECC_Curve_t * curve = uECC_secp256r1();
+        uECC_set_rng(&mbetls_uecc_rng_wrapper);
 
-        //TODO: provide rng for uECC
-
-        if (!uECC_make_key(own_pubkey, own_privatekey, curve)) {
+        if (!uECC_make_key( ssl->handshake->ecdh_ownpubkey, 
+                            ssl->handshake->ecdh_privkey, 
+                            uecc_curve)) 
+        {
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
 
-        if (!uECC_shared_secret(ssl->handshake->ecdh_peerkey, own_privatekey, ssl->handshake->premaster, curve)) {
+        if (!uECC_shared_secret( ssl->handshake->ecdh_peerkey, 
+                                 ssl->handshake->ecdh_privkey, 
+                                 ssl->handshake->premaster, 
+                                 uecc_curve)) 
+        {
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
 
-        mbedtls_platform_zeroize(own_privatekey, NUM_ECC_BYTES);
+        mbedtls_platform_zeroize(ssl->handshake->ecdh_privkey, NUM_ECC_BYTES);
     }
     else
 #else

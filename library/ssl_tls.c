@@ -54,6 +54,11 @@
 #include "mbedtls/oid.h"
 #endif
 
+#if defined(MBEDTLS_USE_UECC)
+    int (*gf_rng)(void *, unsigned char *, size_t);
+    void *gp_rng;
+#endif
+
 static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 
@@ -7121,6 +7126,10 @@ void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
 {
     conf->f_rng      = f_rng;
     conf->p_rng      = p_rng;
+#if defined(MBEDTLS_USE_UECC)
+    gf_rng = f_rng;
+    gp_rng = p_rng;
+#endif
 }
 
 void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
@@ -9411,6 +9420,19 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
             return( MBEDTLS_SSL_HASH_NONE );
     }
 }
+
+#if defined(MBEDTLS_USE_UECC)
+int mbetls_uecc_rng_wrapper( uint8_t *dest, unsigned int size )
+{
+    if(gf_rng != NULL)
+    {
+        gf_rng( gp_rng, (unsigned char*)dest, (size_t) size );
+    } else {
+        return -1;
+    }
+    return 0;
+}
+#endif
 
 #if defined(MBEDTLS_ECP_C)
 /*

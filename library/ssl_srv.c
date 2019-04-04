@@ -279,6 +279,94 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+#if defined(MBEDTLS_USE_UECC)
+static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
+                                                const unsigned char *buf,
+                                                size_t len )
+{
+    size_t list_size, our_size;
+    const unsigned char *p;
+    
+    if ( len < 2 ) {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                       MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+    list_size = ( ( buf[0] << 8 ) | (buf[1] ) );
+    if( list_size + 2 != len ||
+        list_size % 2 != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+    /* Should never happen unless client duplicates the extension */
+    if( ssl->handshake->curve_id != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+
+    /* Only 1 curve on UECC */
+    our_size = list_size / 2 + 1;
+    if( our_size > 1 )
+        our_size = 1;
+
+    p = buf + 2;
+    while( list_size > 0 && our_size > 0 )
+    {
+        uint16_t curve = ( ( p[0] << 8 ) | ( p[1] ) );
+
+        if( curve == 23 )
+        {
+            ssl->handshake->curve_id = curve;
+            our_size--;
+        }
+
+        list_size -= 2;
+        p += 2;
+    }
+
+    return( 0 );
+}
+
+static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
+                                              const unsigned char *buf,
+                                              size_t len )
+{
+    size_t list_size;
+    const unsigned char *p;
+
+    if( len == 0 || (size_t)( buf[0] + 1 ) != len )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
+    list_size = buf[0];
+
+    p = buf + 1;
+    while( list_size > 0 )
+    {
+        if( p[0] == MBEDTLS_ECP_PF_UNCOMPRESSED ||
+            p[0] == MBEDTLS_ECP_PF_COMPRESSED )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 4, ( "point format selected: %d", p[0] ) );
+            return( 0 );
+        }
+
+        list_size--;
+        p++;
+    }
+
+    return( 0 );
+}
+#else
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -388,6 +476,7 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#endif /* MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
@@ -855,7 +944,14 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     }
 #endif
 
-
+#if defined(MBEDTLS_USE_UECC)
+    if( ssl->handshake->curve_id == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
+                            "no common elliptic curve" ) );
+        return( 0 );
+    }
+#else
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
     if( mbedtls_ssl_ciphersuite_uses_ec( suite_info ) &&
         ( ssl->handshake->curves == NULL ||
@@ -866,6 +962,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
         return( 0 );
     }
 #endif
+#endif /* MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     /* If the ciphersuite requires a pre-shared key and we don't
@@ -1737,7 +1834,8 @@ read_record_header:
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
+    defined(MBEDTLS_USE_UECC)
             case MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found supported elliptic curves extension" ) );
 
@@ -1755,7 +1853,8 @@ read_record_header:
                     return( ret );
                 break;
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED ||
+          MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
             case MBEDTLS_TLS_EXT_ECJPAKE_KKPP:
@@ -2227,7 +2326,8 @@ static void ssl_write_max_fragment_length_ext( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
+    defined(MBEDTLS_USE_UECC)
 static void ssl_write_supported_point_formats_ext( mbedtls_ssl_context *ssl,
                                                    unsigned char *buf,
                                                    size_t *olen )
@@ -2601,7 +2701,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
+    defined(MBEDTLS_USE_UECC)
     if ( mbedtls_ssl_ciphersuite_uses_ec(
          mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite ) ) )
     {
@@ -2909,6 +3010,9 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
     unsigned char *dig_signed = NULL;
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED */
+#if defined(MBEDTLS_USE_UECC)
+    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+#endif
 
     (void) ciphersuite_info; /* unused in some configurations */
 #if !defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
@@ -3017,10 +3121,46 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: GX", &ssl->handshake->dhm_ctx.GX );
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__DHE_ENABLED */
-
     /*
      * - ECDHE key exchanges
      */
+#if defined(MBEDTLS_USE_UECC)
+        if( ssl->handshake->curve_id == 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
+            return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
+        }
+
+        uECC_set_rng(&mbetls_uecc_rng_wrapper);
+
+        if (!uECC_make_key( ssl->handshake->ecdh_ownpubkey,
+                            ssl->handshake->ecdh_privkey,
+                            uecc_curve))
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Key creation failed" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        /*
+        * First byte is curve_type, always named_curve
+        */
+        ssl->out_msg[ssl->out_msglen++] = MBEDTLS_ECP_TLS_NAMED_CURVE;
+
+        /*
+        * Next two bytes are the namedcurve value
+        */
+        ssl->out_msg[ssl->out_msglen++] = ssl->handshake->curve_id >> 8;
+        ssl->out_msg[ssl->out_msglen++] = ssl->handshake->curve_id & 0xFF;
+
+        // Write the public key
+        // Length
+        ssl->out_msg[ssl->out_msglen++] = 2*NUM_ECC_BYTES;
+
+        memcpy( &ssl->out_msg[ssl->out_msglen], ssl->handshake->ecdh_ownpubkey, 2*NUM_ECC_BYTES);
+
+        ssl->out_msglen += 2*NUM_ECC_BYTES;
+
+#else
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_ecdhe( ciphersuite_info ) )
     {
@@ -3032,12 +3172,14 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
          *     ECPoint      public;
          * } ServerECDHParams;
          */
-        const mbedtls_ecp_curve_info **curve = NULL;
-        const mbedtls_ecp_group_id *gid;
         int ret;
         size_t len = 0;
 
+        const mbedtls_ecp_curve_info **curve = NULL;
+        const mbedtls_ecp_group_id *gid;
+
         /* Match our preference list against the offered curves */
+
         for( gid = ssl->conf->curve_list; *gid != MBEDTLS_ECP_DP_NONE; gid++ )
             for( curve = ssl->handshake->curves; *curve != NULL; curve++ )
                 if( (*curve)->grp_id == *gid )
@@ -3079,7 +3221,7 @@ curve_matching_done:
                                 MBEDTLS_DEBUG_ECDH_Q );
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED */
-
+#endif /* MBEDTLS_USE_UECC */
     /*
      *
      * Part 2: For key exchanges involving the server signing the
@@ -3714,6 +3856,9 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     int ret;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     unsigned char *p, *end;
+#if defined(MBEDTLS_USE_UECC)
+    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+#endif
 
     ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
@@ -3783,6 +3928,21 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
+
+#if defined(MBEDTLS_USE_UECC)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA)
+    {
+
+        if (!uECC_shared_secret( ssl->handshake->ecdh_peerkey, 
+                                 ssl->handshake->ecdh_privkey, 
+                                 ssl->handshake->premaster, 
+                                 uecc_curve))
+        {
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+    }
+    else
+#else
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
@@ -3820,6 +3980,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#endif /* MBEDTLS_USE_UECC */
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK )
     {

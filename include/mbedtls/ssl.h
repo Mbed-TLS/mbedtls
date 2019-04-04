@@ -1093,7 +1093,7 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /** Callback to customize X.509 certificate chain verification          */
     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
-    void *p_vrfy;                   /*!< context for X.509 verify calllback */
+    void *p_vrfy;                   /*!< context for X.509 verify callback */
 #endif
 
     mbedtls_ssl_send_t *f_send; /*!< Callback for network send */

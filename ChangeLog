@@ -83,6 +83,8 @@ Bugfix
      extensions in CSRs and CRTs that caused these bitstrings to not be encoded
      correctly as trailing zeroes were not accounted for as unused bits in the
      leading content octet. Fixes #1610.
+   * Add a check for MBEDTLS_X509_CRL_PARSE_C in ssl_server2, guarding the crl
+     sni entry parameter. Reported by inestlerode in #560.
 
 Changes
    * Reduce RAM consumption during session renegotiation by not storing

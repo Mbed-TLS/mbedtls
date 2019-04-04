@@ -251,8 +251,14 @@ int main( void )
 #endif /* MBEDTLS_SSL_CACHE_C */
 
 #if defined(SNI_OPTION)
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
+#define SNI_CRL              ",crl"
+#else
+#define SNI_CRL              ""
+#endif
+
 #define USAGE_SNI                                                           \
-    "    sni=%%s              name1,cert1,key1,ca1,crl1,auth1[,...]\n"  \
+    "    sni=%%s              name1,cert1,key1,ca1"SNI_CRL",auth1[,...]\n"  \
     "                        default: disabled\n"
 #else
 #define USAGE_SNI ""
@@ -619,10 +625,10 @@ void sni_free( sni_entry *head )
 
         mbedtls_x509_crt_free( cur->ca );
         mbedtls_free( cur->ca );
-
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
         mbedtls_x509_crl_free( cur->crl );
         mbedtls_free( cur->crl );
-
+#endif
         next = cur->next;
         mbedtls_free( cur );
         cur = next;
@@ -641,7 +647,10 @@ sni_entry *sni_parse( char *sni_string )
     sni_entry *cur = NULL, *new = NULL;
     char *p = sni_string;
     char *end = p;
-    char *crt_file, *key_file, *ca_file, *crl_file, *auth_str;
+    char *crt_file, *key_file, *ca_file, *auth_str;
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
+    char *crl_file;
+#endif
 
     while( *end != '\0' )
         ++end;
@@ -659,7 +668,9 @@ sni_entry *sni_parse( char *sni_string )
         GET_ITEM( crt_file );
         GET_ITEM( key_file );
         GET_ITEM( ca_file );
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
         GET_ITEM( crl_file );
+#endif
         GET_ITEM( auth_str );
 
         if( ( new->cert = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) ) ) == NULL ||
@@ -684,6 +695,7 @@ sni_entry *sni_parse( char *sni_string )
                 goto error;
         }
 
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
         if( strcmp( crl_file, "-" ) != 0 )
         {
             if( ( new->crl = mbedtls_calloc( 1, sizeof( mbedtls_x509_crl ) ) ) == NULL )
@@ -694,6 +706,7 @@ sni_entry *sni_parse( char *sni_string )
             if( mbedtls_x509_crl_parse_file( new->crl, crl_file ) != 0 )
                 goto error;
         }
+#endif
 
         if( strcmp( auth_str, "-" ) != 0 )
         {

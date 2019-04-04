@@ -211,8 +211,8 @@ class AbiChecker(object):
         must have been built."""
         for mbed_module, module_path in version.modules.items():
             output_path = os.path.join(
-                self.report_dir, version.version, "{}-{}.dump".format(
-                    mbed_module, version.revision
+                self.report_dir, "{}-{}-{}.dump".format(
+                    mbed_module, version.revision, version.version
                 )
             )
             abi_dump_command = [

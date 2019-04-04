@@ -12165,6 +12165,13 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
     }
 }
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+int mbetls_uecc_rng_wrapper( uint8_t *dest, unsigned int size )
+{
+    return( mbedtls_ssl_conf_rng_func( NULL, dest, size ) );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #if defined(MBEDTLS_ECP_C)
 /*
  * Check if a curve proposed by the peer is in our list.

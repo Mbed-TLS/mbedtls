@@ -53,6 +53,11 @@
 #include "ecjpake.h"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc.h"
+#include "tinycrypt/ecc_dh.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -381,10 +386,17 @@ struct mbedtls_ssl_handshake_params
     size_t ecjpake_cache_len;                   /*!< Length of cached data */
 #endif
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_ECDH_C)   ||                        \
+    defined(MBEDTLS_ECDSA_C)  ||                        \
+    defined(MBEDTLS_USE_TINYCRYPT) ||                        \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     uint16_t curve_tls_id;                      /*!< TLS ID of EC for ECDHE. */
 #endif
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    uint8_t ecdh_privkey[NUM_ECC_BYTES];
+    uint8_t ecdh_ownpubkey[2*NUM_ECC_BYTES];
+    uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
+#endif /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
@@ -889,6 +901,10 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+int mbetls_uecc_rng_wrapper( uint8_t *dest, unsigned int size );
+#endif
 
 /**
  * \brief       Update record layer

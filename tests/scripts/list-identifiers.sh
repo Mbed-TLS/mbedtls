@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+#
+# Outputs a file containing identifiers from internal header files or all
+# header files, based on --internal flag.
+#
+# Usage: list-identifiers.sh [ -i | --internal ]
 
 set -eu
 
@@ -7,7 +12,29 @@ if [ -d include/mbedtls ]; then :; else
     exit 1
 fi
 
-HEADERS=$( ls include/mbedtls/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+INTERNAL=""
+
+until [ -z "${1-}" ]
+do
+  case "$1" in
+    -i|--internal)
+      INTERNAL="1"
+      ;;
+    *)
+      # print error
+      echo "Unknown argument: '$1'"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if [ $INTERNAL ]
+then
+    HEADERS=$( ls include/mbedtls/*_internal.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+else
+    HEADERS=$( ls include/mbedtls/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+fi
 
 rm -f identifiers
 

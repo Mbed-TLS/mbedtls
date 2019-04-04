@@ -578,8 +578,11 @@ struct mbedtls_ssl_transform
  * (1) Encrypted
  *     These always have data_offset = 0
  * (2) Unencrypted
- *     These have data_offset set to the length of the
- *     fixed part of the IV used for encryption.
+ *     These have data_offset set to the amount of
+ *     pre-expansion during record protection. Concretely,
+ *     this is the length of the fixed part of the explicit IV
+ *     used for encryption, or 0 if no explicit IV is used
+ *     (e.g. for CBC in TLS 1.0, or stream ciphers).
  *
  * The reason for the data_offset in the unencrypted case
  * is to allow for in-place conversion of an unencrypted to

@@ -131,6 +131,11 @@ if(NOT USE_CRYPTO_SUBMODULE)
     add_test_suite(rsa)
     add_test_suite(xtea)
 endif()
+add_test_suite(debug)
+add_test_suite(ssl)
+add_test_suite(version)
+add_test_suite(x509parse)
+add_test_suite(x509write)
 
 # Make scripts and data files needed for testing available in an
 # out-of-source build.

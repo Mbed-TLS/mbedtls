@@ -41,8 +41,11 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 
     /* Pick keys */
     keylen = cipher_info->key_bitlen / 8;
-    CHK( ( key0 = mbedtls_calloc( 1, keylen ) ) != NULL );
-    CHK( ( key1 = mbedtls_calloc( 1, keylen ) ) != NULL );
+    /* Allocate `keylen + 1` bytes to ensure that we get
+     * a non-NULL pointers from `mbedtls_calloc` even if
+     * `keylen == 0` in the case of the NULL cipher. */
+    CHK( ( key0 = mbedtls_calloc( 1, keylen + 1 ) ) != NULL );
+    CHK( ( key1 = mbedtls_calloc( 1, keylen + 1 ) ) != NULL );
     memset( key0, 0x1, keylen );
     memset( key1, 0x2, keylen );
 

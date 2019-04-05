@@ -23,6 +23,8 @@ Bugfix
      Christian Walther in #2239.
    * Fix potential memory leak in X.509 self test. Found and fixed by
      Junhwan Park, #2106.
+   * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
+     used with negative inputs. Found by Guido Vranken in #2404.
 
 Changes
    * Return from various debugging routines immediately if the

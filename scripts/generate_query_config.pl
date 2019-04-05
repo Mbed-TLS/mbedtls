@@ -14,7 +14,7 @@
 # information is used to automatically generate the body of the query_config()
 # function by using the template in scripts/data_files/query_config.fmt.
 #
-# Usage: ./scripts/generate_query_config.pl without arguments
+# Usage: ./scripts/generate_query_config.pl include_crypto
 
 use strict;
 

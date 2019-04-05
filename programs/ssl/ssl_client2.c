@@ -128,14 +128,14 @@ int main( void )
 #define GET_REQUEST_END "\r\n\r\n"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-#define USAGE_CALLBACK \
+#define USAGE_CONTEXT_CRT_CB \
     "    context_crt_cb=%%d   This determines whether the CRT verification callback is bound\n" \
     "                        to the SSL configuration of the SSL context.\n" \
     "                        Possible values:\n"\
     "                        - 0 (default): Use CRT callback bound to configuration\n" \
     "                        - 1: Use CRT callback bound to SSL context\n"
 #else
-#define USAGE_CALLBACK ""
+#define USAGE_CONTEXT_CRT_CB ""
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_FS_IO)
@@ -337,7 +337,7 @@ int main( void )
     USAGE_TICKETS                                           \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
-    USAGE_CALLBACK                                          \
+    USAGE_CONTEXT_CRT_CB                                    \
     USAGE_ALPN                                              \
     USAGE_FALLBACK                                          \
     USAGE_EMS                                               \

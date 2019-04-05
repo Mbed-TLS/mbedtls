@@ -238,7 +238,7 @@ class FileWrapper(io.FileIO, object):
         if hasattr(parent, '__next__'):
             line = parent.__next__()  # Python 3
         else:
-            line = parent.next()  # Python 2
+            line = parent.next()  # Python 2 # pylint: disable=no-member
         if line is not None:
             self._line_no += 1
             # Convert byte array to string with correct encoding and

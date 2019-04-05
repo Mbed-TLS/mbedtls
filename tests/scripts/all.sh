@@ -1247,6 +1247,9 @@ component_test_zeroize () {
     unset gdb_disable_aslr
 }
 
+support_check_python_files () {
+    type pylint3 >/dev/null 2>/dev/null
+}
 component_check_python_files () {
     msg "Lint: Python scripts"
     record_status tests/scripts/check-python-files.sh

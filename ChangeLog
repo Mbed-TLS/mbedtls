@@ -12,6 +12,7 @@ Bugfix
      Christian Walther in #2239.
    * Fix potential memory leak in X.509 self test. Found and fixed by
      Junhwan Park, #2106.
+   * Reduce stack usage of hkdf tests. Fixes #2195.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

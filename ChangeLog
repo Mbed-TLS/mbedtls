@@ -21,6 +21,8 @@ Bugfix
    * Fix private key DER output in the key_app_writer example. File contents
      were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
      Christian Walther in #2239.
+   * Fix potential memory leak in X.509 self test. Found and fixed by
+     Junhwan Park, #2106.
 
 Changes
    * Return from various debugging routines immediately if the

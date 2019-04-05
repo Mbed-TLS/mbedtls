@@ -140,6 +140,9 @@ class AbiChecker(object):
         return git_worktree_path
 
     def _update_git_submodules(self, git_worktree_path, version):
+        """If the crypto submodule is present, initialize it.
+        if version.crypto_revision exists, update it to that revision,
+        otherwise update it to the default revision"""
         process = subprocess.Popen(
             [self.git_command, "submodule", "update", "--init", '--recursive'],
             cwd=git_worktree_path,
@@ -196,7 +199,7 @@ class AbiChecker(object):
         )
         make_output, _ = make_process.communicate()
         self.log.debug(make_output.decode("utf-8"))
-        for root, dirs, files in os.walk(git_worktree_path):
+        for root, dirs, files in os.walk(git_worktree_path): # pylint: disable=unused-variable
             for file in fnmatch.filter(files, "*.so"):
                 version.modules[os.path.splitext(file)[0]] = (
                     os.path.join(root, file)
@@ -204,11 +207,10 @@ class AbiChecker(object):
         if make_process.returncode != 0:
             raise Exception("make failed, aborting")
 
-    def _get_abi_dumps_from_shared_libraries(self, git_worktree_path,
-                                             version):
+    def _get_abi_dumps_from_shared_libraries(self, version):
         """Generate the ABI dumps for the specified git revision.
-        It must be checked out in git_worktree_path and the shared libraries
-        must have been built."""
+        The shared libraries must have been built and the module paths
+        present in version.modules."""
         for mbed_module, module_path in version.modules.items():
             output_path = os.path.join(
                 self.report_dir, "{}-{}-{}.dump".format(
@@ -251,7 +253,7 @@ class AbiChecker(object):
         git_worktree_path = self._get_clean_worktree_for_git_revision(version)
         self._update_git_submodules(git_worktree_path, version)
         self._build_shared_libraries(git_worktree_path, version)
-        self._get_abi_dumps_from_shared_libraries(git_worktree_path, version)
+        self._get_abi_dumps_from_shared_libraries(version)
         self._cleanup_worktree(git_worktree_path)
 
     def _remove_children_with_tag(self, parent, tag):
@@ -264,7 +266,7 @@ class AbiChecker(object):
 
     def _remove_extra_detail_from_report(self, report_root):
         for tag in ['test_info', 'test_results', 'problem_summary',
-                'added_symbols', 'removed_symbols', 'affected']:
+                    'added_symbols', 'removed_symbols', 'affected']:
             self._remove_children_with_tag(report_root, tag)
 
         for report in report_root:
@@ -274,8 +276,8 @@ class AbiChecker(object):
 
     def get_abi_compatibility_report(self):
         """Generate a report of the differences between the reference ABI
-        and the new ABI. ABI dumps from self.old_rev and self.new_rev must
-        be available."""
+        and the new ABI. ABI dumps from self.old_version and self.new_version
+        must be available."""
         compatibility_report = ""
         compliance_return_code = 0
         shared_modules = list(set(self.old_version.modules.keys()) &
@@ -416,10 +418,14 @@ def run_main():
             help="output only the list of issues to stdout, instead of a full report",
         )
         abi_args = parser.parse_args()
-        old_version = RepoVersion("old", abi_args.old_repo, abi_args.old_rev,
-                 abi_args.old_crypto_repo, abi_args.old_crypto_rev)
-        new_version = RepoVersion("new", abi_args.new_repo, abi_args.new_rev,
-                 abi_args.new_crypto_repo, abi_args.new_crypto_rev)
+        old_version = RepoVersion(
+            "old", abi_args.old_repo, abi_args.old_rev,
+            abi_args.old_crypto_repo, abi_args.old_crypto_rev
+        )
+        new_version = RepoVersion(
+            "new", abi_args.new_repo, abi_args.new_rev,
+            abi_args.new_crypto_repo, abi_args.new_crypto_rev
+        )
         abi_check = AbiChecker(
             abi_args.verbose, old_version, new_version, abi_args.report_dir,
             abi_args.keep_all_reports, abi_args.brief, abi_args.skip_file

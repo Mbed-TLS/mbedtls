@@ -13,6 +13,7 @@
     {                                           \
         if( !( x ) )                            \
         {                                       \
+            ret = -1;                           \
             goto cleanup;                       \
         }                                       \
     } while( 0 )
@@ -24,6 +25,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                              int etm, int tag_mode, int ver )
 {
     mbedtls_cipher_info_t const *cipher_info;
+    int ret = 0;
 
     size_t keylen, maclen, ivlen;
     unsigned char *key0 = NULL, *key1 = NULL;
@@ -228,7 +230,7 @@ cleanup:
     mbedtls_free( key0 );
     mbedtls_free( key1 );
 
-    return( 0 );
+    return( ret );
 }
 
 /* END_HEADER */

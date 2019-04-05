@@ -20,6 +20,8 @@ Bugfix
    * Fix bugs in the AEAD test suite which would be exposed by ciphers which
      either used both encrypt and decrypt key schedules, or which perform padding.
      GCM and CCM were not affected. Fixed by Jack Lloyd.
+   * Fix incorrect default port number in ssl_mail_client example's usage.
+     Found and fixed by irwir. #2337
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

@@ -2586,6 +2586,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
+    if( strcmp( "MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
+
     /* If the symbol is not found, return an error */
     return( 1 );
 }

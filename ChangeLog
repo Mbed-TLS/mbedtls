@@ -25,6 +25,9 @@ Bugfix
      Junhwan Park, #2106.
    * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
      used with negative inputs. Found by Guido Vranken in #2404.
+   * Fix bugs in the AEAD test suite which would be exposed by ciphers which
+     either used both encrypt and decrypt key schedules, or which perform padding.
+     GCM and CCM were not affected. Fixed by Jack Lloyd.
 
 Changes
    * Return from various debugging routines immediately if the

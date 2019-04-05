@@ -627,6 +627,9 @@ void auth_crypt_tv( int cipher_id, char *hex_key, char *hex_iv,
     TEST_ASSERT( memcmp( output, clear, clear_len ) == 0 );
 
     /* then encrypt the clear and make sure we get the same ciphertext and tag */
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len,
+                                             MBEDTLS_ENCRYPT ) );
+
     memset( output, 0xFF, sizeof( output ) );
     outlen = 0;
 
@@ -635,8 +638,8 @@ void auth_crypt_tv( int cipher_id, char *hex_key, char *hex_iv,
                                my_tag, tag_len );
     TEST_ASSERT( ret == 0 );
 
-    TEST_ASSERT( outlen == clear_len );
-    TEST_ASSERT( memcmp( output, cipher, clear_len ) == 0 );
+    TEST_ASSERT( outlen == cipher_len );
+    TEST_ASSERT( memcmp( output, cipher, cipher_len ) == 0 );
     TEST_ASSERT( memcmp( my_tag, tag, tag_len ) == 0 );
 
     /* make sure we didn't overwrite */

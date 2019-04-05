@@ -98,6 +98,35 @@ extern const unsigned char mbedtls_test_cli_crt_ec_der[];
 extern const size_t mbedtls_test_cli_crt_ec_der_len;
 extern const unsigned char mbedtls_test_cli_key_ec_der[];
 extern const size_t mbedtls_test_cli_key_ec_der_len;
+
+extern const char   mbedtls_test_ca_crt_ec_secp256r1[];
+extern const size_t mbedtls_test_ca_crt_ec_secp256r1_len;
+extern const char   mbedtls_test_ca_key_ec_secp256r1[];
+extern const size_t mbedtls_test_ca_key_ec_secp256r1_len;
+extern const char   mbedtls_test_ca_pwd_ec_secp256r1[];
+extern const size_t mbedtls_test_ca_pwd_ec_secp256r1_len;
+extern const char   mbedtls_test_srv_crt_ec_secp256r1[];
+extern const size_t mbedtls_test_srv_crt_ec_secp256r1_len;
+extern const char   mbedtls_test_srv_key_ec_secp256r1[];
+extern const size_t mbedtls_test_srv_key_ec_secp256r1_len;
+extern const char   mbedtls_test_cli_crt_ec_secp256r1[];
+extern const size_t mbedtls_test_cli_crt_ec_secp256r1_len;
+extern const char   mbedtls_test_cli_key_ec_secp256r1[];
+extern const size_t mbedtls_test_cli_key_ec_secp256r1_len;
+extern const char   mbedtls_test_ca_crt_ec_secp256r1_der[];
+extern const size_t mbedtls_test_ca_crt_ec_secp256r1_der_len;
+extern const char   mbedtls_test_ca_key_ec_secp256r1_der[];
+extern const size_t mbedtls_test_ca_key_ec_secp256r1_der_len;
+extern const char   mbedtls_test_ca_pwd_ec_secp256r1_der[];
+extern const size_t mbedtls_test_ca_pwd_ec_secp256r1_der_len;
+extern const char   mbedtls_test_srv_crt_ec_secp256r1_der[];
+extern const size_t mbedtls_test_srv_crt_ec_secp256r1_der_len;
+extern const char   mbedtls_test_srv_key_ec_secp256r1_der[];
+extern const size_t mbedtls_test_srv_key_ec_secp256r1_der_len;
+extern const char   mbedtls_test_cli_crt_ec_secp256r1_der[];
+extern const size_t mbedtls_test_cli_crt_ec_secp256r1_der_len;
+extern const char   mbedtls_test_cli_key_ec_secp256r1_der[];
+extern const size_t mbedtls_test_cli_key_ec_secp256r1_der_len;
 #endif
 
 #if defined(MBEDTLS_RSA_C)

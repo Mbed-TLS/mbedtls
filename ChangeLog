@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Features
    * Add the Any Policy certificate policy oid, as defined in
      rfc 5280 section 4.2.1.4.
+   * It is now possible to use NIST key wrap mode via the mbedtls_cipher API.
+     Contributed by Jack Lloyd and Fortanix Inc.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents
@@ -15,6 +17,9 @@ Bugfix
    * Reduce stack usage of hkdf tests. Fixes #2195.
    * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
      used with negative inputs. Found by Guido Vranken in #2404.
+   * Fix bugs in the AEAD test suite which would be exposed by ciphers which
+     either used both encrypt and decrypt key schedules, or which perform padding.
+     GCM and CCM were not affected. Fixed by Jack Lloyd.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

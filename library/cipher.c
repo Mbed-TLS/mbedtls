@@ -63,6 +63,10 @@
 #include "mbedtls/psa_util.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_NIST_KW_C)
+#include "mbedtls/nist_kw.h"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -1387,6 +1391,22 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                                 ilen, iv, ad, ad_len, input, output, tag ) );
     }
 #endif /* MBEDTLS_CHACHAPOLY_C */
+#if defined(MBEDTLS_NIST_KW_C)
+   if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
+       MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
+    {
+        mbedtls_nist_kw_mode_t mode = ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ) ?
+                                        MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
+
+        /* There is no iv, tag or ad associated with KW and KWP, these length should be 0 */
+        if( iv_len != 0 || tag_len != 0 || ad_len != 0 )
+        {
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        }
+
+        return( mbedtls_nist_kw_wrap( ctx->cipher_ctx, mode, input, ilen, output, olen, SIZE_MAX ) );
+    }
+#endif /* MBEDTLS_NIST_KW_C */
 
     return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
@@ -1496,6 +1516,22 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
         return( ret );
     }
 #endif /* MBEDTLS_CHACHAPOLY_C */
+#if defined(MBEDTLS_NIST_KW_C)
+    if( MBEDTLS_MODE_KW == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_KWP == ctx->cipher_info->mode )
+    {
+        mbedtls_nist_kw_mode_t mode = ( MBEDTLS_MODE_KW == ctx->cipher_info->mode ) ?
+                                        MBEDTLS_KW_MODE_KW : MBEDTLS_KW_MODE_KWP;
+
+        /* There is no iv, tag or ad associated with KW and KWP, these length should be 0 */
+        if( iv_len != 0 || tag_len != 0 || ad_len != 0 )
+        {
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        }
+
+        return( mbedtls_nist_kw_unwrap( ctx->cipher_ctx, mode, input, ilen, output, olen, SIZE_MAX ) );
+    }
+#endif /* MBEDTLS_NIST_KW_C */
 
     return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }

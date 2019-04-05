@@ -904,7 +904,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             if( ssl->handshake->psk_opaque != 0 )
                 psk = ssl->handshake->psk_opaque;
 
-            if( md_type == MBEDTLS_MD_SHA384 )
+            if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
             else
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
@@ -1249,7 +1249,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_enc,
-                                        cipher_info, taglen );
+                                        cipher_info, transform->taglen );
         if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );
@@ -1292,7 +1292,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_dec,
-                                        cipher_info, taglen );
+                                        cipher_info, transform->taglen );
         if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );

@@ -15,6 +15,7 @@ OPENSSL ?= openssl
 FAKETIME ?= faketime
 MBEDTLS_CERT_WRITE ?= $(PWD)/../../programs/x509/cert_write
 MBEDTLS_CERT_REQ ?= $(PWD)/../../programs/x509/cert_req
+MBEDTLS_GEN_KEY ?= $(PWD)/../../programs/pkey/gen_key
 
 ## Build the generated test data. Note that since the final outputs
 ## are committed to the repository, this target should do nothing on a
@@ -143,6 +144,42 @@ all_final += cli-rsa-sha256.crt.der
 cli-rsa.key.der: $(cli_crt_key_file_rsa)
 	$(OPENSSL) pkey -in $< -out $@ -inform PEM -outform DER
 all_final += cli-rsa.key.der
+
+test-ca3.key.pem:
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp256r1 format=pem filename=$@
+test-ca3.key.der: test-ca3.key.pem
+	$(OPENSSL) ec -inform PEM -outform DER -in $< -out $@
+test-ca3.csr: test-ca3.key.der
+	$(MBEDTLS_CERT_REQ) filename=$< output_file=$@ subject_name="CN=Test CA Secp256r1, O=MbedTLS, C=UK" md=SHA256
+test-ca3.crt.pem: test-ca3.csr test-ca3.key.der
+	$(MBEDTLS_CERT_WRITE) request_file=test-ca3.csr selfsign=1 issuer_name="CN=Test CA Secp256r1, O=MbedTLS, C=UK" is_ca=1 md=SHA256 issuer_key=test-ca3.key.der output_file=$@
+test-ca3.crt.der: test-ca3.crt.pem
+	$(OPENSSL) x509 -inform PEM -outform DER -in $< -out $@
+all_final += test-ca3.key.pem test-ca3.key.der test-ca3.csr test-ca3.crt.pem test-ca3.crt.der
+
+cli3.key.pem:
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp256r1 format=pem filename=$@
+cli3.key.der: cli3.key.pem
+	$(OPENSSL) ec -inform PEM -outform DER -in $< -out $@
+cli3.csr: cli3.key.der
+	$(MBEDTLS_CERT_REQ) filename=$< output_file=$@ subject_name="CN=Test CRT2 Secp256r1, O=MbedTLS, C=UK" md=SHA256
+cli3.crt.pem: cli3.csr test-ca3.key.der
+	$(MBEDTLS_CERT_WRITE) request_file=cli3.csr  issuer_name="CN=Test CA Secp256r1, O=MbedTLS, C=UK" md=SHA256 issuer_key=test-ca3.key.der output_file=$@
+cli3.crt.der: cli3.crt.pem
+	$(OPENSSL) x509 -inform PEM -outform DER -in $< -out $@
+all_final += cli3.key.pem cli3.key.der cli3.csr cli3.crt.pem cli3.crt.der
+
+server11.key.pem:
+	$(MBEDTLS_GEN_KEY) type=ec ec_curve=secp256r1 format=pem filename=$@
+server11.key.der: server11.key.pem
+	$(OPENSSL) ec -inform PEM -outform DER -in $< -out $@
+server11.csr: server11.key.der
+	$(MBEDTLS_CERT_REQ) filename=$< output_file=$@ subject_name="CN=localhost, O=MbedTLS, C=UK" md=SHA256
+server11.crt.pem: server11.csr test-ca3.key.der
+	$(MBEDTLS_CERT_WRITE) request_file=server11.csr  issuer_name="CN=Test CA Secp256r1, O=MbedTLS, C=UK" md=SHA256 issuer_key=test-ca3.key.der output_file=$@
+server11.crt.der: server11.crt.pem
+	$(OPENSSL) x509 -inform PEM -outform DER -in $< -out $@
+all_final += server11.key.pem server11.key.der server11.csr server11.crt.pem server11.crt.der
 
 test_ca_int_rsa1 = test-int-ca.crt
 

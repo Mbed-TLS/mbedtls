@@ -13,6 +13,8 @@ Bugfix
    * Fix potential memory leak in X.509 self test. Found and fixed by
      Junhwan Park, #2106.
    * Reduce stack usage of hkdf tests. Fixes #2195.
+   * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
+     used with negative inputs. Found by Guido Vranken in #2404.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

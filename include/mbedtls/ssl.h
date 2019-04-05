@@ -2124,7 +2124,7 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
  *
  * \warning        In multi-threaded environments, the callback \p f_ca_cb
  *                 must be thread-safe, and it is the user's responsibility
- *                 to guaranteee this (for example through a mutex
+ *                 to guarantee this (for example through a mutex
  *                 contained in the callback context pointed to by \p p_ca_cb).
  */
 void mbedtls_ssl_conf_ca_cb( mbedtls_ssl_config *conf,

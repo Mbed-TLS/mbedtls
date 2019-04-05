@@ -457,7 +457,7 @@ static void my_debug( void *ctx, int level,
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
-                 mbedtls_x509_crt **candidates)
+                 mbedtls_x509_crt **candidates )
 {
     int ret = 0;
     mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;

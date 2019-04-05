@@ -946,7 +946,7 @@ run_test    "CA callback on client" \
             "$P_SRV debug_level=3" \
             "$P_CLI ca_callback=1 debug_level=3 " \
             0 \
-            -c "use CA callback for X.509 CRT verification"\
+            -c "use CA callback for X.509 CRT verification" \
             -S "error" \
             -C "error"
 
@@ -959,7 +959,7 @@ run_test    "CA callback on server" \
             "$P_CLI ca_callback=1 debug_level=3 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key" \
             0 \
-            -c "use CA callback for X.509 CRT verification"\
+            -c "use CA callback for X.509 CRT verification" \
             -s "Verifying peer X.509 certificate... ok" \
             -S "error" \
             -C "error"
@@ -2987,7 +2987,7 @@ run_test    "Authentication, CA callback: server badcert, client required" \
              key_file=data_files/server5.key" \
             "$P_CLI ca_callback=1 debug_level=3 auth_mode=required" \
             1 \
-            -c "use CA callback for X.509 CRT verification"\
+            -c "use CA callback for X.509 CRT verification" \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -c "! mbedtls_ssl_handshake returned" \
@@ -2999,7 +2999,7 @@ run_test    "Authentication, CA callback: server badcert, client optional" \
              key_file=data_files/server5.key" \
             "$P_CLI ca_callback=1 debug_level=3 auth_mode=optional" \
             0 \
-            -c "use CA callback for X.509 CRT verification"\
+            -c "use CA callback for X.509 CRT verification" \
             -c "x509_verify_cert() returned" \
             -c "! The certificate is not correctly signed by the trusted CA" \
             -C "! mbedtls_ssl_handshake returned" \
@@ -3019,9 +3019,9 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client required, p
              crt_file=data_files/server5.ku-ka.crt" \
             "$P_CLI ca_callback=1 debug_level=3 auth_mode=required curves=secp521r1" \
             1 \
-            -c "use CA callback for X.509 CRT verification"\
-            -c "bad certificate (EC key curve)"\
-            -c "! Certificate verification flags"\
+            -c "use CA callback for X.509 CRT verification" \
+            -c "bad certificate (EC key curve)" \
+            -c "! Certificate verification flags" \
             -C "bad server certificate (ECDH curve)" # Expect failure at earlier verification stage
 
 requires_config_enabled MBEDTLS_ECP_C
@@ -3031,7 +3031,7 @@ run_test    "Authentication, CA callback: server ECDH p256v1, client optional, p
              crt_file=data_files/server5.ku-ka.crt" \
             "$P_CLI ca_callback=1 debug_level=3 auth_mode=optional curves=secp521r1" \
             1 \
-            -c "use CA callback for X.509 CRT verification"\
+            -c "use CA callback for X.509 CRT verification" \
             -c "bad certificate (EC key curve)"\
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
@@ -3043,7 +3043,7 @@ run_test    "Authentication, CA callback: client SHA256, server required" \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
             0 \
-            -s "use CA callback for X.509 CRT verification"\
+            -s "use CA callback for X.509 CRT verification" \
             -c "Supported Signature Algorithm found: 4," \
             -c "Supported Signature Algorithm found: 5,"
 
@@ -3054,7 +3054,7 @@ run_test    "Authentication, CA callback: client SHA384, server required" \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
-            -s "use CA callback for X.509 CRT verification"\
+            -s "use CA callback for X.509 CRT verification" \
             -c "Supported Signature Algorithm found: 4," \
             -c "Supported Signature Algorithm found: 5,"
 
@@ -3064,7 +3064,7 @@ run_test    "Authentication, CA callback: client badcert, server required" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
             1 \
-            -s "use CA callback for X.509 CRT verification"\
+            -s "use CA callback for X.509 CRT verification" \
             -S "skip write certificate request" \
             -C "skip parse certificate request" \
             -c "got a certificate request" \
@@ -3087,7 +3087,7 @@ run_test    "Authentication, CA callback: client cert not trusted, server requir
             "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
              key_file=data_files/server5.key" \
             1 \
-            -s "use CA callback for X.509 CRT verification"\
+            -s "use CA callback for X.509 CRT verification" \
             -S "skip write certificate request" \
             -C "skip parse certificate request" \
             -c "got a certificate request" \
@@ -3106,7 +3106,7 @@ run_test    "Authentication, CA callback: client badcert, server optional" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
             0 \
-            -s "use CA callback for X.509 CRT verification"\
+            -s "use CA callback for X.509 CRT verification" \
             -S "skip write certificate request" \
             -C "skip parse certificate request" \
             -c "got a certificate request" \
@@ -3126,7 +3126,7 @@ run_test    "Authentication, CA callback: server max_int chain, client default" 
                     key_file=data_files/dir-maxpath/09.key" \
             "$P_CLI ca_callback=1 debug_level=3 server_name=CA09 ca_file=data_files/dir-maxpath/00.crt" \
             0 \
-            -c "use CA callback for X.509 CRT verification"\
+            -c "use CA callback for X.509 CRT verification" \
             -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
@@ -3136,7 +3136,7 @@ run_test    "Authentication, CA callback: server max_int+1 chain, client default
                     key_file=data_files/dir-maxpath/10.key" \
             "$P_CLI debug_level=3 ca_callback=1 server_name=CA10 ca_file=data_files/dir-maxpath/00.crt" \
             1 \
-            -c "use CA callback for X.509 CRT verification"\
+            -c "use CA callback for X.509 CRT verification" \
             -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
@@ -3147,7 +3147,7 @@ run_test    "Authentication, CA callback: server max_int+1 chain, client optiona
             "$P_CLI ca_callback=1 server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     debug_level=3 auth_mode=optional" \
             1 \
-            -c "use CA callback for X.509 CRT verification"\
+            -c "use CA callback for X.509 CRT verification" \
             -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
@@ -3157,7 +3157,7 @@ run_test    "Authentication, CA callback: client max_int+1 chain, server optiona
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "use CA callback for X.509 CRT verification"\
+            -s "use CA callback for X.509 CRT verification" \
             -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
@@ -3167,7 +3167,7 @@ run_test    "Authentication, CA callback: client max_int+1 chain, server require
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "use CA callback for X.509 CRT verification"\
+            -s "use CA callback for X.509 CRT verification" \
             -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
@@ -3177,7 +3177,7 @@ run_test    "Authentication, CA callback: client max_int chain, server required"
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
             0 \
-            -s "use CA callback for X.509 CRT verification"\
+            -s "use CA callback for X.509 CRT verification" \
             -S "X509 - A fatal error occurred"
 
 # Tests for certificate selection based on SHA verson

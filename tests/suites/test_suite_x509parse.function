@@ -482,6 +482,7 @@ void x509_verify_ca_cb_failure( char *crt_file, char *ca_file, char *name,
                                               NULL, NULL );
 
     TEST_ASSERT( ret == exp_ret );
+    TEST_ASSERT( flags == (uint32_t)( -1 ) );
 exit:
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_free( &ca );

@@ -425,6 +425,8 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  * \param cn       The expected Common Name. This may be \c NULL if the
  *                 CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
+ *                 If the verification couldn't be completed, the flag value is
+ *                 set to (uint32_t) -1.
  * \param f_vrfy   The verification callback to use. See the documentation
  *                 of mbedtls_x509_crt_verify() for more information.
  * \param p_vrfy   The context to be passed to \p f_vrfy.
@@ -464,6 +466,8 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
  * \param cn       The expected Common Name. This may be \c NULL if the
  *                 CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
+ *                 If the verification couldn't be completed, the flag value is
+ *                 set to (uint32_t) -1.
  * \param f_vrfy   The verification callback to use. See the documentation
  *                 of mbedtls_x509_crt_verify() for more information.
  * \param p_vrfy   The context to be passed to \p f_vrfy.
@@ -500,6 +504,8 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
  * \param cn       The expected Common Name. This may be \c NULL if the
  *                 CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
+ *                 If the verification couldn't be completed, the flag value is
+ *                 set to (uint32_t) -1.
  * \param f_vrfy   The verification callback to use. See the documentation
  *                 of mbedtls_x509_crt_verify() for more information.
  * \param p_vrfy   The context to be passed to \p f_vrfy.
@@ -568,6 +574,8 @@ typedef int (*mbedtls_x509_crt_ca_cb_t)( void *p_ctx,
  * \param cn       The expected Common Name. This may be \c NULL if the
  *                 CN need not be verified.
  * \param flags    The address at which to store the result of the verification.
+ *                 If the verification couldn't be completed, the flag value is
+ *                 set to (uint32_t) -1.
  * \param f_vrfy   The verification callback to use. See the documentation
  *                 of mbedtls_x509_crt_verify() for more information.
  * \param p_vrfy   The context to be passed to \p f_vrfy.

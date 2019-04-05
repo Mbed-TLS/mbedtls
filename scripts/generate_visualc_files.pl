@@ -4,7 +4,7 @@
 # 2010
 #
 # Must be run from mbedTLS root or scripts directory.
-# Takes no argument.
+# Takes "include_crypto" as an argument, off by default.
 
 use warnings;
 use strict;
@@ -18,9 +18,19 @@ my $vsx_main_file = "$vsx_dir/mbedTLS.$vsx_ext";
 my $vsx_sln_tpl_file = "scripts/data_files/vs2010-sln-template.sln";
 my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
+my $include_crypto = 0;
+if( @ARGV ) {
+    die "Invalid number of arguments" if scalar @ARGV != 1;
+    ($include_crypto) = @ARGV;
+}
+
 my $programs_dir = 'programs';
 my $header_dir = 'include/mbedtls';
 my $source_dir = 'library';
+
+if( $include_crypto ) {
+    $source_dir = 'crypto/library';
+}
 
 # Need windows line endings!
 my $vsx_hdr_tpl = <<EOT;

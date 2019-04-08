@@ -611,6 +611,17 @@ component_check_doxygen_warnings () {
 #### Build and test many configurations and targets
 ################################################################
 
+component_test_default_out_of_box () {
+    msg "build: make, default config (out-of-box)" # ~1min
+    make
+
+    msg "test: main suites make, default config (out-of-box)" # ~10s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~10s
+    programs/test/selftest
+}
+
 component_test_default_cmake_gcc_asan () {
     msg "build: cmake, gcc, ASan" # ~ 1 min 50s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .

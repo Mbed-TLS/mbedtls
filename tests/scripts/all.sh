@@ -1337,10 +1337,8 @@ component_test_valgrind () {
     msg "test: main suites valgrind (Release)"
     make memcheck
 
-    # Optional part(s)
-    # Currently broken, programs don't seem to receive signals
-    # under valgrind on OS X
-
+    # Optional parts (slow; currently broken on OS X because programs don't
+    # seem to receive signals under valgrind on OS X).
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: ssl-opt.sh --memcheck (Release)"
         if_build_succeeded tests/ssl-opt.sh --memcheck

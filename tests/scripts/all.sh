@@ -591,6 +591,17 @@ component_check_doxygen_warnings () {
 #### Build and test many configurations and targets
 ################################################################
 
+component_test_default_out_of_box () {
+    msg "build: make, default config (out-of-box)" # ~1min
+    make
+
+    msg "test: main suites make, default config (out-of-box)" # ~10s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~10s
+    programs/test/selftest
+}
+
 component_build_yotta () {
     # Note - use of yotta is deprecated, and yotta also requires armcc to be on the
     # path, and uses whatever version of armcc it finds there.

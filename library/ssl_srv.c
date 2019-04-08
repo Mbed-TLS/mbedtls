@@ -2700,9 +2700,12 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
+#if defined(MBEDTLS_USE_UECC)
+    ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+#else
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
-    defined(MBEDTLS_USE_UECC)
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if ( mbedtls_ssl_ciphersuite_uses_ec(
          mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite ) ) )
     {
@@ -2710,6 +2713,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
         ext_len += olen;
     }
 #endif
+#endif /* MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     ssl_write_ecjpake_kkpp_ext( ssl, p + 2 + ext_len, &olen );

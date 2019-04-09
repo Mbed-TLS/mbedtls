@@ -109,6 +109,33 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
+/* Top-level Connection ID API */
+
+int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
+                         int enable,
+                         unsigned char const *own_cid,
+                         size_t own_cid_len )
+{
+    ((void) ssl);
+    ((void) enable);
+    ((void) own_cid);
+    ((void) own_cid_len);
+    return( 0 );
+}
+
+int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
+                     int *enabled,
+                     unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ],
+                     size_t *peer_cid_len )
+{
+    ((void) ssl);
+    ((void) peer_cid);
+    ((void) peer_cid_len);
+
+    *enabled = MBEDTLS_SSL_CID_DISABLED;
+    return( 0 );
+}
+
 /* Forward declarations for functions related to message buffering. */
 static void ssl_buffering_free( mbedtls_ssl_context *ssl );
 static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,

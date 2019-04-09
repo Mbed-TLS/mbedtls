@@ -145,6 +145,8 @@ int main( void )
 #define DFL_MAX_VERSION         -1
 #define DFL_ARC4                -1
 #define DFL_SHA1                -1
+#define DFL_CID_ENABLED         0
+#define DFL_CID_VALUE           ""
 #define DFL_AUTH_MODE           -1
 #define DFL_CERT_REQ_CA_LIST    MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
@@ -231,6 +233,16 @@ int main( void )
 #else
 #define USAGE_SSL_ASYNC ""
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+#if defined(MBEDTLS_SSL_CID)
+#define USAGE_CID \
+    "    cid=%%d             Disable (0) or enable (1) the use of the DTLS Connection ID extension.\n" \
+    "                       default: 0 (disabled)\n"     \
+    "    cid_val=%%s          The CID to use for incoming messages (in hex, without 0x).\n"  \
+    "                        default: \"\"\n"
+#else /* MBEDTLS_SSL_CID */
+#define USAGE_CID ""
+#endif /* MBEDTLS_SSL_CID */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK_RAW                                               \
@@ -573,6 +585,8 @@ struct options
     int dgram_packing;          /* allow/forbid datagram packing            */
     int badmac_limit;           /* Limit of records with bad MAC            */
     int eap_tls;                /* derive EAP-TLS keying material?          */
+    int cid_enabled;            /* whether to use the CID extension or not  */
+    const char *cid_val;        /* the CID to use for incoming messages     */
 } opt;
 
 int query_config( const char *config );
@@ -1484,6 +1498,11 @@ int main( int argc, char *argv[] )
     unsigned char alloc_buf[MEMORY_HEAP_SIZE];
 #endif
 
+#if defined(MBEDTLS_SSL_CID)
+    unsigned char cid[MBEDTLS_SSL_CID_IN_LEN_MAX];
+    size_t cid_len = 0;
+#endif
+
     int i;
     char *p, *q;
     const int *list;
@@ -1581,6 +1600,8 @@ int main( int argc, char *argv[] )
     opt.event               = DFL_EVENT;
     opt.response_size       = DFL_RESPONSE_SIZE;
     opt.nbio                = DFL_NBIO;
+    opt.cid_enabled         = DFL_CID_ENABLED;
+    opt.cid_val             = DFL_CID_VALUE;
     opt.read_timeout        = DFL_READ_TIMEOUT;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
@@ -1727,6 +1748,18 @@ int main( int argc, char *argv[] )
             opt.async_private_error = n;
         }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+#if defined(MBEDTLS_SSL_CID)
+        else if( strcmp( p, "cid" ) == 0 )
+        {
+            opt.cid_enabled = atoi( q );
+            if( opt.cid_enabled != 0 && opt.cid_enabled != 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "cid_val" ) == 0 )
+        {
+            opt.cid_val = q;
+        }
+#endif /* MBEDTLS_SSL_CID */
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -2209,6 +2242,24 @@ int main( int argc, char *argv[] )
             }
         }
     }
+
+#if defined(MBEDTLS_SSL_CID)
+   if( strlen( opt.cid_val ) )
+   {
+       cid_len = strlen( opt.cid_val ) / 2;
+       if( cid_len > sizeof( cid ) )
+       {
+           mbedtls_printf( "CID too long\n" );
+           goto exit;
+       }
+
+       if( unhexify( cid, opt.cid_val, &cid_len ) != 0 )
+       {
+           mbedtls_printf( "CID not valid hex\n" );
+           goto exit;
+       }
+   }
+#endif /* MBEDTLS_SSL_CID */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     /*
@@ -2957,6 +3008,19 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv,
                              opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
 
+#if defined(MBEDTLS_SSL_CID)
+    if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        if( ( ret = mbedtls_ssl_set_cid( &ssl, opt.cid_enabled,
+                                         cid, cid_len ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_cid returned %d\n\n",
+                            ret );
+            goto exit;
+        }
+    }
+#endif /* MBEDTLS_SSL_CID */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.dtls_mtu != DFL_DTLS_MTU )
         mbedtls_ssl_set_mtu( &ssl, opt.dtls_mtu );
@@ -3233,6 +3297,38 @@ handshake:
         mbedtls_printf("\n");
     }
 #endif
+
+#if defined(MBEDTLS_SSL_CID)
+    if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
+        size_t peer_cid_len;
+        int cid_negotiated;
+
+        /* Check if the use of a CID has been negotiated */
+        ret = mbedtls_ssl_get_peer_cid( &ssl, &cid_negotiated,
+                                        peer_cid, &peer_cid_len );
+        if( ret != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
+                            -ret );
+            goto exit;
+        }
+
+        if( cid_negotiated == MBEDTLS_SSL_CID_DISABLED )
+        {
+            if( opt.cid_enabled == MBEDTLS_SSL_CID_ENABLED )
+            {
+                mbedtls_printf( "Use of Connection ID was rejected by the client.\n" );
+            }
+        }
+        else
+        {
+            mbedtls_printf( "Use of Connection ID has been negotiated.\n" );
+        }
+    }
+#endif /* MBEDTLS_SSL_CID */
+
     if( opt.exchanges == 0 )
         goto close_notify;
 

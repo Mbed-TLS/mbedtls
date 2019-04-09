@@ -24,10 +24,21 @@ Mbed Crypto is a reference implementation of the PSA cryptography API. It is wri
 
 ## Documentation
 
-Since the Mbed Crypto library is a reference implementation of the PSA cryptography API, the library's API documentation is the PSA cryptography API specification. The PSA cryptography API specification consists of the following documents:
+The Mbed Crypto library is a reference implementation of the PSA cryptography API. Please refer to the PSA Cryptography API documents for an overview of the library's interfaces and a detailed description of the types, macros and functions that it provides.
 
-* The [PSA Cryptography API overview](docs/PSA_Crypto_API_Overview.pdf).
-* The [PSA Cryptography API detailed function reference](docs/PSA_Crypto_API_Reference.pdf), which you can also browse in [HTML format](docs/html/modules.html).
+There are currently a few deviations where the library does not yet implement the latest version of the specification. Please refer to the [compliance issues on Github](https://github.com/ARMmbed/mbed-crypto/labels/compliance) for an up-to-date list.
+
+### PSA Cryptography API
+
+You can read the [complete PSA cryptography API specification as a PDF document](https://github.com/ARMmbed/mbed-crypto/blob/psa-crypto-api/docs/PSA_Cryptography_API_Specification.pdf). The API reference is also available in [HTML format](https://htmlpreview.github.io/?https://github.com/ARMmbed/mbed-crypto/blob/psa-crypto-api/docs/html/modules.html).
+
+### Browsable library documentation
+
+To generate a local copy of the library documentation in HTML format:
+
+1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed. We use version 1.8.11 but slightly older or more recent versions should work.
+1. Run `make apidoc`.
+1. Browse `apidoc/index.html` or `apidoc/modules.html`.
 
 ## Compiling
 

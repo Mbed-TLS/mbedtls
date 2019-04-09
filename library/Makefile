@@ -40,7 +40,7 @@ SOEXT_TLS=so.12
 SOEXT_X509=so.0
 SOEXT_CRYPTO=so.3
 
-# Set AR_DASH= (empty string) to use an ar implentation that does not accept
+# Set AR_DASH= (empty string) to use an ar implementation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)
 AR_DASH ?= -
 
@@ -85,8 +85,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		psa_crypto.o					\
 		psa_crypto_slot_management.o			\
 		psa_crypto_storage.o				\
-		psa_crypto_storage_file.o			\
-		psa_crypto_storage_its.o			\
+		psa_its_file.o					\
 		ripemd160.o	rsa_internal.o	rsa.o  		\
 		sha1.o		sha256.o	sha512.o	\
 		threading.o	timing.o	version.o	\

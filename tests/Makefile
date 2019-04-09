@@ -6,7 +6,8 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wno-unused-function -Wno-unused-value
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -I../library -D_FILE_OFFSET_BITS=64
+CRYPTO_INCLUDES ?= -I../include
+LOCAL_CFLAGS = $(WARNING_CFLAGS) $(CRYPTO_INCLUDES) -I../library -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
@@ -57,6 +58,15 @@ endif
 # Application name is same as .data file's base name and can be
 # constructed by stripping path 'suites/' and extension .data.
 APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
+
+# When this project is used as a submodule, exclude the following list of
+# tests, which will be run from the parent module instead.
+ifdef USE_CRYPTO_SUBMODULE
+APPS := $(filter-out \
+               test_suite_version \
+               ,$(APPS))
+endif
+
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
@@ -115,8 +125,9 @@ ifneq ($(wildcard TESTS/.*),)
 endif
 endif
 
+# Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES)
-	perl scripts/run-test-suites.pl
+	perl scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES)
 
 test: check
 

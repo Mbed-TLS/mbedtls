@@ -102,8 +102,6 @@ ifndef WINDOWS
 covtest:
 	$(MAKE) check
 	programs/test/selftest
-	tests/compat.sh
-	tests/ssl-opt.sh
 
 lcov:
 	rm -rf Coverage

@@ -24,8 +24,18 @@
 #ifndef MBEDTLS_SSL_INTERNAL_H
 #define MBEDTLS_SSL_INTERNAL_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include "ssl.h"
 #include "cipher.h"
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
 
 #if defined(MBEDTLS_MD5_C)
 #include "md5.h"
@@ -46,6 +56,11 @@
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #include "ecjpake.h"
 #endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#include "psa_util.h"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
@@ -270,7 +285,15 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_ECDH_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
-#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_ecc_curve_t ecdh_psa_curve;
+    psa_key_handle_t ecdh_psa_privkey;
+    unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
+    size_t ecdh_psa_peerkey_len;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_ECDH_C */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
 #if defined(MBEDTLS_SSL_CLI_C)
@@ -284,7 +307,7 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t psk_opaque;          /*!< Opaque PSK from the callback   */
+    psa_key_handle_t psk_opaque;        /*!< Opaque PSK from the callback   */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
@@ -308,8 +331,13 @@ struct mbedtls_ssl_handshake_params
         ssl_ecrs_cke_ecdh_calc_secret,  /*!< ClientKeyExchange: ECDH step 2 */
         ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
     } ecrs_state;                       /*!< current (or last) operation    */
+    mbedtls_x509_crt *ecrs_peer_cert;   /*!< The peer's CRT chain.          */
     size_t ecrs_n;                      /*!< place for saving a length      */
 #endif
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    mbedtls_pk_context peer_pubkey;     /*!< The public key from the peer.  */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
     unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
@@ -370,10 +398,18 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_hash_operation_t fin_sha256_psa;
+#else
     mbedtls_sha256_context fin_sha256;
 #endif
+#endif
 #if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_hash_operation_t fin_sha384_psa;
+#else
     mbedtls_sha512_context fin_sha512;
+#endif
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -735,6 +771,9 @@ int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
 
+int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
+                              const mbedtls_ssl_session *src );
+
 /* constant-time buffer comparison */
 static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {
@@ -765,6 +804,7 @@ int mbedtls_ssl_get_key_exchange_md_ssl_tls( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
+/* The hash buffer must have at least MBEDTLS_MD_MAX_SIZE bytes of length. */
 int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
                                             unsigned char *hash, size_t *hashlen,
                                             unsigned char *data, size_t data_len,

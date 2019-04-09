@@ -38,6 +38,12 @@
 #ifndef MBEDTLS_BN_MUL_H
 #define MBEDTLS_BN_MUL_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include "bignum.h"
 
 #if defined(MBEDTLS_HAVE_ASM)
@@ -170,19 +176,19 @@
 
 #define MULADDC_INIT                        \
     asm(                                    \
-        "xorq   %%r8, %%r8          \n\t"
+        "xorq   %%r8, %%r8\n"
 
 #define MULADDC_CORE                        \
-        "movq   (%%rsi), %%rax      \n\t"   \
-        "mulq   %%rbx               \n\t"   \
-        "addq   $8,      %%rsi      \n\t"   \
-        "addq   %%rcx,   %%rax      \n\t"   \
-        "movq   %%r8,    %%rcx      \n\t"   \
-        "adcq   $0,      %%rdx      \n\t"   \
-        "nop                        \n\t"   \
-        "addq   %%rax,   (%%rdi)    \n\t"   \
-        "adcq   %%rdx,   %%rcx      \n\t"   \
-        "addq   $8,      %%rdi      \n\t"
+        "movq   (%%rsi), %%rax\n"           \
+        "mulq   %%rbx\n"                    \
+        "addq   $8, %%rsi\n"                \
+        "addq   %%rcx, %%rax\n"             \
+        "movq   %%r8, %%rcx\n"              \
+        "adcq   $0, %%rdx\n"                \
+        "nop    \n"                         \
+        "addq   %%rax, (%%rdi)\n"           \
+        "adcq   %%rdx, %%rcx\n"             \
+        "addq   $8, %%rdi\n"
 
 #define MULADDC_STOP                        \
         : "+c" (c), "+D" (d), "+S" (s)      \
@@ -750,7 +756,7 @@
         "sw     $10, %2         \n\t"   \
         : "=m" (c), "=m" (d), "=m" (s)                      \
         : "m" (s), "m" (d), "m" (c), "m" (b)                \
-        : "$9", "$10", "$11", "$12", "$13", "$14", "$15"    \
+        : "$9", "$10", "$11", "$12", "$13", "$14", "$15", "lo", "hi" \
     );
 
 #endif /* MIPS */

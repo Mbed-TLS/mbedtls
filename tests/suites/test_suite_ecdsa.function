@@ -7,6 +7,201 @@
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void ecdsa_invalid_param( )
+{
+    mbedtls_ecdsa_context ctx;
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_group_id valid_group = MBEDTLS_ECP_DP_SECP192R1;
+    mbedtls_ecp_point P;
+    mbedtls_md_type_t valid_md = MBEDTLS_MD_SHA256;
+    mbedtls_mpi m;
+    size_t slen;
+    unsigned char buf[42] = { 0 };
+
+    TEST_INVALID_PARAM( mbedtls_ecdsa_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_ecdsa_free( NULL ) );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    TEST_INVALID_PARAM( mbedtls_ecdsa_restart_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_ecdsa_restart_free( NULL ) );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdsa_sign( NULL, &m, &m, &m,
+                                                buf, sizeof( buf ),
+                                                rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecdsa_sign( &grp, NULL, &m, &m,
+                                                buf, sizeof( buf ),
+                                                rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_sign( &grp, &m, NULL, &m,
+                                                buf, sizeof( buf ),
+                                                rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_sign( &grp, &m, &m, NULL,
+                                                buf, sizeof( buf ),
+                                                rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_sign( &grp, &m, &m, &m,
+                                                NULL, sizeof( buf ),
+                                                rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_sign( &grp, &m, &m, &m,
+                                                buf, sizeof( buf ),
+                                                NULL, NULL ) );
+
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_sign_det( NULL, &m, &m, &m,
+                                                buf, sizeof( buf ),
+                                                valid_md ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_sign_det( &grp, NULL, &m, &m,
+                                                buf, sizeof( buf ),
+                                                valid_md ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_sign_det( &grp, &m, NULL, &m,
+                                                buf, sizeof( buf ),
+                                                valid_md ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_sign_det( &grp, &m, &m, NULL,
+                                                buf, sizeof( buf ),
+                                                valid_md ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_sign_det( &grp, &m, &m, &m,
+                                                NULL, sizeof( buf ),
+                                                valid_md ) );
+#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_verify( NULL,
+                                                  buf, sizeof( buf ),
+                                                  &P, &m, &m ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_verify( &grp,
+                                                  NULL, sizeof( buf ),
+                                                  &P, &m, &m ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_verify( &grp,
+                                                  buf, sizeof( buf ),
+                                                  NULL, &m, &m ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_verify( &grp,
+                                                  buf, sizeof( buf ),
+                                                  &P, NULL, &m ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_verify( &grp,
+                                                  buf, sizeof( buf ),
+                                                  &P, &m, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_write_signature( NULL,
+                                                           valid_md,
+                                                           buf, sizeof( buf ),
+                                                           buf, &slen,
+                                                           rnd_std_rand,
+                                                           NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_write_signature( &ctx,
+                                                           valid_md,
+                                                           NULL, sizeof( buf ),
+                                                           buf, &slen,
+                                                           rnd_std_rand,
+                                                           NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_write_signature( &ctx,
+                                                           valid_md,
+                                                           buf, sizeof( buf ),
+                                                           NULL, &slen,
+                                                           rnd_std_rand,
+                                                           NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_write_signature( &ctx,
+                                                           valid_md,
+                                                           buf, sizeof( buf ),
+                                                           buf, NULL,
+                                                           rnd_std_rand,
+                                                           NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_write_signature_restartable( NULL,
+                                                           valid_md,
+                                                           buf, sizeof( buf ),
+                                                           buf, &slen,
+                                                           rnd_std_rand,
+                                                           NULL, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_write_signature_restartable( &ctx,
+                                                           valid_md,
+                                                           NULL, sizeof( buf ),
+                                                           buf, &slen,
+                                                           rnd_std_rand,
+                                                           NULL, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_write_signature_restartable( &ctx,
+                                                           valid_md,
+                                                           buf, sizeof( buf ),
+                                                           NULL, &slen,
+                                                           rnd_std_rand,
+                                                           NULL, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_write_signature_restartable( &ctx,
+                                                           valid_md,
+                                                           buf, sizeof( buf ),
+                                                           buf, NULL,
+                                                           rnd_std_rand,
+                                                           NULL, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_read_signature( NULL,
+                                                        buf, sizeof( buf ),
+                                                        buf, sizeof( buf ) ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_read_signature( &ctx,
+                                                        NULL, sizeof( buf ),
+                                                        buf, sizeof( buf ) ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_read_signature( &ctx,
+                                                        buf, sizeof( buf ),
+                                                        NULL, sizeof( buf ) ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_read_signature_restartable( NULL,
+                                                        buf, sizeof( buf ),
+                                                        buf, sizeof( buf ),
+                                                        NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_read_signature_restartable( &ctx,
+                                                        NULL, sizeof( buf ),
+                                                        buf, sizeof( buf ),
+                                                        NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_read_signature_restartable( &ctx,
+                                                        buf, sizeof( buf ),
+                                                        NULL, sizeof( buf ),
+                                                        NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_genkey( NULL, valid_group,
+                                                  rnd_std_rand, NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_genkey( &ctx, valid_group,
+                                                  NULL, NULL ) );
+
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_from_keypair( NULL, &key ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                       mbedtls_ecdsa_from_keypair( &ctx, NULL ) );
+
+exit:
+    return;
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void ecdsa_prim_random( int id )
 {
@@ -14,7 +209,7 @@ void ecdsa_prim_random( int id )
     mbedtls_ecp_point Q;
     mbedtls_mpi d, r, s;
     rnd_pseudo_info rnd_info;
-    unsigned char buf[66];
+    unsigned char buf[MBEDTLS_MD_MAX_SIZE];
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &Q );

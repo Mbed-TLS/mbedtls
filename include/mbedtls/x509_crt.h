@@ -52,6 +52,8 @@ extern "C" {
  */
 typedef struct mbedtls_x509_crt
 {
+    int own_buffer;                     /**< Indicates if \c raw is owned
+                                         *   by the structure or not.        */
     mbedtls_x509_buf raw;               /**< The raw certificate data (DER). */
     mbedtls_x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
 
@@ -68,6 +70,7 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_time valid_from;       /**< Start time of certificate validity. */
     mbedtls_x509_time valid_to;         /**< End time of certificate validity. */
 
+    mbedtls_x509_buf pk_raw;
     mbedtls_pk_context pk;              /**< Container for the public key context. */
 
     mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
@@ -220,31 +223,88 @@ extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb;
 
 /**
  * \brief          Parse a single DER formatted certificate and add it
- *                 to the chained list.
+ *                 to the end of the provided chained list.
  *
- * \param chain    points to the start of the chain
- * \param buf      buffer holding the certificate DER data
- * \param buflen   size of the buffer
+ * \param chain    The pointer to the start of the CRT chain to attach to.
+ *                 When parsing the first CRT in a chain, this should point
+ *                 to an instance of ::mbedtls_x509_crt initialized through
+ *                 mbedtls_x509_crt_init().
+ * \param buf      The buffer holding the DER encoded certificate.
+ * \param buflen   The size in Bytes of \p buf.
  *
- * \return         0 if successful, or a specific X509 or PEM error code
+ * \note           This function makes an internal copy of the CRT buffer
+ *                 \p buf. In particular, \p buf may be destroyed or reused
+ *                 after this call returns. To avoid duplicating the CRT
+ *                 buffer (at the cost of stricter lifetime constraints),
+ *                 use mbedtls_x509_crt_parse_der_nocopy() instead.
+ *
+ * \return         \c 0 if successful.
+ * \return         A negative error code on failure.
  */
-int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain, const unsigned char *buf,
-                        size_t buflen );
+int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain,
+                                const unsigned char *buf,
+                                size_t buflen );
 
 /**
- * \brief          Parse one or more certificates and add them
- *                 to the chained list. Parses permissively. If some
- *                 certificates can be parsed, the result is the number
- *                 of failed certificates it encountered. If none complete
- *                 correctly, the first error is returned.
+ * \brief          Parse a single DER formatted certificate and add it
+ *                 to the end of the provided chained list. This is a
+ *                 variant of mbedtls_x509_crt_parse_der() which takes
+ *                 temporary ownership of the CRT buffer until the CRT
+ *                 is destroyed.
  *
- * \param chain    points to the start of the chain
- * \param buf      buffer holding the certificate data in PEM or DER format
- * \param buflen   size of the buffer
- *                 (including the terminating null byte for PEM data)
+ * \param chain    The pointer to the start of the CRT chain to attach to.
+ *                 When parsing the first CRT in a chain, this should point
+ *                 to an instance of ::mbedtls_x509_crt initialized through
+ *                 mbedtls_x509_crt_init().
+ * \param buf      The address of the readable buffer holding the DER encoded
+ *                 certificate to use. On success, this buffer must be
+ *                 retained and not be changed for the liftetime of the
+ *                 CRT chain \p chain, that is, until \p chain is destroyed
+ *                 through a call to mbedtls_x509_crt_free().
+ * \param buflen   The size in Bytes of \p buf.
  *
- * \return         0 if all certificates parsed successfully, a positive number
- *                 if partly successful or a specific X509 or PEM error code
+ * \note           This call is functionally equivalent to
+ *                 mbedtls_x509_crt_parse_der(), but it avoids creating a
+ *                 copy of the input buffer at the cost of stronger lifetime
+ *                 constraints. This is useful in constrained environments
+ *                 where duplication of the CRT cannot be tolerated.
+ *
+ * \return         \c 0 if successful.
+ * \return         A negative error code on failure.
+ */
+int mbedtls_x509_crt_parse_der_nocopy( mbedtls_x509_crt *chain,
+                                       const unsigned char *buf,
+                                       size_t buflen );
+
+/**
+ * \brief          Parse one DER-encoded or one or more concatenated PEM-encoded
+ *                 certificates and add them to the chained list.
+ *
+ *                 For CRTs in PEM encoding, the function parses permissively:
+ *                 if at least one certificate can be parsed, the function
+ *                 returns the number of certificates for which parsing failed
+ *                 (hence \c 0 if all certificates were parsed successfully).
+ *                 If no certificate could be parsed, the function returns
+ *                 the first (negative) error encountered during parsing.
+ *
+ *                 PEM encoded certificates may be interleaved by other data
+ *                 such as human readable descriptions of their content, as
+ *                 long as the certificates are enclosed in the PEM specific
+ *                 '-----{BEGIN/END} CERTIFICATE-----' delimiters.
+ *
+ * \param chain    The chain to which to add the parsed certificates.
+ * \param buf      The buffer holding the certificate data in PEM or DER format.
+ *                 For certificates in PEM encoding, this may be a concatenation
+ *                 of multiple certificates; for DER encoding, the buffer must
+ *                 comprise exactly one certificate.
+ * \param buflen   The size of \p buf, including the terminating \c NULL byte
+ *                 in case of PEM encoded data.
+ *
+ * \return         \c 0 if all certificates were parsed successfully.
+ * \return         The (positive) number of certificates that couldn't
+ *                 be parsed if parsing was partly successful (see above).
+ * \return         A negative X509 or PEM error code otherwise.
+ *
  */
 int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain, const unsigned char *buf, size_t buflen );
 

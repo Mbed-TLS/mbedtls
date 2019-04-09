@@ -16,8 +16,7 @@ use open qw(:std utf8);
 
 # exclude functions that are ok:
 # - mpi_write_hlp: bounded by size of mbedtls_mpi, a compile-time constant
-# - x509_crt_verify_child: bounded by MBEDTLS_X509_MAX_INTERMEDIATE_CA
-my $known_ok = qr/mpi_write_hlp|x509_crt_verify_child/;
+my $known_ok = qr/mpi_write_hlp/;
 
 my $cur_name;
 my $inside;

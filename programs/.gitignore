@@ -9,9 +9,7 @@ hash/hello
 hash/md5sum
 hash/sha1sum
 hash/sha2sum
-pkey/dh_client
 pkey/dh_genprime
-pkey/dh_server
 pkey/ecdsa
 pkey/ecdh_curve25519
 pkey/gen_key
@@ -53,6 +51,7 @@ test/cpp_dummy_build
 test/ssl_cert_test
 test/udp_proxy
 test/zeroize
+test/query_compile_time_config
 util/pem2der
 util/strerror
 x509/cert_app

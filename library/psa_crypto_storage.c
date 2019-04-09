@@ -30,17 +30,192 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 #include "psa_crypto_storage.h"
-#include "psa_crypto_storage_backend.h"
 #include "mbedtls/platform_util.h"
+
+#if defined(MBEDTLS_PSA_ITS_FILE_C)
+#include "psa_crypto_its.h"
+#else /* Native ITS implementation */
+#include "psa/error.h"
+#include "psa/internal_trusted_storage.h"
+#endif
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdlib.h>
 #define mbedtls_calloc   calloc
 #define mbedtls_free     free
 #endif
+
+/* Determine a file name (ITS file identifier) for the given key file
+ * identifier. The file name must be distinct from any file that is used
+ * for a purpose other than storing a key. Currently, the only such file
+ * is the random seed file whose name is PSA_CRYPTO_ITS_RANDOM_SEED_UID
+ * and whose value is 0xFFFFFF52. */
+static psa_storage_uid_t psa_its_identifier_of_slot( psa_key_file_id_t file_id )
+{
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER) && \
+    defined(PSA_CRYPTO_SECURE)
+    /* Encode the owner in the upper 32 bits. This means that if
+     * owner values are nonzero (as they are on a PSA platform),
+     * no key file will ever have a value less than 0x100000000, so
+     * the whole range 0..0xffffffff is available for non-key files. */
+    uint32_t unsigned_owner = (uint32_t) file_id.owner;
+    return( (uint64_t) unsigned_owner << 32 | file_id.key_id );
+#else
+    /* Use the key id directly as a file name.
+     * psa_is_key_file_id_valid() in psa_crypto_slot_management.c
+     * is responsible for ensuring that key identifiers do not have a
+     * value that is reserved for non-key files. */
+    return( file_id );
+#endif
+}
+
+/**
+ * \brief Load persistent data for the given key slot number.
+ *
+ * This function reads data from a storage backend and returns the data in a
+ * buffer.
+ *
+ * \param key               Persistent identifier of the key to be loaded. This
+ *                          should be an occupied storage location.
+ * \param[out] data         Buffer where the data is to be written.
+ * \param data_size         Size of the \c data buffer in bytes.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval PSA_ERROR_DOES_NOT_EXIST
+ */
+static psa_status_t psa_crypto_storage_load( const psa_key_file_id_t key,
+                                             uint8_t *data,
+                                             size_t data_size )
+{
+    psa_status_t status;
+    psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
+    struct psa_storage_info_t data_identifier_info;
+
+    status = psa_its_get_info( data_identifier, &data_identifier_info );
+    if( status  != PSA_SUCCESS )
+        return( status );
+
+    status = psa_its_get( data_identifier, 0, (uint32_t) data_size, data );
+
+    return( status );
+}
+
+int psa_is_key_present_in_storage( const psa_key_file_id_t key )
+{
+    psa_status_t ret;
+    psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
+    struct psa_storage_info_t data_identifier_info;
+
+    ret = psa_its_get_info( data_identifier, &data_identifier_info );
+
+    if( ret == PSA_ERROR_DOES_NOT_EXIST )
+        return( 0 );
+    return( 1 );
+}
+
+/**
+ * \brief Store persistent data for the given key slot number.
+ *
+ * This function stores the given data buffer to a persistent storage.
+ *
+ * \param key           Persistent identifier of the key to be stored. This
+ *                      should be an unoccupied storage location.
+ * \param[in] data      Buffer containing the data to be stored.
+ * \param data_length   The number of bytes
+ *                      that make up the data.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval PSA_ERROR_ALREADY_EXISTS
+ */
+static psa_status_t psa_crypto_storage_store( const psa_key_file_id_t key,
+                                              const uint8_t *data,
+                                              size_t data_length )
+{
+    psa_status_t status;
+    psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
+    struct psa_storage_info_t data_identifier_info;
+
+    if( psa_is_key_present_in_storage( key ) == 1 )
+        return( PSA_ERROR_ALREADY_EXISTS );
+
+    status = psa_its_set( data_identifier, (uint32_t) data_length, data, 0 );
+    if( status != PSA_SUCCESS )
+    {
+        return( PSA_ERROR_STORAGE_FAILURE );
+    }
+
+    status = psa_its_get_info( data_identifier, &data_identifier_info );
+    if( status != PSA_SUCCESS )
+    {
+        goto exit;
+    }
+
+    if( data_identifier_info.size != data_length )
+    {
+        status = PSA_ERROR_STORAGE_FAILURE;
+        goto exit;
+    }
+
+exit:
+    if( status != PSA_SUCCESS )
+        psa_its_remove( data_identifier );
+    return( status );
+}
+
+psa_status_t psa_destroy_persistent_key( const psa_key_file_id_t key )
+{
+    psa_status_t ret;
+    psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
+    struct psa_storage_info_t data_identifier_info;
+
+    ret = psa_its_get_info( data_identifier, &data_identifier_info );
+    if( ret == PSA_ERROR_DOES_NOT_EXIST )
+        return( PSA_SUCCESS );
+
+    if( psa_its_remove( data_identifier ) != PSA_SUCCESS )
+        return( PSA_ERROR_STORAGE_FAILURE );
+
+    ret = psa_its_get_info( data_identifier, &data_identifier_info );
+    if( ret != PSA_ERROR_DOES_NOT_EXIST )
+        return( PSA_ERROR_STORAGE_FAILURE );
+
+    return( PSA_SUCCESS );
+}
+
+/**
+ * \brief Get data length for given key slot number.
+ *
+ * \param key               Persistent identifier whose stored data length
+ *                          is to be obtained.
+ * \param[out] data_length  The number of bytes that make up the data.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_STORAGE_FAILURE
+ */
+static psa_status_t psa_crypto_storage_get_data_length(
+    const psa_key_file_id_t key,
+    size_t *data_length )
+{
+    psa_status_t status;
+    psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
+    struct psa_storage_info_t data_identifier_info;
+
+    status = psa_its_get_info( data_identifier, &data_identifier_info );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    *data_length = (size_t) data_identifier_info.size;
+
+    return( PSA_SUCCESS );
+}
 
 /*
  * 32-bit integer manipulation macros (little endian)
@@ -147,7 +322,7 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_save_persistent_key( const psa_key_id_t key,
+psa_status_t psa_save_persistent_key( const psa_key_file_id_t key,
                                       const psa_key_type_t type,
                                       const psa_key_policy_t *policy,
                                       const uint8_t *data,
@@ -185,7 +360,7 @@ void psa_free_persistent_key_data( uint8_t *key_data, size_t key_data_length )
     mbedtls_free( key_data );
 }
 
-psa_status_t psa_load_persistent_key( psa_key_id_t key,
+psa_status_t psa_load_persistent_key( psa_key_file_id_t key,
                                       psa_key_type_t *type,
                                       psa_key_policy_t *policy,
                                       uint8_t **data,
@@ -215,5 +390,27 @@ exit:
     mbedtls_free( loaded_data );
     return( status );
 }
+
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY)
+psa_status_t mbedtls_psa_storage_inject_entropy( const unsigned char *seed,
+                                                 size_t seed_size )
+{
+    psa_status_t status;
+    struct psa_storage_info_t p_info;
+
+    status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
+
+    if( PSA_ERROR_DOES_NOT_EXIST == status ) /* No seed exists */
+    {
+        status = psa_its_set( PSA_CRYPTO_ITS_RANDOM_SEED_UID, seed_size, seed, 0 );
+    }
+    else if( PSA_SUCCESS == status )
+    {
+        /* You should not be here. Seed needs to be injected only once */
+        status = PSA_ERROR_NOT_PERMITTED;
+    }
+    return( status );
+}
+#endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */

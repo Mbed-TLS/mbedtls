@@ -787,6 +787,25 @@ typedef int mbedtls_ssl_async_resume_t( mbedtls_ssl_context *ssl,
 typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) &&        \
+    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN  48
+#if defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA256
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  32
+#elif defined(MBEDTLS_SHA512_C)
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA384
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  48
+#elif defined(MBEDTLS_SHA1_C)
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE MBEDTLS_MD_SHA1
+#define MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN  20
+#else
+/* This is already checked in check_config.h, but be sure. */
+#error "Bad configuration - need SHA-1, SHA-256 or SHA-512 enabled to compute digest of peer CRT."
+#endif
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED &&
+          !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
 /*
  * This structure is used for storing current session data.
  */
@@ -802,7 +821,15 @@ struct mbedtls_ssl_session
     unsigned char master[48];   /*!< the master secret  */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    mbedtls_x509_crt *peer_cert;        /*!< peer X.509 cert chain */
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    mbedtls_x509_crt *peer_cert;       /*!< peer X.509 cert chain */
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    /*! The digest of the peer's end-CRT. This must be kept to detect CRT
+     *  changes during renegotiation, mitigating the triple handshake attack. */
+    unsigned char *peer_cert_digest;
+    size_t peer_cert_digest_len;
+    mbedtls_md_type_t peer_cert_digest_type;
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     uint32_t verify_result;          /*!<  verification result     */
 
@@ -929,11 +956,11 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t psk_opaque; /*!< PSA key slot holding opaque PSK.
-                                *   This field should only be set via
-                                *   mbedtls_ssl_conf_psk_opaque().
-                                *   If either no PSK or a raw PSK have
-                                *   been configured, this has value \c 0. */
+    psa_key_handle_t psk_opaque; /*!< PSA key slot holding opaque PSK.
+                                  *   This field should only be set via
+                                  *   mbedtls_ssl_conf_psk_opaque().
+                                  *   If either no PSK or a raw PSK have
+                                  *   been configured, this has value \c 0. */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     unsigned char *psk;      /*!< The raw pre-shared key. This field should
@@ -2055,7 +2082,7 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
  *                 provision more than one cert/key pair (eg one ECDSA, one
  *                 RSA with SHA-256, one RSA with SHA-1). An adequate
  *                 certificate will be selected according to the client's
- *                 advertised capabilities. In case mutliple certificates are
+ *                 advertised capabilities. In case multiple certificates are
  *                 adequate, preference is given to the one set by the first
  *                 call to this function, then second, etc.
  *
@@ -2065,6 +2092,14 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
  *                 be ignored and our only cert will be sent regardless of
  *                 whether it matches those preferences - the server can then
  *                 decide what it wants to do with it.
+ *
+ * \note           The provided \p pk_key needs to match the public key in the
+ *                 first certificate in \p own_cert, or all handshakes using
+ *                 that certificate will fail. It is your responsibility
+ *                 to ensure that; this function will not perform any check.
+ *                 You may use mbedtls_pk_check_pair() in order to perform
+ *                 this check yourself, but be aware that this function can
+ *                 be computationally expensive on some key types.
  *
  * \param conf     SSL configuration
  * \param own_cert own public certificate chain
@@ -2129,7 +2164,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  * \param psk      The identifier of the key slot holding the PSK.
  *                 Until \p conf is destroyed or this function is successfully
  *                 called again, the key slot \p psk must be populated with a
- *                 key of type #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy
+ *                 key of type PSA_ALG_CATEGORY_KEY_DERIVATION whose policy
  *                 allows its use for the key derivation algorithm applied
  *                 in the handshake.
  * \param psk_identity      The pointer to the pre-shared key identity.
@@ -2144,7 +2179,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
  */
 int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
-                                 psa_key_slot_t psk,
+                                 psa_key_handle_t psk,
                                  const unsigned char *psk_identity,
                                  size_t psk_identity_len );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -2176,7 +2211,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
  * \param psk      The identifier of the key slot holding the PSK.
  *                 For the duration of the current handshake, the key slot
  *                 must be populated with a key of type
- *                 #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy allows its
+ *                 PSA_ALG_CATEGORY_KEY_DERIVATION whose policy allows its
  *                 use for the key derivation algorithm
  *                 applied in the handshake.
   *
@@ -2184,7 +2219,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
  * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
  */
 int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
-                                   psa_key_slot_t psk );
+                                   psa_key_handle_t psk );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
@@ -2964,18 +2999,34 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
- * \brief          Return the peer certificate from the current connection
+ * \brief          Return the peer certificate from the current connection.
  *
- *                 Note: Can be NULL in case no certificate was sent during
- *                 the handshake. Different calls for the same connection can
- *                 return the same or different pointers for the same
- *                 certificate and even a different certificate altogether.
- *                 The peer cert CAN change in a single connection if
- *                 renegotiation is performed.
+ * \param  ssl     The SSL context to use. This must be initialized and setup.
  *
- * \param ssl      SSL context
+ * \return         The current peer certificate, if available.
+ *                 The returned certificate is owned by the SSL context and
+ *                 is valid only until the next call to the SSL API.
+ * \return         \c NULL if no peer certificate is available. This might
+ *                 be because the chosen ciphersuite doesn't use CRTs
+ *                 (PSK-based ciphersuites, for example), or because
+ *                 #MBEDTLS_SSL_KEEP_PEER_CERTIFICATE has been disabled,
+ *                 allowing the stack to free the peer's CRT to save memory.
  *
- * \return         the current peer certificate
+ * \note           For one-time inspection of the peer's certificate during
+ *                 the handshake, consider registering an X.509 CRT verification
+ *                 callback through mbedtls_ssl_conf_verify() instead of calling
+ *                 this function. Using mbedtls_ssl_conf_verify() also comes at
+ *                 the benefit of allowing you to influence the verification
+ *                 process, for example by masking expected and tolerated
+ *                 verification failures.
+ *
+ * \warning        You must not use the pointer returned by this function
+ *                 after any further call to the SSL API, including
+ *                 mbedtls_ssl_read() and mbedtls_ssl_write(); this is
+ *                 because the pointer might change during renegotiation,
+ *                 which happens transparently to the user.
+ *                 If you want to use the certificate across API calls,
+ *                 you must make a copy.
  */
 const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
@@ -3292,7 +3343,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  *                 mbedtls_ssl_config_defaults() or mbedtls_ssl_config_free().
  *
  * \note           You need to call mbedtls_ssl_config_defaults() unless you
- *                 manually set all of the relevent fields yourself.
+ *                 manually set all of the relevant fields yourself.
  *
  * \param conf     SSL configuration context
  */

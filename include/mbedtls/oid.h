@@ -43,12 +43,30 @@
 #include "md.h"
 #endif
 
-#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
-#include "x509.h"
-#endif
-
 #define MBEDTLS_ERR_OID_NOT_FOUND                         -0x002E  /**< OID is not found. */
 #define MBEDTLS_ERR_OID_BUF_TOO_SMALL                     -0x000B  /**< output buffer is too small */
+
+/* This is for the benefit of X.509, but defined here in order to avoid
+ * having a "backwards" include of x.509.h here */
+/*
+ * X.509 extension types (internal, arbitrary values for bitsets)
+ */
+#define MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER    (1 << 0)
+#define MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
+#define MBEDTLS_OID_X509_EXT_KEY_USAGE                   (1 << 2)
+#define MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES        (1 << 3)
+#define MBEDTLS_OID_X509_EXT_POLICY_MAPPINGS             (1 << 4)
+#define MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME            (1 << 5)
+#define MBEDTLS_OID_X509_EXT_ISSUER_ALT_NAME             (1 << 6)
+#define MBEDTLS_OID_X509_EXT_SUBJECT_DIRECTORY_ATTRS     (1 << 7)
+#define MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS           (1 << 8)
+#define MBEDTLS_OID_X509_EXT_NAME_CONSTRAINTS            (1 << 9)
+#define MBEDTLS_OID_X509_EXT_POLICY_CONSTRAINTS          (1 << 10)
+#define MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE          (1 << 11)
+#define MBEDTLS_OID_X509_EXT_CRL_DISTRIBUTION_POINTS     (1 << 12)
+#define MBEDTLS_OID_X509_EXT_INIHIBIT_ANYPOLICY          (1 << 13)
+#define MBEDTLS_OID_X509_EXT_FRESHEST_CRL                (1 << 14)
+#define MBEDTLS_OID_X509_EXT_NS_CERT_TYPE                (1 << 16)
 
 /*
  * Top level OID tuples
@@ -148,6 +166,11 @@
 #define MBEDTLS_OID_CRL_DISTRIBUTION_POINTS     MBEDTLS_OID_ID_CE "\x1F" /**< id-ce-cRLDistributionPoints OBJECT IDENTIFIER ::=  { id-ce 31 } */
 #define MBEDTLS_OID_INIHIBIT_ANYPOLICY          MBEDTLS_OID_ID_CE "\x36" /**< id-ce-inhibitAnyPolicy OBJECT IDENTIFIER ::=  { id-ce 54 } */
 #define MBEDTLS_OID_FRESHEST_CRL                MBEDTLS_OID_ID_CE "\x2E" /**< id-ce-freshestCRL OBJECT IDENTIFIER ::=  { id-ce 46 } */
+
+/*
+ * Certificate policies
+ */
+#define MBEDTLS_OID_ANY_POLICY              MBEDTLS_OID_CERTIFICATE_POLICIES "\x00" /**< anyPolicy OBJECT IDENTIFIER ::= { id-ce-certificatePolicies 0 } */
 
 /*
  * Netscape certificate extensions
@@ -424,7 +447,6 @@ typedef struct mbedtls_oid_descriptor_t
  */
 int mbedtls_oid_get_numeric_string( char *buf, size_t size, const mbedtls_asn1_buf *oid );
 
-#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
 /**
  * \brief          Translate an X.509 extension OID into local values
  *
@@ -434,7 +456,6 @@ int mbedtls_oid_get_numeric_string( char *buf, size_t size, const mbedtls_asn1_b
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_x509_ext_type( const mbedtls_asn1_buf *oid, int *ext_type );
-#endif
 
 /**
  * \brief          Translate an X.509 attribute type OID into the short name
@@ -559,6 +580,16 @@ int mbedtls_oid_get_md_hmac( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_extended_key_usage( const mbedtls_asn1_buf *oid, const char **desc );
+
+/**
+ * \brief          Translate certificate policies OID into description
+ *
+ * \param oid      OID to use
+ * \param desc     place to store string pointer
+ *
+ * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_certificate_policies( const mbedtls_asn1_buf *oid, const char **desc );
 
 /**
  * \brief          Translate md_type into hash algorithm OID

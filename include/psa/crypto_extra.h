@@ -30,12 +30,37 @@
 #ifndef PSA_CRYPTO_EXTRA_H
 #define PSA_CRYPTO_EXTRA_H
 
+#include "mbedtls/platform_util.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* UID for secure storage seed */
 #define PSA_CRYPTO_ITS_RANDOM_SEED_UID 0xFFFFFF52
+
+/*
+ * Deprecated PSA Crypto error code definitions
+ */
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#define PSA_ERROR_UNKNOWN_ERROR \
+    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_GENERIC_ERROR )
+#endif
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#define PSA_ERROR_OCCUPIED_SLOT \
+    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_ALREADY_EXISTS )
+#endif
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#define PSA_ERROR_EMPTY_SLOT \
+    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_DOES_NOT_EXIST )
+#endif
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#define PSA_ERROR_INSUFFICIENT_CAPACITY \
+    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_INSUFFICIENT_DATA )
+#endif
 
 /**
  * \brief Library deinitialization.
@@ -89,10 +114,9 @@ void mbedtls_psa_crypto_free( void );
  * This is an Mbed TLS extension.
  *
  * \note This function is only available on the following platforms:
- * * If the compile-time options MBEDTLS_ENTROPY_NV_SEED and
- *   MBEDTLS_PSA_HAS_ITS_IO are both enabled. Note that you
- *   must provide compatible implementations of mbedtls_nv_seed_read
- *   and mbedtls_nv_seed_write.
+ * * If the compile-time option MBEDTLS_PSA_INJECT_ENTROPY is enabled.
+ *   Note that you must provide compatible implementations of
+ *   mbedtls_nv_seed_read and mbedtls_nv_seed_write.
  * * In a client-server integration of PSA Cryptography, on the client side,
  *   if the server supports this feature.
  * \param[in] seed          Buffer containing the seed value to inject.
@@ -111,7 +135,6 @@ void mbedtls_psa_crypto_free( void );
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p seed_size is out of range.
  * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval `PSA_ITS_ERROR_XXX`
  *         There was a failure reading or writing from storage.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The library has already been initialized. It is no longer

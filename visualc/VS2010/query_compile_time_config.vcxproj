@@ -19,7 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\programs\pkey\dh_server.c" />
+    <ClCompile Include="..\..\programs\test\query_compile_time_config.c" />
+    <ClCompile Include="..\..\programs\test\query_config.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="mbedTLS.vcxproj">
@@ -28,9 +29,9 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8D91B804-E2CE-142D-8E06-FBB037ED1F65}</ProjectGuid>
+    <ProjectGuid>{D6F58AF2-9D80-562A-E2B0-F743281522B9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>dh_server</RootNamespace>
+    <RootNamespace>query_compile_time_config</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

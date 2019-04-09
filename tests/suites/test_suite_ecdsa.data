@@ -1,3 +1,6 @@
+ECDSA Parameter validation
+ecdsa_invalid_param:
+
 ECDSA primitive random #1
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 ecdsa_prim_random:MBEDTLS_ECP_DP_SECP192R1

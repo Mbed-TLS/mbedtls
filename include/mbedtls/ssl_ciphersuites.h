@@ -24,6 +24,12 @@
 #ifndef MBEDTLS_SSL_CIPHERSUITES_H
 #define MBEDTLS_SSL_CIPHERSUITES_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include "pk.h"
 #include "cipher.h"
 #include "md.h"
@@ -468,6 +474,24 @@ static inline int mbedtls_ssl_ciphersuite_cert_req_allowed( const mbedtls_ssl_ci
     switch( info->key_exchange )
     {
         case MBEDTLS_KEY_EXCHANGE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
+            return( 1 );
+
+        default:
+            return( 0 );
+    }
+}
+
+static inline int mbedtls_ssl_ciphersuite_uses_srv_cert( const mbedtls_ssl_ciphersuite_t *info )
+{
+    switch( info->key_exchange )
+    {
+        case MBEDTLS_KEY_EXCHANGE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:

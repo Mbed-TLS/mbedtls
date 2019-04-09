@@ -1,3 +1,9 @@
+ARIA - Valid parameters
+aria_valid_param:
+
+ARIA - Invalid parameters
+aria_invalid_param:
+
 ARIA-128-ECB Encrypt - RFC 5794
 aria_encrypt_ecb:"000102030405060708090a0b0c0d0e0f":"00112233445566778899aabbccddeeff":"d718fbd6ab644c739da95f3be6451778":0
 

@@ -40,10 +40,6 @@ extern "C" {
  */
 /**@{*/
 
-/** \brief A hardware-specific structure for a entropy providing hardware
- */
-typedef struct psa_drv_entropy_context_s psa_drv_entropy_context_t;
-
 /** \brief Initialize an entropy driver
  *
  *
@@ -53,7 +49,7 @@ typedef struct psa_drv_entropy_context_s psa_drv_entropy_context_t;
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_entropy_init_t)(psa_drv_entropy_context_t *p_context);
+typedef psa_status_t (*psa_drv_entropy_init_t)(void *p_context);
 
 /** \brief Get a specified number of bits from the entropy source
  *
@@ -81,7 +77,7 @@ typedef psa_status_t (*psa_drv_entropy_init_t)(psa_drv_entropy_context_t *p_cont
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_entropy_get_bits_t)(psa_drv_entropy_context_t *p_context,
+typedef psa_status_t (*psa_drv_entropy_get_bits_t)(void *p_context,
                                                    uint8_t *p_buffer,
                                                    uint32_t buffer_size,
                                                    uint32_t *p_received_entropy_bits);
@@ -96,11 +92,12 @@ typedef psa_status_t (*psa_drv_entropy_get_bits_t)(psa_drv_entropy_context_t *p_
  * If one of the functions is not implemented, it should be set to NULL.
  */
 typedef struct {
+    /** The driver-specific size of the entropy context */
+    const size_t                context_size;
     /** Function that performs initialization for the entropy source */
-    psa_drv_entropy_init_t *p_init;
-    /** Function that performs the get_bits operation for the entropy source
-    */
-    psa_drv_entropy_get_bits_t *p_get_bits;
+    psa_drv_entropy_init_t      p_init;
+    /** Function that performs the get_bits operation for the entropy source */
+    psa_drv_entropy_get_bits_t  p_get_bits;
 } psa_drv_entropy_t;
 /**@}*/
 

@@ -655,8 +655,10 @@ void sni_free( sni_entry *head )
         mbedtls_x509_crt_free( cur->ca );
         mbedtls_free( cur->ca );
 
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
         mbedtls_x509_crl_free( cur->crl );
         mbedtls_free( cur->crl );
+#endif /* MBEDTLS_X509_CRL_PARSE_C */
 
         next = cur->next;
         mbedtls_free( cur );
@@ -721,6 +723,7 @@ sni_entry *sni_parse( char *sni_string )
 
         if( strcmp( crl_file, "-" ) != 0 )
         {
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
             if( ( new->crl = mbedtls_calloc( 1, sizeof( mbedtls_x509_crl ) ) ) == NULL )
                 goto error;
 
@@ -728,6 +731,9 @@ sni_entry *sni_parse( char *sni_string )
 
             if( mbedtls_x509_crl_parse_file( new->crl, crl_file ) != 0 )
                 goto error;
+#else
+            goto error;
+#endif /* MBEDTLS_X509_CRL_PARSE_C */
         }
 
         if( strcmp( auth_str, "-" ) != 0 )

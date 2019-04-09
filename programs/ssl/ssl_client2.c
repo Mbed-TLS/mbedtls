@@ -536,6 +536,45 @@ int idle( mbedtls_net_context *fd,
     return( 0 );
 }
 
+/* Unhexify `hex` into `dst`. `dst` must have
+ * size at least `strlen( hex ) / 2`. */
+int unhexify( unsigned char const *hex, unsigned char *dst )
+{
+    unsigned char c;
+    size_t j;
+    size_t len = strlen( hex );
+
+    if( len % 2 != 0 )
+        return( -1 );
+
+    for( j = 0; j < len; j += 2 )
+    {
+        c = hex[j];
+        if( c >= '0' && c <= '9' )
+            c -= '0';
+        else if( c >= 'a' && c <= 'f' )
+            c -= 'a' - 10;
+        else if( c >= 'A' && c <= 'F' )
+            c -= 'A' - 10;
+        else
+            return( -1 );
+        dst[ j / 2 ] = c << 4;
+
+        c = hex[j + 1];
+        if( c >= '0' && c <= '9' )
+            c -= '0';
+        else if( c >= 'a' && c <= 'f' )
+            c -= 'a' - 10;
+        else if( c >= 'A' && c <= 'F' )
+            c -= 'A' - 10;
+        else
+            return( -1 );
+        dst[ j / 2 ] |= c;
+    }
+
+    return( 0 );
+}
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, tail_len, i, written, frags, retry_left;
@@ -1076,46 +1115,17 @@ int main( int argc, char *argv[] )
      */
     if( strlen( opt.psk ) )
     {
-        unsigned char c;
-        size_t j;
-
-        if( strlen( opt.psk ) % 2 != 0 )
+        psk_len = strlen( opt.psk ) / 2;
+        if( psk_len > sizeof( psk ) )
         {
-            mbedtls_printf( "pre-shared key not valid hex\n" );
+            mbedtls_printf( "pre-shared key too long\n" );
             goto exit;
         }
 
-        psk_len = strlen( opt.psk ) / 2;
-
-        for( j = 0; j < strlen( opt.psk ); j += 2 )
+        if( unhexify( opt.psk, psk ) != 0 )
         {
-            c = opt.psk[j];
-            if( c >= '0' && c <= '9' )
-                c -= '0';
-            else if( c >= 'a' && c <= 'f' )
-                c -= 'a' - 10;
-            else if( c >= 'A' && c <= 'F' )
-                c -= 'A' - 10;
-            else
-            {
-                mbedtls_printf( "pre-shared key not valid hex\n" );
-                goto exit;
-            }
-            psk[ j / 2 ] = c << 4;
-
-            c = opt.psk[j + 1];
-            if( c >= '0' && c <= '9' )
-                c -= '0';
-            else if( c >= 'a' && c <= 'f' )
-                c -= 'a' - 10;
-            else if( c >= 'A' && c <= 'F' )
-                c -= 'A' - 10;
-            else
-            {
-                mbedtls_printf( "pre-shared key not valid hex\n" );
-                goto exit;
-            }
-            psk[ j / 2 ] |= c;
+            mbedtls_printf( "pre-shared key not valid hex\n" );
+            goto exit;
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */

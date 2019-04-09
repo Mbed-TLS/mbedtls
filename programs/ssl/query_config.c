@@ -1202,6 +1202,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_ALL_ALERT_MESSAGES */
 
+#if defined(MBEDTLS_SSL_CID)
+    if( strcmp( "MBEDTLS_SSL_CID", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CID );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CID */
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if( strcmp( "MBEDTLS_SSL_ASYNC_PRIVATE", config ) == 0 )
     {
@@ -2417,6 +2425,22 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_SSL_IN_CONTENT_LEN */
+
+#if defined(MBEDTLS_SSL_CID_IN_LEN_MAX)
+    if( strcmp( "MBEDTLS_SSL_CID_IN_LEN_MAX", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CID_IN_LEN_MAX );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CID_IN_LEN_MAX */
+
+#if defined(MBEDTLS_SSL_CID_OUT_LEN_MAX)
+    if( strcmp( "MBEDTLS_SSL_CID_OUT_LEN_MAX", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CID_OUT_LEN_MAX );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CID_OUT_LEN_MAX */
 
 #if defined(MBEDTLS_SSL_OUT_CONTENT_LEN)
     if( strcmp( "MBEDTLS_SSL_OUT_CONTENT_LEN", config ) == 0 )

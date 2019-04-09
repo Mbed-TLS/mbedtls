@@ -1112,6 +1112,103 @@ run_test    "Truncated HMAC, DTLS: client enabled, server enabled" \
             -S "dumping 'expected mac' (20 bytes)" \
             -s "dumping 'expected mac' (10 bytes)"
 
+# Tests for DTLS Connection ID extension
+
+# TODO
+# So far, the CID API isn't implemented, so we can't
+# grep for output witnessing its use. This needs to be
+# changed once the CID extension is implemented.
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client enabled, server disabled" \
+            "$P_SRV dtls=1cid=0" \
+            "$P_CLI dtls=1 cid=1 cid_val=deadbeef" \
+             0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client disabled, server enabled" \
+            "$P_SRV dtls=1 cid=1 cid_val=deadbeef" \
+            "$P_CLI dtls=1 cid=0" \
+             0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Client+Server CID nonempty" \
+            "$P_SRV dtls=1 cid=1 cid_val=dead" \
+            "$P_CLI dtls=1 cid=1 cid_val=beef" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Client CID empty" \
+            "$P_SRV dtls=1 cid=1 cid_val=deadbeef" \
+            "$P_CLI dtls=1 cid=1" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Server CID empty" \
+            "$P_SRV dtls=1 cid=1" \
+            "$P_CLI dtls=1 cid=1 cid_val=deadbeef" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Client+Server CID empty" \
+            "$P_SRV dtls=1 cid=1" \
+            "$P_CLI dtls=1 cid=1" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Client+Server CID nonempty, AES-128-CCM-8" \
+            "$P_SRV dtls=1 cid=1 cid_val=dead" \
+            "$P_CLI dtls=1 cid=1 cid_val=beef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Client CID empty, AES-128-CCM-8" \
+            "$P_SRV dtls=1 cid=1 cid_val=deadbeef" \
+            "$P_CLI dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Server CID empty, AES-128-CCM-8" \
+            "$P_SRV dtls=1 cid=1" \
+            "$P_CLI dtls=1 cid=1 cid_val=deadbeef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Client+Server CID empty, AES-128-CCM-8" \
+            "$P_SRV dtls=1 cid=1" \
+            "$P_CLI dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Client+Server CID nonempty, AES-128-CBC" \
+            "$P_SRV dtls=1 cid=1 cid_val=dead" \
+            "$P_CLI dtls=1 cid=1 cid_val=beef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Client CID empty, AES-128-CBC" \
+            "$P_SRV dtls=1 cid=1 cid_val=deadbeef" \
+            "$P_CLI dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Server CID empty, AES-128-CBC" \
+            "$P_SRV dtls=1 cid=1" \
+            "$P_CLI dtls=1 cid=1 cid_val=deadbeef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID
+run_test    "Connection ID: Client+Server enabled, Client+Server CID empty, AES-128-CBC" \
+            "$P_SRV dtls=1 cid=1" \
+            "$P_CLI dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            0
+
+requires_config_enabled MBEDTLS_SSL_CID MBEDTLS_SSL_RENEGOTIATION
+run_test    "Connection ID: Client+Server enabled, renegotiate" \
+            "$P_SRV dtls=1 cid=1 cid_val=dead renegotiation=1" \
+            "$P_CLI dtls=1 cid=1 cid_val=beef renegotiation=1 renegotiate=1" \
+            0
+
 # Tests for Encrypt-then-MAC extension
 
 run_test    "Encrypt then MAC: default" \

@@ -4,6 +4,7 @@
 #
 # Usage: ./generate_errors.pl or scripts/generate_errors.pl without arguments,
 # or generate_errors.pl include_dir data_dir error_file include_crypto
+# Include crypto can be either 0 (don't include) or 1 (include). On by default.
 
 use strict;
 
@@ -16,20 +17,21 @@ if( @ARGV ) {
 
     -d $include_dir or die "No such directory: $include_dir\n";
     -d $data_dir or die "No such directory: $data_dir\n";
-    if( $include_crypto ) {
-        -d $crypto_dir or die "Crypto submodule not present\n";
-    }
 } else {
     $include_dir = 'include/mbedtls';
     $data_dir = 'scripts/data_files';
     $error_file = 'library/error.c';
     $include_crypto = 1;
-    -d $crypto_dir or die "Crypto submodule not present\n";
+
     unless( -d $include_dir && -d $data_dir ) {
         chdir '..' or die;
         -d $include_dir && -d $data_dir
             or die "Without arguments, must be run from root or scripts\n"
     }
+}
+
+if( $include_crypto ) {
+    -d $crypto_include_dir or die "Crypto submodule not present\n";
 }
 
 my $error_format_file = $data_dir.'/error.fmt';
@@ -52,14 +54,31 @@ close(FORMAT_FILE);
 
 $/ = $line_separator;
 
-my @files = <$include_dir/*.h>;
+my %files;
 
 if( $include_crypto ) {
-    @files = (<$include_dir/*.h>,<$crypto_dir/$include_dir/*.h>);
+    my @crypto_headers = <$crypto_dir/$include_dir/*.h>;
+    my @mbedtls_files = <$include_dir/*.h>;
+    $files{$_}++ for (@crypto_headers);
+
+    foreach my $file (@mbedtls_files) {
+        my $stripped_filename = substr($file, rindex($file,"/")+1, length($file)-rindex($file,"/")-1);
+        my $crypto_counterpart = "$crypto_dir/$include_dir/$stripped_filename";
+        if ( exists $files{$crypto_counterpart} ){
+          next;
+        }
+        else{
+          push(@{$files{$file}});
+        }
+    }
+}
+else{
+    my @headers = <$include_dir/*.h>;
+    $files{$_}++ for (@headers);
 }
 
 my @matches;
-foreach my $file (@files) {
+foreach my $file (sort keys %files) {
     open(FILE, "$file");
     my @grep_res = grep(/^\s*#define\s+MBEDTLS_ERR_\w+\s+\-0x[0-9A-Fa-f]+/, <FILE>);
     push(@matches, @grep_res);
@@ -84,13 +103,7 @@ foreach my $line (@matches)
     my ($description) = $line =~ /\/\*\*< (.*?)\.? \*\//;
 
     if( $error_codes_seen{$error_code}++ ) {
-        if( $include_crypto ) {
-            print "Duplicated error code: $error_code ($error_name)\n";
-            next;
-        }
-        else {
-             die "Duplicated error code: $error_code ($error_name)\n" ;
-        }
+        die "Duplicated error code: $error_code ($error_name)\n";
     }
 
     $description =~ s/\\/\\\\/g;

@@ -24,36 +24,15 @@ import argparse
 import logging
 import tempfile
 import fnmatch
+from types import SimpleNamespace
 
 import xml.etree.ElementTree as ET
-
-
-class RepoVersion(object):
-
-    def __init__(self, version, repository, revision,
-                 crypto_repository, crypto_revision):
-        """Class containing details for a particular revision.
-
-        version: either 'old' or 'new'
-        repository: repository for git revision
-        revision: git revision for comparison
-        crypto_repository: repository for git revision of crypto submodule
-        crypto_revision: git revision of crypto submodule
-        """
-        self.version = version
-        self.repository = repository
-        self.revision = revision
-        self.crypto_repository = crypto_repository
-        self.crypto_revision = crypto_revision
-        self.abi_dumps = {}
-        self.modules = {}
 
 
 class AbiChecker(object):
     """API and ABI checker."""
 
-    def __init__(self, verbose, old_version, new_version, report_dir,
-                 keep_all_reports, brief, skip_file=None):
+    def __init__(self, old_version, new_version, configuration):
         """Instantiate the API/ABI checker.
 
         old_version: RepoVersion containing details to compare against
@@ -65,16 +44,16 @@ class AbiChecker(object):
         """
         self.repo_path = "."
         self.log = None
-        self.verbose = verbose
+        self.verbose = configuration.verbose
         self._setup_logger()
-        self.report_dir = os.path.abspath(report_dir)
-        self.keep_all_reports = keep_all_reports
+        self.report_dir = os.path.abspath(configuration.report_dir)
+        self.keep_all_reports = configuration.keep_all_reports
         self.can_remove_report_dir = not (os.path.isdir(self.report_dir) or
-                                          keep_all_reports)
+                                          self.keep_all_reports)
         self.old_version = old_version
         self.new_version = new_version
-        self.skip_file = skip_file
-        self.brief = brief
+        self.skip_file = configuration.skip_file
+        self.brief = configuration.brief
         self.git_command = "git"
         self.make_command = "make"
 
@@ -418,18 +397,32 @@ def run_main():
             help="output only the list of issues to stdout, instead of a full report",
         )
         abi_args = parser.parse_args()
-        old_version = RepoVersion(
-            "old", abi_args.old_repo, abi_args.old_rev,
-            abi_args.old_crypto_repo, abi_args.old_crypto_rev
+        old_version = SimpleNamespace(
+            version="old",
+            repository=abi_args.old_repo,
+            revision=abi_args.old_rev,
+            crypto_repository=abi_args.old_crypto_repo,
+            crypto_revision=abi_args.old_crypto_rev,
+            abi_dumps={},
+            modules={}
         )
-        new_version = RepoVersion(
-            "new", abi_args.new_repo, abi_args.new_rev,
-            abi_args.new_crypto_repo, abi_args.new_crypto_rev
+        new_version = SimpleNamespace(
+            version="new",
+            repository=abi_args.new_repo,
+            revision=abi_args.new_rev,
+            crypto_repository=abi_args.new_crypto_repo,
+            crypto_revision=abi_args.new_crypto_rev,
+            abi_dumps={},
+            modules={}
         )
-        abi_check = AbiChecker(
-            abi_args.verbose, old_version, new_version, abi_args.report_dir,
-            abi_args.keep_all_reports, abi_args.brief, abi_args.skip_file
+        configuration = SimpleNamespace(
+            verbose=abi_args.verbose,
+            report_dir=abi_args.report_dir,
+            keep_all_reports=abi_args.keep_all_reports,
+            brief=abi_args.brief,
+            skip_file=abi_args.skip_file
         )
+        abi_check = AbiChecker(old_version, new_version, configuration)
         return_code = abi_check.check_for_abi_changes()
         sys.exit(return_code)
     except Exception: # pylint: disable=broad-except

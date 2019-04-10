@@ -52,7 +52,7 @@ const char mbedtls_test_ca_crt_ec[] = TEST_CA_CRT_EC;
 const size_t mbedtls_test_ca_crt_ec_len = sizeof( mbedtls_test_ca_crt_ec );
 
 /* This is generated from tests/data_files/test-ca2.crt.der using `xxd -i`. */
-const char mbedtls_test_ca_crt_ec_der[] = {
+const unsigned char mbedtls_test_ca_crt_ec_der[] = {
     0x30, 0x82, 0x02, 0x52, 0x30, 0x82, 0x01, 0xd7, 0xa0, 0x03, 0x02, 0x01,
     0x02, 0x02, 0x09, 0x00, 0xc1, 0x43, 0xe2, 0x7e, 0x62, 0x43, 0xcc, 0xe8,
     0x30, 0x0a, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x04, 0x03, 0x02,
@@ -125,7 +125,7 @@ const char mbedtls_test_ca_pwd_ec[] = "PolarSSLTest";
 const size_t mbedtls_test_ca_pwd_ec_len = sizeof( mbedtls_test_ca_pwd_ec ) - 1;
 
 /* This is generated from tests/data_files/test-ca2.key.der using `xxd -i`. */
-const char mbedtls_test_ca_key_ec_der[] = {
+const unsigned char mbedtls_test_ca_key_ec_der[] = {
     0x30, 0x81, 0xa4, 0x02, 0x01, 0x01, 0x04, 0x30, 0x83, 0xd9, 0x15, 0x0e,
     0xa0, 0x71, 0xf0, 0x57, 0x10, 0x33, 0xa3, 0x38, 0xb8, 0x86, 0xc1, 0xa6,
     0x11, 0x5d, 0x6d, 0xb4, 0x03, 0xe1, 0x29, 0x76, 0x45, 0xd7, 0x87, 0x6f,
@@ -164,7 +164,7 @@ const char mbedtls_test_srv_crt_ec[] =
 const size_t mbedtls_test_srv_crt_ec_len = sizeof( mbedtls_test_srv_crt_ec );
 
 /* This is generated from tests/data_files/server5.crt.der using `xxd -i`. */
-const char mbedtls_test_srv_crt_ec_der[] = {
+const unsigned char mbedtls_test_srv_crt_ec_der[] = {
     0x30, 0x82, 0x02, 0x1f, 0x30, 0x82, 0x01, 0xa5, 0xa0, 0x03, 0x02, 0x01,
     0x02, 0x02, 0x01, 0x09, 0x30, 0x0a, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce,
     0x3d, 0x04, 0x03, 0x02, 0x30, 0x3e, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03,
@@ -226,7 +226,7 @@ const char mbedtls_test_srv_key_ec[] =
 const size_t mbedtls_test_srv_key_ec_len = sizeof( mbedtls_test_srv_key_ec );
 
 /* This is generated from tests/data_files/server5.key.der using `xxd -i`. */
-const char mbedtls_test_srv_key_ec_der[] = {
+const unsigned char mbedtls_test_srv_key_ec_der[] = {
     0x30, 0x77, 0x02, 0x01, 0x01, 0x04, 0x20, 0xf1, 0x2a, 0x13, 0x20, 0x76,
     0x02, 0x70, 0xa8, 0x3c, 0xbf, 0xfd, 0x53, 0xf6, 0x03, 0x1e, 0xf7, 0x6a,
     0x5d, 0x86, 0xc8, 0xa2, 0x04, 0xf2, 0xc3, 0x0c, 0xa9, 0xeb, 0xf5, 0x1f,
@@ -262,7 +262,7 @@ const char mbedtls_test_cli_crt_ec[] =
 const size_t mbedtls_test_cli_crt_ec_len = sizeof( mbedtls_test_cli_crt_ec );
 
 /* This is generated from tests/data_files/cli2.crt.der using `xxd -i`. */
-const char mbedtls_test_cli_crt_ec_der[] = {
+const unsigned char mbedtls_test_cli_crt_ec_der[] = {
     0x30, 0x82, 0x02, 0x2c, 0x30, 0x82, 0x01, 0xb2, 0xa0, 0x03, 0x02, 0x01,
     0x02, 0x02, 0x01, 0x0d, 0x30, 0x0a, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce,
     0x3d, 0x04, 0x03, 0x02, 0x30, 0x3e, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03,
@@ -325,7 +325,7 @@ const char mbedtls_test_cli_key_ec[] =
 const size_t mbedtls_test_cli_key_ec_len = sizeof( mbedtls_test_cli_key_ec );
 
 /* This is generated from tests/data_files/cli2.key.der using `xxd -i`. */
-const char mbedtls_test_cli_key_ec_der[] = {
+const unsigned char mbedtls_test_cli_key_ec_der[] = {
     0x30, 0x77, 0x02, 0x01, 0x01, 0x04, 0x20, 0xf6, 0xf7, 0x86, 0x64, 0xf1,
     0x67, 0x7f, 0xe6, 0x64, 0x8d, 0xef, 0xca, 0x4e, 0xe9, 0xdd, 0x4d, 0xf0,
     0x05, 0xff, 0x96, 0x22, 0x8a, 0x7a, 0x84, 0x38, 0x64, 0x17, 0x32, 0x61,
@@ -443,11 +443,11 @@ const size_t mbedtls_test_cli_key_ec_der_len =
       0x05, 0x5f, 0x45, 0x45, 0xfd, 0xd9, 0x04, 0xc1, 0x62 }
 
 static const char mbedtls_test_ca_crt_rsa_sha256[] = TEST_CA_CRT_RSA_SHA256;
-static const char mbedtls_test_ca_crt_rsa_sha256_der[] =
+static const unsigned char mbedtls_test_ca_crt_rsa_sha256_der[] =
     TEST_CA_CRT_RSA_SHA256_DER;
 const char   mbedtls_test_ca_crt_rsa[]   = TEST_CA_CRT_RSA_SHA256;
 const size_t mbedtls_test_ca_crt_rsa_len = sizeof( mbedtls_test_ca_crt_rsa );
-const char mbedtls_test_ca_crt_rsa_der[] = TEST_CA_CRT_RSA_SHA256_DER;
+const unsigned char mbedtls_test_ca_crt_rsa_der[] = TEST_CA_CRT_RSA_SHA256_DER;
 const size_t mbedtls_test_ca_crt_rsa_der_len =
     sizeof( mbedtls_test_ca_crt_rsa_der );
 #define TEST_CA_CRT_RSA_SOME
@@ -552,12 +552,12 @@ const size_t mbedtls_test_ca_crt_rsa_der_len =
        0x09, 0xa1, 0xda, 0x6e, 0x30, 0xcb, 0x53, 0x4a, 0x90 }
 
 static const char mbedtls_test_ca_crt_rsa_sha1[] = TEST_CA_CRT_RSA_SHA1;
-static const char mbedtls_test_ca_crt_rsa_sha1_der[] = TEST_CA_CRT_RSA_SHA1_DER;
+static const unsigned char mbedtls_test_ca_crt_rsa_sha1_der[] = TEST_CA_CRT_RSA_SHA1_DER;
 
 #if !defined (TEST_CA_CRT_RSA_SOME)
 const char   mbedtls_test_ca_crt_rsa[]   = TEST_CA_CRT_RSA_SHA1;
 const size_t mbedtls_test_ca_crt_rsa_len = sizeof( mbedtls_test_ca_crt_rsa );
-const char   mbedtls_test_ca_crt_rsa_der[] = TEST_CA_CRT_RSA_SHA1_DER;
+const unsigned char mbedtls_test_ca_crt_rsa_der[] = TEST_CA_CRT_RSA_SHA1_DER;
 const size_t mbedtls_test_ca_crt_rsa_der_len =
     sizeof( mbedtls_test_ca_crt_rsa_der );
 #endif /* !TEST_CA_CRT_RSA_SOME */
@@ -660,7 +660,7 @@ const size_t mbedtls_test_ca_crt_rsa_der_len =
     0x7b, 0x82, 0xb5, 0x71, 0x50, 0x0d, 0x44, 0xf3, 0x76, 0xa3, 0xd6 }
 
 const char mbedtls_test_srv_crt_rsa[]     =  TEST_SRV_CRT_RSA_SHA256;
-const char mbedtls_test_srv_crt_rsa_der[] =  TEST_SRV_CRT_RSA_SHA256_DER;
+const unsigned char mbedtls_test_srv_crt_rsa_der[] =  TEST_SRV_CRT_RSA_SHA256_DER;
 const size_t mbedtls_test_srv_crt_rsa_len = sizeof( mbedtls_test_srv_crt_rsa );
 const size_t mbedtls_test_srv_crt_rsa_der_len =
     sizeof( mbedtls_test_srv_crt_rsa_der );
@@ -765,7 +765,7 @@ const size_t mbedtls_test_srv_crt_rsa_der_len =
 
 #if !defined(TEST_SRV_CRT_RSA_SOME)
 const char mbedtls_test_srv_crt_rsa[]     =  TEST_SRV_CRT_RSA_SHA1;
-const char mbedtls_test_srv_crt_rsa_der[] =  TEST_SRV_CRT_RSA_SHA1_DER;
+const unsigned char mbedtls_test_srv_crt_rsa_der[] =  TEST_SRV_CRT_RSA_SHA1_DER;
 const size_t mbedtls_test_srv_crt_rsa_len = sizeof( mbedtls_test_srv_crt_rsa );
 const size_t mbedtls_test_srv_crt_rsa_der_len =
     sizeof( mbedtls_test_srv_crt_rsa_der );
@@ -811,7 +811,7 @@ const char mbedtls_test_ca_pwd_rsa[] = "PolarSSLTest";
 const size_t mbedtls_test_ca_pwd_rsa_len = sizeof( mbedtls_test_ca_pwd_rsa ) - 1;
 
 /* This was generated from test-ca.key.der using `xxd -i`. */
-const char mbedtls_test_ca_key_rsa_der[] = {
+const unsigned char mbedtls_test_ca_key_rsa_der[] = {
     0x30, 0x82, 0x04, 0xa4, 0x02, 0x01, 0x00, 0x02, 0x82, 0x01, 0x01, 0x00,
     0xc0, 0xdf, 0x37, 0xfc, 0x17, 0xbb, 0xe0, 0x96, 0x9d, 0x3f, 0x86, 0xde,
     0x96, 0x32, 0x7d, 0x44, 0xa5, 0x16, 0xa0, 0xcd, 0x21, 0xf1, 0x99, 0xd4,
@@ -949,7 +949,7 @@ const char mbedtls_test_srv_key_rsa[] =
 const size_t mbedtls_test_srv_key_rsa_len = sizeof( mbedtls_test_srv_key_rsa );
 
 /* This was generated from tests/data_files/server2.key.der using `xxd -i`. */
-const char mbedtls_test_srv_key_rsa_der[] = {
+const unsigned char mbedtls_test_srv_key_rsa_der[] = {
     0x30, 0x82, 0x04, 0xa4, 0x02, 0x01, 0x00, 0x02, 0x82, 0x01, 0x01, 0x00,
     0xc1, 0x4d, 0xa3, 0xdd, 0xe7, 0xcd, 0x1d, 0xd1, 0x04, 0xd7, 0x49, 0x72,
     0xb8, 0x99, 0xac, 0x0e, 0x78, 0xe4, 0x3a, 0x3c, 0x4a, 0xcf, 0x3a, 0x13,
@@ -1081,7 +1081,7 @@ const size_t mbedtls_test_cli_crt_rsa_len = sizeof( mbedtls_test_cli_crt_rsa );
 
 /* This was generated from tests/data_files/cli-rsa-sha256.crt.der
    using `xxd -i.` */
-const char mbedtls_test_cli_crt_rsa_der[] = {
+const unsigned char mbedtls_test_cli_crt_rsa_der[] = {
     0x30, 0x82, 0x03, 0x3f, 0x30, 0x82, 0x02, 0x27, 0xa0, 0x03, 0x02, 0x01,
     0x02, 0x02, 0x01, 0x04, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86,
     0xf7, 0x0d, 0x01, 0x01, 0x0b, 0x05, 0x00, 0x30, 0x3b, 0x31, 0x0b, 0x30,
@@ -1189,7 +1189,7 @@ const char mbedtls_test_cli_key_rsa[] =
 const size_t mbedtls_test_cli_key_rsa_len = sizeof( mbedtls_test_cli_key_rsa );
 
 /* This was generated from tests/data_files/cli-rsa.key.der using `xxd -i`. */
-const char mbedtls_test_cli_key_rsa_der[] = {
+const unsigned char mbedtls_test_cli_key_rsa_der[] = {
     0x30, 0x82, 0x04, 0xa4, 0x02, 0x01, 0x00, 0x02, 0x82, 0x01, 0x01, 0x00,
     0xc8, 0x74, 0xc4, 0xcc, 0xb9, 0xf9, 0xb5, 0x79, 0xe9, 0x45, 0xd9, 0x14,
     0x60, 0xb0, 0x7d, 0xbb, 0x93, 0xf2, 0x6b, 0x1e, 0x9f, 0x33, 0xad, 0x0d,
@@ -1339,7 +1339,7 @@ const size_t mbedtls_test_cas_len[] = {
 };
 
 /* List of all available CA certificates in DER format */
-const char * mbedtls_test_cas_der[] = {
+const unsigned char * mbedtls_test_cas_der[] = {
 #if defined(TEST_CA_CRT_RSA_SHA1)
     mbedtls_test_ca_crt_rsa_sha1_der,
 #endif
@@ -1382,13 +1382,13 @@ const size_t mbedtls_test_srv_key_len = sizeof( mbedtls_test_srv_key_rsa );
 const size_t mbedtls_test_cli_crt_len = sizeof( mbedtls_test_cli_crt_rsa );
 const size_t mbedtls_test_cli_key_len = sizeof( mbedtls_test_cli_key_rsa );
 #else /* MBEDTLS_PEM_PARSE_C */
-const char *mbedtls_test_ca_crt  = mbedtls_test_ca_crt_rsa_der;
-const char *mbedtls_test_ca_key  = mbedtls_test_ca_key_rsa_der;
+const unsigned char *mbedtls_test_ca_crt  = mbedtls_test_ca_crt_rsa_der;
+const unsigned char *mbedtls_test_ca_key  = mbedtls_test_ca_key_rsa_der;
 const char *mbedtls_test_ca_pwd  = NULL;
-const char *mbedtls_test_srv_crt = mbedtls_test_srv_crt_rsa_der;
-const char *mbedtls_test_srv_key = mbedtls_test_srv_key_rsa_der;
-const char *mbedtls_test_cli_crt = mbedtls_test_cli_crt_rsa_der;
-const char *mbedtls_test_cli_key = mbedtls_test_cli_key_rsa_der;
+const unsigned char *mbedtls_test_srv_crt = mbedtls_test_srv_crt_rsa_der;
+const unsigned char *mbedtls_test_srv_key = mbedtls_test_srv_key_rsa_der;
+const unsigned char *mbedtls_test_cli_crt = mbedtls_test_cli_crt_rsa_der;
+const unsigned char *mbedtls_test_cli_key = mbedtls_test_cli_key_rsa_der;
 const size_t mbedtls_test_ca_crt_len  = sizeof( mbedtls_test_ca_crt_rsa_der );
 const size_t mbedtls_test_ca_key_len  = sizeof( mbedtls_test_ca_key_rsa_der );
 const size_t mbedtls_test_ca_pwd_len  = 0;
@@ -1414,13 +1414,13 @@ const size_t mbedtls_test_srv_key_len = sizeof( mbedtls_test_srv_key_ec );
 const size_t mbedtls_test_cli_crt_len = sizeof( mbedtls_test_cli_crt_ec );
 const size_t mbedtls_test_cli_key_len = sizeof( mbedtls_test_cli_key_ec );
 #else /* MBEDTLS_PEM_PARSE_C */
-const char *mbedtls_test_ca_crt  = mbedtls_test_ca_crt_ec_der;
-const char *mbedtls_test_ca_key  = mbedtls_test_ca_key_ec_der;
+const unsigned char *mbedtls_test_ca_crt  = mbedtls_test_ca_crt_ec_der;
+const unsigned char *mbedtls_test_ca_key  = mbedtls_test_ca_key_ec_der;
 const char *mbedtls_test_ca_pwd  = NULL;
-const char *mbedtls_test_srv_crt = mbedtls_test_srv_crt_ec_der;
-const char *mbedtls_test_srv_key = mbedtls_test_srv_key_ec_der;
-const char *mbedtls_test_cli_crt = mbedtls_test_cli_crt_ec_der;
-const char *mbedtls_test_cli_key = mbedtls_test_cli_key_ec_der;
+const unsigned char *mbedtls_test_srv_crt = mbedtls_test_srv_crt_ec_der;
+const unsigned char *mbedtls_test_srv_key = mbedtls_test_srv_key_ec_der;
+const unsigned char *mbedtls_test_cli_crt = mbedtls_test_cli_crt_ec_der;
+const unsigned char *mbedtls_test_cli_key = mbedtls_test_cli_key_ec_der;
 const size_t mbedtls_test_ca_crt_len  = sizeof( mbedtls_test_ca_crt_ec_der );
 const size_t mbedtls_test_ca_key_len  = sizeof( mbedtls_test_ca_key_ec_der );
 const size_t mbedtls_test_ca_pwd_len  = 0;

@@ -33,6 +33,10 @@
 #define mbedtls_snprintf   snprintf
 #endif
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #include "psa_crypto_its.h"
 
 #include <limits.h>
@@ -209,7 +213,12 @@ exit:
     }
     if( status == PSA_SUCCESS )
     {
+#if defined(_WIN32)
+        if( MoveFileExA( PSA_ITS_STORAGE_TEMP, filename,
+                         MOVEFILE_REPLACE_EXISTING ) == 0 )
+#else
         if( rename( PSA_ITS_STORAGE_TEMP, filename ) != 0 )
+#endif
             status = PSA_ERROR_STORAGE_FAILURE;
     }
     remove( PSA_ITS_STORAGE_TEMP );

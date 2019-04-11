@@ -4701,6 +4701,43 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void raw_key_agreement( int alg_arg,
+                        int our_key_type_arg, data_t *our_key_data,
+                        data_t *peer_key_data,
+                        data_t *expected_output )
+{
+    psa_key_handle_t our_key = 0;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_type_t our_key_type = our_key_type_arg;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    unsigned char *output = NULL;
+    size_t output_length = ~0;
+
+    ASSERT_ALLOC( output, expected_output->len );
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    PSA_ASSERT( psa_allocate_key( &our_key ) );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
+    PSA_ASSERT( psa_set_key_policy( our_key, &policy ) );
+    PSA_ASSERT( psa_import_key( our_key, our_key_type,
+                                our_key_data->x,
+                                our_key_data->len ) );
+
+    PSA_ASSERT( psa_key_agreement_raw_shared_secret(
+                    alg, our_key,
+                    peer_key_data->x, peer_key_data->len,
+                    output, expected_output->len, &output_length ) );
+    ASSERT_COMPARE( output, output_length,
+                    expected_output->x, expected_output->len );
+
+exit:
+    mbedtls_free( output );
+    psa_destroy_key( our_key );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void key_agreement_capacity( int alg_arg,
                              int our_key_type_arg, data_t *our_key_data,
                              data_t *peer_key_data,

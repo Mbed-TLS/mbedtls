@@ -4764,6 +4764,13 @@ void key_agreement_capacity( int alg_arg,
     PSA_ASSERT( psa_key_agreement( &generator, PSA_KDF_STEP_SECRET,
                                    our_key,
                                    peer_key_data->x, peer_key_data->len ) );
+    if( PSA_ALG_IS_HKDF( PSA_ALG_KEY_AGREEMENT_GET_KDF( alg ) ) )
+    {
+        /* The test data is for info="" */
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_INFO,
+                                                    NULL, 0 ) );
+    }
 
     /* Test the advertized capacity. */
     PSA_ASSERT( psa_get_generator_capacity(
@@ -4818,6 +4825,13 @@ void key_agreement_output( int alg_arg,
     PSA_ASSERT( psa_key_agreement( &generator, PSA_KDF_STEP_SECRET,
                                    our_key,
                                    peer_key_data->x, peer_key_data->len ) );
+    if( PSA_ALG_IS_HKDF( PSA_ALG_KEY_AGREEMENT_GET_KDF( alg ) ) )
+    {
+        /* The test data is for info="" */
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_INFO,
+                                                    NULL, 0 ) );
+    }
 
     PSA_ASSERT( psa_generator_read( &generator,
                                     actual_output,

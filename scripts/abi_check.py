@@ -48,7 +48,7 @@ class AbiChecker(object):
         self._setup_logger()
         self.report_dir = os.path.abspath(configuration.report_dir)
         self.keep_all_reports = configuration.keep_all_reports
-        self.can_remove_report_dir = not (os.path.isdir(self.report_dir) or
+        self.can_remove_report_dir = not (os.path.exists(self.report_dir) or
                                           self.keep_all_reports)
         self.old_version = old_version
         self.new_version = new_version
@@ -397,6 +397,9 @@ def run_main():
             help="output only the list of issues to stdout, instead of a full report",
         )
         abi_args = parser.parse_args()
+        if os.path.isfile(abi_args.report_dir):
+            print("Error: {} is not a directory".format(abi_args.report_dir))
+            parser.exit()
         old_version = SimpleNamespace(
             version="old",
             repository=abi_args.old_repo,

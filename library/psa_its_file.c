@@ -62,6 +62,13 @@
 #define PSA_ITS_MAGIC_STRING "PSA\0ITS\0"
 #define PSA_ITS_MAGIC_LENGTH 8
 
+#if defined(_WIN32)
+#define rename_replace_existing( oldpath, newpath ) \
+    (!MoveFileExA( oldpath, newpath, MOVEFILE_REPLACE_EXISTING ))
+#else
+#define rename_replace_existing( oldpath, newpath ) rename( oldpath, newpath )
+#endif
+
 typedef struct
 {
     uint8_t magic[PSA_ITS_MAGIC_LENGTH];
@@ -213,12 +220,7 @@ exit:
     }
     if( status == PSA_SUCCESS )
     {
-#if defined(_WIN32)
-        if( MoveFileExA( PSA_ITS_STORAGE_TEMP, filename,
-                         MOVEFILE_REPLACE_EXISTING ) == 0 )
-#else
-        if( rename( PSA_ITS_STORAGE_TEMP, filename ) != 0 )
-#endif
+        if( rename_replace_existing( PSA_ITS_STORAGE_TEMP, filename ) != 0 )
             status = PSA_ERROR_STORAGE_FAILURE;
     }
     remove( PSA_ITS_STORAGE_TEMP );

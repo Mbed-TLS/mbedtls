@@ -84,22 +84,21 @@ static void append_with_curve(char **buffer, size_t buffer_size,
     append(buffer, buffer_size, required_size, ")", 1);
 }
 
-static void append_with_hash(char **buffer, size_t buffer_size,
-                             size_t *required_size,
-                             const char *string, size_t length,
-                             psa_algorithm_t hash_alg)
+typedef const char *(*psa_get_algorithm_name_func_ptr)(psa_algorithm_t alg);
+
+static void append_with_alg(char **buffer, size_t buffer_size,
+                            size_t *required_size,
+                            psa_get_algorithm_name_func_ptr get_name,
+                            psa_algorithm_t alg)
 {
-    const char *hash_name = psa_hash_algorithm_name(hash_alg);
-    append(buffer, buffer_size, required_size, string, length);
-    append(buffer, buffer_size, required_size, "(", 1);
-    if (hash_name != NULL) {
+    const char *name = get_name(alg);
+    if (name != NULL) {
         append(buffer, buffer_size, required_size,
-               hash_name, strlen(hash_name));
+               name, strlen(name));
     } else {
         append_integer(buffer, buffer_size, required_size,
-                       "0x%08lx", hash_alg);
+                       "0x%08lx", alg);
     }
-    append(buffer, buffer_size, required_size, ")", 1);
 }
 
 #include "psa_constant_names_generated.c"

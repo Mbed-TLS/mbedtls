@@ -63,7 +63,8 @@ when applicable.'''
         # Hard-coded value for unknown algorithms
         self.hash_algorithms = set(['0x010000fe'])
         self.mac_algorithms = set(['0x02ff00ff'])
-        self.kdf_algorithms = set(['0x300000ff', '0x310000ff'])
+        self.ka_algorithms = set(['0x30fc0000'])
+        self.kdf_algorithms = set(['0x200000ff'])
         # For AEAD algorithms, the only variability is over the tag length,
         # and this only applies to known algorithms, so don't test an
         # unknown algorithm.
@@ -89,6 +90,7 @@ when applicable.'''
 Call this after parsing all the inputs.'''
         self.arguments_for['hash_alg'] = sorted(self.hash_algorithms)
         self.arguments_for['mac_alg'] = sorted(self.mac_algorithms)
+        self.arguments_for['ka_alg'] = sorted(self.ka_algorithms)
         self.arguments_for['kdf_alg'] = sorted(self.kdf_algorithms)
         self.arguments_for['aead_alg'] = sorted(self.aead_algorithms)
         self.arguments_for['curve'] = sorted(self.ecc_curves)

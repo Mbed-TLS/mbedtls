@@ -4052,7 +4052,7 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
     psa_status_t status;
     status = psa_hmac_setup_internal( &hkdf->hmac,
                                       salt, salt_length,
-                                      PSA_ALG_HMAC_GET_HASH( hash_alg ) );
+                                      hash_alg );
     if( status != PSA_SUCCESS )
         return( status );
     status = psa_hash_update( &hkdf->hmac.hash_ctx, secret, secret_length );
@@ -4403,7 +4403,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
             {
                 status = psa_hmac_setup_internal( &hkdf->hmac,
                                                   NULL, 0,
-                                                  PSA_ALG_HMAC( hash_alg ) );
+                                                  hash_alg );
                 if( status != PSA_SUCCESS )
                     return( status );
                 hkdf->state = HKDF_STATE_STARTED;

@@ -4596,6 +4596,37 @@ exit:
 
 #define PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE MBEDTLS_ECP_MAX_BYTES
 
+static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
+                                                    psa_key_slot_t *private_key,
+                                                    const uint8_t *peer_key,
+                                                    size_t peer_key_length,
+                                                    uint8_t *shared_secret,
+                                                    size_t shared_secret_size,
+                                                    size_t *shared_secret_length )
+{
+    switch( alg )
+    {
+#if defined(MBEDTLS_ECDH_C)
+        case PSA_ALG_ECDH:
+            if( ! PSA_KEY_TYPE_IS_ECC_KEYPAIR( private_key->type ) )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            return( psa_key_agreement_ecdh( peer_key, peer_key_length,
+                                            private_key->data.ecp,
+                                            shared_secret, shared_secret_size,
+                                            shared_secret_length ) );
+            break;
+#endif /* MBEDTLS_ECDH_C */
+        default:
+            (void) private_key;
+            (void) peer_key;
+            (void) peer_key_length;
+            (void) shared_secret;
+            (void) shared_secret_size;
+            (void) shared_secret_length;
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+}
+
 /* Note that if this function fails, you must call psa_generator_abort()
  * to potentially free embedded data structures and wipe confidential data.
  */
@@ -4608,28 +4639,16 @@ static psa_status_t psa_key_agreement_internal( psa_crypto_generator_t *generato
     psa_status_t status;
     uint8_t shared_secret[PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE];
     size_t shared_secret_length = 0;
+    psa_algorithm_t ka_alg = PSA_ALG_KEY_AGREEMENT_GET_BASE( generator->alg );
 
     /* Step 1: run the secret agreement algorithm to generate the shared
      * secret. */
-    switch( PSA_ALG_KEY_AGREEMENT_GET_BASE( generator->alg ) )
-    {
-#if defined(MBEDTLS_ECDH_C)
-        case PSA_ALG_ECDH:
-            if( ! PSA_KEY_TYPE_IS_ECC_KEYPAIR( private_key->type ) )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-            status = psa_key_agreement_ecdh( peer_key, peer_key_length,
-                                             private_key->data.ecp,
+    status = psa_key_agreement_raw_internal( ka_alg,
+                                             private_key,
+                                             peer_key, peer_key_length,
                                              shared_secret,
                                              sizeof( shared_secret ),
                                              &shared_secret_length );
-            break;
-#endif /* MBEDTLS_ECDH_C */
-        default:
-            (void) private_key;
-            (void) peer_key;
-            (void) peer_key_length;
-            return( PSA_ERROR_NOT_SUPPORTED );
-    }
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -4665,6 +4684,47 @@ psa_status_t psa_key_agreement( psa_crypto_generator_t *generator,
     return( status );
 }
 
+psa_status_t psa_key_agreement_raw_shared_secret( psa_algorithm_t alg,
+                                                  psa_key_handle_t private_key,
+                                                  const uint8_t *peer_key,
+                                                  size_t peer_key_length,
+                                                  uint8_t *output,
+                                                  size_t output_size,
+                                                  size_t *output_length )
+{
+    psa_key_slot_t *slot;
+    psa_status_t status;
+
+    if( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) )
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+    status = psa_get_key_from_slot( private_key, &slot,
+                                    PSA_KEY_USAGE_DERIVE, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_key_agreement_raw_internal( alg, slot,
+                                             peer_key, peer_key_length,
+                                             output, output_size,
+                                             output_length );
+
+exit:
+    if( status != PSA_SUCCESS )
+    {
+        /* If an error happens and is not handled properly, the output
+         * may be used as a key to protect sensitive data. Arrange for such
+         * a key to be random, which is likely to result in decryption or
+         * verification errors. This is better than filling the buffer with
+         * some constant data such as zeros, which would result in the data
+         * being protected with a reproducible, easily knowable key.
+         */
+        psa_generate_random( output, output_size );
+        *output_length = output_size;
+    }
+    return( status );
+}
 
 
 /****************************************************************/

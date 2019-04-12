@@ -695,6 +695,24 @@ component_test_new_ecdh_context () {
     if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
 }
 
+component_test_everest () {
+    msg "build: Everest ECDH context (ASan build)" # ~ 6 min
+    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.pl set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f ECDH
+
+    msg "test: Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
+    # Exclude some symmetric ciphers that are redundant here to gain time.
+    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
+}
+
 component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384
@@ -1102,6 +1120,26 @@ component_test_m32_o1 () {
     make test
 }
 support_test_m32_o1 () {
+    support_test_m32_o0 "$@"
+}
+
+component_test_m32_everest () {
+    msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
+    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.pl set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -m32 -fsanitize=address'
+
+    msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: i386, Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f ECDH
+
+    msg "test: i386, Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
+    # Exclude some symmetric ciphers that are redundant here to gain time.
+    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
+}
+support_test_m32_everest () {
     support_test_m32_o0 "$@"
 }
 

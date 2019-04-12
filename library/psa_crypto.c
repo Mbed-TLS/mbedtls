@@ -4334,7 +4334,7 @@ static psa_status_t psa_key_derivation_setup_kdf(
             return( PSA_ERROR_NOT_SUPPORTED );
         if( ( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
               PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) ) &&
-            ! ( hash_alg == PSA_ALG_SHA_256 && hash_alg == PSA_ALG_SHA_384 ) )
+            ! ( hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384 ) )
         {
             return( PSA_ERROR_NOT_SUPPORTED );
         }

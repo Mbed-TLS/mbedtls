@@ -886,7 +886,7 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
 
 static void psa_abort_operations_using_key( psa_key_slot_t *slot )
 {
-    /*TODO*/
+    /*FIXME how to implement this?*/
     (void) slot;
 }
 
@@ -4484,7 +4484,7 @@ static psa_status_t psa_key_derivation_input_raw(
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
-        // TODO
+        // To do: implement this
         status = PSA_ERROR_NOT_SUPPORTED;
     }
     else
@@ -4527,7 +4527,6 @@ psa_status_t psa_key_derivation_input_key( psa_crypto_generator_t *generator,
                                     generator->alg );
     if( status != PSA_SUCCESS )
         return( status );
-    // TODO: for a key agreement algorithm, allow the corresponding key type and step
     if( slot->type != PSA_KEY_TYPE_DERIVE )
         return( PSA_ERROR_INVALID_ARGUMENT );
     /* Don't allow a key to be used as an input that is usually public.

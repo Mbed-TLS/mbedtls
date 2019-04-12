@@ -4,7 +4,8 @@
 # 2010
 #
 # Must be run from mbedTLS root or scripts directory.
-# Takes "include_crypto" as an argument, off by default.
+# Takes "include_crypto" as an argument that can be either 0 (don't include) or
+# 1 (include). Off by default.
 
 use warnings;
 use strict;
@@ -27,10 +28,7 @@ if( @ARGV ) {
 my $programs_dir = 'programs';
 my $header_dir = 'include/mbedtls';
 my $source_dir = 'library';
-
-if( $include_crypto ) {
-    $source_dir = 'crypto/library';
-}
+my $crypto_dir = 'crypto';
 
 # Need windows line endings!
 my $vsx_hdr_tpl = <<EOT;
@@ -204,7 +202,18 @@ sub main {
 
     my @app_list = get_app_list();
     my @headers = <$header_dir/*.h>;
-    my @sources = <$source_dir/*.c>;
+
+    my @sources = ();
+    if ($include_crypto) {
+        @sources = <$crypto_dir/$source_dir/*.c>;
+        foreach my $file (<$source_dir/*.c>) {
+            my $basename = $file; $basename =~ s!.*/!!;
+            push @sources, $file unless -e "$crypto_dir/$source_dir/$basename";
+        }
+    } else {
+         @sources = <$source_dir/*.c>;
+    }
+
     map { s!/!\\!g } @headers;
     map { s!/!\\!g } @sources;
 

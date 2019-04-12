@@ -178,7 +178,7 @@ class AbiChecker(object):
         )
         make_output, _ = make_process.communicate()
         self.log.debug(make_output.decode("utf-8"))
-        for root, dirs, files in os.walk(git_worktree_path): # pylint: disable=unused-variable
+        for root, _dirs, files in os.walk(git_worktree_path):
             for file in fnmatch.filter(files, "*.so"):
                 version.modules[os.path.splitext(file)[0]] = (
                     os.path.join(root, file)

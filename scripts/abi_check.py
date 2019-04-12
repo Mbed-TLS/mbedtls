@@ -37,10 +37,10 @@ class AbiChecker(object):
 
         old_version: RepoVersion containing details to compare against
         new_version: RepoVersion containing details to check
-        report_dir: directory for output files
-        keep_all_reports: if false, delete old reports
-        brief: if true, output shorter report to stdout
-        skip_file: path to file containing symbols and types to skip
+        configuration.report_dir: directory for output files
+        configuration.keep_all_reports: if false, delete old reports
+        configuration.brief: if true, output shorter report to stdout
+        configuration.skip_file: path to file containing symbols and types to skip
         """
         self.repo_path = "."
         self.log = None

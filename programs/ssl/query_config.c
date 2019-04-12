@@ -2586,6 +2586,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+    if( strcmp( "MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED );
+        return( 0 );
+    }
+#endif /* MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
+
     /* If the symbol is not found, return an error */
     return( 1 );
 }

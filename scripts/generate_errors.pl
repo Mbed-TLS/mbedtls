@@ -4,7 +4,7 @@
 #
 # Usage: ./generate_errors.pl or scripts/generate_errors.pl without arguments,
 # or generate_errors.pl include_dir data_dir error_file include_crypto
-# Include crypto can be either 0 (don't include) or 1 (include). On by default.
+# include_crypto can be either 0 (don't include) or 1 (include). On by default.
 
 use strict;
 
@@ -31,7 +31,7 @@ if( @ARGV ) {
 }
 
 if( $include_crypto ) {
-    -d $crypto_include_dir or die "Crypto submodule not present\n";
+    -d $crypto_dir or die "Crypto submodule not present\n";
 }
 
 my $error_format_file = $data_dir.'/error.fmt';

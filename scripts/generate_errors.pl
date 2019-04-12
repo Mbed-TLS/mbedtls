@@ -54,31 +54,19 @@ close(FORMAT_FILE);
 
 $/ = $line_separator;
 
-my %files;
-
-if( $include_crypto ) {
-    my @crypto_headers = <$crypto_dir/$include_dir/*.h>;
-    my @mbedtls_files = <$include_dir/*.h>;
-    $files{$_}++ for (@crypto_headers);
-
-    foreach my $file (@mbedtls_files) {
-        my $stripped_filename = substr($file, rindex($file,"/")+1, length($file)-rindex($file,"/")-1);
-        my $crypto_counterpart = "$crypto_dir/$include_dir/$stripped_filename";
-        if ( exists $files{$crypto_counterpart} ){
-          next;
-        }
-        else{
-          push(@{$files{$file}});
-        }
+my @headers = ();
+if ($include_crypto) {
+    @headers = <$crypto_dir/$include_dir/*.h>;
+    foreach my $header (<$include_dir/*.h>) {
+        my $basename = $header; $basename =~ s!.*/!!;
+        push @headers, $header unless -e "$crypto_dir/$include_dir/$basename";
     }
-}
-else{
-    my @headers = <$include_dir/*.h>;
-    $files{$_}++ for (@headers);
+} else {
+     @headers = <$include_dir/*.h>;
 }
 
 my @matches;
-foreach my $file (sort keys %files) {
+foreach my $file (@headers) {
     open(FILE, "$file");
     my @grep_res = grep(/^\s*#define\s+MBEDTLS_ERR_\w+\s+\-0x[0-9A-Fa-f]+/, <FILE>);
     push(@matches, @grep_res);

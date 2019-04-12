@@ -4384,19 +4384,15 @@ static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
     switch( step )
     {
         case PSA_KDF_STEP_SALT:
-            if( hkdf->state == HKDF_STATE_INIT )
-            {
-                status = psa_hmac_setup_internal( &hkdf->hmac,
-                                                  data, data_length,
-                                                  hash_alg );
-                if( status != PSA_SUCCESS )
-                    return( status );
-                hkdf->state = HKDF_STATE_STARTED;
-                return( PSA_SUCCESS );
-            }
-            else
+            if( hkdf->state != HKDF_STATE_INIT )
                 return( PSA_ERROR_BAD_STATE );
-            break;
+            status = psa_hmac_setup_internal( &hkdf->hmac,
+                                              data, data_length,
+                                              hash_alg );
+            if( status != PSA_SUCCESS )
+                return( status );
+            hkdf->state = HKDF_STATE_STARTED;
+            return( PSA_SUCCESS );
         case PSA_KDF_STEP_SECRET:
             /* If no salt was provided, use an empty salt. */
             if( hkdf->state == HKDF_STATE_INIT )
@@ -4408,25 +4404,21 @@ static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
                     return( status );
                 hkdf->state = HKDF_STATE_STARTED;
             }
-            if( hkdf->state == HKDF_STATE_STARTED )
-            {
-                status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                                          data, data_length );
-                if( status != PSA_SUCCESS )
-                    return( status );
-                status = psa_hmac_finish_internal( &hkdf->hmac,
-                                                   hkdf->prk,
-                                                   sizeof( hkdf->prk ) );
-                if( status != PSA_SUCCESS )
-                    return( status );
-                hkdf->offset_in_block = PSA_HASH_SIZE( hash_alg );
-                hkdf->block_number = 0;
-                hkdf->state = HKDF_STATE_KEYED;
-                return( PSA_SUCCESS );
-            }
-            else
+            if( hkdf->state != HKDF_STATE_STARTED )
                 return( PSA_ERROR_BAD_STATE );
-            break;
+            status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                                      data, data_length );
+            if( status != PSA_SUCCESS )
+                return( status );
+            status = psa_hmac_finish_internal( &hkdf->hmac,
+                                               hkdf->prk,
+                                               sizeof( hkdf->prk ) );
+            if( status != PSA_SUCCESS )
+                return( status );
+            hkdf->offset_in_block = PSA_HASH_SIZE( hash_alg );
+            hkdf->block_number = 0;
+            hkdf->state = HKDF_STATE_KEYED;
+            return( PSA_SUCCESS );
         case PSA_KDF_STEP_INFO:
             if( hkdf->state == HKDF_STATE_OUTPUT )
                 return( PSA_ERROR_BAD_STATE );
@@ -4613,7 +4605,6 @@ static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
                                             private_key->data.ecp,
                                             shared_secret, shared_secret_size,
                                             shared_secret_length ) );
-            break;
 #endif /* MBEDTLS_ECDH_C */
         default:
             (void) private_key;

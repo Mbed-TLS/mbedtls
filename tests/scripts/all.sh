@@ -618,6 +618,17 @@ component_test_new_ecdh_context () {
     make test
 }
 
+component_test_everest () {
+    msg "build: Everest ECDH context (ASan build)" # ~ 6 min
+    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.pl set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+}
+
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.pl full
@@ -901,6 +912,19 @@ component_test_m32_o1 () {
     make test
 }
 support_test_m32_o1 () {
+    support_test_m32_o0 "$@"
+}
+
+component_test_m32_everest () {
+    msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
+    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.pl set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -m32 -fsanitize=address'
+
+    msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+}
+support_test_m32_everest () {
     support_test_m32_o0 "$@"
 }
 

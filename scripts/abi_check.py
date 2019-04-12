@@ -88,80 +88,60 @@ class AbiChecker(object):
                     version.revision, version.repository
                 )
             )
-            fetch_process = subprocess.Popen(
+            fetch_output = subprocess.check_output(
                 [self.git_command, "fetch",
                  version.repository, version.revision],
                 cwd=self.repo_path,
-                stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
-            fetch_output, _ = fetch_process.communicate()
             self.log.debug(fetch_output.decode("utf-8"))
-            if fetch_process.returncode != 0:
-                raise Exception("Fetching revision failed, aborting")
             worktree_rev = "FETCH_HEAD"
         else:
             self.log.debug("Checking out git worktree for revision {}".format(
                 version.revision
             ))
             worktree_rev = version.revision
-        worktree_process = subprocess.Popen(
+        worktree_output = subprocess.check_output(
             [self.git_command, "worktree", "add", "--detach",
              git_worktree_path, worktree_rev],
             cwd=self.repo_path,
-            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
-        worktree_output, _ = worktree_process.communicate()
         self.log.debug(worktree_output.decode("utf-8"))
-        if worktree_process.returncode != 0:
-            raise Exception("Checking out worktree failed, aborting")
         return git_worktree_path
 
     def _update_git_submodules(self, git_worktree_path, version):
         """If the crypto submodule is present, initialize it.
         if version.crypto_revision exists, update it to that revision,
         otherwise update it to the default revision"""
-        process = subprocess.Popen(
+        update_output = subprocess.check_output(
             [self.git_command, "submodule", "update", "--init", '--recursive'],
             cwd=git_worktree_path,
-            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
-        output, _ = process.communicate()
-        self.log.debug(output.decode("utf-8"))
-        if process.returncode != 0:
-            raise Exception("git submodule update failed, aborting")
+        self.log.debug(update_output.decode("utf-8"))
         if not (os.path.exists(os.path.join(git_worktree_path, "crypto"))
                 and version.crypto_revision):
             return
 
         if version.crypto_repository:
-            fetch_process = subprocess.Popen(
+            fetch_output = subprocess.check_output(
                 [self.git_command, "fetch", version.crypto_repository,
                  version.crypto_revision],
                 cwd=os.path.join(git_worktree_path, "crypto"),
-                stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
-            fetch_output, _ = fetch_process.communicate()
             self.log.debug(fetch_output.decode("utf-8"))
-            if fetch_process.returncode != 0:
-                raise Exception("git fetch failed, aborting")
             crypto_rev = "FETCH_HEAD"
         else:
             crypto_rev = version.crypto_revision
 
-        checkout_process = subprocess.Popen(
+        checkout_output = subprocess.check_output(
             [self.git_command, "checkout", crypto_rev],
             cwd=os.path.join(git_worktree_path, "crypto"),
-            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
-        checkout_output, _ = checkout_process.communicate()
         self.log.debug(checkout_output.decode("utf-8"))
-        if checkout_process.returncode != 0:
-            raise Exception("git checkout failed, aborting")
 
     def _build_shared_libraries(self, git_worktree_path, version):
         """Build the shared libraries in the specified worktree."""
@@ -169,22 +149,18 @@ class AbiChecker(object):
         my_environment["CFLAGS"] = "-g -Og"
         my_environment["SHARED"] = "1"
         my_environment["USE_CRYPTO_SUBMODULE"] = "1"
-        make_process = subprocess.Popen(
+        make_output = subprocess.check_output(
             [self.make_command, "lib"],
             env=my_environment,
             cwd=git_worktree_path,
-            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
-        make_output, _ = make_process.communicate()
         self.log.debug(make_output.decode("utf-8"))
         for root, _dirs, files in os.walk(git_worktree_path):
             for file in fnmatch.filter(files, "*.so"):
                 version.modules[os.path.splitext(file)[0]] = (
                     os.path.join(root, file)
                 )
-        if make_process.returncode != 0:
-            raise Exception("make failed, aborting")
 
     def _get_abi_dumps_from_shared_libraries(self, version):
         """Generate the ABI dumps for the specified git revision.
@@ -202,30 +178,22 @@ class AbiChecker(object):
                 "-o", output_path,
                 "-lver", version.revision
             ]
-            abi_dump_process = subprocess.Popen(
+            abi_dump_output = subprocess.check_output(
                 abi_dump_command,
-                stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT
             )
-            abi_dump_output, _ = abi_dump_process.communicate()
             self.log.debug(abi_dump_output.decode("utf-8"))
-            if abi_dump_process.returncode != 0:
-                raise Exception("abi-dumper failed, aborting")
             version.abi_dumps[mbed_module] = output_path
 
     def _cleanup_worktree(self, git_worktree_path):
         """Remove the specified git worktree."""
         shutil.rmtree(git_worktree_path)
-        worktree_process = subprocess.Popen(
+        worktree_output = subprocess.check_output(
             [self.git_command, "worktree", "prune"],
             cwd=self.repo_path,
-            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
-        worktree_output, _ = worktree_process.communicate()
         self.log.debug(worktree_output.decode("utf-8"))
-        if worktree_process.returncode != 0:
-            raise Exception("Worktree cleanup failed, aborting")
 
     def _get_abi_dump_for_ref(self, version):
         """Generate the ABI dumps for the specified git revision."""
@@ -282,38 +250,35 @@ class AbiChecker(object):
             if self.brief:
                 abi_compliance_command += ["-report-format", "xml",
                                            "-stdout"]
-            abi_compliance_process = subprocess.Popen(
-                abi_compliance_command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT
-            )
-            abi_compliance_output, _ = abi_compliance_process.communicate()
-            if abi_compliance_process.returncode == 0:
+            try:
+                subprocess.check_output(
+                    abi_compliance_command,
+                    stderr=subprocess.STDOUT
+                )
+            except subprocess.CalledProcessError as err:
+                if err.returncode == 1:
+                    compliance_return_code = 1
+                    if self.brief:
+                        self.log.info(
+                            "Compatibility issues found for {}".format(mbed_module)
+                        )
+                        report_root = ET.fromstring(err.output.decode("utf-8"))
+                        self._remove_extra_detail_from_report(report_root)
+                        self.log.info(ET.tostring(report_root).decode("utf-8"))
+                    else:
+                        self.can_remove_report_dir = False
+                        compatibility_report += (
+                            "Compatibility issues found for {}, "
+                            "for details see {}\n".format(mbed_module, output_path)
+                        )
+                else:
+                    raise err
+            else:
                 compatibility_report += (
                     "No compatibility issues for {}\n".format(mbed_module)
                 )
                 if not (self.keep_all_reports or self.brief):
                     os.remove(output_path)
-            elif abi_compliance_process.returncode == 1:
-                if self.brief:
-                    self.log.info(
-                        "Compatibility issues found for {}".format(mbed_module)
-                    )
-                    report_root = ET.fromstring(abi_compliance_output.decode("utf-8"))
-                    self._remove_extra_detail_from_report(report_root)
-                    self.log.info(ET.tostring(report_root).decode("utf-8"))
-                else:
-                    compliance_return_code = 1
-                    self.can_remove_report_dir = False
-                    compatibility_report += (
-                        "Compatibility issues found for {}, "
-                        "for details see {}\n".format(mbed_module, output_path)
-                    )
-            else:
-                raise Exception(
-                    "abi-compliance-checker failed with a return code of {},"
-                    " aborting".format(abi_compliance_process.returncode)
-                )
             os.remove(self.old_version.abi_dumps[mbed_module])
             os.remove(self.new_version.abi_dumps[mbed_module])
         if self.can_remove_report_dir:

@@ -38,6 +38,9 @@ Bugfix
      for the parameter.
    * Add a check for MBEDTLS_X509_CRL_PARSE_C in ssl_server2, guarding the crl
      sni entry parameter. Reported by inestlerode in #560.
+   * Remove redundant line for getting the bitlen of a bignum, since the variable
+     holding the returned value is overwritten a line after.
+     Found by irwir in #2377.
 
 Changes
    * Return from various debugging routines immediately if the

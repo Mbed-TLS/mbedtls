@@ -2333,8 +2333,6 @@ static int mpi_miller_rabin( const mbedtls_mpi *X, size_t rounds,
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &R, &W ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &R, s ) );
 
-    i = mbedtls_mpi_bitlen( X );
-
     for( i = 0; i < rounds; i++ )
     {
         /*

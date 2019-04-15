@@ -112,14 +112,9 @@ int mbedtls_x25519_get_params( mbedtls_x25519_context *ctx, const mbedtls_ecp_ke
 
     switch( side ) {
     case MBEDTLS_X25519_ECDH_THEIRS:
-        mbedtls_ecp_point_write_binary( &key->grp, &key->Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, ctx->peer_point, MBEDTLS_X25519_KEY_SIZE_BYTES );
-        /* untested; defensively throw an error for now. */
-        return(MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE);
+        return mbedtls_ecp_point_write_binary( &key->grp, &key->Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, ctx->peer_point, MBEDTLS_X25519_KEY_SIZE_BYTES );
     case MBEDTLS_X25519_ECDH_OURS:
-        mbedtls_mpi_write_binary( &key->d, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES );
-        /* CMW: key->Q = key->d * base; do we need to set up ctx.peer_point here? */
-        /* untested; defensively throw an error for now. */
-        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+        return mbedtls_mpi_write_binary_le( &key->d, ctx->our_secret, MBEDTLS_X25519_KEY_SIZE_BYTES );
     default:
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
     }

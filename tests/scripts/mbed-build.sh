@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env sh
 
 # mbed-build.sh
 #
@@ -16,17 +16,17 @@
 #     MBED_APP - The Mbed application to import and build. Default is mbed-os-example-tls.
 #     REMOTE_URL - The URL for the remote fork. Default is git@github.com:ARMmbed.
 
-DEFAULT_MBED_APP='mbed-os-example-tls'
-DEFAULT_REMOTE_URL="git@github.com:ARMmbed"
-DEFAULT_TARGETS="K64F NUCLEO_F429ZI"
+: ${MBED_APP:="mbed-os-example-tls"}
+: ${REMOTE_URL:="git@github.com:ARMmbed"}
+TARGETS="K64F NUCLEO_F429ZI"
 print_usage()
 {
     echo "\nUsage: mbed-build <folder to import to> <optinally string of space seperated targets>"
     echo "If no targets given as input, The following default targets are built:"
-    echo "$DEFAULT_TARGETS"
+    echo "$TARGETS"
     echo "The script uses a couple of environment variables:"
-    echo "    MBED_APP - The Mbed application to import and build. Default is $DEFAULT_MBED_APP."
-    echo "    REMOTE_URL - The URL for the remote fork. Default is $DEFAULT_REMOTE_URL."
+    echo "    MBED_APP - The Mbed application to import and build. Default is $MBED_APP."
+    echo "    REMOTE_URL - The URL for the remote fork. Default is $REMOTE_URL."
 }
 
 if [ -z "$1" ]
@@ -37,18 +37,8 @@ then
 fi
 OUT_OF_SOURCE_DIR=$1
 
-if [ -z "$MBED_APP" ]
+if [ $# -ge 2 ]
 then
-    MBED_APP=$DEFAULT_MBED_APP
-fi
-if [ -z "$REMOTE_URL" ]
-then
-    REMOTE_URL=$DEFAULT_REMOTE_URL
-fi
-if [ $# -eq 1 ]
-then
-    TARGETS=$DEFAULT_TARGETS
-else
     TARGETS=$2
 fi
 

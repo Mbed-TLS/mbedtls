@@ -120,10 +120,15 @@ const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
         case MBEDTLS_PK_ECKEY_DH:
             return( &mbedtls_eckeydh_info );
 #endif
+#if defined(MBEDTLS_USE_UECC)
+        case MBEDTLS_PK_ECDSA:
+            return( &mbedtls_uecc_ecdsa_info );
+#else
 #if defined(MBEDTLS_ECDSA_C)
         case MBEDTLS_PK_ECDSA:
             return( &mbedtls_ecdsa_info );
 #endif
+#endif /* MBEDTLS_USE_UECC */
         /* MBEDTLS_PK_RSA_ALT omitted on purpose */
         default:
             return( NULL );

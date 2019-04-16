@@ -33,6 +33,12 @@
 
 #include <string.h>
 
+#if defined(MBEDTLS_USE_UECC)
+#include "mbedtls/ecc.h"
+#include "mbedtls/ecc_dsa.h"
+#include "mbedtls/asn1.h"
+#include "mbedtls/asn1write.h"
+#else
 #if defined(MBEDTLS_ECP_C)
 #include "mbedtls/ecp.h"
 #endif
@@ -40,6 +46,7 @@
 #if defined(MBEDTLS_ECDSA_C)
 #include "mbedtls/ecdsa.h"
 #endif
+#endif /* MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 #include "mbedtls/platform_util.h"
@@ -466,6 +473,225 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 };
 #endif /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_USE_UECC)
+static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end,
+                                  unsigned char *to, size_t to_len )
+{
+    int ret;
+    size_t unpadded_len, padding_len;
+
+    if( ( ret = mbedtls_asn1_get_tag( from, end, &unpadded_len,
+                                      MBEDTLS_ASN1_INTEGER ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    while( unpadded_len > 0 && **from == 0x00 )
+    {
+        ( *from )++;
+        unpadded_len--;
+    }
+
+    if( unpadded_len > to_len || unpadded_len == 0 )
+        return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    padding_len = to_len - unpadded_len;
+    memset( to, 0x00, padding_len );
+    memcpy( to + padding_len, *from, unpadded_len );
+    ( *from ) += unpadded_len;
+
+    return( 0 );
+}
+
+/*
+ * Convert a signature from an ASN.1 sequence of two integers
+ * to a raw {r,s} buffer. Note: the provided sig buffer must be at least
+ * twice as big as int_size.
+ */
+static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
+                              unsigned char *sig, size_t int_size )
+{
+    int ret;
+    size_t tmp_size;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &tmp_size,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        return( ret );
+
+    /* Extract r */
+    if( ( ret = extract_ecdsa_sig_int( p, end, sig, int_size ) ) != 0 )
+        return( ret );
+    /* Extract s */
+    if( ( ret = extract_ecdsa_sig_int( p, end, sig + int_size, int_size ) ) != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+static size_t uecc_ecdsa_get_bitlen( const void *ctx )
+{
+    (void) ctx;
+    return( (size_t) 2 * NUM_ECC_BYTES );
+}
+
+static int uecc_ecdsa_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_ECDSA );
+}
+
+static int uecc_ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len )
+{
+    int ret;
+    uint8_t signature[2*NUM_ECC_BYTES];
+    unsigned char *p;
+    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+
+    ((void) md_alg);
+    p = (unsigned char*) sig;
+
+    if( (ret = extract_ecdsa_sig( &p, sig + sig_len, signature, NUM_ECC_BYTES ) ) != 0 )
+        return( ret );
+
+    if( (ret = uECC_verify( (uint8_t *) ctx, hash, (unsigned) hash_len, signature, uecc_curve ) ) != 0 )
+        return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+
+    return( ret );
+}
+
+/*
+ * Simultaneously convert and move raw MPI from the beginning of a buffer
+ * to an ASN.1 MPI at the end of the buffer.
+ * See also mbedtls_asn1_write_mpi().
+ *
+ * p: pointer to the end of the output buffer
+ * start: start of the output buffer, and also of the mpi to write at the end
+ * n_len: length of the mpi to read from start
+ */
+static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
+                              size_t n_len )
+{
+    int ret;
+    size_t len = 0;
+
+    if( (size_t)( *p - start ) < n_len )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    len = n_len;
+    *p -= len;
+    memmove( *p, start, len );
+
+    /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
+     * Neither r nor s should be 0, but as a failsafe measure, still detect
+     * that rather than overflowing the buffer in case of a PSA error. */
+    while( len > 0 && **p == 0x00 )
+    {
+        ++(*p);
+        --len;
+    }
+
+    /* this is only reached if the signature was invalid */
+    if( len == 0 )
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+
+    /* if the msb is 1, ASN.1 requires that we prepend a 0.
+     * Neither r nor s can be 0, so we can assume len > 0 at all times. */
+    if( **p & 0x80 )
+    {
+        if( *p - start < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--(*p) = 0x00;
+        len += 1;
+    }
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
+                                                MBEDTLS_ASN1_INTEGER ) );
+
+    return( (int) len );
+}
+
+/* Transcode signature from PSA format to ASN.1 sequence.
+ * See ecdsa_signature_to_asn1 in ecdsa.c, but with byte buffers instead of
+ * MPIs, and in-place.
+ *
+ * [in/out] sig: the signature pre- and post-transcoding
+ * [in/out] sig_len: signature length pre- and post-transcoding
+ * [int] buf_len: the available size the in/out buffer
+ */
+static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
+                                       size_t buf_len )
+{
+    int ret;
+    size_t len = 0;
+    const size_t rs_len = *sig_len / 2;
+    unsigned char *p = sig + buf_len;
+
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig + rs_len, rs_len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig, rs_len ) );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, sig, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, sig,
+                          MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    memmove( sig, p, len );
+    *sig_len = len;
+
+    return( 0 );
+}
+
+static int uecc_ecdsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    (void) ctx;
+    (void) md_alg;
+    (void) hash;
+    (void) hash_len;
+    (void) sig;
+    (void) sig_len;
+    (void) f_rng;
+    (void) p_rng;
+
+    return( 0 );
+}
+
+static void *uecc_ecdsa_alloc_wrap( void )
+{
+    /*void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecdsa_context ) );
+
+    if( ctx != NULL )
+        mbedtls_ecdsa_init( (mbedtls_ecdsa_context *) ctx );
+
+    return( ctx );*/
+    return NULL;
+}
+
+static void uecc_ecdsa_free_wrap( void *ctx )
+{
+    (void) ctx;
+    /*mbedtls_ecdsa_free( (mbedtls_ecdsa_context *) ctx );
+    mbedtls_free( ctx );*/
+}
+
+const mbedtls_pk_info_t mbedtls_uecc_ecdsa_info = {
+    MBEDTLS_PK_ECDSA,
+    "ECDSA",
+    uecc_ecdsa_get_bitlen,
+    uecc_ecdsa_can_do,
+    uecc_ecdsa_verify_wrap,
+    uecc_ecdsa_sign_wrap,
+    NULL,
+    NULL,
+    NULL,
+    uecc_ecdsa_alloc_wrap,
+    uecc_ecdsa_free_wrap,
+    NULL,
+};
+#else
 #if defined(MBEDTLS_ECDSA_C)
 static int ecdsa_can_do( mbedtls_pk_type_t type )
 {
@@ -588,6 +814,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     eckey_debug,        /* Compatible key structures */
 };
 #endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_USE_UECC */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*

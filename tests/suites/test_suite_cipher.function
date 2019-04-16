@@ -13,6 +13,34 @@
 #include "psa_crypto_helpers.h"
 #endif
 
+#if HAVE_SOME_AEAD >= 1
+static mbedtls_cipher_mode_t get_cipher_info_mode(
+    const mbedtls_cipher_info_t *cipher_info )
+{
+    if( cipher_info == NULL )
+        return( MBEDTLS_MODE_NONE );
+    else
+        return( cipher_info->mode );
+}
+
+/* 0 = not AEAD, 1 = one-shot-only AEAD, 2 = multipart-capable AEAD */
+static int is_aead_mode( mbedtls_cipher_mode_t mode )
+{
+    switch( mode )
+    {
+        case MBEDTLS_MODE_GCM:
+        case MBEDTLS_MODE_CHACHAPOLY:
+            return( 2 );
+        case MBEDTLS_MODE_CCM:
+        case MBEDTLS_MODE_KW:
+        case MBEDTLS_MODE_KWP:
+            return( 1 );
+        default:
+            return( 0 );
+    }
+}
+#endif /* HAVE_SOME_AEAD >= 1 */
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -608,8 +636,13 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, ad, sizeof( ad ) - i ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_enc, ad, sizeof( ad ) - i ) );
+    if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec,
+                                                    ad, sizeof( ad ) - i ) );
+        TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_enc,
+                                                    ad, sizeof( ad ) - i ) );
+    }
 #endif
 
     block_size = mbedtls_cipher_get_block_size( &ctx_enc );
@@ -628,7 +661,8 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     total_len += outlen;
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_write_tag( &ctx_enc, tag, sizeof( tag ) ) );
+    if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
+        TEST_ASSERT( 0 == mbedtls_cipher_write_tag( &ctx_enc, tag, sizeof( tag ) ) );
 #endif
 
     TEST_ASSERT( total_len == length ||
@@ -649,7 +683,8 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     total_len += outlen;
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_check_tag( &ctx_dec, tag, sizeof( tag ) ) );
+    if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
+        TEST_ASSERT( 0 == mbedtls_cipher_check_tag( &ctx_dec, tag, sizeof( tag ) ) );
 #endif
 
     /* check result */
@@ -705,7 +740,8 @@ void enc_fail( int cipher_id, int pad_mode, int key_len, int length_val,
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv, 16 ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, NULL, 0 ) );
+    if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
+        TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, NULL, 0 ) );
 #endif
 
     /* encode length number of bytes from inbuf */
@@ -758,7 +794,8 @@ void dec_empty_buf( int cipher,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
+    if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
+        TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
 #endif
 
     /* decode 0-byte string */
@@ -848,8 +885,11 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_enc, NULL, 0 ) );
+    if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
+        TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_enc, NULL, 0 ) );
+    }
 #endif
 
     block_size = mbedtls_cipher_get_block_size( &ctx_enc );
@@ -907,6 +947,8 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
                        data_t * clear, data_t * ad, data_t * tag,
                        int finish_result, int tag_result )
 {
+    const mbedtls_cipher_info_t *cipher_info =
+        mbedtls_cipher_info_from_type( cipher_id );
     unsigned char output[265];
     mbedtls_cipher_context_t ctx;
     size_t outlen, total_len;
@@ -921,8 +963,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
 #endif
 
     /* Prepare context */
-    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                                       mbedtls_cipher_info_from_type( cipher_id ) ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
     TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len, MBEDTLS_DECRYPT ) );
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     if( pad_mode != -1 )
@@ -933,7 +974,8 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv->x, iv->len ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, ad->x, ad->len ) );
+    if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
+        TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, ad->x, ad->len ) );
 #endif
 
     /* decode buffer and check tag->x */
@@ -944,7 +986,8 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
                                                  &outlen ) );
     total_len += outlen;
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( tag_result == mbedtls_cipher_check_tag( &ctx, tag->x, tag->len ) );
+    if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
+        TEST_ASSERT( tag_result == mbedtls_cipher_check_tag( &ctx, tag->x, tag->len ) );
 #endif
 
     /* check plaintext only if everything went fine */

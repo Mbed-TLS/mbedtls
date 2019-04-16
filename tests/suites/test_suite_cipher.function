@@ -582,6 +582,91 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void cipher_state_machine( int cipher_type_arg )
+{
+    mbedtls_cipher_type_t cipher_type = cipher_type_arg;
+    const mbedtls_cipher_info_t *cipher_info =
+        mbedtls_cipher_info_from_type( cipher_type );
+#if HAVE_SOME_AEAD >= 1
+    int is_aead = is_aead_mode( get_cipher_info_mode( cipher_info ) );
+#endif
+    mbedtls_cipher_context_t ctx;
+    unsigned char iv[MBEDTLS_MAX_IV_LENGTH];
+    unsigned char input[MBEDTLS_MAX_BLOCK_LENGTH * 2];
+    unsigned char output[MBEDTLS_MAX_BLOCK_LENGTH * 2];
+#if HAVE_SOME_AEAD >= 1
+    unsigned char tag[16];
+#endif
+    size_t olen = 0;
+
+    mbedtls_cipher_init( &ctx );
+    memset( input, 0, sizeof( input ) );
+    memset( output, 0, sizeof( output ) );
+    memset( iv, 0, sizeof( iv ) );
+
+    TEST_ASSERT( NULL != cipher_info );
+
+    /* Trying to encrypt with no algorithm set. */
+    TEST_ASSERT( mbedtls_cipher_update( &ctx, input, 1, output, &olen ) ==
+                 MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
+
+    /* Trying to encrypt or decrypt with no key set. */
+    TEST_ASSERT( mbedtls_cipher_crypt( &ctx, iv, 8, input, 1, output, &olen ) ==
+                 MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update( &ctx, input, 1, output, &olen ) ==
+                 MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_finish( &ctx, output, &olen ) ==
+                 MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+#if HAVE_SOME_AEAD >= 1
+    if( is_aead )
+    {
+        TEST_ASSERT( mbedtls_cipher_auth_encrypt( &ctx,
+                                                  iv, 8,
+                                                  input, 1,
+                                                  input, 1,
+                                                  output, &olen,
+                                                  tag, 8 ) ==
+                     MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        TEST_ASSERT( mbedtls_cipher_auth_decrypt( &ctx,
+                                                  iv, 8,
+                                                  input, 1,
+                                                  input, 1,
+                                                  output, &olen,
+                                                  tag, 8 ) ==
+                     MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    }
+#endif
+#if HAVE_SOME_AEAD > 1
+    if( is_aead > 1 )
+    {
+        TEST_ASSERT( mbedtls_cipher_update_ad( &ctx, input, 1 ) ==
+                     MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        TEST_ASSERT( mbedtls_cipher_write_tag( &ctx, input, 8 ) ==
+                     MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        TEST_ASSERT( mbedtls_cipher_check_tag( &ctx, input, 8 ) ==
+                     MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    }
+#endif
+
+    /* Set a key for encryption. */
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx,
+                                             input, cipher_info->key_bitlen,
+                                             MBEDTLS_ENCRYPT ) );
+
+    /* Calling setkey twice is not valid. */
+    TEST_ASSERT( mbedtls_cipher_setkey( &ctx,
+                                        input, cipher_info->key_bitlen,
+                                        MBEDTLS_ENCRYPT ) ==
+                 MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+exit:
+    mbedtls_cipher_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
                   int length_val, int pad_mode )
 {

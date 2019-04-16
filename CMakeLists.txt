@@ -168,8 +168,6 @@ else()
     set(LIB_INSTALL_DIR lib)
 endif()
 
-include_directories(include/)
-
 if(ENABLE_ZLIB_SUPPORT)
     find_package(ZLIB)
 
@@ -178,7 +176,11 @@ if(ENABLE_ZLIB_SUPPORT)
     endif(ZLIB_FOUND)
 endif(ENABLE_ZLIB_SUPPORT)
 
-add_subdirectory(include)
+if(USE_CRYPTO_SUBMODULE)
+    add_subdirectory(crypto/include)
+else()
+    add_subdirectory(include)
+endif()
 
 add_subdirectory(3rdparty)
 include_directories(${thirdparty_inc})
@@ -188,7 +190,6 @@ add_definitions(${thirdparty_def})
 add_subdirectory(library)
 if(USE_CRYPTO_SUBMODULE)
     add_subdirectory(crypto/library)
-    add_subdirectory(crypto/include)
 endif()
 
 if(ENABLE_PROGRAMS)

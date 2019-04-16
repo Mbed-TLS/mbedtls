@@ -22,7 +22,7 @@ lib:
 
 tests: lib
 	$(MAKE) -C tests
-ifdef USE_CRYPTO_SUBMODULE
+ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C crypto/tests
 endif
 
@@ -109,7 +109,7 @@ endif
 
 check: lib tests
 	$(MAKE) -C tests check
-ifdef USE_CRYPTO_SUBMODULE
+ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C crypto/tests check
 endif
 

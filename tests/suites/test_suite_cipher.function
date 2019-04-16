@@ -570,6 +570,9 @@ void cipher_special_behaviours(  )
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
 
     /* Update ECB with partial block */
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx,
+                                             input, 128,
+                                             MBEDTLS_ENCRYPT ) );
     TEST_ASSERT( mbedtls_cipher_update( &ctx, input, 1, output, &olen )
                  == MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED );
 

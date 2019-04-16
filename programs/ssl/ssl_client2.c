@@ -82,6 +82,7 @@ int main( void )
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_REQUEST_SIZE        -1
 #define DFL_DEBUG_LEVEL         0
+#define DFL_CONTEXT_CRT_CB      0
 #define DFL_NBIO                0
 #define DFL_EVENT               0
 #define DFL_READ_TIMEOUT        0
@@ -130,6 +131,16 @@ int main( void )
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#define USAGE_CONTEXT_CRT_CB \
+    "    context_crt_cb=%%d   This determines whether the CRT verification callback is bound\n" \
+    "                        to the SSL configuration of the SSL context.\n" \
+    "                        Possible values:\n"\
+    "                        - 0 (default): Use CRT callback bound to configuration\n" \
+    "                        - 1: Use CRT callback bound to SSL context\n"
+#else
+#define USAGE_CONTEXT_CRT_CB ""
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_FS_IO)
 #define USAGE_IO \
@@ -339,6 +350,7 @@ int main( void )
     USAGE_TICKETS                                           \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
+    USAGE_CONTEXT_CRT_CB                                    \
     USAGE_ALPN                                              \
     USAGE_FALLBACK                                          \
     USAGE_EMS                                               \
@@ -435,6 +447,7 @@ struct options
     int dgram_packing;          /* allow/forbid datagram packing            */
     int extended_ms;            /* negotiate extended master secret?        */
     int etm;                    /* negotiate encrypt then mac?              */
+    int context_crt_cb;         /* use context-specific CRT verify callback */
 } opt;
 
 int query_config( const char *config );
@@ -757,6 +770,7 @@ int main( int argc, char *argv[] )
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.nbio                = DFL_NBIO;
     opt.event               = DFL_EVENT;
+    opt.context_crt_cb      = DFL_CONTEXT_CRT_CB;
     opt.read_timeout        = DFL_READ_TIMEOUT;
     opt.max_resend          = DFL_MAX_RESEND;
     opt.request_page        = DFL_REQUEST_PAGE;
@@ -832,6 +846,12 @@ int main( int argc, char *argv[] )
         {
             opt.debug_level = atoi( q );
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
+                goto usage;
+        }
+        else if( strcmp( p, "context_crt_cb" ) == 0 )
+        {
+            opt.context_crt_cb = atoi( q );
+            if( opt.context_crt_cb != 0 && opt.context_crt_cb != 1 )
                 goto usage;
         }
         else if( strcmp( p, "nbio" ) == 0 )
@@ -1590,7 +1610,9 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_sig_hashes( &conf, ssl_sig_hashes_for_test );
     }
 
-    mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+    if( opt.context_crt_cb == 0 )
+        mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -1798,6 +1820,11 @@ int main( int argc, char *argv[] )
         }
     }
 #endif
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if( opt.context_crt_cb == 1 )
+        mbedtls_ssl_set_verify( &ssl, my_verify, NULL );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.nbio == 2 )
         mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv, NULL );

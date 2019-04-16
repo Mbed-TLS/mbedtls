@@ -1094,6 +1094,12 @@ struct mbedtls_ssl_context
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
 #endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    /** Callback to customize X.509 certificate chain verification          */
+    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
+    void *p_vrfy;                   /*!< context for X.509 verify callback */
+#endif
+
     mbedtls_ssl_send_t *f_send; /*!< Callback for network send */
     mbedtls_ssl_recv_t *f_recv; /*!< Callback for network receive */
     mbedtls_ssl_recv_timeout_t *f_recv_timeout;
@@ -1370,13 +1376,17 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 /**
  * \brief          Set the verification callback (Optional).
  *
- *                 If set, the verify callback is called for each
- *                 certificate in the chain. For implementation
- *                 information, please see \c mbedtls_x509_crt_verify()
+ *                 If set, the provided verify callback is called for each
+ *                 certificate in the peer's CRT chain, including the trusted
+ *                 root. For more information, please see the documentation of
+ *                 \c mbedtls_x509_crt_verify().
  *
- * \param conf     SSL configuration
- * \param f_vrfy   verification function
- * \param p_vrfy   verification parameter
+ * \note           For per context callbacks and contexts, please use
+ *                 mbedtls_ssl_set_verify() instead.
+ *
+ * \param conf     The SSL configuration to use.
+ * \param f_vrfy   The verification callback to use during CRT verification.
+ * \param p_vrfy   The opaque context to be passed to the callback.
  */
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
@@ -1493,6 +1503,30 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  */
 void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+/**
+ * \brief          Set a connection-specific verification callback (optional).
+ *
+ *                 If set, the provided verify callback is called for each
+ *                 certificate in the peer's CRT chain, including the trusted
+ *                 root. For more information, please see the documentation of
+ *                 \c mbedtls_x509_crt_verify().
+ *
+ * \note           This call is analogous to mbedtls_ssl_conf_verify() but
+ *                 binds the verification callback and context to an SSL context
+ *                 as opposed to an SSL configuration.
+ *                 If mbedtls_ssl_conf_verify() and mbedtls_ssl_set_verify()
+ *                 are both used, mbedtls_ssl_set_verify() takes precedence.
+ *
+ * \param ssl      The SSL context to use.
+ * \param f_vrfy   The verification callback to use during CRT verification.
+ * \param p_vrfy   The opaque context to be passed to the callback.
+ */
+void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /**
  * \brief          Set the timeout period for mbedtls_ssl_read()

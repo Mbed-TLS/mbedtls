@@ -6037,8 +6037,24 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         ssl->transform_negotiate->ciphersuite_info;
     int have_ca_chain = 0;
 
+    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
+    void *p_vrfy;
+
     if( authmode == MBEDTLS_SSL_VERIFY_NONE )
         return( 0 );
+
+    if( ssl->f_vrfy != NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Use context-specific verification callback" ) );
+        f_vrfy = ssl->f_vrfy;
+        p_vrfy = ssl->p_vrfy;
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Use configuration-specific verification callback" ) );
+        f_vrfy = ssl->conf->f_vrfy;
+        p_vrfy = ssl->conf->p_vrfy;
+    }
 
     /*
      * Main check: verify certificate
@@ -6057,7 +6073,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
             ssl->conf->cert_profile,
             ssl->hostname,
             &ssl->session_negotiate->verify_result,
-            ssl->conf->f_vrfy, ssl->conf->p_vrfy );
+            f_vrfy, p_vrfy );
     }
     else
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
@@ -6087,7 +6103,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
             ssl->conf->cert_profile,
             ssl->hostname,
             &ssl->session_negotiate->verify_result,
-            ssl->conf->f_vrfy, ssl->conf->p_vrfy, rs_ctx );
+            f_vrfy, p_vrfy, rs_ctx );
     }
 
     if( ret != 0 )
@@ -7948,6 +7964,16 @@ void mbedtls_ssl_set_hs_authmode( mbedtls_ssl_context *ssl,
     ssl->handshake->sni_authmode = authmode;
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy )
+{
+    ssl->f_vrfy = f_vrfy;
+    ssl->p_vrfy = p_vrfy;
+}
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 /*

@@ -760,6 +760,10 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, sizeof( iv ) ) );
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, sizeof( iv ) ) );
 
+    /* Calling reset() at in a new operation is useless, but must remain
+     * possible after set_iv() for the sake of backward compatibility
+     * with user code that copies an idiom that was commonly found in
+     * our code base. */
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
@@ -866,7 +870,6 @@ void enc_fail( int cipher_id, int pad_mode, int key_len, int length_val,
     (void) pad_mode;
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv, 16 ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
 #if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
         TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, NULL, 0 ) );
@@ -918,8 +921,6 @@ void dec_empty_buf( int cipher,
                                              MBEDTLS_DECRYPT ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, 16 ) );
-
-    TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
 
 #if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
@@ -1009,6 +1010,10 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, 16 ) );
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, 16 ) );
 
+    /* Calling reset() at in a new operation is useless, but must remain
+     * possible after set_iv() for the sake of backward compatibility
+     * with user code that copies an idiom that was commonly found in
+     * our code base. */
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
@@ -1100,7 +1105,6 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
     (void) pad_mode;
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv->x, iv->len ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
 #if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
         TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, ad->x, ad->len ) );

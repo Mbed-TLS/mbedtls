@@ -13,6 +13,15 @@
 #include "psa_crypto_helpers.h"
 #endif
 
+
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#define HAVE_SOME_AEAD 2 /* some multipart-capable AEAD is present */
+#elif defined(MBEDTLS_CIPHER_MODE_AEAD)
+#define HAVE_SOME_AEAD 1 /* only one-shot-only AEAD is present */
+#else
+#define HAVE_SOME_AEAD 0 /* no AEAD is present at all */
+#endif
+
 #if HAVE_SOME_AEAD >= 1
 static mbedtls_cipher_mode_t get_cipher_info_mode(
     const mbedtls_cipher_info_t *cipher_info )
@@ -127,14 +136,14 @@ void cipher_invalid_param_unconditional( )
     TEST_ASSERT( mbedtls_cipher_reset( &invalid_ctx ) ==
                  MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     /* mbedtls_cipher_update_ad() */
     TEST_ASSERT(
         mbedtls_cipher_update_ad( &invalid_ctx,
                                   valid_buffer,
                                   valid_size ) ==
         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-#endif /* defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C) */
+#endif /* HAVE_SOME_AEAD > 1 */
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     /* mbedtls_cipher_set_padding_mode() */
@@ -158,7 +167,7 @@ void cipher_invalid_param_unconditional( )
                                &size_t_var ) ==
         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     /* mbedtls_cipher_write_tag() */
     TEST_ASSERT(
         mbedtls_cipher_write_tag( &invalid_ctx,
@@ -172,7 +181,7 @@ void cipher_invalid_param_unconditional( )
                                   valid_buffer,
                                   valid_size ) ==
         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-#endif /* defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C) */
+#endif /* HAVE_SOME_AEAD > 1 */
 
 exit:
     mbedtls_cipher_free( &invalid_ctx );
@@ -273,7 +282,7 @@ void cipher_invalid_param_conditional( )
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
                             mbedtls_cipher_reset( NULL ) );
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     /* mbedtls_cipher_update_ad() */
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
@@ -285,7 +294,7 @@ void cipher_invalid_param_conditional( )
         mbedtls_cipher_update_ad( &valid_ctx,
                                   NULL,
                                   valid_size ) );
-#endif /* defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C) */
+#endif /* HAVE_SOME_AEAD > 1 */
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     /* mbedtls_cipher_set_padding_mode() */
@@ -337,7 +346,7 @@ void cipher_invalid_param_conditional( )
                                valid_buffer,
                                NULL ) );
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     /* mbedtls_cipher_write_tag() */
     TEST_INVALID_PARAM_RET(
         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
@@ -361,7 +370,7 @@ void cipher_invalid_param_conditional( )
         mbedtls_cipher_check_tag( &valid_ctx,
                                   NULL,
                                   valid_size ) );
-#endif /* defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C) */
+#endif /* HAVE_SOME_AEAD > 1 */
 
     /* mbedtls_cipher_crypt() */
     TEST_INVALID_PARAM_RET(
@@ -635,7 +644,7 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
     {
         TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec,
@@ -660,7 +669,7 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     TEST_ASSERT( 0 == mbedtls_cipher_finish( &ctx_enc, encbuf + outlen, &outlen ) );
     total_len += outlen;
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
         TEST_ASSERT( 0 == mbedtls_cipher_write_tag( &ctx_enc, tag, sizeof( tag ) ) );
 #endif
@@ -682,7 +691,7 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     TEST_ASSERT( 0 == mbedtls_cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
     total_len += outlen;
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
         TEST_ASSERT( 0 == mbedtls_cipher_check_tag( &ctx_dec, tag, sizeof( tag ) ) );
 #endif
@@ -739,7 +748,7 @@ void enc_fail( int cipher_id, int pad_mode, int key_len, int length_val,
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv, 16 ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
         TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, NULL, 0 ) );
 #endif
@@ -793,7 +802,7 @@ void dec_empty_buf( int cipher,
 
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
         TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
 #endif
@@ -884,7 +893,7 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
     {
         TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
@@ -957,7 +966,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
 
     memset( output, 0x00, sizeof( output ) );
 
-#if !defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD <= 1
     ((void) ad);
     ((void) tag);
 #endif
@@ -973,7 +982,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv->x, iv->len ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
         TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, ad->x, ad->len ) );
 #endif
@@ -985,7 +994,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
     TEST_ASSERT( finish_result == mbedtls_cipher_finish( &ctx, output + outlen,
                                                  &outlen ) );
     total_len += outlen;
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+#if HAVE_SOME_AEAD > 1
     if( is_aead_mode( get_cipher_info_mode( cipher_info ) ) )
         TEST_ASSERT( tag_result == mbedtls_cipher_check_tag( &ctx, tag->x, tag->len ) );
 #endif

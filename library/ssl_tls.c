@@ -6035,35 +6035,60 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
     int ret = 0;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->transform_negotiate->ciphersuite_info;
-    mbedtls_x509_crt *ca_chain;
-    mbedtls_x509_crl *ca_crl;
+    int have_ca_chain = 0;
 
     if( authmode == MBEDTLS_SSL_VERIFY_NONE )
         return( 0 );
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->sni_ca_chain != NULL )
-    {
-        ca_chain = ssl->handshake->sni_ca_chain;
-        ca_crl   = ssl->handshake->sni_ca_crl;
-    }
-    else
-#endif
-    {
-        ca_chain = ssl->conf->ca_chain;
-        ca_crl   = ssl->conf->ca_crl;
-    }
-
     /*
      * Main check: verify certificate
      */
-    ret = mbedtls_x509_crt_verify_restartable(
-        chain,
-        ca_chain, ca_crl,
-        ssl->conf->cert_profile,
-        ssl->hostname,
-        &ssl->session_negotiate->verify_result,
-        ssl->conf->f_vrfy, ssl->conf->p_vrfy, rs_ctx );
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    if( ssl->conf->f_ca_cb != NULL )
+    {
+        ((void) rs_ctx);
+        have_ca_chain = 1;
+
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "use CA callback for X.509 CRT verification" ) );
+        ret = mbedtls_x509_crt_verify_with_ca_cb(
+            chain,
+            ssl->conf->f_ca_cb,
+            ssl->conf->p_ca_cb,
+            ssl->conf->cert_profile,
+            ssl->hostname,
+            &ssl->session_negotiate->verify_result,
+            ssl->conf->f_vrfy, ssl->conf->p_vrfy );
+    }
+    else
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+    {
+        mbedtls_x509_crt *ca_chain;
+        mbedtls_x509_crl *ca_crl;
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        if( ssl->handshake->sni_ca_chain != NULL )
+        {
+            ca_chain = ssl->handshake->sni_ca_chain;
+            ca_crl   = ssl->handshake->sni_ca_crl;
+        }
+        else
+#endif
+        {
+            ca_chain = ssl->conf->ca_chain;
+            ca_crl   = ssl->conf->ca_crl;
+        }
+
+        if( ca_chain != NULL )
+            have_ca_chain = 1;
+
+        ret = mbedtls_x509_crt_verify_restartable(
+            chain,
+            ca_chain, ca_crl,
+            ssl->conf->cert_profile,
+            ssl->hostname,
+            &ssl->session_negotiate->verify_result,
+            ssl->conf->f_vrfy, ssl->conf->p_vrfy, rs_ctx );
+    }
 
     if( ret != 0 )
     {
@@ -6119,7 +6144,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         ret = 0;
     }
 
-    if( ca_chain == NULL && authmode == MBEDTLS_SSL_VERIFY_REQUIRED )
+    if( have_ca_chain == 0 && authmode == MBEDTLS_SSL_VERIFY_REQUIRED )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
         ret = MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED;
@@ -7875,7 +7900,29 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
 {
     conf->ca_chain   = ca_chain;
     conf->ca_crl     = ca_crl;
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    /* mbedtls_ssl_conf_ca_chain() and mbedtls_ssl_conf_ca_cb()
+     * cannot be used together. */
+    conf->f_ca_cb = NULL;
+    conf->p_ca_cb = NULL;
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 }
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+void mbedtls_ssl_conf_ca_cb( mbedtls_ssl_config *conf,
+                             mbedtls_x509_crt_ca_cb_t f_ca_cb,
+                             void *p_ca_cb )
+{
+    conf->f_ca_cb = f_ca_cb;
+    conf->p_ca_cb = p_ca_cb;
+
+    /* mbedtls_ssl_conf_ca_chain() and mbedtls_ssl_conf_ca_cb()
+     * cannot be used together. */
+    conf->ca_chain   = NULL;
+    conf->ca_crl     = NULL;
+}
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)

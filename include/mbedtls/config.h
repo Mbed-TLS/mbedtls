@@ -1729,11 +1729,12 @@
  * Make the X.509 and TLS library use PSA for cryptographic operations, and
  * enable new APIs for using keys handled by PSA Crypto.
  *
- * \note This option is still in progress, the full X.509 and TLS modules are
- * not covered yet, but parts that are not ported to PSA yet will still work
- * as usual, so enabling this option should not break backwards compatibility.
+ * \note Development of this option is currently in progress, and parts
+ * of the X.509 and TLS modules are not ported to PSA yet. However, these parts
+ * will still continue to work as usual, so enabling this option should not
+ * break backwards compatibility.
  *
- * \warning The PSA Crypto API is still beta status. While you're welcome to
+ * \warning The PSA Crypto API is in beta stage. While you're welcome to
  * experiment using it, incompatible API changes are still possible, and some
  * parts may not have reached the same quality as the rest of Mbed TLS yet.
  *

@@ -510,7 +510,7 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
     }
 #endif
 
-    return( 0 );
+    return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 }
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CHACHAPOLY_C */
 

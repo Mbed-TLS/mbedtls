@@ -661,6 +661,20 @@ void cipher_state_machine( int cipher_type_arg )
                                         MBEDTLS_ENCRYPT ) ==
                  MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+    if( cipher_info->iv_size != 0 )
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx,
+                                                 iv, cipher_info->iv_size ) );
+    }
+
+#if HAVE_SOME_AEAD > 1
+    if( is_aead == 0 )
+    {
+        TEST_ASSERT( mbedtls_cipher_update_ad( &ctx, input, 1 ) ==
+                     MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    }
+#endif
+
 exit:
     mbedtls_cipher_free( &ctx );
 }

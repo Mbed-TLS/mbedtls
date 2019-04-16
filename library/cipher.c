@@ -288,6 +288,15 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
     if( ctx->cipher_info == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+    /* Prevent reusing a context with a different key unless the context
+     * has been fully reset. This may have worked by accident in the past,
+     * but it was never documented as working, and it could cause a memory
+     * leak with alternative implementations that allocate resources during
+     * setkey, or could cause sensitive data to not be wiped if overwriting
+     * a key with another one that uses a smaller context. */
+    if( ctx->key_bitlen != 0 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {

@@ -608,8 +608,10 @@ static inline mbedtls_operation_t mbedtls_cipher_get_operation(
 /**
  * \brief               This function sets the key to use with the given context.
  *
- * \param ctx           The generic cipher context. This must be initialized and
- *                      bound to a cipher information structure.
+ * \param ctx           The generic cipher context. This must be initialized,
+ *                      bound to a cipher information structure (with
+ *                      mbedtls_cipher_setup() or an equivalent function),
+ *                      and not yet have a key set.
  * \param key           The key to use. This must be a readable buffer of at
  *                      least \p key_bitlen Bits.
  * \param key_bitlen    The key length to use, in Bits.

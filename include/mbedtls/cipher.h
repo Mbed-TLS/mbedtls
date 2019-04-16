@@ -704,12 +704,14 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
 
 /**
  * \brief               The generic cipher update function. It encrypts or
- *                      decrypts using the given cipher context. Writes as
- *                      many block-sized blocks of data as possible to output.
+ *                      decrypts using the given cipher context.
+ *
+ *                      This function writes as many block-sized blocks of
+ *                      data as possible to \p output.
  *                      Any data that cannot be written immediately is either
  *                      added to the next block, or flushed when
  *                      mbedtls_cipher_finish() is called.
- *                      Exception: For MBEDTLS_MODE_ECB, expects a single block
+ *                      Exception: For #MBEDTLS_MODE_ECB, expects a single block
  *                      in size. For example, 16 Bytes for AES.
  *
  *                      For modes that use an initialization vector (IV) or

@@ -759,7 +759,7 @@ static const mbedtls_cipher_info_t camellia_128_ecb_info = {
     MBEDTLS_MODE_ECB,
     128,
     "CAMELLIA-128-ECB",
-    16,
+    0,
     0,
     16,
     &camellia_info
@@ -770,7 +770,7 @@ static const mbedtls_cipher_info_t camellia_192_ecb_info = {
     MBEDTLS_MODE_ECB,
     192,
     "CAMELLIA-192-ECB",
-    16,
+    0,
     0,
     16,
     &camellia_info
@@ -781,7 +781,7 @@ static const mbedtls_cipher_info_t camellia_256_ecb_info = {
     MBEDTLS_MODE_ECB,
     256,
     "CAMELLIA-256-ECB",
-    16,
+    0,
     0,
     16,
     &camellia_info
@@ -1135,7 +1135,7 @@ static const mbedtls_cipher_info_t aria_128_ecb_info = {
     MBEDTLS_MODE_ECB,
     128,
     "ARIA-128-ECB",
-    16,
+    0,
     0,
     16,
     &aria_info
@@ -1146,7 +1146,7 @@ static const mbedtls_cipher_info_t aria_192_ecb_info = {
     MBEDTLS_MODE_ECB,
     192,
     "ARIA-192-ECB",
-    16,
+    0,
     0,
     16,
     &aria_info
@@ -1157,7 +1157,7 @@ static const mbedtls_cipher_info_t aria_256_ecb_info = {
     MBEDTLS_MODE_ECB,
     256,
     "ARIA-256-ECB",
-    16,
+    0,
     0,
     16,
     &aria_info
@@ -1559,7 +1559,7 @@ static const mbedtls_cipher_info_t des_ecb_info = {
     MBEDTLS_MODE_ECB,
     MBEDTLS_KEY_LENGTH_DES,
     "DES-ECB",
-    8,
+    0,
     0,
     8,
     &des_info
@@ -1610,7 +1610,7 @@ static const mbedtls_cipher_info_t des_ede_ecb_info = {
     MBEDTLS_MODE_ECB,
     MBEDTLS_KEY_LENGTH_DES_EDE,
     "DES-EDE-ECB",
-    8,
+    0,
     0,
     8,
     &des_ede_info
@@ -1661,7 +1661,7 @@ static const mbedtls_cipher_info_t des_ede3_ecb_info = {
     MBEDTLS_MODE_ECB,
     MBEDTLS_KEY_LENGTH_DES_EDE3,
     "DES-EDE3-ECB",
-    8,
+    0,
     0,
     8,
     &des_ede3_info
@@ -1776,7 +1776,7 @@ static const mbedtls_cipher_info_t blowfish_ecb_info = {
     MBEDTLS_MODE_ECB,
     128,
     "BLOWFISH-ECB",
-    8,
+    0,
     MBEDTLS_CIPHER_VARIABLE_KEY_LEN,
     8,
     &blowfish_info

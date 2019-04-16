@@ -52,6 +52,9 @@
 #if defined(MBEDTLS_PKCS12_C)
 #include "mbedtls/pkcs12.h"
 #endif
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "mbedtls/ecc.h"
+#endif
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -517,6 +520,48 @@ static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
 }
 #endif /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+/*
+ * Import a point from unsigned binary data (SEC1 2.3.4)
+ */
+static int uecc_public_key_read_binary( uint8_t **pt,
+                                   const unsigned char *buf, size_t ilen )
+{
+
+    if( ilen < 1 )
+        return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
+
+    //We are not handling the infinity point right now
+
+    if( buf[0] != 0x04 )
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+
+    if( ilen != 2 * NUM_ECC_BYTES + 1 )
+        return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
+
+    *pt = (uint8_t *) buf + 1;
+
+    return( 0 );
+}
+
+static int pk_get_ueccpubkey( unsigned char **p,
+                           const unsigned char *end,
+                           uint8_t *pk_context)
+{
+    int ret;
+
+    ret = uecc_public_key_read_binary( &pk_context,
+                    (const unsigned char *) *p, end - *p );
+
+    /*
+     * We know uecc_public_key_read_binary consumed all bytes or failed
+     */
+    *p = (unsigned char *) end;
+
+    return( ret );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #if defined(MBEDTLS_RSA_C)
 /*
  *  RSAPublicKey ::= SEQUENCE {
@@ -650,6 +695,12 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
     if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 )
         return( ret );
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( pk_alg == MBEDTLS_PK_ECDSA )
+    {
+        ret = pk_get_ueccpubkey( p, end, (uint8_t*) pk->pk_ctx );
+    }
+#endif /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_RSA_C)
     if( pk_alg == MBEDTLS_PK_RSA )
     {

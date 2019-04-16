@@ -686,8 +686,9 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
 /**
  * \brief               This function adds additional data for AEAD ciphers.
  *                      Currently supported with GCM and ChaCha20+Poly1305.
- *                      This must be called exactly once, after
- *                      mbedtls_cipher_reset().
+ *
+ *                      This function must be called exactly once, after
+ *                      mbedtls_cipher_set_iv().
  *
  * \param ctx           The generic cipher context. This must be initialized.
  * \param ad            The additional data to use. This must be a readable
@@ -710,6 +711,13 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
  *                      mbedtls_cipher_finish() is called.
  *                      Exception: For MBEDTLS_MODE_ECB, expects a single block
  *                      in size. For example, 16 Bytes for AES.
+ *
+ *                      For modes that use an initialization vector (IV) or
+ *                      nonce, call mbedtls_cipher_set_iv() before this
+ *                      function.
+ *
+ *                      For authenticated encryption modes, call
+ *                      mbedtls_cipher_update_ad() before this function.
  *
  * \note                If the underlying cipher is used in GCM mode, all calls
  *                      to this function, except for the last one before

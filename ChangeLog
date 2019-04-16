@@ -8,6 +8,9 @@ Features
    * It is now possible to use NIST key wrap mode via the mbedtls_cipher API.
      Contributed by Jack Lloyd and Fortanix Inc.
    * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
+   * Add MBEDTLS_X509_INFO configuration to control availability of X.509
+     debug info APIs; disabling this reduces code footprint. Contributed by
+     Peter Kolbus (Garmin). #2308
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents

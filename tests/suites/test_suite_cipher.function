@@ -663,6 +663,23 @@ void cipher_state_machine( int cipher_type_arg )
 
     if( cipher_info->iv_size != 0 )
     {
+        /* Trying to use a mode that requires an IV, but no IV is set. */
+        TEST_ASSERT( mbedtls_cipher_update( &ctx, input, 1, output, &olen ) ==
+                     MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        TEST_ASSERT( mbedtls_cipher_finish( &ctx, output, &olen ) ==
+                     MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+#if HAVE_SOME_AEAD > 1
+        if( is_aead > 1 )
+        {
+            TEST_ASSERT( mbedtls_cipher_update_ad( &ctx, input, 1 ) ==
+                         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            TEST_ASSERT( mbedtls_cipher_write_tag( &ctx, input, 8 ) ==
+                         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            TEST_ASSERT( mbedtls_cipher_check_tag( &ctx, input, 8 ) ==
+                         MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        }
+#endif
+
         TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx,
                                                  iv, cipher_info->iv_size ) );
     }

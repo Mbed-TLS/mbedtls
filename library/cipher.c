@@ -304,9 +304,17 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
         if( key_bitlen % 8 != 0 )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-        /* Don't allow keys to be set multiple times. */
+        /* If the key is already set, clear the old key before continuing. */
         if( cipher_psa->slot_state != MBEDTLS_CIPHER_PSA_KEY_UNSET )
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        {
+            /* The key has already been allocated and imported. Clear the key
+             * before continuing. */
+            status = psa_destroy_key( cipher_psa->slot );
+            if ( status != PSA_SUCCESS )
+            {
+                return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            }
+        }
 
         key_type = mbedtls_psa_translate_cipher_type(
             ctx->cipher_info->type );

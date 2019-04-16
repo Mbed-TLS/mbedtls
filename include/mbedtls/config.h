@@ -1740,12 +1740,12 @@
  * \warning This option enables new Mbed TLS APIs that are dependent on the
  * PSA Crypto API, so can't come with the same stability guarantees as the
  * rest of the Mbed TLS APIs. You're welcome to experiment with them, but for
- * now access to these APIs is opt-in (via enabling the present option), in
+ * now, access to these APIs is opt-in (via enabling the present option), in
  * order to clearly differentiate them from the stable Mbed TLS APIs.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C.
  *
- * Uncomment this to enable internal use of PSA Crypto and new associated APIs
+ * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
  */
 //#define MBEDTLS_USE_PSA_CRYPTO
 

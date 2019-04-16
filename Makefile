@@ -1,5 +1,5 @@
 
-# build crypto form submodule unless explicitly disabled
+# build crypto from submodule unless explicitly disabled
 USE_CRYPTO_SUBMODULE ?= 1
 
 DESTDIR=/usr/local

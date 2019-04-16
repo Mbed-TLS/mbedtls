@@ -23,7 +23,7 @@ The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx
 
 ### Getting files form git: the Crypto submodule
 
-The Mbed Crypto library now has its own git repository, which the Mbed TLS build systems are using as a git submodule in order to build libmbecrypto as a subproject of Mbed TLS. When cloning the Mbed TLS repository, you need to make sure you're getting the submodule as well:
+The Mbed Crypto library now has its own git repository, which the Mbed TLS build systems are using as a git submodule in order to build libmbedcrypto as a subproject of Mbed TLS. When cloning the Mbed TLS repository, you need to make sure you're getting the submodule as well:
 
         git clone --recursive https://github.com/ARMmbed/mbedtls.git
 
@@ -34,9 +34,9 @@ repository, you can initialise and update the submodule with:
 
 After these steps, your clone is now ready for building the libraries as detailed in the following sections.
 
-Note that building libmbedcrypto as a subproject of Mbed LTS does not enable the PSA-specific tests and utility programs. To use these programs, build Mbed Crypto as a standalone project.
+Note that building libmbedcrypto as a subproject of Mbed TLS does not enable the PSA-specific tests and utility programs. To use these programs, build Mbed Crypto as a standalone project.
 
-Please note that for now, Mbed TLS can only use versions of libmbedcrypto that were built as a subproject of Mbed TLS, not versions that were build standalone from the Mbed Crypto repository. This restriction will be removed in the future.
+Please note that for now, Mbed TLS can only use versions of libmbedcrypto that were built as a subproject of Mbed TLS, not versions that were built standalone from the Mbed Crypto repository. This restriction will be removed in the future.
 
 ### Make
 

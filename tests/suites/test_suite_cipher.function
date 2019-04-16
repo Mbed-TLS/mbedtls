@@ -1011,7 +1011,7 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     TEST_ASSERT( memcmp( output, clear->x, clear->len ) == 0 );
 
     /* then encrypt the clear->x and make sure we get the same ciphertext and tag->x */
-    TEST_ASSERT( mbedtls_cipher_reset( &ctx ) == 0 );
+    mbedtls_cipher_free( &ctx );
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( use_psa == 1 )
     {

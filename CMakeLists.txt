@@ -12,6 +12,9 @@ option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 
+# export the submodule flag so that crypto knows it's being built as a submodule
+set( USE_CRYPTO_SUBMODULE ON )
+
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "IAR" CMAKE_COMPILER_IS_IAR "${CMAKE_C_COMPILER_ID}")

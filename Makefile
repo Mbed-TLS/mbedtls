@@ -1,4 +1,5 @@
-
+# export the submodule flag so that crypto knows it's being built as a submodule
+export USE_CRYPTO_SUBMODULE=1
 DESTDIR=/usr/local
 PREFIX=mbedtls_
 

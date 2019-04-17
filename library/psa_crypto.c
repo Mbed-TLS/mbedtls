@@ -1212,6 +1212,140 @@ exit:
 }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
+static psa_status_t psa_set_key_policy_internal(
+    psa_key_slot_t *slot,
+    const psa_key_policy_t *policy )
+{
+    if( ( policy->usage & ~( PSA_KEY_USAGE_EXPORT |
+                             PSA_KEY_USAGE_ENCRYPT |
+                             PSA_KEY_USAGE_DECRYPT |
+                             PSA_KEY_USAGE_SIGN |
+                             PSA_KEY_USAGE_VERIFY |
+                             PSA_KEY_USAGE_DERIVE ) ) != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    slot->policy = *policy;
+    return( PSA_SUCCESS );
+}
+
+/** Prepare a key slot to receive key material.
+ *
+ * This function allocates a key slot and sets its metadata.
+ *
+ * If this function fails, call psa_fail_key_creation().
+ *
+ * \param attributes    Key attributes for the new key.
+ * \param handle        On success, the allocated handle.
+ * \param p_slot        On success, a pointer to the prepared slot.
+ */
+static psa_status_t psa_start_key_creation(
+    const psa_key_attributes_t *attributes,
+    psa_key_handle_t *handle,
+    psa_key_slot_t **p_slot )
+{
+    psa_status_t status;
+    psa_key_slot_t *slot;
+
+    status = psa_allocate_key( handle );
+    if( status != PSA_SUCCESS )
+        return( status );
+    status = psa_get_key_slot( *handle, p_slot );
+    if( status != PSA_SUCCESS )
+        return( status );
+    slot = *p_slot;
+
+    status = psa_set_key_policy_internal( slot, &attributes->policy );
+    if( status != PSA_SUCCESS )
+        return( status );
+    slot->lifetime = attributes->lifetime;
+    if( attributes->lifetime != PSA_KEY_LIFETIME_VOLATILE )
+        slot->persistent_storage_id = attributes->id;
+    slot->type = attributes->type;
+
+    return( status );
+}
+
+/** Finalize the creation of a key once its key material has been set.
+ *
+ * This entails writing the key to persistent storage.
+ *
+ * If this function fails, call psa_fail_key_creation().
+ *
+ * \param slot          Pointer to the slot with key material.
+ */
+static psa_status_t psa_finish_key_creation( psa_key_slot_t *slot )
+{
+    psa_status_t status = PSA_SUCCESS;
+
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+    {
+        uint8_t *buffer = NULL;
+        size_t buffer_size = 0;
+        size_t length;
+
+        buffer_size = PSA_KEY_EXPORT_MAX_SIZE( slot->type,
+                                               psa_get_key_bits( slot ) );
+        buffer = mbedtls_calloc( 1, buffer_size );
+        if( buffer == NULL && buffer_size != 0 )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        status = psa_internal_export_key( slot,
+                                          buffer, buffer_size, &length,
+                                          0 );
+
+        if( status == PSA_SUCCESS )
+        {
+            status = psa_save_persistent_key( slot->persistent_storage_id,
+                                              slot->type, &slot->policy,
+                                              buffer, length );
+        }
+
+        if( buffer_size != 0 )
+            mbedtls_platform_zeroize( buffer, buffer_size );
+        mbedtls_free( buffer );
+    }
+#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
+    return( status );
+}
+
+/** Abort the creation of a key.
+ *
+ * You may call this function after calling psa_start_key_creation(),
+ * or after psa_finish_key_creation() fails. In other circumstances, this
+ * function may not clean up persistent storage.
+ *
+ * \param slot          Pointer to the slot with key material.
+ */
+static void psa_fail_key_creation( psa_key_slot_t *slot )
+{
+    if( slot == NULL )
+        return;
+    psa_wipe_key_slot( slot );
+}
+
+psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
+                             psa_key_handle_t *handle,
+                             const uint8_t *data,
+                             size_t data_length )
+{
+    psa_status_t status;
+    psa_key_slot_t *slot = NULL;
+    status = psa_start_key_creation( attributes, handle, &slot );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_import_key_into_slot( slot, data, data_length );
+    }
+    if( status == PSA_SUCCESS )
+        status = psa_finish_key_creation( slot );
+    if( status != PSA_SUCCESS )
+    {
+        psa_fail_key_creation( slot );
+        *handle = 0;
+    }
+    return( status );
+}
+
 static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
                                            psa_key_handle_t target )
 {
@@ -3240,17 +3374,7 @@ psa_status_t psa_set_key_policy( psa_key_handle_t handle,
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( ( policy->usage & ~( PSA_KEY_USAGE_EXPORT |
-                             PSA_KEY_USAGE_ENCRYPT |
-                             PSA_KEY_USAGE_DECRYPT |
-                             PSA_KEY_USAGE_SIGN |
-                             PSA_KEY_USAGE_VERIFY |
-                             PSA_KEY_USAGE_DERIVE ) ) != 0 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    slot->policy = *policy;
-
-    return( PSA_SUCCESS );
+    return( psa_set_key_policy_internal( slot, policy ) );
 }
 
 psa_status_t psa_get_key_policy( psa_key_handle_t handle,

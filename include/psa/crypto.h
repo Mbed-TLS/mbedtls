@@ -109,6 +109,39 @@ psa_status_t psa_crypto_init(void);
  */
 typedef struct psa_key_attributes_s psa_key_attributes_t;
 
+static void psa_make_key_persistent(psa_key_attributes_t *attributes,
+                                    psa_key_id_t id,
+                                    psa_key_lifetime_t lifetime);
+
+static psa_key_id_t psa_get_key_id(const psa_key_attributes_t *attributes);
+
+static psa_key_lifetime_t psa_get_key_lifetime(
+    const psa_key_attributes_t *attributes);
+
+static void psa_set_key_usage_flags(psa_key_attributes_t *attributes,
+                                    psa_key_usage_t usage_flags);
+
+static psa_key_usage_t psa_get_key_usage_flags(
+    const psa_key_attributes_t *attributes);
+
+static void psa_set_key_algorithm(psa_key_attributes_t *attributes,
+                                  psa_algorithm_t alg);
+
+static psa_algorithm_t psa_get_key_algorithm(
+    const psa_key_attributes_t *attributes);
+
+static void psa_set_key_type(psa_key_attributes_t *attributes,
+                             psa_key_type_t type);
+
+static psa_key_type_t psa_get_key_type(const psa_key_attributes_t *attributes);
+
+static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
+
+psa_status_t psa_get_key_attributes(psa_key_handle_t handle,
+                                    psa_key_attributes_t *attributes);
+
+psa_status_t psa_reset_key_attributes(psa_key_attributes_t *attributes);
+
 /**@}*/
 
 /** \defgroup policy Key policies
@@ -380,7 +413,6 @@ psa_status_t psa_close_key(psa_key_handle_t handle);
  */
 psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
                             psa_key_handle_t *handle,
-                            psa_key_type_t type,
                             const uint8_t *data,
                             size_t data_length);
 
@@ -2970,7 +3002,6 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  */
 psa_status_t psa_generator_import_key(const psa_key_attributes_t *attributes,
                                       psa_key_handle_t *handle,
-                                      psa_key_type_t type,
                                       size_t bits,
                                       psa_crypto_generator_t *generator);
 
@@ -3363,7 +3394,6 @@ typedef struct {
  */
 psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                               psa_key_handle_t *handle,
-                              psa_key_type_t type,
                               size_t bits,
                               const void *extra,
                               size_t extra_size);

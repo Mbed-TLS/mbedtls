@@ -1111,14 +1111,15 @@ void static_checks( )
 /* BEGIN_CASE */
 void import( data_t *data, int type, int expected_status_arg )
 {
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t handle = 0;
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &handle ) );
-    status = psa_import_key_to_handle( handle, type, data->x, data->len );
+    psa_set_key_type( &attributes, type );
+    status = psa_import_key( &attributes, &handle, data->x, data->len );
     TEST_EQUAL( status, expected_status );
     if( status == PSA_SUCCESS )
         PSA_ASSERT( psa_destroy_key( handle ) );
@@ -1226,7 +1227,7 @@ void import_export( data_t *data,
     size_t reexported_length;
     psa_key_type_t got_type;
     size_t got_bits;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     export_size = (ptrdiff_t) data->len + export_size_delta;
     ASSERT_ALLOC( exported, export_size );
@@ -1234,16 +1235,12 @@ void import_export( data_t *data,
         ASSERT_ALLOC( reexported, export_size );
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &handle ) );
-    psa_key_policy_set_usage( &policy, usage_arg, alg );
-    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
-
-    TEST_EQUAL( psa_get_key_information( handle, NULL, NULL ),
-                PSA_ERROR_DOES_NOT_EXIST );
+    psa_set_key_usage_flags( &attributes, usage_arg );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, type );
 
     /* Import the key */
-    PSA_ASSERT( psa_import_key_to_handle( handle, type,
-                                data->x, data->len ) );
+    PSA_ASSERT( psa_import_key( &attributes, &handle, data->x, data->len ) );
 
     /* Test the key information */
     PSA_ASSERT( psa_get_key_information( handle,
@@ -1280,12 +1277,8 @@ void import_export( data_t *data,
     else
     {
         psa_key_handle_t handle2;
-        PSA_ASSERT( psa_allocate_key( &handle2 ) );
-        PSA_ASSERT( psa_set_key_policy( handle2, &policy ) );
-
-        PSA_ASSERT( psa_import_key_to_handle( handle2, type,
-                                    exported,
-                                    exported_length ) );
+        PSA_ASSERT( psa_import_key( &attributes, &handle2,
+                                    exported, exported_length ) );
         PSA_ASSERT( psa_export_key( handle2,
                                     reexported,
                                     export_size,
@@ -1525,17 +1518,16 @@ void import_export_public_key( data_t *data,
     unsigned char *exported = NULL;
     size_t export_size = expected_public_key->len + export_size_delta;
     size_t exported_length = INVALID_EXPORT_LENGTH;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &handle ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, alg );
-    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, type );
 
     /* Import the key */
-    PSA_ASSERT( psa_import_key_to_handle( handle, type,
-                                data->x, data->len ) );
+    PSA_ASSERT( psa_import_key( &attributes, &handle, data->x, data->len ) );
 
     /* Export the public key */
     ASSERT_ALLOC( exported, export_size );
@@ -1572,20 +1564,18 @@ void import_and_exercise_key( data_t *data,
     size_t bits = bits_arg;
     psa_algorithm_t alg = alg_arg;
     psa_key_usage_t usage = usage_to_exercise( type, alg );
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t got_type;
     size_t got_bits;
-    psa_status_t status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &handle ) );
-    psa_key_policy_set_usage( &policy, usage, alg );
-    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+    psa_set_key_usage_flags( &attributes, usage );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, type );
 
     /* Import the key */
-    status = psa_import_key_to_handle( handle, type, data->x, data->len );
-    PSA_ASSERT( status );
+    PSA_ASSERT( psa_import_key( &attributes, &handle, data->x, data->len ) );
 
     /* Test the key information */
     PSA_ASSERT( psa_get_key_information( handle,

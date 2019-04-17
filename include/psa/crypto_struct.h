@@ -260,4 +260,56 @@ static inline struct psa_key_policy_s psa_key_policy_init( void )
     return( v );
 }
 
+struct psa_key_attributes_s
+{
+    psa_key_id_t id;
+    psa_key_lifetime_t lifetime;
+    psa_key_policy_t policy;
+    psa_key_type_t type;
+    size_t bits;
+};
+
+#define PSA_KEY_ATTRIBUTES_INIT {0, 0, {0, 0}, 0, 0}
+static inline struct psa_key_attributes_s psa_key_attributes_init( void )
+{
+    const struct psa_key_attributes_s v = PSA_KEY_ATTRIBUTES_INIT;
+    return( v );
+}
+
+static inline void psa_set_key_usage_flags(psa_key_attributes_t *attributes,
+                                           psa_key_usage_t usage_flags)
+{
+    attributes->policy.usage = usage_flags;
+}
+
+static inline psa_key_usage_t psa_get_key_usage_flags(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->policy.usage );
+}
+
+static inline void psa_set_key_algorithm(psa_key_attributes_t *attributes,
+                                         psa_algorithm_t alg)
+{
+    attributes->policy.alg = alg;
+}
+
+static inline psa_algorithm_t psa_get_key_algorithm(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->policy.alg );
+}
+
+static inline void psa_set_key_type(psa_key_attributes_t *attributes,
+                                    psa_key_type_t type)
+{
+    attributes->type = type;
+}
+
+static inline psa_key_type_t psa_get_key_type(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->type );
+}
+
 #endif /* PSA_CRYPTO_STRUCT_H */

@@ -2818,6 +2818,11 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
     if( ssl->conf->cert_req_ca_list ==  MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED )
     {
+        /* NOTE: If trusted certificates are provisioned
+         *       via a CA callback (configured through
+         *       `mbedtls_ssl_conf_ca_cb()`, then the
+         *       CertificateRequest is currently left empty. */
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         if( ssl->handshake->sni_ca_chain != NULL )
             crt = ssl->handshake->sni_ca_chain;

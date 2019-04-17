@@ -85,7 +85,6 @@ APPS = \
 	random/gen_entropy$(EXEXT) \
 	random/gen_random_havege$(EXEXT) \
 	random/gen_random_ctr_drbg$(EXEXT) \
-	test/ssl_cert_test$(EXEXT) \
 	test/benchmark$(EXEXT) \
 	test/selftest$(EXEXT) \
 	test/udp_proxy$(EXEXT) \
@@ -276,10 +275,6 @@ ssl/ssl_mail_client$(EXEXT): ssl/ssl_mail_client.c $(DEP)
 ssl/mini_client$(EXEXT): ssl/mini_client.c $(DEP)
 	echo "  CC    ssl/mini_client.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/mini_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test/ssl_cert_test$(EXEXT): test/ssl_cert_test.c $(DEP)
-	echo "  CC    test/ssl_cert_test.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/ssl_cert_test.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/benchmark$(EXEXT): test/benchmark.c $(DEP)
 	echo "  CC    test/benchmark.c"

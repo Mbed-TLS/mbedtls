@@ -25,6 +25,9 @@ mpi_read_write_string:16:"-20":10:"-32":100:0:0
 Base test mpi_read_write_string #3 (Negative decimal)
 mpi_read_write_string:16:"-23":16:"-23":100:0:0
 
+Base test mpi_read_write_string #4 (Buffer just fits)
+mpi_read_write_string:16:"-4":4:"-10":4:0:0
+
 Test mpi_read_write_string #1 (Invalid character)
 mpi_read_write_string:10:"a28":0:"":100:MBEDTLS_ERR_MPI_INVALID_CHARACTER:0
 

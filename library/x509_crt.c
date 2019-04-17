@@ -377,6 +377,10 @@ static void x509_crt_verify_chain_reset(
     }
 
     ver_chain->len = 0;
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    ver_chain->trust_ca_cb_result = NULL;
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 }
 
 /*
@@ -820,7 +824,17 @@ static int x509_get_crt_ext( unsigned char **p,
             break;
 
         default:
-            return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+            /*
+             * If this is a non-critical extension, which the oid layer
+             * supports, but there isn't an x509 parser for it,
+             * skip the extension.
+             */
+#if !defined(MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
+            if( is_critical )
+                return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+            else
+#endif
+                *p = end_ext_octet;
         }
     }
 
@@ -2309,6 +2323,8 @@ static int x509_crt_verify_chain(
                 mbedtls_x509_crt *crt,
                 mbedtls_x509_crt *trust_ca,
                 mbedtls_x509_crl *ca_crl,
+                mbedtls_x509_crt_ca_cb_t f_ca_cb,
+                void *p_ca_cb,
                 const mbedtls_x509_crt_profile *profile,
                 mbedtls_x509_crt_verify_chain *ver_chain,
                 mbedtls_x509_crt_restart_ctx *rs_ctx )
@@ -2324,6 +2340,7 @@ static int x509_crt_verify_chain(
     int child_is_trusted;
     int signature_is_good;
     unsigned self_cnt;
+    mbedtls_x509_crt *cur_trust_ca = NULL;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* resume if we had an operation in progress */
@@ -2383,8 +2400,32 @@ static int x509_crt_verify_chain(
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 find_parent:
 #endif
+
+        /* Obtain list of potential trusted signers from CA callback,
+         * or use statically provided list. */
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        if( f_ca_cb != NULL )
+        {
+            mbedtls_x509_crt_free( ver_chain->trust_ca_cb_result );
+            mbedtls_free( ver_chain->trust_ca_cb_result );
+            ver_chain->trust_ca_cb_result = NULL;
+
+            ret = f_ca_cb( p_ca_cb, child, &ver_chain->trust_ca_cb_result );
+            if( ret != 0 )
+                return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+            cur_trust_ca = ver_chain->trust_ca_cb_result;
+        }
+        else
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+        {
+            ((void) f_ca_cb);
+            ((void) p_ca_cb);
+            cur_trust_ca = trust_ca;
+        }
+
         /* Look for a parent in trusted CAs or up the chain */
-        ret = x509_crt_find_parent( child, trust_ca, &parent,
+        ret = x509_crt_find_parent( child, cur_trust_ca, &parent,
                                        &parent_is_trusted, &signature_is_good,
                                        ver_chain->len - 1, self_cnt, rs_ctx );
 
@@ -2540,36 +2581,6 @@ static int x509_crt_merge_flags_with_cb(
 }
 
 /*
- * Verify the certificate validity (default profile, not restartable)
- */
-int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
-                     mbedtls_x509_crt *trust_ca,
-                     mbedtls_x509_crl *ca_crl,
-                     const char *cn, uint32_t *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                     void *p_vrfy )
-{
-    return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
-                &mbedtls_x509_crt_profile_default, cn, flags,
-                f_vrfy, p_vrfy, NULL ) );
-}
-
-/*
- * Verify the certificate validity (user-chosen profile, not restartable)
- */
-int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
-                     mbedtls_x509_crt *trust_ca,
-                     mbedtls_x509_crl *ca_crl,
-                     const mbedtls_x509_crt_profile *profile,
-                     const char *cn, uint32_t *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                     void *p_vrfy )
-{
-    return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
-                profile, cn, flags, f_vrfy, p_vrfy, NULL ) );
-}
-
-/*
  * Verify the certificate validity, with profile, restartable version
  *
  * This function:
@@ -2578,10 +2589,19 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
  *    as that isn't done as part of chain building/verification currently
  *  - builds and verifies the chain
  *  - then calls the callback and merges the flags
+ *
+ * The parameters pairs `trust_ca`, `ca_crl` and `f_ca_cb`, `p_ca_cb`
+ * are mutually exclusive: If `f_ca_cb != NULL`, it will be used by the
+ * verification routine to search for trusted signers, and CRLs will
+ * be disabled. Otherwise, `trust_ca` will be used as the static list
+ * of trusted signers, and `ca_crl` will be use as the static list
+ * of CRLs.
  */
-int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
+static int x509_crt_verify_restartable_ca_cb( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
+                     mbedtls_x509_crt_ca_cb_t f_ca_cb,
+                     void *p_ca_cb,
                      const mbedtls_x509_crt_profile *profile,
                      const char *cn, uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
@@ -2617,7 +2637,8 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
         ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
     /* Check the chain */
-    ret = x509_crt_verify_chain( crt, trust_ca, ca_crl, profile,
+    ret = x509_crt_verify_chain( crt, trust_ca, ca_crl,
+                                 f_ca_cb, p_ca_cb, profile,
                                  &ver_chain, rs_ctx );
 
     if( ret != 0 )
@@ -2630,6 +2651,13 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     ret = x509_crt_merge_flags_with_cb( flags, &ver_chain, f_vrfy, p_vrfy );
 
 exit:
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    mbedtls_x509_crt_free( ver_chain.trust_ca_cb_result );
+    mbedtls_free( ver_chain.trust_ca_cb_result );
+    ver_chain.trust_ca_cb_result = NULL;
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
         mbedtls_x509_crt_restart_free( rs_ctx );
@@ -2652,6 +2680,77 @@ exit:
 
     return( 0 );
 }
+
+
+/*
+ * Verify the certificate validity (default profile, not restartable)
+ */
+int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt *trust_ca,
+                     mbedtls_x509_crl *ca_crl,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy )
+{
+    return( x509_crt_verify_restartable_ca_cb( crt, trust_ca, ca_crl,
+                                         NULL, NULL,
+                                         &mbedtls_x509_crt_profile_default,
+                                         cn, flags,
+                                         f_vrfy, p_vrfy, NULL ) );
+}
+
+/*
+ * Verify the certificate validity (user-chosen profile, not restartable)
+ */
+int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt *trust_ca,
+                     mbedtls_x509_crl *ca_crl,
+                     const mbedtls_x509_crt_profile *profile,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy )
+{
+    return( x509_crt_verify_restartable_ca_cb( crt, trust_ca, ca_crl,
+                                                 NULL, NULL,
+                                                 profile, cn, flags,
+                                                 f_vrfy, p_vrfy, NULL ) );
+}
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+/*
+ * Verify the certificate validity (user-chosen profile, CA callback,
+ *                                  not restartable).
+ */
+int mbedtls_x509_crt_verify_with_ca_cb( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt_ca_cb_t f_ca_cb,
+                     void *p_ca_cb,
+                     const mbedtls_x509_crt_profile *profile,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy )
+{
+    return( x509_crt_verify_restartable_ca_cb( crt, NULL, NULL,
+                                                 f_ca_cb, p_ca_cb,
+                                                 profile, cn, flags,
+                                                 f_vrfy, p_vrfy, NULL ) );
+}
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+
+int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
+                     mbedtls_x509_crt *trust_ca,
+                     mbedtls_x509_crl *ca_crl,
+                     const mbedtls_x509_crt_profile *profile,
+                     const char *cn, uint32_t *flags,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy,
+                     mbedtls_x509_crt_restart_ctx *rs_ctx )
+{
+    return( x509_crt_verify_restartable_ca_cb( crt, trust_ca, ca_crl,
+                                                 NULL, NULL,
+                                                 profile, cn, flags,
+                                                 f_vrfy, p_vrfy, rs_ctx ) );
+}
+
 
 /*
  * Initialize a certificate chain

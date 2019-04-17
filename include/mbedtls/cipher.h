@@ -176,6 +176,12 @@ typedef enum {
     MBEDTLS_CIPHER_AES_256_XTS,          /**< AES 256-bit cipher in XTS block mode. */
     MBEDTLS_CIPHER_CHACHA20,             /**< ChaCha20 stream cipher. */
     MBEDTLS_CIPHER_CHACHA20_POLY1305,    /**< ChaCha20-Poly1305 AEAD cipher. */
+    MBEDTLS_CIPHER_AES_128_KW,           /**< AES cipher with 128-bit NIST KW mode. */
+    MBEDTLS_CIPHER_AES_192_KW,           /**< AES cipher with 192-bit NIST KW mode. */
+    MBEDTLS_CIPHER_AES_256_KW,           /**< AES cipher with 256-bit NIST KW mode. */
+    MBEDTLS_CIPHER_AES_128_KWP,          /**< AES cipher with 128-bit NIST KWP mode. */
+    MBEDTLS_CIPHER_AES_192_KWP,          /**< AES cipher with 192-bit NIST KWP mode. */
+    MBEDTLS_CIPHER_AES_256_KWP,          /**< AES cipher with 256-bit NIST KWP mode. */
 } mbedtls_cipher_type_t;
 
 /** Supported cipher modes. */
@@ -191,6 +197,8 @@ typedef enum {
     MBEDTLS_MODE_CCM,                    /**< The CCM cipher mode.         */
     MBEDTLS_MODE_XTS,                    /**< The XTS cipher mode.         */
     MBEDTLS_MODE_CHACHAPOLY,             /**< The ChaCha-Poly cipher mode. */
+    MBEDTLS_MODE_KW,                     /**< The SP800-38F KW mode */
+    MBEDTLS_MODE_KWP,                    /**< The SP800-38F KWP mode */
 } mbedtls_cipher_mode_t;
 
 /** Supported cipher padding types. */

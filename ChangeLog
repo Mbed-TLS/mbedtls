@@ -5,11 +5,28 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Features
    * Add the Any Policy certificate policy oid, as defined in
      rfc 5280 section 4.2.1.4.
+   * It is now possible to use NIST key wrap mode via the mbedtls_cipher API.
+     Contributed by Jack Lloyd and Fortanix Inc.
+   * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
+   * Add the oid certificate policy x509 extension.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents
      were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
      Christian Walther in #2239.
+   * Fix potential memory leak in X.509 self test. Found and fixed by
+     Junhwan Park, #2106.
+   * Reduce stack usage of hkdf tests. Fixes #2195.
+   * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
+     used with negative inputs. Found by Guido Vranken in #2404. Credit to
+     OSS-Fuzz.
+   * Fix bugs in the AEAD test suite which would be exposed by ciphers which
+     either used both encrypt and decrypt key schedules, or which perform padding.
+     GCM and CCM were not affected. Fixed by Jack Lloyd.
+   * Fix incorrect default port number in ssl_mail_client example's usage.
+     Found and fixed by irwir. #2337
+   * Add psa_util.h to test/cpp_dummy_build to fix build_default_make_gcc_and_cxx.
+     Fixed by Peter Kolbus (Garmin). #2579
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

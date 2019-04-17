@@ -30,6 +30,7 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
+#define mbedtls_calloc     calloc
 #define mbedtls_free       free
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
@@ -166,6 +167,7 @@ int main( void )
 #define DFL_DGRAM_PACKING        1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_CA_CALLBACK         0
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -264,7 +266,13 @@ int main( void )
 #else
 #define USAGE_PSK ""
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
-
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+#define USAGE_CA_CALLBACK                       \
+    "   ca_callback=%%d       default: 0 (disabled)\n"      \
+    "                         Enable this to use the trusted certificate callback function\n"
+#else
+#define USAGE_CA_CALLBACK ""
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
@@ -420,6 +428,7 @@ int main( void )
     USAGE_SNI                                               \
     "\n"                                                    \
     USAGE_PSK                                               \
+    USAGE_CA_CALLBACK                                       \
     USAGE_ECJPAKE                                           \
     "\n"                                                    \
     "    allow_legacy=%%d     default: (library default: no)\n"      \
@@ -507,6 +516,9 @@ struct options
     int psk_opaque;
     int psk_list_opaque;
 #endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    int ca_callback;            /* Use callback for trusted certificate list */
+#endif
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
     char *psk_list;             /* list of PSK id/key pairs for callback    */
@@ -563,6 +575,62 @@ static void my_debug( void *ctx, int level,
     mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s", basename, line, level, str );
     fflush(  (FILE *) ctx  );
 }
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+int ca_callback( void *data, mbedtls_x509_crt const *child,
+                 mbedtls_x509_crt **candidates)
+{
+    int ret = 0;
+    mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
+    mbedtls_x509_crt *first;
+
+    /* This is a test-only implementation of the CA callback
+     * which always returns the entire list of trusted certificates.
+     * Production implementations managing a large number of CAs
+     * should use an efficient presentation and lookup for the
+     * set of trusted certificates (such as a hashtable) and only
+     * return those trusted certificates which satisfy basic
+     * parental checks, such as the matching of child `Issuer`
+     * and parent `Subject` field. */
+    ((void) child);
+
+    first = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
+    if( first == NULL )
+    {
+        ret = -1;
+        goto exit;
+    }
+    mbedtls_x509_crt_init( first );
+
+    if( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) != 0 )
+    {
+        ret = -1;
+        goto exit;
+    }
+
+    while( ca->next != NULL )
+    {
+        ca = ca->next;
+        if( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) != 0 )
+        {
+            ret = -1;
+            goto exit;
+        }
+    }
+
+exit:
+
+    if( ret != 0 )
+    {
+        mbedtls_x509_crt_free( first );
+        mbedtls_free( first );
+        first = NULL;
+    }
+
+    *candidates = first;
+    return( ret );
+}
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 /*
  * Test recv/send functions that make sure each try returns
@@ -1458,6 +1526,9 @@ int main( int argc, char *argv[] )
     opt.psk_opaque          = DFL_PSK_OPAQUE;
     opt.psk_list_opaque     = DFL_PSK_LIST_OPAQUE;
 #endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    opt.ca_callback         = DFL_CA_CALLBACK;
+#endif
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.psk_list            = DFL_PSK_LIST;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
@@ -1591,6 +1662,10 @@ int main( int argc, char *argv[] )
             opt.psk_opaque = atoi( q );
         else if( strcmp( p, "psk_list_opaque" ) == 0 )
             opt.psk_list_opaque = atoi( q );
+#endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        else if( strcmp( p, "ca_callback" ) == 0)
+            opt.ca_callback = atoi( q );
 #endif
         else if( strcmp( p, "psk_identity" ) == 0 )
             opt.psk_identity = q;
@@ -2570,7 +2645,12 @@ int main( int argc, char *argv[] )
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
-        mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        if( opt.ca_callback != 0 )
+            mbedtls_ssl_conf_ca_cb( &conf, ca_callback, &cacert);
+        else
+#endif
+            mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
     }
     if( key_cert_init )
     {

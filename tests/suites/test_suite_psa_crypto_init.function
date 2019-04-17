@@ -189,7 +189,7 @@ void validate_module_init_key_based( int count )
         PSA_ASSERT( status );
         mbedtls_psa_crypto_free( );
     }
-    status = psa_import_key( 1, PSA_KEY_TYPE_RAW_DATA, data, sizeof( data ) );
+    status = psa_import_key_to_handle( 1, PSA_KEY_TYPE_RAW_DATA, data, sizeof( data ) );
     TEST_EQUAL( status, PSA_ERROR_BAD_STATE );
 }
 /* END_CASE */

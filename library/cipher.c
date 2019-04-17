@@ -338,7 +338,7 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
 
         /* Populate new key slot. */
-        status = psa_import_key( cipher_psa->slot,
+        status = psa_import_key_to_handle( cipher_psa->slot,
                                  key_type, key, key_bytelen );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );

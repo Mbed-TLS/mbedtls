@@ -903,7 +903,7 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
     return( status );
 }
 
-psa_status_t psa_import_key( psa_key_handle_t handle,
+psa_status_t psa_import_key_to_handle( psa_key_handle_t handle,
                              psa_key_type_t type,
                              const uint8_t *data,
                              size_t data_length )
@@ -1228,7 +1228,7 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     status = psa_internal_export_key( source, buffer, buffer_size, &length, 0 );
     if( status != PSA_SUCCESS )
         goto exit;
-    status = psa_import_key( target, source->type, buffer, length );
+    status = psa_import_key_to_handle( target, source->type, buffer, length );
 
 exit:
     if( buffer_size != 0 )
@@ -1237,7 +1237,7 @@ exit:
     return( status );
 }
 
-psa_status_t psa_copy_key(psa_key_handle_t source_handle,
+psa_status_t psa_copy_key_to_handle(psa_key_handle_t source_handle,
                           psa_key_handle_t target_handle,
                           const psa_key_policy_t *constraint)
 {
@@ -3277,7 +3277,7 @@ psa_status_t psa_get_key_policy( psa_key_handle_t handle,
 /* Key Lifetime */
 /****************************************************************/
 
-psa_status_t psa_get_key_lifetime( psa_key_handle_t handle,
+psa_status_t psa_get_key_lifetime_from_handle( psa_key_handle_t handle,
                                    psa_key_lifetime_t *lifetime )
 {
     psa_key_slot_t *slot;
@@ -3996,7 +3996,7 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 }
 #endif /* MBEDTLS_DES_C */
 
-psa_status_t psa_generator_import_key( psa_key_handle_t handle,
+psa_status_t psa_generator_import_key_to_handle( psa_key_handle_t handle,
                                        psa_key_type_t type,
                                        size_t bits,
                                        psa_crypto_generator_t *generator )
@@ -4020,7 +4020,7 @@ psa_status_t psa_generator_import_key( psa_key_handle_t handle,
     if( type == PSA_KEY_TYPE_DES )
         psa_des_set_key_parity( data, bytes );
 #endif /* MBEDTLS_DES_C */
-    status = psa_import_key( handle, type, data, bytes );
+    status = psa_import_key_to_handle( handle, type, data, bytes );
 
 exit:
     mbedtls_free( data );
@@ -4749,7 +4749,7 @@ psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
 }
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
-psa_status_t psa_generate_key( psa_key_handle_t handle,
+psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
                                psa_key_type_t type,
                                size_t bits,
                                const void *extra,

@@ -629,7 +629,7 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     /* import private key in slot */
-    if( PSA_SUCCESS != psa_import_key( key, key_type, d, d_len ) )
+    if( PSA_SUCCESS != psa_import_key_to_handle( key, key_type, d, d_len ) )
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     /* remember slot number to be destroyed later by caller */

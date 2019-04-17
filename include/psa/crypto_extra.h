@@ -202,6 +202,93 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
 /* FIXME Deprecated. Remove this as soon as all the tests are updated. */
 #define PSA_ALG_SELECT_RAW                      ((psa_algorithm_t)0x31000001)
 
+/** \defgroup to_handle Key creation to allocated handle
+ * @{
+ *
+ * The functions in this section are legacy interfaces where the properties
+ * of a key object are set after allocating a handle, in constrast with the
+ * preferred interface where key objects are created atomically from
+ * a structure that represents the properties.
+ */
+
+/** Create a new persistent key slot.
+ *
+ * Create a new persistent key slot and return a handle to it. The handle
+ * remains valid until the application calls psa_close_key() or terminates.
+ * The application can open the key again with psa_open_key() until it
+ * removes the key by calling psa_destroy_key().
+ *
+ * \param lifetime      The lifetime of the key. This designates a storage
+ *                      area where the key material is stored. This must not
+ *                      be #PSA_KEY_LIFETIME_VOLATILE.
+ * \param id            The persistent identifier of the key.
+ * \param[out] handle   On success, a handle to the newly created key slot.
+ *                      When key material is later created in this key slot,
+ *                      it will be saved to the specified persistent location.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success. The application can now use the value of `*handle`
+ *         to access the newly allocated key slot.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         There is already a key with the identifier \p id in the storage
+ *         area designated by \p lifetime.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p lifetime is invalid, for example #PSA_KEY_LIFETIME_VOLATILE.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p id is invalid for the specified lifetime.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p lifetime is not supported.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         \p lifetime is valid, but the application does not have the
+ *         permission to create a key there.
+ */
+psa_status_t psa_create_key(psa_key_lifetime_t lifetime,
+                            psa_key_id_t id,
+                            psa_key_handle_t *handle);
+
+/** \brief Retrieve the lifetime of an open key.
+ *
+ * \param handle        Handle to query.
+ * \param[out] lifetime On success, the lifetime value.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_get_key_lifetime_from_handle(psa_key_handle_t handle,
+                                  psa_key_lifetime_t *lifetime);
+
+psa_status_t psa_import_key_to_handle(psa_key_handle_t handle,
+                            psa_key_type_t type,
+                            const uint8_t *data,
+                            size_t data_length);
+
+psa_status_t psa_copy_key_to_handle(psa_key_handle_t source_handle,
+                          psa_key_handle_t target_handle,
+                          const psa_key_policy_t *constraint);
+
+psa_status_t psa_generator_import_key_to_handle(psa_key_handle_t handle,
+                                      psa_key_type_t type,
+                                      size_t bits,
+                                      psa_crypto_generator_t *generator);
+
+psa_status_t psa_generate_key_to_handle(psa_key_handle_t handle,
+                              psa_key_type_t type,
+                              size_t bits,
+                              const void *extra,
+                              size_t extra_size);
+
+/**@}*/
+
 #ifdef __cplusplus
 }
 #endif

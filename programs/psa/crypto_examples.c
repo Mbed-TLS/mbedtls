@@ -179,7 +179,7 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
                              alg );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_generate_key( key_handle, PSA_KEY_TYPE_AES, key_bits,
+    status = psa_generate_key_to_handle( key_handle, PSA_KEY_TYPE_AES, key_bits,
                                NULL, 0 );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
@@ -229,7 +229,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
                              alg );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_generate_key( key_handle, PSA_KEY_TYPE_AES, key_bits,
+    status = psa_generate_key_to_handle( key_handle, PSA_KEY_TYPE_AES, key_bits,
                                NULL, 0 );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
@@ -277,7 +277,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
                              alg );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_generate_key( key_handle, PSA_KEY_TYPE_AES, key_bits,
+    status = psa_generate_key_to_handle( key_handle, PSA_KEY_TYPE_AES, key_bits,
                                NULL, 0 );
     ASSERT_STATUS( status, PSA_SUCCESS );
 

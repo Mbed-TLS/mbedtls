@@ -589,7 +589,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
-    if( psa_import_key( key_slot, psa_type, buf + sizeof( buf ) - key_len, key_len )
+    if( psa_import_key_to_handle( key_slot, psa_type, buf + sizeof( buf ) - key_len, key_len )
          != PSA_SUCCESS )
     {
         ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;

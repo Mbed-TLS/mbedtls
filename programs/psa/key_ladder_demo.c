@@ -208,7 +208,7 @@ static psa_status_t generate( const char *key_file_name )
                               KDF_ALG );
     PSA_CHECK( psa_set_key_policy( key_handle, &policy ) );
 
-    PSA_CHECK( psa_generate_key( key_handle,
+    PSA_CHECK( psa_generate_key_to_handle( key_handle,
                                  PSA_KEY_TYPE_DERIVE,
                                  PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ),
                                  NULL, 0 ) );
@@ -255,7 +255,7 @@ static psa_status_t import_key_from_file( psa_key_usage_t usage,
     PSA_CHECK( psa_allocate_key( master_key_handle ) );
     psa_key_policy_set_usage( &policy, usage, alg );
     PSA_CHECK( psa_set_key_policy( *master_key_handle, &policy ) );
-    PSA_CHECK( psa_import_key( *master_key_handle,
+    PSA_CHECK( psa_import_key_to_handle( *master_key_handle,
                                PSA_KEY_TYPE_DERIVE,
                                key_data, key_size ) );
 exit:
@@ -309,7 +309,7 @@ static psa_status_t derive_key_ladder( const char *ladder[],
         PSA_CHECK( psa_set_key_policy( *key_handle, &policy ) );
         /* Use the generator obtained from the parent key to create
          * the next intermediate key. */
-        PSA_CHECK( psa_generator_import_key(
+        PSA_CHECK( psa_generator_import_key_to_handle(
                        *key_handle,
                        PSA_KEY_TYPE_DERIVE,
                        PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ),
@@ -348,7 +348,7 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
                    WRAPPING_KEY_SALT, WRAPPING_KEY_SALT_LENGTH,
                    NULL, 0,
                    PSA_BITS_TO_BYTES( WRAPPING_KEY_BITS ) ) );
-    PSA_CHECK( psa_generator_import_key(
+    PSA_CHECK( psa_generator_import_key_to_handle(
                    *wrapping_key_handle,
                    PSA_KEY_TYPE_AES,
                    WRAPPING_KEY_BITS,

@@ -84,7 +84,7 @@ void transient_slot_lifecycle( int alg_arg, int usage_arg,
     TEST_ASSERT( handle != 0 );
     psa_key_policy_set_usage( &policy, usage_flags, alg );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
-    PSA_ASSERT( psa_import_key( handle, type, key_data->x, key_data->len ) );
+    PSA_ASSERT( psa_import_key_to_handle( handle, type, key_data->x, key_data->len ) );
     PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
     TEST_EQUAL( read_type, type );
 
@@ -137,7 +137,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     TEST_ASSERT( handle != 0 );
     psa_key_policy_set_usage( &policy, usage_flags, alg );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
-    PSA_ASSERT( psa_import_key( handle, type, key_data->x, key_data->len ) );
+    PSA_ASSERT( psa_import_key_to_handle( handle, type, key_data->x, key_data->len ) );
     PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
     TEST_EQUAL( read_type, type );
 
@@ -215,7 +215,7 @@ void create_existent( int lifetime_arg, int id_arg,
     TEST_ASSERT( handle1 != 0 );
     psa_key_policy_set_usage( &policy1, PSA_KEY_USAGE_EXPORT, 0 );
     PSA_ASSERT( psa_set_key_policy( handle1, &policy1 ) );
-    PSA_ASSERT( psa_import_key( handle1, type1,
+    PSA_ASSERT( psa_import_key_to_handle( handle1, type1,
                                 material1, sizeof( material1 ) ) );
 
     if( reopen_policy == CLOSE_BEFORE )
@@ -334,7 +334,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
                                     &source_handle ) );
     psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
     PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
-    PSA_ASSERT( psa_import_key( source_handle, source_type,
+    PSA_ASSERT( psa_import_key_to_handle( source_handle, source_type,
                                 material->x, material->len ) );
     PSA_ASSERT( psa_get_key_information( source_handle, NULL, &source_bits ) );
 
@@ -349,7 +349,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     target_policy = psa_key_policy_init();
 
     /* Copy the key. */
-    PSA_ASSERT( psa_copy_key( source_handle, target_handle, NULL ) );
+    PSA_ASSERT( psa_copy_key_to_handle( source_handle, target_handle, NULL ) );
 
     /* Destroy the source to ensure that this doesn't affect the target. */
     PSA_ASSERT( psa_destroy_key( source_handle ) );
@@ -435,7 +435,7 @@ void copy_from_empty( int source_lifetime_arg, int source_id_arg,
     PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
 
     /* Copy the key. */
-    TEST_EQUAL( psa_copy_key( source_handle, target_handle, NULL ),
+    TEST_EQUAL( psa_copy_key_to_handle( source_handle, target_handle, NULL ),
                 PSA_ERROR_DOES_NOT_EXIST );
 
     /* Test that the slots are unaffected. */
@@ -496,7 +496,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
                                     &source_handle ) );
     psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
     PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
-    PSA_ASSERT( psa_import_key( source_handle, source_type,
+    PSA_ASSERT( psa_import_key_to_handle( source_handle, source_type,
                                 source_material->x, source_material->len ) );
     PSA_ASSERT( psa_get_key_information( source_handle, NULL, &source_bits ) );
 
@@ -508,12 +508,12 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
                                     &target_handle ) );
     psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
     PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
-    PSA_ASSERT( psa_import_key( target_handle, target_type,
+    PSA_ASSERT( psa_import_key_to_handle( target_handle, target_type,
                                 target_material->x, target_material->len ) );
     PSA_ASSERT( psa_get_key_information( target_handle, NULL, &target_bits ) );
 
     /* Copy the key. */
-    TEST_EQUAL( psa_copy_key( source_handle, target_handle, NULL ),
+    TEST_EQUAL( psa_copy_key_to_handle( source_handle, target_handle, NULL ),
                 PSA_ERROR_ALREADY_EXISTS );
 
     /* Test that the target slot is unaffected. */
@@ -573,12 +573,12 @@ void copy_to_same( int lifetime_arg, int id_arg,
                                     &handle ) );
     psa_key_policy_set_usage( &policy, usage, alg );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
-    PSA_ASSERT( psa_import_key( handle, type,
+    PSA_ASSERT( psa_import_key_to_handle( handle, type,
                                 material->x, material->len ) );
     PSA_ASSERT( psa_get_key_information( handle, NULL, &bits ) );
 
     /* Copy the key. */
-    TEST_EQUAL( psa_copy_key( handle, handle, NULL ),
+    TEST_EQUAL( psa_copy_key_to_handle( handle, handle, NULL ),
                 PSA_ERROR_ALREADY_EXISTS );
 
     /* Test that the slot is unaffected. */
@@ -624,7 +624,7 @@ void invalid_handle( )
     TEST_ASSERT( handle1 != 0 );
     psa_key_policy_set_usage( &policy, 0, 0 );
     PSA_ASSERT( psa_set_key_policy( handle1, &policy ) );
-    PSA_ASSERT( psa_import_key( handle1, PSA_KEY_TYPE_RAW_DATA,
+    PSA_ASSERT( psa_import_key_to_handle( handle1, PSA_KEY_TYPE_RAW_DATA,
                                 material, sizeof( material ) ) );
 
     /* Attempt to close and destroy some invalid handles. */
@@ -671,7 +671,7 @@ void many_transient_handles( int max_handles_arg )
         for( j = 0; j < i; j++ )
             TEST_ASSERT( handles[i] != handles[j] );
         PSA_ASSERT( psa_set_key_policy( handles[i], &policy ) );
-        PSA_ASSERT( psa_import_key( handles[i], PSA_KEY_TYPE_RAW_DATA,
+        PSA_ASSERT( psa_import_key_to_handle( handles[i], PSA_KEY_TYPE_RAW_DATA,
                                     (uint8_t *) &i, sizeof( i ) ) );
     }
     max_handles = i;

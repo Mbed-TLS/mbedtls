@@ -98,7 +98,7 @@ void save_large_persistent_key( int data_too_large, int expected_status )
     PSA_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
                                 &handle ) );
 
-    TEST_EQUAL( psa_import_key( handle, PSA_KEY_TYPE_RAW_DATA,
+    TEST_EQUAL( psa_import_key_to_handle( handle, PSA_KEY_TYPE_RAW_DATA,
                                 data, data_length ),
                 expected_status );
 
@@ -126,7 +126,7 @@ void persistent_key_destroy( int key_id_arg, int should_store,
 
     if( should_store == 1 )
     {
-        PSA_ASSERT( psa_import_key(
+        PSA_ASSERT( psa_import_key_to_handle(
                         handle, first_type,
                         first_data->x, first_data->len ) );
     }
@@ -147,7 +147,7 @@ void persistent_key_destroy( int key_id_arg, int should_store,
     /* Create another key in the same slot */
     PSA_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
                                 &handle ) );
-    PSA_ASSERT( psa_import_key(
+    PSA_ASSERT( psa_import_key_to_handle(
                     handle, second_type,
                     second_data->x, second_data->len ) );
 
@@ -170,7 +170,7 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
 
     PSA_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
                                 &handle ) );
-    TEST_EQUAL( psa_import_key( handle, type, data->x, data->len ),
+    TEST_EQUAL( psa_import_key_to_handle( handle, type, data->x, data->len ),
                 expected_status );
 
     if( expected_status != PSA_SUCCESS )
@@ -179,7 +179,7 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
         goto exit;
     }
 
-    PSA_ASSERT( psa_get_key_lifetime( handle, &lifetime ) );
+    PSA_ASSERT( psa_get_key_lifetime_from_handle( handle, &lifetime ) );
     TEST_EQUAL( lifetime, PSA_KEY_LIFETIME_PERSISTENT );
 
 exit:
@@ -215,10 +215,10 @@ void import_export_persistent_key( data_t *data, int type_arg,
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
 
     /* Import the key */
-    PSA_ASSERT( psa_import_key( handle, type,
+    PSA_ASSERT( psa_import_key_to_handle( handle, type,
                                 data->x, data->len ) );
 
-    PSA_ASSERT( psa_get_key_lifetime( handle, &lifetime_get ) );
+    PSA_ASSERT( psa_get_key_lifetime_from_handle( handle, &lifetime_get ) );
     TEST_EQUAL( lifetime_get, PSA_KEY_LIFETIME_PERSISTENT );
 
     /* Test the key information */

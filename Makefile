@@ -1,7 +1,4 @@
 
-# build crypto from submodule unless explicitly disabled
-USE_CRYPTO_SUBMODULE ?= 1
-
 DESTDIR=/usr/local
 PREFIX=mbedtls_
 
@@ -22,9 +19,7 @@ lib:
 
 tests: lib
 	$(MAKE) -C tests
-ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C crypto/tests
-endif
 
 ifndef WINDOWS
 install: no_test
@@ -34,13 +29,10 @@ install: no_test
 	mkdir -p $(DESTDIR)/lib
 	cp -RP library/libmbedtls.*    $(DESTDIR)/lib
 	cp -RP library/libmbedx509.*   $(DESTDIR)/lib
-ifneq ($(USE_CRYPTO_SUBMODULE), 0)
+
 	mkdir -p $(DESTDIR)/include/psa
 	cp -rp crypto/include/psa $(DESTDIR)/include
 	cp -RP crypto/library/libmbedcrypto.* $(DESTDIR)/lib
-else
-	cp -RP library/libmbedcrypto.* $(DESTDIR)/lib
-endif
 
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \
@@ -56,9 +48,8 @@ uninstall:
 	rm -f $(DESTDIR)/lib/libmbedtls.*
 	rm -f $(DESTDIR)/lib/libmbedx509.*
 	rm -f $(DESTDIR)/lib/libmbedcrypto.*
-ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 	$(MAKE) -C crypto uninstall
-endif
+
 
 	for p in programs/*/* ; do              \
 	    if [ -x $$p ] && [ ! -d $$p ] ;     \
@@ -100,18 +91,14 @@ clean:
 	$(MAKE) -C library clean
 	$(MAKE) -C programs clean
 	$(MAKE) -C tests clean
-ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 	$(MAKE) -C crypto clean
-endif
 ifndef WINDOWS
 	find . \( -name \*.gcno -o -name \*.gcda -o -name \*.info \) -exec rm {} +
 endif
 
 check: lib tests
 	$(MAKE) -C tests check
-ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C crypto/tests check
-endif
 
 test: check
 

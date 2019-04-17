@@ -9,7 +9,6 @@ option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library.
 option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
 
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
-option(USE_CRYPTO_SUBMODULE "Build and use libmbedcrypto from the crypto submodule." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 
@@ -178,10 +177,8 @@ endif(ENABLE_ZLIB_SUPPORT)
 
 add_subdirectory(library)
 add_subdirectory(include)
-if(USE_CRYPTO_SUBMODULE)
-    add_subdirectory(crypto/library)
-    add_subdirectory(crypto/include)
-endif()
+add_subdirectory(crypto/library)
+add_subdirectory(crypto/include)
 
 if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
@@ -195,9 +192,7 @@ if(ENABLE_TESTING)
     enable_testing()
 
     add_subdirectory(tests)
-    if(USE_CRYPTO_SUBMODULE)
-        add_subdirectory(crypto/tests)
-    endif()
+    add_subdirectory(crypto/tests)
 
     # additional convenience targets for Unix only
     if(UNIX)

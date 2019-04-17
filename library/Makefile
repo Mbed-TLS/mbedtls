@@ -1,9 +1,6 @@
 
 # Also see "include/mbedtls/config.h"
 
-# build crypto form submodule unless explicitly disabled
-USE_CRYPTO_SUBMODULE ?= 1
-
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
@@ -67,36 +64,11 @@ endif
 endif
 
 
-ifneq ($(USE_CRYPTO_SUBMODULE), 0)
+
 # Look in crypto for libmbedcrypto.
 LOCAL_LDFLAGS += -L../crypto/library
 LOCAL_CFLAGS += -I../crypto/include
 CRYPTO := ../crypto/library/
-else
-OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
-		aria.o		asn1parse.o	asn1write.o	\
-		base64.o	bignum.o	blowfish.o	\
-		camellia.o	ccm.o		chacha20.o	\
-		chachapoly.o	cipher.o	cipher_wrap.o	\
-		cmac.o		ctr_drbg.o	des.o		\
-		dhm.o		ecdh.o		ecdsa.o		\
-		ecjpake.o	ecp.o				\
-		ecp_curves.o	entropy.o	entropy_poll.o	\
-		error.o		gcm.o		havege.o	\
-		hkdf.o						\
-		hmac_drbg.o	md.o		md2.o		\
-		md4.o		md5.o		md_wrap.o	\
-		memory_buffer_alloc.o		nist_kw.o	\
-		oid.o		padlock.o	pem.o		\
-		pk.o		pk_wrap.o	pkcs12.o	\
-		pkcs5.o		pkparse.o	pkwrite.o	\
-		platform.o	platform_util.o	poly1305.o	\
-		ripemd160.o	rsa_internal.o	rsa.o  		\
-		sha1.o		sha256.o	sha512.o	\
-		threading.o	timing.o	version.o	\
-		version_features.o		xtea.o
-CRYPTO :=
-endif
 
 OBJS_X509=	certs.o		pkcs11.o	x509.o		\
 		x509_create.o	x509_crl.o	x509_crt.o	\
@@ -176,20 +148,8 @@ libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_X509) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
-# crypto
-ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 libmbedcrypto.%:
 	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C ../crypto/library $@
-else
-libmbedcrypto.a: $(OBJS_CRYPTO)
-	echo "  AR    $@"
-	$(AR) $(ARFLAGS) $@ $(OBJS_CRYPTO)
-ifdef APPLE_BUILD
-ifneq ($(APPLE_BUILD),0)
-	echo "  RL    $@"
-	$(RL) $(RLFLAGS) $@
-endif
-endif
 
 libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
 	echo "  LD    $@"
@@ -206,7 +166,6 @@ libmbedcrypto.dylib: $(OBJS_CRYPTO)
 libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_CRYPTO) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
-endif
 
 .c.o:
 	echo "  CC    $<"

@@ -8,6 +8,7 @@ Features
    * It is now possible to use NIST key wrap mode via the mbedtls_cipher API.
      Contributed by Jack Lloyd and Fortanix Inc.
    * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
+   * Add the oid certificate policy x509 extension.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents

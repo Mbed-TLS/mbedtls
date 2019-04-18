@@ -186,8 +186,8 @@ typedef struct
 #endif
     uint8_t offset_in_block;
     uint8_t block_number;
-    uint8_t state : 2;
-    uint8_t info_set : 1;
+    unsigned int state : 2;
+    unsigned int info_set : 1;
 } psa_hkdf_generator_t;
 #endif /* MBEDTLS_MD_C */
 

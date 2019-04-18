@@ -24,6 +24,12 @@
 #ifndef MBEDTLS_ASN1_WRITE_H
 #define MBEDTLS_ASN1_WRITE_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include "asn1.h"
 
 #define MBEDTLS_ASN1_CHK_ADD(g, f)                      \
@@ -275,6 +281,28 @@ int mbedtls_asn1_write_ia5_string( unsigned char **p, unsigned char *start,
  */
 int mbedtls_asn1_write_bitstring( unsigned char **p, unsigned char *start,
                                   const unsigned char *buf, size_t bits );
+
+/**
+ * \brief           This function writes a named bitstring tag
+ *                  (#MBEDTLS_ASN1_BIT_STRING) and value in ASN.1 format.
+ *
+ *                  As stated in RFC 5280 Appendix B, trailing zeroes are
+ *                  omitted when encoding named bitstrings in DER.
+ *
+ * \note            This function works backwards within the data buffer.
+ *
+ * \param p         The reference to the current position pointer.
+ * \param start     The start of the buffer which is used for bounds-checking.
+ * \param buf       The bitstring to write.
+ * \param bits      The total number of bits in the bitstring.
+ *
+ * \return          The number of bytes written to \p p on success.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_asn1_write_named_bitstring( unsigned char **p,
+                                        unsigned char *start,
+                                        const unsigned char *buf,
+                                        size_t bits );
 
 /**
  * \brief           Write an octet string tag (#MBEDTLS_ASN1_OCTET_STRING)

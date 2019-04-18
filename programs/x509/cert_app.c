@@ -34,6 +34,7 @@
 #define mbedtls_time_t          time_t
 #define mbedtls_fprintf         fprintf
 #define mbedtls_printf          printf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -98,6 +99,18 @@ int main( void )
     "    debug_level=%%d      default: 0 (disabled)\n"  \
     "    permissive=%%d       default: 0 (disabled)\n"  \
     "\n"
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+#define mbedtls_exit            exit
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
+                           int line )
+{
+    mbedtls_printf( "%s:%i: Input param failed - %s\n",
+                    file, line, failure_condition );
+    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+}
+#endif
 
 /*
  * global options
@@ -454,9 +467,12 @@ int main( int argc, char *argv[] )
         /*
          * 5. Print the certificate
          */
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+        mbedtls_printf( "  . Peer certificate information    ... skipped\n" );
+#else
         mbedtls_printf( "  . Peer certificate information    ...\n" );
         ret = mbedtls_x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                             ssl.session->peer_cert );
+                                     mbedtls_ssl_get_peer_cert( &ssl ) );
         if( ret == -1 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_x509_crt_info returned %d\n\n", ret );
@@ -464,6 +480,7 @@ int main( int argc, char *argv[] )
         }
 
         mbedtls_printf( "%s\n", buf );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
         mbedtls_ssl_close_notify( &ssl );
 

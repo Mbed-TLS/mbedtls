@@ -36,6 +36,9 @@
 #define mbedtls_calloc    calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
+#define mbedtls_exit            exit
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
@@ -228,11 +231,12 @@ int main( void )
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK_RAW                                               \
-    "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
-    "    psk_identity=%%s     default: \"Client_identity\"\n"       \
+    "    psk=%%s              default: \"\" (in hex, without 0x)\n"     \
     "    psk_list=%%s         default: \"\"\n"                          \
-    "                          A list of (PSK identity, PSK value) pairs in (hex format, without 0x)\n" \
-    "                          id1,psk1[,id2,psk2[,...]]\n"
+    "                          A list of (PSK identity, PSK value) pairs.\n" \
+    "                          The PSK values are in hex, without 0x.\n" \
+    "                          id1,psk1[,id2,psk2[,...]]\n"             \
+    "    psk_identity=%%s     default: \"Client_identity\"\n"
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define USAGE_PSK_SLOT                          \
     "    psk_opaque=%%d       default: 0 (don't use opaque static PSK)\n"     \
@@ -442,6 +446,10 @@ int main( void )
     "                                in order from ssl3 to tls1_2\n"    \
     "                                default: all enabled\n"            \
     "    force_ciphersuite=<name>    default: all enabled\n"            \
+    "    query_config=<name>         return 0 if the specified\n"       \
+    "                                configuration macro is defined and 1\n"  \
+    "                                otherwise. The expansion of the macro\n" \
+    "                                is printed if it is defined\n"     \
     " acceptable ciphersuite names:\n"
 
 
@@ -459,6 +467,18 @@ int main( void )
     (out_be)[(i) + 6] = (unsigned char)( ( (in_le) >> 8  ) & 0xFF );    \
     (out_be)[(i) + 7] = (unsigned char)( ( (in_le) >> 0  ) & 0xFF );    \
 }
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+#include "mbedtls/platform_util.h"
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
+                           int line )
+{
+    mbedtls_printf( "%s:%i: Input param failed - %s\n",
+                    file, line, failure_condition );
+    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+}
+#endif
 
 /*
  * global options
@@ -526,6 +546,8 @@ struct options
     int dgram_packing;          /* allow/forbid datagram packing            */
     int badmac_limit;           /* Limit of records with bad MAC            */
 } opt;
+
+int query_config( const char *config );
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -806,7 +828,7 @@ struct _psk_entry
     size_t key_len;
     unsigned char key[MBEDTLS_PSK_MAX_LEN];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t slot;
+    psa_key_handle_t slot;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     psk_entry *next;
 };
@@ -822,7 +844,7 @@ int psk_free( psk_entry *head )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_status_t status;
-        psa_key_slot_t const slot = head->slot;
+        psa_key_handle_t const slot = head->slot;
 
         if( slot != 0 )
         {
@@ -1231,7 +1253,7 @@ int idle( mbedtls_net_context *fd,
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-static psa_status_t psa_setup_psk_key_slot( psa_key_slot_t slot,
+static psa_status_t psa_setup_psk_key_slot( psa_key_handle_t slot,
                                             psa_algorithm_t alg,
                                             unsigned char *psk,
                                             size_t psk_len )
@@ -1239,7 +1261,7 @@ static psa_status_t psa_setup_psk_key_slot( psa_key_slot_t slot,
     psa_status_t status;
     psa_key_policy_t policy;
 
-    psa_key_policy_init( &policy );
+    policy = psa_key_policy_init();
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
 
     status = psa_set_key_policy( slot, &policy );
@@ -1268,7 +1290,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t alg = 0;
-    psa_key_slot_t psk_slot = 0;
+    psa_key_handle_t psk_slot = 0;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
@@ -1854,6 +1876,10 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "sni" ) == 0 )
         {
             opt.sni = q;
+        }
+        else if( strcmp( p, "query_config" ) == 0 )
+        {
+            return query_config( q );
         }
         else
             goto usage;
@@ -2667,7 +2693,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         if( opt.psk_opaque != 0 )
         {
-            status = mbedtls_psa_get_free_key_slot( &psk_slot );
+            status = psa_allocate_key( &psk_slot );
             if( status != PSA_SUCCESS )
             {
                 fprintf( stderr, "ALLOC FAIL\n" );
@@ -2711,7 +2737,7 @@ int main( int argc, char *argv[] )
             psk_entry *cur_psk;
             for( cur_psk = psk_info; cur_psk != NULL; cur_psk = cur_psk->next )
             {
-                status = mbedtls_psa_get_free_key_slot( &cur_psk->slot );
+                status = psa_allocate_key( &cur_psk->slot );
                 if( status != PSA_SUCCESS )
                 {
                     ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;

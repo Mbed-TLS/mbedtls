@@ -75,10 +75,6 @@
 #define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TLS_C
 
-/* For tests using ssl-opt.sh */
-#define MBEDTLS_NET_C
-#define MBEDTLS_TIMING_C
-
 /* Save RAM at the expense of ROM */
 #define MBEDTLS_AES_ROM_TABLES
 

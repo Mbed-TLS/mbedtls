@@ -546,14 +546,14 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *sig, size_t sig_len )
 {
     int ret;
-    psa_key_slot_t key_slot;
+    psa_key_handle_t key_slot;
     psa_key_policy_t policy;
     psa_key_type_t psa_type;
     mbedtls_pk_context key;
     int key_len;
     /* see ECP_PUB_DER_MAX_BYTES in pkwrite.c */
     unsigned char buf[30 + 2 * MBEDTLS_ECP_MAX_BYTES];
-    unsigned char *p = (unsigned char*) sig;
+    unsigned char *p;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
     psa_algorithm_t psa_sig_md, psa_md;
     psa_ecc_curve_t curve = mbedtls_psa_translate_ecc_group(
@@ -563,16 +563,14 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( curve == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    /* mbedlts_pk_write_pubkey_der() expects a full PK context,
+    /* mbedtls_pk_write_pubkey() expects a full PK context;
      * re-construct one to make it happy */
     key.pk_info = &pk_info;
     key.pk_ctx = ctx;
-    key_len = mbedtls_pk_write_pubkey_der( &key, buf, sizeof( buf ) );
+    p = buf + sizeof( buf );
+    key_len = mbedtls_pk_write_pubkey( &p, buf, &key );
     if( key_len <= 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-
-    if( ( ret = mbedtls_psa_get_free_key_slot( &key_slot ) ) != PSA_SUCCESS )
-        return( mbedtls_psa_err_translate_pk( ret ) );
 
     psa_md = mbedtls_psa_translate_md( md_alg );
     if( psa_md == 0 )
@@ -580,7 +578,10 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     psa_sig_md = PSA_ALG_ECDSA( psa_md );
     psa_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
 
-    psa_key_policy_init( &policy );
+    if( ( ret = psa_allocate_key( &key_slot ) ) != PSA_SUCCESS )
+          return( mbedtls_psa_err_translate_pk( ret ) );
+
+    policy = psa_key_policy_init();
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, psa_sig_md );
     if( ( ret = psa_set_key_policy( key_slot, &policy ) ) != PSA_SUCCESS )
     {
@@ -603,6 +604,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
+    p = (unsigned char*) sig;
     if( ( ret = extract_ecdsa_sig( &p, sig + sig_len, buf,
                                    signature_part_size ) ) != 0 )
     {
@@ -879,7 +881,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 
 static void *pk_opaque_alloc_wrap( void )
 {
-    void *ctx = mbedtls_calloc( 1, sizeof( psa_key_slot_t ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( psa_key_handle_t ) );
 
     /* no _init() function to call, an calloc() already zeroized */
 
@@ -888,13 +890,13 @@ static void *pk_opaque_alloc_wrap( void )
 
 static void pk_opaque_free_wrap( void *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( psa_key_slot_t ) );
+    mbedtls_platform_zeroize( ctx, sizeof( psa_key_handle_t ) );
     mbedtls_free( ctx );
 }
 
 static size_t pk_opaque_get_bitlen( const void *ctx )
 {
-    const psa_key_slot_t *key = (const psa_key_slot_t *) ctx;
+    const psa_key_handle_t *key = (const psa_key_handle_t *) ctx;
     size_t bits;
 
     if( PSA_SUCCESS != psa_get_key_information( *key, NULL, &bits ) )
@@ -999,7 +1001,7 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    unsigned char *sig, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    const psa_key_slot_t *key = (const psa_key_slot_t *) ctx;
+    const psa_key_handle_t *key = (const psa_key_handle_t *) ctx;
     psa_algorithm_t alg = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
     size_t bits, buf_len;
     psa_status_t status;

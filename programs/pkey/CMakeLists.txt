@@ -1,11 +1,5 @@
-add_executable(dh_client dh_client.c)
-target_link_libraries(dh_client mbedtls)
-
 add_executable(dh_genprime dh_genprime.c)
 target_link_libraries(dh_genprime mbedtls)
-
-add_executable(dh_server dh_server.c)
-target_link_libraries(dh_server mbedtls)
 
 add_executable(ecdh_curve25519 ecdh_curve25519.c)
 target_link_libraries(ecdh_curve25519 mbedtls)
@@ -58,6 +52,6 @@ target_link_libraries(pk_encrypt mbedtls)
 add_executable(pk_decrypt pk_decrypt.c)
 target_link_libraries(pk_decrypt mbedtls)
 
-install(TARGETS dh_client dh_genprime dh_server key_app mpi_demo rsa_genkey rsa_sign rsa_verify rsa_encrypt rsa_decrypt pk_encrypt pk_decrypt pk_sign pk_verify gen_key
+install(TARGETS dh_genprime key_app mpi_demo rsa_genkey rsa_sign rsa_verify rsa_encrypt rsa_decrypt pk_encrypt pk_decrypt pk_sign pk_verify gen_key
         DESTINATION "bin"
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

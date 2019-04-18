@@ -50,6 +50,11 @@
     !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)
 #define MBEDTLS_PLATFORM_SNPRINTF_ALT
 #endif
+
+#if !defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT) && \
+    !defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO)
+#define MBEDTLS_PLATFORM_VSNPRINTF_ALT
+#endif
 #endif /* _WIN32 */
 
 #if defined(TARGET_LIKE_MBED) && \
@@ -109,13 +114,20 @@
 #endif
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)           && \
-    ( defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO)          || \
+      defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT) || \
       defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)     || \
       defined(MBEDTLS_ECDSA_SIGN_ALT)          || \
       defined(MBEDTLS_ECDSA_VERIFY_ALT)        || \
       defined(MBEDTLS_ECDSA_GENKEY_ALT)        || \
+      defined(MBEDTLS_ECP_INTERNAL_ALT)        || \
       defined(MBEDTLS_ECP_ALT) )
-#error "MBEDTLS_ECP_RESTARTABLE defined, but it cannot coexist with an alternative ECP implementation"
+#error "MBEDTLS_ECP_RESTARTABLE defined, but it cannot coexist with an alternative or PSA-based ECP implementation"
+#endif
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)           && \
+    ! defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+#error "MBEDTLS_ECP_RESTARTABLE defined, but not MBEDTLS_ECDH_LEGACY_CONTEXT"
 #endif
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC) && !defined(MBEDTLS_HMAC_DRBG_C)
@@ -135,6 +147,10 @@
     !defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) ) )
 #error "MBEDTLS_ECP_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)
+#error "MBEDTLS_PK_PARSE_C defined, but not all prerequesites"
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \
@@ -267,6 +283,14 @@
     ( !defined(MBEDTLS_ECJPAKE_C) || !defined(MBEDTLS_SHA256_C) ||      \
       !defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) )
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) &&        \
+    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) &&              \
+    ( !defined(MBEDTLS_SHA256_C) &&                             \
+      !defined(MBEDTLS_SHA512_C) &&                             \
+      !defined(MBEDTLS_SHA1_C) )
+#error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires MBEDTLS_SHA512_C, MBEDTLS_SHA256_C or MBEDTLS_SHA1_C"
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \
@@ -506,26 +530,25 @@
 #error "MBEDTLS_PSA_CRYPTO_SPM defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C) && defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C)
-#error "Only one of MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C or MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C can be defined"
-#endif
-
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&            \
-    !( defined(MBEDTLS_PSA_CRYPTO_C) &&                 \
-       ( defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C) ||  \
-         defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C) ) )
+    ! defined(MBEDTLS_PSA_CRYPTO_C)
 #error "MBEDTLS_PSA_CRYPTO_STORAGE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C) &&            \
-    !( defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&           \
-       defined(MBEDTLS_FS_IO) )
-#error "MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY) &&      \
+    !( defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) && \
+       defined(MBEDTLS_ENTROPY_NV_SEED) )
+#error "MBEDTLS_PSA_INJECT_ENTROPY defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C) &&             \
-    ! defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-#error "MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C defined, but not all prerequisites"
+#if defined(MBEDTLS_PSA_INJECT_ENTROPY) &&              \
+    !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES)
+#error "MBEDTLS_PSA_INJECT_ENTROPY is not compatible with actual entropy sources"
+#endif
+
+#if defined(MBEDTLS_PSA_ITS_FILE_C) && \
+    !defined(MBEDTLS_FS_IO)
+#error "MBEDTLS_PSA_ITS_FILE_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \
@@ -722,7 +745,7 @@
 /*
  * Avoid warning from -pedantic. This is a convenient place for this
  * workaround since this is included by every single file before the
- * #if defined(MBEDTLS_xxx_C) that results in emtpy translation units.
+ * #if defined(MBEDTLS_xxx_C) that results in empty translation units.
  */
 typedef int mbedtls_iso_c_forbids_empty_translation_units;
 

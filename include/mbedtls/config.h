@@ -139,7 +139,7 @@
  *
  * System has time.h, time(), and an implementation for
  * mbedtls_platform_gmtime_r() (see below).
- * The time needs to be correct (not necesarily very accurate, but at least
+ * The time needs to be correct (not necessarily very accurate, but at least
  * the date should be correct). This is used to verify the validity period of
  * X.509 certificates.
  *
@@ -226,6 +226,7 @@
 //#define MBEDTLS_PLATFORM_FPRINTF_ALT
 //#define MBEDTLS_PLATFORM_PRINTF_ALT
 //#define MBEDTLS_PLATFORM_SNPRINTF_ALT
+//#define MBEDTLS_PLATFORM_VSNPRINTF_ALT
 //#define MBEDTLS_PLATFORM_NV_SEED_ALT
 //#define MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT
 
@@ -255,6 +256,48 @@
  * Uncomment to get errors on using deprecated functions.
  */
 //#define MBEDTLS_DEPRECATED_REMOVED
+
+/**
+ * \def MBEDTLS_CHECK_PARAMS
+ *
+ * This configuration option controls whether the library validates more of
+ * the parameters passed to it.
+ *
+ * When this flag is not defined, the library only attempts to validate an
+ * input parameter if: (1) they may come from the outside world (such as the
+ * network, the filesystem, etc.) or (2) not validating them could result in
+ * internal memory errors such as overflowing a buffer controlled by the
+ * library. On the other hand, it doesn't attempt to validate parameters whose
+ * values are fully controlled by the application (such as pointers).
+ *
+ * When this flag is defined, the library additionally attempts to validate
+ * parameters that are fully controlled by the application, and should always
+ * be valid if the application code is fully correct and trusted.
+ *
+ * For example, when a function accepts as input a pointer to a buffer that may
+ * contain untrusted data, and its documentation mentions that this pointer
+ * must not be NULL:
+ * - the pointer is checked to be non-NULL only if this option is enabled
+ * - the content of the buffer is always validated
+ *
+ * When this flag is defined, if a library function receives a parameter that
+ * is invalid, it will:
+ * - invoke the macro MBEDTLS_PARAM_FAILED() which by default expands to a
+ *   call to the function mbedtls_param_failed()
+ * - immediately return (with a specific error code unless the function
+ *   returns void and can't communicate an error).
+ *
+ * When defining this flag, you also need to:
+ * - either provide a definition of the function mbedtls_param_failed() in
+ *   your application (see platform_util.h for its prototype) as the library
+ *   calls that function, but does not provide a default definition for it,
+ * - or provide a different definition of the macro MBEDTLS_PARAM_FAILED()
+ *   below if the above mechanism is not flexible enough to suit your needs.
+ *   See the documentation of this macro later in this file.
+ *
+ * Uncomment to enable validation of application-controlled parameters.
+ */
+//#define MBEDTLS_CHECK_PARAMS
 
 /* \} name SECTION: System support */
 
@@ -359,7 +402,7 @@
  * \note Because of a signature change, the core AES encryption and decryption routines are
  *       currently named mbedtls_aes_internal_encrypt and mbedtls_aes_internal_decrypt,
  *       respectively. When setting up alternative implementations, these functions should
- *       be overriden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
+ *       be overridden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
  *       must stay untouched.
  *
  * \note If you use the AES_xxx_ALT macros, then is is recommended to also set
@@ -414,11 +457,11 @@
  *      unsigned char mbedtls_internal_ecp_grp_capable(
  *          const mbedtls_ecp_group *grp )
  *      int  mbedtls_internal_ecp_init( const mbedtls_ecp_group *grp )
- *      void mbedtls_internal_ecp_deinit( const mbedtls_ecp_group *grp )
+ *      void mbedtls_internal_ecp_free( const mbedtls_ecp_group *grp )
  * The mbedtls_internal_ecp_grp_capable function should return 1 if the
  * replacement functions implement arithmetic for the given group and 0
  * otherwise.
- * The functions mbedtls_internal_ecp_init and mbedtls_internal_ecp_deinit are
+ * The functions mbedtls_internal_ecp_init and mbedtls_internal_ecp_free are
  * called before and after each point operation and provide an opportunity to
  * implement optimized set up and tear down instructions.
  *
@@ -645,6 +688,26 @@
 #define MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 
 /**
+ * \def MBEDTLS_REMOVE_3DES_CIPHERSUITES
+ *
+ * Remove 3DES ciphersuites by default in SSL / TLS.
+ * This flag removes the ciphersuites based on 3DES from the default list as
+ * returned by mbedtls_ssl_list_ciphersuites(). However, it is still possible
+ * to enable (some of) them with mbedtls_ssl_conf_ciphersuites() by including
+ * them explicitly.
+ *
+ * A man-in-the-browser attacker can recover authentication tokens sent through
+ * a TLS connection using a 3DES based cipher suite (see "On the Practical
+ * (In-)Security of 64-bit Block Ciphers" by Karthikeyan Bhargavan and Gaëtan
+ * Leurent, see https://sweet32.info/SWEET32_CCS16.pdf). If this attack falls
+ * in your threat model or you are unsure, then you should keep this option
+ * enabled to remove 3DES based cipher suites.
+ *
+ * Comment this macro to keep 3DES in the default ciphersuite list.
+ */
+#define MBEDTLS_REMOVE_3DES_CIPHERSUITES
+
+/**
  * \def MBEDTLS_ECP_DP_SECP192R1_ENABLED
  *
  * MBEDTLS_ECP_XXXX_ENABLED: Enables specific curves within the Elliptic Curve
@@ -683,11 +746,11 @@
  * Enable "non-blocking" ECC operations that can return early and be resumed.
  *
  * This allows various functions to pause by returning
- * #MBEDTLS_ERR_ECP_IN_PROGRESS (or, for functions in the SSL module,
- * #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) and then be called later again in
- * order to further progress and eventually complete their operation. This is
- * controlled through mbedtls_ecp_set_max_ops() which limits the maximum
- * number of ECC operations a function may perform before pausing; see
+ * #MBEDTLS_ERR_ECP_IN_PROGRESS (or, for functions in Mbed TLS's SSL module,
+ * MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) and then be called later again in order
+ * to further progress and eventually complete their operation. This is
+ * controlled through mbedtls_ecp_set_max_ops() which limits the maximum number
+ * of ECC operations a function may perform before pausing; see
  * mbedtls_ecp_set_max_ops() for more information.
  *
  * This is useful in non-threaded environments if you want to avoid blocking
@@ -697,9 +760,38 @@
  *
  * \note  This option only works with the default software implementation of
  *        elliptic curve functionality. It is incompatible with
- *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT and MBEDTLS_ECDSA_XXX_ALT.
+ *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT
+ *        and MBEDTLS_ECDH_LEGACY_CONTEXT.
  */
 //#define MBEDTLS_ECP_RESTARTABLE
+
+/**
+ * \def MBEDTLS_ECDH_LEGACY_CONTEXT
+ *
+ * Use a backward compatible ECDH context.
+ *
+ * Mbed TLS supports two formats for ECDH contexts (#mbedtls_ecdh_context
+ * defined in `ecdh.h`). For most applications, the choice of format makes
+ * no difference, since all library functions can work with either format,
+ * except that the new format is incompatible with MBEDTLS_ECP_RESTARTABLE.
+
+ * The new format used when this option is disabled is smaller
+ * (56 bytes on a 32-bit platform). In future versions of the library, it
+ * will support alternative implementations of ECDH operations.
+ * The new format is incompatible with applications that access
+ * context fields directly and with restartable ECP operations.
+ *
+ * Define this macro if you enable MBEDTLS_ECP_RESTARTABLE or if you
+ * want to access ECDH context fields directly. Otherwise you should
+ * comment out this macro definition.
+ *
+ * This option has no effect if #MBEDTLS_ECDH_C is not enabled.
+ *
+ * \note This configuration option is experimental. Future versions of the
+ *       library may modify the way the ECDH context layout is configured
+ *       and may modify the layout of the new context type.
+ */
+#define MBEDTLS_ECDH_LEGACY_CONTEXT
 
 /**
  * \def MBEDTLS_ECDSA_DETERMINISTIC
@@ -1103,15 +1195,20 @@
  */
 //#define MBEDTLS_ENTROPY_NV_SEED
 
-/**
- * \def MBEDTLS_PSA_HAS_ITS_IO
+/* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
  *
- * Enable the non-volatile secure storage usage.
+ * In PSA key storage, encode the owner of the key.
  *
- * This is crucial on systems that do not have a HW TRNG support.
+ * This is only meaningful when building the library as part of a
+ * multi-client service. When you activate this option, you must provide
+ * an implementation of the type psa_key_owner_id_t and a translation
+ * from psa_key_file_id_t to file name in all the storage backends that
+ * you wish to support.
  *
+ * Note that this option is meant for internal use only and may be removed
+ * without notice.
  */
-//#define MBEDTLS_PSA_HAS_ITS_IO
+//#define MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
 
 /**
  * \def MBEDTLS_MEMORY_DEBUG
@@ -1184,14 +1281,17 @@
 //#define MBEDTLS_PSA_CRYPTO_SPM
 
 /**
- * \def MBEDTLS_PSA_HAS_ITS_IO
+ * \def MBEDTLS_PSA_INJECT_ENTROPY
  *
- * Enable the non-volatile secure storage usage.
+ * Enable support for entropy injection at first boot. This feature is
+ * required on systems that do not have a built-in entropy source (TRNG).
+ * This feature is currently not supported on systems that have a built-in
+ * entropy source.
  *
- * This is crucial on systems that do not have a HW TRNG support.
+ * Requires: MBEDTLS_PSA_CRYPTO_STORAGE_C, MBEDTLS_ENTROPY_NV_SEED
  *
  */
-//#define MBEDTLS_PSA_HAS_ITS_IO
+//#define MBEDTLS_PSA_INJECT_ENTROPY
 
 /**
  * \def MBEDTLS_RSA_NO_CRT
@@ -1320,6 +1420,28 @@
  * Comment this macro to disable support for FALLBACK_SCSV
  */
 #define MBEDTLS_SSL_FALLBACK_SCSV
+
+/**
+ * \def MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+ *
+ * This option controls the availability of the API mbedtls_ssl_get_peer_cert()
+ * giving access to the peer's certificate after completion of the handshake.
+ *
+ * Unless you need mbedtls_ssl_peer_cert() in your application, it is
+ * recommended to disable this option for reduced RAM usage.
+ *
+ * \note If this option is disabled, mbedtls_ssl_get_peer_cert() is still
+ *       defined, but always returns \c NULL.
+ *
+ * \note This option has no influence on the protection against the
+ *       triple handshake attack. Even if it is disabled, Mbed TLS will
+ *       still ensure that certificates do not change during renegotiation,
+ *       for exaple by keeping a hash of the peer's certificate.
+ *
+ * Comment this macro to disable storing the peer's certificate
+ * after the handshake.
+ */
+#define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
 
 /**
  * \def MBEDTLS_SSL_HW_RECORD_ACCEL
@@ -1530,7 +1652,7 @@
  * \def MBEDTLS_SSL_SESSION_TICKETS
  *
  * Enable support for RFC 5077 session tickets in SSL.
- * Client-side, provides full support for session tickets (maintainance of a
+ * Client-side, provides full support for session tickets (maintenance of a
  * session store remains the responsibility of the application, though).
  * Server-side, you also need to provide callbacks for writing and parsing
  * tickets, including authenticated encryption and key management. Example
@@ -1714,7 +1836,7 @@
  *
  * \warning TLS-level compression MAY REDUCE SECURITY! See for example the
  * CRIME attack. Before enabling this option, you should examine with care if
- * CRIME or similar exploits may be a applicable to your use case.
+ * CRIME or similar exploits may be applicable to your use case.
  *
  * \note Currently compression can't be used with DTLS.
  *
@@ -2661,38 +2783,23 @@
  *
  * Module:  library/psa_crypto_storage.c
  *
- * Requires: MBEDTLS_PSA_CRYPTO_C and one of either
- * MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C or MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
- * (but not both)
- *
+ * Requires: MBEDTLS_PSA_CRYPTO_C,
+ *           either MBEDTLS_PSA_ITS_FILE_C or a native implementation of
+ *           the PSA ITS interface
  */
 #define MBEDTLS_PSA_CRYPTO_STORAGE_C
 
 /**
- * \def MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+ * \def MBEDTLS_PSA_ITS_FILE_C
  *
- * Enable persistent key storage over files for the
- * Platform Security Architecture cryptography API.
+ * Enable the emulation of the Platform Security Architecture
+ * Internal Trusted Storage (PSA ITS) over files.
  *
- * Module:  library/psa_crypto_storage_file.c
+ * Module:  library/psa_its_file.c
  *
- * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_FS_IO
- *
+ * Requires: MBEDTLS_FS_IO
  */
-#define MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
-
-/**
- * \def MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
- *
- * Enable persistent key storage over PSA ITS for the
- * Platform Security Architecture cryptography API.
- *
- * Module:  library/psa_crypto_storage_its.c
- *
- * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_HAS_ITS_IO
- *
- */
-//#define MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
+#define MBEDTLS_PSA_ITS_FILE_C
 
 /**
  * \def MBEDTLS_RIPEMD160_C
@@ -3078,7 +3185,7 @@
 //#define MBEDTLS_PLATFORM_STD_TIME            time /**< Default time to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
 //#define MBEDTLS_PLATFORM_STD_FPRINTF      fprintf /**< Default fprintf to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_PRINTF        printf /**< Default printf to use, can be undefined */
-/* Note: your snprintf must correclty zero-terminate the buffer! */
+/* Note: your snprintf must correctly zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_STD_SNPRINTF    snprintf /**< Default snprintf to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS       0 /**< Default exit value to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE       1 /**< Default exit value to use, can be undefined */
@@ -3095,10 +3202,41 @@
 //#define MBEDTLS_PLATFORM_TIME_TYPE_MACRO       time_t /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_PRINTF_MACRO        printf /**< Default printf macro to use, can be undefined */
-/* Note: your snprintf must correclty zero-terminate the buffer! */
+/* Note: your snprintf must correctly zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_SNPRINTF_MACRO    snprintf /**< Default snprintf macro to use, can be undefined */
+//#define MBEDTLS_PLATFORM_VSNPRINTF_MACRO    vsnprintf /**< Default vsnprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
+
+/**
+ * \brief       This macro is invoked by the library when an invalid parameter
+ *              is detected that is only checked with MBEDTLS_CHECK_PARAMS
+ *              (see the documentation of that option for context).
+ *
+ *              When you leave this undefined here, a default definition is
+ *              provided that invokes the function mbedtls_param_failed(),
+ *              which is declared in platform_util.h for the benefit of the
+ *              library, but that you need to define in your application.
+ *
+ *              When you define this here, this replaces the default
+ *              definition in platform_util.h (which no longer declares the
+ *              function mbedtls_param_failed()) and it is your responsibility
+ *              to make sure this macro expands to something suitable (in
+ *              particular, that all the necessary declarations are visible
+ *              from within the library - you can ensure that by providing
+ *              them in this file next to the macro definition).
+ *
+ *              Note that you may define this macro to expand to nothing, in
+ *              which case you don't have to worry about declarations or
+ *              definitions. However, you will then be notified about invalid
+ *              parameters only in non-void functions, and void function will
+ *              just silently return early on invalid parameters, which
+ *              partially negates the benefits of enabling
+ *              #MBEDTLS_CHECK_PARAMS in the first place, so is discouraged.
+ *
+ * \param cond  The expression that should evaluate to true, but doesn't.
+ */
+//#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
 
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
@@ -3108,31 +3246,65 @@
 
 /** \def MBEDTLS_SSL_MAX_CONTENT_LEN
  *
- * Maximum fragment length in bytes.
+ * Maximum length (in bytes) of incoming and outgoing plaintext fragments.
  *
- * Determines the size of both the incoming and outgoing TLS I/O buffers.
+ * This determines the size of both the incoming and outgoing TLS I/O buffers
+ * in such a way that both are capable of holding the specified amount of
+ * plaintext data, regardless of the protection mechanism used.
  *
- * Uncommenting MBEDTLS_SSL_IN_CONTENT_LEN and/or MBEDTLS_SSL_OUT_CONTENT_LEN
- * will override this length by setting maximum incoming and/or outgoing
- * fragment length, respectively.
+ * To configure incoming and outgoing I/O buffers separately, use
+ * #MBEDTLS_SSL_IN_CONTENT_LEN and #MBEDTLS_SSL_OUT_CONTENT_LEN,
+ * which overwrite the value set by this option.
+ *
+ * \note When using a value less than the default of 16KB on the client, it is
+ *       recommended to use the Maximum Fragment Length (MFL) extension to
+ *       inform the server about this limitation. On the server, there
+ *       is no supported, standardized way of informing the client about
+ *       restriction on the maximum size of incoming messages, and unless
+ *       the limitation has been communicated by other means, it is recommended
+ *       to only change the outgoing buffer size #MBEDTLS_SSL_OUT_CONTENT_LEN
+ *       while keeping the default value of 16KB for the incoming buffer.
+ *
+ * Uncomment to set the maximum plaintext size of both
+ * incoming and outgoing I/O buffers.
  */
 //#define MBEDTLS_SSL_MAX_CONTENT_LEN             16384
 
 /** \def MBEDTLS_SSL_IN_CONTENT_LEN
  *
- * Maximum incoming fragment length in bytes.
+ * Maximum length (in bytes) of incoming plaintext fragments.
  *
- * Uncomment to set the size of the inward TLS buffer independently of the
- * outward buffer.
+ * This determines the size of the incoming TLS I/O buffer in such a way
+ * that it is capable of holding the specified amount of plaintext data,
+ * regardless of the protection mechanism used.
+ *
+ * If this option is undefined, it inherits its value from
+ * #MBEDTLS_SSL_MAX_CONTENT_LEN.
+ *
+ * \note When using a value less than the default of 16KB on the client, it is
+ *       recommended to use the Maximum Fragment Length (MFL) extension to
+ *       inform the server about this limitation. On the server, there
+ *       is no supported, standardized way of informing the client about
+ *       restriction on the maximum size of incoming messages, and unless
+ *       the limitation has been communicated by other means, it is recommended
+ *       to only change the outgoing buffer size #MBEDTLS_SSL_OUT_CONTENT_LEN
+ *       while keeping the default value of 16KB for the incoming buffer.
+ *
+ * Uncomment to set the maximum plaintext size of the incoming I/O buffer
+ * independently of the outgoing I/O buffer.
  */
 //#define MBEDTLS_SSL_IN_CONTENT_LEN              16384
 
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *
- * Maximum outgoing fragment length in bytes.
+ * Maximum length (in bytes) of outgoing plaintext fragments.
  *
- * Uncomment to set the size of the outward TLS buffer independently of the
- * inward buffer.
+ * This determines the size of the outgoing TLS I/O buffer in such a way
+ * that it is capable of holding the specified amount of plaintext data,
+ * regardless of the protection mechanism used.
+ *
+ * If this option undefined, it inherits its value from
+ * #MBEDTLS_SSL_MAX_CONTENT_LEN.
  *
  * It is possible to save RAM by setting a smaller outward buffer, while keeping
  * the default inward 16384 byte buffer to conform to the TLS specification.
@@ -3142,11 +3314,8 @@
  * The specific size requirement depends on the configured ciphers and any
  * certificate data which is sent during the handshake.
  *
- * For absolute minimum RAM usage, it's best to enable
- * MBEDTLS_SSL_MAX_FRAGMENT_LENGTH and reduce MBEDTLS_SSL_MAX_CONTENT_LEN. This
- * reduces both incoming and outgoing buffer sizes. However this is only
- * guaranteed if the other end of the connection also supports the TLS
- * max_fragment_len extension. Otherwise the connection may fail.
+ * Uncomment to set the maximum plaintext size of the outgoing I/O buffer
+ * independently of the incoming I/O buffer.
  */
 //#define MBEDTLS_SSL_OUT_CONTENT_LEN             16384
 

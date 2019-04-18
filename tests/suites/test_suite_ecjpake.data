@@ -1,3 +1,6 @@
+ECJPAKE parameter validation
+ecjpake_invalid_param:
+
 ECJPAKE selftest
 ecjpake_selftest:
 

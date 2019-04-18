@@ -90,3 +90,75 @@ mbedtls_asn1_write_len:16909060:"8401020304":5:5
 
 ASN.1 Write / Read Length #12 (Len = 16909060, buffer too small)
 mbedtls_asn1_write_len:16909060:"8401020304":4:MBEDTLS_ERR_ASN1_BUF_TOO_SMALL
+
+ASN.1 Write Named Bitstring / Unused bits #0
+test_asn1_write_bitstrings:"FF":8:"030200FF":4:1
+
+ASN.1 Write Named Bitstring / Unused bits #1
+test_asn1_write_bitstrings:"FE":8:"030201FE":4:1
+
+ASN.1 Write Named Bitstring / Unused bits #2
+test_asn1_write_bitstrings:"FC":7:"030202FC":4:1
+
+ASN.1 Write Named Bitstring / Unused bits #3
+test_asn1_write_bitstrings:"F8":8:"030203F8":4:1
+
+ASN.1 Write Named Bitstring / Unused bits #4
+test_asn1_write_bitstrings:"F0":6:"030204F0":4:1
+
+ASN.1 Write Named Bitstring / Unused bits #5
+test_asn1_write_bitstrings:"E0":6:"030205E0":4:1
+
+ASN.1 Write Named Bitstring / Unused bits #6
+test_asn1_write_bitstrings:"C0":8:"030206C0":4:1
+
+ASN.1 Write Named Bitstring / Unused bits #7
+test_asn1_write_bitstrings:"80":8:"03020780":4:1
+
+ASN.1 Write Named Bitstring / Empty bitstring
+test_asn1_write_bitstrings:"00":7:"030100":3:1
+
+ASN.1 Write Named Bitstring / Empty bitstring (bits = 16)
+test_asn1_write_bitstrings:"0000":16:"030100":3:1
+
+ASN.1 Write Named Bitstring / Empty bitstring (bits = 24)
+test_asn1_write_bitstrings:"FFFFFF":0:"030100":3:1
+
+ASN.1 Write Named Bitstring / 15 trailing bits all unset
+test_asn1_write_bitstrings:"F88000":24:"030307F880":5:1
+
+ASN.1 Write Named Bitstring / 15 trailing bits all set
+test_asn1_write_bitstrings:"F8FFFF":9:"030307F880":5:1
+
+ASN.1 Write Bitstring / Unused bits #0
+test_asn1_write_bitstrings:"FF":8:"030200FF":4:0
+
+ASN.1 Write Bitstring / Unused bits #1
+test_asn1_write_bitstrings:"FF":7:"030201FE":4:0
+
+ASN.1 Write Bitstring / Unused bits #2
+test_asn1_write_bitstrings:"FF":6:"030202FC":4:0
+
+ASN.1 Write Bitstring / Unused bits #3
+test_asn1_write_bitstrings:"FF":5:"030203F8":4:0
+
+ASN.1 Write Bitstring / Unused bits #4
+test_asn1_write_bitstrings:"FF":4:"030204F0":4:0
+
+ASN.1 Write Bitstring / Unused bits #5
+test_asn1_write_bitstrings:"FF":3:"030205E0":4:0
+
+ASN.1 Write Bitstring / Unused bits #6
+test_asn1_write_bitstrings:"FF":2:"030206C0":4:0
+
+ASN.1 Write Bitstring / Unused bits #7
+test_asn1_write_bitstrings:"FF":1:"03020780":4:0
+
+ASN.1 Write Bitstring / 1 trailing bit (bits 15)
+test_asn1_write_bitstrings:"0003":15:"0303010002":5:0
+
+ASN.1 Write Bitstring / 0 bits
+test_asn1_write_bitstrings:"":0:"030100":3:0
+
+ASN.1 Write Bitstring / long string all bits unset except trailing bits
+test_asn1_write_bitstrings:"000000000007":45:"030703000000000000":9:0

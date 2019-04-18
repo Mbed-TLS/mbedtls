@@ -41,7 +41,7 @@ typedef struct
     psa_key_type_t type;
     psa_key_policy_t policy;
     psa_key_lifetime_t lifetime;
-    psa_key_id_t persistent_storage_id;
+    psa_key_file_id_t persistent_storage_id;
     unsigned allocated : 1;
     union
     {

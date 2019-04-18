@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include "psa/crypto.h"
 #include "psa_crypto_storage.h"
-#include "psa_crypto_storage_backend.h"
 #include "mbedtls/md.h"
 
 #define PSA_KEY_STORAGE_MAGIC_HEADER "PSA\0KEY"
@@ -138,7 +137,7 @@ void persistent_key_destroy( int key_id_arg, int should_store,
     /* Check key slot storage is removed */
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
     TEST_EQUAL( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id, &handle ),
-                PSA_ERROR_EMPTY_SLOT );
+                PSA_ERROR_DOES_NOT_EXIST );
     TEST_EQUAL( handle, 0 );
 
     /* Shutdown and restart */

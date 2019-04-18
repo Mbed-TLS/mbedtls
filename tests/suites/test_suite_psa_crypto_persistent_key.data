@@ -18,7 +18,7 @@ parse_storage_data_check:"505341004b4559":"":PSA_KEY_TYPE_RSA_KEYPAIR:PSA_KEY_US
 
 # Not specific to files, but only run this test in an environment where the maximum size could be reached.
 Save maximum size persistent raw key
-depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+depends_on:MBEDTLS_PSA_ITS_FILE_C
 save_large_persistent_key:0:PSA_SUCCESS
 
 Save larger than maximum size persistent raw key, should fail

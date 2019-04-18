@@ -24,6 +24,12 @@
 #ifndef MBEDTLS_ERROR_H
 #define MBEDTLS_ERROR_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include <stddef.h>
 
 /**
@@ -74,9 +80,9 @@
  * MD4       1                  0x002D-0x002D
  * MD5       1                  0x002F-0x002F
  * RIPEMD160 1                  0x0031-0x0031
- * SHA1      1                  0x0035-0x0035
- * SHA256    1                  0x0037-0x0037
- * SHA512    1                  0x0039-0x0039
+ * SHA1      1                  0x0035-0x0035 0x0073-0x0073
+ * SHA256    1                  0x0037-0x0037 0x0074-0x0074
+ * SHA512    1                  0x0039-0x0039 0x0075-0x0075
  * CHACHA20  3                  0x0051-0x0055
  * POLY1305  3                  0x0057-0x005B
  * CHACHAPOLY 2 0x0054-0x0056

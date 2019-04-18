@@ -290,26 +290,75 @@ int mbedtls_asn1_write_ia5_string( unsigned char **p, unsigned char *start,
     return( mbedtls_asn1_write_tagged_string(p, start, MBEDTLS_ASN1_IA5_STRING, text, text_len) );
 }
 
+int mbedtls_asn1_write_named_bitstring( unsigned char **p,
+                                        unsigned char *start,
+                                        const unsigned char *buf,
+                                        size_t bits )
+{
+    size_t unused_bits, byte_len;
+    const unsigned char *cur_byte;
+    unsigned char cur_byte_shifted;
+    unsigned char bit;
+
+    byte_len = ( bits + 7 ) / 8;
+    unused_bits = ( byte_len * 8 ) - bits;
+
+    /*
+     * Named bitstrings require that trailing 0s are excluded in the encoding
+     * of the bitstring. Trailing 0s are considered part of the 'unused' bits
+     * when encoding this value in the first content octet
+     */
+    if( bits != 0 )
+    {
+        cur_byte = buf + byte_len - 1;
+        cur_byte_shifted = *cur_byte >> unused_bits;
+
+        for( ; ; )
+        {
+            bit = cur_byte_shifted & 0x1;
+            cur_byte_shifted >>= 1;
+
+            if( bit != 0 )
+                break;
+
+            bits--;
+            if( bits == 0 )
+                break;
+
+            if( bits % 8 == 0 )
+                cur_byte_shifted = *--cur_byte;
+        }
+    }
+
+    return( mbedtls_asn1_write_bitstring( p, start, buf, bits ) );
+}
+
 int mbedtls_asn1_write_bitstring( unsigned char **p, unsigned char *start,
                           const unsigned char *buf, size_t bits )
 {
     int ret;
-    size_t len = 0, size;
+    size_t len = 0;
+    size_t unused_bits, byte_len;
 
-    size = ( bits / 8 ) + ( ( bits % 8 ) ? 1 : 0 );
+    byte_len = ( bits + 7 ) / 8;
+    unused_bits = ( byte_len * 8 ) - bits;
 
-    // Calculate byte length
-    //
-    if( *p < start || (size_t)( *p - start ) < size + 1 )
+    if( *p < start || (size_t)( *p - start ) < byte_len + 1 )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
-    len = size + 1;
-    (*p) -= size;
-    memcpy( *p, buf, size );
+    len = byte_len + 1;
 
-    // Write unused bits
-    //
-    *--(*p) = (unsigned char) (size * 8 - bits);
+    /* Write the bitstring. Ensure the unused bits are zeroed */
+    if( byte_len > 0 )
+    {
+        byte_len--;
+        *--( *p ) = buf[byte_len] & ~( ( 0x1 << unused_bits ) - 1 );
+        ( *p ) -= byte_len;
+        memcpy( *p, buf, byte_len );
+    }
+
+    /* Write unused bits */
+    *--( *p ) = (unsigned char)unused_bits;
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_BIT_STRING ) );
@@ -331,14 +380,36 @@ int mbedtls_asn1_write_octet_string( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 
-mbedtls_asn1_named_data *mbedtls_asn1_store_named_data( mbedtls_asn1_named_data **head,
+
+/* This is a copy of the ASN.1 parsing function mbedtls_asn1_find_named_data(),
+ * which is replicated to avoid a dependency ASN1_WRITE_C on ASN1_PARSE_C. */
+static mbedtls_asn1_named_data *asn1_find_named_data(
+                                               mbedtls_asn1_named_data *list,
+                                               const char *oid, size_t len )
+{
+    while( list != NULL )
+    {
+        if( list->oid.len == len &&
+            memcmp( list->oid.p, oid, len ) == 0 )
+        {
+            break;
+        }
+
+        list = list->next;
+    }
+
+    return( list );
+}
+
+mbedtls_asn1_named_data *mbedtls_asn1_store_named_data(
+                                        mbedtls_asn1_named_data **head,
                                         const char *oid, size_t oid_len,
                                         const unsigned char *val,
                                         size_t val_len )
 {
     mbedtls_asn1_named_data *cur;
 
-    if( ( cur = mbedtls_asn1_find_named_data( *head, oid, oid_len ) ) == NULL )
+    if( ( cur = asn1_find_named_data( *head, oid, oid_len ) ) == NULL )
     {
         // Add new entry if not present yet based on OID
         //

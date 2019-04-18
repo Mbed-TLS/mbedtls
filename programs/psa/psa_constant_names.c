@@ -1,3 +1,5 @@
+#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,22 +84,21 @@ static void append_with_curve(char **buffer, size_t buffer_size,
     append(buffer, buffer_size, required_size, ")", 1);
 }
 
-static void append_with_hash(char **buffer, size_t buffer_size,
-                             size_t *required_size,
-                             const char *string, size_t length,
-                             psa_algorithm_t hash_alg)
+typedef const char *(*psa_get_algorithm_name_func_ptr)(psa_algorithm_t alg);
+
+static void append_with_alg(char **buffer, size_t buffer_size,
+                            size_t *required_size,
+                            psa_get_algorithm_name_func_ptr get_name,
+                            psa_algorithm_t alg)
 {
-    const char *hash_name = psa_hash_algorithm_name(hash_alg);
-    append(buffer, buffer_size, required_size, string, length);
-    append(buffer, buffer_size, required_size, "(", 1);
-    if (hash_name != NULL) {
+    const char *name = get_name(alg);
+    if (name != NULL) {
         append(buffer, buffer_size, required_size,
-               hash_name, strlen(hash_name));
+               name, strlen(name));
     } else {
         append_integer(buffer, buffer_size, required_size,
-                       "0x%08lx", hash_alg);
+                       "0x%08lx", alg);
     }
-    append(buffer, buffer_size, required_size, ")", 1);
 }
 
 #include "psa_constant_names_generated.c"
@@ -138,7 +139,7 @@ static int psa_snprint_ecc_curve(char *buffer, size_t buffer_size,
 
 static void usage(const char *program_name)
 {
-    printf("Usage: %s TYPE VALUE\n",
+    printf("Usage: %s TYPE VALUE [VALUE...]\n",
            program_name == NULL ? "psa_constant_names" : program_name);
     printf("Print the symbolic name whose numerical value is VALUE in TYPE.\n");
     printf("Supported types (with = between aliases):\n");
@@ -149,12 +150,89 @@ static void usage(const char *program_name)
     printf("  error=status          Status code (psa_status_t)\n");
 }
 
+typedef enum {
+    TYPE_STATUS,
+} signed_value_type;
+
+int process_signed(signed_value_type type, long min, long max, char **argp)
+{
+    for (; *argp != NULL; argp++) {
+        char buffer[200];
+        char *end;
+        long value = strtol(*argp, &end, 0);
+        if (*end) {
+            printf("Non-numeric value: %s\n", *argp);
+            return EXIT_FAILURE;
+        }
+        if (value < min || (errno == ERANGE && value < 0)) {
+            printf("Value too small: %s\n", *argp);
+            return EXIT_FAILURE;
+        }
+        if (value > max || (errno == ERANGE && value > 0)) {
+            printf("Value too large: %s\n", *argp);
+            return EXIT_FAILURE;
+        }
+
+        switch (type) {
+            case TYPE_STATUS:
+                psa_snprint_status(buffer, sizeof(buffer),
+                                   (psa_status_t) value);
+                break;
+        }
+        puts(buffer);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+typedef enum {
+    TYPE_ALGORITHM,
+    TYPE_ECC_CURVE,
+    TYPE_KEY_TYPE,
+    TYPE_KEY_USAGE,
+} unsigned_value_type;
+
+int process_unsigned(unsigned_value_type type, unsigned long max, char **argp)
+{
+    for (; *argp != NULL; argp++) {
+        char buffer[200];
+        char *end;
+        unsigned long value = strtoul(*argp, &end, 0);
+        if (*end) {
+            printf("Non-numeric value: %s\n", *argp);
+            return EXIT_FAILURE;
+        }
+        if (value > max || errno == ERANGE) {
+            printf("Value out of range: %s\n", *argp);
+            return EXIT_FAILURE;
+        }
+
+        switch (type) {
+            case TYPE_ALGORITHM:
+                psa_snprint_algorithm(buffer, sizeof(buffer),
+                                      (psa_algorithm_t) value);
+                break;
+            case TYPE_ECC_CURVE:
+                psa_snprint_ecc_curve(buffer, sizeof(buffer),
+                                      (psa_ecc_curve_t) value);
+                break;
+            case TYPE_KEY_TYPE:
+                psa_snprint_key_type(buffer, sizeof(buffer),
+                                     (psa_key_type_t) value);
+                break;
+            case TYPE_KEY_USAGE:
+                psa_snprint_key_usage(buffer, sizeof(buffer),
+                                      (psa_key_usage_t) value);
+                break;
+        }
+        puts(buffer);
+    }
+
+    return EXIT_SUCCESS;
+}
+
 int main(int argc, char *argv[])
 {
-    char buffer[200];
-    unsigned long value;
-    char *end;
-
     if (argc <= 1 ||
         !strcmp(argv[1], "help") ||
         !strcmp(argv[1], "--help"))
@@ -162,31 +240,26 @@ int main(int argc, char *argv[])
         usage(argv[0]);
         return EXIT_FAILURE;
     }
-    if (argc != 3) {
-        usage(argv[0]);
-        return EXIT_FAILURE;
-    }
-    value = strtoul(argv[2], &end, 0);
-    if (*end) {
-        printf("Non-numeric value: %s\n", argv[2]);
-        return EXIT_FAILURE;
-    }
 
-    if (!strcmp(argv[1], "error") || !strcmp(argv[1], "status"))
-        psa_snprint_status(buffer, sizeof(buffer), (psa_status_t) value);
-    else if (!strcmp(argv[1], "alg") || !strcmp(argv[1], "algorithm"))
-        psa_snprint_algorithm(buffer, sizeof(buffer), (psa_algorithm_t) value);
-    else if (!strcmp(argv[1], "curve") || !strcmp(argv[1], "ecc_curve"))
-        psa_snprint_ecc_curve(buffer, sizeof(buffer), (psa_ecc_curve_t) value);
-    else if (!strcmp(argv[1], "type") || !strcmp(argv[1], "key_type"))
-        psa_snprint_key_type(buffer, sizeof(buffer), (psa_key_type_t) value);
-    else if (!strcmp(argv[1], "usage") || !strcmp(argv[1], "key_usage"))
-        psa_snprint_key_usage(buffer, sizeof(buffer), (psa_key_usage_t) value);
-    else {
+    if (!strcmp(argv[1], "error") || !strcmp(argv[1], "status")) {
+        /* There's no way to obtain the actual range of a signed type,
+         * so hard-code it here: psa_status_t is int32_t. */
+        return process_signed(TYPE_STATUS, INT32_MIN, INT32_MAX,
+                              argv + 2);
+    } else if (!strcmp(argv[1], "alg") || !strcmp(argv[1], "algorithm")) {
+        return process_unsigned(TYPE_ALGORITHM, (psa_algorithm_t) (-1),
+                                argv + 2);
+    } else if (!strcmp(argv[1], "curve") || !strcmp(argv[1], "ecc_curve")) {
+        return process_unsigned(TYPE_ECC_CURVE, (psa_ecc_curve_t) (-1),
+                                argv + 2);
+    } else if (!strcmp(argv[1], "type") || !strcmp(argv[1], "key_type")) {
+        return process_unsigned(TYPE_KEY_TYPE, (psa_key_type_t) (-1),
+                                argv + 2);
+    } else if (!strcmp(argv[1], "usage") || !strcmp(argv[1], "key_usage")) {
+        return process_unsigned(TYPE_KEY_USAGE, (psa_key_usage_t) (-1),
+                                argv + 2);
+    } else {
         printf("Unknown type: %s\n", argv[1]);
         return EXIT_FAILURE;
     }
-
-    puts(buffer);
-    return EXIT_SUCCESS;
 }

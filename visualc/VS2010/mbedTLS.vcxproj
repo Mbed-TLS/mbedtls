@@ -238,9 +238,10 @@
     <ClInclude Include="..\..\include\psa\crypto_values.h" />
     <ClInclude Include="..\..\library/psa_crypto_core.h" />
     <ClInclude Include="..\..\library/psa_crypto_invasive.h" />
+    <ClInclude Include="..\..\library/psa_crypto_its.h" />
+    <ClInclude Include="..\..\library/psa_crypto_service_integration.h" />
     <ClInclude Include="..\..\library/psa_crypto_slot_management.h" />
     <ClInclude Include="..\..\library/psa_crypto_storage.h" />
-    <ClInclude Include="..\..\library/psa_crypto_storage_backend.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\library\aes.c" />
@@ -300,8 +301,7 @@
     <ClCompile Include="..\..\library\psa_crypto.c" />
     <ClCompile Include="..\..\library\psa_crypto_slot_management.c" />
     <ClCompile Include="..\..\library\psa_crypto_storage.c" />
-    <ClCompile Include="..\..\library\psa_crypto_storage_file.c" />
-    <ClCompile Include="..\..\library\psa_crypto_storage_its.c" />
+    <ClCompile Include="..\..\library\psa_its_file.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\rsa_internal.c" />

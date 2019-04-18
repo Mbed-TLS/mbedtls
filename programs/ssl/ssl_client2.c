@@ -35,6 +35,9 @@
 #define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
 #define mbedtls_snprintf   snprintf
+#define mbedtls_exit            exit
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
@@ -339,10 +342,26 @@ int main( void )
     "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
+    "    query_config=<name>         return 0 if the specified\n"       \
+    "                                configuration macro is defined and 1\n"  \
+    "                                otherwise. The expansion of the macro\n" \
+    "                                is printed if it is defined\n"     \
     " acceptable ciphersuite names:\n"
 
 #define ALPN_LIST_SIZE  10
 #define CURVE_LIST_SIZE 20
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+#include "mbedtls/platform_util.h"
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
+                           int line )
+{
+    mbedtls_printf( "%s:%i: Input param failed - %s\n",
+                    file, line, failure_condition );
+    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+}
+#endif
 
 /*
  * global options
@@ -402,6 +421,8 @@ struct options
     int etm;                    /* negotiate encrypt then mac?              */
 } opt;
 
+int query_config( const char *config );
+
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
                       const char *str )
@@ -457,6 +478,8 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+static unsigned char peer_crt_info[1024];
+
 /*
  * Enabled if debug_level > 1 in code below
  */
@@ -466,8 +489,14 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
     char buf[1024];
     ((void) data);
 
-    mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
     mbedtls_x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
+    if( depth == 0 )
+        memcpy( peer_crt_info, buf, sizeof( buf ) );
+
+    if( opt.debug_level == 0 )
+        return( 0 );
+
+    mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
     mbedtls_printf( "%s", buf );
 
     if ( ( *flags ) == 0 )
@@ -571,7 +600,7 @@ int main( int argc, char *argv[] )
     const char *pers = "ssl_client2";
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t slot = 0;
+    psa_key_handle_t slot = 0;
     psa_algorithm_t alg = 0;
     psa_key_policy_t policy;
     psa_status_t status;
@@ -594,7 +623,7 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t key_slot = 0; /* invalid key slot */
+    psa_key_handle_t key_slot = 0; /* invalid key slot */
 #endif
 #endif
     char *p, *q;
@@ -1044,6 +1073,10 @@ int main( int argc, char *argv[] )
             if( opt.dhmlen < 0 )
                 goto usage;
         }
+        else if( strcmp( p, "query_config" ) == 0 )
+        {
+            return query_config( q );
+        }
         else
             goto usage;
     }
@@ -1478,8 +1511,8 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_sig_hashes( &conf, ssl_sig_hashes_for_test );
     }
 
-    if( opt.debug_level > 0 )
-        mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+    mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+    memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
@@ -1594,14 +1627,14 @@ int main( int argc, char *argv[] )
     if( opt.psk_opaque != 0 )
     {
         /* The algorithm has already been determined earlier. */
-        status = mbedtls_psa_get_free_key_slot( &slot );
+        status = psa_allocate_key( &slot );
         if( status != PSA_SUCCESS )
         {
             ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
             goto exit;
         }
 
-        psa_key_policy_init( &policy );
+        policy = psa_key_policy_init();
         psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
 
         status = psa_set_key_policy( slot, &policy );
@@ -1808,13 +1841,8 @@ int main( int argc, char *argv[] )
     else
         mbedtls_printf( " ok\n" );
 
-    if( mbedtls_ssl_get_peer_cert( &ssl ) != NULL )
-    {
-        mbedtls_printf( "  . Peer certificate information    ...\n" );
-        mbedtls_x509_crt_info( (char *) buf, sizeof( buf ) - 1, "      ",
-                       mbedtls_ssl_get_peer_cert( &ssl ) );
-        mbedtls_printf( "%s\n", buf );
-    }
+    mbedtls_printf( "  . Peer certificate information    ...\n" );
+    mbedtls_printf( "%s\n", peer_crt_info );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -2119,6 +2147,10 @@ send_request:
         mbedtls_printf( "  . Restarting connection from same port..." );
         fflush( stdout );
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",
@@ -2189,6 +2221,10 @@ reconnect:
 #endif
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {

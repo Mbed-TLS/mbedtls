@@ -17,6 +17,195 @@
  */
 
 /* BEGIN_CASE */
+void aria_valid_param( )
+{
+    TEST_VALID_PARAM( mbedtls_aria_free( NULL ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void aria_invalid_param( )
+{
+    mbedtls_aria_context ctx;
+    unsigned char key[128 / 8] = { 0 };
+    unsigned char input[MBEDTLS_ARIA_BLOCKSIZE] = { 0 };
+    unsigned char output[MBEDTLS_ARIA_BLOCKSIZE] = { 0 };
+    unsigned char iv[MBEDTLS_ARIA_BLOCKSIZE] = { 0 };
+    size_t iv_off = 0;
+
+    ((void) iv_off);
+    ((void) iv);
+
+    TEST_INVALID_PARAM( mbedtls_aria_init( NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_setkey_enc( NULL, key,
+                                                     sizeof( key ) ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_setkey_enc( &ctx, NULL,
+                                                     sizeof( key ) ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_setkey_dec( NULL, key,
+                                                     sizeof( key ) ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_setkey_dec( &ctx, NULL,
+                                                     sizeof( key ) ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_ecb( NULL, input, output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_ecb( &ctx, NULL, output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_ecb( &ctx, input, NULL ) );
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cbc( NULL,
+                                                    MBEDTLS_ARIA_ENCRYPT,
+                                                    sizeof( input ),
+                                                    iv,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cbc( &ctx,
+                                                    42 /* invalid mode */,
+                                                    sizeof( input ),
+                                                    iv,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cbc( &ctx,
+                                                    MBEDTLS_ARIA_ENCRYPT,
+                                                    sizeof( input ),
+                                                    NULL,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cbc( &ctx,
+                                                    MBEDTLS_ARIA_ENCRYPT,
+                                                    sizeof( input ),
+                                                    iv,
+                                                    NULL,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cbc( &ctx,
+                                                    MBEDTLS_ARIA_ENCRYPT,
+                                                    sizeof( input ),
+                                                    iv,
+                                                    input,
+                                                    NULL ) );
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cfb128( NULL,
+                                                    MBEDTLS_ARIA_ENCRYPT,
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    iv,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cfb128( &ctx,
+                                                    42, /* invalid mode */
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    iv,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cfb128( &ctx,
+                                                    MBEDTLS_ARIA_ENCRYPT,
+                                                    sizeof( input ),
+                                                    NULL,
+                                                    iv,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cfb128( &ctx,
+                                                    MBEDTLS_ARIA_ENCRYPT,
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    NULL,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cfb128( &ctx,
+                                                    MBEDTLS_ARIA_ENCRYPT,
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    iv,
+                                                    NULL,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_cfb128( &ctx,
+                                                    MBEDTLS_ARIA_ENCRYPT,
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    iv,
+                                                    input,
+                                                    NULL ) );
+#endif /* MBEDTLS_CIPHER_MODE_CFB */
+
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_ctr( NULL,
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    iv,
+                                                    iv,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_ctr( &ctx,
+                                                    sizeof( input ),
+                                                    NULL,
+                                                    iv,
+                                                    iv,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_ctr( &ctx,
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    NULL,
+                                                    iv,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_ctr( &ctx,
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    iv,
+                                                    NULL,
+                                                    input,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_ctr( &ctx,
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    iv,
+                                                    iv,
+                                                    NULL,
+                                                    output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
+                            mbedtls_aria_crypt_ctr( &ctx,
+                                                    sizeof( input ),
+                                                    &iv_off,
+                                                    iv,
+                                                    iv,
+                                                    input,
+                                                    NULL ) );
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
+exit:
+    return;
+
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void aria_encrypt_ecb( char *hex_key_string, char *hex_src_string,
                        char *hex_dst_string, int setkey_result )
 {

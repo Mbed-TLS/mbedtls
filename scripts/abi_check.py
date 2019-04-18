@@ -393,7 +393,9 @@ def run_main():
         abi_check = AbiChecker(old_version, new_version, configuration)
         return_code = abi_check.check_for_abi_changes()
         sys.exit(return_code)
-    except Exception:
+    except Exception: # pylint: disable=broad-except
+        # Print the backtrace and exit explicitly so as to exit with
+        # status 2, not 1.
         traceback.print_exc()
         sys.exit(2)
 

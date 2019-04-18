@@ -28,14 +28,14 @@ PSA import/export AES-256
 depends_on:MBEDTLS_AES_C
 import_export:"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef":PSA_KEY_TYPE_AES:PSA_ALG_CTR:PSA_KEY_USAGE_EXPORT:256:0:PSA_SUCCESS:1
 
-PSA export invalid handle (0)
-export_invalid_handle:0:PSA_ERROR_INVALID_HANDLE
+PSA invalid handle (0)
+invalid_handle:0
 
-PSA export invalid handle (smallest plausible handle)
-export_invalid_handle:1:PSA_ERROR_INVALID_HANDLE
+PSA invalid handle (smallest plausible handle)
+invalid_handle:1
 
-PSA export invalid handle (largest plausible handle)
-export_invalid_handle:-1:PSA_ERROR_INVALID_HANDLE
+PSA invalid handle (largest plausible handle)
+invalid_handle:-1
 
 PSA import AES: bad key size
 depends_on:MBEDTLS_AES_C

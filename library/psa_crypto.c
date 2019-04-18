@@ -4120,6 +4120,59 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 }
 #endif /* MBEDTLS_DES_C */
 
+static psa_status_t psa_generator_import_key_internal(
+    psa_key_slot_t *slot,
+    size_t bits,
+    psa_crypto_generator_t *generator )
+{
+    uint8_t *data = NULL;
+    size_t bytes = PSA_BITS_TO_BYTES( bits );
+    psa_status_t status;
+
+    if( ! key_type_is_raw_bytes( slot->type ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    if( bits % 8 != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    data = mbedtls_calloc( 1, bytes );
+    if( data == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    status = psa_generator_read( generator, data, bytes );
+    if( status != PSA_SUCCESS )
+        goto exit;
+#if defined(MBEDTLS_DES_C)
+    if( slot->type == PSA_KEY_TYPE_DES )
+        psa_des_set_key_parity( data, bytes );
+#endif /* MBEDTLS_DES_C */
+    status = psa_import_key_into_slot( slot, data, bytes );
+
+exit:
+    mbedtls_free( data );
+    return( status );
+}
+
+psa_status_t psa_generator_import_key( const psa_key_attributes_t *attributes,
+                                       psa_key_handle_t *handle,
+                                       size_t bits,
+                                       psa_crypto_generator_t *generator )
+{
+    psa_status_t status;
+    psa_key_slot_t *slot = NULL;
+    status = psa_start_key_creation( attributes, handle, &slot );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_generator_import_key_internal( slot, bits, generator );
+    }
+    if( status == PSA_SUCCESS )
+        status = psa_finish_key_creation( slot );
+    if( status != PSA_SUCCESS )
+    {
+        psa_fail_key_creation( slot );
+        *handle = 0;
+    }
+    return( status );
+}
+
 psa_status_t psa_generator_import_key_to_handle( psa_key_handle_t handle,
                                        psa_key_type_t type,
                                        size_t bits,
@@ -4873,24 +4926,19 @@ psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
 }
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
-psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
-                               psa_key_type_t type,
-                               size_t bits,
-                               const void *extra,
-                               size_t extra_size )
+static psa_status_t psa_generate_key_internal( psa_key_slot_t *slot,
+                                               size_t bits,
+                                               const void *extra,
+                                               size_t extra_size )
 {
-    psa_key_slot_t *slot;
-    psa_status_t status;
+    psa_key_type_t type = slot->type;
 
     if( extra == NULL && extra_size != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_get_empty_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
     if( key_type_is_raw_bytes( type ) )
     {
+        psa_status_t status;
         status = prepare_raw_data_slot( type, bits, &slot->data.raw );
         if( status != PSA_SUCCESS )
             return( status );
@@ -4989,7 +5037,26 @@ psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
 
         return( PSA_ERROR_NOT_SUPPORTED );
 
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
+                               psa_key_type_t type,
+                               size_t bits,
+                               const void *extra,
+                               size_t extra_size )
+{
+    psa_key_slot_t *slot;
+    psa_status_t status;
+
+    status = psa_get_empty_key_slot( handle, &slot );
+    if( status != PSA_SUCCESS )
+        return( status );
+
     slot->type = type;
+    status = psa_generate_key_internal( slot, bits, extra, extra_size );
+    if( status != PSA_SUCCESS )
+        slot->type = 0;
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
@@ -5000,6 +5067,30 @@ psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
 
     return( status );
 }
+
+psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
+                               psa_key_handle_t *handle,
+                               size_t bits,
+                               const void *extra,
+                               size_t extra_size )
+{
+    psa_status_t status;
+    psa_key_slot_t *slot = NULL;
+    status = psa_start_key_creation( attributes, handle, &slot );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_generate_key_internal( slot, bits, extra, extra_size );
+    }
+    if( status == PSA_SUCCESS )
+        status = psa_finish_key_creation( slot );
+    if( status != PSA_SUCCESS )
+    {
+        psa_fail_key_creation( slot );
+        *handle = 0;
+    }
+    return( status );
+}
+
 
 
 /****************************************************************/

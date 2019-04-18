@@ -4320,7 +4320,7 @@ void derive_output( int alg_arg,
     uint8_t *output_buffer = NULL;
     size_t expected_capacity;
     size_t current_capacity;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status;
     unsigned i;
 
@@ -4334,11 +4334,11 @@ void derive_output( int alg_arg,
     ASSERT_ALLOC( output_buffer, output_buffer_size );
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &handle ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
 
-    PSA_ASSERT( psa_import_key_to_handle( handle, PSA_KEY_TYPE_DERIVE,
+    PSA_ASSERT( psa_import_key( &attributes, &handle,
                                 key_data->x,
                                 key_data->len ) );
 
@@ -4427,15 +4427,15 @@ void derive_full( int alg_arg,
     unsigned char output_buffer[16];
     size_t expected_capacity = requested_capacity;
     size_t current_capacity;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &handle ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
 
-    PSA_ASSERT( psa_import_key_to_handle( handle, PSA_KEY_TYPE_DERIVE,
+    PSA_ASSERT( psa_import_key( &attributes, &handle,
                                 key_data->x,
                                 key_data->len ) );
 
@@ -4514,16 +4514,16 @@ void derive_key_exercise( int alg_arg,
     psa_algorithm_t derived_alg = derived_alg_arg;
     size_t capacity = PSA_BITS_TO_BYTES( derived_bits );
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t got_type;
     size_t got_bits;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &base_handle ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    PSA_ASSERT( psa_set_key_policy( base_handle, &policy ) );
-    PSA_ASSERT( psa_import_key_to_handle( base_handle, PSA_KEY_TYPE_DERIVE,
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
+    PSA_ASSERT( psa_import_key( &attributes, &base_handle,
                                 key_data->x,
                                 key_data->len ) );
 
@@ -4532,11 +4532,10 @@ void derive_key_exercise( int alg_arg,
                                     salt->x, salt->len,
                                     label->x, label->len,
                                     capacity ) );
-    PSA_ASSERT( psa_allocate_key( &derived_handle ) );
-    psa_key_policy_set_usage( &policy, derived_usage, derived_alg );
-    PSA_ASSERT( psa_set_key_policy( derived_handle, &policy ) );
-    PSA_ASSERT( psa_generator_import_key_to_handle( derived_handle,
-                                          derived_type,
+    psa_set_key_usage_flags( &attributes, derived_usage );
+    psa_set_key_algorithm( &attributes, derived_alg );
+    psa_set_key_type( &attributes, derived_type );
+    PSA_ASSERT( psa_generator_import_key( &attributes, &derived_handle,
                                           derived_bits,
                                           &generator ) );
 
@@ -4577,17 +4576,18 @@ void derive_key_export( int alg_arg,
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     uint8_t *output_buffer = NULL;
     uint8_t *export_buffer = NULL;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t base_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t derived_attributes = PSA_KEY_ATTRIBUTES_INIT;
     size_t length;
 
     ASSERT_ALLOC( output_buffer, capacity );
     ASSERT_ALLOC( export_buffer, capacity );
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &base_handle ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    PSA_ASSERT( psa_set_key_policy( base_handle, &policy ) );
-    PSA_ASSERT( psa_import_key_to_handle( base_handle, PSA_KEY_TYPE_DERIVE,
+    psa_set_key_usage_flags( &base_attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &base_attributes, alg );
+    psa_set_key_type( &base_attributes, PSA_KEY_TYPE_DERIVE );
+    PSA_ASSERT( psa_import_key( &base_attributes, &base_handle,
                                 key_data->x,
                                 key_data->len ) );
 
@@ -4606,11 +4606,10 @@ void derive_key_export( int alg_arg,
                                     salt->x, salt->len,
                                     label->x, label->len,
                                     capacity ) );
-    PSA_ASSERT( psa_allocate_key( &derived_handle ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, 0 );
-    PSA_ASSERT( psa_set_key_policy( derived_handle, &policy ) );
-    PSA_ASSERT( psa_generator_import_key_to_handle( derived_handle,
-                                          PSA_KEY_TYPE_RAW_DATA,
+    psa_set_key_usage_flags( &derived_attributes, PSA_KEY_USAGE_EXPORT );
+    psa_set_key_algorithm( &derived_attributes, 0 );
+    psa_set_key_type( &derived_attributes, PSA_KEY_TYPE_RAW_DATA );
+    PSA_ASSERT( psa_generator_import_key( &derived_attributes, &derived_handle,
                                           derived_bits,
                                           &generator ) );
     PSA_ASSERT( psa_export_key( derived_handle,
@@ -4618,10 +4617,7 @@ void derive_key_export( int alg_arg,
                                 &length ) );
     TEST_EQUAL( length, bytes1 );
     PSA_ASSERT( psa_destroy_key( derived_handle ) );
-    PSA_ASSERT( psa_allocate_key( &derived_handle ) );
-    PSA_ASSERT( psa_set_key_policy( derived_handle, &policy ) );
-    PSA_ASSERT( psa_generator_import_key_to_handle( derived_handle,
-                                          PSA_KEY_TYPE_RAW_DATA,
+    PSA_ASSERT( psa_generator_import_key( &derived_attributes, &derived_handle,
                                           PSA_BYTES_TO_BITS( bytes2 ),
                                           &generator ) );
     PSA_ASSERT( psa_export_key( derived_handle,
@@ -4653,16 +4649,16 @@ void key_agreement_setup( int alg_arg,
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &our_key ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    PSA_ASSERT( psa_set_key_policy( our_key, &policy ) );
-    PSA_ASSERT( psa_import_key_to_handle( our_key, our_key_type,
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, our_key_type );
+    PSA_ASSERT( psa_import_key( &attributes, &our_key,
                                 our_key_data->x,
                                 our_key_data->len ) );
 
@@ -4699,17 +4695,17 @@ void raw_key_agreement( int alg_arg,
     psa_key_handle_t our_key = 0;
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     unsigned char *output = NULL;
     size_t output_length = ~0;
 
     ASSERT_ALLOC( output, expected_output->len );
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &our_key ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    PSA_ASSERT( psa_set_key_policy( our_key, &policy ) );
-    PSA_ASSERT( psa_import_key_to_handle( our_key, our_key_type,
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, our_key_type );
+    PSA_ASSERT( psa_import_key( &attributes, &our_key,
                                 our_key_data->x,
                                 our_key_data->len ) );
 
@@ -4737,16 +4733,16 @@ void key_agreement_capacity( int alg_arg,
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     size_t actual_capacity;
     unsigned char output[16];
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &our_key ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    PSA_ASSERT( psa_set_key_policy( our_key, &policy ) );
-    PSA_ASSERT( psa_import_key_to_handle( our_key, our_key_type,
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, our_key_type );
+    PSA_ASSERT( psa_import_key( &attributes, &our_key,
                                 our_key_data->x,
                                 our_key_data->len ) );
 
@@ -4796,7 +4792,7 @@ void key_agreement_output( int alg_arg,
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t *actual_output = NULL;
 
     ASSERT_ALLOC( actual_output, MAX( expected_output1->len,
@@ -4804,10 +4800,10 @@ void key_agreement_output( int alg_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &our_key ) );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    PSA_ASSERT( psa_set_key_policy( our_key, &policy ) );
-    PSA_ASSERT( psa_import_key_to_handle( our_key, our_key_type,
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, our_key_type );
+    PSA_ASSERT( psa_import_key( &attributes, &our_key,
                                 our_key_data->x,
                                 our_key_data->len ) );
 
@@ -4913,23 +4909,23 @@ void generate_key( int type_arg,
     size_t got_bits;
     psa_status_t expected_info_status =
         expected_status == PSA_SUCCESS ? PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &handle ) );
-    psa_key_policy_set_usage( &policy, usage, alg );
-    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+    psa_set_key_usage_flags( &attributes, usage );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, type );
 
     /* Generate a key */
-    TEST_EQUAL( psa_generate_key_to_handle( handle, type, bits, NULL, 0 ),
+    TEST_EQUAL( psa_generate_key( &attributes, &handle, bits, NULL, 0 ),
                 expected_status );
+    if( expected_info_status != PSA_SUCCESS )
+        goto exit;
 
     /* Test the key information */
     TEST_EQUAL( psa_get_key_information( handle, &got_type, &got_bits ),
                 expected_info_status );
-    if( expected_info_status != PSA_SUCCESS )
-        goto exit;
     TEST_EQUAL( got_type, type );
     TEST_EQUAL( got_bits, bits );
 

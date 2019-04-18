@@ -179,7 +179,28 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
 }
 #endif /* MBEDTLS_FS_IO */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_USE_UECC)
+static int pk_use_ecparams( const mbedtls_asn1_buf *params )
+{
+    uint32_t grp_id;
+
+    if( params->tag == MBEDTLS_ASN1_OID )
+    {
+        if( mbedtls_oid_get_ec_grp( params, &grp_id ) != 0 )
+            return( MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE );
+    }
+    else
+    {
+        // Only P-256 is supported
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+    }
+
+    return( 0 );
+}
+#endif
+
+#if defined(MBEDTLS_ECP_C) || \
+    defined(MBEDTLS_USE_UECC)
 /* Minimally parse an ECParameters buffer to and mbedtls_asn1_buf
  *
  * ECParameters ::= CHOICE {
@@ -223,7 +244,9 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
 
     return( 0 );
 }
+#endif
 
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
 /*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and (mostly) fill the group with it.
@@ -524,7 +547,7 @@ static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
 /*
  * Import a point from unsigned binary data (SEC1 2.3.4)
  */
-static int uecc_public_key_read_binary( uint8_t **pt,
+static int uecc_public_key_read_binary( uint8_t *pt,
                                    const unsigned char *buf, size_t ilen )
 {
 
@@ -539,7 +562,7 @@ static int uecc_public_key_read_binary( uint8_t **pt,
     if( ilen != 2 * NUM_ECC_BYTES + 1 )
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
 
-    *pt = (uint8_t *) buf + 1;
+    memcpy( pt, buf + 1, ilen - 1);
 
     return( 0 );
 }
@@ -550,7 +573,7 @@ static int pk_get_ueccpubkey( unsigned char **p,
 {
     int ret;
 
-    ret = uecc_public_key_read_binary( &pk_context,
+    ret = uecc_public_key_read_binary( pk_context,
                     (const unsigned char *) *p, end - *p );
 
     /*
@@ -854,6 +877,114 @@ cleanup:
 }
 #endif /* MBEDTLS_RSA_C */
 
+#if defined(MBEDTLS_USE_UECC)
+static int pk_parse_key_sec1_der( mbedtls_uecc_keypair *keypair,
+                                  const unsigned char *key,
+                                  size_t keylen)
+{
+    int ret;
+    int version, pubkey_done;
+    size_t len;
+    mbedtls_asn1_buf params;
+    unsigned char *p = (unsigned char *) key;
+    unsigned char *end = p + keylen;
+    unsigned char *end2;
+
+    /*
+     * RFC 5915, or SEC1 Appendix C.4
+     *
+     * ECPrivateKey ::= SEQUENCE {
+     *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+     *      privateKey     OCTET STRING,
+     *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+     *      publicKey  [1] BIT STRING OPTIONAL
+     *    }
+     */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+    }
+
+    end = p + len;
+
+    if( ( ret = mbedtls_asn1_get_int( &p, end, &version ) ) != 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    if( version != 1 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_VERSION );
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    memcpy(keypair->private_key, p, len);
+
+    p += len;
+
+    pubkey_done = 0;
+    if( p != end )
+    {
+        /*
+         * Is 'parameters' present?
+         */
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 0 ) ) == 0 )
+        {
+            if( ( ret = pk_get_ecparams( &p, p + len, &params) ) != 0 ||
+                ( ret = pk_use_ecparams( &params )  ) != 0 )
+            {
+                return( ret );
+            }
+        }
+        else if( ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
+        {
+            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+        }
+    }
+
+    if( p != end )
+    {
+        /*
+         * Is 'publickey' present? If not, or if we can't read it (eg because it
+         * is compressed), create it from the private key.
+         */
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 1 ) ) == 0 )
+        {
+            end2 = p + len;
+
+            if( ( ret = mbedtls_asn1_get_bitstring_null( &p, end2, &len ) ) != 0 )
+                return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+            if( p + len != end2 )
+                return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT +
+                        MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+            if( ( ret = uecc_public_key_read_binary( keypair->public_key, 
+                            (const unsigned char *) p, end2 - p ) ) == 0 )
+                pubkey_done = 1;
+            else
+            {
+                /*
+                 * The only acceptable failure mode of pk_get_ecpubkey() above
+                 * is if the point format is not recognized.
+                 */
+                if( ret != MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE )
+                    return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+            }
+        }
+        else if( ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
+        {
+            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+        }
+    }
+
+    //TODO: Do we need to support derived public keys with uecc?
+
+    return( 0 );
+}
+#else
+
 #if defined(MBEDTLS_ECP_C)
 /*
  * Parse a SEC1 encoded private EC key
@@ -982,6 +1113,7 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
     return( 0 );
 }
 #endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_USE_UECC */
 
 /*
  * Parse an unencrypted PKCS#8 encoded private key

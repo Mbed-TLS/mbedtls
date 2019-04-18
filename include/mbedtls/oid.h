@@ -469,6 +469,18 @@ int mbedtls_oid_get_pk_alg( const mbedtls_asn1_buf *oid, mbedtls_pk_type_t *pk_a
 int mbedtls_oid_get_oid_by_pk_alg( mbedtls_pk_type_t pk_alg,
                            const char **oid, size_t *olen );
 
+#if defined(MBEDTLS_USE_UECC)
+typedef enum
+{
+    MBEDTLS_UECC_DP_NONE = 0,       /*!< Curve not defined. */
+    MBEDTLS_UECC_DP_SECP256R1,      /*!< Domain parameters for the 256-bit curve defined by FIPS 186-4 and SEC1. */
+} mbedtls_uecc_group_id;
+
+int mbedtls_oid_get_ec_grp( const mbedtls_asn1_buf *oid, mbedtls_uecc_group_id *grp_id );
+
+int mbedtls_oid_get_oid_by_ec_grp( mbedtls_uecc_group_id grp_id, 
+                            const char **oid, size_t *olen);
+#else
 #if defined(MBEDTLS_ECP_C)
 /**
  * \brief          Translate NamedCurve OID into an EC group identifier
@@ -492,6 +504,7 @@ int mbedtls_oid_get_ec_grp( const mbedtls_asn1_buf *oid, mbedtls_ecp_group_id *g
 int mbedtls_oid_get_oid_by_ec_grp( mbedtls_ecp_group_id grp_id,
                            const char **oid, size_t *olen );
 #endif /* MBEDTLS_ECP_C */
+#endif
 
 #if defined(MBEDTLS_MD_C)
 /**

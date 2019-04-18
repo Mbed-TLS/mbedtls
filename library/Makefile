@@ -151,22 +151,6 @@ libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 libmbedcrypto.%:
 	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C ../crypto/library $@
 
-libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
-	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_CRYPTO)
-
-libmbedcrypto.so: libmbedcrypto.$(SOEXT_CRYPTO)
-	echo "  LN    $@ -> $<"
-	ln -sf $< $@
-
-libmbedcrypto.dylib: $(OBJS_CRYPTO)
-	echo "  LD    $@"
-	$(CC) -dynamiclib $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_CRYPTO)
-
-libmbedcrypto.dll: $(OBJS_CRYPTO)
-	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_CRYPTO) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
-
 .c.o:
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c $<

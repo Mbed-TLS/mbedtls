@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-# Outputs a file containing identifiers from internal header files or all
-# header files, based on --internal flag.
+# Create a file named identifiers containing identifiers from internal header
+# files or all header files, based on --internal flag.
+# Outputs the line count of the file to stdout.
 #
 # Usage: list-identifiers.sh [ -i | --internal ]
 

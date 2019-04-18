@@ -45,6 +45,10 @@
 #include "ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "ecc.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -132,6 +136,14 @@ typedef struct mbedtls_pk_context
     const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
     void *                      pk_ctx;  /**< Underlying public key context  */
 } mbedtls_pk_context;
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+typedef struct
+{
+    uint8_t private_key[NUM_ECC_BYTES];
+    uint8_t public_key[2*NUM_ECC_BYTES];
+} mbedtls_uecc_keypair;
+#endif
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /**

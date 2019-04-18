@@ -965,7 +965,7 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
 }
 
 /* Return the size of the key in the given slot, in bits. */
-static size_t psa_get_key_bits( const psa_key_slot_t *slot )
+static size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
 {
     if( key_type_is_raw_bytes( slot->type ) )
         return( slot->data.raw.bytes * 8 );
@@ -1001,7 +1001,7 @@ psa_status_t psa_get_key_information( psa_key_handle_t handle,
     if( type != NULL )
         *type = slot->type;
     if( bits != NULL )
-        *bits = psa_get_key_bits( slot );
+        *bits = psa_get_key_slot_bits( slot );
     return( PSA_SUCCESS );
 }
 
@@ -1050,7 +1050,7 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
     {
         psa_status_t status;
 
-        size_t bytes = PSA_BITS_TO_BYTES( psa_get_key_bits( slot ) );
+        size_t bytes = PSA_BITS_TO_BYTES( psa_get_key_slot_bits( slot ) );
         if( bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
         status = mbedtls_to_psa_error(
@@ -1285,7 +1285,7 @@ static psa_status_t psa_finish_key_creation( psa_key_slot_t *slot )
         size_t length;
 
         buffer_size = PSA_KEY_EXPORT_MAX_SIZE( slot->type,
-                                               psa_get_key_bits( slot ) );
+                                               psa_get_key_slot_bits( slot ) );
         buffer = mbedtls_calloc( 1, buffer_size );
         if( buffer == NULL && buffer_size != 0 )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
@@ -1355,7 +1355,7 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     size_t length;
 
     buffer_size = PSA_KEY_EXPORT_MAX_SIZE( source->type,
-                                           psa_get_key_bits( source ) );
+                                           psa_get_key_slot_bits( source ) );
     buffer = mbedtls_calloc( 1, buffer_size );
     if( buffer == NULL && buffer_size != 0 )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
@@ -2149,7 +2149,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     status = psa_get_key_from_slot( handle, &slot, usage, alg );
     if( status != PSA_SUCCESS )
         goto exit;
-    key_bits = psa_get_key_bits( slot );
+    key_bits = psa_get_key_slot_bits( slot );
 
 #if defined(MBEDTLS_CMAC_C)
     if( full_length_alg == PSA_ALG_CMAC )
@@ -3060,7 +3060,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     status = psa_get_key_from_slot( handle, &slot, usage, alg);
     if( status != PSA_SUCCESS )
         goto exit;
-    key_bits = psa_get_key_bits( slot );
+    key_bits = psa_get_key_slot_bits( slot );
 
     cipher_info = mbedtls_cipher_info_from_psa( alg, slot->type, key_bits, NULL );
     if( cipher_info == NULL )
@@ -3470,7 +3470,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
     if( status != PSA_SUCCESS )
         return( status );
 
-    key_bits = psa_get_key_bits( operation->slot );
+    key_bits = psa_get_key_slot_bits( operation->slot );
 
     operation->cipher_info =
         mbedtls_cipher_info_from_psa( alg, operation->slot->type, key_bits,

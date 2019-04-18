@@ -276,6 +276,26 @@ static inline struct psa_key_attributes_s psa_key_attributes_init( void )
     return( v );
 }
 
+static inline void psa_make_key_persistent(psa_key_attributes_t *attributes,
+                                           psa_key_id_t id,
+                                           psa_key_lifetime_t lifetime)
+{
+    attributes->id = id;
+    attributes->lifetime = lifetime;
+}
+
+static inline psa_key_id_t psa_get_key_id(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->id );
+}
+
+static inline psa_key_lifetime_t psa_get_key_lifetime(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->lifetime );
+}
+
 static inline void psa_set_key_usage_flags(psa_key_attributes_t *attributes,
                                            psa_key_usage_t usage_flags)
 {
@@ -310,6 +330,12 @@ static inline psa_key_type_t psa_get_key_type(
     const psa_key_attributes_t *attributes)
 {
     return( attributes->type );
+}
+
+static inline size_t psa_get_key_bits(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->bits );
 }
 
 #endif /* PSA_CRYPTO_STRUCT_H */

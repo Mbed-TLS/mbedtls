@@ -809,6 +809,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
     scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 

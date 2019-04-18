@@ -1197,6 +1197,16 @@ static int pk_parse_key_pkcs8_unencrypted_der(
         }
     } else
 #endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_USE_UECC)
+    if( pk_alg == MBEDTLS_PK_ECDSA)
+    {
+        if( ( ret = pk_use_ecparams( &params ) ) != 0 ||
+            ( ret = pk_parse_key_sec1_der( mbedtls_uecc_pk( *pk ), p, len ) ) != 0)
+        {
+            return( ret );
+        }
+    }
+#else
 #if defined(MBEDTLS_ECP_C)
     if( pk_alg == MBEDTLS_PK_ECKEY || pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
@@ -1208,6 +1218,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
         }
     } else
 #endif /* MBEDTLS_ECP_C */
+#endif
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
     return( 0 );
@@ -1529,6 +1540,15 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     mbedtls_pk_init( pk );
 #endif /* MBEDTLS_RSA_C */
 
+#if defined(MBEDTLS_USE_UECC)
+    pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECDSA );
+    if( mbedtls_pk_setup( pk, pk_info ) == 0 &&
+        pk_parse_key_sec1_der( mbedtls_uecc_pk( *pk),
+                               key, keylen) == 0)
+    {
+        return( 0 );
+    }
+#else
 #if defined(MBEDTLS_ECP_C)
     pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
     if( mbedtls_pk_setup( pk, pk_info ) == 0 &&
@@ -1539,6 +1559,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     }
     mbedtls_pk_free( pk );
 #endif /* MBEDTLS_ECP_C */
+#endif
 
     /* If MBEDTLS_RSA_C is defined but MBEDTLS_ECP_C isn't,
      * it is ok to leave the PK context initialized but not

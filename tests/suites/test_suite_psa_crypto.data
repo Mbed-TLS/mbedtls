@@ -1,6 +1,9 @@
 PSA compile-time sanity checks
 static_checks:
 
+PSA key attributes structure
+attributes_set_get:0x6963:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT:PSA_ALG_CCM:PSA_KEY_TYPE_AES
+
 PSA import/export raw: 0 bytes
 import_export:"":PSA_KEY_TYPE_RAW_DATA:0:PSA_KEY_USAGE_EXPORT:0:0:PSA_SUCCESS:1
 

@@ -346,12 +346,16 @@ static int exercise_cipher_key( psa_key_handle_t handle,
     if( usage & PSA_KEY_USAGE_DECRYPT )
     {
         psa_status_t status;
-        psa_key_type_t type = PSA_KEY_TYPE_NONE;
+        int maybe_invalid_padding = 0;
         if( ! ( usage & PSA_KEY_USAGE_ENCRYPT ) )
         {
-            size_t bits;
-            TEST_ASSERT( psa_get_key_information( handle, &type, &bits ) );
-            iv_length = PSA_BLOCK_CIPHER_BLOCK_SIZE( type );
+            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+            PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+            /* This should be PSA_CIPHER_GET_IV_SIZE but the API doesn't
+             * have this macro yet. */
+            iv_length = PSA_BLOCK_CIPHER_BLOCK_SIZE(
+                psa_get_key_type( &attributes ) );
+            maybe_invalid_padding = ! PSA_ALG_IS_STREAM_CIPHER( alg );
         }
         PSA_ASSERT( psa_cipher_decrypt_setup( &operation,
                                               handle, alg ) );
@@ -368,12 +372,11 @@ static int exercise_cipher_key( psa_key_handle_t handle,
         /* For a stream cipher, all inputs are valid. For a block cipher,
          * if the input is some aribtrary data rather than an actual
          ciphertext, a padding error is likely.  */
-        if( ( usage & PSA_KEY_USAGE_ENCRYPT ) ||
-            PSA_BLOCK_CIPHER_BLOCK_SIZE( type ) == 1 )
-            PSA_ASSERT( status );
-        else
+        if( maybe_invalid_padding )
             TEST_ASSERT( status == PSA_SUCCESS ||
                          status == PSA_ERROR_INVALID_PADDING );
+        else
+            PSA_ASSERT( status );
     }
 
     return( 1 );
@@ -579,10 +582,11 @@ static psa_status_t key_agreement_with_self( psa_crypto_generator_t *generator,
      * psa_key_agreement fails. This isn't fully satisfactory, but it's
      * good enough: callers will report it as a failed test anyway. */
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    PSA_ASSERT( psa_get_key_information( handle,
-                                         &private_key_type,
-                                         &key_bits ) );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    private_key_type = psa_get_key_type( &attributes );
+    key_bits = psa_get_key_bits( &attributes );
     public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( private_key_type );
     public_key_length = PSA_KEY_EXPORT_MAX_SIZE( public_key_type, key_bits );
     ASSERT_ALLOC( public_key, public_key_length );
@@ -613,10 +617,11 @@ static psa_status_t raw_key_agreement_with_self( psa_algorithm_t alg,
      * psa_key_agreement fails. This isn't fully satisfactory, but it's
      * good enough: callers will report it as a failed test anyway. */
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    PSA_ASSERT( psa_get_key_information( handle,
-                                         &private_key_type,
-                                         &key_bits ) );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    private_key_type = psa_get_key_type( &attributes );
+    key_bits = psa_get_key_bits( &attributes );
     public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( private_key_type );
     public_key_length = PSA_KEY_EXPORT_MAX_SIZE( public_key_type, key_bits );
     ASSERT_ALLOC( public_key, public_key_length );
@@ -918,30 +923,32 @@ exit:
 static int exercise_export_key( psa_key_handle_t handle,
                                 psa_key_usage_t usage )
 {
-    psa_key_type_t type;
-    size_t bits;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t *exported = NULL;
     size_t exported_size = 0;
     size_t exported_length = 0;
     int ok = 0;
 
-    PSA_ASSERT( psa_get_key_information( handle, &type, &bits ) );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
 
     if( ( usage & PSA_KEY_USAGE_EXPORT ) == 0 &&
-        ! PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
+        ! PSA_KEY_TYPE_IS_PUBLIC_KEY( psa_get_key_type( &attributes ) ) )
     {
         TEST_EQUAL( psa_export_key( handle, NULL, 0, &exported_length ),
                     PSA_ERROR_NOT_PERMITTED );
         return( 1 );
     }
 
-    exported_size = PSA_KEY_EXPORT_MAX_SIZE( type, bits );
+    exported_size = PSA_KEY_EXPORT_MAX_SIZE( psa_get_key_type( &attributes ),
+                                             psa_get_key_bits( &attributes ) );
     ASSERT_ALLOC( exported, exported_size );
 
     PSA_ASSERT( psa_export_key( handle,
                                 exported, exported_size,
                                 &exported_length ) );
-    ok = exported_key_sanity_check( type, bits, exported, exported_length );
+    ok = exported_key_sanity_check( psa_get_key_type( &attributes ),
+                                    psa_get_key_bits( &attributes ),
+                                    exported, exported_length );
 
 exit:
     mbedtls_free( exported );
@@ -950,30 +957,32 @@ exit:
 
 static int exercise_export_public_key( psa_key_handle_t handle )
 {
-    psa_key_type_t type;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t public_type;
-    size_t bits;
     uint8_t *exported = NULL;
     size_t exported_size = 0;
     size_t exported_length = 0;
     int ok = 0;
 
-    PSA_ASSERT( psa_get_key_information( handle, &type, &bits ) );
-    if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( type ) )
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( psa_get_key_type( &attributes ) ) )
     {
         TEST_EQUAL( psa_export_public_key( handle, NULL, 0, &exported_length ),
                     PSA_ERROR_INVALID_ARGUMENT );
         return( 1 );
     }
 
-    public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type );
-    exported_size = PSA_KEY_EXPORT_MAX_SIZE( public_type, bits );
+    public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(
+        psa_get_key_type( &attributes ) );
+    exported_size = PSA_KEY_EXPORT_MAX_SIZE( public_type,
+                                             psa_get_key_bits( &attributes ) );
     ASSERT_ALLOC( exported, exported_size );
 
     PSA_ASSERT( psa_export_public_key( handle,
                                        exported, exported_size,
                                        &exported_length ) );
-    ok = exported_key_sanity_check( public_type, bits,
+    ok = exported_key_sanity_check( public_type,
+                                    psa_get_key_bits( &attributes ),
                                     exported, exported_length );
 
 exit:
@@ -1109,10 +1118,51 @@ void static_checks( )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void import( data_t *data, int type, int expected_status_arg )
+void attributes_set_get( int id_arg, int lifetime_arg,
+                         int usage_flags_arg, int alg_arg,
+                         int type_arg )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_id_t id = id_arg;
+    psa_key_lifetime_t lifetime = lifetime_arg;
+    psa_key_usage_t usage_flags = usage_flags_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_type_t type = type_arg;
+
+    TEST_EQUAL( psa_get_key_id( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_lifetime( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_type( &attributes ), 0 );
+
+    psa_make_key_persistent( &attributes, id, lifetime );
+    psa_set_key_usage_flags( &attributes, usage_flags );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, type );
+
+    TEST_EQUAL( psa_get_key_id( &attributes ), id );
+    TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
+    TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
+    TEST_EQUAL( psa_get_key_type( &attributes ), type );
+
+    psa_reset_key_attributes( &attributes );
+
+    TEST_EQUAL( psa_get_key_id( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_lifetime( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_type( &attributes ), 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void import( data_t *data, int type_arg, int expected_status_arg )
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t handle = 0;
+    psa_key_type_t type = type_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
 
@@ -1121,10 +1171,16 @@ void import( data_t *data, int type, int expected_status_arg )
     psa_set_key_type( &attributes, type );
     status = psa_import_key( &attributes, &handle, data->x, data->len );
     TEST_EQUAL( status, expected_status );
-    if( status == PSA_SUCCESS )
-        PSA_ASSERT( psa_destroy_key( handle ) );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
+    TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
+
+    PSA_ASSERT( psa_destroy_key( handle ) );
 
 exit:
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1225,9 +1281,8 @@ void import_export( data_t *data,
     size_t export_size;
     size_t exported_length = INVALID_EXPORT_LENGTH;
     size_t reexported_length;
-    psa_key_type_t got_type;
-    size_t got_bits;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     export_size = (ptrdiff_t) data->len + export_size_delta;
     ASSERT_ALLOC( exported, export_size );
@@ -1243,11 +1298,9 @@ void import_export( data_t *data,
     PSA_ASSERT( psa_import_key( &attributes, &handle, data->x, data->len ) );
 
     /* Test the key information */
-    PSA_ASSERT( psa_get_key_information( handle,
-                                         &got_type,
-                                         &got_bits ) );
-    TEST_EQUAL( got_type, type );
-    TEST_EQUAL( got_bits, (size_t) expected_bits );
+    PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
+    TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
+    TEST_EQUAL( psa_get_key_bits( &got_attributes ), (size_t) expected_bits );
 
     /* Export the key */
     status = psa_export_key( handle,
@@ -1287,7 +1340,7 @@ void import_export( data_t *data,
                         reexported, reexported_length );
         PSA_ASSERT( psa_close_key( handle2 ) );
     }
-    TEST_ASSERT( exported_length <= PSA_KEY_EXPORT_MAX_SIZE( type, got_bits ) );
+    TEST_ASSERT( exported_length <= PSA_KEY_EXPORT_MAX_SIZE( type, psa_get_key_bits( &got_attributes ) ) );
 
 destroy:
     /* Destroy the key */
@@ -1539,7 +1592,8 @@ void import_export_public_key( data_t *data,
     {
         psa_key_type_t public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type );
         size_t bits;
-        PSA_ASSERT( psa_get_key_information( handle, NULL, &bits ) );
+        PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+        bits = psa_get_key_bits( &attributes );
         TEST_ASSERT( expected_public_key->len <=
                      PSA_KEY_EXPORT_MAX_SIZE( public_type, bits ) );
         ASSERT_COMPARE( expected_public_key->x, expected_public_key->len,
@@ -1565,8 +1619,7 @@ void import_and_exercise_key( data_t *data,
     psa_algorithm_t alg = alg_arg;
     psa_key_usage_t usage = usage_to_exercise( type, alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_type_t got_type;
-    size_t got_bits;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -1578,11 +1631,9 @@ void import_and_exercise_key( data_t *data,
     PSA_ASSERT( psa_import_key( &attributes, &handle, data->x, data->len ) );
 
     /* Test the key information */
-    PSA_ASSERT( psa_get_key_information( handle,
-                                         &got_type,
-                                         &got_bits ) );
-    TEST_EQUAL( got_type, type );
-    TEST_EQUAL( got_bits, bits );
+    PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
+    TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
+    TEST_EQUAL( psa_get_key_bits( &got_attributes ), bits );
 
     /* Do something with the key according to its type and permitted usage. */
     if( ! exercise_key( handle, usage, alg ) )
@@ -1602,27 +1653,22 @@ void key_policy( int usage_arg, int alg_arg )
     psa_key_usage_t usage = usage_arg;
     psa_key_type_t key_type = PSA_KEY_TYPE_AES;
     unsigned char key[32] = {0};
-    psa_key_policy_t policy_set = PSA_KEY_POLICY_INIT;
-    psa_key_policy_t policy_get = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     memset( key, 0x2a, sizeof( key ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    PSA_ASSERT( psa_allocate_key( &handle ) );
-    psa_key_policy_set_usage( &policy_set, usage, alg );
+    psa_set_key_usage_flags( &attributes, usage );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
 
-    TEST_EQUAL( psa_key_policy_get_usage( &policy_set ), usage );
-    TEST_EQUAL( psa_key_policy_get_algorithm( &policy_set ), alg );
-    PSA_ASSERT( psa_set_key_policy( handle, &policy_set ) );
+    PSA_ASSERT( psa_import_key( &attributes, &handle, key, sizeof( key ) ) );
 
-    PSA_ASSERT( psa_import_key_to_handle( handle, key_type,
-                                key, sizeof( key ) ) );
-
-    PSA_ASSERT( psa_get_key_policy( handle, &policy_get ) );
-
-    TEST_EQUAL( policy_get.usage, policy_set.usage );
-    TEST_EQUAL( policy_get.alg, policy_set.alg );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    TEST_EQUAL( psa_get_key_type( &attributes ), key_type );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage );
+    TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
 
 exit:
     psa_destroy_key( handle );
@@ -1818,6 +1864,7 @@ void asymmetric_encryption_key_policy( int policy_usage,
     size_t buffer_length;
     unsigned char *buffer = NULL;
     size_t output_length;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -1828,9 +1875,8 @@ void asymmetric_encryption_key_policy( int policy_usage,
     PSA_ASSERT( psa_import_key_to_handle( handle, key_type,
                                 key_data->x, key_data->len ) );
 
-    PSA_ASSERT( psa_get_key_information( handle,
-                                         NULL,
-                                         &key_bits ) );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
     buffer_length = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits,
                                                         exercise_alg );
     ASSERT_ALLOC( buffer, buffer_length );
@@ -3671,6 +3717,7 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     size_t signature_size;
     size_t signature_length = 0xdeadbeef;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3681,9 +3728,8 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_import_key_to_handle( handle, key_type,
                                 key_data->x,
                                 key_data->len ) );
-    PSA_ASSERT( psa_get_key_information( handle,
-                                         NULL,
-                                         &key_bits ) );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
 
     /* Allocate a buffer which has the size advertized by the
      * library. */
@@ -3766,6 +3812,7 @@ void sign_verify( int key_type_arg, data_t *key_data,
     size_t signature_size;
     size_t signature_length = 0xdeadbeef;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3778,9 +3825,8 @@ void sign_verify( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_import_key_to_handle( handle, key_type,
                                 key_data->x,
                                 key_data->len ) );
-    PSA_ASSERT( psa_get_key_information( handle,
-                                         NULL,
-                                         &key_bits ) );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
 
     /* Allocate a buffer which has the size advertized by the
      * library. */
@@ -3912,6 +3958,7 @@ void asymmetric_encrypt( int key_type_arg,
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3924,9 +3971,8 @@ void asymmetric_encrypt( int key_type_arg,
                                 key_data->len ) );
 
     /* Determine the maximum output length */
-    PSA_ASSERT( psa_get_key_information( handle,
-                                         NULL,
-                                         &key_bits ) );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
     output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
     ASSERT_ALLOC( output, output_size );
 
@@ -3980,6 +4026,7 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
     size_t output2_size;
     size_t output2_length = ~0;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3994,9 +4041,8 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
                                 key_data->len ) );
 
     /* Determine the maximum ciphertext length */
-    PSA_ASSERT( psa_get_key_information( handle,
-                                         NULL,
-                                         &key_bits ) );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
     output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
     ASSERT_ALLOC( output, output_size );
     output2_size = input_data->len;
@@ -4515,8 +4561,7 @@ void derive_key_exercise( int alg_arg,
     size_t capacity = PSA_BITS_TO_BYTES( derived_bits );
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_type_t got_type;
-    size_t got_bits;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -4540,11 +4585,9 @@ void derive_key_exercise( int alg_arg,
                                           &generator ) );
 
     /* Test the key information */
-    PSA_ASSERT( psa_get_key_information( derived_handle,
-                                         &got_type,
-                                         &got_bits ) );
-    TEST_EQUAL( got_type, derived_type );
-    TEST_EQUAL( got_bits, derived_bits );
+    PSA_ASSERT( psa_get_key_attributes( derived_handle, &got_attributes ) );
+    TEST_EQUAL( psa_get_key_type( &got_attributes ), derived_type );
+    TEST_EQUAL( psa_get_key_bits( &got_attributes ), derived_bits );
 
     /* Exercise the derived key. */
     if( ! exercise_key( derived_handle, derived_usage, derived_alg ) )
@@ -4905,11 +4948,10 @@ void generate_key( int type_arg,
     size_t bits = bits_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
-    psa_key_type_t got_type;
-    size_t got_bits;
     psa_status_t expected_info_status =
         expected_status == PSA_SUCCESS ? PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -4924,10 +4966,9 @@ void generate_key( int type_arg,
         goto exit;
 
     /* Test the key information */
-    TEST_EQUAL( psa_get_key_information( handle, &got_type, &got_bits ),
-                expected_info_status );
-    TEST_EQUAL( got_type, type );
-    TEST_EQUAL( got_bits, bits );
+    PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
+    TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
+    TEST_EQUAL( psa_get_key_bits( &got_attributes ), bits );
 
     /* Do something with the key according to its type and permitted usage. */
     if( ! exercise_key( handle, usage, alg ) )

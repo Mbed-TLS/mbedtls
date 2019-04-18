@@ -140,7 +140,7 @@ static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
 psa_status_t psa_get_key_attributes(psa_key_handle_t handle,
                                     psa_key_attributes_t *attributes);
 
-psa_status_t psa_reset_key_attributes(psa_key_attributes_t *attributes);
+void psa_reset_key_attributes(psa_key_attributes_t *attributes);
 
 /**@}*/
 

@@ -981,6 +981,31 @@ static size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
     return( 0 );
 }
 
+void psa_reset_key_attributes( psa_key_attributes_t *attributes )
+{
+    memset( attributes, 0, sizeof( *attributes ) );
+}
+
+psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
+                                     psa_key_attributes_t *attributes )
+{
+    psa_key_slot_t *slot;
+    psa_status_t status;
+
+    psa_reset_key_attributes( attributes );
+
+    status = psa_get_key_slot( handle, &slot );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    attributes->id = slot->persistent_storage_id;
+    attributes->lifetime = slot->lifetime;
+    attributes->policy = slot->policy;
+    attributes->type = slot->type;
+    attributes->bits = psa_get_key_slot_bits( slot );
+    return( PSA_SUCCESS );
+}
+
 psa_status_t psa_get_key_information( psa_key_handle_t handle,
                                       psa_key_type_t *type,
                                       size_t *bits )
@@ -1347,7 +1372,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
 }
 
 static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
-                                           psa_key_handle_t target )
+                                           psa_key_slot_t *target )
 {
     psa_status_t status;
     uint8_t *buffer = NULL;
@@ -1362,7 +1387,8 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     status = psa_internal_export_key( source, buffer, buffer_size, &length, 0 );
     if( status != PSA_SUCCESS )
         goto exit;
-    status = psa_import_key_to_handle( target, source->type, buffer, length );
+    target->type = source->type;
+    status = psa_import_key_into_slot( target, buffer, length );
 
 exit:
     if( buffer_size != 0 )
@@ -1397,12 +1423,48 @@ psa_status_t psa_copy_key_to_handle(psa_key_handle_t source_handle,
             return( status );
     }
 
-    status = psa_copy_key_material( source_slot, target_handle );
+    status = psa_copy_key_material( source_slot, target_slot );
     if( status != PSA_SUCCESS )
         return( status );
 
     target_slot->policy = new_policy;
     return( PSA_SUCCESS );
+}
+
+psa_status_t psa_copy_key( psa_key_handle_t source_handle,
+                           const psa_key_attributes_t *specified_attributes,
+                           psa_key_handle_t *target_handle )
+{
+    psa_status_t status;
+    psa_key_slot_t *source_slot = NULL;
+    psa_key_slot_t *target_slot = NULL;
+    psa_key_attributes_t actual_attributes = *specified_attributes;
+
+    status = psa_get_key_from_slot( source_handle, &source_slot, 0, 0 );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_restrict_key_policy( &actual_attributes.policy,
+                                      &source_slot->policy );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_start_key_creation( &actual_attributes,
+                                     target_handle, &target_slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_copy_key_material( source_slot, target_slot );
+
+exit:
+    if( status == PSA_SUCCESS )
+        status = psa_finish_key_creation( target_slot );
+    if( status != PSA_SUCCESS )
+    {
+        psa_fail_key_creation( target_slot );
+        *target_handle = 0;
+    }
+    return( status );
 }
 
 

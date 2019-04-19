@@ -219,9 +219,6 @@ static psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
     psa_key_slot_t *slot;
     psa_status_t status;
 
-    if( ! psa_is_key_id_valid( id ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     status = psa_get_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
@@ -239,6 +236,17 @@ static psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
 }
 
+psa_status_t psa_validate_persistent_key_parameters(
+    psa_key_lifetime_t lifetime,
+    psa_key_file_id_t id )
+{
+    if( lifetime != PSA_KEY_LIFETIME_PERSISTENT )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    if( ! psa_is_key_id_valid( id ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    return( PSA_SUCCESS );
+}
+
 static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
                                           psa_key_file_id_t id,
                                           psa_key_handle_t *handle,
@@ -248,8 +256,9 @@ static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
 
     *handle = 0;
 
-    if( lifetime != PSA_KEY_LIFETIME_PERSISTENT )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+    status = psa_validate_persistent_key_parameters( lifetime, id );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     status = psa_internal_allocate_key_slot( handle );
     if( status != PSA_SUCCESS )

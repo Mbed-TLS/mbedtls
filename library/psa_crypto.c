@@ -1284,7 +1284,13 @@ static psa_status_t psa_start_key_creation(
         return( status );
     slot->lifetime = attributes->lifetime;
     if( attributes->lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    {
+        status = psa_validate_persistent_key_parameters( attributes->lifetime,
+                                                         attributes->id );
+        if( status != PSA_SUCCESS )
+            return( status );
         slot->persistent_storage_id = attributes->id;
+    }
     slot->type = attributes->type;
 
     return( status );

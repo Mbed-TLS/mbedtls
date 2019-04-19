@@ -166,7 +166,7 @@ exit:
 
 /* BEGIN_CASE */
 void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
-                            int expected_status )
+                            int restart, int expected_status )
 {
     psa_key_id_t key_id = (psa_key_id_t) key_id_arg;
     psa_key_type_t type = (psa_key_type_t) type_arg;
@@ -186,6 +186,15 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
         goto exit;
     }
 
+    if( restart )
+    {
+        psa_close_key( handle );
+        mbedtls_psa_crypto_free();
+        PSA_ASSERT( psa_crypto_init() );
+        PSA_ASSERT( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
+                                  &handle ) );
+    }
+
     psa_reset_key_attributes( &attributes );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     TEST_EQUAL( psa_get_key_id( &attributes ), key_id );
@@ -203,7 +212,8 @@ exit:
 
 /* BEGIN_CASE */
 void import_export_persistent_key( data_t *data, int type_arg,
-                                   int expected_bits, int key_not_exist )
+                                   int expected_bits,
+                                   int restart, int key_not_exist )
 {
     psa_key_id_t key_id = 42;
     psa_key_type_t type = (psa_key_type_t) type_arg;
@@ -224,6 +234,16 @@ void import_export_persistent_key( data_t *data, int type_arg,
     /* Import the key */
     PSA_ASSERT( psa_import_key( &attributes, &handle,
                                 data->x, data->len ) );
+
+
+    if( restart )
+    {
+        psa_close_key( handle );
+        mbedtls_psa_crypto_free();
+        PSA_ASSERT( psa_crypto_init() );
+        PSA_ASSERT( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
+                                  &handle ) );
+    }
 
     /* Test the key information */
     psa_reset_key_attributes( &attributes );

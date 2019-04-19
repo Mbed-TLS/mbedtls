@@ -252,6 +252,7 @@ struct psa_key_policy_s
     psa_key_usage_t usage;
     psa_algorithm_t alg;
 };
+typedef struct psa_key_policy_s psa_key_policy_t;
 
 #define PSA_KEY_POLICY_INIT {0, 0}
 static inline struct psa_key_policy_s psa_key_policy_init( void )

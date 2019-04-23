@@ -1523,7 +1523,8 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  * \param enable      This value determines whether the CID extension should
  *                    be used or not. Possible values are:
  *                    - MBEDTLS_SSL_CID_ENABLED to enable the use of the CID.
- *                    - MBEDTLS_SSL_CID_DISABLED to disable the use of the CID.
+ *                    - MBEDTLS_SSL_CID_DISABLED (default) to disable the use
+ *                      of the CID.
  * \param own_cid     The address of the readable buffer holding the CID we want
  *                    the peer to use when sending encrypted messages to us.
  *                    This may be \c NULL if \p own_cid_len is \c 0.

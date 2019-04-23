@@ -1272,9 +1272,10 @@
 /**
  * \def MBEDTLS_SSL_CID
  *
- * Enable support for the DTLS Connection ID extension which
- * allows to identify DTLS connections across changes in the
- * underlying transport.
+ * Enable support for the DTLS Connection ID extension
+ * (version draft-ietf-tls-dtls-connection-id-04)
+ * which allows to identify DTLS connections across changes
+ * in the underlying transport.
  *
  * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`
  * and `mbedtls_ssl_get_peer_cid()`. See their documentation for more

@@ -1534,7 +1534,7 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                    This parameter is unused if \p enabled is set to
  *                    MBEDTLS_SSL_CID_DISABLED.
  *
- * \note              This CID configuration applies to the next handshake
+ * \note              This CID configuration applies to subsequent handshakes
  *                    performed on the SSL context \p ssl, but does not trigger
  *                    one. You still have to call `mbedtls_ssl_handshake()`
  *                    (for the initial handshake) or `mbedtls_ssl_renegotiate()`

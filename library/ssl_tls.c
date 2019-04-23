@@ -9258,7 +9258,8 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 }
 
 #if defined(MBEDTLS_PK_C) && \
-    ( defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) )
+    ( defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) ) || \
+    ( defined(MBEDTLS_USE_UECC) )
 /*
  * Convert between MBEDTLS_PK_XXX and SSL_SIG_XXX
  */
@@ -9268,7 +9269,8 @@ unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk )
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_RSA ) )
         return( MBEDTLS_SSL_SIG_RSA );
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_USE_UECC)
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECDSA ) )
         return( MBEDTLS_SSL_SIG_ECDSA );
 #endif
@@ -9296,7 +9298,8 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
         case MBEDTLS_SSL_SIG_RSA:
             return( MBEDTLS_PK_RSA );
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_USE_UECC)
         case MBEDTLS_SSL_SIG_ECDSA:
             return( MBEDTLS_PK_ECDSA );
 #endif
@@ -9424,13 +9427,17 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
 #if defined(MBEDTLS_USE_UECC)
 int mbetls_uecc_rng_wrapper( uint8_t *dest, unsigned int size )
 {
+    int ret;
     if(gf_rng != NULL)
     {
-        gf_rng( gp_rng, (unsigned char*)dest, (size_t) size );
+        ret = gf_rng( gp_rng, (unsigned char*)dest, (size_t) size );
     } else {
         return -1;
     }
-    return 0;
+    if (ret == 0)
+        return 1;
+    else
+        return 0;
 }
 #endif
 

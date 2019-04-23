@@ -174,7 +174,7 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
     size_t sig_alg_len = 0;
     const int *md;
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_UECC)
     unsigned char *sig_alg_list = buf + 6;
 #endif
 
@@ -187,7 +187,8 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
     for( md = ssl->conf->sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
     {
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_USE_UECC)
         sig_alg_len += 2;
 #endif
 #if defined(MBEDTLS_RSA_C)
@@ -208,7 +209,8 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
     for( md = ssl->conf->sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
     {
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_USE_UECC)
         sig_alg_list[sig_alg_len++] = mbedtls_ssl_hash_from_md_alg( *md );
         sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
 #endif
@@ -2085,6 +2087,7 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
     /*
      * Parse ECC group
      */
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Parse server ecdh params" ) );
 
     if( end - *p < 4 )
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );

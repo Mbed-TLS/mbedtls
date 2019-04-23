@@ -2837,7 +2837,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_RSA_C)
     p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_RSA_SIGN;
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_USE_UECC)
     p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN;
 #endif
 
@@ -2877,7 +2878,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
             p[2 + sa_len++] = hash;
             p[2 + sa_len++] = MBEDTLS_SSL_SIG_RSA;
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_USE_UECC)
             p[2 + sa_len++] = hash;
             p[2 + sa_len++] = MBEDTLS_SSL_SIG_ECDSA;
 #endif
@@ -3135,7 +3137,8 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
         }
 
-        uECC_set_rng(&mbetls_uecc_rng_wrapper);
+        if (uECC_get_rng() == 0)
+            uECC_set_rng(&mbetls_uecc_rng_wrapper);
 
         if (!uECC_make_key( ssl->handshake->ecdh_ownpubkey,
                             ssl->handshake->ecdh_privkey,
@@ -3163,7 +3166,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
         memcpy( &ssl->out_msg[ssl->out_msglen], ssl->handshake->ecdh_ownpubkey, 2*NUM_ECC_BYTES);
 
         ssl->out_msglen += 2*NUM_ECC_BYTES;
-
+    }
 #else
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_ecdhe( ciphersuite_info ) )

@@ -613,7 +613,7 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 
-/* Transcode signature from PSA format to ASN.1 sequence.
+/* Transcode signature from uECC format to ASN.1 sequence.
  * See ecdsa_signature_to_asn1 in ecdsa.c, but with byte buffers instead of
  * MPIs, and in-place.
  *
@@ -647,16 +647,17 @@ static int uecc_ecdsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    unsigned char *sig, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    (void) ctx;
-    (void) md_alg;
-    (void) hash;
-    (void) hash_len;
-    (void) sig;
-    (void) sig_len;
+    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
+    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+    
+    uECC_sign(keypair->private_key, hash, hash_len, sig, uecc_curve);
+
+    /* uECC owns its rng function pointer */
     (void) f_rng;
     (void) p_rng;
+    (void) md_alg;
 
-    return( 0 );
+    return( pk_ecdsa_sig_asn1_from_psa( sig, sig_len, 2*NUM_ECC_BYTES ) );
 }
 
 static void *uecc_ecdsa_alloc_wrap( void )

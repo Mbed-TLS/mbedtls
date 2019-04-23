@@ -3064,7 +3064,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_RSA_C)
     p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_RSA_SIGN;
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN;
 #endif
 
@@ -3105,7 +3105,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
             p[2 + sa_len++] = hash;
             p[2 + sa_len++] = MBEDTLS_SSL_SIG_RSA;
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
             p[2 + sa_len++] = hash;
             p[2 + sa_len++] = MBEDTLS_SSL_SIG_ECDSA;
 #endif

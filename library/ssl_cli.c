@@ -173,7 +173,8 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
     size_t sig_alg_len = 0;
-#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_USE_TINYCRYPT)
     unsigned char *sig_alg_list = buf + 6;
 #endif
 
@@ -189,7 +190,7 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH_TLS( hash )
     ((void) hash);
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     sig_alg_len += 2;
 #endif
 #if defined(MBEDTLS_RSA_C)
@@ -209,7 +210,7 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
     sig_alg_len = 0;
 
     MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH_TLS( hash )
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     sig_alg_list[sig_alg_len++] = hash;
     sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
 #endif

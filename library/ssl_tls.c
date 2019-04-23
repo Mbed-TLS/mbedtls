@@ -12057,7 +12057,8 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 }
 
 #if defined(MBEDTLS_PK_C) && \
-    ( defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) )
+    ( defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) ) || \
+    ( defined(MBEDTLS_USE_TINYCRYPT) )
 /*
  * Convert between MBEDTLS_PK_XXX and SSL_SIG_XXX
  */
@@ -12067,7 +12068,7 @@ unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk )
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_RSA ) )
         return( MBEDTLS_SSL_SIG_RSA );
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECDSA ) )
         return( MBEDTLS_SSL_SIG_ECDSA );
 #endif
@@ -12095,7 +12096,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
         case MBEDTLS_SSL_SIG_RSA:
             return( MBEDTLS_PK_RSA );
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
         case MBEDTLS_SSL_SIG_ECDSA:
             return( MBEDTLS_PK_ECDSA );
 #endif

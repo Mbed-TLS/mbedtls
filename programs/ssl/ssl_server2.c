@@ -2871,7 +2871,7 @@ handshake:
         {
             if( opt.cid_enabled == MBEDTLS_SSL_CID_ENABLED )
             {
-                mbedtls_printf( "Use of Connection ID was rejected by the client.\n" );
+                mbedtls_printf( "Use of Connection ID was not offered by the client.\n" );
             }
         }
         else

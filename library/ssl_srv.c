@@ -3166,7 +3166,6 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
         memcpy( &ssl->out_msg[ssl->out_msglen], ssl->handshake->ecdh_ownpubkey, 2*NUM_ECC_BYTES);
 
         ssl->out_msglen += 2*NUM_ECC_BYTES;
-    }
 #else
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_ecdhe( ciphersuite_info ) )

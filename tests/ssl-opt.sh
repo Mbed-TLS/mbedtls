@@ -1121,7 +1121,7 @@ run_test    "Truncated HMAC, DTLS: client enabled, server enabled" \
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "Connection ID: Client enabled, server disabled" \
-            "$P_SRV dtls=1cid=0" \
+            "$P_SRV dtls=1 cid=0" \
             "$P_CLI dtls=1 cid=1 cid_val=deadbeef" \
              0
 

@@ -1203,7 +1203,8 @@ run_test    "Connection ID: Client+Server enabled, Client+Server CID empty, AES-
             "$P_CLI dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
             0
 
-requires_config_enabled MBEDTLS_SSL_CID MBEDTLS_SSL_RENEGOTIATION
+requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID: Client+Server enabled, renegotiate" \
             "$P_SRV dtls=1 cid=1 cid_val=dead renegotiation=1" \
             "$P_CLI dtls=1 cid=1 cid_val=beef renegotiation=1 renegotiate=1" \

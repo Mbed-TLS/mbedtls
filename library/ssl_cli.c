@@ -3973,6 +3973,11 @@ sign:
         rs_ctx = &ssl->handshake->ecrs_ctx.pk;
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if ( uECC_get_rng() == 0 )
+        uECC_set_rng(&mbetls_uecc_rng_wrapper);
+#endif
+
     if( ( ret = mbedtls_pk_sign_restartable( mbedtls_ssl_own_key( ssl ),
                          md_alg, hash_start, hashlen,
                          ssl->out_msg + 6 + offset, &n,

@@ -37,9 +37,6 @@
 /* Debug output */
 #define MBEDTLS_DEBUG_C
 
-/* We don't have DER-encoded test CRTs yet. */
-#define MBEDTLS_PEM_PARSE_C
-#define MBEDTLS_BASE64_C
 /* We don't have Secp256r1 test CRTs at the moment. */
 #define MBEDTLS_ECP_DP_SECP384R1_ENABLED
 

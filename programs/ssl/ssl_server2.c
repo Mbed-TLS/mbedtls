@@ -3324,7 +3324,16 @@ handshake:
         }
         else
         {
+            size_t idx=0;
             mbedtls_printf( "Use of Connection ID has been negotiated.\n" );
+            mbedtls_printf( "Peer CID (length %u Bytes): ",
+                            (unsigned) peer_cid_len );
+            while( idx < peer_cid_len )
+            {
+                mbedtls_printf( "%#02x ", peer_cid[ idx ] );
+                idx++;
+            }
+            mbedtls_printf( "\n" );
         }
     }
 #endif /* MBEDTLS_SSL_CID */

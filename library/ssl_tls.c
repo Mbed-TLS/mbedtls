@@ -109,6 +109,7 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
+#if defined(MBEDTLS_SSL_CID)
 /* Top-level Connection ID API */
 
 /* WARNING: This implementation is a stub and doesn't do anything!
@@ -141,6 +142,7 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
     *enabled = MBEDTLS_SSL_CID_DISABLED;
     return( 0 );
 }
+#endif /* MBEDTLS_SSL_CID */
 
 /* Forward declarations for functions related to message buffering. */
 static void ssl_buffering_free( mbedtls_ssl_context *ssl );

@@ -120,6 +120,9 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 
 /* Top-level Connection ID API */
 
+/* WARNING: This implementation is a stub and doesn't do anything!
+ *          It is included solely to allow review and coding against
+ *          the new Connection CID API. */
 int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          int enable,
                          unsigned char const *own_cid,
@@ -132,6 +135,9 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
+/* WARNING: This implementation is a stub and doesn't do anything!
+ *          It is included solely to allow review and coding against
+ *          the new Connection CID API. */
 int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
                      int *enabled,
                      unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ],

@@ -2222,6 +2222,21 @@
 #define MBEDTLS_ECDSA_C
 
 /**
+ * \def MBEDTLS_USE_UECC
+ *
+ * Enable the elliptic curve over GF(p) library.
+ *
+ * Module:  library/ecc.c
+ * Caller:  library/ecc_dh.c
+ *          library/ecc_dsa.c
+
+ *
+ * Requires: MBEDTLS_ECDH_C, MBEDTLS_ECDSA_C and MBEDTLS_ECP_C shouldn't
+ *           be enabled
+ */
+//#define MBEDTLS_USE_UECC
+
+/**
  * \def MBEDTLS_ECJPAKE_C
  *
  * Enable the elliptic curve J-PAKE library.

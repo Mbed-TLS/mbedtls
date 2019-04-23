@@ -293,7 +293,7 @@
 #endif
 
 #if defined(MBEDTLS_PK_C) && \
-    ( !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C) )
+    ( !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_USE_UECC) )
 #error "MBEDTLS_PK_C defined, but not all prerequisites"
 #endif
 

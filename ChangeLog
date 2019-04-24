@@ -31,6 +31,10 @@ Bugfix
      GCM and CCM were not affected. Fixed by Jack Lloyd.
    * Fix incorrect default port number in ssl_mail_client example's usage.
      Found and fixed by irwir. #2337
+   * Add missing parentheses around parameters in the definition of the
+     public macro MBEDTLS_X509_ID_FLAG. This could lead to invalid evaluation
+     in case operators binding less strongly than subtraction were used
+     for the parameter.
 
 Changes
    * Return from various debugging routines immediately if the

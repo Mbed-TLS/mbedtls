@@ -1209,6 +1209,12 @@ component_build_mingw () {
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
     make WINDOWS_BUILD=1 clean
 }
+support_build_mingw() {
+    case $(i686-w64-mingw32-gcc -dumpversion) in
+        [0-5]*) false;;
+        *) true;;
+    esac
+}
 
 component_test_memsan () {
     msg "build: MSan (clang)" # ~ 1 min 20s

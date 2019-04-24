@@ -179,7 +179,7 @@ static void exit_usage( const char *name, const char *value )
         mbedtls_printf( " option %s: illegal value: %s\n", name, value );
 
     mbedtls_printf( USAGE );
-    exit( 1 );
+    mbedtls_exit( 1 );
 }
 
 static void get_options( int argc, char *argv[] )

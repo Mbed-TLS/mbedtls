@@ -1439,7 +1439,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     }
 
 #define CERT_TYPE(type,name)                    \
-    if( ns_cert_type & type )                   \
+    if( ns_cert_type & (type) )                 \
         PRINT_ITEM( name );
 
 static int x509_info_cert_type( char **buf, size_t *size,
@@ -1466,7 +1466,7 @@ static int x509_info_cert_type( char **buf, size_t *size,
 }
 
 #define KEY_USAGE(code,name)    \
-    if( key_usage & code )      \
+    if( key_usage & (code) )    \
         PRINT_ITEM( name );
 
 static int x509_info_key_usage( char **buf, size_t *size,

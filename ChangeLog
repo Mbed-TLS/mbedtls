@@ -27,6 +27,10 @@ Bugfix
      Found and fixed by irwir. #2337
    * Add psa_util.h to test/cpp_dummy_build to fix build_default_make_gcc_and_cxx.
      Fixed by Peter Kolbus (Garmin). #2579
+   * Add missing parentheses around parameters in the definition of the
+     public macro MBEDTLS_X509_ID_FLAG. This could lead to invalid evaluation
+     in case operators binding less strongly than subtraction were used
+     for the parameter.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

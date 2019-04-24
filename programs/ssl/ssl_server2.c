@@ -33,9 +33,10 @@
 #define mbedtls_free       free
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
-#define mbedtls_calloc    calloc
+#define mbedtls_calloc     calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
+#define mbedtls_exit       exit
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
@@ -46,7 +47,7 @@ int main( void )
     mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
            "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_SRV_C and/or "
            "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -2583,7 +2584,7 @@ exit:
     if( ret < 0 )
         ret = 1;
 
-    return( ret );
+    mbedtls_exit( ret );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_SRV_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&

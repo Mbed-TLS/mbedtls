@@ -29,6 +29,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
+#include <stdlib.h>
 #define mbedtls_exit       exit
 #define mbedtls_printf     printf
 #define mbedtls_snprintf   snprintf
@@ -39,7 +40,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_TIMING_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -874,7 +875,7 @@ int main( int argc, char *argv[] )
     fflush( stdout ); getchar();
 #endif
 
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 
 #endif /* MBEDTLS_TIMING_C */

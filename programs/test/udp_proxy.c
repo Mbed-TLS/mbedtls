@@ -40,6 +40,7 @@
 #define mbedtls_time            time
 #define mbedtls_time_t          time_t
 #define mbedtls_printf          printf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -48,7 +49,7 @@
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_NET_C not defined.\n" );
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -142,7 +143,7 @@ static void exit_usage( const char *name, const char *value )
         mbedtls_printf( " option %s: illegal value: %s\n", name, value );
 
     mbedtls_printf( USAGE );
-    exit( 1 );
+    mbedtls_exit( 1 );
 }
 
 static void get_options( int argc, char *argv[] )
@@ -602,7 +603,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 
 #endif /* MBEDTLS_NET_C */

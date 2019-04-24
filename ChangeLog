@@ -31,6 +31,8 @@ Bugfix
      public macro MBEDTLS_X509_ID_FLAG. This could lead to invalid evaluation
      in case operators binding less strongly than subtraction were used
      for the parameter.
+   * Add a check for MBEDTLS_X509_CRL_PARSE_C in ssl_server2, guarding the crl
+     sni entry parameter. Reported by inestlerode in #560.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

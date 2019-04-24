@@ -22,7 +22,7 @@
 Unit tests for generate_test_code.py
 """
 
-
+# pylint: disable=wrong-import-order
 try:
     # Python 2
     from StringIO import StringIO
@@ -36,6 +36,7 @@ try:
 except ImportError:
     # Python 3
     from unittest.mock import patch
+# pylint: enable=wrong-import-order
 from generate_test_code import gen_dependencies, gen_dependencies_one_line
 from generate_test_code import gen_function_wrapper, gen_dispatch
 from generate_test_code import parse_until_pattern, GeneratorInputError
@@ -336,6 +337,7 @@ class StringIOWrapper(StringIO, object):
         :param length:
         :return:
         """
+        # pylint: disable=unused-argument
         line = super(StringIOWrapper, self).readline()
         if line is not None:
             self.line_no += 1

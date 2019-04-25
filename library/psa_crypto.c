@@ -1307,6 +1307,7 @@ static psa_status_t psa_start_key_creation(
 static psa_status_t psa_finish_key_creation( psa_key_slot_t *slot )
 {
     psa_status_t status = PSA_SUCCESS;
+    (void) slot;
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )

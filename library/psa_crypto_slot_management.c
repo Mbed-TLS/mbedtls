@@ -192,7 +192,6 @@ static int psa_is_key_id_valid( psa_key_file_id_t file_id )
         return( 0 );
     return( 1 );
 }
-#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 /** Declare a slot as persistent and load it from storage.
  *
@@ -215,7 +214,6 @@ static int psa_is_key_id_valid( psa_key_file_id_t file_id )
 static psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
                                                       psa_key_file_id_t id )
 {
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_key_slot_t *slot;
     psa_status_t status;
 
@@ -228,13 +226,8 @@ static psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
     status = psa_load_persistent_key_into_slot( slot );
 
     return( status );
-
-#else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
-    (void) handle;
-    (void) id;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
 }
+#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 psa_status_t psa_validate_persistent_key_parameters(
     psa_key_lifetime_t lifetime,
@@ -242,9 +235,16 @@ psa_status_t psa_validate_persistent_key_parameters(
 {
     if( lifetime != PSA_KEY_LIFETIME_PERSISTENT )
         return( PSA_ERROR_INVALID_ARGUMENT );
+
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( ! psa_is_key_id_valid( id ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
     return( PSA_SUCCESS );
+
+#else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
+    (void) id;
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
 }
 
 static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
@@ -260,6 +260,7 @@ static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
     if( status != PSA_SUCCESS )
         return( status );
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     status = psa_internal_allocate_key_slot( handle );
     if( status != PSA_SUCCESS )
         return( status );
@@ -271,6 +272,10 @@ static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
         *handle = 0;
     }
     return( status );
+#else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+    (void) wanted_load_status;
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 }
 
 psa_status_t psa_open_key( psa_key_lifetime_t lifetime,

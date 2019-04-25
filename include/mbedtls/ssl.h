@@ -386,6 +386,10 @@
 
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
 
+/* The value of the CID extension is still TBD as of
+ * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04. */
+#define MBEDTLS_TLS_EXT_CID                         42 /* TBD */
+
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
 
 #define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01

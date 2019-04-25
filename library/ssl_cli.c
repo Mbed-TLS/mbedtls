@@ -433,6 +433,54 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
+#if defined(MBEDTLS_SSL_CID)
+static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
+                               unsigned char *buf,
+                               size_t *olen )
+{
+    unsigned char *p = buf;
+    size_t ext_len;
+    const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
+
+    /*
+     * Quoting
+     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04:
+     *
+     *   struct {
+     *      opaque cid<0..2^8-1>;
+     *   } ConnectionId;
+    */
+
+    *olen = 0;
+    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
+        ssl->negotiate_cid == MBEDTLS_SSL_CID_DISABLED )
+    {
+        return;
+    }
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding CID extension" ) );
+
+    /* ssl->own_cid_len is at most MBEDTLS_SSL_CID_IN_LEN_MAX
+     * which is at most 255, so the increment cannot overflow. */
+    if( end < p || (size_t)( end - p ) < (unsigned)( ssl->own_cid_len + 5 ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
+
+    /* Add extension ID + size */
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CID >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CID      ) & 0xFF );
+    ext_len = (size_t) ssl->own_cid_len + 1;
+    *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
+
+    *p++ = (uint8_t) ssl->own_cid_len;
+    memcpy( p, ssl->own_cid, ssl->own_cid_len );
+
+    *olen = ssl->own_cid_len + 5;
+}
+#endif /* MBEDTLS_SSL_CID */
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 static void ssl_write_max_fragment_length_ext( mbedtls_ssl_context *ssl,
                                                unsigned char *buf,
@@ -1033,6 +1081,11 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ssl_write_ecjpake_kkpp_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif
+
+#if defined(MBEDTLS_SSL_CID)
+    ssl_write_cid_ext( ssl, p + 2 + ext_len, &olen );
+    ext_len += olen;
+#endif /* MBEDTLS_SSL_CID */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len, &olen );

@@ -609,6 +609,13 @@ struct mbedtls_ssl_transform
     mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
     int minor_ver;
 
+#if defined(MBEDTLS_SSL_CID)
+    uint8_t in_cid_len;
+    uint8_t out_cid_len;
+    unsigned char in_cid [ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
+    unsigned char out_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
+#endif /* MBEDTLS_SSL_CID */
+
     /*
      * Session specific compression layer
      */

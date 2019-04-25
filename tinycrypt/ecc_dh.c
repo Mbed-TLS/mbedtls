@@ -1,6 +1,6 @@
 /* ec_dh.c - TinyCrypt implementation of EC-DH */
 
-/* 
+/*
  * Copyright (c) 2014, Kenneth MacKay
  * All rights reserved.
  *
@@ -57,6 +57,7 @@
 #include <tinycrypt/ecc.h>
 #include <tinycrypt/ecc_dh.h>
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 #if default_RNG_defined
 static uECC_RNG_Function g_rng_function = &default_CSPRNG;
@@ -188,12 +189,9 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 
 clear_and_out:
 	/* erasing temporary buffer used to store secret: */
-	memset(p2, 0, sizeof(p2));
-	__asm__ __volatile__("" :: "g"(p2) : "memory");
-	memset(tmp, 0, sizeof(tmp));
-	__asm__ __volatile__("" :: "g"(tmp) : "memory");
-	memset(_private, 0, sizeof(_private));
-	__asm__ __volatile__("" :: "g"(_private) : "memory");
+	mbedtls_platform_zeroize(p2, sizeof(p2));
+	mbedtls_platform_zeroize(tmp, sizeof(tmp));
+	mbedtls_platform_zeroize(_private, sizeof(_private));
 
 	return r;
 }

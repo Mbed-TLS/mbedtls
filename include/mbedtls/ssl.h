@@ -2761,6 +2761,7 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
  *                 usually negotiated by the client during handshake)
  *                 (Client: set maximum fragment length to emit *and*
  *                 negotiate with the server during handshake)
+ *                 (Default: #MBEDTLS_SSL_MAX_FRAG_LEN_NONE)
  *
  * \note           On the client side, the maximum fragment length extension
  *                 *will not* be used, unless the maximum fragment length has

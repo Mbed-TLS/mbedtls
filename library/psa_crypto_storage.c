@@ -309,15 +309,21 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
         *key_data_length > PSA_CRYPTO_MAX_STORAGE_SIZE )
         return( PSA_ERROR_STORAGE_FAILURE );
 
-    *key_data = mbedtls_calloc( 1, *key_data_length );
-    if( *key_data == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    if( *key_data_length == 0 )
+    {
+        *key_data = NULL;
+    }
+    else
+    {
+        *key_data = mbedtls_calloc( 1, *key_data_length );
+        if( *key_data == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        memcpy( *key_data, storage_format->key_data, *key_data_length );
+    }
 
     GET_UINT32_LE(*type, storage_format->type, 0);
     GET_UINT32_LE(policy->usage, storage_format->policy, 0);
     GET_UINT32_LE(policy->alg, storage_format->policy, sizeof( uint32_t ));
-
-    memcpy( *key_data, storage_format->key_data, *key_data_length );
 
     return( PSA_SUCCESS );
 }

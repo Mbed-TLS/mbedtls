@@ -1282,7 +1282,8 @@ run_test    "(STUB) Connection ID: Client enabled, server disabled" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
             0 \
             -s "Disable use of CID extension." \
-            -c "Enable use of CID extension."
+            -c "Enable use of CID extension."  \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client disabled, server enabled" \
@@ -1290,6 +1291,7 @@ run_test    "(STUB) Connection ID: Client disabled, server enabled" \
             "$P_CLI debug_level=3 dtls=1 cid=0" \
             0 \
             -c "Disable use of CID extension." \
+            -C "client hello, adding CID extension"           \
             -s "Enable use of CID extension."
 
 requires_config_enabled MBEDTLS_SSL_CID
@@ -1298,7 +1300,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID none
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty" \
@@ -1306,7 +1309,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty" \
             "$P_CLI debug_level=3 dtls=1 cid=1" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty" \
@@ -1314,7 +1318,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empty" \
@@ -1322,7 +1327,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empt
             "$P_CLI debug_level=3 dtls=1 cid=1" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID nonempty, AES-128-CCM-8" \
@@ -1330,7 +1336,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID none
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-128-CCM-8" \
@@ -1338,7 +1345,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-128-CCM-8" \
@@ -1346,7 +1354,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empty, AES-128-CCM-8" \
@@ -1354,7 +1363,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empt
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID nonempty, AES-128-CBC" \
@@ -1362,7 +1372,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID none
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-128-CBC" \
@@ -1370,7 +1381,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-128-CBC" \
@@ -1378,7 +1390,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empty, AES-128-CBC" \
@@ -1386,7 +1399,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empt
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -1395,7 +1409,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, renegotiate" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef renegotiation=1 renegotiate=1" \
             0 \
             -c "Enable use of CID extension." \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension"
 
 # Tests for Encrypt-then-MAC extension
 

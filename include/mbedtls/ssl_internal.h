@@ -343,6 +343,18 @@ struct mbedtls_ssl_handshake_params
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
 
+#if defined(MBEDTLS_SSL_CID)
+    /* The state of CID configuration in this handshake. */
+
+    uint8_t cid_in_use; /*!< This indicates whether the use of the CID extension
+                         *   has been negotited. Possible values are
+                         *   #MBEDTLS_SSL_CID_ENABLED and
+                         *   #MBEDTLS_SSL_CID_DISABLED. */
+    unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ]; /*! The peer's CID */
+    uint8_t peer_cid_len;                                  /*!< The length of
+                                                            *   \c peer_cid.  */
+#endif /* MBEDTLS_SSL_CID */
+
     struct
     {
         size_t total_bytes_buffered; /*!< Cumulative size of heap allocated

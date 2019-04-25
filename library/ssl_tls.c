@@ -112,18 +112,33 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_CID)
 /* Top-level Connection ID API */
 
-/* WARNING: This implementation is a stub and doesn't do anything!
- *          It is included solely to allow review and coding against
- *          the new Connection CID API. */
+/* WARNING: The CID feature isn't fully implemented yet
+ *          and will not be used. */
 int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          int enable,
                          unsigned char const *own_cid,
                          size_t own_cid_len )
 {
-    ((void) ssl);
-    ((void) enable);
-    ((void) own_cid);
-    ((void) own_cid_len);
+    ssl->negotiate_cid = enable;
+    if( enable == MBEDTLS_SSL_CID_DISABLED )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Disable use of CID extension." ) );
+        return( 0 );
+    }
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "Enable use of CID extension." ) );
+
+    if( own_cid_len > MBEDTLS_SSL_CID_IN_LEN_MAX )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "CID too large: Maximum %u, actual %u",
+                                    (unsigned) MBEDTLS_SSL_CID_IN_LEN_MAX,
+                                    (unsigned) own_cid_len ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    memcpy( ssl->own_cid, own_cid, own_cid_len );
+    ssl->own_cid_len = own_cid_len;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "Own CID", own_cid, own_cid_len );
     return( 0 );
 }
 

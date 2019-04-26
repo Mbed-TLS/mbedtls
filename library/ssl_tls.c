@@ -151,19 +151,35 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-/* WARNING: This implementation is a stub and doesn't do anything!
- *          It is included solely to allow review and coding against
- *          the new Connection CID API. */
+/* WARNING: The CID feature isn't fully implemented yet
+ *          and will not be used. */
 int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
                      int *enabled,
                      unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ],
                      size_t *peer_cid_len )
 {
-    ((void) ssl);
-    ((void) peer_cid);
-    ((void) peer_cid_len);
-
     *enabled = MBEDTLS_SSL_CID_DISABLED;
+
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    /* What shall we report if we have exchanged if both client
+     * and server have used the CID extension, but negotiated
+     * empty CIDs? This is indistinguishable from not using the
+     * CID extension in the first place, and we're reporting
+     * MBEDTLS_SSL_CID_DISABLED in this case. */
+    if( ssl->transform_in->in_cid_len  == 0 &&
+        ssl->transform_in->out_cid_len == 0 )
+    {
+        return( 0 );
+    }
+
+    *peer_cid_len = ssl->transform_in->out_cid_len;
+    memcpy( peer_cid, ssl->transform_in->out_cid,
+            ssl->transform_in->out_cid_len );
+
+    *enabled = MBEDTLS_SSL_CID_ENABLED;
+
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_CID */

@@ -1044,6 +1044,12 @@ static psa_status_t psa_get_rsa_public_exponent(
     ret = mbedtls_rsa_export( rsa, NULL, NULL, NULL, NULL, &mpi );
     if( ret != 0 )
         goto exit;
+    if( mbedtls_mpi_cmp_int( &mpi, 65537 ) == 0 )
+    {
+        /* It's the default value, which is reported as an empty string,
+         * so there's nothing to do. */
+        goto exit;
+    }
 
     buflen = mbedtls_mpi_size( &mpi );
     buffer = mbedtls_calloc( 1, buflen );

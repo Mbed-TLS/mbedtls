@@ -262,6 +262,7 @@ int main( void )
     "    server_name=%%s      default: localhost\n"         \
     "    server_addr=%%s      default: given by name\n"     \
     "    server_port=%%d      default: 4433\n"              \
+    "    output_file=%%s      default: (NULL)\n"            \
     "    request_page=%%s     default: \".\"\n"             \
     "    request_size=%%d     default: about 34 (basic request)\n"           \
     "                        (minimum: 0, max: " MAX_REQUEST_SIZE_STR ")\n"  \
@@ -341,6 +342,7 @@ struct options
     const char *server_name;    /* hostname of the server (client only)     */
     const char *server_addr;    /* address of the server (client only)      */
     const char *server_port;    /* port on which the ssl service runs       */
+    const char *output_file;    /* output file name for output contents     */
     int debug_level;            /* level of debugging                       */
     int nbio;                   /* should I/O be blocking?                  */
     int event;                  /* loop or event-driven IO? level or edge triggered? */
@@ -576,6 +578,7 @@ int main( int argc, char *argv[] )
 #endif
     char *p, *q;
     const int *list;
+    FILE *fp = NULL;
 
     /*
      * Make sure memory references are valid.
@@ -594,7 +597,7 @@ int main( int argc, char *argv[] )
     memset( (void * ) alpn_list, 0, sizeof( alpn_list ) );
 #endif
 
-    if( argc == 0 )
+    if( argc <= 1 )
     {
     usage:
         if( ret == 0 )
@@ -619,6 +622,7 @@ int main( int argc, char *argv[] )
     opt.server_name         = DFL_SERVER_NAME;
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
+    opt.output_file         = NULL;
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.nbio                = DFL_NBIO;
     opt.event               = DFL_EVENT;
@@ -676,6 +680,8 @@ int main( int argc, char *argv[] )
             opt.server_addr = q;
         else if( strcmp( p, "server_port" ) == 0 )
             opt.server_port = q;
+        else if( strcmp( p, "output_file" ) == 0 )
+            opt.output_file = q;
         else if( strcmp( p, "dtls" ) == 0 )
         {
             int t = atoi( q );
@@ -1004,6 +1010,10 @@ int main( int argc, char *argv[] )
         }
         else
             goto usage;
+    }
+
+    if (opt.output_file) {
+        fp = fopen(opt.output_file, "wb+");
     }
 
     /* Event-driven IO is incompatible with the above custom
@@ -1903,8 +1913,12 @@ send_request:
 
             len = ret;
             buf[len] = '\0';
+            if (fp == NULL) {
             mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
-
+            } else {
+                mbedtls_printf( " %d bytes read\n", len );
+                fwrite(buf, len, 1, fp);
+            }
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */
             if( ret > 0 && buf[len-1] == '\n' )
@@ -2116,6 +2130,10 @@ exit:
         mbedtls_printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
     }
 #endif
+
+    if (fp) {
+        fclose(fp);
+    }
 
     mbedtls_net_free( &server_fd );
 

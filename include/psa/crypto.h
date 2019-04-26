@@ -339,12 +339,15 @@ static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
  * the key type identifier and the key size.
  * The format for the required domain parameters varies by the key type.
  *
- * - For RSA keys, you can use this function to choose a non-default
- *   public exponent when generating a key. The public exponent is
+ * - For RSA keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY or #PSA_KEY_TYPE_RSA_KEYPAIR),
+ *   the domain parameter data consists of the public exponent,
  *   represented as a big-endian integer with no leading zeros.
+ *   This information is used when generating an RSA key pair.
  *   When importing a key, the public exponent is read from the imported
  *   key data and the exponent recorded in the attribute structure is ignored.
- * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
+ *   As an exception, the public exponent 65537 is represented by an empty
+ *   byte string.
+ * - For DSA keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY or #PSA_KEY_TYPE_DSA_KEYPAIR),
  *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
  *   ```
  *   Dss-Parms ::= SEQUENCE  {
@@ -353,7 +356,8 @@ static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
  *      g       INTEGER
  *   }
  *   ```
- * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY), the
+ * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY or
+ *   #PSA_KEY_TYPE_DH_KEYPAIR), the
  *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
  *   ```
  *   DomainParameters ::= SEQUENCE {
@@ -3354,57 +3358,29 @@ psa_status_t psa_key_agreement_raw_shared_secret(psa_algorithm_t alg,
 psa_status_t psa_generate_random(uint8_t *output,
                                  size_t output_size);
 
-/** Extra parameters for RSA key generation.
- *
- * You may pass a pointer to a structure of this type as the \c extra
- * parameter to psa_generate_key().
- */
-typedef struct {
-    uint32_t e; /**< Public exponent value. Default: 65537. */
-} psa_generate_key_extra_rsa;
-
 /**
  * \brief Generate a key or key pair.
+ *
+ * The key is generated randomly.
+ * Its location, policy, type and size are taken from \p attributes.
+ *
+ * If the type requires additional domain parameters, these are taken
+ * from \p attributes as well. The following types use domain parameters:
+ * - When generating an RSA key (#PSA_KEY_TYPE_RSA_KEYPAIR),
+ *   the default public exponent is 65537. This value is used if
+ *   \p attributes was set with psa_set_key_type() or by passing an empty
+ *   byte string as domain parameters to psa_set_key_domain_parameters().
+ *   If psa_set_key_domain_parameters() was used to set a non-empty
+ *   domain parameter string in \p attributes, this string is read as
+ *   a big-endian integer which is used as the public exponent.
+ * - When generating a DSA key (#PSA_KEY_TYPE_DSA_KEYPAIR) or a
+ *   Diffie-Hellman key (#PSA_KEY_TYPE_DH_KEYPAIR), the domain parameters
+ *   from \p attributes are interpreted as described for
+ *   psa_set_key_domain_parameters().
  *
  * \param[in] attributes    The attributes for the new key.
  * \param[out] handle       On success, a handle to the newly created key.
  *                          \c 0 on failure.
- * \param[in] extra         Extra parameters for key generation. The
- *                          interpretation of this parameter depends on
- *                          the key type \c type. All types support \c NULL to
- *                          use default parameters. Implementation that support
- *                          the generation of vendor-specific key types
- *                          that allow extra parameters shall document
- *                          the format of these extra parameters and
- *                          the default values. For standard parameters,
- *                          the meaning of \p extra is as follows:
- *                          - For a symmetric key type (a type such
- *                            that #PSA_KEY_TYPE_IS_ASYMMETRIC(\c type) is
- *                            false), \p extra must be \c NULL.
- *                          - For an elliptic curve key type (a type
- *                            such that #PSA_KEY_TYPE_IS_ECC(\c type) is
- *                            false), \p extra must be \c NULL.
- *                          - For an RSA key (\c type is
- *                            #PSA_KEY_TYPE_RSA_KEYPAIR), \p extra is an
- *                            optional #psa_generate_key_extra_rsa structure
- *                            specifying the public exponent. The
- *                            default public exponent used when \p extra
- *                            is \c NULL is 65537.
- *                          - For an DSA key (\c type is
- *                            #PSA_KEY_TYPE_DSA_KEYPAIR), \p extra is an
- *                            optional structure specifying the key domain
- *                            parameters. The key domain parameters can also be
- *                            provided by psa_set_key_domain_parameters(),
- *                            which documents the format of the structure.
- *                          - For a DH key (\c type is
- *                            #PSA_KEY_TYPE_DH_KEYPAIR), the \p extra is an
- *                            optional structure specifying the key domain
- *                            parameters. The key domain parameters can also be
- *                            provided by psa_set_key_domain_parameters(),
- *                            which documents the format of the structure.
- * \param extra_size        Size of the buffer that \p extra
- *                          points to, in bytes. Note that if \p extra is
- *                          \c NULL then \p extra_size must be zero.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -3426,9 +3402,7 @@ typedef struct {
  *         results in this error code.
  */
 psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
-                              psa_key_handle_t *handle,
-                              const void *extra,
-                              size_t extra_size);
+                              psa_key_handle_t *handle);
 
 /**@}*/
 

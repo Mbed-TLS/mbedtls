@@ -5098,14 +5098,41 @@ psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
 }
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
 
-static psa_status_t psa_generate_key_internal( psa_key_slot_t *slot,
-                                               size_t bits,
-                                               const void *extra,
-                                               size_t extra_size )
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
+static psa_status_t psa_read_rsa_exponent( const uint8_t *domain_parameters,
+                                           size_t domain_parameters_size,
+                                           int *exponent )
+{
+    size_t i;
+    uint32_t acc = 0;
+
+    if( domain_parameters_size == 0 )
+    {
+        *exponent = 65537;
+        return( PSA_SUCCESS );
+    }
+
+    /* Mbed TLS encodes the public exponent as an int. For simplicity, only
+     * support values that fit in a 32-bit integer, which is larger than
+     * int on just about every platform anyway. */
+    if( domain_parameters_size > sizeof( acc ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    for( i = 0; i < domain_parameters_size; i++ )
+        acc = ( acc << 8 ) | domain_parameters[i];
+    if( acc > INT_MAX )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    *exponent = acc;
+    return( PSA_SUCCESS );
+}
+#endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
+
+static psa_status_t psa_generate_key_internal(
+    psa_key_slot_t *slot, size_t bits,
+    const uint8_t *domain_parameters, size_t domain_parameters_size )
 {
     psa_key_type_t type = slot->type;
 
-    if( extra == NULL && extra_size != 0 )
+    if( domain_parameters == NULL && domain_parameters_size != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( key_type_is_raw_bytes( type ) )
@@ -5134,26 +5161,19 @@ static psa_status_t psa_generate_key_internal( psa_key_slot_t *slot,
     {
         mbedtls_rsa_context *rsa;
         int ret;
-        int exponent = 65537;
+        int exponent;
+        psa_status_t status;
         if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
             return( PSA_ERROR_NOT_SUPPORTED );
         /* Accept only byte-aligned keys, for the same reasons as
          * in psa_import_rsa_key(). */
         if( bits % 8 != 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
-        if( extra != NULL )
-        {
-            const psa_generate_key_extra_rsa *p = extra;
-            if( extra_size != sizeof( *p ) )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-#if INT_MAX < 0xffffffff
-            /* Check that the uint32_t value passed by the caller fits
-             * in the range supported by this implementation. */
-            if( p->e > INT_MAX )
-                return( PSA_ERROR_NOT_SUPPORTED );
-#endif
-            exponent = p->e;
-        }
+        status = psa_read_rsa_exponent( domain_parameters,
+                                        domain_parameters_size,
+                                        &exponent );
+        if( status != PSA_SUCCESS )
+            return( status );
         rsa = mbedtls_calloc( 1, sizeof( *rsa ) );
         if( rsa == NULL )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
@@ -5183,7 +5203,7 @@ static psa_status_t psa_generate_key_internal( psa_key_slot_t *slot,
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair *ecp;
         int ret;
-        if( extra != NULL )
+        if( domain_parameters_size != 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
         if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
@@ -5221,6 +5241,12 @@ psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
     psa_key_slot_t *slot;
     psa_status_t status;
 
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
+    /* The old public exponent encoding is no longer supported. */
+    if( extra_size != 0 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+
     status = psa_get_empty_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
@@ -5241,17 +5267,16 @@ psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
 }
 
 psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
-                               psa_key_handle_t *handle,
-                               const void *extra,
-                               size_t extra_size )
+                               psa_key_handle_t *handle )
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     status = psa_start_key_creation( attributes, handle, &slot );
     if( status == PSA_SUCCESS )
     {
-        status = psa_generate_key_internal( slot, attributes->bits,
-                                            extra, extra_size );
+        status = psa_generate_key_internal(
+            slot, attributes->bits,
+            attributes->domain_parameters, attributes->domain_parameters_size );
     }
     if( status == PSA_SUCCESS )
         status = psa_finish_key_creation( slot );

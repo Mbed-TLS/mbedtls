@@ -4684,8 +4684,6 @@ void generate_key( int type_arg,
     size_t bits = bits_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
-    psa_status_t expected_info_status =
-        expected_status == PSA_SUCCESS ? PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -4697,9 +4695,8 @@ void generate_key( int type_arg,
     psa_set_key_bits( &attributes, bits );
 
     /* Generate a key */
-    TEST_EQUAL( psa_generate_key( &attributes, &handle, NULL, 0 ),
-                expected_status );
-    if( expected_info_status != PSA_SUCCESS )
+    TEST_EQUAL( psa_generate_key( &attributes, &handle ), expected_status );
+    if( expected_status != PSA_SUCCESS )
         goto exit;
 
     /* Test the key information */
@@ -4715,6 +4712,109 @@ exit:
     psa_reset_key_attributes( &got_attributes );
     psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME:MBEDTLS_PKCS1_V15 */
+void generate_key_rsa( int bits_arg,
+                       data_t *e_arg,
+                       int expected_status_arg )
+{
+    psa_key_handle_t handle = 0;
+    psa_key_type_t type = PSA_KEY_TYPE_RSA_KEYPAIR;
+    size_t bits = bits_arg;
+    psa_key_usage_t usage = PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT;
+    psa_algorithm_t alg = PSA_ALG_RSA_PKCS1V15_SIGN_RAW;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t *exported = NULL;
+    size_t exported_size =
+        PSA_KEY_EXPORT_MAX_SIZE( PSA_KEY_TYPE_RSA_PUBLIC_KEY, bits );
+    size_t exported_length = SIZE_MAX;
+    uint8_t *e_read_buffer = NULL;
+    int is_default_public_exponent = 0;
+    size_t e_read_size = e_arg->len;
+    size_t e_read_length = SIZE_MAX;
+
+    if( e_arg->len == 0 ||
+        ( e_arg->len == 3 &&
+          e_arg->x[0] == 1 && e_arg->x[1] == 0 && e_arg->x[2] == 1 ) )
+    {
+        is_default_public_exponent = 1;
+        e_read_size = 0;
+    }
+    ASSERT_ALLOC( e_read_buffer, e_read_size );
+    ASSERT_ALLOC( exported, exported_size );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, usage );
+    psa_set_key_algorithm( &attributes, alg );
+    PSA_ASSERT( psa_set_key_domain_parameters( &attributes, type,
+                                               e_arg->x, e_arg->len ) );
+    psa_set_key_bits( &attributes, bits );
+
+    /* Generate a key */
+    TEST_EQUAL( psa_generate_key( &attributes, &handle ), expected_status );
+    if( expected_status != PSA_SUCCESS )
+        goto exit;
+
+    /* Test the key information */
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    TEST_EQUAL( psa_get_key_type( &attributes ), type );
+    TEST_EQUAL( psa_get_key_bits( &attributes ), bits );
+    PSA_ASSERT( psa_get_key_domain_parameters( &attributes,
+                                               e_read_buffer, e_read_size,
+                                               &e_read_length ) );
+    if( is_default_public_exponent )
+        TEST_EQUAL( e_read_length, 0 );
+    else
+        ASSERT_COMPARE( e_read_buffer, e_read_length, e_arg->x, e_arg->len );
+
+    /* Do something with the key according to its type and permitted usage. */
+    if( ! exercise_key( handle, usage, alg ) )
+        goto exit;
+
+    /* Export the key and check the public exponent. */
+    PSA_ASSERT( psa_export_public_key( handle,
+                                       exported, exported_size,
+                                       &exported_length ) );
+    {
+        uint8_t *p = exported;
+        uint8_t *end = exported + exported_length;
+        size_t len;
+        /*   RSAPublicKey ::= SEQUENCE {
+         *      modulus            INTEGER,    -- n
+         *      publicExponent     INTEGER  }  -- e
+         */
+        TEST_EQUAL( 0, mbedtls_asn1_get_tag( &p, end, &len,
+                                          MBEDTLS_ASN1_SEQUENCE |
+                                          MBEDTLS_ASN1_CONSTRUCTED ) );
+        TEST_ASSERT( asn1_skip_integer( &p, end, bits, bits, 1 ) );
+        TEST_EQUAL( 0, mbedtls_asn1_get_tag( &p, end, &len,
+                                             MBEDTLS_ASN1_INTEGER ) );
+        if( len >= 1 && p[0] == 0 )
+        {
+            ++p;
+            --len;
+        }
+        if( e_arg->len == 0 )
+        {
+            TEST_EQUAL( len, 3 );
+            TEST_EQUAL( p[0], 1 );
+            TEST_EQUAL( p[1], 0 );
+            TEST_EQUAL( p[2], 1 );
+        }
+        else
+            ASSERT_COMPARE( p, len, e_arg->x, e_arg->len );
+    }
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( handle );
+    mbedtls_psa_crypto_free( );
+    mbedtls_free( e_read_buffer );
+    mbedtls_free( exported );
 }
 /* END_CASE */
 
@@ -4763,7 +4863,7 @@ void persistent_key_load_key_from_storage( data_t *data,
 
         case GENERATE_KEY:
             /* Generate a key */
-            PSA_ASSERT( psa_generate_key( &attributes, &handle, NULL, 0 ) );
+            PSA_ASSERT( psa_generate_key( &attributes, &handle ) );
             break;
 
         case DERIVE_KEY:

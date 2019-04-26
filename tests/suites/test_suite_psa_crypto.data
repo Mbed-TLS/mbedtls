@@ -2036,6 +2036,24 @@ PSA generate key: ECC, SECP256R1, incorrect bit size
 depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECDSA_C
 generate_key:PSA_KEY_TYPE_ECC_KEYPAIR(PSA_ECC_CURVE_SECP256R1):128:PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY:PSA_ALG_ECDSA_ANY:PSA_ERROR_INVALID_ARGUMENT
 
+PSA generate key: RSA, default e
+generate_key_rsa:512:"":PSA_SUCCESS
+
+PSA generate key: RSA, e=3
+generate_key_rsa:512:"03":PSA_SUCCESS
+
+PSA generate key: RSA, e=65537
+generate_key_rsa:512:"010001":PSA_SUCCESS
+
+PSA generate key: RSA, e=513
+generate_key_rsa:512:"0201":PSA_SUCCESS
+
+PSA generate key: RSA, e=1
+generate_key_rsa:512:"01":PSA_ERROR_INVALID_ARGUMENT
+
+PSA generate key: RSA, e=2
+generate_key_rsa:512:"01":PSA_ERROR_INVALID_ARGUMENT
+
 PSA import persistent key: raw data, 0 bits
 depends_on:MBEDTLS_PK_C:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PSA_CRYPTO_STORAGE_C
 persistent_key_load_key_from_storage:"":PSA_KEY_TYPE_RAW_DATA:0:PSA_KEY_USAGE_EXPORT:0:IMPORT_KEY

@@ -206,10 +206,9 @@ static psa_status_t generate( const char *key_file_name )
                              PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &attributes, KDF_ALG );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
+    psa_set_key_bits( &attributes, PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ) );
 
-    PSA_CHECK( psa_generate_key( &attributes, &key_handle,
-                                 PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ),
-                                 NULL, 0 ) );
+    PSA_CHECK( psa_generate_key( &attributes, &key_handle, NULL, 0 ) );
 
     PSA_CHECK( save_key( key_handle, key_file_name ) );
 
@@ -287,6 +286,7 @@ static psa_status_t derive_key_ladder( const char *ladder[],
                              PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &attributes, KDF_ALG );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
+    psa_set_key_bits( &attributes, PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ) );
 
     /* For each label in turn, ... */
     for( i = 0; i < ladder_depth; i++ )
@@ -306,10 +306,8 @@ static psa_status_t derive_key_ladder( const char *ladder[],
         *key_handle = 0;
         /* Use the generator obtained from the parent key to create
          * the next intermediate key. */
-        PSA_CHECK( psa_generator_import_key(
-                       &attributes, key_handle,
-                       PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ),
-                       &generator ) );
+        PSA_CHECK( psa_generator_import_key( &attributes, key_handle,
+                                             &generator ) );
         PSA_CHECK( psa_generator_abort( &generator ) );
     }
 
@@ -336,6 +334,7 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
     psa_set_key_usage_flags( &attributes, usage );
     psa_set_key_algorithm( &attributes, WRAPPING_ALG );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
+    psa_set_key_bits( &attributes, WRAPPING_KEY_BITS );
 
     PSA_CHECK( psa_key_derivation(
                    &generator,
@@ -345,8 +344,7 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
                    NULL, 0,
                    PSA_BITS_TO_BYTES( WRAPPING_KEY_BITS ) ) );
     PSA_CHECK( psa_generator_import_key( &attributes, wrapping_key_handle,
-                   WRAPPING_KEY_BITS,
-                   &generator ) );
+                                         &generator ) );
 
 exit:
     psa_generator_abort( &generator );

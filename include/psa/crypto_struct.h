@@ -333,6 +333,12 @@ static inline psa_key_type_t psa_get_key_type(
     return( attributes->type );
 }
 
+static inline void psa_set_key_bits(psa_key_attributes_t *attributes,
+                                    size_t bits)
+{
+    attributes->bits = bits;
+}
+
 static inline size_t psa_get_key_bits(
     const psa_key_attributes_t *attributes)
 {

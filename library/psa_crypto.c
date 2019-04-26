@@ -4222,7 +4222,6 @@ exit:
 
 psa_status_t psa_generator_import_key( const psa_key_attributes_t *attributes,
                                        psa_key_handle_t *handle,
-                                       size_t bits,
                                        psa_crypto_generator_t *generator )
 {
     psa_status_t status;
@@ -4230,7 +4229,9 @@ psa_status_t psa_generator_import_key( const psa_key_attributes_t *attributes,
     status = psa_start_key_creation( attributes, handle, &slot );
     if( status == PSA_SUCCESS )
     {
-        status = psa_generator_import_key_internal( slot, bits, generator );
+        status = psa_generator_import_key_internal( slot,
+                                                    attributes->bits,
+                                                    generator );
     }
     if( status == PSA_SUCCESS )
         status = psa_finish_key_creation( slot );
@@ -5139,7 +5140,6 @@ psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
 
 psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
                                psa_key_handle_t *handle,
-                               size_t bits,
                                const void *extra,
                                size_t extra_size )
 {
@@ -5148,7 +5148,8 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     status = psa_start_key_creation( attributes, handle, &slot );
     if( status == PSA_SUCCESS )
     {
-        status = psa_generate_key_internal( slot, bits, extra, extra_size );
+        status = psa_generate_key_internal( slot, attributes->bits,
+                                            extra, extra_size );
     }
     if( status == PSA_SUCCESS )
         status = psa_finish_key_creation( slot );

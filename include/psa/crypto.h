@@ -147,6 +147,7 @@ psa_status_t psa_crypto_init(void);
  * by the following functions:
  * - psa_make_key_persistent()
  * - psa_set_key_type()
+ * - psa_set_key_bits()
  * - psa_set_key_usage_flags()
  * - psa_set_key_algorithm()
  * - psa_reset_key_attributes()
@@ -293,6 +294,20 @@ static psa_algorithm_t psa_get_key_algorithm(
 static void psa_set_key_type(psa_key_attributes_t *attributes,
                              psa_key_type_t type);
 
+/** Declare the size of a key.
+ *
+ * This function overwrites any key size previously set in \p attributes.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] attributes       The attribute structure to write to.
+ * \param bits                  The key size in bits.
+ */
+static void psa_set_key_bits(psa_key_attributes_t *attributes,
+                             size_t bits);
+
 /** Retrieve the key type from key attributes.
  *
  * This function may be declared as `static` (i.e. without external
@@ -330,11 +345,6 @@ static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
  * equivalent only if they have the same numerical encoding, but this
  * property may not hold in future versions of this specification or
  * for implementation-specific values.
- *
- * In addition to the attributes that were set when creating the key,
- * this function reports the following data:
- * - The key size in bits, which can be retrieved with
- *   psa_get_key_bits().
  *
  * \param[in] handle            Handle to the key to query.
  * \param[in,out] attributes    On success, the attributes of the key.
@@ -3018,12 +3028,8 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  * The generator's capacity is decreased by the number of bytes read.
  *
  * \param[in] attributes    The attributes for the new key.
- *                          The key size field in \p attributes is
- *                          ignored; the actual key size is taken
- *                          from the \p bits parameter instead.
  * \param[out] handle       On success, a handle to the newly created key.
  *                          \c 0 on failure.
- * \param bits              Key size in bits.
  * \param[in,out] generator The generator object to read from.
  *
  * \retval #PSA_SUCCESS
@@ -3054,7 +3060,6 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  */
 psa_status_t psa_generator_import_key(const psa_key_attributes_t *attributes,
                                       psa_key_handle_t *handle,
-                                      size_t bits,
                                       psa_crypto_generator_t *generator);
 
 /** Abort a generator.
@@ -3383,12 +3388,8 @@ typedef struct {
  * \brief Generate a key or key pair.
  *
  * \param[in] attributes    The attributes for the new key.
- *                          The key size field in \p attributes is
- *                          ignored; the actual key size is taken
- *                          from the \p bits parameter instead.
  * \param[out] handle       On success, a handle to the newly created key.
  *                          \c 0 on failure.
- * \param bits              Key size in bits.
  * \param[in] extra         Extra parameters for key generation. The
  *                          interpretation of this parameter depends on
  *                          the key type \c type. All types support \c NULL to
@@ -3447,7 +3448,6 @@ typedef struct {
  */
 psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                               psa_key_handle_t *handle,
-                              size_t bits,
                               const void *extra,
                               size_t extra_size);
 

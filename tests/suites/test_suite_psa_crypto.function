@@ -1157,7 +1157,7 @@ void static_checks( )
 /* BEGIN_CASE */
 void attributes_set_get( int id_arg, int lifetime_arg,
                          int usage_flags_arg, int alg_arg,
-                         int type_arg )
+                         int type_arg, int bits_arg )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_id_t id = id_arg;
@@ -1165,23 +1165,27 @@ void attributes_set_get( int id_arg, int lifetime_arg,
     psa_key_usage_t usage_flags = usage_flags_arg;
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t type = type_arg;
+    size_t bits = bits_arg;
 
     TEST_EQUAL( psa_get_key_id( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_type( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_bits( &attributes ), 0 );
 
     psa_make_key_persistent( &attributes, id, lifetime );
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );
+    psa_set_key_bits( &attributes, bits );
 
     TEST_EQUAL( psa_get_key_id( &attributes ), id );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
+    TEST_EQUAL( psa_get_key_bits( &attributes ), bits );
 
     psa_reset_key_attributes( &attributes );
 
@@ -1190,6 +1194,7 @@ void attributes_set_get( int id_arg, int lifetime_arg,
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_type( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_bits( &attributes ), 0 );
 }
 /* END_CASE */
 
@@ -4294,8 +4299,8 @@ void derive_key_exercise( int alg_arg,
     psa_set_key_usage_flags( &attributes, derived_usage );
     psa_set_key_algorithm( &attributes, derived_alg );
     psa_set_key_type( &attributes, derived_type );
+    psa_set_key_bits( &attributes, derived_bits );
     PSA_ASSERT( psa_generator_import_key( &attributes, &derived_handle,
-                                          derived_bits,
                                           &generator ) );
 
     /* Test the key information */
@@ -4327,7 +4332,6 @@ void derive_key_export( int alg_arg,
     psa_key_handle_t derived_handle = 0;
     psa_algorithm_t alg = alg_arg;
     size_t bytes1 = bytes1_arg;
-    size_t derived_bits = PSA_BYTES_TO_BITS( bytes1 );
     size_t bytes2 = bytes2_arg;
     size_t capacity = bytes1 + bytes2;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
@@ -4365,16 +4369,16 @@ void derive_key_export( int alg_arg,
     psa_set_key_usage_flags( &derived_attributes, PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &derived_attributes, 0 );
     psa_set_key_type( &derived_attributes, PSA_KEY_TYPE_RAW_DATA );
+    psa_set_key_bits( &derived_attributes, PSA_BYTES_TO_BITS( bytes1 ) );
     PSA_ASSERT( psa_generator_import_key( &derived_attributes, &derived_handle,
-                                          derived_bits,
                                           &generator ) );
     PSA_ASSERT( psa_export_key( derived_handle,
                                 export_buffer, bytes1,
                                 &length ) );
     TEST_EQUAL( length, bytes1 );
     PSA_ASSERT( psa_destroy_key( derived_handle ) );
+    psa_set_key_bits( &derived_attributes, PSA_BYTES_TO_BITS( bytes2 ) );
     PSA_ASSERT( psa_generator_import_key( &derived_attributes, &derived_handle,
-                                          PSA_BYTES_TO_BITS( bytes2 ),
                                           &generator ) );
     PSA_ASSERT( psa_export_key( derived_handle,
                                 export_buffer + bytes1, bytes2,
@@ -4667,9 +4671,10 @@ void generate_key( int type_arg,
     psa_set_key_usage_flags( &attributes, usage );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );
+    psa_set_key_bits( &attributes, bits );
 
     /* Generate a key */
-    TEST_EQUAL( psa_generate_key( &attributes, &handle, bits, NULL, 0 ),
+    TEST_EQUAL( psa_generate_key( &attributes, &handle, NULL, 0 ),
                 expected_status );
     if( expected_info_status != PSA_SUCCESS )
         goto exit;
@@ -4722,6 +4727,7 @@ void persistent_key_load_key_from_storage( data_t *data,
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );
+    psa_set_key_bits( &attributes, bits );
 
     switch( generation_method )
     {
@@ -4733,8 +4739,7 @@ void persistent_key_load_key_from_storage( data_t *data,
 
         case GENERATE_KEY:
             /* Generate a key */
-            PSA_ASSERT( psa_generate_key( &attributes, &handle,
-                                          bits, NULL, 0 ) );
+            PSA_ASSERT( psa_generate_key( &attributes, &handle, NULL, 0 ) );
             break;
 
         case DERIVE_KEY:
@@ -4757,7 +4762,7 @@ void persistent_key_load_key_from_storage( data_t *data,
                                 &generator, PSA_KDF_STEP_INFO,
                                 NULL, 0 ) );
                 PSA_ASSERT( psa_generator_import_key( &attributes, &handle,
-                                                      bits, &generator ) );
+                                                      &generator ) );
                 PSA_ASSERT( psa_generator_abort( &generator ) );
                 PSA_ASSERT( psa_destroy_key( base_key ) );
                 base_key = 0;

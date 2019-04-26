@@ -332,6 +332,85 @@ static psa_key_type_t psa_get_key_type(const psa_key_attributes_t *attributes);
  */
 static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
 
+/**
+ * \brief Set domain parameters for a key.
+ *
+ * Some key types require additional domain parameters in addition to
+ * the key type identifier and the key size.
+ * The format for the required domain parameters varies by the key type.
+ *
+ * - For RSA keys, you can use this function to choose a non-default
+ *   public exponent when generating a key. The public exponent is
+ *   represented as a big-endian integer with no leading zeros.
+ *   When importing a key, the public exponent is read from the imported
+ *   key data and the exponent recorded in the attribute structure is ignored.
+ * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
+ *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
+ *   ```
+ *   Dss-Parms ::= SEQUENCE  {
+ *      p       INTEGER,
+ *      q       INTEGER,
+ *      g       INTEGER
+ *   }
+ *   ```
+ * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY), the
+ *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
+ *   ```
+ *   DomainParameters ::= SEQUENCE {
+ *      p               INTEGER,                    -- odd prime, p=jq +1
+ *      g               INTEGER,                    -- generator, g
+ *      q               INTEGER,                    -- factor of p-1
+ *      j               INTEGER OPTIONAL,           -- subgroup factor
+ *      validationParms ValidationParms OPTIONAL
+ *   }
+ *   ValidationParms ::= SEQUENCE {
+ *      seed            BIT STRING,
+ *      pgenCounter     INTEGER
+ *   }
+ *   ```
+ *
+ * \param[in,out] attributes    Attribute structure where the specified domain
+ *                              parameters will be stored.
+ *                              If this function fails, the content of
+ *                              \p attributes is not modified.
+ * \param type                  Key type (a \c PSA_KEY_TYPE_XXX value).
+ * \param[in] data              Buffer containing the key domain parameters.
+ *                              The content of this buffer is interpreted
+ *                              according to \p type as described above.
+ * \param data_length           Size of the \p data buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
+                                           psa_key_type_t type,
+                                           const uint8_t *data,
+                                           size_t data_length);
+
+/**
+ * \brief Get domain parameters for a key.
+ *
+ * Get the domain parameters for a key with this function, if any. The format
+ * of the domain parameters written to \p data is specified in the
+ * documentation for psa_set_key_domain_parameters().
+ *
+ * \param[in] attributes        The key attribute structure to query.
+ * \param[out] data             On success, the key domain parameters.
+ * \param data_size             Size of the \p data buffer in bytes.
+ * \param[out] data_length      On success, the number of bytes
+ *                              that make up the key domain parameters data.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ */
+psa_status_t psa_get_key_domain_parameters(
+    const psa_key_attributes_t *attributes,
+    uint8_t *data,
+    size_t data_size,
+    size_t *data_length);
+
 /** Retrieve the attributes of a key.
  *
  * This function first resets the attribute structure as with
@@ -541,106 +620,6 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  *         results in this error code.
  */
 psa_status_t psa_destroy_key(psa_key_handle_t handle);
-
-/**
- * \brief Set domain parameters for a key.
- *
- * Some key types require additional domain parameters to be set before import
- * or generation of the key. The domain parameters can be set with this
- * function or, for key generation, through the \c extra parameter of
- * psa_generate_key().
- *
- * The format for the required domain parameters varies by the key type.
- * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
- *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
- *   ```
- *   Dss-Parms ::= SEQUENCE  {
- *      p       INTEGER,
- *      q       INTEGER,
- *      g       INTEGER
- *   }
- *   ```
- * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY), the
- *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
- *   ```
- *   DomainParameters ::= SEQUENCE {
- *      p               INTEGER,                    -- odd prime, p=jq +1
- *      g               INTEGER,                    -- generator, g
- *      q               INTEGER,                    -- factor of p-1
- *      j               INTEGER OPTIONAL,           -- subgroup factor
- *      validationParms ValidationParms OPTIONAL
- *   }
- *   ValidationParms ::= SEQUENCE {
- *      seed            BIT STRING,
- *      pgenCounter     INTEGER
- *   }
- *   ```
- *
- * \param handle      Handle to the slot where the key will be stored.
- *                    This must be a valid slot for a key of the chosen
- *                    type: it must have been obtained by calling
- *                    psa_allocate_key() or psa_create_key() with the
- *                    correct \p type and with a maximum size that is
- *                    compatible with \p data. It must not contain
- *                    key material yet.
- * \param type        Key type (a \c PSA_KEY_TYPE_XXX value). When
- *                    subsequently creating key material into \p handle,
- *                    the type must be compatible.
- * \param[in] data    Buffer containing the key domain parameters. The content
- *                    of this buffer is interpreted according to \p type. of
- *                    psa_export_key() or psa_export_public_key() for the
- *                    chosen type.
- * \param data_length Size of the \p data buffer in bytes.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_OCCUPIED_SLOT
- *         There is already a key in the specified slot.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_set_key_domain_parameters(psa_key_handle_t handle,
-                                           psa_key_type_t type,
-                                           const uint8_t *data,
-                                           size_t data_length);
-
-/**
- * \brief Get domain parameters for a key.
- *
- * Get the domain parameters for a key with this function, if any. The format
- * of the domain parameters written to \p data is specified in the
- * documentation for psa_set_key_domain_parameters().
- *
- * \param handle            Handle to the key to get domain parameters from.
- * \param[out] data         On success, the key domain parameters.
- * \param data_size         Size of the \p data buffer in bytes.
- * \param[out] data_length  On success, the number of bytes
- *                          that make up the key domain parameters data.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
- *         There is no key in the specified slot.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_get_key_domain_parameters(psa_key_handle_t handle,
-                                           uint8_t *data,
-                                           size_t data_size,
-                                           size_t *data_length);
 
 /**
  * \brief Export a key in binary format.

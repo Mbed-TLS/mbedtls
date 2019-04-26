@@ -268,9 +268,11 @@ struct psa_key_attributes_s
     psa_key_policy_t policy;
     psa_key_type_t type;
     size_t bits;
+    void *domain_parameters;
+    size_t domain_parameters_size;
 };
 
-#define PSA_KEY_ATTRIBUTES_INIT {0, 0, {0, 0}, 0, 0}
+#define PSA_KEY_ATTRIBUTES_INIT {0, 0, {0, 0}, 0, 0, NULL, 0}
 static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 {
     const struct psa_key_attributes_s v = PSA_KEY_ATTRIBUTES_INIT;
@@ -324,7 +326,19 @@ static inline psa_algorithm_t psa_get_key_algorithm(
 static inline void psa_set_key_type(psa_key_attributes_t *attributes,
                                     psa_key_type_t type)
 {
-    attributes->type = type;
+    if( attributes->domain_parameters == NULL )
+    {
+        /* Common case: quick path */
+        attributes->type = type;
+    }
+    else
+    {
+        /* Call the bigger function to free the old domain paramteres.
+         * Ignore any errors which may arise due to type requiring
+         * non-default domain parameters, since this function can't
+         * report errors. */
+        (void) psa_set_key_domain_parameters( attributes, type, NULL, 0 );
+    }
 }
 
 static inline psa_key_type_t psa_get_key_type(

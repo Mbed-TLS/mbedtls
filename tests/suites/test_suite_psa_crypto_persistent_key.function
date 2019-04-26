@@ -205,6 +205,7 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
 
 exit:
+    psa_reset_key_attributes( &attributes );
     psa_destroy_persistent_key( key_id );
     mbedtls_psa_crypto_free();
 }
@@ -273,6 +274,7 @@ void import_export_persistent_key( data_t *data, int type_arg,
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
 
 exit:
+    psa_reset_key_attributes( &attributes );
     mbedtls_free( exported );
     mbedtls_psa_crypto_free( );
     psa_destroy_persistent_key( key_id );

@@ -2882,7 +2882,7 @@ handshake:
                             (unsigned) peer_cid_len );
             while( idx < peer_cid_len )
             {
-                mbedtls_printf( "%#02x ", peer_cid[ idx ] );
+                mbedtls_printf( "%02x ", peer_cid[ idx ] );
                 idx++;
             }
             mbedtls_printf( "\n" );

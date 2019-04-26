@@ -86,7 +86,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MBEDTLS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+../../crypto/include;../../include
+      </AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -101,7 +103,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MBEDTLS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+../../crypto/include;../../include
+      </AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -118,7 +122,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MBEDTLS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+../../crypto/include;../../include
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -136,7 +142,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN64;NDEBUG;_WINDOWS;_USRDLL;MBEDTLS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+../../crypto/include;../../include
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -225,68 +233,88 @@
     <ClInclude Include="..\..\include\mbedtls\x509_crt.h" />
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_accel_driver.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_driver_common.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_entropy_driver.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_extra.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_platform.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_se_driver.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_sizes.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_struct.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_types.h" />
+    <ClInclude Include="..\..\crypto\include\psa\crypto_values.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\library\aes.c" />
-    <ClCompile Include="..\..\library\aesni.c" />
-    <ClCompile Include="..\..\library\arc4.c" />
-    <ClCompile Include="..\..\library\aria.c" />
-    <ClCompile Include="..\..\library\asn1parse.c" />
-    <ClCompile Include="..\..\library\asn1write.c" />
-    <ClCompile Include="..\..\library\base64.c" />
-    <ClCompile Include="..\..\library\bignum.c" />
-    <ClCompile Include="..\..\library\blowfish.c" />
-    <ClCompile Include="..\..\library\camellia.c" />
-    <ClCompile Include="..\..\library\ccm.c" />
+    <ClCompile Include="..\..\crypto\library\aes.c" />
+    <ClCompile Include="..\..\crypto\library\aesni.c" />
+    <ClCompile Include="..\..\crypto\library\arc4.c" />
+    <ClCompile Include="..\..\crypto\library\aria.c" />
+    <ClCompile Include="..\..\crypto\library\asn1parse.c" />
+    <ClCompile Include="..\..\crypto\library\asn1write.c" />
+    <ClCompile Include="..\..\crypto\library\base64.c" />
+    <ClCompile Include="..\..\crypto\library\bignum.c" />
+    <ClCompile Include="..\..\crypto\library\blowfish.c" />
+    <ClCompile Include="..\..\crypto\library\camellia.c" />
+    <ClCompile Include="..\..\crypto\library\ccm.c" />
+    <ClCompile Include="..\..\crypto\library\chacha20.c" />
+    <ClCompile Include="..\..\crypto\library\chachapoly.c" />
+    <ClCompile Include="..\..\crypto\library\cipher.c" />
+    <ClCompile Include="..\..\crypto\library\cipher_wrap.c" />
+    <ClCompile Include="..\..\crypto\library\cmac.c" />
+    <ClCompile Include="..\..\crypto\library\ctr_drbg.c" />
+    <ClCompile Include="..\..\crypto\library\des.c" />
+    <ClCompile Include="..\..\crypto\library\dhm.c" />
+    <ClCompile Include="..\..\crypto\library\ecdh.c" />
+    <ClCompile Include="..\..\crypto\library\ecdsa.c" />
+    <ClCompile Include="..\..\crypto\library\ecjpake.c" />
+    <ClCompile Include="..\..\crypto\library\ecp.c" />
+    <ClCompile Include="..\..\crypto\library\ecp_curves.c" />
+    <ClCompile Include="..\..\crypto\library\entropy.c" />
+    <ClCompile Include="..\..\crypto\library\entropy_poll.c" />
+    <ClCompile Include="..\..\crypto\library\error.c" />
+    <ClCompile Include="..\..\crypto\library\gcm.c" />
+    <ClCompile Include="..\..\crypto\library\havege.c" />
+    <ClCompile Include="..\..\crypto\library\hkdf.c" />
+    <ClCompile Include="..\..\crypto\library\hmac_drbg.c" />
+    <ClCompile Include="..\..\crypto\library\md.c" />
+    <ClCompile Include="..\..\crypto\library\md2.c" />
+    <ClCompile Include="..\..\crypto\library\md4.c" />
+    <ClCompile Include="..\..\crypto\library\md5.c" />
+    <ClCompile Include="..\..\crypto\library\md_wrap.c" />
+    <ClCompile Include="..\..\crypto\library\memory_buffer_alloc.c" />
+    <ClCompile Include="..\..\crypto\library\nist_kw.c" />
+    <ClCompile Include="..\..\crypto\library\oid.c" />
+    <ClCompile Include="..\..\crypto\library\padlock.c" />
+    <ClCompile Include="..\..\crypto\library\pem.c" />
+    <ClCompile Include="..\..\crypto\library\pk.c" />
+    <ClCompile Include="..\..\crypto\library\pk_wrap.c" />
+    <ClCompile Include="..\..\crypto\library\pkcs12.c" />
+    <ClCompile Include="..\..\crypto\library\pkcs5.c" />
+    <ClCompile Include="..\..\crypto\library\pkparse.c" />
+    <ClCompile Include="..\..\crypto\library\pkwrite.c" />
+    <ClCompile Include="..\..\crypto\library\platform.c" />
+    <ClCompile Include="..\..\crypto\library\platform_util.c" />
+    <ClCompile Include="..\..\crypto\library\poly1305.c" />
+    <ClCompile Include="..\..\crypto\library\psa_crypto.c" />
+    <ClCompile Include="..\..\crypto\library\psa_crypto_slot_management.c" />
+    <ClCompile Include="..\..\crypto\library\psa_crypto_storage.c" />
+    <ClCompile Include="..\..\crypto\library\psa_its_file.c" />
+    <ClCompile Include="..\..\crypto\library\ripemd160.c" />
+    <ClCompile Include="..\..\crypto\library\rsa.c" />
+    <ClCompile Include="..\..\crypto\library\rsa_internal.c" />
+    <ClCompile Include="..\..\crypto\library\sha1.c" />
+    <ClCompile Include="..\..\crypto\library\sha256.c" />
+    <ClCompile Include="..\..\crypto\library\sha512.c" />
+    <ClCompile Include="..\..\crypto\library\threading.c" />
+    <ClCompile Include="..\..\crypto\library\timing.c" />
+    <ClCompile Include="..\..\crypto\library\version.c" />
+    <ClCompile Include="..\..\crypto\library\version_features.c" />
+    <ClCompile Include="..\..\crypto\library\xtea.c" />
     <ClCompile Include="..\..\library\certs.c" />
-    <ClCompile Include="..\..\library\chacha20.c" />
-    <ClCompile Include="..\..\library\chachapoly.c" />
-    <ClCompile Include="..\..\library\cipher.c" />
-    <ClCompile Include="..\..\library\cipher_wrap.c" />
-    <ClCompile Include="..\..\library\cmac.c" />
-    <ClCompile Include="..\..\library\ctr_drbg.c" />
     <ClCompile Include="..\..\library\debug.c" />
-    <ClCompile Include="..\..\library\des.c" />
-    <ClCompile Include="..\..\library\dhm.c" />
-    <ClCompile Include="..\..\library\ecdh.c" />
-    <ClCompile Include="..\..\library\ecdsa.c" />
-    <ClCompile Include="..\..\library\ecjpake.c" />
-    <ClCompile Include="..\..\library\ecp.c" />
-    <ClCompile Include="..\..\library\ecp_curves.c" />
-    <ClCompile Include="..\..\library\entropy.c" />
-    <ClCompile Include="..\..\library\entropy_poll.c" />
-    <ClCompile Include="..\..\library\error.c" />
-    <ClCompile Include="..\..\library\gcm.c" />
-    <ClCompile Include="..\..\library\havege.c" />
-    <ClCompile Include="..\..\library\hkdf.c" />
-    <ClCompile Include="..\..\library\hmac_drbg.c" />
-    <ClCompile Include="..\..\library\md.c" />
-    <ClCompile Include="..\..\library\md2.c" />
-    <ClCompile Include="..\..\library\md4.c" />
-    <ClCompile Include="..\..\library\md5.c" />
-    <ClCompile Include="..\..\library\md_wrap.c" />
-    <ClCompile Include="..\..\library\memory_buffer_alloc.c" />
     <ClCompile Include="..\..\library\net_sockets.c" />
-    <ClCompile Include="..\..\library\nist_kw.c" />
-    <ClCompile Include="..\..\library\oid.c" />
-    <ClCompile Include="..\..\library\padlock.c" />
-    <ClCompile Include="..\..\library\pem.c" />
-    <ClCompile Include="..\..\library\pk.c" />
-    <ClCompile Include="..\..\library\pk_wrap.c" />
     <ClCompile Include="..\..\library\pkcs11.c" />
-    <ClCompile Include="..\..\library\pkcs12.c" />
-    <ClCompile Include="..\..\library\pkcs5.c" />
-    <ClCompile Include="..\..\library\pkparse.c" />
-    <ClCompile Include="..\..\library\pkwrite.c" />
-    <ClCompile Include="..\..\library\platform.c" />
-    <ClCompile Include="..\..\library\platform_util.c" />
-    <ClCompile Include="..\..\library\poly1305.c" />
-    <ClCompile Include="..\..\library\ripemd160.c" />
-    <ClCompile Include="..\..\library\rsa.c" />
-    <ClCompile Include="..\..\library\rsa_internal.c" />
-    <ClCompile Include="..\..\library\sha1.c" />
-    <ClCompile Include="..\..\library\sha256.c" />
-    <ClCompile Include="..\..\library\sha512.c" />
     <ClCompile Include="..\..\library\ssl_cache.c" />
     <ClCompile Include="..\..\library\ssl_ciphersuites.c" />
     <ClCompile Include="..\..\library\ssl_cli.c" />
@@ -294,10 +322,6 @@
     <ClCompile Include="..\..\library\ssl_srv.c" />
     <ClCompile Include="..\..\library\ssl_ticket.c" />
     <ClCompile Include="..\..\library\ssl_tls.c" />
-    <ClCompile Include="..\..\library\threading.c" />
-    <ClCompile Include="..\..\library\timing.c" />
-    <ClCompile Include="..\..\library\version.c" />
-    <ClCompile Include="..\..\library\version_features.c" />
     <ClCompile Include="..\..\library\x509.c" />
     <ClCompile Include="..\..\library\x509_create.c" />
     <ClCompile Include="..\..\library\x509_crl.c" />
@@ -305,7 +329,6 @@
     <ClCompile Include="..\..\library\x509_csr.c" />
     <ClCompile Include="..\..\library\x509write_crt.c" />
     <ClCompile Include="..\..\library\x509write_csr.c" />
-    <ClCompile Include="..\..\library\xtea.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

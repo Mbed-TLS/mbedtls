@@ -1285,7 +1285,8 @@ run_test    "(STUB) Connection ID: Client enabled, server disabled" \
             -s "found CID extension"           \
             -s "Client sent CID extension, but CID disabled" \
             -c "Enable use of CID extension."  \
-            -c "client hello, adding CID extension"
+            -c "client hello, adding CID extension" \
+            -S "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client disabled, server enabled" \
@@ -1295,7 +1296,8 @@ run_test    "(STUB) Connection ID: Client disabled, server enabled" \
             -c "Disable use of CID extension." \
             -C "client hello, adding CID extension"           \
             -S "found CID extension"           \
-            -s "Enable use of CID extension."
+            -s "Enable use of CID extension." \
+            -S "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID nonempty" \
@@ -1306,7 +1308,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID none
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty" \
@@ -1317,7 +1320,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty" \
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty" \
@@ -1328,7 +1332,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty" \
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empty" \
@@ -1339,7 +1344,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empt
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID nonempty, AES-128-CCM-8" \
@@ -1350,7 +1356,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID none
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-128-CCM-8" \
@@ -1361,7 +1368,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-128-CCM-8" \
@@ -1372,7 +1380,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empty, AES-128-CCM-8" \
@@ -1383,7 +1392,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empt
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID nonempty, AES-128-CBC" \
@@ -1394,7 +1404,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID none
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-128-CBC" \
@@ -1405,7 +1416,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-128-CBC" \
@@ -1416,7 +1428,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empty, AES-128-CBC" \
@@ -1427,7 +1440,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empt
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 requires_config_enabled MBEDTLS_SSL_CID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -1439,7 +1453,8 @@ run_test    "(STUB) Connection ID: Client+Server enabled, renegotiate" \
             -s "Enable use of CID extension." \
             -c "client hello, adding CID extension" \
             -s "found CID extension"           \
-            -s "Use of CID extension negotiated"
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension"
 
 # Tests for Encrypt-then-MAC extension
 

@@ -1965,6 +1965,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
+        ssl_extract_add_data_from_record( add_data, rec );
+
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (internal)",
                                   iv, transform->ivlen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (transmitted)",
@@ -1979,7 +1981,6 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
          * Encrypt and authenticate
          */
 
-        ssl_extract_add_data_from_record( add_data, rec );
         if( ( ret = mbedtls_cipher_auth_encrypt( &transform->cipher_ctx_enc,
                    iv, transform->ivlen,
                    add_data, 13,                 /* add data     */
@@ -2118,11 +2119,11 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                 return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
             }
 
+            ssl_extract_add_data_from_record( add_data, rec );
+
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
                                    sizeof( add_data ) );
-
-            ssl_extract_add_data_from_record( add_data, rec );
 
             mbedtls_md_hmac_update( &transform->md_ctx_enc, add_data,
                                     sizeof( add_data ) );

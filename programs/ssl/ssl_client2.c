@@ -116,7 +116,7 @@ int main( void )
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
 
-#define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
+#define GET_REQUEST "GET %s HTTP/1.0\r\nHost: %s\r\nConnection: keep-alive"
 #define GET_REQUEST_END "\r\n\r\n"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -1738,7 +1738,7 @@ send_request:
     fflush( stdout );
 
     len = mbedtls_snprintf( (char *) buf, sizeof( buf ) - 1, GET_REQUEST,
-                            opt.request_page );
+                            opt.request_page, opt.server_name );
     tail_len = (int) strlen( GET_REQUEST_END );
 
     /* Add padding to GET request to reach opt.request_size in length */
@@ -1863,6 +1863,7 @@ send_request:
      */
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM )
     {
+        int parse_header = 0;
         do
         {
             len = sizeof( buf ) - 1;
@@ -1916,8 +1917,18 @@ send_request:
             if (fp == NULL) {
             mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
             } else {
-                mbedtls_printf( " %d bytes read\n", len );
-                fwrite(buf, len, 1, fp);
+                char *p = (char *)buf;
+                size_t len0 = len;
+                if (parse_header == 0) {
+                    char *px = strstr((char *)buf, GET_REQUEST_END);
+                    if (px) { 
+                        p = px + strlen(GET_REQUEST_END);
+                        len0 = len - ((unsigned char *)p - buf);
+                    }
+                    parse_header = 1;
+                }
+                mbedtls_printf( " %d bytes read\n", len0 );
+                fwrite(p, len0, 1, fp);
             }
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */

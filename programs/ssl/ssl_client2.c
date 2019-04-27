@@ -1917,18 +1917,18 @@ send_request:
             if (fp == NULL) {
             mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
             } else {
-                char *p = (char *)buf;
+                char *ptmp = (char *)buf;
                 size_t len0 = len;
                 if (parse_header == 0) {
                     char *px = strstr((char *)buf, GET_REQUEST_END);
                     if (px) { 
-                        p = px + strlen(GET_REQUEST_END);
-                        len0 = len - ((unsigned char *)p - buf);
+                        ptmp = px + strlen(GET_REQUEST_END);
+                        len0 = len - ((unsigned char *)ptmp - buf);
                     }
                     parse_header = 1;
                 }
-                mbedtls_printf( " %d bytes read\n", len0 );
-                fwrite(p, len0, 1, fp);
+                mbedtls_printf( " %zu bytes read\n", len0 );
+                fwrite(ptmp, len0, 1, fp);
             }
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */

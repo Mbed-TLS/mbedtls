@@ -1921,7 +1921,7 @@ send_request:
                 size_t len0 = len;
                 if (parse_header == 0) {
                     char *px = strstr((char *)buf, GET_REQUEST_END);
-                    if (px) { 
+                    if (px != NULL) { 
                         ptmp = px + strlen(GET_REQUEST_END);
                         len0 = len - ((unsigned char *)ptmp - buf);
                     }

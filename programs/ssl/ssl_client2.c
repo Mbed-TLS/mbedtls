@@ -116,7 +116,7 @@ int main( void )
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
 
-#define GET_REQUEST "GET %s HTTP/1.0\r\nHost: %s\r\nConnection: keep-alive"
+#define GET_REQUEST "GET %s HTTP/1.0\r\nHost: %s\r\nConnection: keep-alive\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

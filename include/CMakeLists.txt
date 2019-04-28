@@ -11,6 +11,6 @@ if(INSTALL_MBEDTLS_HEADERS)
 endif(INSTALL_MBEDTLS_HEADERS)
 
 # Make config.h available in an out-of-source build. ssl-opt.sh requires it.
-if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+if (ENABLE_TESTING AND NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     link_to_source(mbedtls)
 endif()

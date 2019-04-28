@@ -151,13 +151,12 @@ psa_status_t psa_crypto_init(void);
  * - psa_set_key_usage_flags()
  * - psa_set_key_algorithm()
  * - psa_reset_key_attributes()
- * - psa_get_key_attributes() on a key which has been created with
- *   attribute structure that itself did not contain auxiliary resources
  *
  * If the attribute structure has been modified with other functions,
  * you must free auxiliary resources by calling psa_reset_key_attributes().
  * The following functions may create auxiliary resouces:
  * - psa_set_key_domain_parameters()
+ * - psa_get_key_attributes()
  */
 typedef struct psa_key_attributes_s psa_key_attributes_t;
 

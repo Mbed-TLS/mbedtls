@@ -1361,9 +1361,22 @@ static psa_status_t psa_set_key_policy_internal(
  *
  * If this function fails, call psa_fail_key_creation().
  *
+ * This function is intended to be used as follows:
+ * -# Call psa_start_key_creation() to allocate a key slot, prepare
+ *    it with the specified attributes, and assign it a handle.
+ * -# Populate the slot with the key material.
+ * -# Call psa_finish_key_creation() to finalize the creation of the slot.
+ * In case of failure at any step, stop the sequence and call
+ * psa_fail_key_creation().
+ *
  * \param attributes    Key attributes for the new key.
- * \param handle        On success, the allocated handle.
+ * \param handle        On success, a handle for the allocated slot.
  * \param p_slot        On success, a pointer to the prepared slot.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key slot is ready to receive key material.
+ * \return If this function fails, the key slot is an invalid state.
+ *         You must call psa_fail_key_creation() to wipe and free the slot.
  */
 static psa_status_t psa_start_key_creation(
     const psa_key_attributes_t *attributes,
@@ -1403,8 +1416,15 @@ static psa_status_t psa_start_key_creation(
  * This entails writing the key to persistent storage.
  *
  * If this function fails, call psa_fail_key_creation().
+ * See the documentation of psa_start_key_creation() for the intended use
+ * of this function.
  *
  * \param slot          Pointer to the slot with key material.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key was successfully created. The handle is now valid.
+ * \return If this function fails, the key slot is an invalid state.
+ *         You must call psa_fail_key_creation() to wipe and free the slot.
  */
 static psa_status_t psa_finish_key_creation( psa_key_slot_t *slot )
 {
@@ -1448,6 +1468,8 @@ static psa_status_t psa_finish_key_creation( psa_key_slot_t *slot )
  * You may call this function after calling psa_start_key_creation(),
  * or after psa_finish_key_creation() fails. In other circumstances, this
  * function may not clean up persistent storage.
+ * See the documentation of psa_start_key_creation() for the intended use
+ * of this function.
  *
  * \param slot          Pointer to the slot with key material.
  */

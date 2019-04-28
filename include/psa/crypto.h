@@ -100,12 +100,43 @@ psa_status_t psa_crypto_init(void);
 /** The type of a structure containing key attributes.
  *
  * This is an opaque structure that can represent the metadata of a key
- * object, including the key type and size, domain parameters, usage policies,
- * location in storage, and any other similar information.
+ * object. Metadata that can be stored in attributes includes:
+ * - The location of the key in storage, indicated by its key identifier
+ *   and its lifetime.
+ * - The key's policy, comprising usage flags and a specification of
+ *   the permitted algorithm(s).
+ * - Information about the key itself: the key type, the key size, and
+ *   for some key type additional domain parameters.
+ * - Implementations may define additional attributes.
  *
  * The actual key material is not considered an attribute of a key.
  * Key attributes do not contain information that is generally considered
  * highly confidential.
+ *
+ * An attribute structure can be a simple data structure where each function
+ * `psa_set_key_xxx` sets a field and the corresponding function
+ * `psa_get_key_xxx` retrieves the value of the corresponding field.
+ * However, implementations may report values that are equivalent to the
+ * original one, but have a different encoding. For example, an
+ * implementation may use a more compact representation for types where
+ * many bit-patterns are invalid or not supported, and store all values
+ * that it does not support as a special marker value. In such an
+ * implementation, after setting an invalid value, the corresponding
+ * get function returns an invalid value which may not be the one that
+ * was originally stored.
+ *
+ * An attribute structure may contain references to auxiliary resources,
+ * for example pointers to allocated memory or indirect references to
+ * pre-calculated values. In order to free such resources, the application
+ * must call psa_reset_key_attributes(). As an exception, calling
+ * psa_reset_key_attributes() on an attribute structure is optional if
+ * the structure has only been modified by the following functions
+ * since it was initialized or last reset with psa_reset_key_attributes():
+ * - psa_make_key_persistent()
+ * - psa_set_key_type()
+ * - psa_set_key_bits()
+ * - psa_set_key_usage_flags()
+ * - psa_set_key_algorithm()
  *
  * Before calling any function on a key attribute structure, the application
  * must initialize it by any of the following means:
@@ -140,23 +171,33 @@ psa_status_t psa_crypto_init(void);
  * - usage flags: \c 0.
  * - algorithm: \c 0.
  *
- * A freshly initialized attribute structure does not own any auxiliary
- * resources such as pointers to allocated memory, and therefore can be
- * freed simply by freeing the memory allocated for the structure itself.
- * This property still holds if the structure has only been modified
- * by the following functions:
- * - psa_make_key_persistent()
- * - psa_set_key_type()
- * - psa_set_key_bits()
- * - psa_set_key_usage_flags()
- * - psa_set_key_algorithm()
- * - psa_reset_key_attributes()
+ * A typical sequence to create a key is as follows:
+ * -# Create and initialize an attribute structure.
+ * -# If the key is persistent, call psa_make_key_persistent().
+ * -# Set the key policy with psa_set_key_usage_flags() and
+ *    psa_set_key_algorithm().
+ * -# Set the key type with psa_set_key_type(). If the key type requires
+ *    domain parameters, call psa_set_key_domain_parameters() instead.
+ *    Skip this step if copying an existing key with psa_copy_key().
+ * -# When generating a random key with psa_generate_key() or deriving a key
+ *    with psa_generator_import_key(), set the desired key size with
+ *    psa_set_key_bits().
+ * -# Call a key creation function: psa_import_key(), psa_generate_key(),
+ *    psa_generator_import_key() or psa_copy_key().
+ * -# The attribute structure is no longer necessary. If you called
+ *    psa_set_key_domain_parameters() earlier, you must call
+ *    psa_reset_key_attributes() to free any resources used by the
+ *    domain parameters. Otherwise calling psa_reset_key_attributes()
+ *    is optional.
  *
- * If the attribute structure has been modified with other functions,
- * you must free auxiliary resources by calling psa_reset_key_attributes().
- * The following functions may create auxiliary resouces:
- * - psa_set_key_domain_parameters()
- * - psa_get_key_attributes()
+ * A typical sequence to query a key's attributes is as follows:
+ * -# Call psa_get_key_attributes().
+ * -# Call `psa_get_key_xxx` functions to retrieve the attribute(s) that
+ *    you are interested in.
+ * -# Call psa_reset_key_attributes() to free any resources that may be
+ *    used by the attribute structure.
+ *
+ * Once a key has been created, it is impossible to change its attributes.
  */
 typedef struct psa_key_attributes_s psa_key_attributes_t;
 
@@ -372,6 +413,10 @@ static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
  *   }
  *   ```
  *
+ * \note This function may allocate memory or other resources.
+ *       Once you have called this function on an attribute structure,
+ *       you must call psa_reset_key_attributes() to free these resources.
+ *
  * \param[in,out] attributes    Attribute structure where the specified domain
  *                              parameters will be stored.
  *                              If this function fails, the content of
@@ -417,16 +462,12 @@ psa_status_t psa_get_key_domain_parameters(
 /** Retrieve the attributes of a key.
  *
  * This function first resets the attribute structure as with
- * psa_reset_key_attributes(). It then populates the attribute
- * structure with the attributes of the given key.
+ * psa_reset_key_attributes(). It then copies the attributes of
+ * the given key into the given attribute structure.
  *
- * The attributes that were set when creating the key are reported in a
- * semantically equivalent manner, not necessarily with the same
- * numerical value or the same bit pattern. In this specification,
- * all key types, usage flags, algorithms and lifetime values are
- * equivalent only if they have the same numerical encoding, but this
- * property may not hold in future versions of this specification or
- * for implementation-specific values.
+ * \note This function may allocate memory or other resources.
+ *       Once you have called this function on an attribute structure,
+ *       you must call psa_reset_key_attributes() to free these resources.
  *
  * \param[in] handle            Handle to the key to query.
  * \param[in,out] attributes    On success, the attributes of the key.

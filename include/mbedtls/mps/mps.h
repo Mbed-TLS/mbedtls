@@ -143,29 +143,6 @@ typedef uint8_t mbedtls_mps_blocking_reason_t;
 #define MBEDTLS_MPS_ERROR_ALERT_RECEIVED ( (mbedtls_mps_blocking_reason_t) 2 )
 #define MBEDTLS_MPS_ERROR_INTERNAL_ERROR ( (mbedtls_mps_blocking_reason_t) 3 )
 
-typedef struct
-{
-    /*! The reason for blocking MPS. */
-    mbedtls_mps_blocking_reason_t reason;
-
-    /*! This is a union indexed by \c reason giving
-     *  more information about the reason for blocking MPS.
-     *  Specifically:
-     * - If \c avail is #MBEDTLS_MPS_ERROR_ALERT_SENT or
-     *   #MBEDTLS_MPS_ERROR_ALERT_RECEIVED, \c info.alert is valid.
-     *   and contains the type of alert sent or received, respectively.
-     * - If \c avail is #MBEDTLS_MPS_ERROR_INTERNAL_ERROR,
-     *   \c avail.err is valid and contains the internal error
-     *   code that lead to blocking MPS.
-     * - Otherwise, \c info is invalid.
-     */
-    union
-    {
-        mbedtls_mps_alert_t alert;
-        int err;
-    } info;
-} mbedtls_mps_blocking_info_t;
-
 /*! The type of MPS connection states.
  *
  *  Possible values are:
@@ -674,9 +651,25 @@ struct mbedtls_mps
      *  ::mbedtls_mps_connection_state_t for the possible values. */
     mbedtls_mps_connection_state_t state;
 
-    /*! This structure contains information on why an MPS
-     *  instance was blocked. */
-    mbedtls_mps_blocking_info_t blocking_info;
+    /*! The reason for blocking MPS (if applicable). */
+    mbedtls_mps_blocking_reason_t blocking_reason;
+
+    /*! This is a union indexed by \c reason giving
+     *  more information about the reason for blocking MPS.
+     *  Specifically:
+     * - If \c avail is #MBEDTLS_MPS_ERROR_ALERT_SENT or
+     *   #MBEDTLS_MPS_ERROR_ALERT_RECEIVED, \c info.alert is valid.
+     *   and contains the type of alert sent or received, respectively.
+     * - If \c avail is #MBEDTLS_MPS_ERROR_INTERNAL_ERROR,
+     *   \c avail.err is valid and contains the internal error
+     *   code that lead to blocking MPS.
+     * - Otherwise, \c info is invalid.
+     */
+    union
+    {
+        mbedtls_mps_alert_t alert;
+        int err;
+    } blocking_info;
 
     /* Read state */
     struct
@@ -1696,7 +1689,7 @@ int mbedtls_mps_close( mbedtls_mps *mps );
 
 mbedtls_mps_connection_state_t mbedtls_mps_connection_state( mbedtls_mps const *mps );
 
-int mbedtls_mps_error_state( mbedtls_mps const *mps,
-                             mbedtls_mps_blocking_info_t *info );
+/* int mbedtls_mps_error_state( mbedtls_mps const *mps, */
+/*                              mbedtls_mps_blocking_info_t *info ); */
 
 #endif /* MBEDTLS_MPS_H */

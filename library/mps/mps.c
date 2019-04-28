@@ -556,8 +556,8 @@ MBEDTLS_MPS_STATIC void mps_generic_failure_handler( mbedtls_mps *mps, int ret )
     }
 
     /* Remember error and block MPS. */
-    mps->blocking_info.reason = MBEDTLS_MPS_ERROR_INTERNAL_ERROR;
-    mps->blocking_info.info.err = ret;
+    mps->blocking_reason = MBEDTLS_MPS_ERROR_INTERNAL_ERROR;
+    mps->blocking_info.err = ret;
     mps_block( mps );
 }
 
@@ -572,8 +572,8 @@ int mbedtls_mps_send_fatal( mbedtls_mps *mps, mbedtls_mps_alert_t alert_type )
         RETURN( ret );
 
     /* Remember the reason for blocking. */
-    mps->blocking_info.reason = MBEDTLS_MPS_ERROR_ALERT_SENT;
-    mps->blocking_info.info.alert = alert_type;
+    mps->blocking_reason = MBEDTLS_MPS_ERROR_ALERT_SENT;
+    mps->blocking_info.alert = alert_type;
 
     /* Move to blocked state to ensure that no further operations can be
      * performed even if something goes wrong when sending the alert. */
@@ -596,8 +596,8 @@ MBEDTLS_MPS_STATIC void mps_fatal_alert_received( mbedtls_mps *mps,
         case MBEDTLS_MPS_STATE_OPEN:
         case MBEDTLS_MPS_STATE_READ_ONLY:
 
-            mps->blocking_info.reason = MBEDTLS_MPS_ERROR_ALERT_RECEIVED;
-            mps->blocking_info.info.alert = alert_type;
+            mps->blocking_reason = MBEDTLS_MPS_ERROR_ALERT_RECEIVED;
+            mps->blocking_info.alert = alert_type;
 
             mps_block( mps );
             break;
@@ -656,11 +656,11 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_alert( mbedtls_mps *mps )
         *alert.type  = MBEDTLS_MPS_ALERT_MSG_CLOSE_NOTIFY;
     }
     else if( mps->state == MBEDTLS_MPS_STATE_BLOCKED &&
-             mps->blocking_info.reason == MBEDTLS_MPS_ERROR_ALERT_SENT )
+             mps->blocking_reason == MBEDTLS_MPS_ERROR_ALERT_SENT )
     {
         TRACE( trace_comment, "Report fatal alert to peer." );
         *alert.level = MBEDTLS_MPS_ALERT_LEVEL_FATAL;
-        *alert.type  = mps->blocking_info.info.alert;
+        *alert.type  = mps->blocking_info.alert;
     }
     else
     {
@@ -771,7 +771,7 @@ int mbedtls_mps_init( mbedtls_mps *mps,
 
     mps->alert_pending = 0;
     mps->state = MBEDTLS_MPS_STATE_OPEN;
-    mps->blocking_info.reason = MBEDTLS_MPS_ERROR_UNKNOWN;
+    mps->blocking_reason = MBEDTLS_MPS_ERROR_UNKNOWN;
 
     mps->in.state  = MBEDTLS_MPS_MSG_NONE;
     mps->in.flags  = 0;
@@ -1839,12 +1839,12 @@ mbedtls_mps_connection_state_t mbedtls_mps_connection_state(
     return( mps->state );
 }
 
-int mbedtls_mps_error_state( mbedtls_mps const *mps,
-                             mbedtls_mps_blocking_info_t *info )
-{
-    *info = mps->blocking_info;
-    return( 0 );
-}
+/* int mbedtls_mps_error_state( mbedtls_mps const *mps, */
+/*                              mbedtls_mps_blocking_info_t *info ) */
+/* { */
+/*     /\* TODO *\/ */
+/*     return( 0 ); */
+/* } */
 
 /*
  *

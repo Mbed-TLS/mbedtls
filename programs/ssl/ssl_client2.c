@@ -1012,9 +1012,8 @@ int main( int argc, char *argv[] )
             goto usage;
     }
 
-    if (opt.output_file) {
+    if( opt.output_file != NULL && strlen( opt.output_file ) != 0 )
         fp = fopen(opt.output_file, "wb+");
-    }
 
     /* Event-driven IO is incompatible with the above custom
      * receive and send functions, as the polling builds on
@@ -1914,21 +1913,26 @@ send_request:
 
             len = ret;
             buf[len] = '\0';
-            if (fp == NULL) {
-            mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
-            } else {
+            if( fp == NULL )
+            {
+                mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
+            }
+            else
+            {
                 char *ptmp = (char *)buf;
-                size_t len0 = len;
-                if (parse_header == 0) {
+                size_t len0 = (size_t)len;
+                if( parse_header == 0 )
+                {
                     char *px = strstr((char *)buf, GET_REQUEST_END);
-                    if (px != NULL) {
+                    if( px != NULL )
+                    {
                         ptmp = px + strlen(GET_REQUEST_END);
-                        len0 = len - ((unsigned char *)ptmp - buf);
+                        len0 = (size_t)len - ((unsigned char *)ptmp - buf);
                     }
                     parse_header = 1;
                 }
                 mbedtls_printf( " %zu bytes read\n", len0 );
-                fwrite(ptmp, len0, 1, fp);
+                fwrite( ptmp, len0, 1, fp );
             }
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */
@@ -2142,9 +2146,8 @@ exit:
     }
 #endif
 
-    if (fp) {
+    if( fp )
         fclose(fp);
-    }
 
     mbedtls_net_free( &server_fd );
 

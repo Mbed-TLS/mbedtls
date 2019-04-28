@@ -447,6 +447,10 @@ psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
  * \param[in] attributes        The key attribute structure to query.
  * \param[out] data             On success, the key domain parameters.
  * \param data_size             Size of the \p data buffer in bytes.
+ *                              The buffer is guaranteed to be large
+ *                              enough if its size in bytes is at least
+ *                              the value given by
+ *                              PSA_KEY_DOMAIN_PARAMETERS_SIZE().
  * \param[out] data_length      On success, the number of bytes
  *                              that make up the key domain parameters data.
  *

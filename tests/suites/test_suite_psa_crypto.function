@@ -4733,7 +4733,7 @@ void generate_key_rsa( int bits_arg,
     size_t exported_length = SIZE_MAX;
     uint8_t *e_read_buffer = NULL;
     int is_default_public_exponent = 0;
-    size_t e_read_size = e_arg->len;
+    size_t e_read_size = PSA_KEY_DOMAIN_PARAMETERS_SIZE( type, bits );
     size_t e_read_length = SIZE_MAX;
 
     if( e_arg->len == 0 ||

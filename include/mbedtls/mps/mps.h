@@ -729,7 +729,7 @@ struct mbedtls_mps
     } out;
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    /* DTLS retransmission state machine. */
+    /*! The DTLS retransmission state machine. */
     struct
     {
         /*! This indicates the state of the retransmission state machine.
@@ -742,22 +742,25 @@ struct mbedtls_mps
 
         /*! This indicates if we're currently retransmitting our last outgoing
          *  flight, or are requesting retransmission from the peer.
-         *  See the documentation of ::mbedtls_mps_retransmit_state_t. */
+         *  This may be viewed as introducing sub-states to the state \c state
+         *  of the retransmission state machine.
+         *  See the documentation of ::mbedtls_mps_retransmit_state_t.
+         *
+         *  THINK: Perhaps this should be reconciled with \c state?
+         *         Retransmission of the last outgoing flight can be
+         *         seen as a substate of MBEDTLS_MPS_FLIGHT_AWAIT,
+         *         and requesting retransmission can be seen as a
+         *         substate of MBEDTLS_MPS_FLIGHT_RECEIVE. */
         mbedtls_mps_retransmit_state_t retransmit_state;
-
-        /*! This structure controls the state of outgoing handshake
-         *  messages and their fragmentation. It is used both for the
-         *  initial sending of messages as well as for retransmissions. */
-        mbedtls_mps_handshake_out_internal hs;
 
         /*! This structure is used when waiting for the next incoming
          *  flight of the peer. It captures the time to wait until we
          *  resend our last outgoing flight (in case we haven't received
          *  anything so far) or request retransmission from the peer
-         *  (in case at least one message from the peer has been received).
-         *  Further, if we are in the process of resending our last flight
-         *  or requesting retransmission from the peer, it holds the sending
-         *  state.
+         *  (in case at least one message from the peer has been received,
+         *   implicitly witnessing receipt of our last outgoing flight).
+         *  Further, if we are in the process of resending our last flight or
+         *  requesting retransmission from the peer, it holds the sending state.
          *  Note: Retransmission requests are handled differently
          *        between DTLS 1.2 and DTLS 1.3; see the documentation of
          *        ::mbedtls_mps_retransmit_state_t for more. */
@@ -775,22 +778,9 @@ struct mbedtls_mps
 
         } wait;
 
-        /*
-         * OPTIMIZATION:
-         * Do we need to store outgoing and incoming flights simultaneously,
-         * or can we use a union here?
-         * Or is it better to only reference them here, and allocate
-         * them on the heap on demand?
-         */
-
         /*! The state of outgoing flights. */
         struct
         {
-            /*! This flag indicates if and how the outgoing
-             *  message contributes to an ongoing handshake.
-             *  See the documentation of ::mbedtls_mps_msg_flags. */
-            mbedtls_mps_msg_flags flags;
-
             /*! The number of messages in the current/last outgoing flight. */
             uint8_t flight_len;
 
@@ -802,158 +792,185 @@ struct mbedtls_mps
 
         } outgoing;
 
-        /*! Incoming message buffering and reassembly
+        /*! Structures representing state of incoming and outgoing handshake
+         *  messages.
          *
-         *  Contains all state related to message reassembly
-         *  and buffering of future messages.
-         *
-         *  To the user, it has the following states:
-         *  - Inactive:
-         *    No incoming handshake message is ready to be read.
-         *  - Available:
-         *    The next incoming handshake message is available
-         *    and can be requested by the user.
-         *  - Active:
-         *    The next incoming handshake message is available
-         *    and has been requested by the user.
-         *  - Paused:
-         *    The reading of the next incoming handshake message
-         *    has been paused.
-         *
-         *  The interface is the following:
-         *
-         *  - Initialize
-         *    This takes the expected sequence number of the first
-         *    handshake message in the next incoming flight.
-         *
-         *  - Reset
-         *
-         *  - Feed a new handshake fragment
-         *
-         *    This is valid only in inactive state.
-         *    The reassembly submodule reacts by indicating whether the
-         *    new handshake fragment allowed to produce (parts of) the
-         *    next expected incoming handshake message to be delivered
-         *    to the user. If so, it switches to the `available` state,
-         *    and takes ownership of the handshake fragment until the
-         *    user has requested and passed back the handshake message.
-         *
-         *  - Request a new handshake message
-         *
-         *    This is valid in state `Available` only.
-         *    In this case, it provides the user with a handle to
-         *    the next incoming handshake message, and moves
-         *    to state `Active`.
-         *
-         *  - Finalize the reading of the current handshake message.
-         *
-         *    This is valid in state `Active` only and moves to
-         *    state `Inactive` or `Available`, depending on whether
-         *    the next handshake messages are already available
-         *    or not.
-         *
-         *  - Pause the reading of the current handshake message.
-         *
-         *  Internally, the complexity is in the feeding call.
-         *  When facing a new handshake message fragment, the
-         *  reassembly submodule may perform the following actions:
-         *
-         *   (1) If the fragment is an entire handshake message of
-         *       the expected epoch and sequence number, directly
-         *       pass it through to the user.
-         *   (3) If the fragment is proper and belongs to the next
-         *       incoming handshake message, extract its content
-         *       and update the reassembly process for that message.
-         *       If the fragment leads to a fully reassembled message,
-         *       or at least a sufficiently large next contiguous
-         *       chunk, it is passed to the user.
-         *   (4) If the fragment belongs to a future message and
-         *       the implementation supports buffering of future
-         *       messages, back it up.
-         *   (5) Ignore otherwise (message duplication should be
-         *       detected by the replay protection of Layer 2, but
-         *       we might receive retransmitted messages of the
-         *       current incoming flight that we have already seen).
-         *
-         * Note: It is not the responsibility of the reassembly
-         *       submodule to detect retransmissions. This should
-         *       be done before, on the basis of the recognition
-         *       info structures of the last incoming flight.
-         */
-        struct mbedtls_mps_reassembly
+         *  Eventually, we want to be able to use a union here. */
+        struct
         {
-            /* QUESTION:
-             * Consider storing ::mps_reassembly on the heap
-             * and only allocate it when necessary.
-             */
-
-            /*! The reader and extended reader managing the contents
-             *  of the current incoming handshake message. */
-            mbedtls_reader         rd;
-            mbedtls_reader_ext rd_ext;
-
-            /*! The array of structures representing future and/or
-             *  partially received handshake messages. */
-            struct mbedtls_mps_msg_reassembly
+            struct
             {
-                /*! The reassembly state of the message.
-                 *  See ::mbedtls_mps_msg_reassembly_state for more. */
-                mbedtls_mps_msg_reassembly_state status;
+                /*! This flag indicates if and how the outgoing
+                 *  message contributes to an ongoing handshake.
+                 *  See the documentation of ::mbedtls_mps_msg_flags. */
+                mbedtls_mps_msg_flags flags;
 
-                /*! The handshake message type. */
-                mbedtls_mps_stored_hs_type type;
+                /*! This structure controls the state of outgoing
+                 *  handshake messages and their fragmentation.
+                 *  It is used both for the initial sending of
+                 *  messages as well as for retransmissions. */
+                mbedtls_mps_handshake_out_internal hs;
 
-                /*! The epoch of the incoming handshake message.
-                 *  This must be stored to detect a change of epoch
-                 *  between buffering and reading of the message,
-                 *  or an epoch change across fragments.
-                 *  Examples for that:
-                 *  - MPS does not have any knowledge about the structure
-                 *    of flights and the evolution of epochs within them.
-                 *    In particular, it would buffer a future Finished
-                 *    message in a DTLS 1.2 handshake even if it is unencrypted.
-                 *    However, remembering the epoch here allows to error out
-                 *    by the time the user switches the incoming epoch before
-                 *    asking for the Finished message.
-                 *  - In DTLS 1.3, there can be key changes at flight
-                 *    boundaries, in which case we have multiple incoming
-                 *    epochs active when waiting for the next incoming flight,
-                 *    because we must be able to detect retransmissions.
-                 *    In this case, we must not piece together new messages
-                 *    with fragments coming from different epochs.
+            } out;
+
+            struct
+            {
+                /*! Incoming message buffering and reassembly
+                 *
+                 *  Contains all state related to message reassembly
+                 *  and buffering of future messages.
+                 *
+                 *  To the user, it has the following states:
+                 *  - Inactive:
+                 *    No incoming handshake message is ready to be read.
+                 *  - Available:
+                 *    The next incoming handshake message is available
+                 *    and can be requested by the user.
+                 *  - Active:
+                 *    The next incoming handshake message is available
+                 *    and has been requested by the user.
+                 *  - Paused:
+                 *    The reading of the next incoming handshake message
+                 *    has been paused.
+                 *
+                 *  The interface is the following:
+                 *
+                 *  - Initialize
+                 *    This takes the expected sequence number of the first
+                 *    handshake message in the next incoming flight.
+                 *
+                 *  - Reset
+                 *
+                 *  - Feed a new handshake fragment
+                 *
+                 *    This is valid only in inactive state.
+                 *    The reassembly submodule reacts by indicating whether the
+                 *    new handshake fragment allowed to produce (parts of) the
+                 *    next expected incoming handshake message to be delivered
+                 *    to the user. If so, it switches to the `available` state,
+                 *    and takes ownership of the handshake fragment until the
+                 *    user has requested and passed back the handshake message.
+                 *
+                 *  - Request a new handshake message
+                 *
+                 *    This is valid in state `Available` only.
+                 *    In this case, it provides the user with a handle to
+                 *    the next incoming handshake message, and moves
+                 *    to state `Active`.
+                 *
+                 *  - Finalize the reading of the current handshake message.
+                 *
+                 *    This is valid in state `Active` only and moves to
+                 *    state `Inactive` or `Available`, depending on whether
+                 *    the next handshake messages are already available
+                 *    or not.
+                 *
+                 *  - Pause the reading of the current handshake message.
+                 *
+                 *  Internally, the complexity is in the feeding call.
+                 *  When facing a new handshake message fragment, the
+                 *  reassembly submodule may perform the following actions:
+                 *
+                 *   (1) If the fragment is an entire handshake message of
+                 *       the expected epoch and sequence number, directly
+                 *       pass it through to the user.
+                 *   (3) If the fragment is proper and belongs to the next
+                 *       incoming handshake message, extract its content
+                 *       and update the reassembly process for that message.
+                 *       If the fragment leads to a fully reassembled message,
+                 *       or at least a sufficiently large next contiguous
+                 *       chunk, it is passed to the user.
+                 *   (4) If the fragment belongs to a future message and
+                 *       the implementation supports buffering of future
+                 *       messages, back it up.
+                 *   (5) Ignore otherwise (message duplication should be
+                 *       detected by the replay protection of Layer 2, but
+                 *       we might receive retransmitted messages of the
+                 *       current incoming flight that we have already seen).
+                 *
+                 * Note: It is not the responsibility of the reassembly
+                 *       submodule to detect retransmissions. This should
+                 *       be done before, on the basis of the recognition
+                 *       info structures of the last incoming flight.
                  */
-                mbedtls_mps_stored_epoch_id epoch;
-
-                /*! The total handshake message length. Remembered to
-                 *  check that it is consistent across fragments. */
-                mbedtls_mps_stored_size_t length;
-
-                /*!< Union indexed by \c status giving rise to the
-                 *   message contents fetched so far. */
-                union
+                struct mbedtls_mps_reassembly
                 {
-                    /*! The extended reader owned by Layer 3 giving rise to the
-                     *  contents of the handshake message. This is valid if and
-                     *  only if \c status is #MPS_REASSEMBLY_NO_FRAGMENTATION */
-                    mbedtls_reader_ext *rd_ext_l3;
+                    /* QUESTION:
+                     * Consider storing ::mps_reassembly on the heap
+                     * and only allocate it when necessary.
+                     */
 
-                    /*! The reassembly buffer holding the partially received
-                     *  handshake message. This is valid if and only if
-                     *  \c status is #MPS_REASSEMBLY_WINDOW. */
-                    struct mbedtls_mps_msg_reassembly_window
+                    /*! The reader and extended reader managing the contents
+                     *  of the current incoming handshake message. */
+                    mbedtls_reader         rd;
+                    mbedtls_reader_ext rd_ext;
+
+                    /*! The array of structures representing future and/or
+                     *  partially received handshake messages. */
+                    struct mbedtls_mps_msg_reassembly
                     {
-                        unsigned char *buf;     /*!< The reassembly buffer.   */
-                        unsigned char *bitmask; /*!< The bitmask indicating
-                                                 *   the state of reassembly. */
-                        /*! The size of \c buf.                   */
-                        mbedtls_mps_stored_size_t buf_len;
-                    } window;
+                        /*! The reassembly state of the message.
+                         *  See ::mbedtls_mps_msg_reassembly_state for more. */
+                        mbedtls_mps_msg_reassembly_state status;
 
-                } data;
+                        /*! The handshake message type. */
+                        mbedtls_mps_stored_hs_type type;
 
-            } reassembly[ 1 + MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS ];
+                        /*! The epoch of the incoming handshake message.
+                         *  This must be stored to detect a change of epoch
+                         *  between buffering and reading of the message,
+                         *  or an epoch change across fragments.
+                         *  Examples for that:
+                         *  - MPS does not have any knowledge about the structure
+                         *    of flights and the evolution of epochs within them.
+                         *    In particular, it would buffer a future Finished
+                         *    message in a DTLS 1.2 handshake even if it is unencrypted.
+                         *    However, remembering the epoch here allows to error out
+                         *    by the time the user switches the incoming epoch before
+                         *    asking for the Finished message.
+                         *  - In DTLS 1.3, there can be key changes at flight
+                         *    boundaries, in which case we have multiple incoming
+                         *    epochs active when waiting for the next incoming flight,
+                         *    because we must be able to detect retransmissions.
+                         *    In this case, we must not piece together new messages
+                         *    with fragments coming from different epochs.
+                         */
+                        mbedtls_mps_stored_epoch_id epoch;
 
-        } incoming;
+                        /*! The total handshake message length. Remembered to
+                         *  check that it is consistent across fragments. */
+                        mbedtls_mps_stored_size_t length;
+
+                        /*!< Union indexed by \c status giving rise to the
+                         *   message contents fetched so far. */
+                        union
+                        {
+                            /*! The extended reader owned by Layer 3 giving rise to the
+                             *  contents of the handshake message. This is valid if and
+                             *  only if \c status is #MPS_REASSEMBLY_NO_FRAGMENTATION */
+                            mbedtls_reader_ext *rd_ext_l3;
+
+                            /*! The reassembly buffer holding the partially received
+                             *  handshake message. This is valid if and only if
+                             *  \c status is #MPS_REASSEMBLY_WINDOW. */
+                            struct mbedtls_mps_msg_reassembly_window
+                            {
+                                unsigned char *buf;     /*!< The reassembly buffer.   */
+                                unsigned char *bitmask; /*!< The bitmask indicating
+                                                         *   the state of reassembly. */
+                                /*! The size of \c buf.                   */
+                                mbedtls_mps_stored_size_t buf_len;
+                            } window;
+
+                        } data;
+
+                    } reassembly[ 1 + MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS ];
+
+                } incoming;
+
+            } in;
+
+        } io;
 
         /*! Memory of last incoming flight
          *

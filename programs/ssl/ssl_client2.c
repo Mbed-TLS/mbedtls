@@ -1932,7 +1932,7 @@ send_request:
             }
             else
                 mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
-            
+
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */
             if( ret > 0 && buf[len-1] == '\n' )

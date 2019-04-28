@@ -69,7 +69,7 @@
  *
  *  Comment this to remove state validation.
  */
-//#define MBEDTLS_MPS_STATE_VALIDATION
+#define MBEDTLS_MPS_STATE_VALIDATION
 
 /*! This flag enables/disables assertions on the internal state of MPS.
  *
@@ -99,7 +99,7 @@
 //#define MBEDTLS_MPS_TRANSFORM_VALIDATION
 
 /*! This flag controls whether tracing for MPS should be enabled. */
-//#define MBEDTLS_MPS_TRACE
+#define MBEDTLS_MPS_TRACE
 
 /*! This internal macro determines whether all Layers of MPS should
  *  be compiled into a single source file.
@@ -123,7 +123,7 @@
  *
  *  Uncomment if only DTLS is needed.
  */
-//#define MBEDTLS_MPS_PROTO_TLS
+#define MBEDTLS_MPS_PROTO_TLS
 
 /*! This flag enables support for the DTLS protocol.
  *

@@ -1543,14 +1543,41 @@ static void ssl_read_memory( unsigned char *p, size_t len )
  * Encryption/decryption functions
  */
 
+/* add_data must have size ( 13 + SSL_CID_LEN_MAX ) Bytes */
 static void ssl_extract_add_data_from_record( unsigned char* add_data,
+                                              size_t *add_data_len,
                                               mbedtls_record *rec )
 {
+    /* Quoting RFC 5246:
+     *
+     *    additional_data = seq_num + TLSCompressed.type +
+     *                      TLSCompressed.version + TLSCompressed.length;
+     *
+     * For the CID extension, this is extended as follows:
+     *
+     *       additional_data = seq_num + DTLSPlaintext.type +
+     *                         DTLSPlaintext.version +
+     *                         cid +                   // New input
+     *                         cid_length +            // New input
+     *                         length_of_DTLSInnerPlaintext;
+     */
+
     memcpy( add_data, rec->ctr, sizeof( rec->ctr ) );
     add_data[8] = rec->type;
-    memcpy( add_data + 9, rec->ver, sizeof( rec->ver ) );
-    add_data[11] = ( rec->data_len >> 8 ) & 0xFF;
-    add_data[12] = rec->data_len & 0xFF;
+    memcpy( add_data +  9, rec->ver, sizeof( rec->ver ) );
+
+#if defined(MBEDTLS_SSL_CID)
+    memcpy( add_data + 11, rec->cid, rec->cid_len );
+#endif /* MBEDTLS_SSL_CID */
+
+    add_data[11 + rec->cid_len + 0] = ( rec->data_len >> 8 ) & 0xFF;
+    add_data[11 + rec->cid_len + 1] = ( rec->data_len >> 0 ) & 0xFF;
+
+#if defined(MBEDTLS_SSL_CID)
+    *add_data_len = 13 + rec->cid_len;
+#else
+    *add_data_len = 13;
+#endif /* MBEDTLS_SSL_CID */
 }
 
 int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
@@ -1562,7 +1589,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     mbedtls_cipher_mode_t mode;
     int auth_done = 0;
     unsigned char * data;
-    unsigned char add_data[13];
+    unsigned char add_data[13 + SSL_CID_LEN_MAX ];
+    size_t add_data_len;
     size_t post_avail;
 
     /* The SSL context is only used for debugging purposes! */
@@ -1591,7 +1619,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     if( rec == NULL                     ||
         rec->buf == NULL                ||
         rec->buf_len < rec->data_offset ||
-        rec->buf_len - rec->data_offset < rec->data_len )
+        rec->buf_len - rec->data_offset < rec->data_len ||
+        rec->cid_len != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad record structure provided to encrypt_buf" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -1611,6 +1640,15 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                                     MBEDTLS_SSL_OUT_CONTENT_LEN ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
+
+#if defined(MBEDTLS_SSL_CID)
+    /*
+     * Add CID information
+     */
+    rec->cid_len = transform->out_cid_len;
+    memcpy( rec->cid, transform->out_cid, transform->out_cid_len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "CID", rec->cid, rec->cid_len );
+#endif /* MBEDTLS_SSL_CID */
 
     /*
      * Add MAC before if needed
@@ -1645,10 +1683,10 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         {
             unsigned char mac[MBEDTLS_SSL_MAC_ADD];
 
-            ssl_extract_add_data_from_record( add_data, rec );
+            ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
 
             mbedtls_md_hmac_update( &transform->md_ctx_enc, add_data,
-                                    sizeof( add_data ) );
+                                    add_data_len );
             mbedtls_md_hmac_update( &transform->md_ctx_enc,
                                     data, rec->data_len );
             mbedtls_md_hmac_finish( &transform->md_ctx_enc, mac );
@@ -1751,14 +1789,14 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        ssl_extract_add_data_from_record( add_data, rec );
+        ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (internal)",
                                   iv, transform->ivlen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (transmitted)",
                                   data - explicit_iv_len, explicit_iv_len );
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
-                               add_data, 13 );
+                               add_data, add_data_len );
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
                                     "including 0 bytes of padding",
                                     rec->data_len ) );
@@ -1769,7 +1807,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
         if( ( ret = mbedtls_cipher_auth_encrypt( &transform->cipher_ctx_enc,
                    iv, transform->ivlen,
-                   add_data, 13,                 /* add data     */
+                   add_data, add_data_len,       /* add data     */
                    data, rec->data_len,          /* source       */
                    data, &rec->data_len,         /* destination  */
                    data + rec->data_len, transform->taglen ) ) != 0 )
@@ -1905,14 +1943,14 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                 return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
             }
 
-            ssl_extract_add_data_from_record( add_data, rec );
+            ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
-                                   sizeof( add_data ) );
+                                   add_data_len );
 
             mbedtls_md_hmac_update( &transform->md_ctx_enc, add_data,
-                                    sizeof( add_data ) );
+                                    add_data_len );
             mbedtls_md_hmac_update( &transform->md_ctx_enc,
                                     data, rec->data_len );
             mbedtls_md_hmac_finish( &transform->md_ctx_enc, mac );
@@ -1957,7 +1995,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
     size_t padlen = 0, correct = 1;
 #endif
     unsigned char* data;
-    unsigned char add_data[13];
+    unsigned char add_data[13 + SSL_CID_LEN_MAX ];
+    size_t add_data_len;
 
 #if !defined(MBEDTLS_DEBUG_C)
     ((void) ssl);
@@ -1980,6 +2019,23 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
 
     data = rec->buf + rec->data_offset;
     mode = mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_dec );
+
+#if defined(MBEDTLS_SSL_CID)
+    /*
+     * Match record's CID with incoming CID.
+     */
+
+    /* TODO - Uncomment this once CID parsing is in place */
+    /* if( rec->cid_len != transform->in_cid_len || */
+    /*     memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 ) */
+    /* { */
+    /*     return( MBEDTLS_ERR_SSL_INVALID_RECORD ); */
+    /* } */
+    /* TODO - Remove this once CID parsing is in place */
+    rec->cid_len = transform->in_cid_len;
+    memcpy( rec->cid, transform->in_cid, transform->in_cid_len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "CID", rec->cid, rec->cid_len );
+#endif /* MBEDTLS_SSL_CID */
 
 #if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER)
     if( mode == MBEDTLS_MODE_STREAM )
@@ -2055,9 +2111,9 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         rec->data_offset += explicit_iv_len;
         rec->data_len -= explicit_iv_len + transform->taglen;
 
-        ssl_extract_add_data_from_record( add_data, rec );
+        ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
-                               add_data, 13 );
+                               add_data, add_data_len );
 
         memcpy( transform->iv_dec + transform->fixed_ivlen,
                 data - explicit_iv_len, explicit_iv_len );
@@ -2072,7 +2128,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
          */
         if( ( ret = mbedtls_cipher_auth_decrypt( &transform->cipher_ctx_dec,
                   iv, transform->ivlen,
-                  add_data, 13,
+                  add_data, add_data_len,
                   data, rec->data_len,
                   data, &olen,
                   data + rec->data_len,
@@ -2156,10 +2212,12 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
             /* Safe due to the check data_len >= minlen + maclen + 1 above. */
             rec->data_len -= transform->maclen;
 
-            ssl_extract_add_data_from_record( add_data, rec );
+            ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
 
-            MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data, 13 );
-            mbedtls_md_hmac_update( &transform->md_ctx_dec, add_data, 13 );
+            MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
+                                   add_data_len );
+            mbedtls_md_hmac_update( &transform->md_ctx_dec, add_data,
+                                    add_data_len );
             mbedtls_md_hmac_update( &transform->md_ctx_dec,
                                     data, rec->data_len );
             mbedtls_md_hmac_finish( &transform->md_ctx_dec, mac_expect );
@@ -2363,7 +2421,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
          */
         rec->data_len -= transform->maclen;
 
-        ssl_extract_add_data_from_record( add_data, rec );
+        ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
         if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
@@ -2433,15 +2491,17 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
                 case MBEDTLS_MD_SHA1:
                 case MBEDTLS_MD_SHA256:
                     /* 8 bytes of message size, 64-byte compression blocks */
-                    extra_run = ( 13 + rec->data_len + padlen + 8 ) / 64 -
-                                ( 13 + rec->data_len          + 8 ) / 64;
+                    extra_run =
+                        ( add_data_len + rec->data_len + padlen + 8 ) / 64 -
+                        ( add_data_len + rec->data_len          + 8 ) / 64;
                     break;
 #endif
 #if defined(MBEDTLS_SHA512_C)
                 case MBEDTLS_MD_SHA384:
                     /* 16 bytes of message size, 128-byte compression blocks */
-                    extra_run = ( 13 + rec->data_len + padlen + 16 ) / 128 -
-                                ( 13 + rec->data_len          + 16 ) / 128;
+                    extra_run =
+                        ( add_data_len + rec->data_len + padlen + 16 ) / 128 -
+                        ( add_data_len + rec->data_len          + 16 ) / 128;
                     break;
 #endif
                 default:
@@ -2451,7 +2511,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
 
             extra_run &= correct * 0xFF;
 
-            mbedtls_md_hmac_update( &transform->md_ctx_dec, add_data, 13 );
+            mbedtls_md_hmac_update( &transform->md_ctx_dec, add_data,
+                                    add_data_len );
             mbedtls_md_hmac_update( &transform->md_ctx_dec, data,
                                     rec->data_len );
             /* Make sure we access everything even when padlen > 0. This
@@ -3538,6 +3599,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                                        ssl->conf->transport, rec.ver );
             rec.type = ssl->out_msgtype;
+
+            rec.cid_len = 0;
 
             if( ( ret = mbedtls_ssl_encrypt_buf( ssl, ssl->transform_out, &rec,
                                          ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )

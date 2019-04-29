@@ -450,17 +450,8 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
         for( offset=0; offset <= threshold; offset++ )
         {
             mbedtls_ssl_transform *t_dec, *t_enc;
-            /* Take turns in who's sending and who's receiving. */
-            if( offset % 2 == 0 )
-            {
-                t_dec = &t0;
-                t_enc = &t1;
-            }
-            else
-            {
-                t_dec = &t1;
-                t_enc = &t0;
-            }
+            t_dec = &t0;
+            t_enc = &t1;
 
             memset( rec.ctr, offset, sizeof( rec.ctr ) );
             rec.type    = 42;

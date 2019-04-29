@@ -1543,6 +1543,88 @@ static void ssl_read_memory( unsigned char *p, size_t len )
  * Encryption/decryption functions
  */
 
+#if defined(MBEDTLS_SSL_CID)
+/* This functions transforms a pair of a DTLS plaintext fragment
+ * and a record content type into an instance of the DTLSInnerPlaintext
+ * structure:
+ *
+ *        struct {
+ *            opaque content[DTLSPlaintext.length];
+ *            ContentType real_type;
+ *            uint8 zeros[length_of_padding];
+ *        } DTLSInnerPlaintext;
+ *
+ *  Input:
+ *  - `content`: The beginning of the buffer holding the
+ *               plaintext to be wrapped.
+ *  - `*content_size`: The length of the plaintext in Bytes.
+ *  - `max_len`: The number of Bytes available starting from
+ *               `content`. This must be `>= *content_size`.
+ *  - `rec_type`: The desired record content type.
+ *
+ *  Output:
+ *  - `content`: The beginning of the resulting DTLSInnerPlaintext structure.
+ *  - `*content_size`: The length of the resulting DTLSInnerPlaintext structure.
+ *
+ *  Returns:
+ *  - `0` on success.
+ *  - A negative error code if `max_len` didn't offer enough space
+ *    for the expansion.
+ */
+static int ssl_cid_build_inner_plaintext( unsigned char *content,
+                                          size_t *content_size,
+                                          size_t remaining,
+                                          uint8_t rec_type )
+{
+    size_t len = *content_size;
+    size_t pad = ~len & 0xF; /* Pad to a multiple of 16 */
+
+    /* Write real content type */
+    if( remaining == 0 )
+        return( -1 );
+    content[ len ] = rec_type;
+    len++;
+    remaining--;
+
+    if( remaining < pad )
+        return( -1 );
+    memset( content + len, 0, pad );
+    len += pad;
+    remaining -= pad;
+
+    *content_size = len;
+    return( 0 );
+}
+
+/* This function parses a DTLSInnerPlaintext structure
+ *
+ *        struct {
+ *            opaque content[DTLSPlaintext.length];
+ *            ContentType real_type;
+ *            uint8 zeros[length_of_padding];
+ *        } DTLSInnerPlaintext;
+ */
+static int ssl_cid_parse_inner_plaintext( unsigned char const *content,
+                                          size_t *content_size,
+                                          uint8_t *rec_type )
+{
+    size_t remaining = *content_size;
+
+    /* Determine length of padding by skipping zeroes from the back. */
+    do
+    {
+        if( remaining == 0 )
+            return( -1 );
+        remaining--;
+    } while( content[ remaining ] == 0 );
+
+    *content_size = remaining;
+    *rec_type = content[ remaining ];
+
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_CID */
+
 /* add_data must have size ( 13 + SSL_CID_LEN_MAX ) Bytes */
 static void ssl_extract_add_data_from_record( unsigned char* add_data,
                                               size_t *add_data_len,
@@ -1626,8 +1708,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    post_avail = rec->buf_len - ( rec->data_len + rec->data_offset );
     data = rec->buf + rec->data_offset;
+    post_avail = rec->buf_len - ( rec->data_len + rec->data_offset );
     MBEDTLS_SSL_DEBUG_BUF( 4, "before encrypt: output payload",
                            data, rec->data_len );
 
@@ -1648,7 +1730,38 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     rec->cid_len = transform->out_cid_len;
     memcpy( rec->cid, transform->out_cid, transform->out_cid_len );
     MBEDTLS_SSL_DEBUG_BUF( 3, "CID", rec->cid, rec->cid_len );
+
+    if( rec->cid_len != 0 )
+    {
+        /*
+         * Wrap plaintext into DTLSInnerPlaintext structure
+         *
+         *  struct {
+         *      opaque content[DTLSPlaintext.length];
+         *      ContentType real_type;
+         *      uint8 zeros[length_of_padding];
+         *  } DTLSInnerPlaintext;
+         *
+         * and change the record content type.
+         *
+         * The rest of the record encryption stays
+         * unmodified (apart from the inclusion of
+         * the CID into the additional data for the
+         * record MAC).
+         */
+        if( ssl_cid_build_inner_plaintext( data,
+                        &rec->data_len,
+                        post_avail,
+                        rec->type ) != 0 )
+        {
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        }
+
+        rec->type = MBEDTLS_SSL_MSG_CID;
+    }
 #endif /* MBEDTLS_SSL_CID */
+
+    post_avail = rec->buf_len - ( rec->data_len + rec->data_offset );
 
     /*
      * Add MAC before if needed
@@ -2148,6 +2261,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
+
     }
     else
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
@@ -2572,6 +2686,16 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
+
+#if defined(MBEDTLS_SSL_CID)
+    if( rec->cid_len != 0 )
+    {
+        ret = ssl_cid_parse_inner_plaintext( data, &rec->data_len,
+                                             &rec->type );
+        if( ret != 0 )
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+    }
+#endif /* MBEDTLS_SSL_CID */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= decrypt buf" ) );
 

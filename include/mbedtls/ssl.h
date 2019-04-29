@@ -313,6 +313,7 @@
 #define MBEDTLS_SSL_MSG_ALERT                  21
 #define MBEDTLS_SSL_MSG_HANDSHAKE              22
 #define MBEDTLS_SSL_MSG_APPLICATION_DATA       23
+#define MBEDTLS_SSL_MSG_CID                    25
 
 #define MBEDTLS_SSL_ALERT_LEVEL_WARNING         1
 #define MBEDTLS_SSL_ALERT_LEVEL_FATAL           2

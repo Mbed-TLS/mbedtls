@@ -18,11 +18,18 @@
         }                                       \
     } while( 0 )
 
+#if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
+#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_IN_LEN_MAX
+#else
+#define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
+#endif
 
 static int build_transforms( mbedtls_ssl_transform *t_in,
                              mbedtls_ssl_transform *t_out,
                              int cipher_type, int hash_id,
-                             int etm, int tag_mode, int ver )
+                             int etm, int tag_mode, int ver,
+                             size_t cid0_len,
+                             size_t cid1_len )
 {
     mbedtls_cipher_info_t const *cipher_info;
     int ret = 0;
@@ -30,6 +37,12 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     size_t keylen, maclen, ivlen;
     unsigned char *key0 = NULL, *key1 = NULL;
     unsigned char iv_enc[16], iv_dec[16];
+
+    unsigned char cid0[ SSL_CID_LEN_MIN ];
+    unsigned char cid1[ SSL_CID_LEN_MIN ];
+
+    rnd_std_rand( NULL, cid0, sizeof( cid0 ) );
+    rnd_std_rand( NULL, cid1, sizeof( cid1 ) );
 
     maclen = 0;
 
@@ -228,6 +241,16 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     memcpy( &t_out->iv_dec, iv_enc, sizeof( iv_enc ) );
     memcpy( &t_out->iv_enc, iv_dec, sizeof( iv_dec ) );
 
+    /* Add CID */
+    memcpy( &t_in->in_cid,  cid0, cid0_len );
+    memcpy( &t_in->out_cid, cid1, cid1_len );
+    t_in->in_cid_len = cid0_len;
+    t_in->out_cid_len = cid1_len;
+    memcpy( &t_out->in_cid,  cid1, cid1_len );
+    memcpy( &t_out->out_cid, cid0, cid0_len );
+    t_out->in_cid_len = cid1_len;
+    t_out->out_cid_len = cid0_len;
+
 cleanup:
 
     mbedtls_free( key0 );
@@ -290,7 +313,8 @@ void ssl_set_hostname_twice( char *hostname0, char *hostname1 )
 
 /* BEGIN_CASE */
 void ssl_crypt_record( int cipher_type, int hash_id,
-                       int etm, int tag_mode, int ver )
+                       int etm, int tag_mode, int ver,
+                       int cid0_len, int cid1_len )
 {
     /*
      * Test several record encryptions and decryptions
@@ -311,7 +335,9 @@ void ssl_crypt_record( int cipher_type, int hash_id,
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
     TEST_ASSERT( build_transforms( &t0, &t1, cipher_type, hash_id,
-                                   etm, tag_mode, ver ) == 0 );
+                                   etm, tag_mode, ver,
+                                   (size_t) cid0_len,
+                                   (size_t) cid1_len ) == 0 );
 
     TEST_ASSERT( ( buf = mbedtls_calloc( 1, buflen ) ) != NULL );
 
@@ -346,6 +372,7 @@ void ssl_crypt_record( int cipher_type, int hash_id,
         rec.type    = 42;
         rec.ver[0]  = num_records;
         rec.ver[1]  = num_records;
+        rec.cid_len = 0;
 
         rec.buf     = buf;
         rec.buf_len = buflen;
@@ -369,7 +396,8 @@ void ssl_crypt_record( int cipher_type, int hash_id,
         }
 
         /* Decrypt record with t_dec */
-        TEST_ASSERT( mbedtls_ssl_decrypt_buf( &ssl, t_dec, &rec ) == 0 );
+        ret = mbedtls_ssl_decrypt_buf( &ssl, t_dec, &rec );
+        TEST_ASSERT( ret == 0 );
 
         /* Compare results */
         TEST_ASSERT( rec.type == rec_backup.type );
@@ -396,7 +424,8 @@ exit:
 
 /* BEGIN_CASE */
 void ssl_crypt_record_small( int cipher_type, int hash_id,
-                             int etm, int tag_mode, int ver )
+                             int etm, int tag_mode, int ver,
+                             int cid0_len, int cid1_len )
 {
     /*
      * Test pairs of encryption and decryption with an increasing
@@ -422,16 +451,16 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
 
     mbedtls_ssl_transform t0, t1;
     unsigned char *buf = NULL;
-    size_t const buflen = 150;
+    size_t const buflen = 256;
     mbedtls_record rec, rec_backup;
 
     int ret;
-    int mode;               /* Mode 1, 2 or 3 as explained above     */
-    size_t offset;          /* Available space at beginning/end/both */
-    size_t threshold = 64;  /* Maximum offset to test against        */
+    int mode;              /* Mode 1, 2 or 3 as explained above     */
+    size_t offset;         /* Available space at beginning/end/both */
+    size_t threshold = 96; /* Maximum offset to test against        */
 
-    size_t default_pre_padding  = 64; /* Pre-padding to use in mode 2  */
-    size_t default_post_padding = 64; /* Post-padding to use in mode 1 */
+    size_t default_pre_padding  = 64;  /* Pre-padding to use in mode 2  */
+    size_t default_post_padding = 128; /* Post-padding to use in mode 1 */
 
     int seen_success; /* Indicates if in the current mode we've
                        * already seen a successful test. */
@@ -440,7 +469,9 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
     TEST_ASSERT( build_transforms( &t0, &t1, cipher_type, hash_id,
-                                   etm, tag_mode, ver ) == 0 );
+                                   etm, tag_mode, ver,
+                                   (size_t) cid0_len,
+                                   (size_t) cid1_len ) == 0 );
 
     TEST_ASSERT( ( buf = mbedtls_calloc( 1, buflen ) ) != NULL );
 
@@ -459,6 +490,7 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
             rec.ver[1]  = offset;
             rec.buf     = buf;
             rec.buf_len = buflen;
+            rec.cid_len = 0;
 
             switch( mode )
             {

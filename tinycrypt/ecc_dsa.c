@@ -292,5 +292,6 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	/* Accept only if v == r. */
 	return (int)(uECC_vli_equal(rx, r, num_words) == 0);
 }
-
+#else
+typedef int mbedtls_dummy_uecc_def;
 #endif /* MBEDTLS_USE_UECC */

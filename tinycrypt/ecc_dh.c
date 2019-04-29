@@ -196,4 +196,6 @@ clear_and_out:
 
 	return r;
 }
+#else
+typedef int mbedtls_dummy_uecc_def;
 #endif /* MBEDTLS_USE_UECC */

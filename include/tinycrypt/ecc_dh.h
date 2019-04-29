@@ -66,6 +66,7 @@
  *  Security: The curve NIST p-256 provides approximately 128 bits of security.
  */
 
+#if defined(MBEDTLS_USE_UECC)
 #ifndef __TC_ECC_DH_H__
 #define __TC_ECC_DH_H__
 
@@ -129,3 +130,4 @@ int uECC_shared_secret(const uint8_t *p_public_key, const uint8_t *p_private_key
 #endif
 
 #endif /* __TC_ECC_DH_H__ */
+#endif /* MBEDTLS_USE_UECC */

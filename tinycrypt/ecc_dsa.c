@@ -53,6 +53,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if defined(MBEDTLS_USE_UECC)
 #include <tinycrypt/ecc.h>
 #include <tinycrypt/ecc_dsa.h>
 
@@ -292,3 +293,4 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	return (int)(uECC_vli_equal(rx, r, num_words) == 0);
 }
 
+#endif /* MBEDTLS_USE_UECC */

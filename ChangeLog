@@ -40,6 +40,8 @@ Changes
      Found by Coverity, reported and fixed by Peter Kolbus (Garmin). Fixes #2309.
    * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
      Contributed by Peter Kolbus (Garmin).
+   * Change wording in the `mbedtls_ssl_conf_max_frag_len()`'s documentation to
+     improve clarity. Fixes #2258.
 
 = mbed TLS 2.16.1 branch released 2019-03-19
 

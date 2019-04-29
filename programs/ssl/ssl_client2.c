@@ -1916,18 +1916,18 @@ send_request:
             if( fp != NULL )
             {
                 char *ptmp = (char *)buf;
-                size_t len0 = (size_t)len;
+                int len0 = len;
                 if( parse_header == 0 )
                 {
                     char *px = strstr( (char *)buf, GET_REQUEST_END );
                     if( px != NULL )
                     {
                         ptmp = px + strlen(GET_REQUEST_END);
-                        len0 = (size_t)len - ( (unsigned char *)ptmp - buf );
+                        len0 = len - (int)( (unsigned char *)ptmp - buf );
                     }
                     parse_header = 1;
                 }
-                mbedtls_printf( " %zu bytes read\n", len0 );
+                mbedtls_printf( " %d bytes read\n", len0 );
                 fwrite( ptmp, len0, 1, fp );
             }
             else

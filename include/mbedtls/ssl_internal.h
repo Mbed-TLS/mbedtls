@@ -610,6 +610,12 @@ struct mbedtls_ssl_transform
  * make space for the fixed IV.
  *
  */
+#if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
+#define SSL_CID_LEN_MAX MBEDTLS_SSL_CID_OUT_LEN_MAX
+#else
+#define SSL_CID_LEN_MAX MBEDTLS_SSL_CID_IN_LEN_MAX
+#endif
+
 typedef struct
 {
     uint8_t ctr[8];         /*!< Record sequence number        */
@@ -620,6 +626,11 @@ typedef struct
     size_t buf_len;         /*!< Buffer length */
     size_t data_offset;     /*!< Offset of record content */
     size_t data_len;        /*!< Length of record content */
+
+#if defined(MBEDTLS_SSL_CID)
+    uint8_t cid_len;
+    unsigned char cid[ SSL_CID_LEN_MAX ];
+#endif /* MBEDTLS_SSL_CID */
 
 } mbedtls_record;
 

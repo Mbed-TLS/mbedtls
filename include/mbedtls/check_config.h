@@ -87,6 +87,10 @@
 #error "MBEDTLS_CMAC_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_USE_UECC) && defined(MBEDTLS_NO_64BIT_MULTIPLICATION)
+#error "MBEDTLS_USE_UECC defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
+#endif
+
 #if defined(MBEDTLS_NIST_KW_C) && \
     ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CIPHER_C) )
 #error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"

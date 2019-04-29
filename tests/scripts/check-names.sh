@@ -26,16 +26,20 @@ tests/scripts/list-symbols.sh
 FAIL=0
 
 printf "\nExported symbols declared in header: "
-diff exported-symbols identifiers | sed -n -e 's/^< //p' > undeclared
+UNDECLARED=$(diff exported-symbols identifiers | sed -n -e 's/^< //p') > undeclared
 
 FILTERED=$( diff tests/scripts/whitelist undeclared | sed -n -e 's/^< //p')
 
+if [ "x$UNDECLARED" != "x" ]; then
 if [ "x$FILTERED" = "x" ]; then
     echo "PASS"
 else
     echo "FAIL"
     echo "$FILTERED"
     FAIL=1
+fi
+else
+    echo "PASS"
 fi
 
 diff macros identifiers | sed -n -e 's/< //p' > actual-macros

@@ -1125,6 +1125,15 @@ component_build_armcc () {
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 }
 
+component_build_armcc_uecc_baremetal () {
+    msg"build: ARM Compiler 5, make with uecc and baremetal"
+    scripts/config.pl baremetal
+    scripts/config.pl set MBEDTLS_USE_UECC
+
+    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
+    make clean
+}
+
 component_test_allow_sha1 () {
     msg "build: allow SHA1 in certificates by default"
     scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES

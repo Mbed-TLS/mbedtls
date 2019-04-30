@@ -759,7 +759,8 @@ int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
 
 #endif /* SNI_OPTION */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) || \
+    defined(MBEDTLS_SSL_CID)
 
 #define HEX2NUM( c )                    \
         if( c >= '0' && c <= '9' )      \
@@ -798,6 +799,10 @@ int unhexify( unsigned char *output, const char *input, size_t *olen )
 
     return( 0 );
 }
+
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 
 typedef struct _psk_entry psk_entry;
 

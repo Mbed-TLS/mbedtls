@@ -646,9 +646,9 @@ struct mbedtls_ssl_transform
  *
  */
 #if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
-#define SSL_CID_LEN_MAX MBEDTLS_SSL_CID_OUT_LEN_MAX
+#define MBEDTLS_SSL_CID_LEN_MAX MBEDTLS_SSL_CID_OUT_LEN_MAX
 #else
-#define SSL_CID_LEN_MAX MBEDTLS_SSL_CID_IN_LEN_MAX
+#define MBEDTLS_SSL_CID_LEN_MAX MBEDTLS_SSL_CID_IN_LEN_MAX
 #endif
 
 typedef struct
@@ -664,7 +664,7 @@ typedef struct
 
 #if defined(MBEDTLS_SSL_CID)
     uint8_t cid_len;
-    unsigned char cid[ SSL_CID_LEN_MAX ];
+    unsigned char cid[ MBEDTLS_SSL_CID_LEN_MAX ];
 #endif /* MBEDTLS_SSL_CID */
 
 } mbedtls_record;

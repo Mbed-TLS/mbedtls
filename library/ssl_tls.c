@@ -658,53 +658,6 @@ static int ssl_populate_transform( mbedtls_ssl_context *ssl )
     }
 
     /*
-     * Set appropriate PRF function and other SSL / TLS / TLS1.2 functions
-     */
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-    {
-        handshake->tls_prf = ssl3_prf;
-        handshake->calc_verify = ssl_calc_verify_ssl;
-        handshake->calc_finished = ssl_calc_finished_ssl;
-    }
-    else
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        handshake->tls_prf = tls1_prf;
-        handshake->calc_verify = ssl_calc_verify_tls;
-        handshake->calc_finished = ssl_calc_finished_tls;
-    }
-    else
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_SHA512_C)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
-        ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
-    {
-        handshake->tls_prf = tls_prf_sha384;
-        handshake->calc_verify = ssl_calc_verify_tls_sha384;
-        handshake->calc_finished = ssl_calc_finished_tls_sha384;
-    }
-    else
-#endif
-#if defined(MBEDTLS_SHA256_C)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        handshake->tls_prf = tls_prf_sha256;
-        handshake->calc_verify = ssl_calc_verify_tls_sha256;
-        handshake->calc_finished = ssl_calc_finished_tls_sha256;
-    }
-    else
-#endif
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    /*
      * SSLv3:
      *   master =
      *     MD5( premaster + SHA1( 'A'   + premaster + randbytes ) ) +
@@ -1148,8 +1101,71 @@ static int ssl_populate_transform( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+static int ssl_set_handshake_prfs( mbedtls_ssl_context *ssl )
+{
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    ciphersuite_info = handshake->ciphersuite_info;
+
+    /*
+     * Set appropriate PRF function and other SSL / TLS / TLS1.2 functions
+     */
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+    {
+        handshake->tls_prf = ssl3_prf;
+        handshake->calc_verify = ssl_calc_verify_ssl;
+        handshake->calc_finished = ssl_calc_finished_ssl;
+    }
+    else
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
+    if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+        handshake->tls_prf = tls1_prf;
+        handshake->calc_verify = ssl_calc_verify_tls;
+        handshake->calc_finished = ssl_calc_finished_tls;
+    }
+    else
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA512_C)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+    {
+        handshake->tls_prf = tls_prf_sha384;
+        handshake->calc_verify = ssl_calc_verify_tls_sha384;
+        handshake->calc_finished = ssl_calc_finished_tls_sha384;
+    }
+    else
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+        handshake->tls_prf = tls_prf_sha256;
+        handshake->calc_verify = ssl_calc_verify_tls_sha256;
+        handshake->calc_finished = ssl_calc_finished_tls_sha256;
+    }
+    else
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    return( 0 );
+}
+
+
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
+    int ret;
+
+    ret = ssl_set_handshake_prfs( ssl );
+    if( ret != 0 )
+        return( ret );
+
     return( ssl_populate_transform( ssl ) );
 }
 

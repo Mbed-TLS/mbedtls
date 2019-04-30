@@ -607,7 +607,13 @@ static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
+/*
+ * This function will ultimetaly only be responsible for populating a
+ * transform structure from data passed as explicit parameters.
+ *
+ * For now however it's doing rather more in a rather less explicit way.
+ */
+static int ssl_populate_transform( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     unsigned char tmp[64];
@@ -1140,6 +1146,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
 
     return( 0 );
+}
+
+int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
+{
+    return( ssl_populate_transform( ssl ) );
 }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)

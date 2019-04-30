@@ -2115,6 +2115,10 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
  *                 negotiate with the server during handshake)
  *                 (Default: #MBEDTLS_SSL_MAX_FRAG_LEN_NONE)
  *
+ * \note           With TLS, this currently only affects ApplicationData (sent
+ *                 with \c mbedtls_ssl_read()), not handshake messages.
+ *                 With DTLS, this affects both ApplicationData and handshake.
+ *
  * \note           On the client side, the maximum fragment length extension
  *                 *will not* be used, unless the maximum fragment length has
  *                 been set via this function to a value different than

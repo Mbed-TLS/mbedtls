@@ -725,11 +725,14 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     if( ssl->handshake->cid_in_use == MBEDTLS_SSL_CID_ENABLED )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Copy CIDs into SSL transform" ) );
-        transform->in_cid_len = ssl->own_cid_len;
-        transform->out_cid_len = ssl->handshake->peer_cid_len;
-        memcpy( transform->in_cid, ssl->own_cid, ssl->own_cid_len );
-        memcpy( transform->out_cid, ssl->handshake->peer_cid,
-                ssl->handshake->peer_cid_len );
+
+        /* Uncomment this once CID-parsing and support for a change
+         * record content type during record decryption are added. */
+        /* transform->in_cid_len = ssl->own_cid_len; */
+        /* transform->out_cid_len = ssl->handshake->peer_cid_len; */
+        /* memcpy( transform->in_cid, ssl->own_cid, ssl->own_cid_len ); */
+        /* memcpy( transform->out_cid, ssl->handshake->peer_cid, */
+        /*         ssl->handshake->peer_cid_len ); */
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "Outgoing CID", transform->out_cid,
                                transform->out_cid_len );

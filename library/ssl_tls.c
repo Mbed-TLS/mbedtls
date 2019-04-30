@@ -977,7 +977,13 @@ int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
     return( tls_prf( secret, slen, label, random, rlen, dstbuf, dlen ) );
 }
 
-int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
+/*
+ * This function will ultimetaly only be responsible for populating a
+ * transform structure from data passed as explicit parameters.
+ *
+ * For now however it's doing rather more in a rather less explicit way.
+ */
+static int ssl_populate_transform( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1690,6 +1696,11 @@ end:
     mbedtls_platform_zeroize( handshake->randbytes,
                               sizeof( handshake->randbytes ) );
     return( ret );
+}
+
+int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
+{
+    return( ssl_populate_transform( ssl ) );
 }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)

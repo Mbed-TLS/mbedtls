@@ -1030,6 +1030,21 @@ component_test_no_64bit_multiplication () {
     make test
 }
 
+component_build_uecc_baremetal_cmake () {
+    msg "build: uecc baremetal native, cmake"
+    scripts/config.pl baremetal
+    scripts/config.pl set MBEDTLS_USE_UECC
+    CC=gcc cmake .
+    make
+}
+
+component_build_uecc_baremetal_make () {
+    msg "build: uecc baremetal native, make"
+    scripts/config.pl baremetal
+    scripts/config.pl set MBEDTLS_USE_UECC
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+}
+
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
     scripts/config.pl full

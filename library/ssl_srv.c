@@ -2142,7 +2142,7 @@ static void ssl_write_truncated_hmac_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+#if defined(MBEDTLS_SSL_CID)
 static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
                                unsigned char *buf,
                                size_t *olen )
@@ -2188,7 +2188,7 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
 
     *olen = ssl->own_cid_len + 5;
 }
-#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
+#endif /* MBEDTLS_SSL_CID */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,

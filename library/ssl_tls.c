@@ -1628,7 +1628,7 @@ static int ssl_cid_parse_inner_plaintext( unsigned char const *content,
 }
 #endif /* MBEDTLS_SSL_CID */
 
-/* add_data must have size ( 13 + SSL_CID_LEN_MAX ) Bytes */
+/* add_data must have size ( 13 + MBEDTLS_SSL_CID_LEN_MAX ) Bytes */
 static void ssl_extract_add_data_from_record( unsigned char* add_data,
                                               size_t *add_data_len,
                                               mbedtls_record *rec )
@@ -1674,7 +1674,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     mbedtls_cipher_mode_t mode;
     int auth_done = 0;
     unsigned char * data;
-    unsigned char add_data[13 + SSL_CID_LEN_MAX ];
+    unsigned char add_data[13 + MBEDTLS_SSL_CID_LEN_MAX ];
     size_t add_data_len;
     size_t post_avail;
 
@@ -2111,7 +2111,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
     size_t padlen = 0, correct = 1;
 #endif
     unsigned char* data;
-    unsigned char add_data[13 + SSL_CID_LEN_MAX ];
+    unsigned char add_data[13 + MBEDTLS_SSL_CID_LEN_MAX ];
     size_t add_data_len;
 
 #if !defined(MBEDTLS_DEBUG_C)

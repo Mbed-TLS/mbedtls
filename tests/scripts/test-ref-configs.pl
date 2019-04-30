@@ -17,15 +17,7 @@ use warnings;
 use strict;
 
 my %configs = (
-    'config-default.h' => {
-    },
-    'config-mini-tls1_1.h' => {
-    },
     'config-suite-b.h' => {
-    },
-    'config-ccm-psk-tls1_2.h' => {
-    },
-    'config-thread.h' => {
     },
 );
 

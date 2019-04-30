@@ -137,10 +137,6 @@
 #include "mbedtls/md5.h"
 #endif
 
-#if defined(MBEDTLS_NET_C)
-#include "mbedtls/net_sockets.h"
-#endif
-
 #if defined(MBEDTLS_OID_C)
 #include "mbedtls/oid.h"
 #endif
@@ -193,16 +189,8 @@
 #include "mbedtls/sha512.h"
 #endif
 
-#if defined(MBEDTLS_SSL_TLS_C)
-#include "mbedtls/ssl.h"
-#endif
-
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
-#endif
-
-#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
-#include "mbedtls/x509.h"
 #endif
 
 #if defined(MBEDTLS_XTEA_C)
@@ -410,165 +398,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_RSA_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - RSA hardware accelerator failed" );
 #endif /* MBEDTLS_RSA_C */
-
-#if defined(MBEDTLS_SSL_TLS_C)
-        if( use_ret == -(MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE) )
-            mbedtls_snprintf( buf, buflen, "SSL - The requested feature is not available" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_INPUT_DATA) )
-            mbedtls_snprintf( buf, buflen, "SSL - Bad input parameters to function" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_INVALID_MAC) )
-            mbedtls_snprintf( buf, buflen, "SSL - Verification of the message MAC failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_INVALID_RECORD) )
-            mbedtls_snprintf( buf, buflen, "SSL - An invalid SSL record was received" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_CONN_EOF) )
-            mbedtls_snprintf( buf, buflen, "SSL - The connection indicated an EOF" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_UNKNOWN_CIPHER) )
-            mbedtls_snprintf( buf, buflen, "SSL - An unknown cipher was received" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN) )
-            mbedtls_snprintf( buf, buflen, "SSL - The server has no ciphersuites in common with the client" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_NO_RNG) )
-            mbedtls_snprintf( buf, buflen, "SSL - No RNG was provided to the SSL module" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE) )
-            mbedtls_snprintf( buf, buflen, "SSL - No client certification received from the client, but required by the authentication mode" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE) )
-            mbedtls_snprintf( buf, buflen, "SSL - Our own certificate(s) is/are too large to send in an SSL message" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED) )
-            mbedtls_snprintf( buf, buflen, "SSL - The own certificate is not set, but needed by the server" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED) )
-            mbedtls_snprintf( buf, buflen, "SSL - The own private key or pre-shared key is not set, but needed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED) )
-            mbedtls_snprintf( buf, buflen, "SSL - No CA Chain is set, but required to operate" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE) )
-            mbedtls_snprintf( buf, buflen, "SSL - An unexpected message was received from our peer" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE) )
-        {
-            mbedtls_snprintf( buf, buflen, "SSL - A fatal alert message was received from our peer" );
-            return;
-        }
-        if( use_ret == -(MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED) )
-            mbedtls_snprintf( buf, buflen, "SSL - Verification of our peer failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) )
-            mbedtls_snprintf( buf, buflen, "SSL - The peer notified us that the connection is going to be closed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the ClientHello handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the ServerHello handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the Certificate handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the CertificateRequest handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the ServerKeyExchange handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the ServerHelloDone handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Read Public" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Calculate Secret" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the CertificateVerify handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the ChangeCipherSpec handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_FINISHED) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the Finished handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_ALLOC_FAILED) )
-            mbedtls_snprintf( buf, buflen, "SSL - Memory allocation failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_HW_ACCEL_FAILED) )
-            mbedtls_snprintf( buf, buflen, "SSL - Hardware acceleration function returned with error" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH) )
-            mbedtls_snprintf( buf, buflen, "SSL - Hardware acceleration function skipped / left alone data" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_COMPRESSION_FAILED) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the compression / decompression failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION) )
-            mbedtls_snprintf( buf, buflen, "SSL - Handshake protocol not within min/max boundaries" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET) )
-            mbedtls_snprintf( buf, buflen, "SSL - Processing of the NewSessionTicket handshake message failed" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED) )
-            mbedtls_snprintf( buf, buflen, "SSL - Session ticket has expired" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH) )
-            mbedtls_snprintf( buf, buflen, "SSL - Public key type mismatch (eg, asked for RSA key exchange and presented EC key)" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY) )
-            mbedtls_snprintf( buf, buflen, "SSL - Unknown identity received (eg, PSK identity)" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_INTERNAL_ERROR) )
-            mbedtls_snprintf( buf, buflen, "SSL - Internal error (eg, unexpected failure in lower-level module)" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_COUNTER_WRAPPING) )
-            mbedtls_snprintf( buf, buflen, "SSL - A counter would wrap (eg, too many messages exchanged)" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO) )
-            mbedtls_snprintf( buf, buflen, "SSL - Unexpected message at ServerHello in renegotiation" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED) )
-            mbedtls_snprintf( buf, buflen, "SSL - DTLS client must retry for hello verification" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL) )
-            mbedtls_snprintf( buf, buflen, "SSL - A buffer is too small to receive or write a message" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE) )
-            mbedtls_snprintf( buf, buflen, "SSL - None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages)" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_WANT_READ) )
-            mbedtls_snprintf( buf, buflen, "SSL - No data of requested type currently available on underlying transport" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_WANT_WRITE) )
-            mbedtls_snprintf( buf, buflen, "SSL - Connection requires a write call" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_TIMEOUT) )
-            mbedtls_snprintf( buf, buflen, "SSL - The operation timed out" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_CLIENT_RECONNECT) )
-            mbedtls_snprintf( buf, buflen, "SSL - The client initiated a reconnect from the same port" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_UNEXPECTED_RECORD) )
-            mbedtls_snprintf( buf, buflen, "SSL - Record header looks valid but is not expected" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_NON_FATAL) )
-            mbedtls_snprintf( buf, buflen, "SSL - The alert message received indicates a non-fatal error" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH) )
-            mbedtls_snprintf( buf, buflen, "SSL - Couldn't set the hash for verifying CertificateVerify" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_CONTINUE_PROCESSING) )
-            mbedtls_snprintf( buf, buflen, "SSL - Internal-only message signaling that further message-processing should be done" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS) )
-            mbedtls_snprintf( buf, buflen, "SSL - The asynchronous operation is not completed yet" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_EARLY_MESSAGE) )
-            mbedtls_snprintf( buf, buflen, "SSL - Internal-only message signaling that a message arrived early" );
-        if( use_ret == -(MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) )
-            mbedtls_snprintf( buf, buflen, "SSL - A cryptographic operation is in progress. Try again later" );
-#endif /* MBEDTLS_SSL_TLS_C */
-
-#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
-        if( use_ret == -(MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) )
-            mbedtls_snprintf( buf, buflen, "X509 - Unavailable feature, e.g. RSA hashing/encryption combination" );
-        if( use_ret == -(MBEDTLS_ERR_X509_UNKNOWN_OID) )
-            mbedtls_snprintf( buf, buflen, "X509 - Requested OID is unknown" );
-        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_FORMAT) )
-            mbedtls_snprintf( buf, buflen, "X509 - The CRT/CRL/CSR format is invalid, e.g. different type expected" );
-        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_VERSION) )
-            mbedtls_snprintf( buf, buflen, "X509 - The CRT/CRL/CSR version element is invalid" );
-        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_SERIAL) )
-            mbedtls_snprintf( buf, buflen, "X509 - The serial tag or value is invalid" );
-        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_ALG) )
-            mbedtls_snprintf( buf, buflen, "X509 - The algorithm tag or value is invalid" );
-        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_NAME) )
-            mbedtls_snprintf( buf, buflen, "X509 - The name tag or value is invalid" );
-        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_DATE) )
-            mbedtls_snprintf( buf, buflen, "X509 - The date tag or value is invalid" );
-        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_SIGNATURE) )
-            mbedtls_snprintf( buf, buflen, "X509 - The signature tag or value invalid" );
-        if( use_ret == -(MBEDTLS_ERR_X509_INVALID_EXTENSIONS) )
-            mbedtls_snprintf( buf, buflen, "X509 - The extension tag or value is invalid" );
-        if( use_ret == -(MBEDTLS_ERR_X509_UNKNOWN_VERSION) )
-            mbedtls_snprintf( buf, buflen, "X509 - CRT/CRL/CSR has an unsupported version number" );
-        if( use_ret == -(MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG) )
-            mbedtls_snprintf( buf, buflen, "X509 - Signature algorithm (oid) is unsupported" );
-        if( use_ret == -(MBEDTLS_ERR_X509_SIG_MISMATCH) )
-            mbedtls_snprintf( buf, buflen, "X509 - Signature algorithms do not match. (see \\c ::mbedtls_x509_crt sig_oid)" );
-        if( use_ret == -(MBEDTLS_ERR_X509_CERT_VERIFY_FAILED) )
-            mbedtls_snprintf( buf, buflen, "X509 - Certificate verification failed, e.g. CRL, CA or signature check failed" );
-        if( use_ret == -(MBEDTLS_ERR_X509_CERT_UNKNOWN_FORMAT) )
-            mbedtls_snprintf( buf, buflen, "X509 - Format not recognized as DER or PEM" );
-        if( use_ret == -(MBEDTLS_ERR_X509_BAD_INPUT_DATA) )
-            mbedtls_snprintf( buf, buflen, "X509 - Input invalid" );
-        if( use_ret == -(MBEDTLS_ERR_X509_ALLOC_FAILED) )
-            mbedtls_snprintf( buf, buflen, "X509 - Allocation of memory failed" );
-        if( use_ret == -(MBEDTLS_ERR_X509_FILE_IO_ERROR) )
-            mbedtls_snprintf( buf, buflen, "X509 - Read/write of file failed" );
-        if( use_ret == -(MBEDTLS_ERR_X509_BUFFER_TOO_SMALL) )
-            mbedtls_snprintf( buf, buflen, "X509 - Destination buffer is too small" );
-        if( use_ret == -(MBEDTLS_ERR_X509_FATAL_ERROR) )
-            mbedtls_snprintf( buf, buflen, "X509 - A fatal error occurred, eg the chain is too long or the vrfy callback failed" );
-#endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */
         // END generated code
 
         if( strlen( buf ) == 0 )
@@ -789,35 +618,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_MD5_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "MD5 - MD5 hardware accelerator failed" );
 #endif /* MBEDTLS_MD5_C */
-
-#if defined(MBEDTLS_NET_C)
-    if( use_ret == -(MBEDTLS_ERR_NET_SOCKET_FAILED) )
-        mbedtls_snprintf( buf, buflen, "NET - Failed to open a socket" );
-    if( use_ret == -(MBEDTLS_ERR_NET_CONNECT_FAILED) )
-        mbedtls_snprintf( buf, buflen, "NET - The connection to the given server / port failed" );
-    if( use_ret == -(MBEDTLS_ERR_NET_BIND_FAILED) )
-        mbedtls_snprintf( buf, buflen, "NET - Binding of the socket failed" );
-    if( use_ret == -(MBEDTLS_ERR_NET_LISTEN_FAILED) )
-        mbedtls_snprintf( buf, buflen, "NET - Could not listen on the socket" );
-    if( use_ret == -(MBEDTLS_ERR_NET_ACCEPT_FAILED) )
-        mbedtls_snprintf( buf, buflen, "NET - Could not accept the incoming connection" );
-    if( use_ret == -(MBEDTLS_ERR_NET_RECV_FAILED) )
-        mbedtls_snprintf( buf, buflen, "NET - Reading information from the socket failed" );
-    if( use_ret == -(MBEDTLS_ERR_NET_SEND_FAILED) )
-        mbedtls_snprintf( buf, buflen, "NET - Sending information through the socket failed" );
-    if( use_ret == -(MBEDTLS_ERR_NET_CONN_RESET) )
-        mbedtls_snprintf( buf, buflen, "NET - Connection was reset by peer" );
-    if( use_ret == -(MBEDTLS_ERR_NET_UNKNOWN_HOST) )
-        mbedtls_snprintf( buf, buflen, "NET - Failed to get an IP address for the given hostname" );
-    if( use_ret == -(MBEDTLS_ERR_NET_BUFFER_TOO_SMALL) )
-        mbedtls_snprintf( buf, buflen, "NET - Buffer is too small to hold the data" );
-    if( use_ret == -(MBEDTLS_ERR_NET_INVALID_CONTEXT) )
-        mbedtls_snprintf( buf, buflen, "NET - The context is invalid, eg because it was free()ed" );
-    if( use_ret == -(MBEDTLS_ERR_NET_POLL_FAILED) )
-        mbedtls_snprintf( buf, buflen, "NET - Polling the net context failed" );
-    if( use_ret == -(MBEDTLS_ERR_NET_BAD_INPUT_DATA) )
-        mbedtls_snprintf( buf, buflen, "NET - Input invalid" );
-#endif /* MBEDTLS_NET_C */
 
 #if defined(MBEDTLS_OID_C)
     if( use_ret == -(MBEDTLS_ERR_OID_NOT_FOUND) )

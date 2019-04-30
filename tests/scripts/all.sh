@@ -1126,7 +1126,7 @@ component_build_armcc () {
 }
 
 component_build_armcc_uecc_baremetal () {
-    msg"build: ARM Compiler 5, make with uecc and baremetal"
+    msg "build: ARM Compiler 5, make with uecc and baremetal"
     scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_USE_UECC
 

@@ -136,7 +136,9 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
     }
 
     memcpy( ssl->own_cid, own_cid, own_cid_len );
-    ssl->own_cid_len = own_cid_len;
+    /* Truncation is not an issue here because
+     * MBEDTLS_SSL_CID_IN_LEN_MAX at most 255. */
+    ssl->own_cid_len = (uint8_t) own_cid_len;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "Own CID", own_cid, own_cid_len );
     return( 0 );

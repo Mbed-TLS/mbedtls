@@ -7,6 +7,8 @@ Features
      rfc 5280 section 4.2.1.4.
    * It is now possible to use NIST key wrap mode via the mbedtls_cipher API.
      Contributed by Jack Lloyd and Fortanix Inc.
+   * It is now possible to perform RSA PKCS v1.5 signatures with RIPEMD-160 digest.
+     Contributed by Jack Lloyd and Fortanix Inc.
    * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
    * Add the oid certificate policy x509 extension.
 

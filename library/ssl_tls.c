@@ -1652,14 +1652,12 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
 
 #if defined(MBEDTLS_SSL_CID)
     memcpy( add_data + 11, rec->cid, rec->cid_len );
-#endif /* MBEDTLS_SSL_CID */
-
     add_data[11 + rec->cid_len + 0] = ( rec->data_len >> 8 ) & 0xFF;
     add_data[11 + rec->cid_len + 1] = ( rec->data_len >> 0 ) & 0xFF;
-
-#if defined(MBEDTLS_SSL_CID)
     *add_data_len = 13 + rec->cid_len;
-#else
+#else /* MBEDTLS_SSL_CID */
+    add_data[11 + 0] = ( rec->data_len >> 8 ) & 0xFF;
+    add_data[11 + 1] = ( rec->data_len >> 0 ) & 0xFF;
     *add_data_len = 13;
 #endif /* MBEDTLS_SSL_CID */
 }
@@ -1700,11 +1698,14 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "no transform provided to encrypt_buf" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    if( rec == NULL                     ||
-        rec->buf == NULL                ||
-        rec->buf_len < rec->data_offset ||
-        rec->buf_len - rec->data_offset < rec->data_len ||
-        rec->cid_len != 0 )
+    if( rec == NULL
+        || rec->buf == NULL
+        || rec->buf_len < rec->data_offset
+        || rec->buf_len - rec->data_offset < rec->data_len
+#if defined(MBEDTLS_SSL_CID)
+        || rec->cid_len != 0
+#endif
+        )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad record structure provided to encrypt_buf" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -3727,7 +3728,10 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
                                        ssl->conf->transport, rec.ver );
             rec.type = ssl->out_msgtype;
 
+#if defined(MBEDTLS_SSL_CID)
+            /* The CID is set by mbedtls_ssl_encrypt_buf(). */
             rec.cid_len = 0;
+#endif /* MBEDTLS_SSL_CID */
 
             if( ( ret = mbedtls_ssl_encrypt_buf( ssl, ssl->transform_out, &rec,
                                          ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )

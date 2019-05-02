@@ -2263,7 +2263,8 @@
  *          tinycrypt/ecc_dh.c
  *          tinycrypt/ecc_dsa.c
  *
- * This module provides alternative ECC handling functions
+ * This module provides alternative ECC handling functions replacing
+ * native MBEDTLS ECP module.
  */
 //#define MBEDTLS_USE_UECC
 

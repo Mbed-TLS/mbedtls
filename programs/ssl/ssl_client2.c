@@ -116,7 +116,7 @@ int main( void )
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
 
-#define GET_REQUEST "GET %s HTTP/1.0\r\nHost: %s\r\nConnection: keep-alive\r\nExtra-header: "
+#define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -597,7 +597,7 @@ int main( int argc, char *argv[] )
     memset( (void * ) alpn_list, 0, sizeof( alpn_list ) );
 #endif
 
-    if( argc <= 1 )
+    if( argc == 0 )
     {
     usage:
         if( ret == 0 )
@@ -1737,7 +1737,7 @@ send_request:
     fflush( stdout );
 
     len = mbedtls_snprintf( (char *) buf, sizeof( buf ) - 1, GET_REQUEST,
-                            opt.request_page, opt.server_name );
+                            opt.request_page );
     tail_len = (int) strlen( GET_REQUEST_END );
 
     /* Add padding to GET request to reach opt.request_size in length */

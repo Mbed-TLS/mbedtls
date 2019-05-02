@@ -803,23 +803,10 @@ static int x509_get_key_usage( unsigned char **p,
     return( 0 );
 }
 
-/*
- * ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
- *
- * KeyPurposeId ::= OBJECT IDENTIFIER
- */
-static int x509_get_ext_key_usage( unsigned char **p,
-                               const unsigned char *end,
-                               mbedtls_x509_sequence *ext_key_usage)
-{
-    return( mbedtls_asn1_get_sequence_of( p, end, ext_key_usage,
-                                          MBEDTLS_ASN1_OID ) );
-}
-
-static int x509_get_subject_alt_name_cb( void *ctx,
-                                         int tag,
-                                         unsigned char *data,
-                                         size_t data_len )
+static int asn1_build_sequence_cb( void *ctx,
+                                   int tag,
+                                   unsigned char *data,
+                                   size_t data_len )
 {
     mbedtls_asn1_sequence **cur_ptr = (mbedtls_asn1_sequence **) ctx;
     mbedtls_asn1_sequence *cur = *cur_ptr;
@@ -839,6 +826,22 @@ static int x509_get_subject_alt_name_cb( void *ctx,
 
     *cur_ptr = cur;
     return( 0 );
+}
+
+/*
+ * ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
+ *
+ * KeyPurposeId ::= OBJECT IDENTIFIER
+ */
+static int x509_get_ext_key_usage( unsigned char **p,
+                               const unsigned char *end,
+                               mbedtls_x509_sequence *ext_key_usage)
+{
+    return( mbedtls_asn1_traverse_sequence_of( p, end,
+                                               0xFF, MBEDTLS_ASN1_OID,
+                                               0, 0,
+                                               asn1_build_sequence_cb,
+                                               (void*) &ext_key_usage ) );
 }
 
 /*
@@ -876,7 +879,7 @@ static int x509_get_subject_alt_name( unsigned char *p,
                                                MBEDTLS_ASN1_CONTEXT_SPECIFIC,
                                                MBEDTLS_ASN1_TAG_VALUE_MASK,
                                                2 /* SubjectAlt DNS */,
-                                               x509_get_subject_alt_name_cb,
+                                               asn1_build_sequence_cb,
                                                (void*) &subject_alt_name ) );
 }
 

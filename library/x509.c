@@ -539,9 +539,9 @@ static int x509_string_cmp( const mbedtls_x509_buf *a,
 int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
                                mbedtls_x509_buf_raw const *b,
                                int (*abort_check)( void *ctx,
-                                             mbedtls_x509_buf *oid,
-                                             mbedtls_x509_buf *val,
-                                             int next_merged ),
+                                                   mbedtls_x509_buf *oid,
+                                                   mbedtls_x509_buf *val,
+                                                   int next_merged ),
                                void *abort_check_ctx )
 {
     int ret;

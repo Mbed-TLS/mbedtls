@@ -348,6 +348,8 @@ int mbedtls_x509_get_rsassa_pss_params( const mbedtls_x509_buf *params,
  *  AttributeType ::= OBJECT IDENTIFIER
  *
  *  AttributeValue ::= ANY DEFINED BY AttributeType
+ *
+ *  NOTE: This function returns an ASN.1 low-level error code.
  */
 static int x509_get_attr_type_value( unsigned char **p,
                                      const unsigned char *end,
@@ -423,6 +425,8 @@ exit:
  * For the general case we still use a flat list, but we mark elements of the
  * same set so that they are "merged" together in the functions that consume
  * this list, eg mbedtls_x509_dn_gets().
+ *
+ * NOTE: This function returns an ASN.1 low-level error code.
  */
 static int x509_set_sequence_iterate( unsigned char **p,
                                       unsigned char const **end_set,
@@ -445,6 +449,7 @@ static int x509_set_sequence_iterate( unsigned char **p,
         *end_set = *p + set_len;
     }
 
+    /* x509_get_attr_type_value() returns ASN.1 low-level error codes. */
     ret = x509_get_attr_type_value( p, *end_set, oid, val );
 
 exit:

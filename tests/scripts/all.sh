@@ -1032,7 +1032,6 @@ component_test_no_64bit_multiplication () {
 
 component_build_uecc_baremetal_cmake () {
     msg "build: uecc baremetal native, cmake"
-    scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_USE_UECC
     CC=gcc cmake .
     make
@@ -1040,9 +1039,8 @@ component_build_uecc_baremetal_cmake () {
 
 component_build_uecc_baremetal_make () {
     msg "build: uecc baremetal native, make"
-    scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_USE_UECC
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+    make CC=gcc CFLAGS='-Werror -O1'
 }
 
 component_build_arm_none_eabi_gcc () {

@@ -38,6 +38,7 @@
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
 
 #include "mbedtls/x509_crl.h"
+#include "mbedtls/x509_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 

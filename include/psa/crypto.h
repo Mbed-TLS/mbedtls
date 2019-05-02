@@ -183,8 +183,10 @@ psa_status_t psa_crypto_init(void);
  *    with psa_generator_import_key(), set the desired key size with
  *    psa_set_key_bits().
  * -# Call a key creation function: psa_import_key(), psa_generate_key(),
- *    psa_generator_import_key() or psa_copy_key().
- * -# The attribute structure is no longer necessary. If you called
+ *    psa_generator_import_key() or psa_copy_key(). This function reads
+ *    the attribute structure, creates a key with these attributes, and
+ *    outputs a handle to the newly created key.
+ * -# The attribute structure is now no longer necessary. If you called
  *    psa_set_key_domain_parameters() earlier, you must call
  *    psa_reset_key_attributes() to free any resources used by the
  *    domain parameters. Otherwise calling psa_reset_key_attributes()

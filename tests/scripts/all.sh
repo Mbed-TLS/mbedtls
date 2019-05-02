@@ -1030,15 +1030,15 @@ component_test_no_64bit_multiplication () {
     make test
 }
 
-component_build_uecc_baremetal_cmake () {
-    msg "build: uecc baremetal native, cmake"
+component_build_uecc_cmake () {
+    msg "build: uecc native, cmake"
     scripts/config.pl set MBEDTLS_USE_UECC
     CC=gcc cmake .
     make
 }
 
-component_build_uecc_baremetal_make () {
-    msg "build: uecc baremetal native, make"
+component_build_uecc_make () {
+    msg "build: uecc native, make"
     scripts/config.pl set MBEDTLS_USE_UECC
     make CC=gcc CFLAGS='-Werror -O1'
 }

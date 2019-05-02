@@ -813,6 +813,31 @@ static int x509_get_key_usage( unsigned char **p,
     return( 0 );
 }
 
+static int asn1_build_sequence_cb( void *ctx,
+                                   int tag,
+                                   unsigned char *data,
+                                   size_t data_len )
+{
+    mbedtls_asn1_sequence **cur_ptr = (mbedtls_asn1_sequence **) ctx;
+    mbedtls_asn1_sequence *cur = *cur_ptr;
+
+    /* Allocate and assign next pointer */
+    if( cur->buf.p != NULL )
+    {
+        cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
+        if( cur->next == NULL )
+            return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+        cur = cur->next;
+    }
+
+    cur->buf.tag = tag;
+    cur->buf.p = data;
+    cur->buf.len = data_len;
+
+    *cur_ptr = cur;
+    return( 0 );
+}
+
 /*
  * ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
  *
@@ -822,8 +847,11 @@ static int x509_get_ext_key_usage( unsigned char **p,
                                const unsigned char *end,
                                mbedtls_x509_sequence *ext_key_usage)
 {
-    return( mbedtls_asn1_get_sequence_of( p, end, ext_key_usage,
-                                          MBEDTLS_ASN1_OID ) );
+    return( mbedtls_asn1_traverse_sequence_of( p, end,
+                                               0xFF, MBEDTLS_ASN1_OID,
+                                               0, 0,
+                                               asn1_build_sequence_cb,
+                                               (void*) &ext_key_usage ) );
 }
 
 /*
@@ -881,42 +909,6 @@ static int x509_parse_subject_alt_name_cb( void *ctx,
     return( ret );
 }
 
-static int x509_get_subject_alt_name_cb( void *ctx,
-                                         int tag,
-                                         unsigned char *data,
-                                         size_t data_len )
-{
-    int ret;
-    mbedtls_x509_subject_alternative_name dummy_san_buf = { 0 };
-    mbedtls_asn1_sequence **cur_ptr = (mbedtls_asn1_sequence **) ctx;
-    mbedtls_asn1_sequence *cur = *cur_ptr;
-
-    mbedtls_x509_buf tmp_san_buf;
-    tmp_san_buf.p = data;
-    tmp_san_buf.len = data_len;
-    tmp_san_buf.tag = tag;
-
-    /*
-     * Check that the SAN are structured correctly.
-     */
-    ret = mbedtls_x509_parse_subject_alt_name( &tmp_san_buf, &dummy_san_buf );
-    if( ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
-        return( ret );
-
-    /* Allocate and assign next pointer */
-    if( cur->buf.p != NULL )
-    {
-        cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
-        if( cur->next == NULL )
-            return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
-        cur = cur->next;
-    }
-
-    cur->buf = tmp_san_buf;
-    *cur_ptr = cur;
-    return( 0 );
-}
-
 static int x509_get_subject_alt_name( unsigned char *p,
                                       const unsigned char *end,
                                       mbedtls_x509_sequence *subject_alt_name )
@@ -925,7 +917,7 @@ static int x509_get_subject_alt_name( unsigned char *p,
                                                MBEDTLS_ASN1_TAG_CLASS_MASK,
                                                MBEDTLS_ASN1_CONTEXT_SPECIFIC,
                                                0, 0,
-                                               x509_get_subject_alt_name_cb,
+                                               asn1_build_sequence_cb,
                                                (void*) &subject_alt_name ) );
 }
 

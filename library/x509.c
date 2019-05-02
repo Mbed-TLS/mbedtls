@@ -38,6 +38,7 @@
 #if defined(MBEDTLS_X509_USE_C)
 
 #include "mbedtls/x509.h"
+#include "mbedtls/x509_internal.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/oid.h"
 

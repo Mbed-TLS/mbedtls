@@ -38,6 +38,9 @@ Bugfix
      for the parameter.
    * Add a check for MBEDTLS_X509_CRL_PARSE_C in ssl_server2, guarding the crl
      sni entry parameter. Reported by inestlerode in #560.
+   * Fix bug in endianness conversion in bignum module. This lead to
+     functionally incorrect code on bigendian systems which don't have
+     __BYTE_ORDER__ defined. Reported by Brendan Shanks. Fixes #2622.
 
 Changes
    * Return from various debugging routines immediately if the

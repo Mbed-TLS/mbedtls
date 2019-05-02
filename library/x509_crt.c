@@ -816,6 +816,31 @@ static int x509_get_ext_key_usage( unsigned char **p,
                                           MBEDTLS_ASN1_OID ) );
 }
 
+static int x509_get_subject_alt_name_cb( void *ctx,
+                                         int tag,
+                                         unsigned char *data,
+                                         size_t data_len )
+{
+    mbedtls_asn1_sequence **cur_ptr = (mbedtls_asn1_sequence **) ctx;
+    mbedtls_asn1_sequence *cur = *cur_ptr;
+
+    /* Allocate and assign next pointer */
+    if( cur->buf.p != NULL )
+    {
+        cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
+        if( cur->next == NULL )
+            return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+        cur = cur->next;
+    }
+
+    cur->buf.tag = tag;
+    cur->buf.p = data;
+    cur->buf.len = data_len;
+
+    *cur_ptr = cur;
+    return( 0 );
+}
+
 /*
  * SubjectAltName ::= GeneralNames
  *
@@ -842,31 +867,6 @@ static int x509_get_ext_key_usage( unsigned char **p,
  *
  * NOTE: we only parse and use dNSName at this point.
  */
-static int x509_get_subject_alt_name_cb( void *ctx,
-                                         int tag,
-                                         unsigned char *data,
-                                         size_t data_len )
-{
-    mbedtls_asn1_sequence **cur_ptr = (mbedtls_asn1_sequence **) ctx;
-    mbedtls_asn1_sequence *cur = *cur_ptr;
-
-    /* Allocate and assign next pointer */
-    if( cur->buf.p != NULL )
-    {
-        cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
-        if( cur->next == NULL )
-            return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
-        cur = cur->next;
-    }
-
-    cur->buf.tag = tag;
-    cur->buf.p = data;
-    cur->buf.len = data_len;
-
-    *cur_ptr = cur;
-    return( 0 );
-}
-
 static int x509_get_subject_alt_name( unsigned char *p,
                                       const unsigned char *end,
                                       mbedtls_x509_sequence *subject_alt_name )

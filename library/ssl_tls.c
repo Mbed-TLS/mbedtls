@@ -3096,7 +3096,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
     while( ssl->out_left > 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "message length: %d, out_left: %d",
-                       mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen, ssl->out_left ) );
+                       mbedtls_ssl_out_hdr_len( ssl ) + ssl->out_msglen, ssl->out_left ) );
 
         buf = ssl->out_hdr - ssl->out_left;
         ret = ssl->f_send( ssl->p_bio, buf, ssl->out_left );
@@ -3748,7 +3748,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             ssl->out_len[1] = (unsigned char)( rec.data_len      );
         }
 
-        protected_record_size = len + mbedtls_ssl_hdr_len( ssl );
+        protected_record_size = len + mbedtls_ssl_out_hdr_len( ssl );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* In case of DTLS, double-check that we don't exceed
@@ -4407,7 +4407,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 {
     int major_ver, minor_ver;
 
-    MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, mbedtls_ssl_hdr_len( ssl ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, mbedtls_ssl_in_hdr_len( ssl ) );
 
     ssl->in_msgtype =  ssl->in_hdr[0];
     ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
@@ -4576,7 +4576,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
     int ret, done = 0;
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "input record from network",
-                   ssl->in_hdr, mbedtls_ssl_hdr_len( ssl ) + ssl->in_msglen );
+                   ssl->in_hdr, mbedtls_ssl_in_hdr_len( ssl ) + ssl->in_msglen );
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_read != NULL )
@@ -5384,7 +5384,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         return( ret );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_hdr_len( ssl ) ) ) != 0 )
+    if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_in_hdr_len( ssl ) ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
         return( ret );
@@ -5410,7 +5410,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
             {
                 /* Skip unexpected record (but not whole datagram) */
                 ssl->next_record_offset = ssl->in_msglen
-                                        + mbedtls_ssl_hdr_len( ssl );
+                                        + mbedtls_ssl_in_hdr_len( ssl );
 
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "discarding unexpected record "
                                             "(header)" ) );
@@ -5436,7 +5436,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
      * Read and optionally decrypt the message contents
      */
     if( ( ret = mbedtls_ssl_fetch_input( ssl,
-                                 mbedtls_ssl_hdr_len( ssl ) + ssl->in_msglen ) ) != 0 )
+                                 mbedtls_ssl_in_hdr_len( ssl ) + ssl->in_msglen ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
         return( ret );
@@ -5446,7 +5446,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        ssl->next_record_offset = ssl->in_msglen + mbedtls_ssl_hdr_len( ssl );
+        ssl->next_record_offset = ssl->in_msglen + mbedtls_ssl_in_hdr_len( ssl );
         if( ssl->next_record_offset < ssl->in_left )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "more than one record within datagram" ) );
@@ -8320,8 +8320,10 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
     const mbedtls_ssl_transform *transform = ssl->transform_out;
     unsigned block_size;
 
+    size_t out_hdr_len = mbedtls_ssl_out_hdr_len( ssl );
+
     if( transform == NULL )
-        return( (int) mbedtls_ssl_hdr_len( ssl ) );
+        return( (int) out_hdr_len );
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->session_out->compression != MBEDTLS_SSL_COMPRESS_NULL )
@@ -8364,7 +8366,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    return( (int)( mbedtls_ssl_hdr_len( ssl ) + transform_expansion ) );
+    return( (int)( out_hdr_len + transform_expansion ) );
 }
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)

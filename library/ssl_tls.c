@@ -156,11 +156,10 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
     if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    /* What shall we report if we have exchanged if both client
-     * and server have used the CID extension, but negotiated
-     * empty CIDs? This is indistinguishable from not using the
-     * CID extension in the first place, and we're reporting
-     * MBEDTLS_SSL_CID_DISABLED in this case. */
+    /* We report MBEDTLS_SSL_CID_DISABLED in case the CID extensions
+     * were used, but client and server requested the empty CID.
+     * This is indistinguishable from not using the CID extension
+     * in the first place. */
     if( ssl->transform_in->in_cid_len  == 0 &&
         ssl->transform_in->out_cid_len == 0 )
     {

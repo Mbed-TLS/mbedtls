@@ -1548,6 +1548,13 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
  *                     progress, this function will attempt to complete
  *                     the handshake first.
  *
+ * \note               If CID extensions have been exchanged but both client
+ *                     and server chose to use an empty CID, this function
+ *                     sets `*enabled` to #MBEDTLS_SSL_CID_DISABLED
+ *                     (the rationale for this is that the resulting
+ *                     communication is the same as if the CID extensions
+ *                     hadn't been used).
+ *
  * \return            \c 0 on success.
  * \return            A negative error code on failure.
  */

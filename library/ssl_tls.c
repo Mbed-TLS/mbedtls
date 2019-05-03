@@ -1138,19 +1138,15 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
                                   "extended master secret",
                                   session_hash, hash_len,
                                   master, 48 );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
-            return( ret );
-        }
-
     }
     else
 #endif
-    ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                              "master secret",
-                              handshake->randbytes, 64,
-                              master, 48 );
+    {
+        ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
+                                  "master secret",
+                                  handshake->randbytes, 64,
+                                  master, 48 );
+    }
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );

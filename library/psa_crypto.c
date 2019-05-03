@@ -1480,6 +1480,58 @@ static void psa_fail_key_creation( psa_key_slot_t *slot )
     psa_wipe_key_slot( slot );
 }
 
+static psa_status_t psa_check_key_slot_attributes(
+    const psa_key_slot_t *slot,
+    const psa_key_attributes_t *attributes )
+{
+    if( attributes->type != 0 )
+    {
+        if( attributes->type != slot->type )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    if( attributes->domain_parameters_size != 0 )
+    {
+#if defined(MBEDTLS_RSA_C)
+        if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
+        {
+            mbedtls_mpi actual, required;
+            int ret;
+            mbedtls_mpi_init( &actual );
+            mbedtls_mpi_init( &required );
+            ret = mbedtls_rsa_export( slot->data.rsa,
+                                      NULL, NULL, NULL, NULL, &actual );
+            if( ret != 0 )
+                goto rsa_exit;
+            ret = mbedtls_mpi_read_binary( &required,
+                                           attributes->domain_parameters,
+                                           attributes->domain_parameters_size );
+            if( ret != 0 )
+                goto rsa_exit;
+            if( mbedtls_mpi_cmp_mpi( &actual, &required ) != 0 )
+                ret = MBEDTLS_ERR_RSA_BAD_INPUT_DATA;
+        rsa_exit:
+            mbedtls_mpi_free( &actual );
+            mbedtls_mpi_free( &required );
+            if( ret != 0)
+                return( mbedtls_to_psa_error( ret ) );
+        }
+        else
+#endif
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
+    }
+
+    if( attributes->bits != 0 )
+    {
+        if( attributes->bits != psa_get_key_slot_bits( slot ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    return( PSA_SUCCESS );
+}
+
 psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
                              psa_key_handle_t *handle,
                              const uint8_t *data,
@@ -1487,13 +1539,20 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
+
     status = psa_start_key_creation( attributes, handle, &slot );
-    if( status == PSA_SUCCESS )
-    {
-        status = psa_import_key_into_slot( slot, data, data_length );
-    }
-    if( status == PSA_SUCCESS )
-        status = psa_finish_key_creation( slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_import_key_into_slot( slot, data, data_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = psa_check_key_slot_attributes( slot, attributes );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_finish_key_creation( slot );
+exit:
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( slot );
@@ -1575,6 +1634,10 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     if( status != PSA_SUCCESS )
         goto exit;
 
+    status = psa_check_key_slot_attributes( source_slot, specified_attributes );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
     status = psa_restrict_key_policy( &actual_attributes.policy,
                                       &source_slot->policy );
     if( status != PSA_SUCCESS )
@@ -1586,10 +1649,11 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
         goto exit;
 
     status = psa_copy_key_material( source_slot, target_slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
+    status = psa_finish_key_creation( target_slot );
 exit:
-    if( status == PSA_SUCCESS )
-        status = psa_finish_key_creation( target_slot );
     if( status != PSA_SUCCESS )
     {
         psa_fail_key_creation( target_slot );

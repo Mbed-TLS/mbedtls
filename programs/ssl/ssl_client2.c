@@ -105,6 +105,8 @@ int main( void )
 #define DFL_RECO_DELAY          0
 #define DFL_CID_ENABLED         0
 #define DFL_CID_VALUE           ""
+#define DFL_CID_ENABLED_RENEGO  -1
+#define DFL_CID_VALUE_RENEGO    NULL
 #define DFL_RECONNECT_HARD      0
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
 #define DFL_ALPN_STRING         NULL
@@ -143,8 +145,12 @@ int main( void )
 #define USAGE_CID \
     "    cid=%%d             Disable (0) or enable (1) the use of the DTLS Connection ID extension.\n" \
     "                       default: 0 (disabled)\n"     \
+    "    cid_renego=%%d      Disable (0) or enable (1) the use of the DTLS Connection ID extension during renegotiation.\n" \
+    "                       default: same as 'cid'\n"     \
     "    cid_val=%%s          The CID to use for incoming messages (in hex, without 0x).\n"  \
-    "                        default: \"\"\n"
+    "                        default: \"\"\n" \
+    "    cid_val_renego=%%s   The CID to use for incoming messages (in hex, without 0x) after renegotiation.\n"  \
+    "                        default: same as cid_val\n"
 #else /* MBEDTLS_SSL_CID */
 #define USAGE_CID ""
 #endif /* MBEDTLS_SSL_CID */
@@ -399,7 +405,11 @@ struct options
     int extended_ms;            /* negotiate extended master secret?        */
     int etm;                    /* negotiate encrypt then mac?              */
     int cid_enabled;            /* whether to use the CID extension or not  */
+    int cid_enabled_renego;     /* whether to use the CID extension or not
+                                 * during renegotiation                     */
     const char *cid_val;        /* the CID to use for incoming messages     */
+    const char *cid_val_renego; /* the CID to use for incoming messages
+                                 * after renegotiation                      */
 } opt;
 
 int query_config( const char *config );
@@ -590,6 +600,56 @@ int unhexify( char const *hex, unsigned char *dst )
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_CID)
+int report_cid_usage( mbedtls_ssl_context *ssl,
+                      const char *additional_description )
+{
+    int ret;
+    unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
+    size_t peer_cid_len;
+    int cid_negotiated;
+
+    if( opt.transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        return( 0 );
+
+    /* Check if the use of a CID has been negotiated */
+    ret = mbedtls_ssl_get_peer_cid( ssl, &cid_negotiated,
+                                    peer_cid, &peer_cid_len );
+    if( ret != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
+                        -ret );
+        return( ret );
+    }
+
+    if( cid_negotiated == MBEDTLS_SSL_CID_DISABLED )
+    {
+        if( opt.cid_enabled == MBEDTLS_SSL_CID_ENABLED )
+        {
+            mbedtls_printf( "(%s) Use of Connection ID was rejected by the server.\n",
+                            additional_description );
+        }
+    }
+    else
+    {
+        size_t idx=0;
+        mbedtls_printf( "(%s) Use of Connection ID has been negotiated.\n",
+                        additional_description );
+        mbedtls_printf( "(%s) Peer CID (length %u Bytes): ",
+                        additional_description,
+                        (unsigned) peer_cid_len );
+        while( idx < peer_cid_len )
+        {
+            mbedtls_printf( "%02x ", peer_cid[ idx ] );
+            idx++;
+        }
+        mbedtls_printf( "\n" );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_CID */
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, tail_len, i, written, frags, retry_left;
@@ -604,7 +664,9 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SSL_CID)
     unsigned char cid[MBEDTLS_SSL_CID_IN_LEN_MAX];
+    unsigned char cid_renego[MBEDTLS_SSL_CID_IN_LEN_MAX];
     size_t cid_len = 0;
+    size_t cid_renego_len = 0;
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -682,6 +744,8 @@ int main( int argc, char *argv[] )
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.cid_enabled         = DFL_CID_ENABLED;
     opt.cid_val             = DFL_CID_VALUE;
+    opt.cid_enabled_renego  = DFL_CID_ENABLED_RENEGO;
+    opt.cid_val_renego      = DFL_CID_VALUE_RENEGO;
     opt.nbio                = DFL_NBIO;
     opt.event               = DFL_EVENT;
     opt.read_timeout        = DFL_READ_TIMEOUT;
@@ -798,9 +862,19 @@ int main( int argc, char *argv[] )
             if( opt.cid_enabled != 0 && opt.cid_enabled != 1 )
                 goto usage;
         }
+        else if( strcmp( p, "cid_renego" ) == 0 )
+        {
+            opt.cid_enabled_renego = atoi( q );
+            if( opt.cid_enabled_renego != 0 && opt.cid_enabled_renego != 1 )
+                goto usage;
+        }
         else if( strcmp( p, "cid_val" ) == 0 )
         {
             opt.cid_val = q;
+        }
+        else if( strcmp( p, "cid_val_renego" ) == 0 )
+        {
+            opt.cid_val_renego = q;
         }
 #endif /* MBEDTLS_SSL_CID */
         else if( strcmp( p, "psk" ) == 0 )
@@ -1145,21 +1219,38 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_SSL_CID)
-   if( strlen( opt.cid_val ) )
-   {
-       cid_len = strlen( opt.cid_val ) / 2;
-       if( cid_len > sizeof( cid ) )
-       {
-           mbedtls_printf( "CID too long\n" );
-           goto exit;
-       }
+    cid_len = strlen( opt.cid_val ) / 2;
+    if( cid_len > sizeof( cid ) )
+    {
+        mbedtls_printf( "CID too long\n" );
+        goto exit;
+    }
 
-       if( unhexify( opt.cid_val, cid ) != 0 )
-       {
-           mbedtls_printf( "CID not valid hex\n" );
-           goto exit;
-       }
-   }
+    if( unhexify( opt.cid_val, cid ) != 0 )
+    {
+        mbedtls_printf( "CID not valid hex\n" );
+        goto exit;
+    }
+
+    /* Keep CID settings for renegotiation unless
+     * specified otherwise. */
+    if( opt.cid_enabled_renego == DFL_CID_ENABLED_RENEGO )
+        opt.cid_enabled_renego = opt.cid_enabled;
+    if( opt.cid_val_renego == DFL_CID_VALUE_RENEGO )
+        opt.cid_val_renego = opt.cid_val;
+
+    cid_renego_len = strlen( opt.cid_val_renego ) / 2;
+    if( cid_renego_len > sizeof( cid_renego ) )
+    {
+        mbedtls_printf( "CID too long\n" );
+        goto exit;
+    }
+
+    if( unhexify( opt.cid_val_renego, cid_renego ) != 0 )
+    {
+        mbedtls_printf( "CID not valid hex\n" );
+        goto exit;
+    }
 #endif /* MBEDTLS_SSL_CID */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1447,9 +1538,22 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_CID)
-    if( opt.cid_enabled == 1 )
+    if( opt.cid_enabled == 1 || opt.cid_enabled_renego == 1 )
     {
-        ret = mbedtls_ssl_conf_cid_len( &conf, cid_len );
+        if( opt.cid_enabled == 1        &&
+            opt.cid_enabled_renego == 1 &&
+            cid_len != cid_renego_len )
+        {
+            mbedtls_printf( "CID length must not change during renegotiation\n" );
+            goto usage;
+        }
+
+
+        if( opt.cid_enabled == 1 )
+            ret = mbedtls_ssl_conf_cid_len( &conf, cid_len );
+        else
+            ret = mbedtls_ssl_conf_cid_len( &conf, cid_renego_len );
+
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_cid_len returned %d\n\n",
@@ -1769,41 +1873,19 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_CID)
+    ret = report_cid_usage( &ssl, "initial handshake" );
+    if( ret != 0 )
+        goto exit;
+
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
-        size_t peer_cid_len;
-        int cid_negotiated;
-
-        /* Check if the use of a CID has been negotiated */
-        ret = mbedtls_ssl_get_peer_cid( &ssl, &cid_negotiated,
-                                        peer_cid, &peer_cid_len );
-        if( ret != 0 )
+        if( ( ret = mbedtls_ssl_set_cid( &ssl, opt.cid_enabled_renego,
+                                         cid_renego,
+                                         cid_renego_len ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
-                            -ret );
-            goto exit;
-        }
-
-        if( cid_negotiated == MBEDTLS_SSL_CID_DISABLED )
-        {
-            if( opt.cid_enabled == MBEDTLS_SSL_CID_ENABLED )
-            {
-                mbedtls_printf( "Use of Connection ID was rejected by the server.\n" );
-            }
-        }
-        else
-        {
-            size_t idx=0;
-            mbedtls_printf( "Use of Connection ID has been negotiated.\n" );
-            mbedtls_printf( "Peer CID (length %u Bytes): ",
-                            (unsigned) peer_cid_len );
-            while( idx < peer_cid_len )
-            {
-                mbedtls_printf( "%02x ", peer_cid[ idx ] );
-                idx++;
-            }
-            mbedtls_printf( "\n" );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_cid returned %d\n\n",
+                            ret );
+            return( ret );
         }
     }
 #endif /* MBEDTLS_SSL_CID */
@@ -1847,6 +1929,12 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " ok\n" );
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+#if defined(MBEDTLS_SSL_CID)
+    ret = report_cid_usage( &ssl, "after renegotiation" );
+    if( ret != 0 )
+        goto exit;
+#endif /* MBEDTLS_SSL_CID */
 
     /*
      * 6. Write the GET request

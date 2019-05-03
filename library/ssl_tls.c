@@ -1095,13 +1095,33 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
 
 /*
  * Compute master secret if needed
+ *
+ * Parameters:
+ * [in/out] handshake
+ *          [in] resume, premaster, extended_ms, calc_verify, tls_prf
+ *          [out] premaster (cleared)
+ * [in] minor_ver (to compute hash_len)
+ * [in] hash_alg (to compute hash_len)
+ * [out] master
+ * [in] ssl: optionally used for debugging and calc_verify
  */
-static int ssl_compute_master( mbedtls_ssl_context *ssl )
+static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
+                               int minor_ver,
+                               mbedtls_md_type_t hash_alg,
+                               unsigned char *master,
+                               mbedtls_ssl_context *ssl )
 {
     int ret;
-    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
-    mbedtls_ssl_session *session = ssl->session_negotiate;
+
+#if !defined(MBEDTLS_DEBUG_C) && !defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    (void) ssl;
+#endif
+#if !defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) || !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    (void) minor_ver;
+#if defined(MBEDTLS_SHA512_C)
+    (void) hash_alg;
+#endif
+#endif
 
     if( handshake->resume != 0 )
     {
@@ -1113,20 +1133,20 @@ static int ssl_compute_master( mbedtls_ssl_context *ssl )
                                                   handshake->pmslen );
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
+    if( handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
     {
         unsigned char session_hash[48];
         size_t hash_len;
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
 
-        ssl->handshake->calc_verify( ssl, session_hash );
+        handshake->calc_verify( ssl, session_hash );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
 #if defined(MBEDTLS_SHA512_C)
-            if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+            if( hash_alg == MBEDTLS_MD_SHA384 )
             {
                 hash_len = 48;
             }
@@ -1143,7 +1163,7 @@ static int ssl_compute_master( mbedtls_ssl_context *ssl )
         ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
                                   "extended master secret",
                                   session_hash, hash_len,
-                                  session->master, 48 );
+                                  master, 48 );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
@@ -1156,7 +1176,7 @@ static int ssl_compute_master( mbedtls_ssl_context *ssl )
     ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
                               "master secret",
                               handshake->randbytes, 64,
-                              session->master, 48 );
+                              master, 48 );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
@@ -1184,7 +1204,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    ret = ssl_compute_master( ssl );
+    ret = ssl_compute_master( ssl->handshake,
+                              ssl->minor_ver,
+                              ciphersuite_info->mac,
+                              ssl->session_negotiate->master,
+                              ssl );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_compute_master", ret );

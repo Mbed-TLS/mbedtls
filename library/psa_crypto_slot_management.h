@@ -55,4 +55,26 @@ psa_status_t psa_initialize_key_slots( void );
  * This does not affect persistent storage. */
 void psa_wipe_all_key_slots( void );
 
+/** Test whether the given parameters are acceptable for a persistent key.
+ *
+ * This function does not access the storage in any way. It only tests
+ * whether the parameters are meaningful and permitted by general policy.
+ * It does not test whether the a file by the given id exists or could be
+ * created.
+ *
+ * \param lifetime      The lifetime to test.
+ * \param id            The key id to test.
+ *
+ * \retval PSA_SUCCESS
+ *         The given parameters are valid.
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \p lifetime is volatile or is invalid.
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \p id is invalid.
+ */
+psa_status_t psa_validate_persistent_key_parameters(
+    psa_key_lifetime_t lifetime,
+    psa_key_file_id_t id );
+
+
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

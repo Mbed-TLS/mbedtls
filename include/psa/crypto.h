@@ -93,181 +93,420 @@ psa_status_t psa_crypto_init(void);
 
 /**@}*/
 
-/** \defgroup policy Key policies
+/** \defgroup attributes Key attributes
  * @{
  */
 
-/** The type of the key policy data structure.
+/** The type of a structure containing key attributes.
  *
- * Before calling any function on a key policy, the application must initialize
- * it by any of the following means:
+ * This is an opaque structure that can represent the metadata of a key
+ * object. Metadata that can be stored in attributes includes:
+ * - The location of the key in storage, indicated by its key identifier
+ *   and its lifetime.
+ * - The key's policy, comprising usage flags and a specification of
+ *   the permitted algorithm(s).
+ * - Information about the key itself: the key type, the key size, and
+ *   for some key type additional domain parameters.
+ * - Implementations may define additional attributes.
+ *
+ * The actual key material is not considered an attribute of a key.
+ * Key attributes do not contain information that is generally considered
+ * highly confidential.
+ *
+ * An attribute structure can be a simple data structure where each function
+ * `psa_set_key_xxx` sets a field and the corresponding function
+ * `psa_get_key_xxx` retrieves the value of the corresponding field.
+ * However, implementations may report values that are equivalent to the
+ * original one, but have a different encoding. For example, an
+ * implementation may use a more compact representation for types where
+ * many bit-patterns are invalid or not supported, and store all values
+ * that it does not support as a special marker value. In such an
+ * implementation, after setting an invalid value, the corresponding
+ * get function returns an invalid value which may not be the one that
+ * was originally stored.
+ *
+ * An attribute structure may contain references to auxiliary resources,
+ * for example pointers to allocated memory or indirect references to
+ * pre-calculated values. In order to free such resources, the application
+ * must call psa_reset_key_attributes(). As an exception, calling
+ * psa_reset_key_attributes() on an attribute structure is optional if
+ * the structure has only been modified by the following functions
+ * since it was initialized or last reset with psa_reset_key_attributes():
+ * - psa_make_key_persistent()
+ * - psa_set_key_type()
+ * - psa_set_key_bits()
+ * - psa_set_key_usage_flags()
+ * - psa_set_key_algorithm()
+ *
+ * Before calling any function on a key attribute structure, the application
+ * must initialize it by any of the following means:
  * - Set the structure to all-bits-zero, for example:
  *   \code
- *   psa_key_policy_t policy;
- *   memset(&policy, 0, sizeof(policy));
+ *   psa_key_attributes_t attributes;
+ *   memset(&attributes, 0, sizeof(attributes));
  *   \endcode
  * - Initialize the structure to logical zero values, for example:
  *   \code
- *   psa_key_policy_t policy = {0};
+ *   psa_key_attributes_t attributes = {0};
  *   \endcode
- * - Initialize the structure to the initializer #PSA_KEY_POLICY_INIT,
+ * - Initialize the structure to the initializer #PSA_KEY_ATTRIBUTES_INIT,
  *   for example:
  *   \code
- *   psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+ *   psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
  *   \endcode
- * - Assign the result of the function psa_key_policy_init()
+ * - Assign the result of the function psa_key_attributes_init()
  *   to the structure, for example:
  *   \code
- *   psa_key_policy_t policy;
- *   policy = psa_key_policy_init();
+ *   psa_key_attributes_t attributes;
+ *   attributes = psa_key_attributes_init();
  *   \endcode
  *
- * This is an implementation-defined \c struct. Applications should not
- * make any assumptions about the content of this structure except
- * as directed by the documentation of a specific implementation. */
-typedef struct psa_key_policy_s psa_key_policy_t;
-
-/** \def PSA_KEY_POLICY_INIT
+ * A freshly initialized attribute structure contains the following
+ * values:
  *
- * This macro returns a suitable initializer for a key policy object of type
- * #psa_key_policy_t.
+ * - lifetime: #PSA_KEY_LIFETIME_VOLATILE.
+ * - key identifier: unspecified.
+ * - type: \c 0, with no domain parameters.
+ * - key size: \c 0.
+ * - usage flags: \c 0.
+ * - algorithm: \c 0.
+ *
+ * A typical sequence to create a key is as follows:
+ * -# Create and initialize an attribute structure.
+ * -# If the key is persistent, call psa_make_key_persistent().
+ * -# Set the key policy with psa_set_key_usage_flags() and
+ *    psa_set_key_algorithm().
+ * -# Set the key type with psa_set_key_type(). If the key type requires
+ *    domain parameters, call psa_set_key_domain_parameters() instead.
+ *    Skip this step if copying an existing key with psa_copy_key().
+ * -# When generating a random key with psa_generate_key() or deriving a key
+ *    with psa_generator_import_key(), set the desired key size with
+ *    psa_set_key_bits().
+ * -# Call a key creation function: psa_import_key(), psa_generate_key(),
+ *    psa_generator_import_key() or psa_copy_key(). This function reads
+ *    the attribute structure, creates a key with these attributes, and
+ *    outputs a handle to the newly created key.
+ * -# The attribute structure is now no longer necessary. If you called
+ *    psa_set_key_domain_parameters() earlier, you must call
+ *    psa_reset_key_attributes() to free any resources used by the
+ *    domain parameters. Otherwise calling psa_reset_key_attributes()
+ *    is optional.
+ *
+ * A typical sequence to query a key's attributes is as follows:
+ * -# Call psa_get_key_attributes().
+ * -# Call `psa_get_key_xxx` functions to retrieve the attribute(s) that
+ *    you are interested in.
+ * -# Call psa_reset_key_attributes() to free any resources that may be
+ *    used by the attribute structure.
+ *
+ * Once a key has been created, it is impossible to change its attributes.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_KEY_POLICY_INIT {0}
-#endif
+typedef struct psa_key_attributes_s psa_key_attributes_t;
 
-/** Return an initial value for a key policy that forbids all usage of the key.
+/** Declare a key as persistent.
+ *
+ * This function does not access storage, it merely fills the attribute
+ * structure with given values. The persistent key will be written to
+ * storage when the attribute structure is passed to a key creation
+ * function such as psa_import_key(), psa_generate_key(),
+ * psa_generator_import_key() or psa_copy_key().
+ *
+ * This function overwrites any identifier and lifetime values
+ * previously set in \p attributes.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] attributes       The attribute structure to write to.
+ * \param id                    The persistent identifier for the key.
+ * \param lifetime              The lifetime for the key.
+ *                              If this is #PSA_KEY_LIFETIME_VOLATILE, the
+ *                              key will be volatile, and \p id is ignored.
  */
-static psa_key_policy_t psa_key_policy_init(void);
+static void psa_make_key_persistent(psa_key_attributes_t *attributes,
+                                    psa_key_id_t id,
+                                    psa_key_lifetime_t lifetime);
 
-/** \brief Set the standard fields of a policy structure.
+/** Retrieve the key identifier from key attributes.
  *
- * Note that this function does not make any consistency check of the
- * parameters. The values are only checked when applying the policy to
- * a key slot with psa_set_key_policy().
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
  *
- * \param[in,out] policy The key policy to modify. It must have been
- *                       initialized as per the documentation for
- *                       #psa_key_policy_t.
- * \param usage          The permitted uses for the key.
- * \param alg            The algorithm that the key may be used for.
+ * \param[in] attributes        The key attribute structure to query.
+ *
+ * \return The persistent identifier stored in the attribute structure.
+ *         This value is unspecified if the attribute structure declares
+ *         the key as volatile.
  */
-void psa_key_policy_set_usage(psa_key_policy_t *policy,
-                              psa_key_usage_t usage,
-                              psa_algorithm_t alg);
+static psa_key_id_t psa_get_key_id(const psa_key_attributes_t *attributes);
 
-/** \brief Retrieve the usage field of a policy structure.
+/** Retrieve the lifetime from key attributes.
  *
- * \param[in] policy    The policy object to query.
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
  *
- * \return The permitted uses for a key with this policy.
+ * \param[in] attributes        The key attribute structure to query.
+ *
+ * \return The lifetime value stored in the attribute structure.
  */
-psa_key_usage_t psa_key_policy_get_usage(const psa_key_policy_t *policy);
+static psa_key_lifetime_t psa_get_key_lifetime(
+    const psa_key_attributes_t *attributes);
 
-/** \brief Retrieve the algorithm field of a policy structure.
+/** Declare usage flags for a key.
  *
- * \param[in] policy    The policy object to query.
+ * Usage flags are part of a key's usage policy. They encode what
+ * kind of operations are permitted on the key. For more details,
+ * refer to the documentation of the type #psa_key_usage_t.
  *
- * \return The permitted algorithm for a key with this policy.
+ * This function overwrites any usage flags
+ * previously set in \p attributes.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] attributes       The attribute structure to write to.
+ * \param usage_flags           The usage flags to write.
  */
-psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
+static void psa_set_key_usage_flags(psa_key_attributes_t *attributes,
+                                    psa_key_usage_t usage_flags);
 
-/** \brief Set the usage policy on a key slot.
+/** Retrieve the usage flags from key attributes.
  *
- * This function must be called on an empty key slot, before importing,
- * generating or creating a key in the slot. Changing the policy of an
- * existing key is not permitted.
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
  *
- * Implementations may set restrictions on supported key policies
- * depending on the key type and the key slot.
+ * \param[in] attributes        The key attribute structure to query.
  *
- * \param handle        Handle to the key whose policy is to be changed.
- * \param[in] policy    The policy object to query.
+ * \return The usage flags stored in the attribute structure.
+ */
+static psa_key_usage_t psa_get_key_usage_flags(
+    const psa_key_attributes_t *attributes);
+
+/** Declare the permitted algorithm policy for a key.
+ *
+ * The permitted algorithm policy of a key encodes which algorithm or
+ * algorithms are permitted to be used with this key.
+ *
+ * This function overwrites any algorithm policy
+ * previously set in \p attributes.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] attributes       The attribute structure to write to.
+ * \param alg                   The permitted algorithm policy to write.
+ */
+static void psa_set_key_algorithm(psa_key_attributes_t *attributes,
+                                  psa_algorithm_t alg);
+
+/** Retrieve the algorithm policy from key attributes.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
+ *
+ * \param[in] attributes        The key attribute structure to query.
+ *
+ * \return The algorithm stored in the attribute structure.
+ */
+static psa_algorithm_t psa_get_key_algorithm(
+    const psa_key_attributes_t *attributes);
+
+/** Declare the type of a key.
+ *
+ * If a type requires domain parameters, you must call
+ * psa_set_key_domain_parameters() instead of this function.
+ *
+ * This function overwrites any key type and domain parameters
+ * previously set in \p attributes.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] attributes       The attribute structure to write to.
+ * \param type                  The key type to write.
+ */
+static void psa_set_key_type(psa_key_attributes_t *attributes,
+                             psa_key_type_t type);
+
+/** Declare the size of a key.
+ *
+ * This function overwrites any key size previously set in \p attributes.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] attributes       The attribute structure to write to.
+ * \param bits                  The key size in bits.
+ */
+static void psa_set_key_bits(psa_key_attributes_t *attributes,
+                             size_t bits);
+
+/** Retrieve the key type from key attributes.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
+ *
+ * \param[in] attributes        The key attribute structure to query.
+ *
+ * \return The key type stored in the attribute structure.
+ */
+static psa_key_type_t psa_get_key_type(const psa_key_attributes_t *attributes);
+
+/** Retrieve the key size from key attributes.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
+ *
+ * \param[in] attributes        The key attribute structure to query.
+ *
+ * \return The key size stored in the attribute structure, in bits.
+ */
+static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
+
+/**
+ * \brief Set domain parameters for a key.
+ *
+ * Some key types require additional domain parameters in addition to
+ * the key type identifier and the key size.
+ * The format for the required domain parameters varies by the key type.
+ *
+ * - For RSA keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY or #PSA_KEY_TYPE_RSA_KEYPAIR),
+ *   the domain parameter data consists of the public exponent,
+ *   represented as a big-endian integer with no leading zeros.
+ *   This information is used when generating an RSA key pair.
+ *   When importing a key, the public exponent is read from the imported
+ *   key data and the exponent recorded in the attribute structure is ignored.
+ *   As an exception, the public exponent 65537 is represented by an empty
+ *   byte string.
+ * - For DSA keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY or #PSA_KEY_TYPE_DSA_KEYPAIR),
+ *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
+ *   ```
+ *   Dss-Parms ::= SEQUENCE  {
+ *      p       INTEGER,
+ *      q       INTEGER,
+ *      g       INTEGER
+ *   }
+ *   ```
+ * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY or
+ *   #PSA_KEY_TYPE_DH_KEYPAIR), the
+ *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
+ *   ```
+ *   DomainParameters ::= SEQUENCE {
+ *      p               INTEGER,                    -- odd prime, p=jq +1
+ *      g               INTEGER,                    -- generator, g
+ *      q               INTEGER,                    -- factor of p-1
+ *      j               INTEGER OPTIONAL,           -- subgroup factor
+ *      validationParms ValidationParms OPTIONAL
+ *   }
+ *   ValidationParms ::= SEQUENCE {
+ *      seed            BIT STRING,
+ *      pgenCounter     INTEGER
+ *   }
+ *   ```
+ *
+ * \note This function may allocate memory or other resources.
+ *       Once you have called this function on an attribute structure,
+ *       you must call psa_reset_key_attributes() to free these resources.
+ *
+ * \param[in,out] attributes    Attribute structure where the specified domain
+ *                              parameters will be stored.
+ *                              If this function fails, the content of
+ *                              \p attributes is not modified.
+ * \param type                  Key type (a \c PSA_KEY_TYPE_XXX value).
+ * \param[in] data              Buffer containing the key domain parameters.
+ *                              The content of this buffer is interpreted
+ *                              according to \p type as described above.
+ * \param data_length           Size of the \p data buffer in bytes.
  *
  * \retval #PSA_SUCCESS
- *         Success.
- *         If the key is persistent, it is implementation-defined whether
- *         the policy has been saved to persistent storage. Implementations
- *         may defer saving the policy until the key material is created.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_ALREADY_EXISTS
- * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
-psa_status_t psa_set_key_policy(psa_key_handle_t handle,
-                                const psa_key_policy_t *policy);
+psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
+                                           psa_key_type_t type,
+                                           const uint8_t *data,
+                                           size_t data_length);
 
-/** \brief Get the usage policy for a key slot.
+/**
+ * \brief Get domain parameters for a key.
  *
- * \param handle        Handle to the key slot whose policy is being queried.
- * \param[out] policy   On success, the key's policy.
+ * Get the domain parameters for a key with this function, if any. The format
+ * of the domain parameters written to \p data is specified in the
+ * documentation for psa_set_key_domain_parameters().
+ *
+ * \param[in] attributes        The key attribute structure to query.
+ * \param[out] data             On success, the key domain parameters.
+ * \param data_size             Size of the \p data buffer in bytes.
+ *                              The buffer is guaranteed to be large
+ *                              enough if its size in bytes is at least
+ *                              the value given by
+ *                              PSA_KEY_DOMAIN_PARAMETERS_SIZE().
+ * \param[out] data_length      On success, the number of bytes
+ *                              that make up the key domain parameters data.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ */
+psa_status_t psa_get_key_domain_parameters(
+    const psa_key_attributes_t *attributes,
+    uint8_t *data,
+    size_t data_size,
+    size_t *data_length);
+
+/** Retrieve the attributes of a key.
+ *
+ * This function first resets the attribute structure as with
+ * psa_reset_key_attributes(). It then copies the attributes of
+ * the given key into the given attribute structure.
+ *
+ * \note This function may allocate memory or other resources.
+ *       Once you have called this function on an attribute structure,
+ *       you must call psa_reset_key_attributes() to free these resources.
+ *
+ * \param[in] handle            Handle to the key to query.
+ * \param[in,out] attributes    On success, the attributes of the key.
+ *                              On failure, equivalent to a
+ *                              freshly-initialized structure.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
-psa_status_t psa_get_key_policy(psa_key_handle_t handle,
-                                psa_key_policy_t *policy);
+psa_status_t psa_get_key_attributes(psa_key_handle_t handle,
+                                    psa_key_attributes_t *attributes);
+
+/** Reset a key attribute structure to a freshly initialized state.
+ *
+ * You must initialize the attribute structure as described in the
+ * documentation of the type #psa_key_attributes_t before calling this
+ * function. Once the structure has been initialized, you may call this
+ * function at any time.
+ *
+ * This function frees any auxiliary resources that the structure
+ * may contain.
+ *
+ * \param[in,out] attributes    The attribute structure to reset.
+ */
+void psa_reset_key_attributes(psa_key_attributes_t *attributes);
 
 /**@}*/
 
 /** \defgroup key_management Key management
  * @{
  */
-
-/** \brief Retrieve the lifetime of an open key.
- *
- * \param handle        Handle to query.
- * \param[out] lifetime On success, the lifetime value.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_get_key_lifetime(psa_key_handle_t handle,
-                                  psa_key_lifetime_t *lifetime);
-
-
-/** Allocate a key slot for a transient key, i.e. a key which is only stored
- * in volatile memory.
- *
- * The allocated key slot and its handle remain valid until the
- * application calls psa_close_key() or psa_destroy_key() or until the
- * application terminates.
- *
- * \param[out] handle   On success, a handle to a volatile key slot.
- *
- * \retval #PSA_SUCCESS
- *         Success. The application can now use the value of `*handle`
- *         to access the newly allocated key slot.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- *         There was not enough memory, or the maximum number of key slots
- *         has been reached.
- */
-psa_status_t psa_allocate_key(psa_key_handle_t *handle);
 
 /** Open a handle to an existing persistent key.
  *
@@ -301,43 +540,6 @@ psa_status_t psa_allocate_key(psa_key_handle_t *handle);
 psa_status_t psa_open_key(psa_key_lifetime_t lifetime,
                           psa_key_id_t id,
                           psa_key_handle_t *handle);
-
-/** Create a new persistent key slot.
- *
- * Create a new persistent key slot and return a handle to it. The handle
- * remains valid until the application calls psa_close_key() or terminates.
- * The application can open the key again with psa_open_key() until it
- * removes the key by calling psa_destroy_key().
- *
- * \param lifetime      The lifetime of the key. This designates a storage
- *                      area where the key material is stored. This must not
- *                      be #PSA_KEY_LIFETIME_VOLATILE.
- * \param id            The persistent identifier of the key.
- * \param[out] handle   On success, a handle to the newly created key slot.
- *                      When key material is later created in this key slot,
- *                      it will be saved to the specified persistent location.
- *
- * \retval #PSA_SUCCESS
- *         Success. The application can now use the value of `*handle`
- *         to access the newly allocated key slot.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval #PSA_ERROR_ALREADY_EXISTS
- *         There is already a key with the identifier \p id in the storage
- *         area designated by \p lifetime.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p lifetime is invalid, for example #PSA_KEY_LIFETIME_VOLATILE.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p id is invalid for the specified lifetime.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p lifetime is not supported.
- * \retval #PSA_ERROR_NOT_PERMITTED
- *         \p lifetime is valid, but the application does not have the
- *         permission to create a key there.
- */
-psa_status_t psa_create_key(psa_key_lifetime_t lifetime,
-                            psa_key_id_t id,
-                            psa_key_handle_t *handle);
 
 /** Close a key handle.
  *
@@ -380,32 +582,38 @@ psa_status_t psa_close_key(psa_key_handle_t handle);
  * minimize the risk that an invalid input is accidentally interpreted
  * according to a different format.
  *
- * \param handle      Handle to the slot where the key will be stored.
- *                    It must have been obtained by calling
- *                    psa_allocate_key() or psa_create_key() and must
- *                    not contain key material yet.
- * \param type        Key type (a \c PSA_KEY_TYPE_XXX value). On a successful
- *                    import, the key slot will contain a key of this type.
+ * \param[in] attributes    The attributes for the new key.
+ *                          The key size field in \p attributes is
+ *                          ignored; the actual key size is determined
+ *                          from the \p data buffer.
+ * \param[out] handle       On success, a handle to the newly created key.
+ *                          \c 0 on failure.
  * \param[in] data    Buffer containing the key data. The content of this
- *                    buffer is interpreted according to \p type. It must
- *                    contain the format described in the documentation
+ *                    buffer is interpreted according to the type and,
+ *                    if applicable, domain parameters declared in
+ *                    \p attributes.
+ *                    All implementations must support at least the format
+ *                    described in the documentation
  *                    of psa_export_key() or psa_export_public_key() for
- *                    the chosen type.
+ *                    the chosen type. Implementations may allow other
+ *                    formats, but should be conservative: implementations
+ *                    should err on the side of rejecting content if it
+ *                    may be erroneous (e.g. wrong type or truncated data).
  * \param data_length Size of the \p data buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  *         If the key is persistent, the key material and the key's metadata
  *         have been saved to persistent storage.
- * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The key type or key size is not supported, either by the
- *         implementation in general or in this particular slot.
+ *         implementation in general or in this particular persistent location.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The key slot is invalid,
+ *         The key attributes, as a whole, are invalid,
  *         or the key data is not correctly formatted.
- * \retval #PSA_ERROR_ALREADY_EXISTS
- *         There is already a key in the specified slot.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -417,8 +625,8 @@ psa_status_t psa_close_key(psa_key_handle_t handle);
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_import_key(psa_key_handle_t handle,
-                            psa_key_type_t type,
+psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
+                            psa_key_handle_t *handle,
                             const uint8_t *data,
                             size_t data_length);
 
@@ -462,133 +670,6 @@ psa_status_t psa_import_key(psa_key_handle_t handle,
  *         results in this error code.
  */
 psa_status_t psa_destroy_key(psa_key_handle_t handle);
-
-/**
- * \brief Get basic metadata about a key.
- *
- * \param handle        Handle to the key slot to query.
- * \param[out] type     On success, the key type (a \c PSA_KEY_TYPE_XXX value).
- *                      This may be a null pointer, in which case the key type
- *                      is not written.
- * \param[out] bits     On success, the key size in bits.
- *                      This may be a null pointer, in which case the key size
- *                      is not written.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
- *         The handle is to a key slot which does not contain key material yet.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_get_key_information(psa_key_handle_t handle,
-                                     psa_key_type_t *type,
-                                     size_t *bits);
-
-/**
- * \brief Set domain parameters for a key.
- *
- * Some key types require additional domain parameters to be set before import
- * or generation of the key. The domain parameters can be set with this
- * function or, for key generation, through the \c extra parameter of
- * psa_generate_key().
- *
- * The format for the required domain parameters varies by the key type.
- * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
- *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
- *   ```
- *   Dss-Parms ::= SEQUENCE  {
- *      p       INTEGER,
- *      q       INTEGER,
- *      g       INTEGER
- *   }
- *   ```
- * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY), the
- *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
- *   ```
- *   DomainParameters ::= SEQUENCE {
- *      p               INTEGER,                    -- odd prime, p=jq +1
- *      g               INTEGER,                    -- generator, g
- *      q               INTEGER,                    -- factor of p-1
- *      j               INTEGER OPTIONAL,           -- subgroup factor
- *      validationParms ValidationParms OPTIONAL
- *   }
- *   ValidationParms ::= SEQUENCE {
- *      seed            BIT STRING,
- *      pgenCounter     INTEGER
- *   }
- *   ```
- *
- * \param handle      Handle to the slot where the key will be stored.
- *                    This must be a valid slot for a key of the chosen
- *                    type: it must have been obtained by calling
- *                    psa_allocate_key() or psa_create_key() with the
- *                    correct \p type and with a maximum size that is
- *                    compatible with \p data. It must not contain
- *                    key material yet.
- * \param type        Key type (a \c PSA_KEY_TYPE_XXX value). When
- *                    subsequently creating key material into \p handle,
- *                    the type must be compatible.
- * \param[in] data    Buffer containing the key domain parameters. The content
- *                    of this buffer is interpreted according to \p type. of
- *                    psa_export_key() or psa_export_public_key() for the
- *                    chosen type.
- * \param data_length Size of the \p data buffer in bytes.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_OCCUPIED_SLOT
- *         There is already a key in the specified slot.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_set_key_domain_parameters(psa_key_handle_t handle,
-                                           psa_key_type_t type,
-                                           const uint8_t *data,
-                                           size_t data_length);
-
-/**
- * \brief Get domain parameters for a key.
- *
- * Get the domain parameters for a key with this function, if any. The format
- * of the domain parameters written to \p data is specified in the
- * documentation for psa_set_key_domain_parameters().
- *
- * \param handle            Handle to the key to get domain parameters from.
- * \param[out] data         On success, the key domain parameters.
- * \param data_size         Size of the \p data buffer in bytes.
- * \param[out] data_length  On success, the number of bytes
- *                          that make up the key domain parameters data.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
- *         There is no key in the specified slot.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_get_key_domain_parameters(psa_key_handle_t handle,
-                                           uint8_t *data,
-                                           size_t data_size,
-                                           size_t *data_length);
 
 /**
  * \brief Export a key in binary format.
@@ -757,48 +838,52 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * In an implementation where slots have different ownerships,
  * this function may be used to share a key with a different party,
  * subject to implementation-defined restrictions on key sharing.
- * In this case \p constraint would typically prevent the recipient
- * from exporting the key.
  *
- * The resulting key may only be used in a way that conforms to all
- * three of: the policy of the source key, the policy previously set
- * on the target, and the \p constraint parameter passed when calling
- * this function.
+ * The resulting key may only be used in a way that conforms to
+ * both the policy of the original key and the policy specified in
+ * the \p attributes parameter:
  * - The usage flags on the resulting key are the bitwise-and of the
- *   usage flags on the source policy, the previously-set target policy
- *   and the policy constraint.
- * - If all three policies allow the same algorithm or wildcard-based
+ *   usage flags on the source policy and the usage flags in \p attributes.
+ * - If both allow the same algorithm or wildcard-based
  *   algorithm policy, the resulting key has the same algorithm policy.
- * - If one of the policies allows an algorithm and all the other policies
- *   either allow the same algorithm or a wildcard-based algorithm policy
- *   that includes this algorithm, the resulting key allows the same
- *   algorithm.
+ * - If either of the policies allows an algorithm and the other policy
+ *   allows a wildcard-based algorithm policy that includes this algorithm,
+ *   the resulting key allows the same algorithm.
+ * - If the policies do not allow any algorithm in common, this function
+ *   fails with the status #PSA_ERROR_INVALID_ARGUMENT.
  *
- * The effect of this function on implementation-defined metadata is
+ * The effect of this function on implementation-defined attributes is
  * implementation-defined.
  *
  * \param source_handle     The key to copy. It must be a handle to an
  *                          occupied slot.
- * \param target_handle     A handle to the target slot. It must not contain
- *                          key material yet.
- * \param[in] constraint    An optional policy constraint. If this parameter
- *                          is non-null then the resulting key will conform
- *                          to this policy in addition to the source policy
- *                          and the policy already present on the target
- *                          slot. If this parameter is null then the
- *                          function behaves in the same way as if it was
- *                          the target policy, i.e. only the source and
- *                          target policies apply.
+ * \param[in] attributes    The attributes for the new key.
+ *                          They are used as follows:
+ *                          - The key type, key size and domain parameters
+ *                            are ignored. This information is copied
+ *                            from the source key.
+ *                          - The key location (the lifetime and, for
+ *                            persistent keys, the key identifier) is
+ *                            used directly.
+ *                          - The policy constraints (usage flags and
+ *                            algorithm policy) are combined from
+ *                            the source key and \p attributes so that
+ *                            both sets of restrictions apply, as
+ *                            described in the documentation of this function.
+ * \param[out] target_handle On success, a handle to the newly created key.
+ *                          \c 0 on failure.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
+ *         \p source_handle is invalid.
  * \retval #PSA_ERROR_ALREADY_EXISTS
- *         \p target_handle already contains key material.
- * \retval #PSA_ERROR_DOES_NOT_EXIST
- *         \p source_handle does not contain key material.
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The policy constraints on the source, on the target and
- *         \p constraint are incompatible.
+ *         The lifetime or identifier in \p attributes are invalid.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The policy constraints on the source and specified in
+ *         \p attributes are incompatible.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The source key is not exportable and its lifetime does not
  *         allow copying it to the target's lifetime.
@@ -809,8 +894,8 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_copy_key(psa_key_handle_t source_handle,
-                          psa_key_handle_t target_handle,
-                          const psa_key_policy_t *constraint);
+                          const psa_key_attributes_t *attributes,
+                          psa_key_handle_t *target_handle);
 
 /**@}*/
 
@@ -2971,19 +3056,18 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  * In all cases, the data that is read is discarded from the generator.
  * The generator's capacity is decreased by the number of bytes read.
  *
- * \param handle            Handle to the slot where the key will be stored.
- *                          It must have been obtained by calling
- *                          psa_allocate_key() or psa_create_key() and must
- *                          not contain key material yet.
- * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
- *                          This must be a secret key type or a key pair type.
- * \param bits              Key size in bits.
+ * \param[in] attributes    The attributes for the new key.
+ * \param[out] handle       On success, a handle to the newly created key.
+ *                          \c 0 on failure.
  * \param[in,out] generator The generator object to read from.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  *         If the key is persistent, the key material and the key's metadata
  *         have been saved to persistent storage.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
  * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *         There was not enough data to create the desired key.
  *         Note that in this case, no output is written to the output buffer.
@@ -2993,9 +3077,6 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *         The key type or key size is not supported, either by the
  *         implementation in general or in this particular slot.
  * \retval #PSA_ERROR_BAD_STATE
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_ALREADY_EXISTS
- *         There is already a key in the specified slot.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -3006,9 +3087,8 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_generator_import_key(psa_key_handle_t handle,
-                                      psa_key_type_t type,
-                                      size_t bits,
+psa_status_t psa_generator_import_key(const psa_key_attributes_t *attributes,
+                                      psa_key_handle_t *handle,
                                       psa_crypto_generator_t *generator);
 
 /** Abort a generator.
@@ -3324,68 +3404,37 @@ psa_status_t psa_key_agreement_raw_shared_secret(psa_algorithm_t alg,
 psa_status_t psa_generate_random(uint8_t *output,
                                  size_t output_size);
 
-/** Extra parameters for RSA key generation.
- *
- * You may pass a pointer to a structure of this type as the \c extra
- * parameter to psa_generate_key().
- */
-typedef struct {
-    uint32_t e; /**< Public exponent value. Default: 65537. */
-} psa_generate_key_extra_rsa;
-
 /**
  * \brief Generate a key or key pair.
  *
- * \param handle            Handle to the slot where the key will be stored.
- *                          It must have been obtained by calling
- *                          psa_allocate_key() or psa_create_key() and must
- *                          not contain key material yet.
- * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param bits              Key size in bits.
- * \param[in] extra         Extra parameters for key generation. The
- *                          interpretation of this parameter depends on
- *                          \p type. All types support \c NULL to use
- *                          default parameters. Implementation that support
- *                          the generation of vendor-specific key types
- *                          that allow extra parameters shall document
- *                          the format of these extra parameters and
- *                          the default values. For standard parameters,
- *                          the meaning of \p extra is as follows:
- *                          - For a symmetric key type (a type such
- *                            that #PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) is
- *                            false), \p extra must be \c NULL.
- *                          - For an elliptic curve key type (a type
- *                            such that #PSA_KEY_TYPE_IS_ECC(\p type) is
- *                            false), \p extra must be \c NULL.
- *                          - For an RSA key (\p type is
- *                            #PSA_KEY_TYPE_RSA_KEYPAIR), \p extra is an
- *                            optional #psa_generate_key_extra_rsa structure
- *                            specifying the public exponent. The
- *                            default public exponent used when \p extra
- *                            is \c NULL is 65537.
- *                          - For an DSA key (\p type is
- *                            #PSA_KEY_TYPE_DSA_KEYPAIR), \p extra is an
- *                            optional structure specifying the key domain
- *                            parameters. The key domain parameters can also be
- *                            provided by psa_set_key_domain_parameters(),
- *                            which documents the format of the structure.
- *                          - For a DH key (\p type is
- *                            #PSA_KEY_TYPE_DH_KEYPAIR), the \p extra is an
- *                            optional structure specifying the key domain
- *                            parameters. The key domain parameters can also be
- *                            provided by psa_set_key_domain_parameters(),
- *                            which documents the format of the structure.
- * \param extra_size        Size of the buffer that \p extra
- *                          points to, in bytes. Note that if \p extra is
- *                          \c NULL then \p extra_size must be zero.
+ * The key is generated randomly.
+ * Its location, policy, type and size are taken from \p attributes.
+ *
+ * If the type requires additional domain parameters, these are taken
+ * from \p attributes as well. The following types use domain parameters:
+ * - When generating an RSA key (#PSA_KEY_TYPE_RSA_KEYPAIR),
+ *   the default public exponent is 65537. This value is used if
+ *   \p attributes was set with psa_set_key_type() or by passing an empty
+ *   byte string as domain parameters to psa_set_key_domain_parameters().
+ *   If psa_set_key_domain_parameters() was used to set a non-empty
+ *   domain parameter string in \p attributes, this string is read as
+ *   a big-endian integer which is used as the public exponent.
+ * - When generating a DSA key (#PSA_KEY_TYPE_DSA_KEYPAIR) or a
+ *   Diffie-Hellman key (#PSA_KEY_TYPE_DH_KEYPAIR), the domain parameters
+ *   from \p attributes are interpreted as described for
+ *   psa_set_key_domain_parameters().
+ *
+ * \param[in] attributes    The attributes for the new key.
+ * \param[out] handle       On success, a handle to the newly created key.
+ *                          \c 0 on failure.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  *         If the key is persistent, the key material and the key's metadata
  *         have been saved to persistent storage.
- * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_ALREADY_EXISTS
- *         There is already a key in the specified slot.
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -3398,11 +3447,8 @@ typedef struct {
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_generate_key(psa_key_handle_t handle,
-                              psa_key_type_t type,
-                              size_t bits,
-                              const void *extra,
-                              size_t extra_size);
+psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
+                              psa_key_handle_t *handle);
 
 /**@}*/
 

@@ -252,12 +252,111 @@ struct psa_key_policy_s
     psa_key_usage_t usage;
     psa_algorithm_t alg;
 };
+typedef struct psa_key_policy_s psa_key_policy_t;
 
 #define PSA_KEY_POLICY_INIT {0, 0}
 static inline struct psa_key_policy_s psa_key_policy_init( void )
 {
     const struct psa_key_policy_s v = PSA_KEY_POLICY_INIT;
     return( v );
+}
+
+struct psa_key_attributes_s
+{
+    psa_key_id_t id;
+    psa_key_lifetime_t lifetime;
+    psa_key_policy_t policy;
+    psa_key_type_t type;
+    size_t bits;
+    void *domain_parameters;
+    size_t domain_parameters_size;
+};
+
+#define PSA_KEY_ATTRIBUTES_INIT {0, 0, {0, 0}, 0, 0, NULL, 0}
+static inline struct psa_key_attributes_s psa_key_attributes_init( void )
+{
+    const struct psa_key_attributes_s v = PSA_KEY_ATTRIBUTES_INIT;
+    return( v );
+}
+
+static inline void psa_make_key_persistent(psa_key_attributes_t *attributes,
+                                           psa_key_id_t id,
+                                           psa_key_lifetime_t lifetime)
+{
+    attributes->id = id;
+    attributes->lifetime = lifetime;
+}
+
+static inline psa_key_id_t psa_get_key_id(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->id );
+}
+
+static inline psa_key_lifetime_t psa_get_key_lifetime(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->lifetime );
+}
+
+static inline void psa_set_key_usage_flags(psa_key_attributes_t *attributes,
+                                           psa_key_usage_t usage_flags)
+{
+    attributes->policy.usage = usage_flags;
+}
+
+static inline psa_key_usage_t psa_get_key_usage_flags(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->policy.usage );
+}
+
+static inline void psa_set_key_algorithm(psa_key_attributes_t *attributes,
+                                         psa_algorithm_t alg)
+{
+    attributes->policy.alg = alg;
+}
+
+static inline psa_algorithm_t psa_get_key_algorithm(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->policy.alg );
+}
+
+static inline void psa_set_key_type(psa_key_attributes_t *attributes,
+                                    psa_key_type_t type)
+{
+    if( attributes->domain_parameters == NULL )
+    {
+        /* Common case: quick path */
+        attributes->type = type;
+    }
+    else
+    {
+        /* Call the bigger function to free the old domain paramteres.
+         * Ignore any errors which may arise due to type requiring
+         * non-default domain parameters, since this function can't
+         * report errors. */
+        (void) psa_set_key_domain_parameters( attributes, type, NULL, 0 );
+    }
+}
+
+static inline psa_key_type_t psa_get_key_type(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->type );
+}
+
+static inline void psa_set_key_bits(psa_key_attributes_t *attributes,
+                                    size_t bits)
+{
+    attributes->bits = bits;
+}
+
+static inline size_t psa_get_key_bits(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->bits );
 }
 
 #endif /* PSA_CRYPTO_STRUCT_H */

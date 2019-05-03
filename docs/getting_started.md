@@ -510,7 +510,7 @@ Generate a piece of random 128-bit AES data:
     psa_set_key_policy(slot, &policy);
 
     /* Generate a key */
-    psa_generate_key(slot, PSA_KEY_TYPE_AES, bits, NULL, 0);
+    psa_generate_key(slot, PSA_KEY_TYPE_AES, bits);
 
     psa_export_key(slot, exported, exported_size, &exported_length)
 

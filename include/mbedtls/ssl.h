@@ -911,6 +911,10 @@ struct mbedtls_ssl_config
     void *p_export_keys;            /*!< context for key export callback    */
 #endif
 
+#if defined(MBEDTLS_SSL_CID)
+    size_t cid_len; /*!< The length of CIDs for incoming DTLS records.      */
+#endif /* MBEDTLS_SSL_CID */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     const mbedtls_x509_crt_profile *cert_profile; /*!< verification profile */
     mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
@@ -1478,6 +1482,12 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  * \param own_cid_len The length of \p own_cid.
  *                    This parameter is unused if \p enabled is set to
  *                    MBEDTLS_SSL_CID_DISABLED.
+ *
+ * \note              The value of \p own_cid_len must match the value of the
+ *                    \c len parameter passed to mbedtls_ssl_conf_cid_len()
+ *                    when configuring the ::mbedtls_ssl_config that \p ssl
+ *                    is bound to. See the documentation of
+ *                    mbedtls_ssl_conf_cid_len() for more information.
  *
  * \note              This CID configuration applies to subsequent handshakes
  *                    performed on the SSL context \p ssl, but does not trigger
@@ -2132,6 +2142,37 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
  */
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
+
+#if defined(MBEDTLS_SSL_CID)
+/**
+ * \brief               (STUB) Specify the length of CIDs for incoming encrypted
+ *                      DTLS records. (Default: \c 0)
+ *
+ * \param conf          The SSL configuration to modify.
+ * \param len           The length in Bytes of the CID fields in encrypted
+ *                      DTLS records using the CID mechanism. This must
+ *                      not be larger than #MBEDTLS_SSL_CID_OUT_LEN_MAX.
+ *
+ * \note                The CID draft does not mandate that incoming CIDs
+ *                      have equal lengths, but support for varying lengths
+ *                      significantly complicates record header parsing by
+ *                      requiring a user-specified callback to perform the
+ *                      CID parsing, and Mbed TLS doesn't currently support it.
+ *
+ * \note                The connection-specific API mbedtls_ssl_set_cid()
+ *                      must use the value of \p len as the value for its
+ *                      \c own_cid_len parameter, rendering the latter
+ *                      redundant at the moment. However, once variable
+ *                      length incoming CIDs are supported, the \c own_cid_len
+ *                      parameter in mbedtls_ssl_set_cid() will be flexible, and
+ *                      it is added already now to avoid a change of API.
+ *
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p own_cid_len
+ *                      is too large.
+ */
+int mbedtls_ssl_conf_cid_len( mbedtls_ssl_config *conf, size_t len );
+#endif /* MBEDTLS_SSL_CID */
 
 /**
  * \brief               Set the list of allowed ciphersuites and the

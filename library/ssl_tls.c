@@ -5472,8 +5472,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         {
             /* Silently discard invalid records */
-            if( ret == MBEDTLS_ERR_SSL_INVALID_RECORD ||
-                ret == MBEDTLS_ERR_SSL_INVALID_MAC )
+            if( ret == MBEDTLS_ERR_SSL_INVALID_MAC )
             {
                 /* Except when waiting for Finished as a bad mac here
                  * probably means something went wrong in the handshake

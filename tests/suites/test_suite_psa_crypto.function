@@ -4322,7 +4322,7 @@ void derive_key_exercise( int alg_arg,
     psa_set_key_algorithm( &attributes, derived_alg );
     psa_set_key_type( &attributes, derived_type );
     psa_set_key_bits( &attributes, derived_bits );
-    PSA_ASSERT( psa_generator_import_key( &attributes, &derived_handle,
+    PSA_ASSERT( psa_generate_derived_key( &attributes, &derived_handle,
                                           &generator ) );
 
     /* Test the key information */
@@ -4393,7 +4393,7 @@ void derive_key_export( int alg_arg,
     psa_set_key_algorithm( &derived_attributes, 0 );
     psa_set_key_type( &derived_attributes, PSA_KEY_TYPE_RAW_DATA );
     psa_set_key_bits( &derived_attributes, PSA_BYTES_TO_BITS( bytes1 ) );
-    PSA_ASSERT( psa_generator_import_key( &derived_attributes, &derived_handle,
+    PSA_ASSERT( psa_generate_derived_key( &derived_attributes, &derived_handle,
                                           &generator ) );
     PSA_ASSERT( psa_export_key( derived_handle,
                                 export_buffer, bytes1,
@@ -4401,7 +4401,7 @@ void derive_key_export( int alg_arg,
     TEST_EQUAL( length, bytes1 );
     PSA_ASSERT( psa_destroy_key( derived_handle ) );
     psa_set_key_bits( &derived_attributes, PSA_BYTES_TO_BITS( bytes2 ) );
-    PSA_ASSERT( psa_generator_import_key( &derived_attributes, &derived_handle,
+    PSA_ASSERT( psa_generate_derived_key( &derived_attributes, &derived_handle,
                                           &generator ) );
     PSA_ASSERT( psa_export_key( derived_handle,
                                 export_buffer + bytes1, bytes2,
@@ -4695,7 +4695,7 @@ void generate_key( int type_arg,
     psa_set_key_bits( &attributes, bits );
 
     /* Generate a key */
-    TEST_EQUAL( psa_generate_key( &attributes, &handle ), expected_status );
+    TEST_EQUAL( psa_generate_random_key( &attributes, &handle ), expected_status );
     if( expected_status != PSA_SUCCESS )
         goto exit;
 
@@ -4755,7 +4755,7 @@ void generate_key_rsa( int bits_arg,
     psa_set_key_bits( &attributes, bits );
 
     /* Generate a key */
-    TEST_EQUAL( psa_generate_key( &attributes, &handle ), expected_status );
+    TEST_EQUAL( psa_generate_random_key( &attributes, &handle ), expected_status );
     if( expected_status != PSA_SUCCESS )
         goto exit;
 
@@ -4863,7 +4863,7 @@ void persistent_key_load_key_from_storage( data_t *data,
 
         case GENERATE_KEY:
             /* Generate a key */
-            PSA_ASSERT( psa_generate_key( &attributes, &handle ) );
+            PSA_ASSERT( psa_generate_random_key( &attributes, &handle ) );
             break;
 
         case DERIVE_KEY:
@@ -4885,7 +4885,7 @@ void persistent_key_load_key_from_storage( data_t *data,
                 PSA_ASSERT( psa_key_derivation_input_bytes(
                                 &generator, PSA_KDF_STEP_INFO,
                                 NULL, 0 ) );
-                PSA_ASSERT( psa_generator_import_key( &attributes, &handle,
+                PSA_ASSERT( psa_generate_derived_key( &attributes, &handle,
                                                       &generator ) );
                 PSA_ASSERT( psa_generator_abort( &generator ) );
                 PSA_ASSERT( psa_destroy_key( base_key ) );

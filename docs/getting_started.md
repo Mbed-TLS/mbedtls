@@ -335,7 +335,7 @@ Deriving a new AES-CTR 128-bit encryption key into a given key slot using HKDF w
 1. Set up the generator using the `psa_key_derivation` function providing a key slot containing a key that can be used for key derivation and a salt and label (Note: salt and label are optional).
 1. Initiate a key policy to for the derived key by calling `psa_key_policy_set_usage()` with `PSA_KEY_USAGE_ENCRYPT` parameter and the algorithm `PSA_ALG_CTR`.
 1. Set the key policy to the derived key slot.
-1. Import a key from generator into the desired key slot using (`psa_generator_import_key`).
+1. Import a key from generator into the desired key slot using (`psa_generate_derived_key`).
 1. Clean up generator.
 
 At this point the derived key slot holds a new 128-bit AES-CTR encryption key derived from the key, salt and label provided:
@@ -378,7 +378,7 @@ At this point the derived key slot holds a new 128-bit AES-CTR encryption key de
 
     psa_set_key_policy(derived_key, &policy);
 
-    psa_generator_import_key(derived_key, PSA_KEY_TYPE_AES, derived_bits, &generator);
+    psa_generate_derived_key(derived_key, PSA_KEY_TYPE_AES, derived_bits, &generator);
 
     /* Clean up generator and key */
     psa_generator_abort(&generator);
@@ -494,7 +494,7 @@ Prerequisites to using key generation and export APIs:
 
 Generate a piece of random 128-bit AES data:
 1. Set the key policy for key generation by calling `psa_key_policy_set_usage()` with the `PSA_KEY_USAGE_EXPORT` parameter and the algorithm `PSA_ALG_GCM`.
-1. Generate a random AES key by calling `psa_generate_key()`.
+1. Generate a random AES key by calling `psa_generate_random_key()`.
 1. Export the generated key by calling `psa_export_key()`:
 ```C
     int slot = 1;
@@ -510,7 +510,7 @@ Generate a piece of random 128-bit AES data:
     psa_set_key_policy(slot, &policy);
 
     /* Generate a key */
-    psa_generate_key(slot, PSA_KEY_TYPE_AES, bits);
+    psa_generate_random_key(slot, PSA_KEY_TYPE_AES, bits);
 
     psa_export_key(slot, exported, exported_size, &exported_length)
 

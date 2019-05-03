@@ -4375,6 +4375,19 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
 
+static int ssl_check_record_type( uint8_t record_type )
+{
+    if( record_type != MBEDTLS_SSL_MSG_HANDSHAKE &&
+        record_type != MBEDTLS_SSL_MSG_ALERT &&
+        record_type != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC &&
+        record_type != MBEDTLS_SSL_MSG_APPLICATION_DATA )
+    {
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+    }
+
+    return( 0 );
+}
+
 /*
  * ContentType type;
  * ProtocolVersion version;
@@ -4410,10 +4423,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
                         major_ver, minor_ver, ssl->in_msglen ) );
 
     /* Check record type */
-    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE &&
-        ssl->in_msgtype != MBEDTLS_SSL_MSG_ALERT &&
-        ssl->in_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC &&
-        ssl->in_msgtype != MBEDTLS_SSL_MSG_APPLICATION_DATA )
+    if( ssl_check_record_type( ssl->in_msgtype ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
 

@@ -122,6 +122,18 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
 /* WARNING: The CID feature isn't fully implemented yet
  *          and will not be used. */
+int mbedtls_ssl_conf_cid_len( mbedtls_ssl_config *conf,
+                              size_t len )
+{
+    if( len > MBEDTLS_SSL_CID_IN_LEN_MAX )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    conf->cid_len = len;
+    return( 0 );
+}
+
+/* WARNING: The CID feature isn't fully implemented yet
+ *          and will not be used. */
 int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          int enable,
                          unsigned char const *own_cid,
@@ -137,12 +149,13 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
         return( 0 );
     }
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Enable use of CID extension." ) );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "Own CID", own_cid, own_cid_len );
 
-    if( own_cid_len > MBEDTLS_SSL_CID_IN_LEN_MAX )
+    if( own_cid_len != ssl->conf->cid_len )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "CID too large: Maximum %u, actual %u",
-                                    (unsigned) MBEDTLS_SSL_CID_IN_LEN_MAX,
-                                    (unsigned) own_cid_len ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "CID length %u does not match CID length %u in config",
+                                    (unsigned) own_cid_len,
+                                    (unsigned) ssl->conf->cid_len ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -151,7 +164,6 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
      * MBEDTLS_SSL_CID_IN_LEN_MAX at most 255. */
     ssl->own_cid_len = (uint8_t) own_cid_len;
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "Own CID", own_cid, own_cid_len );
     return( 0 );
 }
 

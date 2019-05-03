@@ -744,13 +744,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Copy CIDs into SSL transform" ) );
 
-        /* Uncomment this once CID-parsing and support for a change
-         * record content type during record decryption are added. */
-        /* transform->in_cid_len = ssl->own_cid_len; */
-        /* transform->out_cid_len = ssl->handshake->peer_cid_len; */
-        /* memcpy( transform->in_cid, ssl->own_cid, ssl->own_cid_len ); */
-        /* memcpy( transform->out_cid, ssl->handshake->peer_cid, */
-        /*         ssl->handshake->peer_cid_len ); */
+        transform->in_cid_len = ssl->own_cid_len;
+        transform->out_cid_len = ssl->handshake->peer_cid_len;
+        memcpy( transform->in_cid, ssl->own_cid, ssl->own_cid_len );
+        memcpy( transform->out_cid, ssl->handshake->peer_cid,
+                ssl->handshake->peer_cid_len );
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "Outgoing CID", transform->out_cid,
                                transform->out_cid_len );
@@ -1779,7 +1777,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
-        rec->type = MBEDTLS_SSL_MSG_CID;
+        /* Uncomment this once the stack accepts CID record content types. */
+        /* rec->type = MBEDTLS_SSL_MSG_CID; */
     }
 #endif /* MBEDTLS_SSL_CID */
 

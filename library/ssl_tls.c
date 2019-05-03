@@ -2158,17 +2158,11 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
      * Match record's CID with incoming CID.
      */
 
-    /* Uncomment this once CID parsing is in place */
-    /* if( rec->cid_len != transform->in_cid_len || */
-    /*     memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 ) */
-    /* { */
-    /*     return( MBEDTLS_ERR_SSL_INVALID_RECORD ); */
-    /* } */
-
-    /* Remove this once CID parsing is in place */
-    rec->cid_len = transform->in_cid_len;
-    memcpy( rec->cid, transform->in_cid, transform->in_cid_len );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "CID", rec->cid, rec->cid_len );
+    if( rec->cid_len != transform->in_cid_len ||
+        memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 )
+    {
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+    }
 #endif /* MBEDTLS_SSL_CID */
 
 #if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER)
@@ -3765,8 +3759,11 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
 
-            /* Update the record content type. */
+            /* Update the record content type and CID. */
             ssl->out_msgtype = rec.type;
+#if defined(MBEDTLS_SSL_CID )
+            memcpy( ssl->out_cid, rec.cid, rec.cid_len );
+#endif /* MBEDTLS_SSL_CID */
             ssl->out_msglen = len = rec.data_len;
             ssl->out_len[0] = (unsigned char)( rec.data_len >> 8 );
             ssl->out_len[1] = (unsigned char)( rec.data_len      );
@@ -4641,6 +4638,10 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             - ( ssl->in_iv - ssl->in_buf );
         rec.data_len    = ssl->in_msglen;
         rec.data_offset = 0;
+#if defined(MBEDTLS_SSL_CID )
+        rec.cid_len     = ssl->in_len - ssl->in_cid;
+        memcpy( rec.cid, ssl->in_cid, rec.cid_len );
+#endif /* MBEDTLS_SSL_CID */
 
         memcpy( &rec.ctr[0], ssl->in_ctr, 8 );
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,

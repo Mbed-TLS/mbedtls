@@ -1305,13 +1305,19 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
     if( /* CID extension only makes sense in DTLS */
         ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
         /* The server must only send the CID extension if we have offered it. */
-        ssl->negotiate_cid == MBEDTLS_SSL_CID_DISABLED ||
-        /* CID extension must at least contain the length byte */
-        len < 1 )
+        ssl->negotiate_cid == MBEDTLS_SSL_CID_DISABLED )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-matching CID extension" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "CID extension unexpected" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+                                     MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
+    if( len == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "CID extension invalid" ) );
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                     MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
@@ -1320,17 +1326,17 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
 
     if( peer_cid_len > MBEDTLS_SSL_CID_OUT_LEN_MAX )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-matching CID extension" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "CID extension invalid" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+                                     MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
     if( len != peer_cid_len )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-matching CID extension" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "CID extension invalid" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
+                                     MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 

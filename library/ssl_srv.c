@@ -1352,7 +1352,7 @@ read_record_header:
             return( ssl_parse_client_hello_v2( ssl ) );
 #endif
 
-    MBEDTLS_SSL_DEBUG_BUF( 4, "record header", buf, mbedtls_ssl_hdr_len( ssl ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "record header", buf, mbedtls_ssl_in_hdr_len( ssl ) );
 
     /*
      * SSLv3/TLS Client Hello
@@ -1441,7 +1441,7 @@ read_record_header:
         }
 
         if( ( ret = mbedtls_ssl_fetch_input( ssl,
-                       mbedtls_ssl_hdr_len( ssl ) + msg_len ) ) != 0 )
+                       mbedtls_ssl_in_hdr_len( ssl ) + msg_len ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
             return( ret );
@@ -1450,7 +1450,7 @@ read_record_header:
     /* Done reading this record, get ready for the next one */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
         if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-            ssl->next_record_offset = msg_len + mbedtls_ssl_hdr_len( ssl );
+            ssl->next_record_offset = msg_len + mbedtls_ssl_in_hdr_len( ssl );
         else
 #endif
             ssl->in_left = 0;

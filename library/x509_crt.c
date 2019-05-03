@@ -1649,7 +1649,11 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     }
     else
     {
-        crt->raw.p = mbedtls_calloc( 1, buflen );
+        /* Call mbedtls_calloc with buflen + 1 in order to avoid potential
+         * return of NULL in case of length 0 certificates, which we want
+         * to cleanly fail with MBEDTLS_ERR_X509_INVALID_FORMAT in the
+         * core parsing routine, but not here. */
+        crt->raw.p = mbedtls_calloc( 1, buflen + 1 );
         if( crt->raw.p == NULL )
             return( MBEDTLS_ERR_X509_ALLOC_FAILED );
         crt->raw.len = buflen;

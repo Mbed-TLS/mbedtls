@@ -119,6 +119,9 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          unsigned char const *own_cid,
                          size_t own_cid_len )
 {
+    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     ssl->negotiate_cid = enable;
     if( enable == MBEDTLS_SSL_CID_DISABLED )
     {
@@ -153,8 +156,11 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
 {
     *enabled = MBEDTLS_SSL_CID_DISABLED;
 
-    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
+        ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+    {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
 
     /* We report MBEDTLS_SSL_CID_DISABLED in case the CID extensions
      * were used, but client and server requested the empty CID.

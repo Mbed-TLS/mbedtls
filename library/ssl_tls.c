@@ -732,7 +732,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "Outgoing CID", transform->out_cid,
                                transform->out_cid_len );
-        MBEDTLS_SSL_DEBUG_BUF( 3, "Ingoing CID", transform->in_cid,
+        MBEDTLS_SSL_DEBUG_BUF( 3, "Incoming CID", transform->in_cid,
                                transform->in_cid_len );
     }
 #endif /* MBEDTLS_SSL_CID */

@@ -494,13 +494,13 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
+    ssl->handshake->cid_in_use = MBEDTLS_SSL_CID_ENABLED;
     ssl->handshake->peer_cid_len = (uint8_t) peer_cid_len;
     memcpy( ssl->handshake->peer_cid, buf, peer_cid_len );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Use of CID extension negotiated" ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "Client CID", buf, peer_cid_len );
 
-    ssl->handshake->cid_in_use = MBEDTLS_SSL_CID_ENABLED;
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_CID */

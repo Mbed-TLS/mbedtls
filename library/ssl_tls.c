@@ -1579,13 +1579,27 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
 
 /*
  * Compute master secret if needed
+ *
+ * Parameters:
+ * [in/out] handshake
+ *          [in] resume, premaster, extended_ms, calc_verify, tls_prf
+ *               (PSA-PSK) ciphersuite_info
+ *          [out] premaster (cleared)
+ * [in] minor_ver (to compute hash_len)
+ * [in] hash_alg (to compute hash_len)
+ * [out] master
+ * [in] ssl: optionally used for debugging, EMS and PSA-PSK
+ *      debug: conf->f_dbg, conf->p_dbg
+ *      EMS: passed to calc_verify (debug + (SSL3) session_negotiate)
+ *      PSA-PSA: conf
  */
-static int ssl_compute_master( mbedtls_ssl_context *ssl )
+static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
+                               int minor_ver,
+                               mbedtls_md_type_t hash_alg,
+                               unsigned char *master,
+                               mbedtls_ssl_context *ssl )
 {
     int ret;
-    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-    mbedtls_ssl_session *session = ssl->session_negotiate;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
 
     /* cf. RFC 5246, Section 8.1:
      * "The master secret is always exactly 48 bytes in length." */
@@ -1611,6 +1625,19 @@ static int ssl_compute_master( mbedtls_ssl_context *ssl )
     unsigned char const *salt = handshake->randbytes;
     size_t salt_len = 64;
 
+#if !defined(MBEDTLS_DEBUG_C) &&                    \
+    !defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
+    !(defined(MBEDTLS_USE_PSA_CRYPTO) &&            \
+      defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED))
+    (void) ssl;
+#endif
+#if !defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) || !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    (void) minor_ver;
+#if defined(MBEDTLS_SHA512_C)
+    (void) hash_alg;
+#endif
+#endif
+
     if( handshake->resume != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
@@ -1618,18 +1645,18 @@ static int ssl_compute_master( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
+    if( handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
 
         lbl  = "extended master secret";
         salt = session_hash;
-        ssl->handshake->calc_verify( ssl, session_hash );
+        handshake->calc_verify( ssl, session_hash );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
 #if defined(MBEDTLS_SHA512_C)
-            if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+            if( hash_alg == MBEDTLS_MD_SHA384 )
             {
                 salt_len = 48;
             }
@@ -1646,9 +1673,9 @@ static int ssl_compute_master( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&          \
-defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+    defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
+    if( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
+        minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
         ssl_use_opaque_psk( ssl ) == 1 )
     {
         /* Perform PSK-to-MS expansion in a single step. */
@@ -1661,10 +1688,10 @@ defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "perform PSA-based PSK-to-MS expansion" ) );
 
         psk = ssl->conf->psk_opaque;
-        if( ssl->handshake->psk_opaque != 0 )
-            psk = ssl->handshake->psk_opaque;
+        if( handshake->psk_opaque != 0 )
+            psk = handshake->psk_opaque;
 
-        if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+        if( hash_alg == MBEDTLS_MD_SHA384 )
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
         else
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
@@ -1681,7 +1708,7 @@ defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
         }
 
         status = psa_key_derivation_output_bytes( &derivation,
-                                                  session->master,
+                                                  master,
                                                   master_secret_len );
         if( status != PSA_SUCCESS )
         {
@@ -1698,7 +1725,7 @@ defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     {
         ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
                                   lbl, salt, salt_len,
-                                  session->master,
+                                  master,
                                   master_secret_len );
         if( ret != 0 )
         {
@@ -1732,7 +1759,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    ret = ssl_compute_master( ssl );
+    ret = ssl_compute_master( ssl->handshake,
+                              ssl->minor_ver,
+                              ciphersuite_info->mac,
+                              ssl->session_negotiate->master,
+                              ssl );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_compute_master", ret );

@@ -2309,6 +2309,19 @@ int main( int argc, char *argv[] )
     };
 #endif
 
+#if defined(MBEDTLS_SSL_CID)
+    if( opt.cid_enabled == 1 )
+    {
+        ret = mbedtls_ssl_conf_cid_len( &conf, cid_len );
+        if( ret != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_cid_len returned %d\n\n",
+                            ret );
+            goto exit;
+        }
+    }
+#endif /* MBEDTLS_SSL_CID */
+
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
         mbedtls_ssl_conf_truncated_hmac( &conf, opt.trunc_hmac );

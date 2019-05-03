@@ -1277,15 +1277,18 @@
  * which allows to identify DTLS connections across changes
  * in the underlying transport.
  *
- * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`
- * and `mbedtls_ssl_get_peer_cid()`. See their documentation for more
- * information.
+ * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`,
+ * `mbedtls_ssl_get_peer_cid()` and `mbedtls_ssl_conf_cid_len()`.
+ * See their documentation for more information.
  *
  * \warning The Connection ID extension is still in draft state.
  *          We make no stability promises for the availability
  *          or the shape of the API controlled by this option.
  *
- * See also MBEDTLS_SSL_CID_OUT_LEN_MAX and MBEDTLS_SSL_CID_IN_LEN_MAX.
+ * The maximum lengths of outgoing and incoming CIDs can be configured
+ * through the options
+ * - MBEDTLS_SSL_CID_OUT_LEN_MAX
+ * - MBEDTLS_SSL_CID_IN_LEN_MAX.
  *
  * Requires: MBEDTLS_SSL_PROTO_DTLS
  *

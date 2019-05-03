@@ -7246,8 +7246,15 @@ static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         ssl->out_ctr = ssl->out_hdr +  3;
-        ssl->out_len = ssl->out_hdr + 11;
-        ssl->out_iv  = ssl->out_hdr + 13;
+#if defined(MBEDTLS_SSL_CID)
+        ssl->out_cid = ssl->out_ctr +  8;
+        ssl->out_len = ssl->out_cid;
+        if( transform != NULL )
+            ssl->out_len += transform->out_cid_len;
+#else /* MBEDTLS_SSL_CID */
+        ssl->out_len = ssl->out_ctr + 8;
+#endif /* MBEDTLS_SSL_CID */
+        ssl->out_iv  = ssl->out_len + 2;
     }
     else
 #endif
@@ -7282,8 +7289,15 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         ssl->in_ctr = ssl->in_hdr +  3;
-        ssl->in_len = ssl->in_hdr + 11;
-        ssl->in_iv  = ssl->in_hdr + 13;
+#if defined(MBEDTLS_SSL_CID)
+        ssl->in_cid = ssl->in_ctr +  8;
+        ssl->in_len = ssl->in_cid;
+        if( transform != NULL )
+            ssl->in_len += transform->in_cid_len;
+#else /* MBEDTLS_SSL_CID */
+        ssl->in_len = ssl->in_ctr + 8;
+#endif /* MBEDTLS_SSL_CID */
+        ssl->in_iv  = ssl->in_len + 2;
     }
     else
 #endif

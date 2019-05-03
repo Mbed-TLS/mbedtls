@@ -4632,6 +4632,19 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_BUF( 4, "input payload after decrypt",
                        ssl->in_msg, ssl->in_msglen );
 
+        /* We have already checked the record content type
+         * in ssl_parse_record_header(), failing or silently
+         * dropping the record in the case of an unknown type.
+         *
+         * Since with the use of CIDs, the record content type
+         * might change during decryption, re-check the record
+         * content type, but treat a failure as fatal this time. */
+        if( ssl_check_record_type( ssl->in_msgtype ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
+
         if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );

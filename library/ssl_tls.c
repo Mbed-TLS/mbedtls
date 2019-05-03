@@ -658,78 +658,6 @@ static int ssl_populate_transform( mbedtls_ssl_context *ssl )
     }
 
     /*
-     * SSLv3:
-     *   master =
-     *     MD5( premaster + SHA1( 'A'   + premaster + randbytes ) ) +
-     *     MD5( premaster + SHA1( 'BB'  + premaster + randbytes ) ) +
-     *     MD5( premaster + SHA1( 'CCC' + premaster + randbytes ) )
-     *
-     * TLSv1+:
-     *   master = PRF( premaster, "master secret", randbytes )[0..47]
-     */
-    if( handshake->resume == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_BUF( 3, "premaster secret", handshake->premaster,
-                       handshake->pmslen );
-
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-        if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
-        {
-            unsigned char session_hash[48];
-            size_t hash_len;
-
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
-
-            ssl->handshake->calc_verify( ssl, session_hash );
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-            if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-            {
-#if defined(MBEDTLS_SHA512_C)
-                if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
-                {
-                    hash_len = 48;
-                }
-                else
-#endif
-                    hash_len = 32;
-            }
-            else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-                hash_len = 36;
-
-            MBEDTLS_SSL_DEBUG_BUF( 3, "session hash", session_hash, hash_len );
-
-            ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                                      "extended master secret",
-                                      session_hash, hash_len,
-                                      session->master, 48 );
-            if( ret != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
-                return( ret );
-            }
-
-        }
-        else
-#endif
-        ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                                  "master secret",
-                                  handshake->randbytes, 64,
-                                  session->master, 48 );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
-            return( ret );
-        }
-
-        mbedtls_platform_zeroize( handshake->premaster,
-                                  sizeof(handshake->premaster) );
-    }
-    else
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
-
-    /*
      * Swap the client and server random values.
      */
     memcpy( tmp, handshake->randbytes, 64 );
@@ -1165,6 +1093,90 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     return( 0 );
 }
 
+/*
+ * Compute master secret
+ */
+static int ssl_compute_master( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = handshake->ciphersuite_info;
+    mbedtls_ssl_session *session = ssl->session_negotiate;
+
+    /*
+     * SSLv3:
+     *   master =
+     *     MD5( premaster + SHA1( 'A'   + premaster + randbytes ) ) +
+     *     MD5( premaster + SHA1( 'BB'  + premaster + randbytes ) ) +
+     *     MD5( premaster + SHA1( 'CCC' + premaster + randbytes ) )
+     *
+     * TLSv1+:
+     *   master = PRF( premaster, "master secret", randbytes )[0..47]
+     */
+    if( handshake->resume == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_BUF( 3, "premaster secret", handshake->premaster,
+                       handshake->pmslen );
+
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+        if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
+        {
+            unsigned char session_hash[48];
+            size_t hash_len;
+
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
+
+            ssl->handshake->calc_verify( ssl, session_hash );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+            if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+            {
+#if defined(MBEDTLS_SHA512_C)
+                if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+                {
+                    hash_len = 48;
+                }
+                else
+#endif
+                    hash_len = 32;
+            }
+            else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+                hash_len = 36;
+
+            MBEDTLS_SSL_DEBUG_BUF( 3, "session hash", session_hash, hash_len );
+
+            ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
+                                      "extended master secret",
+                                      session_hash, hash_len,
+                                      session->master, 48 );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
+                return( ret );
+            }
+
+        }
+        else
+#endif
+        ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
+                                  "master secret",
+                                  handshake->randbytes, 64,
+                                  session->master, 48 );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
+            return( ret );
+        }
+
+        mbedtls_platform_zeroize( handshake->premaster,
+                                  sizeof(handshake->premaster) );
+    }
+    else
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
+
+    return( 0 );
+}
 
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
@@ -1178,6 +1190,13 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_set_handshake_prfs", ret );
+        return( ret );
+    }
+
+    ret = ssl_compute_master( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_compute_master", ret );
         return( ret );
     }
 

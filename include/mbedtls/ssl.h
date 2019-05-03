@@ -388,7 +388,7 @@
 
 /* The value of the CID extension is still TBD as of
  * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04. */
-#define MBEDTLS_TLS_EXT_CID                         42 /* TBD */
+#define MBEDTLS_TLS_EXT_CID                        254 /* TBD */
 
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
 

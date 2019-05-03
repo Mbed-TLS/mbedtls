@@ -3217,7 +3217,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     unsigned char hash[48];
     unsigned char *hash_start = hash;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
-    unsigned int hashlen;
+    size_t hashlen;
     void *rs_ctx = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
@@ -3270,7 +3270,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 sign:
 #endif
 
-    ssl->handshake->calc_verify( ssl, hash );
+    ssl->handshake->calc_verify( ssl, hash, &hashlen );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
@@ -3288,7 +3288,6 @@ sign:
          * sha_hash
          *     SHA(handshake_messages);
          */
-        hashlen = 36;
         md_alg = MBEDTLS_MD_NONE;
 
         /*

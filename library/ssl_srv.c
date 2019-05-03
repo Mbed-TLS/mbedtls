@@ -4163,7 +4163,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     }
 
     /* Calculate hash and verify signature */
-    ssl->handshake->calc_verify( ssl, hash );
+    {
+        size_t dummy_hlen;
+        ssl->handshake->calc_verify( ssl, hash, &dummy_hlen );
+    }
 
     if( ( ret = mbedtls_pk_verify( &ssl->session_negotiate->peer_cert->pk,
                            md_alg, hash_start, hashlen,

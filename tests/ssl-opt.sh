@@ -1321,12 +1321,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID none
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -c "Peer CID (length 2 Bytes): de ad" \
-#            -s "Peer CID (length 2 Bytes): be ef"
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -c "Peer CID (length 2 Bytes): de ad" \
+            -s "Peer CID (length 2 Bytes): be ef" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty" \
@@ -1342,12 +1341,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty" \
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -c "Peer CID (length 4 Bytes): de ad be ef" \
-#            -s "Peer CID (length 0 Bytes):" \
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -c "Peer CID (length 4 Bytes): de ad be ef" \
+            -s "Peer CID (length 0 Bytes):" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty" \
@@ -1363,12 +1361,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty" \
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -s "Peer CID (length 4 Bytes): de ad be ef" \
-#            -c "Peer CID (length 0 Bytes):"
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -s "Peer CID (length 4 Bytes): de ad be ef" \
+            -c "Peer CID (length 0 Bytes):" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empty" \
@@ -1402,12 +1399,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID none
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -c "Peer CID (length 2 Bytes): de ad" \
-#            -s "Peer CID (length 2 Bytes): be ef" \
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -c "Peer CID (length 2 Bytes): de ad" \
+            -s "Peer CID (length 2 Bytes): be ef" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-128-CCM-8" \
@@ -1423,12 +1419,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -c "Peer CID (length 4 Bytes): de ad be ef" \
-#            -s "Peer CID (length 0 Bytes):" \
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -c "Peer CID (length 4 Bytes): de ad be ef" \
+            -s "Peer CID (length 0 Bytes):" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-128-CCM-8" \
@@ -1444,12 +1439,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -s "Peer CID (length 4 Bytes): de ad be ef" \
-#            -c "Peer CID (length 0 Bytes):" \
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -s "Peer CID (length 4 Bytes): de ad be ef" \
+            -c "Peer CID (length 0 Bytes):" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empty, AES-128-CCM-8" \
@@ -1483,12 +1477,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID none
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -c "Peer CID (length 2 Bytes): de ad" \
-#            -s "Peer CID (length 2 Bytes): be ef" \
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -c "Peer CID (length 2 Bytes): de ad" \
+            -s "Peer CID (length 2 Bytes): be ef" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-128-CBC" \
@@ -1504,12 +1497,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Client CID empty, AES-
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -c "Peer CID (length 4 Bytes): de ad be ef" \
-#            -s "Peer CID (length 0 Bytes):" \
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -c "Peer CID (length 4 Bytes): de ad be ef" \
+            -s "Peer CID (length 0 Bytes):" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-128-CBC" \
@@ -1525,12 +1517,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, Server CID empty, AES-
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -s "Peer CID (length 4 Bytes): de ad be ef" \
-#            -c "Peer CID (length 0 Bytes):" \
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -s "Peer CID (length 4 Bytes): de ad be ef" \
+            -c "Peer CID (length 0 Bytes):" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID empty, AES-128-CBC" \
@@ -1565,12 +1556,11 @@ run_test    "(STUB) Connection ID: Client+Server enabled, renegotiate" \
             -c "found CID extension" \
             -c "Use of CID extension negotiated" \
             -s "Copy CIDs into SSL transform" \
-            -c "Copy CIDs into SSL transform"
-# Uncomment once CID is fully implemented
-#            -c "Peer CID (length 2 Bytes): de ad" \
-#            -s "Peer CID (length 2 Bytes): be ef"
-#            -s "Use of Connection ID has been negotiated" \
-#            -c "Use of Connection ID has been negotiated" \
+            -c "Copy CIDs into SSL transform" \
+            -c "Peer CID (length 2 Bytes): de ad" \
+            -s "Peer CID (length 2 Bytes): be ef" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 # Tests for Encrypt-then-MAC extension
 

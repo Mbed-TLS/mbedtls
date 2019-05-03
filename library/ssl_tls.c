@@ -1578,7 +1578,7 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
 }
 
 /*
- * Compute master secret
+ * Compute master secret if needed
  */
 static int ssl_compute_master( mbedtls_ssl_context *ssl )
 {
@@ -1595,134 +1595,123 @@ static int ssl_compute_master( mbedtls_ssl_context *ssl )
     unsigned char session_hash[48];
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
-    /*
-     * SSLv3:
-     *   master =
-     *     MD5( premaster + SHA1( 'A'   + premaster + randbytes ) ) +
-     *     MD5( premaster + SHA1( 'BB'  + premaster + randbytes ) ) +
-     *     MD5( premaster + SHA1( 'CCC' + premaster + randbytes ) )
-     *
-     * TLSv1+:
-     *   master = PRF( premaster, "master secret", randbytes )[0..47]
-     */
+    /* The label for the KDF used for key expansion.
+     * This is either "master secret" or "extended master secret"
+     * depending on whether the Extended Master Secret extension
+     * is used. */
+    char const *lbl = "master secret";
+
+    /* The salt for the KDF used for key expansion.
+     * - If the Extended Master Secret extension is not used,
+     *   this is ClientHello.Random + ServerHello.Random
+     *   (see Sect. 8.1 in RFC 5246).
+     * - If the Extended Master Secret extension is used,
+     *   this is the transcript of the handshake so far.
+     *   (see Sect. 4 in RFC 7627). */
+    unsigned char const *salt = handshake->randbytes;
+    size_t salt_len = 64;
+
     if( handshake->resume != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
+        return( 0 );
     }
-    else
-    {
-        /* The label for the KDF used for key expansion.
-         * This is either "master secret" or "extended master secret"
-         * depending on whether the Extended Master Secret extension
-         * is used. */
-        char const *lbl = "master secret";
-
-        /* The salt for the KDF used for key expansion.
-         * - If the Extended Master Secret extension is not used,
-         *   this is ClientHello.Random + ServerHello.Random
-         *   (see Sect. 8.1 in RFC 5246).
-         * - If the Extended Master Secret extension is used,
-         *   this is the transcript of the handshake so far.
-         *   (see Sect. 4 in RFC 7627). */
-        unsigned char const *salt = handshake->randbytes;
-        size_t salt_len = 64;
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-        if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
+    if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
 
-            lbl  = "extended master secret";
-            salt = session_hash;
-            ssl->handshake->calc_verify( ssl, session_hash );
+        lbl  = "extended master secret";
+        salt = session_hash;
+        ssl->handshake->calc_verify( ssl, session_hash );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-            if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-            {
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        {
 #if defined(MBEDTLS_SHA512_C)
-                if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
-                {
-                    salt_len = 48;
-                }
-                else
-#endif /* MBEDTLS_SHA512_C */
-                    salt_len = 32;
+            if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+            {
+                salt_len = 48;
             }
             else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-                salt_len = 36;
-
-            MBEDTLS_SSL_DEBUG_BUF( 3, "session hash", session_hash, salt_len );
+#endif /* MBEDTLS_SHA512_C */
+                salt_len = 32;
         }
+        else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+            salt_len = 36;
+
+        MBEDTLS_SSL_DEBUG_BUF( 3, "session hash", session_hash, salt_len );
+    }
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&          \
-    defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
-            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
-            ssl_use_opaque_psk( ssl ) == 1 )
-        {
-            /* Perform PSK-to-MS expansion in a single step. */
-            psa_status_t status;
-            psa_algorithm_t alg;
-            psa_key_handle_t psk;
-            psa_key_derivation_operation_t derivation =
-                PSA_KEY_DERIVATION_OPERATION_INIT;
+defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
+        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        ssl_use_opaque_psk( ssl ) == 1 )
+    {
+        /* Perform PSK-to-MS expansion in a single step. */
+        psa_status_t status;
+        psa_algorithm_t alg;
+        psa_key_handle_t psk;
+        psa_key_derivation_operation_t derivation =
+            PSA_KEY_DERIVATION_OPERATION_INIT;
 
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "perform PSA-based PSK-to-MS expansion" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "perform PSA-based PSK-to-MS expansion" ) );
 
-            psk = ssl->conf->psk_opaque;
-            if( ssl->handshake->psk_opaque != 0 )
-                psk = ssl->handshake->psk_opaque;
+        psk = ssl->conf->psk_opaque;
+        if( ssl->handshake->psk_opaque != 0 )
+            psk = ssl->handshake->psk_opaque;
 
-            if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
-                alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
-            else
-                alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
-
-            status = psa_key_derivation( &derivation, psk, alg,
-                                         salt, salt_len,
-                                         (unsigned char const *) lbl,
-                                         (size_t) strlen( lbl ),
-                                         master_secret_len );
-            if( status != PSA_SUCCESS )
-            {
-                psa_key_derivation_abort( &derivation );
-                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-            }
-
-            status = psa_key_derivation_output_bytes( &derivation,
-                                                      session->master,
-                                                      master_secret_len );
-            if( status != PSA_SUCCESS )
-            {
-                psa_key_derivation_abort( &derivation );
-                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-            }
-
-            status = psa_key_derivation_abort( &derivation );
-            if( status != PSA_SUCCESS )
-                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
+        if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+            alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
         else
-#endif
+            alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
+
+        status = psa_key_derivation( &derivation, psk, alg,
+                                     salt, salt_len,
+                                     (unsigned char const *) lbl,
+                                     (size_t) strlen( lbl ),
+                                     master_secret_len );
+        if( status != PSA_SUCCESS )
         {
-            ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                                      lbl, salt, salt_len,
-                                      session->master,
-                                      master_secret_len );
-            if( ret != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
-                return( ret );
-            }
-
-            MBEDTLS_SSL_DEBUG_BUF( 3, "premaster secret",
-                                   handshake->premaster,
-                                   handshake->pmslen );
-
-            mbedtls_platform_zeroize( handshake->premaster,
-                                      sizeof(handshake->premaster) );
+            psa_key_derivation_abort( &derivation );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
+
+        status = psa_key_derivation_output_bytes( &derivation,
+                                                  session->master,
+                                                  master_secret_len );
+        if( status != PSA_SUCCESS )
+        {
+            psa_key_derivation_abort( &derivation );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+
+        status = psa_key_derivation_abort( &derivation );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    }
+    else
+#endif
+    {
+        ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
+                                  lbl, salt, salt_len,
+                                  session->master,
+                                  master_secret_len );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_BUF( 3, "premaster secret",
+                               handshake->premaster,
+                               handshake->pmslen );
+
+        mbedtls_platform_zeroize( handshake->premaster,
+                                  sizeof(handshake->premaster) );
     }
 
     return( 0 );

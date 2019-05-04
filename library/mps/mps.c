@@ -2715,7 +2715,6 @@ int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
         MPS_CHK( mps_out_flight_free( mps ) );
         MPS_CHK( mps_retransmit_in_free( mps ) );
         MPS_CHK( mps_reassembly_free( mps ) );
-        /* Force 0 as the initial sequence number on renegotiations. */
         MPS_CHK( mps_reassembly_init( mps ) );
     }
     else

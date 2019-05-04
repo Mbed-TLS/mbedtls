@@ -581,18 +581,17 @@ int mbedtls_x509write_crt_pem( mbedtls_x509write_cert *crt,
                                void *p_rng )
 {
     int ret;
-    unsigned char output_buf[4096];
-    size_t olen = 0;
+    size_t olen;
 
-    if( ( ret = mbedtls_x509write_crt_der( crt, output_buf, sizeof(output_buf),
+    if( ( ret = mbedtls_x509write_crt_der( crt, buf, size,
                                    f_rng, p_rng ) ) < 0 )
     {
         return( ret );
     }
 
     if( ( ret = mbedtls_pem_write_buffer( PEM_BEGIN_CRT, PEM_END_CRT,
-                                  output_buf + sizeof(output_buf) - ret,
-                                  ret, buf, size, &olen ) ) != 0 )
+                                          buf + size - ret, ret,
+                                          buf, size, &olen ) ) != 0 )
     {
         return( ret );
     }

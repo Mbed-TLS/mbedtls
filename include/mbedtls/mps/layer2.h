@@ -56,9 +56,30 @@
 
 #define MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR
 
+/*! The type of epoch usage flags */
 typedef uint8_t mbedtls_mps_epoch_usage;
-#define MPS_EPOCH_READ  ( (mbedtls_mps_epoch_usage) ( 1u << 1 ) )
-#define MPS_EPOCH_WRITE ( (mbedtls_mps_epoch_usage) ( 1u << 2 ) )
+
+/*! This macro generates an epoch usage flag indicating
+ *  that the epoch is needed for reading, for a specific
+ *  reason that is encoded as an integral parameter.
+ *
+ *  The prime example for this is the DTLS retransmission
+ *  state machine: There's always the epoch of the next
+ *  expected incoming message, but we must also detect
+ *  retransmission of earlier messages, and potentially
+ *  earlier epochs. The DTLS retransmission state machine
+ *  can separate these usage reasons through this macro.
+ *
+ *  Currently, only `0` and `1` are supported as values
+ *  for `reason`.
+ */
+#define MPS_EPOCH_USAGE_READ_EXT( reason )  \
+    ( (mbedtls_mps_epoch_usage) ( 1u << ( reason ) ) )
+#define MPS_EPOCH_USAGE_WRITE_EXT( reason ) \
+    ( (mbedtls_mps_epoch_usage) ( 1u << ( 4 + ( reason ) ) ) )
+
+#define MPS_EPOCH_READ MPS_EPOCH_USAGE_READ_EXT( 0 )
+#define MPS_EPOCH_WRITE MPS_EPOCH_USAGE_WRITE_EXT( 0 )
 
 struct mbedtls_mps_l2;
 typedef struct mbedtls_mps_l2 mbedtls_mps_l2;

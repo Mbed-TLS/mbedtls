@@ -117,6 +117,8 @@
 
 #include <stdio.h>
 
+#include "common.h"
+
 struct mbedtls_reader;
 typedef struct mbedtls_reader mbedtls_reader;
 
@@ -144,7 +146,7 @@ typedef struct mbedtls_reader_ext mbedtls_reader_ext;
 #define MBEDTLS_ERR_READER_TOO_MANY_GROUPS       -0xa  /*!< The extended reader has reached the maximum number of groups, and another
                                                         *   group cannot be opened.                                                       */
 
-#define MBEDTLS_READER_MAX_GROUPS 5
+#define MBEDTLS_READER_MAX_GROUPS 4
 
 /*
  * Structure definitions
@@ -158,15 +160,15 @@ struct mbedtls_reader
                            *   does not own the fragment and does not
                            *   perform any allocation operations on it,
                            *   but does have read and write access to it.   */
-    size_t frag_len;      /*!< The length of the current fragment.
+    mbedtls_mps_stored_size_t frag_len;      /*!< The length of the current fragment.
                            *   Must be 0 if \c frag == \c NULL.             */
-    size_t commit;        /*!< The offset of the last commit, relative
+    mbedtls_mps_stored_size_t commit;        /*!< The offset of the last commit, relative
                            *   to the first byte in the accumulator.
                            *   This is only used when the reader is in
                            *   consuming mode, i.e. frag != NULL;
                            *   otherwise, its value is \c 0
                            *   (invariant READER_INV_FRAG_UNSET_VARS_ZERO). */
-    size_t end;           /*!< The offset of the end of the last chunk
+    mbedtls_mps_stored_size_t end;           /*!< The offset of the end of the last chunk
                            *   passed to the user through a call to
                            *   mbedtls_reader_get(), relative to the first
                            *   byte in the accumulator.
@@ -174,7 +176,7 @@ struct mbedtls_reader
                            *   consuming mode, i.e. \c frag != \c NULL;
                            *   otherwise, its value is \c 0
                            *   (invariant READER_INV_FRAG_UNSET_VARS_ZERO). */
-    size_t pending;       /*!< The amount of incoming data missing on the
+    mbedtls_mps_stored_size_t pending;       /*!< The amount of incoming data missing on the
                            *   last call to mbedtls_reader_get().
                            *   In particular, it is \c 0 if the last call
                            *   was successful.
@@ -196,8 +198,8 @@ struct mbedtls_reader
     unsigned char *acc;   /*!< The accumulator is used to gather incoming
                            *   data if a read-request via mbedtls_reader_get()
                            *   cannot be served from the current fragment.  */
-    size_t acc_len;       /*!< The total size of the accumulator.           */
-    size_t acc_avail;     /*!< The number of bytes currently gathered in
+    mbedtls_mps_stored_size_t acc_len;       /*!< The total size of the accumulator.           */
+    mbedtls_mps_stored_size_t acc_avail;     /*!< The number of bytes currently gathered in
                            *   the accumulator. This is both used in
                            *   producing and in consuming mode:
                            *   While producing, it is increased until
@@ -209,12 +211,12 @@ struct mbedtls_reader
                            *   (invariant READER_INV_ACC_AVAIL).            */
     union
     {
-        size_t acc_remaining; /*!< This indicates the amount of data still
+        mbedtls_mps_stored_size_t acc_remaining; /*!< This indicates the amount of data still
                                *   to be gathered in the accumulator. It is
                                *   only used in producing mode.
                                *   Must be at most acc_len - acc_available
                                *   (inv READER_INV_ACC_SET_AVAIL_REMAINING). */
-        size_t frag_offset;   /*!< This indicates the offset of the current
+        mbedtls_mps_stored_size_t frag_offset;   /*!< This indicates the offset of the current
                                *   fragment from the beginning of the
                                *   accumulator.
                                *   It is only used in consuming mode.
@@ -317,15 +319,15 @@ struct mbedtls_reader_ext
     unsigned cur_grp; /*!< The 0-based index of the currently active group.
                        *   The group of index 0 always exists and represents
                        *   the entire logical message buffer.                 */
-    size_t grp_end[MBEDTLS_READER_MAX_GROUPS];
+    mbedtls_mps_stored_size_t grp_end[MBEDTLS_READER_MAX_GROUPS];
                       /*!< The offsets marking the ends of the currently
                        *   active groups. The first cur_grp + 1 entries are
                        *   valid and always weakly descending (subsequent
                        *   groups are subgroups of their predecessors ones).  */
 
     mbedtls_reader *rd; /*!< Underlying writer object - may be \c NULL.       */
-    size_t ofs_fetch;   /*!< The offset of the first byte of the next chunk.  */
-    size_t ofs_commit;  /*!< The offset of first byte beyond
+    mbedtls_mps_stored_size_t ofs_fetch;   /*!< The offset of the first byte of the next chunk.  */
+    mbedtls_mps_stored_size_t ofs_commit;  /*!< The offset of first byte beyond
                          *   the last committed chunk.                        */
 };
 

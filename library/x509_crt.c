@@ -111,6 +111,8 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame *frame,
                                         mbedtls_x509_sequence *subject_alt );
 static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame *frame,
                                         mbedtls_x509_sequence *ext_key_usage );
+static int x509_crt_policies_from_frame( mbedtls_x509_crt_frame *frame,
+                                         mbedtls_x509_sequence *crt_policies );
 
 int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
 {
@@ -332,6 +334,29 @@ int mbedtls_x509_crt_get_ext_key_usage( mbedtls_x509_crt const *crt,
     mbedtls_x509_crt_frame_release( crt );
 
     *ext_key_usage = seq;
+    return( ret );
+}
+
+int mbedtls_x509_crt_get_crt_policies( mbedtls_x509_crt const *crt,
+                                       mbedtls_x509_sequence **crt_policies )
+{
+    int ret;
+    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_sequence *seq;
+
+    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( ret );
+
+    seq = mbedtls_calloc( 1, sizeof( mbedtls_x509_sequence ) );
+    if( seq == NULL )
+        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
+    else
+        ret = x509_crt_policies_from_frame( frame, seq );
+
+    mbedtls_x509_crt_frame_release( crt );
+
+    *crt_policies = seq;
     return( ret );
 }
 
@@ -1096,6 +1121,34 @@ static int x509_get_subject_alt_name( unsigned char *p,
 }
 
 /*
+ * A callback for checking that the data is a constructed sequence of OID.
+ *
+ */
+static int x509_crt_check_sequence_of_oid_cb( void *ctx,
+                                              int tag,
+                                              unsigned char *data,
+                                              size_t data_len )
+{
+    int ret;
+    unsigned char **p = &data;
+    const unsigned char *end = data + data_len;
+    size_t len;
+
+    (void)ctx;
+
+    if( tag != ( MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                                      MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    return( 0 );
+}
+
+/*
  * X.509 v3 extensions
  *
  */
@@ -1233,13 +1286,14 @@ static int x509_crt_get_ext_cb( void *ctx,
             break;
 
         case MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES:
-            /* Copy reference to raw subject alt name data. */
+            /* Copy reference to raw crt policies data. */
             frame->crt_policies_raw.p   = p;
             frame->crt_policies_raw.len = end_ext_octet - p;
             /* Check structural sanity of extension. */
             ret = mbedtls_asn1_traverse_sequence_of( &p, end_ext_octet,
-                                                     0xFF, MBEDTLS_ASN1_OID,
-                                                     0, 0, NULL, NULL );
+                                                     0xFF, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE,
+                                                     0xFF, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE,
+                                                     x509_crt_check_sequence_of_oid_cb, NULL );
             if( ret != 0 )
                 goto err;
 
@@ -1638,6 +1692,28 @@ static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame *frame,
     return( 0 );
 }
 
+static int x509_crt_policies_from_frame( mbedtls_x509_crt_frame *frame,
+                                             mbedtls_x509_sequence *crt_policies )
+{
+    int ret;
+    unsigned char *p   = frame->crt_policies_raw.p;
+    unsigned char *end = p + frame->crt_policies_raw.len;
+
+    memset( crt_policies, 0, sizeof( *crt_policies ) );
+
+    if( ( frame->ext_types & MBEDTLS_X509_EXT_CERTIFICATE_POLICIES ) == 0 )
+        return( 0 );
+
+    ret = x509_get_certificate_policies( &p, end, crt_policies );
+    if( ret != 0 )
+    {
+        ret += MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
+        return( ret );
+    }
+
+    return( 0 );
+}
+
 #if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
 static int x509_crt_pk_from_frame( mbedtls_x509_crt_frame *frame,
                                    mbedtls_pk_context *pk )
@@ -1790,6 +1866,10 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         goto exit;
 
     ret = x509_crt_ext_key_usage_from_frame( frame, &crt->ext_key_usage );
+    if( ret != 0 )
+        goto exit;
+
+    ret = x509_crt_policies_from_frame( frame, &crt->crt_policies );
     if( ret != 0 )
         goto exit;
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
@@ -2686,6 +2766,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     mbedtls_x509_name *issuer = NULL, *subject = NULL;
     mbedtls_x509_sequence *ext_key_usage = NULL, *subject_alt_names = NULL;
+    mbedtls_x509_sequence *cert_policies = NULL;
     mbedtls_x509_crt_sig_info sig_info;
 
     p = buf;
@@ -2745,6 +2826,13 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     }
 
     ret = x509_crt_get_sig_info( &frame, &sig_info );
+    if( ret != 0 )
+    {
+        ret = MBEDTLS_ERR_X509_FATAL_ERROR;
+        goto cleanup;
+    }
+
+    ret = mbedtls_x509_crt_get_crt_policies( crt, &cert_policies );
     if( ret != 0 )
     {
         ret = MBEDTLS_ERR_X509_FATAL_ERROR;
@@ -2864,13 +2952,13 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
             return( ret );
     }
 
-    if( crt->ext_types & MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES )
+    if( frame.ext_types & MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES )
     {
         ret = mbedtls_snprintf( p, n, "\n%scertificate policies : ", prefix );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_cert_policies( &p, &n,
-                                             &crt->certificate_policies ) ) != 0 )
+                                             cert_policies ) ) != 0 )
             return( ret );
     }
 
@@ -2887,6 +2975,7 @@ cleanup:
     mbedtls_x509_name_free( subject );
     mbedtls_x509_sequence_free( ext_key_usage );
     mbedtls_x509_sequence_free( subject_alt_names );
+    mbedtls_x509_sequence_free( cert_policies );
 
     return( ret );
 }

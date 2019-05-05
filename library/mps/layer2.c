@@ -38,54 +38,59 @@ MBEDTLS_MPS_STATIC void l2_out_write_version( int major, int minor,
 
 MBEDTLS_MPS_STATIC int l2_increment_counter( uint32_t ctr[2] );
 
-/* Reading related */
+/*
+ * Reading related
+ */
+
+/* Various record header parsing functions
+ *
+ * These functions fetch and validate record headers for various TLS/DTLS
+ * versions from Layer 1 and feed them into the provided record structure.
+ *
+ * Checks these functions perform:
+ * - The epoch is not a valid epoch for incoming records.
+ * - The record content type is not valid.
+ * - The length field in the record header exceeds the
+ *   configured maximum record size.
+ * - The datagram didn't contain as much data after
+ *   the record header as indicated in the record
+ *   header length field.
+ * - There wasn't enough space remaining in the datagram
+ *   to load a DTLS 1.2 record header.
+ * - The record sequence number has been seen before,
+ *   so the record is likely duplicated / replayed.
+ */
 MBEDTLS_MPS_STATIC int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec );
-MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec );
+MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx,
+                                                     mps_rec *rec );
 #if defined(MBEDTLS_MPS_PROTO_TLS)
 MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx,
-                                             mps_rec *rec );
+                                                         mps_rec *rec );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-/* \brief This function fetches and validates a DTLS 1.2 record header
- *        from the underlying Layer 1 and writes it into the provided
- *        record structure.
- *
- * \return  \c 0 on success.
- * \return  #MPS_ERR_INVALID_RECORD if the record is invalid
- *          for one of the following reasons:
- *          - The epoch is not a valid epoch for incoming records.
- *          - The record content type is not valid.
- *          - The length field in the record header exceeds the
- *            configured maximum record size.
- *          - The datagram didn't contain as much data after
- *            the record header as indicated in the record
- *            header length field.
- *          - There wasn't enough space remaining in the datagram
- *            to load a DTLS 1.2 record header.
- *          - The record sequence number has been seen before,
- *            so the record is likely duplicated / replayed.
- * \return  #MPS_ERR_WANT_READ if the underlying Layer 1
- *          context has no data ready to be read.
- * \return  Another error code on other kinds of failure.
- *          The Layer 2 context must not be used anymore
- *          in this case.
- *
- * \warning \p rec may be tainted on any kind of failure, even the
- *          non-fatal ones, and \p rec must not be read in this case.
- */
 MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
-                                                mps_rec *rec );
+                                                            mps_rec *rec );
 MBEDTLS_MPS_STATIC int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
+
+/* Signal to the underlying Layer 1 that the last
+ * incoming record has been fully processed. */
 MBEDTLS_MPS_STATIC int l2_in_release_record( mbedtls_mps_l2 *ctx );
 
-/* Writing related */
+/*
+ * Writing related
+ */
+
 MBEDTLS_MPS_STATIC int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
-                                  mbedtls_mps_epoch_id epoch );
+                                              mbedtls_mps_epoch_id epoch );
 MBEDTLS_MPS_STATIC int l2_out_track_record( mbedtls_mps_l2 *ctx );
-MBEDTLS_MPS_STATIC int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force );
+MBEDTLS_MPS_STATIC int l2_out_release_record( mbedtls_mps_l2 *ctx,
+                                              uint8_t force );
 MBEDTLS_MPS_STATIC int l2_out_dispatch_record( mbedtls_mps_l2 *ctx );
-MBEDTLS_MPS_STATIC int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec );
+
+/* Various record header writing functions */
+MBEDTLS_MPS_STATIC int l2_out_write_protected_record( mbedtls_mps_l2 *ctx,
+                                                      mps_rec *rec );
 #if defined(MBEDTLS_MPS_PROTO_TLS)
 MBEDTLS_MPS_STATIC int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx,
                                               mps_rec *rec );
@@ -94,7 +99,9 @@ MBEDTLS_MPS_STATIC int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx,
 MBEDTLS_MPS_STATIC int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                                                  mps_rec *rec );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-MBEDTLS_MPS_STATIC int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx, uint8_t force );
+
+MBEDTLS_MPS_STATIC int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx,
+                                                    uint8_t force );
 MBEDTLS_MPS_STATIC int l2_out_clear_pending( mbedtls_mps_l2 *ctx );
 
 MBEDTLS_MPS_STATIC size_t l2_get_header_len( mbedtls_mps_l2 *ctx,
@@ -1601,12 +1608,15 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
                 RETURN( ret );
 
             TRACE( trace_comment, "Signal that the processing should be retried." );
-            /* It is OK to return #MPS_ERR_WANT_READ here because we have
-             * discarded the entire underlying datagram, hence progress can
-             * only be made once another datagram is available.
+            /* Remember that MPS_ERR_WANT_READ should only be returned when
+             * progress can _only_ be made through additional data on the
+             * underlying transport.
+             * That's the case here because we have discarded the entire
+             * underlying datagram, hence progress can only be made once
+             * another datagram is available.
              *
-             * NOTE: If Layer 1 ever buffers more than one datagram,
-             *       this needs to be reconsidered. */
+             * BUT: If Layer 1 ever buffers more than one datagram,
+             * this needs to be reconsidered. */
             RETURN( MPS_ERR_WANT_READ );
         }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */

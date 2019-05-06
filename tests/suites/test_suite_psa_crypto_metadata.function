@@ -36,6 +36,7 @@
 #define ALG_IS_ECDH                     ( 1u << 18 )
 #define ALG_IS_WILDCARD                 ( 1u << 19 )
 #define ALG_IS_RAW_KEY_AGREEMENT        ( 1u << 20 )
+#define ALG_IS_AEAD_ON_BLOCK_CIPHER     ( 1u << 21 )
 
 /* Flags for key type classification macros. There is a flag for every
  * key type classification macro PSA_KEY_TYPE_IS_xxx except for some that
@@ -77,6 +78,7 @@ void algorithm_classification( psa_algorithm_t alg, unsigned flags )
     TEST_CLASSIFICATION_MACRO( ALG_IS_ECDH, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_FFDH, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_RAW_KEY_AGREEMENT, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_AEAD_ON_BLOCK_CIPHER, alg, flags );
 exit: ;
 }
 

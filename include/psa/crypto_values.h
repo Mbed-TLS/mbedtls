@@ -874,13 +874,34 @@
  */
 #define PSA_ALG_CBC_PKCS7                       ((psa_algorithm_t)0x04600101)
 
+#define PSA_ALG_AEAD_FROM_BLOCK_FLAG            ((psa_algorithm_t)0x00400000)
+
+/** Whether the specified algorithm is an AEAD mode on a block cipher.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is an AEAD algorithm which is an AEAD mode based on
+ *         a block cipher, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg)    \
+    (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_AEAD_FROM_BLOCK_FLAG)) == \
+     (PSA_ALG_CATEGORY_AEAD | PSA_ALG_AEAD_FROM_BLOCK_FLAG))
+
 /** The CCM authenticated encryption algorithm.
  */
-#define PSA_ALG_CCM                             ((psa_algorithm_t)0x06001001)
+#define PSA_ALG_CCM                             ((psa_algorithm_t)0x06401001)
 
 /** The GCM authenticated encryption algorithm.
  */
-#define PSA_ALG_GCM                             ((psa_algorithm_t)0x06001002)
+#define PSA_ALG_GCM                             ((psa_algorithm_t)0x06401002)
+
+/** The Chacha20-Poly1305 AEAD algorithm.
+ *
+ * The ChaCha20_Poly1305 construction is defined in RFC 7539.
+ */
+#define PSA_ALG_CHACHA20_POLY1305               ((psa_algorithm_t)0x06001005)
 
 /* In the encoding of a AEAD algorithm, the bits corresponding to
  * PSA_ALG_AEAD_TAG_LENGTH_MASK encode the length of the AEAD tag.

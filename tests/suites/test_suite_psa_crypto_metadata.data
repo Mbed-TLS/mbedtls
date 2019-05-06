@@ -192,11 +192,11 @@ cipher_algorithm:PSA_ALG_XTS:0
 
 AEAD: CCM
 depends_on:MBEDTLS_CCM_C
-aead_algorithm:PSA_ALG_CCM:0:16
+aead_algorithm:PSA_ALG_CCM:ALG_IS_AEAD_ON_BLOCK_CIPHER:16
 
 AEAD: GCM
 depends_on:MBEDTLS_GCM_C
-aead_algorithm:PSA_ALG_GCM:0:16
+aead_algorithm:PSA_ALG_GCM:ALG_IS_AEAD_ON_BLOCK_CIPHER:16
 
 Asymmetric signature: RSA PKCS#1 v1.5 raw
 depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15

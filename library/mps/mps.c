@@ -1422,7 +1422,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
             mbedtls_mps_retransmission_handle *handle;
             unsigned char *queue;
             size_t queue_len;
-            uint8_t mode;
+            uint8_t write_mode;
 
             TRACE( trace_comment, "No handshake message paused - start a new one." );
 
@@ -1516,7 +1516,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 handle->handle.raw.buf = backup_buf;
                 handle->handle.raw.len = backup_len;
 
-                mode       = MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY;
+                write_mode = MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY;
                 queue      = backup_buf;
                 queue_len  = backup_len;
             }
@@ -1541,7 +1541,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 handle->handle.callback.cb  = cb;
                 handle->handle.callback.ctx = cb_ctx;
 
-                mode       = MPS_DTLS_FRAG_OUT_START_USE_L3;
+                write_mode = MPS_DTLS_FRAG_OUT_START_USE_L3;
                 queue      = hs->queue;
                 queue_len  = hs->queue_len;
             }
@@ -1551,7 +1551,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
              * error is fatal. */
             MPS_CHK( mps_dtls_frag_out_start( hs, queue, queue_len,
                                               &handle->metadata,
-                                              mode ) );
+                                              write_mode ) );
 
             /* This may interface with Layer 3 and potentially return
              * MBEDTLS_MPS_ERR_WANT_WRITE. */
@@ -1800,15 +1800,8 @@ int mbedtls_mps_set_incoming_keys( mbedtls_mps *mps,
 {
     int ret;
     TRACE_INIT( "mbedtls_mps_set_incoming_keys, epoch %d", (int) id );
-    if( mps->out_epoch == id )
-    {
-        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id,
-                                     MPS_EPOCH_WRITE | MPS_EPOCH_READ ) );
-    }
-    else
-    {
-        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id, MPS_EPOCH_READ ) );
-    }
+    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id, 0,
+                                 MPS_EPOCH_USAGE_READ( 0 ) ) );
     mps->in_epoch = id;
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
@@ -1819,15 +1812,8 @@ int mbedtls_mps_set_outgoing_keys( mbedtls_mps *mps,
 {
     int ret;
     TRACE_INIT( "mbedtls_mps_set_outgoing_keys, epoch %d", (int) id );
-    if( mps->in_epoch == id )
-    {
-        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id,
-                                     MPS_EPOCH_WRITE | MPS_EPOCH_READ ) );
-    }
-    else
-    {
-        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id, MPS_EPOCH_WRITE ) );
-    }
+    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id, 0,
+                                 MPS_EPOCH_USAGE_WRITE( 0 ) ) );
     mps->out_epoch = id;
 
     MPS_API_BOUNDARY_FAILURE_HANDLER

@@ -73,13 +73,20 @@ typedef uint8_t mbedtls_mps_epoch_usage;
  *  Currently, only `0` and `1` are supported as values
  *  for `reason`.
  */
-#define MPS_EPOCH_USAGE_READ_EXT( reason )  \
+#define MPS_EPOCH_USAGE_READ( reason )  \
     ( (mbedtls_mps_epoch_usage) ( 1u << ( reason ) ) )
-#define MPS_EPOCH_USAGE_WRITE_EXT( reason ) \
-    ( (mbedtls_mps_epoch_usage) ( 1u << ( 4 + ( reason ) ) ) )
+#define MPS_EPOCH_USAGE_WRITE( reason ) \
+    ( (mbedtls_mps_epoch_usage) ( 1u << ( 2 + ( reason ) ) ) )
 
-#define MPS_EPOCH_READ MPS_EPOCH_USAGE_READ_EXT( 0 )
-#define MPS_EPOCH_WRITE MPS_EPOCH_USAGE_WRITE_EXT( 0 )
+#define MPS_EPOCH_READ  MPS_EPOCH_USAGE_READ( 0 )
+#define MPS_EPOCH_WRITE MPS_EPOCH_USAGE_WRITE( 0 )
+
+#define MPS_EPOCH_READ_MASK  ( MPS_EPOCH_USAGE_READ( 0 ) | \
+                               MPS_EPOCH_USAGE_READ( 1 ) )
+#define MPS_EPOCH_WRITE_MASK ( MPS_EPOCH_USAGE_WRITE( 0 ) | \
+                               MPS_EPOCH_USAGE_WRITE( 1 ) )
+
+#define MPS_EPOCH_USAGE_ALL ( MPS_EPOCH_READ_MASK | MPS_EPOCH_WRITE_MASK )
 
 struct mbedtls_mps_l2;
 typedef struct mbedtls_mps_l2 mbedtls_mps_l2;
@@ -312,6 +319,27 @@ struct mbedtls_mps_l2_epoch_t
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     } stats;
+
+    /*! The usage flags for the epoch.
+     *
+     *  This comprises
+     *  - user-specified read- and write-flags,
+     *  - internal flags set by the implementation to keep
+     *    track of the epochs usage.
+     *
+     *  An epoch with no usage flags is considered unnecessary
+     *  and is cleaned up by the epoch 'garbage collection'.
+     *
+     *  For example:
+     *  - The DTLS retransmission state machine might
+     *    set read/write flags for an epoch because it's the currently
+     *    used epoch, or it's an old epoch which however is still
+     *    needed to detect or generate flight retransmissions.
+     *  - The implementation might want to track that data is
+     *    still pending to be written for some epoch, even if
+     *    the user has already marked the epoch as no longer used.
+     */
+    mbedtls_mps_epoch_usage usage;
 
     /*! The record protection to be applied to records of this epoch.
      *   A value of \c NULL represents the identity transform. */
@@ -778,37 +806,16 @@ struct mbedtls_mps_l2
 #define MPS_L2_INV_NEXT_EPOCH_BOUNDS( p )                               \
         ( (p)->epochs.next <= MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE )
 
-        /*! The epoch usage permissions. */
-        union
-        {
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-            /*! The permissions for the epochs in the epoch window. */
-            mbedtls_mps_epoch_usage dtls[ MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE ];
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
-
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-            struct
-            {
-                /*! The offset of the ID of the epoch to be used for incoming
-                 *  data from the current epoch window base.
-                 *
-                 *  Records not matching this ID will be rejected
-                 *  and signalled to the user through an error.   */
-                mbedtls_mps_epoch_offset_t default_in;
-
-                /*! The offset of the ID of the epoch to be used for outgoing
-                 *  data from the current epoch window base. */
-                mbedtls_mps_epoch_offset_t default_out;
-
-            } tls;
+        mbedtls_mps_stored_epoch_id default_in;
+        mbedtls_mps_stored_epoch_id default_out;
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
-        } permissions;
 
         /*! The window of connection states for the epochs of ID
          *  <code> base, ..., base +
          *         MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE - 1.</code> */
         mbedtls_mps_l2_epoch_t window[ MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE ];
+
 
     } epochs;
 };
@@ -1253,8 +1260,8 @@ MBEDTLS_MPS_PUBLIC int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
  *
  * \param ctx      The address of the Layer 2 context to use.
  * \param epoch    The ID of the epoch to configure.
- * \param usage    This indicates whether the epoch can be used
- *                 for reading, writing, or both.
+ * \param clear    The usage flags to clear.
+ * \param set      The usage flags to set.
  *
  * \note           In case of TLS, this function modifies the incoming
  *                 epoch ID or the outgoing epoch ID, or both (depending
@@ -1268,9 +1275,10 @@ MBEDTLS_MPS_PUBLIC int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-MBEDTLS_MPS_PUBLIC int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
-                                   mbedtls_mps_epoch_id epoch,
-                                   mbedtls_mps_epoch_usage usage );
+int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
+                        mbedtls_mps_epoch_id epoch_id,
+                        mbedtls_mps_epoch_usage clear,
+                        mbedtls_mps_epoch_usage set );
 
 /**
  * \brief          Enforce that the next outgoing record of the

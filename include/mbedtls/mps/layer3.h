@@ -959,11 +959,13 @@ static inline int mps_l3_epoch_add( mps_l3 *ctx,
     return( mps_l2_epoch_add( ctx->conf.l2, transform, epoch ) );
 }
 
+
 static inline int mps_l3_epoch_usage( mps_l3 *ctx,
-                                      mbedtls_mps_epoch_id epoch,
-                                      mbedtls_mps_epoch_usage usage )
+                                      mbedtls_mps_epoch_id epoch_id,
+                                      mbedtls_mps_epoch_usage clear,
+                                      mbedtls_mps_epoch_usage set )
 {
-    return( mps_l2_epoch_usage( ctx->conf.l2, epoch, usage ) );
+    return( mps_l2_epoch_usage( ctx->conf.l2, epoch_id, clear, set ) );
 }
 
 static inline int mps_l3_force_next_sequence_number( mps_l3 *ctx,

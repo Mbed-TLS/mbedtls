@@ -247,7 +247,9 @@ int l1_fetch_stream( mps_l1_stream_read *p,
      * simple getter function returning the corresponding
      * field from the allocator, so that the compiler can
      * inline the access here. */
-    ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
+
+    /* TODO: Remove reinterpret_cast eventually */
+    ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_IN );
     if( ret != 0 )
         RETURN( ret );
@@ -482,7 +484,7 @@ int l1_write_stream( mps_l1_stream_write *p,
 #endif /* MBEDTLS_MPS_ASSERT */
 
     /* Make sure a write-buffer is available. */
-    ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
+    ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_OUT );
     if( ret != 0 )
         RETURN( ret );

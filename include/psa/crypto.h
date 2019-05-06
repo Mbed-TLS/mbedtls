@@ -2602,6 +2602,14 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  * When this function returns, the operation becomes inactive.
  *
  * \param[in,out] operation     Active AEAD operation.
+ * \param[out] plaintext        Buffer where the last part of the plaintext
+ *                              is to be written. This is the remaining
+ *                              from previous calls to psa_aead_update()
+ *                              that could not be processed until the end
+ *                              of the input.
+ * \param plaintext_size        Size of the \p plaintext buffer in bytes.
+ * \param[out] plaintext_length On success, the number of bytes of
+ *                              returned plaintext.
  * \param[in] tag               Buffer containing the authentication tag.
  * \param tag_length            Size of the \p tag buffer in bytes.
  *
@@ -2624,6 +2632,9 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
+                             uint8_t *plaintext,
+                             size_t plaintext_size,
+                             size_t *plaintext_length,
                              const uint8_t *tag,
                              size_t tag_length);
 

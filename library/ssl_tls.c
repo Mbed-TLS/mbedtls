@@ -978,12 +978,21 @@ int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
 }
 
 /*
- * This function will ultimetaly only be responsible for populating a
- * transform structure from data passed as explicit parameters.
+ * Populate a transform structure with session keys and all the other
+ * necessary information.
  *
- * For now however it's doing rather more in a rather less explicit way.
+ * Parameters:
+ * - [in/out]: transform: structure to populate
+ *      [in] must be just initialised with mbedtls_ssl_transform_init()
+ *      [out] fully populate, ready for use by mbedtls_ssl_{en,de}crypt_buf()
+ * - [in] session: used members: encrypt_then_max, master, compression
+ * - [in] handshake: used members: prf, ciphersuite_info, randbytes
+ * - [in]: ssl: used members: minor_ver, conf->endpoint
  */
-static int ssl_populate_transform( mbedtls_ssl_context *ssl )
+static int ssl_populate_transform( mbedtls_ssl_transform *transform,
+                                   const mbedtls_ssl_session *session,
+                                   const mbedtls_ssl_handshake_params *handshake,
+                                   const mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1000,10 +1009,6 @@ static int ssl_populate_transform( mbedtls_ssl_context *ssl )
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
-
-    mbedtls_ssl_session *session = ssl->session_negotiate;
-    mbedtls_ssl_transform *transform = ssl->transform_negotiate;
-    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
     defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
@@ -1732,7 +1737,10 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 
     /* Populate transform structure */
-    ret = ssl_populate_transform( ssl );
+    ret = ssl_populate_transform( ssl->transform_negotiate,
+                                  ssl->session_negotiate,
+                                  ssl->handshake,
+                                  ssl );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_populate_transform", ret );

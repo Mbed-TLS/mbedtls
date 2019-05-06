@@ -402,6 +402,15 @@
  * legacy protocols. */
 #define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x40000004)
 
+/** Key for the ChaCha20 stream cipher or the Chacha20-Poly1305 AEAD algorithm.
+ *
+ * ChaCha20 and the ChaCha20_Poly1305 construction are defined in RFC 7539.
+ *
+ * Implementations must support 12-byte nonces, may support 8-byte nonces,
+ * and should reject other sizes.
+ */
+#define PSA_KEY_TYPE_CHACHA20                   ((psa_key_type_t)0x40000005)
+
 /** RSA public key. */
 #define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x60010000)
 /** RSA key pair (private and public key). */
@@ -836,6 +845,18 @@
  */
 #define PSA_ALG_ARC4                            ((psa_algorithm_t)0x04800001)
 
+/** The ChaCha20 stream cipher.
+ *
+ * ChaCha20 is defined in RFC 7539.
+ *
+ * The nonce size for psa_cipher_set_iv() or psa_cipher_generate_iv()
+ * must be 12.
+ *
+ * The initial block counter is always 0.
+ *
+ */
+#define PSA_ALG_CHACHA20                        ((psa_algorithm_t)0x04800005)
+
 /** The CTR stream cipher mode.
  *
  * CTR is a stream cipher which is built from a block cipher.
@@ -900,6 +921,11 @@
 /** The Chacha20-Poly1305 AEAD algorithm.
  *
  * The ChaCha20_Poly1305 construction is defined in RFC 7539.
+ *
+ * Implementations must support 12-byte nonces, may support 8-byte nonces,
+ * and should reject other sizes.
+ *
+ * Implementations must support 16-byte tags and should reject other sizes.
  */
 #define PSA_ALG_CHACHA20_POLY1305               ((psa_algorithm_t)0x06001005)
 
@@ -945,6 +971,7 @@
     (                                                                   \
         PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(aead_alg, PSA_ALG_CCM) \
         PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(aead_alg, PSA_ALG_GCM) \
+        PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(aead_alg, PSA_ALG_CHACHA20_POLY1305) \
         0)
 #define PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(aead_alg, ref)      \
     PSA_ALG_AEAD_WITH_TAG_LENGTH(aead_alg, 0) ==                        \

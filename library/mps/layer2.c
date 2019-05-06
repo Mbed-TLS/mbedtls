@@ -329,7 +329,8 @@ MBEDTLS_MPS_INLINE
 void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -375,7 +376,8 @@ mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot( mbedtls_mps_l2 *ctx,
                                                     mbedtls_mps_epoch_id epoch )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -473,26 +475,58 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ctx->conf.l1 = l1;
-    ctx->conf.mode = mode;
 
+#if !defined(MBEDTLS_MPS_CONF_MODE)
+    ctx->conf.mode = mode;
+#endif /* MBEDTLS_MPS_CONF_MODE */
+
+#if !defined(MBEDTLS_MPS_CONF_VERSION)
     /* TODO: Allow setting an arbitrary version,
      *       as well as an initially unspecified one. */
     ctx->conf.version = MBEDTLS_SSL_MINOR_VERSION_3;
+#endif /* !MBEDTLS_MPS_CONF_VERSION */
+
+#if !defined(MBEDTLS_MPS_CONF_TYPE_FLAG)
     ctx->conf.type_flag = 0;
+#endif /* !MBEDTLS_MPS_CONF_TYPE_FLAG */
+
+#if !defined(MBEDTLS_MPS_CONF_MERGE_FLAG)
     ctx->conf.merge_flag = 0;
+#endif /* MBEDTLS_MPS_CONF_MERGE_FLAG */
+
 #if defined(MBEDTLS_MPS_PROTO_TLS)
+#if !defined(MBEDTLS_MPS_CONF_PAUSE_FLAG)
     ctx->conf.pause_flag = 0;
+#endif /* !MBEDTLS_MPS_CONF_PAUSE_FLAG */
 #endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if !defined(MBEDTLS_MPS_CONF_EMPTY_FLAG)
     ctx->conf.empty_flag = 0;
+#endif /* !MBEDTLS_MPS_CONF_EMPTY_FLAG */
+
+#if !defined(MBEDTLS_MPS_CONF_MAX_PLAIN_OUT)
     ctx->conf.max_plain_out = 1000;
+#endif /* MBEDTLS_MPS_CONF_MAX_PLAIN_OUT */
+
+#if !defined(MBEDTLS_MPS_CONF_MAX_PLAIN_IN)
     ctx->conf.max_plain_in  = 1000;
+#endif /* MBEDTLS_MPS_CONF_MAX_PLAIN_IN */
+
+#if !defined(MBEDTLS_MPS_CONF_MAX_CIPHER_IN)
     ctx->conf.max_cipher_in = 1000;
+#endif /* !MBEDTLS_MPS_CONF_MAX_CIPHER_IN */
+
     ctx->conf.f_rng = f_rng;
     ctx->conf.p_rng = p_rng;
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
+#if !defined(MBEDTLS_MPS_CONF_BADMAC_LIMIT)
     ctx->conf.badmac_limit = 0;
+#endif /* !MBEDTLS_MPS_CONF_BADMAC_LIMIT */
+
+#if !defined(MBEDTLS_MPS_CONF_ANTI_REPLAY)
     ctx->conf.anti_replay = MBEDTLS_MPS_ANTI_REPLAY_ENABLED;
+#endif /* !MBEDTLS_MPS_CONF_ANTI_REPLAY */
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* Initialize write-side */
@@ -566,8 +600,12 @@ int mps_l2_free( mbedtls_mps_l2 *ctx )
 int mps_l2_config_version( mbedtls_mps_l2 *ctx, uint8_t ver )
 {
     TRACE_INIT( "mps_l2_config_version: %u", (unsigned) ver );
+
+#if !defined(MBEDTLS_MPS_CONF_VERSION)
     /* TODO: Add check */
     ctx->conf.version = ver;
+#endif /* !MBEDTLS_MPS_CONF_VERSION */
+
     RETURN( 0 );
 }
 
@@ -714,6 +752,11 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
     TRACE( trace_comment, "Plaintext length: %u",
            (unsigned) ctx->io.out.payload.data_len );
 
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
+#endif
+
     if( ctx->io.out.payload.data_len == 0 )
     {
         TRACE( trace_comment, "Attempt to dispatch an empty record %u.",
@@ -744,7 +787,7 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
 
         /* TODO: Handle the case where the version hasn't been set yet! */
         rec.major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-        rec.minor_ver = ctx->conf.version;
+        rec.minor_ver = mbedtls_mps_l2_conf_get_version( &ctx->conf );
         rec.buf       = ctx->io.out.payload;
         rec.epoch     = ctx->io.out.writer.epoch;
         rec.type      = ctx->io.out.writer.type;
@@ -769,7 +812,8 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         /* Step 2: Apply record payload protection. */
         TRACE( trace_comment, "Encrypt record. The plaintext offset is %u.",
                (unsigned) rec.buf.data_offset );
-        ret = transform_encrypt( epoch->transform, &rec, ctx->conf.f_rng,
+        ret = transform_encrypt( epoch->transform, &rec,
+                                 ctx->conf.f_rng,
                                  ctx->conf.p_rng );
         if( ret != 0 )
         {
@@ -795,18 +839,24 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         if( ret != 0 )
             RETURN( ret );
 
-        if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET )
-            epoch->usage &= ~MPS_EPOCH_USAGE_INTERNAL_OUT_RECORD_OPEN;
-    }
-
 #if defined(MBEDTLS_MPS_ASSERT)
-    if( ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_UNSET &&
-        ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING )
-    {
-        TRACE( trace_error, "Unexpected writer state at the end of l2_out_dispatch_record()." );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
-    }
+        if( ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_UNSET &&
+            ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING )
+        {
+            TRACE( trace_error, "Unexpected writer state at the end of l2_out_dispatch_record()." );
+            RETURN( MPS_ERR_INTERNAL_ERROR );
+        }
 #endif
+
+        if(
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+            MBEDTLS_MPS_IS_TLS( mode ) &&
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+            ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET )
+        {
+            epoch->usage &= ~MPS_EPOCH_USAGE_INTERNAL_OUT_RECORD_OPEN;
+        }
+    }
 
     /* Epochs might have been held back because of the pending write. */
     ret = l2_epoch_cleanup( ctx );
@@ -822,7 +872,8 @@ int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     int ret = 0;
     mps_l2_bufpair const zero_bufpair = { NULL, 0, 0, 0 };
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = ctx->conf.mode;
+    mbedtls_mps_transport_type mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif
 
     TRACE_INIT( "Write protected record" );
@@ -845,7 +896,7 @@ int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     {
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
-        switch( ctx->conf.version )
+        switch( mbedtls_mps_l2_conf_get_version( &ctx->conf ) )
         {
             case MBEDTLS_SSL_MINOR_VERSION_2: /* DTLS 1.0 */
             case MBEDTLS_SSL_MINOR_VERSION_3: /* DTLS 1.2 */
@@ -1395,7 +1446,8 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
 {
     int ret;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     mbedtls_mps_l2_in_internal * active;
@@ -1534,11 +1586,12 @@ int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret )
     {
         TRACE( trace_error, "Record with invalid MAC received -- discard" );
         ctx->io.in.bad_mac_ctr++;
-        if( ctx->conf.badmac_limit != 0 &&
-            ctx->io.in.bad_mac_ctr >= ctx->conf.badmac_limit )
+        if( mbedtls_mps_l2_conf_get_badmac_limit( &ctx->conf ) != 0 &&
+            ctx->io.in.bad_mac_ctr >=
+            mbedtls_mps_l2_conf_get_badmac_limit( &ctx->conf ) )
         {
             TRACE( trace_error, "Bad-MAC-limit %u reached.",
-                   (unsigned) ctx->conf.badmac_limit );
+                   (unsigned) mbedtls_mps_l2_conf_get_badmac_limit( &ctx->conf ) );
             RETURN( MPS_ERR_INVALID_MAC );
         }
     }
@@ -1599,7 +1652,8 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
         /* 3 */
 
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-        mbedtls_mps_transport_type const mode = ctx->conf.mode;
+        mbedtls_mps_transport_type const mode =
+            mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
         /* The slot we attempt to use to store payload from the new record. */
@@ -1890,7 +1944,8 @@ int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     }
 
     /* Validate plaintext length */
-    if( rec->buf.data_len > ctx->conf.max_plain_in )
+    if( rec->buf.data_len >
+        mbedtls_mps_l2_conf_get_max_plain_in( &ctx->conf ) )
     {
         /* TODO: Release the record */
         RETURN( MPS_ERR_INVALID_RECORD );
@@ -1908,7 +1963,8 @@ MBEDTLS_MPS_STATIC
 int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l2_in_fetch_protected_record" );
@@ -1930,8 +1986,10 @@ int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
 #if defined(MBEDTLS_MPS_ASSERT)
-        if( ctx->conf.version != MBEDTLS_SSL_MINOR_VERSION_2 &&
-            ctx->conf.version != MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( mbedtls_mps_l2_conf_get_version( &ctx->conf )
+              != MBEDTLS_SSL_MINOR_VERSION_2 &&
+            mbedtls_mps_l2_conf_get_version( &ctx->conf )
+              != MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             TRACE( trace_error, "ASSERTION FAILURE!" );
             RETURN( MPS_ERR_INTERNAL_ERROR );
@@ -1949,7 +2007,8 @@ MBEDTLS_MPS_STATIC
 size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     size_t const dtls12_rec_hdr_len = 13;
@@ -1976,8 +2035,10 @@ size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
          * switch to save a few bytes? */
 
 #if defined(MBEDTLS_MPS_ASSERT)
-        if( ctx->conf.version != MBEDTLS_SSL_MINOR_VERSION_2 &&
-            ctx->conf.version != MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( mbedtls_mps_l2_conf_get_version( &ctx->conf )
+              != MBEDTLS_SSL_MINOR_VERSION_2 &&
+            mbedtls_mps_l2_conf_get_version( &ctx->conf )
+              != MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             TRACE( trace_error, "ASSERTION FAILURE!" );
             RETURN( MPS_ERR_INTERNAL_ERROR );
@@ -2072,11 +2133,12 @@ int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
      * Layer 2 must be configurable to allow arbitrary TLS
      * versions. This is done through the initial version
      * value MPS_L2_VERSION_UNSPECIFIED. */
-    if( ctx->conf.version != MPS_L2_VERSION_UNSPECIFIED &&
-        ctx->conf.version != minor_ver )
+    if( mbedtls_mps_l2_conf_get_version( &ctx->conf ) != MPS_L2_VERSION_UNSPECIFIED &&
+        mbedtls_mps_l2_conf_get_version( &ctx->conf ) != minor_ver )
     {
         TRACE( trace_error, "Invalid minor record version %u received, expected %u",
-               (unsigned) minor_ver, ctx->conf.version );
+               (unsigned) minor_ver,
+               mbedtls_mps_l2_conf_get_version( &ctx->conf ) );
         RETURN( MPS_ERR_INVALID_RECORD );
     }
 
@@ -2139,7 +2201,8 @@ int l2_in_update_counter( mbedtls_mps_l2 *ctx,
 {
     int ret;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif
     mbedtls_mps_l2_epoch_t *epoch;
 
@@ -2160,7 +2223,8 @@ int l2_in_update_counter( mbedtls_mps_l2 *ctx,
     {
         epoch->stats.dtls.last_seen[0] = ctr_hi;
         epoch->stats.dtls.last_seen[1] = ctr_lo;
-        if( ctx->conf.anti_replay == MBEDTLS_MPS_ANTI_REPLAY_ENABLED )
+        if( mbedtls_mps_l2_conf_get_anti_replay( &ctx->conf )
+            == MBEDTLS_MPS_ANTI_REPLAY_ENABLED )
         {
             uint32_t window_top_hi, window_top_lo;
             uint32_t window;
@@ -2230,7 +2294,8 @@ int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
 {
     uint32_t *src_ctr;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #else
     ((void) ctx);
 #endif
@@ -2332,11 +2397,14 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                (unsigned) major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 );
         RETURN( MPS_ERR_INVALID_RECORD );
     }
-    if( ctx->conf.version != MPS_L2_VERSION_UNSPECIFIED &&
-        ctx->conf.version != minor_ver )
+    if( mbedtls_mps_l2_conf_get_version( &ctx->conf ) !=
+          MPS_L2_VERSION_UNSPECIFIED &&
+        mbedtls_mps_l2_conf_get_version( &ctx->conf ) !=
+          minor_ver )
     {
         TRACE( trace_error, "Invalid minor record version %u received, expected %u",
-               (unsigned) minor_ver, ctx->conf.version );
+               (unsigned) minor_ver, mbedtls_
+               l2_conf_get_version( &ctx->conf ) );
         RETURN( MPS_ERR_INVALID_RECORD );
     }
     rec->major_ver = major_ver;
@@ -2401,7 +2469,8 @@ MBEDTLS_MPS_STATIC
 int l2_type_is_valid( mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
 {
     uint32_t const mask = ((uint32_t) 1u) << type;
-    uint32_t const flag = ctx->conf.type_flag;
+    uint32_t const flag =
+        mbedtls_mps_l2_conf_get_type_flag( &ctx->conf );
     /* type <= MBEDTLS_MPS_MSG_MAX == 31 is automatic if flag & mask != 0. */
     return( ( flag & mask ) != 0 );
 }
@@ -2417,10 +2486,12 @@ int l2_type_can_be_paused( mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
     /* Regardless of the configuration, pausing is only
      * allowed for stream transports. */
     uint32_t const mask = ((uint32_t) 1u) << type;
-    uint32_t const flag = ctx->conf.pause_flag;
+    uint32_t const flag =
+        mbedtls_mps_l2_conf_get_pause_flag( &ctx->conf );
 
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     return( MBEDTLS_MPS_IS_TLS( mode ) &&
@@ -2435,7 +2506,8 @@ MBEDTLS_MPS_STATIC
 int l2_type_can_be_merged( mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
 {
     uint32_t const mask = ((uint32_t) 1u) << type;
-    uint32_t const flag = ctx->conf.merge_flag;
+    uint32_t const flag =
+        mbedtls_mps_l2_conf_get_merge_flag( &ctx->conf );
     return( ( flag & mask ) != 0 );
 }
 
@@ -2446,7 +2518,8 @@ MBEDTLS_MPS_STATIC
 int l2_type_empty_allowed( mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
 {
     uint32_t const mask = ((uint32_t) 1u) << type;
-    uint32_t const flag = ctx->conf.empty_flag;
+    uint32_t const flag =
+        mbedtls_mps_l2_conf_get_empty_flag( &ctx->conf );
     return( ( flag & mask ) != 0 );
 }
 
@@ -2502,7 +2575,8 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
     int ret;
     mbedtls_mps_l2_epoch_t  *epoch;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l2_epoch_usage" );
@@ -2747,7 +2821,8 @@ int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
     uint32_t window_top_hi, window_top_lo;
     uint32_t window;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l2_counter_replay_check, epoch %u",
@@ -2758,7 +2833,8 @@ int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
         RETURN( 0 );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-    if( ctx->conf.anti_replay == MBEDTLS_MPS_ANTI_REPLAY_DISABLED )
+    if( mbedtls_mps_l2_conf_get_anti_replay( &ctx->conf )
+        == MBEDTLS_MPS_ANTI_REPLAY_DISABLED )
     {
         RETURN( 0 );
     }
@@ -2813,7 +2889,8 @@ int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l2_force_next_sequence_number, epoch %u, ctr %u",
@@ -2843,7 +2920,8 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l2_get_last_sequence_number, epoch %u",

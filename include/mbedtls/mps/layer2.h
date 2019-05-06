@@ -356,19 +356,12 @@ struct mbedtls_mps_l2_config
 {
     mps_l1 *l1;              /*!< The underlying buffering / datagram layer.  */
 
-    /* OPTIMIZATION:
-     * Consider allowing to fix these fields at compile-time.
-     * Concretely, for `version` e.g., consider adding a compile-time constant
-     *   #define MBEDTLS_MPS_FIX_VERSION XXX
-     * and omit the declaration of `version` in case it is set.
-     * In the code, replace every usage of `version` with a getter macro
-     * which unfolds to the field access if the version isn't fixed at
-     * compile-time, or to the defined constant if it is.
-     * This would apply to most of the fields in this config, thereby
-     * allowing to (significantly?) reduce code-size and memory footprint. */
-
+#if !defined(MBEDTLS_MPS_CONF_MODE)
     uint8_t mode;            /*!< This specifies whether the Layer 2 instance
                               *   the TLS (0) or DTLS (1) record protocol.    */
+#endif /* MBEDTLS_MPS_CONF_MODE */
+
+#if !defined(MBEDTLS_MPS_CONF_VERSION)
     uint8_t version;         /*!< This field indicates the TLS/DTLS version
                               *   the Layer 2 instance uses.
                               *
@@ -376,24 +369,34 @@ struct mbedtls_mps_l2_config
                               *   which case multiple [D]TLS versions can be
                               *   received until the exact [D]TLS version has
                               *   been agreed upon.                           */
+#endif /* !MBEDTLS_MPS_CONF_VERSION */
 
+#if !defined(MBEDTLS_MPS_CONF_ANTI_REPLAY)
     uint8_t anti_replay;     /*!< This field indicates whether anti replay
                               *   protection should be applied (DTLS only).
                               *   Possible values are:
                               *   - #MBEDTLS_MPS_L2_ANTI_REPLAY_DISABLED
                               *   - #MBEDTLS_MPS_L2_ANTI_REPLAY_ENABLED.
                               */
+#endif /* MBEDTLS_MPS_CONF_ANTI_REPLAY */
 
+#if !defined(MBEDTLS_MPS_CONF_MAX_PLAIN_OUT)
     /*! The maximum length of record plaintext (including inner plaintext
      *  header and padding in TLS 1.3) of outgoing records.                   */
     mbedtls_mps_stored_size_t max_plain_out;
+#endif /* MBEDTLS_MPS_CONF_MAX_PLAIN_OUT */
 
+#if !defined(MBEDTLS_MPS_CONF_MAX_PLAIN_IN)
     /*! The Maximum length of record plaintext (including inner plaintext
      *  header and padding in TLS 1.3) of incoming records.                   */
     mbedtls_mps_stored_size_t max_plain_in;
+#endif /* MBEDTLS_MPS_CONF_MAX_PLAIN_IN */
 
+#if !defined(MBEDTLS_MPS_CONF_MAX_CIPHER_IN)
     mbedtls_mps_stored_size_t max_cipher_in;
+#endif /* MBEDTLS_MPS_CONF_MAX_CIPHER_IN */
 
+#if !defined(MBEDTLS_MPS_CONF_TYPE_FLAG)
     /* The following members are bitflags indexed by record types in
      * the range of 0 .. 31. Record content types >= 32 are not used
      * and considered invalid. */
@@ -406,8 +409,10 @@ struct mbedtls_mps_l2_config
                            *   types, or attempts to send data of invalid
                            *   content types, are reported through the error
                            *   code MPS_ERR_INVALID_RECORD.                 */
+#endif /* !MBEDTLS_MPS_CONF_TYPE_FLAG */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
+#if !defined(MBEDTLS_MPS_CONF_PAUSE_FLAG)
     uint32_t pause_flag;  /*!< This member defines the record content type
                            *   ID's for which the Layer 2 instance allows
                            *   merging contents of multiple incoming records
@@ -416,8 +421,10 @@ struct mbedtls_mps_l2_config
                            *   n-th bit (n=0..31) indicating being set if
                            *   the record content type ID n is allowed.
                            *   This must be a sub-field of \p type_flag.     */
+#endif /* !MBEDTLS_MPS_CONF_PAUSE_FLAG */
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
+#if !defined(MBEDTLS_MPS_CONF_MERGE_FLAG)
     uint32_t merge_flag;  /*!< This member defines the record content type
                            *   ID's for which the Layer 2 instance allows
                            *   multiple messages (that is, data written by
@@ -428,6 +435,9 @@ struct mbedtls_mps_l2_config
                            *   n-th bit (n=0..31) indicating being set if
                            *   the record content type ID n is allowed.
                            *   This must be a sub-field of \p type_flag.     */
+#endif /* !MBEDTLS_MPS_CONF_MERGE_FLAG */
+
+#if !defined(MBEDTLS_MPS_CONF_EMPTY_FLAG)
     uint32_t empty_flag;  /*!< This member defines the record content type
                            *   ID's for which the Layer 2 instance allows
                            *   empty records to be sent and received.
@@ -438,6 +448,7 @@ struct mbedtls_mps_l2_config
                            *   If empty records are not allowed, requests
                            *   to send them will be silently ignored, while
                            *   incoming empty records are treated as errors. */
+#endif /* !MBEDTLS_MPS_CONF_EMPTY_FLAG */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
 #define MPS_L2_CONF_INV_PAUSE_FLAG( p )                         \
@@ -478,6 +489,7 @@ struct mbedtls_mps_l2_config
                                    *   the PRNG, or is stored elsewhere.      */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
+#if !defined(MBEDTLS_MPS_CONF_BADMAC_LIMIT)
     uint32_t badmac_limit;        /*!< Determines how many records with bad MAC
                                    *   are silently tolerated before an error
                                    *   is raised. Possible values are:
@@ -486,6 +498,7 @@ struct mbedtls_mps_l2_config
                                    *   - \c n greater \c 0: The n-th record
                                    *     with a bad MAC will lead to an error.
                                    */
+#endif /* MBEDTLS_MPS_CONF_BADMAC_LIMIT */
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* TLS-1.3-NOTE: A boolean flag needs to be added to indicate whether
@@ -495,6 +508,175 @@ struct mbedtls_mps_l2_config
 
 };
 typedef struct mbedtls_mps_l2_config mbedtls_mps_l2_config;
+
+#if !defined(MBEDTLS_MPS_CONF_MODE)
+static inline uint8_t
+mbedtls_mps_l2_conf_get_mode( mbedtls_mps_l2_config *conf )
+{
+    return( conf->mode );
+}
+#else /* !MBEDTLS_MPS_CONF_MODE */
+static inline uint8_t
+mbedtls_mps_l2_conf_get_mode( mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_MODE );
+}
+#endif /* MBEDTLS_MPS_CONF_MODE */
+
+#if !defined(MBEDTLS_MPS_CONF_VERSION)
+static inline
+uint8_t mbedtls_mps_l2_conf_get_version( mbedtls_mps_l2_config *conf )
+{
+    return( conf->version );
+}
+#else /* !MBEDTLS_MPS_CONF_VERSION */
+static inline
+uint8_t mbedtls_mps_l2_conf_get_version( mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_VERSION );
+}
+#endif /* MBEDTLS_MPS_CONF_VERSION */
+
+#if !defined(MBEDTLS_MPS_CONF_ANTI_REPLAY)
+static inline uint8_t mbedtls_mps_l2_conf_get_anti_replay(
+    mbedtls_mps_l2_config *conf )
+{
+    return( conf->anti_replay );
+}
+#else /* !MBEDTLS_MPS_CONF_ANTI_REPLAY */
+static inline uint8_t mbedtls_mps_l2_conf_get_anti_replay(
+    mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_ANTI_REPLAY );
+}
+#endif /* MBEDTLS_MPS_CONF_ANTI_REPLAY */
+
+#if !defined(MBEDTLS_MPS_CONF_MAX_PLAIN_OUT)
+static inline mbedtls_mps_stored_size_t mbedtls_mps_l2_conf_get_max_plain_out(
+    mbedtls_mps_l2_config *conf )
+{
+    return( conf->max_plain_out );
+}
+#else /* !MBEDTLS_MPS_CONF_MAX_PLAIN_OUT */
+static inline mbedtls_mps_stored_size_t mbedtls_mps_l2_conf_get_max_plain_out(
+    mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_MAX_PLAIN_OUT );
+}
+#endif /* MBEDTLS_MPS_CONF_MAX_PLAIN_OUT */
+
+#if !defined(MBEDTLS_MPS_CONF_MAX_PLAIN_IN)
+static inline mbedtls_mps_stored_size_t mbedtls_mps_l2_conf_get_max_plain_in(
+    mbedtls_mps_l2_config *conf )
+{
+    return( conf->max_plain_in );
+}
+#else /* !MBEDTLS_MPS_CONF_MAX_PLAIN_IN */
+static inline mbedtls_mps_stored_size_t mbedtls_mps_l2_conf_get_max_plain_in(
+    mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_MAX_PLAIN_IN );
+}
+#endif /* MBEDTLS_MPS_CONF_MAX_PLAIN_IN */
+
+#if !defined(MBEDTLS_MPS_CONF_MAX_CIPHER_IN)
+static inline mbedtls_mps_stored_size_t mbedtls_mps_l2_conf_get_max_cipher_in(
+    mbedtls_mps_l2_config *conf )
+{
+    return( conf->max_cipher_in );
+}
+#else /* !MBEDTLS_MPS_CONF_MAX_CIPHER_IN */
+static inline mbedtls_mps_stored_size_t mbedtls_mps_l2_conf_get_max_cipher_in(
+    mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_MAX_CIPHER_IN );
+}
+#endif /* MBEDTLS_MPS_CONF_MAX_CIPHER_IN */
+
+#if !defined(MBEDTLS_MPS_CONF_TYPE_FLAG)
+static inline uint32_t mbedtls_mps_l2_conf_get_type_flag(
+    mbedtls_mps_l2_config *conf )
+{
+    return( conf->type_flag );
+}
+#else /* !MBEDTLS_MPS_CONF_TYPE_FLAG */
+static inline uint32_t mbedtls_mps_l2_conf_get_type_flag(
+    mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_TYPE_FLAG );
+}
+#endif /* MBEDTLS_MPS_CONF_TYPE_FLAG */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+#if !defined(MBEDTLS_MPS_CONF_PAUSE_FLAG)
+static inline uint32_t mbedtls_mps_l2_conf_get_pause_flag(
+    mbedtls_mps_l2_config *conf )
+{
+    return( conf->pause_flag );
+}
+#else /* !MBEDTLS_MPS_CONF_PAUSE_FLAG */
+static inline uint32_t mbedtls_mps_l2_conf_get_pause_flag(
+    mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_PAUSE_FLAG );
+}
+#endif /* MBEDTLS_MPS_CONF_PAUSE_FLAG */
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if !defined(MBEDTLS_MPS_CONF_MERGE_FLAG)
+static inline uint32_t mbedtls_mps_l2_conf_get_merge_flag(
+    mbedtls_mps_l2_config *conf )
+{
+    return( conf->merge_flag );
+}
+#else /* !MBEDTLS_MPS_CONF_MERGE_FLAG */
+static inline uint32_t mbedtls_mps_l2_conf_get_merge_flag(
+    mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_MERGE_FLAG );
+}
+#endif /* MBEDTLS_MPS_CONF_MERGE_FLAG */
+
+#if !defined(MBEDTLS_MPS_CONF_EMPTY_FLAG)
+static inline uint32_t mbedtls_mps_l2_conf_get_empty_flag(
+    mbedtls_mps_l2_config *conf )
+{
+    return( conf->empty_flag );
+}
+#else /* !MBEDTLS_MPS_CONF_EMPTY_FLAG */
+static inline uint32_t mbedtls_mps_l2_conf_get_empty_flag(
+    mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_EMPTY_FLAG );
+}
+#endif /* MBEDTLS_MPS_CONF_EMPTY_FLAG */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+#if !defined(MBEDTLS_MPS_CONF_BADMAC_LIMIT)
+static inline uint32_t mbedtls_mps_l2_conf_get_badmac_limit(
+    mbedtls_mps_l2_config *conf )
+{
+    return( conf->badmac_limit );
+}
+#else /* !MBEDTLS_MPS_CONF_BADMAC_LIMIT */
+static inline uint32_t mbedtls_mps_l2_conf_get_badmac_limit(
+    mbedtls_mps_l2_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_BADMAC_LIMIT );
+}
+#endif /* MBEDTLS_MPS_CONF_BADMAC_LIMIT */
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /**
  * \brief   The context structure for Layer 2 instance.
@@ -1056,17 +1238,28 @@ static inline int mps_l2_config_add_type( mbedtls_mps_l2 *ctx,
         return( MPS_ERR_INVALID_RECORD );
 
     mask = ( (uint32_t) 1u << type );
-    if( ctx->conf.type_flag & mask )
+    if( mbedtls_mps_l2_conf_get_type_flag( &ctx->conf ) & mask )
         return( MPS_ERR_INVALID_ARGS );
 
+#if !defined(MBEDTLS_MPS_CONF_PAUSE_FLAG)
     ctx->conf.type_flag |= mask;
+#endif /* MBEDTLS_MPS_CONF_TYPE_FLAG */
+
 #if defined(MBEDTLS_MPS_PROTO_TLS)
+#if !defined(MBEDTLS_MPS_CONF_PAUSE_FLAG)
     ctx->conf.pause_flag |= ( pausing == MBEDTLS_MPS_SPLIT_ENABLED ) * mask;
+#endif /* MBEDTLS_MPS_CONF_PAUSE_FLAG */
 #else
     ((void) pausing);
-#endif /* MBEDTL_SMPS_PROTO_TLS */
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if !defined(MBEDTLS_MPS_CONF_MERGE_FLAG)
     ctx->conf.merge_flag |= ( merging == MBEDTLS_MPS_PACK_ENABLED  ) * mask;
+#endif /* !MBEDTLS_MPS_CONF_MERGE_FLAG */
+
+#if !defined(MBEDTLS_MPS_CONF_EMPTY_FLAG)
     ctx->conf.empty_flag |= ( empty   == MBEDTLS_MPS_EMPTY_ALLOWED ) * mask;
+#endif /* !MBEDTLS_MPS_CONF_EMPTY_FLAG */
 
     return( 0 );
 }

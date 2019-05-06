@@ -404,6 +404,26 @@ typedef uint_fast16_t mbedtls_mps_size_t;
 /* \} SECTION: Common types */
 
 /**
+ * \name SECTION:       Hardcoded configurations
+ *
+ * \{
+ */
+
+#define MBEDTLS_MPS_CONF_MODE MBEDTLS_MPS_MODE_DATAGRAM
+#define MBEDTLS_MPS_CONF_VERSION 3   /*!< TLS v1.2 */
+#define MBEDTLS_MPS_CONF_ANTI_REPLAY 1
+#define MBEDTLS_MPS_CONF_MAX_PLAIN_IN  1000
+#define MBEDTLS_MPS_CONF_MAX_PLAIN_OUT 1000
+#define MBEDTLS_MPS_CONF_MAX_CIPHER IN 1000
+#define MBEDTLS_MPS_CONF_TYPE_FLAG ( (uint32_t) -1 )
+#define MBEDTLS_MPS_CONF_MERGE_FLAG ( (uint32_t) -1 )
+#define MBEDTLS_MPS_CONF_PAUSE_FLAG ( (uint32_t) -1 )
+#define MBEDTLS_MPS_CONF_EMPTY_FLAG ( (uint32_t) -1 )
+#define MBEDTLS_MPS_CONF_BADMAC_LIMIT ( (uint32_t) 10000 )
+
+/* \} SECTION: Hardcoded configurations */
+
+/**
  * \name SECTION:       Parsing and writing macros
  *
  * Macros to be used for parsing various types of fields.

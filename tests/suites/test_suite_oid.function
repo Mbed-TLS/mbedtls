@@ -28,6 +28,7 @@ void oid_get_certificate_policies( data_t *oid, char *result_str )
     }
     else
     {
+        TEST_ASSERT( ret == 0 );
         TEST_ASSERT( strcmp( ( char* )desc, result_str ) == 0 );
     }
 }
@@ -51,6 +52,7 @@ void oid_get_extended_key_usage( data_t *oid, char *result_str )
     }
     else
     {
+        TEST_ASSERT( ret == 0 );
         TEST_ASSERT( strcmp( ( char * )desc, result_str ) == 0 );
     }
 }
@@ -74,6 +76,7 @@ void oid_get_x509_extension( data_t *oid, int exp_type )
     }
     else
     {
+        TEST_ASSERT( ret == 0 );
         TEST_ASSERT( ext_type == exp_type );
     }
 }

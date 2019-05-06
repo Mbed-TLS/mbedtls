@@ -268,27 +268,6 @@
      (plaintext_length) + PSA_AEAD_TAG_LENGTH(alg) :              \
      0)
 
-/** The maximum size of the output of psa_aead_finish(), in bytes.
- *
- * If the size of the ciphertext buffer is at least this large, it is
- * guaranteed that psa_aead_finish() will not fail due to an
- * insufficient buffer size. Depending on the algorithm, the actual size of
- * the ciphertext may be smaller.
- *
- * \param alg                 An AEAD algorithm
- *                            (\c PSA_ALG_XXX value such that
- *                            #PSA_ALG_IS_AEAD(\p alg) is true).
- *
- * \return                    The maximum trailing ciphertext size for the
- *                            specified algorithm.
- *                            If the AEAD algorithm is not recognized, return 0.
- *                            An implementation may return either 0 or a
- *                            correct size for an AEAD algorithm that it
- *                            recognizes, but does not support.
- */
-#define PSA_AEAD_FINISH_OUTPUT_SIZE(alg)      \
-    ((size_t)0)
-
 /** The maximum size of the output of psa_aead_decrypt(), in bytes.
  *
  * If the size of the plaintext buffer is at least this large, it is
@@ -312,6 +291,27 @@
     (PSA_AEAD_TAG_LENGTH(alg) != 0 ?                              \
      (plaintext_length) - PSA_AEAD_TAG_LENGTH(alg) :              \
      0)
+
+/** The maximum size of the output of psa_aead_finish(), in bytes.
+ *
+ * If the size of the ciphertext buffer is at least this large, it is
+ * guaranteed that psa_aead_finish() will not fail due to an
+ * insufficient buffer size. Depending on the algorithm, the actual size of
+ * the ciphertext may be smaller.
+ *
+ * \param alg                 An AEAD algorithm
+ *                            (\c PSA_ALG_XXX value such that
+ *                            #PSA_ALG_IS_AEAD(\p alg) is true).
+ *
+ * \return                    The maximum trailing ciphertext size for the
+ *                            specified algorithm.
+ *                            If the AEAD algorithm is not recognized, return 0.
+ *                            An implementation may return either 0 or a
+ *                            correct size for an AEAD algorithm that it
+ *                            recognizes, but does not support.
+ */
+#define PSA_AEAD_FINISH_OUTPUT_SIZE(alg)      \
+    ((size_t)0)
 
 #define PSA_RSA_MINIMUM_PADDING_SIZE(alg)                         \
     (PSA_ALG_IS_RSA_OAEP(alg) ?                                   \

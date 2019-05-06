@@ -278,11 +278,10 @@ static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 }
 
-psa_status_t psa_open_key( psa_key_lifetime_t lifetime,
-                           psa_key_file_id_t id,
-                           psa_key_handle_t *handle )
+psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
 {
-    return( persistent_key_setup( lifetime, id, handle, PSA_SUCCESS ) );
+    return( persistent_key_setup( PSA_KEY_LIFETIME_PERSISTENT,
+                                  id, handle, PSA_SUCCESS ) );
 }
 
 psa_status_t psa_create_key( psa_key_lifetime_t lifetime,

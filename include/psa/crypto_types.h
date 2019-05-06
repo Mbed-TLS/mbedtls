@@ -85,6 +85,19 @@ typedef uint32_t psa_algorithm_t;
  */
 
 /** Encoding of key lifetimes.
+ *
+ * The lifetime of a key indicates where it is stored and what system actions
+ * may create and destroy it.
+ *
+ * Keys with the lifetime #PSA_KEY_LIFETIME_VOLATILE are automatically
+ * destroyed when the application terminates or on a power reset.
+ *
+ * Keys with a lifetime other than #PSA_KEY_LIFETIME_VOLATILE are said
+ * to be _persistent_.
+ * Persistent keys are preserved if the application or the system restarts.
+ * Persistent keys have a key identifier of type #psa_key_id_t.
+ * The application can call psa_open_key() to open a persistent key that
+ * it created previously.
  */
 typedef uint32_t psa_key_lifetime_t;
 

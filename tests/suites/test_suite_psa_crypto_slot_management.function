@@ -155,7 +155,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
 
     /* Close the key and reopen it. */
     PSA_ASSERT( psa_close_key( handle ) );
-    PSA_ASSERT( psa_open_key( lifetime, id, &handle ) );
+    PSA_ASSERT( psa_open_key( id, &handle ) );
     PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
     TEST_EQUAL( read_type, type );
 
@@ -184,12 +184,12 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     {
         case CLOSE_BY_CLOSE:
         case CLOSE_BY_SHUTDOWN:
-            PSA_ASSERT( psa_open_key( lifetime, id, &handle ) );
+            PSA_ASSERT( psa_open_key( id, &handle ) );
             PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
             TEST_EQUAL( read_type, type );
             break;
         case CLOSE_BY_DESTROY:
-            TEST_EQUAL( psa_open_key( lifetime, id, &handle ),
+            TEST_EQUAL( psa_open_key( id, &handle ),
                         PSA_ERROR_DOES_NOT_EXIST );
             break;
     }
@@ -241,7 +241,7 @@ void create_existent( int lifetime_arg, int id_arg,
     if( reopen_policy == CLOSE_AFTER )
         PSA_ASSERT( psa_close_key( handle1 ) );
     if( reopen_policy == CLOSE_BEFORE || reopen_policy == CLOSE_AFTER )
-        PSA_ASSERT( psa_open_key( lifetime, id, &handle1 ) );
+        PSA_ASSERT( psa_open_key( id, &handle1 ) );
 
     /* Check that the original key hasn't changed. */
     psa_reset_key_attributes( &attributes );
@@ -266,17 +266,16 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void open_fail( int lifetime_arg, int id_arg,
+void open_fail( int id_arg,
                 int expected_status_arg )
 {
-    psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_id_t id = id_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_key_handle_t handle = 0xdead;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    TEST_EQUAL( psa_open_key( lifetime, id, &handle ), expected_status );
+    TEST_EQUAL( psa_open_key( id, &handle ), expected_status );
     TEST_EQUAL( handle, 0 );
 
 exit:
@@ -376,8 +375,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     {
         mbedtls_psa_crypto_free( );
         PSA_ASSERT( psa_crypto_init( ) );
-        PSA_ASSERT( psa_open_key( target_lifetime, target_id,
-                                  &target_handle ) );
+        PSA_ASSERT( psa_open_key( target_id, &target_handle ) );
     }
 
     /* Test that the target slot has the expected content. */

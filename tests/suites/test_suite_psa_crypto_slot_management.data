@@ -27,21 +27,15 @@ create_existent:PSA_KEY_LIFETIME_PERSISTENT:1:KEEP_OPEN
 
 Open failure: invalid identifier (0)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_KEY_LIFETIME_PERSISTENT:0:PSA_ERROR_INVALID_ARGUMENT
+open_fail:0:PSA_ERROR_INVALID_ARGUMENT
 
 Open failure: invalid identifier (random seed UID)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_KEY_LIFETIME_PERSISTENT:PSA_CRYPTO_ITS_RANDOM_SEED_UID:PSA_ERROR_INVALID_ARGUMENT
+open_fail:PSA_CRYPTO_ITS_RANDOM_SEED_UID:PSA_ERROR_INVALID_ARGUMENT
 
 Open failure: non-existent identifier
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_KEY_LIFETIME_PERSISTENT:1:PSA_ERROR_DOES_NOT_EXIST
-
-Open failure: volatile lifetime
-open_fail:PSA_KEY_LIFETIME_VOLATILE:1:PSA_ERROR_INVALID_ARGUMENT
-
-Open failure: invalid lifetime
-open_fail:0x7fffffff:0:PSA_ERROR_INVALID_ARGUMENT
+open_fail:1:PSA_ERROR_DOES_NOT_EXIST
 
 Create failure: invalid lifetime
 create_fail:0x7fffffff:0:PSA_ERROR_INVALID_ARGUMENT
@@ -56,7 +50,7 @@ create_fail:PSA_KEY_LIFETIME_PERSISTENT:PSA_CRYPTO_ITS_RANDOM_SEED_UID:PSA_ERROR
 
 Open not supported
 depends_on:!MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_KEY_LIFETIME_PERSISTENT:1:PSA_ERROR_NOT_SUPPORTED
+open_fail:1:PSA_ERROR_NOT_SUPPORTED
 
 Create not supported
 depends_on:!MBEDTLS_PSA_CRYPTO_STORAGE_C

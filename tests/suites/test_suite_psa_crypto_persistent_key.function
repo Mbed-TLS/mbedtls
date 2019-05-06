@@ -134,8 +134,7 @@ void persistent_key_destroy( int key_id_arg, int restart,
         psa_close_key( handle );
         mbedtls_psa_crypto_free();
         PSA_ASSERT( psa_crypto_init() );
-        PSA_ASSERT( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                                  &handle ) );
+        PSA_ASSERT( psa_open_key( key_id, &handle ) );
     }
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 1 );
 
@@ -144,8 +143,7 @@ void persistent_key_destroy( int key_id_arg, int restart,
 
     /* Check key slot storage is removed */
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
-    TEST_EQUAL( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id, &handle ),
-                PSA_ERROR_DOES_NOT_EXIST );
+    TEST_EQUAL( psa_open_key( key_id, &handle ), PSA_ERROR_DOES_NOT_EXIST );
     TEST_EQUAL( handle, 0 );
 
     /* Shutdown and restart */
@@ -191,8 +189,7 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
         psa_close_key( handle );
         mbedtls_psa_crypto_free();
         PSA_ASSERT( psa_crypto_init() );
-        PSA_ASSERT( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                                  &handle ) );
+        PSA_ASSERT( psa_open_key( key_id, &handle ) );
     }
 
     psa_reset_key_attributes( &attributes );
@@ -242,8 +239,7 @@ void import_export_persistent_key( data_t *data, int type_arg,
         psa_close_key( handle );
         mbedtls_psa_crypto_free();
         PSA_ASSERT( psa_crypto_init() );
-        PSA_ASSERT( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                                  &handle ) );
+        PSA_ASSERT( psa_open_key( key_id, &handle ) );
     }
 
     /* Test the key information */

@@ -39,9 +39,8 @@
 
 #include <stdlib.h>
 #include <string.h>
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
+#if !defined(MBEDTLS_PLATFORM_C)
 #define mbedtls_calloc calloc
 #define mbedtls_free   free
 #endif
@@ -283,6 +282,11 @@ static psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INVALID_SIGNATURE );
         case MBEDTLS_ERR_PK_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
+
+        case MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED:
+            return( PSA_ERROR_HARDWARE_FAILURE );
+        case MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED:
+            return( PSA_ERROR_NOT_SUPPORTED );
 
         case MBEDTLS_ERR_RIPEMD160_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );

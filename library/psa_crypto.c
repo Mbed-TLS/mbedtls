@@ -3681,6 +3681,9 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
         case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CCM, 0 ):
             operation->core_alg = PSA_ALG_CCM;
             operation->full_tag_length = 16;
+            /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
+             * The call to mbedtls_ccm_encrypt_and_tag or
+             * mbedtls_ccm_auth_decrypt will validate the tag length. */
             if( PSA_BLOCK_CIPHER_BLOCK_SIZE( operation->slot->type ) != 16 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             mbedtls_ccm_init( &operation->ctx.ccm );
@@ -3697,6 +3700,9 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
         case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ):
             operation->core_alg = PSA_ALG_GCM;
             operation->full_tag_length = 16;
+            /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
+             * The call to mbedtls_gcm_crypt_and_tag or
+             * mbedtls_gcm_auth_decrypt will validate the tag length. */
             if( PSA_BLOCK_CIPHER_BLOCK_SIZE( operation->slot->type ) != 16 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             mbedtls_gcm_init( &operation->ctx.gcm );
@@ -3704,6 +3710,8 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
                 mbedtls_gcm_setkey( &operation->ctx.gcm, cipher_id,
                                     operation->slot->data.raw.data,
                                     (unsigned int) key_bits ) );
+            if( status != 0 )
+                goto cleanup;
             break;
 #endif /* MBEDTLS_GCM_C */
 
@@ -3717,9 +3725,6 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
         goto cleanup;
     }
     operation->tag_length = PSA_AEAD_TAG_LENGTH( alg );
-    /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
-     * GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
-     * In both cases, mbedtls_xxx will validate the tag length below. */
 
     return( PSA_SUCCESS );
 
@@ -3844,15 +3849,15 @@ psa_status_t psa_aead_decrypt( psa_key_handle_t handle,
     if( status != PSA_SUCCESS )
         return( status );
 
+    status = psa_aead_unpadded_locate_tag( operation.tag_length,
+                                           ciphertext, ciphertext_length,
+                                           plaintext_size, &tag );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
 #if defined(MBEDTLS_GCM_C)
     if( operation.core_alg == PSA_ALG_GCM )
     {
-        status = psa_aead_unpadded_locate_tag( operation.tag_length,
-                                               ciphertext, ciphertext_length,
-                                               plaintext_size, &tag );
-        if( status != PSA_SUCCESS )
-            goto exit;
-
         status = mbedtls_to_psa_error(
             mbedtls_gcm_auth_decrypt( &operation.ctx.gcm,
                                       ciphertext_length - operation.tag_length,
@@ -3867,12 +3872,6 @@ psa_status_t psa_aead_decrypt( psa_key_handle_t handle,
 #if defined(MBEDTLS_CCM_C)
     if( operation.core_alg == PSA_ALG_CCM )
     {
-        status = psa_aead_unpadded_locate_tag( operation.tag_length,
-                                               ciphertext, ciphertext_length,
-                                               plaintext_size, &tag );
-        if( status != PSA_SUCCESS )
-            goto exit;
-
         status = mbedtls_to_psa_error(
             mbedtls_ccm_auth_decrypt( &operation.ctx.ccm,
                                       ciphertext_length - operation.tag_length,

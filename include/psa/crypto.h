@@ -2501,6 +2501,10 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  * \param input_length          Size of the \p input buffer in bytes.
  * \param[out] output           Buffer where the output is to be written.
  * \param output_size           Size of the \p output buffer in bytes.
+ *                              This must be at least
+ *                              #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c alg,
+ *                              \p input_length) where \c alg is the
+ *                              algorithm that is being calculated.
  * \param[out] output_length    On success, the number of bytes
  *                              that make up the returned output.
  *
@@ -2511,6 +2515,9 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  *         or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
+ *         You can determine a sufficient buffer size by calling
+ *         #PSA_AEAD_UPDATE_OUTPUT_SIZE(\c alg, \p input_length)
+ *         where \c alg is the algorithm that is being calculated.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -2554,11 +2561,18 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  * \param[out] ciphertext       Buffer where the last part of the ciphertext
  *                              is to be written.
  * \param ciphertext_size       Size of the \p ciphertext buffer in bytes.
+ *                              This must be at least
+ *                              #PSA_AEAD_FINISH_OUTPUT_SIZE(\c alg) where
+ *                              \c alg is the algorithm that is being
+ *                              calculated.
  * \param[out] ciphertext_length On success, the number of bytes of
  *                              returned ciphertext.
  * \param[out] tag              Buffer where the authentication tag is
  *                              to be written.
  * \param tag_size              Size of the \p tag buffer in bytes.
+ *                              This must be at least
+ *                              #PSA_AEAD_TAG_LENGTH(\c alg) where \c alg is
+ *                              the algorithm that is being calculated.
  * \param[out] tag_length       On success, the number of bytes
  *                              that make up the returned tag.
  *
@@ -2569,6 +2583,11 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  *         decryption, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p ciphertext or \p tag buffer is too small.
+ *         You can determine a sufficient buffer size for \p ciphertext by
+ *         calling #PSA_AEAD_FINISH_OUTPUT_SIZE(\c alg)
+ *         where \c alg is the algorithm that is being calculated.
+ *         You can determine a sufficient buffer size for \p tag by
+ *         calling #PSA_AEAD_TAG_LENGTH(\c alg).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously
@@ -2608,6 +2627,10 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  *                              that could not be processed until the end
  *                              of the input.
  * \param plaintext_size        Size of the \p plaintext buffer in bytes.
+ *                              This must be at least
+ *                              #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c alg) where
+ *                              \c alg is the algorithm that is being
+ *                              calculated.
  * \param[out] plaintext_length On success, the number of bytes of
  *                              returned plaintext.
  * \param[in] tag               Buffer containing the authentication tag.
@@ -2618,6 +2641,11 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (not set up, nonce not set,
  *         encryption, or already completed).
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p plaintext buffer is too small.
+ *         You can determine a sufficient buffer size for \p plaintext by
+ *         calling #PSA_AEAD_VERIFY_OUTPUT_SIZE(\c alg)
+ *         where \c alg is the algorithm that is being calculated.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total length of input to psa_aead_update_ad() so far is
  *         less than the additional data length that was previously

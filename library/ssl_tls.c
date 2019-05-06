@@ -1460,24 +1460,10 @@ static int ssl_populate_transform( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 
+    /* Initialize Zlib contexts */
 #if defined(MBEDTLS_ZLIB_SUPPORT)
-    // Initialize compression
-    //
     if( session->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
     {
-        if( ssl->compress_buf == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "Allocating compression buffer" ) );
-            ssl->compress_buf = mbedtls_calloc( 1, MBEDTLS_SSL_COMPRESS_BUFFER_LEN );
-            if( ssl->compress_buf == NULL )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
-                                    MBEDTLS_SSL_COMPRESS_BUFFER_LEN ) );
-                ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
-                goto end;
-            }
-        }
-
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Initializing zlib states" ) );
 
         memset( &transform->ctx_deflate, 0, sizeof( transform->ctx_deflate ) );
@@ -1756,6 +1742,22 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     /* We no longer need Server/ClientHello.random values */
     mbedtls_platform_zeroize( ssl->handshake->randbytes,
                       sizeof( ssl->handshake->randbytes ) );
+
+    /* Allocate compression buffer */
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+    if( session->compression == MBEDTLS_SSL_COMPRESS_DEFLATE &&
+        ssl->compress_buf == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Allocating compression buffer" ) );
+        ssl->compress_buf = mbedtls_calloc( 1, MBEDTLS_SSL_COMPRESS_BUFFER_LEN );
+        if( ssl->compress_buf == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
+                                MBEDTLS_SSL_COMPRESS_BUFFER_LEN ) );
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        }
+    }
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
 

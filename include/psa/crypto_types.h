@@ -102,6 +102,13 @@ typedef uint32_t psa_algorithm_t;
 typedef uint32_t psa_key_lifetime_t;
 
 /** Encoding of identifiers of persistent keys.
+ *
+ * - Applications may freely choose key identifiers in the range
+ *   #PSA_KEY_ID_USER_MIN to #PSA_KEY_ID_USER_MAX.
+ * - Implementations may define additional key identifiers in the range
+ *   #PSA_KEY_ID_VENDOR_MIN to #PSA_KEY_ID_VENDOR_MAX.
+ * - Key identifiers outside these ranges are reserved for future use
+ *   in future versions of this specification.
  */
 /* Implementation-specific quirk: The Mbed Crypto library can be built as
  * part of a multi-client service that exposes the PSA Crypto API in each

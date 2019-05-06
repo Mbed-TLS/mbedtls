@@ -512,6 +512,10 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  *
  * Open a handle to a key which was previously created with psa_create_key().
  *
+ * Implementations may provide additional keys that can be opened with
+ * psa_open_key(). Such keys have a key identifier in the vendor range,
+ * as documented in the description of #psa_key_id_t.
+ *
  * \param id            The persistent identifier of the key.
  * \param[out] handle   On success, a handle to a key slot which contains
  *                      the data and metadata loaded from the specified

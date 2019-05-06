@@ -59,7 +59,7 @@ extern "C" {
  * This limitation will probably become moot when we implement client
  * separation for key storage.
  */
-#define PSA_MAX_PERSISTENT_KEY_IDENTIFIER 0xfffeffff
+#define PSA_MAX_PERSISTENT_KEY_IDENTIFIER PSA_KEY_ID_VENDOR_MAX
 
 /**
  * \brief Checks if persistent data is stored for the given key slot number

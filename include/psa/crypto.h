@@ -2495,6 +2495,14 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  *          - In particular, do not copy the output anywhere but to a
  *            memory or storage space that you have exclusive access to.
  *
+ * This function does not require the input to be aligned to any
+ * particular block boundary. If the implementation can only process
+ * a whole block at a time, it must store the last partial input block
+ * or adjust its internal state accordingly until the next call to
+ * psa_aead_update(), psa_aead_finish() or psa_aead_verify(), and produce
+ * the corresponding output when sufficient input is available or on the
+ * finish or verify call.
+ *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the message fragment to
  *                              encrypt or decrypt.
@@ -2548,9 +2556,7 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  *
  * This function has two output buffers:
  * - \p ciphertext contains trailing ciphertext that was buffered from
- *   preceding calls to psa_aead_update(). For all standard AEAD algorithms,
- *   psa_aead_update() does not buffer any output and therefore \p ciphertext
- *   will not contain any output and can be a 0-sized buffer.
+ *   preceding calls to psa_aead_update().
  * - \p tag contains the authentication tag. Its length is always
  *   #PSA_AEAD_TAG_LENGTH(\c alg) where \c alg is the AEAD algorithm
  *   that the operation performs.

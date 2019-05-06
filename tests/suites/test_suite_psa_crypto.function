@@ -2807,7 +2807,7 @@ exit:
 
 /* BEGIN_CASE */
 void cipher_encrypt( int alg_arg, int key_type_arg,
-                     data_t *key,
+                     data_t *key, data_t *iv,
                      data_t *input, data_t *expected_output,
                      int expected_status_arg )
 {
@@ -2816,17 +2816,12 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
-    unsigned char iv[16] = {0};
-    size_t iv_size;
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-
-    iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
-    memset( iv, 0x2a, iv_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2840,8 +2835,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_encrypt_setup( &operation,
                                           handle, alg ) );
 
-    PSA_ASSERT( psa_cipher_set_iv( &operation,
-                                   iv, iv_size ) );
+    PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
@@ -2874,7 +2868,7 @@ exit:
 
 /* BEGIN_CASE */
 void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
-                               data_t *key,
+                               data_t *key, data_t *iv,
                                data_t *input,
                                int first_part_size_arg,
                                int output1_length_arg, int output2_length_arg,
@@ -2886,17 +2880,12 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     size_t first_part_size = first_part_size_arg;
     size_t output1_length = output1_length_arg;
     size_t output2_length = output2_length_arg;
-    unsigned char iv[16] = {0};
-    size_t iv_size;
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-
-    iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
-    memset( iv, 0x2a, iv_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2910,8 +2899,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_encrypt_setup( &operation,
                                           handle, alg ) );
 
-    PSA_ASSERT( psa_cipher_set_iv( &operation,
-                                   iv, sizeof( iv ) ) );
+    PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
@@ -2949,7 +2937,7 @@ exit:
 
 /* BEGIN_CASE */
 void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
-                               data_t *key,
+                               data_t *key, data_t *iv,
                                data_t *input,
                                int first_part_size_arg,
                                int output1_length_arg, int output2_length_arg,
@@ -2962,17 +2950,12 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     size_t first_part_size = first_part_size_arg;
     size_t output1_length = output1_length_arg;
     size_t output2_length = output2_length_arg;
-    unsigned char iv[16] = {0};
-    size_t iv_size;
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-
-    iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
-    memset( iv, 0x2a, iv_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2986,8 +2969,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation,
                                           handle, alg ) );
 
-    PSA_ASSERT( psa_cipher_set_iv( &operation,
-                                   iv, sizeof( iv ) ) );
+    PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
@@ -3027,7 +3009,7 @@ exit:
 
 /* BEGIN_CASE */
 void cipher_decrypt( int alg_arg, int key_type_arg,
-                     data_t *key,
+                     data_t *key, data_t *iv,
                      data_t *input, data_t *expected_output,
                      int expected_status_arg )
 {
@@ -3036,17 +3018,12 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
-    unsigned char iv[16] = {0};
-    size_t iv_size;
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
     size_t total_output_length = 0;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-
-    iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
-    memset( iv, 0x2a, iv_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3060,8 +3037,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     PSA_ASSERT( psa_cipher_decrypt_setup( &operation,
                                           handle, alg ) );
 
-    PSA_ASSERT( psa_cipher_set_iv( &operation,
-                                   iv, iv_size ) );
+    PSA_ASSERT( psa_cipher_set_iv( &operation, iv->x, iv->len ) );
 
     output_buffer_size = ( (size_t) input->len +
                            PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );

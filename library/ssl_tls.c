@@ -619,16 +619,23 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
  * Parameters:
  * - [in/out]: transform: structure to populate
  *      [in] must be just initialised with mbedtls_ssl_transform_init()
- *      [out] fully populate, ready for use by mbedtls_ssl_{en,de}crypt_buf()
+ *      [out] fully populated, ready for use by mbedtls_ssl_{en,de}crypt_buf()
  * - [in] session: used: ciphersuite, encrypt_then_mac, master, compression
  * - [in] tls_prf: pointer to PRF to use for key derivation
  * - [in] randbytes: buffer holding ServerHello.random + ClientHello.random
- * - [in] ssl: used members: minor_ver, conf->endpoint
+ * - [in] minor_ver: SSL/TLS minor version
+ * - [in] endpoint: client or server
+ * - [in] ssl: optionally used for:
+ *        - MBEDTLS_SSL_HW_RECORD_ACCEL: whole context
+ *        - MBEDTLS_SSL_EXPORT_KEYS: ssl->conf->{f,p}_export_keys
+ *        - MBEDTLS_DEBUG_C: ssl->conf->{f,p}_dbg
  */
 static int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                    const mbedtls_ssl_session *session,
                                    ssl_tls_prf_t tls_prf,
                                    const unsigned char randbytes[64],
+                                   int minor_ver,
+                                   unsigned endpoint,
                                    const mbedtls_ssl_context *ssl )
 {
     int ret = 0;
@@ -644,11 +651,17 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
 
+#if !defined(MBEDTLS_SSL_HW_RECORD_ACCEL) && \
+    !defined(MBEDTLS_SSL_EXPORT_KEYS) && \
+    !defined(MBEDTLS_DEBUG_C)
+    (void) ssl;
+#endif
+
     /* Copy info about negotiated version and extensions */
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     transform->encrypt_then_mac = session->encrypt_then_mac;
 #endif
-    transform->minor_ver = ssl->minor_ver;
+    transform->minor_ver = minor_ver;
 
     /*
      * Get various info structures
@@ -794,14 +807,14 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
             }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
-            if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ||
-                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_1 )
+            if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ||
+                minor_ver == MBEDTLS_SSL_MINOR_VERSION_1 )
                 ; /* No need to adjust minlen */
             else
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
-            if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_2 ||
-                ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+            if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_2 ||
+                minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
             {
                 transform->minlen += transform->ivlen;
             }
@@ -830,7 +843,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
      * Finally setup the cipher contexts, IVs and MAC secrets.
      */
 #if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    if( endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         key1 = keyblk + mac_key_len * 2;
         key2 = keyblk + mac_key_len * 2 + keylen;
@@ -850,7 +863,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     else
 #endif /* MBEDTLS_SSL_CLI_C */
 #if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    if( endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         key1 = keyblk + mac_key_len * 2 + keylen;
         key2 = keyblk + mac_key_len * 2;
@@ -876,7 +889,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         if( mac_key_len > sizeof( transform->mac_enc ) )
         {
@@ -891,7 +904,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
+    if( minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
     {
         /* For HMAC-based ciphersuites, initialize the HMAC transforms.
            For AEAD-based ciphersuites, there is nothing to do here. */
@@ -1188,6 +1201,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                   ssl->session_negotiate,
                                   ssl->handshake->tls_prf,
                                   ssl->handshake->randbytes,
+                                  ssl->minor_ver,
+                                  ssl->conf->endpoint,
                                   ssl );
     if( ret != 0 )
     {

@@ -425,7 +425,8 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     size_t nb, hs;
     size_t i, j, k;
     const unsigned char *S1, *S2;
-    unsigned char tmp[128];
+    unsigned char *tmp;
+    size_t tmp_len = 0;
     unsigned char h_i[20];
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
@@ -433,8 +434,13 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
 
     mbedtls_md_init( &md_ctx );
 
-    if( sizeof( tmp ) < 20 + strlen( label ) + rlen )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    tmp_len = 20 + strlen( label ) + rlen;
+    tmp = mbedtls_calloc( 1, tmp_len );
+    if( tmp == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
 
     hs = ( slen + 1 ) / 2;
     S1 = secret;
@@ -449,10 +455,15 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
      * First compute P_md5(secret,label+random)[0..dlen]
      */
     if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_MD5 ) ) == NULL )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    {
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto exit;
+    }
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
-        return( ret );
+    {
+        goto exit;
+    }
 
     mbedtls_md_hmac_starts( &md_ctx, S1, hs );
     mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb );
@@ -480,10 +491,15 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
      * XOR out with P_sha1(secret,label+random)[0..dlen]
      */
     if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) == NULL )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    {
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto exit;
+    }
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
-        return( ret );
+    {
+        goto exit;
+    }
 
     mbedtls_md_hmac_starts( &md_ctx, S2, hs );
     mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb );
@@ -505,12 +521,14 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
             dstbuf[i + j] = (unsigned char)( dstbuf[i + j] ^ h_i[j] );
     }
 
+exit:
     mbedtls_md_free( &md_ctx );
 
-    mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_platform_zeroize( tmp, tmp_len );
     mbedtls_platform_zeroize( h_i, sizeof( h_i ) );
 
-    return( 0 );
+    mbedtls_free( tmp );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1) || MBEDTLS_SSL_PROTO_TLS1_1 */
 
@@ -593,7 +611,8 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 {
     size_t nb;
     size_t i, j, k, md_len;
-    unsigned char tmp[128];
+    unsigned char *tmp;
+    size_t tmp_len = 0;
     unsigned char h_i[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
@@ -606,8 +625,13 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     md_len = mbedtls_md_get_size( md_info );
 
-    if( sizeof( tmp ) < md_len + strlen( label ) + rlen )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    tmp_len = md_len + strlen( label ) + rlen;
+    tmp = mbedtls_calloc( 1, tmp_len );
+    if( tmp == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
 
     nb = strlen( label );
     memcpy( tmp + md_len, label, nb );
@@ -618,7 +642,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
      * Compute P_<hash>(secret, label + random)[0..dlen]
      */
     if ( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
-        return( ret );
+        goto exit;
 
     mbedtls_md_hmac_starts( &md_ctx, secret, slen );
     mbedtls_md_hmac_update( &md_ctx, tmp + md_len, nb );
@@ -640,12 +664,15 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
             dstbuf[i + j]  = h_i[j];
     }
 
+exit:
     mbedtls_md_free( &md_ctx );
 
-    mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_platform_zeroize( tmp, tmp_len );
     mbedtls_platform_zeroize( h_i, sizeof( h_i ) );
 
-    return( 0 );
+    mbedtls_free( tmp );
+
+    return( ret );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_SHA256_C)

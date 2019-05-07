@@ -654,6 +654,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 #if !defined(MBEDTLS_SSL_HW_RECORD_ACCEL) && \
     !defined(MBEDTLS_SSL_EXPORT_KEYS) && \
     !defined(MBEDTLS_DEBUG_C)
+    ssl = NULL; /* make sure we don't use it except for those cases */
     (void) ssl;
 #endif
 
@@ -1108,6 +1109,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     int ret;
 
 #if !defined(MBEDTLS_DEBUG_C) && !defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    ssl = NULL; /* make sure we don't use it except for debug and EMS */
     (void) ssl;
 #endif
 
@@ -1589,6 +1591,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
     /* The SSL context is only used for debugging purposes! */
 #if !defined(MBEDTLS_DEBUG_C)
+    ssl = NULL; /* make sure we don't use it except for debug */
     ((void) ssl);
 #endif
 
@@ -1982,6 +1985,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
     unsigned char add_data[13];
 
 #if !defined(MBEDTLS_DEBUG_C)
+    ssl = NULL; /* make sure we don't use it except for debug */
     ((void) ssl);
 #endif
 

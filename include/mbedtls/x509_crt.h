@@ -454,11 +454,12 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path );
 int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
 
 #endif /* MBEDTLS_FS_IO */
+
 /**
  * \brief          Parses a subject alternative name item
  *                 to an identified structure;
  *
- * \param san_buf  The buffer holding the raw data item of the subject
+ * \param san_raw  The buffer holding the raw data item of the subject
  *                 alternative name.
  * \param san      The target structure to populate with the parsed presentation
  *                 of the subject alternative name encoded in \p san_raw.
@@ -477,7 +478,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
  *                 SAN type
  * \return         Negative value for any other failure.
  */
-int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
+int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_raw,
                                          mbedtls_x509_subject_alternative_name *san );
 /**
  * \brief          Returns an informational string about the

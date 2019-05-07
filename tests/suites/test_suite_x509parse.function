@@ -329,8 +329,10 @@ void x509_parse_san( char * crt_file, char * result_str )
 {
     int ret;
     mbedtls_x509_crt   crt;
+    mbedtls_x509_crt_frame frame;
     mbedtls_x509_subject_alternative_name san;
-    mbedtls_x509_sequence *cur = NULL;
+    mbedtls_x509_sequence *subject_alt_names = NULL, *cur;
+
     char buf[2000];
     char *p = buf;
     size_t n = sizeof( buf );
@@ -339,10 +341,12 @@ void x509_parse_san( char * crt_file, char * result_str )
     memset( buf, 0, 2000 );
 
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
+    TEST_ASSERT( mbedtls_x509_crt_get_subject_alt_names( &crt, &subject_alt_names ) == 0 );
+    TEST_ASSERT( mbedtls_x509_crt_get_frame( &crt, &frame ) == 0 );
 
-    if( crt.ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
+    if( frame.ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
-        cur = &crt.subject_alt_names;
+        cur = subject_alt_names;
         while( cur != NULL )
         {
             ret = mbedtls_x509_parse_subject_alt_name( &cur->buf, &san );
@@ -360,6 +364,7 @@ void x509_parse_san( char * crt_file, char * result_str )
 
 exit:
 
+    mbedtls_x509_sequence_free( subject_alt_names );
     mbedtls_x509_crt_free( &crt );
 }
 /* END_CASE */

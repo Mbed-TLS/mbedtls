@@ -2334,7 +2334,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
                 MBEDTLS_X509_SAFE_SNPRINTF;
 
                 if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
-                                     &other_name->value.hardware_module_name.oid ) != 0 )
+                             &other_name->value.hardware_module_name.oid ) != 0 )
                 {
                     ret = mbedtls_snprintf( p, n, "\n%s        hardware module name :", prefix );
                     MBEDTLS_X509_SAFE_SNPRINTF;
@@ -2401,11 +2401,11 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     return( 0 );
 }
 
-int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
+int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_raw,
                                          mbedtls_x509_subject_alternative_name *san )
 {
     int ret;
-    switch( san_buf->tag &
+    switch( san_raw->tag &
             ( MBEDTLS_ASN1_TAG_CLASS_MASK |
               MBEDTLS_ASN1_TAG_VALUE_MASK ) )
     {
@@ -2416,7 +2416,7 @@ int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
         {
             mbedtls_x509_san_other_name other_name;
 
-            ret = x509_get_other_name( san_buf, &other_name );
+            ret = x509_get_other_name( san_raw, &other_name );
             if( ret != 0 )
                 return( ret );
 
@@ -2437,7 +2437,7 @@ int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
             san->type = MBEDTLS_X509_SAN_DNS_NAME;
 
             memcpy( &san->san.unstructured_name,
-                    san_buf, sizeof( *san_buf ) );
+                    san_raw, sizeof( *san_raw ) );
 
         }
         break;

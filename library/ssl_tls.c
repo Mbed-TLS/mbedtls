@@ -988,9 +988,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 4, "random bytes", handshake->randbytes, 64 );
     MBEDTLS_SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
 
-    mbedtls_platform_zeroize( handshake->randbytes,
-                              sizeof( handshake->randbytes ) );
-
     /*
      * Determine the appropriate key, IV and MAC length.
      */
@@ -1365,7 +1362,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-    mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     // Initialize compression
@@ -1403,7 +1399,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
 end:
-
+    mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
+    mbedtls_platform_zeroize( handshake->randbytes,
+                              sizeof( handshake->randbytes ) );
     return( ret );
 }
 

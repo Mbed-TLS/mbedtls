@@ -1265,6 +1265,16 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                   mac_key_len, keylen,
                                   iv_copy_len );
     }
+
+    if( ssl->conf->f_export_keys_ext != NULL )
+    {
+        ssl->conf->f_export_keys_ext( ssl->conf->p_export_keys,
+                                      session->master, keyblk,
+                                      mac_key_len, transform->keylen,
+                                      iv_copy_len, handshake->tls_prf,
+                                      handshake->randbytes + 32,
+                                      handshake->randbytes );
+    }
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -8651,6 +8661,14 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         void *p_export_keys )
 {
     conf->f_export_keys = f_export_keys;
+    conf->p_export_keys = p_export_keys;
+}
+
+void mbedtls_ssl_conf_export_keys_ext_cb( mbedtls_ssl_config *conf,
+        mbedtls_ssl_export_keys_ext_t *f_export_keys_ext,
+        void *p_export_keys )
+{
+    conf->f_export_keys_ext = f_export_keys_ext;
     conf->p_export_keys = p_export_keys;
 }
 #endif

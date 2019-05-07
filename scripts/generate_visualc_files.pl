@@ -38,7 +38,7 @@ EOT
 
 if ($include_crypto) {
   $include_directories = <<EOT;
-../../crypto/include;../../include\r
+../../include;../../crypto/include\r
 EOT
 }
 

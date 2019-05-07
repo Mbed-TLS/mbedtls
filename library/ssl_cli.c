@@ -3171,7 +3171,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         }
 
         /* Copy ECPoint structure to outgoing message buffer. */
-        ssl->out_msg[header_len] = own_pubkey_ecpoint_len;
+        ssl->out_msg[header_len] = (unsigned char) own_pubkey_ecpoint_len;
         memcpy( ssl->out_msg + header_len + 1,
                 own_pubkey_ecpoint, own_pubkey_ecpoint_len );
         content_len = own_pubkey_ecpoint_len + 1;

@@ -205,7 +205,6 @@ typedef struct mbedtls_x509_subject_alternative_name
         mbedtls_x509_buf   unstructured_name; /**< The buffer for the un constructed types. Only dnsName currently supported */
     }
     san; /**< A union of the supported SAN types */
-    struct mbedtls_x509_subject_alternative_name *next; /**< The next SAN in the list. */
 }
 mbedtls_x509_subject_alternative_name;
 
@@ -459,26 +458,31 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path );
  */
 int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
 #endif /* MBEDTLS_FS_IO */
+
 /**
- * \brief          Parses the subject alternative name list of a given certificate;
+ * \brief          Parses a subject alternative name raw item
+ *                 to an identified structure;
  *
- * \param crt      The X509 certificate to parse.
+ * \param san_raw  The buffer hlding the raw data of the subject alternative name.
  *
- * \param san      A list holding the parsed certificate.
+ * \param san      The parsed subject alternative name.
  *
  * \note           Only "dnsName" and "otherName" of type hardware_module_name,
  *                 as defined in RFC 4180 is supported.
  *
- * \note           Any unsupported san type is ignored.
+ * \note           This function should be called on a single raw data of
+ *                 subject alternative name. For example, after a call to
+ *                 mbedtls_x509_crt_get_subject_alt_names() one must iterate
+ *                 on every item in the sequence, and send it as parameter to
+ *                 this function.
  *
- * \note           The function allocates a list of mbedtls_x509_subject_alternative_name
- *                 and it is the caller's responsibility to free it.
- *
- * \return         Zero for success and negative
+ * \return         Zero for success, \p MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE
+ *                 for an unsupported san type, and other negative
  *                 value for any other failure.
  */
-int mbedtls_x509_parse_subject_alternative_name( const mbedtls_x509_crt *crt,
-                                                 mbedtls_x509_subject_alternative_name **san );
+int mbedtls_x509_fill_subject_alt_name_from_raw( const mbedtls_x509_buf *san_raw,
+                                                 mbedtls_x509_subject_alternative_name *san );
+
 /**
  * \brief          Returns an informational string about the
  *                 certificate.

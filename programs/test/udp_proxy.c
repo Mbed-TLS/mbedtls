@@ -323,6 +323,7 @@ static const char *msg_type( unsigned char *msg, size_t len )
         case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:    return( "ChangeCipherSpec" );
         case MBEDTLS_SSL_MSG_ALERT:                 return( "Alert" );
         case MBEDTLS_SSL_MSG_APPLICATION_DATA:      return( "ApplicationData" );
+        case MBEDTLS_SSL_MSG_CID:                   return( "CID" );
         case MBEDTLS_SSL_MSG_HANDSHAKE:             break; /* See below */
         default:                            return( "Unknown" );
     }
@@ -436,7 +437,10 @@ static int ctx_buffer_append( ctx_buffer *buf,
     if( sizeof( buf->data ) - buf->len < len )
     {
         if( ( ret = ctx_buffer_flush( buf ) ) <= 0 )
+        {
+            mbedtls_printf( "ctx_buffer_flush failed with -%#04x", -ret );
             return( ret );
+        }
     }
 
     memcpy( buf->data + buf->len, data, len );
@@ -453,6 +457,7 @@ static int dispatch_data( mbedtls_net_context *ctx,
                           const unsigned char * data,
                           size_t len )
 {
+    int ret;
 #if defined(MBEDTLS_TIMING_C)
     ctx_buffer *buf = NULL;
     if( opt.pack > 0 )
@@ -469,7 +474,12 @@ static int dispatch_data( mbedtls_net_context *ctx,
     }
 #endif /* MBEDTLS_TIMING_C */
 
-    return( mbedtls_net_send( ctx, data, len ) );
+    ret = mbedtls_net_send( ctx, data, len );
+    if( ret < 0 )
+    {
+        mbedtls_printf( "net_send returned -%#04x\n", -ret );
+    }
+    return( ret );
 }
 
 typedef struct
@@ -688,6 +698,7 @@ int handle_message( const char *way,
     if( ( opt.mtu != 0 &&
           cur.len > (unsigned) opt.mtu ) ||
         ( opt.drop != 0 &&
+          strcmp( cur.type, "CID" ) != 0             &&
           strcmp( cur.type, "ApplicationData" ) != 0 &&
           ! ( opt.protect_hvr &&
               strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
@@ -700,6 +711,7 @@ int handle_message( const char *way,
     else if( ( opt.delay_ccs == 1 &&
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
              ( opt.delay != 0 &&
+               strcmp( cur.type, "CID" ) != 0             &&
                strcmp( cur.type, "ApplicationData" ) != 0 &&
                ! ( opt.protect_hvr &&
                    strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&

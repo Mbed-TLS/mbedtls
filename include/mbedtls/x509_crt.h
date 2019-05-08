@@ -386,12 +386,12 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path );
  *                 if partly successful or a specific X509 or PEM error code
  */
 int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
+
 #endif /* MBEDTLS_FS_IO */
 /**
- * \brief          Parses the subject alternative name list of a given certificate;
+ * \brief          Parses the subject alternative name list of a given certificate.
  *
  * \param crt      The X509 certificate to parse.
- *
  * \param san      A list holding the parsed certificate.
  *
  * \note           Only "dnsName" and "otherName" of type hardware_module_name,

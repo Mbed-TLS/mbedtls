@@ -99,7 +99,7 @@ typedef struct mbedtls_x509_crt
 }
 mbedtls_x509_crt;
 
-/*
+/**
  * From RFC 5280 section 4.2.1.6:
  * OtherName ::= SEQUENCE {
  *      type-id    OBJECT IDENTIFIER,
@@ -110,7 +110,7 @@ typedef struct mbedtls_x509_san_other_name
     mbedtls_x509_buf type_id;                   /**< The type id. */
     union
     {
-        /*
+        /**
          * From RFC 4108 section 5:
          * HardwareModuleName ::= SEQUENCE {
          *                         hwType OBJECT IDENTIFIER,
@@ -122,7 +122,7 @@ typedef struct mbedtls_x509_san_other_name
 }
 mbedtls_x509_san_other_name;
 
-/*
+/**
  * A structure for holding the parsed Subject Alternative Name, according to type
  */
 typedef struct mbedtls_x509_subject_alternative_name

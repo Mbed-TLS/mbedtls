@@ -7322,6 +7322,9 @@ static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
     {
         ssl->out_ctr = ssl->out_hdr - 8;
         ssl->out_len = ssl->out_hdr + 3;
+#if defined(MBEDTLS_SSL_CID)
+        ssl->out_cid = ssl->out_len;
+#endif
         ssl->out_iv  = ssl->out_hdr + 5;
     }
 
@@ -7376,6 +7379,9 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl )
     {
         ssl->in_ctr = ssl->in_hdr - 8;
         ssl->in_len = ssl->in_hdr + 3;
+#if defined(MBEDTLS_SSL_CID)
+        ssl->in_cid = ssl->in_len;
+#endif
         ssl->in_iv  = ssl->in_hdr + 5;
     }
 

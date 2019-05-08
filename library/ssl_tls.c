@@ -4659,8 +4659,10 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             if( ssl->nb_zero > 3 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "received four consecutive empty "
-                                    "messages, possible DoS attack" ) );
-                /* Q: Is that the right error code? */
+                                            "messages, possible DoS attack" ) );
+                /* Treat the records as if they were not properly authenticated,
+                 * thereby failing the connection if we see more than allowed
+                 * by the configured bad MAC threshold. */
                 return( MBEDTLS_ERR_SSL_INVALID_MAC );
             }
         }

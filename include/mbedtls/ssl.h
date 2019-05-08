@@ -266,6 +266,10 @@
 #define MBEDTLS_SSL_CID_OUT_LEN_MAX         32
 #endif
 
+#if !defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY)
+#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
+#endif
+
 /* \} name SECTION: Module settings */
 
 /*

@@ -1591,7 +1591,9 @@ static int ssl_cid_build_inner_plaintext( unsigned char *content,
                                           uint8_t rec_type )
 {
     size_t len = *content_size;
-    size_t pad = ~len & 0xF; /* Pad to a multiple of 16 */
+
+    /* MBEDTLS_SSL_CID_PADDING_GRANULARITY must be a power of 2. */
+    size_t pad = ~len & ( MBEDTLS_SSL_CID_PADDING_GRANULARITY - 1 );
 
     /* Write real content type */
     if( remaining == 0 )

@@ -167,9 +167,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_CID)
-#define MBEDTLS_SSL_MAX_CID_EXPANSION       16 /* Currently, we pad records
-                                                * to lengths which are multiples
-                                                * of 16 Bytes. */
+#define MBEDTLS_SSL_MAX_CID_EXPANSION      MBEDTLS_SSL_CID_PADDING_GRANULARITY
 #else
 #define MBEDTLS_SSL_MAX_CID_EXPANSION        0
 #endif

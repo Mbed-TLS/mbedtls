@@ -110,8 +110,7 @@ static int ssl_check_timer( mbedtls_ssl_context *ssl )
 
 static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
                                      mbedtls_ssl_transform *transform );
-static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
-                                    mbedtls_ssl_transform *transform );
+static void ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
 #define SSL_DONT_FORCE_FLUSH 0
 #define SSL_FORCE_FLUSH      1
@@ -5042,12 +5041,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-        if( ssl->in_iv + rec.data_offset != ssl->in_msg )
-        {
-            /* Should never happen */
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-
+        ssl->in_msg    = rec.buf + rec.data_offset;
         ssl->in_msglen = rec.data_len;
         ssl->in_len[0] = (unsigned char)( rec.data_len >> 8 );
         ssl->in_len[1] = (unsigned char)( rec.data_len      );
@@ -7037,7 +7031,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     memset( ssl->in_ctr, 0, 8 );
 
-    ssl_update_in_pointers( ssl, ssl->transform_negotiate );
+    ssl_update_in_pointers( ssl );
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
@@ -7991,9 +7985,18 @@ static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
  *       and the caller has to make sure there's space for this.
  */
 
-static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
-                                    mbedtls_ssl_transform *transform )
+static void ssl_update_in_pointers( mbedtls_ssl_context *ssl )
 {
+    /* This function sets the pointers to match the case
+     * of unprotected TLS/DTLS records, with both  ssl->in_iv
+     * and ssl->in_msg pointing to the beginning of the record
+     * content.
+     *
+     * When decrypting a protected record, ssl->in_msg
+     * will be shifted to point to the beginning of the
+     * record plaintext.
+     */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
@@ -8009,14 +8012,8 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
         ssl->in_iv  = ssl->in_hdr + 5;
     }
 
-    /* Offset in_msg from in_iv to allow space for explicit IV, if used. */
-    if( transform != NULL &&
-        ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
-    {
-        ssl->in_msg = ssl->in_iv + transform->ivlen - transform->fixed_ivlen;
-    }
-    else
-        ssl->in_msg = ssl->in_iv;
+    /* This will be adjusted at record decryption time. */
+    ssl->in_msg = ssl->in_iv;
 }
 
 /*
@@ -8049,7 +8046,7 @@ static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl )
 
     /* Derive other internal pointers. */
     ssl_update_out_pointers( ssl, NULL /* no transform enabled */ );
-    ssl_update_in_pointers ( ssl, NULL /* no transform enabled */ );
+    ssl_update_in_pointers ( ssl );
 }
 
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,

@@ -1447,7 +1447,7 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
 
 
 /**
- * \brief             (STUB) Configure the use of the Connection ID (CID)
+ * \brief             Configure the use of the Connection ID (CID)
  *                    extension in the next handshake.
  *
  *                    Reference:
@@ -1470,11 +1470,6 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                    This API allows to enable/disable the use of the CID
  *                    extension in the next handshake and to set the value of
  *                    the CID to be used for incoming messages.
- *
- * \warning           The current implementation of this API does nothing!
- *                    It is included solely to allow review and coding against
- *                    the new Connection CID API.
- *                    The actual implementation will be added in the future.
  *
  * \param ssl         The SSL context to configure. This must be initialized.
  * \param enable      This value determines whether the CID extension should
@@ -1541,14 +1536,8 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          size_t own_cid_len );
 
 /**
- * \brief              (STUB) Get information about the current use of the
+ * \brief              Get information about the current use of the
  *                     CID extension.
- *
- * \warning            The current implementation of this API does nothing
- *                     except setting `*enabled` to MBEDTLS_SSL_CID_DISABLED!
- *                     It is included solely to allow review and coding against
- *                     the new Connection CID API.
- *                     The actual implementation will be added in the future.
  *
  * \param ssl          The SSL context to query.
  * \param enabled      The address at which to store whether the CID extension
@@ -2160,7 +2149,7 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_CID)
 /**
- * \brief               (STUB) Specify the length of CIDs for incoming encrypted
+ * \brief               Specify the length of CIDs for incoming encrypted
  *                      DTLS records. (Default: \c 0)
  *
  * \param conf          The SSL configuration to modify.

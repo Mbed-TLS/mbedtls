@@ -158,8 +158,6 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-/* WARNING: The CID feature isn't fully implemented yet
- *          and will not be used. */
 int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
                      int *enabled,
                      unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ],

@@ -2573,17 +2573,11 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
      * Match record's CID with incoming CID.
      */
 
-    /* Uncomment this once CID parsing is in place */
-    /* if( rec->cid_len != transform->in_cid_len || */
-    /*     memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 ) */
-    /* { */
-    /*     return( MBEDTLS_ERR_SSL_INVALID_RECORD ); */
-    /* } */
-
-    /* Remove this once CID parsing is in place */
-    rec->cid_len = transform->in_cid_len;
-    memcpy( rec->cid, transform->in_cid, transform->in_cid_len );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "CID", rec->cid, rec->cid_len );
+    if( rec->cid_len != transform->in_cid_len ||
+        memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 )
+    {
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+    }
 #endif /* MBEDTLS_SSL_CID */
 
 #if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER)

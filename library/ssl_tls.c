@@ -3714,7 +3714,9 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
         unsigned i;
         size_t protected_record_size;
 
-        ssl->out_hdr[0] = (unsigned char) ssl->out_msgtype;
+        /* Skip writing the record content type to after the encryption,
+         * as it may change when using the CID extension. */
+
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->conf->transport, ssl->out_hdr + 1 );
 
@@ -3755,6 +3757,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
 
+            /* Update the record content type and CID. */
+            ssl->out_msgtype = rec.type;
 #if defined(MBEDTLS_SSL_CID )
             memcpy( ssl->out_cid, rec.cid, rec.cid_len );
 #endif /* MBEDTLS_SSL_CID */
@@ -3781,6 +3785,9 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             }
         }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+        /* Now write the potentially updated record content type. */
+        ssl->out_hdr[0] = (unsigned char) ssl->out_msgtype;
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "output record: msgtype = %d, "
                                     "version = [%d:%d], msglen = %d",
@@ -4634,6 +4641,20 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
+        if( ssl->in_msgtype != rec.type )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 4, ( "record type after decrypt (before %d): %d",
+                                        ssl->in_msgtype, rec.type ) );
+        }
+
+        /* The record content type may change during decryption,
+         * so re-read it. */
+        ssl->in_msgtype = rec.type;
+        /* Also update the input buffer, because unfortunately
+         * the server-side ssl_parse_client_hello() reparses the
+         * record header when receiving a ClientHello initiating
+         * a renegotiation. */
+        ssl->in_hdr[0] = rec.type;
         ssl->in_msg    = rec.buf + rec.data_offset;
         ssl->in_msglen = rec.data_len;
         ssl->in_len[0] = (unsigned char)( rec.data_len >> 8 );
@@ -4641,6 +4662,21 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "input payload after decrypt",
                        ssl->in_msg, ssl->in_msglen );
+
+#if defined(MBEDTLS_SSL_CID)
+        /* We have already checked the record content type
+         * in ssl_parse_record_header(), failing or silently
+         * dropping the record in the case of an unknown type.
+         *
+         * Since with the use of CIDs, the record content type
+         * might change during decryption, re-check the record
+         * content type, but treat a failure as fatal this time. */
+        if( ssl_check_record_type( ssl->in_msgtype ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
+#endif /* MBEDTLS_SSL_CID */
 
         if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
         {

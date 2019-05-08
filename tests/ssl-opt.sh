@@ -1478,6 +1478,21 @@ run_test    "Connection ID: Cli+Srv enabled, renegotiate with different CID" \
 
 requires_config_enabled MBEDTLS_SSL_CID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Connection ID, no packing: Cli+Srv enabled, renegotiate with different CID" \
+            "$P_SRV debug_level=3 dtls=1 cid=1 dgram_packing=0 cid_val=dead cid_val_renego=beef renegotiation=1" \
+            "$P_CLI debug_level=3 dtls=1 cid=1 dgram_packing=0 cid_val=beef cid_val_renego=dead renegotiation=1 renegotiate=1" \
+            0 \
+            -c "(initial handshake) Peer CID (length 2 Bytes): de ad" \
+            -s "(initial handshake) Peer CID (length 2 Bytes): be ef" \
+            -s "(initial handshake) Use of Connection ID has been negotiated" \
+            -c "(initial handshake) Use of Connection ID has been negotiated" \
+            -c "(after renegotiation) Peer CID (length 2 Bytes): be ef" \
+            -s "(after renegotiation) Peer CID (length 2 Bytes): de ad" \
+            -s "(after renegotiation) Use of Connection ID has been negotiated" \
+            -c "(after renegotiation) Use of Connection ID has been negotiated"
+
+requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate with different CID" \
             -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5" \
             "$P_SRV debug_level=3 mtu=800 dtls=1 cid=1 cid_val=dead cid_val_renego=beef renegotiation=1" \
@@ -1509,6 +1524,21 @@ run_test    "Connection ID: Cli+Srv enabled, renegotiate without CID" \
 
 requires_config_enabled MBEDTLS_SSL_CID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Connection ID, no packing: Cli+Srv enabled, renegotiate without CID" \
+            "$P_SRV debug_level=3 dtls=1 dgram_packing=0 cid=1 cid_val=dead cid_renego=0 renegotiation=1" \
+            "$P_CLI debug_level=3 dtls=1 dgram_packing=0 cid=1 cid_val=beef cid_renego=0 renegotiation=1 renegotiate=1" \
+            0 \
+            -c "(initial handshake) Peer CID (length 2 Bytes): de ad" \
+            -s "(initial handshake) Peer CID (length 2 Bytes): be ef" \
+            -s "(initial handshake) Use of Connection ID has been negotiated" \
+            -c "(initial handshake) Use of Connection ID has been negotiated" \
+            -C "(after renegotiation) Peer CID (length 2 Bytes): de ad" \
+            -S "(after renegotiation) Peer CID (length 2 Bytes): be ef" \
+            -C "(after renegotiation) Use of Connection ID has been negotiated" \
+            -S "(after renegotiation) Use of Connection ID has been negotiated"
+
+requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate without CID" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV debug_level=3 mtu=800 dtls=1 cid=1 cid_val=dead cid_renego=0 renegotiation=1" \
@@ -1528,6 +1558,19 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID: Cli+Srv enabled, CID on renegotiation" \
             "$P_SRV debug_level=3 dtls=1 cid=0 cid_renego=1 cid_val_renego=dead renegotiation=1" \
             "$P_CLI debug_level=3 dtls=1 cid=0 cid_renego=1 cid_val_renego=beef renegotiation=1 renegotiate=1" \
+            0 \
+            -S "(initial handshake) Use of Connection ID has been negotiated" \
+            -C "(initial handshake) Use of Connection ID has been negotiated" \
+            -c "(after renegotiation) Peer CID (length 2 Bytes): de ad" \
+            -s "(after renegotiation) Peer CID (length 2 Bytes): be ef" \
+            -c "(after renegotiation) Use of Connection ID has been negotiated" \
+            -s "(after renegotiation) Use of Connection ID has been negotiated"
+
+requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "Connection ID, no packing: Cli+Srv enabled, CID on renegotiation" \
+            "$P_SRV debug_level=3 dtls=1 dgram_packing=0 cid=0 cid_renego=1 cid_val_renego=dead renegotiation=1" \
+            "$P_CLI debug_level=3 dtls=1 dgram_packing=0 cid=0 cid_renego=1 cid_val_renego=beef renegotiation=1 renegotiate=1" \
             0 \
             -S "(initial handshake) Use of Connection ID has been negotiated" \
             -C "(initial handshake) Use of Connection ID has been negotiated" \

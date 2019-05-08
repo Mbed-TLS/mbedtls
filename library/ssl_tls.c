@@ -4850,19 +4850,38 @@ static int ssl_check_record_type( uint8_t record_type )
 static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 {
     int major_ver, minor_ver;
+    int ret;
 
-    MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, mbedtls_ssl_in_hdr_len( ssl ) );
+    /* Parse and validate record content type and version */
 
     ssl->in_msgtype =  ssl->in_hdr[0];
-    ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
     mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, ssl->in_hdr + 1 );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
-                        "version = [%d:%d], msglen = %d",
-                        ssl->in_msgtype,
-                        major_ver, minor_ver, ssl->in_msglen ) );
-
     /* Check record type */
+#if defined(MBEDTLS_SSL_CID)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ssl->in_msgtype      == MBEDTLS_SSL_MSG_CID            &&
+        ssl->conf->cid_len   != 0 )
+    {
+        /* Shift pointers to account for record header including CID
+         * struct {
+         *   ContentType special_type = tls12_cid;
+         *   ProtocolVersion version;
+         *   uint16 epoch;
+         *   uint48 sequence_number;
+         *   opaque cid[cid_length];               // New field
+         *   uint16 length;
+         *   opaque enc_content[DTLSCiphertext.length];
+         * } DTLSCiphertext;
+         */
+
+        /* So far, we only support static CID lengths
+         * fixed in the configuration. */
+        ssl->in_len = ssl->in_cid + ssl->conf->cid_len;
+        ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+    }
+    else
+#endif /* MBEDTLS_SSL_CID */
     if( ssl_check_record_type( ssl->in_msgtype ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
@@ -4891,13 +4910,35 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
-    /* Check length against the size of our buffer */
+    /* Now that the total length of the record header is known, ensure
+     * that the current datagram is large enough to hold it.
+     * This would fail, for example, if we received a datagram of
+     * size 13 + n Bytes where n is less than the size of incoming CIDs. */
+    ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_in_hdr_len( ssl ) );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
+        return( ret );
+    }
+    MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, mbedtls_ssl_in_hdr_len( ssl ) );
+
+    /* Parse and validate record length
+     * This must happen after the CID parsing because
+     * its position in the record header depends on
+     * the presence of a CID. */
+
+    ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
     if( ssl->in_msglen > MBEDTLS_SSL_IN_BUFFER_LEN
                          - (size_t)( ssl->in_msg - ssl->in_buf ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
+                        "version = [%d:%d], msglen = %d",
+                        ssl->in_msgtype,
+                        major_ver, minor_ver, ssl->in_msglen ) );
 
     /*
      * DTLS-related tests.
@@ -5861,7 +5902,16 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         return( ret );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_in_hdr_len( ssl ) ) ) != 0 )
+    /* Reset in pointers to default state for TLS/DTLS records,
+     * assuming no CID and no offset between record content and
+     * record plaintext. */
+    ssl_update_in_pointers( ssl );
+
+    /* Ensure that we have enough space available for the default form
+     * of TLS / DTLS record headers (5 Bytes for TLS, 13 Bytes for DTLS,
+     * with no space for CIDs counted in). */
+    ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_in_hdr_len( ssl ) );
+    if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
         return( ret );

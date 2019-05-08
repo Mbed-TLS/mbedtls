@@ -175,10 +175,19 @@
 #define MBEDTLS_SSL_PADDING_ADD              0
 #endif
 
+#if defined(MBEDTLS_SSL_CID)
+#define MBEDTLS_SSL_MAX_CID_EXPANSION       16 /* Currently, we pad records
+                                                * to lengths which are multiples
+                                                * of 16 Bytes. */
+#else
+#define MBEDTLS_SSL_MAX_CID_EXPANSION        0
+#endif
+
 #define MBEDTLS_SSL_PAYLOAD_OVERHEAD ( MBEDTLS_SSL_COMPRESSION_ADD +    \
                                        MBEDTLS_MAX_IV_LENGTH +          \
                                        MBEDTLS_SSL_MAC_ADD +            \
-                                       MBEDTLS_SSL_PADDING_ADD          \
+                                       MBEDTLS_SSL_PADDING_ADD +        \
+                                       MBEDTLS_SSL_MAX_CID_EXPANSION    \
                                        )
 
 #define MBEDTLS_SSL_IN_PAYLOAD_LEN ( MBEDTLS_SSL_PAYLOAD_OVERHEAD + \
@@ -231,11 +240,23 @@
    implicit sequence number. */
 #define MBEDTLS_SSL_HEADER_LEN 13
 
+#if defined(MBEDTLS_SSL_CID)
 #define MBEDTLS_SSL_IN_BUFFER_LEN  \
     ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_IN_PAYLOAD_LEN ) )
+#else
+#define MBEDTLS_SSL_IN_BUFFER_LEN  \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_IN_PAYLOAD_LEN ) \
+      + ( MBEDTLS_SSL_CID_IN_LEN_MAX ) )
+#endif
 
+#if defined(MBEDTLS_SSL_CID)
 #define MBEDTLS_SSL_OUT_BUFFER_LEN  \
     ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_OUT_PAYLOAD_LEN ) )
+#else
+#define MBEDTLS_SSL_OUT_BUFFER_LEN                               \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_OUT_PAYLOAD_LEN )    \
+      + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
+#endif
 
 #ifdef MBEDTLS_ZLIB_SUPPORT
 /* Compression buffer holds both IN and OUT buffers, so should be size of the larger */

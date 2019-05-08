@@ -6171,7 +6171,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
             ssl_handshake_wrapup_free_hs_transform( ssl );
         }
     }
-#endif /* MBEDTLS_SSL_DTLS */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     return( 0 );
 }

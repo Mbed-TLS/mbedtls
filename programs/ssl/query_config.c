@@ -2530,6 +2530,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CID_OUT_LEN_MAX */
 
+#if defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY)
+    if( strcmp( "MBEDTLS_SSL_CID_PADDING_GRANULARITY", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CID_PADDING_GRANULARITY );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CID_PADDING_GRANULARITY */
+
 #if defined(MBEDTLS_SSL_OUT_CONTENT_LEN)
     if( strcmp( "MBEDTLS_SSL_OUT_CONTENT_LEN", config ) == 0 )
     {

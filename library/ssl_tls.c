@@ -2154,7 +2154,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
     if( rec->cid_len != transform->in_cid_len ||
         memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 )
     {
-        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        /* Silently skip over record with mismatching CID. */
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
     }
 #endif /* MBEDTLS_SSL_CID */
 
@@ -4673,6 +4674,9 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
                                              &rec ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decrypt_buf", ret );
+            if( ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD )
+                ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+
             return( ret );
         }
 

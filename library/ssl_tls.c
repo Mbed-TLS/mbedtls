@@ -8378,6 +8378,11 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+#if defined(MBEDTLS_SSL_CID)
+    if( transform->out_cid_len != 0 )
+        transform_expansion += MBEDTLS_SSL_MAX_CID_EXPANSION;
+#endif /* MBEDTLS_SSL_CID */
+
     return( (int)( out_hdr_len + transform_expansion ) );
 }
 

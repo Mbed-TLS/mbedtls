@@ -2050,7 +2050,7 @@ static int ssl_cid_parse_inner_plaintext( unsigned char const *content,
 #endif /* MBEDTLS_SSL_CID */
 
 /* `add_data` must have size 13 Bytes if the CID extension is disabled,
- * and 13 + CID-length Bytes if the CID extension is enabled. */
+ * and 13 + 1 + CID-length Bytes if the CID extension is enabled. */
 static void ssl_extract_add_data_from_record( unsigned char* add_data,
                                               size_t *add_data_len,
                                               mbedtls_record *rec )
@@ -2077,9 +2077,10 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
 
 #if defined(MBEDTLS_SSL_CID)
     memcpy( add_data + 11, rec->cid, rec->cid_len );
-    add_data[11 + rec->cid_len + 0] = ( rec->data_len >> 8 ) & 0xFF;
-    add_data[11 + rec->cid_len + 1] = ( rec->data_len >> 0 ) & 0xFF;
-    *add_data_len = 13 + rec->cid_len;
+    add_data[11 + rec->cid_len + 0] = rec->cid_len;
+    add_data[11 + rec->cid_len + 1] = ( rec->data_len >> 8 ) & 0xFF;
+    add_data[11 + rec->cid_len + 2] = ( rec->data_len >> 0 ) & 0xFF;
+    *add_data_len = 13 + 1 + rec->cid_len;
 #else /* MBEDTLS_SSL_CID */
     add_data[11 + 0] = ( rec->data_len >> 8 ) & 0xFF;
     add_data[11 + 1] = ( rec->data_len >> 0 ) & 0xFF;
@@ -2096,7 +2097,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     mbedtls_cipher_mode_t mode;
     int auth_done = 0;
     unsigned char * data;
-    unsigned char add_data[13 + MBEDTLS_SSL_CID_LEN_MAX ];
+    unsigned char add_data[13 + 1 + MBEDTLS_SSL_CID_LEN_MAX ];
     size_t add_data_len;
     size_t post_avail;
 
@@ -2536,7 +2537,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
     size_t padlen = 0, correct = 1;
 #endif
     unsigned char* data;
-    unsigned char add_data[13 + MBEDTLS_SSL_CID_LEN_MAX ];
+    unsigned char add_data[13 + 1 + MBEDTLS_SSL_CID_LEN_MAX ];
     size_t add_data_len;
 
 #if !defined(MBEDTLS_DEBUG_C)

@@ -1305,7 +1305,7 @@ run_test    "(STUB) Connection ID: Client disabled, server enabled" \
             -C "found CID extension" \
             -S "Copy CIDs into SSL transform" \
             -C "Copy CIDs into SSL transform"  \
-            -s "Use of Connection ID was not offered by the client"
+            -s "Use of Connection ID was not offered by client"
 
 requires_config_enabled MBEDTLS_SSL_CID
 run_test    "(STUB) Connection ID: Client+Server enabled, Client+Server CID nonempty" \

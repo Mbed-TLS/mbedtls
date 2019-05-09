@@ -3185,9 +3185,11 @@ data_exchange:
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
+#if defined(MBEDTLS_SSL_CID)
     ret = report_cid_usage( &ssl, "after renegotiation" );
     if( ret != 0 )
         goto exit;
+#endif /* MBEDTLS_SSL_CID */
 
     /*
      * 7. Write the 200 Response

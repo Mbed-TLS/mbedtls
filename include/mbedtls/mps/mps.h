@@ -587,22 +587,22 @@ struct mbedtls_mps_recognition_info
 
 struct mbedtls_mps_config
 {
+#if !defined(MBEDTLS_MPS_CONF_MODE)
     uint8_t mode;
+#endif /* MBEDTLS_MPS_CONF_MODE */
+
     mps_l3 *l3;
 
-    /* OPTIMIZATION:
-     * Consider allowing to fix some of these fields at compile-time,
-     * for example the minimum and maxium timeout.
-     * In the code, replace every usage of the respective field by
-     * a getter macro which unfolds to the field access if the field
-     * isn't fixed at compile-time, or to the defined constant if it is.
-     *
-     * This allows to reduce RAM and code footprint. */
-
+#if !defined(MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN)
     /*! The initial value of the retransmission timeout (ms). */
     uint32_t hs_timeout_min;
+#endif /* MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN */
+
+#if !defined(MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX)
     /*! The maximum value of the retransmission timeout (ms). */
     uint32_t hs_timeout_max;
+#endif /* MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX */
+
     /*! The retransmission timer context. */
     void* p_timer;
     /*! Callback to obtain state of timer. */
@@ -611,6 +611,51 @@ struct mbedtls_mps_config
     mbedtls_mps_set_timer_t *f_set_timer;
 
 };
+
+#if !defined(MBEDTLS_MPS_CONF_MODE)
+static inline uint8_t
+mbedtls_mps_conf_get_mode( mbedtls_mps_config *conf )
+{
+    return( conf->mode );
+}
+#else /* !MBEDTLS_MPS_CONF_MODE */
+static inline uint8_t
+mbedtls_mps_conf_get_mode( mbedtls_mps_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_MODE );
+}
+#endif /* MBEDTLS_MPS_CONF_MODE */
+
+#if !defined(MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN)
+static inline uint32_t
+mbedtls_mps_conf_get_hs_timeout_min( mbedtls_mps_config *conf )
+{
+    return( conf->hs_timeout_min );
+}
+#else /* !MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN */
+static inline uint32_t
+mbedtls_mps_conf_get_hs_timeout_min( mbedtls_mps_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN );
+}
+#endif /* MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN */
+
+#if !defined(MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX)
+static inline uint32_t
+mbedtls_mps_conf_get_hs_timeout_max( mbedtls_mps_config *conf )
+{
+    return( conf->hs_timeout_max );
+}
+#else /* !MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX */
+static inline uint32_t
+mbedtls_mps_conf_get_hs_timeout_max( mbedtls_mps_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX );
+}
+#endif /* MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX */
 
 /**
  * MPS context

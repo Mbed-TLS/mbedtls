@@ -420,6 +420,8 @@ typedef uint_fast16_t mbedtls_mps_size_t;
 #define MBEDTLS_MPS_CONF_PAUSE_FLAG ( (uint32_t) -1 )
 #define MBEDTLS_MPS_CONF_EMPTY_FLAG ( (uint32_t) -1 )
 #define MBEDTLS_MPS_CONF_BADMAC_LIMIT ( (uint32_t) 10000 )
+#define MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN 1000
+#define MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX 32000
 
 /* \} SECTION: Hardcoded configurations */
 

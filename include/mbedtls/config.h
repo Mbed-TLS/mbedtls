@@ -2255,6 +2255,20 @@
 #define MBEDTLS_ECP_C
 
 /**
+ * \def MBEDTLS_USE_UECC
+ *
+ * Enable the tinycrypt ECC library.
+ *
+ * Module:  tinycrypt/ecc.c
+ *          tinycrypt/ecc_dh.c
+ *          tinycrypt/ecc_dsa.c
+ *
+ * This module provides alternative ECC handling functions replacing
+ * native MBEDTLS ECP module.
+ */
+//#define MBEDTLS_USE_UECC
+
+/**
  * \def MBEDTLS_ENTROPY_C
  *
  * Enable the platform-specific entropy code.

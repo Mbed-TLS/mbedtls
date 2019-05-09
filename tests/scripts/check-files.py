@@ -181,7 +181,7 @@ class IntegrityChecker(object):
             ".c", ".h", ".sh", ".pl", ".py", ".md", ".function", ".data",
             "Makefile", "CMakeLists.txt", "ChangeLog"
         )
-        self.excluded_directories = ['.git', 'mbed-os']
+        self.excluded_directories = ['.git', 'mbed-os', 'tinycrypt']
         self.excluded_paths = list(map(os.path.normpath, [
             'cov-int',
             'examples',

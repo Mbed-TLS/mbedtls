@@ -1030,6 +1030,19 @@ component_test_no_64bit_multiplication () {
     make test
 }
 
+component_build_uecc_cmake () {
+    msg "build: uecc native, cmake"
+    scripts/config.pl set MBEDTLS_USE_UECC
+    CC=gcc cmake .
+    make
+}
+
+component_build_uecc_make () {
+    msg "build: uecc native, make"
+    scripts/config.pl set MBEDTLS_USE_UECC
+    make CC=gcc CFLAGS='-Werror -O1'
+}
+
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
     scripts/config.pl full
@@ -1123,6 +1136,15 @@ component_build_armcc () {
 
     # ARM Compiler 6 - Target ARMv8-A - AArch64
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
+}
+
+component_build_armcc_uecc_baremetal () {
+    msg "build: ARM Compiler 5, make with uecc and baremetal"
+    scripts/config.pl baremetal
+    scripts/config.pl set MBEDTLS_USE_UECC
+
+    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
+    make clean
 }
 
 component_test_allow_sha1 () {

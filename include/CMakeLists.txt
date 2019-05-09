@@ -3,6 +3,7 @@ option(INSTALL_MBEDTLS_HEADERS "Install mbed TLS headers." ON)
 if(INSTALL_MBEDTLS_HEADERS)
 
     file(GLOB headers "mbedtls/*.h")
+    file(GLOB headers "tinycrypt/*.h")
 
     install(FILES ${headers}
         DESTINATION include/mbedtls

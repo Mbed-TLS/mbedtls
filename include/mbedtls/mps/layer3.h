@@ -408,9 +408,26 @@ struct mps_l3_alert_in_internal
  */
 typedef struct
 {
+#if !defined(MBEDTLS_MPS_CONF_MODE)
     uint8_t mode;
+#endif /* MBEDTLS_MPS_CONF_MODE */
     mbedtls_mps_l2 *l2;
 } mps_l3_config;
+
+#if !defined(MBEDTLS_MPS_CONF_MODE)
+static inline uint8_t
+mbedtls_mps_l3_conf_get_mode( mps_l3_config *conf )
+{
+    return( conf->mode );
+}
+#else /* !MBEDTLS_MPS_CONF_MODE */
+static inline uint8_t
+mbedtls_mps_l3_conf_get_mode( mps_l3_config *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_MPS_CONF_MODE );
+}
+#endif /* MBEDTLS_MPS_CONF_MODE */
 
 /**
  * \brief    The Layer 3 context structure.

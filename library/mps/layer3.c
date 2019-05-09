@@ -86,7 +86,10 @@ int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode )
 {
     TRACE_INIT( "mps_l3_init" );
     l3->conf.l2 = l2;
+
+#if !defined(MBEDTLS_MPS_CONF_MODE)
     l3->conf.mode = mode;
+#endif /* !MBEDTLS_MPS_CONF_MODE */
 
     l3->io.in.state = MBEDTLS_MPS_MSG_NONE;
     l3->io.in.hs.state = MPS_L3_HS_NONE;
@@ -128,7 +131,8 @@ int mps_l3_read( mps_l3 *l3 )
     int res;
     mps_l2_in in;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = l3->conf.mode;
+    mbedtls_mps_transport_type mode =
+        mbedtls_mps_l3_conf_get_mode( &l3->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l3_read" );
@@ -298,8 +302,9 @@ int mps_l3_read( mps_l3 *l3 )
                      * - For DTLS, an incomplete handshake header
                      *   is treated as a fatal error.
                      */
-                    res = l3_parse_hs_header( l3->conf.mode, in.rd,
-                                              &l3->io.in.hs );
+                    res = l3_parse_hs_header(
+                        mbedtls_mps_l3_conf_get_mode( &l3->conf ), in.rd,
+                        &l3->io.in.hs );
                     if( res == MBEDTLS_ERR_READER_OUT_OF_DATA )
                     {
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
@@ -786,7 +791,8 @@ MBEDTLS_MPS_STATIC int l3_parse_ccs( mbedtls_reader *rd )
 int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = l3->conf.mode;
+    mbedtls_mps_transport_type mode =
+        mbedtls_mps_l3_conf_get_mode( &l3->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l3_read_handshake" );
@@ -921,7 +927,8 @@ MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
 MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr( mps_l3 *l3 )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = l3->conf.mode;
+    mbedtls_mps_transport_type mode =
+        mbedtls_mps_l3_conf_get_mode( &l3->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -942,7 +949,8 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
     int res;
     int32_t len;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = l3->conf.mode;
+    mbedtls_mps_transport_type mode =
+        mbedtls_mps_l3_conf_get_mode( &l3->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l3_write_handshake" );
@@ -1284,7 +1292,8 @@ int mps_l3_dispatch( mps_l3 *l3 )
     size_t committed;
     size_t uncommitted;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = l3->conf.mode;
+    mbedtls_mps_transport_type mode =
+        mbedtls_mps_l3_conf_get_mode( &l3->conf );
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l3_dispatch" );

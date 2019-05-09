@@ -1584,7 +1584,7 @@ cleanup:
 static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
                                 mbedtls_x509_san_other_name *other_name )
 {
-    int ret;
+    int ret = 0;
     size_t len;
     unsigned char *p = subject_alt_name->p;
     const unsigned char *end = p + subject_alt_name->len;
@@ -1616,12 +1616,6 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
         return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
     }
 
-    if( p + len >= end )
-    {
-        mbedtls_platform_zeroize( other_name, sizeof( other_name ) );
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-    }
     p += len;
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
@@ -1638,30 +1632,31 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
     other_name->value.hardware_module_name.oid.p = p;
     other_name->value.hardware_module_name.oid.len = len;
 
-    if( p + len >= end )
-    {
-        mbedtls_platform_zeroize( other_name, sizeof( other_name ) );
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-    }
     p += len;
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
                                       MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+        goto cleanup;
 
     other_name->value.hardware_module_name.val.tag = MBEDTLS_ASN1_OCTET_STRING;
     other_name->value.hardware_module_name.val.p = p;
     other_name->value.hardware_module_name.val.len = len;
     other_name->value.hardware_module_name.next = NULL;
     other_name->value.hardware_module_name.next_merged = 0;
+
     p += len;
     if( p != end )
     {
-        mbedtls_platform_zeroize( other_name,
-                                  sizeof( other_name ) );
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+        ret = MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
     }
+
+cleanup:
+
+    if( ret != 0 )
+    {
+        memset( other_name, 0, sizeof( *other_name ) );
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+    }
+
     return( 0 );
 }
 

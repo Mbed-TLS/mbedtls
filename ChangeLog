@@ -2,6 +2,47 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
+Security
+   * Make mbedtls_ecdh_get_params return an error if the second key
+     belongs to a different group from the first. Before, if an application
+     passed keys that belonged to different group, the first key's data was
+     interpreted according to the second group, which could lead to either
+     an error or a meaningless output from mbedtls_ecdh_get_params. In the
+     latter case, this could expose at most 5 bits of the private key.
+
+Bugfix
+   * Server's RSA certificate in certs.c was SHA-1 signed. In the default
+     mbedTLS configuration only SHA-2 signed certificates are accepted.
+     This certificate is used in the demo server programs, which lead the
+     client programs to fail at the peer's certificate verification
+     due to an unacceptable hash signature. The certificate has been
+     updated to one that is SHA-256 signed. Fix contributed by
+     Illya Gerasymchuk.
+   * Fix private key DER output in the key_app_writer example. File contents
+     were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
+     Christian Walther in #2239.
+   * Fix potential memory leak in X.509 self test. Found and fixed by
+     Junhwan Park, #2106.
+   * Reduce stack usage of hkdf tests. Fixes #2195.
+   * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
+     used with negative inputs. Found by Guido Vranken in #2404. Credit to
+     OSS-Fuzz.
+   * Fix bugs in the AEAD test suite which would be exposed by ciphers which
+     either used both encrypt and decrypt key schedules, or which perform padding.
+     GCM and CCM were not affected. Fixed by Jack Lloyd.
+   * Fix incorrect default port number in ssl_mail_client example's usage.
+     Found and fixed by irwir. #2337
+
+Changes
+   * Return from various debugging routines immediately if the
+     provided SSL context is unset.
+   * Remove dead code from bignum.c in the default configuration.
+     Found by Coverity, reported and fixed by Peter Kolbus (Garmin). Fixes #2309.
+   * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
+     Contributed by Peter Kolbus (Garmin).
+
+= mbed TLS 2.16.1 branch released 2019-03-19
+
 Features
    * Add MBEDTLS_REMOVE_3DES_CIPHERSUITES to allow removing 3DES ciphersuites
      from the default list (enabled by default). See
@@ -37,16 +78,6 @@ Bugfix
      extensions in CSRs and CRTs that caused these bitstrings to not be encoded
      correctly as trailing zeroes were not accounted for as unused bits in the
      leading content octet. Fixes #1610.
-   * Server's RSA certificate in certs.c was SHA-1 signed. In the default
-     mbedTLS configuration only SHA-2 signed certificates are accepted.
-     This certificate is used in the demo server programs, which lead the
-     client programs to fail at the peer's certificate verification
-     due to an unacceptable hash signature. The certificate has been
-     updated to one that is SHA-256 signed. Fix contributed by
-     Illya Gerasymchuk.
-   * Fix private key DER output in the key_app_writer example. File contents
-     were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
-     Christian Walther in #2239.
 
 Changes
    * Include configuration file in all header files that use configuration,
@@ -62,12 +93,6 @@ Changes
      been disabled for lack of a sufficiently recent version of GnuTLS on the CI.
    * Ciphersuites based on 3DES now have the lowest priority by default when
      they are enabled.
-   * Return from various debugging routines immediately if the
-     provided SSL context is unset.
-   * Remove dead code from bignum.c in the default configuration.
-     Found by Coverity, reported and fixed by Peter Kolbus (Garmin). Fixes #2309.
-   * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
-     Contributed by Peter Kolbus (Garmin).
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

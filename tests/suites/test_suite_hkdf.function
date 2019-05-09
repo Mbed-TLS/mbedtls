@@ -14,12 +14,16 @@ void test_hkdf( int md_alg, char *hex_ikm_string, char *hex_salt_string,
 {
     int ret;
     size_t ikm_len, salt_len, info_len, okm_len;
-    unsigned char ikm[1024] = { '\0' };
-    unsigned char salt[1024] = { '\0' };
-    unsigned char info[1024] = { '\0' };
-    unsigned char expected_okm[1024] = { '\0' };
-    unsigned char okm[1024] = { '\0' };
-    unsigned char okm_string[1000] = { '\0' };
+    unsigned char ikm[128] = { '\0' };
+    unsigned char salt[128] = { '\0' };
+    unsigned char info[128] = { '\0' };
+    unsigned char expected_okm[128] = { '\0' };
+    unsigned char okm[128] = { '\0' };
+    /*
+     * okm_hex is the string representation of okm,
+     * so its size is twice the size of okm, and an extra null-termination.
+     */
+    unsigned char okm_hex[257] = { '\0' };
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md != NULL );
@@ -34,8 +38,8 @@ void test_hkdf( int md_alg, char *hex_ikm_string, char *hex_salt_string,
     TEST_ASSERT( ret == 0 );
 
     // Run hexify on it so that it looks nicer if the assertion fails
-    hexify( okm_string, okm, okm_len );
-    TEST_ASSERT( !strcmp( (char *)okm_string, hex_okm_string ) );
+    hexify( okm_hex, okm, okm_len );
+    TEST_ASSERT( !strcmp( (char *)okm_hex, hex_okm_string ) );
 }
 /* END_CASE */
 

@@ -4660,7 +4660,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
         rec.data_len    = ssl->in_msglen;
         rec.data_offset = 0;
 #if defined(MBEDTLS_SSL_CID )
-        rec.cid_len     = ssl->in_len - ssl->in_cid;
+        rec.cid_len     = (uint8_t)( ssl->in_len - ssl->in_cid );
         memcpy( rec.cid, ssl->in_cid, rec.cid_len );
 #endif /* MBEDTLS_SSL_CID */
 

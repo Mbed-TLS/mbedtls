@@ -2257,14 +2257,16 @@
 /**
  * \def MBEDTLS_USE_TINYCRYPT
  *
- * Enable the tinycrypt ECC library.
+ * Enable the TinyCrypt ECC library. This module provides alternative ECC
+ * handling functions replacing the native Mbed TLS ECP module.
+ *
+ * TinyCrypt is a project independent from Mbed TLS, licensed under 3-clause
+ * BSD, and can be found at https://github.com/intel/tinycrypt - this option
+ * only enables the ECC modules from TinyCrypt.
  *
  * Module:  tinycrypt/ecc.c
  *          tinycrypt/ecc_dh.c
  *          tinycrypt/ecc_dsa.c
- *
- * This module provides alternative ECC handling functions replacing
- * native MBEDTLS ECP module.
  */
 //#define MBEDTLS_USE_TINYCRYPT
 

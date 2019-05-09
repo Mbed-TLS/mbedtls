@@ -96,10 +96,10 @@
  *  but only interfaces with it through the API defined in
  *  transform.h.
  */
-//#define MBEDTLS_MPS_TRANSFORM_VALIDATION
+#define MBEDTLS_MPS_TRANSFORM_VALIDATION
 
 /*! This flag controls whether tracing for MPS should be enabled. */
-#define MBEDTLS_MPS_TRACE
+//#define MBEDTLS_MPS_TRACE
 
 /*! This internal macro determines whether all Layers of MPS should
  *  be compiled into a single source file.
@@ -117,7 +117,7 @@
  *  Uncomment to give all MPS helper functions external linkage,
  *  making them visible in the generated object file.
  */
-#define MBEDTLS_MPS_NO_STATIC_FUNCTIONS
+//#define MBEDTLS_MPS_NO_STATIC_FUNCTIONS
 
 /*! This flag enables support for the TLS protocol.
  *
@@ -147,7 +147,7 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
  *
  *  In practice, you may comment this if you don't need renegotiation.
  */
-#define MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING
+//#define MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING
 
 #if defined(MBEDTLS_MPS_NO_STATIC_FUNCTIONS)
 #define MBEDTLS_MPS_STATIC
@@ -406,22 +406,32 @@ typedef uint_fast16_t mbedtls_mps_size_t;
 /**
  * \name SECTION:       Hardcoded configurations
  *
+ * By default, each MPS Layer can be configured dynamically by setting
+ * the corresponding field in the configuration structure at runtime.
+ * While this gives flexibility that is necessary for the use of
+ * Mbed TLS as a dynamically linked library, it leads to unnecessary
+ * code and RAM overhead on constrained applications that use a fixed
+ * configuration only.
+ *
+ * The following options therefore allow to hardcode parts of the
+ * MPS configuration at compile-time.
+ *
  * \{
  */
 
-#define MBEDTLS_MPS_CONF_MODE MBEDTLS_MPS_MODE_DATAGRAM
-#define MBEDTLS_MPS_CONF_VERSION 3   /*!< TLS v1.2 */
-#define MBEDTLS_MPS_CONF_ANTI_REPLAY 1
-#define MBEDTLS_MPS_CONF_MAX_PLAIN_IN  1000
-#define MBEDTLS_MPS_CONF_MAX_PLAIN_OUT 1000
-#define MBEDTLS_MPS_CONF_MAX_CIPHER IN 1000
-#define MBEDTLS_MPS_CONF_TYPE_FLAG ( (uint32_t) -1 )
-#define MBEDTLS_MPS_CONF_MERGE_FLAG ( (uint32_t) -1 )
-#define MBEDTLS_MPS_CONF_PAUSE_FLAG ( (uint32_t) -1 )
-#define MBEDTLS_MPS_CONF_EMPTY_FLAG ( (uint32_t) -1 )
-#define MBEDTLS_MPS_CONF_BADMAC_LIMIT ( (uint32_t) 10000 )
-#define MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN 1000
-#define MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX 32000
+/* #define MBEDTLS_MPS_CONF_MODE MBEDTLS_MPS_MODE_DATAGRAM */
+/* #define MBEDTLS_MPS_CONF_VERSION 3   /\*!< TLS v1.2 *\/ */
+/* #define MBEDTLS_MPS_CONF_ANTI_REPLAY 1 */
+/* #define MBEDTLS_MPS_CONF_MAX_PLAIN_IN  1000 */
+/* #define MBEDTLS_MPS_CONF_MAX_PLAIN_OUT 1000 */
+/* #define MBEDTLS_MPS_CONF_MAX_CIPHER IN 1000 */
+/* #define MBEDTLS_MPS_CONF_TYPE_FLAG ( (uint32_t) -1 ) */
+/* #define MBEDTLS_MPS_CONF_MERGE_FLAG ( (uint32_t) -1 ) */
+/* #define MBEDTLS_MPS_CONF_PAUSE_FLAG ( (uint32_t) -1 ) */
+/* #define MBEDTLS_MPS_CONF_EMPTY_FLAG ( (uint32_t) -1 ) */
+/* #define MBEDTLS_MPS_CONF_BADMAC_LIMIT ( (uint32_t) 10000 ) */
+/* #define MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN 1000 */
+/* #define MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX 32000 */
 
 /* \} SECTION: Hardcoded configurations */
 

@@ -2069,16 +2069,21 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
     memcpy( add_data + 9, rec->ver, sizeof( rec->ver ) );
 
 #if defined(MBEDTLS_SSL_CID)
-    memcpy( add_data + 11, rec->cid, rec->cid_len );
-    add_data[11 + rec->cid_len + 0] = rec->cid_len;
-    add_data[11 + rec->cid_len + 1] = ( rec->data_len >> 8 ) & 0xFF;
-    add_data[11 + rec->cid_len + 2] = ( rec->data_len >> 0 ) & 0xFF;
-    *add_data_len = 13 + 1 + rec->cid_len;
-#else /* MBEDTLS_SSL_CID */
-    add_data[11 + 0] = ( rec->data_len >> 8 ) & 0xFF;
-    add_data[11 + 1] = ( rec->data_len >> 0 ) & 0xFF;
-    *add_data_len = 13;
+    if( rec->cid_len != 0 )
+    {
+        memcpy( add_data + 11, rec->cid, rec->cid_len );
+        add_data[11 + rec->cid_len + 0] = rec->cid_len;
+        add_data[11 + rec->cid_len + 1] = ( rec->data_len >> 8 ) & 0xFF;
+        add_data[11 + rec->cid_len + 2] = ( rec->data_len >> 0 ) & 0xFF;
+        *add_data_len = 13 + 1 + rec->cid_len;
+    }
+    else
 #endif /* MBEDTLS_SSL_CID */
+    {
+        add_data[11 + 0] = ( rec->data_len >> 8 ) & 0xFF;
+        add_data[11 + 1] = ( rec->data_len >> 0 ) & 0xFF;
+        *add_data_len = 13;
+    }
 }
 
 int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,

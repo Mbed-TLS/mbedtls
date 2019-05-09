@@ -231,8 +231,9 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_bind( mbedtls_mps *mps );
  * State interface for the retransmission state machine
  */
 
-MBEDTLS_MPS_INLINE
-int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
+/* MBEDTLS_MPS_INLINE */
+__attribute__((always_inline))
+static inline int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
                                                mbedtls_mps_flight_state_t old,
                                                mbedtls_mps_flight_state_t new );
 

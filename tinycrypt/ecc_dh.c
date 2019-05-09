@@ -54,7 +54,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  */
-#if defined(MBEDTLS_USE_UECC)
+#if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include <tinycrypt/ecc_dh.h>
 #include <string.h>
@@ -197,5 +197,5 @@ clear_and_out:
 	return r;
 }
 #else
-typedef int mbedtls_dummy_uecc_def;
-#endif /* MBEDTLS_USE_UECC */
+typedef int mbedtls_dummy_tinycrypt_def;
+#endif /* MBEDTLS_USE_TINYCRYPT */

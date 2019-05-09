@@ -52,7 +52,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if defined(MBEDTLS_USE_UECC)
+#if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include <string.h>
 
@@ -938,6 +938,6 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
 	return 1;
 }
 #else
-typedef int mbedtls_dummy_uecc_def;
-#endif /* MBEDTLS_USE_UECC */
+typedef int mbedtls_dummy_tinycrypt_def;
+#endif /* MBEDTLS_USE_TINYCRYPT */
 

@@ -612,9 +612,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_ECP_C)
     "MBEDTLS_ECP_C",
 #endif /* MBEDTLS_ECP_C */
-#if defined(MBEDTLS_USE_UECC)
-    "MBEDTLS_USE_UECC",
-#endif /* MBEDTLS_USE_UECC */
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    "MBEDTLS_USE_TINYCRYPT",
+#endif /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ENTROPY_C)
     "MBEDTLS_ENTROPY_C",
 #endif /* MBEDTLS_ENTROPY_C */

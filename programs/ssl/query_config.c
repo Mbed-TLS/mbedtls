@@ -1674,13 +1674,13 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_USE_UECC)
-    if( strcmp( "MBEDTLS_USE_UECC", config ) == 0 )
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( strcmp( "MBEDTLS_USE_TINYCRYPT", config ) == 0 )
     {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_USE_UECC );
+        MACRO_EXPANSION_TO_STR( MBEDTLS_USE_TINYCRYPT );
         return( 0 );
     }
-#endif /* MBEDTLS_USE_UECC */
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_ENTROPY_C)
     if( strcmp( "MBEDTLS_ENTROPY_C", config ) == 0 )

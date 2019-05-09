@@ -2255,7 +2255,7 @@
 #define MBEDTLS_ECP_C
 
 /**
- * \def MBEDTLS_USE_UECC
+ * \def MBEDTLS_USE_TINYCRYPT
  *
  * Enable the tinycrypt ECC library.
  *
@@ -2266,7 +2266,7 @@
  * This module provides alternative ECC handling functions replacing
  * native MBEDTLS ECP module.
  */
-//#define MBEDTLS_USE_UECC
+//#define MBEDTLS_USE_TINYCRYPT
 
 /**
  * \def MBEDTLS_ENTROPY_C

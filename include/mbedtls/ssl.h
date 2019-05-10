@@ -2107,8 +2107,8 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Set the maximum fragment length to emit and/or negotiate.
- *                 (Typical: the smaller of #MBEDTLS_SSL_IN_CONTENT_LEN and
- *                 #MBEDTLS_SSL_OUT_CONTENT_LEN, usually `2^14` bytes)
+ *                 (Typical: #MBEDTLS_SSL_MAX_CONTENT_LEN, by default that is
+ *                 set to `2^14` bytes)
  *                 (Server: set maximum fragment length to emit,
  *                 usually negotiated by the client during handshake)
  *                 (Client: set maximum fragment length to emit *and*

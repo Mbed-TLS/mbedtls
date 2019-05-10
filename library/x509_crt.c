@@ -1823,8 +1823,9 @@ int mbedtls_x509_parse_subject_alternative_name( const mbedtls_x509_crt *crt,
                          * In case MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE is returned,
                          * then the "otherName" is of an unsupported type. Ignore.
                          */
-                        if( ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
-                            ret = 0;
+                        if( ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+                            return MBEDTLS_ERR_X509_INVALID_FORMAT;
+
                         cur = cur->next;
                         continue;
                     }

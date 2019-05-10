@@ -1521,7 +1521,7 @@ end:
  * - SSL/TLS minor version
  * - hash associated with the ciphersuite (only used by TLS 1.2)
  *
- * Ouputs:
+ * Outputs:
  * - the tls_prf, calc_verify and calc_finished members of handshake structure
  */
 static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,

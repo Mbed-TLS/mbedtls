@@ -620,7 +620,11 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
  * - [in/out]: transform: structure to populate
  *      [in] must be just initialised with mbedtls_ssl_transform_init()
  *      [out] fully populated, ready for use by mbedtls_ssl_{en,de}crypt_buf()
- * - [in] session: used: ciphersuite, encrypt_then_mac, master, compression
+ * - [in] ciphersuite
+ * - [in] master
+ * - [in] encrypt_then_mac
+ * - [in] trunc_hmac
+ * - [in] compression
  * - [in] tls_prf: pointer to PRF to use for key derivation
  * - [in] randbytes: buffer holding ServerHello.random + ClientHello.random
  * - [in] minor_ver: SSL/TLS minor version
@@ -631,7 +635,17 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
  *        - MBEDTLS_DEBUG_C: ssl->conf->{f,p}_dbg
  */
 static int ssl_populate_transform( mbedtls_ssl_transform *transform,
-                                   const mbedtls_ssl_session *session,
+                                   int ciphersuite,
+                                   const unsigned char master[48],
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+                                   int encrypt_then_mac,
+#endif
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+                                   int trunc_hmac,
+#endif
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+                                   int compression,
+#endif
                                    ssl_tls_prf_t tls_prf,
                                    const unsigned char randbytes[64],
                                    int minor_ver,
@@ -660,18 +674,18 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
     /* Copy info about negotiated version and extensions */
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    transform->encrypt_then_mac = session->encrypt_then_mac;
+    transform->encrypt_then_mac = encrypt_then_mac;
 #endif
     transform->minor_ver = minor_ver;
 
     /*
      * Get various info structures
      */
-    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( session->ciphersuite );
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuite );
     if( ciphersuite_info == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite info for %d not found",
-                                    session->ciphersuite ) );
+                                    ciphersuite ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -694,8 +708,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     /*
      * Compute key block using the PRF
      */
-    ret = tls_prf( session->master, 48, "key expansion",
-                   randbytes, 64, keyblk, 256 );
+    ret = tls_prf( master, 48, "key expansion", randbytes, 64, keyblk, 256 );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
@@ -703,8 +716,8 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite = %s",
-                   mbedtls_ssl_get_ciphersuite_name( session->ciphersuite ) ) );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "master secret", session->master, 48 );
+                   mbedtls_ssl_get_ciphersuite_name( ciphersuite ) ) );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "master secret", master, 48 );
     MBEDTLS_SSL_DEBUG_BUF( 4, "random bytes", randbytes, 64 );
     MBEDTLS_SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
 
@@ -766,7 +779,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
          * (rfc 6066 page 13 or rfc 2104 section 4),
          * so we only need to adjust the length here.
          */
-        if( session->trunc_hmac == MBEDTLS_SSL_TRUNC_HMAC_ENABLED )
+        if( trunc_hmac == MBEDTLS_SSL_TRUNC_HMAC_ENABLED )
         {
             transform->maclen = MBEDTLS_SSL_TRUNCATED_HMAC_LEN;
 
@@ -794,7 +807,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
              * 2. IV except for SSL3 and TLS 1.0
              */
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-            if( session->encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
+            if( encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
             {
                 transform->minlen = transform->maclen
                                   + cipher_info->block_size;
@@ -949,7 +962,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     if( ssl->conf->f_export_keys != NULL )
     {
         ssl->conf->f_export_keys( ssl->conf->p_export_keys,
-                                  session->master, keyblk,
+                                  master, keyblk,
                                   mac_key_len, keylen,
                                   iv_copy_len );
     }
@@ -1008,7 +1021,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
     /* Initialize Zlib contexts */
 #if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( session->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
+    if( compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Initializing zlib states" ) );
 
@@ -1200,7 +1213,17 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
     /* Populate transform structure */
     ret = ssl_populate_transform( ssl->transform_negotiate,
-                                  ssl->session_negotiate,
+                                  ssl->session_negotiate->ciphersuite,
+                                  ssl->session_negotiate->master,
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+                                  ssl->session_negotiate->encrypt_then_mac,
+#endif
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+                                  ssl->session_negotiate->trunc_hmac,
+#endif
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+                                  ssl->session_negotiate->compression,
+#endif
                                   ssl->handshake->tls_prf,
                                   ssl->handshake->randbytes,
                                   ssl->minor_ver,

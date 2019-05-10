@@ -1913,6 +1913,43 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void key_policy_alg2( int key_type_arg, data_t *key_data,
+                      int usage_arg, int alg_arg, int alg2_arg )
+{
+    psa_key_handle_t handle = 0;
+    psa_key_type_t key_type = key_type_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_usage_t usage = usage_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t alg2 = alg2_arg;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, usage );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_enrollment_algorithm( &attributes, alg2 );
+    psa_set_key_type( &attributes, key_type );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
+
+    PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
+    TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ), usage );
+    TEST_EQUAL( psa_get_key_algorithm( &got_attributes ), alg );
+    TEST_EQUAL( psa_get_key_enrollment_algorithm( &got_attributes ), alg2 );
+
+    if( ! exercise_key( handle, usage, alg ) )
+        goto exit;
+    if( ! exercise_key( handle, usage, alg2 ) )
+        goto exit;
+
+exit:
+    psa_destroy_key( handle );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void raw_agreement_key_policy( int policy_usage,
                                int policy_alg,
                                int key_type_arg,

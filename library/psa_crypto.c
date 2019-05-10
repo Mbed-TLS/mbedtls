@@ -786,6 +786,25 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
     return( 0 );
 }
 
+static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
+                                      psa_algorithm_t requested_alg )
+{
+    /* Common case: the policy only allows alg. */
+    if( requested_alg == policy_alg )
+        return( 1 );
+    /* If policy_alg is a hash-and-sign with a wildcard for the hash,
+     * and alg is the same hash-and-sign family with any hash,
+     * then alg is compliant with policy_alg. */
+    if( PSA_ALG_IS_HASH_AND_SIGN( requested_alg ) &&
+        PSA_ALG_SIGN_GET_HASH( policy_alg ) == PSA_ALG_ANY_HASH )
+    {
+        return( ( policy_alg & ~PSA_ALG_HASH_MASK ) ==
+                ( requested_alg & ~PSA_ALG_HASH_MASK ) );
+    }
+    /* If it isn't permitted, it's forbidden. */
+    return( 0 );
+}
+
 /** Test whether a policy permits an algorithm.
  *
  * The caller must test usage flags separately.
@@ -793,20 +812,8 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
 static int psa_key_policy_permits( const psa_key_policy_t *policy,
                                    psa_algorithm_t alg )
 {
-    /* Common case: the policy only allows alg. */
-    if( alg == policy->alg )
-        return( 1 );
-    /* If policy->alg is a hash-and-sign with a wildcard for the hash,
-     * and alg is the same hash-and-sign family with any hash,
-     * then alg is compliant with policy->alg. */
-    if( PSA_ALG_IS_HASH_AND_SIGN( alg ) &&
-        PSA_ALG_SIGN_GET_HASH( policy->alg ) == PSA_ALG_ANY_HASH )
-    {
-        return( ( policy->alg & ~PSA_ALG_HASH_MASK ) ==
-                (         alg & ~PSA_ALG_HASH_MASK ) );
-    }
-    /* If it isn't permitted, it's forbidden. */
-    return( 0 );
+    return( psa_key_algorithm_permits( policy->alg, alg ) ||
+            psa_key_algorithm_permits( policy->alg2, alg ) );
 }
 
 /** Restrict a key policy based on a constraint.
@@ -827,10 +834,15 @@ static psa_status_t psa_restrict_key_policy(
 {
     psa_algorithm_t intersection_alg =
         psa_key_policy_algorithm_intersection( policy->alg, constraint->alg );
+    psa_algorithm_t intersection_alg2 =
+        psa_key_policy_algorithm_intersection( policy->alg2, constraint->alg2 );
     if( intersection_alg == 0 && policy->alg != 0 && constraint->alg != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    if( intersection_alg2 == 0 && policy->alg2 != 0 && constraint->alg2 != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
     policy->usage &= constraint->usage;
     policy->alg = intersection_alg;
+    policy->alg2 = intersection_alg2;
     return( PSA_SUCCESS );
 }
 

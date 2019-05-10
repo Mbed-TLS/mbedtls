@@ -673,6 +673,20 @@ component_test_no_renegotiation () {
     if_build_succeeded tests/ssl-opt.sh
 }
 
+component_test_no_pem_no_fs () {
+    msg "build: Default + !MBEDTLS_PEM_PARSE_C + !MBEDTLS_FS_IO (ASan build)"
+    scripts/config.pl unset MBEDTLS_PEM_PARSE_C
+    scripts/config.pl unset MBEDTLS_FS_IO
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - ssl-opt.sh (ASan build)" # ~ 6 min
+    if_build_succeeded tests/ssl-opt.sh
+}
+
 component_test_rsa_no_crt () {
     msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
     scripts/config.pl set MBEDTLS_RSA_NO_CRT

@@ -553,6 +553,20 @@ run_test() {
     CLI_EXPECT="$3"
     shift 3
 
+    # Check if test uses files
+    TEST_USES_FILES=$(echo "$SRV_CMD $CLI_CMD" | grep "\.\(key\|crt\|pem\)" )
+    if [ ! -z "$TEST_USES_FILES" ]; then
+       requires_config_enabled MBEDTLS_FS_IO
+    fi
+
+    # should we skip?
+    if [ "X$SKIP_NEXT" = "XYES" ]; then
+        SKIP_NEXT="NO"
+        echo "SKIP"
+        SKIPS=$(( $SKIPS + 1 ))
+        return
+    fi
+
     # fix client port
     if [ -n "$PXY_CMD" ]; then
         CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$PXY_PORT/g )

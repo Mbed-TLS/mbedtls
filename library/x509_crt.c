@@ -2177,7 +2177,8 @@ cleanup:
 }
 
 static int x509_info_subject_alt_name( char **buf, size_t *size,
-                                       const mbedtls_x509_sequence *subject_alt_name,
+                                       const mbedtls_x509_sequence
+                                                    *subject_alt_name,
                                        const char *prefix )
 {
     size_t i;
@@ -2195,77 +2196,94 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
              * otherName
              */
             case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ):
-            {
-                mbedtls_x509_san_other_name other_name;
-
-                int parse_ret = x509_get_other_name( &cur->buf, &other_name );
-
-                ret = mbedtls_snprintf( p, n, "\n%s    otherName :", prefix );
-                MBEDTLS_X509_SAFE_SNPRINTF;
-
-                if( parse_ret != 0 )
                 {
-                    if( ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+                    mbedtls_x509_san_other_name other_name;
+
+                    int parse_ret = x509_get_other_name( &cur->buf,
+                                                         &other_name );
+
+                    ret = mbedtls_snprintf( p, n, "\n%s    otherName :",
+                                            prefix );
+                    MBEDTLS_X509_SAFE_SNPRINTF;
+
+                    if( parse_ret != 0 )
                     {
-                        ret = mbedtls_snprintf( p, n, " <unsupported>" );
-                        MBEDTLS_X509_SAFE_SNPRINTF;
-                    }
-                    else
-                    {
-                        ret = mbedtls_snprintf( p, n, " <malformed>" );
-                        MBEDTLS_X509_SAFE_SNPRINTF;
+                        if( ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+                        {
+                            ret = mbedtls_snprintf( p, n, " <unsupported>" );
+                            MBEDTLS_X509_SAFE_SNPRINTF;
+                        }
+                        else
+                        {
+                            ret = mbedtls_snprintf( p, n, " <malformed>" );
+                            MBEDTLS_X509_SAFE_SNPRINTF;
+                        }
+
+                        break;
                     }
 
-                    break;
+                    if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
+                                 &other_name.value.hardware_module_name.oid )
+                        != 0 )
+                    {
+                        ret = mbedtls_snprintf( p, n, "\n%s        "
+                                                    "hardware module name :",
+                                                prefix );
+                        MBEDTLS_X509_SAFE_SNPRINTF;
+                        ret = mbedtls_snprintf( p, n,
+                                                "\n%s            "
+                                                    "hardware type          : ",
+                                                prefix );
+                        MBEDTLS_X509_SAFE_SNPRINTF;
+
+                        ret = mbedtls_oid_get_numeric_string( p, n,
+                                &other_name.value.hardware_module_name.oid );
+                        MBEDTLS_X509_SAFE_SNPRINTF;
+
+                        ret = mbedtls_snprintf( p, n,
+                                                "\n%s            "
+                                                    "hardware serial number : ",
+                                                prefix );
+                        MBEDTLS_X509_SAFE_SNPRINTF;
+
+                        if( other_name.value.hardware_module_name.val.len >= n )
+                        {
+                            *p = '\0';
+                            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+                        }
+
+                        for( i = 0;
+                             i < other_name.value.hardware_module_name.val.len;
+                             i++ )
+                        {
+                            *p++ =
+                                other_name.value.hardware_module_name.val.p[i];
+                        }
+                        n -= other_name.value.hardware_module_name.val.len;
+
+                    }/* MBEDTLS_OID_ON_HW_MODULE_NAME */
+
                 }
-
-                if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
-                             &other_name.value.hardware_module_name.oid ) != 0 )
-                {
-                    ret = mbedtls_snprintf( p, n, "\n%s        hardware module name :", prefix );
-                    MBEDTLS_X509_SAFE_SNPRINTF;
-                    ret = mbedtls_snprintf( p, n, "\n%s            hardware type          : ", prefix );
-                    MBEDTLS_X509_SAFE_SNPRINTF;
-
-                    ret = mbedtls_oid_get_numeric_string( p, n, &other_name.value.hardware_module_name.oid );
-                    MBEDTLS_X509_SAFE_SNPRINTF;
-
-                    ret = mbedtls_snprintf( p, n, "\n%s            hardware serial number : ", prefix );
-                    MBEDTLS_X509_SAFE_SNPRINTF;
-
-                    if( other_name.value.hardware_module_name.val.len >= n )
-                    {
-                        *p = '\0';
-                        return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
-                    }
-
-                    for( i = 0; i < other_name.value.hardware_module_name.val.len; i++ )
-                    {
-                        *p++ = other_name.value.hardware_module_name.val.p[i];
-                    }
-                    n -= other_name.value.hardware_module_name.val.len;
-
-                }/* MBEDTLS_OID_ON_HW_MODULE_NAME */
-            }
-            break;
+                break;
 
             /*
              * dNSName
              */
             case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DNS_NAME ):
-            {
                 ret = mbedtls_snprintf( p, n, "\n%s    dNSName : ", prefix );
                 MBEDTLS_X509_SAFE_SNPRINTF;
+
                 if( cur->buf.len >= n )
                 {
                     *p = '\0';
                     return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
                 }
+
                 n -= cur->buf.len;
                 for( i = 0; i < cur->buf.len; i++ )
                     *p++ = cur->buf.p[i];
-            }
-            break;
+
+                break;
 
             /*
              * Type not supported.

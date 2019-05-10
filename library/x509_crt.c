@@ -1682,20 +1682,26 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
             {
                 mbedtls_x509_san_other_name other_name;
 
-                ret = x509_get_other_name( &cur->buf, &other_name );
-                if( ret != 0 )
-                {
-                    /*
-                     * In case MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE is returned,
-                     * then the "otherName" is of an unsupported type. Ignore.
-                     */
-                    if( ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
-                        ret = 0;
-                    return( ret );
-                }
+                int parse_ret = x509_get_other_name( &cur->buf, &other_name );
 
                 ret = mbedtls_snprintf( p, n, "\n%s    otherName :", prefix );
                 MBEDTLS_X509_SAFE_SNPRINTF;
+
+                if( parse_ret != 0 )
+                {
+                    if( ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+                    {
+                        ret = mbedtls_snprintf( p, n, " <unsupported>" );
+                        MBEDTLS_X509_SAFE_SNPRINTF;
+                    }
+                    else
+                    {
+                        ret = mbedtls_snprintf( p, n, " <malformed>" );
+                        MBEDTLS_X509_SAFE_SNPRINTF;
+                    }
+
+                    break;
+                }
 
                 if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
                              &other_name.value.hardware_module_name.oid ) != 0 )
@@ -1732,7 +1738,6 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
              */
             case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DNS_NAME ):
             {
-
                 ret = mbedtls_snprintf( p, n, "\n%s    dNSName : ", prefix );
                 MBEDTLS_X509_SAFE_SNPRINTF;
                 if( cur->buf.len >= n )
@@ -1747,12 +1752,13 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
             break;
 
             /*
-             * Type not supported, skip item.
+             * Type not supported.
              */
             default:
+                ret = mbedtls_snprintf( p, n, "\n%s    <unsupported>", prefix );
+                MBEDTLS_X509_SAFE_SNPRINTF;
                 break;
         }
-
 
         cur = cur->next;
     }

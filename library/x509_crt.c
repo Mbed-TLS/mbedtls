@@ -1858,7 +1858,6 @@ int mbedtls_x509_parse_subject_alternative_name( const mbedtls_x509_crt *crt,
                     if( prev_san != NULL )
                         prev_san->next = cur_san;
 
-                    memset( cur_san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
                     cur_san->type = MBEDTLS_X509_SAN_DNS_NAME;
 
                     memcpy( &cur_san->san.unstructured_name,

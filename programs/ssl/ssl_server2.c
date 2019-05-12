@@ -582,7 +582,7 @@ typedef struct eap_tls_keys
 {
     unsigned char master_secret[48];
     unsigned char randbytes[64];
-    mbedtls_ssl_tls_prf *tls_prf;
+    mbedtls_tls_prf_types tls_prf_type;
 } eap_tls_keys;
 
 static int eap_tls_key_derivation ( void *p_expkey,
@@ -591,9 +591,9 @@ static int eap_tls_key_derivation ( void *p_expkey,
                                     size_t maclen,
                                     size_t keylen,
                                     size_t ivlen,
-                                    mbedtls_ssl_tls_prf *tls_prf,
                                     unsigned char client_random[32],
-                                    unsigned char server_random[32] )
+                                    unsigned char server_random[32],
+                                    mbedtls_tls_prf_types tls_prf_type )
 {
     eap_tls_keys *keys = (eap_tls_keys *)p_expkey;
 
@@ -604,7 +604,7 @@ static int eap_tls_key_derivation ( void *p_expkey,
     memcpy( keys->master_secret, ms, sizeof( keys->master_secret ) );
     memcpy( keys->randbytes, client_random, 32 );
     memcpy( keys->randbytes + 32, server_random, 32 );
-    keys->tls_prf = tls_prf;
+    keys->tls_prf_type = tls_prf_type;
 
     return( 0 );
 }
@@ -3180,17 +3180,25 @@ handshake:
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    if( opt.eap_tls != 0 &&
-        eap_tls_keying.tls_prf != NULL )
+    if( opt.eap_tls != 0 )
     {
         size_t j = 0;
-        eap_tls_keying.tls_prf( eap_tls_keying.master_secret,
-                                sizeof( eap_tls_keying.master_secret ),
-                                eap_tls_label,
-                                eap_tls_keying.randbytes,
-                                sizeof( eap_tls_keying.randbytes ),
-                                eap_tls_keymaterial,
-                                sizeof( eap_tls_keymaterial ) );
+
+        if( ( ret = mbedtls_ssl_tls_prf( eap_tls_keying.tls_prf_type,
+                                         eap_tls_keying.master_secret,
+                                         sizeof( eap_tls_keying.master_secret ),
+                                         eap_tls_label,
+                                         eap_tls_keying.randbytes,
+                                         sizeof( eap_tls_keying.randbytes ),
+                                         eap_tls_keymaterial,
+                                         sizeof( eap_tls_keymaterial ) ) )
+                                         != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                            -ret );
+            goto exit;
+        }
+
         mbedtls_printf( "    EAP-TLS key material is:" );
         for( j = 0; j < sizeof( eap_tls_keymaterial ); j++ )
         {
@@ -3200,9 +3208,18 @@ handshake:
         }
         mbedtls_printf("\n");
 
-        eap_tls_keying.tls_prf( NULL, 0, eap_tls_label, eap_tls_keying.randbytes,
-                                sizeof( eap_tls_keying.randbytes ), eap_tls_iv,
-                                sizeof( eap_tls_iv  ) );
+        if( ( ret = mbedtls_ssl_tls_prf( eap_tls_keying.tls_prf_type, NULL, 0,
+                                          eap_tls_label,
+                                          eap_tls_keying.randbytes,
+                                          sizeof( eap_tls_keying.randbytes ),
+                                          eap_tls_iv,
+                                          sizeof( eap_tls_iv ) ) ) != 0 )
+         {
+             mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                             -ret );
+             goto exit;
+         }
+
         mbedtls_printf( "    EAP-TLS IV is:" );
         for( j = 0; j < sizeof( eap_tls_iv ); j++ )
         {

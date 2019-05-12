@@ -450,6 +450,18 @@ typedef enum
 }
 mbedtls_ssl_states;
 
+/*
+ * The tls_prf function types.
+ */
+typedef enum
+{
+   MBEDTLS_SSL_TLS_PRF_NONE,
+   MBEDTLS_SSL_TLS_PRF_SSL3,
+   MBEDTLS_SSL_TLS_PRF_TLS1,
+   MBEDTLS_SSL_TLS_PRF_SHA384,
+   MBEDTLS_SSL_TLS_PRF_SHA256
+}
+mbedtls_tls_prf_types;
 /**
  * \brief          Callback type: send data on the network.
  *
@@ -558,25 +570,6 @@ typedef void mbedtls_ssl_set_timer_t( void * ctx,
  *                  2 if the final delay has passed.
  */
 typedef int mbedtls_ssl_get_timer_t( void * ctx );
-
-/**
- * \brief          Function type: TLS-PRF function.
- *
- * \param secret   Secret for the key derivation function.
- * \param slen     Length of the secret.
- * \param label    String label for the key derivation function,
- *                 terminated with null character.
- * \param random   Random bytes.
- * \param rlen     Length of the random bytes buffer.
- * \param dstbuf   The buffer holding the derived key.
- * \param dlen     Length of the output buffer.
- *
- * \return         0 on sucess. An SSL specific error on failure.
- */
-typedef int  mbedtls_ssl_tls_prf( const unsigned char *secret, size_t slen,
-                                  const char *label,
-                                  const unsigned char *random, size_t rlen,
-                                  unsigned char *dstbuf, size_t dlen );
 
 /* Defined below */
 typedef struct mbedtls_ssl_session mbedtls_ssl_session;
@@ -943,7 +936,7 @@ struct mbedtls_ssl_config
      *  tls_prf and random bytes. Should replace f_export_keys    */
     int (*f_export_keys_ext)( void *, const unsigned char *,
                 const unsigned char *, size_t, size_t, size_t,
-                mbedtls_ssl_tls_prf *, unsigned char[32], unsigned char[32]);
+                unsigned char[32], unsigned char[32], mbedtls_tls_prf_types );
     void *p_export_keys;            /*!< context for key export callback    */
 #endif
 
@@ -1667,9 +1660,9 @@ typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
  * \param maclen        MAC length.
  * \param keylen        Key length.
  * \param ivlen         IV length.
- * \param tls_prf       The TLS PRF function used in the handshake.
  * \param client_random The client random bytes.
  * \param server_random The server random bytes.
+ * \param tls_prf_type The tls_prf enum type.
  *
  * \return          0 if successful, or
  *                  a specific MBEDTLS_ERR_XXX code.
@@ -1680,9 +1673,9 @@ typedef int mbedtls_ssl_export_keys_ext_t( void *p_expkey,
                                            size_t maclen,
                                            size_t keylen,
                                            size_t ivlen,
-                                           mbedtls_ssl_tls_prf *tls_prf,
                                            unsigned char client_random[32],
-                                           unsigned char server_random[32] );
+                                           unsigned char server_random[32],
+                                           mbedtls_tls_prf_types tls_prf_type );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 /**
@@ -3559,6 +3552,27 @@ void mbedtls_ssl_session_init( mbedtls_ssl_session *session );
  * \param session  SSL session
  */
 void mbedtls_ssl_session_free( mbedtls_ssl_session *session );
+
+/**
+ * \brief          TLS-PRF function for key derivation.
+ *
+ * \param prf      The tls_prf type funtion type to be used.
+ * \param secret   Secret for the key derivation function.
+ * \param slen     Length of the secret.
+ * \param label    String label for the key derivation function,
+ *                 terminated with null character.
+ * \param random   Random bytes.
+ * \param rlen     Length of the random bytes buffer.
+ * \param dstbuf   The buffer holding the derived key.
+ * \param dlen     Length of the output buffer.
+ *
+ * \return         0 on sucess. An SSL specific error on failure.
+ */
+int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
+                          const unsigned char *secret, size_t slen,
+                          const char *label,
+                          const unsigned char *random, size_t rlen,
+                          unsigned char *dstbuf, size_t dlen );
 
 #ifdef __cplusplus
 }

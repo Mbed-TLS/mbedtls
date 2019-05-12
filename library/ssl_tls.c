@@ -1270,7 +1270,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     {
         ssl->conf->f_export_keys_ext( ssl->conf->p_export_keys,
                                       session->master, keyblk,
-                                      mac_key_len, transform->keylen,
+                                      mac_key_len, keylen,
                                       iv_copy_len, handshake->tls_prf,
                                       handshake->randbytes + 32,
                                       handshake->randbytes );

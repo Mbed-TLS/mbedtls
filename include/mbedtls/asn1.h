@@ -276,13 +276,38 @@ int mbedtls_asn1_get_bitstring_null( unsigned char **p, const unsigned char *end
                              size_t *len );
 
 /**
- * \brief       Parses and splits an ASN.1 "SEQUENCE OF <tag>"
- *              Updated the pointer to immediately behind the full sequence tag.
+ * \brief          Free a heap-allocated linked list presentation of
+ *                 an ASN.1 sequence, including the first element.
  *
- * \param p     The position in the ASN.1 data
- * \param end   End of data
- * \param cur   First variable in the chain to fill
- * \param tag   Type of sequence
+ * \param seq      The address of the first sequence component. This may
+ *                 be \c NULL, in which case this functions returns
+ *                 immediately.
+ */
+void mbedtls_asn1_sequence_free( mbedtls_asn1_sequence *seq );
+
+/**
+ * \brief       This function parses and splits an ASN.1 "SEQUENCE OF <tag>"
+ *              and updates the source buffer pointer to immediately behind
+ *              the full sequence.
+ *
+ * \param p     The address of the pointer to the beginning of the
+ *              ASN.1 SEQUENCE OF structure, including ASN.1 tag+length header.
+ *              On success, `*p` is advanced to point to the first byte
+ *              following the parsed ASN.1 sequence.
+ * \param end   The end of the ASN.1 input buffer starting at \p p. This is
+ *              used for bounds checking.
+ * \param cur   The address at which to store the first entry in the parsed
+ *              sequence. Further entries are heap-allocated and referenced
+ *              from \p cur.
+ * \param tag   The common tag of the entries in the ASN.1 sequence.
+ *
+ * \note        Ownership for the heap-allocated elements \c cur->next,
+ *              \c cur->next->next, ..., is passed to the caller. It
+ *              is hence the caller's responsibility to free them when
+ *              no longer needed, and mbedtls_asn1_sequence_free() can
+ *              be used for that, passing \c cur->next as the \c seq
+ *              argument (or \p cur if \p cur itself was heap-allocated
+ *              by the caller).
  *
  * \return      0 if successful or a specific ASN.1 error code.
  */

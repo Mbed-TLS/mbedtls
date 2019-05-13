@@ -303,8 +303,10 @@ int verify_parse_san( mbedtls_x509_subject_alternative_name *san,
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
 void x509_parse_san( char * crt_file, char * result_str )
 {
+    int ret;
     mbedtls_x509_crt   crt;
-    mbedtls_x509_subject_alternative_name *cur, *next, *san = NULL;
+    mbedtls_x509_subject_alternative_name san;
+    mbedtls_x509_sequence *cur = NULL;
     char buf[2000];
     char *p = buf;
     size_t n = sizeof( buf );
@@ -313,23 +315,26 @@ void x509_parse_san( char * crt_file, char * result_str )
     memset( buf, 0, 2000 );
 
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
-    TEST_ASSERT( mbedtls_x509_parse_subject_alternative_name( &crt, &san ) == 0 );
-    cur = san;
-    while( cur != NULL )
+
+    if( crt.ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
-        TEST_ASSERT( verify_parse_san( cur, &p, &n ) == 0 );
-        cur = cur->next;
+        cur = &crt.subject_alt_names;
+        while( cur != NULL )
+        {
+            ret = mbedtls_x509_parse_subject_alt_name( &cur->buf, &san );
+            TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+            /*
+             * If san type not supported, ignore.
+             */
+            if( ret == 0)
+                TEST_ASSERT( verify_parse_san( &san, &p, &n ) == 0 );
+            cur = cur->next;
+        }
     }
 
     TEST_ASSERT( strcmp( buf, result_str ) == 0 );
 
 exit:
-
-    for( cur = san; cur != NULL; cur = next )
-    {
-        next = cur->next;
-        mbedtls_free( cur );
-    }
 
     mbedtls_x509_crt_free( &crt );
 }

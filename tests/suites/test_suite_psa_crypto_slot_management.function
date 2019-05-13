@@ -123,10 +123,15 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     psa_algorithm_t alg = alg_arg;
     psa_key_usage_t usage_flags = usage_arg;
     psa_key_type_t type = type_arg;
+    size_t bits;
     close_method_t close_method = close_method_arg;
     psa_key_type_t read_type;
+    size_t read_bits;
     psa_key_handle_t handle = 0;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_policy_t read_policy = PSA_KEY_POLICY_INIT;
+    uint8_t *reexported = NULL;
+    size_t reexported_length = -1;
 
     TEST_MAX_KEY_ID( id );
 
@@ -138,7 +143,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     psa_key_policy_set_usage( &policy, usage_flags, alg );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
     PSA_ASSERT( psa_import_key( handle, type, key_data->x, key_data->len ) );
-    PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
+    PSA_ASSERT( psa_get_key_information( handle, &read_type, &bits ) );
     TEST_EQUAL( read_type, type );
 
     /* Close the key and reopen it. */
@@ -167,14 +172,36 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
 
     /* Try to reopen the key. If we destroyed it, check that it doesn't
-     * exist, otherwise check that it still exists. */
+     * exist. Otherwise check that it still exists and has the expected
+     * content. */
     switch( close_method )
     {
         case CLOSE_BY_CLOSE:
         case CLOSE_BY_SHUTDOWN:
             PSA_ASSERT( psa_open_key( lifetime, id, &handle ) );
-            PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
+            PSA_ASSERT( psa_get_key_policy( handle, &read_policy ) );
+            PSA_ASSERT( psa_get_key_information( handle,
+                                                 &read_type, &read_bits ) );
             TEST_EQUAL( read_type, type );
+            TEST_EQUAL( read_bits, bits );
+            TEST_EQUAL( psa_key_policy_get_usage( &read_policy ), usage_flags );
+            TEST_EQUAL( psa_key_policy_get_algorithm( &read_policy ), alg );
+            if( policy.usage & PSA_KEY_USAGE_EXPORT )
+            {
+                ASSERT_ALLOC( reexported, key_data->len );
+                PSA_ASSERT( psa_export_key( handle,
+                                            reexported, key_data->len,
+                                            &reexported_length ) );
+                ASSERT_COMPARE( key_data->x, key_data->len,
+                                reexported, reexported_length );
+            }
+            else
+            {
+                TEST_EQUAL( psa_export_key( handle,
+                                            reexported, sizeof( reexported ),
+                                            &reexported_length ),
+                            PSA_ERROR_NOT_PERMITTED );
+            }
             break;
         case CLOSE_BY_DESTROY:
             TEST_EQUAL( psa_open_key( lifetime, id, &handle ),
@@ -185,6 +212,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
 exit:
     mbedtls_psa_crypto_free( );
     psa_purge_key_storage( );
+    mbedtls_free( reexported );
 }
 /* END_CASE */
 

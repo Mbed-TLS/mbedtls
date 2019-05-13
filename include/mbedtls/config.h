@@ -1793,7 +1793,7 @@
  * Save RAM by always flushing caches for parsed X.509 structures
  * if the respective structure is not in use. This leads to minimal
  * RAM usage of the X.509 module at the cost of performance penalties
- * when dealing using X.509 structures multiple times (such as trusted
+ * when using X.509 structures multiple times (such as trusted
  * CRTs on systems serving many connections).
  *
  * Uncomment this to always flush caches for unused X.509 structures.

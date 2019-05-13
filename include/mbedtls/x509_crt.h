@@ -121,7 +121,12 @@ typedef struct mbedtls_x509_san_other_name
          *                         hwType OBJECT IDENTIFIER,
          *                         hwSerialNum OCTET STRING }
          */
-        mbedtls_x509_name hardware_module_name;
+        struct
+        {
+            mbedtls_x509_buf oid;               /**< The object identifier. */
+            mbedtls_x509_buf val;               /**< The named value. */
+        }
+        hardware_module_name;
     }
     value;
 }

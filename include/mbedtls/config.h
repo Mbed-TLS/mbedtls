@@ -3211,7 +3211,8 @@
  * Note: A value of \c 1 means that no padding will be used
  *       for outgoing records.
  *
- * The value MUST be a power of 2.
+ * Note: On systems lacking division instructions,
+ *       a power of two should be preferred.
  *
  */
 //#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16

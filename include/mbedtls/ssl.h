@@ -1493,8 +1493,7 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  * \note              The value of \p own_cid_len must match the value of the
  *                    \c len parameter passed to mbedtls_ssl_conf_cid_len()
  *                    when configuring the ::mbedtls_ssl_config that \p ssl
- *                    is bound to. See the documentation of
- *                    mbedtls_ssl_conf_cid_len() for more information.
+ *                    is bound to.
  *
  * \note              This CID configuration applies to subsequent handshakes
  *                    performed on the SSL context \p ssl, but does not trigger
@@ -2161,19 +2160,12 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
  *                      DTLS records using the CID mechanism. This must
  *                      not be larger than #MBEDTLS_SSL_CID_OUT_LEN_MAX.
  *
- * \note                The CID draft does not mandate that incoming CIDs
- *                      have equal lengths, but support for varying lengths
- *                      significantly complicates record header parsing by
- *                      requiring a user-specified callback to perform the
- *                      CID parsing, and Mbed TLS doesn't currently support it.
- *
- * \note                The connection-specific API mbedtls_ssl_set_cid()
- *                      must use the value of \p len as the value for its
- *                      \c own_cid_len parameter, rendering the latter
- *                      redundant at the moment. However, once variable
- *                      length incoming CIDs are supported, the \c own_cid_len
- *                      parameter in mbedtls_ssl_set_cid() will be flexible, and
- *                      it is added already now to avoid a change of API.
+ * \note                The CID specification allows implementations to either
+ *                      use a common length for all incoming connection IDs or
+ *                      allow variable-length incoming IDs. Mbed TLS currently
+ *                      requires a common length for all connections sharing the
+ *                      same SSL configuration; this allows simpler parsing of
+ *                      record headers.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p own_cid_len

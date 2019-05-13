@@ -32,8 +32,8 @@
 
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crl.h"
+#include "mbedtls/x509_internal.h"
 #include "mbedtls/bignum.h"
-#include "mbedtls/threading.h"
 
 /**
  * \addtogroup x509_module
@@ -99,22 +99,6 @@ typedef struct mbedtls_x509_crt_frame
 
 } mbedtls_x509_crt_frame;
 
-/* This is an internal structure used for caching parsed data from an X.509 CRT.
- *
- * This structure may change at any time, and it is discouraged
- * to access it directly.
- */
-typedef struct mbedtls_x509_crt_cache
-{
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_threading_mutex_t frame_mutex;
-    mbedtls_threading_mutex_t pk_mutex;
-#endif
-    mbedtls_x509_buf_raw pk_raw;
-    mbedtls_x509_crt_frame *frame;
-    mbedtls_pk_context *pk;
-} mbedtls_x509_crt_cache;
-
 /**
  * Container for an X.509 certificate. The certificate may be chained.
  */
@@ -123,7 +107,7 @@ typedef struct mbedtls_x509_crt
     int own_buffer;                     /**< Indicates if \c raw is owned
                                          *   by the structure or not.         */
     mbedtls_x509_buf raw;               /**< The raw certificate data (DER).  */
-    mbedtls_x509_crt_cache *cache;      /**< Internal parsing cache.          */
+    mbedtls_x509_crt_cache *cache;      /**< Internal parsing cache.      */
 
     struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */
 

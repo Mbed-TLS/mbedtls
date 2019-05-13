@@ -1763,9 +1763,8 @@
  * \warning This option changes the API by removing most of
  *          the structure fields of mbedtls_x509_crt.
  *
- * \warning As further parts of the X.509 module are likely to
- *          undergo a similar change as as the CRT handling, this
- *          option does not yet come with API stability guarantees.
+ * \warning This option and its corresponding X.509 API are currently
+ *          under development and may change at any time.
  *
  * Regardless of whether this option is enabled or not, direct access of
  * structure fields of `mbedtls_x509_crt` should be replaced by calls to

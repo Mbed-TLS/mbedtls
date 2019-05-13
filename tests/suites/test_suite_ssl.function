@@ -541,3 +541,28 @@ exit:
     mbedtls_free( buf );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_tls_prf( int type, data_t * secret, data_t * random,
+                  char *label, data_t *result_hex_str, int exp_ret )
+{
+    unsigned char *output;
+
+    output = mbedtls_calloc( 1, result_hex_str->len );
+    if( output == NULL )
+        goto exit;
+
+    TEST_ASSERT( mbedtls_ssl_tls_prf( type, secret->x, secret->len,
+                                      label, random->x, random->len,
+                                      output, result_hex_str->len ) == exp_ret );
+
+    if( exp_ret == 0 )
+    {
+        TEST_ASSERT( hexcmp( output, result_hex_str->x,
+                     result_hex_str->len, result_hex_str->len ) == 0 );
+    }
+exit:
+
+    mbedtls_free( output );
+}
+/* END_CASE */

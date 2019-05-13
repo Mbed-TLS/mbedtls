@@ -323,7 +323,7 @@ int mbedtls_x509_self_test( int verbose );
         p += (size_t) ret;                                  \
     } while( 0 )
 
-#define MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR               \
+#define MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP             \
     do {                                                    \
         if( ret < 0 || (size_t) ret >= n )                  \
         {                                                   \

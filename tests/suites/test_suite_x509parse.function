@@ -212,24 +212,24 @@ int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint
         return( ret );
 
     ret = mbedtls_snprintf( p, n, "depth %d - serial ", certificate_depth );
-    MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
+    MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
 
     {
         mbedtls_x509_buf serial;
         serial.p   = frame->serial.p;
         serial.len = frame->serial.len;
         ret = mbedtls_x509_serial_gets( p, n, &serial );
-        MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
+        MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
     }
 
     ret = mbedtls_snprintf( p, n, " - subject " );
-    MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
+    MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
 
     ret = mbedtls_x509_dn_gets( p, n, subject );
-    MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
+    MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
 
     ret = mbedtls_snprintf( p, n, " - flags 0x%08x\n", *flags );
-    MBEDTLS_X509_SAFE_SNPRINTF_WITH_ERROR;
+    MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
 
     ctx->p = p;
 

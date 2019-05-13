@@ -2184,8 +2184,6 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
     other_name->value.hardware_module_name.val.tag = MBEDTLS_ASN1_OCTET_STRING;
     other_name->value.hardware_module_name.val.p = p;
     other_name->value.hardware_module_name.val.len = len;
-    other_name->value.hardware_module_name.next = NULL;
-    other_name->value.hardware_module_name.next_merged = 0;
     p += len;
     if( p != end )
     {

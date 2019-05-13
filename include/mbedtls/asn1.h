@@ -317,11 +317,11 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
                           int tag );
 
 /**
- * \brief                [INTERNAL] Traverse an ASN.1 SEQUENCE container and
+ * \brief                Traverse an ASN.1 SEQUENCE container and
  *                       call a callback for each entry.
  *
- * \warning              This function is internal and might be removed
- *                       or modified in the future.
+ * \warning              This function is still experimental and may change
+ *                       at any time.
  *
  * \param p              The address of the pointer to the beginning of
  *                       the ASN.1 SEQUENCE header. This is updated to

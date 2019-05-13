@@ -740,11 +740,11 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
  * \param dst       The address of the destination frame structure.
  *                  This need not be initialized.
  *
- * \note            mbedtls_x509_crt_frame does not contain dynamic
- *                  references and hence need not be freed. Users may
- *                  e.g. allocate an instance of mbedtls_x509_crt_frame
- *                  on the stack and call this function on it, in which
- *                  case no allocation/freeing has to be done.
+ * \note            ::mbedtls_x509_crt_frame does not contain pointers to
+ *                  dynamically allocated memory, and hence need not be freed.
+ *                  Users may e.g. allocate an instance of
+ *                  ::mbedtls_x509_crt_frame on the stack and call this function
+ *                  on it, in which case no allocation/freeing has to be done.
  *
  * \return          \c 0 on success. In this case, \p dst is updated
  *                  to hold the frame for the given CRT.

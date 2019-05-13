@@ -25,7 +25,24 @@
 #ifndef MBEDTLS_X509_INTERNAL_H
 #define MBEDTLS_X509_INTERNAL_H
 
-#include "x509.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/threading.h"
+
+/* Internal structure used for caching parsed data from an X.509 CRT. */
+
+struct mbedtls_x509_crt;
+struct mbedtls_pk_context;
+struct mbedtls_x509_crt_frame;
+typedef struct mbedtls_x509_crt_cache
+{
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t frame_mutex;
+    mbedtls_threading_mutex_t pk_mutex;
+#endif
+    mbedtls_x509_buf_raw pk_raw;
+    struct mbedtls_x509_crt_frame *frame;
+    struct mbedtls_pk_context *pk;
+} mbedtls_x509_crt_cache;
 
 /*
  * Internal module functions. You probably do not want to use these unless you

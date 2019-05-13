@@ -98,13 +98,13 @@ static void x509_buf_raw_to_buf( mbedtls_x509_buf *dst,
 static int x509_crt_parse_frame( unsigned char *start,
                                  unsigned char *end,
                                  mbedtls_x509_crt_frame *frame );
-static int x509_crt_subject_from_frame( mbedtls_x509_crt_frame *frame,
+static int x509_crt_subject_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_name *subject );
-static int x509_crt_issuer_from_frame( mbedtls_x509_crt_frame *frame,
+static int x509_crt_issuer_from_frame( mbedtls_x509_crt_frame const *frame,
                                        mbedtls_x509_name *issuer );
-static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame *frame,
+static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_sequence *subject_alt );
-static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame *frame,
+static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_sequence *ext_key_usage );
 
 int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
@@ -1356,7 +1356,7 @@ static int x509_crt_parse_frame( unsigned char *start,
     return( 0 );
 }
 
-static int x509_crt_subject_from_frame( mbedtls_x509_crt_frame *frame,
+static int x509_crt_subject_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_name *subject )
 {
     return( mbedtls_x509_get_name( frame->subject_raw.p,
@@ -1364,7 +1364,7 @@ static int x509_crt_subject_from_frame( mbedtls_x509_crt_frame *frame,
                                    subject ) );
 }
 
-static int x509_crt_issuer_from_frame( mbedtls_x509_crt_frame *frame,
+static int x509_crt_issuer_from_frame( mbedtls_x509_crt_frame const *frame,
                                        mbedtls_x509_name *issuer )
 {
     return( mbedtls_x509_get_name( frame->issuer_raw.p,
@@ -1372,7 +1372,7 @@ static int x509_crt_issuer_from_frame( mbedtls_x509_crt_frame *frame,
                                    issuer ) );
 }
 
-static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame *frame,
+static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame const *frame,
                                             mbedtls_x509_sequence *subject_alt )
 {
     int ret;
@@ -1390,7 +1390,7 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame *frame,
     return( ret );
 }
 
-static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame *frame,
+static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_sequence *ext_key_usage )
 {
     int ret;

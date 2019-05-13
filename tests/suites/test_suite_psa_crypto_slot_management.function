@@ -114,13 +114,14 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
-                                int usage_arg, int alg_arg,
+                                int usage_arg, int alg_arg, int alg2_arg,
                                 int type_arg, data_t *key_data,
                                 int close_method_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_id_t id = id_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t alg2 = alg2_arg;
     psa_key_usage_t usage_flags = usage_arg;
     psa_key_type_t type = type_arg;
     size_t bits;
@@ -141,6 +142,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     PSA_ASSERT( psa_create_key( lifetime, id, &handle ) );
     TEST_ASSERT( handle != 0 );
     psa_key_policy_set_usage( &policy, usage_flags, alg );
+    psa_key_policy_set_enrollment_algorithm( &policy, alg2 );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
     PSA_ASSERT( psa_import_key( handle, type, key_data->x, key_data->len ) );
     PSA_ASSERT( psa_get_key_information( handle, &read_type, &bits ) );
@@ -186,6 +188,8 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
             TEST_EQUAL( read_bits, bits );
             TEST_EQUAL( psa_key_policy_get_usage( &read_policy ), usage_flags );
             TEST_EQUAL( psa_key_policy_get_algorithm( &read_policy ), alg );
+            TEST_EQUAL( psa_key_policy_get_enrollment_algorithm( &read_policy ),
+                        alg2 );
             if( policy.usage & PSA_KEY_USAGE_EXPORT )
             {
                 ASSERT_ALLOC( reexported, key_data->len );

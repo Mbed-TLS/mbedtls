@@ -736,7 +736,7 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
  * \brief           Request CRT frame giving access to basic CRT fields
  *                  and raw ASN.1 data of complex fields.
  *
- * \param crt       The CRT to use. This must be initialized and setup.
+ * \param crt       The CRT to use. This must be initialized and set up.
  * \param dst       The address of the destination frame structure.
  *                  This need not be initialized.
  *
@@ -756,7 +756,7 @@ int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
 /**
  * \brief           Setup a PK context with the public key in a certificate.
  *
- * \param crt       The certificate to use. This must be initialized and setup.
+ * \param crt       The certificate to use. This must be initialized and set up.
  * \param pk        The address of the destination PK context to fill.
  *                  This must be initialized via mbedtls_pk_init().
  *
@@ -772,7 +772,7 @@ int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
  * \brief           Request the subject name of a CRT, presented
  *                  as a dynamically allocated linked list.
  *
- * \param crt       The CRT to use. This must be initialized and setup.
+ * \param crt       The CRT to use. This must be initialized and set up.
  * \param subject   The address at which to store the address of the
  *                  first entry of the generated linked list holding
  *                  the subject name.
@@ -796,7 +796,7 @@ int mbedtls_x509_crt_get_subject( mbedtls_x509_crt const *crt,
  * \brief           Request the subject name of a CRT, presented
  *                  as a dynamically allocated linked list.
  *
- * \param crt       The CRT to use. This must be initialized and setup.
+ * \param crt       The CRT to use. This must be initialized and set up.
  * \param issuer    The address at which to store the address of the
  *                  first entry of the generated linked list holding
  *                  the subject name.
@@ -820,7 +820,7 @@ int mbedtls_x509_crt_get_issuer( mbedtls_x509_crt const *crt,
  * \brief           Request the subject alternative name of a CRT, presented
  *                  as a dynamically allocated linked list.
  *
- * \param crt       The CRT to use. This must be initialized and setup.
+ * \param crt       The CRT to use. This must be initialized and set up.
  * \param subj_alt  The address at which to store the address of the
  *                  first component of the subject alternative names list.
  *
@@ -843,7 +843,7 @@ int mbedtls_x509_crt_get_subject_alt_names( mbedtls_x509_crt const *crt,
  * \brief           Request the ExtendedKeyUsage extension of a CRT,
  *                  presented as a dynamically allocated linked list.
  *
- * \param crt       The CRT to use. This must be initialized and setup.
+ * \param crt       The CRT to use. This must be initialized and set up.
  * \param ext_key_usage The address at which to store the address of the
  *                  first entry of the ExtendedKeyUsage extension.
  *

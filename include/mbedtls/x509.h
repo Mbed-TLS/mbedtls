@@ -186,12 +186,12 @@ extern "C" {
  */
 
 /**
- * Basic length-value structure
+ * Basic length-value buffer structure
  */
 typedef struct mbedtls_x509_buf_raw
 {
-    unsigned char *p;
-    size_t len;
+    unsigned char *p;    /*!< The address of the first byte in the buffer. */
+    size_t len;          /*!< The number of Bytes in the buffer.           */
 } mbedtls_x509_buf_raw;
 
 /**

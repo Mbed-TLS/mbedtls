@@ -124,13 +124,14 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
-                                int usage_arg, int alg_arg,
+                                int usage_arg, int alg_arg, int alg2_arg,
                                 int type_arg, data_t *key_data,
                                 int close_method_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_id_t id = id_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t alg2 = alg2_arg;
     psa_key_usage_t usage_flags = usage_arg;
     psa_key_type_t type = type_arg;
     close_method_t close_method = close_method_arg;
@@ -150,6 +151,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     psa_set_key_type( &attributes, type );
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_enrollment_algorithm( &attributes, alg2 );
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &handle ) );
     TEST_ASSERT( handle != 0 );
@@ -158,6 +160,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     TEST_EQUAL( psa_get_key_id( &attributes ), id );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
+    TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ), alg2 );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
 
     /* Close the key and reopen it. */
@@ -168,6 +171,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     TEST_EQUAL( psa_get_key_id( &attributes ), id );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
+    TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ), alg2 );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
 
     /* Do something that invalidates the handle. */
@@ -206,6 +210,8 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
             TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
             TEST_EQUAL( psa_get_key_algorithm( &attributes ),
                         psa_get_key_algorithm( &read_attributes ) );
+            TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ),
+                        psa_get_key_enrollment_algorithm( &read_attributes ) );
             TEST_EQUAL( psa_get_key_type( &attributes ),
                         psa_get_key_type( &read_attributes ) );
             TEST_EQUAL( psa_get_key_bits( &attributes ),

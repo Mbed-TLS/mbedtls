@@ -44,6 +44,16 @@ typedef struct mbedtls_x509_crt_cache
     struct mbedtls_pk_context *pk;
 } mbedtls_x509_crt_cache;
 
+/* Internal X.509 CRT cache handling functions. */
+
+int mbedtls_x509_crt_flush_cache_frame( struct mbedtls_x509_crt const *crt );
+int mbedtls_x509_crt_flush_cache_pk( struct mbedtls_x509_crt const *crt );
+
+int mbedtls_x509_crt_cache_provide_frame( struct mbedtls_x509_crt const *crt );
+int mbedtls_x509_crt_cache_provide_pk( struct mbedtls_x509_crt const *crt );
+
+/* Uncategorized internal X.509 functions */
+
 int mbedtls_x509_get_name( unsigned char *p, size_t len,
                            mbedtls_x509_name *cur );
 int mbedtls_x509_get_alg_null( unsigned char **p, const unsigned char *end,

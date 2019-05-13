@@ -314,7 +314,7 @@ void mbedtls_asn1_sequence_free( mbedtls_asn1_sequence *seq );
 int mbedtls_asn1_get_sequence_of( unsigned char **p,
                           const unsigned char *end,
                           mbedtls_asn1_sequence *cur,
-                          int tag);
+                          int tag );
 
 /**
  * \brief                Traverse an ASN.1 SEQUENCE container and

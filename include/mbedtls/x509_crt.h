@@ -881,16 +881,6 @@ int mbedtls_x509_crt_get_ext_key_usage( mbedtls_x509_crt const *crt,
  */
 int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt );
 
-/* Internal X.509 CRT cache handling functions.
- * They are not part of the public API and may change
- * at any time. */
-
-int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt );
-int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt );
-
-int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt );
-int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt );
-
 static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
                                                   mbedtls_x509_crt_frame **frame_ptr )
 {

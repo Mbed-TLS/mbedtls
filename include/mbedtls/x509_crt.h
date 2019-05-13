@@ -76,9 +76,9 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
     mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
-    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only dNSName and OtherName supported). */
+    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
 
-    mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate4 policies (Only anyPolicy supported). */
+    mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy supported). */
 
     int ext_types;              /**< Bit string containing detected and parsed extensions */
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */

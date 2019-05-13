@@ -23,6 +23,8 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *
  */
+#ifndef MBEDTLS_X509_INTERNAL_H
+#define MBEDTLS_X509_INTERNAL_H
 
 #include "x509.h"
 
@@ -75,3 +77,5 @@ int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
 int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
                     const char *oid, size_t oid_len,
                     unsigned char *sig, size_t size );
+
+#endif /* MBEDTLS_X509_INTERNAL_H */

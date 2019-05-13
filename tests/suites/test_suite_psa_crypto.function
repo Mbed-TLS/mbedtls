@@ -1204,18 +1204,22 @@ void attributes_set_get( int id_arg, int lifetime_arg,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void import( data_t *data, int type_arg, int expected_status_arg )
+void import( data_t *data, int type_arg,
+             int attr_bits_arg,
+             int expected_status_arg )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t handle = 0;
     psa_key_type_t type = type_arg;
+    size_t attr_bits = attr_bits_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_type( &attributes, type );
+    psa_set_key_bits( &attributes, attr_bits );
     status = psa_import_key( &attributes, &handle, data->x, data->len );
     TEST_EQUAL( status, expected_status );
     if( status != PSA_SUCCESS )
@@ -1223,6 +1227,8 @@ void import( data_t *data, int type_arg, int expected_status_arg )
 
     PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
     TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
+    if( attr_bits != 0 )
+        TEST_EQUAL( attr_bits, got_attributes.bits );
 
     PSA_ASSERT( psa_destroy_key( handle ) );
     test_operations_on_invalid_handle( handle );
@@ -1918,12 +1924,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void copy_key( int source_usage_arg, int source_alg_arg,
-               int type_arg, data_t *material,
-               int copy_attributes,
-               int target_usage_arg, int target_alg_arg,
-               int expected_status_arg,
-               int expected_usage_arg, int expected_alg_arg )
+void copy_success( int source_usage_arg, int source_alg_arg,
+                   int type_arg, data_t *material,
+                   int copy_attributes,
+                   int target_usage_arg, int target_alg_arg,
+                   int expected_usage_arg, int expected_alg_arg )
 {
     psa_key_attributes_t source_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t target_attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -1941,7 +1946,6 @@ void copy_key( int source_usage_arg, int source_alg_arg,
     psa_set_key_type( &source_attributes, type_arg );
     PSA_ASSERT( psa_import_key( &source_attributes, &source_handle,
                                 material->x, material->len ) );
-    /* Retrieve the key size. */
     PSA_ASSERT( psa_get_key_attributes( source_handle, &source_attributes ) );
 
     /* Prepare the target attributes. */
@@ -1953,14 +1957,8 @@ void copy_key( int source_usage_arg, int source_alg_arg,
         psa_set_key_algorithm( &target_attributes, target_alg_arg );
 
     /* Copy the key. */
-    TEST_EQUAL( psa_copy_key( source_handle,
-                              &target_attributes, &target_handle ),
-                expected_status_arg );
-    if( expected_status_arg != PSA_SUCCESS )
-    {
-        TEST_EQUAL( target_handle, 0 );
-        goto exit;
-    }
+    PSA_ASSERT( psa_copy_key( source_handle,
+                              &target_attributes, &target_handle ) );
 
     /* Destroy the source to ensure that this doesn't affect the target. */
     PSA_ASSERT( psa_destroy_key( source_handle ) );
@@ -1992,6 +1990,44 @@ exit:
     psa_reset_key_attributes( &target_attributes );
     mbedtls_psa_crypto_free( );
     mbedtls_free( export_buffer );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void copy_fail( int source_usage_arg, int source_alg_arg,
+                int type_arg, data_t *material,
+                int target_type_arg, int target_bits_arg,
+                int target_usage_arg, int target_alg_arg,
+                int expected_status_arg )
+{
+    psa_key_attributes_t source_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t target_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_handle_t source_handle = 0;
+    psa_key_handle_t target_handle = 0;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Prepare the source key. */
+    psa_set_key_usage_flags( &source_attributes, source_usage_arg );
+    psa_set_key_algorithm( &source_attributes, source_alg_arg );
+    psa_set_key_type( &source_attributes, type_arg );
+    PSA_ASSERT( psa_import_key( &source_attributes, &source_handle,
+                                material->x, material->len ) );
+
+    /* Prepare the target attributes. */
+    psa_set_key_type( &target_attributes, target_type_arg );
+    psa_set_key_bits( &target_attributes, target_bits_arg );
+    psa_set_key_usage_flags( &target_attributes, target_usage_arg );
+    psa_set_key_algorithm( &target_attributes, target_alg_arg );
+
+    /* Try to copy the key. */
+    TEST_EQUAL( psa_copy_key( source_handle,
+                              &target_attributes, &target_handle ),
+                expected_status_arg );
+exit:
+    psa_reset_key_attributes( &source_attributes );
+    psa_reset_key_attributes( &target_attributes );
+    mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
 

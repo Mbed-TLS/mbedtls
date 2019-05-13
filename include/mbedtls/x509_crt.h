@@ -87,7 +87,7 @@ typedef struct mbedtls_x509_crt_frame
     mbedtls_x509_buf_raw subject_raw;       /**< The raw subject data (DER). Used for quick comparison.         */
 
     mbedtls_x509_buf_raw sig;               /**< Signature: hash of the tbs part signed with the private key.   */
-    mbedtls_x509_buf_raw sig_alg;
+    mbedtls_x509_buf_raw sig_alg;           /**< The signature algorithm used for \p sig.                       */
 
     mbedtls_x509_buf_raw v3_ext;            /**< The raw data for the extension list in the certificate.
                                              *   Might be useful for manual inspection of extensions that

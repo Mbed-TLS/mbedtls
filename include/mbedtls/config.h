@@ -1790,11 +1790,14 @@
 /**
  * \def MBEDTLS_X509_ALWAYS_FLUSH
  *
- * Save RAM by always flushing caches for parsed X.509 structures
- * if the respective structure is not in use. This leads to minimal
- * RAM usage of the X.509 module at the cost of performance penalties
- * when using X.509 structures multiple times (such as trusted
- * CRTs on systems serving many connections).
+ * Save RAM by having Mbed TLS always flush caches for parsed X.509
+ * structures after use: This means, firstly, that caches of X.509
+ * structures used by an API call are flushed when the call returns,
+ * but it also encompasses immediate flushing of caches when Mbed TLS uses
+ * multiple structures in succession, thereby reducing the peak RAM usage.
+ * Setting this option leads to minimal RAM usage of the X.509 module at
+ * the cost of performance penalties when using X.509 structures multiple
+ * times (such as trusted CRTs on systems serving many connections).
  *
  * Uncomment this to always flush caches for unused X.509 structures.
  */

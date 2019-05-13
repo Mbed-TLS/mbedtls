@@ -1214,17 +1214,6 @@ void mbedtls_x509_name_free( mbedtls_x509_name *name )
     }
 }
 
-void mbedtls_x509_sequence_free( mbedtls_x509_sequence *seq )
-{
-    while( seq != NULL )
-    {
-        mbedtls_x509_sequence *next = seq->next;
-        mbedtls_platform_zeroize( seq, sizeof( *seq ) );
-        mbedtls_free( seq );
-        seq = next;
-    }
-}
-
 #if defined(MBEDTLS_SELF_TEST)
 
 #include "mbedtls/x509_crt.h"

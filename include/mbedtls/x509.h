@@ -298,7 +298,10 @@ void mbedtls_x509_name_free( mbedtls_x509_name *name );
  *                 be \c NULL, in which case this functions returns
  *                 immediately.
  */
-void mbedtls_x509_sequence_free( mbedtls_x509_sequence *seq );
+static inline void mbedtls_x509_sequence_free( mbedtls_x509_sequence *seq )
+{
+    mbedtls_asn1_sequence_free( (mbedtls_asn1_sequence*) seq );
+}
 
 #if defined(MBEDTLS_SELF_TEST)
 

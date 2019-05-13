@@ -2,7 +2,6 @@
  * \file x509_internal.h
  *
  * \brief Internal X.509 functions
- *
  */
 /*
  *  Copyright (C) 2006-2019, ARM Limited, All Rights Reserved

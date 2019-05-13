@@ -63,12 +63,12 @@ typedef struct mbedtls_x509_crt_frame
     uint8_t ns_cert_type;                   /**< Optional Netscape certificate type extension value:
                                              *   See the values in x509.h                                       */
 
-    unsigned int key_usage;                 /**< Optional key usage extension value: See the values in x509.h   */
-    uint32_t ext_types;                     /**< Bitfield indicating which extensions are present.
-                                             *   See the values in x509.h.                                      */
-
     mbedtls_md_type_t sig_md;               /**< The hash algorithm used to hash CRT before signing.            */
     mbedtls_pk_type_t sig_pk;               /**< The signature algorithm used to sign the CRT hash.             */
+
+    uint16_t key_usage;                     /**< Optional key usage extension value: See the values in x509.h   */
+    uint32_t ext_types;                     /**< Bitfield indicating which extensions are present.
+                                             *   See the values in x509.h.                                      */
 
     mbedtls_x509_time valid_from;           /**< The start time of certificate validity.                        */
     mbedtls_x509_time valid_to;             /**< The end time of certificate validity.                          */

@@ -781,7 +781,7 @@ static int x509_get_ns_cert_type( unsigned char **p,
 
 static int x509_get_key_usage( unsigned char **p,
                                const unsigned char *end,
-                               unsigned int *key_usage)
+                               uint16_t *key_usage)
 {
     int ret;
     size_t i;
@@ -795,9 +795,9 @@ static int x509_get_key_usage( unsigned char **p,
 
     /* Get actual bitstring */
     *key_usage = 0;
-    for( i = 0; i < bs.len && i < sizeof( unsigned int ); i++ )
+    for( i = 0; i < bs.len && i < sizeof( *key_usage ); i++ )
     {
-        *key_usage |= (unsigned int) bs.p[i] << (8*i);
+        *key_usage |= (uint16_t) bs.p[i] << ( 8*i );
     }
 
     return( 0 );

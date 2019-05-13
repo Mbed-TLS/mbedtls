@@ -55,12 +55,12 @@ typedef struct mbedtls_x509_crt_frame
      * requires an intermediate address calculation. */
 
     uint8_t version;                        /**< The X.509 version. (1=v1, 2=v2, 3=v3)                          */
-    unsigned char ca_istrue;                /**< Optional Basic Constraint extension value:
+    uint8_t ca_istrue;                      /**< Optional Basic Constraint extension value:
                                              *   1 if this certificate belongs to a CA, 0 otherwise.            */
-    unsigned char max_pathlen;              /**< Optional Basic Constraint extension value:
+    uint8_t max_pathlen;                    /**< Optional Basic Constraint extension value:
                                              *   The maximum path length to the root certificate.
                                              *   Path length is 1 higher than RFC 5280 'meaning', so 1+         */
-    unsigned char ns_cert_type;             /**< Optional Netscape certificate type extension value:
+    uint8_t ns_cert_type;                   /**< Optional Netscape certificate type extension value:
                                              *   See the values in x509.h                                       */
 
     mbedtls_md_type_t sig_md;               /**< The hash algorithm used to hash CRT before signing.            */

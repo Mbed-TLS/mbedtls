@@ -779,7 +779,7 @@ static int x509_get_certificate_policies( unsigned char **p,
 
         policy_end = *p + len;
 
-        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+        if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
                                           MBEDTLS_ASN1_OID ) ) != 0 )
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
@@ -806,11 +806,27 @@ static int x509_get_certificate_policies( unsigned char **p,
         buf->tag = policy_oid.tag;
         buf->p = policy_oid.p;
         buf->len = policy_oid.len;
-        /*
-         * Skip the optional policy qualifiers,
-         * and set the pointer to the end of the policy.
-         */
-        *p = (unsigned char *)policy_end;
+
+        *p += len;
+
+       /*
+        * If there is an optional qualifier, then *p < policy_end
+        * Check the Qualifier len to verify it doesn't exceed policy_end.
+        */
+        if( *p < policy_end )
+        {
+            if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
+                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+            /*
+             * Skip the optional policy qualifiers.
+             */
+            *p += len;
+        }
+
+        if( *p != policy_end )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
 
     /* Set final sequence entry's next pointer to NULL */

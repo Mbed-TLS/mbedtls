@@ -1055,7 +1055,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void import_twice( int alg_arg, int usage_arg,
+void import_twice( int usage_arg, int alg_arg,
                    int type1_arg, data_t *data1,
                    int expected_import1_status_arg,
                    int type2_arg, data_t *data2,
@@ -1133,8 +1133,7 @@ exit:
 /* BEGIN_CASE */
 void import_export( data_t *data,
                     int type_arg,
-                    int alg_arg,
-                    int usage_arg,
+                    int usage_arg, int alg_arg,
                     int expected_bits,
                     int export_size_delta,
                     int expected_export_status_arg,

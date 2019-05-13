@@ -65,7 +65,7 @@ static int psa_key_policy_equal( psa_key_policy_t *p1,
  */
 
 /* BEGIN_CASE */
-void transient_slot_lifecycle( int alg_arg, int usage_arg,
+void transient_slot_lifecycle( int usage_arg, int alg_arg,
                                int type_arg, data_t *key_data,
                                int close_method_arg )
 {
@@ -114,7 +114,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
-                                int alg_arg, int usage_arg,
+                                int usage_arg, int alg_arg,
                                 int type_arg, data_t *key_data,
                                 int close_method_arg )
 {

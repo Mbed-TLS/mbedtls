@@ -26,7 +26,8 @@ typedef struct {
 /* BEGIN_CASE */
 void format_storage_data_check( data_t *key_data,
                                 data_t *expected_file_data,
-                                int key_type, int key_usage, int key_alg )
+                                int key_type,
+                                int key_usage, int key_alg, int key_alg2 )
 {
     uint8_t *file_data;
     size_t file_data_length;
@@ -34,6 +35,7 @@ void format_storage_data_check( data_t *key_data,
 
     key_policy.usage = (psa_key_usage_t) key_usage;
     key_policy.alg = (psa_algorithm_t) key_alg;
+    key_policy.alg2 = (psa_algorithm_t) key_alg2;
 
     file_data_length = key_data->len + sizeof( psa_persistent_key_storage_format );
     file_data = mbedtls_calloc( 1, file_data_length );
@@ -53,6 +55,7 @@ void parse_storage_data_check( data_t *file_data,
                                int expected_key_type,
                                int expected_key_usage,
                                int expected_key_alg,
+                               int expected_key_alg2,
                                int expected_status )
 {
     uint8_t *key_data = NULL;
@@ -72,6 +75,7 @@ void parse_storage_data_check( data_t *file_data,
     TEST_EQUAL( key_type, (psa_key_type_t) expected_key_type );
     TEST_EQUAL( key_policy.usage, (uint32_t) expected_key_usage );
     TEST_EQUAL( key_policy.alg, (uint32_t) expected_key_alg );
+    TEST_EQUAL( key_policy.alg2, (uint32_t) expected_key_alg2 );
     ASSERT_COMPARE( expected_key_data->x, expected_key_data->len,
                     key_data, key_data_length );
 

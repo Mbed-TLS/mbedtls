@@ -751,6 +751,43 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
           MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
+{
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( tls_prf == ssl3_prf )
+    {
+        returnn( MBEDTLS_SSL_TLS_PRF_SSL3 );
+    }
+    else
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
+    if( tls_prf == tls1_prf )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_TLS1 );
+    }
+    else
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA512_C)
+    if( tls_prf == tls_prf_sha384 )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_SHA384 );
+    }
+    else
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    if( tls_prf == tls_prf_sha256 )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_SHA256 );
+    }
+    else
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+    return( MBEDTLS_SSL_TLS_PRF_NONE );
+}
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
+
 int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
                           const unsigned char *secret, size_t slen,
                           const char *label,
@@ -811,10 +848,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
      * "The master secret is always exactly 48 bytes in length." */
     size_t const master_secret_len = 48;
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    mbedtls_tls_prf_types tls_prf_type = MBEDTLS_SSL_TLS_PRF_NONE;
-#endif
-
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     unsigned char session_hash[48];
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
@@ -856,9 +889,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         handshake->tls_prf = ssl3_prf;
         handshake->calc_verify = ssl_calc_verify_ssl;
         handshake->calc_finished = ssl_calc_finished_ssl;
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-        tls_prf_type = MBEDTLS_SSL_TLS_PRF_SSL3;
-#endif
     }
     else
 #endif
@@ -868,9 +898,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         handshake->tls_prf = tls1_prf;
         handshake->calc_verify = ssl_calc_verify_tls;
         handshake->calc_finished = ssl_calc_finished_tls;
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-        tls_prf_type = MBEDTLS_SSL_TLS_PRF_TLS1;
-#endif
     }
     else
 #endif
@@ -882,9 +909,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         handshake->tls_prf = tls_prf_sha384;
         handshake->calc_verify = ssl_calc_verify_tls_sha384;
         handshake->calc_finished = ssl_calc_finished_tls_sha384;
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-        tls_prf_type = MBEDTLS_SSL_TLS_PRF_SHA384;
-#endif
     }
     else
 #endif
@@ -894,9 +918,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         handshake->tls_prf = tls_prf_sha256;
         handshake->calc_verify = ssl_calc_verify_tls_sha256;
         handshake->calc_finished = ssl_calc_finished_tls_sha256;
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-        tls_prf_type = MBEDTLS_SSL_TLS_PRF_SHA256;
-#endif
     }
     else
 #endif
@@ -1327,7 +1348,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                       iv_copy_len,
                                       handshake->randbytes + 32,
                                       handshake->randbytes,
-                                      tls_prf_type);
+                                      tls_prf_get_type( handshake->tls_prf ) );
     }
 #endif
 

@@ -232,7 +232,7 @@ static psa_key_policy_t psa_key_policy_init(void);
  *
  * Note that this function does not make any consistency check of the
  * parameters. The values are only checked when applying the policy to
- * a key slot with psa_set_key_policy().
+ * a key with psa_set_key_policy().
  *
  * \param[in,out] policy The key policy to modify. It must have been
  *                       initialized as per the documentation for
@@ -260,14 +260,14 @@ psa_key_usage_t psa_key_policy_get_usage(const psa_key_policy_t *policy);
  */
 psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
 
-/** \brief Set the usage policy on a key slot.
+/** \brief Set the usage policy for a key.
  *
- * This function must be called on an empty key slot, before importing,
- * generating or creating a key in the slot. Changing the policy of an
+ * This function must be called on a key handle before importing,
+ * generating or creating a key. Changing the policy of an
  * existing key is not permitted.
  *
  * Implementations may set restrictions on supported key policies
- * depending on the key type and the key slot.
+ * depending on the key type.
  *
  * \param handle        Handle to the key whose policy is to be changed.
  * \param[in] policy    The policy object to query.
@@ -292,9 +292,9 @@ psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
 psa_status_t psa_set_key_policy(psa_key_handle_t handle,
                                 const psa_key_policy_t *policy);
 
-/** \brief Get the usage policy for a key slot.
+/** \brief Get the usage policy for a key.
  *
- * \param handle        Handle to the key slot whose policy is being queried.
+ * \param handle        Handle to the key whose policy is being queried.
  * \param[out] policy   On success, the key's policy.
  *
  * \retval #PSA_SUCCESS
@@ -321,9 +321,9 @@ psa_status_t psa_get_key_policy(psa_key_handle_t handle,
  * a structure that represents the properties.
  */
 
-/** Create a new persistent key slot.
+/** Create a new persistent key.
  *
- * Create a new persistent key slot and return a handle to it. The handle
+ * Create a new persistent key and return a handle to it. The handle
  * remains valid until the application calls psa_close_key() or terminates.
  * The application can open the key again with psa_open_key() until it
  * removes the key by calling psa_destroy_key().
@@ -332,13 +332,13 @@ psa_status_t psa_get_key_policy(psa_key_handle_t handle,
  *                      area where the key material is stored. This must not
  *                      be #PSA_KEY_LIFETIME_VOLATILE.
  * \param id            The persistent identifier of the key.
- * \param[out] handle   On success, a handle to the newly created key slot.
- *                      When key material is later created in this key slot,
+ * \param[out] handle   On success, a handle to the newly created key.
+ *                      When key material is later created in this key,
  *                      it will be saved to the specified persistent location.
  *
  * \retval #PSA_SUCCESS
  *         Success. The application can now use the value of `*handle`
- *         to access the newly allocated key slot.
+ *         for key operations.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval #PSA_ERROR_ALREADY_EXISTS
@@ -358,20 +358,20 @@ psa_status_t psa_create_key(psa_key_lifetime_t lifetime,
                             psa_key_id_t id,
                             psa_key_handle_t *handle);
 
-/** Allocate a key slot for a transient key, i.e. a key which is only stored
+/** Allocate space for a transient key, i.e. a key which is only stored
  * in volatile memory.
  *
- * The allocated key slot and its handle remain valid until the
+ * The allocated key and its handle remain valid until the
  * application calls psa_close_key() or psa_destroy_key() or until the
  * application terminates.
  *
- * \param[out] handle   On success, a handle to a volatile key slot.
+ * \param[out] handle   On success, a handle to a volatile key.
  *
  * \retval #PSA_SUCCESS
  *         Success. The application can now use the value of `*handle`
- *         to access the newly allocated key slot.
+ *         to refer to the key.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- *         There was not enough memory, or the maximum number of key slots
+ *         There was not enough memory, or the maximum number of transient keys
  *         has been reached.
  */
 psa_status_t psa_allocate_key(psa_key_handle_t *handle);
@@ -379,7 +379,7 @@ psa_status_t psa_allocate_key(psa_key_handle_t *handle);
 /**
  * \brief Get basic metadata about a key.
  *
- * \param handle        Handle to the key slot to query.
+ * \param handle        Handle to the key to query.
  * \param[out] type     On success, the key type (a \c PSA_KEY_TYPE_XXX value).
  *                      This may be a null pointer, in which case the key type
  *                      is not written.
@@ -390,7 +390,7 @@ psa_status_t psa_allocate_key(psa_key_handle_t *handle);
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_DOES_NOT_EXIST
- *         The handle is to a key slot which does not contain key material yet.
+ *         The handle does not contain a key.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED

@@ -100,8 +100,8 @@
  * ECP       4   10 (Started from top)
  * MD        5   5
  * HKDF      5   1 (Started from top)
- * CIPHER    6   8
- * SSL       6   23 (Started from top)
+ * CIPHER    6   8 (Started from 0x6080)
+ * SSL       6   24 (Started from top, plus 0x6000)
  * SSL       7   32
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)

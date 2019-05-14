@@ -148,6 +148,9 @@ endif()
 # Make scripts and data files needed for testing available in an
 # out-of-source build.
 if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/seedfile")
+        link_to_source(seedfile)
+    endif()
     link_to_source(data_files)
     link_to_source(scripts)
     link_to_source(suites)

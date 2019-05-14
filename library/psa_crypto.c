@@ -1596,7 +1596,8 @@ psa_status_t psa_copy_key_to_handle(psa_key_handle_t source_handle,
     psa_key_slot_t *target_slot = NULL;
     psa_key_policy_t new_policy;
     psa_status_t status;
-    status = psa_get_key_from_slot( source_handle, &source_slot, 0, 0 );
+    status = psa_get_key_from_slot( source_handle, &source_slot,
+                                    PSA_KEY_USAGE_COPY, 0 );
     if( status != PSA_SUCCESS )
         return( status );
     status = psa_get_empty_key_slot( target_handle, &target_slot );
@@ -1631,7 +1632,8 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     psa_key_slot_t *target_slot = NULL;
     psa_key_attributes_t actual_attributes = *specified_attributes;
 
-    status = psa_get_key_from_slot( source_handle, &source_slot, 0, 0 );
+    status = psa_get_key_from_slot( source_handle, &source_slot,
+                                    PSA_KEY_USAGE_COPY, 0 );
     if( status != PSA_SUCCESS )
         goto exit;
 

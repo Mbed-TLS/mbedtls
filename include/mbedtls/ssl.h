@@ -1044,6 +1044,11 @@ struct mbedtls_ssl_config
     unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
 #endif
+#if defined(MBEDTLS_SSL_CID)
+    unsigned int ignore_unexpected_cid : 1; /*!< Determines whether DTLS
+                                             *   record with unexpected CID
+                                             *   should lead to failure.    */
+#endif /* MBEDTLS_SSL_CID */
 };
 
 
@@ -1492,7 +1497,7 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                    MBEDTLS_SSL_CID_DISABLED.
  *
  * \note              The value of \p own_cid_len must match the value of the
- *                    \c len parameter passed to mbedtls_ssl_conf_cid_len()
+ *                    \c len parameter passed to mbedtls_ssl_conf_cid()
  *                    when configuring the ::mbedtls_ssl_config that \p ssl
  *                    is bound to.
  *
@@ -2152,14 +2157,27 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
 
 #if defined(MBEDTLS_SSL_CID)
+#define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   0
+#define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 1
 /**
- * \brief               Specify the length of CIDs for incoming encrypted
- *                      DTLS records. (Default: \c 0)
+ * \brief               Specify the length of CIDs for incoming encrypted DTLS
+ *                      records and specify the behaviour on unexpected CIDs.
+ *
+ *                      By default, the CID length is set to \c 0,
+ *                      and unexpected CIDs are silently ignored.
  *
  * \param conf          The SSL configuration to modify.
  * \param len           The length in Bytes of the CID fields in encrypted
  *                      DTLS records using the CID mechanism. This must
  *                      not be larger than #MBEDTLS_SSL_CID_OUT_LEN_MAX.
+ * \param ignore_other_cid  This determines the stack's behaviour when
+ *                          receiving a record with an unexpected CID.
+ *                          Possible values are:
+ *                          - #MBEDTLS_SSL_UNEXPECTED_CID_IGNORE
+ *                            In this case, the record is silently ignored.
+ *                          - #MBEDTLS_SSL_UNEXPECTED_CID_FAIL
+ *                            In this case, the stack fails with the specific
+ *                            error code #MBEDTLS_ERR_SSL_UNEXPECTED_CID.
  *
  * \note                The CID specification allows implementations to either
  *                      use a common length for all incoming connection IDs or
@@ -2172,7 +2190,8 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
  * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p own_cid_len
  *                      is too large.
  */
-int mbedtls_ssl_conf_cid_len( mbedtls_ssl_config *conf, size_t len );
+int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
+                          int ignore_other_cids );
 #endif /* MBEDTLS_SSL_CID */
 
 /**

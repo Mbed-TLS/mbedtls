@@ -194,10 +194,12 @@ mbedtls_x509_san_other_name;
  */
 typedef struct mbedtls_x509_subject_alternative_name
 {
-    int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
+    int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX.
+                                            *   This indexes the san below.
+                                            */
     union {
         mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
-        mbedtls_x509_buf   unstructured_name; /**< The buffer for the un constructed types. Only dnsName currently supported */
+        mbedtls_x509_buf   unstructured_name; /**< The buffer for the unstructed types. Only dnsName currently supported */
     }
     san; /**< A union of the supported SAN types */
 }
@@ -460,7 +462,8 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
  *                 to an identified structure;
  *
  * \param san_raw  The buffer holding the raw data item of the subject
- *                 alternative name.
+ *                 alternative name. This buffer must include the ASN.1 tag and
+ *                 length header of the raw data.
  * \param san      The target structure to populate with the parsed presentation
  *                 of the subject alternative name encoded in \p san_raw.
  *

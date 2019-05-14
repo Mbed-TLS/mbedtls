@@ -127,8 +127,13 @@ int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf,
     if( len > MBEDTLS_SSL_CID_IN_LEN_MAX )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    conf->ignore_unexpected_cid =
-        ( ignore_other_cid == MBEDTLS_SSL_UNEXPECTED_CID_IGNORE );
+    if( ignore_other_cid != MBEDTLS_SSL_UNEXPECTED_CID_FAIL &&
+        ignore_other_cid != MBEDTLS_SSL_UNEXPECTED_CID_IGNORE )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    conf->ignore_unexpected_cid = ignore_other_cid;
     conf->cid_len = len;
     return( 0 );
 }

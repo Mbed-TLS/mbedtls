@@ -733,6 +733,8 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
  *   true), the format is the same as for psa_export_public_key().
  *
+ * The policy on the key must have the usage flag #PSA_KEY_USAGE_EXPORT set.
+ *
  * \param handle            Handle to the key to export.
  * \param[out] data         Buffer where the key data is to be written.
  * \param data_size         Size of the \p data buffer in bytes.
@@ -743,6 +745,7 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key does not have the #PSA_KEY_USAGE_EXPORT flag.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p data buffer is too small. You can determine a
@@ -800,6 +803,9 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *   the format is the representation of the public key `y = g^x mod p` as a
  *   big-endian byte string. The length of the byte string is the length of the
  *   base prime `p` in bytes.
+ *
+ * Exporting a public key object or the public part of a key pair is
+ * always permitted, regardless of the key's usage flags.
  *
  * \param handle            Handle to the key to export.
  * \param[out] data         Buffer where the key data is to be written.

@@ -298,7 +298,7 @@
 /** A sufficient output buffer size for psa_aead_update().
  *
  * If the size of the output buffer is at least this large, it is
- * guaranteed that psa_aead_finish() will not fail due to an
+ * guaranteed that psa_aead_update() will not fail due to an
  * insufficient buffer size. The actual size of the output may be smaller
  * in any given call.
  *

@@ -2497,11 +2497,11 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  *
  * This function does not require the input to be aligned to any
  * particular block boundary. If the implementation can only process
- * a whole block at a time, it must store the last partial input block
- * or adjust its internal state accordingly until the next call to
- * psa_aead_update(), psa_aead_finish() or psa_aead_verify(), and produce
- * the corresponding output when sufficient input is available or on the
- * finish or verify call.
+ * a whole block at a time, it must consume all the input provided, but
+ * it may delay the end of the corresponding output until a subsequent
+ * call to psa_aead_update(), psa_aead_finish() or psa_aead_verify()
+ * provides sufficient input. The amount of data that can be delayed
+ * in this way is bounded by #PSA_AEAD_UPDATE_OUTPUT_SIZE.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the message fragment to
@@ -2628,7 +2628,7 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[out] plaintext        Buffer where the last part of the plaintext
- *                              is to be written. This is the remaining
+ *                              is to be written. This is the remaining data
  *                              from previous calls to psa_aead_update()
  *                              that could not be processed until the end
  *                              of the input.

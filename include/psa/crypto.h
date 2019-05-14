@@ -852,12 +852,13 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  *
  * The policy on the source key must have the usage flag
  * #PSA_KEY_USAGE_COPY set.
- * In addition, some lifetimes also require the source key to have the
- * usage flag #PSA_KEY_USAGE_EXPORT, because otherwise the source key
- * is locked inside a secure processing environment and cannot be
- * extracted. For keys with the lifetime #PSA_KEY_LIFETIME_VOLATILE or
- * #PSA_KEY_LIFETIME_PERSISTENT, the usage flag #PSA_KEY_USAGE_COPY
- * is sufficient to permit the copy.
+ * This flag is sufficient to permit the copy if the key has the lifetime
+ * #PSA_KEY_LIFETIME_VOLATILE or #PSA_KEY_LIFETIME_PERSISTENT.
+ * Some secure elements do not provide a way to copy a key without
+ * making it extractable from the secure element. If a key is located
+ * in such a secure element, then the key must have both usage flags
+ * #PSA_KEY_USAGE_COPY and #PSA_KEY_USAGE_EXPORT in order to make
+ * a copy of the key outside the secure element.
  *
  * The resulting key may only be used in a way that conforms to
  * both the policy of the original key and the policy specified in

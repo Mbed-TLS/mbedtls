@@ -1461,13 +1461,15 @@
 
 /** Whether the key may be copied.
  *
- * This flag allows the use of psa_crypto_copy() to make a copy of the key
+ * This flag allows the use of psa_copy_key() to make a copy of the key
  * with the same policy or a more restrictive policy.
  *
- * For some lifetimes, copying a key also requires the usage flag
- * #PSA_KEY_USAGE_EXPORT, because otherwise the source key
- * is locked inside a secure processing environment and cannot be
- * extracted. For keys with the lifetime #PSA_KEY_LIFETIME_VOLATILE or
+ * For lifetimes for which the key is located in a secure element which
+ * enforce the non-exportability of keys, copying a key outside the secure
+ * element also requires the usage flag #PSA_KEY_USAGE_EXPORT.
+ * Copying the key inside the secure element is permitted with just
+ * #PSA_KEY_USAGE_COPY if the secure element supports it.
+ * For keys with the lifetime #PSA_KEY_LIFETIME_VOLATILE or
  * #PSA_KEY_LIFETIME_PERSISTENT, the usage flag #PSA_KEY_USAGE_COPY
  * is sufficient to permit the copy.
  */

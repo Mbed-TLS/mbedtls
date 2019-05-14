@@ -292,7 +292,7 @@
  */
 #define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)      \
     (PSA_AEAD_TAG_LENGTH(alg) != 0 ?                              \
-     (plaintext_length) - PSA_AEAD_TAG_LENGTH(alg) :              \
+     (ciphertext_length) - PSA_AEAD_TAG_LENGTH(alg) :             \
      0)
 
 /** A sufficient output buffer size for psa_aead_update().

@@ -111,8 +111,6 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 #if defined(MBEDTLS_SSL_CID)
 /* Top-level Connection ID API */
 
-/* WARNING: The CID feature isn't fully implemented yet
- *          and will not be used. */
 int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf,
                           size_t len,
                           int ignore_other_cid )
@@ -126,8 +124,6 @@ int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf,
     return( 0 );
 }
 
-/* WARNING: The CID feature isn't fully implemented yet
- *          and will not be used. */
 int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          int enable,
                          unsigned char const *own_cid,

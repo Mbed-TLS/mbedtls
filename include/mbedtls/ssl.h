@@ -2310,8 +2310,8 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
 
 #if defined(MBEDTLS_SSL_CID)
-#define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   0
-#define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 1
+#define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
+#define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
 /**
  * \brief               Specify the length of CIDs for incoming encrypted DTLS
  *                      records and specify the behaviour on unexpected CIDs.

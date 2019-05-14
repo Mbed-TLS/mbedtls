@@ -834,7 +834,7 @@ int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
                                 mbedtls_x509_crt_frame *dst );
 
 /**
- * \brief           Setup a PK context with the public key in a certificate.
+ * \brief           Set up a PK context with the public key in a certificate.
  *
  * \param crt       The certificate to use. This must be initialized and set up.
  * \param pk        The address of the destination PK context to fill.

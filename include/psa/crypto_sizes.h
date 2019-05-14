@@ -53,6 +53,9 @@
 #define PSA_BITS_TO_BYTES(bits) (((bits) + 7) / 8)
 #define PSA_BYTES_TO_BITS(bytes) ((bytes) * 8)
 
+#define PSA_ROUND_UP_TO_MULTIPLE(block_size, length) \
+    (((length) + (block_size) - 1) / (block_size) * (block_size))
+
 /** The size of the output of psa_hash_finish(), in bytes.
  *
  * This is also the hash size that psa_hash_verify() expects.
@@ -315,10 +318,10 @@
  * to emit output without delay. However, hardware may not always be
  * capable of this. So for modes based on a block cipher, allow the
  * implementation to delay the output until it has a full block. */
-#define PSA_AEAD_UPDATE_OUTPUT_SIZE(alg, input_length)                 \
+#define PSA_AEAD_UPDATE_OUTPUT_SIZE(alg, input_length)                  \
     (PSA_ALG_IS_AEAD_ON_BLOCK_CIPHER(alg) ?                             \
-     ((plaintext_length) + PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE - 1) / PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE : \
-     (plaintext_length))
+     PSA_ROUND_UP_TO_MULTIPLE(PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE, (input_length)) : \
+     (input_length))
 
 /** A sufficient ciphertext buffer size for psa_aead_finish().
  *

@@ -918,6 +918,64 @@ static int x509_get_subject_alt_name( unsigned char *p,
                                                (void*) &subject_alt_name ) );
 }
 
+static int x509_crt_build_certificate_policy_sequence_cb( void *ctx,
+                                              int tag,
+                                              unsigned char *data,
+                                              size_t data_len )
+{
+    int ret;
+    mbedtls_asn1_sequence **cur_ptr = (mbedtls_asn1_sequence **) ctx;
+    mbedtls_asn1_sequence *cur = *cur_ptr;
+    unsigned char **p = &data;
+    mbedtls_x509_buf policy_oid;
+    const unsigned char *policy_end = data + data_len;
+    size_t len;
+    (void)tag;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
+                                      MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    policy_oid.tag = MBEDTLS_ASN1_OID;
+    policy_oid.p = *p;
+    policy_oid.len = len;
+
+    *p += len;
+
+   /*
+    * If there is an optional qualifier, then *p < policy_end
+    * Check the Qualifier len to verify it doesn't exceed policy_end.
+    */
+    if( *p < policy_end )
+    {
+        if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
+                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+        /*
+         * Skip the optional policy qualifiers.
+         */
+        *p += len;
+    }
+
+    if( *p != policy_end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    /* Allocate and assign next pointer */
+    if( cur->buf.p != NULL )
+    {
+        cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
+        if( cur->next == NULL )
+            return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+        cur = cur->next;
+    }
+
+    memcpy( &cur->buf, &policy_oid, sizeof( policy_oid ) );
+
+    *cur_ptr = cur;
+    return( 0 );
+}
+
 /*
  * id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }
  *
@@ -967,104 +1025,17 @@ static int x509_get_subject_alt_name( unsigned char *p,
  * NOTE: we only parse and use anyPolicy without qualifiers at this point
  * as defined in RFC 5280.
  */
-static int x509_get_certificate_policies( unsigned char **p,
+static int x509_get_certificate_policies( unsigned char *p,
                                           const unsigned char *end,
                                           mbedtls_x509_sequence *certificate_policies )
 {
-    int ret;
-    size_t len;
-    mbedtls_asn1_buf *buf;
-    mbedtls_asn1_sequence *cur = certificate_policies;
-
-    /* Get main sequence tag */
-    ret = mbedtls_asn1_get_tag( p, end, &len,
-                             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE );
-    if( ret != 0 )
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
-
-    if( *p + len != end )
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-
-    /*
-     * Cannot be an empty sequence.
-     */
-    if( len == 0 )
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-
-    while( *p < end )
-    {
-        mbedtls_x509_buf policy_oid;
-        const unsigned char *policy_end;
-
-        /*
-         * Get the policy sequence
-         */
-        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
-                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
-
-        policy_end = *p + len;
-
-        if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
-                                          MBEDTLS_ASN1_OID ) ) != 0 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
-
-        policy_oid.tag = MBEDTLS_ASN1_OID;
-        policy_oid.len = len;
-        policy_oid.p = *p;
-
-        /* Allocate and assign next pointer */
-        if( cur->buf.p != NULL )
-        {
-            if( cur->next != NULL )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
-
-            cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
-
-            if( cur->next == NULL )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                        MBEDTLS_ERR_ASN1_ALLOC_FAILED );
-
-            cur = cur->next;
-        }
-
-        buf = &( cur->buf );
-        buf->tag = policy_oid.tag;
-        buf->p = policy_oid.p;
-        buf->len = policy_oid.len;
-
-        *p += len;
-
-       /*
-        * If there is an optional qualifier, then *p < policy_end
-        * Check the Qualifier len to verify it doesn't exceed policy_end.
-        */
-        if( *p < policy_end )
-        {
-            if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
-                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
-            /*
-             * Skip the optional policy qualifiers.
-             */
-            *p += len;
-        }
-
-        if( *p != policy_end )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-    }
-
-    /* Set final sequence entry's next pointer to NULL */
-    cur->next = NULL;
-
-    if( *p != end )
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-
-    return( 0 );
+    return( mbedtls_asn1_traverse_sequence_of( &p, end,
+                                               0xff,
+                                               MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE,
+                                               0xff,
+                                               MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE,
+                                               x509_crt_build_certificate_policy_sequence_cb,
+                                               (void*) &certificate_policies ) );
 }
 
 /*
@@ -1082,10 +1053,7 @@ static int x509_crt_check_sequence_of_oid_cb( void *ctx,
     size_t len;
 
     (void)ctx;
-
-    if( tag != ( MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) )
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_UNEXPECTED_TAG);
+    (void)tag;
 
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
@@ -1647,7 +1615,7 @@ static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame const *fram
 }
 
 static int x509_crt_policies_from_frame( mbedtls_x509_crt_frame *frame,
-                                             mbedtls_x509_sequence *crt_policies )
+                                         mbedtls_x509_sequence *crt_policies )
 {
     int ret;
     unsigned char *p   = frame->crt_policies_raw.p;
@@ -1658,7 +1626,7 @@ static int x509_crt_policies_from_frame( mbedtls_x509_crt_frame *frame,
     if( ( frame->ext_types & MBEDTLS_X509_EXT_CERTIFICATE_POLICIES ) == 0 )
         return( 0 );
 
-    ret = x509_get_certificate_policies( &p, end, crt_policies );
+    ret = x509_get_certificate_policies( p, end, crt_policies );
     if( ret != 0 )
     {
         ret += MBEDTLS_ERR_X509_INVALID_EXTENSIONS;

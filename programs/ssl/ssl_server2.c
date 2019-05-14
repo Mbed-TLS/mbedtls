@@ -2727,9 +2727,11 @@ int main( int argc, char *argv[] )
         }
 
         if( opt.cid_enabled == 1 )
-            ret = mbedtls_ssl_conf_cid_len( &conf, cid_len );
+            ret = mbedtls_ssl_conf_cid( &conf, cid_len,
+                                        MBEDTLS_SSL_UNEXPECTED_CID_IGNORE );
         else
-            ret = mbedtls_ssl_conf_cid_len( &conf, cid_renego_len );
+            ret = mbedtls_ssl_conf_cid( &conf, cid_renego_len,
+                                        MBEDTLS_SSL_UNEXPECTED_CID_IGNORE );
 
         if( ret != 0 )
         {

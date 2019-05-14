@@ -122,12 +122,15 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
 /* WARNING: The CID feature isn't fully implemented yet
  *          and will not be used. */
-int mbedtls_ssl_conf_cid_len( mbedtls_ssl_config *conf,
-                              size_t len )
+int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf,
+                          size_t len,
+                          int ignore_other_cid )
 {
     if( len > MBEDTLS_SSL_CID_IN_LEN_MAX )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+    conf->ignore_unexpected_cid =
+        ( ignore_other_cid == MBEDTLS_SSL_UNEXPECTED_CID_IGNORE );
     conf->cid_len = len;
     return( 0 );
 }
@@ -2570,12 +2573,10 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
     /*
      * Match record's CID with incoming CID.
      */
-
     if( rec->cid_len != transform->in_cid_len ||
         memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 )
     {
-        /* Silently skip over record with mismatching CID. */
-        return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_CID );
     }
 #endif /* MBEDTLS_SSL_CID */
 
@@ -5094,8 +5095,15 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
                                              &rec ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decrypt_buf", ret );
-            if( ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD )
+
+#if defined(MBEDTLS_SSL_CID)
+            if( ret == MBEDTLS_ERR_SSL_UNEXPECTED_CID &&
+                ssl->conf->ignore_unexpected_cid
+                    == MBEDTLS_SSL_UNEXPECTED_CID_IGNORE )
+            {
                 ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+            }
+#endif /* MBEDTLS_SSL_CID */
 
             return( ret );
         }

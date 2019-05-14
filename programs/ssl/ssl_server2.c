@@ -598,14 +598,17 @@ static int eap_tls_key_derivation ( void *p_expkey,
     eap_tls_keys *keys = (eap_tls_keys *)p_expkey;
 
     ( ( void ) kb );
-    ( ( void ) maclen );
-    ( ( void ) keylen );
-    ( ( void ) ivlen );
     memcpy( keys->master_secret, ms, sizeof( keys->master_secret ) );
     memcpy( keys->randbytes, client_random, 32 );
     memcpy( keys->randbytes + 32, server_random, 32 );
     keys->tls_prf_type = tls_prf_type;
 
+    if( opt.debug_level > 2 )
+    {
+        mbedtls_printf("exported maclen is %zu\n",maclen);
+        mbedtls_printf("exported keylen is %zu\n",keylen);
+        mbedtls_printf("exported ivlen is %zu\n",ivlen);
+    }
     return( 0 );
 }
 #endif

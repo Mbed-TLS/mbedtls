@@ -3272,11 +3272,16 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     size_t output_length = 0;
     unsigned char *output_data2 = NULL;
     size_t output_length2 = 0;
-    size_t tag_length = 16;
+    size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_status_t expected_result = expected_result_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     output_size = input_data->len + tag_length;
+    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
+     * should be exact. */
+    if( expected_result != PSA_ERROR_INVALID_ARGUMENT )
+        TEST_EQUAL( output_size,
+                    PSA_AEAD_ENCRYPT_OUTPUT_SIZE( alg, input_data->len ) );
     ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -3300,6 +3305,11 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     if( PSA_SUCCESS == expected_result )
     {
         ASSERT_ALLOC( output_data2, output_length );
+
+        /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
+         * should be exact. */
+        TEST_EQUAL( input_data->len,
+                    PSA_AEAD_DECRYPT_OUTPUT_SIZE( alg, output_length ) );
 
         TEST_EQUAL( psa_aead_decrypt( handle, alg,
                                       nonce->x, nonce->len,
@@ -3336,10 +3346,14 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
-    size_t tag_length = 16;
+    size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     output_size = input_data->len + tag_length;
+    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
+     * should be exact. */
+    TEST_EQUAL( output_size,
+                PSA_AEAD_ENCRYPT_OUTPUT_SIZE( alg, input_data->len ) );
     ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -3383,11 +3397,16 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
-    size_t tag_length = 16;
+    size_t tag_length = PSA_AEAD_TAG_LENGTH( alg );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t expected_result = expected_result_arg;
 
-    output_size = input_data->len + tag_length;
+    output_size = input_data->len - tag_length;
+    /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
+     * should be exact. */
+    if( expected_result != PSA_ERROR_INVALID_ARGUMENT )
+        TEST_EQUAL( output_size,
+                    PSA_AEAD_DECRYPT_OUTPUT_SIZE( alg, input_data->len ) );
     ASSERT_ALLOC( output_data, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );

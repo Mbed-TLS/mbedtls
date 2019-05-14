@@ -1344,6 +1344,7 @@ static psa_status_t psa_set_key_policy_internal(
     const psa_key_policy_t *policy )
 {
     if( ( policy->usage & ~( PSA_KEY_USAGE_EXPORT |
+                             PSA_KEY_USAGE_COPY |
                              PSA_KEY_USAGE_ENCRYPT |
                              PSA_KEY_USAGE_DECRYPT |
                              PSA_KEY_USAGE_SIGN |

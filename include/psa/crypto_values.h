@@ -1459,6 +1459,20 @@
  */
 #define PSA_KEY_USAGE_EXPORT                    ((psa_key_usage_t)0x00000001)
 
+/** Whether the key may be copied.
+ *
+ * This flag allows the use of psa_crypto_copy() to make a copy of the key
+ * with the same policy or a more restrictive policy.
+ *
+ * For some lifetimes, copying a key also requires the usage flag
+ * #PSA_KEY_USAGE_EXPORT, because otherwise the source key
+ * is locked inside a secure processing environment and cannot be
+ * extracted. For keys with the lifetime #PSA_KEY_LIFETIME_VOLATILE or
+ * #PSA_KEY_LIFETIME_PERSISTENT, the usage flag #PSA_KEY_USAGE_COPY
+ * is sufficient to permit the copy.
+ */
+#define PSA_KEY_USAGE_COPY                      ((psa_key_usage_t)0x00000002)
+
 /** Whether the key may be used to encrypt a message.
  *
  * This flag allows the key to be used for a symmetric encryption operation,

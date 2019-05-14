@@ -850,6 +850,15 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * this function may be used to share a key with a different party,
  * subject to implementation-defined restrictions on key sharing.
  *
+ * The policy on the source key must have the usage flag
+ * #PSA_KEY_USAGE_COPY set.
+ * In addition, some lifetimes also require the source key to have the
+ * usage flag #PSA_KEY_USAGE_EXPORT, because otherwise the source key
+ * is locked inside a secure processing environment and cannot be
+ * extracted. For keys with the lifetime #PSA_KEY_LIFETIME_VOLATILE or
+ * #PSA_KEY_LIFETIME_PERSISTENT, the usage flag #PSA_KEY_USAGE_COPY
+ * is sufficient to permit the copy.
+ *
  * The resulting key may only be used in a way that conforms to
  * both the policy of the original key and the policy specified in
  * the \p attributes parameter:
@@ -901,6 +910,8 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p attributes specifies a key type, domain parameters or key size
  *         which does not match the attributes of the source key.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The source key does not have the #PSA_KEY_USAGE_COPY usage flag.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The source key is not exportable and its lifetime does not
  *         allow copying it to the target's lifetime.

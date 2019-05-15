@@ -489,9 +489,9 @@ static int eap_tls_key_derivation ( void *p_expkey,
 
     if( opt.debug_level > 2 )
     {
-        mbedtls_printf("exported maclen is %zu\n",maclen);
-        mbedtls_printf("exported keylen is %zu\n",keylen);
-        mbedtls_printf("exported ivlen is %zu\n",ivlen);
+        mbedtls_printf("exported maclen is %u\n", (unsigned)maclen);
+        mbedtls_printf("exported keylen is %u\n", (unsigned)keylen);
+        mbedtls_printf("exported ivlen is %u\n", (unsigned)ivlen);
     }
     return( 0 );
 }

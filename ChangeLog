@@ -9,6 +9,12 @@ Features
      Contributed by Jack Lloyd and Fortanix Inc.
    * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
    * Add the oid certificate policy x509 extension.
+   * Add support for parsing otherName entries in the Subject Alternative Name
+     X.509 certificate extension, specifically type hardware module name,
+     as defined in RFC 4108 section 5.
+   * Add support for parsing certificate policies extension, as defined in
+     RFC 5280 section 4.2.1.4. Currently, only the "Any Policy" policy is
+     supported.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents
@@ -61,11 +67,6 @@ Features
    * Add MBEDTLS_REMOVE_3DES_CIPHERSUITES to allow removing 3DES ciphersuites
      from the default list (enabled by default). See
      https://sweet32.info/SWEET32_CCS16.pdf.
-   * Add support for parsing otherName entries in the Subject Alternative Name
-     X.509 certificate extension, as defined in RFC 4108 section 5.
-   * Add support for parsing certificate policies extension, as defined in
-     RFC 5280 section 4.2.1.4. Currently, only the "Any Policy" policy is
-     supported.
 
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.

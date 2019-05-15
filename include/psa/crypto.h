@@ -543,6 +543,8 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  *
  * Open a handle to a key which was previously created with
  * psa_make_key_persistent() when setting its attributes.
+ * The handle should eventually be closed with psa_close_key()
+ * to release associated resources.
  *
  * Implementations may provide additional keys that can be opened with
  * psa_open_key(). Such keys have a key identifier in the vendor range,

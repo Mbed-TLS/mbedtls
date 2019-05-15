@@ -246,6 +246,7 @@ psa_status_t psa_validate_persistent_key_parameters(
 
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
     (void) id;
+    (void) creating;
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
 }

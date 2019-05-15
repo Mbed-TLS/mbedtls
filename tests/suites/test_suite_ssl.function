@@ -38,7 +38,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     unsigned char *key0 = NULL, *key1 = NULL;
     unsigned char iv_enc[16], iv_dec[16];
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     unsigned char cid0[ SSL_CID_LEN_MIN ];
     unsigned char cid1[ SSL_CID_LEN_MIN ];
 
@@ -47,7 +47,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 #else
     ((void) cid0_len);
     ((void) cid1_len);
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     maclen = 0;
 
@@ -246,7 +246,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     memcpy( &t_out->iv_dec, iv_enc, sizeof( iv_enc ) );
     memcpy( &t_out->iv_enc, iv_dec, sizeof( iv_dec ) );
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* Add CID */
     memcpy( &t_in->in_cid,  cid0, cid0_len );
     memcpy( &t_in->out_cid, cid1, cid1_len );
@@ -256,7 +256,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     memcpy( &t_out->out_cid, cid0, cid0_len );
     t_out->in_cid_len = cid1_len;
     t_out->out_cid_len = cid0_len;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 cleanup:
 
@@ -379,9 +379,9 @@ void ssl_crypt_record( int cipher_type, int hash_id,
         rec.type    = 42;
         rec.ver[0]  = num_records;
         rec.ver[1]  = num_records;
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         rec.cid_len = 0;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
         rec.buf     = buf;
         rec.buf_len = buflen;
@@ -499,9 +499,9 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
             rec.ver[1]  = offset;
             rec.buf     = buf;
             rec.buf_len = buflen;
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
             rec.cid_len = 0;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
             switch( mode )
             {

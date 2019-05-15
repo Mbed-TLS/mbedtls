@@ -1270,7 +1270,7 @@
 #define MBEDTLS_SSL_ALL_ALERT_MESSAGES
 
 /**
- * \def MBEDTLS_SSL_CID
+ * \def MBEDTLS_SSL_DTLS_CONNECTION_ID
  *
  * Enable support for the DTLS Connection ID extension
  * (version draft-ietf-tls-dtls-connection-id-05,
@@ -1295,7 +1295,7 @@
  *
  * Uncomment to enable the Connection ID extension.
  */
-#define MBEDTLS_SSL_CID
+#define MBEDTLS_SSL_DTLS_CONNECTION_ID
 
 /**
  * \def MBEDTLS_SSL_ASYNC_PRIVATE

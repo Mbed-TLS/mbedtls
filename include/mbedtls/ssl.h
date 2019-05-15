@@ -917,9 +917,9 @@ struct mbedtls_ssl_config
     void *p_export_keys;            /*!< context for key export callback    */
 #endif
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     size_t cid_len; /*!< The length of CIDs for incoming DTLS records.      */
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     const mbedtls_x509_crt_profile *cert_profile; /*!< verification profile */
@@ -1045,11 +1045,11 @@ struct mbedtls_ssl_config
     unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
 #endif
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     unsigned int ignore_unexpected_cid : 1; /*!< Determines whether DTLS
                                              *   record with unexpected CID
                                              *   should lead to failure.    */
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
 
@@ -1117,10 +1117,10 @@ struct mbedtls_ssl_context
                                      TLS: maintained by us
                                      DTLS: read from peer             */
     unsigned char *in_hdr;      /*!< start of record header           */
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     unsigned char *in_cid;      /*!< The start of the CID;
                                  *   (the end is marked by in_len).   */
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     unsigned char *in_len;      /*!< two-bytes message length field   */
     unsigned char *in_iv;       /*!< ivlen-byte IV                    */
     unsigned char *in_msg;      /*!< message contents (in_iv+ivlen)   */
@@ -1157,10 +1157,10 @@ struct mbedtls_ssl_context
     unsigned char *out_buf;     /*!< output buffer                    */
     unsigned char *out_ctr;     /*!< 64-bit outgoing message counter  */
     unsigned char *out_hdr;     /*!< start of record header           */
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     unsigned char *out_cid;     /*!< The start of the CID;
                                  *   (the end is marked by in_len).   */
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     unsigned char *out_len;     /*!< two-bytes message length field   */
     unsigned char *out_iv;      /*!< ivlen-byte IV                    */
     unsigned char *out_msg;     /*!< message contents (out_iv+ivlen)  */
@@ -1219,7 +1219,7 @@ struct mbedtls_ssl_context
     char peer_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* CID configuration to use in subsequent handshakes. */
 
     /*! The next incoming CID, chosen by the user and applying to
@@ -1232,7 +1232,7 @@ struct mbedtls_ssl_context
                             *   be negotiated in the next handshake or not.
                             *   Possible values are #MBEDTLS_SSL_CID_ENABLED
                             *   and #MBEDTLS_SSL_CID_DISABLED. */
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
@@ -1454,7 +1454,7 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 
 
 /**
@@ -1581,7 +1581,7 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
                      unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ],
                      size_t *peer_cid_len );
 
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 /**
  * \brief          Set the Maximum Tranport Unit (MTU).
@@ -2157,7 +2157,7 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
 /**
@@ -2193,7 +2193,7 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
  */
 int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
                           int ignore_other_cids );
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 /**
  * \brief               Set the list of allowed ciphersuites and the

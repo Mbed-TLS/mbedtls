@@ -107,8 +107,8 @@ typedef uint32_t psa_key_lifetime_t;
  *   #PSA_KEY_ID_USER_MIN to #PSA_KEY_ID_USER_MAX.
  * - Implementations may define additional key identifiers in the range
  *   #PSA_KEY_ID_VENDOR_MIN to #PSA_KEY_ID_VENDOR_MAX.
- * - Key identifiers outside these ranges are reserved for future use
- *   in future versions of this specification.
+ * - 0 is reserved as an invalid key identifier.
+ * - Key identifiers outside these ranges are reserved for future use.
  */
 /* Implementation-specific quirk: The Mbed Crypto library can be built as
  * part of a multi-client service that exposes the PSA Crypto API in each

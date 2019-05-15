@@ -34,6 +34,10 @@ create_existent:PSA_KEY_LIFETIME_PERSISTENT:1:CLOSE_AFTER
 Attempt to overwrite: keep open
 create_existent:PSA_KEY_LIFETIME_PERSISTENT:1:KEEP_OPEN
 
+Open failure: invalid identifier (0)
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+open_fail:0:PSA_ERROR_INVALID_ARGUMENT
+
 Open failure: invalid identifier (random seed UID)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
 open_fail:PSA_CRYPTO_ITS_RANDOM_SEED_UID:PSA_ERROR_INVALID_ARGUMENT
@@ -52,6 +56,10 @@ open_fail:1:PSA_ERROR_DOES_NOT_EXIST
 
 Create failure: invalid lifetime
 create_fail:0x7fffffff:0:PSA_ERROR_INVALID_ARGUMENT
+
+Create failure: invalid key id (0)
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+create_fail:PSA_KEY_LIFETIME_PERSISTENT:0:PSA_ERROR_INVALID_ARGUMENT
 
 Create failure: invalid key id (random seed UID)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C

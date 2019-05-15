@@ -185,15 +185,14 @@ static int psa_is_key_id_valid( psa_key_file_id_t file_id,
                                 int vendor_ok )
 {
     psa_app_key_id_t key_id = PSA_KEY_FILE_GET_KEY_ID( file_id );
-    /* Reject high values because the file names are reserved for the
-     * library's internal use. */
-    if( key_id > PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
+    if( PSA_KEY_ID_USER_MIN <= key_id && key_id <= PSA_KEY_ID_USER_MAX )
+        return( 1 );
+    else if( vendor_ok &&
+             PSA_KEY_ID_VENDOR_MIN <= key_id &&
+             key_id <= PSA_KEY_ID_VENDOR_MAX )
+        return( 1 );
+    else
         return( 0 );
-    /* Applications may only create keys in the range
-     * 0..PSA_KEY_ID_USER_MAX. */
-    if( ! vendor_ok && key_id > PSA_KEY_ID_USER_MAX )
-        return( 0 );
-    return( 1 );
 }
 
 /** Declare a slot as persistent and load it from storage.

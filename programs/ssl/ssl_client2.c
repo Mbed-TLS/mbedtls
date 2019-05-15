@@ -2011,11 +2011,11 @@ int main( int argc, char *argv[] )
         mbedtls_printf("\n");
 
         if( ( ret = mbedtls_ssl_tls_prf( eap_tls_keying.tls_prf_type, NULL, 0,
-                                          eap_tls_label,
-                                          eap_tls_keying.randbytes,
-                                          sizeof( eap_tls_keying.randbytes ),
-                                          eap_tls_iv,
-                                          sizeof( eap_tls_iv ) ) ) != 0 )
+                                         eap_tls_label,
+                                         eap_tls_keying.randbytes,
+                                         sizeof( eap_tls_keying.randbytes ),
+                                         eap_tls_iv,
+                                         sizeof( eap_tls_iv ) ) ) != 0 )
          {
              mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
                              -ret );

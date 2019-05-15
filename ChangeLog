@@ -9,7 +9,7 @@ Features
      Contributed by Jack Lloyd and Fortanix Inc.
    * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
    * Add the oid certificate policy x509 extension.
-   * Extend the  MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
+   * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
      and the used tls-prf.
    * Add public API for tls-prf function, according to requested enum.
 
@@ -38,7 +38,7 @@ Bugfix
      sni entry parameter. Reported by inestlerode in #560.
 
 API Changes
-   * Extend the  MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
+   * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
      and the used tls-prf.
    * Add public API for tls-prf function, according to requested enum.
 

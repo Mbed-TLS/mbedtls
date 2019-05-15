@@ -451,7 +451,7 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
 
     /*
      * Quoting
-     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04:
+     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05:
      *
      *   struct {
      *      opaque cid<0..2^8-1>;
@@ -2170,7 +2170,7 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
 
     /*
      * Quoting
-     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04:
+     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05:
      *
      *   struct {
      *      opaque cid<0..2^8-1>;

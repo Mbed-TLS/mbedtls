@@ -1545,8 +1545,8 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          size_t own_cid_len );
 
 /**
- * \brief              Get information about the current use of the
- *                     CID extension.
+ * \brief              Get information about the use of the CID extension
+ *                     in the current connection.
  *
  * \param ssl          The SSL context to query.
  * \param enabled      The address at which to store whether the CID extension

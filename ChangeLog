@@ -9,6 +9,9 @@ Features
      Contributed by Jack Lloyd and Fortanix Inc.
    * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
    * Add the oid certificate policy x509 extension.
+   * Extend the  MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
+     and the used tls-prf.
+   * Add public API for tls-prf function, according to requested enum.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents
@@ -33,6 +36,11 @@ Bugfix
      for the parameter.
    * Add a check for MBEDTLS_X509_CRL_PARSE_C in ssl_server2, guarding the crl
      sni entry parameter. Reported by inestlerode in #560.
+
+API Changes
+   * Extend the  MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
+     and the used tls-prf.
+   * Add public API for tls-prf function, according to requested enum.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default
@@ -61,9 +69,6 @@ Features
    * Add MBEDTLS_REMOVE_3DES_CIPHERSUITES to allow removing 3DES ciphersuites
      from the default list (enabled by default). See
      https://sweet32.info/SWEET32_CCS16.pdf.
-   * Extend the  MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
-     and the used tls-prf.
-   * Add public API for tls-prf function, according to requested enum.
 
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.

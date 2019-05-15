@@ -757,7 +757,7 @@ static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
     if( tls_prf == ssl3_prf )
     {
-        returnn( MBEDTLS_SSL_TLS_PRF_SSL3 );
+        return( MBEDTLS_SSL_TLS_PRF_SSL3 );
     }
     else
 #endif

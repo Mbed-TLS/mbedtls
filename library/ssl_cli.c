@@ -443,8 +443,8 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
 
     /*
-     * Quoting
-     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05:
+     * Quoting draft-ietf-tls-dtls-connection-id-05
+     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05
      *
      *   struct {
      *      opaque cid<0..2^8-1>;

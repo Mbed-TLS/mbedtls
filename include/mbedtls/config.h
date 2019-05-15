@@ -1273,7 +1273,8 @@
  * \def MBEDTLS_SSL_CID
  *
  * Enable support for the DTLS Connection ID extension
- * (version draft-ietf-tls-dtls-connection-id-05)
+ * (version draft-ietf-tls-dtls-connection-id-05,
+ * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05)
  * which allows to identify DTLS connections across changes
  * in the underlying transport.
  *

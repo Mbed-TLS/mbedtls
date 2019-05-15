@@ -389,7 +389,8 @@
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
 
 /* The value of the CID extension is still TBD as of
- * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04. */
+ * draft-ietf-tls-dtls-connection-id-05
+ * (https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05) */
 #define MBEDTLS_TLS_EXT_CID                        254 /* TBD */
 
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
@@ -1460,8 +1461,8 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  * \brief             Configure the use of the Connection ID (CID)
  *                    extension in the next handshake.
  *
- *                    Reference:
- *                    https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04
+ *                    Reference: draft-ietf-tls-dtls-connection-id-05
+ *                    https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05
  *
  *                    The DTLS CID extension allows the reliable association of
  *                    DTLS records to DTLS connections across changes in the

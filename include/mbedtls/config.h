@@ -1336,7 +1336,7 @@
  *
  * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`,
  * `mbedtls_ssl_get_peer_cid()` and `mbedtls_ssl_conf_cid()`.
- * See their documentation for more information.
+ * See the corresponding documentation for more information.
  *
  * \warning The Connection ID extension is still in draft state.
  *          We make no stability promises for the availability

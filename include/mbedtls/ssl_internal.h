@@ -395,7 +395,7 @@ struct mbedtls_ssl_handshake_params
     /* The state of CID configuration in this handshake. */
 
     uint8_t cid_in_use; /*!< This indicates whether the use of the CID extension
-                         *   has been negotited. Possible values are
+                         *   has been negotiated. Possible values are
                          *   #MBEDTLS_SSL_CID_ENABLED and
                          *   #MBEDTLS_SSL_CID_DISABLED. */
     unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ]; /*! The peer's CID */

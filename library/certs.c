@@ -43,6 +43,7 @@
  */
 
 /* This is taken from tests/data_files/test-ca2.crt */
+/* BEGIN FILE string macro TEST_CA_CRT_EC_PEM tests/data_files/test-ca2.crt */
 #define TEST_CA_CRT_EC_PEM                                                 \
     "-----BEGIN CERTIFICATE-----\r\n"                                      \
     "MIICUjCCAdegAwIBAgIJAMFD4n5iQ8zoMAoGCCqGSM49BAMCMD4xCzAJBgNVBAYT\r\n" \
@@ -59,8 +60,10 @@
     "t4d0PCu412mUC6Nnd7izvtE2MgIxAP1nnJQjZ8BWukszFQDG48wxCCyci9qpdSMv\r\n" \
     "uCjn8pwUOkABXK8Mss90fzCfCEOtIA==\r\n"                                 \
     "-----END CERTIFICATE-----\r\n"
+/* END FILE */
 
 /* This is generated from tests/data_files/test-ca2.crt.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CA_CRT_EC_DER tests/data_files/test-ca2.crt.der */
 #define TEST_CA_CRT_EC_DER                                                    \
     { 0x30, 0x82, 0x02, 0x52, 0x30, 0x82, 0x01, 0xd7, 0xa0, 0x03, 0x02, 0x01, \
       0x02, 0x02, 0x09, 0x00, 0xc1, 0x43, 0xe2, 0x7e, 0x62, 0x43, 0xcc, 0xe8, \
@@ -112,8 +115,10 @@
       0xe3, 0xcc, 0x31, 0x08, 0x2c, 0x9c, 0x8b, 0xda, 0xa9, 0x75, 0x23, 0x2f, \
       0xb8, 0x28, 0xe7, 0xf2, 0x9c, 0x14, 0x3a, 0x40, 0x01, 0x5c, 0xaf, 0x0c, \
       0xb2, 0xcf, 0x74, 0x7f, 0x30, 0x9f, 0x08, 0x43, 0xad, 0x20 }
+/* END FILE */
 
 /* This is taken from tests/data_files/test-ca2.key.enc */
+/* BEGIN FILE string macro TEST_CA_KEY_EC_PEM tests/data_files/test-ca2.key.enc */
 #define TEST_CA_KEY_EC_PEM                                                 \
     "-----BEGIN EC PRIVATE KEY-----\r\n"                                   \
     "Proc-Type: 4,ENCRYPTED\r\n"                                           \
@@ -124,10 +129,12 @@
     "UsuWTITwJImcnlAs1gaRZ3sAWm7cOUidL0fo2G0fYUFNcYoCSLffCFTEHBuPnagb\r\n" \
     "a77x/sY1Bvii8S9/XhDTb6pTMx06wzrm\r\n"                                 \
     "-----END EC PRIVATE KEY-----\r\n"
+/* END FILE */
 
 #define TEST_CA_PWD_EC_PEM "PolarSSLTest"
 
 /* This is generated from tests/data_files/test-ca2.key.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CA_KEY_EC_DER tests/data_files/test-ca2.key.der */
 #define TEST_CA_KEY_EC_DER                                                    \
     { 0x30, 0x81, 0xa4, 0x02, 0x01, 0x01, 0x04, 0x30, 0x83, 0xd9, 0x15, 0x0e, \
       0xa0, 0x71, 0xf0, 0x57, 0x10, 0x33, 0xa3, 0x38, 0xb8, 0x86, 0xc1, 0xa6, \
@@ -143,8 +150,10 @@
       0x1c, 0x6e, 0x58, 0xb8, 0xca, 0xe8, 0xb2, 0x69, 0x8e, 0xf3, 0x41, 0xad, \
       0x29, 0xc3, 0xb4, 0x5f, 0x75, 0xa7, 0x47, 0x6f, 0xd5, 0x19, 0x29, 0x55, \
       0x69, 0x9a, 0x53, 0x3b, 0x20, 0xb4, 0x66, 0x16, 0x60, 0x33, 0x1e }
+/* END FILE */
 
 /* This is taken from tests/data_files/test-ca-sha256.crt. */
+/* BEGIN FILE string macro TEST_CA_CRT_RSA_SHA256_PEM tests/data_files/test-ca-sha256.crt */
 #define TEST_CA_CRT_RSA_SHA256_PEM                                      \
     "-----BEGIN CERTIFICATE-----\r\n"                                   \
     "MIIDQTCCAimgAwIBAgIBAzANBgkqhkiG9w0BAQsFADA7MQswCQYDVQQGEwJOTDER\r\n" \
@@ -166,9 +175,11 @@
     "MWZjgcA+OXzcnb2hSKWbhjykH/u6/PqkuHPkD723rwXbmHdxRVS9CW57kDkn5ezJ\r\n" \
     "5pE6Sam4qFsCNFJNBV9FRf3ZBMFi\r\n"                                  \
     "-----END CERTIFICATE-----"
+/* END FILE */
 
 /* This is generated from tests/data_files/test-ca-sha256.crt.der
  * using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CA_CRT_RSA_SHA256_DER tests/data_files/test-ca-sha256.crt.der */
 #define TEST_CA_CRT_RSA_SHA256_DER                                            \
     { 0x30, 0x82, 0x03, 0x41, 0x30, 0x82, 0x02, 0x29, 0xa0, 0x03, 0x02, 0x01, \
       0x02, 0x02, 0x01, 0x03, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, \
@@ -240,8 +251,10 @@
       0x45, 0x54, 0xbd, 0x09, 0x6e, 0x7b, 0x90, 0x39, 0x27, 0xe5, 0xec, 0xc9, \
       0xe6, 0x91, 0x3a, 0x49, 0xa9, 0xb8, 0xa8, 0x5b, 0x02, 0x34, 0x52, 0x4d, \
       0x05, 0x5f, 0x45, 0x45, 0xfd, 0xd9, 0x04, 0xc1, 0x62 }
+/* END FILE */
 
 /* This is taken from tests/data_files/test-ca-sha1.crt. */
+/* BEGIN FILE string macro TEST_CA_CRT_RSA_SHA1_PEM tests/data_files/test-ca-sha1.crt */
 #define TEST_CA_CRT_RSA_SHA1_PEM                                        \
     "-----BEGIN CERTIFICATE-----\r\n"                                   \
     "MIIDQTCCAimgAwIBAgIBAzANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n" \
@@ -263,8 +276,10 @@
     "iHpnlzRAi/tIbtOvMIGOBU2TIfax/5jq1agUx5aPmT5TWAiJPOOP6l5xXnDwxeYS\r\n" \
     "NWqiX9GyusBZjezaCaHabjDLU0qQ\r\n"                                  \
     "-----END CERTIFICATE-----\r\n"
+/* END FILE */
 
 /* This is taken from tests/data_files/test-ca-sha1.crt.der. */
+/* BEGIN FILE binary macro TEST_CA_CRT_RSA_SHA1_DER tests/data_files/test-ca-sha1.crt.der */
 #define TEST_CA_CRT_RSA_SHA1_DER                                        \
     {  0x30, 0x82, 0x03, 0x41, 0x30, 0x82, 0x02, 0x29, 0xa0, 0x03, 0x02, 0x01, \
        0x02, 0x02, 0x01, 0x03, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, \
@@ -336,8 +351,10 @@
        0x3c, 0xe3, 0x8f, 0xea, 0x5e, 0x71, 0x5e, 0x70, 0xf0, 0xc5, 0xe6, 0x12, \
        0x35, 0x6a, 0xa2, 0x5f, 0xd1, 0xb2, 0xba, 0xc0, 0x59, 0x8d, 0xec, 0xda, \
        0x09, 0xa1, 0xda, 0x6e, 0x30, 0xcb, 0x53, 0x4a, 0x90 }
+/* END FILE */
 
 /* This is taken from tests/data_files/test-ca.key */
+/* BEGIN FILE string macro TEST_CA_KEY_RSA_PEM tests/data_files/test-ca.key */
 #define TEST_CA_KEY_RSA_PEM                                                \
     "-----BEGIN RSA PRIVATE KEY-----\r\n"                                  \
     "Proc-Type: 4,ENCRYPTED\r\n"                                           \
@@ -369,10 +386,12 @@
     "wN48lslbHnqqagr6Xm1nNOSVl8C/6kbJEsMpLhAezfRtGwvOucoaE+WbeUNolGde\r\n" \
     "P/eQiddSf0brnpiLJRh7qZrl9XuqYdpUqnoEdMAfotDOID8OtV7gt8a48ad8VPW2\r\n" \
     "-----END RSA PRIVATE KEY-----\r\n"
+/* END FILE */
 
 #define TEST_CA_PWD_RSA_PEM "PolarSSLTest"
 
 /* This was generated from test-ca.key.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CA_KEY_RSA_DER tests/data_files/test-ca.key.der */
 #define TEST_CA_KEY_RSA_DER                                                   \
     { 0x30, 0x82, 0x04, 0xa4, 0x02, 0x01, 0x00, 0x02, 0x82, 0x01, 0x01, 0x00, \
       0xc0, 0xdf, 0x37, 0xfc, 0x17, 0xbb, 0xe0, 0x96, 0x9d, 0x3f, 0x86, 0xde, \
@@ -474,6 +493,7 @@
       0x91, 0x8c, 0xcd, 0x95, 0x02, 0xf2, 0x4d, 0x6f, 0x1a, 0xb4, 0x43, 0xf0, \
       0x19, 0xdf, 0x65, 0xc0, 0x92, 0xe7, 0x9d, 0x2f, 0x09, 0xe7, 0xec, 0x69, \
       0xa8, 0xc2, 0x8f, 0x0d }
+/* END FILE */
 
 /*
  * Test server Certificates
@@ -489,7 +509,7 @@
  */
 
 /* This is taken from tests/data_files/server5.crt. */
-
+/* BEGIN FILE string macro TEST_SRV_CRT_EC_PEM tests/data_files/server5.crt */
 #define TEST_SRV_CRT_EC_PEM                                                \
     "-----BEGIN CERTIFICATE-----\r\n"                                      \
     "MIICHzCCAaWgAwIBAgIBCTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n" \
@@ -505,8 +525,10 @@
     "C12r0Lz3ri/moSEpNZWqPjkCMCE2f53GXcYLqyfyJR078c/xNSUU5+Xxl7VZ414V\r\n" \
     "fGa5kHvHARBPc8YAIVIqDvHH1Q==\r\n"                                     \
     "-----END CERTIFICATE-----\r\n"
+/* END FILE */
 
 /* This is generated from tests/data_files/server5.crt.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_SRV_CRT_EC_DER tests/data_files/server5.crt.der */
 #define TEST_SRV_CRT_EC_DER                                                   \
     { 0x30, 0x82, 0x02, 0x1f, 0x30, 0x82, 0x01, 0xa5, 0xa0, 0x03, 0x02, 0x01, \
       0x02, 0x02, 0x01, 0x09, 0x30, 0x0a, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, \
@@ -554,16 +576,20 @@
       0x35, 0x25, 0x14, 0xe7, 0xe5, 0xf1, 0x97, 0xb5, 0x59, 0xe3, 0x5e, 0x15, \
       0x7c, 0x66, 0xb9, 0x90, 0x7b, 0xc7, 0x01, 0x10, 0x4f, 0x73, 0xc6, 0x00, \
       0x21, 0x52, 0x2a, 0x0e, 0xf1, 0xc7, 0xd5 }
+/* END FILE */
 
 /* This is taken from tests/data_files/server5.key. */
+/* BEGIN FILE string macro TEST_SRV_KEY_EC_PEM tests/data_files/server5.key */
 #define TEST_SRV_KEY_EC_PEM                     \
     "-----BEGIN EC PRIVATE KEY-----\r\n"                                \
 "MHcCAQEEIPEqEyB2AnCoPL/9U/YDHvdqXYbIogTywwyp6/UfDw6noAoGCCqGSM49\r\n"  \
 "AwEHoUQDQgAEN8xW2XYJHlpyPsdZLf8gbu58+QaRdNCtFLX3aCJZYpJO5QDYIxH/\r\n"  \
 "6i/SNF1dFr2KiMJrdw1VzYoqDvoByLTt/w==\r\n"                              \
 "-----END EC PRIVATE KEY-----\r\n"
+/* END FILE */
 
 /* This is generated from tests/data_files/server5.key.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_SRV_KEY_EC_DER tests/data_files/server5.key.der */
 #define TEST_SRV_KEY_EC_DER                             \
  {  0x30, 0x77, 0x02, 0x01, 0x01, 0x04, 0x20, 0xf1, 0x2a, 0x13, 0x20, 0x76, \
     0x02, 0x70, 0xa8, 0x3c, 0xbf, 0xfd, 0x53, 0xf6, 0x03, 0x1e, 0xf7, 0x6a, \
@@ -576,8 +602,10 @@
     0xea, 0x2f, 0xd2, 0x34, 0x5d, 0x5d, 0x16, 0xbd, 0x8a, 0x88, 0xc2, 0x6b, \
     0x77, 0x0d, 0x55, 0xcd, 0x8a, 0x2a, 0x0e, 0xfa, 0x01, 0xc8, 0xb4, 0xed, \
     0xff }
+/* END FILE */
 
 /* This is taken from tests/data_files/server2-sha256.crt. */
+/* BEGIN FILE string macro TEST_SRV_CRT_RSA_SHA256_PEM tests/data_files/server2-sha256.crt */
 #define TEST_SRV_CRT_RSA_SHA256_PEM                                     \
     "-----BEGIN CERTIFICATE-----\r\n"                                   \
     "MIIDNzCCAh+gAwIBAgIBAjANBgkqhkiG9w0BAQsFADA7MQswCQYDVQQGEwJOTDER\r\n" \
@@ -599,8 +627,10 @@
     "eBoPez9d+CCjkrhseiWzXOiriIMICX48EloO/DrsMRAtvlwq7EDz4QhILz6ffndm\r\n" \
     "e4K1cVANRPN2o9Y=\r\n"                                              \
     "-----END CERTIFICATE-----\r\n"
+/* END FILE */
 
 /* This is taken from tests/data_files/server2-sha256.crt.der. */
+/* BEGIN FILE binary macro TEST_SRV_CRT_RSA_SHA256_DER tests/data_files/server2-sha256.crt.der */
 #define TEST_SRV_CRT_RSA_SHA256_DER             \
  {  0x30, 0x82, 0x03, 0x37, 0x30, 0x82, 0x02, 0x1f, 0xa0, 0x03, 0x02, 0x01, \
     0x02, 0x02, 0x01, 0x02, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, \
@@ -671,8 +701,10 @@
     0x12, 0x5a, 0x0e, 0xfc, 0x3a, 0xec, 0x31, 0x10, 0x2d, 0xbe, 0x5c, 0x2a, \
     0xec, 0x40, 0xf3, 0xe1, 0x08, 0x48, 0x2f, 0x3e, 0x9f, 0x7e, 0x77, 0x66, \
     0x7b, 0x82, 0xb5, 0x71, 0x50, 0x0d, 0x44, 0xf3, 0x76, 0xa3, 0xd6 }
+/* END FILE */
 
 /* This is taken from tests/data_files/server2.crt. */
+/* BEGIN FILE string macro TEST_SRV_CRT_RSA_SHA1_PEM tests/data_files/server2.crt */
 #define TEST_SRV_CRT_RSA_SHA1_PEM                                       \
     "-----BEGIN CERTIFICATE-----\r\n"                                   \
     "MIIDNzCCAh+gAwIBAgIBAjANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n" \
@@ -694,8 +726,10 @@
     "fbDn4jSWkb4yZy1r01UEigFQtONieGwRFaUqEcFJHJvEEGVgh9keaVlOj2vrwf5r\r\n" \
     "4mN4lW7gLdenN6g=\r\n"                                              \
     "-----END CERTIFICATE-----\r\n"
+/* END FILE */
 
 /* This is taken from tests/data_files/server2.crt.der. */
+/* BEGIN FILE binary macro TEST_SRV_CRT_RSA_SHA1_DER tests/data_files/server2.crt.der */
 #define TEST_SRV_CRT_RSA_SHA1_DER               \
  {  0x30, 0x82, 0x03, 0x37, 0x30, 0x82, 0x02, 0x1f, 0xa0, 0x03, 0x02, 0x01, \
     0x02, 0x02, 0x01, 0x02, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, \
@@ -766,8 +800,10 @@
     0x15, 0xa5, 0x2a, 0x11, 0xc1, 0x49, 0x1c, 0x9b, 0xc4, 0x10, 0x65, 0x60, \
     0x87, 0xd9, 0x1e, 0x69, 0x59, 0x4e, 0x8f, 0x6b, 0xeb, 0xc1, 0xfe, 0x6b, \
     0xe2, 0x63, 0x78, 0x95, 0x6e, 0xe0, 0x2d, 0xd7, 0xa7, 0x37, 0xa8 }
+/* END FILE */
 
 /* This is taken from tests/data_files/server2.key. */
+/* BEGIN FILE string macro TEST_SRV_KEY_RSA_PEM tests/data_files/server2.key */
 #define TEST_SRV_KEY_RSA_PEM                                               \
     "-----BEGIN RSA PRIVATE KEY-----\r\n"                                  \
     "MIIEpAIBAAKCAQEAwU2j3efNHdEE10lyuJmsDnjkOjxKzzoTFtBa5M2jAIin7h5r\r\n" \
@@ -796,8 +832,10 @@
     "4AgahOxIxXx2gxJnq3yfkJfIjwf0s2DyP0kY2y6Ua1OeomPeY9mrIS4tCuDQ6LrE\r\n" \
     "TB6l9VGoxJL4fyHnZb8L5gGvnB1bbD8cL6YPaDiOhcRseC9vBiEuVg==\r\n"         \
     "-----END RSA PRIVATE KEY-----\r\n"
+/* END FILE */
 
 /* This was generated from tests/data_files/server2.key.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_SRV_KEY_RSA_DER tests/data_files/server2.key.der */
 #define TEST_SRV_KEY_RSA_DER                                                  \
     { 0x30, 0x82, 0x04, 0xa4, 0x02, 0x01, 0x00, 0x02, 0x82, 0x01, 0x01, 0x00, \
       0xc1, 0x4d, 0xa3, 0xdd, 0xe7, 0xcd, 0x1d, 0xd1, 0x04, 0xd7, 0x49, 0x72, \
@@ -899,6 +937,7 @@
       0x65, 0xbf, 0x0b, 0xe6, 0x01, 0xaf, 0x9c, 0x1d, 0x5b, 0x6c, 0x3f, 0x1c, \
       0x2f, 0xa6, 0x0f, 0x68, 0x38, 0x8e, 0x85, 0xc4, 0x6c, 0x78, 0x2f, 0x6f, \
       0x06, 0x21, 0x2e, 0x56 }
+/* END FILE */
 
 /*
  * Test client Certificates
@@ -914,6 +953,7 @@
  */
 
 /* This is taken from tests/data_files/cli2.crt. */
+/* BEGIN FILE string macro TEST_CLI_CRT_EC_PEM tests/data_files/cli2.crt */
 #define TEST_CLI_CRT_EC_PEM                     \
     "-----BEGIN CERTIFICATE-----\r\n"                                   \
     "MIICLDCCAbKgAwIBAgIBDTAKBggqhkjOPQQDAjA+MQswCQYDVQQGEwJOTDERMA8G\r\n" \
@@ -929,8 +969,10 @@
     "lgOsjnhw3fIOoLIWy2WOGsk/LGF++DzvrRzuNiACMQCd8iem1XS4JK7haj8xocpU\r\n" \
     "LwjQje5PDGHfd3h9tP38Qknu5bJqws0md2KOKHyeV0U=\r\n"                  \
     "-----END CERTIFICATE-----\r\n"
+/* END FILE */
 
 /* This is generated from tests/data_files/cli2.crt.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CLI_CRT_EC_DER tests/data_files/cli2.crt.der */
 #define TEST_CLI_CRT_EC_DER                                                 \
   { 0x30, 0x82, 0x02, 0x2c, 0x30, 0x82, 0x01, 0xb2, 0xa0, 0x03, 0x02, 0x01, \
     0x02, 0x02, 0x01, 0x0d, 0x30, 0x0a, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, \
@@ -979,16 +1021,20 @@
     0x2f, 0x08, 0xd0, 0x8d, 0xee, 0x4f, 0x0c, 0x61, 0xdf, 0x77, 0x78, 0x7d, \
     0xb4, 0xfd, 0xfc, 0x42, 0x49, 0xee, 0xe5, 0xb2, 0x6a, 0xc2, 0xcd, 0x26, \
     0x77, 0x62, 0x8e, 0x28, 0x7c, 0x9e, 0x57, 0x45 }
+/* END FILE */
 
 /* This is taken from tests/data_files/cli2.key. */
+/* BEGIN FILE string macro TEST_CLI_KEY_EC_PEM tests/data_files/cli2.key */
 #define TEST_CLI_KEY_EC_PEM                                                \
     "-----BEGIN EC PRIVATE KEY-----\r\n"                                   \
     "MHcCAQEEIPb3hmTxZ3/mZI3vyk7p3U3wBf+WIop6hDhkFzJhmLcqoAoGCCqGSM49\r\n" \
     "AwEHoUQDQgAEV+WusXPf06y7k7iB/xKu7uZTrM5VU/Y0Dswu42MlC9+Y4vNcYDaW\r\n" \
     "wNUYFHDlf5/VS0UY5bBs1Vz4lo+HcKPkxw==\r\n"                             \
     "-----END EC PRIVATE KEY-----\r\n"
+/* END FILE */
 
 /* This is generated from tests/data_files/cli2.key.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CLI_KEY_EC_DER tests/data_files/cli2.key.der */
 #define TEST_CLI_KEY_EC_DER                             \
     { 0x30, 0x77, 0x02, 0x01, 0x01, 0x04, 0x20, 0xf6, 0xf7, 0x86, 0x64, 0xf1, \
       0x67, 0x7f, 0xe6, 0x64, 0x8d, 0xef, 0xca, 0x4e, 0xe9, 0xdd, 0x4d, 0xf0, \
@@ -1001,8 +1047,10 @@
       0xc0, 0xd5, 0x18, 0x14, 0x70, 0xe5, 0x7f, 0x9f, 0xd5, 0x4b, 0x45, 0x18, \
       0xe5, 0xb0, 0x6c, 0xd5, 0x5c, 0xf8, 0x96, 0x8f, 0x87, 0x70, 0xa3, 0xe4, \
       0xc7 }
+/* END FILE */
 
 /* This is taken from tests/data_files/cli-rsa-sha256.crt. */
+/* BEGIN FILE string macro TEST_CLI_CRT_RSA_PEM tests/data_files/cli-rsa-sha256.crt */
 #define TEST_CLI_CRT_RSA_PEM                                               \
     "-----BEGIN CERTIFICATE-----\r\n"                                      \
     "MIIDPzCCAiegAwIBAgIBBDANBgkqhkiG9w0BAQsFADA7MQswCQYDVQQGEwJOTDER\r\n" \
@@ -1024,9 +1072,11 @@
     "U7o3SVE3Og7jPF8sat0a50YUWhwEFI256m02KAXLg89ueUyYKEr6rNwhcvXJpvU9\r\n" \
     "giIVvd0Sbjjnn7NC4VDbcXV8vw==\r\n"                                     \
     "-----END CERTIFICATE-----\r\n"
+/* END FILE */
 
 /* This was generated from tests/data_files/cli-rsa-sha256.crt.der
    using `xxd -i.` */
+/* BEGIN FILE binary macro TEST_CLI_CRT_RSA_DER tests/data_files/cli-rsa-sha256.crt.der */
 #define TEST_CLI_CRT_RSA_DER                                                  \
     { 0x30, 0x82, 0x03, 0x3f, 0x30, 0x82, 0x02, 0x27, 0xa0, 0x03, 0x02, 0x01, \
       0x02, 0x02, 0x01, 0x04, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, \
@@ -1098,8 +1148,10 @@
       0x28, 0x4a, 0xfa, 0xac, 0xdc, 0x21, 0x72, 0xf5, 0xc9, 0xa6, 0xf5, 0x3d, \
       0x82, 0x22, 0x15, 0xbd, 0xdd, 0x12, 0x6e, 0x38, 0xe7, 0x9f, 0xb3, 0x42, \
       0xe1, 0x50, 0xdb, 0x71, 0x75, 0x7c, 0xbf }
+/* END FILE */
 
 /* This is taken from tests/data_files/cli-rsa.key. */
+/* BEGIN FILE string macro TEST_CLI_KEY_RSA_PEM tests/data_files/cli-rsa.key */
 #define TEST_CLI_KEY_RSA_PEM                                               \
     "-----BEGIN RSA PRIVATE KEY-----\r\n"                                  \
     "MIIEpAIBAAKCAQEAyHTEzLn5tXnpRdkUYLB9u5Pyax6fM60Nj4o8VmXl3ETZzGaF\r\n" \
@@ -1128,8 +1180,10 @@
     "bHFVW2r0dBTqegP2/KTOxKzaHfC1qf0RGDsUoJCNJrd1cwoCLG8P2EF4w3OBrKqv\r\n" \
     "8u4ytY0F+Vlanj5lm3TaoHSVF1+NWPyOTiwevIECGKwSxvlki4fDAA==\r\n"         \
     "-----END RSA PRIVATE KEY-----\r\n"
+/* END FILE */
 
 /* This was generated from tests/data_files/cli-rsa.key.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CLI_KEY_RSA_DER tests/data_files/cli-rsa.key.der */
 #define TEST_CLI_KEY_RSA_DER                                                  \
     { 0x30, 0x82, 0x04, 0xa4, 0x02, 0x01, 0x00, 0x02, 0x82, 0x01, 0x01, 0x00, \
       0xc8, 0x74, 0xc4, 0xcc, 0xb9, 0xf9, 0xb5, 0x79, 0xe9, 0x45, 0xd9, 0x14, \
@@ -1231,6 +1285,7 @@
       0x9b, 0x74, 0xda, 0xa0, 0x74, 0x95, 0x17, 0x5f, 0x8d, 0x58, 0xfc, 0x8e, \
       0x4e, 0x2c, 0x1e, 0xbc, 0x81, 0x02, 0x18, 0xac, 0x12, 0xc6, 0xf9, 0x64, \
       0x8b, 0x87, 0xc3, 0x00 }
+/* END FILE */
 
 /*
  *

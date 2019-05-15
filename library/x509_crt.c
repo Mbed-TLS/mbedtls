@@ -642,6 +642,9 @@ static int x509_get_subject_alt_name( unsigned char **p,
 
     while( *p < end )
     {
+        mbedtls_x509_subject_alternative_name dummy_san_buf;
+        memset( &dummy_san_buf, 0, sizeof( dummy_san_buf ) );
+
         if( ( end - *p ) < 1 )
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                     MBEDTLS_ERR_ASN1_OUT_OF_DATA );
@@ -656,6 +659,29 @@ static int x509_get_subject_alt_name( unsigned char **p,
         {
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+        }
+
+        /*
+         * Check that the SAN are structured correct.
+         */
+        ret = mbedtls_x509_parse_subject_alt_name( &(cur->buf), &dummy_san_buf );
+        /*
+         * In case the extension is malformed, return an error,
+         * and clear the allocated sequences.
+         */
+        if( ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+        {
+            mbedtls_x509_sequence *seq_cur = subject_alt_name->next;
+            mbedtls_x509_sequence *seq_prv;
+            while( seq_cur != NULL )
+            {
+                seq_prv = seq_cur;
+                seq_cur = seq_cur->next;
+                mbedtls_platform_zeroize( seq_prv,
+                                          sizeof( mbedtls_x509_sequence ) );
+                mbedtls_free( seq_prv );
+            }
+            return( ret );
         }
 
         /* Allocate and assign next pointer */

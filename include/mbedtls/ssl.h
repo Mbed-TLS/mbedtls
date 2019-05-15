@@ -1557,9 +1557,9 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                    in their header, and adds the peer's requested CID to the
  *                    headers of outgoing messages.
  *
- *                    This API allows to enable/disable the use of the CID
- *                    extension in the next handshake and to set the value of
- *                    the CID to be used for incoming messages.
+ *                    This API enables or disables the use of the CID extension
+ *                    in the next handshake and sets the value of the CID to
+ *                    be used for incoming messages.
  *
  * \param ssl         The SSL context to configure. This must be initialized.
  * \param enable      This value determines whether the CID extension should

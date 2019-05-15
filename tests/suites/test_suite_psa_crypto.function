@@ -1096,7 +1096,7 @@ static int test_operations_on_invalid_handle( psa_key_handle_t handle )
     size_t length;
     int ok = 0;
 
-    psa_make_key_persistent( &attributes, 0x6964, PSA_KEY_LIFETIME_PERSISTENT );
+    psa_set_key_id( &attributes, 0x6964 );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
     psa_set_key_algorithm( &attributes, PSA_ALG_CTR );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
@@ -1179,7 +1179,8 @@ void attributes_set_get( int id_arg, int lifetime_arg,
     TEST_EQUAL( psa_get_key_type( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_bits( &attributes ), 0 );
 
-    psa_make_key_persistent( &attributes, id, lifetime );
+    psa_set_key_id( &attributes, id );
+    psa_set_key_lifetime( &attributes, lifetime );
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );
@@ -4883,7 +4884,7 @@ void persistent_key_load_key_from_storage( data_t *data,
 
     PSA_ASSERT( psa_crypto_init() );
 
-    psa_make_key_persistent( &attributes, key_id, PSA_KEY_LIFETIME_PERSISTENT );
+    psa_set_key_id( &attributes, key_id );
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );

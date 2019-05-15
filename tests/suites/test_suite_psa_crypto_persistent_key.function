@@ -96,7 +96,7 @@ void save_large_persistent_key( int data_too_large, int expected_status )
 
     PSA_ASSERT( psa_crypto_init() );
 
-    psa_make_key_persistent( &attributes, key_id, PSA_KEY_LIFETIME_PERSISTENT );
+    psa_set_key_id( &attributes, key_id );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
 
     TEST_EQUAL( psa_import_key( &attributes, &handle,
@@ -123,7 +123,7 @@ void persistent_key_destroy( int key_id_arg, int restart,
 
     PSA_ASSERT( psa_crypto_init() );
 
-    psa_make_key_persistent( &attributes, key_id, PSA_KEY_LIFETIME_PERSISTENT );
+    psa_set_key_id( &attributes, key_id );
     psa_set_key_type( &attributes, first_type );
 
     PSA_ASSERT( psa_import_key( &attributes, &handle,
@@ -153,7 +153,7 @@ void persistent_key_destroy( int key_id_arg, int restart,
     PSA_ASSERT( psa_crypto_init() );
 
     /* Create another key in the same slot */
-    psa_make_key_persistent( &attributes, key_id, PSA_KEY_LIFETIME_PERSISTENT );
+    psa_set_key_id( &attributes, key_id );
     psa_set_key_type( &attributes, second_type );
     PSA_ASSERT( psa_import_key( &attributes, &handle,
                                 second_data->x, second_data->len ) );
@@ -175,7 +175,7 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
 
     PSA_ASSERT( psa_crypto_init() );
 
-    psa_make_key_persistent( &attributes, key_id, PSA_KEY_LIFETIME_PERSISTENT );
+    psa_set_key_id( &attributes, key_id );
     psa_set_key_type( &attributes, type );
     TEST_EQUAL( psa_import_key( &attributes, &handle, data->x, data->len ),
                 expected_status );
@@ -228,7 +228,7 @@ void import_export_persistent_key( data_t *data, int type_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    psa_make_key_persistent( &attributes, key_id, PSA_KEY_LIFETIME_PERSISTENT );
+    psa_set_key_id( &attributes, key_id );
     psa_set_key_type( &attributes, type );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
 

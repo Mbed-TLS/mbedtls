@@ -125,7 +125,8 @@ void persistent_key_destroy( int key_id_arg, int restart,
     psa_make_key_persistent( &attributes, key_id, PSA_KEY_LIFETIME_PERSISTENT );
     psa_set_key_type( &attributes, first_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, first_data->x, first_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, first_data->x, first_data->len,
+                                &handle ) );
 
     if( restart )
     {
@@ -153,7 +154,8 @@ void persistent_key_destroy( int key_id_arg, int restart,
     /* Create another key in the same slot */
     psa_make_key_persistent( &attributes, key_id, PSA_KEY_LIFETIME_PERSISTENT );
     psa_set_key_type( &attributes, second_type );
-    PSA_ASSERT( psa_import_key( &attributes, second_data->x, second_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, second_data->x, second_data->len,
+                                &handle ) );
 
 exit:
     mbedtls_psa_crypto_free();

@@ -216,7 +216,8 @@ int exercise_mac_setup( psa_key_type_t key_type,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
-    PSA_ASSERT( psa_import_key( &attributes, key_bytes, key_length, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_bytes, key_length,
+                                &handle ) );
 
     *status = psa_mac_sign_setup( operation, handle, alg );
     /* Whether setup succeeded or failed, abort must succeed. */
@@ -250,7 +251,8 @@ int exercise_cipher_setup( psa_key_type_t key_type,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
-    PSA_ASSERT( psa_import_key( &attributes, key_bytes, key_length, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_bytes, key_length,
+                                &handle ) );
 
     *status = psa_cipher_encrypt_setup( operation, handle, alg );
     /* Whether setup succeeded or failed, abort must succeed. */
@@ -1346,7 +1348,8 @@ void import_export( data_t *data,
     else
     {
         psa_key_handle_t handle2;
-        PSA_ASSERT( psa_import_key( &attributes, exported, exported_length, &handle2 ) );
+        PSA_ASSERT( psa_import_key( &attributes, exported, exported_length,
+                                    &handle2 ) );
         PSA_ASSERT( psa_export_key( handle2,
                                     reexported,
                                     export_size,
@@ -1562,7 +1565,8 @@ void mac_key_policy( int policy_usage,
     psa_set_key_algorithm( &attributes, policy_alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     status = psa_mac_sign_setup( &operation, handle, exercise_alg );
     if( policy_alg == exercise_alg &&
@@ -1605,7 +1609,8 @@ void cipher_key_policy( int policy_usage,
     psa_set_key_algorithm( &attributes, policy_alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     status = psa_cipher_encrypt_setup( &operation, handle, exercise_alg );
     if( policy_alg == exercise_alg &&
@@ -1656,7 +1661,8 @@ void aead_key_policy( int policy_usage,
     psa_set_key_algorithm( &attributes, policy_alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     status = psa_aead_encrypt( handle, exercise_alg,
                                nonce, nonce_length,
@@ -1710,7 +1716,8 @@ void asymmetric_encryption_key_policy( int policy_usage,
     psa_set_key_algorithm( &attributes, policy_alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
@@ -1777,7 +1784,8 @@ void asymmetric_signature_key_policy( int policy_usage,
     psa_set_key_algorithm( &attributes, policy_alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     status = psa_asymmetric_sign( handle, exercise_alg,
                                   payload, payload_length,
@@ -1821,7 +1829,8 @@ void derive_key_policy( int policy_usage,
     psa_set_key_algorithm( &attributes, policy_alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     status = psa_key_derivation( &generator, handle,
                                  exercise_alg,
@@ -1860,7 +1869,8 @@ void agreement_key_policy( int policy_usage,
     psa_set_key_algorithm( &attributes, policy_alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     PSA_ASSERT( psa_key_derivation_setup( &generator, exercise_alg ) );
     status = key_agreement_with_self( &generator, handle );
@@ -1897,7 +1907,8 @@ void raw_agreement_key_policy( int policy_usage,
     psa_set_key_algorithm( &attributes, policy_alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     status = raw_key_agreement_with_self( exercise_alg, handle );
 
@@ -1935,7 +1946,9 @@ void copy_success( int source_usage_arg, int source_alg_arg,
     psa_set_key_usage_flags( &source_attributes, source_usage_arg );
     psa_set_key_algorithm( &source_attributes, source_alg_arg );
     psa_set_key_type( &source_attributes, type_arg );
-    PSA_ASSERT( psa_import_key( &source_attributes, material->x, material->len, &source_handle ) );
+    PSA_ASSERT( psa_import_key( &source_attributes,
+                                material->x, material->len,
+                                &source_handle ) );
     PSA_ASSERT( psa_get_key_attributes( source_handle, &source_attributes ) );
 
     /* Prepare the target attributes. */
@@ -2001,7 +2014,9 @@ void copy_fail( int source_usage_arg, int source_alg_arg,
     psa_set_key_usage_flags( &source_attributes, source_usage_arg );
     psa_set_key_algorithm( &source_attributes, source_alg_arg );
     psa_set_key_type( &source_attributes, type_arg );
-    PSA_ASSERT( psa_import_key( &source_attributes, material->x, material->len, &source_handle ) );
+    PSA_ASSERT( psa_import_key( &source_attributes,
+                                material->x, material->len,
+                                &source_handle ) );
 
     /* Prepare the target attributes. */
     psa_set_key_type( &target_attributes, target_type_arg );
@@ -3324,7 +3339,8 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     TEST_EQUAL( psa_aead_encrypt( handle, alg,
                                   nonce->x, nonce->len,
@@ -3386,7 +3402,8 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     PSA_ASSERT( psa_aead_encrypt( handle, alg,
                                   nonce->x, nonce->len,
@@ -3433,7 +3450,8 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     TEST_EQUAL( psa_aead_decrypt( handle, alg,
                                   nonce->x, nonce->len,
@@ -3490,7 +3508,8 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
 
@@ -3542,7 +3561,8 @@ void sign_fail( int key_type_arg, data_t *key_data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     actual_status = psa_asymmetric_sign( handle, alg,
                                          input_data->x, input_data->len,
@@ -3582,7 +3602,8 @@ void sign_verify( int key_type_arg, data_t *key_data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
 
@@ -3647,7 +3668,8 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     PSA_ASSERT( psa_asymmetric_verify( handle, alg,
                                        hash_data->x, hash_data->len,
@@ -3679,7 +3701,8 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     actual_status = psa_asymmetric_verify( handle, alg,
                                            hash_data->x, hash_data->len,
@@ -3722,7 +3745,8 @@ void asymmetric_encrypt( int key_type_arg,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     /* Determine the maximum output length */
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
@@ -3788,7 +3812,8 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     /* Determine the maximum ciphertext length */
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
@@ -3852,7 +3877,8 @@ void asymmetric_decrypt( int key_type_arg,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     PSA_ASSERT( psa_asymmetric_decrypt( handle, alg,
                                         input_data->x, input_data->len,
@@ -3915,7 +3941,8 @@ void asymmetric_decrypt_fail( int key_type_arg,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     actual_status = psa_asymmetric_decrypt( handle, alg,
                                             input_data->x, input_data->len,
@@ -4001,7 +4028,8 @@ void derive_setup( int key_type_arg,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     TEST_EQUAL( psa_key_derivation( &generator, handle, alg,
                                     salt->x, salt->len,
@@ -4131,7 +4159,8 @@ void derive_output( int alg_arg,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     /* Extraction phase. */
     if( PSA_ALG_IS_HKDF( alg ) )
@@ -4226,7 +4255,8 @@ void derive_full( int alg_arg,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
 
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &handle ) );
 
     /* Extraction phase. */
     if( PSA_ALG_IS_HKDF( alg ) )
@@ -4311,7 +4341,8 @@ void derive_key_exercise( int alg_arg,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &base_handle ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &base_handle ) );
 
     /* Derive a key. */
     PSA_ASSERT( psa_key_derivation( &generator, base_handle, alg,
@@ -4371,7 +4402,8 @@ void derive_key_export( int alg_arg,
     psa_set_key_usage_flags( &base_attributes, PSA_KEY_USAGE_DERIVE );
     psa_set_key_algorithm( &base_attributes, alg );
     psa_set_key_type( &base_attributes, PSA_KEY_TYPE_DERIVE );
-    PSA_ASSERT( psa_import_key( &base_attributes, key_data->x, key_data->len, &base_handle ) );
+    PSA_ASSERT( psa_import_key( &base_attributes, key_data->x, key_data->len,
+                                &base_handle ) );
 
     /* Derive some material and output it. */
     PSA_ASSERT( psa_key_derivation( &generator, base_handle, alg,
@@ -4440,7 +4472,9 @@ void key_agreement_setup( int alg_arg,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, our_key_type );
-    PSA_ASSERT( psa_import_key( &attributes, our_key_data->x, our_key_data->len, &our_key ) );
+    PSA_ASSERT( psa_import_key( &attributes,
+                                our_key_data->x, our_key_data->len,
+                                &our_key ) );
 
     /* The tests currently include inputs that should fail at either step.
      * Test cases that fail at the setup step should be changed to call
@@ -4485,7 +4519,9 @@ void raw_key_agreement( int alg_arg,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, our_key_type );
-    PSA_ASSERT( psa_import_key( &attributes, our_key_data->x, our_key_data->len, &our_key ) );
+    PSA_ASSERT( psa_import_key( &attributes,
+                                our_key_data->x, our_key_data->len,
+                                &our_key ) );
 
     PSA_ASSERT( psa_key_agreement_raw_shared_secret(
                     alg, our_key,
@@ -4520,7 +4556,9 @@ void key_agreement_capacity( int alg_arg,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, our_key_type );
-    PSA_ASSERT( psa_import_key( &attributes, our_key_data->x, our_key_data->len, &our_key ) );
+    PSA_ASSERT( psa_import_key( &attributes,
+                                our_key_data->x, our_key_data->len,
+                                &our_key ) );
 
     PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
     PSA_ASSERT( psa_key_agreement( &generator, PSA_KDF_STEP_SECRET,
@@ -4579,7 +4617,9 @@ void key_agreement_output( int alg_arg,
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, our_key_type );
-    PSA_ASSERT( psa_import_key( &attributes, our_key_data->x, our_key_data->len, &our_key ) );
+    PSA_ASSERT( psa_import_key( &attributes,
+                                our_key_data->x, our_key_data->len,
+                                &our_key ) );
 
     PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
     PSA_ASSERT( psa_key_agreement( &generator, PSA_KDF_STEP_SECRET,
@@ -4852,7 +4892,8 @@ void persistent_key_load_key_from_storage( data_t *data,
     {
         case IMPORT_KEY:
             /* Import the key */
-            PSA_ASSERT( psa_import_key( &attributes, data->x, data->len, &handle ) );
+            PSA_ASSERT( psa_import_key( &attributes, data->x, data->len,
+                                        &handle ) );
             break;
 
         case GENERATE_KEY:
@@ -4869,7 +4910,9 @@ void persistent_key_load_key_from_storage( data_t *data,
                                          PSA_KEY_USAGE_DERIVE );
                 psa_set_key_algorithm( &base_attributes, derive_alg );
                 psa_set_key_type( &base_attributes, PSA_KEY_TYPE_DERIVE );
-                PSA_ASSERT( psa_import_key( &base_attributes, data->x, data->len, &base_key ) );
+                PSA_ASSERT( psa_import_key( &base_attributes,
+                                            data->x, data->len,
+                                            &base_key ) );
                 /* Derive a key. */
                 PSA_ASSERT( psa_key_derivation_setup( &generator, derive_alg ) );
                 PSA_ASSERT( psa_key_derivation_input_key( &generator,

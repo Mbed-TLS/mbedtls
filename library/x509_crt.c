@@ -743,7 +743,7 @@ static int x509_get_certificate_policies( unsigned char **p,
                                           const unsigned char *end,
                                           mbedtls_x509_sequence *certificate_policies )
 {
-    int ret;
+    int ret, parse_ret = 0;
     size_t len;
     mbedtls_asn1_buf *buf;
     mbedtls_asn1_sequence *cur = certificate_policies;
@@ -786,6 +786,19 @@ static int x509_get_certificate_policies( unsigned char **p,
         policy_oid.tag = MBEDTLS_ASN1_OID;
         policy_oid.len = len;
         policy_oid.p = *p;
+
+        /*
+         * Only AnyPolicy is currently supported when enforcing policy.
+         */
+        if( MBEDTLS_OID_CMP( MBEDTLS_OID_ANY_POLICY, &policy_oid ) != 0 )
+        {
+            /*
+             * Set the parsing return code but continue parsing, in case this
+             * extension is critical and MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
+             * is configured.
+             */
+            parse_ret = MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
+        }
 
         /* Allocate and assign next pointer */
         if( cur->buf.p != NULL )
@@ -836,7 +849,7 @@ static int x509_get_certificate_policies( unsigned char **p,
         return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
-    return( 0 );
+    return( parse_ret );
 }
 
 /*
@@ -970,7 +983,21 @@ static int x509_get_crt_ext( unsigned char **p,
             /* Parse certificate policies type */
             if( ( ret = x509_get_certificate_policies( p, end_ext_octet,
                     &crt->certificate_policies ) ) != 0 )
-                return( ret );
+            {
+#if !defined(MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
+                if( is_critical )
+                    return( ret );
+                else
+#endif
+                /*
+                 * If MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE is returned, the we cannot
+                 * interpret or enforce the policy. However, it is up to the user
+                 * to choose how to enforce the policies,
+                 * unless the extension is critical.
+                 */
+                if( ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+                    return( ret );
+            }
             break;
 
         default:

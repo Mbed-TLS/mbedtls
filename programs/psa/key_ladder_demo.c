@@ -252,8 +252,8 @@ static psa_status_t import_key_from_file( psa_key_usage_t usage,
     psa_set_key_usage_flags( &attributes, usage );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
-    PSA_CHECK( psa_import_key( &attributes, master_key_handle,
-                               key_data, key_size ) );
+    PSA_CHECK( psa_import_key( &attributes, key_data, key_size,
+                               master_key_handle ) );
 exit:
     if( key_file != NULL )
         fclose( key_file );

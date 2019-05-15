@@ -75,8 +75,7 @@ void transient_slot_lifecycle( int alg_arg, int usage_arg,
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );
-    PSA_ASSERT( psa_import_key( &attributes, &handle,
-                                key_data->x, key_data->len ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
     TEST_ASSERT( handle != 0 );
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
@@ -131,8 +130,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     psa_set_key_type( &attributes, type );
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
-    PSA_ASSERT( psa_import_key( &attributes, &handle,
-                                key_data->x, key_data->len ) );
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len, &handle ) );
     TEST_ASSERT( handle != 0 );
     PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
     TEST_EQUAL( read_type, type );
@@ -209,16 +207,14 @@ void create_existent( int lifetime_arg, int id_arg,
     psa_set_key_type( &attributes, type1 );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &attributes, 0 );
-    PSA_ASSERT( psa_import_key( &attributes, &handle1,
-                                material1, sizeof( material1 ) ) );
+    PSA_ASSERT( psa_import_key( &attributes, material1, sizeof( material1 ), &handle1 ) );
     TEST_ASSERT( handle1 != 0 );
 
     if( reopen_policy == CLOSE_BEFORE )
         PSA_ASSERT( psa_close_key( handle1 ) );
 
     /* Attempt to create a new key in the same slot. */
-    TEST_EQUAL( psa_import_key( &attributes, &handle2,
-                                material2, sizeof( material2 ) ),
+    TEST_EQUAL( psa_import_key( &attributes, material2, sizeof( material2 ), &handle2 ),
                 PSA_ERROR_ALREADY_EXISTS );
     TEST_EQUAL( handle2, 0 );
 
@@ -285,8 +281,7 @@ void create_fail( int lifetime_arg, int id_arg,
 
     psa_make_key_persistent( &attributes, id, lifetime );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
-    TEST_EQUAL( psa_import_key( &attributes, &handle,
-                                material, sizeof( material ) ),
+    TEST_EQUAL( psa_import_key( &attributes, material, sizeof( material ), &handle ),
                 expected_status );
     TEST_EQUAL( handle, 0 );
 
@@ -335,8 +330,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     psa_set_key_type( &source_attributes, source_type );
     psa_set_key_usage_flags( &source_attributes, source_usage );
     psa_set_key_algorithm( &source_attributes, source_alg );
-    PSA_ASSERT( psa_import_key( &source_attributes, &source_handle,
-                                material->x, material->len ) );
+    PSA_ASSERT( psa_import_key( &source_attributes, material->x, material->len, &source_handle ) );
     /* Update the attributes with the bit size. */
     PSA_ASSERT( psa_get_key_attributes( source_handle, &source_attributes ) );
 
@@ -439,8 +433,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
     psa_set_key_type( &attributes, source_type );
     psa_set_key_usage_flags( &attributes, source_usage );
     psa_set_key_algorithm( &attributes, source_alg );
-    PSA_ASSERT( psa_import_key( &attributes, &source_handle,
-                                source_material->x, source_material->len ) );
+    PSA_ASSERT( psa_import_key( &attributes, source_material->x, source_material->len, &source_handle ) );
 
     /* Populate the target slot. */
     if( target_id == source_id )
@@ -453,8 +446,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
         psa_set_key_type( &attributes1, target_type );
         psa_set_key_usage_flags( &attributes1, target_usage );
         psa_set_key_algorithm( &attributes1, target_alg );
-        PSA_ASSERT( psa_import_key( &attributes1, &target_handle,
-                                    target_material->x, target_material->len ) );
+        PSA_ASSERT( psa_import_key( &attributes1, target_material->x, target_material->len, &target_handle ) );
     }
     PSA_ASSERT( psa_get_key_attributes( target_handle, &attributes1 ) );
 
@@ -513,8 +505,7 @@ void invalid_handle( )
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
     psa_set_key_usage_flags( &attributes, 0 );
     psa_set_key_algorithm( &attributes, 0 );
-    PSA_ASSERT( psa_import_key( &attributes, &handle1,
-                                material, sizeof( material ) ) );
+    PSA_ASSERT( psa_import_key( &attributes, material, sizeof( material ), &handle1 ) );
     TEST_ASSERT( handle1 != 0 );
 
     /* Attempt to close and destroy some invalid handles. */
@@ -556,8 +547,9 @@ void many_transient_handles( int max_handles_arg )
 
     for( i = 0; i < max_handles; i++ )
     {
-        status = psa_import_key( &attributes, &handles[i],
-                                 (uint8_t *) &i, sizeof( i ) );
+        status = psa_import_key( &attributes,
+                                 (uint8_t *) &i, sizeof( i ),
+                                 &handles[i] );
         if( status == PSA_ERROR_INSUFFICIENT_MEMORY )
             break;
         PSA_ASSERT( status );

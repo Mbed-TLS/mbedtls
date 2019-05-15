@@ -1533,9 +1533,9 @@ static psa_status_t psa_check_key_slot_attributes(
 }
 
 psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
-                             psa_key_handle_t *handle,
                              const uint8_t *data,
-                             size_t data_length )
+                             size_t data_length,
+                             psa_key_handle_t *handle )
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;

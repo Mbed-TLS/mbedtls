@@ -539,9 +539,10 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * @{
  */
 
-/** Get a handle to an existing persistent key.
+/** Open a handle to an existing persistent key.
  *
- * Get a handle to a key which was previously created with psa_create_key().
+ * Open a handle to a key which was previously created with
+ * psa_make_key_persistent() when setting its attributes.
  *
  * Implementations may provide additional keys that can be opened with
  * psa_open_key(). Such keys have a key identifier in the vendor range,
@@ -669,8 +670,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  *
  * This function destroys a key from both volatile
  * memory and, if applicable, non-volatile storage. Implementations shall
- * make a best effort to ensure that any previous content of the handle is
- * unrecoverable.
+ * make a best effort to ensure that that the key material cannot be recovered.
  *
  * This function also erases any metadata such as policies and frees all
  * resources associated with the key.
@@ -678,7 +678,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  * \param handle        Handle to the key to erase.
  *
  * \retval #PSA_SUCCESS
- *         The handle's content, if any, has been erased.
+ *         The key material has been erased.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The handle holds content and cannot be erased because it is
  *         read-only, either due to a policy or due to physical restrictions.

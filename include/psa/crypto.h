@@ -3294,10 +3294,10 @@ psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
  *                          public key type corresponding to the type of
  *                          private_key. That is, this function performs the
  *                          equivalent of
- *                          #psa_import_key(`internal_public_key_handle`,
- *                          #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(`private_key_type`),
+ *                          #psa_import_key(...,
  *                          `peer_key`, `peer_key_length`) where
- *                          `private_key_type` is the type of `private_key`.
+ *                          with key attributes indicating the public key
+ *                          type corresponding to the type of `private_key`.
  *                          For example, for EC keys, this means that peer_key
  *                          is interpreted as a point on the curve that the
  *                          private key is on. The standard formats for public

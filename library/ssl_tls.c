@@ -117,7 +117,7 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 /* Top-level Connection ID API */
 
 int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf,
@@ -202,7 +202,7 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 /* Forward declarations for functions related to message buffering. */
 static void ssl_buffering_free( mbedtls_ssl_context *ssl );
@@ -969,7 +969,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* Copy own and peer's CID if the use of the CID
      * extension has been negotiated. */
     if( ssl->handshake->cid_in_use == MBEDTLS_SSL_CID_ENABLED )
@@ -987,7 +987,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_BUF( 3, "Outgoing CID", transform->out_cid,
                                transform->out_cid_len );
     }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     /*
      * Set appropriate PRF function and other SSL / TLS / TLS1.2 functions
@@ -1984,7 +1984,7 @@ static void ssl_read_memory( unsigned char *p, size_t len )
  * Encryption/decryption functions
  */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 /* This functions transforms a DTLS plaintext fragment and a record content
  * type into an instance of the DTLSInnerPlaintext structure:
  *
@@ -2059,7 +2059,7 @@ static int ssl_cid_parse_inner_plaintext( unsigned char const *content,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 /* `add_data` must have size 13 Bytes if the CID extension is disabled,
  * and 13 + 1 + CID-length Bytes if the CID extension is enabled. */
@@ -2087,7 +2087,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
     add_data[8] = rec->type;
     memcpy( add_data + 9, rec->ver, sizeof( rec->ver ) );
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( rec->cid_len != 0 )
     {
         memcpy( add_data + 11, rec->cid, rec->cid_len );
@@ -2097,7 +2097,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
         *add_data_len = 13 + 1 + rec->cid_len;
     }
     else
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     {
         add_data[11 + 0] = ( rec->data_len >> 8 ) & 0xFF;
         add_data[11 + 1] = ( rec->data_len >> 0 ) & 0xFF;
@@ -2145,7 +2145,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         || rec->buf == NULL
         || rec->buf_len < rec->data_offset
         || rec->buf_len - rec->data_offset < rec->data_len
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         || rec->cid_len != 0
 #endif
         )
@@ -2169,7 +2169,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /*
      * Add CID information
      */
@@ -2196,7 +2196,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
         rec->type = MBEDTLS_SSL_MSG_CID;
     }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     post_avail = rec->buf_len - ( rec->data_len + rec->data_offset );
 
@@ -2570,7 +2570,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
     data = rec->buf + rec->data_offset;
     mode = mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_dec );
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /*
      * Match record's CID with incoming CID.
      */
@@ -2579,7 +2579,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
     {
         return( MBEDTLS_ERR_SSL_UNEXPECTED_CID );
     }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER)
     if( mode == MBEDTLS_MODE_STREAM )
@@ -3117,7 +3117,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( rec->cid_len != 0 )
     {
         ret = ssl_cid_parse_inner_plaintext( data, &rec->data_len,
@@ -3125,7 +3125,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         if( ret != 0 )
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= decrypt buf" ) );
 
@@ -4156,10 +4156,10 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
                                        ssl->conf->transport, rec.ver );
             rec.type = ssl->out_msgtype;
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
             /* The CID is set by mbedtls_ssl_encrypt_buf(). */
             rec.cid_len = 0;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
             if( ( ret = mbedtls_ssl_encrypt_buf( ssl, ssl->transform_out, &rec,
                                          ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
@@ -4176,9 +4176,9 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 
             /* Update the record content type and CID. */
             ssl->out_msgtype = rec.type;
-#if defined(MBEDTLS_SSL_CID )
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID )
             memcpy( ssl->out_cid, rec.cid, rec.cid_len );
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
             ssl->out_msglen = len = rec.data_len;
             ssl->out_len[0] = (unsigned char)( rec.data_len >> 8 );
             ssl->out_len[1] = (unsigned char)( rec.data_len      );
@@ -4853,7 +4853,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
     mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, ssl->in_hdr + 1 );
 
     /* Check record type */
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->in_msgtype      == MBEDTLS_SSL_MSG_CID            &&
         ssl->conf->cid_len   != 0 )
@@ -4876,7 +4876,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
     }
     else
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     if( ssl_check_record_type( ssl->in_msgtype ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
@@ -5083,10 +5083,10 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             - ( ssl->in_iv - ssl->in_buf );
         rec.data_len    = ssl->in_msglen;
         rec.data_offset = 0;
-#if defined(MBEDTLS_SSL_CID )
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID )
         rec.cid_len     = (uint8_t)( ssl->in_len - ssl->in_cid );
         memcpy( rec.cid, ssl->in_cid, rec.cid_len );
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
         memcpy( &rec.ctr[0], ssl->in_ctr, 8 );
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
@@ -5097,14 +5097,14 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decrypt_buf", ret );
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
             if( ret == MBEDTLS_ERR_SSL_UNEXPECTED_CID &&
                 ssl->conf->ignore_unexpected_cid
                     == MBEDTLS_SSL_UNEXPECTED_CID_IGNORE )
             {
                 ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
             }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
             return( ret );
         }
@@ -5131,7 +5131,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_BUF( 4, "input payload after decrypt",
                        ssl->in_msg, ssl->in_msglen );
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         /* We have already checked the record content type
          * in ssl_parse_record_header(), failing or silently
          * dropping the record in the case of an unknown type.
@@ -5144,7 +5144,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
         if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
         {
@@ -8078,14 +8078,14 @@ static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         ssl->out_ctr = ssl->out_hdr +  3;
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         ssl->out_cid = ssl->out_ctr +  8;
         ssl->out_len = ssl->out_cid;
         if( transform != NULL )
             ssl->out_len += transform->out_cid_len;
-#else /* MBEDTLS_SSL_CID */
+#else /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         ssl->out_len = ssl->out_ctr + 8;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         ssl->out_iv  = ssl->out_len + 2;
     }
     else
@@ -8093,7 +8093,7 @@ static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
     {
         ssl->out_ctr = ssl->out_hdr - 8;
         ssl->out_len = ssl->out_hdr + 3;
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         ssl->out_cid = ssl->out_len;
 #endif
         ssl->out_iv  = ssl->out_hdr + 5;
@@ -8137,12 +8137,12 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl )
          * a CID, the fields are shifted accordingly in
          * ssl_parse_record_header(). */
         ssl->in_ctr = ssl->in_hdr +  3;
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         ssl->in_cid = ssl->in_ctr +  8;
         ssl->in_len = ssl->in_cid; /* Default: no CID */
-#else /* MBEDTLS_SSL_CID */
+#else /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         ssl->in_len = ssl->in_ctr + 8;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         ssl->in_iv  = ssl->in_len + 2;
     }
     else
@@ -8150,7 +8150,7 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl )
     {
         ssl->in_ctr = ssl->in_hdr - 8;
         ssl->in_len = ssl->in_hdr + 3;
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         ssl->in_cid = ssl->in_len;
 #endif
         ssl->in_iv  = ssl->in_hdr + 5;
@@ -9381,10 +9381,10 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( transform->out_cid_len != 0 )
         transform_expansion += MBEDTLS_SSL_MAX_CID_EXPANSION;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     return( (int)( out_hdr_len + transform_expansion ) );
 }

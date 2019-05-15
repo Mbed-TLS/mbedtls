@@ -236,7 +236,7 @@ int main( void )
 #define USAGE_SSL_ASYNC ""
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define USAGE_CID \
     "    cid=%%d             Disable (0) or enable (1) the use of the DTLS Connection ID extension.\n" \
     "                       default: 0 (disabled)\n"     \
@@ -246,9 +246,9 @@ int main( void )
     "                        default: \"\"\n" \
     "    cid_val_renego=%%s   The CID to use for incoming messages (in hex, without 0x) after renegotiation.\n"  \
     "                        default: same as 'cid_val'\n"
-#else /* MBEDTLS_SSL_CID */
+#else /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 #define USAGE_CID ""
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK_RAW                                               \
@@ -935,7 +935,7 @@ int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
 #endif /* SNI_OPTION */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) || \
-    defined(MBEDTLS_SSL_CID)
+    defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 
 #define HEX2NUM( c )                        \
     do                                      \
@@ -1444,7 +1444,7 @@ static psa_status_t psa_setup_psk_key_slot( psa_key_handle_t slot,
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 int report_cid_usage( mbedtls_ssl_context *ssl,
                       const char *additional_description )
 {
@@ -1492,7 +1492,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 int main( int argc, char *argv[] )
 {
@@ -1563,7 +1563,7 @@ int main( int argc, char *argv[] )
     unsigned char alloc_buf[MEMORY_HEAP_SIZE];
 #endif
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     unsigned char cid[MBEDTLS_SSL_CID_IN_LEN_MAX];
     unsigned char cid_renego[MBEDTLS_SSL_CID_IN_LEN_MAX];
     size_t cid_len = 0;
@@ -1817,7 +1817,7 @@ int main( int argc, char *argv[] )
             opt.async_private_error = n;
         }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         else if( strcmp( p, "cid" ) == 0 )
         {
             opt.cid_enabled = atoi( q );
@@ -1838,7 +1838,7 @@ int main( int argc, char *argv[] )
         {
             opt.cid_val_renego = q;
         }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -2323,7 +2323,7 @@ int main( int argc, char *argv[] )
     }
 
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( unhexify( cid, opt.cid_val, &cid_len ) != 0 )
     {
         mbedtls_printf( "CID not valid hex\n" );
@@ -2342,7 +2342,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "CID not valid hex\n" );
         goto exit;
     }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     /*
@@ -2715,7 +2715,7 @@ int main( int argc, char *argv[] )
     };
 #endif
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( opt.cid_enabled == 1 || opt.cid_enabled_renego == 1 )
     {
         if( opt.cid_enabled == 1        &&
@@ -2740,7 +2740,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
@@ -3118,7 +3118,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv,
                              opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         if( ( ret = mbedtls_ssl_set_cid( &ssl, opt.cid_enabled,
@@ -3129,7 +3129,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.dtls_mtu != DFL_DTLS_MTU )
@@ -3408,7 +3408,7 @@ handshake:
     }
 #endif
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ret = report_cid_usage( &ssl, "initial handshake" );
     if( ret != 0 )
         goto exit;
@@ -3423,7 +3423,7 @@ handshake:
             goto exit;
         }
     }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     if( opt.exchanges == 0 )
         goto close_notify;
@@ -3635,11 +3635,11 @@ data_exchange:
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ret = report_cid_usage( &ssl, "after renegotiation" );
     if( ret != 0 )
         goto exit;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     /*
      * 7. Write the 200 Response

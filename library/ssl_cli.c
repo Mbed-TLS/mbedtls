@@ -475,7 +475,7 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
                                unsigned char *buf,
                                size_t *olen )
@@ -521,7 +521,7 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
 
     *olen = ssl->own_cid_len + 5;
 }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 static void ssl_write_max_fragment_length_ext( mbedtls_ssl_context *ssl,
@@ -1133,10 +1133,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ssl_write_cid_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len, &olen );
@@ -1295,7 +1295,7 @@ static int ssl_parse_truncated_hmac_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
                               const unsigned char *buf,
                               size_t len )
@@ -1349,7 +1349,7 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 static int ssl_parse_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
@@ -2002,7 +2002,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             break;
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         case MBEDTLS_TLS_EXT_CID:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found CID extension" ) );
 
@@ -2014,7 +2014,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             }
 
             break;
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
         case MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC:

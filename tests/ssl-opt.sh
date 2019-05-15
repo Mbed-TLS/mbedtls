@@ -1276,7 +1276,7 @@ run_test    "Truncated HMAC, DTLS: client enabled, server enabled" \
 # grep for output witnessing its use. This needs to be
 # changed once the CID extension is implemented.
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli enabled, Srv disabled" \
             "$P_SRV debug_level=3 dtls=1 cid=0" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
@@ -1292,7 +1292,7 @@ run_test    "Connection ID: Cli enabled, Srv disabled" \
             -C "Copy CIDs into SSL transform" \
             -c "Use of Connection ID was rejected by the server"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli disabled, Srv enabled" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
             "$P_CLI debug_level=3 dtls=1 cid=0" \
@@ -1307,7 +1307,7 @@ run_test    "Connection ID: Cli disabled, Srv enabled" \
             -C "Copy CIDs into SSL transform"  \
             -s "Use of Connection ID was not offered by client"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef" \
@@ -1327,7 +1327,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID, 3D: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV debug_level=3 dtls=1 cid=1 dgram_packing=0 cid_val=dead" \
@@ -1348,7 +1348,7 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID, MTU: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -p "$P_PXY mtu=800" \
             "$P_SRV debug_level=3 mtu=800 dtls=1 cid=1 cid_val=dead" \
@@ -1369,7 +1369,7 @@ run_test    "Connection ID, MTU: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5" \
             "$P_SRV debug_level=3 mtu=800 dtls=1 cid=1 cid_val=dead" \
@@ -1390,7 +1390,7 @@ run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli CID empty" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
             "$P_CLI debug_level=3 dtls=1 cid=1" \
@@ -1410,7 +1410,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli CID empty" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Srv CID empty" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
@@ -1430,7 +1430,7 @@ run_test    "Connection ID: Cli+Srv enabled, Srv CID empty" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1" \
@@ -1448,7 +1448,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty" \
             -S "Use of Connection ID has been negotiated" \
             -C "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -1468,7 +1468,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CCM-8
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -1488,7 +1488,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CCM-8" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -1508,7 +1508,7 @@ run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CCM-8" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -1526,7 +1526,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CCM-8" \
             -S "Use of Connection ID has been negotiated" \
             -C "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -1546,7 +1546,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CBC" 
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -1566,7 +1566,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CBC" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -1586,7 +1586,7 @@ run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CBC" \
             -s "Use of Connection ID has been negotiated" \
             -c "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -1604,7 +1604,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CBC" \
             -S "Use of Connection ID has been negotiated" \
             -C "Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID: Cli+Srv enabled, renegotiate without change of CID" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead renegotiation=1" \
@@ -1619,7 +1619,7 @@ run_test    "Connection ID: Cli+Srv enabled, renegotiate without change of CID" 
             -s "(after renegotiation) Use of Connection ID has been negotiated" \
             -c "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID: Cli+Srv enabled, renegotiate with different CID" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead cid_val_renego=beef renegotiation=1" \
@@ -1634,7 +1634,7 @@ run_test    "Connection ID: Cli+Srv enabled, renegotiate with different CID" \
             -s "(after renegotiation) Use of Connection ID has been negotiated" \
             -c "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, no packing: Cli+Srv enabled, renegotiate with different CID" \
             "$P_SRV debug_level=3 dtls=1 cid=1 dgram_packing=0 cid_val=dead cid_val_renego=beef renegotiation=1" \
@@ -1649,7 +1649,7 @@ run_test    "Connection ID, no packing: Cli+Srv enabled, renegotiate with differ
             -s "(after renegotiation) Use of Connection ID has been negotiated" \
             -c "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate with different CID" \
             -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5" \
@@ -1665,7 +1665,7 @@ run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate with different 
             -s "(after renegotiation) Use of Connection ID has been negotiated" \
             -c "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID: Cli+Srv enabled, renegotiate without CID" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead cid_renego=0 renegotiation=1" \
@@ -1680,7 +1680,7 @@ run_test    "Connection ID: Cli+Srv enabled, renegotiate without CID" \
             -C "(after renegotiation) Use of Connection ID has been negotiated" \
             -S "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, no packing: Cli+Srv enabled, renegotiate without CID" \
             "$P_SRV debug_level=3 dtls=1 dgram_packing=0 cid=1 cid_val=dead cid_renego=0 renegotiation=1" \
@@ -1695,7 +1695,7 @@ run_test    "Connection ID, no packing: Cli+Srv enabled, renegotiate without CID
             -C "(after renegotiation) Use of Connection ID has been negotiated" \
             -S "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate without CID" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -1711,7 +1711,7 @@ run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate without CID" \
             -C "(after renegotiation) Use of Connection ID has been negotiated" \
             -S "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID: Cli+Srv enabled, CID on renegotiation" \
             "$P_SRV debug_level=3 dtls=1 cid=0 cid_renego=1 cid_val_renego=dead renegotiation=1" \
@@ -1724,7 +1724,7 @@ run_test    "Connection ID: Cli+Srv enabled, CID on renegotiation" \
             -c "(after renegotiation) Use of Connection ID has been negotiated" \
             -s "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, no packing: Cli+Srv enabled, CID on renegotiation" \
             "$P_SRV debug_level=3 dtls=1 dgram_packing=0 cid=0 cid_renego=1 cid_val_renego=dead renegotiation=1" \
@@ -1737,7 +1737,7 @@ run_test    "Connection ID, no packing: Cli+Srv enabled, CID on renegotiation" \
             -c "(after renegotiation) Use of Connection ID has been negotiated" \
             -s "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, CID on renegotiation" \
             -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5" \
@@ -1751,7 +1751,7 @@ run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, CID on renegotiation" \
             -c "(after renegotiation) Use of Connection ID has been negotiated" \
             -s "(after renegotiation) Use of Connection ID has been negotiated"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID: Cli+Srv enabled, Cli disables on renegotiation" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead renegotiation=1" \
@@ -1767,7 +1767,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli disables on renegotiation" \
             -S "(after renegotiation) Use of Connection ID has been negotiated" \
             -s "(after renegotiation) Use of Connection ID was not offered by client"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D: Cli+Srv enabled, Cli disables on renegotiation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
@@ -1784,7 +1784,7 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Cli disables on renegotiation" 
             -S "(after renegotiation) Use of Connection ID has been negotiated" \
             -s "(after renegotiation) Use of Connection ID was not offered by client"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID: Cli+Srv enabled, Srv disables on renegotiation" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead cid_renego=0 renegotiation=1" \
@@ -1800,7 +1800,7 @@ run_test    "Connection ID: Cli+Srv enabled, Srv disables on renegotiation" \
             -S "(after renegotiation) Use of Connection ID has been negotiated" \
             -c "(after renegotiation) Use of Connection ID was rejected by the server"
 
-requires_config_enabled MBEDTLS_SSL_CID
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D: Cli+Srv enabled, Srv disables on renegotiation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \

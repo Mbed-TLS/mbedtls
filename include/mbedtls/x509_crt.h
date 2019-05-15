@@ -78,7 +78,7 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
     mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
 
-    mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy supported). */
+    mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
     int ext_types;              /**< Bit string containing detected and parsed extensions */
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
@@ -398,31 +398,31 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
 
 #endif /* MBEDTLS_FS_IO */
 /**
- * \brief          Parses a subject alternative name item
- *                 to an identified structure;
+ * \brief          This function parses an item in the SubjectAlternativeNames
+ *                 extension.
  *
  * \param san_buf  The buffer holding the raw data item of the subject
  *                 alternative name.
  * \param san      The target structure to populate with the parsed presentation
  *                 of the subject alternative name encoded in \p san_raw.
  *
- * \note           Only "dnsName" and "otherName" of type hardware_module_name,
+ * \note           Only "dnsName" and "otherName" of type hardware_module_name
  *                 as defined in RFC 4180 is supported.
  *
  * \note           This function should be called on a single raw data of
  *                 subject alternative name. For example, after successful
  *                 certificate parsing, one must iterate on every item in the
- *                 \p crt->subject_alt_names sequence, and send it as parameter
- *                 to this function.
+ *                 \p crt->subject_alt_names sequence, and pass it to
+ *                 this function.
  *
- * \note           The target structure contains pointers to the raw data of the
+ * \warning        The target structure contains pointers to the raw data of the
  *                 parsed certificate, and its lifetime is restricted by the
  *                 lifetime of the certificate.
  *
  * \return         \c 0 on success
  * \return         #MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE for an unsupported
- *                 SAN type
- * \return         Negative value for any other failure.
+ *                 SAN type.
+ * \return         Another negative value for any other failure.
  */
 int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
                                          mbedtls_x509_subject_alternative_name *san );

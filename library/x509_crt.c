@@ -618,8 +618,8 @@ static int x509_get_ext_key_usage( unsigned char **p,
  *      nameAssigner            [0]     DirectoryString OPTIONAL,
  *      partyName               [1]     DirectoryString }
  *
- * NOTE: we only parse and use dNSName at this point,
- * and otherName of type HwModuleName, as defined in RFC 4108.
+ * NOTE: we list all types, but only use dNSName and otherName
+ * of type HwModuleName, as defined in RFC 4108, at this point.
  */
 static int x509_get_subject_alt_name( unsigned char **p,
                                       const unsigned char *end,

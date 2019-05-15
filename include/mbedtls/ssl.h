@@ -1545,11 +1545,11 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *
  *                    The DTLS CID extension allows the reliable association of
  *                    DTLS records to DTLS connections across changes in the
- *                    underlying transport (changed IP+Port metadata) by adding
- *                    explicit connection identifiers (CIDs) to the headers of
- *                    encrypted DTLS records. The desired CIDs are configured
- *                    by the application layer and are exchanged in new
- *                    `ClientHello` / `ServerHello` extensions during the
+ *                    underlying transport (changed IP and Port metadata) by
+ *                    adding explicit connection identifiers (CIDs) to the
+ *                    headers of encrypted DTLS records. The desired CIDs are
+ *                    configured by the application layer and are exchanged in
+ *                    new `ClientHello` / `ServerHello` extensions during the
  *                    handshake, where each side indicates the CID it wants the
  *                    peer to use when writing encrypted messages. The CIDs are
  *                    put to use once records get encrypted: the stack discards

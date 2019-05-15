@@ -802,22 +802,25 @@ int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
         case MBEDTLS_SSL_TLS_PRF_SSL3:
             tls_prf = ssl3_prf;
         break;
-#endif
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
         case MBEDTLS_SSL_TLS_PRF_TLS1:
             tls_prf = tls1_prf;
         break;
-#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_SSL_TLS_PRF_SHA384:
             tls_prf = tls_prf_sha384;
         break;
-#endif
+#endif /* MBEDTLS_SHA512_C */
 #if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_SSL_TLS_PRF_SHA256:
             tls_prf = tls_prf_sha256;
         break;
-#endif
+#endif /* MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     default:
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }

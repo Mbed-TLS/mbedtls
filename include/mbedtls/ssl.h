@@ -2349,6 +2349,62 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
 #endif /* MBEDTLS_SSL_CLI_C */
 
 /**
+ * \brief          Load serialised session data into a session structure.
+ *                 On client, this can be used for loading saved sessions
+ *                 before resuming them with mbedstls_ssl_set_session().
+ *                 On server, this can be used for alternative implementations
+ *                 of session cache or session tickets.
+ *
+ * \warning        If a peer certificate chain is associated with the session,
+ *                 the serialised state will only contain the peer's
+ *                 end-entity certificate and the result of the chain
+ *                 verification (unless verification was disabled), but not
+ *                 the rest of the chain.
+ *
+ * \see            mbedtls_ssl_session_save()
+ * \see            mbedtls_ssl_set_session()
+ *
+ * \param session  The session structure to be populated. It must have been
+ *                 initialised with mbedtls_ssl_session_init() but not
+ *                 populated yet.
+ * \param buf      The buffer holding the serialised session data. It must be a
+ *                 readable buffer of at least \p len bytes.
+ * \param len      The size of the serialised data in bytes.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed.
+ * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if input data is invalid.
+ */
+int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
+                              const unsigned char *buf,
+                              size_t len );
+
+/**
+ * \brief          Save session structure as serialised data in a buffer.
+ *                 On client, this can be used for saving session data,
+ *                 potentially in non-volatile storage, for resuming later.
+ *                 On server, this can be used for alternative implementations
+ *                 of session cache or session tickets.
+ *
+ * \see            mbedtls_ssl_session_load()
+ * \see            mbedtls_ssl_get_session()
+ *
+ * \param session  The session structure to be saved.
+ * \param buf      The buffer to write the serialized data to. It must be a
+ *                 writeable buffer of at least \p len bytes.
+ * \param buf_len  The number of bytes available for writing in \p buf.
+ * \param olen     The size of the written data in bytes. It must point to a
+ *                 valid \c size_t.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
+ */
+int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
+                              unsigned char *buf,
+                              size_t buf_len,
+                              size_t *olen );
+
+/**
  * \brief               Set the list of allowed ciphersuites and the preference
  *                      order. First in the list has the highest preference.
  *                      (Overrides all version-specific lists)

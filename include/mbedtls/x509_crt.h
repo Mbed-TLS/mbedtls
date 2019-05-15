@@ -410,10 +410,14 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
  *                 as defined in RFC 4180 is supported.
  *
  * \note           This function should be called on a single raw data of
- *                 subject alternative name. For example, after successfult
+ *                 subject alternative name. For example, after successful
  *                 certificate parsing, one must iterate on every item in the
  *                 \p crt->subject_alt_names sequence, and send it as parameter
  *                 to this function.
+ *
+ * \note           The target structure contains pointers to the raw data of the
+ *                 parsed certificate, and its lifetime is restricted by the
+ *                 lifetime of the certificate.
  *
  * \return         \c 0 on success
  * \return         #MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE for an unsupported

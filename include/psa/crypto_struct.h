@@ -279,14 +279,6 @@ static inline struct psa_key_attributes_s psa_key_attributes_init( void )
     return( v );
 }
 
-static inline void psa_make_key_persistent(psa_key_attributes_t *attributes,
-                                           psa_key_id_t id,
-                                           psa_key_lifetime_t lifetime)
-{
-    attributes->id = id;
-    attributes->lifetime = lifetime;
-}
-
 static inline void psa_set_key_id(psa_key_attributes_t *attributes,
                                   psa_key_id_t id)
 {

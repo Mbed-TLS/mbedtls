@@ -264,7 +264,7 @@
  * Maximum length of CIDs for incoming and outgoing messages.
  */
 #if !defined(MBEDTLS_SSL_CID_IN_LEN_MAX)
-#define MBEDTLS_SSL_CID_IN_LEN_MAX         32
+#define MBEDTLS_SSL_CID_IN_LEN_MAX          32
 #endif
 
 #if !defined(MBEDTLS_SSL_CID_OUT_LEN_MAX)

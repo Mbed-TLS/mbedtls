@@ -682,7 +682,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  * \retval #PSA_SUCCESS
  *         The key material has been erased.
  * \retval #PSA_ERROR_NOT_PERMITTED
- *         The handle holds content and cannot be erased because it is
+ *         The key cannot be erased because it is
  *         read-only, either due to a policy or due to physical restrictions.
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -874,8 +874,7 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * to another, since it populates a key using the material from
  * another key which may have a different lifetime.
  *
- * In an implementation where handles have different ownerships,
- * this function may be used to share a key with a different party,
+ * This function may be used to share a key with a different party,
  * subject to implementation-defined restrictions on key sharing.
  *
  * The policy on the source key must have the usage flag

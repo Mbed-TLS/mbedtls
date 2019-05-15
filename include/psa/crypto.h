@@ -3068,9 +3068,9 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  * The generator's capacity is decreased by the number of bytes read.
  *
  * \param[in] attributes    The attributes for the new key.
+ * \param[in,out] generator The generator object to read from.
  * \param[out] handle       On success, a handle to the newly created key.
  *                          \c 0 on failure.
- * \param[in,out] generator The generator object to read from.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -3099,8 +3099,8 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *         results in this error code.
  */
 psa_status_t psa_generate_derived_key(const psa_key_attributes_t *attributes,
-                                      psa_key_handle_t *handle,
-                                      psa_crypto_generator_t *generator);
+                                      psa_crypto_generator_t *generator,
+                                      psa_key_handle_t *handle);
 
 /** Abort a generator.
  *

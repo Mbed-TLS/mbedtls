@@ -4409,8 +4409,8 @@ exit:
 }
 
 psa_status_t psa_generate_derived_key( const psa_key_attributes_t *attributes,
-                                       psa_key_handle_t *handle,
-                                       psa_crypto_generator_t *generator )
+                                       psa_crypto_generator_t *generator,
+                                       psa_key_handle_t *handle )
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;

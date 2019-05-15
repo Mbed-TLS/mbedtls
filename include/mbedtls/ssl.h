@@ -1463,7 +1463,7 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                    Reference:
  *                    https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04
  *
- *                    The DTLS CID extension allows to reliably associate
+ *                    The DTLS CID extension allows the reliable association of
  *                    DTLS records to DTLS connections across changes in the
  *                    underlying transport (changed IP+Port metadata) by adding
  *                    explicit connection identifiers (CIDs) to the headers of

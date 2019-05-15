@@ -1205,6 +1205,29 @@ void attributes_set_get( int id_arg, int lifetime_arg,
 /* END_CASE */
 
 /* BEGIN_CASE */
+void persistence_attributes( int id1_arg, int lifetime_arg, int id2_arg,
+                             int expected_id_arg, int expected_lifetime_arg )
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_id_t id1 = id1_arg;
+    psa_key_lifetime_t lifetime = lifetime_arg;
+    psa_key_id_t id2 = id2_arg;
+    psa_key_id_t expected_id = expected_id_arg;
+    psa_key_lifetime_t expected_lifetime = expected_lifetime_arg;
+
+    if( id1_arg != -1 )
+        psa_set_key_id( &attributes, id1 );
+    if( lifetime_arg != -1 )
+        psa_set_key_lifetime( &attributes, lifetime );
+    if( id2_arg != -1 )
+        psa_set_key_id( &attributes, id2 );
+
+    TEST_EQUAL( psa_get_key_id( &attributes ), expected_id );
+    TEST_EQUAL( psa_get_key_lifetime( &attributes ), expected_lifetime );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void import( data_t *data, int type_arg,
              int attr_bits_arg,
              int expected_status_arg )

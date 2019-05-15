@@ -16,12 +16,22 @@ if grep --version|head -n1|grep GNU >/dev/null; then :; else
     exit 1
 fi
 
+trace=
+if [ $# -ne 0 ] && [ "$1" = "-v" ]; then
+  shift
+  trace='-x'
+  exec 2>check-names.err
+  trap 'echo "FAILED UNEXPECTEDLY, status=$?";
+        cat check-names.err' EXIT
+  set -x
+fi
+
 printf "Analysing source code...\n"
 
-tests/scripts/list-macros.sh
+sh $trace tests/scripts/list-macros.sh
 tests/scripts/list-enum-consts.pl
-tests/scripts/list-identifiers.sh
-tests/scripts/list-symbols.sh
+sh $trace tests/scripts/list-identifiers.sh
+sh $trace tests/scripts/list-symbols.sh
 
 FAIL=0
 
@@ -80,6 +90,12 @@ else
     echo "FAIL"
     echo "$TYPOS"
     FAIL=1
+fi
+
+if [ -n "$trace" ]; then
+  set +x
+  trap - EXIT
+  rm check-names.err
 fi
 
 printf "\nOverall: "

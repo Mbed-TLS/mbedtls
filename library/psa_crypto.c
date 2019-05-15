@@ -3300,7 +3300,7 @@ psa_status_t psa_cipher_decrypt_setup( psa_cipher_operation_t *operation,
 }
 
 psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
-                                     unsigned char *iv,
+                                     uint8_t *iv,
                                      size_t iv_size,
                                      size_t *iv_length )
 {
@@ -3333,7 +3333,7 @@ exit:
 }
 
 psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
-                                const unsigned char *iv,
+                                const uint8_t *iv,
                                 size_t iv_length )
 {
     psa_status_t status;
@@ -3360,7 +3360,7 @@ exit:
 psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
                                 const uint8_t *input,
                                 size_t input_length,
-                                unsigned char *output,
+                                uint8_t *output,
                                 size_t output_size,
                                 size_t *output_length )
 {

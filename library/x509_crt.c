@@ -1016,9 +1016,9 @@ static int x509_get_crt_ext( unsigned char **p,
                 else
 #endif
                 /*
-                 * If MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE is returned, the we cannot
-                 * interpret or enforce the policy. However, it is up to the user
-                 * to choose how to enforce the policies,
+                 * If MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE is returned, then we
+                 * cannot interpret or enforce the policy. However, it is up to
+                 * the user to choose how to enforce the policies,
                  * unless the extension is critical.
                  */
                 if( ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
@@ -1737,7 +1737,6 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
                                                     *subject_alt_name,
                                        const char *prefix )
 {
-    size_t i;
     int ret;
     size_t n = *size;
     char *p = *buf;
@@ -1770,7 +1769,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
             /*
              * otherName
              */
-            case( MBEDTLS_X509_SAN_OTHER_NAME ):
+            case MBEDTLS_X509_SAN_OTHER_NAME:
             {
                 mbedtls_x509_san_other_name *other_name = &san.san.other_name;
 
@@ -1797,10 +1796,10 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
                         return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
                     }
 
-                    for( i = 0; i < other_name->value.hardware_module_name.val.len; i++ )
-                    {
-                        *p++ = other_name->value.hardware_module_name.val.p[i];
-                    }
+                    memcpy( p, other_name->value.hardware_module_name.val.p,
+                            other_name->value.hardware_module_name.val.len );
+                    p += other_name->value.hardware_module_name.val.len;
+
                     n -= other_name->value.hardware_module_name.val.len;
 
                 }/* MBEDTLS_OID_ON_HW_MODULE_NAME */
@@ -1810,7 +1809,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
             /*
              * dNSName
              */
-            case( MBEDTLS_X509_SAN_DNS_NAME ):
+            case MBEDTLS_X509_SAN_DNS_NAME:
             {
                 ret = mbedtls_snprintf( p, n, "\n%s    dNSName : ", prefix );
                 MBEDTLS_X509_SAFE_SNPRINTF;
@@ -1819,9 +1818,10 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
                     *p = '\0';
                     return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
                 }
+
+                memcpy( p, san.san.unstructured_name.p, san.san.unstructured_name.len );
+                p += san.san.unstructured_name.len;
                 n -= san.san.unstructured_name.len;
-                for( i = 0; i < san.san.unstructured_name.len; i++ )
-                    *p++ = san.san.unstructured_name.p[i];
             }
             break;
 

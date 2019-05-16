@@ -8781,12 +8781,81 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
  * and structure of the ticket.
  */
 
+/*
+ * Define bitflag determining structure of mbedtls_ssl_session.
+ */
+
+#if defined(MBEDTLS_HAVE_TIME)
+#define SSL_SERIALIZED_SESSION_STRUCT_TIME_BIT 1
+#else
+#define SSL_SERIALIZED_SESSION_STRUCT_TIME_BIT 0
+#endif /* MBEDTLS_HAVE_TIME */
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#define SSL_SERIALIZED_SESSION_STRUCT_CRT_BIT 1
+#else
+#define SSL_SERIALIZED_SESSION_STRUCT_CRT_BIT 0
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+#define SSL_SERIALIZED_SESSION_STRUCT_CLIENT_BIT 1
+#else
+#define SSL_SERIALIZED_SESSION_STRUCT_CLIENT_BIT 0
+#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+#define SSL_SERIALIZED_SESSION_STRUCT_MFL_BIT 1
+#else
+#define SSL_SERIALIZED_SESSION_STRUCT_MFL_BIT 0
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+#define SSL_SERIALIZED_SESSION_STRUCT_TRUNC_HMAC_BIT 1
+#else
+#define SSL_SERIALIZED_SESSION_STRUCT_TRUNC_HMAC_BIT 0
+#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+#define SSL_SERIALIZED_SESSION_STRUCT_ETM_BIT 1
+#else
+#define SSL_SERIALIZED_SESSION_STRUCT_ETM_BIT 0
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
+
+#define SSL_SERIALIZED_SESSION_STRUCT_BYTE                                 \
+    ( (uint8_t) ( ( SSL_SERIALIZED_SESSION_STRUCT_TIME_BIT       << 0 )    | \
+                  ( SSL_SERIALIZED_SESSION_STRUCT_CRT_BIT        << 1 )    | \
+                  ( SSL_SERIALIZED_SESSION_STRUCT_CLIENT_BIT     << 2 )    | \
+                  ( SSL_SERIALIZED_SESSION_STRUCT_MFL_BIT        << 3 )    | \
+                  ( SSL_SERIALIZED_SESSION_STRUCT_TRUNC_HMAC_BIT << 4 )    | \
+                  ( SSL_SERIALIZED_SESSION_STRUCT_ETM_BIT        << 5 ) ) )
+
+/*
+ * Define bitflag determining compile-time settings influencing
+ * structure of the ticket outside of the session structure.
+ */
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#define SSL_SERIALIZED_SESSION_CONFIG_CRT 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_CRT 0
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#define SSL_SERIALIZED_SESSION_CONFIG_TICKET 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_TICKET 0
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#define SSL_SERIALIZED_SESSION_CONFIG_BYTE                               \
+    ( (uint8_t) ( ( SSL_SERIALIZED_SESSION_CONFIG_CRT    << 0 )        | \
+                  ( SSL_SERIALIZED_SESSION_CONFIG_TICKET << 1 ) ) )
+
 static unsigned char ssl_serialized_session_header[] = {
-   MBEDTLS_VERSION_MAJOR,
-   MBEDTLS_VERSION_MINOR,
-   MBEDTLS_VERSION_PATCH,
-   0xFF /* TBD */,
-   0xFF /* TBD */
+    MBEDTLS_VERSION_MAJOR,
+    MBEDTLS_VERSION_MINOR,
+    MBEDTLS_VERSION_PATCH,
+    SSL_SERIALIZED_SESSION_STRUCT_BYTE,
+    SSL_SERIALIZED_SESSION_CONFIG_BYTE
 };
 
 /*
@@ -8800,7 +8869,22 @@ static unsigned char ssl_serialized_session_header[] = {
  *                                  // indicating the setting of those compile-
  *                                  // time configuration options influencing
  *                                  // the format of the serialized data.
- *                                  // Unused so far.
+ *                                  //
+ *                                  // In this version, we use:
+ *                                  // - Bits 8-15 (second byte)
+ *                                  //   Bitflag determining structure of
+ *                                  //   mbedtls_ssl_session
+ *                                  // - Bit 0:
+ *                                  //   0/1 depending on state of
+ *                                  //   MBEDTLS_X509_CRT_PARSE_C.
+ *                                  //   This determines whether the session
+ *                                  //   is followed by a certificate.
+ *                                  // - Bit 1:
+ *                                  //   0/1 depending on state of
+ *                                  //   MBEDTLS_SSL_SESSION_TICKETS
+ *                                  //   This determines whether the certificate
+ *                                  //   is followed by a session ticket.
+ *                                  // - Bits 2-7: Unused so far
  *  uint64 start_time;
  *  uint8 ciphersuite[2];           // defined by the standard
  *  uint8 compression;              // 0 or 1

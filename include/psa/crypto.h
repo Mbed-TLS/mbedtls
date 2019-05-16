@@ -132,7 +132,8 @@ psa_status_t psa_crypto_init(void);
  * psa_reset_key_attributes() on an attribute structure is optional if
  * the structure has only been modified by the following functions
  * since it was initialized or last reset with psa_reset_key_attributes():
- * - psa_make_key_persistent()
+ * - psa_set_key_id()
+ * - psa_set_key_lifetime()
  * - psa_set_key_type()
  * - psa_set_key_bits()
  * - psa_set_key_usage_flags()
@@ -173,7 +174,9 @@ psa_status_t psa_crypto_init(void);
  *
  * A typical sequence to create a key is as follows:
  * -# Create and initialize an attribute structure.
- * -# If the key is persistent, call psa_make_key_persistent().
+ * -# If the key is persistent, call psa_set_key_id().
+ *    Also call psa_set_key_lifetime() to place the key in a non-default
+ *    location.
  * -# Set the key policy with psa_set_key_usage_flags() and
  *    psa_set_key_algorithm().
  * -# Set the key type with psa_set_key_type(). If the key type requires
@@ -203,16 +206,18 @@ psa_status_t psa_crypto_init(void);
  */
 typedef struct psa_key_attributes_s psa_key_attributes_t;
 
-/** Declare a key as persistent.
+/** Declare a key as persistent and set its key identifier.
  *
- * This function does not access storage, it merely fills the attribute
- * structure with given values. The persistent key will be written to
- * storage when the attribute structure is passed to a key creation
- * function such as psa_import_key(), psa_generate_random_key(),
+ * If the attribute structure currently declares the key as volatile (which
+ * is the default content of an attribute structure), this function sets
+ * the lifetime attribute to #PSA_KEY_LIFETIME_PERSISTENT.
+ *
+ * This function does not access storage, it merely stores the given
+ * value in the structure.
+ * The persistent key will be written to storage when the attribute
+ * structure is passed to a key creation function such as
+ * psa_import_key(), psa_generate_random_key(),
  * psa_generate_derived_key() or psa_copy_key().
- *
- * This function overwrites any identifier and lifetime values
- * previously set in \p attributes.
  *
  * This function may be declared as `static` (i.e. without external
  * linkage). This function may be provided as a function-like macro,
@@ -220,13 +225,37 @@ typedef struct psa_key_attributes_s psa_key_attributes_t;
  *
  * \param[out] attributes       The attribute structure to write to.
  * \param id                    The persistent identifier for the key.
+ */
+static void psa_set_key_id(psa_key_attributes_t *attributes,
+                           psa_key_id_t id);
+
+/** Set the location of a persistent key.
+ *
+ * To make a key persistent, you must give it a persistent key identifier
+ * with psa_set_key_id(). By default, a key that has a persistent identifier
+ * is stored in the default storage area identifier by
+ * #PSA_KEY_LIFETIME_PERSISTENT. Call this function to choose a storage
+ * area, or to explicitly declare the key as volatile.
+ *
+ * This function does not access storage, it merely stores the given
+ * value in the structure.
+ * The persistent key will be written to storage when the attribute
+ * structure is passed to a key creation function such as
+ * psa_import_key(), psa_generate_random_key(),
+ * psa_generate_derived_key() or psa_copy_key().
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate each of its arguments exactly once.
+ *
+ * \param[out] attributes       The attribute structure to write to.
  * \param lifetime              The lifetime for the key.
  *                              If this is #PSA_KEY_LIFETIME_VOLATILE, the
- *                              key will be volatile, and \p id is ignored.
+ *                              key will be volatile, and the key identifier
+ *                              attribute is reset to 0.
  */
-static void psa_make_key_persistent(psa_key_attributes_t *attributes,
-                                    psa_key_id_t id,
-                                    psa_key_lifetime_t lifetime);
+static void psa_set_key_lifetime(psa_key_attributes_t *attributes,
+                                 psa_key_lifetime_t lifetime);
 
 /** Retrieve the key identifier from key attributes.
  *

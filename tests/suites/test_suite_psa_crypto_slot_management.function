@@ -143,7 +143,8 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Get a handle and import a key. */
-    psa_make_key_persistent( &attributes, id, lifetime );
+    psa_set_key_id( &attributes, id );
+    psa_set_key_lifetime( &attributes, lifetime );
     psa_set_key_type( &attributes, type );
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
@@ -221,7 +222,8 @@ void create_existent( int lifetime_arg, int id_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Create a key. */
-    psa_make_key_persistent( &attributes, id, lifetime );
+    psa_set_key_id( &attributes, id );
+    psa_set_key_lifetime( &attributes, lifetime );
     psa_set_key_type( &attributes, type1 );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &attributes, 0 );
@@ -298,7 +300,8 @@ void create_fail( int lifetime_arg, int id_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    psa_make_key_persistent( &attributes, id, lifetime );
+    psa_set_key_id( &attributes, id );
+    psa_set_key_lifetime( &attributes, lifetime );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
     TEST_EQUAL( psa_import_key( &attributes, material, sizeof( material ),
                                 &handle ),
@@ -345,8 +348,10 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
 
     /* Populate the source slot. */
     if( source_lifetime != PSA_KEY_LIFETIME_VOLATILE )
-        psa_make_key_persistent( &source_attributes,
-                                 source_id, source_lifetime );
+    {
+        psa_set_key_id( &source_attributes, source_id );
+        psa_set_key_lifetime( &source_attributes, source_lifetime );
+    }
     psa_set_key_type( &source_attributes, source_type );
     psa_set_key_usage_flags( &source_attributes, source_usage );
     psa_set_key_algorithm( &source_attributes, source_alg );
@@ -358,8 +363,10 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
 
     /* Prepare the target slot. */
     if( target_lifetime != PSA_KEY_LIFETIME_VOLATILE )
-        psa_make_key_persistent( &target_attributes,
-                                 target_id, target_lifetime );
+    {
+        psa_set_key_id( &target_attributes, target_id );
+        psa_set_key_lifetime( &target_attributes, target_lifetime );
+    }
     psa_set_key_usage_flags( &target_attributes, target_usage );
     psa_set_key_algorithm( &target_attributes, target_alg );
 
@@ -449,8 +456,10 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
 
     /* Populate the source slot. */
     if( source_lifetime != PSA_KEY_LIFETIME_VOLATILE )
-        psa_make_key_persistent( &attributes,
-                                 source_id, source_lifetime );
+    {
+        psa_set_key_id( &attributes, source_id );
+        psa_set_key_lifetime( &attributes, source_lifetime );
+    }
     psa_set_key_type( &attributes, source_type );
     psa_set_key_usage_flags( &attributes, source_usage );
     psa_set_key_algorithm( &attributes, source_alg );
@@ -465,7 +474,8 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
     }
     else
     {
-        psa_make_key_persistent( &attributes1, target_id, target_lifetime );
+        psa_set_key_id( &attributes1, target_id );
+        psa_set_key_lifetime( &attributes1, target_lifetime );
         psa_set_key_type( &attributes1, target_type );
         psa_set_key_usage_flags( &attributes1, target_usage );
         psa_set_key_algorithm( &attributes1, target_alg );
@@ -476,7 +486,8 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
     PSA_ASSERT( psa_get_key_attributes( target_handle, &attributes1 ) );
 
     /* Make a copy attempt. */
-    psa_make_key_persistent( &attributes, target_id, target_lifetime );
+    psa_set_key_id( &attributes, target_id );
+    psa_set_key_lifetime( &attributes, target_lifetime );
     TEST_EQUAL( psa_copy_key( source_handle,
                               &attributes, &new_handle ),
                 PSA_ERROR_ALREADY_EXISTS );

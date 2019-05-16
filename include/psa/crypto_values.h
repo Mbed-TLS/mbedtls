@@ -672,10 +672,8 @@
  * Then you may create and use a key as follows:
  * - Set the key usage field using #PSA_ALG_ANY_HASH, for example:
  *   ```
- *   psa_key_policy_set_usage(&policy,
- *                            PSA_KEY_USAGE_SIGN, //or PSA_KEY_USAGE_VERIFY
- *                            PSA_xxx_SIGNATURE(PSA_ALG_ANY_HASH));
- *   psa_set_key_policy(handle, &policy);
+ *   psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN); // or VERIFY
+ *   psa_set_key_algorithm(&attributes, PSA_xxx_SIGNATURE(PSA_ALG_ANY_HASH));
  *   ```
  * - Import or generate key material.
  * - Call psa_asymmetric_sign() or psa_asymmetric_verify(), passing

@@ -279,18 +279,26 @@ static inline struct psa_key_attributes_s psa_key_attributes_init( void )
     return( v );
 }
 
-static inline void psa_make_key_persistent(psa_key_attributes_t *attributes,
-                                           psa_key_id_t id,
-                                           psa_key_lifetime_t lifetime)
+static inline void psa_set_key_id(psa_key_attributes_t *attributes,
+                                  psa_key_id_t id)
 {
     attributes->id = id;
-    attributes->lifetime = lifetime;
+    if( attributes->lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        attributes->lifetime = PSA_KEY_LIFETIME_PERSISTENT;
 }
 
 static inline psa_key_id_t psa_get_key_id(
     const psa_key_attributes_t *attributes)
 {
     return( attributes->id );
+}
+
+static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
+                                        psa_key_lifetime_t lifetime)
+{
+    attributes->lifetime = lifetime;
+    if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        attributes->id = 0;
 }
 
 static inline psa_key_lifetime_t psa_get_key_lifetime(

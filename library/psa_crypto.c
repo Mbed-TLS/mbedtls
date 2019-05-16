@@ -4572,13 +4572,13 @@ exit:
  * to potentially free embedded data structures and wipe confidential data.
  */
 static psa_status_t psa_key_derivation_hkdf_setup( psa_hkdf_key_derivation_t *hkdf,
-                                              const uint8_t *secret,
-                                              size_t secret_length,
-                                              psa_algorithm_t hash_alg,
-                                              const uint8_t *salt,
-                                              size_t salt_length,
-                                              const uint8_t *label,
-                                              size_t label_length )
+                                                   const uint8_t *secret,
+                                                   size_t secret_length,
+                                                   psa_algorithm_t hash_alg,
+                                                   const uint8_t *salt,
+                                                   size_t salt_length,
+                                                   const uint8_t *label,
+                                                   size_t label_length )
 {
     psa_status_t status;
     status = psa_hmac_setup_internal( &hkdf->hmac,
@@ -4637,7 +4637,7 @@ static psa_status_t psa_key_derivation_tls12_prf_setup(
     memcpy( tls12_prf->key, key, key_len );
 
     overflow = ( salt_length + label_length               < salt_length ) ||
-               ( salt_length + label_length + hash_length < hash_length );
+        ( salt_length + label_length + hash_length < hash_length );
     if( overflow )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -4700,10 +4700,10 @@ static psa_status_t psa_key_derivation_tls12_psk_to_ms_setup(
     memcpy( pms + 4 + psk_len, psk, psk_len );
 
     status = psa_key_derivation_tls12_prf_setup( tls12_prf,
-                                            pms, 4 + 2 * psk_len,
-                                            hash_alg,
-                                            salt, salt_length,
-                                            label, label_length );
+                                                 pms, 4 + 2 * psk_len,
+                                                 hash_alg,
+                                                 salt, salt_length,
+                                                 label, label_length );
 
     mbedtls_platform_zeroize( pms, sizeof( pms ) );
     return( status );
@@ -4753,10 +4753,10 @@ static psa_status_t psa_key_derivation_internal(
             return( PSA_ERROR_NOT_SUPPORTED );
         max_capacity = 255 * hash_size;
         status = psa_key_derivation_hkdf_setup( &operation->ctx.hkdf,
-                                           secret, secret_length,
-                                           hash_alg,
-                                           salt, salt_length,
-                                           label, label_length );
+                                                secret, secret_length,
+                                                hash_alg,
+                                                salt, salt_length,
+                                                label, label_length );
     }
     /* TLS-1.2 PRF and TLS-1.2 PSK-to-MS are very similar, so share code. */
     else if( PSA_ALG_IS_TLS12_PRF( alg ) ||
@@ -4777,9 +4777,9 @@ static psa_status_t psa_key_derivation_internal(
         if( PSA_ALG_IS_TLS12_PRF( alg ) )
         {
             status = psa_key_derivation_tls12_prf_setup( &operation->ctx.tls12_prf,
-                                                    secret, secret_length,
-                                                    hash_alg, salt, salt_length,
-                                                    label, label_length );
+                                                         secret, secret_length,
+                                                         hash_alg, salt, salt_length,
+                                                         label, label_length );
         }
         else
         {
@@ -5003,9 +5003,9 @@ static psa_status_t psa_key_derivation_input_raw(
     else
 #endif /* MBEDTLS_MD_C */
 #if defined(MBEDTLS_MD_C)
-    /* TLS-1.2 PRF and TLS-1.2 PSK-to-MS are very similar, so share code. */
+        /* TLS-1.2 PRF and TLS-1.2 PSK-to-MS are very similar, so share code. */
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
-             PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
+        PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
         // To do: implement this
         status = PSA_ERROR_NOT_SUPPORTED;
@@ -5184,10 +5184,10 @@ exit:
 }
 
 psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *operation,
-                                psa_key_derivation_step_t step,
-                                psa_key_handle_t private_key,
-                                const uint8_t *peer_key,
-                                size_t peer_key_length )
+                                               psa_key_derivation_step_t step,
+                                               psa_key_handle_t private_key,
+                                               const uint8_t *peer_key,
+                                               size_t peer_key_length )
 {
     psa_key_slot_t *slot;
     psa_status_t status;

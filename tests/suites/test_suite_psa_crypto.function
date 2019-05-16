@@ -559,8 +559,8 @@ static int exercise_key_derivation_key( psa_key_handle_t handle,
                                             sizeof( output ) ) );
         }
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
-                                        output,
-                                        sizeof( output ) ) );
+                                                     output,
+                                                     sizeof( output ) ) );
         PSA_ASSERT( psa_key_derivation_abort( &operation ) );
     }
 
@@ -572,8 +572,9 @@ exit:
 
 /* We need two keys to exercise key agreement. Exercise the
  * private key against its own public key. */
-static psa_status_t key_agreement_with_self( psa_key_derivation_operation_t *operation,
-                                             psa_key_handle_t handle )
+static psa_status_t key_agreement_with_self(
+    psa_key_derivation_operation_t *operation,
+    psa_key_handle_t handle )
 {
     psa_key_type_t private_key_type;
     psa_key_type_t public_key_type;
@@ -581,8 +582,8 @@ static psa_status_t key_agreement_with_self( psa_key_derivation_operation_t *ope
     uint8_t *public_key = NULL;
     size_t public_key_length;
     /* Return GENERIC_ERROR if something other than the final call to
-     * psa_key_derivation_key_agreement fails. This isn't fully satisfactory, but it's
-     * good enough: callers will report it as a failed test anyway. */
+     * psa_key_derivation_key_agreement fails. This isn't fully satisfactory,
+     * but it's good enough: callers will report it as a failed test anyway. */
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -596,8 +597,9 @@ static psa_status_t key_agreement_with_self( psa_key_derivation_operation_t *ope
                                        public_key, public_key_length,
                                        &public_key_length ) );
 
-    status = psa_key_derivation_key_agreement( operation, PSA_KEY_DERIVATION_INPUT_SECRET, handle,
-                                public_key, public_key_length );
+    status = psa_key_derivation_key_agreement(
+        operation, PSA_KEY_DERIVATION_INPUT_SECRET, handle,
+        public_key, public_key_length );
 exit:
     mbedtls_free( public_key );
     psa_reset_key_attributes( &attributes );
@@ -617,8 +619,8 @@ static psa_status_t raw_key_agreement_with_self( psa_algorithm_t alg,
     uint8_t output[1024];
     size_t output_length;
     /* Return GENERIC_ERROR if something other than the final call to
-     * psa_key_derivation_key_agreement fails. This isn't fully satisfactory, but it's
-     * good enough: callers will report it as a failed test anyway. */
+     * psa_key_derivation_key_agreement fails. This isn't fully satisfactory,
+     * but it's good enough: callers will report it as a failed test anyway. */
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
@@ -675,8 +677,8 @@ static int exercise_key_agreement_key( psa_key_handle_t handle,
         PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
         PSA_ASSERT( key_agreement_with_self( &operation, handle ) );
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
-                                        output,
-                                        sizeof( output ) ) );
+                                                     output,
+                                                     sizeof( output ) ) );
         PSA_ASSERT( psa_key_derivation_abort( &operation ) );
     }
     ok = 1;
@@ -2488,7 +2490,7 @@ void mac_bad_order( )
 
     /* Call update after verify finish. */
     PSA_ASSERT( psa_mac_verify_setup( &operation,
-                                    handle, alg ) );
+                                      handle, alg ) );
     PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
     PSA_ASSERT( psa_mac_verify_finish( &operation,
                                        verify_mac, sizeof( verify_mac ) ) );
@@ -2511,7 +2513,7 @@ void mac_bad_order( )
 
     /* Call verify finish twice in a row. */
     PSA_ASSERT( psa_mac_verify_setup( &operation,
-                                    handle, alg ) );
+                                      handle, alg ) );
     PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
     PSA_ASSERT( psa_mac_verify_finish( &operation,
                                        verify_mac, sizeof( verify_mac ) ) );
@@ -2531,7 +2533,7 @@ void mac_bad_order( )
 
     /* Setup verify but try sign. */
     PSA_ASSERT( psa_mac_verify_setup( &operation,
-                                    handle, alg ) );
+                                      handle, alg ) );
     PSA_ASSERT( psa_mac_update( &operation, input, sizeof( input ) ) );
     TEST_EQUAL( psa_mac_sign_finish( &operation,
                                      sign_mac, sizeof( sign_mac ),
@@ -4120,7 +4122,8 @@ void test_derive_invalid_key_derivation_tests( )
     size_t capacity = 0;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
 
-    TEST_ASSERT( psa_key_derivation_output_bytes( &operation, output_buffer, buffer_size )
+    TEST_ASSERT( psa_key_derivation_output_bytes( &operation,
+                                                  output_buffer, buffer_size )
                  == PSA_ERROR_BAD_STATE );
 
     TEST_ASSERT( psa_key_derivation_get_capacity( &operation, &capacity )
@@ -4128,7 +4131,8 @@ void test_derive_invalid_key_derivation_tests( )
 
     PSA_ASSERT( psa_key_derivation_abort( &operation ) );
 
-    TEST_ASSERT( psa_key_derivation_output_bytes( &operation, output_buffer, buffer_size )
+    TEST_ASSERT( psa_key_derivation_output_bytes( &operation,
+                                                  output_buffer, buffer_size )
                  == PSA_ERROR_BAD_STATE );
 
     TEST_ASSERT( psa_key_derivation_get_capacity( &operation, &capacity )
@@ -4186,7 +4190,7 @@ void derive_output( int alg_arg,
     {
         PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
         PSA_ASSERT( psa_key_derivation_set_capacity( &operation,
-                                                requested_capacity ) );
+                                                     requested_capacity ) );
         PSA_ASSERT( psa_key_derivation_input_bytes( &operation,
                                                     PSA_KEY_DERIVATION_INPUT_SALT,
                                                     salt->x, salt->len ) );
@@ -4206,7 +4210,7 @@ void derive_output( int alg_arg,
                                         requested_capacity ) );
     }
     PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
-                                            &current_capacity ) );
+                                                 &current_capacity ) );
     TEST_EQUAL( current_capacity, requested_capacity );
     expected_capacity = requested_capacity;
 
@@ -4215,7 +4219,7 @@ void derive_output( int alg_arg,
     {
         /* Read some bytes. */
         status = psa_key_derivation_output_bytes( &operation,
-                                     output_buffer, output_sizes[i] );
+                                                  output_buffer, output_sizes[i] );
         if( expected_capacity == 0 && output_sizes[i] == 0 )
         {
             /* Reading 0 bytes when 0 bytes are available can go either way. */
@@ -4239,7 +4243,7 @@ void derive_output( int alg_arg,
         /* Check the operation status. */
         expected_capacity -= output_sizes[i];
         PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
-                                                &current_capacity ) );
+                                                     &current_capacity ) );
         TEST_EQUAL( expected_capacity, current_capacity );
     }
     PSA_ASSERT( psa_key_derivation_abort( &operation ) );
@@ -4282,7 +4286,7 @@ void derive_full( int alg_arg,
     {
         PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
         PSA_ASSERT( psa_key_derivation_set_capacity( &operation,
-                                                requested_capacity ) );
+                                                     requested_capacity ) );
         PSA_ASSERT( psa_key_derivation_input_bytes( &operation,
                                                     PSA_KEY_DERIVATION_INPUT_SALT,
                                                     salt->x, salt->len ) );
@@ -4302,7 +4306,7 @@ void derive_full( int alg_arg,
                                         requested_capacity ) );
     }
     PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
-                                            &current_capacity ) );
+                                                 &current_capacity ) );
     TEST_EQUAL( current_capacity, expected_capacity );
 
     /* Expansion phase. */
@@ -4312,11 +4316,11 @@ void derive_full( int alg_arg,
         if( read_size > current_capacity )
             read_size = current_capacity;
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
-                                        output_buffer,
-                                        read_size ) );
+                                                     output_buffer,
+                                                     read_size ) );
         expected_capacity -= read_size;
         PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
-                                                &current_capacity ) );
+                                                     &current_capacity ) );
         TEST_EQUAL( current_capacity, expected_capacity );
     }
 
@@ -4373,7 +4377,7 @@ void derive_key_exercise( int alg_arg,
     psa_set_key_type( &attributes, derived_type );
     psa_set_key_bits( &attributes, derived_bits );
     PSA_ASSERT( psa_key_derivation_output_key( &attributes, &operation,
-                                          &derived_handle ) );
+                                               &derived_handle ) );
 
     /* Test the key information */
     PSA_ASSERT( psa_get_key_attributes( derived_handle, &got_attributes ) );
@@ -4430,8 +4434,8 @@ void derive_key_export( int alg_arg,
                                     label->x, label->len,
                                     capacity ) );
     PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
-                                    output_buffer,
-                                    capacity ) );
+                                                 output_buffer,
+                                                 capacity ) );
     PSA_ASSERT( psa_key_derivation_abort( &operation ) );
 
     /* Derive the same output again, but this time store it in key objects. */
@@ -4444,7 +4448,7 @@ void derive_key_export( int alg_arg,
     psa_set_key_type( &derived_attributes, PSA_KEY_TYPE_RAW_DATA );
     psa_set_key_bits( &derived_attributes, PSA_BYTES_TO_BITS( bytes1 ) );
     PSA_ASSERT( psa_key_derivation_output_key( &derived_attributes, &operation,
-                                          &derived_handle ) );
+                                               &derived_handle ) );
     PSA_ASSERT( psa_export_key( derived_handle,
                                 export_buffer, bytes1,
                                 &length ) );
@@ -4452,7 +4456,7 @@ void derive_key_export( int alg_arg,
     PSA_ASSERT( psa_destroy_key( derived_handle ) );
     psa_set_key_bits( &derived_attributes, PSA_BYTES_TO_BITS( bytes2 ) );
     PSA_ASSERT( psa_key_derivation_output_key( &derived_attributes, &operation,
-                                          &derived_handle ) );
+                                               &derived_handle ) );
     PSA_ASSERT( psa_export_key( derived_handle,
                                 export_buffer + bytes1, bytes2,
                                 &length ) );
@@ -4502,9 +4506,10 @@ void key_agreement_setup( int alg_arg,
     status = psa_key_derivation_setup( &operation, alg );
     if( status == PSA_SUCCESS )
     {
-        TEST_EQUAL( psa_key_derivation_key_agreement( &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
-                                       our_key,
-                                       peer_key_data->x, peer_key_data->len ),
+        TEST_EQUAL( psa_key_derivation_key_agreement(
+                        &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
+                        our_key,
+                        peer_key_data->x, peer_key_data->len ),
                     expected_status );
     }
     else
@@ -4580,9 +4585,10 @@ void key_agreement_capacity( int alg_arg,
                                 &our_key ) );
 
     PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
-    PSA_ASSERT( psa_key_derivation_key_agreement( &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
-                                   our_key,
-                                   peer_key_data->x, peer_key_data->len ) );
+    PSA_ASSERT( psa_key_derivation_key_agreement(
+                    &operation,
+                    PSA_KEY_DERIVATION_INPUT_SECRET, our_key,
+                    peer_key_data->x, peer_key_data->len ) );
     if( PSA_ALG_IS_HKDF( PSA_ALG_KEY_AGREEMENT_GET_KDF( alg ) ) )
     {
         /* The test data is for info="" */
@@ -4600,11 +4606,11 @@ void key_agreement_capacity( int alg_arg,
     while( actual_capacity > sizeof( output ) )
     {
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
-                                        output, sizeof( output ) ) );
+                                                     output, sizeof( output ) ) );
         actual_capacity -= sizeof( output );
     }
     PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
-                                    output, actual_capacity ) );
+                                                 output, actual_capacity ) );
     TEST_EQUAL( psa_key_derivation_output_bytes( &operation, output, 1 ),
                 PSA_ERROR_INSUFFICIENT_DATA );
 
@@ -4641,9 +4647,10 @@ void key_agreement_output( int alg_arg,
                                 &our_key ) );
 
     PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
-    PSA_ASSERT( psa_key_derivation_key_agreement( &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
-                                   our_key,
-                                   peer_key_data->x, peer_key_data->len ) );
+    PSA_ASSERT( psa_key_derivation_key_agreement(
+                    &operation,
+                    PSA_KEY_DERIVATION_INPUT_SECRET, our_key,
+                    peer_key_data->x, peer_key_data->len ) );
     if( PSA_ALG_IS_HKDF( PSA_ALG_KEY_AGREEMENT_GET_KDF( alg ) ) )
     {
         /* The test data is for info="" */
@@ -4653,15 +4660,15 @@ void key_agreement_output( int alg_arg,
     }
 
     PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
-                                    actual_output,
-                                    expected_output1->len ) );
+                                                 actual_output,
+                                                 expected_output1->len ) );
     ASSERT_COMPARE( actual_output, expected_output1->len,
                     expected_output1->x, expected_output1->len );
     if( expected_output2->len != 0 )
     {
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
-                                        actual_output,
-                                        expected_output2->len ) );
+                                                     actual_output,
+                                                     expected_output2->len ) );
         ASSERT_COMPARE( actual_output, expected_output2->len,
                         expected_output2->x, expected_output2->len );
     }
@@ -4842,8 +4849,8 @@ void generate_key_rsa( int bits_arg,
          *      publicExponent     INTEGER  }  -- e
          */
         TEST_EQUAL( 0, mbedtls_asn1_get_tag( &p, end, &len,
-                                          MBEDTLS_ASN1_SEQUENCE |
-                                          MBEDTLS_ASN1_CONSTRUCTED ) );
+                                             MBEDTLS_ASN1_SEQUENCE |
+                                             MBEDTLS_ASN1_CONSTRUCTED ) );
         TEST_ASSERT( asn1_skip_integer( &p, end, bits, bits, 1 ) );
         TEST_EQUAL( 0, mbedtls_asn1_get_tag( &p, end, &len,
                                              MBEDTLS_ASN1_INTEGER ) );
@@ -4934,19 +4941,20 @@ void persistent_key_load_key_from_storage( data_t *data,
                                             &base_key ) );
                 /* Derive a key. */
                 PSA_ASSERT( psa_key_derivation_setup( &operation, derive_alg ) );
-                PSA_ASSERT( psa_key_derivation_input_key( &operation,
-                                                          PSA_KEY_DERIVATION_INPUT_SECRET,
-                                                          base_key ) );
+                PSA_ASSERT( psa_key_derivation_input_key(
+                                &operation,
+                                PSA_KEY_DERIVATION_INPUT_SECRET, base_key ) );
                 PSA_ASSERT( psa_key_derivation_input_bytes(
                                 &operation, PSA_KEY_DERIVATION_INPUT_INFO,
                                 NULL, 0 ) );
-                PSA_ASSERT( psa_key_derivation_output_key( &attributes, &operation,
-                                                      &handle ) );
+                PSA_ASSERT( psa_key_derivation_output_key( &attributes,
+                                                           &operation,
+                                                           &handle ) );
                 PSA_ASSERT( psa_key_derivation_abort( &operation ) );
                 PSA_ASSERT( psa_destroy_key( base_key ) );
                 base_key = 0;
             }
-            break;
+        break;
     }
     psa_reset_key_attributes( &attributes );
 

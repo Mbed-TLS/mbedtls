@@ -1590,25 +1590,25 @@
  *
  * This must be a key of type #PSA_KEY_TYPE_DERIVE.
  */
-#define PSA_KEY_DERIVATION_INPUT_SECRET              ((psa_key_derivation_step_t)0x0101)
+#define PSA_KEY_DERIVATION_INPUT_SECRET     ((psa_key_derivation_step_t)0x0101)
 
 /** A label for key derivation.
  *
  * This must be a direct input.
  */
-#define PSA_KEY_DERIVATION_INPUT_LABEL               ((psa_key_derivation_step_t)0x0201)
+#define PSA_KEY_DERIVATION_INPUT_LABEL      ((psa_key_derivation_step_t)0x0201)
 
 /** A salt for key derivation.
  *
  * This must be a direct input.
  */
-#define PSA_KEY_DERIVATION_INPUT_SALT                ((psa_key_derivation_step_t)0x0202)
+#define PSA_KEY_DERIVATION_INPUT_SALT       ((psa_key_derivation_step_t)0x0202)
 
 /** An information string for key derivation.
  *
  * This must be a direct input.
  */
-#define PSA_KEY_DERIVATION_INPUT_INFO                ((psa_key_derivation_step_t)0x0203)
+#define PSA_KEY_DERIVATION_INPUT_INFO       ((psa_key_derivation_step_t)0x0203)
 
 /**@}*/
 

@@ -157,9 +157,10 @@ psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
  * - For HKDF (#PSA_ALG_HKDF), \p salt is the salt used in the "extract" step
  *   and \p label is the info string used in the "expand" step.
  *
- * \param[in,out] operation       The key derivation object to set up. It must have
- *                                been initialized as per the documentation for
- *                                #psa_key_derivation_operation_t and not yet in use.
+ * \param[in,out] operation       The key derivation object to set up. It must
+ *                                have been initialized as per the documentation
+ *                                for #psa_key_derivation_operation_t and not
+ *                                yet be in use.
  * \param handle                  Handle to the secret key.
  * \param alg                     The key derivation algorithm to compute
  *                                (\c PSA_ALG_XXX value such that

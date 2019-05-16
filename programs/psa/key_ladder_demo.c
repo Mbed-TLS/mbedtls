@@ -252,8 +252,8 @@ static psa_status_t import_key_from_file( psa_key_usage_t usage,
     psa_set_key_usage_flags( &attributes, usage );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
-    PSA_CHECK( psa_import_key( &attributes, master_key_handle,
-                               key_data, key_size ) );
+    PSA_CHECK( psa_import_key( &attributes, key_data, key_size,
+                               master_key_handle ) );
 exit:
     if( key_file != NULL )
         fclose( key_file );
@@ -306,8 +306,8 @@ static psa_status_t derive_key_ladder( const char *ladder[],
         *key_handle = 0;
         /* Use the generator obtained from the parent key to create
          * the next intermediate key. */
-        PSA_CHECK( psa_generate_derived_key( &attributes, key_handle,
-                                             &generator ) );
+        PSA_CHECK( psa_generate_derived_key( &attributes, &generator,
+                                             key_handle ) );
         PSA_CHECK( psa_generator_abort( &generator ) );
     }
 
@@ -343,8 +343,8 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
                    WRAPPING_KEY_SALT, WRAPPING_KEY_SALT_LENGTH,
                    NULL, 0,
                    PSA_BITS_TO_BYTES( WRAPPING_KEY_BITS ) ) );
-    PSA_CHECK( psa_generate_derived_key( &attributes, wrapping_key_handle,
-                                         &generator ) );
+    PSA_CHECK( psa_generate_derived_key( &attributes, &generator,
+                                         wrapping_key_handle ) );
 
 exit:
     psa_generator_abort( &generator );

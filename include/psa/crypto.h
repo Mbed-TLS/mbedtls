@@ -631,9 +631,9 @@ psa_status_t psa_close_key(psa_key_handle_t handle);
  *         results in this error code.
  */
 psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
-                            psa_key_handle_t *handle,
                             const uint8_t *data,
-                            size_t data_length);
+                            size_t data_length,
+                            psa_key_handle_t *handle);
 
 /**
  * \brief Destroy a key.
@@ -3068,9 +3068,9 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  * The generator's capacity is decreased by the number of bytes read.
  *
  * \param[in] attributes    The attributes for the new key.
+ * \param[in,out] generator The generator object to read from.
  * \param[out] handle       On success, a handle to the newly created key.
  *                          \c 0 on failure.
- * \param[in,out] generator The generator object to read from.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -3099,8 +3099,8 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *         results in this error code.
  */
 psa_status_t psa_generate_derived_key(const psa_key_attributes_t *attributes,
-                                      psa_key_handle_t *handle,
-                                      psa_crypto_generator_t *generator);
+                                      psa_crypto_generator_t *generator,
+                                      psa_key_handle_t *handle);
 
 /** Abort a generator.
  *
@@ -3294,10 +3294,10 @@ psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
  *                          public key type corresponding to the type of
  *                          private_key. That is, this function performs the
  *                          equivalent of
- *                          #psa_import_key(`internal_public_key_handle`,
- *                          #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(`private_key_type`),
+ *                          #psa_import_key(...,
  *                          `peer_key`, `peer_key_length`) where
- *                          `private_key_type` is the type of `private_key`.
+ *                          with key attributes indicating the public key
+ *                          type corresponding to the type of `private_key`.
  *                          For example, for EC keys, this means that peer_key
  *                          is interpreted as a point on the curve that the
  *                          private key is on. The standard formats for public

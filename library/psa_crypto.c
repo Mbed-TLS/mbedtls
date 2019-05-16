@@ -4066,19 +4066,19 @@ exit:
 #define HKDF_STATE_OUTPUT 3 /* output started */
 
 static psa_algorithm_t psa_key_derivation_get_kdf_alg(
-    const psa_key_derivation_operation_t *generator )
+    const psa_key_derivation_operation_t *operation )
 {
-    if ( PSA_ALG_IS_KEY_AGREEMENT( generator->alg ) )
-        return( PSA_ALG_KEY_AGREEMENT_GET_KDF( generator->alg ) );
+    if ( PSA_ALG_IS_KEY_AGREEMENT( operation->alg ) )
+        return( PSA_ALG_KEY_AGREEMENT_GET_KDF( operation->alg ) );
     else
-        return( generator->alg );
+        return( operation->alg );
 }
 
 
-psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *generator )
+psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation )
 {
     psa_status_t status = PSA_SUCCESS;
-    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( generator );
+    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
     if( kdf_alg == 0 )
     {
         /* The object has (apparently) been initialized but it is not
@@ -4088,36 +4088,36 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *generator
     else
     if( kdf_alg == PSA_ALG_SELECT_RAW )
     {
-        if( generator->ctx.buffer.data != NULL )
+        if( operation->ctx.buffer.data != NULL )
         {
-            mbedtls_platform_zeroize( generator->ctx.buffer.data,
-                             generator->ctx.buffer.size );
-            mbedtls_free( generator->ctx.buffer.data );
+            mbedtls_platform_zeroize( operation->ctx.buffer.data,
+                             operation->ctx.buffer.size );
+            mbedtls_free( operation->ctx.buffer.data );
         }
     }
     else
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( kdf_alg ) )
     {
-        mbedtls_free( generator->ctx.hkdf.info );
-        status = psa_hmac_abort_internal( &generator->ctx.hkdf.hmac );
+        mbedtls_free( operation->ctx.hkdf.info );
+        status = psa_hmac_abort_internal( &operation->ctx.hkdf.hmac );
     }
     else if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
-             /* TLS-1.2 PSK-to-MS KDF uses the same generator as TLS-1.2 PRF */
+             /* TLS-1.2 PSK-to-MS KDF uses the same core as TLS-1.2 PRF */
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
-        if( generator->ctx.tls12_prf.key != NULL )
+        if( operation->ctx.tls12_prf.key != NULL )
         {
-            mbedtls_platform_zeroize( generator->ctx.tls12_prf.key,
-                             generator->ctx.tls12_prf.key_len );
-            mbedtls_free( generator->ctx.tls12_prf.key );
+            mbedtls_platform_zeroize( operation->ctx.tls12_prf.key,
+                             operation->ctx.tls12_prf.key_len );
+            mbedtls_free( operation->ctx.tls12_prf.key );
         }
 
-        if( generator->ctx.tls12_prf.Ai_with_seed != NULL )
+        if( operation->ctx.tls12_prf.Ai_with_seed != NULL )
         {
-            mbedtls_platform_zeroize( generator->ctx.tls12_prf.Ai_with_seed,
-                             generator->ctx.tls12_prf.Ai_with_seed_len );
-            mbedtls_free( generator->ctx.tls12_prf.Ai_with_seed );
+            mbedtls_platform_zeroize( operation->ctx.tls12_prf.Ai_with_seed,
+                             operation->ctx.tls12_prf.Ai_with_seed_len );
+            mbedtls_free( operation->ctx.tls12_prf.Ai_with_seed );
         }
     }
     else
@@ -4125,36 +4125,36 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *generator
     {
         status = PSA_ERROR_BAD_STATE;
     }
-    memset( generator, 0, sizeof( *generator ) );
+    memset( operation, 0, sizeof( *operation ) );
     return( status );
 }
 
-psa_status_t psa_key_derivation_get_capacity(const psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_get_capacity(const psa_key_derivation_operation_t *operation,
                                         size_t *capacity)
 {
-    if( generator->alg == 0 )
+    if( operation->alg == 0 )
     {
-        /* This is a blank generator. */
+        /* This is a blank key derivation operation. */
         return PSA_ERROR_BAD_STATE;
     }
 
-    *capacity = generator->capacity;
+    *capacity = operation->capacity;
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *operation,
                                          size_t capacity )
 {
-    if( generator->alg == 0 )
+    if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );
-    if( capacity > generator->capacity )
+    if( capacity > operation->capacity )
         return( PSA_ERROR_INVALID_ARGUMENT );
-    generator->capacity = capacity;
+    operation->capacity = capacity;
     return( PSA_SUCCESS );
 }
 
 #if defined(MBEDTLS_MD_C)
-/* Read some bytes from an HKDF-based generator. This performs a chunk
+/* Read some bytes from an HKDF-based operation. This performs a chunk
  * of the expand phase of the HKDF algorithm. */
 static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkdf,
                                              psa_algorithm_t hash_alg,
@@ -4182,7 +4182,7 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
             break;
         /* We can't be wanting more output after block 0xff, otherwise
          * the capacity check in psa_key_derivation_output_bytes() would have
-         * prevented this call. It could happen only if the generator
+         * prevented this call. It could happen only if the operation
          * object was corrupted or if this function is called directly
          * inside the library. */
         if( hkdf->block_number == 0xff )
@@ -4237,7 +4237,7 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
 
     /* We can't be wanting more output after block 0xff, otherwise
      * the capacity check in psa_key_derivation_output_bytes() would have
-     * prevented this call. It could happen only if the generator
+     * prevented this call. It could happen only if the operation
      * object was corrupted or if this function is called directly
      * inside the library. */
     if( tls12_prf->block_number == 0xff )
@@ -4335,7 +4335,7 @@ cleanup:
     return( status );
 }
 
-/* Read some bytes from an TLS-1.2-PRF-based generator.
+/* Read some bytes from an TLS-1.2-PRF-based operation.
  * See Section 5 of RFC 5246. */
 static psa_status_t psa_key_derivation_tls12_prf_read(
                                         psa_tls12_prf_key_derivation_t *tls12_prf,
@@ -4376,53 +4376,53 @@ static psa_status_t psa_key_derivation_tls12_prf_read(
 }
 #endif /* MBEDTLS_MD_C */
 
-psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *operation,
                                  uint8_t *output,
                                  size_t output_length )
 {
     psa_status_t status;
-    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( generator );
+    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
 
-    if( generator->alg == 0 )
+    if( operation->alg == 0 )
     {
-        /* This is a blank generator. */
+        /* This is a blank operation. */
         return PSA_ERROR_BAD_STATE;
     }
 
-    if( output_length > generator->capacity )
+    if( output_length > operation->capacity )
     {
-        generator->capacity = 0;
+        operation->capacity = 0;
         /* Go through the error path to wipe all confidential data now
-         * that the generator object is useless. */
+         * that the operation object is useless. */
         status = PSA_ERROR_INSUFFICIENT_DATA;
         goto exit;
     }
-    if( output_length == 0 && generator->capacity == 0 )
+    if( output_length == 0 && operation->capacity == 0 )
     {
-        /* Edge case: this is a finished generator, and 0 bytes
+        /* Edge case: this is a finished operation, and 0 bytes
          * were requested. The right error in this case could
          * be either INSUFFICIENT_CAPACITY or BAD_STATE. Return
          * INSUFFICIENT_CAPACITY, which is right for a finished
-         * generator, for consistency with the case when
+         * operation, for consistency with the case when
          * output_length > 0. */
         return( PSA_ERROR_INSUFFICIENT_DATA );
     }
-    generator->capacity -= output_length;
+    operation->capacity -= output_length;
 
     if( kdf_alg == PSA_ALG_SELECT_RAW )
     {
-        /* Initially, the capacity of a selection generator is always
-         * the size of the buffer, i.e. `generator->ctx.buffer.size`,
+        /* Initially, the capacity of a selection operation is always
+         * the size of the buffer, i.e. `operation->ctx.buffer.size`,
          * abbreviated in this comment as `size`. When the remaining
          * capacity is `c`, the next bytes to serve start `c` bytes
          * from the end of the buffer, i.e. `size - c` from the
-         * beginning of the buffer. Since `generator->capacity` was just
+         * beginning of the buffer. Since `operation->capacity` was just
          * decremented above, we need to serve the bytes from
-         * `size - generator->capacity - output_length` to
-         * `size - generator->capacity`. */
+         * `size - operation->capacity - output_length` to
+         * `size - operation->capacity`. */
         size_t offset =
-            generator->ctx.buffer.size - generator->capacity - output_length;
-        memcpy( output, generator->ctx.buffer.data + offset, output_length );
+            operation->ctx.buffer.size - operation->capacity - output_length;
+        memcpy( output, operation->ctx.buffer.data + offset, output_length );
         status = PSA_SUCCESS;
     }
     else
@@ -4430,13 +4430,13 @@ psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *ge
     if( PSA_ALG_IS_HKDF( kdf_alg ) )
     {
         psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
-        status = psa_key_derivation_hkdf_read( &generator->ctx.hkdf, hash_alg,
+        status = psa_key_derivation_hkdf_read( &operation->ctx.hkdf, hash_alg,
                                           output, output_length );
     }
     else if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
-        status = psa_key_derivation_tls12_prf_read( &generator->ctx.tls12_prf,
+        status = psa_key_derivation_tls12_prf_read( &operation->ctx.tls12_prf,
                                                kdf_alg, output,
                                                output_length );
     }
@@ -4450,12 +4450,12 @@ exit:
     if( status != PSA_SUCCESS )
     {
         /* Preserve the algorithm upon errors, but clear all sensitive state.
-         * This allows us to differentiate between exhausted generators and
-         * blank generators, so we can return PSA_ERROR_BAD_STATE on blank
-         * generators. */
-        psa_algorithm_t alg = generator->alg;
-        psa_key_derivation_abort( generator );
-        generator->alg = alg;
+         * This allows us to differentiate between exhausted operations and
+         * blank operations, so we can return PSA_ERROR_BAD_STATE on blank
+         * operations. */
+        psa_algorithm_t alg = operation->alg;
+        psa_key_derivation_abort( operation );
+        operation->alg = alg;
         memset( output, '!', output_length );
     }
     return( status );
@@ -4476,7 +4476,7 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 static psa_status_t psa_generate_derived_key_internal(
     psa_key_slot_t *slot,
     size_t bits,
-    psa_key_derivation_operation_t *generator )
+    psa_key_derivation_operation_t *operation )
 {
     uint8_t *data = NULL;
     size_t bytes = PSA_BITS_TO_BYTES( bits );
@@ -4490,7 +4490,7 @@ static psa_status_t psa_generate_derived_key_internal(
     if( data == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-    status = psa_key_derivation_output_bytes( generator, data, bytes );
+    status = psa_key_derivation_output_bytes( operation, data, bytes );
     if( status != PSA_SUCCESS )
         goto exit;
 #if defined(MBEDTLS_DES_C)
@@ -4505,7 +4505,7 @@ exit:
 }
 
 psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attributes,
-                                       psa_key_derivation_operation_t *generator,
+                                       psa_key_derivation_operation_t *operation,
                                        psa_key_handle_t *handle )
 {
     psa_status_t status;
@@ -4515,7 +4515,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     {
         status = psa_generate_derived_key_internal( slot,
                                                     attributes->bits,
-                                                    generator );
+                                                    operation );
     }
     if( status == PSA_SUCCESS )
         status = psa_finish_key_creation( slot );
@@ -4530,7 +4530,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
 psa_status_t psa_generate_derived_key_to_handle( psa_key_handle_t handle,
                                        psa_key_type_t type,
                                        size_t bits,
-                                       psa_key_derivation_operation_t *generator )
+                                       psa_key_derivation_operation_t *operation )
 {
     uint8_t *data = NULL;
     size_t bytes = PSA_BITS_TO_BYTES( bits );
@@ -4544,7 +4544,7 @@ psa_status_t psa_generate_derived_key_to_handle( psa_key_handle_t handle,
     if( data == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-    status = psa_key_derivation_output_bytes( generator, data, bytes );
+    status = psa_key_derivation_output_bytes( operation, data, bytes );
     if( status != PSA_SUCCESS )
         goto exit;
 #if defined(MBEDTLS_DES_C)
@@ -4565,7 +4565,7 @@ exit:
 /****************************************************************/
 
 #if defined(MBEDTLS_MD_C)
-/* Set up an HKDF-based generator. This is exactly the extract phase
+/* Set up an HKDF-based operation. This is exactly the extract phase
  * of the HKDF algorithm.
  *
  * Note that if this function fails, you must call psa_key_derivation_abort()
@@ -4611,7 +4611,7 @@ static psa_status_t psa_key_derivation_hkdf_setup( psa_hkdf_key_derivation_t *hk
 #endif /* MBEDTLS_MD_C */
 
 #if defined(MBEDTLS_MD_C)
-/* Set up a TLS-1.2-prf-based generator (see RFC 5246, Section 5).
+/* Set up a TLS-1.2-prf-based operation (see RFC 5246, Section 5).
  *
  * Note that if this function fails, you must call psa_key_derivation_abort()
  * to potentially free embedded data structures and wipe confidential data.
@@ -4668,7 +4668,7 @@ static psa_status_t psa_key_derivation_tls12_prf_setup(
     return( PSA_SUCCESS );
 }
 
-/* Set up a TLS-1.2-PSK-to-MS-based generator. */
+/* Set up a TLS-1.2-PSK-to-MS-based operation. */
 static psa_status_t psa_key_derivation_tls12_psk_to_ms_setup(
     psa_tls12_prf_key_derivation_t *tls12_prf,
     const unsigned char *psk,
@@ -4714,7 +4714,7 @@ static psa_status_t psa_key_derivation_tls12_psk_to_ms_setup(
  * to potentially free embedded data structures and wipe confidential data.
  */
 static psa_status_t psa_key_derivation_internal(
-    psa_key_derivation_operation_t *generator,
+    psa_key_derivation_operation_t *operation,
     const uint8_t *secret, size_t secret_length,
     psa_algorithm_t alg,
     const uint8_t *salt, size_t salt_length,
@@ -4724,8 +4724,8 @@ static psa_status_t psa_key_derivation_internal(
     psa_status_t status;
     size_t max_capacity;
 
-    /* Set generator->alg even on failure so that abort knows what to do. */
-    generator->alg = alg;
+    /* Set operation->alg even on failure so that abort knows what to do. */
+    operation->alg = alg;
 
     if( alg == PSA_ALG_SELECT_RAW )
     {
@@ -4735,11 +4735,11 @@ static psa_status_t psa_key_derivation_internal(
         (void) label;
         if( label_length != 0 )
             return( PSA_ERROR_INVALID_ARGUMENT );
-        generator->ctx.buffer.data = mbedtls_calloc( 1, secret_length );
-        if( generator->ctx.buffer.data == NULL )
+        operation->ctx.buffer.data = mbedtls_calloc( 1, secret_length );
+        if( operation->ctx.buffer.data == NULL )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
-        memcpy( generator->ctx.buffer.data, secret, secret_length );
-        generator->ctx.buffer.size = secret_length;
+        memcpy( operation->ctx.buffer.data, secret, secret_length );
+        operation->ctx.buffer.size = secret_length;
         max_capacity = secret_length;
         status = PSA_SUCCESS;
     }
@@ -4752,7 +4752,7 @@ static psa_status_t psa_key_derivation_internal(
         if( hash_size == 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
         max_capacity = 255 * hash_size;
-        status = psa_key_derivation_hkdf_setup( &generator->ctx.hkdf,
+        status = psa_key_derivation_hkdf_setup( &operation->ctx.hkdf,
                                            secret, secret_length,
                                            hash_alg,
                                            salt, salt_length,
@@ -4776,7 +4776,7 @@ static psa_status_t psa_key_derivation_internal(
 
         if( PSA_ALG_IS_TLS12_PRF( alg ) )
         {
-            status = psa_key_derivation_tls12_prf_setup( &generator->ctx.tls12_prf,
+            status = psa_key_derivation_tls12_prf_setup( &operation->ctx.tls12_prf,
                                                     secret, secret_length,
                                                     hash_alg, salt, salt_length,
                                                     label, label_length );
@@ -4784,7 +4784,7 @@ static psa_status_t psa_key_derivation_internal(
         else
         {
             status = psa_key_derivation_tls12_psk_to_ms_setup(
-                &generator->ctx.tls12_prf,
+                &operation->ctx.tls12_prf,
                 secret, secret_length,
                 hash_alg, salt, salt_length,
                 label, label_length );
@@ -4800,16 +4800,16 @@ static psa_status_t psa_key_derivation_internal(
         return( status );
 
     if( capacity <= max_capacity )
-        generator->capacity = capacity;
+        operation->capacity = capacity;
     else if( capacity == PSA_KEY_DERIVATION_UNLIMITED_CAPACITY )
-        generator->capacity = max_capacity;
+        operation->capacity = max_capacity;
     else
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_key_derivation( psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation( psa_key_derivation_operation_t *operation,
                                  psa_key_handle_t handle,
                                  psa_algorithm_t alg,
                                  const uint8_t *salt,
@@ -4821,7 +4821,7 @@ psa_status_t psa_key_derivation( psa_key_derivation_operation_t *generator,
     psa_key_slot_t *slot;
     psa_status_t status;
 
-    if( generator->alg != 0 )
+    if( operation->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
 
     /* Make sure that alg is a key derivation algorithm. This prevents
@@ -4837,7 +4837,7 @@ psa_status_t psa_key_derivation( psa_key_derivation_operation_t *generator,
     if( slot->type != PSA_KEY_TYPE_DERIVE )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_key_derivation_internal( generator,
+    status = psa_key_derivation_internal( operation,
                                           slot->data.raw.data,
                                           slot->data.raw.bytes,
                                           alg,
@@ -4845,12 +4845,12 @@ psa_status_t psa_key_derivation( psa_key_derivation_operation_t *generator,
                                           label, label_length,
                                           capacity );
     if( status != PSA_SUCCESS )
-        psa_key_derivation_abort( generator );
+        psa_key_derivation_abort( operation );
     return( status );
 }
 
 static psa_status_t psa_key_derivation_setup_kdf(
-    psa_key_derivation_operation_t *generator,
+    psa_key_derivation_operation_t *operation,
     psa_algorithm_t kdf_alg )
 {
     /* Make sure that kdf_alg is a supported key derivation algorithm. */
@@ -4869,7 +4869,7 @@ static psa_status_t psa_key_derivation_setup_kdf(
         {
             return( PSA_ERROR_NOT_SUPPORTED );
         }
-        generator->capacity = 255 * hash_size;
+        operation->capacity = 255 * hash_size;
         return( PSA_SUCCESS );
     }
 #endif /* MBEDTLS_MD_C */
@@ -4877,12 +4877,12 @@ static psa_status_t psa_key_derivation_setup_kdf(
         return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation,
                                        psa_algorithm_t alg )
 {
     psa_status_t status;
 
-    if( generator->alg != 0 )
+    if( operation->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
 
     if( PSA_ALG_IS_RAW_KEY_AGREEMENT( alg ) )
@@ -4890,17 +4890,17 @@ psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *generator
     else if( PSA_ALG_IS_KEY_AGREEMENT( alg ) )
     {
         psa_algorithm_t kdf_alg = PSA_ALG_KEY_AGREEMENT_GET_KDF( alg );
-        status = psa_key_derivation_setup_kdf( generator, kdf_alg );
+        status = psa_key_derivation_setup_kdf( operation, kdf_alg );
     }
     else if( PSA_ALG_IS_KEY_DERIVATION( alg ) )
     {
-        status = psa_key_derivation_setup_kdf( generator, alg );
+        status = psa_key_derivation_setup_kdf( operation, alg );
     }
     else
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( status == PSA_SUCCESS )
-        generator->alg = alg;
+        operation->alg = alg;
     return( status );
 }
 
@@ -4972,31 +4972,31 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
 #endif /* MBEDTLS_MD_C */
 
 static psa_status_t psa_key_derivation_input_raw(
-    psa_key_derivation_operation_t *generator,
+    psa_key_derivation_operation_t *operation,
     psa_key_derivation_step_t step,
     const uint8_t *data,
     size_t data_length )
 {
     psa_status_t status;
-    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( generator );
+    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
 
     if( kdf_alg == PSA_ALG_SELECT_RAW )
     {
-        if( generator->capacity != 0 )
+        if( operation->capacity != 0 )
             return( PSA_ERROR_INVALID_ARGUMENT );
-        generator->ctx.buffer.data = mbedtls_calloc( 1, data_length );
-        if( generator->ctx.buffer.data == NULL )
+        operation->ctx.buffer.data = mbedtls_calloc( 1, data_length );
+        if( operation->ctx.buffer.data == NULL )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
-        memcpy( generator->ctx.buffer.data, data, data_length );
-        generator->ctx.buffer.size = data_length;
-        generator->capacity = data_length;
+        memcpy( operation->ctx.buffer.data, data, data_length );
+        operation->ctx.buffer.size = data_length;
+        operation->capacity = data_length;
         status = PSA_SUCCESS;
     }
     else
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( kdf_alg ) )
     {
-        status = psa_hkdf_input( &generator->ctx.hkdf,
+        status = psa_hkdf_input( &operation->ctx.hkdf,
                                  PSA_ALG_HKDF_GET_HASH( kdf_alg ),
                                  step, data, data_length );
     }
@@ -5013,16 +5013,16 @@ static psa_status_t psa_key_derivation_input_raw(
     else
 #endif /* MBEDTLS_MD_C */
     {
-        /* This can't happen unless the generator object was not initialized */
+        /* This can't happen unless the operation object was not initialized */
         return( PSA_ERROR_BAD_STATE );
     }
 
     if( status != PSA_SUCCESS )
-        psa_key_derivation_abort( generator );
+        psa_key_derivation_abort( operation );
     return( status );
 }
 
-psa_status_t psa_key_derivation_input_bytes( psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_input_bytes( psa_key_derivation_operation_t *operation,
                                              psa_key_derivation_step_t step,
                                              const uint8_t *data,
                                              size_t data_length )
@@ -5032,14 +5032,14 @@ psa_status_t psa_key_derivation_input_bytes( psa_key_derivation_operation_t *gen
         case PSA_KEY_DERIVATION_INPUT_LABEL:
         case PSA_KEY_DERIVATION_INPUT_SALT:
         case PSA_KEY_DERIVATION_INPUT_INFO:
-            return( psa_key_derivation_input_raw( generator, step,
+            return( psa_key_derivation_input_raw( operation, step,
                                                   data, data_length ) );
         default:
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }
 
-psa_status_t psa_key_derivation_input_key( psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_input_key( psa_key_derivation_operation_t *operation,
                                            psa_key_derivation_step_t step,
                                            psa_key_handle_t handle )
 {
@@ -5047,7 +5047,7 @@ psa_status_t psa_key_derivation_input_key( psa_key_derivation_operation_t *gener
     psa_status_t status;
     status = psa_get_key_from_slot( handle, &slot,
                                     PSA_KEY_USAGE_DERIVE,
-                                    generator->alg );
+                                    operation->alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( slot->type != PSA_KEY_TYPE_DERIVE )
@@ -5060,7 +5060,7 @@ psa_status_t psa_key_derivation_input_key( psa_key_derivation_operation_t *gener
      * and leak values derived from the key. So be conservative. */
     if( step != PSA_KEY_DERIVATION_INPUT_SECRET )
         return( PSA_ERROR_INVALID_ARGUMENT );
-    return( psa_key_derivation_input_raw( generator,
+    return( psa_key_derivation_input_raw( operation,
                                           step,
                                           slot->data.raw.data,
                                           slot->data.raw.bytes ) );
@@ -5151,7 +5151,7 @@ static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
 /* Note that if this function fails, you must call psa_key_derivation_abort()
  * to potentially free embedded data structures and wipe confidential data.
  */
-static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *generator,
+static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *operation,
                                                 psa_key_derivation_step_t step,
                                                 psa_key_slot_t *private_key,
                                                 const uint8_t *peer_key,
@@ -5160,7 +5160,7 @@ static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *
     psa_status_t status;
     uint8_t shared_secret[PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE];
     size_t shared_secret_length = 0;
-    psa_algorithm_t ka_alg = PSA_ALG_KEY_AGREEMENT_GET_BASE( generator->alg );
+    psa_algorithm_t ka_alg = PSA_ALG_KEY_AGREEMENT_GET_BASE( operation->alg );
 
     /* Step 1: run the secret agreement algorithm to generate the shared
      * secret. */
@@ -5175,7 +5175,7 @@ static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *
 
     /* Step 2: set up the key derivation to generate key material from
      * the shared secret. */
-    status = psa_key_derivation_input_raw( generator, step,
+    status = psa_key_derivation_input_raw( operation, step,
                                            shared_secret, shared_secret_length );
 
 exit:
@@ -5183,7 +5183,7 @@ exit:
     return( status );
 }
 
-psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *operation,
                                 psa_key_derivation_step_t step,
                                 psa_key_handle_t private_key,
                                 const uint8_t *peer_key,
@@ -5191,17 +5191,17 @@ psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *g
 {
     psa_key_slot_t *slot;
     psa_status_t status;
-    if( ! PSA_ALG_IS_KEY_AGREEMENT( generator->alg ) )
+    if( ! PSA_ALG_IS_KEY_AGREEMENT( operation->alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
     status = psa_get_key_from_slot( private_key, &slot,
-                                    PSA_KEY_USAGE_DERIVE, generator->alg );
+                                    PSA_KEY_USAGE_DERIVE, operation->alg );
     if( status != PSA_SUCCESS )
         return( status );
-    status = psa_key_agreement_internal( generator, step,
+    status = psa_key_agreement_internal( operation, step,
                                          slot,
                                          peer_key, peer_key_length );
     if( status != PSA_SUCCESS )
-        psa_key_derivation_abort( generator );
+        psa_key_derivation_abort( operation );
     return( status );
 }
 

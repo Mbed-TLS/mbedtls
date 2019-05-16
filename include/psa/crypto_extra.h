@@ -474,11 +474,11 @@ psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
  * Add 1 to the resulting integer and use this as the private key *x*.
  *
  */
-#define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x70020000)
+#define PSA_KEY_TYPE_DSA_KEY_PAIR                ((psa_key_type_t)0x70020000)
 
 /** Whether a key type is an DSA key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_DSA(type)                                       \
-    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_DSA_PUBLIC_KEY)
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type) == PSA_KEY_TYPE_DSA_PUBLIC_KEY)
 
 #define PSA_ALG_DSA_BASE                        ((psa_algorithm_t)0x10040000)
 /** DSA signature with hashing.
@@ -542,7 +542,7 @@ psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
 /** Custom Diffie-Hellman group.
  *
  * For keys of type #PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_GROUP_CUSTOM) or
- * #PSA_KEY_TYPE_DH_KEYPAIR(#PSA_DH_GROUP_CUSTOM), the group data comes
+ * #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_GROUP_CUSTOM), the group data comes
  * from domain parameters set by psa_set_key_domain_parameters().
  */
 /* This value is reserved for private use in the TLS named group registry. */
@@ -558,7 +558,7 @@ psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
  *
  * The format for the required domain parameters varies based on the key type.
  *
- * - For RSA keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY or #PSA_KEY_TYPE_RSA_KEYPAIR),
+ * - For RSA keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY or #PSA_KEY_TYPE_RSA_KEY_PAIR),
  *   the domain parameter data consists of the public exponent,
  *   represented as a big-endian integer with no leading zeros.
  *   This information is used when generating an RSA key pair.
@@ -566,7 +566,7 @@ psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
  *   key data and the exponent recorded in the attribute structure is ignored.
  *   As an exception, the public exponent 65537 is represented by an empty
  *   byte string.
- * - For DSA keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY or #PSA_KEY_TYPE_DSA_KEYPAIR),
+ * - For DSA keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY or #PSA_KEY_TYPE_DSA_KEY_PAIR),
  *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
  *   ```
  *   Dss-Parms ::= SEQUENCE  {
@@ -577,7 +577,7 @@ psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
  *   ```
  * - For Diffie-Hellman key exchange keys
  *   (#PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_GROUP_CUSTOM) or
- *   #PSA_KEY_TYPE_DH_KEYPAIR(#PSA_DH_GROUP_CUSTOM)), the
+ *   #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_GROUP_CUSTOM)), the
  *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
  *   ```
  *   DomainParameters ::= SEQUENCE {

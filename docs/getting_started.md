@@ -73,7 +73,7 @@ Importing a key and checking key information:
 1. Test the information stored in this slot:
 ```C
     int key_slot = 1;
-    uint8_t *data = "KEYPAIR_KEY_DATA";
+    uint8_t *data = "KEY_PAIR_KEY_DATA";
     size_t data_size;
     psa_key_type_t type = PSA_KEY_TYPE_RSA_PUBLIC_KEY;
     size_t got_bits;
@@ -127,7 +127,7 @@ This allows the key in the key slot to be used for RSA signing.
                              PSA_ALG_RSA_PKCS1V15_SIGN_RAW);
     status = psa_set_key_policy(key_slot, &policy);
 
-    status = psa_import_key(key_slot, PSA_KEY_TYPE_RSA_KEYPAIR,
+    status = psa_import_key(key_slot, PSA_KEY_TYPE_RSA_KEY_PAIR,
                             key, sizeof(key));
 
     /* Sing message using the key */

@@ -568,7 +568,7 @@
  *   overapproximated as 9 half-size INTEGERS;
  * - 7 bytes for the public exponent.
  */
-#define PSA_KEY_EXPORT_RSA_KEYPAIR_MAX_SIZE(key_bits)   \
+#define PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(key_bits)   \
     (9 * PSA_KEY_EXPORT_ASN1_INTEGER_MAX_SIZE((key_bits) / 2 + 1) + 14)
 
 /* Maximum size of the export encoding of a DSA public key.
@@ -606,7 +606,7 @@
  * - 3 full-size INTEGERs (p, g, y);
  * - 2 * (1 + 1 + 32) bytes for 2 sub-size INTEGERs (q, x <= 256 bits).
  */
-#define PSA_KEY_EXPORT_DSA_KEYPAIR_MAX_SIZE(key_bits)   \
+#define PSA_KEY_EXPORT_DSA_KEY_PAIR_MAX_SIZE(key_bits)   \
     (PSA_KEY_EXPORT_ASN1_INTEGER_MAX_SIZE(key_bits) * 3 + 75)
 
 /* Maximum size of the export encoding of an ECC public key.
@@ -626,7 +626,7 @@
  *
  * An ECC key pair is represented by the secret value.
  */
-#define PSA_KEY_EXPORT_ECC_KEYPAIR_MAX_SIZE(key_bits)   \
+#define PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(key_bits)   \
     (PSA_BITS_TO_BYTES(key_bits))
 
 /** Safe output buffer size for psa_export_key() or psa_export_public_key().
@@ -655,7 +655,7 @@
  * \endcode
  *
  * For psa_export_public_key(), calculate the buffer size from the
- * public key type. You can use the macro #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR
+ * public key type. You can use the macro #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR
  * to convert a key pair type to the corresponding public key type.
  * \code{c}
  * psa_key_type_t key_type;
@@ -663,7 +663,7 @@
  * psa_status_t status;
  * status = psa_get_key_information(key, &key_type, &key_bits);
  * if (status != PSA_SUCCESS) handle_error(...);
- * psa_key_type_t public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(key_type);
+ * psa_key_type_t public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(key_type);
  * size_t buffer_size = PSA_KEY_EXPORT_MAX_SIZE(public_key_type, key_bits);
  * unsigned char *buffer = malloc(buffer_size);
  * if (buffer != NULL) handle_error(...);
@@ -687,11 +687,11 @@
  */
 #define PSA_KEY_EXPORT_MAX_SIZE(key_type, key_bits)                     \
     (PSA_KEY_TYPE_IS_UNSTRUCTURED(key_type) ? PSA_BITS_TO_BYTES(key_bits) : \
-     (key_type) == PSA_KEY_TYPE_RSA_KEYPAIR ? PSA_KEY_EXPORT_RSA_KEYPAIR_MAX_SIZE(key_bits) : \
+     (key_type) == PSA_KEY_TYPE_RSA_KEY_PAIR ? PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(key_bits) : \
      (key_type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY ? PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(key_bits) : \
-     (key_type) == PSA_KEY_TYPE_DSA_KEYPAIR ? PSA_KEY_EXPORT_DSA_KEYPAIR_MAX_SIZE(key_bits) : \
+     (key_type) == PSA_KEY_TYPE_DSA_KEY_PAIR ? PSA_KEY_EXPORT_DSA_KEY_PAIR_MAX_SIZE(key_bits) : \
      (key_type) == PSA_KEY_TYPE_DSA_PUBLIC_KEY ? PSA_KEY_EXPORT_DSA_PUBLIC_KEY_MAX_SIZE(key_bits) : \
-     PSA_KEY_TYPE_IS_ECC_KEYPAIR(key_type) ? PSA_KEY_EXPORT_ECC_KEYPAIR_MAX_SIZE(key_bits) : \
+     PSA_KEY_TYPE_IS_ECC_KEY_PAIR(key_type) ? PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(key_bits) : \
      PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(key_type) ? PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(key_bits) : \
      0)
 

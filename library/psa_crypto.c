@@ -535,7 +535,7 @@ static psa_status_t psa_import_rsa_key( psa_key_type_t type,
     mbedtls_pk_init( &pk );
 
     /* Parse the data. */
-    if( PSA_KEY_TYPE_IS_KEYPAIR( type ) )
+    if( PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
         status = mbedtls_to_psa_error(
             mbedtls_pk_parse_key( &pk, data, data_length, NULL, 0 ) );
     else
@@ -709,7 +709,7 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
     }
     else
 #if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( slot->type ) )
+    if( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( slot->type ) )
     {
         status = psa_import_ec_private_key( PSA_KEY_TYPE_GET_CURVE( slot->type ),
                                             data, data_length,
@@ -1116,7 +1116,7 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
     switch( slot->type )
     {
 #if defined(MBEDTLS_RSA_C)
-        case PSA_KEY_TYPE_RSA_KEYPAIR:
+        case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
             status = psa_get_rsa_public_exponent( slot->data.rsa, attributes );
             break;
@@ -1196,7 +1196,7 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
         return( PSA_SUCCESS );
     }
 #if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( slot->type ) && !export_public_key )
+    if( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( slot->type ) && !export_public_key )
     {
         psa_status_t status;
 
@@ -3018,14 +3018,14 @@ psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
     status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
     if( status != PSA_SUCCESS )
         goto exit;
-    if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
+    if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->type ) )
     {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    if( slot->type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
         status = psa_rsa_sign( slot->data.rsa,
                                alg,
@@ -3162,7 +3162,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_handle_t handle,
     if( status != PSA_SUCCESS )
         return( status );
     if( ! ( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) ||
-            PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) ) )
+            PSA_KEY_TYPE_IS_KEY_PAIR( slot->type ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_RSA_C)
@@ -3241,11 +3241,11 @@ psa_status_t psa_asymmetric_decrypt( psa_key_handle_t handle,
     status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
-    if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
+    if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->type ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    if( slot->type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
@@ -5130,7 +5130,7 @@ static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
     {
 #if defined(MBEDTLS_ECDH_C)
         case PSA_ALG_ECDH:
-            if( ! PSA_KEY_TYPE_IS_ECC_KEYPAIR( private_key->type ) )
+            if( ! PSA_KEY_TYPE_IS_ECC_KEY_PAIR( private_key->type ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             return( psa_key_agreement_ecdh( peer_key, peer_key_length,
                                             private_key->data.ecp,
@@ -5339,7 +5339,7 @@ static psa_status_t psa_generate_random_key_internal(
     else
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
-    if ( type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    if ( type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
         mbedtls_rsa_context *rsa;
         int ret;
@@ -5377,7 +5377,7 @@ static psa_status_t psa_generate_random_key_internal(
 #endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
 
 #if defined(MBEDTLS_ECP_C)
-    if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEYPAIR( type ) )
+    if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
         psa_ecc_curve_t curve = PSA_KEY_TYPE_GET_CURVE( type );
         mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );

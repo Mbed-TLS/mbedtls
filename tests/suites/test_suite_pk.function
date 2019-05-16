@@ -81,7 +81,7 @@ psa_key_handle_t pk_psa_genkey( void )
     psa_key_handle_t key;
 
     const int curve = PSA_ECC_CURVE_SECP256R1;
-    const psa_key_type_t type = PSA_KEY_TYPE_ECC_KEYPAIR(curve);
+    const psa_key_type_t type = PSA_KEY_TYPE_ECC_KEY_PAIR(curve);
     const size_t bits = 256;
     psa_key_policy_t policy;
 

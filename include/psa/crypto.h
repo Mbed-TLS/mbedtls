@@ -625,7 +625,7 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  *   correct.
  * - For Triple-DES, the format is the concatenation of the
  *   two or three DES keys.
- * - For RSA key pairs (#PSA_KEY_TYPE_RSA_KEYPAIR), the format
+ * - For RSA key pairs (#PSA_KEY_TYPE_RSA_KEY_PAIR), the format
  *   is the non-encrypted DER encoding of the representation defined by
  *   PKCS\#1 (RFC 8017) as `RSAPrivateKey`, version 0.
  *   ```
@@ -642,7 +642,7 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  *   }
  *   ```
  * - For elliptic curve key pairs (key types for which
- *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is
+ *   #PSA_KEY_TYPE_IS_ECC_KEY_PAIR is true), the format is
  *   a representation of the private value as a `ceiling(m/8)`-byte string
  *   where `m` is the bit size associated with the curve, i.e. the bit size
  *   of the order of the curve's coordinate field. This byte string is
@@ -653,7 +653,7 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  *   This is the content of the `privateKey` field of the `ECPrivateKey`
  *   format defined by RFC 5915.
  * - For Diffie-Hellman key exchange key pairs (key types for which
- *   #PSA_KEY_TYPE_IS_DH_KEYPAIR is true), the
+ *   #PSA_KEY_TYPE_IS_DH_KEY_PAIR is true), the
  *   format is the representation of the private key `x` as a big-endian byte
  *   string. The length of the byte string is the private key size in bytes
  *   (leading zeroes are not stripped).
@@ -746,7 +746,7 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p data buffer is too small. You can determine a
  *         sufficient buffer size by calling
- *         #PSA_KEY_EXPORT_MAX_SIZE(#PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(\c type), \c bits)
+ *         #PSA_KEY_EXPORT_MAX_SIZE(#PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(\c type), \c bits)
  *         where \c type is the key type
  *         and \c bits is the key size in bits.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -3219,7 +3219,7 @@ psa_status_t psa_key_derivation_output_bytes(
  *     - #PSA_KEY_TYPE_HMAC.
  *
  * - For ECC keys on a Montgomery elliptic curve
- *   (#PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a
+ *   (#PSA_KEY_TYPE_ECC_KEY_PAIR(\c curve) where \c curve designates a
  *   Montgomery curve), this function always draws a byte string whose
  *   length is determined by the curve, and sets the mandatory bits
  *   accordingly. That is:
@@ -3247,10 +3247,10 @@ psa_status_t psa_key_derivation_output_bytes(
  *       discard the first 8 bytes, use the next 8 bytes as the first key,
  *       and continue reading output from the operation to derive the other
  *       two keys).
- *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEYPAIR(\c group)
+ *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEY_PAIR(\c group)
  *       where \c group designates any Diffie-Hellman group) and
  *       ECC keys on a Weierstrass elliptic curve
- *       (#PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a
+ *       (#PSA_KEY_TYPE_ECC_KEY_PAIR(\c curve) where \c curve designates a
  *       Weierstrass curve).
  *       For these key types, interpret the byte string as integer
  *       in big-endian order. Discard it if it is not in the range
@@ -3265,7 +3265,7 @@ psa_status_t psa_key_derivation_output_bytes(
  *       in NIST SP 800-56A &sect;5.6.1.2.2 or
  *       FIPS 186-4 &sect;B.4.2 for elliptic curve keys.
  *
- * - For other key types, including #PSA_KEY_TYPE_RSA_KEYPAIR,
+ * - For other key types, including #PSA_KEY_TYPE_RSA_KEY_PAIR,
  *   the way in which the operation output is consumed is
  *   implementation-defined.
  *
@@ -3424,7 +3424,7 @@ psa_status_t psa_generate_random(uint8_t *output,
  * Its location, policy, type and size are taken from \p attributes.
  *
  * The following type-specific considerations apply:
- * - For RSA keys (#PSA_KEY_TYPE_RSA_KEYPAIR),
+ * - For RSA keys (#PSA_KEY_TYPE_RSA_KEY_PAIR),
  *   the public exponent is 65537.
  *   The modulus is a product of two probabilistic primes
  *   between 2^{n-1} and 2^n where n is the bit size specified in the

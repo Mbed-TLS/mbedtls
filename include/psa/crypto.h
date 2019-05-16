@@ -733,6 +733,8 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
  *   true), the format is the same as for psa_export_public_key().
  *
+ * The policy on the key must have the usage flag #PSA_KEY_USAGE_EXPORT set.
+ *
  * \param handle            Handle to the key to export.
  * \param[out] data         Buffer where the key data is to be written.
  * \param data_size         Size of the \p data buffer in bytes.
@@ -743,6 +745,7 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key does not have the #PSA_KEY_USAGE_EXPORT flag.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p data buffer is too small. You can determine a
@@ -801,6 +804,9 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *   big-endian byte string. The length of the byte string is the length of the
  *   base prime `p` in bytes.
  *
+ * Exporting a public key object or the public part of a key pair is
+ * always permitted, regardless of the key's usage flags.
+ *
  * \param handle            Handle to the key to export.
  * \param[out] data         Buffer where the key data is to be written.
  * \param data_size         Size of the \p data buffer in bytes.
@@ -843,6 +849,16 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * In an implementation where slots have different ownerships,
  * this function may be used to share a key with a different party,
  * subject to implementation-defined restrictions on key sharing.
+ *
+ * The policy on the source key must have the usage flag
+ * #PSA_KEY_USAGE_COPY set.
+ * This flag is sufficient to permit the copy if the key has the lifetime
+ * #PSA_KEY_LIFETIME_VOLATILE or #PSA_KEY_LIFETIME_PERSISTENT.
+ * Some secure elements do not provide a way to copy a key without
+ * making it extractable from the secure element. If a key is located
+ * in such a secure element, then the key must have both usage flags
+ * #PSA_KEY_USAGE_COPY and #PSA_KEY_USAGE_EXPORT in order to make
+ * a copy of the key outside the secure element.
  *
  * The resulting key may only be used in a way that conforms to
  * both the policy of the original key and the policy specified in
@@ -895,6 +911,8 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p attributes specifies a key type, domain parameters or key size
  *         which does not match the attributes of the source key.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The source key does not have the #PSA_KEY_USAGE_COPY usage flag.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The source key is not exportable and its lifetime does not
  *         allow copying it to the target's lifetime.

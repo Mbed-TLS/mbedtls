@@ -447,7 +447,7 @@
  *         psa_asymmetric_sign() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
  *         If the parameters are a valid combination that is not supported
- *         by the implementation, this macro either shall return either a
+ *         by the implementation, this macro shall return either a
  *         sensible size or 0.
  *         If the parameters are not valid, the
  *         return value is unspecified.
@@ -478,7 +478,7 @@
  *         psa_asymmetric_encrypt() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
  *         If the parameters are a valid combination that is not supported
- *         by the implementation, this macro either shall return either a
+ *         by the implementation, this macro shall return either a
  *         sensible size or 0.
  *         If the parameters are not valid, the
  *         return value is unspecified.
@@ -509,7 +509,7 @@
  *         psa_asymmetric_decrypt() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
  *         If the parameters are a valid combination that is not supported
- *         by the implementation, this macro either shall return either a
+ *         by the implementation, this macro shall return either a
  *         sensible size or 0.
  *         If the parameters are not valid, the
  *         return value is unspecified.
@@ -680,7 +680,7 @@
  *         psa_asymmetric_sign() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
  *         If the parameters are a valid combination that is not supported
- *         by the implementation, this macro either shall return either a
+ *         by the implementation, this macro shall return either a
  *         sensible size or 0.
  *         If the parameters are not valid, the
  *         return value is unspecified.

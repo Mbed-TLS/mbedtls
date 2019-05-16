@@ -68,6 +68,9 @@ typedef uint32_t psa_key_type_t;
 /** The type of PSA elliptic curve identifiers. */
 typedef uint16_t psa_ecc_curve_t;
 
+/** The type of PSA Diffie-Hellman group identifiers. */
+typedef uint16_t psa_dh_group_t;
+
 /** \brief Encoding of a cryptographic algorithm.
  *
  * For algorithms that can be applied to multiple key types, this type

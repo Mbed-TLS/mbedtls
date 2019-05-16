@@ -449,6 +449,16 @@ psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
  * @{
  */
 
+/** Custom Diffie-Hellman group.
+ *
+ * For keys of type #PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_GROUP_CUSTOM) or
+ * #PSA_KEY_TYPE_DH_KEYPAIR(#PSA_DH_GROUP_CUSTOM), the group data comes
+ * from domain parameters set by psa_set_key_domain_parameters().
+ */
+/* This value is reserved for private use in the TLS named group registry. */
+#define PSA_DH_GROUP_CUSTOM             ((psa_dh_group_t) 0x01fc)
+
+
 /**
  * \brief Set domain parameters for a key.
  *
@@ -475,8 +485,9 @@ psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
  *      g       INTEGER
  *   }
  *   ```
- * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY or
- *   #PSA_KEY_TYPE_DH_KEYPAIR), the
+ * - For Diffie-Hellman key exchange keys
+ *   (#PSA_KEY_TYPE_DH_PUBLIC_KEY(#PSA_DH_GROUP_CUSTOM) or
+ *   #PSA_KEY_TYPE_DH_KEYPAIR(#PSA_DH_GROUP_CUSTOM)), the
  *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
  *   ```
  *   DomainParameters ::= SEQUENCE {

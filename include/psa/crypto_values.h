@@ -492,14 +492,45 @@
 #define PSA_ECC_CURVE_CURVE25519        ((psa_ecc_curve_t) 0x001d)
 #define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x001e)
 
-/** Diffie-Hellman key exchange public key. */
-#define PSA_KEY_TYPE_DH_PUBLIC_KEY             ((psa_key_type_t)0x60040000)
-/** Diffie-Hellman key exchange key pair (private and public key). */
-#define PSA_KEY_TYPE_DH_KEYPAIR                ((psa_key_type_t)0x70040000)
-/** Whether a key type is a Diffie-Hellman key exchange key (pair or
- * public-only). */
-#define PSA_KEY_TYPE_IS_DH(type)                                       \
-    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_DH_PUBLIC_KEY)
+#define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE         ((psa_key_type_t)0x60040000)
+#define PSA_KEY_TYPE_DH_KEYPAIR_BASE            ((psa_key_type_t)0x70040000)
+#define PSA_KEY_TYPE_DH_GROUP_MASK              ((psa_key_type_t)0x0000ffff)
+/** Diffie-Hellman key pair. */
+#define PSA_KEY_TYPE_DH_KEYPAIR(group)          \
+    (PSA_KEY_TYPE_DH_KEYPAIR_BASE | (group))
+/** Diffie-Hellman public key. */
+#define PSA_KEY_TYPE_DH_PUBLIC_KEY(group)               \
+    (PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE | (group))
+
+/** Whether a key type is a Diffie-Hellman key (pair or public-only). */
+#define PSA_KEY_TYPE_IS_DH(type)                                        \
+    ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) &                        \
+      ~PSA_KEY_TYPE_DH_GROUP_MASK) == PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE)
+/** Whether a key type is a Diffie-Hellman key pair. */
+#define PSA_KEY_TYPE_IS_DH_KEYPAIR(type)                               \
+    (((type) & ~PSA_KEY_TYPE_DH_GROUP_MASK) ==                         \
+     PSA_KEY_TYPE_DH_KEYPAIR_BASE)
+/** Whether a key type is a Diffie-Hellman public key. */
+#define PSA_KEY_TYPE_IS_DH_PUBLIC_KEY(type)                            \
+    (((type) & ~PSA_KEY_TYPE_DH_GROUP_MASK) ==                         \
+     PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE)
+
+/** Extract the group from a Diffie-Hellman key type. */
+#define PSA_KEY_TYPE_GET_GROUP(type)                            \
+    ((psa_dh_group_t) (PSA_KEY_TYPE_IS_DH(type) ?               \
+                       ((type) & PSA_KEY_TYPE_DH_GROUP_MASK) :  \
+                       0))
+
+/* The encoding of group identifiers is currently aligned with the
+ * TLS Supported Groups Registry (formerly known as the
+ * TLS EC Named Curve Registry)
+ * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+ * The values are defined by RFC 7919. */
+#define PSA_DH_GROUP_FFDHE2048          ((psa_dh_group_t) 0x0100)
+#define PSA_DH_GROUP_FFDHE3072          ((psa_dh_group_t) 0x0101)
+#define PSA_DH_GROUP_FFDHE4096          ((psa_dh_group_t) 0x0102)
+#define PSA_DH_GROUP_FFDHE6144          ((psa_dh_group_t) 0x0103)
+#define PSA_DH_GROUP_FFDHE8192          ((psa_dh_group_t) 0x0104)
 
 /** The block size of a block cipher.
  *

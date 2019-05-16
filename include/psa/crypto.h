@@ -656,7 +656,8 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  *   and `PSA_ECC_CURVE_BRAINPOOL_PXXX`).
  *   This is the content of the `privateKey` field of the `ECPrivateKey`
  *   format defined by RFC 5915.
- * - For Diffie-Hellman key exchange key pairs (#PSA_KEY_TYPE_DH_KEYPAIR), the
+ * - For Diffie-Hellman key exchange key pairs (key types for which
+ *   #PSA_KEY_TYPE_IS_DH_KEYPAIR is true), the
  *   format is the representation of the private key `x` as a big-endian byte
  *   string. The length of the byte string is the private key size in bytes
  *   (leading zeroes are not stripped).
@@ -729,7 +730,8 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *   representation of the public key `y = g^x mod p` as a big-endian byte
  *   string. The length of the byte string is the length of the base prime `p`
  *   in bytes.
- * - For Diffie-Hellman key exchange public keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY),
+ * - For Diffie-Hellman key exchange public keys (key types for which
+ *   #PSA_KEY_TYPE_IS_DH_PUBLIC_KEY is true),
  *   the format is the representation of the public key `y = g^x mod p` as a
  *   big-endian byte string. The length of the byte string is the length of the
  *   base prime `p` in bytes.
@@ -3253,7 +3255,8 @@ psa_status_t psa_key_derivation_output_bytes(
  *       discard the first 8 bytes, use the next 8 bytes as the first key,
  *       and continue reading output from the operation to derive the other
  *       two keys).
- *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEYPAIR),
+ *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEYPAIR(\c group)
+ *       where \c group designates any Diffie-Hellman group),
  *       DSA keys (#PSA_KEY_TYPE_DSA_KEYPAIR), and
  *       ECC keys on a Weierstrass elliptic curve
  *       (#PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a

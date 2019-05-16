@@ -58,6 +58,7 @@ when applicable.'''
         self.statuses = set(['PSA_SUCCESS'])
         self.algorithms = set(['0xffffffff'])
         self.ecc_curves = set(['0xffff'])
+        self.dh_groups = set(['0xffff'])
         self.key_types = set(['0xffffffff'])
         self.key_usage_flags = set(['0x80000000'])
         # Hard-coded value for unknown algorithms
@@ -74,6 +75,7 @@ when applicable.'''
             'ERROR': self.statuses,
             'ALG': self.algorithms,
             'CURVE': self.ecc_curves,
+            'GROUP': self.dh_groups,
             'KEY_TYPE': self.key_types,
             'KEY_USAGE': self.key_usage_flags,
         }
@@ -94,6 +96,7 @@ Call this after parsing all the inputs.'''
         self.arguments_for['kdf_alg'] = sorted(self.kdf_algorithms)
         self.arguments_for['aead_alg'] = sorted(self.aead_algorithms)
         self.arguments_for['curve'] = sorted(self.ecc_curves)
+        self.arguments_for['group'] = sorted(self.dh_groups)
 
     def format_arguments(self, name, arguments):
         '''Format a macro call with arguments..'''
@@ -184,6 +187,8 @@ where each argument takes each possible value at least once.'''
             self.key_types.add(argument)
         elif function == 'ecc_key_types':
             self.ecc_curves.add(argument)
+        elif function == 'dh_key_types':
+            self.dh_groups.add(argument)
 
     # Regex matching a *.data line containing a test function call and
     # its arguments. The actual definition is partly positional, but this
@@ -299,6 +304,7 @@ not as expected.'''
     for type, names in [('status', inputs.statuses),
                         ('algorithm', inputs.algorithms),
                         ('ecc_curve', inputs.ecc_curves),
+                        ('dh_group', inputs.dh_groups),
                         ('key_type', inputs.key_types),
                         ('key_usage', inputs.key_usage_flags)]:
         c, e = do_test(options, inputs, type, names)

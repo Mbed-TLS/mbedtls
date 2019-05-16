@@ -526,7 +526,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     psa_algorithm_t alg;
     psa_key_policy_t policy;
     psa_key_handle_t master_slot;
-    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
 
     if( ( status = psa_allocate_key( &master_slot ) ) != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
@@ -556,20 +556,20 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
                                  dlen );
     if( status != PSA_SUCCESS )
     {
-        psa_generator_abort( &generator );
+        psa_key_derivation_abort( &generator );
         psa_destroy_key( master_slot );
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
 
-    status = psa_generator_read( &generator, dstbuf, dlen );
+    status = psa_key_derivation_output_bytes( &generator, dstbuf, dlen );
     if( status != PSA_SUCCESS )
     {
-        psa_generator_abort( &generator );
+        psa_key_derivation_abort( &generator );
         psa_destroy_key( master_slot );
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
 
-    status = psa_generator_abort( &generator );
+    status = psa_key_derivation_abort( &generator );
     if( status != PSA_SUCCESS )
     {
         psa_destroy_key( master_slot );
@@ -892,7 +892,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             /* Perform PSK-to-MS expansion in a single step. */
             psa_status_t status;
             psa_algorithm_t alg;
-            psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+            psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
             psa_key_handle_t psk;
 
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "perform PSA-based PSK-to-MS expansion" ) );
@@ -913,19 +913,19 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                          master_secret_len );
             if( status != PSA_SUCCESS )
             {
-                psa_generator_abort( &generator );
+                psa_key_derivation_abort( &generator );
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
             }
 
-            status = psa_generator_read( &generator, session->master,
+            status = psa_key_derivation_output_bytes( &generator, session->master,
                                          master_secret_len );
             if( status != PSA_SUCCESS )
             {
-                psa_generator_abort( &generator );
+                psa_key_derivation_abort( &generator );
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
             }
 
-            status = psa_generator_abort( &generator );
+            status = psa_key_derivation_abort( &generator );
             if( status != PSA_SUCCESS )
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }

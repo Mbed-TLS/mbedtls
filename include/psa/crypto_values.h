@@ -1216,12 +1216,12 @@
  * For example, `PSA_ALG_HKDF(PSA_ALG_SHA256)` is HKDF using HMAC-SHA-256.
  *
  * This key derivation algorithm uses the following inputs:
- * - #PSA_KDF_STEP_SALT is the salt used in the "extract" step.
+ * - #PSA_KEY_DERIVATION_INPUT_SALT is the salt used in the "extract" step.
  *   It is optional; if omitted, the derivation uses an empty salt.
- * - #PSA_KDF_STEP_SECRET is the secret key used in the "extract" step.
- * - #PSA_KDF_STEP_INFO is the info string used in the "expand" step.
- * You must pass #PSA_KDF_STEP_SALT before #PSA_KDF_STEP_SECRET.
- * You may pass #PSA_KDF_STEP_INFO at any time after steup and before
+ * - #PSA_KEY_DERIVATION_INPUT_SECRET is the secret key used in the "extract" step.
+ * - #PSA_KEY_DERIVATION_INPUT_INFO is the info string used in the "expand" step.
+ * You must pass #PSA_KEY_DERIVATION_INPUT_SALT before #PSA_KEY_DERIVATION_INPUT_SECRET.
+ * You may pass #PSA_KEY_DERIVATION_INPUT_INFO at any time after steup and before
  * starting to generate output.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
@@ -1590,25 +1590,25 @@
  *
  * This must be a key of type #PSA_KEY_TYPE_DERIVE.
  */
-#define PSA_KDF_STEP_SECRET              ((psa_key_derivation_step_t)0x0101)
+#define PSA_KEY_DERIVATION_INPUT_SECRET     ((psa_key_derivation_step_t)0x0101)
 
 /** A label for key derivation.
  *
  * This must be a direct input.
  */
-#define PSA_KDF_STEP_LABEL               ((psa_key_derivation_step_t)0x0201)
+#define PSA_KEY_DERIVATION_INPUT_LABEL      ((psa_key_derivation_step_t)0x0201)
 
 /** A salt for key derivation.
  *
  * This must be a direct input.
  */
-#define PSA_KDF_STEP_SALT                ((psa_key_derivation_step_t)0x0202)
+#define PSA_KEY_DERIVATION_INPUT_SALT       ((psa_key_derivation_step_t)0x0202)
 
 /** An information string for key derivation.
  *
  * This must be a direct input.
  */
-#define PSA_KDF_STEP_INFO                ((psa_key_derivation_step_t)0x0203)
+#define PSA_KEY_DERIVATION_INPUT_INFO       ((psa_key_derivation_step_t)0x0203)
 
 /**@}*/
 

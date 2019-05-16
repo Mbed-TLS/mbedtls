@@ -5308,7 +5308,7 @@ static psa_status_t psa_read_rsa_exponent( const uint8_t *domain_parameters,
 }
 #endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
 
-static psa_status_t psa_generate_random_key_internal(
+static psa_status_t psa_generate_key_internal(
     psa_key_slot_t *slot, size_t bits,
     const uint8_t *domain_parameters, size_t domain_parameters_size )
 {
@@ -5414,7 +5414,7 @@ static psa_status_t psa_generate_random_key_internal(
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_generate_random_key_to_handle( psa_key_handle_t handle,
+psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
                                psa_key_type_t type,
                                size_t bits,
                                const void *extra,
@@ -5434,7 +5434,7 @@ psa_status_t psa_generate_random_key_to_handle( psa_key_handle_t handle,
         return( status );
 
     slot->type = type;
-    status = psa_generate_random_key_internal( slot, bits, extra, extra_size );
+    status = psa_generate_key_internal( slot, bits, extra, extra_size );
     if( status != PSA_SUCCESS )
         slot->type = 0;
 
@@ -5448,7 +5448,7 @@ psa_status_t psa_generate_random_key_to_handle( psa_key_handle_t handle,
     return( status );
 }
 
-psa_status_t psa_generate_random_key( const psa_key_attributes_t *attributes,
+psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
                                psa_key_handle_t *handle )
 {
     psa_status_t status;
@@ -5456,7 +5456,7 @@ psa_status_t psa_generate_random_key( const psa_key_attributes_t *attributes,
     status = psa_start_key_creation( attributes, handle, &slot );
     if( status == PSA_SUCCESS )
     {
-        status = psa_generate_random_key_internal(
+        status = psa_generate_key_internal(
             slot, attributes->bits,
             attributes->domain_parameters, attributes->domain_parameters_size );
     }

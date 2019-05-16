@@ -180,10 +180,10 @@ psa_status_t psa_crypto_init(void);
  *    psa_set_key_algorithm().
  * -# Set the key type with psa_set_key_type().
  *    Skip this step if copying an existing key with psa_copy_key().
- * -# When generating a random key with psa_generate_random_key() or deriving a key
+ * -# When generating a random key with psa_generate_key() or deriving a key
  *    with psa_key_derivation_output_key(), set the desired key size with
  *    psa_set_key_bits().
- * -# Call a key creation function: psa_import_key(), psa_generate_random_key(),
+ * -# Call a key creation function: psa_import_key(), psa_generate_key(),
  *    psa_key_derivation_output_key() or psa_copy_key(). This function reads
  *    the attribute structure, creates a key with these attributes, and
  *    outputs a handle to the newly created key.
@@ -214,7 +214,7 @@ typedef struct psa_key_attributes_s psa_key_attributes_t;
  * value in the structure.
  * The persistent key will be written to storage when the attribute
  * structure is passed to a key creation function such as
- * psa_import_key(), psa_generate_random_key(),
+ * psa_import_key(), psa_generate_key(),
  * psa_key_derivation_output_key() or psa_copy_key().
  *
  * This function may be declared as `static` (i.e. without external
@@ -239,7 +239,7 @@ static void psa_set_key_id(psa_key_attributes_t *attributes,
  * value in the structure.
  * The persistent key will be written to storage when the attribute
  * structure is passed to a key creation function such as
- * psa_import_key(), psa_generate_random_key(),
+ * psa_import_key(), psa_generate_key(),
  * psa_key_derivation_output_key() or psa_copy_key().
  *
  * This function may be declared as `static` (i.e. without external
@@ -3398,7 +3398,7 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
  *          and MUST NOT use the content of the output buffer if the return
  *          status is not #PSA_SUCCESS.
  *
- * \note    To generate a key, use psa_generate_random_key() instead.
+ * \note    To generate a key, use psa_generate_key() instead.
  *
  * \param[out] output       Output buffer for the generated data.
  * \param output_size       Number of bytes to generate and output.
@@ -3453,7 +3453,7 @@ psa_status_t psa_generate_random(uint8_t *output,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_generate_random_key(const psa_key_attributes_t *attributes,
+psa_status_t psa_generate_key(const psa_key_attributes_t *attributes,
                               psa_key_handle_t *handle);
 
 /**@}*/

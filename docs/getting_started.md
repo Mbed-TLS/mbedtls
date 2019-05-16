@@ -494,7 +494,7 @@ Prerequisites to using key generation and export APIs:
 
 Generate a piece of random 128-bit AES data:
 1. Set the key policy for key generation by calling `psa_key_policy_set_usage()` with the `PSA_KEY_USAGE_EXPORT` parameter and the algorithm `PSA_ALG_GCM`.
-1. Generate a random AES key by calling `psa_generate_random_key()`.
+1. Generate a random AES key by calling `psa_generate_key()`.
 1. Export the generated key by calling `psa_export_key()`:
 ```C
     int slot = 1;
@@ -510,7 +510,7 @@ Generate a piece of random 128-bit AES data:
     psa_set_key_policy(slot, &policy);
 
     /* Generate a key */
-    psa_generate_random_key(slot, PSA_KEY_TYPE_AES, bits);
+    psa_generate_key(slot, PSA_KEY_TYPE_AES, bits);
 
     psa_export_key(slot, exported, exported_size, &exported_length)
 

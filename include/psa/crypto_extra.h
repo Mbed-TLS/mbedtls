@@ -436,7 +436,7 @@ psa_status_t psa_generate_derived_key_to_handle(psa_key_handle_t handle,
                                       size_t bits,
                                       psa_key_derivation_operation_t *operation);
 
-psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
+psa_status_t psa_generate_key_to_handle(psa_key_handle_t handle,
                               psa_key_type_t type,
                               size_t bits,
                               const void *extra,

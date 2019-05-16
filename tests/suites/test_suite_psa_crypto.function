@@ -4755,7 +4755,7 @@ void generate_key( int type_arg,
     psa_set_key_bits( &attributes, bits );
 
     /* Generate a key */
-    TEST_EQUAL( psa_generate_random_key( &attributes, &handle ), expected_status );
+    TEST_EQUAL( psa_generate_key( &attributes, &handle ), expected_status );
     if( expected_status != PSA_SUCCESS )
         goto exit;
 
@@ -4815,7 +4815,7 @@ void generate_key_rsa( int bits_arg,
     psa_set_key_bits( &attributes, bits );
 
     /* Generate a key */
-    TEST_EQUAL( psa_generate_random_key( &attributes, &handle ), expected_status );
+    TEST_EQUAL( psa_generate_key( &attributes, &handle ), expected_status );
     if( expected_status != PSA_SUCCESS )
         goto exit;
 
@@ -4923,7 +4923,7 @@ void persistent_key_load_key_from_storage( data_t *data,
 
         case GENERATE_KEY:
             /* Generate a key */
-            PSA_ASSERT( psa_generate_random_key( &attributes, &handle ) );
+            PSA_ASSERT( psa_generate_key( &attributes, &handle ) );
             break;
 
         case DERIVE_KEY:

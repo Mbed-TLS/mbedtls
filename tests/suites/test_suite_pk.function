@@ -97,7 +97,7 @@ psa_key_handle_t pk_psa_genkey( void )
         return( PK_PSA_INVALID_SLOT );
 
     /* generate key */
-    if( PSA_SUCCESS != psa_generate_random_key_to_handle( key, type, bits, NULL, 0 ) )
+    if( PSA_SUCCESS != psa_generate_key_to_handle( key, type, bits, NULL, 0 ) )
         return( PK_PSA_INVALID_SLOT );
 
     return( key );

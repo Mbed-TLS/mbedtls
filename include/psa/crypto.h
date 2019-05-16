@@ -2969,33 +2969,33 @@ psa_status_t psa_asymmetric_decrypt(psa_key_handle_t handle,
 
 /**@}*/
 
-/** \defgroup generators Generators
+/** \defgroup key_derivation Key derivation and pseudorandom generation
  * @{
  */
 
-/** The type of the state data structure for generators.
+/** The type of the state data structure for key derivation operations.
  *
- * Before calling any function on a generator, the application must
- * initialize it by any of the following means:
+ * Before calling any function on a key derivation operation object, the
+ * application must initialize it by any of the following means:
  * - Set the structure to all-bits-zero, for example:
  *   \code
- *   psa_key_derivation_operation_t generator;
- *   memset(&generator, 0, sizeof(generator));
+ *   psa_key_derivation_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
  *   \endcode
  * - Initialize the structure to logical zero values, for example:
  *   \code
- *   psa_key_derivation_operation_t generator = {0};
+ *   psa_key_derivation_operation_t operation = {0};
  *   \endcode
  * - Initialize the structure to the initializer #PSA_KEY_DERIVATION_OPERATION_INIT,
  *   for example:
  *   \code
- *   psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
+ *   psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
  *   \endcode
  * - Assign the result of the function psa_key_derivation_operation_init()
  *   to the structure, for example:
  *   \code
- *   psa_key_derivation_operation_t generator;
- *   generator = psa_key_derivation_operation_init();
+ *   psa_key_derivation_operation_t operation;
+ *   operation = psa_key_derivation_operation_init();
  *   \endcode
  *
  * This is an implementation-defined \c struct. Applications should not
@@ -3006,8 +3006,8 @@ typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
 
 /** \def PSA_KEY_DERIVATION_OPERATION_INIT
  *
- * This macro returns a suitable initializer for a generator object
- * of type #psa_key_derivation_operation_t.
+ * This macro returns a suitable initializer for a key derivation operation
+ * object of type #psa_key_derivation_operation_t.
  */
 #ifdef __DOXYGEN_ONLY__
 /* This is an example definition for documentation purposes.
@@ -3016,58 +3016,66 @@ typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
 #define PSA_KEY_DERIVATION_OPERATION_INIT {0}
 #endif
 
-/** Return an initial value for a generator object.
+/** Return an initial value for a key derivation operation object.
  */
 static psa_key_derivation_operation_t psa_key_derivation_operation_init(void);
 
-/** Retrieve the current capacity of a generator.
+/** Retrieve the current capacity of a key derivation operation.
  *
- * The capacity of a generator is the maximum number of bytes that it can
- * return. Reading *N* bytes from a generator reduces its capacity by *N*.
+ * The capacity of a key derivation is the maximum number of bytes that it can
+ * return. When you get *N* bytes of output from a key derivation operation,
+ * this reduces its capacity by *N*.
  *
- * \param[in] generator     The generator to query.
- * \param[out] capacity     On success, the capacity of the generator.
+ * \param[in] operation     The operation to query.
+ * \param[out] capacity     On success, the capacity of the operation.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BAD_STATE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  */
-psa_status_t psa_key_derivation_get_capacity(const psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_get_capacity(const psa_key_derivation_operation_t *operation,
                                         size_t *capacity);
 
-/** Set the maximum capacity of a generator.
+/** Set the maximum capacity of a key derivation operation.
  *
- * \param[in,out] generator The generator object to modify.
- * \param capacity          The new capacity of the generator.
- *                          It must be less or equal to the generator's
+ * The capacity of a key derivation operation is the maximum number of bytes
+ * that the key derivation operation can return from this point onwards.
+ *
+ * \param[in,out] operation The key derivation operation object to modify.
+ * \param capacity          The new capacity of the operation.
+ *                          It must be less or equal to the operation's
  *                          current capacity.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p capacity is larger than the generator's current capacity.
+ *         \p capacity is larger than the operation's current capacity.
+ *         In this case, the operation object remains valid and its capacity
+ *         remains unchanged.
  * \retval #PSA_ERROR_BAD_STATE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  */
-psa_status_t psa_key_derivation_set_capacity(psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_set_capacity(psa_key_derivation_operation_t *operation,
                                         size_t capacity);
 
-/** Read some data from a generator.
+/** Read some data from a key derivation operation.
  *
- * This function reads and returns a sequence of bytes from a generator.
- * The data that is read is discarded from the generator. The generator's
- * capacity is decreased by the number of bytes read.
+ * This function calculates output bytes from a key derivation algorithm and
+ * return those bytes.
+ * If you view the key derivation's output as a stream of bytes, this
+ * function destructively reads the requested number of bytes from the
+ * stream.
+ * The operation's capacity decreases by the number of bytes read.
  *
- * \param[in,out] generator The generator object to read from.
- * \param[out] output       Buffer where the generator output will be
- *                          written.
+ * \param[in,out] operation The key derivation operation object to read from.
+ * \param[out] output       Buffer where the output will be written.
  * \param output_length     Number of bytes to output.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INSUFFICIENT_DATA
- *                          There were fewer than \p output_length bytes
- *                          in the generator. Note that in this case, no
- *                          output is written to the output buffer.
- *                          The generator's capacity is set to 0, thus
+ *                          The operation's capacity was less than
+ *                          \p output_length bytes. Note that in this case,
+ *                          no output is written to the output buffer.
+ *                          The operation's capacity is set to 0, thus
  *                          subsequent calls to this function will not
  *                          succeed, even with a smaller output buffer.
  * \retval #PSA_ERROR_BAD_STATE
@@ -3076,15 +3084,21 @@ psa_status_t psa_key_derivation_set_capacity(psa_key_derivation_operation_t *gen
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_key_derivation_output_bytes(psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_output_bytes(psa_key_derivation_operation_t *operation,
                                 uint8_t *output,
                                 size_t output_length);
 
-/** Generate a key deterministically from data read from a generator.
+/** Derive a key from an ongoing key derivation operation.
  *
- * This function uses the output of a generator to derive a key.
- * How much output it consumes and how the key is derived depends on the
- * key type.
+ * This function calculates output bytes from a key derivation algorithm
+ * and uses those bytes to generate a key deterministically.
+ * If you view the key derivation's output as a stream of bytes, this
+ * function destructively reads as many bytes as required from the
+ * stream.
+ * The operation's capacity decreases by the number of bytes read.
+ *
+ * How much output is produced and consumed from the operation, and how
+ * the key is derived, depends on the key type:
  *
  * - For key types for which the key is an arbitrary sequence of bytes
  *   of a given size,
@@ -3094,7 +3108,7 @@ psa_status_t psa_key_derivation_output_bytes(psa_key_derivation_operation_t *gen
  *   if the implementation provides an isolation boundary then
  *   the key material is not exposed outside the isolation boundary.
  *   As a consequence, for these key types, this function always consumes
- *   exactly (\p bits / 8) bytes from the generator.
+ *   exactly (\p bits / 8) bytes from the operation.
  *   The following key types defined in this specification follow this scheme:
  *
  *     - #PSA_KEY_TYPE_AES;
@@ -3120,7 +3134,7 @@ psa_status_t psa_key_derivation_output_bytes(psa_key_derivation_operation_t *gen
  *   up to the nearest whole number of bytes. If the resulting byte string
  *   is acceptable, it becomes the key, otherwise the drawn bytes are discarded.
  *   This process is repeated until an acceptable byte string is drawn.
- *   The byte string drawn from the generator is interpreted as specified
+ *   The byte string drawn from the operation is interpreted as specified
  *   for the output produced by psa_export_key().
  *   The following key types defined in this specification follow this scheme:
  *
@@ -3130,7 +3144,7 @@ psa_status_t psa_key_derivation_output_bytes(psa_key_derivation_operation_t *gen
  *       successively (for example, for 3-key triple-DES,
  *       if the first 8 bytes specify a weak key and the next 8 bytes do not,
  *       discard the first 8 bytes, use the next 8 bytes as the first key,
- *       and continue reading output from the generator to derive the other
+ *       and continue reading output from the operation to derive the other
  *       two keys).
  *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEYPAIR),
  *       DSA keys (#PSA_KEY_TYPE_DSA_KEYPAIR), and
@@ -3151,14 +3165,14 @@ psa_status_t psa_key_derivation_output_bytes(psa_key_derivation_operation_t *gen
  *       FIPS 186-4 &sect;B.4.2 for elliptic curve keys.
  *
  * - For other key types, including #PSA_KEY_TYPE_RSA_KEYPAIR,
- *   the way in which the generator output is consumed is
+ *   the way in which the operation output is consumed is
  *   implementation-defined.
  *
- * In all cases, the data that is read is discarded from the generator.
- * The generator's capacity is decreased by the number of bytes read.
+ * In all cases, the data that is read is discarded from the operation.
+ * The operation's capacity is decreased by the number of bytes read.
  *
  * \param[in] attributes    The attributes for the new key.
- * \param[in,out] generator The generator object to read from.
+ * \param[in,out] operation The key derivation operation object to read from.
  * \param[out] handle       On success, a handle to the newly created key.
  *                          \c 0 on failure.
  *
@@ -3172,7 +3186,7 @@ psa_status_t psa_key_derivation_output_bytes(psa_key_derivation_operation_t *gen
  * \retval #PSA_ERROR_INSUFFICIENT_DATA
  *         There was not enough data to create the desired key.
  *         Note that in this case, no output is written to the output buffer.
- *         The generator's capacity is set to 0, thus subsequent calls to
+ *         The operation's capacity is set to 0, thus subsequent calls to
  *         this function will not succeed, even with a smaller output buffer.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The key type or key size is not supported, either by the
@@ -3189,24 +3203,24 @@ psa_status_t psa_key_derivation_output_bytes(psa_key_derivation_operation_t *gen
  *         results in this error code.
  */
 psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attributes,
-                                      psa_key_derivation_operation_t *generator,
+                                      psa_key_derivation_operation_t *operation,
                                       psa_key_handle_t *handle);
 
-/** Abort a generator.
+/** Abort a key derivation operation.
  *
- * Once a generator has been aborted, its capacity is zero.
- * Aborting a generator frees all associated resources except for the
- * \c generator structure itself.
+ * Once a key derivation operation has been aborted, its capacity is zero.
+ * Aborting an operation frees all associated resources except for the
+ * \c operation structure itself.
  *
- * This function may be called at any time as long as the generator
+ * This function may be called at any time as long as the operation
  * object has been initialized to #PSA_KEY_DERIVATION_OPERATION_INIT, to
  * psa_key_derivation_operation_init() or a zero value. In particular, it is valid
  * to call psa_key_derivation_abort() twice, or to call psa_key_derivation_abort()
- * on a generator that has not been set up.
+ * on an operation that has not been set up.
  *
- * Once aborted, the generator object may be called.
+ * Once aborted, the key derivation operation object may be called.
  *
- * \param[in,out] generator    The generator to abort.
+ * \param[in,out] operation    The operation to abort.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BAD_STATE
@@ -3214,46 +3228,44 @@ psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attribute
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *generator);
+psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation);
 
-/** Use the maximum possible capacity for a generator.
+/** Use the maximum possible capacity for a key derivation operation.
  *
- * Use this value as the capacity argument when setting up a generator
- * to indicate that the generator should have the maximum possible capacity.
- * The value of the maximum possible capacity depends on the generator
+ * Use this value as the capacity argument when setting up a key derivation
+ * to indicate that the operation should have the maximum possible capacity.
+ * The value of the maximum possible capacity depends on the key derivation
  * algorithm.
  */
 #define PSA_KEY_DERIVATION_UNLIMITED_CAPACITY ((size_t)(-1))
 
-/**@}*/
-
-/** \defgroup derivation Key derivation
- * @{
- */
-
 /** Set up a key derivation operation.
  *
- * A key derivation algorithm takes some inputs and uses them to create
- * a byte generator which can be used to produce keys and other
+ * A key derivation algorithm takes some inputs and uses them to generate
+ * a byte stream in a deterministic way.
+ * This byte stream can be used to produce keys and other
  * cryptographic material.
  *
- * To use a generator for key derivation:
+ * To derive a key:
  * - Start with an initialized object of type #psa_key_derivation_operation_t.
  * - Call psa_key_derivation_setup() to select the algorithm.
  * - Provide the inputs for the key derivation by calling
  *   psa_key_derivation_input_bytes() or psa_key_derivation_input_key()
  *   as appropriate. Which inputs are needed, in what order, and whether
  *   they may be keys and if so of what type depends on the algorithm.
- * - Optionally set the generator's maximum capacity with
+ * - Optionally set the operation's maximum capacity with
  *   psa_key_derivation_set_capacity(). You may do this before, in the middle of
  *   or after providing inputs. For some algorithms, this step is mandatory
  *   because the output depends on the maximum capacity.
- * - Generate output with psa_key_derivation_output_bytes() or
- *   psa_key_derivation_output_key(). Successive calls to these functions
- *   use successive output bytes from the generator.
- * - Clean up the generator object with psa_key_derivation_abort().
+ * - To derive a key, call psa_key_derivation_output_key().
+ *   To derive a byte string for a different purpose, call
+ * - psa_key_derivation_output_bytes().
+ *   Successive calls to these functions use successive output bytes
+ *   calculated by the key derivation algorithm.
+ * - Clean up the key derivation operation object with psa_key_derivation_abort().
  *
- * \param[in,out] generator       The generator object to set up. It must
+ * \param[in,out] operation       The key derivation operation object
+ *                                to set up. It must
  *                                have been initialized but not set up yet.
  * \param alg                     The key derivation algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
@@ -3271,7 +3283,7 @@ psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *generator)
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  */
-psa_status_t psa_key_derivation_setup(psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_setup(psa_key_derivation_operation_t *operation,
                                       psa_algorithm_t alg);
 
 /** Provide an input for key derivation or key agreement.
@@ -3284,8 +3296,8 @@ psa_status_t psa_key_derivation_setup(psa_key_derivation_operation_t *generator,
  * using psa_key_derivation_input_key() instead of this function. Refer to
  * the documentation of individual step types for information.
  *
- * \param[in,out] generator       The generator object to use. It must
- *                                have been set up with
+ * \param[in,out] operation       The key derivation operation object to use.
+ *                                It must have been set up with
  *                                psa_key_derivation_setup() and must not
  *                                have produced any output yet.
  * \param step                    Which step the input data is for.
@@ -3295,7 +3307,7 @@ psa_status_t psa_key_derivation_setup(psa_key_derivation_operation_t *generator,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \c step is not compatible with the generator's algorithm.
+ *         \c step is not compatible with the operation's algorithm.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c step does not allow direct inputs.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -3303,13 +3315,13 @@ psa_status_t psa_key_derivation_setup(psa_key_derivation_operation_t *generator,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The value of \p step is not valid given the state of \p generator.
+ *         The value of \p step is not valid given the state of \p operation.
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_key_derivation_input_bytes(psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_input_bytes(psa_key_derivation_operation_t *operation,
                                             psa_key_derivation_step_t step,
                                             const uint8_t *data,
                                             size_t data_length);
@@ -3325,8 +3337,8 @@ psa_status_t psa_key_derivation_input_bytes(psa_key_derivation_operation_t *gene
  * passed as direct inputs using psa_key_derivation_input_bytes(). Refer to
  * the documentation of individual step types for information.
  *
- * \param[in,out] generator       The generator object to use. It must
- *                                have been set up with
+ * \param[in,out] operation       The key derivation operation object to use.
+ *                                It must have been set up with
  *                                psa_key_derivation_setup() and must not
  *                                have produced any output yet.
  * \param step                    Which step the input data is for.
@@ -3340,7 +3352,7 @@ psa_status_t psa_key_derivation_input_bytes(psa_key_derivation_operation_t *gene
  * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \c step is not compatible with the generator's algorithm.
+ *         \c step is not compatible with the operation's algorithm.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c step does not allow key inputs.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -3348,13 +3360,13 @@ psa_status_t psa_key_derivation_input_bytes(psa_key_derivation_operation_t *gene
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The value of \p step is not valid given the state of \p generator.
+ *         The value of \p step is not valid given the state of \p operation.
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_key_derivation_input_key(psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_input_key(psa_key_derivation_operation_t *operation,
                                           psa_key_derivation_step_t step,
                                           psa_key_handle_t handle);
 
@@ -3365,17 +3377,17 @@ psa_status_t psa_key_derivation_input_key(psa_key_derivation_operation_t *genera
  * a public key \p peer_key.
  * The result of this function is passed as input to a key derivation.
  * The output of this key derivation can be extracted by reading from the
- * resulting generator to produce keys and other cryptographic material.
+ * resulting operation to produce keys and other cryptographic material.
  *
- * \param[in,out] generator       The generator object to use. It must
- *                                have been set up with
+ * \param[in,out] operation       The key derivation operation object to use.
+ *                                It must have been set up with
  *                                psa_key_derivation_setup() with a
  *                                key agreement and derivation algorithm
  *                                \c alg (\c PSA_ALG_XXX value such that
  *                                #PSA_ALG_IS_KEY_AGREEMENT(\c alg) is true
  *                                and #PSA_ALG_IS_RAW_KEY_AGREEMENT(\c alg)
  *                                is false).
- *                                The generator must be ready for an
+ *                                The operation must be ready for an
  *                                input of the type given by \p step.
  * \param step                    Which step the input data is for.
  * \param private_key             Handle to the private key to use.
@@ -3411,7 +3423,7 @@ psa_status_t psa_key_derivation_input_key(psa_key_derivation_operation_t *genera
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *operation,
                                psa_key_derivation_step_t step,
                                psa_key_handle_t private_key,
                                const uint8_t *peer_key,
@@ -3428,7 +3440,7 @@ psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *ge
  * not be used directly as key material. It should instead be passed as
  * input to a key derivation algorithm. To chain a key agreement with
  * a key derivation, use psa_key_derivation_key_agreement() and other functions from
- * the key derivation and generator interface.
+ * the key derivation interface.
  *
  * \param alg                     The key agreement algorithm to compute
  *                                (\c PSA_ALG_XXX value such that

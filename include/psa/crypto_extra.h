@@ -157,7 +157,7 @@ psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
  * - For HKDF (#PSA_ALG_HKDF), \p salt is the salt used in the "extract" step
  *   and \p label is the info string used in the "expand" step.
  *
- * \param[in,out] generator       The generator object to set up. It must have
+ * \param[in,out] operation       The key derivation object to set up. It must have
  *                                been initialized as per the documentation for
  *                                #psa_key_derivation_operation_t and not yet in use.
  * \param handle                  Handle to the secret key.
@@ -169,7 +169,7 @@ psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
  * \param[in] label               Label to use.
  * \param label_length            Size of the \p label buffer in bytes.
  * \param capacity                The maximum number of bytes that the
- *                                generator will be able to provide.
+ *                                operation will be able to provide.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -190,7 +190,7 @@ psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_key_derivation(psa_key_derivation_operation_t *generator,
+psa_status_t psa_key_derivation(psa_key_derivation_operation_t *operation,
                                 psa_key_handle_t handle,
                                 psa_algorithm_t alg,
                                 const uint8_t *salt,
@@ -433,7 +433,7 @@ psa_status_t psa_copy_key_to_handle(psa_key_handle_t source_handle,
 psa_status_t psa_generate_derived_key_to_handle(psa_key_handle_t handle,
                                       psa_key_type_t type,
                                       size_t bits,
-                                      psa_key_derivation_operation_t *generator);
+                                      psa_key_derivation_operation_t *operation);
 
 psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
                               psa_key_type_t type,

@@ -195,7 +195,7 @@ typedef struct
 typedef struct psa_tls12_prf_key_derivation_s
 {
     /* The TLS 1.2 PRF uses the key for each HMAC iteration,
-     * hence we must store it for the lifetime of the generator.
+     * hence we must store it for the lifetime of the operation.
      * This is different from HKDF, where the key is only used
      * in the extraction phase, but not during expansion. */
     unsigned char *key;

@@ -1047,6 +1047,8 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_ssl_session saved_session;
+    unsigned char session_data[MBEDTLS_SSL_MAX_CONTENT_LEN];
+    size_t session_data_len;
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_timing_delay_context timer;
 #endif
@@ -2447,6 +2449,19 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
+        if( ( ret = mbedtls_ssl_session_save( &saved_session,
+                                              session_data, sizeof( session_data ),
+                                              &session_data_len ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_session_saved returned -0x%04x\n\n",
+                            -ret );
+            goto exit;
+        }
+
+        /* Simulate that serialised state can have a larger lifetime than a
+         * structure: keep the serialised data but not the structure. */
+        mbedtls_ssl_session_free( &saved_session );
+
         mbedtls_printf( " ok\n" );
     }
 
@@ -2886,10 +2901,19 @@ reconnect:
             goto exit;
         }
 
+        if( ( ret = mbedtls_ssl_session_load( &saved_session,
+                                              session_data,
+                                              session_data_len ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_session_load returned -0x%x\n\n",
+                            -ret );
+            goto exit;
+        }
+
         if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session returned %d\n\n",
-                            ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
 

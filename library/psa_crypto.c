@@ -4065,7 +4065,7 @@ exit:
 #define HKDF_STATE_KEYED 2 /* got key */
 #define HKDF_STATE_OUTPUT 3 /* output started */
 
-static psa_algorithm_t psa_generator_get_kdf_alg(
+static psa_algorithm_t psa_key_derivation_get_kdf_alg(
     const psa_key_derivation_operation_t *generator )
 {
     if ( PSA_ALG_IS_KEY_AGREEMENT( generator->alg ) )
@@ -4078,7 +4078,7 @@ static psa_algorithm_t psa_generator_get_kdf_alg(
 psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *generator )
 {
     psa_status_t status = PSA_SUCCESS;
-    psa_algorithm_t kdf_alg = psa_generator_get_kdf_alg( generator );
+    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( generator );
     if( kdf_alg == 0 )
     {
         /* The object has (apparently) been initialized but it is not
@@ -4156,7 +4156,7 @@ psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *ge
 #if defined(MBEDTLS_MD_C)
 /* Read some bytes from an HKDF-based generator. This performs a chunk
  * of the expand phase of the HKDF algorithm. */
-static psa_status_t psa_generator_hkdf_read( psa_hkdf_generator_t *hkdf,
+static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkdf,
                                              psa_algorithm_t hash_alg,
                                              uint8_t *output,
                                              size_t output_length )
@@ -4223,8 +4223,8 @@ static psa_status_t psa_generator_hkdf_read( psa_hkdf_generator_t *hkdf,
     return( PSA_SUCCESS );
 }
 
-static psa_status_t psa_generator_tls12_prf_generate_next_block(
-    psa_tls12_prf_generator_t *tls12_prf,
+static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
+    psa_tls12_prf_key_derivation_t *tls12_prf,
     psa_algorithm_t alg )
 {
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
@@ -4258,7 +4258,7 @@ static psa_status_t psa_generator_tls12_prf_generate_next_block(
      * A(0) = seed
      * A(i) = HMAC_hash( secret, A(i-1) )
      *
-     * The `psa_tls12_prf_generator` structures saves the block
+     * The `psa_tls12_prf_key_derivation` structures saves the block
      * `HMAC_hash(secret, A(i) + seed)` from which the output
      * is currently extracted as `output_block`, while
      * `A(i) + seed` is stored in `Ai_with_seed`.
@@ -4337,8 +4337,8 @@ cleanup:
 
 /* Read some bytes from an TLS-1.2-PRF-based generator.
  * See Section 5 of RFC 5246. */
-static psa_status_t psa_generator_tls12_prf_read(
-                                        psa_tls12_prf_generator_t *tls12_prf,
+static psa_status_t psa_key_derivation_tls12_prf_read(
+                                        psa_tls12_prf_key_derivation_t *tls12_prf,
                                         psa_algorithm_t alg,
                                         uint8_t *output,
                                         size_t output_length )
@@ -4355,7 +4355,7 @@ static psa_status_t psa_generator_tls12_prf_read(
         /* Check if we have fully processed the current block. */
         if( n == 0 )
         {
-            status = psa_generator_tls12_prf_generate_next_block( tls12_prf,
+            status = psa_key_derivation_tls12_prf_generate_next_block( tls12_prf,
                                                                   alg );
             if( status != PSA_SUCCESS )
                 return( status );
@@ -4381,7 +4381,7 @@ psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *ge
                                  size_t output_length )
 {
     psa_status_t status;
-    psa_algorithm_t kdf_alg = psa_generator_get_kdf_alg( generator );
+    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( generator );
 
     if( generator->alg == 0 )
     {
@@ -4430,13 +4430,13 @@ psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *ge
     if( PSA_ALG_IS_HKDF( kdf_alg ) )
     {
         psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
-        status = psa_generator_hkdf_read( &generator->ctx.hkdf, hash_alg,
+        status = psa_key_derivation_hkdf_read( &generator->ctx.hkdf, hash_alg,
                                           output, output_length );
     }
     else if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
-        status = psa_generator_tls12_prf_read( &generator->ctx.tls12_prf,
+        status = psa_key_derivation_tls12_prf_read( &generator->ctx.tls12_prf,
                                                kdf_alg, output,
                                                output_length );
     }
@@ -4571,7 +4571,7 @@ exit:
  * Note that if this function fails, you must call psa_key_derivation_abort()
  * to potentially free embedded data structures and wipe confidential data.
  */
-static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
+static psa_status_t psa_key_derivation_hkdf_setup( psa_hkdf_key_derivation_t *hkdf,
                                               const uint8_t *secret,
                                               size_t secret_length,
                                               psa_algorithm_t hash_alg,
@@ -4616,8 +4616,8 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
  * Note that if this function fails, you must call psa_key_derivation_abort()
  * to potentially free embedded data structures and wipe confidential data.
  */
-static psa_status_t psa_generator_tls12_prf_setup(
-    psa_tls12_prf_generator_t *tls12_prf,
+static psa_status_t psa_key_derivation_tls12_prf_setup(
+    psa_tls12_prf_key_derivation_t *tls12_prf,
     const unsigned char *key,
     size_t key_len,
     psa_algorithm_t hash_alg,
@@ -4669,8 +4669,8 @@ static psa_status_t psa_generator_tls12_prf_setup(
 }
 
 /* Set up a TLS-1.2-PSK-to-MS-based generator. */
-static psa_status_t psa_generator_tls12_psk_to_ms_setup(
-    psa_tls12_prf_generator_t *tls12_prf,
+static psa_status_t psa_key_derivation_tls12_psk_to_ms_setup(
+    psa_tls12_prf_key_derivation_t *tls12_prf,
     const unsigned char *psk,
     size_t psk_len,
     psa_algorithm_t hash_alg,
@@ -4699,7 +4699,7 @@ static psa_status_t psa_generator_tls12_psk_to_ms_setup(
     pms[2 + psk_len + 1] = pms[1];
     memcpy( pms + 4 + psk_len, psk, psk_len );
 
-    status = psa_generator_tls12_prf_setup( tls12_prf,
+    status = psa_key_derivation_tls12_prf_setup( tls12_prf,
                                             pms, 4 + 2 * psk_len,
                                             hash_alg,
                                             salt, salt_length,
@@ -4752,7 +4752,7 @@ static psa_status_t psa_key_derivation_internal(
         if( hash_size == 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
         max_capacity = 255 * hash_size;
-        status = psa_generator_hkdf_setup( &generator->ctx.hkdf,
+        status = psa_key_derivation_hkdf_setup( &generator->ctx.hkdf,
                                            secret, secret_length,
                                            hash_alg,
                                            salt, salt_length,
@@ -4776,14 +4776,14 @@ static psa_status_t psa_key_derivation_internal(
 
         if( PSA_ALG_IS_TLS12_PRF( alg ) )
         {
-            status = psa_generator_tls12_prf_setup( &generator->ctx.tls12_prf,
+            status = psa_key_derivation_tls12_prf_setup( &generator->ctx.tls12_prf,
                                                     secret, secret_length,
                                                     hash_alg, salt, salt_length,
                                                     label, label_length );
         }
         else
         {
-            status = psa_generator_tls12_psk_to_ms_setup(
+            status = psa_key_derivation_tls12_psk_to_ms_setup(
                 &generator->ctx.tls12_prf,
                 secret, secret_length,
                 hash_alg, salt, salt_length,
@@ -4905,7 +4905,7 @@ psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *generator
 }
 
 #if defined(MBEDTLS_MD_C)
-static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
+static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
                                     psa_algorithm_t hash_alg,
                                     psa_key_derivation_step_t step,
                                     const uint8_t *data,
@@ -4978,7 +4978,7 @@ static psa_status_t psa_key_derivation_input_raw(
     size_t data_length )
 {
     psa_status_t status;
-    psa_algorithm_t kdf_alg = psa_generator_get_kdf_alg( generator );
+    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( generator );
 
     if( kdf_alg == PSA_ALG_SELECT_RAW )
     {

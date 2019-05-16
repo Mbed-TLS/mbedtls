@@ -188,11 +188,11 @@ typedef struct
     uint8_t block_number;
     unsigned int state : 2;
     unsigned int info_set : 1;
-} psa_hkdf_generator_t;
+} psa_hkdf_key_derivation_t;
 #endif /* MBEDTLS_MD_C */
 
 #if defined(MBEDTLS_MD_C)
-typedef struct psa_tls12_prf_generator_s
+typedef struct psa_tls12_prf_key_derivation_s
 {
     /* The TLS 1.2 PRF uses the key for each HMAC iteration,
      * hence we must store it for the lifetime of the generator.
@@ -219,10 +219,10 @@ typedef struct psa_tls12_prf_generator_s
     /* The 1-based number of the block. */
     uint8_t block_number;
 
-} psa_tls12_prf_generator_t;
+} psa_tls12_prf_key_derivation_t;
 #endif /* MBEDTLS_MD_C */
 
-struct psa_crypto_generator_s
+struct psa_key_derivation_s
 {
     psa_algorithm_t alg;
     size_t capacity;
@@ -234,16 +234,16 @@ struct psa_crypto_generator_s
             size_t size;
         } buffer;
 #if defined(MBEDTLS_MD_C)
-        psa_hkdf_generator_t hkdf;
-        psa_tls12_prf_generator_t tls12_prf;
+        psa_hkdf_key_derivation_t hkdf;
+        psa_tls12_prf_key_derivation_t tls12_prf;
 #endif
     } ctx;
 };
 
 #define PSA_KEY_DERIVATION_OPERATION_INIT {0, 0, {{0, 0}}}
-static inline struct psa_crypto_generator_s psa_key_derivation_operation_init( void )
+static inline struct psa_key_derivation_s psa_key_derivation_operation_init( void )
 {
-    const struct psa_crypto_generator_s v = PSA_KEY_DERIVATION_OPERATION_INIT;
+    const struct psa_key_derivation_s v = PSA_KEY_DERIVATION_OPERATION_INIT;
     return( v );
 }
 

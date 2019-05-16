@@ -3002,7 +3002,7 @@ psa_status_t psa_asymmetric_decrypt(psa_key_handle_t handle,
  * make any assumptions about the content of this structure except
  * as directed by the documentation of a specific implementation.
  */
-typedef struct psa_crypto_generator_s psa_key_derivation_operation_t;
+typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
 
 /** \def PSA_KEY_DERIVATION_OPERATION_INIT
  *

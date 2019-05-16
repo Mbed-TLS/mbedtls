@@ -185,7 +185,7 @@ psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -283,7 +283,7 @@ psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -301,7 +301,7 @@ psa_status_t psa_set_key_policy(psa_key_handle_t handle,
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -393,7 +393,7 @@ psa_status_t psa_allocate_key(psa_key_handle_t *handle);
  *         The handle is to a key slot which does not contain key material yet.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -413,7 +413,7 @@ psa_status_t psa_get_key_information(psa_key_handle_t handle,
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize

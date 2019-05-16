@@ -413,7 +413,7 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
         /* All other failures */
         case PSA_ERROR_COMMUNICATION_FAILURE:
         case PSA_ERROR_HARDWARE_FAILURE:
-        case PSA_ERROR_TAMPERING_DETECTED:
+        case PSA_ERROR_CORRUPTION_DETECTED:
             return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
         default: /* We return the same as for the 'other failures',
                   * but list them separately nonetheless to indicate

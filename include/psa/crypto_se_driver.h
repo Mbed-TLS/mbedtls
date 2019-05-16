@@ -756,7 +756,7 @@ typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_number_t key);
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
 typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
                                                 uint8_t *p_data,

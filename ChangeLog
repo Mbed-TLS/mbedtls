@@ -9,6 +9,8 @@ Features
      Contributed by Jack Lloyd and Fortanix Inc.
    * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
    * Add the oid certificate policy x509 extension.
+   * It is now possible to perform RSA PKCS v1.5 signatures with RIPEMD-160 digest.
+     Contributed by Jack Lloyd and Fortanix Inc.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents

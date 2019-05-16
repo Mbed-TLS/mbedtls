@@ -3487,13 +3487,13 @@ psa_status_t psa_key_derivation_abort(
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_key_agreement_raw_shared_secret(psa_algorithm_t alg,
-                                                 psa_key_handle_t private_key,
-                                                 const uint8_t *peer_key,
-                                                 size_t peer_key_length,
-                                                 uint8_t *output,
-                                                 size_t output_size,
-                                                 size_t *output_length);
+psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
+                                   psa_key_handle_t private_key,
+                                   const uint8_t *peer_key,
+                                   size_t peer_key_length,
+                                   uint8_t *output,
+                                   size_t output_size,
+                                   size_t *output_length);
 
 /**@}*/
 

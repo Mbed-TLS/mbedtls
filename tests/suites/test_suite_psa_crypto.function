@@ -634,10 +634,9 @@ static psa_status_t raw_key_agreement_with_self( psa_algorithm_t alg,
                                        public_key, public_key_length,
                                        &public_key_length ) );
 
-    status = psa_key_agreement_raw_shared_secret(
-        alg, handle,
-        public_key, public_key_length,
-        output, sizeof( output ), &output_length );
+    status = psa_raw_key_agreement( alg, handle,
+                                    public_key, public_key_length,
+                                    output, sizeof( output ), &output_length );
 exit:
     mbedtls_free( public_key );
     psa_reset_key_attributes( &attributes );
@@ -4547,10 +4546,10 @@ void raw_key_agreement( int alg_arg,
                                 our_key_data->x, our_key_data->len,
                                 &our_key ) );
 
-    PSA_ASSERT( psa_key_agreement_raw_shared_secret(
-                    alg, our_key,
-                    peer_key_data->x, peer_key_data->len,
-                    output, expected_output->len, &output_length ) );
+    PSA_ASSERT( psa_raw_key_agreement( alg, our_key,
+                                       peer_key_data->x, peer_key_data->len,
+                                       output, expected_output->len,
+                                       &output_length ) );
     ASSERT_COMPARE( output, output_length,
                     expected_output->x, expected_output->len );
 

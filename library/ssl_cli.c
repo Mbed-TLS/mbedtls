@@ -3116,7 +3116,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         unsigned char *own_pubkey_ecpoint;
         size_t own_pubkey_ecpoint_len;
 
-        psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+        psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
 
         header_len = 4;
 
@@ -3178,7 +3178,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         content_len = own_pubkey_ecpoint_len + 1;
 
         /* Compute ECDH shared secret. */
-        status = psa_key_agreement( &generator,
+        status = psa_key_derivation_key_agreement( &generator,
                                     handshake->ecdh_psa_privkey,
                                     handshake->ecdh_psa_peerkey,
                                     handshake->ecdh_psa_peerkey_len,
@@ -3191,16 +3191,16 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         ssl->handshake->pmslen =
             MBEDTLS_PSA_ECC_KEY_BYTES_OF_CURVE( handshake->ecdh_psa_curve );
 
-        status = psa_generator_read( &generator,
+        status = psa_key_derivation_output_bytes( &generator,
                                      ssl->handshake->premaster,
                                      ssl->handshake->pmslen );
         if( status != PSA_SUCCESS )
         {
-            psa_generator_abort( &generator );
+            psa_key_derivation_abort( &generator );
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
 
-        status = psa_generator_abort( &generator );
+        status = psa_key_derivation_abort( &generator );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 

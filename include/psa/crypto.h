@@ -183,10 +183,10 @@ psa_status_t psa_crypto_init(void);
  *    domain parameters, call psa_set_key_domain_parameters() instead.
  *    Skip this step if copying an existing key with psa_copy_key().
  * -# When generating a random key with psa_generate_random_key() or deriving a key
- *    with psa_generate_derived_key(), set the desired key size with
+ *    with psa_key_derivation_output_key(), set the desired key size with
  *    psa_set_key_bits().
  * -# Call a key creation function: psa_import_key(), psa_generate_random_key(),
- *    psa_generate_derived_key() or psa_copy_key(). This function reads
+ *    psa_key_derivation_output_key() or psa_copy_key(). This function reads
  *    the attribute structure, creates a key with these attributes, and
  *    outputs a handle to the newly created key.
  * -# The attribute structure is now no longer necessary. If you called
@@ -217,7 +217,7 @@ typedef struct psa_key_attributes_s psa_key_attributes_t;
  * The persistent key will be written to storage when the attribute
  * structure is passed to a key creation function such as
  * psa_import_key(), psa_generate_random_key(),
- * psa_generate_derived_key() or psa_copy_key().
+ * psa_key_derivation_output_key() or psa_copy_key().
  *
  * This function may be declared as `static` (i.e. without external
  * linkage). This function may be provided as a function-like macro,
@@ -242,7 +242,7 @@ static void psa_set_key_id(psa_key_attributes_t *attributes,
  * The persistent key will be written to storage when the attribute
  * structure is passed to a key creation function such as
  * psa_import_key(), psa_generate_random_key(),
- * psa_generate_derived_key() or psa_copy_key().
+ * psa_key_derivation_output_key() or psa_copy_key().
  *
  * This function may be declared as `static` (i.e. without external
  * linkage). This function may be provided as a function-like macro,
@@ -2979,46 +2979,46 @@ psa_status_t psa_asymmetric_decrypt(psa_key_handle_t handle,
  * initialize it by any of the following means:
  * - Set the structure to all-bits-zero, for example:
  *   \code
- *   psa_crypto_generator_t generator;
+ *   psa_key_derivation_operation_t generator;
  *   memset(&generator, 0, sizeof(generator));
  *   \endcode
  * - Initialize the structure to logical zero values, for example:
  *   \code
- *   psa_crypto_generator_t generator = {0};
+ *   psa_key_derivation_operation_t generator = {0};
  *   \endcode
- * - Initialize the structure to the initializer #PSA_CRYPTO_GENERATOR_INIT,
+ * - Initialize the structure to the initializer #PSA_KEY_DERIVATION_OPERATION_INIT,
  *   for example:
  *   \code
- *   psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+ *   psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
  *   \endcode
- * - Assign the result of the function psa_crypto_generator_init()
+ * - Assign the result of the function psa_key_derivation_operation_init()
  *   to the structure, for example:
  *   \code
- *   psa_crypto_generator_t generator;
- *   generator = psa_crypto_generator_init();
+ *   psa_key_derivation_operation_t generator;
+ *   generator = psa_key_derivation_operation_init();
  *   \endcode
  *
  * This is an implementation-defined \c struct. Applications should not
  * make any assumptions about the content of this structure except
  * as directed by the documentation of a specific implementation.
  */
-typedef struct psa_crypto_generator_s psa_crypto_generator_t;
+typedef struct psa_crypto_generator_s psa_key_derivation_operation_t;
 
-/** \def PSA_CRYPTO_GENERATOR_INIT
+/** \def PSA_KEY_DERIVATION_OPERATION_INIT
  *
  * This macro returns a suitable initializer for a generator object
- * of type #psa_crypto_generator_t.
+ * of type #psa_key_derivation_operation_t.
  */
 #ifdef __DOXYGEN_ONLY__
 /* This is an example definition for documentation purposes.
  * Implementations should define a suitable value in `crypto_struct.h`.
  */
-#define PSA_CRYPTO_GENERATOR_INIT {0}
+#define PSA_KEY_DERIVATION_OPERATION_INIT {0}
 #endif
 
 /** Return an initial value for a generator object.
  */
-static psa_crypto_generator_t psa_crypto_generator_init(void);
+static psa_key_derivation_operation_t psa_key_derivation_operation_init(void);
 
 /** Retrieve the current capacity of a generator.
  *
@@ -3032,7 +3032,7 @@ static psa_crypto_generator_t psa_crypto_generator_init(void);
  * \retval #PSA_ERROR_BAD_STATE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  */
-psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_get_capacity(const psa_key_derivation_operation_t *generator,
                                         size_t *capacity);
 
 /** Set the maximum capacity of a generator.
@@ -3048,7 +3048,7 @@ psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
  * \retval #PSA_ERROR_BAD_STATE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  */
-psa_status_t psa_set_generator_capacity(psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_set_capacity(psa_key_derivation_operation_t *generator,
                                         size_t capacity);
 
 /** Read some data from a generator.
@@ -3076,7 +3076,7 @@ psa_status_t psa_set_generator_capacity(psa_crypto_generator_t *generator,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_output_bytes(psa_key_derivation_operation_t *generator,
                                 uint8_t *output,
                                 size_t output_length);
 
@@ -3088,7 +3088,7 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *
  * - For key types for which the key is an arbitrary sequence of bytes
  *   of a given size,
- *   this function is functionally equivalent to calling #psa_generator_read
+ *   this function is functionally equivalent to calling #psa_key_derivation_output_bytes
  *   and passing the resulting output to #psa_import_key.
  *   However, this function has a security benefit:
  *   if the implementation provides an isolation boundary then
@@ -3188,8 +3188,8 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_generate_derived_key(const psa_key_attributes_t *attributes,
-                                      psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attributes,
+                                      psa_key_derivation_operation_t *generator,
                                       psa_key_handle_t *handle);
 
 /** Abort a generator.
@@ -3199,9 +3199,9 @@ psa_status_t psa_generate_derived_key(const psa_key_attributes_t *attributes,
  * \c generator structure itself.
  *
  * This function may be called at any time as long as the generator
- * object has been initialized to #PSA_CRYPTO_GENERATOR_INIT, to
- * psa_crypto_generator_init() or a zero value. In particular, it is valid
- * to call psa_generator_abort() twice, or to call psa_generator_abort()
+ * object has been initialized to #PSA_KEY_DERIVATION_OPERATION_INIT, to
+ * psa_key_derivation_operation_init() or a zero value. In particular, it is valid
+ * to call psa_key_derivation_abort() twice, or to call psa_key_derivation_abort()
  * on a generator that has not been set up.
  *
  * Once aborted, the generator object may be called.
@@ -3214,7 +3214,7 @@ psa_status_t psa_generate_derived_key(const psa_key_attributes_t *attributes,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
+psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *generator);
 
 /** Use the maximum possible capacity for a generator.
  *
@@ -3223,7 +3223,7 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * The value of the maximum possible capacity depends on the generator
  * algorithm.
  */
-#define PSA_GENERATOR_UNBRIDLED_CAPACITY ((size_t)(-1))
+#define PSA_KEY_DERIVATION_UNLIMITED_CAPACITY ((size_t)(-1))
 
 /**@}*/
 
@@ -3238,20 +3238,20 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * cryptographic material.
  *
  * To use a generator for key derivation:
- * - Start with an initialized object of type #psa_crypto_generator_t.
+ * - Start with an initialized object of type #psa_key_derivation_operation_t.
  * - Call psa_key_derivation_setup() to select the algorithm.
  * - Provide the inputs for the key derivation by calling
  *   psa_key_derivation_input_bytes() or psa_key_derivation_input_key()
  *   as appropriate. Which inputs are needed, in what order, and whether
  *   they may be keys and if so of what type depends on the algorithm.
  * - Optionally set the generator's maximum capacity with
- *   psa_set_generator_capacity(). You may do this before, in the middle of
+ *   psa_key_derivation_set_capacity(). You may do this before, in the middle of
  *   or after providing inputs. For some algorithms, this step is mandatory
  *   because the output depends on the maximum capacity.
- * - Generate output with psa_generator_read() or
- *   psa_generate_derived_key(). Successive calls to these functions
+ * - Generate output with psa_key_derivation_output_bytes() or
+ *   psa_key_derivation_output_key(). Successive calls to these functions
  *   use successive output bytes from the generator.
- * - Clean up the generator object with psa_generator_abort().
+ * - Clean up the generator object with psa_key_derivation_abort().
  *
  * \param[in,out] generator       The generator object to set up. It must
  *                                have been initialized but not set up yet.
@@ -3271,7 +3271,7 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  */
-psa_status_t psa_key_derivation_setup(psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_setup(psa_key_derivation_operation_t *generator,
                                       psa_algorithm_t alg);
 
 /** Provide an input for key derivation or key agreement.
@@ -3309,7 +3309,7 @@ psa_status_t psa_key_derivation_setup(psa_crypto_generator_t *generator,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_key_derivation_input_bytes(psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_input_bytes(psa_key_derivation_operation_t *generator,
                                             psa_key_derivation_step_t step,
                                             const uint8_t *data,
                                             size_t data_length);
@@ -3354,7 +3354,7 @@ psa_status_t psa_key_derivation_input_bytes(psa_crypto_generator_t *generator,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_input_key(psa_key_derivation_operation_t *generator,
                                           psa_key_derivation_step_t step,
                                           psa_key_handle_t handle);
 
@@ -3411,7 +3411,7 @@ psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_key_agreement(psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_key_agreement(psa_key_derivation_operation_t *generator,
                                psa_key_derivation_step_t step,
                                psa_key_handle_t private_key,
                                const uint8_t *peer_key,
@@ -3427,7 +3427,7 @@ psa_status_t psa_key_agreement(psa_crypto_generator_t *generator,
  * Diffie-Hellman or elliptic curve Diffie-Hellman has biases and should
  * not be used directly as key material. It should instead be passed as
  * input to a key derivation algorithm. To chain a key agreement with
- * a key derivation, use psa_key_agreement() and other functions from
+ * a key derivation, use psa_key_derivation_key_agreement() and other functions from
  * the key derivation and generator interface.
  *
  * \param alg                     The key agreement algorithm to compute

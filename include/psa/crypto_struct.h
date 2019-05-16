@@ -240,10 +240,10 @@ struct psa_crypto_generator_s
     } ctx;
 };
 
-#define PSA_CRYPTO_GENERATOR_INIT {0, 0, {{0, 0}}}
-static inline struct psa_crypto_generator_s psa_crypto_generator_init( void )
+#define PSA_KEY_DERIVATION_OPERATION_INIT {0, 0, {{0, 0}}}
+static inline struct psa_crypto_generator_s psa_key_derivation_operation_init( void )
 {
-    const struct psa_crypto_generator_s v = PSA_CRYPTO_GENERATOR_INIT;
+    const struct psa_crypto_generator_s v = PSA_KEY_DERIVATION_OPERATION_INIT;
     return( v );
 }
 

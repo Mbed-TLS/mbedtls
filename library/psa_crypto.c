@@ -4066,7 +4066,7 @@ exit:
 #define HKDF_STATE_OUTPUT 3 /* output started */
 
 static psa_algorithm_t psa_generator_get_kdf_alg(
-    const psa_crypto_generator_t *generator )
+    const psa_key_derivation_operation_t *generator )
 {
     if ( PSA_ALG_IS_KEY_AGREEMENT( generator->alg ) )
         return( PSA_ALG_KEY_AGREEMENT_GET_KDF( generator->alg ) );
@@ -4075,7 +4075,7 @@ static psa_algorithm_t psa_generator_get_kdf_alg(
 }
 
 
-psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
+psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *generator )
 {
     psa_status_t status = PSA_SUCCESS;
     psa_algorithm_t kdf_alg = psa_generator_get_kdf_alg( generator );
@@ -4129,7 +4129,7 @@ psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
     return( status );
 }
 
-psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_get_capacity(const psa_key_derivation_operation_t *generator,
                                         size_t *capacity)
 {
     if( generator->alg == 0 )
@@ -4142,7 +4142,7 @@ psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_set_generator_capacity( psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *generator,
                                          size_t capacity )
 {
     if( generator->alg == 0 )
@@ -4181,7 +4181,7 @@ static psa_status_t psa_generator_hkdf_read( psa_hkdf_generator_t *hkdf,
         if( output_length == 0 )
             break;
         /* We can't be wanting more output after block 0xff, otherwise
-         * the capacity check in psa_generator_read() would have
+         * the capacity check in psa_key_derivation_output_bytes() would have
          * prevented this call. It could happen only if the generator
          * object was corrupted or if this function is called directly
          * inside the library. */
@@ -4236,7 +4236,7 @@ static psa_status_t psa_generator_tls12_prf_generate_next_block(
     size_t Ai_len;
 
     /* We can't be wanting more output after block 0xff, otherwise
-     * the capacity check in psa_generator_read() would have
+     * the capacity check in psa_key_derivation_output_bytes() would have
      * prevented this call. It could happen only if the generator
      * object was corrupted or if this function is called directly
      * inside the library. */
@@ -4376,7 +4376,7 @@ static psa_status_t psa_generator_tls12_prf_read(
 }
 #endif /* MBEDTLS_MD_C */
 
-psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *generator,
                                  uint8_t *output,
                                  size_t output_length )
 {
@@ -4454,7 +4454,7 @@ exit:
          * blank generators, so we can return PSA_ERROR_BAD_STATE on blank
          * generators. */
         psa_algorithm_t alg = generator->alg;
-        psa_generator_abort( generator );
+        psa_key_derivation_abort( generator );
         generator->alg = alg;
         memset( output, '!', output_length );
     }
@@ -4476,7 +4476,7 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 static psa_status_t psa_generate_derived_key_internal(
     psa_key_slot_t *slot,
     size_t bits,
-    psa_crypto_generator_t *generator )
+    psa_key_derivation_operation_t *generator )
 {
     uint8_t *data = NULL;
     size_t bytes = PSA_BITS_TO_BYTES( bits );
@@ -4490,7 +4490,7 @@ static psa_status_t psa_generate_derived_key_internal(
     if( data == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-    status = psa_generator_read( generator, data, bytes );
+    status = psa_key_derivation_output_bytes( generator, data, bytes );
     if( status != PSA_SUCCESS )
         goto exit;
 #if defined(MBEDTLS_DES_C)
@@ -4504,8 +4504,8 @@ exit:
     return( status );
 }
 
-psa_status_t psa_generate_derived_key( const psa_key_attributes_t *attributes,
-                                       psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attributes,
+                                       psa_key_derivation_operation_t *generator,
                                        psa_key_handle_t *handle )
 {
     psa_status_t status;
@@ -4530,7 +4530,7 @@ psa_status_t psa_generate_derived_key( const psa_key_attributes_t *attributes,
 psa_status_t psa_generate_derived_key_to_handle( psa_key_handle_t handle,
                                        psa_key_type_t type,
                                        size_t bits,
-                                       psa_crypto_generator_t *generator )
+                                       psa_key_derivation_operation_t *generator )
 {
     uint8_t *data = NULL;
     size_t bytes = PSA_BITS_TO_BYTES( bits );
@@ -4544,7 +4544,7 @@ psa_status_t psa_generate_derived_key_to_handle( psa_key_handle_t handle,
     if( data == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-    status = psa_generator_read( generator, data, bytes );
+    status = psa_key_derivation_output_bytes( generator, data, bytes );
     if( status != PSA_SUCCESS )
         goto exit;
 #if defined(MBEDTLS_DES_C)
@@ -4568,7 +4568,7 @@ exit:
 /* Set up an HKDF-based generator. This is exactly the extract phase
  * of the HKDF algorithm.
  *
- * Note that if this function fails, you must call psa_generator_abort()
+ * Note that if this function fails, you must call psa_key_derivation_abort()
  * to potentially free embedded data structures and wipe confidential data.
  */
 static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
@@ -4613,7 +4613,7 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
 #if defined(MBEDTLS_MD_C)
 /* Set up a TLS-1.2-prf-based generator (see RFC 5246, Section 5).
  *
- * Note that if this function fails, you must call psa_generator_abort()
+ * Note that if this function fails, you must call psa_key_derivation_abort()
  * to potentially free embedded data structures and wipe confidential data.
  */
 static psa_status_t psa_generator_tls12_prf_setup(
@@ -4661,7 +4661,7 @@ static psa_status_t psa_generator_tls12_prf_setup(
     }
 
     /* The first block gets generated when
-     * psa_generator_read() is called. */
+     * psa_key_derivation_output_bytes() is called. */
     tls12_prf->block_number    = 0;
     tls12_prf->offset_in_block = hash_length;
 
@@ -4710,11 +4710,11 @@ static psa_status_t psa_generator_tls12_psk_to_ms_setup(
 }
 #endif /* MBEDTLS_MD_C */
 
-/* Note that if this function fails, you must call psa_generator_abort()
+/* Note that if this function fails, you must call psa_key_derivation_abort()
  * to potentially free embedded data structures and wipe confidential data.
  */
 static psa_status_t psa_key_derivation_internal(
-    psa_crypto_generator_t *generator,
+    psa_key_derivation_operation_t *generator,
     const uint8_t *secret, size_t secret_length,
     psa_algorithm_t alg,
     const uint8_t *salt, size_t salt_length,
@@ -4801,7 +4801,7 @@ static psa_status_t psa_key_derivation_internal(
 
     if( capacity <= max_capacity )
         generator->capacity = capacity;
-    else if( capacity == PSA_GENERATOR_UNBRIDLED_CAPACITY )
+    else if( capacity == PSA_KEY_DERIVATION_UNLIMITED_CAPACITY )
         generator->capacity = max_capacity;
     else
         return( PSA_ERROR_INVALID_ARGUMENT );
@@ -4809,7 +4809,7 @@ static psa_status_t psa_key_derivation_internal(
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation( psa_key_derivation_operation_t *generator,
                                  psa_key_handle_t handle,
                                  psa_algorithm_t alg,
                                  const uint8_t *salt,
@@ -4845,12 +4845,12 @@ psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
                                           label, label_length,
                                           capacity );
     if( status != PSA_SUCCESS )
-        psa_generator_abort( generator );
+        psa_key_derivation_abort( generator );
     return( status );
 }
 
 static psa_status_t psa_key_derivation_setup_kdf(
-    psa_crypto_generator_t *generator,
+    psa_key_derivation_operation_t *generator,
     psa_algorithm_t kdf_alg )
 {
     /* Make sure that kdf_alg is a supported key derivation algorithm. */
@@ -4877,7 +4877,7 @@ static psa_status_t psa_key_derivation_setup_kdf(
         return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-psa_status_t psa_key_derivation_setup( psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *generator,
                                        psa_algorithm_t alg )
 {
     psa_status_t status;
@@ -4972,7 +4972,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
 #endif /* MBEDTLS_MD_C */
 
 static psa_status_t psa_key_derivation_input_raw(
-    psa_crypto_generator_t *generator,
+    psa_key_derivation_operation_t *generator,
     psa_key_derivation_step_t step,
     const uint8_t *data,
     size_t data_length )
@@ -5018,11 +5018,11 @@ static psa_status_t psa_key_derivation_input_raw(
     }
 
     if( status != PSA_SUCCESS )
-        psa_generator_abort( generator );
+        psa_key_derivation_abort( generator );
     return( status );
 }
 
-psa_status_t psa_key_derivation_input_bytes( psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_input_bytes( psa_key_derivation_operation_t *generator,
                                              psa_key_derivation_step_t step,
                                              const uint8_t *data,
                                              size_t data_length )
@@ -5039,7 +5039,7 @@ psa_status_t psa_key_derivation_input_bytes( psa_crypto_generator_t *generator,
     }
 }
 
-psa_status_t psa_key_derivation_input_key( psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_input_key( psa_key_derivation_operation_t *generator,
                                            psa_key_derivation_step_t step,
                                            psa_key_handle_t handle )
 {
@@ -5148,10 +5148,10 @@ static psa_status_t psa_key_agreement_raw_internal( psa_algorithm_t alg,
     }
 }
 
-/* Note that if this function fails, you must call psa_generator_abort()
+/* Note that if this function fails, you must call psa_key_derivation_abort()
  * to potentially free embedded data structures and wipe confidential data.
  */
-static psa_status_t psa_key_agreement_internal( psa_crypto_generator_t *generator,
+static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *generator,
                                                 psa_key_derivation_step_t step,
                                                 psa_key_slot_t *private_key,
                                                 const uint8_t *peer_key,
@@ -5183,7 +5183,7 @@ exit:
     return( status );
 }
 
-psa_status_t psa_key_agreement( psa_crypto_generator_t *generator,
+psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *generator,
                                 psa_key_derivation_step_t step,
                                 psa_key_handle_t private_key,
                                 const uint8_t *peer_key,
@@ -5201,7 +5201,7 @@ psa_status_t psa_key_agreement( psa_crypto_generator_t *generator,
                                          slot,
                                          peer_key, peer_key_length );
     if( status != PSA_SUCCESS )
-        psa_generator_abort( generator );
+        psa_key_derivation_abort( generator );
     return( status );
 }
 

@@ -279,7 +279,7 @@ static psa_status_t derive_key_ladder( const char *ladder[],
 {
     psa_status_t status = PSA_SUCCESS;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
     size_t i;
 
     psa_set_key_usage_flags( &attributes,
@@ -306,13 +306,13 @@ static psa_status_t derive_key_ladder( const char *ladder[],
         *key_handle = 0;
         /* Use the generator obtained from the parent key to create
          * the next intermediate key. */
-        PSA_CHECK( psa_generate_derived_key( &attributes, &generator,
+        PSA_CHECK( psa_key_derivation_output_key( &attributes, &generator,
                                              key_handle ) );
-        PSA_CHECK( psa_generator_abort( &generator ) );
+        PSA_CHECK( psa_key_derivation_abort( &generator ) );
     }
 
 exit:
-    psa_generator_abort( &generator );
+    psa_key_derivation_abort( &generator );
     if( status != PSA_SUCCESS )
     {
         psa_close_key( *key_handle );
@@ -328,7 +328,7 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
 {
     psa_status_t status = PSA_SUCCESS;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
 
     *wrapping_key_handle = 0;
     psa_set_key_usage_flags( &attributes, usage );
@@ -343,11 +343,11 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
                    WRAPPING_KEY_SALT, WRAPPING_KEY_SALT_LENGTH,
                    NULL, 0,
                    PSA_BITS_TO_BYTES( WRAPPING_KEY_BITS ) ) );
-    PSA_CHECK( psa_generate_derived_key( &attributes, &generator,
+    PSA_CHECK( psa_key_derivation_output_key( &attributes, &generator,
                                          wrapping_key_handle ) );
 
 exit:
-    psa_generator_abort( &generator );
+    psa_key_derivation_abort( &generator );
     if( status != PSA_SUCCESS )
     {
         psa_close_key( *wrapping_key_handle );

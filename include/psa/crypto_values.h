@@ -690,7 +690,6 @@
  *
  * That is, suppose that `PSA_xxx_SIGNATURE` is one of the following macros:
  * - #PSA_ALG_RSA_PKCS1V15_SIGN, #PSA_ALG_RSA_PSS,
- * - #PSA_ALG_DSA, #PSA_ALG_DETERMINISTIC_DSA,
  * - #PSA_ALG_ECDSA, #PSA_ALG_DETERMINISTIC_ECDSA.
  * Then you may create and use a key as follows:
  * - Set the key usage field using #PSA_ALG_ANY_HASH, for example:

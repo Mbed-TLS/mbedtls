@@ -3439,11 +3439,7 @@ psa_status_t psa_key_derivation_output_key(
 psa_status_t psa_key_derivation_abort(
     psa_key_derivation_operation_t *operation);
 
-/** Perform a key agreement and use the shared secret as input to a key
- * derivation.
- *
- * A key agreement algorithm takes two inputs: a private key \p private_key
- * a public key \p peer_key.
+/** Perform a key agreement and return the raw shared secret.
  *
  * \warning The raw result of a key agreement algorithm such as finite-field
  * Diffie-Hellman or elliptic curve Diffie-Hellman has biases and should

@@ -3423,6 +3423,13 @@ psa_status_t psa_generate_random(uint8_t *output,
  * The key is generated randomly.
  * Its location, policy, type and size are taken from \p attributes.
  *
+ * The following type-specific considerations apply:
+ * - For RSA keys (#PSA_KEY_TYPE_RSA_KEYPAIR),
+ *   the public exponent is 65537.
+ *   The modulus is a product of two probabilistic primes
+ *   between 2^{n-1} and 2^n where n is the bit size specified in the
+ *   attributes.
+ *
  * \param[in] attributes    The attributes for the new key.
  * \param[out] handle       On success, a handle to the newly created key.
  *                          \c 0 on failure.

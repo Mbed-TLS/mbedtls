@@ -39,9 +39,8 @@
 
 #include <stdlib.h>
 #include <string.h>
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
+#if !defined(MBEDTLS_PLATFORM_C)
 #define mbedtls_calloc calloc
 #define mbedtls_free   free
 #endif
@@ -52,6 +51,8 @@
 #include "mbedtls/bignum.h"
 #include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
+#include "mbedtls/chacha20.h"
+#include "mbedtls/chachapoly.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/ccm.h"
 #include "mbedtls/cmac.h"
@@ -180,6 +181,14 @@ static psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_CCM_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
 
+        case MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
+        case MBEDTLS_ERR_CHACHAPOLY_BAD_STATE:
+            return( PSA_ERROR_BAD_STATE );
+        case MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED:
+            return( PSA_ERROR_INVALID_SIGNATURE );
+
         case MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE:
             return( PSA_ERROR_NOT_SUPPORTED );
         case MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA:
@@ -283,6 +292,11 @@ static psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INVALID_SIGNATURE );
         case MBEDTLS_ERR_PK_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
+
+        case MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED:
+            return( PSA_ERROR_HARDWARE_FAILURE );
+        case MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED:
+            return( PSA_ERROR_NOT_SUPPORTED );
 
         case MBEDTLS_ERR_RIPEMD160_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
@@ -459,6 +473,12 @@ static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
 #if defined(MBEDTLS_ARC4_C)
         case PSA_KEY_TYPE_ARC4:
             if( bits < 8 || bits > 2048 )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            break;
+#endif
+#if defined(MBEDTLS_CHACHA20_C)
+        case PSA_KEY_TYPE_CHACHA20:
+            if( bits != 256 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
 #endif
@@ -2092,6 +2112,7 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
         switch( alg )
         {
             case PSA_ALG_ARC4:
+            case PSA_ALG_CHACHA20:
                 mode = MBEDTLS_MODE_STREAM;
                 break;
             case PSA_ALG_CTR:
@@ -2114,6 +2135,9 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
                 break;
             case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ):
                 mode = MBEDTLS_MODE_GCM;
+                break;
+            case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CHACHA20_POLY1305, 0 ):
+                mode = MBEDTLS_MODE_CHACHAPOLY;
                 break;
             default:
                 return( NULL );
@@ -2149,6 +2173,9 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             break;
         case PSA_KEY_TYPE_ARC4:
             cipher_id_tmp = MBEDTLS_CIPHER_ID_ARC4;
+            break;
+        case PSA_KEY_TYPE_CHACHA20:
+            cipher_id_tmp = MBEDTLS_CIPHER_ID_CHACHA20;
             break;
         default:
             return( NULL );
@@ -3384,6 +3411,11 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     {
         operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type );
     }
+#if defined(MBEDTLS_CHACHA20_C)
+    else
+    if( alg == PSA_ALG_CHACHA20 )
+        operation->iv_size = 12;
+#endif
 
 exit:
     if( status == 0 )
@@ -3697,6 +3729,9 @@ typedef struct
 #if defined(MBEDTLS_GCM_C)
         mbedtls_gcm_context gcm;
 #endif /* MBEDTLS_GCM_C */
+#if defined(MBEDTLS_CHACHAPOLY_C)
+        mbedtls_chachapoly_context chachapoly;
+#endif /* MBEDTLS_CHACHAPOLY_C */
     } ctx;
     psa_algorithm_t core_alg;
     uint8_t full_tag_length;
@@ -3747,6 +3782,9 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
         case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CCM, 0 ):
             operation->core_alg = PSA_ALG_CCM;
             operation->full_tag_length = 16;
+            /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
+             * The call to mbedtls_ccm_encrypt_and_tag or
+             * mbedtls_ccm_auth_decrypt will validate the tag length. */
             if( PSA_BLOCK_CIPHER_BLOCK_SIZE( operation->slot->type ) != 16 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             mbedtls_ccm_init( &operation->ctx.ccm );
@@ -3763,6 +3801,9 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
         case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ):
             operation->core_alg = PSA_ALG_GCM;
             operation->full_tag_length = 16;
+            /* GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
+             * The call to mbedtls_gcm_crypt_and_tag or
+             * mbedtls_gcm_auth_decrypt will validate the tag length. */
             if( PSA_BLOCK_CIPHER_BLOCK_SIZE( operation->slot->type ) != 16 )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             mbedtls_gcm_init( &operation->ctx.gcm );
@@ -3770,8 +3811,26 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
                 mbedtls_gcm_setkey( &operation->ctx.gcm, cipher_id,
                                     operation->slot->data.raw.data,
                                     (unsigned int) key_bits ) );
+            if( status != 0 )
+                goto cleanup;
             break;
 #endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_CHACHAPOLY_C)
+        case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CHACHA20_POLY1305, 0 ):
+            operation->core_alg = PSA_ALG_CHACHA20_POLY1305;
+            operation->full_tag_length = 16;
+            /* We only support the default tag length. */
+            if( alg != PSA_ALG_CHACHA20_POLY1305 )
+                return( PSA_ERROR_NOT_SUPPORTED );
+            mbedtls_chachapoly_init( &operation->ctx.chachapoly );
+            status = mbedtls_to_psa_error(
+                mbedtls_chachapoly_setkey( &operation->ctx.chachapoly,
+                                           operation->slot->data.raw.data ) );
+            if( status != 0 )
+                goto cleanup;
+            break;
+#endif /* MBEDTLS_CHACHAPOLY_C */
 
         default:
             return( PSA_ERROR_NOT_SUPPORTED );
@@ -3783,9 +3842,6 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
         goto cleanup;
     }
     operation->tag_length = PSA_AEAD_TAG_LENGTH( alg );
-    /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
-     * GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
-     * In both cases, mbedtls_xxx will validate the tag length below. */
 
     return( PSA_SUCCESS );
 
@@ -3853,6 +3909,26 @@ psa_status_t psa_aead_encrypt( psa_key_handle_t handle,
     }
     else
 #endif /* MBEDTLS_CCM_C */
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if( operation.core_alg == PSA_ALG_CHACHA20_POLY1305 )
+    {
+        if( nonce_length != 12 || operation.tag_length != 16 )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+        status = mbedtls_to_psa_error(
+            mbedtls_chachapoly_encrypt_and_tag( &operation.ctx.chachapoly,
+                                                plaintext_length,
+                                                nonce,
+                                                additional_data,
+                                                additional_data_length,
+                                                plaintext,
+                                                ciphertext,
+                                                tag ) );
+    }
+    else
+#endif /* MBEDTLS_CHACHAPOLY_C */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
@@ -3910,15 +3986,15 @@ psa_status_t psa_aead_decrypt( psa_key_handle_t handle,
     if( status != PSA_SUCCESS )
         return( status );
 
+    status = psa_aead_unpadded_locate_tag( operation.tag_length,
+                                           ciphertext, ciphertext_length,
+                                           plaintext_size, &tag );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
 #if defined(MBEDTLS_GCM_C)
     if( operation.core_alg == PSA_ALG_GCM )
     {
-        status = psa_aead_unpadded_locate_tag( operation.tag_length,
-                                               ciphertext, ciphertext_length,
-                                               plaintext_size, &tag );
-        if( status != PSA_SUCCESS )
-            goto exit;
-
         status = mbedtls_to_psa_error(
             mbedtls_gcm_auth_decrypt( &operation.ctx.gcm,
                                       ciphertext_length - operation.tag_length,
@@ -3933,12 +4009,6 @@ psa_status_t psa_aead_decrypt( psa_key_handle_t handle,
 #if defined(MBEDTLS_CCM_C)
     if( operation.core_alg == PSA_ALG_CCM )
     {
-        status = psa_aead_unpadded_locate_tag( operation.tag_length,
-                                               ciphertext, ciphertext_length,
-                                               plaintext_size, &tag );
-        if( status != PSA_SUCCESS )
-            goto exit;
-
         status = mbedtls_to_psa_error(
             mbedtls_ccm_auth_decrypt( &operation.ctx.ccm,
                                       ciphertext_length - operation.tag_length,
@@ -3950,6 +4020,26 @@ psa_status_t psa_aead_decrypt( psa_key_handle_t handle,
     }
     else
 #endif /* MBEDTLS_CCM_C */
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if( operation.core_alg == PSA_ALG_CHACHA20_POLY1305 )
+    {
+        if( nonce_length != 12 || operation.tag_length != 16 )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+        status = mbedtls_to_psa_error(
+            mbedtls_chachapoly_auth_decrypt( &operation.ctx.chachapoly,
+                                             ciphertext_length - operation.tag_length,
+                                             nonce,
+                                             additional_data,
+                                             additional_data_length,
+                                             tag,
+                                             ciphertext,
+                                             plaintext ) );
+    }
+    else
+#endif /* MBEDTLS_CHACHAPOLY_C */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }

@@ -166,6 +166,10 @@ Cipher: ARC4
 depends_on:MBEDTLS_ARC4_C
 cipher_algorithm:PSA_ALG_ARC4:ALG_IS_STREAM_CIPHER
 
+Cipher: ChaCha20
+depends_on:MBEDTLS_CHACHA_C
+cipher_algorithm:PSA_ALG_CHACHA20:ALG_IS_STREAM_CIPHER
+
 Cipher: CTR
 depends_on:MBEDTLS_CIPHER_C:MBEDTLS_CIPHER_MODE_CTR
 cipher_algorithm:PSA_ALG_CTR:ALG_IS_STREAM_CIPHER
@@ -192,11 +196,15 @@ cipher_algorithm:PSA_ALG_XTS:0
 
 AEAD: CCM
 depends_on:MBEDTLS_CCM_C
-aead_algorithm:PSA_ALG_CCM:0:16
+aead_algorithm:PSA_ALG_CCM:ALG_IS_AEAD_ON_BLOCK_CIPHER:16
 
 AEAD: GCM
 depends_on:MBEDTLS_GCM_C
-aead_algorithm:PSA_ALG_GCM:0:16
+aead_algorithm:PSA_ALG_GCM:ALG_IS_AEAD_ON_BLOCK_CIPHER:16
+
+AEAD: ChaCha20_Poly1305
+depends_on:MBEDTLS_CHACHAPOLY_C
+aead_algorithm:PSA_ALG_CHACHA20_POLY1305:0:16
 
 Asymmetric signature: RSA PKCS#1 v1.5 raw
 depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -306,6 +314,10 @@ key_type:PSA_KEY_TYPE_CAMELLIA:KEY_TYPE_IS_UNSTRUCTURED
 Key type: ARC4
 depends_on:MBEDTLS_ARC4_C
 key_type:PSA_KEY_TYPE_ARC4:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: ChaCha20
+depends_on:MBEDTLS_CHACHA20_C
+key_type:PSA_KEY_TYPE_CHACHA20:KEY_TYPE_IS_UNSTRUCTURED
 
 Key type: RSA public key
 depends_on:MBEDTLS_RSA_C

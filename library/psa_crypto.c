@@ -4914,7 +4914,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
     psa_status_t status;
     switch( step )
     {
-        case PSA_KDF_STEP_SALT:
+        case PSA_KEY_DERIVATION_INPUT_SALT:
             if( hkdf->state != HKDF_STATE_INIT )
                 return( PSA_ERROR_BAD_STATE );
             status = psa_hmac_setup_internal( &hkdf->hmac,
@@ -4924,7 +4924,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
                 return( status );
             hkdf->state = HKDF_STATE_STARTED;
             return( PSA_SUCCESS );
-        case PSA_KDF_STEP_SECRET:
+        case PSA_KEY_DERIVATION_INPUT_SECRET:
             /* If no salt was provided, use an empty salt. */
             if( hkdf->state == HKDF_STATE_INIT )
             {
@@ -4950,7 +4950,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
             hkdf->block_number = 0;
             hkdf->state = HKDF_STATE_KEYED;
             return( PSA_SUCCESS );
-        case PSA_KDF_STEP_INFO:
+        case PSA_KEY_DERIVATION_INPUT_INFO:
             if( hkdf->state == HKDF_STATE_OUTPUT )
                 return( PSA_ERROR_BAD_STATE );
             if( hkdf->info_set )
@@ -5029,9 +5029,9 @@ psa_status_t psa_key_derivation_input_bytes( psa_key_derivation_operation_t *gen
 {
     switch( step )
     {
-        case PSA_KDF_STEP_LABEL:
-        case PSA_KDF_STEP_SALT:
-        case PSA_KDF_STEP_INFO:
+        case PSA_KEY_DERIVATION_INPUT_LABEL:
+        case PSA_KEY_DERIVATION_INPUT_SALT:
+        case PSA_KEY_DERIVATION_INPUT_INFO:
             return( psa_key_derivation_input_raw( generator, step,
                                                   data, data_length ) );
         default:
@@ -5058,7 +5058,7 @@ psa_status_t psa_key_derivation_input_key( psa_key_derivation_operation_t *gener
      * the material should be dedicated to a particular input step,
      * otherwise this may allow the key to be used in an unintended way
      * and leak values derived from the key. So be conservative. */
-    if( step != PSA_KDF_STEP_SECRET )
+    if( step != PSA_KEY_DERIVATION_INPUT_SECRET )
         return( PSA_ERROR_INVALID_ARGUMENT );
     return( psa_key_derivation_input_raw( generator,
                                           step,

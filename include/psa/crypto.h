@@ -208,14 +208,15 @@ typedef struct psa_key_attributes_s psa_key_attributes_t;
 
 /** Declare a key as persistent and set its key identifier.
  *
- * If the attribute structure declares the key as volatile (which is
- * the default content of an attribute structure), this function sets
+ * If the attribute structure currently declares the key as volatile (which
+ * is the default content of an attribute structure), this function sets
  * the lifetime attribute to #PSA_KEY_LIFETIME_PERSISTENT.
  *
- * This function does not access storage, it merely fills the attribute
- * structure with given value. The persistent key will be written to
- * storage when the attribute structure is passed to a key creation
- * function such as psa_import_key(), psa_generate_random_key(),
+ * This function does not access storage, it merely stores the given
+ * value in the structure.
+ * The persistent key will be written to storage when the attribute
+ * structure is passed to a key creation function such as
+ * psa_import_key(), psa_generate_random_key(),
  * psa_generate_derived_key() or psa_copy_key().
  *
  * This function may be declared as `static` (i.e. without external
@@ -231,12 +232,16 @@ static void psa_set_key_id(psa_key_attributes_t *attributes,
 /** Set the location of a persistent key.
  *
  * To make a key persistent, you must give it a persistent key identifier
- * with psa_set_key_id().
+ * with psa_set_key_id(). By default, a key that has a persistent identifier
+ * is stored in the default storage area identifier by
+ * #PSA_KEY_LIFETIME_PERSISTENT. Call this function to choose a storage
+ * area, or to explicitly declare the key as volatile.
  *
- * This function does not access storage, it merely fills the attribute
- * structure with given value. The persistent key will be written to
- * storage when the attribute structure is passed to a key creation
- * function such as psa_import_key(), psa_generate_random_key(),
+ * This function does not access storage, it merely stores the given
+ * value in the structure.
+ * The persistent key will be written to storage when the attribute
+ * structure is passed to a key creation function such as
+ * psa_import_key(), psa_generate_random_key(),
  * psa_generate_derived_key() or psa_copy_key().
  *
  * This function may be declared as `static` (i.e. without external

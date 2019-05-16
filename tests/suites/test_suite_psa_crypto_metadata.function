@@ -451,9 +451,7 @@ void ecc_key_types( int curve_arg, int curve_bits_arg )
     TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( public_type ), curve );
     TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( pair_type ), curve );
 
-    /* Validate that the bit size is less than the maximum ECC bit size
-     * in this implementation. There's no parameter that should be equal
-     * to curve_bits and can be validated without creating a key. */
+    TEST_EQUAL( curve_bits, PSA_ECC_CURVE_BITS( curve ) );
     TEST_ASSERT( curve_bits <= PSA_VENDOR_ECC_MAX_CURVE_BITS );
 }
 /* END_CASE */

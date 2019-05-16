@@ -621,6 +621,9 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
     mbedtls_ecp_keypair *ecp = NULL;
     mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
 
+    if( PSA_BITS_TO_BYTES( PSA_ECC_CURVE_BITS( curve ) ) != data_length )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     *p_ecp = NULL;
     ecp = mbedtls_calloc( 1, sizeof( mbedtls_ecp_keypair ) );
     if( ecp == NULL )

@@ -445,6 +445,73 @@ psa_status_t psa_generate_random_key_to_handle(psa_key_handle_t handle,
 /**@}*/
 
 
+/** \addtogroup crypto_types
+ * @{
+ */
+
+/** DSA public key. */
+#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x60020000)
+/** DSA key pair (private and public key). */
+#define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x70020000)
+/** Whether a key type is an DSA key (pair or public-only). */
+#define PSA_KEY_TYPE_IS_DSA(type)                                       \
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_DSA_PUBLIC_KEY)
+
+#define PSA_ALG_DSA_BASE                        ((psa_algorithm_t)0x10040000)
+/** DSA signature with hashing.
+ *
+ * This is the signature scheme defined by FIPS 186-4,
+ * with a random per-message secret number (*k*).
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
+ *
+ * \return              The corresponding DSA signature algorithm.
+ * \return              Unspecified if \p hash_alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_DSA(hash_alg)                             \
+    (PSA_ALG_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_DETERMINISTIC_DSA_BASE          ((psa_algorithm_t)0x10050000)
+#define PSA_ALG_DSA_DETERMINISTIC_FLAG          ((psa_algorithm_t)0x00010000)
+/** Deterministic DSA signature with hashing.
+ *
+ * This is the deterministic variant defined by RFC 6979 of
+ * the signature scheme defined by FIPS 186-4.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
+ *
+ * \return              The corresponding DSA signature algorithm.
+ * \return              Unspecified if \p hash_alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_DETERMINISTIC_DSA(hash_alg)                             \
+    (PSA_ALG_DETERMINISTIC_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_DSA(alg)                                             \
+    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_DSA_DETERMINISTIC_FLAG) ==  \
+     PSA_ALG_DSA_BASE)
+#define PSA_ALG_DSA_IS_DETERMINISTIC(alg)               \
+    (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
+#define PSA_ALG_IS_DETERMINISTIC_DSA(alg)                       \
+    (PSA_ALG_IS_DSA(alg) && PSA_ALG_DSA_IS_DETERMINISTIC(alg))
+#define PSA_ALG_IS_RANDOMIZED_DSA(alg)                          \
+    (PSA_ALG_IS_DSA(alg) && !PSA_ALG_DSA_IS_DETERMINISTIC(alg))
+
+
+/* We need to expand the sample definition of this macro from
+ * the API definition. */
+#undef PSA_ALG_IS_HASH_AND_SIGN
+#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
+    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
+     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg))
+
+/**@}*/
+
 /** \addtogroup attributes
  * @{
  */

@@ -512,9 +512,10 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  *
  * Open a handle to a key which was previously created with psa_create_key().
  *
- * \param lifetime      The lifetime of the key. This designates a storage
- *                      area where the key material is stored. This must not
- *                      be #PSA_KEY_LIFETIME_VOLATILE.
+ * Implementations may provide additional keys that can be opened with
+ * psa_open_key(). Such keys have a key identifier in the vendor range,
+ * as documented in the description of #psa_key_id_t.
+ *
  * \param id            The persistent identifier of the key.
  * \param[out] handle   On success, a handle to a key slot which contains
  *                      the data and metadata loaded from the specified
@@ -526,19 +527,16 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p lifetime is invalid, for example #PSA_KEY_LIFETIME_VOLATILE.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p id is invalid for the specified lifetime.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p lifetime is not supported.
+ *         \p id is invalid.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The specified key exists, but the application does not have the
  *         permission to access it. Note that this specification does not
  *         define any way to create such a key, but it may be possible
  *         through implementation-specific means.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  */
-psa_status_t psa_open_key(psa_key_lifetime_t lifetime,
-                          psa_key_id_t id,
+psa_status_t psa_open_key(psa_key_id_t id,
                           psa_key_handle_t *handle);
 
 /** Close a key handle.

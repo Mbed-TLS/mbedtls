@@ -23,31 +23,47 @@ typedef enum
 } reopen_policy_t;
 
 /* All test functions that create persistent keys must call
- * `TEST_MAX_KEY_ID( key_id )` before creating a persistent key with this
+ * `TEST_USES_KEY_ID( key_id )` before creating a persistent key with this
  * identifier, and must call psa_purge_key_storage() in their cleanup
  * code. */
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-/* There is no API to purge all keys. For this test suite, require that
- * all key IDs be less than a certain maximum, or a well-known value
- * which corresponds to a file that does not contain a key. */
-#define MAX_KEY_ID_FOR_TEST 32
-#define KEY_ID_IS_WELL_KNOWN( key_id )                  \
-    ( ( key_id ) == PSA_CRYPTO_ITS_RANDOM_SEED_UID )
-#define TEST_MAX_KEY_ID( key_id )                       \
-    TEST_ASSERT( ( key_id ) <= MAX_KEY_ID_FOR_TEST ||   \
-                 KEY_ID_IS_WELL_KNOWN( key_id ) )
-void psa_purge_key_storage( void )
+static psa_key_id_t key_ids_used_in_test[9];
+static size_t num_key_ids_used;
+
+/* Record a key id as potentially used in a test case. */
+static int test_uses_key_id( psa_key_id_t key_id )
 {
-    psa_key_id_t i;
-    /* The tests may have potentially created key ids from 1 to
-     * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
-     * 0, which file-based storage uses as a temporary file. */
-    for( i = 0; i <= MAX_KEY_ID_FOR_TEST; i++ )
-        psa_destroy_persistent_key( i );
+    size_t i;
+    if( key_id > PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
+    {
+        /* Don't touch key id values that designate non-key files. */
+        return( 1 );
+    }
+    for( i = 0; i < num_key_ids_used ; i++ )
+    {
+        if( key_id == key_ids_used_in_test[i] )
+            return( 1 );
+    }
+    if( num_key_ids_used == ARRAY_LENGTH( key_ids_used_in_test ) )
+        return( 0 );
+    key_ids_used_in_test[num_key_ids_used] = key_id;
+    ++num_key_ids_used;
+    return( 1 );
+}
+#define TEST_USES_KEY_ID( key_id )                       \
+    TEST_ASSERT( test_uses_key_id( key_id ) )
+
+/* Destroy all key ids that may have been created by the current test case. */
+static void psa_purge_key_storage( void )
+{
+    size_t i;
+    for( i = 0; i < num_key_ids_used; i++ )
+        psa_destroy_persistent_key( key_ids_used_in_test[i] );
+    num_key_ids_used = 0;
 }
 #else
-#define TEST_MAX_KEY_ID( key_id ) ( (void) ( key_id ) )
+#define TEST_USES_KEY_ID( key_id ) ( (void) ( key_id ) )
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
 /* END_HEADER */
@@ -122,7 +138,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    TEST_MAX_KEY_ID( id );
+    TEST_USES_KEY_ID( id );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -139,7 +155,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
 
     /* Close the key and reopen it. */
     PSA_ASSERT( psa_close_key( handle ) );
-    PSA_ASSERT( psa_open_key( lifetime, id, &handle ) );
+    PSA_ASSERT( psa_open_key( id, &handle ) );
     PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
     TEST_EQUAL( read_type, type );
 
@@ -168,12 +184,12 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     {
         case CLOSE_BY_CLOSE:
         case CLOSE_BY_SHUTDOWN:
-            PSA_ASSERT( psa_open_key( lifetime, id, &handle ) );
+            PSA_ASSERT( psa_open_key( id, &handle ) );
             PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
             TEST_EQUAL( read_type, type );
             break;
         case CLOSE_BY_DESTROY:
-            TEST_EQUAL( psa_open_key( lifetime, id, &handle ),
+            TEST_EQUAL( psa_open_key( id, &handle ),
                         PSA_ERROR_DOES_NOT_EXIST );
             break;
     }
@@ -200,7 +216,7 @@ void create_existent( int lifetime_arg, int id_arg,
     size_t reexported_length;
     reopen_policy_t reopen_policy = reopen_policy_arg;
 
-    TEST_MAX_KEY_ID( id );
+    TEST_USES_KEY_ID( id );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -225,7 +241,7 @@ void create_existent( int lifetime_arg, int id_arg,
     if( reopen_policy == CLOSE_AFTER )
         PSA_ASSERT( psa_close_key( handle1 ) );
     if( reopen_policy == CLOSE_BEFORE || reopen_policy == CLOSE_AFTER )
-        PSA_ASSERT( psa_open_key( lifetime, id, &handle1 ) );
+        PSA_ASSERT( psa_open_key( id, &handle1 ) );
 
     /* Check that the original key hasn't changed. */
     psa_reset_key_attributes( &attributes );
@@ -250,17 +266,16 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void open_fail( int lifetime_arg, int id_arg,
+void open_fail( int id_arg,
                 int expected_status_arg )
 {
-    psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_id_t id = id_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_key_handle_t handle = 0xdead;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    TEST_EQUAL( psa_open_key( lifetime, id, &handle ), expected_status );
+    TEST_EQUAL( psa_open_key( id, &handle ), expected_status );
     TEST_EQUAL( handle, 0 );
 
 exit:
@@ -279,7 +294,7 @@ void create_fail( int lifetime_arg, int id_arg,
     psa_key_handle_t handle = 0xdead;
     uint8_t material[1] = {'k'};
 
-    TEST_MAX_KEY_ID( id );
+    TEST_USES_KEY_ID( id );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -323,8 +338,8 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     psa_algorithm_t expected_alg = expected_alg_arg;
     uint8_t *export_buffer = NULL;
 
-    TEST_MAX_KEY_ID( source_id );
-    TEST_MAX_KEY_ID( target_id );
+    TEST_USES_KEY_ID( source_id );
+    TEST_USES_KEY_ID( target_id );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -361,8 +376,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     {
         mbedtls_psa_crypto_free( );
         PSA_ASSERT( psa_crypto_init( ) );
-        PSA_ASSERT( psa_open_key( target_lifetime, target_id,
-                                  &target_handle ) );
+        PSA_ASSERT( psa_open_key( target_id, &target_handle ) );
     }
 
     /* Test that the target slot has the expected content. */
@@ -428,8 +442,8 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
     psa_key_attributes_t attributes1 = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t attributes2 = PSA_KEY_ATTRIBUTES_INIT;
 
-    TEST_MAX_KEY_ID( source_id );
-    TEST_MAX_KEY_ID( target_id );
+    TEST_USES_KEY_ID( source_id );
+    TEST_USES_KEY_ID( target_id );
 
     PSA_ASSERT( psa_crypto_init( ) );
 

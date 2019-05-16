@@ -7,14 +7,23 @@ transient_slot_lifecycle:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789ab
 Transient slot, check after restart
 transient_slot_lifecycle:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_SHUTDOWN
 
-Persistent slot, check after closing
-persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:1:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_CLOSE
+Persistent slot, check after closing, id=min
+persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_USER_MIN:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_CLOSE
 
-Persistent slot, check after destroying
-persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:1:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_DESTROY
+Persistent slot, check after destroying, id=min
+persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_USER_MIN:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_DESTROY
 
-Persistent slot, check after restart
-persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:1:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_SHUTDOWN
+Persistent slot, check after restart, id=min
+persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_USER_MIN:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_SHUTDOWN
+
+Persistent slot, check after closing, id=max
+persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_USER_MAX:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_CLOSE
+
+Persistent slot, check after destroying, id=max
+persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_USER_MAX:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_DESTROY
+
+Persistent slot, check after restart, id=max
+persistent_slot_lifecycle:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_USER_MAX:0:0:PSA_KEY_TYPE_RAW_DATA:"0123456789abcdef0123456789abcdef":CLOSE_BY_SHUTDOWN
 
 Attempt to overwrite: close before
 create_existent:PSA_KEY_LIFETIME_PERSISTENT:1:CLOSE_BEFORE
@@ -27,21 +36,23 @@ create_existent:PSA_KEY_LIFETIME_PERSISTENT:1:KEEP_OPEN
 
 Open failure: invalid identifier (0)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_KEY_LIFETIME_PERSISTENT:0:PSA_ERROR_INVALID_ARGUMENT
+open_fail:0:PSA_ERROR_INVALID_ARGUMENT
 
 Open failure: invalid identifier (random seed UID)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_KEY_LIFETIME_PERSISTENT:PSA_CRYPTO_ITS_RANDOM_SEED_UID:PSA_ERROR_INVALID_ARGUMENT
+open_fail:PSA_CRYPTO_ITS_RANDOM_SEED_UID:PSA_ERROR_INVALID_ARGUMENT
+
+Open failure: invalid identifier (reserved range)
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+open_fail:PSA_KEY_ID_VENDOR_MAX + 1:PSA_ERROR_INVALID_ARGUMENT
+
+Open failure: invalid identifier (implementation range)
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+open_fail:PSA_KEY_ID_USER_MAX + 1:PSA_ERROR_DOES_NOT_EXIST
 
 Open failure: non-existent identifier
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_KEY_LIFETIME_PERSISTENT:1:PSA_ERROR_DOES_NOT_EXIST
-
-Open failure: volatile lifetime
-open_fail:PSA_KEY_LIFETIME_VOLATILE:1:PSA_ERROR_INVALID_ARGUMENT
-
-Open failure: invalid lifetime
-open_fail:0x7fffffff:0:PSA_ERROR_INVALID_ARGUMENT
+open_fail:1:PSA_ERROR_DOES_NOT_EXIST
 
 Create failure: invalid lifetime
 create_fail:0x7fffffff:0:PSA_ERROR_INVALID_ARGUMENT
@@ -54,9 +65,17 @@ Create failure: invalid key id (random seed UID)
 depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
 create_fail:PSA_KEY_LIFETIME_PERSISTENT:PSA_CRYPTO_ITS_RANDOM_SEED_UID:PSA_ERROR_INVALID_ARGUMENT
 
+Create failure: invalid key id (reserved range)
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+create_fail:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_VENDOR_MAX + 1:PSA_ERROR_INVALID_ARGUMENT
+
+Create failure: invalid key id (implementation range)
+depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
+create_fail:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_USER_MAX + 1:PSA_ERROR_INVALID_ARGUMENT
+
 Open not supported
 depends_on:!MBEDTLS_PSA_CRYPTO_STORAGE_C
-open_fail:PSA_KEY_LIFETIME_PERSISTENT:1:PSA_ERROR_NOT_SUPPORTED
+open_fail:1:PSA_ERROR_NOT_SUPPORTED
 
 Create not supported
 depends_on:!MBEDTLS_PSA_CRYPTO_STORAGE_C

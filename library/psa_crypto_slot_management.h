@@ -64,6 +64,8 @@ void psa_wipe_all_key_slots( void );
  *
  * \param lifetime      The lifetime to test.
  * \param id            The key id to test.
+ * \param creating      0 if attempting to open an existing key.
+ *                      Nonzero if attempting to create a key.
  *
  * \retval PSA_SUCCESS
  *         The given parameters are valid.
@@ -74,7 +76,8 @@ void psa_wipe_all_key_slots( void );
  */
 psa_status_t psa_validate_persistent_key_parameters(
     psa_key_lifetime_t lifetime,
-    psa_key_file_id_t id );
+    psa_key_file_id_t id,
+    int creating );
 
 
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

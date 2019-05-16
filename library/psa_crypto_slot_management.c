@@ -176,21 +176,23 @@ exit:
  * is provided.
  *
  * \param file_id       The key identifier to check.
+ * \param vendor_ok     Nonzero to allow key ids in the vendor range.
+ *                      0 to allow only key ids in the application range.
  *
  * \return              1 if \p file_id is acceptable, otherwise 0.
  */
-static int psa_is_key_id_valid( psa_key_file_id_t file_id )
+static int psa_is_key_id_valid( psa_key_file_id_t file_id,
+                                int vendor_ok )
 {
     psa_app_key_id_t key_id = PSA_KEY_FILE_GET_KEY_ID( file_id );
-    /* Reject id=0 because by general library conventions, 0 is an invalid
-     * value wherever possible. */
-    if( key_id == 0 )
+    if( PSA_KEY_ID_USER_MIN <= key_id && key_id <= PSA_KEY_ID_USER_MAX )
+        return( 1 );
+    else if( vendor_ok &&
+             PSA_KEY_ID_VENDOR_MIN <= key_id &&
+             key_id <= PSA_KEY_ID_VENDOR_MAX )
+        return( 1 );
+    else
         return( 0 );
-    /* Reject high values because the file names are reserved for the
-     * library's internal use. */
-    if( key_id > PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
-        return( 0 );
-    return( 1 );
 }
 
 /** Declare a slot as persistent and load it from storage.
@@ -231,18 +233,20 @@ static psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
 
 psa_status_t psa_validate_persistent_key_parameters(
     psa_key_lifetime_t lifetime,
-    psa_key_file_id_t id )
+    psa_key_file_id_t id,
+    int creating )
 {
     if( lifetime != PSA_KEY_LIFETIME_PERSISTENT )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( ! psa_is_key_id_valid( id ) )
+    if( ! psa_is_key_id_valid( id, ! creating ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
     return( PSA_SUCCESS );
 
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
     (void) id;
+    (void) creating;
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
 }
@@ -250,13 +254,15 @@ psa_status_t psa_validate_persistent_key_parameters(
 static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
                                           psa_key_file_id_t id,
                                           psa_key_handle_t *handle,
-                                          psa_status_t wanted_load_status )
+                                          int creating )
 {
     psa_status_t status;
+    psa_status_t wanted_load_status =
+        ( creating ? PSA_ERROR_DOES_NOT_EXIST : PSA_SUCCESS );
 
     *handle = 0;
 
-    status = psa_validate_persistent_key_parameters( lifetime, id );
+    status = psa_validate_persistent_key_parameters( lifetime, id, creating );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -278,11 +284,10 @@ static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 }
 
-psa_status_t psa_open_key( psa_key_lifetime_t lifetime,
-                           psa_key_file_id_t id,
-                           psa_key_handle_t *handle )
+psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
 {
-    return( persistent_key_setup( lifetime, id, handle, PSA_SUCCESS ) );
+    return( persistent_key_setup( PSA_KEY_LIFETIME_PERSISTENT,
+                                  id, handle, 0 ) );
 }
 
 psa_status_t psa_create_key( psa_key_lifetime_t lifetime,
@@ -291,8 +296,7 @@ psa_status_t psa_create_key( psa_key_lifetime_t lifetime,
 {
     psa_status_t status;
 
-    status = persistent_key_setup( lifetime, id, handle,
-                                   PSA_ERROR_DOES_NOT_EXIST );
+    status = persistent_key_setup( lifetime, id, handle, 1 );
     switch( status )
     {
         case PSA_SUCCESS: return( PSA_ERROR_ALREADY_EXISTS );

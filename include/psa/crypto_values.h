@@ -1488,6 +1488,19 @@
  */
 #define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
 
+/** The minimum value for a key identifier chosen by the application.
+ */
+#define PSA_KEY_ID_USER_MIN                     ((psa_key_id_t)0x00000001)
+/** The maximum value for a key identifier chosen by the application.
+ */
+#define PSA_KEY_ID_USER_MAX                     ((psa_key_id_t)0x3fffffff)
+/** The minimum value for a key identifier chosen by the implementation.
+ */
+#define PSA_KEY_ID_VENDOR_MIN                   ((psa_key_id_t)0x40000000)
+/** The maximum value for a key identifier chosen by the implementation.
+ */
+#define PSA_KEY_ID_VENDOR_MAX                   ((psa_key_id_t)0x7fffffff)
+
 /**@}*/
 
 /** \defgroup policy Key policies

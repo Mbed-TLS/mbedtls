@@ -9848,17 +9848,26 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
  * and structure of the ticket.
  */
 
- static unsigned char ssl_serialized_session_header[] = {
-    MBEDTLS_VERSION_MAJOR,
-    MBEDTLS_VERSION_MINOR,
-    MBEDTLS_VERSION_PATCH,
- };
+static unsigned char ssl_serialized_session_header[] = {
+   MBEDTLS_VERSION_MAJOR,
+   MBEDTLS_VERSION_MINOR,
+   MBEDTLS_VERSION_PATCH,
+   0xFF /* TBD */,
+   0xFF /* TBD */
+};
 
 /*
  * Serialize a session in the following format:
  * (in the presentation language of TLS, RFC 8446 section 3)
  *
  *  opaque mbedtls_version[3];      // major, minor, patch
+ *  opaque session_format[2];       // version-specific 16-bit field determining
+ *                                  // the format of the remaining serialized
+ *                                  // data. For example, it could be a bitfield
+ *                                  // indicating the setting of those compile-
+ *                                  // time configuration options influencing
+ *                                  // the format of the serialized data.
+ *                                  // Unused so far.
  *  uint64 start_time;
  *  uint8 ciphersuite[2];           // defined by the standard
  *  uint8 compression;              // 0 or 1

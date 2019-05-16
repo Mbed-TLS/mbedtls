@@ -47,6 +47,7 @@
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/version.h"
 
 #include <string.h>
 
@@ -9843,9 +9844,21 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 }
 
 /*
+ * Define ticket header determining Mbed TLS version
+ * and structure of the ticket.
+ */
+
+ static unsigned char ssl_serialized_session_header[] = {
+    MBEDTLS_VERSION_MAJOR,
+    MBEDTLS_VERSION_MINOR,
+    MBEDTLS_VERSION_PATCH,
+ };
+
+/*
  * Serialize a session in the following format:
  * (in the presentation language of TLS, RFC 8446 section 3)
  *
+ *  opaque mbedtls_version[3];      // major, minor, patch
  *  uint64 start_time;
  *  uint8 ciphersuite[2];           // defined by the standard
  *  uint8 compression;              // 0 or 1
@@ -9880,6 +9893,19 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+
+    /*
+     * Add version identifier
+     */
+
+    used += sizeof( ssl_serialized_session_header );
+
+    if( used <= buf_len )
+    {
+        memcpy( p, ssl_serialized_session_header,
+                sizeof( ssl_serialized_session_header ) );
+        p += sizeof( ssl_serialized_session_header );
+    }
 
     /*
      * Time
@@ -10059,6 +10085,21 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     size_t cert_len;
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    /*
+     * Check version identifier
+     */
+
+    if( (size_t)( end - p ) < sizeof( ssl_serialized_session_header ) )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    if( memcmp( p, ssl_serialized_session_header,
+                sizeof( ssl_serialized_session_header ) ) != 0 )
+    {
+        /* A more specific error code might be used here. */
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+    p += sizeof( ssl_serialized_session_header );
 
     /*
      * Time

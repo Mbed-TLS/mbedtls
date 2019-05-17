@@ -211,6 +211,7 @@ class MacroCollector:
     _define_directive_re = re.compile(r'\s*#\s*define\s+(\w+)' +
                                       r'(?:\s+|\((\w+)\)\s*)' +
                                       r'(.+)')
+    _deprecated_definition_re = re.compile(r'\s*MBEDTLS_DEPRECATED')
 
     def read_line(self, line):
         """Parse a C header line and record the PSA identifier it defines if any.
@@ -223,20 +224,16 @@ class MacroCollector:
             return
         name, parameter, expansion = m.groups()
         expansion = re.sub(r'/\*.*?\*/|//.*', r' ', expansion)
+        if re.match(self._deprecated_definition_re, expansion):
+            # Skip deprecated values, which are assumed to be
+            # backward compatibility aliases that share
+            # numerical values with non-deprecated values.
+            return
         if name.endswith('_FLAG') or name.endswith('MASK'):
             # Macro only to build actual values
             return
         elif (name.startswith('PSA_ERROR_') or name == 'PSA_SUCCESS') \
            and not parameter:
-            if name in ['PSA_ERROR_UNKNOWN_ERROR',
-                        'PSA_ERROR_OCCUPIED_SLOT',
-                        'PSA_ERROR_EMPTY_SLOT',
-                        'PSA_ERROR_INSUFFICIENT_CAPACITY',
-                       ]:
-                # Ad hoc skipping of deprecated error codes, which share
-                # numerical values with non-deprecated error codes
-                return
-
             self.statuses.add(name)
         elif name.startswith('PSA_KEY_TYPE_') and not parameter:
             self.key_types.add(name)

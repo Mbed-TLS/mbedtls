@@ -176,6 +176,7 @@ class Inputs:
         'PSA_ERROR_OCCUPIED_SLOT',
         'PSA_ERROR_EMPTY_SLOT',
         'PSA_ERROR_INSUFFICIENT_CAPACITY',
+        'PSA_ERROR_TAMPERING_DETECTED',
     ])
     def parse_header_line(self, line):
         """Parse a C header line, looking for "#define PSA_xxx"."""

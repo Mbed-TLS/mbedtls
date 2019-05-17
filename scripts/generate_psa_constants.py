@@ -210,7 +210,7 @@ class MacroCollector:
     # and the expansion in group 3.
     _define_directive_re = re.compile(r'\s*#\s*define\s+(\w+)' +
                                       r'(?:\s+|\((\w+)\)\s*)' +
-                                      r'(.+)(?:/[*/])?')
+                                      r'(.+)')
 
     def read_line(self, line):
         """Parse a C header line and record the PSA identifier it defines if any.
@@ -222,6 +222,7 @@ class MacroCollector:
         if not m:
             return
         name, parameter, expansion = m.groups()
+        expansion = re.sub(r'/\*.*?\*/|//.*', r' ', expansion)
         if name.endswith('_FLAG') or name.endswith('MASK'):
             # Macro only to build actual values
             return
@@ -274,6 +275,9 @@ class MacroCollector:
 
     def read_file(self, header_file):
         for line in header_file:
+            while line.endswith('\\\n'):
+                cont = next(header_file)
+                line = line[:-2] + cont
             self.read_line(line)
 
     @staticmethod

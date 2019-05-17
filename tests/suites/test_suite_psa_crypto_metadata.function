@@ -45,7 +45,7 @@
 #define KEY_TYPE_IS_VENDOR_DEFINED      ( 1u << 0 )
 #define KEY_TYPE_IS_UNSTRUCTURED        ( 1u << 1 )
 #define KEY_TYPE_IS_PUBLIC_KEY          ( 1u << 2 )
-#define KEY_TYPE_IS_KEYPAIR             ( 1u << 3 )
+#define KEY_TYPE_IS_KEY_PAIR             ( 1u << 3 )
 #define KEY_TYPE_IS_RSA                 ( 1u << 4 )
 #define KEY_TYPE_IS_DSA                 ( 1u << 5 )
 #define KEY_TYPE_IS_ECC                 ( 1u << 6 )
@@ -89,7 +89,7 @@ void key_type_classification( psa_key_type_t type, unsigned flags )
     TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_VENDOR_DEFINED, type, flags );
     TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_UNSTRUCTURED, type, flags );
     TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_PUBLIC_KEY, type, flags );
-    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_KEYPAIR, type, flags );
+    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_KEY_PAIR, type, flags );
     TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_RSA, type, flags );
     TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_ECC, type, flags );
     TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_DH, type, flags );
@@ -97,16 +97,16 @@ void key_type_classification( psa_key_type_t type, unsigned flags )
     /* Macros with derived semantics */
     TEST_EQUAL( PSA_KEY_TYPE_IS_ASYMMETRIC( type ),
                 ( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ||
-                  PSA_KEY_TYPE_IS_KEYPAIR( type ) ) );
-    TEST_EQUAL( PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ),
+                  PSA_KEY_TYPE_IS_KEY_PAIR( type ) ) );
+    TEST_EQUAL( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( type ),
                 ( PSA_KEY_TYPE_IS_ECC( type ) &&
-                  PSA_KEY_TYPE_IS_KEYPAIR( type ) ) );
+                  PSA_KEY_TYPE_IS_KEY_PAIR( type ) ) );
     TEST_EQUAL( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ),
                 ( PSA_KEY_TYPE_IS_ECC( type ) &&
                   PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ) );
-    TEST_EQUAL( PSA_KEY_TYPE_IS_DH_KEYPAIR( type ),
+    TEST_EQUAL( PSA_KEY_TYPE_IS_DH_KEY_PAIR( type ),
                 ( PSA_KEY_TYPE_IS_DH( type ) &&
-                  PSA_KEY_TYPE_IS_KEYPAIR( type ) ) );
+                  PSA_KEY_TYPE_IS_KEY_PAIR( type ) ) );
     TEST_EQUAL( PSA_KEY_TYPE_IS_DH_PUBLIC_KEY( type ),
                 ( PSA_KEY_TYPE_IS_DH( type ) &&
                   PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ) );
@@ -426,23 +426,23 @@ void key_type( int type_arg, int classification_flags )
     /* For asymmetric types, check the corresponding pair/public type */
     if( classification_flags & KEY_TYPE_IS_PUBLIC_KEY )
     {
-        psa_key_type_t pair_type = PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY( type );
-        TEST_EQUAL( PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( pair_type ), type );
+        psa_key_type_t pair_type = PSA_KEY_TYPE_KEY_PAIR_OF_PUBLIC_KEY( type );
+        TEST_EQUAL( PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR( pair_type ), type );
         key_type_classification( pair_type,
                                  ( classification_flags
                                    & ~KEY_TYPE_IS_PUBLIC_KEY )
-                                 | KEY_TYPE_IS_KEYPAIR );
-        TEST_EQUAL( PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type ), type );
+                                 | KEY_TYPE_IS_KEY_PAIR );
+        TEST_EQUAL( PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR( type ), type );
     }
-    if( classification_flags & KEY_TYPE_IS_KEYPAIR )
+    if( classification_flags & KEY_TYPE_IS_KEY_PAIR )
     {
-        psa_key_type_t public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type );
-        TEST_EQUAL( PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY( public_type ), type );
+        psa_key_type_t public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR( type );
+        TEST_EQUAL( PSA_KEY_TYPE_KEY_PAIR_OF_PUBLIC_KEY( public_type ), type );
         key_type_classification( public_type,
                                  ( classification_flags
-                                   & ~KEY_TYPE_IS_KEYPAIR )
+                                   & ~KEY_TYPE_IS_KEY_PAIR )
                                  | KEY_TYPE_IS_PUBLIC_KEY );
-        TEST_EQUAL( PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY( type ), type );
+        TEST_EQUAL( PSA_KEY_TYPE_KEY_PAIR_OF_PUBLIC_KEY( type ), type );
     }
 }
 /* END_CASE */
@@ -453,10 +453,10 @@ void ecc_key_types( int curve_arg, int curve_bits_arg )
     psa_ecc_curve_t curve = curve_arg;
     size_t curve_bits = curve_bits_arg;
     psa_key_type_t public_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
-    psa_key_type_t pair_type = PSA_KEY_TYPE_ECC_KEYPAIR( curve );
+    psa_key_type_t pair_type = PSA_KEY_TYPE_ECC_KEY_PAIR( curve );
 
     test_key_type( public_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_PUBLIC_KEY );
-    test_key_type( pair_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_KEYPAIR );
+    test_key_type( pair_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_KEY_PAIR );
 
     TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( public_type ), curve );
     TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( pair_type ), curve );
@@ -472,10 +472,10 @@ void dh_key_types( int group_arg, int group_bits_arg )
     psa_dh_group_t group = group_arg;
     size_t group_bits = group_bits_arg;
     psa_key_type_t public_type = PSA_KEY_TYPE_DH_PUBLIC_KEY( group );
-    psa_key_type_t pair_type = PSA_KEY_TYPE_DH_KEYPAIR( group );
+    psa_key_type_t pair_type = PSA_KEY_TYPE_DH_KEY_PAIR( group );
 
     test_key_type( public_type, KEY_TYPE_IS_DH | KEY_TYPE_IS_PUBLIC_KEY );
-    test_key_type( pair_type, KEY_TYPE_IS_DH | KEY_TYPE_IS_KEYPAIR );
+    test_key_type( pair_type, KEY_TYPE_IS_DH | KEY_TYPE_IS_KEY_PAIR );
 
     TEST_EQUAL( PSA_KEY_TYPE_GET_GROUP( public_type ), group );
     TEST_EQUAL( PSA_KEY_TYPE_GET_GROUP( pair_type ), group );

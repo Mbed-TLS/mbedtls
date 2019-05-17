@@ -3148,8 +3148,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
         /* Generate ECDH private key. */
-        status = psa_generate_random_key_to_handle( handshake->ecdh_psa_privkey,
-                          PSA_KEY_TYPE_ECC_KEYPAIR( handshake->ecdh_psa_curve ),
+        status = psa_generate_key_to_handle( handshake->ecdh_psa_privkey,
+                          PSA_KEY_TYPE_ECC_KEY_PAIR( handshake->ecdh_psa_curve ),
                           MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE( handshake->ecdh_psa_curve ),
                           NULL, 0 );
         if( status != PSA_SUCCESS )

@@ -324,7 +324,7 @@
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY)
 /** Whether a key type is a key pair containing a private part and a public
  * part. */
-#define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
+#define PSA_KEY_TYPE_IS_KEY_PAIR(type)                                   \
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_KEY_PAIR)
 /** The key pair type corresponding to a public key type.
  *
@@ -336,7 +336,7 @@
  *                  If \p type is not a public key or a key pair,
  *                  the return value is undefined.
  */
-#define PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY(type)        \
+#define PSA_KEY_TYPE_KEY_PAIR_OF_PUBLIC_KEY(type)        \
     ((type) | PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
 /** The public key type corresponding to a key pair type.
  *
@@ -348,7 +348,7 @@
  *                  If \p type is not a public key or a key pair,
  *                  the return value is undefined.
  */
-#define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type)        \
+#define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type)        \
     ((type) & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
 
 /** Raw data.
@@ -414,29 +414,29 @@
 /** RSA public key. */
 #define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x60010000)
 /** RSA key pair (private and public key). */
-#define PSA_KEY_TYPE_RSA_KEYPAIR                ((psa_key_type_t)0x70010000)
+#define PSA_KEY_TYPE_RSA_KEY_PAIR                ((psa_key_type_t)0x70010000)
 /** Whether a key type is an RSA key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_RSA(type)                                       \
-    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x60030000)
-#define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x70030000)
+#define PSA_KEY_TYPE_ECC_KEY_PAIR_BASE           ((psa_key_type_t)0x70030000)
 #define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
 /** Elliptic curve key pair. */
-#define PSA_KEY_TYPE_ECC_KEYPAIR(curve)         \
-    (PSA_KEY_TYPE_ECC_KEYPAIR_BASE | (curve))
+#define PSA_KEY_TYPE_ECC_KEY_PAIR(curve)         \
+    (PSA_KEY_TYPE_ECC_KEY_PAIR_BASE | (curve))
 /** Elliptic curve public key. */
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve)              \
     (PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE | (curve))
 
 /** Whether a key type is an elliptic curve key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
-    ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) &                        \
+    ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type) &                        \
       ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE)
 /** Whether a key type is an elliptic curve key pair. */
-#define PSA_KEY_TYPE_IS_ECC_KEYPAIR(type)                               \
+#define PSA_KEY_TYPE_IS_ECC_KEY_PAIR(type)                               \
     (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) ==                         \
-     PSA_KEY_TYPE_ECC_KEYPAIR_BASE)
+     PSA_KEY_TYPE_ECC_KEY_PAIR_BASE)
 /** Whether a key type is an elliptic curve public key. */
 #define PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(type)                            \
     (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) ==                         \
@@ -485,23 +485,23 @@
 #define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x001e)
 
 #define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE         ((psa_key_type_t)0x60040000)
-#define PSA_KEY_TYPE_DH_KEYPAIR_BASE            ((psa_key_type_t)0x70040000)
+#define PSA_KEY_TYPE_DH_KEY_PAIR_BASE            ((psa_key_type_t)0x70040000)
 #define PSA_KEY_TYPE_DH_GROUP_MASK              ((psa_key_type_t)0x0000ffff)
 /** Diffie-Hellman key pair. */
-#define PSA_KEY_TYPE_DH_KEYPAIR(group)          \
-    (PSA_KEY_TYPE_DH_KEYPAIR_BASE | (group))
+#define PSA_KEY_TYPE_DH_KEY_PAIR(group)          \
+    (PSA_KEY_TYPE_DH_KEY_PAIR_BASE | (group))
 /** Diffie-Hellman public key. */
 #define PSA_KEY_TYPE_DH_PUBLIC_KEY(group)               \
     (PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE | (group))
 
 /** Whether a key type is a Diffie-Hellman key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_DH(type)                                        \
-    ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) &                        \
+    ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type) &                        \
       ~PSA_KEY_TYPE_DH_GROUP_MASK) == PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE)
 /** Whether a key type is a Diffie-Hellman key pair. */
-#define PSA_KEY_TYPE_IS_DH_KEYPAIR(type)                               \
+#define PSA_KEY_TYPE_IS_DH_KEY_PAIR(type)                               \
     (((type) & ~PSA_KEY_TYPE_DH_GROUP_MASK) ==                         \
-     PSA_KEY_TYPE_DH_KEYPAIR_BASE)
+     PSA_KEY_TYPE_DH_KEY_PAIR_BASE)
 /** Whether a key type is a Diffie-Hellman public key. */
 #define PSA_KEY_TYPE_IS_DH_PUBLIC_KEY(type)                            \
     (((type) & ~PSA_KEY_TYPE_DH_GROUP_MASK) ==                         \

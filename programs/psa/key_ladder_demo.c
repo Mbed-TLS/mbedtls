@@ -208,7 +208,7 @@ static psa_status_t generate( const char *key_file_name )
     psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
     psa_set_key_bits( &attributes, PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ) );
 
-    PSA_CHECK( psa_generate_random_key( &attributes, &key_handle ) );
+    PSA_CHECK( psa_generate_key( &attributes, &key_handle ) );
 
     PSA_CHECK( save_key( key_handle, key_file_name ) );
 

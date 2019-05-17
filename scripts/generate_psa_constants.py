@@ -22,6 +22,14 @@ static const char *psa_ecc_curve_name(psa_ecc_curve_t curve)
     }
 }
 
+static const char *psa_dh_group_name(psa_dh_group_t group)
+{
+    switch (group) {
+    %(dh_group_cases)s
+    default: return NULL;
+    }
+}
+
 static const char *psa_hash_algorithm_name(psa_algorithm_t hash_alg)
 {
     switch (hash_alg) {
@@ -145,6 +153,12 @@ key_type_from_curve_template = '''if (%(tester)s(type)) {
                               PSA_KEY_TYPE_GET_CURVE(type));
         } else '''
 
+key_type_from_group_template = '''if (%(tester)s(type)) {
+            append_with_group(&buffer, buffer_size, &required_size,
+                              "%(builder)s", %(builder_length)s,
+                              PSA_KEY_TYPE_GET_GROUP(type));
+        } else '''
+
 algorithm_from_hash_template = '''if (%(tester)s(core_alg)) {
             append(&buffer, buffer_size, &required_size,
                    "%(builder)s(", %(builder_length)s + 1);
@@ -169,7 +183,9 @@ class MacroCollector:
         self.statuses = set()
         self.key_types = set()
         self.key_types_from_curve = {}
+        self.key_types_from_group = {}
         self.ecc_curves = set()
+        self.dh_groups = set()
         self.algorithms = set()
         self.hash_algorithms = set()
         self.ka_algorithms = set()
@@ -206,8 +222,12 @@ class MacroCollector:
             self.key_types.add(name)
         elif name.startswith('PSA_KEY_TYPE_') and parameter == 'curve':
             self.key_types_from_curve[name] = name[:13] + 'IS_' + name[13:]
+        elif name.startswith('PSA_KEY_TYPE_') and parameter == 'group':
+            self.key_types_from_group[name] = name[:13] + 'IS_' + name[13:]
         elif name.startswith('PSA_ECC_CURVE_') and not parameter:
             self.ecc_curves.add(name)
+        elif name.startswith('PSA_DH_GROUP_') and not parameter:
+            self.dh_groups.add(name)
         elif name.startswith('PSA_ALG_') and not parameter:
             if name in ['PSA_ALG_ECDSA_BASE',
                         'PSA_ALG_RSA_PKCS1V15_SIGN_BASE']:
@@ -265,6 +285,10 @@ class MacroCollector:
         return '\n    '.join(map(self.make_return_case,
                                  sorted(self.ecc_curves)))
 
+    def make_dh_group_cases(self):
+        return '\n    '.join(map(self.make_return_case,
+                                 sorted(self.dh_groups)))
+
     def make_key_type_cases(self):
         return '\n    '.join(map(self.make_append_case,
                                  sorted(self.key_types)))
@@ -274,9 +298,19 @@ class MacroCollector:
                                                'builder_length': len(builder),
                                                'tester': tester}
 
-    def make_key_type_code(self):
+    def make_key_type_from_group_code(self, builder, tester):
+        return key_type_from_group_template % {'builder': builder,
+                                               'builder_length': len(builder),
+                                               'tester': tester}
+
+    def make_ecc_key_type_code(self):
         d = self.key_types_from_curve
         make = self.make_key_type_from_curve_code
+        return ''.join([make(k, d[k]) for k in sorted(d.keys())])
+
+    def make_dh_key_type_code(self):
+        d = self.key_types_from_group
+        make = self.make_key_type_from_group_code
         return ''.join([make(k, d[k]) for k in sorted(d.keys())])
 
     def make_hash_algorithm_cases(self):
@@ -309,8 +343,10 @@ class MacroCollector:
         data = {}
         data['status_cases'] = self.make_status_cases()
         data['ecc_curve_cases'] = self.make_ecc_curve_cases()
+        data['dh_group_cases'] = self.make_dh_group_cases()
         data['key_type_cases'] = self.make_key_type_cases()
-        data['key_type_code'] = self.make_key_type_code()
+        data['key_type_code'] = (self.make_ecc_key_type_code() +
+                                 self.make_dh_key_type_code())
         data['hash_algorithm_cases'] = self.make_hash_algorithm_cases()
         data['ka_algorithm_cases'] = self.make_ka_algorithm_cases()
         data['algorithm_cases'] = self.make_algorithm_cases()

@@ -419,14 +419,6 @@
 #define PSA_KEY_TYPE_IS_RSA(type)                                       \
     (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 
-/** DSA public key. */
-#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x60020000)
-/** DSA key pair (private and public key). */
-#define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x70020000)
-/** Whether a key type is an DSA key (pair or public-only). */
-#define PSA_KEY_TYPE_IS_DSA(type)                                       \
-    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_DSA_PUBLIC_KEY)
-
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x60030000)
 #define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x70030000)
 #define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
@@ -492,14 +484,45 @@
 #define PSA_ECC_CURVE_CURVE25519        ((psa_ecc_curve_t) 0x001d)
 #define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x001e)
 
-/** Diffie-Hellman key exchange public key. */
-#define PSA_KEY_TYPE_DH_PUBLIC_KEY             ((psa_key_type_t)0x60040000)
-/** Diffie-Hellman key exchange key pair (private and public key). */
-#define PSA_KEY_TYPE_DH_KEYPAIR                ((psa_key_type_t)0x70040000)
-/** Whether a key type is a Diffie-Hellman key exchange key (pair or
- * public-only). */
-#define PSA_KEY_TYPE_IS_DH(type)                                       \
-    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_DH_PUBLIC_KEY)
+#define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE         ((psa_key_type_t)0x60040000)
+#define PSA_KEY_TYPE_DH_KEYPAIR_BASE            ((psa_key_type_t)0x70040000)
+#define PSA_KEY_TYPE_DH_GROUP_MASK              ((psa_key_type_t)0x0000ffff)
+/** Diffie-Hellman key pair. */
+#define PSA_KEY_TYPE_DH_KEYPAIR(group)          \
+    (PSA_KEY_TYPE_DH_KEYPAIR_BASE | (group))
+/** Diffie-Hellman public key. */
+#define PSA_KEY_TYPE_DH_PUBLIC_KEY(group)               \
+    (PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE | (group))
+
+/** Whether a key type is a Diffie-Hellman key (pair or public-only). */
+#define PSA_KEY_TYPE_IS_DH(type)                                        \
+    ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) &                        \
+      ~PSA_KEY_TYPE_DH_GROUP_MASK) == PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE)
+/** Whether a key type is a Diffie-Hellman key pair. */
+#define PSA_KEY_TYPE_IS_DH_KEYPAIR(type)                               \
+    (((type) & ~PSA_KEY_TYPE_DH_GROUP_MASK) ==                         \
+     PSA_KEY_TYPE_DH_KEYPAIR_BASE)
+/** Whether a key type is a Diffie-Hellman public key. */
+#define PSA_KEY_TYPE_IS_DH_PUBLIC_KEY(type)                            \
+    (((type) & ~PSA_KEY_TYPE_DH_GROUP_MASK) ==                         \
+     PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE)
+
+/** Extract the group from a Diffie-Hellman key type. */
+#define PSA_KEY_TYPE_GET_GROUP(type)                            \
+    ((psa_dh_group_t) (PSA_KEY_TYPE_IS_DH(type) ?               \
+                       ((type) & PSA_KEY_TYPE_DH_GROUP_MASK) :  \
+                       0))
+
+/* The encoding of group identifiers is currently aligned with the
+ * TLS Supported Groups Registry (formerly known as the
+ * TLS EC Named Curve Registry)
+ * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+ * The values are defined by RFC 7919. */
+#define PSA_DH_GROUP_FFDHE2048          ((psa_dh_group_t) 0x0100)
+#define PSA_DH_GROUP_FFDHE3072          ((psa_dh_group_t) 0x0101)
+#define PSA_DH_GROUP_FFDHE4096          ((psa_dh_group_t) 0x0102)
+#define PSA_DH_GROUP_FFDHE6144          ((psa_dh_group_t) 0x0103)
+#define PSA_DH_GROUP_FFDHE8192          ((psa_dh_group_t) 0x0104)
 
 /** The block size of a block cipher.
  *
@@ -667,7 +690,6 @@
  *
  * That is, suppose that `PSA_xxx_SIGNATURE` is one of the following macros:
  * - #PSA_ALG_RSA_PKCS1V15_SIGN, #PSA_ALG_RSA_PSS,
- * - #PSA_ALG_DSA, #PSA_ALG_DETERMINISTIC_DSA,
  * - #PSA_ALG_ECDSA, #PSA_ALG_DETERMINISTIC_ECDSA.
  * Then you may create and use a key as follows:
  * - Set the key usage field using #PSA_ALG_ANY_HASH, for example:
@@ -1028,51 +1050,6 @@
 #define PSA_ALG_IS_RSA_PSS(alg)                                 \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PSS_BASE)
 
-#define PSA_ALG_DSA_BASE                        ((psa_algorithm_t)0x10040000)
-/** DSA signature with hashing.
- *
- * This is the signature scheme defined by FIPS 186-4,
- * with a random per-message secret number (*k*).
- *
- * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
- *                      This includes #PSA_ALG_ANY_HASH
- *                      when specifying the algorithm in a usage policy.
- *
- * \return              The corresponding DSA signature algorithm.
- * \return              Unspecified if \p hash_alg is not a supported
- *                      hash algorithm.
- */
-#define PSA_ALG_DSA(hash_alg)                             \
-    (PSA_ALG_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
-#define PSA_ALG_DETERMINISTIC_DSA_BASE          ((psa_algorithm_t)0x10050000)
-#define PSA_ALG_DSA_DETERMINISTIC_FLAG          ((psa_algorithm_t)0x00010000)
-/** Deterministic DSA signature with hashing.
- *
- * This is the deterministic variant defined by RFC 6979 of
- * the signature scheme defined by FIPS 186-4.
- *
- * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
- *                      This includes #PSA_ALG_ANY_HASH
- *                      when specifying the algorithm in a usage policy.
- *
- * \return              The corresponding DSA signature algorithm.
- * \return              Unspecified if \p hash_alg is not a supported
- *                      hash algorithm.
- */
-#define PSA_ALG_DETERMINISTIC_DSA(hash_alg)                             \
-    (PSA_ALG_DETERMINISTIC_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
-#define PSA_ALG_IS_DSA(alg)                                             \
-    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_DSA_DETERMINISTIC_FLAG) ==  \
-     PSA_ALG_DSA_BASE)
-#define PSA_ALG_DSA_IS_DETERMINISTIC(alg)               \
-    (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
-#define PSA_ALG_IS_DETERMINISTIC_DSA(alg)                       \
-    (PSA_ALG_IS_DSA(alg) && PSA_ALG_DSA_IS_DETERMINISTIC(alg))
-#define PSA_ALG_IS_RANDOMIZED_DSA(alg)                          \
-    (PSA_ALG_IS_DSA(alg) && !PSA_ALG_DSA_IS_DETERMINISTIC(alg))
-
 #define PSA_ALG_ECDSA_BASE                      ((psa_algorithm_t)0x10060000)
 /** ECDSA signature with hashing.
  *
@@ -1156,7 +1133,7 @@
  */
 #define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
     (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
-     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg))
+     PSA_ALG_IS_ECDSA(alg))
 
 /** Get the hash used by a hash-and-sign signature algorithm.
  *

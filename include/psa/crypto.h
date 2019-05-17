@@ -105,8 +105,7 @@ psa_status_t psa_crypto_init(void);
  *   and its lifetime.
  * - The key's policy, comprising usage flags and a specification of
  *   the permitted algorithm(s).
- * - Information about the key itself: the key type, the key size, and
- *   for some key type additional domain parameters.
+ * - Information about the key itself: the key type and its size.
  * - Implementations may define additional attributes.
  *
  * The actual key material is not considered an attribute of a key.
@@ -167,7 +166,7 @@ psa_status_t psa_crypto_init(void);
  *
  * - lifetime: #PSA_KEY_LIFETIME_VOLATILE.
  * - key identifier: unspecified.
- * - type: \c 0, with no domain parameters.
+ * - type: \c 0.
  * - key size: \c 0.
  * - usage flags: \c 0.
  * - algorithm: \c 0.
@@ -179,8 +178,7 @@ psa_status_t psa_crypto_init(void);
  *    location.
  * -# Set the key policy with psa_set_key_usage_flags() and
  *    psa_set_key_algorithm().
- * -# Set the key type with psa_set_key_type(). If the key type requires
- *    domain parameters, call psa_set_key_domain_parameters() instead.
+ * -# Set the key type with psa_set_key_type().
  *    Skip this step if copying an existing key with psa_copy_key().
  * -# When generating a random key with psa_generate_random_key() or deriving a key
  *    with psa_key_derivation_output_key(), set the desired key size with
@@ -189,11 +187,11 @@ psa_status_t psa_crypto_init(void);
  *    psa_key_derivation_output_key() or psa_copy_key(). This function reads
  *    the attribute structure, creates a key with these attributes, and
  *    outputs a handle to the newly created key.
- * -# The attribute structure is now no longer necessary. If you called
- *    psa_set_key_domain_parameters() earlier, you must call
- *    psa_reset_key_attributes() to free any resources used by the
- *    domain parameters. Otherwise calling psa_reset_key_attributes()
- *    is optional.
+ * -# The attribute structure is now no longer necessary.
+ *    You may call psa_reset_key_attributes(), although this is optional
+ *    with the workflow presented here because the attributes currently
+ *    defined in this specification do not require any additional resources
+ *    beyond the structure itself.
  *
  * A typical sequence to query a key's attributes is as follows:
  * -# Call psa_get_key_attributes().
@@ -349,10 +347,7 @@ static psa_algorithm_t psa_get_key_algorithm(
 
 /** Declare the type of a key.
  *
- * If a type requires domain parameters, you must call
- * psa_set_key_domain_parameters() instead of this function.
- *
- * This function overwrites any key type and domain parameters
+ * This function overwrites any key type
  * previously set in \p attributes.
  *
  * This function may be declared as `static` (i.e. without external
@@ -402,97 +397,6 @@ static psa_key_type_t psa_get_key_type(const psa_key_attributes_t *attributes);
  * \return The key size stored in the attribute structure, in bits.
  */
 static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
-
-/**
- * \brief Set domain parameters for a key.
- *
- * Some key types require additional domain parameters in addition to
- * the key type identifier and the key size.
- * The format for the required domain parameters varies by the key type.
- *
- * - For RSA keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY or #PSA_KEY_TYPE_RSA_KEYPAIR),
- *   the domain parameter data consists of the public exponent,
- *   represented as a big-endian integer with no leading zeros.
- *   This information is used when generating an RSA key pair.
- *   When importing a key, the public exponent is read from the imported
- *   key data and the exponent recorded in the attribute structure is ignored.
- *   As an exception, the public exponent 65537 is represented by an empty
- *   byte string.
- * - For DSA keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY or #PSA_KEY_TYPE_DSA_KEYPAIR),
- *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
- *   ```
- *   Dss-Parms ::= SEQUENCE  {
- *      p       INTEGER,
- *      q       INTEGER,
- *      g       INTEGER
- *   }
- *   ```
- * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY or
- *   #PSA_KEY_TYPE_DH_KEYPAIR), the
- *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
- *   ```
- *   DomainParameters ::= SEQUENCE {
- *      p               INTEGER,                    -- odd prime, p=jq +1
- *      g               INTEGER,                    -- generator, g
- *      q               INTEGER,                    -- factor of p-1
- *      j               INTEGER OPTIONAL,           -- subgroup factor
- *      validationParms ValidationParms OPTIONAL
- *   }
- *   ValidationParms ::= SEQUENCE {
- *      seed            BIT STRING,
- *      pgenCounter     INTEGER
- *   }
- *   ```
- *
- * \note This function may allocate memory or other resources.
- *       Once you have called this function on an attribute structure,
- *       you must call psa_reset_key_attributes() to free these resources.
- *
- * \param[in,out] attributes    Attribute structure where the specified domain
- *                              parameters will be stored.
- *                              If this function fails, the content of
- *                              \p attributes is not modified.
- * \param type                  Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param[in] data              Buffer containing the key domain parameters.
- *                              The content of this buffer is interpreted
- *                              according to \p type as described above.
- * \param data_length           Size of the \p data buffer in bytes.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_NOT_SUPPORTED
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- */
-psa_status_t psa_set_key_domain_parameters(psa_key_attributes_t *attributes,
-                                           psa_key_type_t type,
-                                           const uint8_t *data,
-                                           size_t data_length);
-
-/**
- * \brief Get domain parameters for a key.
- *
- * Get the domain parameters for a key with this function, if any. The format
- * of the domain parameters written to \p data is specified in the
- * documentation for psa_set_key_domain_parameters().
- *
- * \param[in] attributes        The key attribute structure to query.
- * \param[out] data             On success, the key domain parameters.
- * \param data_size             Size of the \p data buffer in bytes.
- *                              The buffer is guaranteed to be large
- *                              enough if its size in bytes is at least
- *                              the value given by
- *                              PSA_KEY_DOMAIN_PARAMETERS_SIZE().
- * \param[out] data_length      On success, the number of bytes
- *                              that make up the key domain parameters data.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- */
-psa_status_t psa_get_key_domain_parameters(
-    const psa_key_attributes_t *attributes,
-    uint8_t *data,
-    size_t data_size,
-    size_t *data_length);
 
 /** Retrieve the attributes of a key.
  *
@@ -617,9 +521,8 @@ psa_status_t psa_close_key(psa_key_handle_t handle);
  * \param[out] handle       On success, a handle to the newly created key.
  *                          \c 0 on failure.
  * \param[in] data    Buffer containing the key data. The content of this
- *                    buffer is interpreted according to the type and,
- *                    if applicable, domain parameters declared in
- *                    \p attributes.
+ *                    buffer is interpreted according to the type declared
+ *                    in \p attributes.
  *                    All implementations must support at least the format
  *                    described in the documentation
  *                    of psa_export_key() or psa_export_public_key() for
@@ -738,10 +641,6 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  *       coefficient         INTEGER,  -- (inverse of q) mod p
  *   }
  *   ```
- * - For DSA private keys (#PSA_KEY_TYPE_DSA_KEYPAIR), the format is the
- *   representation of the private key `x` as a big-endian byte string. The
- *   length of the byte string is the private key size in bytes (leading zeroes
- *   are not stripped).
  * - For elliptic curve key pairs (key types for which
  *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is
  *   a representation of the private value as a `ceiling(m/8)`-byte string
@@ -753,7 +652,8 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  *   and `PSA_ECC_CURVE_BRAINPOOL_PXXX`).
  *   This is the content of the `privateKey` field of the `ECPrivateKey`
  *   format defined by RFC 5915.
- * - For Diffie-Hellman key exchange key pairs (#PSA_KEY_TYPE_DH_KEYPAIR), the
+ * - For Diffie-Hellman key exchange key pairs (key types for which
+ *   #PSA_KEY_TYPE_IS_DH_KEYPAIR is true), the
  *   format is the representation of the private key `x` as a big-endian byte
  *   string. The length of the byte string is the private key size in bytes
  *   (leading zeroes are not stripped).
@@ -822,11 +722,8 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *      - The byte 0x04;
  *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
  *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
- * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY), the format is the
- *   representation of the public key `y = g^x mod p` as a big-endian byte
- *   string. The length of the byte string is the length of the base prime `p`
- *   in bytes.
- * - For Diffie-Hellman key exchange public keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY),
+ * - For Diffie-Hellman key exchange public keys (key types for which
+ *   #PSA_KEY_TYPE_IS_DH_PUBLIC_KEY is true),
  *   the format is the representation of the public key `y = g^x mod p` as a
  *   big-endian byte string. The length of the byte string is the length of the
  *   base prime `p` in bytes.
@@ -910,9 +807,6 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  *                          - The key type and size may be 0. If either is
  *                            nonzero, it must match the corresponding
  *                            attribute of the source key.
- *                          - If \p attributes contains domain parameters,
- *                            they must match the domain parameters of
- *                            the source key.
  *                          - The key location (the lifetime and, for
  *                            persistent keys, the key identifier) is
  *                            used directly.
@@ -936,7 +830,7 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  *         The policy constraints on the source and specified in
  *         \p attributes are incompatible.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p attributes specifies a key type, domain parameters or key size
+ *         \p attributes specifies a key type or key size
  *         which does not match the attributes of the source key.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The source key does not have the #PSA_KEY_USAGE_COPY usage flag.
@@ -3353,8 +3247,8 @@ psa_status_t psa_key_derivation_output_bytes(
  *       discard the first 8 bytes, use the next 8 bytes as the first key,
  *       and continue reading output from the operation to derive the other
  *       two keys).
- *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEYPAIR),
- *       DSA keys (#PSA_KEY_TYPE_DSA_KEYPAIR), and
+ *     - Finite-field Diffie-Hellman keys (#PSA_KEY_TYPE_DH_KEYPAIR(\c group)
+ *       where \c group designates any Diffie-Hellman group) and
  *       ECC keys on a Weierstrass elliptic curve
  *       (#PSA_KEY_TYPE_ECC_KEYPAIR(\c curve) where \c curve designates a
  *       Weierstrass curve).
@@ -3529,19 +3423,12 @@ psa_status_t psa_generate_random(uint8_t *output,
  * The key is generated randomly.
  * Its location, policy, type and size are taken from \p attributes.
  *
- * If the type requires additional domain parameters, these are taken
- * from \p attributes as well. The following types use domain parameters:
- * - When generating an RSA key (#PSA_KEY_TYPE_RSA_KEYPAIR),
- *   the default public exponent is 65537. This value is used if
- *   \p attributes was set with psa_set_key_type() or by passing an empty
- *   byte string as domain parameters to psa_set_key_domain_parameters().
- *   If psa_set_key_domain_parameters() was used to set a non-empty
- *   domain parameter string in \p attributes, this string is read as
- *   a big-endian integer which is used as the public exponent.
- * - When generating a DSA key (#PSA_KEY_TYPE_DSA_KEYPAIR) or a
- *   Diffie-Hellman key (#PSA_KEY_TYPE_DH_KEYPAIR), the domain parameters
- *   from \p attributes are interpreted as described for
- *   psa_set_key_domain_parameters().
+ * The following type-specific considerations apply:
+ * - For RSA keys (#PSA_KEY_TYPE_RSA_KEYPAIR),
+ *   the public exponent is 65537.
+ *   The modulus is a product of two probabilistic primes
+ *   between 2^{n-1} and 2^n where n is the bit size specified in the
+ *   attributes.
  *
  * \param[in] attributes    The attributes for the new key.
  * \param[out] handle       On success, a handle to the newly created key.

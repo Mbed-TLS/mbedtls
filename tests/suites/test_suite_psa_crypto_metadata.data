@@ -454,3 +454,19 @@ ecc_key_types:PSA_ECC_CURVE_CURVE25519:255
 ECC key types: Curve448
 depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
 ecc_key_types:PSA_ECC_CURVE_CURVE448:448
+
+DH group types: FFDHE2048
+dh_key_types:PSA_DH_GROUP_FFDHE2048:2048
+
+DH group types: FFDHE3072
+dh_key_types:PSA_DH_GROUP_FFDHE3072:2048
+
+DH group types: FFDHE4096
+dh_key_types:PSA_DH_GROUP_FFDHE4096:2048
+
+DH group types: FFDHE6144
+dh_key_types:PSA_DH_GROUP_FFDHE6144:2048
+
+DH group types: FFDHE8192
+dh_key_types:PSA_DH_GROUP_FFDHE8192:2048
+

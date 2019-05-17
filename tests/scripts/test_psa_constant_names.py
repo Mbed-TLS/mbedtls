@@ -159,19 +159,24 @@ class Inputs:
     # Regex of macro names to exclude.
     _excluded_name_re = re.compile(r'_(?:GET|IS|OF)_|_(?:BASE|FLAG|MASK)\Z')
     # Additional excluded macros.
-    # PSA_ALG_ECDH and PSA_ALG_FFDH are excluded for now as the script
-    # currently doesn't support them. Deprecated errors are also excluded.
-    _excluded_names = set(['PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH',
-                           'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE',
-                           'PSA_ALG_FULL_LENGTH_MAC',
-                           'PSA_ALG_ECDH',
-                           'PSA_ALG_FFDH',
-                           'PSA_ERROR_UNKNOWN_ERROR',
-                           'PSA_ERROR_OCCUPIED_SLOT',
-                           'PSA_ERROR_EMPTY_SLOT',
-                           'PSA_ERROR_INSUFFICIENT_CAPACITY',
-                          ])
-
+    _excluded_names = set([
+        # Macros that provide an alternative way to build the same
+        # algorithm as another macro.
+        'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH',
+        'PSA_ALG_FULL_LENGTH_MAC',
+        # Auxiliary macro whose name doesn't fit the usual patterns for
+        # auxiliary macros.
+        'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE',
+        # PSA_ALG_ECDH and PSA_ALG_FFDH are excluded for now as the script
+        # currently doesn't support them.
+        'PSA_ALG_ECDH',
+        'PSA_ALG_FFDH',
+        # Deprecated aliases.
+        'PSA_ERROR_UNKNOWN_ERROR',
+        'PSA_ERROR_OCCUPIED_SLOT',
+        'PSA_ERROR_EMPTY_SLOT',
+        'PSA_ERROR_INSUFFICIENT_CAPACITY',
+    ])
     def parse_header_line(self, line):
         """Parse a C header line, looking for "#define PSA_xxx"."""
         m = re.match(self._header_line_re, line)

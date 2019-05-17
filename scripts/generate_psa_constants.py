@@ -205,9 +205,12 @@ class MacroCollector:
         self.key_usages = set()
 
     # "#define" followed by a macro name with either no parameters
-    # or a single parameter. Grab the macro name in group 1, the
-    # parameter name if any in group 2 and the definition in group 3.
-    definition_re = re.compile(r'\s*#\s*define\s+(\w+)(?:\s+|\((\w+)\)\s*)(.+)(?:/[*/])?')
+    # or a single parameter and a non-empty expansion.
+    # Grab the macro name in group 1, the parameter name if any in group 2
+    # and the expansion in group 3.
+    _define_directive_re = re.compile(r'\s*#\s*define\s+(\w+)' +
+                                      r'(?:\s+|\((\w+)\)\s*)' +
+                                      r'(.+)(?:/[*/])?')
 
     def read_line(self, line):
         """Parse a C header line and record the PSA identifier it defines if any.
@@ -215,10 +218,10 @@ class MacroCollector:
         (up to non-significant whitespace) and skips all non-matching lines.
         """
         # pylint: disable=too-many-branches
-        m = re.match(self.definition_re, line)
+        m = re.match(self._define_directive_re, line)
         if not m:
             return
-        name, parameter, definition = m.groups()
+        name, parameter, expansion = m.groups()
         if name.endswith('_FLAG') or name.endswith('MASK'):
             # Macro only to build actual values
             return
@@ -251,10 +254,10 @@ class MacroCollector:
                 return
             self.algorithms.add(name)
             # Ad hoc detection of hash algorithms
-            if re.search(r'0x010000[0-9A-Fa-f]{2}', definition):
+            if re.search(r'0x010000[0-9A-Fa-f]{2}', expansion):
                 self.hash_algorithms.add(name)
             # Ad hoc detection of key agreement algorithms
-            if re.search(r'0x30[0-9A-Fa-f]{2}0000', definition):
+            if re.search(r'0x30[0-9A-Fa-f]{2}0000', expansion):
                 self.ka_algorithms.add(name)
         elif name.startswith('PSA_ALG_') and parameter == 'hash_alg':
             if name in ['PSA_ALG_DSA', 'PSA_ALG_ECDSA']:

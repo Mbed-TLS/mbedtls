@@ -20,6 +20,10 @@ massif-*
 *.pdb
 *.ilk
 *.lib
+*.vcxproj.user
+Debug/
+Release/
+x64/
 
 # Python build artifacts:
 *.pyc

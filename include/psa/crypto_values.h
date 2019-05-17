@@ -162,7 +162,7 @@
  *
  * This error indicates that some persistent storage is corrupted.
  * It should not be used for a corruption of volatile memory
- * (use #PSA_ERROR_TAMPERING_DETECTED), for a communication error
+ * (use #PSA_ERROR_CORRUPTION_DETECTED), for a communication error
  * between the cryptoprocessor and its external storage (use
  * #PSA_ERROR_COMMUNICATION_FAILURE), or when the storage is
  * in a valid state but is full (use #PSA_ERROR_INSUFFICIENT_STORAGE).
@@ -218,7 +218,7 @@
  * This error indicates an attack against the application. Implementations
  * shall not return this error code as a consequence of the behavior of
  * the application itself. */
-#define PSA_ERROR_TAMPERING_DETECTED    ((psa_status_t)-151)
+#define PSA_ERROR_CORRUPTION_DETECTED    ((psa_status_t)-151)
 
 /** There is not enough entropy to generate random data needed
  * for the requested action.

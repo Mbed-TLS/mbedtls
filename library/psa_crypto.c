@@ -202,7 +202,7 @@ static psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_CIPHER_AUTH_FAILED:
             return( PSA_ERROR_INVALID_SIGNATURE );
         case MBEDTLS_ERR_CIPHER_INVALID_CONTEXT:
-            return( PSA_ERROR_TAMPERING_DETECTED );
+            return( PSA_ERROR_CORRUPTION_DETECTED );
         case MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
 
@@ -311,7 +311,7 @@ static psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INVALID_ARGUMENT );
         case MBEDTLS_ERR_RSA_PUBLIC_FAILED:
         case MBEDTLS_ERR_RSA_PRIVATE_FAILED:
-            return( PSA_ERROR_TAMPERING_DETECTED );
+            return( PSA_ERROR_CORRUPTION_DETECTED );
         case MBEDTLS_ERR_RSA_VERIFY_FAILED:
             return( PSA_ERROR_INVALID_SIGNATURE );
         case MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE:
@@ -588,7 +588,7 @@ static psa_status_t psa_import_ec_public_key( psa_ecc_curve_t curve,
                                               size_t data_length,
                                               mbedtls_ecp_keypair **p_ecp )
 {
-    psa_status_t status = PSA_ERROR_TAMPERING_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
     mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
 
@@ -637,7 +637,7 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
                                                size_t data_length,
                                                mbedtls_ecp_keypair **p_ecp )
 {
-    psa_status_t status = PSA_ERROR_TAMPERING_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
     mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
 
@@ -901,7 +901,7 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
     {
         /* Shouldn't happen: the key type is not any type that we
          * put in. */
-        return( PSA_ERROR_TAMPERING_DETECTED );
+        return( PSA_ERROR_CORRUPTION_DETECTED );
     }
 
     return( PSA_SUCCESS );

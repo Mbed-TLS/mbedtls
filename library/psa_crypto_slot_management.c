@@ -129,7 +129,7 @@ static psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle )
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
 static psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle )
 {

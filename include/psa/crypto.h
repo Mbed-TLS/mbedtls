@@ -332,6 +332,7 @@ static psa_key_usage_t psa_get_key_usage_flags(
 static void psa_set_key_algorithm(psa_key_attributes_t *attributes,
                                   psa_algorithm_t alg);
 
+
 /** Retrieve the algorithm policy from key attributes.
  *
  * This function may be declared as `static` (i.e. without external
@@ -359,6 +360,7 @@ static psa_algorithm_t psa_get_key_algorithm(
  */
 static void psa_set_key_type(psa_key_attributes_t *attributes,
                              psa_key_type_t type);
+
 
 /** Declare the size of a key.
  *
@@ -443,20 +445,21 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
 
 /** Open a handle to an existing persistent key.
  *
- * Open a handle to a key which was previously created with psa_create_key().
+ * Open a handle to a key which was previously created with
+ * psa_make_key_persistent() when setting its attributes.
+ * The handle should eventually be closed with psa_close_key()
+ * to release associated resources.
  *
  * Implementations may provide additional keys that can be opened with
  * psa_open_key(). Such keys have a key identifier in the vendor range,
  * as documented in the description of #psa_key_id_t.
  *
  * \param id            The persistent identifier of the key.
- * \param[out] handle   On success, a handle to a key slot which contains
- *                      the data and metadata loaded from the specified
- *                      persistent location.
+ * \param[out] handle   On success, a handle to the key.
  *
  * \retval #PSA_SUCCESS
  *         Success. The application can now use the value of `*handle`
- *         to access the newly allocated key slot.
+ *         to access the key.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -472,13 +475,14 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
 psa_status_t psa_open_key(psa_key_id_t id,
                           psa_key_handle_t *handle);
 
+
 /** Close a key handle.
  *
  * If the handle designates a volatile key, destroy the key material and
  * free all associated resources, just like psa_destroy_key().
  *
  * If the handle designates a persistent key, free all resources associated
- * with the key in volatile memory. The key slot in persistent storage is
+ * with the key in volatile memory. The key in persistent storage is
  * not affected and can be opened again later with psa_open_key().
  *
  * If the key is currently in use in a multipart operation,
@@ -513,6 +517,7 @@ psa_status_t psa_close_key(psa_key_handle_t handle);
  * minimize the risk that an invalid input is accidentally interpreted
  * according to a different format.
  *
+
  * \param[in] attributes    The attributes for the new key.
  *                          The key size is always determined from the
  *                          \p data buffer.
@@ -568,23 +573,19 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
 /**
  * \brief Destroy a key.
  *
- * This function destroys the content of the key slot from both volatile
+ * This function destroys a key from both volatile
  * memory and, if applicable, non-volatile storage. Implementations shall
- * make a best effort to ensure that any previous content of the slot is
- * unrecoverable.
+ * make a best effort to ensure that that the key material cannot be recovered.
  *
  * This function also erases any metadata such as policies and frees all
  * resources associated with the key.
  *
- * If the key is currently in use in a multipart operation,
- * the multipart operation is aborted.
- *
- * \param handle        Handle to the key slot to erase.
+ * \param handle        Handle to the key to erase.
  *
  * \retval #PSA_SUCCESS
- *         The slot's content, if any, has been erased.
+ *         The key material has been erased.
  * \retval #PSA_ERROR_NOT_PERMITTED
- *         The slot holds content and cannot be erased because it is
+ *         The key cannot be erased because it is
  *         read-only, either due to a policy or due to physical restrictions.
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -770,8 +771,7 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * to another, since it populates a key using the material from
  * another key which may have a different lifetime.
  *
- * In an implementation where slots have different ownerships,
- * this function may be used to share a key with a different party,
+ * This function may be used to share a key with a different party,
  * subject to implementation-defined restrictions on key sharing.
  *
  * The policy on the source key must have the usage flag
@@ -800,8 +800,7 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * The effect of this function on implementation-defined attributes is
  * implementation-defined.
  *
- * \param source_handle     The key to copy. It must be a handle to an
- *                          occupied slot.
+ * \param source_handle     The key to copy. It must be a valid key handle.
  * \param[in] attributes    The attributes for the new key.
  *                          They are used as follows:
  *                          - The key type and size may be 0. If either is
@@ -3291,7 +3290,7 @@ psa_status_t psa_key_derivation_output_bytes(
  *         this function will not succeed, even with a smaller output buffer.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The key type or key size is not supported, either by the
- *         implementation in general or in this particular slot.
+ *         implementation in general or in this particular location.
  * \retval #PSA_ERROR_BAD_STATE
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE

@@ -105,9 +105,13 @@
  * descriptions for permitted sequencing of functions.
  *
  * Implementations shall not return this error code to indicate
- * that a key slot is occupied when it needs to be free or vice versa,
- * but shall return #PSA_ERROR_ALREADY_EXISTS or #PSA_ERROR_DOES_NOT_EXIST
- * as applicable. */
+ * that a key either exists or not,
+ * but shall instead return #PSA_ERROR_ALREADY_EXISTS or #PSA_ERROR_DOES_NOT_EXIST
+ * as applicable.
+ *
+ * Implementations shall not return this error code to indicate that a
+ * key handle is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
+ * instead. */
 #define PSA_ERROR_BAD_STATE             ((psa_status_t)-137)
 
 /** The parameters passed to the function are invalid.
@@ -115,12 +119,7 @@
  * Implementations may return this error any time a parameter or
  * combination of parameters are recognized as invalid.
  *
- * Implementations shall not return this error code to indicate
- * that a key slot is occupied when it needs to be free or vice versa,
- * but shall return #PSA_ERROR_ALREADY_EXISTS or #PSA_ERROR_DOES_NOT_EXIST
- * as applicable.
- *
- * Implementation shall not return this error code to indicate that a
+ * Implementations shall not return this error code to indicate that a
  * key handle is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
  * instead.
  */

@@ -716,7 +716,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite = %s",
-                   mbedtls_ssl_get_ciphersuite_name( ciphersuite ) ) );
+                           mbedtls_ssl_get_ciphersuite_name( ciphersuite ) ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "master secret", master, 48 );
     MBEDTLS_SSL_DEBUG_BUF( 4, "random bytes", randbytes, 64 );
     MBEDTLS_SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
@@ -1247,7 +1247,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         if( ssl->compress_buf == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
-                                MBEDTLS_SSL_COMPRESS_BUFFER_LEN ) );
+                                        MBEDTLS_SSL_COMPRESS_BUFFER_LEN ) );
             return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
         }
     }

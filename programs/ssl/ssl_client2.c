@@ -113,6 +113,7 @@ int main( void )
 #define DFL_DHMLEN              -1
 #define DFL_RECONNECT           0
 #define DFL_RECO_DELAY          0
+#define DFL_RECO_MODE           1
 #define DFL_CID_ENABLED         0
 #define DFL_CID_VALUE           ""
 #define DFL_CID_ENABLED_RENEGO  -1
@@ -376,8 +377,11 @@ int main( void )
     "    allow_legacy=%%d     default: (library default: no)\n"   \
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
-    "    reconnect=%%d        default: 0 (disabled)\n"      \
+    "    reconnect=%%d        number of reconnections using session resumption\n" \
+    "                        default: 0 (disabled)\n"      \
     "    reco_delay=%%d       default: 0 seconds\n"         \
+    "    reco_mode=%%d        0: copy session, 1: serialise session\n" \
+    "                        default: 1\n"      \
     "    reconnect_hard=%%d   default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \
     USAGE_EAP_TLS                                           \
@@ -458,6 +462,7 @@ struct options
     int dhmlen;                 /* minimum DHM params len in bits           */
     int reconnect;              /* attempt to resume session                */
     int reco_delay;             /* delay in seconds before resuming session */
+    int reco_mode;              /* how to keep the session around           */
     int reconnect_hard;         /* unexpectedly reconnect from the same port */
     int tickets;                /* enable / disable session tickets         */
     const char *curves;         /* list of supported elliptic curves        */
@@ -1166,6 +1171,7 @@ int main( int argc, char *argv[] )
     opt.dhmlen              = DFL_DHMLEN;
     opt.reconnect           = DFL_RECONNECT;
     opt.reco_delay          = DFL_RECO_DELAY;
+    opt.reco_mode           = DFL_RECO_MODE;
     opt.reconnect_hard      = DFL_RECONNECT_HARD;
     opt.tickets             = DFL_TICKETS;
     opt.alpn_string         = DFL_ALPN_STRING;
@@ -1350,6 +1356,12 @@ int main( int argc, char *argv[] )
         {
             opt.reco_delay = atoi( q );
             if( opt.reco_delay < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "reco_mode" ) == 0 )
+        {
+            opt.reco_mode = atoi( q );
+            if( opt.reco_mode < 0 )
                 goto usage;
         }
         else if( strcmp( p, "reconnect_hard" ) == 0 )
@@ -2442,13 +2454,25 @@ int main( int argc, char *argv[] )
         mbedtls_printf("  . Saving session for reuse..." );
         fflush( stdout );
 
-        if( ( ret = mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
-                                              session_data, sizeof( session_data ),
-                                              &session_data_len ) ) != 0 )
+        if( opt.reco_mode == 1 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_session_saved returned -0x%04x\n\n",
-                            -ret );
-            goto exit;
+            if( ( ret = mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
+                                                  session_data, sizeof( session_data ),
+                                                  &session_data_len ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_session_saved returned -0x%04x\n\n",
+                                -ret );
+                goto exit;
+            }
+        }
+        else
+        {
+            if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_get_session returned -0x%x\n\n",
+                                -ret );
+                goto exit;
+            }
         }
 
         mbedtls_printf( " ok\n" );
@@ -2890,13 +2914,16 @@ reconnect:
             goto exit;
         }
 
-        if( ( ret = mbedtls_ssl_session_load( &saved_session,
-                                              session_data,
-                                              session_data_len ) ) != 0 )
+        if( opt.reco_mode == 1 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_session_load returned -0x%x\n\n",
-                            -ret );
-            goto exit;
+            if( ( ret = mbedtls_ssl_session_load( &saved_session,
+                                                  session_data,
+                                                  session_data_len ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_session_load returned -0x%x\n\n",
+                                -ret );
+                goto exit;
+            }
         }
 
         if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )

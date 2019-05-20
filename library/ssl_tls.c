@@ -1597,14 +1597,8 @@ static int ssl_cid_build_inner_plaintext( unsigned char *content,
     return( 0 );
 }
 
-/* This function parses a DTLSInnerPlaintext structure
- *
- *        struct {
- *            opaque content[DTLSPlaintext.length];
- *            ContentType real_type;
- *            uint8 zeros[length_of_padding];
- *        } DTLSInnerPlaintext;
- */
+/* This function parses a DTLSInnerPlaintext structure.
+ * See ssl_cid_build_inner_plaintext() for details. */
 static int ssl_cid_parse_inner_plaintext( unsigned char const *content,
                                           size_t *content_size,
                                           uint8_t *rec_type )
@@ -1740,20 +1734,11 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     if( rec->cid_len != 0 )
     {
         /*
-         * Wrap plaintext into DTLSInnerPlaintext structure
+         * Wrap plaintext into DTLSInnerPlaintext structure.
+         * See ssl_cid_build_inner_plaintext() for more information.
          *
-         *  struct {
-         *      opaque content[DTLSPlaintext.length];
-         *      ContentType real_type;
-         *      uint8 zeros[length_of_padding];
-         *  } DTLSInnerPlaintext;
-         *
-         * and change the record content type.
-         *
-         * The rest of the record encryption stays
-         * unmodified (apart from the inclusion of
-         * the CID into the additional data for the
-         * record MAC).
+         * Note that this changes `rec->data_len`, and hence
+         * `post_avail` needs to be recalculated afterwards.
          */
         if( ssl_cid_build_inner_plaintext( data,
                         &rec->data_len,

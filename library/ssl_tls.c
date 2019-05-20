@@ -1143,7 +1143,8 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 
         handshake->calc_verify( ssl, session_hash, &hash_len );
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "session hash", session_hash, hash_len );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "session hash for extended master secret",
+                                  session_hash, hash_len );
 
         ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
                                   "extended master secret",

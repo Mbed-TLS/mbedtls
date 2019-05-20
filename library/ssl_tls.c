@@ -2049,22 +2049,25 @@ static int ssl_cid_parse_inner_plaintext( unsigned char const *content,
 }
 #endif /* MBEDTLS_SSL_CID */
 
-/* add_data must have size ( 13 + MBEDTLS_SSL_CID_LEN_MAX ) Bytes */
+/* `add_data` must have size 13 Bytes if the CID extension is disabled,
+ * and 13 + CID-length Bytes if the CID extension is enabled. */
 static void ssl_extract_add_data_from_record( unsigned char* add_data,
                                               size_t *add_data_len,
                                               mbedtls_record *rec )
 {
-    /* Quoting RFC 5246:
+    /* Quoting RFC 5246 (TLS 1.2):
      *
      *    additional_data = seq_num + TLSCompressed.type +
      *                      TLSCompressed.version + TLSCompressed.length;
      *
-     * For the CID extension, this is extended as follows:
+     * For the CID extension, this is extended as follows
+     * (quoting draft-ietf-tls-dtls-connection-id-05,
+     *  https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05):
      *
      *       additional_data = seq_num + DTLSPlaintext.type +
      *                         DTLSPlaintext.version +
-     *                         cid +                   // New input
-     *                         cid_length +            // New input
+     *                         cid +
+     *                         cid_length +
      *                         length_of_DTLSInnerPlaintext;
      */
 

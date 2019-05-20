@@ -859,6 +859,33 @@ static inline void mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
 #endif /* MBEDTLS_X509_ALWAYS_FLUSH */
 }
 
+/**
+ * \brief        Request temporary access to a public key context
+ *               for a given certificate.
+ *
+ *               Once no longer needed, the frame must be released
+ *               through a call to mbedtls_x509_crt_pk_release().
+ *
+ *               This is a copy-less version of mbedtls_x509_crt_get_pk().
+ *               See there for more information.
+ *
+ * \param crt    The certificate to use. This must be initialized and set up.
+ * \param dst    The address at which to store the address of a public key
+ *               context for the public key in the input certificate \p crt.
+ *
+ * \warning      The public key context `**pk_ptr` returned by this function
+ *               is owned by the X.509 module and must be used by the caller
+ *               in a thread-safe way. In particular, the caller must only
+ *               use the context with functions which are `const` on the input
+ *               context, or those which are known to be thread-safe. The latter
+ *               for example includes mbedtls_pk_sign() and mbedtls_pk_verify()
+ *               for ECC or RSA public key contexts.
+ *
+ * \return       \c 0 on success. In this case, `*pk_ptr` is updated
+ *               to hold the address of a public key context for the given
+ *               certificate.
+ * \return       A negative error code on failure.
+ */
 static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
                                                mbedtls_pk_context **pk_ptr )
 {
@@ -882,6 +909,13 @@ static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
     return( 0 );
 }
 
+/**
+ * \brief        Release access to a public key context acquired
+ *               through a prior call to mbedtls_x509_crt_frame_acquire().
+ *
+ * \param crt    The certificate for which a certificate frame has
+ *               previously been acquired.
+ */
 static inline void mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
 {
     ((void) crt);

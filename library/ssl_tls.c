@@ -1546,9 +1546,8 @@ static void ssl_read_memory( unsigned char *p, size_t len )
  */
 
 #if defined(MBEDTLS_SSL_CID)
-/* This functions transforms a pair of a DTLS plaintext fragment
- * and a record content type into an instance of the DTLSInnerPlaintext
- * structure:
+/* This functions transforms a DTLS plaintext fragment and a record content
+ * type into an instance of the DTLSInnerPlaintext structure:
  *
  *        struct {
  *            opaque content[DTLSPlaintext.length];

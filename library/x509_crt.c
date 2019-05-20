@@ -2754,14 +2754,18 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
 
 /*
  * From https://tools.ietf.org/id/draft-ietf-tls-tls13-23.html#certificate
- * Prior to TLS 1.3, "certificate_list" ordering required each certificate to certify the one immediately 
- * preceding it; however, some implementations allowed some flexibility. Servers sometimes send both a 
- * current and deprecated intermediate for transitional purposes, and others are simply configured incorrectly, 
- * but these cases can nonetheless be validated properly. For maximum compatibility, 
- * all implementations SHOULD be prepared to handle potentially extraneous certificates and arbitrary orderings 
- * from any TLS version, with the exception of the end-entity certificate which MUST be first.
+ * Prior to TLS 1.3, "certificate_list" ordering required each certificate
+ * to certify the one immediately preceding it; however, some implementations
+ * allowed some flexibility. Servers sometimes send both a current and
+ * deprecated intermediate for transitional purposes, and others are simply
+ * configured incorrectly, but these cases can nonetheless be validated
+ * properly. For maximum compatibility, all implementations SHOULD be prepared
+ * to handle potentially extraneous certificates and arbitrary orderings from
+ * any TLS version, with the exception of the end-entity certificate which
+ * MUST be first.
  * 
- * Sort the server cert chain o handle potentially extraneous certificates and arbitrary orderings.
+ * Sort the server cert chain o handle potentially extraneous certificates
+ * and arbitrary orderings.
  */
 void mbedtls_x509_crt_sort( mbedtls_x509_crt *chain )
 {

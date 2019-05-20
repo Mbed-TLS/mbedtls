@@ -525,7 +525,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      void *p_vrfy,
                      mbedtls_x509_crt_restart_ctx *rs_ctx );
 
-/*
+/**
  * \brief       Sort the server cert chain to handle potentially extraneous
  *              certificates and arbitrary orderings.
  *              For more detail pelease check:

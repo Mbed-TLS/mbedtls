@@ -425,7 +425,8 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     size_t nb, hs;
     size_t i, j, k;
     const unsigned char *S1, *S2;
-    unsigned char tmp[128];
+    unsigned char *tmp;
+    size_t tmp_len = 0;
     unsigned char h_i[20];
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
@@ -433,8 +434,13 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
 
     mbedtls_md_init( &md_ctx );
 
-    if( sizeof( tmp ) < 20 + strlen( label ) + rlen )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    tmp_len = 20 + strlen( label ) + rlen;
+    tmp = mbedtls_calloc( 1, tmp_len );
+    if( tmp == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
 
     hs = ( slen + 1 ) / 2;
     S1 = secret;
@@ -449,10 +455,15 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
      * First compute P_md5(secret,label+random)[0..dlen]
      */
     if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_MD5 ) ) == NULL )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    {
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto exit;
+    }
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
-        return( ret );
+    {
+        goto exit;
+    }
 
     mbedtls_md_hmac_starts( &md_ctx, S1, hs );
     mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb );
@@ -480,10 +491,15 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
      * XOR out with P_sha1(secret,label+random)[0..dlen]
      */
     if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) == NULL )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    {
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto exit;
+    }
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
-        return( ret );
+    {
+        goto exit;
+    }
 
     mbedtls_md_hmac_starts( &md_ctx, S2, hs );
     mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb );
@@ -505,12 +521,14 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
             dstbuf[i + j] = (unsigned char)( dstbuf[i + j] ^ h_i[j] );
     }
 
+exit:
     mbedtls_md_free( &md_ctx );
 
-    mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_platform_zeroize( tmp, tmp_len );
     mbedtls_platform_zeroize( h_i, sizeof( h_i ) );
 
-    return( 0 );
+    mbedtls_free( tmp );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1) || MBEDTLS_SSL_PROTO_TLS1_1 */
 
@@ -593,7 +611,8 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 {
     size_t nb;
     size_t i, j, k, md_len;
-    unsigned char tmp[128];
+    unsigned char *tmp;
+    size_t tmp_len = 0;
     unsigned char h_i[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
@@ -606,8 +625,13 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     md_len = mbedtls_md_get_size( md_info );
 
-    if( sizeof( tmp ) < md_len + strlen( label ) + rlen )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    tmp_len = md_len + strlen( label ) + rlen;
+    tmp = mbedtls_calloc( 1, tmp_len );
+    if( tmp == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
 
     nb = strlen( label );
     memcpy( tmp + md_len, label, nb );
@@ -618,7 +642,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
      * Compute P_<hash>(secret, label + random)[0..dlen]
      */
     if ( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
-        return( ret );
+        goto exit;
 
     mbedtls_md_hmac_starts( &md_ctx, secret, slen );
     mbedtls_md_hmac_update( &md_ctx, tmp + md_len, nb );
@@ -640,12 +664,15 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
             dstbuf[i + j]  = h_i[j];
     }
 
+exit:
     mbedtls_md_free( &md_ctx );
 
-    mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_platform_zeroize( tmp, tmp_len );
     mbedtls_platform_zeroize( h_i, sizeof( h_i ) );
 
-    return( 0 );
+    mbedtls_free( tmp );
+
+    return( ret );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_SHA256_C)
@@ -723,6 +750,83 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
           MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
+{
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( tls_prf == ssl3_prf )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_SSL3 );
+    }
+    else
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
+    if( tls_prf == tls1_prf )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_TLS1 );
+    }
+    else
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA512_C)
+    if( tls_prf == tls_prf_sha384 )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_SHA384 );
+    }
+    else
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    if( tls_prf == tls_prf_sha256 )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_SHA256 );
+    }
+    else
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+    return( MBEDTLS_SSL_TLS_PRF_NONE );
+}
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
+
+int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
+                          const unsigned char *secret, size_t slen,
+                          const char *label,
+                          const unsigned char *random, size_t rlen,
+                          unsigned char *dstbuf, size_t dlen )
+{
+    mbedtls_ssl_tls_prf_cb *tls_prf = NULL;
+
+    switch( prf )
+    {
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+        case MBEDTLS_SSL_TLS_PRF_SSL3:
+            tls_prf = ssl3_prf;
+        break;
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
+        case MBEDTLS_SSL_TLS_PRF_TLS1:
+            tls_prf = tls1_prf;
+        break;
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA512_C)
+        case MBEDTLS_SSL_TLS_PRF_SHA384:
+            tls_prf = tls_prf_sha384;
+        break;
+#endif /* MBEDTLS_SHA512_C */
+#if defined(MBEDTLS_SHA256_C)
+        case MBEDTLS_SSL_TLS_PRF_SHA256:
+            tls_prf = tls_prf_sha256;
+        break;
+#endif /* MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+    default:
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+
+    return( tls_prf( secret, slen, label, random, rlen, dstbuf, dlen ) );
+}
 
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
@@ -988,9 +1092,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 4, "random bytes", handshake->randbytes, 64 );
     MBEDTLS_SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
 
-    mbedtls_platform_zeroize( handshake->randbytes,
-                              sizeof( handshake->randbytes ) );
-
     /*
      * Determine the appropriate key, IV and MAC length.
      */
@@ -1036,7 +1137,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             ( ret = mbedtls_md_setup( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
-            return( ret );
+            goto end;
         }
 
         /* Get MAC length */
@@ -1106,7 +1207,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #endif
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+                ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+                goto end;
             }
         }
     }
@@ -1168,7 +1270,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_SRV_C */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto end;
     }
 
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
@@ -1178,7 +1281,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         if( mac_key_len > sizeof( transform->mac_enc ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            goto end;
         }
 
         memcpy( transform->mac_enc, mac_enc, mac_key_len );
@@ -1202,7 +1306,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #endif
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto end;
     }
 #endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 
@@ -1220,7 +1325,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                         mac_key_len ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_init", ret );
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+            ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            goto end;
         }
     }
 #else
@@ -1235,6 +1341,17 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                   session->master, keyblk,
                                   mac_key_len, keylen,
                                   iv_copy_len );
+    }
+
+    if( ssl->conf->f_export_keys_ext != NULL )
+    {
+        ssl->conf->f_export_keys_ext( ssl->conf->p_export_keys,
+                                      session->master, keyblk,
+                                      mac_key_len, keylen,
+                                      iv_copy_len,
+                                      handshake->randbytes + 32,
+                                      handshake->randbytes,
+                                      tls_prf_get_type( handshake->tls_prf ) );
     }
 #endif
 
@@ -1253,7 +1370,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );
-            return( ret );
+            goto end;
         }
 
         if( ret == 0 )
@@ -1279,7 +1396,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                  cipher_info ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
-        return( ret );
+        goto end;
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1296,7 +1413,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );
-            return( ret );
+            goto end;
         }
 
         if( ret == 0 )
@@ -1322,7 +1439,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                  cipher_info ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
-        return( ret );
+        goto end;
     }
 
     if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_enc, key1,
@@ -1330,7 +1447,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                MBEDTLS_ENCRYPT ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
-        return( ret );
+        goto end;
     }
 
     if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_dec, key2,
@@ -1338,7 +1455,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                MBEDTLS_DECRYPT ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
-        return( ret );
+        goto end;
     }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1348,19 +1465,18 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                              MBEDTLS_PADDING_NONE ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_set_padding_mode", ret );
-            return( ret );
+            goto end;
         }
 
         if( ( ret = mbedtls_cipher_set_padding_mode( &transform->cipher_ctx_dec,
                                              MBEDTLS_PADDING_NONE ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_set_padding_mode", ret );
-            return( ret );
+            goto end;
         }
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-    mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     // Initialize compression
@@ -1375,7 +1491,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                                     MBEDTLS_SSL_COMPRESS_BUFFER_LEN ) );
-                return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+                ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+                goto end;
             }
         }
 
@@ -1389,14 +1506,18 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             inflateInit( &transform->ctx_inflate ) != Z_OK )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to initialize compression" ) );
-            return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
+            ret = MBEDTLS_ERR_SSL_COMPRESSION_FAILED;
+            goto end;
         }
     }
 #endif /* MBEDTLS_ZLIB_SUPPORT */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
-
-    return( 0 );
+end:
+    mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
+    mbedtls_platform_zeroize( handshake->randbytes,
+                              sizeof( handshake->randbytes ) );
+    return( ret );
 }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
@@ -8618,6 +8739,14 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         void *p_export_keys )
 {
     conf->f_export_keys = f_export_keys;
+    conf->p_export_keys = p_export_keys;
+}
+
+void mbedtls_ssl_conf_export_keys_ext_cb( mbedtls_ssl_config *conf,
+        mbedtls_ssl_export_keys_ext_t *f_export_keys_ext,
+        void *p_export_keys )
+{
+    conf->f_export_keys_ext = f_export_keys_ext;
     conf->p_export_keys = p_export_keys;
 }
 #endif

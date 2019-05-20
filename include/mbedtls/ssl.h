@@ -450,6 +450,18 @@ typedef enum
 }
 mbedtls_ssl_states;
 
+/*
+ * The tls_prf function types.
+ */
+typedef enum
+{
+   MBEDTLS_SSL_TLS_PRF_NONE,
+   MBEDTLS_SSL_TLS_PRF_SSL3,
+   MBEDTLS_SSL_TLS_PRF_TLS1,
+   MBEDTLS_SSL_TLS_PRF_SHA384,
+   MBEDTLS_SSL_TLS_PRF_SHA256
+}
+mbedtls_tls_prf_types;
 /**
  * \brief          Callback type: send data on the network.
  *
@@ -920,6 +932,11 @@ struct mbedtls_ssl_config
     /** Callback to export key block and master secret                      */
     int (*f_export_keys)( void *, const unsigned char *,
             const unsigned char *, size_t, size_t, size_t );
+    /** Callback to export key block, master secret,
+     *  tls_prf and random bytes. Should replace f_export_keys    */
+    int (*f_export_keys_ext)( void *, const unsigned char *,
+                const unsigned char *, size_t, size_t, size_t,
+                unsigned char[32], unsigned char[32], mbedtls_tls_prf_types );
     void *p_export_keys;            /*!< context for key export callback    */
 #endif
 
@@ -1624,6 +1641,41 @@ typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
                                 size_t maclen,
                                 size_t keylen,
                                 size_t ivlen );
+
+/**
+ * \brief           Callback type: Export key block, master secret,
+ *                                 handshake randbytes and the tls_prf function
+ *                                 used to derive keys.
+ *
+ * \note            This is required for certain uses of TLS, e.g. EAP-TLS
+ *                  (RFC 5216) and Thread. The key pointers are ephemeral and
+ *                  therefore must not be stored. The master secret and keys
+ *                  should not be used directly except as an input to a key
+ *                  derivation function.
+ *
+ * \param p_expkey  Context for the callback.
+ * \param ms        Pointer to master secret (fixed length: 48 bytes).
+ * \param kb            Pointer to key block, see RFC 5246 section 6.3.
+ *                      (variable length: 2 * maclen + 2 * keylen + 2 * ivlen).
+ * \param maclen        MAC length.
+ * \param keylen        Key length.
+ * \param ivlen         IV length.
+ * \param client_random The client random bytes.
+ * \param server_random The server random bytes.
+ * \param tls_prf_type The tls_prf enum type.
+ *
+ * \return          0 if successful, or
+ *                  a specific MBEDTLS_ERR_XXX code.
+ */
+typedef int mbedtls_ssl_export_keys_ext_t( void *p_expkey,
+                                           const unsigned char *ms,
+                                           const unsigned char *kb,
+                                           size_t maclen,
+                                           size_t keylen,
+                                           size_t ivlen,
+                                           unsigned char client_random[32],
+                                           unsigned char server_random[32],
+                                           mbedtls_tls_prf_types tls_prf_type );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 /**
@@ -1688,6 +1740,20 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
  */
 void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_export_keys_t *f_export_keys,
+        void *p_export_keys );
+
+/**
+ * \brief           Configure extended key export callback.
+ *                  (Default: none.)
+ *
+ * \note            See \c mbedtls_ssl_export_keys_ext_t.
+ *
+ * \param conf      SSL configuration context
+ * \param f_export_keys_ext Callback for exporting keys
+ * \param p_export_keys     Context for the callback
+ */
+void mbedtls_ssl_conf_export_keys_ext_cb( mbedtls_ssl_config *conf,
+        mbedtls_ssl_export_keys_ext_t *f_export_keys_ext,
         void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
@@ -3486,6 +3552,27 @@ void mbedtls_ssl_session_init( mbedtls_ssl_session *session );
  * \param session  SSL session
  */
 void mbedtls_ssl_session_free( mbedtls_ssl_session *session );
+
+/**
+ * \brief          TLS-PRF function for key derivation.
+ *
+ * \param prf      The tls_prf type funtion type to be used.
+ * \param secret   Secret for the key derivation function.
+ * \param slen     Length of the secret.
+ * \param label    String label for the key derivation function,
+ *                 terminated with null character.
+ * \param random   Random bytes.
+ * \param rlen     Length of the random bytes buffer.
+ * \param dstbuf   The buffer holding the derived key.
+ * \param dlen     Length of the output buffer.
+ *
+ * \return         0 on sucess. An SSL specific error on failure.
+ */
+int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
+                          const unsigned char *secret, size_t slen,
+                          const char *label,
+                          const unsigned char *random, size_t rlen,
+                          unsigned char *dstbuf, size_t dlen );
 
 #ifdef __cplusplus
 }

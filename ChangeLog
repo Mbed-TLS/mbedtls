@@ -11,6 +11,9 @@ Features
    * Add the oid certificate policy x509 extension.
    * It is now possible to perform RSA PKCS v1.5 signatures with RIPEMD-160 digest.
      Contributed by Jack Lloyd and Fortanix Inc.
+   * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
+     and the used tls-prf.
+   * Add public API for tls-prf function, according to requested enum.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents
@@ -35,6 +38,11 @@ Bugfix
      for the parameter.
    * Add a check for MBEDTLS_X509_CRL_PARSE_C in ssl_server2, guarding the crl
      sni entry parameter. Reported by inestlerode in #560.
+
+API Changes
+   * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
+     and the used tls-prf.
+   * Add public API for tls-prf function, according to requested enum.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

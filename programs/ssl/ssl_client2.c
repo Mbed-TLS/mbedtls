@@ -126,7 +126,7 @@ int main( void )
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
 #define DFL_CA_CALLBACK         0
-
+#define DFL_EAP_TLS             0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -203,6 +203,13 @@ int main( void )
 #else
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+#define USAGE_EAP_TLS                                       \
+    "    eap_tls=%%d          default: 0 (disabled)\n"
+#else
+#define USAGE_EAP_TLS ""
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 #define USAGE_TRUNC_HMAC                                    \
@@ -348,6 +355,7 @@ int main( void )
     "    reco_delay=%%d       default: 0 seconds\n"         \
     "    reconnect_hard=%%d   default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \
+    USAGE_EAP_TLS                                           \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
     USAGE_CONTEXT_CRT_CB                                    \
@@ -448,9 +456,46 @@ struct options
     int extended_ms;            /* negotiate extended master secret?        */
     int etm;                    /* negotiate encrypt then mac?              */
     int context_crt_cb;         /* use context-specific CRT verify callback */
+    int eap_tls;                /* derive EAP-TLS keying material?          */
 } opt;
 
 int query_config( const char *config );
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+typedef struct eap_tls_keys
+{
+    unsigned char master_secret[48];
+    unsigned char randbytes[64];
+    mbedtls_tls_prf_types tls_prf_type;
+} eap_tls_keys;
+
+static int eap_tls_key_derivation ( void *p_expkey,
+                                    const unsigned char *ms,
+                                    const unsigned char *kb,
+                                    size_t maclen,
+                                    size_t keylen,
+                                    size_t ivlen,
+                                    unsigned char client_random[32],
+                                    unsigned char server_random[32],
+                                    mbedtls_tls_prf_types tls_prf_type )
+{
+    eap_tls_keys *keys = (eap_tls_keys *)p_expkey;
+
+    ( ( void ) kb );
+    memcpy( keys->master_secret, ms, sizeof( keys->master_secret ) );
+    memcpy( keys->randbytes, client_random, 32 );
+    memcpy( keys->randbytes + 32, server_random, 32 );
+    keys->tls_prf_type = tls_prf_type;
+
+    if( opt.debug_level > 2 )
+    {
+        mbedtls_printf("exported maclen is %u\n", (unsigned)maclen);
+        mbedtls_printf("exported keylen is %u\n", (unsigned)keylen);
+        mbedtls_printf("exported ivlen is %u\n", (unsigned)ivlen);
+    }
+    return( 0 );
+}
+#endif
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -713,6 +758,12 @@ int main( int argc, char *argv[] )
 #endif
     char *p, *q;
     const int *list;
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    unsigned char eap_tls_keymaterial[16];
+    unsigned char eap_tls_iv[8];
+    const char* eap_tls_label = "client EAP encryption";
+    eap_tls_keys eap_tls_keying;
+#endif
 
     /*
      * Make sure memory references are valid.
@@ -818,6 +869,7 @@ int main( int argc, char *argv[] )
     opt.extended_ms         = DFL_EXTENDED_MS;
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
+    opt.eap_tls             = DFL_EAP_TLS;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1175,6 +1227,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "query_config" ) == 0 )
         {
             return query_config( q );
+        }
+        else if( strcmp( p, "eap_tls" ) == 0 )
+        {
+            opt.eap_tls = atoi( q );
+            if( opt.eap_tls < 0 || opt.eap_tls > 1 )
+                goto usage;
         }
         else
             goto usage;
@@ -1652,6 +1710,12 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_encrypt_then_mac( &conf, opt.etm );
 #endif
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( opt.eap_tls != 0 )
+        mbedtls_ssl_conf_export_keys_ext_cb( &conf, eap_tls_key_derivation,
+                                             &eap_tls_keying );
+#endif
+
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     if( opt.recsplit != DFL_RECSPLIT )
         mbedtls_ssl_conf_cbc_record_splitting( &conf, opt.recsplit
@@ -1917,6 +1981,57 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( opt.eap_tls != 0  )
+    {
+        size_t j = 0;
+
+        if( ( ret = mbedtls_ssl_tls_prf( eap_tls_keying.tls_prf_type,
+                                         eap_tls_keying.master_secret,
+                                         sizeof( eap_tls_keying.master_secret ),
+                                         eap_tls_label,
+                                         eap_tls_keying.randbytes,
+                                         sizeof( eap_tls_keying.randbytes ),
+                                         eap_tls_keymaterial,
+                                         sizeof( eap_tls_keymaterial ) ) )
+                                         != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                            -ret );
+            goto exit;
+        }
+
+        mbedtls_printf( "    EAP-TLS key material is:" );
+        for( j = 0; j < sizeof( eap_tls_keymaterial ); j++ )
+        {
+            if( j % 8 == 0 )
+                mbedtls_printf("\n    ");
+            mbedtls_printf("%02x ", eap_tls_keymaterial[j] );
+        }
+        mbedtls_printf("\n");
+
+        if( ( ret = mbedtls_ssl_tls_prf( eap_tls_keying.tls_prf_type, NULL, 0,
+                                         eap_tls_label,
+                                         eap_tls_keying.randbytes,
+                                         sizeof( eap_tls_keying.randbytes ),
+                                         eap_tls_iv,
+                                         sizeof( eap_tls_iv ) ) ) != 0 )
+         {
+             mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                             -ret );
+             goto exit;
+         }
+
+        mbedtls_printf( "    EAP-TLS IV is:" );
+        for( j = 0; j < sizeof( eap_tls_iv ); j++ )
+        {
+            if( j % 8 == 0 )
+                mbedtls_printf("\n    ");
+            mbedtls_printf("%02x ", eap_tls_iv[j] );
+        }
+        mbedtls_printf("\n");
+    }
+#endif
     if( opt.reconnect != 0 )
     {
         mbedtls_printf("  . Saving session for reuse..." );

@@ -7939,6 +7939,18 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
+requires_config_enabled MBEDTLS_SSL_EXPORT_KEYS
+run_test    "export keys functionality" \
+            "$P_SRV eap_tls=1 debug_level=3" \
+            "$P_CLI eap_tls=1 debug_level=3" \
+            0 \
+            -s "exported maclen is " \
+            -s "exported keylen is " \
+            -s "exported ivlen is "  \
+            -c "exported maclen is " \
+            -c "exported keylen is " \
+            -c "exported ivlen is "
+
 # Final report
 
 echo "------------------------------------------------------------------------"

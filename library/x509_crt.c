@@ -2767,16 +2767,16 @@ void mbedtls_x509_crt_sort( mbedtls_x509_crt *chain )
 {
     mbedtls_x509_crt *child = chain;
 
-    while (child)
+    while ( child != NULL)
     {
         mbedtls_x509_crt *parent = child->next;
         mbedtls_x509_crt *prev = NULL;
-        while (parent)
+        while ( parent != NULL )
         {
             if ( x509_name_cmp( &child->issuer, &parent->subject ) == 0 )
             {
                 // Find the parent
-                if (prev == NULL)
+                if ( prev == NULL )
                 {
                     child = parent;
                 }
@@ -2796,7 +2796,7 @@ void mbedtls_x509_crt_sort( mbedtls_x509_crt *chain )
                 parent = parent->next;
             }
         }
-        if (parent == NULL)
+        if ( parent == NULL )
         {
             // Can't find the parent, stop here
             return;
@@ -2811,7 +2811,7 @@ void mbedtls_x509_crt_sort( mbedtls_x509_crt *chain )
  */
 void mbedtls_x509_crt_init( mbedtls_x509_crt *crt )
 {
-    memset( crt, 0, sizeof(mbedtls_x509_crt) );
+    memset( crt, 0, sizeof( mbedtls_x509_crt ) );
 }
 
 /*

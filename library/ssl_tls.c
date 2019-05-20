@@ -6241,7 +6241,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         if( ca_chain != NULL )
             have_ca_chain = 1;
 
-        mbedtls_x509_crt_sort(chain);
+        mbedtls_x509_crt_sort( chain );
         ret = mbedtls_x509_crt_verify_restartable(
             chain,
             ca_chain, ca_crl,

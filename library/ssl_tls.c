@@ -1656,7 +1656,8 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         salt = session_hash;
         handshake->calc_verify( ssl, session_hash, &salt_len );
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "session hash", session_hash, salt_len );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "session hash for extended master secret",
+                                  session_hash, salt_len );
     }
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
 

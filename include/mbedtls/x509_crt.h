@@ -76,7 +76,9 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
     mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
-    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only dNSName supported). */
+    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
+
+    mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
     int ext_types;              /**< Bit string containing detected and parsed extensions */
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
@@ -96,6 +98,53 @@ typedef struct mbedtls_x509_crt
     struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */
 }
 mbedtls_x509_crt;
+
+/**
+ * From RFC 5280 section 4.2.1.6:
+ * OtherName ::= SEQUENCE {
+ *      type-id    OBJECT IDENTIFIER,
+ *      value      [0] EXPLICIT ANY DEFINED BY type-id }
+ */
+typedef struct mbedtls_x509_san_other_name
+{
+    /**
+     * The type_id is an OID as deifned in RFC 5280.
+     * To check the value of the type id, you should use
+     * \p MBEDTLS_OID_CMP with a known OID mbedtls_x509_buf.
+     */
+    mbedtls_x509_buf type_id;                   /**< The type id. */
+    union
+    {
+        /**
+         * From RFC 4108 section 5:
+         * HardwareModuleName ::= SEQUENCE {
+         *                         hwType OBJECT IDENTIFIER,
+         *                         hwSerialNum OCTET STRING }
+         */
+        struct
+        {
+            mbedtls_x509_buf oid;               /**< The object identifier. */
+            mbedtls_x509_buf val;               /**< The named value. */
+        }
+        hardware_module_name;
+    }
+    value;
+}
+mbedtls_x509_san_other_name;
+
+/**
+ * A structure for holding the parsed Subject Alternative Name, according to type
+ */
+typedef struct mbedtls_x509_subject_alternative_name
+{
+    int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
+    union {
+        mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
+        mbedtls_x509_buf   unstructured_name; /**< The buffer for the un constructed types. Only dnsName currently supported */
+    }
+    san; /**< A union of the supported SAN types */
+}
+mbedtls_x509_subject_alternative_name;
 
 /**
  * Build flag from an algorithm/curve identifier (pk, md, ecp)
@@ -346,8 +395,37 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path );
  *                 if partly successful or a specific X509 or PEM error code
  */
 int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
-#endif /* MBEDTLS_FS_IO */
 
+#endif /* MBEDTLS_FS_IO */
+/**
+ * \brief          This function parses an item in the SubjectAlternativeNames
+ *                 extension.
+ *
+ * \param san_buf  The buffer holding the raw data item of the subject
+ *                 alternative name.
+ * \param san      The target structure to populate with the parsed presentation
+ *                 of the subject alternative name encoded in \p san_raw.
+ *
+ * \note           Only "dnsName" and "otherName" of type hardware_module_name
+ *                 as defined in RFC 4180 is supported.
+ *
+ * \note           This function should be called on a single raw data of
+ *                 subject alternative name. For example, after successful
+ *                 certificate parsing, one must iterate on every item in the
+ *                 \p crt->subject_alt_names sequence, and pass it to
+ *                 this function.
+ *
+ * \warning        The target structure contains pointers to the raw data of the
+ *                 parsed certificate, and its lifetime is restricted by the
+ *                 lifetime of the certificate.
+ *
+ * \return         \c 0 on success
+ * \return         #MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE for an unsupported
+ *                 SAN type.
+ * \return         Another negative value for any other failure.
+ */
+int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
+                                         mbedtls_x509_subject_alternative_name *san );
 /**
  * \brief          Returns an informational string about the
  *                 certificate.

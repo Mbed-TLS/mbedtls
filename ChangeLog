@@ -14,6 +14,14 @@ Features
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
      and the used tls-prf.
    * Add public API for tls-prf function, according to requested enum.
+   * Add support for parsing otherName entries in the Subject Alternative Name
+     X.509 certificate extension, specifically type hardware module name,
+     as defined in RFC 4108 section 5.
+   * Add support for parsing certificate policies extension, as defined in
+     RFC 5280 section 4.2.1.4. Currently, only the "Any Policy" policy is
+     supported.
+   * List all SAN types in the subject_alt_names field of the certificate.
+     Resolves #459.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents

@@ -618,7 +618,8 @@ static int x509_get_ext_key_usage( unsigned char **p,
  *      nameAssigner            [0]     DirectoryString OPTIONAL,
  *      partyName               [1]     DirectoryString }
  *
- * NOTE: we only parse and use dNSName at this point.
+ * NOTE: we list all types, but only use dNSName and otherName
+ * of type HwModuleName, as defined in RFC 4108, at this point.
  */
 static int x509_get_subject_alt_name( unsigned char **p,
                                       const unsigned char *end,
@@ -641,6 +642,9 @@ static int x509_get_subject_alt_name( unsigned char **p,
 
     while( *p < end )
     {
+        mbedtls_x509_subject_alternative_name dummy_san_buf;
+        memset( &dummy_san_buf, 0, sizeof( dummy_san_buf ) );
+
         if( ( end - *p ) < 1 )
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                     MBEDTLS_ERR_ASN1_OUT_OF_DATA );
@@ -657,11 +661,27 @@ static int x509_get_subject_alt_name( unsigned char **p,
                     MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
         }
 
-        /* Skip everything but DNS name */
-        if( tag != ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | 2 ) )
+        /*
+         * Check that the SAN are structured correct.
+         */
+        ret = mbedtls_x509_parse_subject_alt_name( &(cur->buf), &dummy_san_buf );
+        /*
+         * In case the extension is malformed, return an error,
+         * and clear the allocated sequences.
+         */
+        if( ret != 0 && ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
         {
-            *p += tag_len;
-            continue;
+            mbedtls_x509_sequence *seq_cur = subject_alt_name->next;
+            mbedtls_x509_sequence *seq_prv;
+            while( seq_cur != NULL )
+            {
+                seq_prv = seq_cur;
+                seq_cur = seq_cur->next;
+                mbedtls_platform_zeroize( seq_prv,
+                                          sizeof( mbedtls_x509_sequence ) );
+                mbedtls_free( seq_prv );
+            }
+            return( ret );
         }
 
         /* Allocate and assign next pointer */
@@ -694,6 +714,168 @@ static int x509_get_subject_alt_name( unsigned char **p,
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     return( 0 );
+}
+
+/*
+ * id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }
+ *
+ * anyPolicy OBJECT IDENTIFIER ::= { id-ce-certificatePolicies 0 }
+ *
+ * certificatePolicies ::= SEQUENCE SIZE (1..MAX) OF PolicyInformation
+ *
+ * PolicyInformation ::= SEQUENCE {
+ *     policyIdentifier   CertPolicyId,
+ *     policyQualifiers   SEQUENCE SIZE (1..MAX) OF
+ *                             PolicyQualifierInfo OPTIONAL }
+ *
+ * CertPolicyId ::= OBJECT IDENTIFIER
+ *
+ * PolicyQualifierInfo ::= SEQUENCE {
+ *      policyQualifierId  PolicyQualifierId,
+ *      qualifier          ANY DEFINED BY policyQualifierId }
+ *
+ * -- policyQualifierIds for Internet policy qualifiers
+ *
+ * id-qt          OBJECT IDENTIFIER ::=  { id-pkix 2 }
+ * id-qt-cps      OBJECT IDENTIFIER ::=  { id-qt 1 }
+ * id-qt-unotice  OBJECT IDENTIFIER ::=  { id-qt 2 }
+ *
+ * PolicyQualifierId ::= OBJECT IDENTIFIER ( id-qt-cps | id-qt-unotice )
+ *
+ * Qualifier ::= CHOICE {
+ *      cPSuri           CPSuri,
+ *      userNotice       UserNotice }
+ *
+ * CPSuri ::= IA5String
+ *
+ * UserNotice ::= SEQUENCE {
+ *      noticeRef        NoticeReference OPTIONAL,
+ *      explicitText     DisplayText OPTIONAL }
+ *
+ * NoticeReference ::= SEQUENCE {
+ *      organization     DisplayText,
+ *      noticeNumbers    SEQUENCE OF INTEGER }
+ *
+ * DisplayText ::= CHOICE {
+ *      ia5String        IA5String      (SIZE (1..200)),
+ *      visibleString    VisibleString  (SIZE (1..200)),
+ *      bmpString        BMPString      (SIZE (1..200)),
+ *      utf8String       UTF8String     (SIZE (1..200)) }
+ *
+ * NOTE: we only parse and use anyPolicy without qualifiers at this point
+ * as defined in RFC 5280.
+ */
+static int x509_get_certificate_policies( unsigned char **p,
+                                          const unsigned char *end,
+                                          mbedtls_x509_sequence *certificate_policies )
+{
+    int ret, parse_ret = 0;
+    size_t len;
+    mbedtls_asn1_buf *buf;
+    mbedtls_asn1_sequence *cur = certificate_policies;
+
+    /* Get main sequence tag */
+    ret = mbedtls_asn1_get_tag( p, end, &len,
+                             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    if( *p + len != end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    /*
+     * Cannot be an empty sequence.
+     */
+    if( len == 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    while( *p < end )
+    {
+        mbedtls_x509_buf policy_oid;
+        const unsigned char *policy_end;
+
+        /*
+         * Get the policy sequence
+         */
+        if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+        policy_end = *p + len;
+
+        if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
+                                          MBEDTLS_ASN1_OID ) ) != 0 )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+        policy_oid.tag = MBEDTLS_ASN1_OID;
+        policy_oid.len = len;
+        policy_oid.p = *p;
+
+        /*
+         * Only AnyPolicy is currently supported when enforcing policy.
+         */
+        if( MBEDTLS_OID_CMP( MBEDTLS_OID_ANY_POLICY, &policy_oid ) != 0 )
+        {
+            /*
+             * Set the parsing return code but continue parsing, in case this
+             * extension is critical and MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
+             * is configured.
+             */
+            parse_ret = MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
+        }
+
+        /* Allocate and assign next pointer */
+        if( cur->buf.p != NULL )
+        {
+            if( cur->next != NULL )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS );
+
+            cur->next = mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
+
+            if( cur->next == NULL )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                        MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+
+            cur = cur->next;
+        }
+
+        buf = &( cur->buf );
+        buf->tag = policy_oid.tag;
+        buf->p = policy_oid.p;
+        buf->len = policy_oid.len;
+
+        *p += len;
+
+       /*
+        * If there is an optional qualifier, then *p < policy_end
+        * Check the Qualifier len to verify it doesn't exceed policy_end.
+        */
+        if( *p < policy_end )
+        {
+            if( ( ret = mbedtls_asn1_get_tag( p, policy_end, &len,
+                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+                return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+            /*
+             * Skip the optional policy qualifiers.
+             */
+            *p += len;
+        }
+
+        if( *p != policy_end )
+            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                    MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+    }
+
+    /* Set final sequence entry's next pointer to NULL */
+    cur->next = NULL;
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( parse_ret );
 }
 
 /*
@@ -821,6 +1003,27 @@ static int x509_get_crt_ext( unsigned char **p,
             if( ( ret = x509_get_ns_cert_type( p, end_ext_octet,
                     &crt->ns_cert_type ) ) != 0 )
                 return( ret );
+            break;
+
+        case MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES:
+            /* Parse certificate policies type */
+            if( ( ret = x509_get_certificate_policies( p, end_ext_octet,
+                    &crt->certificate_policies ) ) != 0 )
+            {
+#if !defined(MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
+                if( is_critical )
+                    return( ret );
+                else
+#endif
+                /*
+                 * If MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE is returned, then we
+                 * cannot interpret or enforce the policy. However, it is up to
+                 * the user to choose how to enforce the policies,
+                 * unless the extension is critical.
+                 */
+                if( ret != MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+                    return( ret );
+            }
             break;
 
         default:
@@ -1435,32 +1638,201 @@ cleanup:
 }
 #endif /* MBEDTLS_FS_IO */
 
-static int x509_info_subject_alt_name( char **buf, size_t *size,
-                                       const mbedtls_x509_sequence *subject_alt_name )
+/*
+ * OtherName ::= SEQUENCE {
+ *      type-id    OBJECT IDENTIFIER,
+ *      value      [0] EXPLICIT ANY DEFINED BY type-id }
+ *
+ * HardwareModuleName ::= SEQUENCE {
+ *                           hwType OBJECT IDENTIFIER,
+ *                           hwSerialNum OCTET STRING }
+ *
+ * NOTE: we currently only parse and use otherName of type HwModuleName,
+ * as defined in RFC 4108.
+ */
+static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
+                                mbedtls_x509_san_other_name *other_name )
 {
-    size_t i;
+    int ret = 0;
+    size_t len;
+    unsigned char *p = subject_alt_name->p;
+    const unsigned char *end = p + subject_alt_name->len;
+    mbedtls_x509_buf cur_oid;
+
+    if( ( subject_alt_name->tag &
+        ( MBEDTLS_ASN1_TAG_CLASS_MASK | MBEDTLS_ASN1_TAG_VALUE_MASK ) ) !=
+        ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ) )
+    {
+        /*
+         * The given subject alternative name is not of type "othername".
+         */
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+    }
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                                      MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    cur_oid.tag = MBEDTLS_ASN1_OID;
+    cur_oid.p = p;
+    cur_oid.len = len;
+
+    /*
+     * Only HwModuleName is currently supported.
+     */
+    if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME, &cur_oid ) != 0 )
+    {
+        return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+    }
+
+    if( p + len >= end )
+    {
+        mbedtls_platform_zeroize( other_name, sizeof( other_name ) );
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+    }
+    p += len;
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+       return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OID ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    other_name->value.hardware_module_name.oid.tag = MBEDTLS_ASN1_OID;
+    other_name->value.hardware_module_name.oid.p = p;
+    other_name->value.hardware_module_name.oid.len = len;
+
+    if( p + len >= end )
+    {
+        mbedtls_platform_zeroize( other_name, sizeof( other_name ) );
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+    }
+    p += len;
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                                      MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
+
+    other_name->value.hardware_module_name.val.tag = MBEDTLS_ASN1_OCTET_STRING;
+    other_name->value.hardware_module_name.val.p = p;
+    other_name->value.hardware_module_name.val.len = len;
+    p += len;
+    if( p != end )
+    {
+        mbedtls_platform_zeroize( other_name,
+                                  sizeof( other_name ) );
+        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+    }
+    return( 0 );
+}
+
+static int x509_info_subject_alt_name( char **buf, size_t *size,
+                                       const mbedtls_x509_sequence
+                                                    *subject_alt_name,
+                                       const char *prefix )
+{
+    int ret;
     size_t n = *size;
     char *p = *buf;
     const mbedtls_x509_sequence *cur = subject_alt_name;
-    const char *sep = "";
-    size_t sep_len = 0;
+    mbedtls_x509_subject_alternative_name san;
+    int parse_ret;
 
     while( cur != NULL )
     {
-        if( cur->buf.len + sep_len >= n )
+        memset( &san, 0, sizeof( san ) );
+        parse_ret = mbedtls_x509_parse_subject_alt_name( &cur->buf, &san );
+        if( parse_ret != 0 )
         {
-            *p = '\0';
-            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+            if( parse_ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+            {
+                ret = mbedtls_snprintf( p, n, "\n%s    <unsupported>", prefix );
+                MBEDTLS_X509_SAFE_SNPRINTF;
+            }
+            else
+            {
+                ret = mbedtls_snprintf( p, n, "\n%s    <malformed>", prefix );
+                MBEDTLS_X509_SAFE_SNPRINTF;
+            }
+            cur = cur->next;
+            continue;
         }
 
-        n -= cur->buf.len + sep_len;
-        for( i = 0; i < sep_len; i++ )
-            *p++ = sep[i];
-        for( i = 0; i < cur->buf.len; i++ )
-            *p++ = cur->buf.p[i];
+        switch( san.type )
+        {
+            /*
+             * otherName
+             */
+            case MBEDTLS_X509_SAN_OTHER_NAME:
+            {
+                mbedtls_x509_san_other_name *other_name = &san.san.other_name;
 
-        sep = ", ";
-        sep_len = 2;
+                ret = mbedtls_snprintf( p, n, "\n%s    otherName :", prefix );
+                MBEDTLS_X509_SAFE_SNPRINTF;
+
+                if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
+                                     &other_name->value.hardware_module_name.oid ) != 0 )
+                {
+                    ret = mbedtls_snprintf( p, n, "\n%s        hardware module name :", prefix );
+                    MBEDTLS_X509_SAFE_SNPRINTF;
+                    ret = mbedtls_snprintf( p, n, "\n%s            hardware type          : ", prefix );
+                    MBEDTLS_X509_SAFE_SNPRINTF;
+
+                    ret = mbedtls_oid_get_numeric_string( p, n, &other_name->value.hardware_module_name.oid );
+                    MBEDTLS_X509_SAFE_SNPRINTF;
+
+                    ret = mbedtls_snprintf( p, n, "\n%s            hardware serial number : ", prefix );
+                    MBEDTLS_X509_SAFE_SNPRINTF;
+
+                    if( other_name->value.hardware_module_name.val.len >= n )
+                    {
+                        *p = '\0';
+                        return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+                    }
+
+                    memcpy( p, other_name->value.hardware_module_name.val.p,
+                            other_name->value.hardware_module_name.val.len );
+                    p += other_name->value.hardware_module_name.val.len;
+
+                    n -= other_name->value.hardware_module_name.val.len;
+
+                }/* MBEDTLS_OID_ON_HW_MODULE_NAME */
+            }
+            break;
+
+            /*
+             * dNSName
+             */
+            case MBEDTLS_X509_SAN_DNS_NAME:
+            {
+                ret = mbedtls_snprintf( p, n, "\n%s    dNSName : ", prefix );
+                MBEDTLS_X509_SAFE_SNPRINTF;
+                if( san.san.unstructured_name.len >= n )
+                {
+                    *p = '\0';
+                    return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+                }
+
+                memcpy( p, san.san.unstructured_name.p, san.san.unstructured_name.len );
+                p += san.san.unstructured_name.len;
+                n -= san.san.unstructured_name.len;
+            }
+            break;
+
+            /*
+             * Type not supported, skip item.
+             */
+            default:
+                ret = mbedtls_snprintf( p, n, "\n%s    <unsupported>", prefix );
+                MBEDTLS_X509_SAFE_SNPRINTF;
+                break;
+        }
 
         cur = cur->next;
     }
@@ -1470,6 +1842,56 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     *size = n;
     *buf = p;
 
+    return( 0 );
+}
+
+int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
+                                         mbedtls_x509_subject_alternative_name *san )
+{
+    int ret;
+    switch( san_buf->tag &
+            ( MBEDTLS_ASN1_TAG_CLASS_MASK |
+              MBEDTLS_ASN1_TAG_VALUE_MASK ) )
+    {
+        /*
+         * otherName
+         */
+        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ):
+        {
+            mbedtls_x509_san_other_name other_name;
+
+            ret = x509_get_other_name( san_buf, &other_name );
+            if( ret != 0 )
+                return( ret );
+
+            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
+            san->type = MBEDTLS_X509_SAN_OTHER_NAME;
+            memcpy( &san->san.other_name,
+                    &other_name, sizeof( other_name ) );
+
+        }
+        break;
+
+        /*
+         * dNSName
+         */
+        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DNS_NAME ):
+        {
+            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
+            san->type = MBEDTLS_X509_SAN_DNS_NAME;
+
+            memcpy( &san->san.unstructured_name,
+                    san_buf, sizeof( *san_buf ) );
+
+        }
+        break;
+
+        /*
+         * Type not supported
+         */
+        default:
+            return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+    }
     return( 0 );
 }
 
@@ -1548,6 +1970,35 @@ static int x509_info_ext_key_usage( char **buf, size_t *size,
     while( cur != NULL )
     {
         if( mbedtls_oid_get_extended_key_usage( &cur->buf, &desc ) != 0 )
+            desc = "???";
+
+        ret = mbedtls_snprintf( p, n, "%s%s", sep, desc );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        sep = ", ";
+
+        cur = cur->next;
+    }
+
+    *size = n;
+    *buf = p;
+
+    return( 0 );
+}
+
+static int x509_info_cert_policies( char **buf, size_t *size,
+                                    const mbedtls_x509_sequence *certificate_policies )
+{
+    int ret;
+    const char *desc;
+    size_t n = *size;
+    char *p = *buf;
+    const mbedtls_x509_sequence *cur = certificate_policies;
+    const char *sep = "";
+
+    while( cur != NULL )
+    {
+        if( mbedtls_oid_get_certificate_policies( &cur->buf, &desc ) != 0 )
             desc = "???";
 
         ret = mbedtls_snprintf( p, n, "%s%s", sep, desc );
@@ -1659,11 +2110,12 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
-        ret = mbedtls_snprintf( p, n, "\n%ssubject alt name  : ", prefix );
+        ret = mbedtls_snprintf( p, n, "\n%ssubject alt name  :", prefix );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
         if( ( ret = x509_info_subject_alt_name( &p, &n,
-                                            &crt->subject_alt_names ) ) != 0 )
+                                                &crt->subject_alt_names,
+                                                prefix ) ) != 0 )
             return( ret );
     }
 
@@ -1692,6 +2144,16 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
         if( ( ret = x509_info_ext_key_usage( &p, &n,
                                              &crt->ext_key_usage ) ) != 0 )
+            return( ret );
+    }
+
+    if( crt->ext_types & MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES )
+    {
+        ret = mbedtls_snprintf( p, n, "\n%scertificate policies : ", prefix );
+        MBEDTLS_X509_SAFE_SNPRINTF;
+
+        if( ( ret = x509_info_cert_policies( &p, &n,
+                                             &crt->certificate_policies ) ) != 0 )
             return( ret );
     }
 
@@ -2812,6 +3274,16 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         }
 
         seq_cur = cert_cur->subject_alt_names.next;
+        while( seq_cur != NULL )
+        {
+            seq_prv = seq_cur;
+            seq_cur = seq_cur->next;
+            mbedtls_platform_zeroize( seq_prv,
+                                      sizeof( mbedtls_x509_sequence ) );
+            mbedtls_free( seq_prv );
+        }
+
+        seq_cur = cert_cur->certificate_policies.next;
         while( seq_cur != NULL )
         {
             seq_prv = seq_cur;

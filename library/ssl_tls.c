@@ -1528,7 +1528,7 @@ end:
 }
 
 /*
- * Set appropriate PRF function and other SSL / TLS / TLS1.2 functions
+ * Set appropriate PRF function and other SSL / TLS 1.0/1.1 / TLS1.2 functions
  *
  * Inputs:
  * - SSL/TLS minor version

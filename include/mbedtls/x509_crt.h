@@ -525,6 +525,20 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      void *p_vrfy,
                      mbedtls_x509_crt_restart_ctx *rs_ctx );
 
+/*
+ * \brief       Sort the server cert chain to handle potentially extraneous
+ *              certificates and arbitrary orderings.
+ *              For more detail pelease check:
+ *           https://tools.ietf.org/id/draft-ietf-tls-tls13-23.html#certificate.
+ *
+ * \note        Performs the same job as \c mbedtls_crt_verify_with_profile()
+ *              but can return early and restart according to the limit
+ *              set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
+ *
+ * \param crt   a certificate (chain) to be sorted.
+ */
+void mbedtls_x509_crt_sort( mbedtls_x509_crt *chain );
+
 /**
  * \brief               The type of trusted certificate callbacks.
  *
@@ -558,20 +572,6 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
 typedef int (*mbedtls_x509_crt_ca_cb_t)( void *p_ctx,
                                          mbedtls_x509_crt const *child,
                                          mbedtls_x509_crt **candidate_cas );
-
-/*
- * \brief       Sort the server cert chain to handle potentially extraneous
- *              certificates and arbitrary orderings.
- *              For more detail pelease check:
- *           https://tools.ietf.org/id/draft-ietf-tls-tls13-23.html#certificate.
- *
- * \note        Performs the same job as \c mbedtls_crt_verify_with_profile()
- *              but can return early and restart according to the limit
- *              set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
- *
- * \param crt   a certificate (chain) to be sorted.
- */
-void mbedtls_x509_crt_sort( mbedtls_x509_crt *chain );
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 /**

@@ -791,8 +791,33 @@ int mbedtls_x509_crt_get_ext_key_usage( mbedtls_x509_crt const *crt,
  */
 int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt );
 
+/**
+ * \brief        Request temporary read-access to a certificate frame
+ *               for a given certificate.
+ *
+ *               Once no longer needed, the frame must be released
+ *               through a call to mbedtls_x509_crt_frame_release().
+ *
+ *               This is a copy-less version of mbedtls_x509_crt_get_frame().
+ *               See there for more information.
+ *
+ * \param crt    The certificate to use. This must be initialized and set up.
+ * \param dst    The address at which to store the address of a readable
+ *               certificate frame for the input certificate \p crt which the
+ *               caller can use until calling mbedtls_x509_crt_frame_release().
+ *
+ * \note         The certificate frame `**frame_ptr` returned by this function
+ *               is owned by the X.509 module and must not be freed or modified
+ *               by the caller. The X.509 module guarantees its validity as long
+ *               as \p crt is valid and mbedtls_x509_crt_frame_release() hasn't
+ *               been issued.
+ *
+ * \return       \c 0 on success. In this case, `*frame_ptr` is updated
+ *               to hold the address of a frame for the given CRT.
+ * \return       A negative error code on failure.
+ */
 static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
-                                                  mbedtls_x509_crt_frame const **frame_ptr )
+                                    mbedtls_x509_crt_frame const **frame_ptr )
 {
     int ret;
 #if defined(MBEDTLS_THREADING_C)
@@ -814,6 +839,13 @@ static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
     return( 0 );
 }
 
+/**
+ * \brief        Release access to a certificate frame acquired
+ *               through a prior call to mbedtls_x509_crt_frame_acquire().
+ *
+ * \param crt    The certificate for which a certificate frame has
+ *               previously been acquired.
+ */
 static inline void mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
 {
     ((void) crt);

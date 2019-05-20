@@ -160,3 +160,36 @@ This is a library integration, so there is no owner. The key file identifier is 
 The library integration and the PSA platform integration use different sets of file names. This is annoyingly non-uniform. For example, if we want to store non-key files, we have room in different ranges (0 through 0xffffffff on a PSA platform, 0xffff0000 through 0xffffffffffffffff in a library integration).
 
 It would simplify things to always have a 32-bit owner, with a nonzero value, and thus reserve the range 0–0xffffffff for internal library use.
+
+Mbed Crypto 1.0.1
+-----------------
+
+Tags: TBD
+
+Released in May 2019. <br>
+Integrated in Mbed OS 5.13.
+
+Identical to [1.0.0](#mbed-crypto-1.0.0) except for some changes in the key file format.
+
+### Key file format for 1.0.1
+
+The key file format is identical to [1.0.0](#key-file-format-for-1.0.0), except for the following changes:
+
+* A new policy field, marked as [NEW:1.0.1] below.
+* The encoding of key types, algorithms and key material has changed, therefore the storage format is not compatible (despite using the same value in the version field so far).
+
+A self-contained description of the file layout follows.
+
+All integers are encoded in little-endian order in 8-bit bytes.
+
+The layout of a key file is:
+
+* magic (8 bytes): `"PSA\0KEY\0"`
+* version (4 bytes): 0
+* type (4 bytes): `psa_key_type_t` value
+* policy usage flags (4 bytes): `psa_key_usage_t` value
+* policy usage algorithm (4 bytes): `psa_algorithm_t` value
+* policy enrollment algorithm (4 bytes): `psa_algorithm_t` value [NEW:1.0.1]
+* key material length (4 bytes)
+* key material: output of `psa_export_key`
+* Any trailing data is rejected on load.

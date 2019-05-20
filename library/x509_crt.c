@@ -2115,7 +2115,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
         if( ( ret = x509_info_subject_alt_name( &p, &n,
                                                 &crt->subject_alt_names,
-                                                prefix) ) != 0 )
+                                                prefix ) ) != 0 )
             return( ret );
     }
 

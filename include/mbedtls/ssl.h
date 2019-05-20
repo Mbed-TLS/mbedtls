@@ -2324,7 +2324,7 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
  * \param len           The length in Bytes of the CID fields in encrypted
  *                      DTLS records using the CID mechanism. This must
  *                      not be larger than #MBEDTLS_SSL_CID_OUT_LEN_MAX.
- * \param ignore_other_cid  This determines the stack's behaviour when
+ * \param ignore_other_cids This determines the stack's behaviour when
  *                          receiving a record with an unexpected CID.
  *                          Possible values are:
  *                          - #MBEDTLS_SSL_UNEXPECTED_CID_IGNORE

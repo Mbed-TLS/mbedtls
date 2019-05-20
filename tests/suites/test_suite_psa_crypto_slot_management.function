@@ -327,16 +327,20 @@ exit:
 
 /* BEGIN_CASE */
 void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
-                            int source_usage_arg, int source_alg_arg,
+                            int source_usage_arg,
+                            int source_alg_arg, int source_alg2_arg,
                             int type_arg, data_t *material,
                             int target_lifetime_arg, int target_id_arg,
-                            int target_usage_arg, int target_alg_arg,
-                            int expected_usage_arg, int expected_alg_arg )
+                            int target_usage_arg,
+                            int target_alg_arg, int target_alg2_arg,
+                            int expected_usage_arg,
+                            int expected_alg_arg, int expected_alg2_arg )
 {
     psa_key_lifetime_t source_lifetime = source_lifetime_arg;
     psa_key_id_t source_id = source_id_arg;
     psa_key_usage_t source_usage = source_usage_arg;
     psa_algorithm_t source_alg = source_alg_arg;
+    psa_algorithm_t source_alg2 = source_alg2_arg;
     psa_key_handle_t source_handle = 0;
     psa_key_policy_t source_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t source_type = type_arg;
@@ -345,12 +349,14 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     psa_key_id_t target_id = target_id_arg;
     psa_key_usage_t target_usage = target_usage_arg;
     psa_algorithm_t target_alg = target_alg_arg;
+    psa_algorithm_t target_alg2 = target_alg2_arg;
     psa_key_handle_t target_handle = 0;
     psa_key_policy_t target_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t target_type;
     size_t target_bits;
     psa_key_usage_t expected_usage = expected_usage_arg;
     psa_algorithm_t expected_alg = expected_alg_arg;
+    psa_algorithm_t expected_alg2 = expected_alg2_arg;
     uint8_t *export_buffer = NULL;
 
     TEST_MAX_KEY_ID( source_id );
@@ -365,6 +371,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
         PSA_ASSERT( psa_create_key( source_lifetime, source_id,
                                     &source_handle ) );
     psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
+    psa_key_policy_set_enrollment_algorithm( &source_policy, source_alg2 );
     PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
     PSA_ASSERT( psa_import_key( source_handle, source_type,
                                 material->x, material->len ) );
@@ -377,6 +384,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
         PSA_ASSERT( psa_create_key( target_lifetime, target_id,
                                     &target_handle ) );
     psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
+    psa_key_policy_set_enrollment_algorithm( &target_policy, target_alg2 );
     PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
     target_policy = psa_key_policy_init();
 
@@ -404,6 +412,8 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     PSA_ASSERT( psa_get_key_policy( target_handle, &target_policy ) );
     TEST_EQUAL( expected_usage, psa_key_policy_get_usage( &target_policy ) );
     TEST_EQUAL( expected_alg, psa_key_policy_get_algorithm( &target_policy ) );
+    TEST_EQUAL( expected_alg2,
+                psa_key_policy_get_enrollment_algorithm( &target_policy ) );
     if( expected_usage & PSA_KEY_USAGE_EXPORT )
     {
         size_t length;

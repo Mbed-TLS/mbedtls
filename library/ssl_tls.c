@@ -2675,7 +2675,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
-
     }
     else
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */

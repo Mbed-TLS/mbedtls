@@ -526,7 +526,6 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt_restart_ctx *rs_ctx );
 
 /**
-<<<<<<< HEAD
  * \brief               The type of trusted certificate callbacks.
  *
  *                      Callbacks of this type are passed to and used by the CRT
@@ -560,6 +559,20 @@ typedef int (*mbedtls_x509_crt_ca_cb_t)( void *p_ctx,
                                          mbedtls_x509_crt const *child,
                                          mbedtls_x509_crt **candidate_cas );
 
+/*
+ * \brief       Sort the server cert chain to handle potentially extraneous
+ *              certificates and arbitrary orderings.
+ *              For more detail pelease check:
+ *           https://tools.ietf.org/id/draft-ietf-tls-tls13-23.html#certificate.
+ *
+ * \note        Performs the same job as \c mbedtls_crt_verify_with_profile()
+ *              but can return early and restart according to the limit
+ *              set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
+ *
+ * \param crt   a certificate (chain) to be sorted.
+ */
+void mbedtls_x509_crt_sort( mbedtls_x509_crt *chain );
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 /**
  * \brief          Version of \c mbedtls_x509_crt_verify_with_profile() which
@@ -590,20 +603,6 @@ int mbedtls_x509_crt_verify_with_ca_cb( mbedtls_x509_crt *crt,
                      const char *cn, uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
-
-#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
-=======
- * \brief          Sort the server cert chain to handle potentially extraneous certificates and arbitrary orderings.
- *                 For more detail pelease check https://tools.ietf.org/id/draft-ietf-tls-tls13-23.html#certificate.
- *
- * \note           Performs the same job as \c mbedtls_crt_verify_with_profile()
- *                 but can return early and restart according to the limit
- *                 set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
- *
- * \param crt      a certificate (chain) to be sorted
- */
-void mbedtls_x509_crt_sort( mbedtls_x509_crt *chain );
->>>>>>> Sort the server cert chain to handle potentially extraneous certificates and arbitrary orderings.
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
 /**

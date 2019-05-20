@@ -9834,6 +9834,14 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_CLI_C */
 
+const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_context *ssl )
+{
+    if( ssl == NULL )
+        return( NULL );
+
+    return( ssl->session );
+}
+
 /*
  * Serialize a session in the following format:
  * (in the presentation language of TLS, RFC 8446 section 3)

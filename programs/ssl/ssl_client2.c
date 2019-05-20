@@ -2442,14 +2442,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf("  . Saving session for reuse..." );
         fflush( stdout );
 
-        if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_get_session returned -0x%x\n\n",
-                            -ret );
-            goto exit;
-        }
-
-        if( ( ret = mbedtls_ssl_session_save( &saved_session,
+        if( ( ret = mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
                                               session_data, sizeof( session_data ),
                                               &session_data_len ) ) != 0 )
         {
@@ -2457,10 +2450,6 @@ int main( int argc, char *argv[] )
                             -ret );
             goto exit;
         }
-
-        /* Simulate that serialised state can have a larger lifetime than a
-         * structure: keep the serialised data but not the structure. */
-        mbedtls_ssl_session_free( &saved_session );
 
         mbedtls_printf( " ok\n" );
     }

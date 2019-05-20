@@ -1652,8 +1652,6 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     if( handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
-
         lbl  = "extended master secret";
         salt = session_hash;
         handshake->calc_verify( ssl, session_hash, &salt_len );

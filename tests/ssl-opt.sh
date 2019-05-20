@@ -1939,8 +1939,8 @@ run_test    "Extended Master Secret: default" \
             -s "found extended master secret extension" \
             -s "server hello, adding extended master secret extension" \
             -c "found extended_master_secret extension" \
-            -c "using extended master secret" \
-            -s "using extended master secret"
+            -c "session hash" \
+            -s "session hash"
 
 run_test    "Extended Master Secret: client enabled, server disabled" \
             "$P_SRV debug_level=3 extended_ms=0" \
@@ -1950,8 +1950,8 @@ run_test    "Extended Master Secret: client enabled, server disabled" \
             -s "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash" \
+            -S "session hash"
 
 run_test    "Extended Master Secret: client disabled, server enabled" \
             "$P_SRV debug_level=3 extended_ms=1" \
@@ -1961,8 +1961,8 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
             -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash" \
+            -S "session hash"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client SSLv3, server enabled" \
@@ -1973,8 +1973,8 @@ run_test    "Extended Master Secret: client SSLv3, server enabled" \
             -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash" \
+            -S "session hash"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client enabled, server SSLv3" \
@@ -1985,8 +1985,8 @@ run_test    "Extended Master Secret: client enabled, server SSLv3" \
             -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash" \
+            -S "session hash"
 
 # Tests for FALLBACK_SCSV
 
@@ -4782,8 +4782,8 @@ run_test    "PSK callback: opaque psk on client, no callback" \
             0 \
             -c "skip PMS generation for opaque PSK"\
             -S "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4796,8 +4796,8 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384" \
             0 \
             -c "skip PMS generation for opaque PSK"\
             -S "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4810,8 +4810,8 @@ run_test    "PSK callback: opaque psk on client, no callback, EMS" \
             0 \
             -c "skip PMS generation for opaque PSK"\
             -S "skip PMS generation for opaque PSK"\
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash"\
+            -s "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4824,8 +4824,8 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
             0 \
             -c "skip PMS generation for opaque PSK"\
             -S "skip PMS generation for opaque PSK"\
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash"\
+            -s "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4838,8 +4838,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4852,8 +4852,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4865,8 +4865,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123 extended_ms=1" \
             0 \
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash"\
+            -s "session hash"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
             -S "SSL - None of the common ciphersuites is usable" \
@@ -4880,8 +4880,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=foo psk=abc123 extended_ms=1" \
             0 \
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash"\
+            -s "session hash"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
             -S "SSL - None of the common ciphersuites is usable" \
@@ -4896,8 +4896,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4910,8 +4910,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4923,8 +4923,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=abc psk=dead extended_ms=1" \
             0 \
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash"\
+            -s "session hash"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
             -S "SSL - None of the common ciphersuites is usable" \
@@ -4938,8 +4938,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=abc psk=dead extended_ms=1" \
             0 \
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash"\
+            -s "session hash"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
             -S "SSL - None of the common ciphersuites is usable" \
@@ -4954,8 +4954,8 @@ run_test    "PSK callback: raw psk on client, mismatching static raw PSK on serv
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4968,8 +4968,8 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4981,8 +4981,8 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4994,8 +4994,8 @@ run_test    "PSK callback: raw psk on client, id-matching but wrong raw PSK on s
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash"\
+            -S "session hash"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"

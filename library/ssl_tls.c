@@ -1141,8 +1141,6 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         unsigned char session_hash[48];
         size_t hash_len;
 
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "using extended master secret" ) );
-
         handshake->calc_verify( ssl, session_hash, &hash_len );
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "session hash", session_hash, hash_len );

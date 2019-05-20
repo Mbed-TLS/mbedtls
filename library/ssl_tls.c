@@ -1651,7 +1651,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
 
     memcpy( add_data, rec->ctr, sizeof( rec->ctr ) );
     add_data[8] = rec->type;
-    memcpy( add_data +  9, rec->ver, sizeof( rec->ver ) );
+    memcpy( add_data + 9, rec->ver, sizeof( rec->ver ) );
 
 #if defined(MBEDTLS_SSL_CID)
     memcpy( add_data + 11, rec->cid, rec->cid_len );

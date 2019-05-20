@@ -916,7 +916,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
             mbedtls_md_type_t sig_md;
             {
                 int ret;
-                mbedtls_x509_crt_frame *frame;
+                mbedtls_x509_crt_frame const *frame;
                 ret = mbedtls_x509_crt_frame_acquire( cur->cert, &frame );
                 if( ret != 0 )
                     return( ret );
@@ -3015,7 +3015,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
         while( crt != NULL && crt->raw.p != NULL )
         {
-            mbedtls_x509_crt_frame *frame;
+            mbedtls_x509_crt_frame const *frame;
             ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
             if( ret != 0 )
                 return( ret );

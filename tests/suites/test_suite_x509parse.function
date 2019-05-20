@@ -208,7 +208,7 @@ int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint
     verify_print_context *ctx = (verify_print_context *) data;
     char *p = ctx->p;
     size_t n = ctx->buf + sizeof( ctx->buf ) - ctx->p;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
     mbedtls_x509_name *subject;
     ((void) flags);
 

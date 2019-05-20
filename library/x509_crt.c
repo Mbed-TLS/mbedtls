@@ -295,7 +295,7 @@ int mbedtls_x509_crt_get_subject_alt_names( mbedtls_x509_crt const *crt,
                                             mbedtls_x509_sequence **subj_alt )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
     mbedtls_x509_sequence *seq;
 
     ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
@@ -318,7 +318,7 @@ int mbedtls_x509_crt_get_ext_key_usage( mbedtls_x509_crt const *crt,
                                         mbedtls_x509_sequence **ext_key_usage )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
     mbedtls_x509_sequence *seq;
 
     ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
@@ -341,7 +341,7 @@ int mbedtls_x509_crt_get_subject( mbedtls_x509_crt const *crt,
                                   mbedtls_x509_name **subject )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
     mbedtls_x509_name *name;
 
     ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
@@ -364,7 +364,7 @@ int mbedtls_x509_crt_get_issuer( mbedtls_x509_crt const *crt,
                                  mbedtls_x509_name **issuer )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
     mbedtls_x509_name *name;
 
     ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
@@ -387,7 +387,7 @@ int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
                                 mbedtls_x509_crt_frame *dst )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
     ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
     if( ret != 0 )
         return( ret );
@@ -2937,7 +2937,7 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
                                       unsigned int usage )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
     ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
     if( ret != 0 )
         return( MBEDTLS_ERR_X509_FATAL_ERROR );
@@ -2985,7 +2985,7 @@ int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
                                                size_t usage_len )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
     unsigned ext_types;
     unsigned char *p, *end;
     x509_crt_check_ext_key_usage_cb_ctx_t cb_ctx = { usage_oid, usage_len };
@@ -3045,7 +3045,7 @@ int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt,
                                  const mbedtls_x509_crl *crl )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
 
     ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
     if( ret != 0 )
@@ -3080,7 +3080,7 @@ static int x509_crt_verifycrl( unsigned char *crt_serial,
         return( flags );
 
     {
-        mbedtls_x509_crt_frame *ca;
+        mbedtls_x509_crt_frame const *ca;
         ret = mbedtls_x509_crt_frame_acquire( ca_crt, &ca );
         if( ret != 0 )
             return( MBEDTLS_X509_BADCRL_NOT_TRUSTED );
@@ -3357,7 +3357,7 @@ check_signature:
 
         parent_valid = parent_match = path_len_ok = 0;
         {
-            mbedtls_x509_crt_frame *parent;
+            mbedtls_x509_crt_frame const *parent;
 
             ret = mbedtls_x509_crt_frame_acquire( parent_crt, &parent );
             if( ret != 0 )
@@ -3650,7 +3650,7 @@ find_parent:
         {
             mbedtls_x509_crt_sig_info child_sig;
             {
-                mbedtls_x509_crt_frame *child;
+                mbedtls_x509_crt_frame const *child;
 
                 ret = mbedtls_x509_crt_frame_acquire( child_crt, &child );
                 if( ret != 0 )
@@ -3875,7 +3875,7 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
                                  uint32_t *flags )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame const *frame;
 
     ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
     if( ret != 0 )

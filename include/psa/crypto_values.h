@@ -1232,11 +1232,14 @@
  * specified in Section 5 of RFC 5246. It is based on HMAC and can be
  * used with either SHA-256 or SHA-384.
  *
- * For the application to TLS-1.2, the salt and label arguments passed
- * to psa_key_derivation() are what's called 'seed' and 'label' in RFC 5246,
- * respectively. For example, for TLS key expansion, the salt is the
+ * This key derivation algorithm uses the following inputs:
+ * - #PSA_KEY_DERIVATION_INPUT_SECRET is the secret key.
+ * - #PSA_KEY_DERIVATION_INPUT_LABEL is the label.
+ * - #PSA_KEY_DERIVATION_INPUT_SEED is the seed.
+ *
+ * For the application to TLS-1.2 key expansion, the seed is the
  * concatenation of ServerHello.Random + ClientHello.Random,
- * while the label is "key expansion".
+ * and the label is "key expansion".
  *
  * For example, `PSA_ALG_TLS12_PRF(PSA_ALG_SHA256)` represents the
  * TLS 1.2 PRF using HMAC-SHA-256.
@@ -1273,10 +1276,15 @@
  * The latter is based on HMAC and can be used with either SHA-256
  * or SHA-384.
  *
- * For the application to TLS-1.2, the salt passed to psa_key_derivation()
- * (and forwarded to the TLS-1.2 PRF) is the concatenation of the
- * ClientHello.Random + ServerHello.Random, while the label is "master secret"
- * or "extended master secret".
+ * This key derivation algorithm uses the following inputs:
+ * - #PSA_KEY_DERIVATION_INPUT_SECRET is the secret key.
+ * - #PSA_KEY_DERIVATION_INPUT_LABEL is the label.
+ * - #PSA_KEY_DERIVATION_INPUT_SEED is the seed.
+ *
+ * For the application to TLS-1.2, the seed (which is
+ * forwarded to the TLS-1.2 PRF) is the concatenation of the
+ * ClientHello.Random + ServerHello.Random,
+ * and the label is "master secret" or "extended master secret".
  *
  * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA256)` represents the
  * TLS-1.2 PSK to MasterSecret derivation PRF using HMAC-SHA-256.
@@ -1585,6 +1593,12 @@
  * This must be a direct input.
  */
 #define PSA_KEY_DERIVATION_INPUT_INFO       ((psa_key_derivation_step_t)0x0203)
+
+/** A seed for key derivation.
+ *
+ * This must be a direct input.
+ */
+#define PSA_KEY_DERIVATION_INPUT_SEED       ((psa_key_derivation_step_t)0x0204)
 
 /**@}*/
 

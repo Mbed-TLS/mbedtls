@@ -627,6 +627,12 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_SHA512,
     },
 #endif /* MBEDTLS_SHA512_C */
+#if defined(MBEDTLS_RIPEMD160_C)
+    {
+        { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_RIPEMD160 ),       "id-ripemd160",       "RIPEMD-160" },
+        MBEDTLS_MD_RIPEMD160,
+    },
+#endif /* MBEDTLS_RIPEMD160_C */
     {
         { NULL, 0, NULL, NULL },
         MBEDTLS_MD_NONE,

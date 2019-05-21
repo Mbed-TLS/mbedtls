@@ -373,7 +373,7 @@
  */
 #define PSA_KEY_TYPE_DERIVE                     ((psa_key_type_t)0x52000000)
 
-/** Key for an cipher, AEAD or MAC algorithm based on the AES block cipher.
+/** Key for a cipher, AEAD or MAC algorithm based on the AES block cipher.
  *
  * The size of the key can be 16 bytes (AES-128), 24 bytes (AES-192) or
  * 32 bytes (AES-256).
@@ -391,7 +391,7 @@
  */
 #define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x40000002)
 
-/** Key for an cipher, AEAD or MAC algorithm based on the
+/** Key for a cipher, AEAD or MAC algorithm based on the
  * Camellia block cipher. */
 #define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x40000003)
 

@@ -204,6 +204,22 @@ psa_status_t psa_crypto_init(void);
  */
 typedef struct psa_key_attributes_s psa_key_attributes_t;
 
+/** \def PSA_KEY_ATTRIBUTES_INIT
+ *
+ * This macro returns a suitable initializer for a key attribute structure
+ * of type #psa_key_attributes_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_KEY_ATTRIBUTES_INIT {0}
+#endif
+
+/** Return an initial value for a key attributes structure.
+ */
+static psa_key_attributes_t psa_key_attributes_init(void);
+
 /** Declare a key as persistent and set its key identifier.
  *
  * If the attribute structure currently declares the key as volatile (which

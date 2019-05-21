@@ -426,9 +426,9 @@
 #define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)    \
     (PSA_BITS_TO_BYTES(curve_bits) * 2)
 
-/** Safe signature buffer size for psa_asymmetric_sign().
+/** Sufficient signature buffer size for psa_asymmetric_sign().
  *
- * This macro returns a safe buffer size for a signature using a key
+ * This macro returns a sufficient buffer size for a signature using a key
  * of the specified type and size, with the specified algorithm.
  * Note that the actual size of the signature may be smaller
  * (some algorithms produce a variable-size signature).
@@ -457,9 +457,9 @@
      PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_ECDSA_SIGNATURE_SIZE(key_bits) : \
      ((void)alg, 0))
 
-/** Safe output buffer size for psa_asymmetric_encrypt().
+/** Sufficient output buffer size for psa_asymmetric_encrypt().
  *
- * This macro returns a safe buffer size for a ciphertext produced using
+ * This macro returns a sufficient buffer size for a ciphertext produced using
  * a key of the specified type and size, with the specified algorithm.
  * Note that the actual size of the ciphertext may be smaller, depending
  * on the algorithm.
@@ -488,9 +488,9 @@
      ((void)alg, PSA_BITS_TO_BYTES(key_bits)) :                         \
      0)
 
-/** Safe output buffer size for psa_asymmetric_decrypt().
+/** Sufficient output buffer size for psa_asymmetric_decrypt().
  *
- * This macro returns a safe buffer size for a ciphertext produced using
+ * This macro returns a sufficient buffer size for a ciphertext produced using
  * a key of the specified type and size, with the specified algorithm.
  * Note that the actual size of the ciphertext may be smaller, depending
  * on the algorithm.
@@ -629,7 +629,7 @@
 #define PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(key_bits)   \
     (PSA_BITS_TO_BYTES(key_bits))
 
-/** Safe output buffer size for psa_export_key() or psa_export_public_key().
+/** Sufficient output buffer size for psa_export_key() or psa_export_public_key().
  *
  * This macro returns a compile-time constant if its arguments are
  * compile-time constants.

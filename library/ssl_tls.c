@@ -9862,7 +9862,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
                               size_t *olen )
 {
     unsigned char *p = buf;
-    size_t left = buf_len;
+    size_t used = 0;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     size_t cert_len;
@@ -9874,15 +9874,16 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
     /*
      * Shallow copy of the session structure
      */
-    if( left < sizeof( mbedtls_ssl_session ) )
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-    left -= sizeof( mbedtls_ssl_session );
+    used += sizeof( mbedtls_ssl_session );
 
     /* This also copies the values of pointer fields in the
      * session to be serialized, but they'll be ignored when
      * loading the session through ssl_load_session(). */
-    memcpy( p, session, sizeof( mbedtls_ssl_session ) );
-    p += sizeof( mbedtls_ssl_session );
+    if( used <= buf_len )
+    {
+        memcpy( p, session, sizeof( mbedtls_ssl_session ) );
+        p += sizeof( mbedtls_ssl_session );
+    }
 
     /*
      * Copy of the peer's end-entity certificate
@@ -9894,40 +9895,37 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
     else
         cert_len = session->peer_cert->raw.len;
 
-    if( left < 3 + cert_len )
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-    left -= 3 + cert_len;
+    used += 3 + cert_len;
 
-    *p++ = (unsigned char)( ( cert_len >> 16 ) & 0xFF );
-    *p++ = (unsigned char)( ( cert_len >>  8 ) & 0xFF );
-    *p++ = (unsigned char)( ( cert_len       ) & 0xFF );
-    left -= 3;
-
-    if( session->peer_cert != NULL )
+    if( used <= buf_len )
     {
-        memcpy( p, session->peer_cert->raw.p, cert_len );
-        p += cert_len;
-    }
+        *p++ = (unsigned char)( ( cert_len >> 16 ) & 0xFF );
+        *p++ = (unsigned char)( ( cert_len >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( cert_len       ) & 0xFF );
 
-    p += cert_len;
-    left -= cert_len;
+        if( session->peer_cert != NULL )
+        {
+            memcpy( p, session->peer_cert->raw.p, cert_len );
+            p += cert_len;
+        }
+    }
 #else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     if( session->peer_cert_digest != NULL )
         cert_digest_len = 0;
     else
         cert_digest_len = session->peer_cert_digest_len;
 
-    if( left < 1 + cert_digest_len )
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    used += 1 + cert_digest_len;
 
-    *p++ = (unsigned char) cert_digest_len;
-    left--;
+    if( used <= buf_len )
+    {
+        *p++ = (unsigned char) cert_digest_len;
 
-    if( session->peer_cert_digest != NULL )
-        memcpy( p, session->peer_cert_digest, cert_digest_len );
+        if( session->peer_cert_digest != NULL )
+            memcpy( p, session->peer_cert_digest, cert_digest_len );
 
-    p    += cert_digest_len;
-    left -= cert_digest_len;
+        p += cert_digest_len;
+    }
 #endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -9935,24 +9933,27 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
      * Copy of the session ticket if any
      */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
-    if( left < 3 + session->ticket_len )
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-    left -= 3 + session->ticket_len;
+    used += 3 + session->ticket_len;
 
-    *p++ = (unsigned char)( ( session->ticket_len >> 16 ) & 0xFF );
-    *p++ = (unsigned char)( ( session->ticket_len >>  8 ) & 0xFF );
-    *p++ = (unsigned char)( ( session->ticket_len       ) & 0xFF );
-
-    if( session->ticket != NULL )
+    if( used <= buf_len )
     {
-        memcpy( p, session->ticket, session->ticket_len );
-        p += session->ticket_len;
+        *p++ = (unsigned char)( ( session->ticket_len >> 16 ) & 0xFF );
+        *p++ = (unsigned char)( ( session->ticket_len >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( session->ticket_len       ) & 0xFF );
+
+        if( session->ticket != NULL )
+        {
+            memcpy( p, session->ticket, session->ticket_len );
+            p += session->ticket_len;
+        }
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
     /* Done */
-    (void) left;
-    *olen = p - buf;
+    *olen = used;
+
+    if( used > buf_len )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
     return( 0 );
 }

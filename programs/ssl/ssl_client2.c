@@ -38,6 +38,8 @@
 #define mbedtls_calloc     calloc
 #define mbedtls_free       free
 #define mbedtls_exit            exit
+#define mbedtls_calloc      calloc
+#define mbedtls_free        free
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
@@ -1052,8 +1054,8 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_ssl_session saved_session;
-    unsigned char session_data[MBEDTLS_SSL_MAX_CONTENT_LEN];
-    size_t session_data_len;
+    unsigned char *session_data = NULL;
+    size_t session_data_len = 0;
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_timing_delay_context timer;
 #endif
@@ -2456,8 +2458,25 @@ int main( int argc, char *argv[] )
 
         if( opt.reco_mode == 1 )
         {
+            /* free any previously saved data */
+            mbedtls_free( session_data );
+            session_data = NULL;
+
+            /* get size of the buffer needed */
+            mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
+                                      NULL, 0, &session_data_len );
+            session_data = mbedtls_calloc( 1, session_data_len );
+            if( session_data == NULL )
+            {
+                mbedtls_printf( " failed\n  ! alloc %u bytes for session data\n",
+                                (unsigned) session_data_len );
+                ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+                goto exit;
+            }
+
+            /* actually save session data */
             if( ( ret = mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
-                                                  session_data, sizeof( session_data ),
+                                                  session_data, session_data_len,
                                                   &session_data_len ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_session_saved returned -0x%04x\n\n",
@@ -2476,6 +2495,12 @@ int main( int argc, char *argv[] )
         }
 
         mbedtls_printf( " ok\n" );
+
+        if( opt.reco_mode == 1 )
+        {
+            mbedtls_printf( "    [ Saved %u bytes of session data]\n",
+                            (unsigned) session_data_len );
+        }
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -2999,6 +3024,7 @@ exit:
     mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
+    mbedtls_free( session_data );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)

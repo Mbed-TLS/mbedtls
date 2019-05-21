@@ -2188,10 +2188,16 @@ int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
  *
  * \param session  The session structure to be saved.
  * \param buf      The buffer to write the serialized data to. It must be a
- *                 writeable buffer of at least \p len bytes.
+ *                 writeable buffer of at least \p len bytes, or may be \c
+ *                 NULL if \p len is \c 0.
  * \param buf_len  The number of bytes available for writing in \p buf.
- * \param olen     The size of the written data in bytes. It must point to a
- *                 valid \c size_t.
+ * \param olen     The size in bytes of the data that has been or would have
+ *                 been written. It must point to a valid \c size_t.
+ *
+ * \note           \p olen is updated to the correct value regardless of
+ *                 whether \p buf_len was large enough. This makes it possible
+ *                 to determine the necessary size by calling this function
+ *                 with \p buf set to \c NULL and \p buf_len to \c 0.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.

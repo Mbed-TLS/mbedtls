@@ -45,7 +45,7 @@
  * \brief Function return status.
  *
  * This is either #PSA_SUCCESS (which is zero), indicating success,
- * or a nonzero value indicating that an error occurred. Errors are
+ * or a small negative value indicating that an error occurred. Errors are
  * encoded as one of the \c PSA_ERROR_xxx values defined here. */
 /* If #PSA_SUCCESS is already defined, it means that #psa_status_t
  * is also defined in an external header, so prevent its multiple

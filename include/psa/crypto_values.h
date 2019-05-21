@@ -480,7 +480,19 @@
 #define PSA_ECC_CURVE_BRAINPOOL_P256R1  ((psa_ecc_curve_t) 0x001a)
 #define PSA_ECC_CURVE_BRAINPOOL_P384R1  ((psa_ecc_curve_t) 0x001b)
 #define PSA_ECC_CURVE_BRAINPOOL_P512R1  ((psa_ecc_curve_t) 0x001c)
+/** Curve25519.
+ *
+ * This is the curve defined in Bernstein et al.,
+ * _Curve25519: new Diffie-Hellman speed records_, LNCS 3958, 2006.
+ * The algorithm #PSA_ALG_ECDH performs X25519 when used with this curve.
+ */
 #define PSA_ECC_CURVE_CURVE25519        ((psa_ecc_curve_t) 0x001d)
+/** Curve448
+ *
+ * This is the curve defined in Hamburg,
+ * _Ed448-Goldilocks, a new elliptic curve_, NIST ECC Workshop, 2015.
+ * The algorithm #PSA_ALG_ECDH performs X448 when used with this curve.
+ */
 #define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x001e)
 
 #define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE         ((psa_key_type_t)0x60040000)

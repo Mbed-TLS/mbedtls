@@ -426,9 +426,9 @@
 #define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)    \
     (PSA_BITS_TO_BYTES(curve_bits) * 2)
 
-/** Safe signature buffer size for psa_asymmetric_sign().
+/** Sufficient signature buffer size for psa_asymmetric_sign().
  *
- * This macro returns a safe buffer size for a signature using a key
+ * This macro returns a sufficient buffer size for a signature using a key
  * of the specified type and size, with the specified algorithm.
  * Note that the actual size of the signature may be smaller
  * (some algorithms produce a variable-size signature).
@@ -457,9 +457,9 @@
      PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_ECDSA_SIGNATURE_SIZE(key_bits) : \
      ((void)alg, 0))
 
-/** Safe output buffer size for psa_asymmetric_encrypt().
+/** Sufficient output buffer size for psa_asymmetric_encrypt().
  *
- * This macro returns a safe buffer size for a ciphertext produced using
+ * This macro returns a sufficient buffer size for a ciphertext produced using
  * a key of the specified type and size, with the specified algorithm.
  * Note that the actual size of the ciphertext may be smaller, depending
  * on the algorithm.
@@ -488,9 +488,9 @@
      ((void)alg, PSA_BITS_TO_BYTES(key_bits)) :                         \
      0)
 
-/** Safe output buffer size for psa_asymmetric_decrypt().
+/** Sufficient output buffer size for psa_asymmetric_decrypt().
  *
- * This macro returns a safe buffer size for a ciphertext produced using
+ * This macro returns a sufficient buffer size for a ciphertext produced using
  * a key of the specified type and size, with the specified algorithm.
  * Note that the actual size of the ciphertext may be smaller, depending
  * on the algorithm.
@@ -629,7 +629,7 @@
 #define PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(key_bits)   \
     (PSA_BITS_TO_BYTES(key_bits))
 
-/** Safe output buffer size for psa_export_key() or psa_export_public_key().
+/** Sufficient output buffer size for psa_export_key() or psa_export_public_key().
  *
  * This macro returns a compile-time constant if its arguments are
  * compile-time constants.
@@ -641,14 +641,16 @@
  * The following code illustrates how to allocate enough memory to export
  * a key by querying the key type and size at runtime.
  * \code{c}
- * psa_key_type_t key_type;
- * size_t key_bits;
+ * psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
  * psa_status_t status;
- * status = psa_get_key_information(key, &key_type, &key_bits);
+ * status = psa_get_key_attributes(key, &attributes);
  * if (status != PSA_SUCCESS) handle_error(...);
+ * psa_key_type_t key_type = psa_get_key_type(&attributes);
+ * size_t key_bits = psa_get_key_bits(&attributes);
  * size_t buffer_size = PSA_KEY_EXPORT_MAX_SIZE(key_type, key_bits);
+ * psa_reset_key_attributes(&attributes);
  * unsigned char *buffer = malloc(buffer_size);
- * if (buffer != NULL) handle_error(...);
+ * if (buffer == NULL) handle_error(...);
  * size_t buffer_length;
  * status = psa_export_key(key, buffer, buffer_size, &buffer_length);
  * if (status != PSA_SUCCESS) handle_error(...);
@@ -658,15 +660,17 @@
  * public key type. You can use the macro #PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR
  * to convert a key pair type to the corresponding public key type.
  * \code{c}
- * psa_key_type_t key_type;
- * size_t key_bits;
+ * psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
  * psa_status_t status;
- * status = psa_get_key_information(key, &key_type, &key_bits);
+ * status = psa_get_key_attributes(key, &attributes);
  * if (status != PSA_SUCCESS) handle_error(...);
+ * psa_key_type_t key_type = psa_get_key_type(&attributes);
  * psa_key_type_t public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(key_type);
+ * size_t key_bits = psa_get_key_bits(&attributes);
  * size_t buffer_size = PSA_KEY_EXPORT_MAX_SIZE(public_key_type, key_bits);
+ * psa_reset_key_attributes(&attributes);
  * unsigned char *buffer = malloc(buffer_size);
- * if (buffer != NULL) handle_error(...);
+ * if (buffer == NULL) handle_error(...);
  * size_t buffer_length;
  * status = psa_export_public_key(key, buffer, buffer_size, &buffer_length);
  * if (status != PSA_SUCCESS) handle_error(...);

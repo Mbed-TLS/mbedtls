@@ -204,6 +204,22 @@ psa_status_t psa_crypto_init(void);
  */
 typedef struct psa_key_attributes_s psa_key_attributes_t;
 
+/** \def PSA_KEY_ATTRIBUTES_INIT
+ *
+ * This macro returns a suitable initializer for a key attribute structure
+ * of type #psa_key_attributes_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_KEY_ATTRIBUTES_INIT {0}
+#endif
+
+/** Return an initial value for a key attributes structure.
+ */
+static psa_key_attributes_t psa_key_attributes_init(void);
+
 /** Declare a key as persistent and set its key identifier.
  *
  * If the attribute structure currently declares the key as volatile (which
@@ -445,10 +461,17 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
 
 /** Open a handle to an existing persistent key.
  *
- * Open a handle to a key which was previously created with
- * psa_make_key_persistent() when setting its attributes.
- * The handle should eventually be closed with psa_close_key()
- * to release associated resources.
+ * Open a handle to a persistent key. A key is persistent if it was created
+ * with a lifetime other than #PSA_KEY_LIFETIME_VOLATILE. A persistent key
+ * always has a nonzero key identifier, set with psa_set_key_id() when
+ * creating the key. Implementations may provide additional pre-provisioned
+ * keys with identifiers in the range
+ * #PSA_KEY_ID_VENDOR_MIN&ndash;#PSA_KEY_ID_VENDOR_MAX.
+ *
+ * The application must eventually close the handle with psa_close_key()
+ * to release associated resources. If the application dies without calling
+ * psa_close_key(), the implementation should perform the equivalent of a
+ * call to psa_close_key().
  *
  * Implementations may provide additional keys that can be opened with
  * psa_open_key(). Such keys have a key identifier in the vendor range,

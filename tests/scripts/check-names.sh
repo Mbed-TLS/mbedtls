@@ -2,14 +2,20 @@
 #
 # This file is part of mbed TLS (https://tls.mbed.org)
 #
-# Copyright (c) 2015-2016, ARM Limited, All Rights Reserved
-#
-# Purpose
-#
-# This script confirms that the naming of all symbols and identifiers in mbed
-# TLS are consistent with the house style and are also self-consistent.
-#
+# Copyright (c) 2015-2019, ARM Limited, All Rights Reserved
+
 set -eu
+
+if [ $# -ne 0 ] && [ "$1" = "--help" ]; then
+    cat <<EOF
+$0 [-v]
+This script confirms that the naming of all symbols and identifiers in mbed
+TLS are consistent with the house style and are also self-consistent.
+
+  -v    If the script fails unexpectedly, print a command trace.
+EOF
+    exit
+fi
 
 if grep --version|head -n1|grep GNU >/dev/null; then :; else
     echo "This script requires GNU grep.">&2

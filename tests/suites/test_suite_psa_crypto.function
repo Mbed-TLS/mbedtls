@@ -1055,7 +1055,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void import_twice( int alg_arg, int usage_arg,
+void import_twice( int usage_arg, int alg_arg,
                    int type1_arg, data_t *data1,
                    int expected_import1_status_arg,
                    int type2_arg, data_t *data2,
@@ -1133,8 +1133,7 @@ exit:
 /* BEGIN_CASE */
 void import_export( data_t *data,
                     int type_arg,
-                    int alg_arg,
-                    int usage_arg,
+                    int usage_arg, int alg_arg,
                     int expected_bits,
                     int export_size_delta,
                     int expected_export_status_arg,
@@ -1933,30 +1932,75 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void copy_key_policy( int source_usage_arg, int source_alg_arg,
+void key_policy_alg2( int key_type_arg, data_t *key_data,
+                      int usage_arg, int alg_arg, int alg2_arg )
+{
+    psa_key_handle_t handle = 0;
+    psa_key_type_t key_type = key_type_arg;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_policy_t got_policy = PSA_KEY_POLICY_INIT;
+    psa_key_usage_t usage = usage_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t alg2 = alg2_arg;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    PSA_ASSERT( psa_allocate_key( &handle ) );
+    psa_key_policy_set_usage( &policy, usage, alg );
+    psa_key_policy_set_enrollment_algorithm( &policy, alg2 );
+    PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
+    PSA_ASSERT( psa_import_key( handle, key_type,
+                                key_data->x, key_data->len ) );
+
+    PSA_ASSERT( psa_get_key_policy( handle, &got_policy ) );
+    TEST_EQUAL( psa_key_policy_get_usage( &got_policy ), usage );
+    TEST_EQUAL( psa_key_policy_get_algorithm( &got_policy ), alg );
+    TEST_EQUAL( psa_key_policy_get_enrollment_algorithm( &got_policy ), alg2 );
+
+    if( ! exercise_key( handle, usage, alg ) )
+        goto exit;
+    if( ! exercise_key( handle, usage, alg2 ) )
+        goto exit;
+
+exit:
+    psa_destroy_key( handle );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void copy_key_policy( int source_usage_arg,
+                      int source_alg_arg, int source_alg2_arg,
                       int type_arg, data_t *material,
-                      int target_usage_arg, int target_alg_arg,
-                      int constraint_usage_arg, int constraint_alg_arg,
-                      int expected_usage_arg, int expected_alg_arg )
+                      int target_usage_arg,
+                      int target_alg_arg, int target_alg2_arg,
+                      int constraint_usage_arg,
+                      int constraint_alg_arg, int constraint_alg2_arg,
+                      int expected_usage_arg,
+                      int expected_alg_arg, int expected_alg2_arg )
 {
     psa_key_usage_t source_usage = source_usage_arg;
     psa_algorithm_t source_alg = source_alg_arg;
+    psa_algorithm_t source_alg2 = source_alg2_arg;
     psa_key_handle_t source_handle = 0;
     psa_key_policy_t source_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t source_type = type_arg;
     size_t source_bits;
     psa_key_usage_t target_usage = target_usage_arg;
     psa_algorithm_t target_alg = target_alg_arg;
+    psa_algorithm_t target_alg2 = target_alg2_arg;
     psa_key_handle_t target_handle = 0;
     psa_key_policy_t target_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t target_type;
     size_t target_bits;
     psa_key_usage_t constraint_usage = constraint_usage_arg;
     psa_algorithm_t constraint_alg = constraint_alg_arg;
+    psa_algorithm_t constraint_alg2 = constraint_alg2_arg;
     psa_key_policy_t constraint = PSA_KEY_POLICY_INIT;
     psa_key_policy_t *p_constraint = NULL;
     psa_key_usage_t expected_usage = expected_usage_arg;
     psa_algorithm_t expected_alg = expected_alg_arg;
+    psa_algorithm_t expected_alg2 = expected_alg2_arg;
     uint8_t *export_buffer = NULL;
 
     if( constraint_usage_arg != -1 )
@@ -1964,6 +2008,8 @@ void copy_key_policy( int source_usage_arg, int source_alg_arg,
         p_constraint = &constraint;
         psa_key_policy_set_usage( p_constraint,
                                   constraint_usage, constraint_alg );
+        psa_key_policy_set_enrollment_algorithm( p_constraint,
+                                                 constraint_alg2 );
     }
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -1971,6 +2017,7 @@ void copy_key_policy( int source_usage_arg, int source_alg_arg,
     /* Populate the source slot. */
     PSA_ASSERT( psa_allocate_key( &source_handle ) );
     psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
+    psa_key_policy_set_enrollment_algorithm( &source_policy, source_alg2 );
     PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
     PSA_ASSERT( psa_import_key( source_handle, source_type,
                                 material->x, material->len ) );
@@ -1979,6 +2026,7 @@ void copy_key_policy( int source_usage_arg, int source_alg_arg,
     /* Prepare the target slot. */
     PSA_ASSERT( psa_allocate_key( &target_handle ) );
     psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
+    psa_key_policy_set_enrollment_algorithm( &target_policy, target_alg2 );
     PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
     target_policy = psa_key_policy_init();
 
@@ -1996,6 +2044,8 @@ void copy_key_policy( int source_usage_arg, int source_alg_arg,
     PSA_ASSERT( psa_get_key_policy( target_handle, &target_policy ) );
     TEST_EQUAL( expected_usage, psa_key_policy_get_usage( &target_policy ) );
     TEST_EQUAL( expected_alg, psa_key_policy_get_algorithm( &target_policy ) );
+    TEST_EQUAL( expected_alg2,
+                psa_key_policy_get_enrollment_algorithm( &target_policy ) );
     if( expected_usage & PSA_KEY_USAGE_EXPORT )
     {
         size_t length;
@@ -2017,10 +2067,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void copy_fail( int source_usage_arg, int source_alg_arg,
+void copy_fail( int source_usage_arg, int source_alg_arg, int source_alg2_arg,
                 int type_arg, data_t *material,
-                int target_usage_arg, int target_alg_arg,
-                int constraint_usage_arg, int constraint_alg_arg,
+                int target_usage_arg, int target_alg_arg, int target_alg2_arg,
+                int constraint_usage_arg,
+                int constraint_alg_arg, int constraint_alg2_arg,
                 int expected_status_arg )
 {
     /* Test copy failure into an empty slot. There is a test for copy failure
@@ -2029,18 +2080,21 @@ void copy_fail( int source_usage_arg, int source_alg_arg,
 
     psa_key_usage_t source_usage = source_usage_arg;
     psa_algorithm_t source_alg = source_alg_arg;
+    psa_algorithm_t source_alg2 = source_alg2_arg;
     psa_key_handle_t source_handle = 0;
     psa_key_policy_t source_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t source_type = type_arg;
     size_t source_bits;
     psa_key_usage_t target_usage = target_usage_arg;
     psa_algorithm_t target_alg = target_alg_arg;
+    psa_algorithm_t target_alg2 = target_alg2_arg;
     psa_key_handle_t target_handle = 0;
     psa_key_policy_t target_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t target_type;
     size_t target_bits;
     psa_key_usage_t constraint_usage = constraint_usage_arg;
     psa_algorithm_t constraint_alg = constraint_alg_arg;
+    psa_algorithm_t constraint_alg2 = constraint_alg2_arg;
     psa_key_policy_t constraint = PSA_KEY_POLICY_INIT;
     psa_key_policy_t *p_constraint = NULL;
     psa_status_t expected_status = expected_status_arg;
@@ -2050,6 +2104,8 @@ void copy_fail( int source_usage_arg, int source_alg_arg,
         p_constraint = &constraint;
         psa_key_policy_set_usage( p_constraint,
                                   constraint_usage, constraint_alg );
+        psa_key_policy_set_enrollment_algorithm( p_constraint,
+                                                 constraint_alg2 );
     }
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -2057,6 +2113,7 @@ void copy_fail( int source_usage_arg, int source_alg_arg,
     /* Populate the source slot. */
     PSA_ASSERT( psa_allocate_key( &source_handle ) );
     psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
+    psa_key_policy_set_enrollment_algorithm( &source_policy, source_alg2 );
     PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
     PSA_ASSERT( psa_import_key( source_handle, source_type,
                                 material->x, material->len ) );
@@ -2065,6 +2122,7 @@ void copy_fail( int source_usage_arg, int source_alg_arg,
     /* Prepare the target slot. */
     PSA_ASSERT( psa_allocate_key( &target_handle ) );
     psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
+    psa_key_policy_set_enrollment_algorithm( &target_policy, target_alg2 );
     PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
     target_policy = psa_key_policy_init();
 
@@ -2079,6 +2137,8 @@ void copy_fail( int source_usage_arg, int source_alg_arg,
     PSA_ASSERT( psa_get_key_policy( target_handle, &target_policy ) );
     TEST_EQUAL( target_usage, psa_key_policy_get_usage( &target_policy ) );
     TEST_EQUAL( target_alg, psa_key_policy_get_algorithm( &target_policy ) );
+    TEST_EQUAL( target_alg2,
+                psa_key_policy_get_enrollment_algorithm( &target_policy ) );
 
 exit:
     mbedtls_psa_crypto_free( );

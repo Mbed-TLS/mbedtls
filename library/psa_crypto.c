@@ -621,6 +621,9 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
     mbedtls_ecp_keypair *ecp = NULL;
     mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
 
+    if( PSA_BITS_TO_BYTES( PSA_ECC_CURVE_BITS( curve ) ) != data_length )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     *p_ecp = NULL;
     ecp = mbedtls_calloc( 1, sizeof( mbedtls_ecp_keypair ) );
     if( ecp == NULL )
@@ -745,7 +748,7 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
     psa_algorithm_t alg1,
     psa_algorithm_t alg2 )
 {
-    /* Common case: the policy only allows alg. */
+    /* Common case: both sides actually specify the same policy. */
     if( alg1 == alg2 )
         return( alg1 );
     /* If the policies are from the same hash-and-sign family, check
@@ -763,6 +766,25 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
     return( 0 );
 }
 
+static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
+                                      psa_algorithm_t requested_alg )
+{
+    /* Common case: the policy only allows requested_alg. */
+    if( requested_alg == policy_alg )
+        return( 1 );
+    /* If policy_alg is a hash-and-sign with a wildcard for the hash,
+     * and requested_alg is the same hash-and-sign family with any hash,
+     * then requested_alg is compliant with policy_alg. */
+    if( PSA_ALG_IS_HASH_AND_SIGN( requested_alg ) &&
+        PSA_ALG_SIGN_GET_HASH( policy_alg ) == PSA_ALG_ANY_HASH )
+    {
+        return( ( policy_alg & ~PSA_ALG_HASH_MASK ) ==
+                ( requested_alg & ~PSA_ALG_HASH_MASK ) );
+    }
+    /* If it isn't permitted, it's forbidden. */
+    return( 0 );
+}
+
 /** Test whether a policy permits an algorithm.
  *
  * The caller must test usage flags separately.
@@ -770,20 +792,8 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
 static int psa_key_policy_permits( const psa_key_policy_t *policy,
                                    psa_algorithm_t alg )
 {
-    /* Common case: the policy only allows alg. */
-    if( alg == policy->alg )
-        return( 1 );
-    /* If policy->alg is a hash-and-sign with a wildcard for the hash,
-     * and alg is the same hash-and-sign family with any hash,
-     * then alg is compliant with policy->alg. */
-    if( PSA_ALG_IS_HASH_AND_SIGN( alg ) &&
-        PSA_ALG_SIGN_GET_HASH( policy->alg ) == PSA_ALG_ANY_HASH )
-    {
-        return( ( policy->alg & ~PSA_ALG_HASH_MASK ) ==
-                (         alg & ~PSA_ALG_HASH_MASK ) );
-    }
-    /* If it isn't permitted, it's forbidden. */
-    return( 0 );
+    return( psa_key_algorithm_permits( policy->alg, alg ) ||
+            psa_key_algorithm_permits( policy->alg2, alg ) );
 }
 
 /** Restrict a key policy based on a constraint.
@@ -804,10 +814,15 @@ static psa_status_t psa_restrict_key_policy(
 {
     psa_algorithm_t intersection_alg =
         psa_key_policy_algorithm_intersection( policy->alg, constraint->alg );
+    psa_algorithm_t intersection_alg2 =
+        psa_key_policy_algorithm_intersection( policy->alg2, constraint->alg2 );
     if( intersection_alg == 0 && policy->alg != 0 && constraint->alg != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    if( intersection_alg2 == 0 && policy->alg2 != 0 && constraint->alg2 != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
     policy->usage &= constraint->usage;
     policy->alg = intersection_alg;
+    policy->alg2 = intersection_alg2;
     return( PSA_SUCCESS );
 }
 
@@ -3217,6 +3232,18 @@ psa_key_usage_t psa_key_policy_get_usage( const psa_key_policy_t *policy )
 psa_algorithm_t psa_key_policy_get_algorithm( const psa_key_policy_t *policy )
 {
     return( policy->alg );
+}
+
+void psa_key_policy_set_enrollment_algorithm( psa_key_policy_t *policy,
+                                              psa_algorithm_t alg2 )
+{
+    policy->alg2 = alg2;
+}
+
+psa_algorithm_t psa_key_policy_get_enrollment_algorithm(
+    const psa_key_policy_t *policy )
+{
+    return( policy->alg2 );
 }
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_SPM) */
 

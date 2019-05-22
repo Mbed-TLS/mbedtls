@@ -228,9 +228,10 @@ struct psa_key_policy_s
 {
     psa_key_usage_t usage;
     psa_algorithm_t alg;
+    psa_algorithm_t alg2;
 };
 
-#define PSA_KEY_POLICY_INIT {0, 0}
+#define PSA_KEY_POLICY_INIT {0, 0, 0}
 static inline struct psa_key_policy_s psa_key_policy_init( void )
 {
     const struct psa_key_policy_s v = PSA_KEY_POLICY_INIT;

@@ -65,7 +65,7 @@ static int psa_key_policy_equal( psa_key_policy_t *p1,
  */
 
 /* BEGIN_CASE */
-void transient_slot_lifecycle( int alg_arg, int usage_arg,
+void transient_slot_lifecycle( int usage_arg, int alg_arg,
                                int type_arg, data_t *key_data,
                                int close_method_arg )
 {
@@ -114,19 +114,25 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
-                                int alg_arg, int usage_arg,
+                                int usage_arg, int alg_arg, int alg2_arg,
                                 int type_arg, data_t *key_data,
                                 int close_method_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_id_t id = id_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t alg2 = alg2_arg;
     psa_key_usage_t usage_flags = usage_arg;
     psa_key_type_t type = type_arg;
+    size_t bits;
     close_method_t close_method = close_method_arg;
     psa_key_type_t read_type;
+    size_t read_bits;
     psa_key_handle_t handle = 0;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_policy_t read_policy = PSA_KEY_POLICY_INIT;
+    uint8_t *reexported = NULL;
+    size_t reexported_length = -1;
 
     TEST_MAX_KEY_ID( id );
 
@@ -136,9 +142,10 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     PSA_ASSERT( psa_create_key( lifetime, id, &handle ) );
     TEST_ASSERT( handle != 0 );
     psa_key_policy_set_usage( &policy, usage_flags, alg );
+    psa_key_policy_set_enrollment_algorithm( &policy, alg2 );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
     PSA_ASSERT( psa_import_key( handle, type, key_data->x, key_data->len ) );
-    PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
+    PSA_ASSERT( psa_get_key_information( handle, &read_type, &bits ) );
     TEST_EQUAL( read_type, type );
 
     /* Close the key and reopen it. */
@@ -167,14 +174,38 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
 
     /* Try to reopen the key. If we destroyed it, check that it doesn't
-     * exist, otherwise check that it still exists. */
+     * exist. Otherwise check that it still exists and has the expected
+     * content. */
     switch( close_method )
     {
         case CLOSE_BY_CLOSE:
         case CLOSE_BY_SHUTDOWN:
             PSA_ASSERT( psa_open_key( lifetime, id, &handle ) );
-            PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
+            PSA_ASSERT( psa_get_key_policy( handle, &read_policy ) );
+            PSA_ASSERT( psa_get_key_information( handle,
+                                                 &read_type, &read_bits ) );
             TEST_EQUAL( read_type, type );
+            TEST_EQUAL( read_bits, bits );
+            TEST_EQUAL( psa_key_policy_get_usage( &read_policy ), usage_flags );
+            TEST_EQUAL( psa_key_policy_get_algorithm( &read_policy ), alg );
+            TEST_EQUAL( psa_key_policy_get_enrollment_algorithm( &read_policy ),
+                        alg2 );
+            if( policy.usage & PSA_KEY_USAGE_EXPORT )
+            {
+                ASSERT_ALLOC( reexported, key_data->len );
+                PSA_ASSERT( psa_export_key( handle,
+                                            reexported, key_data->len,
+                                            &reexported_length ) );
+                ASSERT_COMPARE( key_data->x, key_data->len,
+                                reexported, reexported_length );
+            }
+            else
+            {
+                TEST_EQUAL( psa_export_key( handle,
+                                            reexported, sizeof( reexported ),
+                                            &reexported_length ),
+                            PSA_ERROR_NOT_PERMITTED );
+            }
             break;
         case CLOSE_BY_DESTROY:
             TEST_EQUAL( psa_open_key( lifetime, id, &handle ),
@@ -185,6 +216,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
 exit:
     mbedtls_psa_crypto_free( );
     psa_purge_key_storage( );
+    mbedtls_free( reexported );
 }
 /* END_CASE */
 
@@ -295,16 +327,20 @@ exit:
 
 /* BEGIN_CASE */
 void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
-                            int source_usage_arg, int source_alg_arg,
+                            int source_usage_arg,
+                            int source_alg_arg, int source_alg2_arg,
                             int type_arg, data_t *material,
                             int target_lifetime_arg, int target_id_arg,
-                            int target_usage_arg, int target_alg_arg,
-                            int expected_usage_arg, int expected_alg_arg )
+                            int target_usage_arg,
+                            int target_alg_arg, int target_alg2_arg,
+                            int expected_usage_arg,
+                            int expected_alg_arg, int expected_alg2_arg )
 {
     psa_key_lifetime_t source_lifetime = source_lifetime_arg;
     psa_key_id_t source_id = source_id_arg;
     psa_key_usage_t source_usage = source_usage_arg;
     psa_algorithm_t source_alg = source_alg_arg;
+    psa_algorithm_t source_alg2 = source_alg2_arg;
     psa_key_handle_t source_handle = 0;
     psa_key_policy_t source_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t source_type = type_arg;
@@ -313,12 +349,14 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     psa_key_id_t target_id = target_id_arg;
     psa_key_usage_t target_usage = target_usage_arg;
     psa_algorithm_t target_alg = target_alg_arg;
+    psa_algorithm_t target_alg2 = target_alg2_arg;
     psa_key_handle_t target_handle = 0;
     psa_key_policy_t target_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t target_type;
     size_t target_bits;
     psa_key_usage_t expected_usage = expected_usage_arg;
     psa_algorithm_t expected_alg = expected_alg_arg;
+    psa_algorithm_t expected_alg2 = expected_alg2_arg;
     uint8_t *export_buffer = NULL;
 
     TEST_MAX_KEY_ID( source_id );
@@ -333,6 +371,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
         PSA_ASSERT( psa_create_key( source_lifetime, source_id,
                                     &source_handle ) );
     psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
+    psa_key_policy_set_enrollment_algorithm( &source_policy, source_alg2 );
     PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
     PSA_ASSERT( psa_import_key( source_handle, source_type,
                                 material->x, material->len ) );
@@ -345,6 +384,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
         PSA_ASSERT( psa_create_key( target_lifetime, target_id,
                                     &target_handle ) );
     psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
+    psa_key_policy_set_enrollment_algorithm( &target_policy, target_alg2 );
     PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
     target_policy = psa_key_policy_init();
 
@@ -372,6 +412,8 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     PSA_ASSERT( psa_get_key_policy( target_handle, &target_policy ) );
     TEST_EQUAL( expected_usage, psa_key_policy_get_usage( &target_policy ) );
     TEST_EQUAL( expected_alg, psa_key_policy_get_algorithm( &target_policy ) );
+    TEST_EQUAL( expected_alg2,
+                psa_key_policy_get_enrollment_algorithm( &target_policy ) );
     if( expected_usage & PSA_KEY_USAGE_EXPORT )
     {
         size_t length;

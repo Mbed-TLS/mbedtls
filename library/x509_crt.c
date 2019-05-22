@@ -2693,7 +2693,7 @@ exit:
  * properly. For maximum compatibility, all implementations SHOULD be prepared
  * to handle potentially extraneous certificates and arbitrary orderings from
  * any TLS version, with the exception of the end-entity certificate which
- * MUST be first. 
+ * MUST be first.
  */
 static void mbedtls_x509_crt_sort( mbedtls_x509_crt *chain )
 {

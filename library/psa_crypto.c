@@ -768,7 +768,7 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
     psa_algorithm_t alg1,
     psa_algorithm_t alg2 )
 {
-    /* Common case: the policy only allows alg. */
+    /* Common case: both sides actually specify the same policy. */
     if( alg1 == alg2 )
         return( alg1 );
     /* If the policies are from the same hash-and-sign family, check
@@ -789,12 +789,12 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
 static int psa_key_algorithm_permits( psa_algorithm_t policy_alg,
                                       psa_algorithm_t requested_alg )
 {
-    /* Common case: the policy only allows alg. */
+    /* Common case: the policy only allows requested_alg. */
     if( requested_alg == policy_alg )
         return( 1 );
     /* If policy_alg is a hash-and-sign with a wildcard for the hash,
-     * and alg is the same hash-and-sign family with any hash,
-     * then alg is compliant with policy_alg. */
+     * and requested_alg is the same hash-and-sign family with any hash,
+     * then requested_alg is compliant with policy_alg. */
     if( PSA_ALG_IS_HASH_AND_SIGN( requested_alg ) &&
         PSA_ALG_SIGN_GET_HASH( policy_alg ) == PSA_ALG_ANY_HASH )
     {

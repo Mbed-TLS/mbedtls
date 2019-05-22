@@ -81,7 +81,7 @@ extern "C" {
  *          attacks based on arithmetic relations between different
  *          computations made with the same key, or can escalate harmless
  *          side channels into exploitable ones. Use this function only
- *          if it is necessary to support a protocol for which is has been
+ *          if it is necessary to support a protocol for which it has been
  *          verified that the usage of the key with multiple algorithms
  *          is safe.
  */

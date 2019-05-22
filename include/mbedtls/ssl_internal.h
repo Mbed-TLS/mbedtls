@@ -960,6 +960,16 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );
 #endif
 
+static inline int mbedtls_ssl_get_minor_ver( mbedtls_ssl_context const *ssl )
+{
+    return( ssl->minor_ver );
+}
+
+static inline int mbedtls_ssl_get_major_ver( mbedtls_ssl_context const *ssl )
+{
+    return( ssl->major_ver );
+}
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl )
 {

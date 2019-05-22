@@ -784,9 +784,18 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
     if( opt.transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         return( 0 );
 
-    /* Check if the use of a CID has been negotiated */
+    /* Check if the use of a CID has been negotiated,
+     * but don't ask for the CID value and length.
+     *
+     * Note: Here and below, we're demonstrating the various ways
+     *       in which mbedtls_ssl_get_peer_cid() can be called,
+     *       depending on whether or not the length/value of the
+     *       peer's CID is needed.
+     *
+     *       An actual application, however, should use
+     *       just one call to mbedtls_ssl_get_peer_cid(). */
     ret = mbedtls_ssl_get_peer_cid( ssl, &cid_negotiated,
-                                    peer_cid, &peer_cid_len );
+                                    NULL, NULL );
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
@@ -807,6 +816,26 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
         size_t idx=0;
         mbedtls_printf( "(%s) Use of Connection ID has been negotiated.\n",
                         additional_description );
+
+        /* Ask for just the length of the peer's CID. */
+        ret = mbedtls_ssl_get_peer_cid( ssl, &cid_negotiated,
+                                        NULL, &peer_cid_len );
+        if( ret != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
+                            -ret );
+            return( ret );
+        }
+
+        /* Ask for just length + value of the peer's CID. */
+        ret = mbedtls_ssl_get_peer_cid( ssl, &cid_negotiated,
+                                        peer_cid, &peer_cid_len );
+        if( ret != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
+                            -ret );
+            return( ret );
+        }
         mbedtls_printf( "(%s) Peer CID (length %u Bytes): ",
                         additional_description,
                         (unsigned) peer_cid_len );

@@ -46,6 +46,9 @@ Bugfix
      for the parameter.
    * Add a check for MBEDTLS_X509_CRL_PARSE_C in ssl_server2, guarding the crl
      sni entry parameter. Reported by inestlerode in #560.
+   * Set the next sequence of the subject_alt_name to NULL when deleting
+     sequence on failure. Found and fix suggested by Philippe Antoine.
+     Credit to OSS-Fuzz.
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

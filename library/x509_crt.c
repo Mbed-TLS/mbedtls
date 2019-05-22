@@ -681,6 +681,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
                                           sizeof( mbedtls_x509_sequence ) );
                 mbedtls_free( seq_prv );
             }
+            subject_alt_name->next = NULL;
             return( ret );
         }
 

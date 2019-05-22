@@ -1716,27 +1716,35 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
     buf += mbedtls_ssl_hs_hdr_len( ssl );
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
-    mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
-                      ssl->conf->transport, buf + 0 );
-
-    if( ssl->major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
-        ssl->minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ||
-        ssl->major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) ||
-        ssl->minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "server version out of bounds - "
-                            " min: [%d:%d], server: [%d:%d], max: [%d:%d]",
-                            mbedtls_ssl_conf_get_min_major_ver( ssl->conf ),
-                            mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ),
-                            ssl->major_ver, ssl->minor_ver,
-                            mbedtls_ssl_conf_get_max_major_ver( ssl->conf ),
-                            mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) );
+        int major_ver, minor_ver;
 
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                     MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
+        mbedtls_ssl_read_version( &major_ver, &minor_ver,
+                                  ssl->conf->transport,
+                                  buf + 0 );
 
-        return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+        if( major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
+            minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ||
+            major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) ||
+            minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "server version out of bounds - "
+                         " min: [%d:%d], server: [%d:%d], max: [%d:%d]",
+                         mbedtls_ssl_conf_get_min_major_ver( ssl->conf ),
+                         mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ),
+                         major_ver, minor_ver,
+                         mbedtls_ssl_conf_get_max_major_ver( ssl->conf ),
+                         mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) );
+
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
+
+            return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+        }
+
+        ssl->minor_ver = minor_ver;
+        ssl->major_ver = major_ver;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu",

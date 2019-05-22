@@ -1621,32 +1621,39 @@ read_record_header:
      */
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, version", buf, 2 );
 
-    mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
-                      ssl->conf->transport, buf );
-
-    ssl->handshake->max_major_ver = ssl->major_ver;
-    ssl->handshake->max_minor_ver = ssl->minor_ver;
-
-    if( ssl->major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
-        ssl->minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
+        int minor_ver, major_ver;
+        mbedtls_ssl_read_version( &major_ver, &minor_ver,
+                                  ssl->conf->transport,
+                                  buf );
+
+        ssl->handshake->max_major_ver = major_ver;
+        ssl->handshake->max_minor_ver = minor_ver;
+
+        if( major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
+            minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
                             " [%d:%d] < [%d:%d]",
-                            ssl->major_ver, ssl->minor_ver,
+                            major_ver, minor_ver,
                             mbedtls_ssl_conf_get_min_major_ver( ssl->conf ),
                             mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                     MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
-        return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
-    }
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                            MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
+            return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+        }
 
-    if( ssl->major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) )
-    {
-        ssl->major_ver = mbedtls_ssl_conf_get_max_major_ver( ssl->conf );
-        ssl->minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
+        if( major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) )
+        {
+            major_ver = mbedtls_ssl_conf_get_max_major_ver( ssl->conf );
+            minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
+        }
+        else if( minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+            minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
+
+        ssl->major_ver = major_ver;
+        ssl->minor_ver = minor_ver;
     }
-    else if( ssl->minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
-        ssl->minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
 
     /*
      * Save client random (inc. Unix time)

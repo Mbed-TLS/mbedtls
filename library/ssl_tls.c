@@ -185,9 +185,15 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
         return( 0 );
     }
 
-    *peer_cid_len = ssl->transform_in->out_cid_len;
-    memcpy( peer_cid, ssl->transform_in->out_cid,
-            ssl->transform_in->out_cid_len );
+    if( peer_cid_len != NULL )
+    {
+        *peer_cid_len = ssl->transform_in->out_cid_len;
+        if( peer_cid != NULL )
+        {
+            memcpy( peer_cid, ssl->transform_in->out_cid,
+                    ssl->transform_in->out_cid_len );
+        }
+    }
 
     *enabled = MBEDTLS_SSL_CID_ENABLED;
 

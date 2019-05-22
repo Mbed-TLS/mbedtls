@@ -1556,10 +1556,16 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
  *                     otherwise, it is set to MBEDTLS_SSL_CID_DISABLED.
  * \param peer_cid     The address of the buffer in which to store the CID
  *                     chosen by the peer (if the CID extension is used).
+ *                     This may be \c NULL in case the value of peer CID
+ *                     isn't needed. If it is not \c NULL, \p peer_cid_len
+ *                     must not be \c NULL.
  * \param peer_cid_len The address at which to store the size of the CID
  *                     chosen by the peer (if the CID extension is used).
  *                     This is also the number of Bytes in \p peer_cid that
  *                     have been written.
+ *                     This may be \c NULL in case the length of the peer CID
+ *                     isn't needed. If it is \c NULL, \p peer_cid must be
+ *                     \c NULL, too.
  *
  * \note               This applies to the state of the CID negotiated in
  *                     the last complete handshake. If a handshake is in

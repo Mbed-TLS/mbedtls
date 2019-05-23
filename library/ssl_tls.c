@@ -4870,7 +4870,8 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
          *   ProtocolVersion version;
          *   uint16 epoch;
          *   uint48 sequence_number;
-         *   opaque cid[cid_length];               // New field
+         *   opaque cid[cid_length]; // Additional field compared to
+         *                           // default DTLS record format
          *   uint16 length;
          *   opaque enc_content[DTLSCiphertext.length];
          * } DTLSCiphertext;

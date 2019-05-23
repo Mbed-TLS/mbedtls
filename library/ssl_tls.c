@@ -8862,11 +8862,14 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 }
 
 /*
- * Unserialise session, see mbedtls_ssl_session_save()
+ * Unserialise session, see mbedtls_ssl_session_save().
+ *
+ * This internal version is wrapped by a public function that cleans up in
+ * case of error.
  */
-int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
-                              const unsigned char *buf,
-                              size_t len )
+static int ssl_session_load( mbedtls_ssl_session *session,
+                             const unsigned char *buf,
+                             size_t len )
 {
     const unsigned char *p = buf;
     const unsigned char * const end = buf + len;
@@ -8882,6 +8885,15 @@ int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
 
     memcpy( session, p, sizeof( mbedtls_ssl_session ) );
     p += sizeof( mbedtls_ssl_session );
+
+    /* Immediately clear invalid pointer values that have been read, in case
+     * we exit early before we replaced them with valid ones. */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    session->peer_cert = NULL;
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    session->ticket = NULL;
+#endif
 
     /*
      * Peer certificate
@@ -8953,6 +8965,21 @@ int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     return( 0 );
+}
+
+/*
+ * Unserialise session: public wrapper for error cleaning
+ */
+int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
+                              const unsigned char *buf,
+                              size_t len )
+{
+    int ret = ssl_session_load( session, buf, len );
+
+    if( ret != 0 )
+        mbedtls_ssl_session_free( session );
+
+    return( ret );
 }
 
 /*

@@ -8714,5 +8714,25 @@ Record crypt, little space, NULL cipher, SSL3, MD5, short tag, EtM
 depends_on:MBEDTLS_CIPHER_NULL_CIPHER:MBEDTLS_SSL_PROTO_SSL3:MBEDTLS_MD5_C:MBEDTLS_SSL_ENCRYPT_THEN_MAC
 ssl_crypt_record_small:MBEDTLS_CIPHER_NULL:MBEDTLS_MD_MD5:1:1:MBEDTLS_SSL_MINOR_VERSION_0:0:0
 
-Session serialisation, load-save
-ssl_serialise_session_load_save:
+Session serialisation, load-save: no ticket, no cert
+ssl_serialise_session_load_save:0:""
+
+Session serialisation, load-save: small ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialise_session_load_save:42:""
+
+Session serialisation, load-save: large ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialise_session_load_save:1023:""
+
+Session serialisation, load-save: no ticket, cert
+depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C
+ssl_serialise_session_load_save:0:"data_files/server5.crt"
+
+Session serialisation, load-save: small ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C
+ssl_serialise_session_load_save:42:"data_files/server5.crt"
+
+Session serialisation, load-save: large ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C
+ssl_serialise_session_load_save:1023:"data_files/server5.crt"

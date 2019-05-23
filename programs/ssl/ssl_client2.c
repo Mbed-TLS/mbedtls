@@ -1869,7 +1869,6 @@ int main( int argc, char *argv[] )
             goto usage;
         }
 
-
         if( opt.cid_enabled == 1 )
             ret = mbedtls_ssl_conf_cid( &conf, cid_len,
                                         MBEDTLS_SSL_UNEXPECTED_CID_IGNORE );

@@ -2407,8 +2407,8 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_cid_len returned %d\n\n",
-                            ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_cid_len returned -%#04x\n\n",
+                            -ret );
             goto exit;
         }
     }

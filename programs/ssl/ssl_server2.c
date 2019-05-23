@@ -1994,7 +1994,6 @@ int main( int argc, char *argv[] )
         }
     }
 
-
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( unhexify( cid, opt.cid_val, &cid_len ) != 0 )
     {

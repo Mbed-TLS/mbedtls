@@ -9959,11 +9959,14 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 }
 
 /*
- * Unserialise session, see ssl_save_session()
+ * Unserialise session, see mbedtls_ssl_session_save().
+ *
+ * This internal version is wrapped by a public function that cleans up in
+ * case of error.
  */
-int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
-                              const unsigned char *buf,
-                              size_t len )
+static int ssl_session_load( mbedtls_ssl_session *session,
+                             const unsigned char *buf,
+                             size_t len )
 {
     const unsigned char *p = buf;
     const unsigned char * const end = buf + len;
@@ -10089,6 +10092,21 @@ int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     return( 0 );
+}
+
+/*
+ * Unserialise session: public wrapper for error cleaning
+ */
+int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
+                              const unsigned char *buf,
+                              size_t len )
+{
+    int ret = ssl_session_load( session, buf, len );
+
+    if( ret != 0 )
+        mbedtls_ssl_session_free( session );
+
+    return( ret );
 }
 
 /*

@@ -4938,9 +4938,9 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
-                        "version = [%d:%d], msglen = %d",
-                        ssl->in_msgtype,
-                        major_ver, minor_ver, ssl->in_msglen ) );
+                                "version = [%d:%d], msglen = %d",
+                                ssl->in_msgtype,
+                                major_ver, minor_ver, ssl->in_msglen ) );
 
     /*
      * DTLS-related tests.

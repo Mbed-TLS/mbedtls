@@ -8713,3 +8713,6 @@ ssl_crypt_record_small:MBEDTLS_CIPHER_NULL:MBEDTLS_MD_MD5:0:1:MBEDTLS_SSL_MINOR_
 Record crypt, little space, NULL cipher, SSL3, MD5, short tag, EtM
 depends_on:MBEDTLS_CIPHER_NULL_CIPHER:MBEDTLS_SSL_PROTO_SSL3:MBEDTLS_MD5_C:MBEDTLS_SSL_ENCRYPT_THEN_MAC
 ssl_crypt_record_small:MBEDTLS_CIPHER_NULL:MBEDTLS_MD_MD5:1:1:MBEDTLS_SSL_MINOR_VERSION_0:0:0
+
+Session serialisation, load-save
+ssl_serialise_session_load_save:

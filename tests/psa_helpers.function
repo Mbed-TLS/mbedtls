@@ -32,6 +32,36 @@
  */
 #define PSA_ASSERT( expr ) TEST_EQUAL( ( expr ), PSA_SUCCESS )
 
+static void test_helper_psa_done( int line, const char *file )
+{
+    mbedtls_psa_stats_t stats;
+    const char *msg = NULL;
+
+    mbedtls_psa_get_stats( &stats );
+
+    if( stats.volatile_slots != 0 )
+        msg = "A volatile slot has not been closed properly.";
+    else if( stats.persistent_slots != 0 )
+        msg = "A persistent slot has not been closed properly.";
+    else if( stats.external_slots != 0 )
+        msg = "An external slot has not been closed properly.";
+    else if( stats.half_filled_slots != 0 )
+        msg = "A half-filled slot has not been cleared properly.";
+
+    /* If the test failed, don't overwrite the failure information.
+     * Do keep the stats lookup above, because it can be convenient to
+     * break on it when debugging a failure. */
+    if( msg != NULL && test_info.failed == 0 )
+        test_fail( msg, line, file );
+
+    mbedtls_psa_crypto_free( );
+}
+
+/** Shut down the PSA subsystem. Expect a clean shutdown, with no slots
+ * in use.
+ */
+#define PSA_DONE( ) test_helper_psa_done( __LINE__, __FILE__ )
+
 /*
  * Local Variables:
  * mode: c

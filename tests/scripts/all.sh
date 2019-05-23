@@ -597,7 +597,7 @@ component_check_files () {
 
 component_check_names () {
     msg "test/build: declared and exported names" # < 3s
-    record_status tests/scripts/check-names.sh
+    record_status tests/scripts/check-names.sh -v
 }
 
 component_check_doxygen_warnings () {

@@ -712,3 +712,39 @@ exit:
     mbedtls_free( buf2 );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_serialise_session_save_buf_size( int ticket_len, char *crt_file )
+{
+    mbedtls_ssl_session session;
+    unsigned char *buf = NULL;
+    size_t good_len, bad_len, test_len;
+
+    /*
+     * Test that session_save() fails cleanly on small buffers
+     */
+
+    mbedtls_ssl_session_init( &session );
+
+    /* Prepare dummy session and get serialised size */
+    ssl_populate_session( &session, ticket_len, crt_file );
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &good_len )
+                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    /* Try all possible bad lengths */
+    for( bad_len = 1; bad_len < good_len; bad_len++ )
+    {
+        /* Allocate exact size so that asan/valgrind can detect any overwrite */
+        mbedtls_free( buf );
+        TEST_ASSERT( ( buf = mbedtls_calloc( 1, bad_len ) ) != NULL );
+        TEST_ASSERT( mbedtls_ssl_session_save( &session, buf, bad_len,
+                                               &test_len )
+                     == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        TEST_ASSERT( test_len == good_len );
+    }
+
+exit:
+    mbedtls_ssl_session_free( &session );
+    mbedtls_free( buf );
+}
+/* END_CASE */

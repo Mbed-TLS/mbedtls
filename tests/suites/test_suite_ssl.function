@@ -663,7 +663,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SEE_FUTURE_PR */
 void ssl_serialise_session_load_save( int ticket_len, char *crt_file )
 {
     mbedtls_ssl_session session;

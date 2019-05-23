@@ -605,3 +605,50 @@ exit:
     mbedtls_free( output );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_serialise_session_load_save(  )
+{
+    mbedtls_ssl_session session;
+    unsigned char *buf1 = NULL, *buf2 = NULL;
+    size_t len0, len1, len2;
+
+    /*
+     * Test that a load-save pair is the identity
+     */
+
+    mbedtls_ssl_session_init( &session );
+
+    /* Get desired buffer size for serialising */
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &len0 )
+                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    /* Allocate first buffer */
+    buf1 = mbedtls_calloc( 1, len0 );
+    TEST_ASSERT( buf1 != NULL );
+
+    /* Serialise to buffer and free session lived session */
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, buf1, len0, &len1 )
+                 == 0 );
+    TEST_ASSERT( len0 == len1 );
+    mbedtls_ssl_session_free( &session );
+
+    /* Restore session from serialised data */
+    TEST_ASSERT( mbedtls_ssl_session_load( &session, buf1, len1) == 0 );
+
+    /* Allocate second buffer and serialise to it */
+    buf2 = mbedtls_calloc( 1, len0 );
+    TEST_ASSERT( buf1 != NULL );
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, buf2, len0, &len2 )
+                 == 0 );
+
+    /* Make sure both serialised versions are identical */
+    TEST_ASSERT( len1 == len2 );
+    TEST_ASSERT( memcmp( buf1, buf2, len1 ) == 0 );
+
+exit:
+    mbedtls_ssl_session_free( &session );
+    mbedtls_free( buf1 );
+    mbedtls_free( buf2 );
+}
+/* END_CASE */

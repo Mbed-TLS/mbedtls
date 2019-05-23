@@ -1,10 +1,10 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
-#include "psa/crypto.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
+#include "psa_helpers.function"
 #if defined(MBEDTLS_PSA_ITS_FILE_C)
 #include <stdio.h>
 #else

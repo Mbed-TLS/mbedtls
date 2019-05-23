@@ -1,15 +1,11 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_SPM)
-#include "spm/psa_defs.h"
-#endif
-
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
 #include "mbedtls/oid.h"
 
-#include "psa/crypto.h"
+#include "psa_helpers.function"
 
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;

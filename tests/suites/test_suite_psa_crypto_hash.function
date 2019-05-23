@@ -2,11 +2,7 @@
 
 #include <stdint.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_SPM)
-#include "spm/psa_defs.h"
-#endif
-
-#include "psa/crypto.h"
+#include "psa_helpers.function"
 
 /* END_HEADER */
 

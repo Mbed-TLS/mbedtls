@@ -1,6 +1,8 @@
 /* BEGIN_HEADER */
 #include "../library/psa_crypto_its.h"
 
+#define PSA_ASSERT( expr ) TEST_EQUAL( ( expr ), PSA_SUCCESS )
+
 /* Internal definitions of the implementation, copied for the sake of
  * some of the tests and of the cleanup code. */
 #define PSA_ITS_STORAGE_PREFIX ""

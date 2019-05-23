@@ -2167,8 +2167,9 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
 /**
- * \brief               Specify the length of CIDs for incoming encrypted DTLS
- *                      records and specify the behaviour on unexpected CIDs.
+ * \brief               Specify the length of Connection IDs for incoming
+ *                      encrypted DTLS records, as well as the behaviour
+ *                      on unexpected CIDs.
  *
  *                      By default, the CID length is set to \c 0,
  *                      and unexpected CIDs are silently ignored.

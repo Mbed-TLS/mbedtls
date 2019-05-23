@@ -1295,7 +1295,7 @@
  *
  * Uncomment to enable the Connection ID extension.
  */
-#define MBEDTLS_SSL_DTLS_CONNECTION_ID
+//#define MBEDTLS_SSL_DTLS_CONNECTION_ID
 
 /**
  * \def MBEDTLS_SSL_ASYNC_PRIVATE

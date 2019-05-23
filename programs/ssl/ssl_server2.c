@@ -241,11 +241,11 @@ int main( void )
     "    cid=%%d             Disable (0) or enable (1) the use of the DTLS Connection ID extension.\n" \
     "                       default: 0 (disabled)\n"     \
     "    cid_renego=%%d      Disable (0) or enable (1) the use of the DTLS Connection ID extension during renegotiation.\n" \
-    "                       default: same as 'cid'\n"     \
+    "                       default: same as 'cid' parameter\n"     \
     "    cid_val=%%s          The CID to use for incoming messages (in hex, without 0x).\n"  \
     "                        default: \"\"\n" \
     "    cid_val_renego=%%s   The CID to use for incoming messages (in hex, without 0x) after renegotiation.\n"  \
-    "                        default: same as 'cid_val'\n"
+    "                        default: same as 'cid_val' parameter\n"
 #else /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 #define USAGE_CID ""
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */

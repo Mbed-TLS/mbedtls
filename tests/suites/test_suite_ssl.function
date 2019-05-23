@@ -267,6 +267,63 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Populate a session structure for serialisation tests.
+ * Choose dummy values, mostly non-0 to distinguish from the init default.
+ */
+static int ssl_populate_session( mbedtls_ssl_session *session,
+                             int ticket_len,
+                             const char *crt_file )
+{
+#if defined(MBEDTLS_HAVE_TIME)
+    session->start = mbedtls_time( NULL ) - 42;
+#endif
+    session->ciphersuite = 0xabcd;
+    session->compression = 1;
+    session->id_len = sizeof( session->id );
+    memset( session->id, 66, session->id_len );
+    memset( session->master, 17, sizeof( session-> master ) );
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if( strlen( crt_file ) != 0 )
+    {
+        int ret;
+        ret = mbedtls_x509_crt_parse_file( session->peer_cert, crt_file );
+        if( ret != 0 )
+            return( ret );
+    }
+#else
+    (void) crt_file;
+#endif
+    session->verify_result = 0xdeadbeef;
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    if( ticket_len != 0 )
+    {
+        session->ticket = mbedtls_calloc( 1, ticket_len );
+        if( session-> ticket == NULL )
+            return( -1 );
+        memset( session->ticket, 33, ticket_len );
+    }
+    session->ticket_len = ticket_len;
+    session->ticket_lifetime = 86401;
+#else
+    (void) ticket_len;
+#endif
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    session->mfl_code = 1;
+#endif
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+    session->trunc_hmac = 1;
+#endif
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    session->encrypt_then_mac = 1;
+#endif
+
+    return( 0 );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -607,7 +664,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ssl_serialise_session_load_save(  )
+void ssl_serialise_session_load_save( int ticket_len, char *crt_file )
 {
     mbedtls_ssl_session session;
     unsigned char *buf1 = NULL, *buf2 = NULL;
@@ -618,6 +675,9 @@ void ssl_serialise_session_load_save(  )
      */
 
     mbedtls_ssl_session_init( &session );
+
+    /* Prepare a dummy session to work on */
+    ssl_populate_session( &session, ticket_len, crt_file );
 
     /* Get desired buffer size for serialising */
     TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &len0 )

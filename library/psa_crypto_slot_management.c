@@ -232,4 +232,36 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     return( psa_wipe_key_slot( slot ) );
 }
 
+void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
+{
+    psa_key_handle_t key;
+    memset( stats, 0, sizeof( *stats ) );
+    for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
+    {
+        psa_key_slot_t *slot = &global_data.key_slots[key - 1];
+        if( slot->type == PSA_KEY_TYPE_NONE )
+        {
+            if( slot->allocated )
+                ++stats->half_filled_slots;
+            else
+                ++stats->empty_slots;
+            continue;
+        }
+        if( slot->lifetime == PSA_KEY_LIFETIME_VOLATILE )
+            ++stats->volatile_slots;
+        else if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+        {
+            ++stats->persistent_slots;
+            if( slot->persistent_storage_id > stats->max_open_internal_key_id )
+                stats->max_open_internal_key_id = slot->persistent_storage_id;
+        }
+        else
+        {
+            ++stats->external_slots;
+            if( slot->persistent_storage_id > stats->max_open_external_key_id )
+                stats->max_open_external_key_id = slot->persistent_storage_id;
+        }
+    }
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

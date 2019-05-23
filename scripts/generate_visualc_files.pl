@@ -5,7 +5,7 @@
 #
 # Must be run from mbedTLS root or scripts directory.
 # Takes "include_crypto" as an argument that can be either 0 (don't include) or
-# 1 (include). Off by default.
+# 1 (include). On by default.
 
 use warnings;
 use strict;
@@ -19,7 +19,7 @@ my $vsx_main_file = "$vsx_dir/mbedTLS.$vsx_ext";
 my $vsx_sln_tpl_file = "scripts/data_files/vs2010-sln-template.sln";
 my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
-my $include_crypto = 0;
+my $include_crypto = 1;
 if( @ARGV ) {
     die "Invalid number of arguments" if scalar @ARGV != 1;
     ($include_crypto) = @ARGV;
@@ -27,10 +27,21 @@ if( @ARGV ) {
 
 my $programs_dir = 'programs';
 my $header_dir = 'include/mbedtls';
+my $crypto_headers_dir = 'include/psa';
 my $source_dir = 'library';
 my $crypto_dir = 'crypto';
 
 # Need windows line endings!
+my $include_directories = <<EOT;
+../../include\r
+EOT
+
+if ($include_crypto) {
+  $include_directories = <<EOT;
+../../include;../../crypto/include\r
+EOT
+}
+
 my $vsx_hdr_tpl = <<EOT;
     <ClInclude Include="..\\..\\{NAME}" />\r
 EOT
@@ -63,7 +74,9 @@ sub check_dirs {
     return -d $vsx_dir
         && -d $header_dir
         && -d $source_dir
-        && -d $programs_dir;
+        && -d $programs_dir
+        && -d $crypto_dir
+        && -d "$crypto_dir/$crypto_headers_dir";
 }
 
 sub slurp_file {
@@ -111,6 +124,7 @@ sub gen_app {
     $content =~ s/<SOURCES>/$srcs/g;
     $content =~ s/<APPNAME>/$appname/g;
     $content =~ s/<GUID>/$guid/g;
+    $content =~ s/INCLUDE_DIRECTORIES\r\n/$include_directories/g;
 
     content_to_file( $content, "$dir/$appname.$ext" );
 }
@@ -153,6 +167,7 @@ sub gen_main_file {
     my $out = slurp_file( $main_tpl );
     $out =~ s/SOURCE_ENTRIES\r\n/$source_entries/m;
     $out =~ s/HEADER_ENTRIES\r\n/$header_entries/m;
+    $out =~ s/INCLUDE_DIRECTORIES\r\n/$include_directories/g;
 
     content_to_file( $out, $main_out );
 }
@@ -210,6 +225,7 @@ sub main {
             my $basename = $file; $basename =~ s!.*/!!;
             push @sources, $file unless -e "$crypto_dir/$source_dir/$basename";
         }
+        push @headers, <$crypto_dir/$crypto_headers_dir/*.h>;
     } else {
          @sources = <$source_dir/*.c>;
     }

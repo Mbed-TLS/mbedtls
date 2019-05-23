@@ -1726,18 +1726,27 @@
 /**
  * \def MBEDTLS_USE_PSA_CRYPTO
  *
- * Make the X.509 and TLS library use PSA for cryptographic operations, see
- * #MBEDTLS_PSA_CRYPTO_C.
+ * Make the X.509 and TLS library use PSA for cryptographic operations, and
+ * enable new APIs for using keys handled by PSA Crypto.
  *
- * Note: this option is still in progress, the full X.509 and TLS modules are
- * not covered yet, but parts that are not ported to PSA yet will still work
- * as usual, so enabling this option should not break backwards compatibility.
+ * \note Development of this option is currently in progress, and parts
+ * of the X.509 and TLS modules are not ported to PSA yet. However, these parts
+ * will still continue to work as usual, so enabling this option should not
+ * break backwards compatibility.
  *
- * \warning  Support for PSA is still an experimental feature.
- *           Any public API that depends on this option may change
- *           at any time until this warning is removed.
+ * \warning The PSA Crypto API is in beta stage. While you're welcome to
+ * experiment using it, incompatible API changes are still possible, and some
+ * parts may not have reached the same quality as the rest of Mbed TLS yet.
+ *
+ * \warning This option enables new Mbed TLS APIs that are dependent on the
+ * PSA Crypto API, so can't come with the same stability guarantees as the
+ * rest of the Mbed TLS APIs. You're welcome to experiment with them, but for
+ * now, access to these APIs is opt-in (via enabling the present option), in
+ * order to clearly differentiate them from the stable Mbed TLS APIs.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C.
+ *
+ * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
  */
 //#define MBEDTLS_USE_PSA_CRYPTO
 
@@ -2773,19 +2782,16 @@
  *
  * Enable the Platform Security Architecture cryptography API.
  *
- * \note This option only has an effect when the build option
- * USE_CRYPTO_SUBMODULE is also in use.
- *
- * \warning This feature is experimental and available on an opt-in basis only.
- * PSA APIs are subject to change at any time. The implementation comes with
- * less assurance and support than the rest of Mbed TLS.
+ * \warning The PSA Crypto API is still beta status. While you're welcome to
+ * experiment using it, incompatible API changes are still possible, and some
+ * parts may not have reached the same quality as the rest of Mbed TLS yet.
  *
  * Module:  crypto/library/psa_crypto.c
  *
  * Requires: MBEDTLS_CTR_DRBG_C, MBEDTLS_ENTROPY_C
  *
  */
-//#define MBEDTLS_PSA_CRYPTO_C
+#define MBEDTLS_PSA_CRYPTO_C
 
 /**
  * \def MBEDTLS_PSA_CRYPTO_STORAGE_C

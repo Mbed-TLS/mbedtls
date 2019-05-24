@@ -1512,8 +1512,8 @@ run_test    "Extended Master Secret: default" \
             -s "found extended master secret extension" \
             -s "server hello, adding extended master secret extension" \
             -c "found extended_master_secret extension" \
-            -c "using extended master secret" \
-            -s "using extended master secret"
+            -c "session hash for extended master secret" \
+            -s "session hash for extended master secret"
 
 run_test    "Extended Master Secret: client enabled, server disabled" \
             "$P_SRV debug_level=3 extended_ms=0" \
@@ -1523,8 +1523,8 @@ run_test    "Extended Master Secret: client enabled, server disabled" \
             -s "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash for extended master secret" \
+            -S "session hash for extended master secret"
 
 run_test    "Extended Master Secret: client disabled, server enabled" \
             "$P_SRV debug_level=3 extended_ms=1" \
@@ -1534,8 +1534,8 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
             -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash for extended master secret" \
+            -S "session hash for extended master secret"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client SSLv3, server enabled" \
@@ -1546,8 +1546,8 @@ run_test    "Extended Master Secret: client SSLv3, server enabled" \
             -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash for extended master secret" \
+            -S "session hash for extended master secret"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client enabled, server SSLv3" \
@@ -1558,8 +1558,8 @@ run_test    "Extended Master Secret: client enabled, server SSLv3" \
             -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash for extended master secret" \
+            -S "session hash for extended master secret"
 
 # Tests for FALLBACK_SCSV
 

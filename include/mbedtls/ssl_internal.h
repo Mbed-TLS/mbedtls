@@ -402,7 +402,7 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
-    void (*calc_verify)(mbedtls_ssl_context *, unsigned char *);
+    void (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
     void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
     int  (*tls_prf)(const unsigned char *, size_t, const char *,
                     const unsigned char *, size_t,

@@ -845,6 +845,14 @@ typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 
 /*
  * This structure is used for storing current session data.
+ *
+ * Note: when changing this definition, we need to check and update:
+ *  - in tests/suites/test_suite_ssl.function:
+ *      ssl_populate_session() and ssl_serialise_session_save_load()
+ *  - in library/ssl_tls.c:
+ *      mbedtls_ssl_session_init() and mbedtls_ssl_session_free()
+ *      mbedtls_ssl_session_save() and ssl_session_load()
+ *      ssl_session_copy()
  */
 struct mbedtls_ssl_session
 {

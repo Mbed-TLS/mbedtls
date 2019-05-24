@@ -5109,6 +5109,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
                 ssl->conf->ignore_unexpected_cid
                     == MBEDTLS_SSL_UNEXPECTED_CID_IGNORE )
             {
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "ignoring unexpected CID" ) );
                 ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
             }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */

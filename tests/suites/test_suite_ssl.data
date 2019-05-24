@@ -8753,6 +8753,29 @@ SSL TLS_PRF MBEDTLS_SSL_TLS_PRF_SHA256 SHA-256 not enabled
 depends_on:!MBEDTLS_SHA256_C
 ssl_tls_prf:MBEDTLS_SSL_TLS_PRF_SHA256:"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef":"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef":"test tls_prf label":"7f9998393198a02c8d731ccc2ef90b2c":MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
 
+Session serialisation, save-load: no ticket, no cert
+ssl_serialise_session_save_load:0:""
+
+Session serialisation, save-load: small ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialise_session_save_load:42:""
+
+Session serialisation, save-load: large ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialise_session_save_load:1023:""
+
+Session serialisation, save-load: no ticket, cert
+depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C
+ssl_serialise_session_save_load:0:"data_files/server5.crt"
+
+Session serialisation, save-load: small ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C
+ssl_serialise_session_save_load:42:"data_files/server5.crt"
+
+Session serialisation, save-load: large ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C
+ssl_serialise_session_save_load:1023:"data_files/server5.crt"
+
 Session serialisation, load-save: no ticket, no cert
 ssl_serialise_session_load_save:0:""
 

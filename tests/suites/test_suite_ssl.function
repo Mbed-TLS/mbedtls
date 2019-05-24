@@ -789,7 +789,7 @@ void ssl_serialise_session_load_save( int ticket_len, char *crt_file )
 
     /* Allocate second buffer and serialise to it */
     buf2 = mbedtls_calloc( 1, len0 );
-    TEST_ASSERT( buf1 != NULL );
+    TEST_ASSERT( buf2 != NULL );
     TEST_ASSERT( mbedtls_ssl_session_save( &session, buf2, len0, &len2 )
                  == 0 );
 

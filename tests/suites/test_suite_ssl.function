@@ -272,8 +272,8 @@ cleanup:
  * Choose dummy values, mostly non-0 to distinguish from the init default.
  */
 static int ssl_populate_session( mbedtls_ssl_session *session,
-                             int ticket_len,
-                             const char *crt_file )
+                                 int ticket_len,
+                                 const char *crt_file )
 {
 #if defined(MBEDTLS_HAVE_TIME)
     session->start = mbedtls_time( NULL ) - 42;
@@ -282,7 +282,7 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
     session->compression = 1;
     session->id_len = sizeof( session->id );
     memset( session->id, 66, session->id_len );
-    memset( session->master, 17, sizeof( session-> master ) );
+    memset( session->master, 17, sizeof( session->master ) );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( strlen( crt_file ) != 0 )
@@ -306,7 +306,7 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
     if( ticket_len != 0 )
     {
         session->ticket = mbedtls_calloc( 1, ticket_len );
-        if( session-> ticket == NULL )
+        if( session->ticket == NULL )
             return( -1 );
         memset( session->ticket, 33, ticket_len );
     }
@@ -778,14 +778,14 @@ void ssl_serialise_session_load_save( int ticket_len, char *crt_file )
     buf1 = mbedtls_calloc( 1, len0 );
     TEST_ASSERT( buf1 != NULL );
 
-    /* Serialise to buffer and free session lived session */
+    /* Serialise to buffer and free live session */
     TEST_ASSERT( mbedtls_ssl_session_save( &session, buf1, len0, &len1 )
                  == 0 );
     TEST_ASSERT( len0 == len1 );
     mbedtls_ssl_session_free( &session );
 
     /* Restore session from serialised data */
-    TEST_ASSERT( mbedtls_ssl_session_load( &session, buf1, len1) == 0 );
+    TEST_ASSERT( mbedtls_ssl_session_load( &session, buf1, len1 ) == 0 );
 
     /* Allocate second buffer and serialise to it */
     buf2 = mbedtls_calloc( 1, len0 );

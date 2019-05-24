@@ -1047,16 +1047,16 @@ component_test_no_64bit_multiplication () {
     make test
 }
 
-component_build_uecc_cmake () {
-    msg "build: uecc native, cmake"
-    scripts/config.pl set MBEDTLS_USE_UECC
+component_build_tinycrypt_cmake () {
+    msg "build: tinycrypt native, cmake"
+    scripts/config.pl set MBEDTLS_USE_TINYCRYPT
     CC=gcc cmake .
     make
 }
 
-component_build_uecc_make () {
-    msg "build: uecc native, make"
-    scripts/config.pl set MBEDTLS_USE_UECC
+component_build_tinycrypt_make () {
+    msg "build: tinycrypt native, make"
+    scripts/config.pl set MBEDTLS_USE_TINYCRYPT
     make CC=gcc CFLAGS='-Werror -O1'
 }
 
@@ -1155,10 +1155,10 @@ component_build_armcc () {
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 }
 
-component_build_armcc_uecc_baremetal () {
-    msg "build: ARM Compiler 5, make with uecc and baremetal"
+component_build_armcc_tinycrypt_baremetal () {
+    msg "build: ARM Compiler 5, make with tinycrypt and baremetal"
     scripts/config.pl baremetal
-    scripts/config.pl set MBEDTLS_USE_UECC
+    scripts/config.pl set MBEDTLS_USE_TINYCRYPT
 
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
     make clean

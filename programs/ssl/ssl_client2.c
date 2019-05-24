@@ -1882,8 +1882,12 @@ int main( int argc, char *argv[] )
         if( opt.reco_mode == 1 )
         {
             /* free any previously saved data */
-            mbedtls_free( session_data );
-            session_data = NULL;
+            if( session_data != NULL )
+            {
+                mbedtls_platform_zeroize( session_data, session_data_len );
+                mbedtls_free( session_data );
+                session_data = NULL;
+            }
 
             /* get size of the buffer needed */
             mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
@@ -2441,6 +2445,8 @@ exit:
     mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
+    if( session_data != NULL )
+        mbedtls_platform_zeroize( session_data, session_data_len );
     mbedtls_free( session_data );
 
 #if defined(_WIN32)

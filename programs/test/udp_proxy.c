@@ -128,6 +128,9 @@ int main( void )
     "    mtu=%%d              default: 0 (unlimited)\n"                     \
     "                        drop packets larger than N bytes\n"            \
     "    bad_ad=0/1          default: 0 (don't add bad ApplicationData)\n"  \
+    "    bad_cid=%%d          default: 0 (don't corrupt Connection IDs)\n"   \
+    "                        duplicate 1:N packets containing a CID,\n" \
+    "                        modifying CID in first instance of the packet.\n" \
     "    protect_hvr=0/1     default: 0 (don't protect HelloVerifyRequest)\n" \
     "    protect_len=%%d      default: (don't protect packets of this size)\n" \
     "\n"                                                                    \
@@ -160,6 +163,7 @@ static struct options
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */
     int bad_ad;                 /* inject corrupted ApplicationData record  */
+    unsigned bad_cid;           /* inject corrupted CID record              */
     int protect_hvr;            /* never drop or delay HelloVerifyRequest   */
     int protect_len;            /* never drop/delay packet of the given size*/
     unsigned pack;              /* merge packets into single datagram for
@@ -292,6 +296,12 @@ static void get_options( int argc, char *argv[] )
             if( opt.bad_ad < 0 || opt.bad_ad > 1 )
                 exit_usage( p, q );
         }
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+        else if( strcmp( p, "bad_cid" ) == 0 )
+        {
+            opt.bad_cid = (unsigned) atoi( q );
+        }
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         else if( strcmp( p, "protect_hvr" ) == 0 )
         {
             opt.protect_hvr = atoi( q );
@@ -517,6 +527,25 @@ int send_packet( const packet *p, const char *why )
 {
     int ret;
     mbedtls_net_context *dst = p->dst;
+
+    /* insert corrupted CID record? */
+    if( opt.bad_cid != 0 &&
+        strcmp( p->type, "CID" ) == 0 &&
+        ( rand() % opt.bad_cid ) == 0 )
+    {
+        unsigned char buf[MAX_MSG_SIZE];
+        memcpy( buf, p->buf, p->len );
+
+        /* The CID resides at offset 11 in the DTLS record header. */
+        buf[11] ^= 1;
+        print_packet( p, "modified CID" );
+
+        if( ( ret = dispatch_data( dst, buf, p->len ) ) <= 0 )
+        {
+            mbedtls_printf( "  ! dispatch returned %d\n", ret );
+            return( ret );
+        }
+    }
 
     /* insert corrupted ApplicationData record? */
     if( opt.bad_ad &&

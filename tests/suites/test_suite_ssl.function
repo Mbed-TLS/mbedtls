@@ -284,7 +284,7 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
     memset( session->id, 66, session->id_len );
     memset( session->master, 17, sizeof( session->master ) );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_FS_IO)
     if( strlen( crt_file ) != 0 )
     {
         int ret;

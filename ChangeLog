@@ -31,6 +31,10 @@ Features
      changed its IP or port. The feature is enabled at compile-time by setting
      MBEDTLS_SSL_DTLS_CONNECTION_ID (disabled by default), and at run-time
      through the new APIs mbedtls_ssl_conf_cid() and mbedtls_ssl_set_cid().
+   * Add new API functions mbedtls_ssl_session_save() and
+     mbedtls_ssl_session_load() to allow serialising a session, for example to
+     store it in non-volatile storage, and later using it for TLS session
+     resumption.
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
@@ -96,7 +100,6 @@ Bugfix
    * Fix propagation of restart contexts in restartable EC operations.
      This could previously lead to segmentation faults in builds using an
      address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
-
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default
      mbedTLS configuration only SHA-2 signed certificates are accepted.
@@ -138,6 +141,15 @@ Changes
      cyber) in #2681.
    * Adds fuzz targets, especially for continuous fuzzing with OSS-Fuzz.
      Contributed by Philippe Antoine (Catena cyber).
+
+API Changes
+   * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
+     and the used tls-prf.
+   * Add public API for tls-prf function, according to requested enum.
+   * Add DER-encoded test CRTs to library/certs.c, allowing
+     the example programs ssl_server2 and ssl_client2 to be run
+     if MBEDTLS_FS_IO and MBEDTLS_PEM_PARSE_C are unset. Fixes #2254.
+   * The HAVEGE state type now uses uint32_t elements instead of int.
 
 = mbed TLS 2.17.0 branch released 2019-03-19
 

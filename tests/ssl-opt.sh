@@ -1329,7 +1329,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty" \
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID, 3D: Cli+Srv enabled, Cli+Srv CID nonempty" \
-            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5 bad_cid=1" \
             "$P_SRV debug_level=3 dtls=1 cid=1 dgram_packing=0 cid_val=dead" \
             "$P_CLI debug_level=3 dtls=1 cid=1 dgram_packing=0 cid_val=beef" \
             0 \
@@ -1346,7 +1346,9 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -c "Peer CID (length 2 Bytes): de ad" \
             -s "Peer CID (length 2 Bytes): be ef" \
             -s "Use of Connection ID has been negotiated" \
-            -c "Use of Connection ID has been negotiated"
+            -c "Use of Connection ID has been negotiated" \
+            -c "ignoring unexpected CID" \
+            -s "ignoring unexpected CID"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID, MTU: Cli+Srv enabled, Cli+Srv CID nonempty" \
@@ -1371,7 +1373,7 @@ run_test    "Connection ID, MTU: Cli+Srv enabled, Cli+Srv CID nonempty" \
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, Cli+Srv CID nonempty" \
-            -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5" \
+            -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5 bad_cid=1" \
             "$P_SRV debug_level=3 mtu=800 dtls=1 cid=1 cid_val=dead" \
             "$P_CLI debug_level=3 mtu=800 dtls=1 cid=1 cid_val=beef" \
             0 \
@@ -1388,7 +1390,9 @@ run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -c "Peer CID (length 2 Bytes): de ad" \
             -s "Peer CID (length 2 Bytes): be ef" \
             -s "Use of Connection ID has been negotiated" \
-            -c "Use of Connection ID has been negotiated"
+            -c "Use of Connection ID has been negotiated" \
+            -c "ignoring unexpected CID" \
+            -s "ignoring unexpected CID"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli+Srv enabled, Cli CID empty" \
@@ -1652,7 +1656,7 @@ run_test    "Connection ID, no packing: Cli+Srv enabled, renegotiate with differ
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate with different CID" \
-            -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5" \
+            -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5 bad_cid=1" \
             "$P_SRV debug_level=3 mtu=800 dtls=1 cid=1 cid_val=dead cid_val_renego=beef renegotiation=1" \
             "$P_CLI debug_level=3 mtu=800 dtls=1 cid=1 cid_val=beef cid_val_renego=dead renegotiation=1 renegotiate=1" \
             0 \
@@ -1663,7 +1667,9 @@ run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate with different 
             -c "(after renegotiation) Peer CID (length 2 Bytes): be ef" \
             -s "(after renegotiation) Peer CID (length 2 Bytes): de ad" \
             -s "(after renegotiation) Use of Connection ID has been negotiated" \
-            -c "(after renegotiation) Use of Connection ID has been negotiated"
+            -c "(after renegotiation) Use of Connection ID has been negotiated" \
+            -c "ignoring unexpected CID" \
+            -s "ignoring unexpected CID"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -1698,7 +1704,7 @@ run_test    "Connection ID, no packing: Cli+Srv enabled, renegotiate without CID
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate without CID" \
-            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5 bad_cid=1" \
             "$P_SRV debug_level=3 mtu=800 dtls=1 cid=1 cid_val=dead cid_renego=0 renegotiation=1" \
             "$P_CLI debug_level=3 mtu=800 dtls=1 cid=1 cid_val=beef cid_renego=0 renegotiation=1 renegotiate=1" \
             0 \
@@ -1709,7 +1715,9 @@ run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, renegotiate without CID" \
             -C "(after renegotiation) Peer CID (length 2 Bytes): de ad" \
             -S "(after renegotiation) Peer CID (length 2 Bytes): be ef" \
             -C "(after renegotiation) Use of Connection ID has been negotiated" \
-            -S "(after renegotiation) Use of Connection ID has been negotiated"
+            -S "(after renegotiation) Use of Connection ID has been negotiated" \
+            -c "ignoring unexpected CID" \
+            -s "ignoring unexpected CID"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -1740,7 +1748,7 @@ run_test    "Connection ID, no packing: Cli+Srv enabled, CID on renegotiation" \
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, CID on renegotiation" \
-            -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5" \
+            -p "$P_PXY mtu=800 drop=5 delay=5 duplicate=5 bad_cid=1" \
             "$P_SRV debug_level=3 mtu=800 dtls=1 dgram_packing=1 cid=0 cid_renego=1 cid_val_renego=dead renegotiation=1" \
             "$P_CLI debug_level=3 mtu=800 dtls=1 dgram_packing=1 cid=0 cid_renego=1 cid_val_renego=beef renegotiation=1 renegotiate=1" \
             0 \
@@ -1749,7 +1757,9 @@ run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, CID on renegotiation" \
             -c "(after renegotiation) Peer CID (length 2 Bytes): de ad" \
             -s "(after renegotiation) Peer CID (length 2 Bytes): be ef" \
             -c "(after renegotiation) Use of Connection ID has been negotiated" \
-            -s "(after renegotiation) Use of Connection ID has been negotiated"
+            -s "(after renegotiation) Use of Connection ID has been negotiated" \
+            -c "ignoring unexpected CID" \
+            -s "ignoring unexpected CID"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -1770,7 +1780,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli disables on renegotiation" \
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D: Cli+Srv enabled, Cli disables on renegotiation" \
-            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5 bad_cid=1" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead renegotiation=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef cid_renego=0 renegotiation=1 renegotiate=1" \
             0 \
@@ -1782,7 +1792,9 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Cli disables on renegotiation" 
             -S "(after renegotiation) Peer CID (length 2 Bytes): be ef" \
             -C "(after renegotiation) Use of Connection ID has been negotiated" \
             -S "(after renegotiation) Use of Connection ID has been negotiated" \
-            -s "(after renegotiation) Use of Connection ID was not offered by client"
+            -s "(after renegotiation) Use of Connection ID was not offered by client" \
+            -c "ignoring unexpected CID" \
+            -s "ignoring unexpected CID"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
@@ -1803,7 +1815,7 @@ run_test    "Connection ID: Cli+Srv enabled, Srv disables on renegotiation" \
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Connection ID, 3D: Cli+Srv enabled, Srv disables on renegotiation" \
-            -p "$P_PXY drop=5 delay=5 duplicate=5" \
+            -p "$P_PXY drop=5 delay=5 duplicate=5 bad_cid=1" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead cid_renego=0 renegotiation=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef renegotiation=1 renegotiate=1" \
             0 \
@@ -1815,7 +1827,9 @@ run_test    "Connection ID, 3D: Cli+Srv enabled, Srv disables on renegotiation" 
             -S "(after renegotiation) Peer CID (length 2 Bytes): be ef" \
             -C "(after renegotiation) Use of Connection ID has been negotiated" \
             -S "(after renegotiation) Use of Connection ID has been negotiated" \
-            -c "(after renegotiation) Use of Connection ID was rejected by the server"
+            -c "(after renegotiation) Use of Connection ID was rejected by the server" \
+            -c "ignoring unexpected CID" \
+            -s "ignoring unexpected CID"
 
 # Tests for Encrypt-then-MAC extension
 

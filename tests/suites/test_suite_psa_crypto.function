@@ -1307,8 +1307,7 @@ exit:
 /* BEGIN_CASE */
 void import_export( data_t *data,
                     int type_arg,
-                    int alg_arg,
-                    int usage_arg,
+                    int usage_arg, int alg_arg,
                     int expected_bits,
                     int export_size_delta,
                     int expected_export_status_arg,

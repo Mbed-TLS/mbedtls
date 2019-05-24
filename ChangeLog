@@ -22,6 +22,15 @@ Features
      supported.
    * List all SAN types in the subject_alt_names field of the certificate.
      Resolves #459.
+   * Add support for draft-05 of the Connection ID extension, as specified
+     in https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05.
+     The Connection ID extension allows to keep DTLS connections beyond the
+     lifetime of the underlying transport by adding a connection identifier
+     to the DTLS record header. This identifier can be used to associated an
+     incoming record with the correct connection data even after the peer has
+     changed its IP or port. The feature is enabled at compile-time by setting
+     MBEDTLS_SSL_DTLS_CONNECTION_ID (disabled by default), and at run-time
+     through the new APIs mbedtls_ssl_conf_cid() and mbedtls_ssl_set_cid().
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents

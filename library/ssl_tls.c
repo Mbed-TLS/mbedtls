@@ -112,34 +112,66 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_CID)
 /* Top-level Connection ID API */
 
-/* WARNING: This implementation is a stub and doesn't do anything!
- *          It is included solely to allow review and coding against
- *          the new Connection CID API. */
+/* WARNING: The CID feature isn't fully implemented yet
+ *          and will not be used. */
 int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          int enable,
                          unsigned char const *own_cid,
                          size_t own_cid_len )
 {
-    ((void) ssl);
-    ((void) enable);
-    ((void) own_cid);
-    ((void) own_cid_len);
+    ssl->negotiate_cid = enable;
+    if( enable == MBEDTLS_SSL_CID_DISABLED )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Disable use of CID extension." ) );
+        return( 0 );
+    }
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "Enable use of CID extension." ) );
+
+    if( own_cid_len > MBEDTLS_SSL_CID_IN_LEN_MAX )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "CID too large: Maximum %u, actual %u",
+                                    (unsigned) MBEDTLS_SSL_CID_IN_LEN_MAX,
+                                    (unsigned) own_cid_len ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    memcpy( ssl->own_cid, own_cid, own_cid_len );
+    /* Truncation is not an issue here because
+     * MBEDTLS_SSL_CID_IN_LEN_MAX at most 255. */
+    ssl->own_cid_len = (uint8_t) own_cid_len;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "Own CID", own_cid, own_cid_len );
     return( 0 );
 }
 
-/* WARNING: This implementation is a stub and doesn't do anything!
- *          It is included solely to allow review and coding against
- *          the new Connection CID API. */
+/* WARNING: The CID feature isn't fully implemented yet
+ *          and will not be used. */
 int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
                      int *enabled,
                      unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ],
                      size_t *peer_cid_len )
 {
-    ((void) ssl);
-    ((void) peer_cid);
-    ((void) peer_cid_len);
-
     *enabled = MBEDTLS_SSL_CID_DISABLED;
+
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    /* We report MBEDTLS_SSL_CID_DISABLED in case the CID extensions
+     * were used, but client and server requested the empty CID.
+     * This is indistinguishable from not using the CID extension
+     * in the first place. */
+    if( ssl->transform_in->in_cid_len  == 0 &&
+        ssl->transform_in->out_cid_len == 0 )
+    {
+        return( 0 );
+    }
+
+    *peer_cid_len = ssl->transform_in->out_cid_len;
+    memcpy( peer_cid, ssl->transform_in->out_cid,
+            ssl->transform_in->out_cid_len );
+
+    *enabled = MBEDTLS_SSL_CID_ENABLED;
+
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_CID */
@@ -685,6 +717,25 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                             ciphersuite_info->mac ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
+
+#if defined(MBEDTLS_SSL_CID)
+    /* Copy own and peer's CID if the use of the CID
+     * extension has been negotiated. */
+    if( ssl->handshake->cid_in_use == MBEDTLS_SSL_CID_ENABLED )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Copy CIDs into SSL transform" ) );
+        transform->in_cid_len = ssl->own_cid_len;
+        transform->out_cid_len = ssl->handshake->peer_cid_len;
+        memcpy( transform->in_cid, ssl->own_cid, ssl->own_cid_len );
+        memcpy( transform->out_cid, ssl->handshake->peer_cid,
+                ssl->handshake->peer_cid_len );
+
+        MBEDTLS_SSL_DEBUG_BUF( 3, "Outgoing CID", transform->out_cid,
+                               transform->out_cid_len );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "Incoming CID", transform->in_cid,
+                               transform->in_cid_len );
+    }
+#endif /* MBEDTLS_SSL_CID */
 
     /*
      * Set appropriate PRF function and other SSL / TLS / TLS1.2 functions

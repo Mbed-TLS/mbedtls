@@ -177,9 +177,9 @@ baremetal_ram_build() {
 baremetal_ram_heap() {
 
     : ${CLI:=./programs/ssl/ssl_client2}
-    : ${CLI_PARAMS:="dtls=1"}
+    : ${CLI_PARAMS:="dtls=1 cid=1 cid_val=beef"}
     : ${SRV:=./programs/ssl/ssl_server2}
-    : ${SRV_PARAMS:="dtls=1 renegotiation=1 auth_mode=required"}
+    : ${SRV_PARAMS:="dtls=1 renegotiation=1 auth_mode=required cid=1 cid_val=dead"}
     : ${VALGRIND:=valgrind}
     : ${VALGRIND_MASSIF_PARAMS="--time-unit=B --threshold=0.01 --detailed-freq=1"}
 

@@ -382,6 +382,10 @@
 
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
 
+/* The value of the CID extension is still TBD as of
+ * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04. */
+#define MBEDTLS_TLS_EXT_CID                        254 /* TBD */
+
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
 
 #define MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      0xFF01
@@ -1190,6 +1194,21 @@ struct mbedtls_ssl_context
     char own_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
     char peer_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+#if defined(MBEDTLS_SSL_CID)
+    /* CID configuration to use in subsequent handshakes. */
+
+    /*! The next incoming CID, chosen by the user and applying to
+     *  all subsequent handshakes. This may be different from the
+     *  CID currently used in case the user has re-configured the CID
+     *  after an initial handshake. */
+    unsigned char own_cid[ MBEDTLS_SSL_CID_IN_LEN_MAX ];
+    uint8_t own_cid_len;   /*!< The length of \c own_cid. */
+    uint8_t negotiate_cid; /*!< This indicates whether the CID extension should
+                            *   be negotiated in the next handshake or not.
+                            *   Possible values are #MBEDTLS_SSL_CID_ENABLED
+                            *   and #MBEDTLS_SSL_CID_DISABLED. */
+#endif /* MBEDTLS_SSL_CID */
 };
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
@@ -1528,6 +1547,13 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
  *                     the last complete handshake. If a handshake is in
  *                     progress, this function will attempt to complete
  *                     the handshake first.
+ *
+ * \note               If CID extensions have been exchanged but both client
+ *                     and server chose to use an empty CID, this function
+ *                     sets `*enabled` to #MBEDTLS_SSL_CID_DISABLED
+ *                     (the rationale for this is that the resulting
+ *                     communication is the same as if the CID extensions
+ *                     hadn't been used).
  *
  * \return            \c 0 on success.
  * \return            A negative error code on failure.
@@ -2841,7 +2867,7 @@ void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_
  *                 (Default: 2^48 - 1)
  *
  *                 Renegotiation is automatically triggered when a record
- *                 counter (outgoing or ingoing) crosses the defined
+ *                 counter (outgoing or incoming) crosses the defined
  *                 threshold. The default value is meant to prevent the
  *                 connection from being closed when the counter is about to
  *                 reached its maximal value (it is not allowed to wrap).

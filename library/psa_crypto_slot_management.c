@@ -185,23 +185,19 @@ psa_status_t psa_validate_persistent_key_parameters(
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
 }
 
-static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
-                                          psa_key_file_id_t id,
-                                          psa_key_handle_t *handle,
-                                          int creating )
+psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
 {
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_status_t status;
-    psa_status_t wanted_load_status =
-        ( creating ? PSA_ERROR_DOES_NOT_EXIST : PSA_SUCCESS );
     psa_key_slot_t *slot;
 
     *handle = 0;
 
-    status = psa_validate_persistent_key_parameters( lifetime, id, creating );
+    status = psa_validate_persistent_key_parameters(
+        PSA_KEY_LIFETIME_PERSISTENT, id, 0 );
     if( status != PSA_SUCCESS )
         return( status );
 
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     status = psa_internal_allocate_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
@@ -210,22 +206,18 @@ static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
     slot->persistent_storage_id = id;
 
     status = psa_load_persistent_key_into_slot( slot );
-    if( status != wanted_load_status )
+    if( status != PSA_SUCCESS )
     {
         psa_wipe_key_slot( slot );
         *handle = 0;
     }
     return( status );
+
 #else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
-    (void) wanted_load_status;
+    (void) id;
+    *handle = 0;
     return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
-}
-
-psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
-{
-    return( persistent_key_setup( PSA_KEY_LIFETIME_PERSISTENT,
-                                  id, handle, 0 ) );
 }
 
 psa_status_t psa_close_key( psa_key_handle_t handle )

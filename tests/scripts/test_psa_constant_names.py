@@ -23,6 +23,8 @@ class ReadFileLineException(Exception):
         self.line_number = line_number
 
 class read_file_lines:
+    # Dear Pylint, conventionally, a context manager class name is lowercase.
+    # pylint: disable=invalid-name,too-few-public-methods
     '''Context manager to read a text file line by line.
 with read_file_lines(filename) as lines:
     for line in lines:
@@ -36,6 +38,7 @@ snippet annotates the exception with the file name and line number.'''
     def __init__(self, filename):
         self.filename = filename
         self.line_number = 'entry'
+        self.generator = None
     def __enter__(self):
         self.generator = enumerate(open(self.filename, 'r'))
         return self
@@ -119,6 +122,9 @@ where each argument takes each possible value at least once.'''
             argument_lists = [self.arguments_for[arg] for arg in argspec]
             arguments = [values[0] for values in argument_lists]
             yield self._format_arguments(name, arguments)
+            # Dear Pylint, enumerate won't work here since we're modifying
+            # the array.
+            # pylint: disable=consider-using-enumerate
             for i in range(len(arguments)):
                 for value in argument_lists[i][1:]:
                     arguments[i] = value
@@ -224,7 +230,7 @@ def remove_file_if_exists(filename):
         return
     try:
         os.remove(filename)
-    except:
+    except OSError:
         pass
 
 def run_c(options, type_word, names):
@@ -318,7 +324,7 @@ not as expected.'''
         errors += e
     return count, errors
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
     parser.add_argument('--include', '-I',
                         action='append', default=['include'],
@@ -344,3 +350,6 @@ if __name__ == '__main__':
     else:
         print('{} test cases, {} FAIL'.format(count, len(errors)))
         exit(1)
+
+if __name__ == '__main__':
+    main()

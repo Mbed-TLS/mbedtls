@@ -2382,6 +2382,8 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed.
  * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if input data is invalid.
+ * \return         Another negative value for other kinds of errors (for
+ *                 example, unsupported features in the embedded certificate).
  */
 int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
                               const unsigned char *buf,
@@ -2422,16 +2424,16 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
  * \brief          Get a pointer to the current session structure, for example
  *                 to serialise it.
  *
- * \warning        Ownership of the session remains with the SSL context - the
- *                 returned pointer must not be kept after the connection has
- *                 ended or been renegotiated.
+ * \warning        Ownership of the session remains with the SSL context, and
+ *                 the returned pointer is only guaranteed to be valid until
+ *                 the next API call operating on the same \p ssl context.
  *
  * \see            mbedtls_ssl_session_save()
  *
- * \param ssl      SSL context
+ * \param ssl      The SSL context.
  *
- * \return         A pointer to the current session if successful,
- *                 NULL if no session is active.
+ * \return         A pointer to the current session if successful.
+ * \return         \c NULL if no session is active.
  */
 const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_context *ssl );
 

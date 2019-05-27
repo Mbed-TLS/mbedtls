@@ -99,54 +99,23 @@ void psa_wipe_all_key_slots( void )
     global_data.key_slots_initialized = 0;
 }
 
-/** Find a free key slot and mark it as in use.
- *
- * \param[out] handle   On success, a slot number that is not in use. This
- *                      value can be used as a handle to the slot.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- */
-static psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle )
+psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle,
+                                             psa_key_slot_t **p_slot )
 {
+    if( ! global_data.key_slots_initialized )
+        return( PSA_ERROR_BAD_STATE );
+
     for( *handle = PSA_KEY_SLOT_COUNT; *handle != 0; --( *handle ) )
     {
-        psa_key_slot_t *slot = &global_data.key_slots[*handle - 1];
-        if( ! slot->allocated )
+        *p_slot = &global_data.key_slots[*handle - 1];
+        if( ! ( *p_slot )->allocated )
         {
-            slot->allocated = 1;
+            ( *p_slot )->allocated = 1;
             return( PSA_SUCCESS );
         }
     }
+    *p_slot = NULL;
     return( PSA_ERROR_INSUFFICIENT_MEMORY );
-}
-
-/** Wipe a key slot and mark it as available.
- *
- * This does not affect persistent storage.
- *
- * \param handle        The handle to the key slot to release.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- */
-static psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle )
-{
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    status = psa_get_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    return( psa_wipe_key_slot( slot ) );
-}
-
-psa_status_t psa_allocate_key( psa_key_handle_t *handle )
-{
-    *handle = 0;
-    return( psa_internal_allocate_key_slot( handle ) );
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
@@ -194,41 +163,6 @@ static int psa_is_key_id_valid( psa_key_file_id_t file_id,
     else
         return( 0 );
 }
-
-/** Declare a slot as persistent and load it from storage.
- *
- * This function may only be called immediately after a successful call
- * to psa_internal_allocate_key_slot().
- *
- * \param handle        A handle to a key slot freshly allocated with
- *                      psa_internal_allocate_key_slot().
- *
- * \retval #PSA_SUCCESS
- *         The slot content was loaded successfully.
- * \retval #PSA_ERROR_DOES_NOT_EXIST
- *         There is no content for this slot in persistent storage.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p id is not acceptable.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_STORAGE_FAILURE
- */
-static psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
-                                                      psa_key_file_id_t id )
-{
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    status = psa_get_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    slot->lifetime = PSA_KEY_LIFETIME_PERSISTENT;
-    slot->persistent_storage_id = id;
-    status = psa_load_persistent_key_into_slot( slot );
-
-    return( status );
-}
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 psa_status_t psa_validate_persistent_key_parameters(
@@ -259,6 +193,7 @@ static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
     psa_status_t status;
     psa_status_t wanted_load_status =
         ( creating ? PSA_ERROR_DOES_NOT_EXIST : PSA_SUCCESS );
+    psa_key_slot_t *slot;
 
     *handle = 0;
 
@@ -267,14 +202,17 @@ static psa_status_t persistent_key_setup( psa_key_lifetime_t lifetime,
         return( status );
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    status = psa_internal_allocate_key_slot( handle );
+    status = psa_internal_allocate_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_internal_make_key_persistent( *handle, id );
+    slot->lifetime = PSA_KEY_LIFETIME_PERSISTENT;
+    slot->persistent_storage_id = id;
+
+    status = psa_load_persistent_key_into_slot( slot );
     if( status != wanted_load_status )
     {
-        psa_internal_release_key_slot( *handle );
+        psa_wipe_key_slot( slot );
         *handle = 0;
     }
     return( status );
@@ -292,7 +230,14 @@ psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
 
 psa_status_t psa_close_key( psa_key_handle_t handle )
 {
-    return( psa_internal_release_key_slot( handle ) );
+    psa_status_t status;
+    psa_key_slot_t *slot;
+
+    status = psa_get_key_slot( handle, &slot );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    return( psa_wipe_key_slot( slot ) );
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

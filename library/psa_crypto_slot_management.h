@@ -55,15 +55,18 @@ psa_status_t psa_initialize_key_slots( void );
  * This does not affect persistent storage. */
 void psa_wipe_all_key_slots( void );
 
-/** Allocate a key slot.
+/** Find a free key slot and mark it as in use.
  *
- * \param[out] handle   On success, a handle to a newly allocated key slot.
- *                      0 if an error occurs.
+ * \param[out] handle   On success, a slot number that is not in use. This
+ *                      value can be used as a handle to the slot.
+ * \param[out] p_slot   On success, a pointer to the slot.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_BAD_STATE
  */
-psa_status_t psa_allocate_key( psa_key_handle_t *handle );
+psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle,
+                                             psa_key_slot_t **p_slot );
 
 /** Test whether the given parameters are acceptable for a persistent key.
  *

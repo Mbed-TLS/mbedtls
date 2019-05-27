@@ -1305,10 +1305,7 @@ static psa_status_t psa_start_key_creation(
     psa_status_t status;
     psa_key_slot_t *slot;
 
-    status = psa_allocate_key( handle );
-    if( status != PSA_SUCCESS )
-        return( status );
-    status = psa_get_key_slot( *handle, p_slot );
+    status = psa_internal_allocate_key_slot( handle, p_slot );
     if( status != PSA_SUCCESS )
         return( status );
     slot = *p_slot;

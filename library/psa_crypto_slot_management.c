@@ -290,21 +290,6 @@ psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
                                   id, handle, 0 ) );
 }
 
-psa_status_t psa_create_key( psa_key_lifetime_t lifetime,
-                             psa_key_file_id_t id,
-                             psa_key_handle_t *handle )
-{
-    psa_status_t status;
-
-    status = persistent_key_setup( lifetime, id, handle, 1 );
-    switch( status )
-    {
-        case PSA_SUCCESS: return( PSA_ERROR_ALREADY_EXISTS );
-        case PSA_ERROR_DOES_NOT_EXIST: return( PSA_SUCCESS );
-        default: return( status );
-    }
-}
-
 psa_status_t psa_close_key( psa_key_handle_t handle )
 {
     return( psa_internal_release_key_slot( handle ) );

@@ -739,27 +739,6 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
     return( status );
 }
 
-/* Retrieve an empty key slot (slot with no key data, but possibly
- * with some metadata such as a policy or domain parameters). */
-static psa_status_t psa_get_empty_key_slot( psa_key_handle_t handle,
-                                            psa_key_slot_t **p_slot )
-{
-    psa_status_t status;
-    psa_key_slot_t *slot = NULL;
-
-    *p_slot = NULL;
-
-    status = psa_get_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    if( slot->type != PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_ALREADY_EXISTS );
-
-    *p_slot = slot;
-    return( status );
-}
-
 /** Calculate the intersection of two algorithm usage policies.
  *
  * Return 0 (which allows no operation) on incompatibility.
@@ -938,45 +917,6 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
     return( status );
 }
 
-psa_status_t psa_import_key_to_handle( psa_key_handle_t handle,
-                             psa_key_type_t type,
-                             const uint8_t *data,
-                             size_t data_length )
-{
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    status = psa_get_empty_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    slot->type = type;
-
-    status = psa_import_key_into_slot( slot, data, data_length );
-    if( status != PSA_SUCCESS )
-    {
-        slot->type = PSA_KEY_TYPE_NONE;
-        return( status );
-    }
-
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
-    {
-        /* Store in file location */
-        status = psa_save_persistent_key( slot->persistent_storage_id,
-                                          slot->type, &slot->policy, data,
-                                          data_length );
-        if( status != PSA_SUCCESS )
-        {
-            (void) psa_remove_key_data_from_memory( slot );
-            slot->type = PSA_KEY_TYPE_NONE;
-        }
-    }
-#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
-
-    return( status );
-}
-
 psa_status_t psa_destroy_key( psa_key_handle_t handle )
 {
     psa_key_slot_t *slot;
@@ -1141,30 +1081,6 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
     if( status != PSA_SUCCESS )
         psa_reset_key_attributes( attributes );
     return( status );
-}
-
-psa_status_t psa_get_key_information( psa_key_handle_t handle,
-                                      psa_key_type_t *type,
-                                      size_t *bits )
-{
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    if( type != NULL )
-        *type = 0;
-    if( bits != NULL )
-        *bits = 0;
-    status = psa_get_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    if( slot->type == PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_DOES_NOT_EXIST );
-    if( type != NULL )
-        *type = slot->type;
-    if( bits != NULL )
-        *bits = psa_get_key_slot_bits( slot );
-    return( PSA_SUCCESS );
 }
 
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C)
@@ -1340,39 +1256,6 @@ psa_status_t psa_export_public_key( psa_key_handle_t handle,
     return( psa_internal_export_key( slot, data, data_size,
                                      data_length, 1 ) );
 }
-
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-static psa_status_t psa_save_generated_persistent_key( psa_key_slot_t *slot,
-                                                       size_t bits )
-{
-    psa_status_t status;
-    uint8_t *data;
-    size_t key_length;
-    size_t data_size = PSA_KEY_EXPORT_MAX_SIZE( slot->type, bits );
-    data = mbedtls_calloc( 1, data_size );
-    if( data == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    /* Get key data in export format */
-    status = psa_internal_export_key( slot, data, data_size, &key_length, 0 );
-    if( status != PSA_SUCCESS )
-    {
-        slot->type = PSA_KEY_TYPE_NONE;
-        goto exit;
-    }
-    /* Store in file location */
-    status = psa_save_persistent_key( slot->persistent_storage_id,
-                                      slot->type, &slot->policy,
-                                      data, key_length );
-    if( status != PSA_SUCCESS )
-    {
-        slot->type = PSA_KEY_TYPE_NONE;
-    }
-exit:
-    mbedtls_platform_zeroize( data, key_length );
-    mbedtls_free( data );
-    return( status );
-}
-#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 static psa_status_t psa_set_key_policy_internal(
     psa_key_slot_t *slot,
@@ -1621,41 +1504,6 @@ exit:
         mbedtls_platform_zeroize( buffer, buffer_size );
     mbedtls_free( buffer );
     return( status );
-}
-
-psa_status_t psa_copy_key_to_handle(psa_key_handle_t source_handle,
-                          psa_key_handle_t target_handle,
-                          const psa_key_policy_t *constraint)
-{
-    psa_key_slot_t *source_slot = NULL;
-    psa_key_slot_t *target_slot = NULL;
-    psa_key_policy_t new_policy;
-    psa_status_t status;
-    status = psa_get_key_from_slot( source_handle, &source_slot,
-                                    PSA_KEY_USAGE_COPY, 0 );
-    if( status != PSA_SUCCESS )
-        return( status );
-    status = psa_get_empty_key_slot( target_handle, &target_slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    new_policy = target_slot->policy;
-    status = psa_restrict_key_policy( &new_policy, &source_slot->policy );
-    if( status != PSA_SUCCESS )
-        return( status );
-    if( constraint != NULL )
-    {
-        status = psa_restrict_key_policy( &new_policy, constraint );
-        if( status != PSA_SUCCESS )
-            return( status );
-    }
-
-    status = psa_copy_key_material( source_slot, target_slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    target_slot->policy = new_policy;
-    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_copy_key( psa_key_handle_t source_handle,
@@ -3644,86 +3492,6 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
 
 
 
-/****************************************************************/
-/* Key Policy */
-/****************************************************************/
-
-#if !defined(MBEDTLS_PSA_CRYPTO_SPM)
-void psa_key_policy_set_usage( psa_key_policy_t *policy,
-                               psa_key_usage_t usage,
-                               psa_algorithm_t alg )
-{
-    policy->usage = usage;
-    policy->alg = alg;
-}
-
-psa_key_usage_t psa_key_policy_get_usage( const psa_key_policy_t *policy )
-{
-    return( policy->usage );
-}
-
-psa_algorithm_t psa_key_policy_get_algorithm( const psa_key_policy_t *policy )
-{
-    return( policy->alg );
-}
-#endif /* !defined(MBEDTLS_PSA_CRYPTO_SPM) */
-
-psa_status_t psa_set_key_policy( psa_key_handle_t handle,
-                                 const psa_key_policy_t *policy )
-{
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    if( policy == NULL )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    status = psa_get_empty_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    return( psa_set_key_policy_internal( slot, policy ) );
-}
-
-psa_status_t psa_get_key_policy( psa_key_handle_t handle,
-                                 psa_key_policy_t *policy )
-{
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    if( policy == NULL )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    status = psa_get_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    *policy = slot->policy;
-
-    return( PSA_SUCCESS );
-}
-
-
-
-/****************************************************************/
-/* Key Lifetime */
-/****************************************************************/
-
-psa_status_t psa_get_key_lifetime_from_handle( psa_key_handle_t handle,
-                                   psa_key_lifetime_t *lifetime )
-{
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    status = psa_get_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    *lifetime = slot->lifetime;
-
-    return( PSA_SUCCESS );
-}
-
-
 
 /****************************************************************/
 /* AEAD */
@@ -4536,37 +4304,6 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
         psa_fail_key_creation( slot );
         *handle = 0;
     }
-    return( status );
-}
-
-psa_status_t psa_generate_derived_key_to_handle( psa_key_handle_t handle,
-                                       psa_key_type_t type,
-                                       size_t bits,
-                                       psa_key_derivation_operation_t *operation )
-{
-    uint8_t *data = NULL;
-    size_t bytes = PSA_BITS_TO_BYTES( bits );
-    psa_status_t status;
-
-    if( ! key_type_is_raw_bytes( type ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    if( bits % 8 != 0 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    data = mbedtls_calloc( 1, bytes );
-    if( data == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-    status = psa_key_derivation_output_bytes( operation, data, bytes );
-    if( status != PSA_SUCCESS )
-        goto exit;
-#if defined(MBEDTLS_DES_C)
-    if( type == PSA_KEY_TYPE_DES )
-        psa_des_set_key_parity( data, bytes );
-#endif /* MBEDTLS_DES_C */
-    status = psa_import_key_to_handle( handle, type, data, bytes );
-
-exit:
-    mbedtls_free( data );
     return( status );
 }
 
@@ -5424,40 +5161,6 @@ static psa_status_t psa_generate_key_internal(
         return( PSA_ERROR_NOT_SUPPORTED );
 
     return( PSA_SUCCESS );
-}
-
-psa_status_t psa_generate_key_to_handle( psa_key_handle_t handle,
-                               psa_key_type_t type,
-                               size_t bits,
-                               const void *extra,
-                               size_t extra_size )
-{
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
-    /* The old public exponent encoding is no longer supported. */
-    if( extra_size != 0 )
-        return( PSA_ERROR_NOT_SUPPORTED );
-#endif
-
-    status = psa_get_empty_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    slot->type = type;
-    status = psa_generate_key_internal( slot, bits, extra, extra_size );
-    if( status != PSA_SUCCESS )
-        slot->type = 0;
-
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
-    {
-        return( psa_save_generated_persistent_key( slot, bits ) );
-    }
-#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
-
-    return( status );
 }
 
 psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,

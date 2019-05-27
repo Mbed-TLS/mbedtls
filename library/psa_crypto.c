@@ -3666,18 +3666,6 @@ psa_algorithm_t psa_key_policy_get_algorithm( const psa_key_policy_t *policy )
 {
     return( policy->alg );
 }
-
-void psa_key_policy_set_enrollment_algorithm( psa_key_policy_t *policy,
-                                              psa_algorithm_t alg2 )
-{
-    policy->alg2 = alg2;
-}
-
-psa_algorithm_t psa_key_policy_get_enrollment_algorithm(
-    const psa_key_policy_t *policy )
-{
-    return( policy->alg2 );
-}
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_SPM) */
 
 psa_status_t psa_set_key_policy( psa_key_handle_t handle,

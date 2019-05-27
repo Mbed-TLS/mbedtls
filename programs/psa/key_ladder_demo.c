@@ -260,7 +260,7 @@ exit:
     mbedtls_platform_zeroize( key_data, sizeof( key_data ) );
     if( status != PSA_SUCCESS )
     {
-        /* If psa_allocate_key hasn't been called yet or has failed,
+        /* If the key creation hasn't happened yet or has failed,
          * *master_key_handle is 0. psa_destroy_key(0) is guaranteed to do
          * nothing and return PSA_ERROR_INVALID_HANDLE. */
         (void) psa_destroy_key( *master_key_handle );

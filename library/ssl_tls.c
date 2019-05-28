@@ -9849,63 +9849,51 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
  */
 
 /*
- * Define bitflag determining structure of mbedtls_ssl_session.
+ * Define bitflag determining compile-time settings influencing
+ * structure of serialized SSL sessions.
  */
 
-#if defined(MBEDTLS_HAVE_TIME)
-#define SSL_SERIALIZED_SESSION_STRUCT_TIME_BIT 1
+#if defined(MBEDTLS_SSL_SERIALIZED_STRUCTURES_LOCAL_ONLY)
+#define SSL_SERIALIZED_SESSION_CONFIG_LOCAL 1
 #else
-#define SSL_SERIALIZED_SESSION_STRUCT_TIME_BIT 0
+#define SSL_SERIALIZED_SESSION_CONFIG_LOCAL 0
+#endif /* MBEDTLS_SSL_SERIALIZED_STRUCTURES_LOCAL_ONLY */
+
+#if defined(MBEDTLS_HAVE_TIME)
+#define SSL_SERIALIZED_SESSION_CONFIG_TIME_BIT 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_TIME_BIT 0
 #endif /* MBEDTLS_HAVE_TIME */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-#define SSL_SERIALIZED_SESSION_STRUCT_CRT_BIT 1
+#define SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT 1
 #else
-#define SSL_SERIALIZED_SESSION_STRUCT_CRT_BIT 0
+#define SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT 0
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-#define SSL_SERIALIZED_SESSION_STRUCT_CLIENT_BIT 1
+#define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT 1
 #else
-#define SSL_SERIALIZED_SESSION_STRUCT_CLIENT_BIT 0
+#define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT 0
 #endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-#define SSL_SERIALIZED_SESSION_STRUCT_MFL_BIT 1
+#define SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT 1
 #else
-#define SSL_SERIALIZED_SESSION_STRUCT_MFL_BIT 0
+#define SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT 0
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-#define SSL_SERIALIZED_SESSION_STRUCT_TRUNC_HMAC_BIT 1
+#define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT 1
 #else
-#define SSL_SERIALIZED_SESSION_STRUCT_TRUNC_HMAC_BIT 0
+#define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT 0
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-#define SSL_SERIALIZED_SESSION_STRUCT_ETM_BIT 1
+#define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT 1
 #else
-#define SSL_SERIALIZED_SESSION_STRUCT_ETM_BIT 0
+#define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT 0
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
-
-#define SSL_SERIALIZED_SESSION_STRUCT_BYTE                                 \
-    ( (uint8_t) ( ( SSL_SERIALIZED_SESSION_STRUCT_TIME_BIT       << 0 )    | \
-                  ( SSL_SERIALIZED_SESSION_STRUCT_CRT_BIT        << 1 )    | \
-                  ( SSL_SERIALIZED_SESSION_STRUCT_CLIENT_BIT     << 2 )    | \
-                  ( SSL_SERIALIZED_SESSION_STRUCT_MFL_BIT        << 3 )    | \
-                  ( SSL_SERIALIZED_SESSION_STRUCT_TRUNC_HMAC_BIT << 4 )    | \
-                  ( SSL_SERIALIZED_SESSION_STRUCT_ETM_BIT        << 5 ) ) )
-
-/*
- * Define bitflag determining compile-time settings influencing
- * structure of the ticket outside of the session structure.
- */
-
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-#define SSL_SERIALIZED_SESSION_CONFIG_CRT 1
-#else
-#define SSL_SERIALIZED_SESSION_CONFIG_CRT 0
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define SSL_SERIALIZED_SESSION_CONFIG_TICKET 1
@@ -9913,58 +9901,51 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 #define SSL_SERIALIZED_SESSION_CONFIG_TICKET 0
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#define SSL_SERIALIZED_SESSION_CONFIG_BYTE                               \
-    ( (uint8_t) ( ( SSL_SERIALIZED_SESSION_CONFIG_CRT    << 0 )        | \
-                  ( SSL_SERIALIZED_SESSION_CONFIG_TICKET << 1 ) ) )
+#define SSL_SERIALIZED_SESSION_CONFIG_BITFLAG                           \
+    ( (uint16_t) ( ( SSL_SERIALIZED_SESSION_CONFIG_TIME_BIT          << 0 ) | \
+                   ( SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT           << 1 ) | \
+                   ( SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT << 2 ) | \
+                   ( SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT           << 3 ) | \
+                   ( SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    << 4 ) | \
+                   ( SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           << 5 ) | \
+                   ( SSL_SERIALIZED_SESSION_CONFIG_CRT               << 6 ) | \
+                   ( SSL_SERIALIZED_SESSION_CONFIG_TICKET            << 7 ) | \
+                   ( SSL_SERIALIZED_SESSION_CONFIG_LOCAL             << 8 ) ) )
 
 static unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
-    SSL_SERIALIZED_SESSION_STRUCT_BYTE,
-    SSL_SERIALIZED_SESSION_CONFIG_BYTE
+    ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 8 ) & 0xFF,
+    ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 0 ) & 0xFF,
 };
 
 /*
  * Serialize a session in the following format:
  * (in the presentation language of TLS, RFC 8446 section 3)
  *
- *  opaque mbedtls_version[3];      // major, minor, patch
- *  opaque session_format[2];       // version-specific 16-bit field determining
- *                                  // the format of the remaining serialized
- *                                  // data. For example, it could be a bitfield
- *                                  // indicating the setting of those compile-
- *                                  // time configuration options influencing
- *                                  // the format of the serialized data.
- *                                  //
- *                                  // In this version, we use:
- *                                  // - Bits 8-15 (second byte)
- *                                  //   Bitflag determining structure of
- *                                  //   mbedtls_ssl_session
- *                                  // - Bit 0:
- *                                  //   0/1 depending on state of
- *                                  //   MBEDTLS_X509_CRT_PARSE_C.
- *                                  //   This determines whether the session
- *                                  //   is followed by a certificate.
- *                                  // - Bit 1:
- *                                  //   0/1 depending on state of
- *                                  //   MBEDTLS_SSL_SESSION_TICKETS
- *                                  //   This determines whether the certificate
- *                                  //   is followed by a session ticket.
- *                                  // - Bits 2-7: Unused so far
+ *  opaque mbedtls_version[3];   // major, minor, patch
+ *  opaque session_format[2];    // version-specific 16-bit field determining
+ *                               // the format of the remaining
+ *                               // serialized data.
+ *                               // In this version, this indicates whether
+ *                               // MBEDTLS_SSL_SERIALIZED_STRUCTURES_LOCAL_ONLY
+ *                               // is set, plus the setting of those compile-
+ *                               // time configuration options which influence
+ *                               // the structure of mbedtls_ssl_session.
  *  uint64 start_time;
- *  uint8 ciphersuite[2];           // defined by the standard
- *  uint8 compression;              // 0 or 1
- *  uint8 session_id_len;           // at most 32
+ *  uint8 ciphersuite[2];        // defined by the standard
+ *  uint8 compression;           // 0 or 1
+ *  uint8 session_id_len;        // at most 32
  *  opaque session_id[32];
- *  opaque master[48];              // fixed length in the standard
+ *  opaque master[48];           // fixed length in the standard
  *  uint32 verify_result;
- *  opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
- *  opaque ticket<0..2^24-1>;       // length 0 means no ticket
+ *  opaque peer_cert<0..2^24-1>; // length 0 means no peer cert
+ *  opaque ticket<0..2^24-1>;    // length 0 means no ticket
  *  uint32 ticket_lifetime;
- *  uint8 mfl_code;                 // up to 255 according to standard
- *  uint8 trunc_hmac;               // 0 or 1
- *  uint8 encrypt_then_mac;         // 0 or 1
+ *  uint8 mfl_code;              // up to 255 according to standard
+ *  uint8 trunc_hmac;            // 0 or 1
+ *  uint8 encrypt_then_mac;      // 0 or 1
  *
  * The order is the same as in the definition of the structure, except
  * verify_result is put before peer_cert so that all mandatory fields come

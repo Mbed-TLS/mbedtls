@@ -6,9 +6,11 @@
 
 typedef enum
 {
-    CLOSE_BY_CLOSE,
-    CLOSE_BY_DESTROY,
-    CLOSE_BY_SHUTDOWN,
+    CLOSE_BY_CLOSE, /**< Close the handle(s). */
+    CLOSE_BY_DESTROY, /**< Destroy the handle(s). */
+    CLOSE_BY_SHUTDOWN, /**< Deinit and reinit without closing handles. */
+    CLOSE_BY_CLOSE_WITH_SHUTDOWN, /**< Close handle(s) then deinit/reinit. */
+    CLOSE_BY_DESTROY_WITH_SHUTDOWN, /**< Destroy handle(s) then deinit/reinit. */
 } close_method_t;
 
 typedef enum
@@ -62,6 +64,58 @@ static void psa_purge_key_storage( void )
 #define TEST_USES_KEY_ID( key_id ) ( (void) ( key_id ) )
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
+/** Apply \p close_method to invalidate the specified handles:
+ * close it, destroy it, or do nothing;
+ */
+static int invalidate_handle( close_method_t close_method,
+                              psa_key_handle_t handle )
+{
+    switch( close_method )
+    {
+        case CLOSE_BY_CLOSE:
+        case CLOSE_BY_CLOSE_WITH_SHUTDOWN:
+            PSA_ASSERT( psa_close_key( handle ) );
+            break;
+        case CLOSE_BY_DESTROY:
+        case CLOSE_BY_DESTROY_WITH_SHUTDOWN:
+            PSA_ASSERT( psa_destroy_key( handle ) );
+            break;
+        case CLOSE_BY_SHUTDOWN:
+            break;
+    }
+    return( 1 );
+exit:
+    return( 0 );
+}
+
+/** Restart the PSA subsystem if \p close_method says so. */
+static int invalidate_psa( close_method_t close_method )
+{
+    switch( close_method )
+    {
+        case CLOSE_BY_CLOSE:
+        case CLOSE_BY_DESTROY:
+            return( 1 );
+        case CLOSE_BY_CLOSE_WITH_SHUTDOWN:
+        case CLOSE_BY_DESTROY_WITH_SHUTDOWN:
+            /* All keys must have been closed. */
+            PSA_DONE( );
+            break;
+        case CLOSE_BY_SHUTDOWN:
+            /* Some keys may remain behind, and we're testing that this
+             * properly closes them. */
+            mbedtls_psa_crypto_free( );
+            break;
+    }
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    ASSERT_PSA_PRISTINE( );
+    return( 1 );
+
+exit:
+    return( 0 );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -94,19 +148,10 @@ void transient_slot_lifecycle( int usage_arg, int alg_arg,
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
 
     /* Do something that invalidates the handle. */
-    switch( close_method )
-    {
-        case CLOSE_BY_CLOSE:
-            PSA_ASSERT( psa_close_key( handle ) );
-            break;
-        case CLOSE_BY_DESTROY:
-            PSA_ASSERT( psa_destroy_key( handle ) );
-            break;
-        case CLOSE_BY_SHUTDOWN:
-            PSA_DONE( );
-            PSA_ASSERT( psa_crypto_init( ) );
-            break;
-    }
+    if( ! invalidate_handle( close_method, handle ) )
+        goto exit;
+    if( ! invalidate_psa( close_method ) )
+        goto exit;
 
     /* Test that the handle is now invalid. */
     TEST_EQUAL( psa_get_key_attributes( handle, &attributes ),
@@ -171,19 +216,11 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
 
     /* Do something that invalidates the handle. */
-    switch( close_method )
-    {
-        case CLOSE_BY_CLOSE:
-            PSA_ASSERT( psa_close_key( handle ) );
-            break;
-        case CLOSE_BY_DESTROY:
-            PSA_ASSERT( psa_destroy_key( handle ) );
-            break;
-        case CLOSE_BY_SHUTDOWN:
-            PSA_DONE( );
-            PSA_ASSERT( psa_crypto_init( ) );
-            break;
-    }
+    if( ! invalidate_handle( close_method, handle ) )
+        goto exit;
+    if( ! invalidate_psa( close_method ) )
+        goto exit;
+
     /* Test that the handle is now invalid. */
     TEST_EQUAL( psa_get_key_attributes( handle, &read_attributes ),
                 PSA_ERROR_INVALID_HANDLE );
@@ -196,6 +233,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     switch( close_method )
     {
         case CLOSE_BY_CLOSE:
+        case CLOSE_BY_CLOSE_WITH_SHUTDOWN:
         case CLOSE_BY_SHUTDOWN:
             PSA_ASSERT( psa_open_key( id, &handle ) );
             PSA_ASSERT( psa_get_key_attributes( handle, &read_attributes ) );
@@ -230,7 +268,9 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
             }
             PSA_ASSERT( psa_close_key( handle ) );
             break;
+
         case CLOSE_BY_DESTROY:
+        case CLOSE_BY_DESTROY_WITH_SHUTDOWN:
             TEST_EQUAL( psa_open_key( id, &handle ),
                         PSA_ERROR_DOES_NOT_EXIST );
             break;

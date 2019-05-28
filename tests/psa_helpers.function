@@ -32,7 +32,7 @@
  */
 #define PSA_ASSERT( expr ) TEST_EQUAL( ( expr ), PSA_SUCCESS )
 
-static void test_helper_psa_done( int line, const char *file )
+static int test_helper_is_psa_pristine( int line, const char *file )
 {
     mbedtls_psa_stats_t stats;
     const char *msg = NULL;
@@ -48,12 +48,28 @@ static void test_helper_psa_done( int line, const char *file )
     else if( stats.half_filled_slots != 0 )
         msg = "A half-filled slot has not been cleared properly.";
 
-    /* If the test failed, don't overwrite the failure information.
-     * Do keep the stats lookup above, because it can be convenient to
-     * break on it when debugging a failure. */
+    /* If the test has already failed, don't overwrite the failure
+     * information. Do keep the stats lookup above, because it can be
+     * convenient to break on it when debugging a failure. */
     if( msg != NULL && test_info.failed == 0 )
         test_fail( msg, line, file );
 
+    return( msg == NULL );
+}
+
+/** Check that no PSA slots are in use.
+ */
+#define ASSERT_PSA_PRISTINE( )                                    \
+    do                                                            \
+    {                                                             \
+        if( ! test_helper_is_psa_pristine( __LINE__, __FILE__ ) ) \
+            goto exit;                                            \
+    }                                                             \
+    while( 0 )
+
+static void test_helper_psa_done( int line, const char *file )
+{
+    (void) test_helper_is_psa_pristine( line, file );
     mbedtls_psa_crypto_free( );
 }
 

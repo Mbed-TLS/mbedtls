@@ -103,7 +103,7 @@ void transient_slot_lifecycle( int usage_arg, int alg_arg,
             PSA_ASSERT( psa_destroy_key( handle ) );
             break;
         case CLOSE_BY_SHUTDOWN:
-            mbedtls_psa_crypto_free( );
+            PSA_DONE( );
             PSA_ASSERT( psa_crypto_init( ) );
             break;
     }
@@ -114,7 +114,7 @@ void transient_slot_lifecycle( int usage_arg, int alg_arg,
     TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -180,7 +180,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
             PSA_ASSERT( psa_destroy_key( handle ) );
             break;
         case CLOSE_BY_SHUTDOWN:
-            mbedtls_psa_crypto_free( );
+            PSA_DONE( );
             PSA_ASSERT( psa_crypto_init( ) );
             break;
     }
@@ -236,7 +236,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     }
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     psa_purge_key_storage( );
     mbedtls_free( reexported );
 }
@@ -303,7 +303,7 @@ void create_existent( int lifetime_arg, int id_arg,
                     reexported, reexported_length );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     psa_purge_key_storage( );
 }
 /* END_CASE */
@@ -322,7 +322,7 @@ void open_fail( int id_arg,
     TEST_EQUAL( handle, 0 );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -350,7 +350,7 @@ void create_fail( int lifetime_arg, int id_arg,
     TEST_EQUAL( handle, 0 );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_purge_key_storage( );
 #endif
@@ -428,7 +428,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
      * sure that the material is still alive. */
     if( target_lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        mbedtls_psa_crypto_free( );
+        PSA_DONE( );
         PSA_ASSERT( psa_crypto_init( ) );
         PSA_ASSERT( psa_open_key( target_id, &target_handle ) );
     }
@@ -464,7 +464,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     }
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     mbedtls_free( export_buffer );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_purge_key_storage( );
@@ -567,7 +567,7 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
     }
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     mbedtls_free( export_buffer );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_purge_key_storage( );
@@ -609,7 +609,7 @@ void invalid_handle( )
     PSA_ASSERT( psa_close_key( handle1 ) );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -657,7 +657,7 @@ void many_transient_handles( int max_handles_arg )
     PSA_ASSERT( psa_close_key( handles[i - 1] ) );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     mbedtls_free( handles );
 }
 /* END_CASE */

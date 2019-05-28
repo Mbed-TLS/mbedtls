@@ -1,3 +1,5 @@
+option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
+
 set(libs
     mbedtls
 )
@@ -9,6 +11,10 @@ endif(USE_PKCS11_HELPER_LIBRARY)
 if(ENABLE_ZLIB_SUPPORT)
     set(libs ${libs} ${ZLIB_LIBRARIES})
 endif(ENABLE_ZLIB_SUPPORT)
+
+if(LINK_WITH_PTHREAD)
+    set(libs ${libs} pthread)
+endif(LINK_WITH_PTHREAD)
 
 find_package(PythonInterp)
 if(NOT PYTHONINTERP_FOUND)

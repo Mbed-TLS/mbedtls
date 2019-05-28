@@ -108,6 +108,9 @@ void save_large_persistent_key( int data_too_large, int expected_status )
     TEST_EQUAL( psa_import_key( &attributes, data, data_length, &handle ),
                 expected_status );
 
+    if( expected_status == PSA_SUCCESS )
+        PSA_ASSERT( psa_destroy_key( handle ) );
+
 exit:
     mbedtls_free( data );
     PSA_DONE();
@@ -161,6 +164,8 @@ void persistent_key_destroy( int key_id_arg, int restart,
     PSA_ASSERT( psa_import_key( &attributes, second_data->x, second_data->len,
                                 &handle ) );
 
+    PSA_ASSERT( psa_destroy_key( handle ) );
+
 exit:
     PSA_DONE();
     psa_destroy_persistent_key( key_id );
@@ -205,6 +210,8 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
     TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
+
+    PSA_ASSERT( psa_destroy_key( handle ) );
 
 exit:
     psa_reset_key_attributes( &attributes );

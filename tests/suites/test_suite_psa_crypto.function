@@ -1291,6 +1291,7 @@ void import_rsa_made_up( int bits_arg, int keypair, int expected_status_arg )
     psa_set_key_type( &attributes, type );
     status = psa_import_key( &attributes, p, length, &handle );
     TEST_EQUAL( status, expected_status );
+
     if( status == PSA_SUCCESS )
         PSA_ASSERT( psa_destroy_key( handle ) );
 
@@ -2100,6 +2101,9 @@ void copy_fail( int source_usage_arg,
     TEST_EQUAL( psa_copy_key( source_handle,
                               &target_attributes, &target_handle ),
                 expected_status_arg );
+
+    PSA_ASSERT( psa_destroy_key( source_handle ) );
+
 exit:
     psa_reset_key_attributes( &source_attributes );
     psa_reset_key_attributes( &target_attributes );
@@ -2587,6 +2591,8 @@ void mac_bad_order( )
                 PSA_ERROR_BAD_STATE );
     PSA_ASSERT( psa_mac_abort( &operation ) );
 
+    PSA_ASSERT( psa_destroy_key( handle ) );
+
 exit:
     PSA_DONE( );
 }
@@ -2907,6 +2913,8 @@ void cipher_bad_order( )
                                    buffer, sizeof( buffer ), &length ),
                 PSA_ERROR_BAD_STATE );
     PSA_ASSERT( psa_cipher_abort( &operation ) );
+
+    PSA_ASSERT( psa_destroy_key( handle ) );
 
 exit:
     PSA_DONE( );
@@ -5016,6 +5024,7 @@ void persistent_key_load_key_from_storage( data_t *data,
     }
 
     /* Shutdown and restart */
+    PSA_ASSERT( psa_close_key( handle ) );
     PSA_DONE();
     PSA_ASSERT( psa_crypto_init() );
 

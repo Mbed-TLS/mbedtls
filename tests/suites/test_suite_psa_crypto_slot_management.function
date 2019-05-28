@@ -228,6 +228,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
                                             &reexported_length ),
                             PSA_ERROR_NOT_PERMITTED );
             }
+            PSA_ASSERT( psa_close_key( handle ) );
             break;
         case CLOSE_BY_DESTROY:
             TEST_EQUAL( psa_open_key( id, &handle ),
@@ -301,6 +302,8 @@ void create_existent( int lifetime_arg, int id_arg,
                                 &reexported_length ) );
     ASSERT_COMPARE( material1, sizeof( material1 ),
                     reexported, reexported_length );
+
+    PSA_ASSERT( psa_close_key( handle1 ) );
 
 exit:
     PSA_DONE( );
@@ -428,7 +431,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
      * sure that the material is still alive. */
     if( target_lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        PSA_DONE( );
+        mbedtls_psa_crypto_free( );
         PSA_ASSERT( psa_crypto_init( ) );
         PSA_ASSERT( psa_open_key( target_id, &target_handle ) );
     }
@@ -462,6 +465,8 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
                                     material->len, &length ),
                     PSA_ERROR_NOT_PERMITTED );
     }
+
+    PSA_ASSERT( psa_destroy_key( target_handle ) );
 
 exit:
     PSA_DONE( );
@@ -565,6 +570,10 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
         ASSERT_COMPARE( target_material->x, target_material->len,
                         export_buffer, length );
     }
+
+    PSA_ASSERT( psa_destroy_key( source_handle ) );
+    if( target_handle != source_handle )
+        PSA_ASSERT( psa_destroy_key( target_handle ) );
 
 exit:
     PSA_DONE( );

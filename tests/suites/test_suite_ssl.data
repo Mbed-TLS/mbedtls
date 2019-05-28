@@ -59,16 +59,16 @@ SSL SET_HOSTNAME memory leak: call ssl_set_hostname twice
 ssl_set_hostname_twice:"server0":"server1"
 
 SSL session serialization: Wrong major version
-ssl_session_serialize_version_check:1:0:0:0
+ssl_session_serialise_version_check:1:0:0:0
 
-SSL session serialization: Wrong minor version
-ssl_session_serialize_version_check:1:0:0:0
+SSL session serialisation: Wrong minor version
+ssl_session_serialise_version_check:0:1:0:0
 
-SSL session serialization: Wrong patch version
-ssl_session_serialize_version_check:1:0:0:0
+SSL session serialisation: Wrong patch version
+ssl_session_serialise_version_check:0:0:1:0
 
-SSL session serialization: Wrong config
-ssl_session_serialize_version_check:1:0:0:0
+SSL session serialisation: Wrong config
+ssl_session_serialise_version_check:0:0:0:1
 
 Record crypt, AES-128-CBC, 1.2, SHA-384
 depends_on:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SHA512_C

@@ -10184,7 +10184,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
      */
 
     if( (size_t)( end - p ) < sizeof( ssl_serialized_session_header ) )
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     if( memcmp( p, ssl_serialized_session_header,
                 sizeof( ssl_serialized_session_header ) ) != 0 )

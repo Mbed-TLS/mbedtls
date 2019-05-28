@@ -53,6 +53,11 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
+# Pthread shared library extension
+ifdef PTHREAD
+LOCAL_LDFLAGS += -lpthread
+endif
+
 # A test application is built for each suites/test_suite_*.data file.
 # Application name is same as .data file's base name and can be
 # constructed by stripping path 'suites/' and extension .data.

@@ -3553,6 +3553,94 @@ int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
 
 /**
+ * \brief          Save a live connection as serialized data in a buffer.
+ *                 This allows to free or re-use the SSL context while still
+ *                 picking up the connection later in a way that it entirely
+ *                 transparent to the peer.
+ *
+ * \see            mbedtls_ssl_context_load()
+ *
+ * \note           This feature is currently only available under certain
+ *                 conditions, see the documentation of return value
+ *                 #MBEDTLS_ERR_SSL_BAD_INPUT_DATA for details.
+ *
+ * \note           When the function succeeds, it calls
+ *                 mbedtls_ssl_session_reset() on \p ssl which as a result is
+ *                 no longer associated with the connection that has been
+ *                 serialized. This avoid creating copies of the session
+ *                 state. You're then free to either re-use the context
+ *                 structure for a different connection, or call
+ *                 mbedtls_ssl_session_free() on it.
+ *
+ * \param ssl      The SSL context to save. On success, it is no longer
+ *                 associated with the connection that has been serialized.
+ * \param buf      The buffer to write the serialized data to. It must be a
+ *                 writeable buffer of at least \p len bytes, or may be \c
+ *                 NULL if \p len is \c 0.
+ * \param buf_len  The number of bytes available for writing in \p buf.
+ * \param olen     The size in bytes of the data that has been or would have
+ *                 been written. It must point to a valid \c size_t.
+ *
+ * \note           \p olen is updated to the correct value regardless of
+ *                 whether \p buf_len was large enough. This makes it possible
+ *                 to determine the necessary size by calling this function
+ *                 with \p buf set to \c NULL and \p buf_len to \c 0.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
+ * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if a handsahke is in
+ *                 progress, or there is pending data for reading or sending,
+ *                 or the connection does not use DTLS 1.2 with and AEAD
+ *                 ciphersuite, or renegotiation is enabled.
+ */
+int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
+                              unsigned char *buf,
+                              size_t buf_len,
+                              size_t *olen );
+/**
+ * \brief          Load serialized connection data to an SSL context.
+ *
+ * \see            mbedtls_ssl_context_save()
+ *
+ * \warning        The same serialized data must never be loaded into more
+ *                 that one context. In order to ensure that, after
+ *                 successfully loading serialized data to an SSL context, you
+ *                 should immediately destroy or invalidate all copies of the
+ *                 serialized data that was loaded. Loading the same data in
+ *                 more than one context would cause severe security failures
+ *                 including but not limited to loss of confidentiality.
+ *
+ * \note           Before calling this function, the SSL context must be
+ *                 prepared either by calling mbedtls_ssl_setup() on it with
+ *                 the same ::mbedtls_ssl_config structure that was used in
+ *                 the original connection, and not using it with any other
+ *                 function between mbedtls_ssl_setup() and this one, or by
+ *                 calling mbedtls_ssl_session_reset() on a context that was
+ *                 previously prepared as above but used in the meantime.
+ *
+ * \note           After calling this function sucessfully, you still need to
+ *                 configure some connection-specific callback and settings
+ *                 before you can use the connection again. Specifically, you
+ *                 want to call at least mbedtls_ssl_set_bio() and possibly
+ *                 mbedtls_ssl_set_timer_cb(). You might also want to call
+ *                 mbedtls_ssl_set_mtu() if new information about the PMTU is
+ *                 available - otherwise the saved information will be used.
+ *
+ * \param ssl      The SSL context structure to be populated. It must have
+ *                 been prepared as described in the note above.
+ * \param buf      The buffer holding the serialized connection data. It must
+ *                 be a readable buffer of at least \p len bytes.
+ * \param len      The size of the serialized data in bytes.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed.
+ * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if input data is invalid.
+ */
+int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
+                              const unsigned char *buf,
+                              size_t len );
+
+/**
  * \brief          Initialize an SSL configuration context
  *                 Just makes the context ready for
  *                 mbedtls_ssl_config_defaults() or mbedtls_ssl_config_free().

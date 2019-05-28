@@ -987,26 +987,31 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt );
  * \return       A negative error code on failure.
  */
 static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
-                                    mbedtls_x509_crt_frame const **frame_ptr )
+                                          mbedtls_x509_crt_frame const **dst )
 {
-    int ret;
+    int ret = 0;
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
 
-    ret = mbedtls_x509_crt_cache_provide_frame( crt );
-    if( ret != 0 )
+    if( crt->cache->frame_readers == 0 )
+#endif /* MBEDTLS_THREADING_C */
     {
-#if defined(MBEDTLS_THREADING_C)
-        if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
-            return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
-        return( ret );
+        ret = mbedtls_x509_crt_cache_provide_frame( crt );
     }
 
-    *frame_ptr = crt->cache->frame;
-    return( 0 );
+#if defined(MBEDTLS_THREADING_C)
+    if( crt->cache->frame_readers == MBEDTLS_X509_CACHE_FRAME_READERS_MAX )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+    crt->cache->frame_readers++;
+
+    if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
+
+    *dst = crt->cache->frame;
+    return( ret );
 }
 
 /**
@@ -1016,17 +1021,24 @@ static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
  * \param crt    The certificate for which a certificate frame has
  *               previously been acquired.
  */
-static inline void mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
+static inline int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
 {
-    ((void) crt);
-
 #if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+    if( crt->cache->frame_readers == 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+    crt->cache->frame_readers--;
+
     mbedtls_mutex_unlock( &crt->cache->frame_mutex );
-#endif
+#endif /* MBEDTLS_THREADING_C */
 
 #if defined(MBEDTLS_X509_ALWAYS_FLUSH)
-    (void) mbedtls_x509_crt_flush_cache_frame( crt );
+        (void) mbedtls_x509_crt_flush_cache_frame( crt );
 #endif /* MBEDTLS_X509_ALWAYS_FLUSH */
+    return( 0 );
 }
 
 /**
@@ -1057,26 +1069,31 @@ static inline void mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
  * \return       A negative error code on failure.
  */
 static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
-                                               mbedtls_pk_context **pk_ptr )
+                                               mbedtls_pk_context **dst )
 {
-    int ret;
+    int ret = 0;
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
 
-    ret = mbedtls_x509_crt_cache_provide_pk( crt );
-    if( ret != 0 )
+    if( crt->cache->pk_readers == 0 )
+#endif /* MBEDTLS_THREADING_C */
     {
-#if defined(MBEDTLS_THREADING_C)
-        if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
-            return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
-        return( ret );
+        ret = mbedtls_x509_crt_cache_provide_pk( crt );
     }
 
-    *pk_ptr = crt->cache->pk;
-    return( 0 );
+#if defined(MBEDTLS_THREADING_C)
+    if( crt->cache->pk_readers == MBEDTLS_X509_CACHE_PK_READERS_MAX )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+    crt->cache->pk_readers++;
+
+    if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
+
+    *dst = crt->cache->pk;
+    return( ret );
 }
 
 /**
@@ -1086,17 +1103,25 @@ static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
  * \param crt    The certificate for which a certificate frame has
  *               previously been acquired.
  */
-static inline void mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
+static inline int mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
 {
-    ((void) crt);
-
 #if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+    if( crt->cache->pk_readers == 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+    crt->cache->pk_readers--;
+
     mbedtls_mutex_unlock( &crt->cache->pk_mutex );
-#endif
+#endif /* MBEDTLS_THREADING_C */
 
 #if defined(MBEDTLS_X509_ALWAYS_FLUSH)
-    (void) mbedtls_x509_crt_flush_cache_pk( crt );
+        (void) mbedtls_x509_crt_flush_cache_pk( crt );
 #endif /* MBEDTLS_X509_ALWAYS_FLUSH */
+
+    return( 0 );
 }
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

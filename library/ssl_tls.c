@@ -11279,6 +11279,40 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
 }
 
 /*
+ * Serialize a full SSL context
+ */
+int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
+                              unsigned char *buf,
+                              size_t buf_len,
+                              size_t *olen )
+{
+    /* Unimplemented yet */
+    (void) ssl;
+
+    if( buf != NULL )
+        memset( buf, 0, buf_len );
+
+    *olen = 0;
+
+    return( 0 );
+}
+
+/*
+ * Deserialize a full SSL context
+ */
+int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
+                              const unsigned char *buf,
+                              size_t len )
+{
+    /* Unimplemented yet */
+    (void) ssl;
+    (void) buf;
+    (void) len;
+
+    return( 0 );
+}
+
+/*
  * Free an SSL context
  */
 void mbedtls_ssl_free( mbedtls_ssl_context *ssl )

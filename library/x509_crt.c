@@ -112,17 +112,21 @@ int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
 
+    /* Can only free the PK context if nobody is using it. */
+    if( crt->cache->pk_readers == 0 )
+#endif
+    {
 #if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
-    /* The cache holds a shallow copy of the PK context
-     * in the legacy struct, so don't free PK context. */
-    mbedtls_free( crt->cache->pk );
+        /* The cache holds a shallow copy of the PK context
+         * in the legacy struct, so don't free PK context. */
+        mbedtls_free( crt->cache->pk );
 #else
-    mbedtls_pk_free( crt->cache->pk );
-    mbedtls_free( crt->cache->pk );
+        mbedtls_pk_free( crt->cache->pk );
+        mbedtls_free( crt->cache->pk );
 #endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
-    crt->cache->pk = NULL;
+        crt->cache->pk = NULL;
+    }
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
@@ -136,10 +140,14 @@ int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt )
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
 
-    mbedtls_free( crt->cache->frame );
-    crt->cache->frame = NULL;
+    /* Can only free the frame if nobody is using it. */
+    if( crt->cache->frame_readers == 0 )
+#endif
+    {
+        mbedtls_free( crt->cache->frame );
+        crt->cache->frame = NULL;
+    }
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )

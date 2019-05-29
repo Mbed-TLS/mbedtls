@@ -930,44 +930,57 @@ void ssl_session_serialize_version_check( int corrupt_major,
 {
     unsigned char serialized_session[ 2048 ];
     size_t serialized_session_len;
-
+    unsigned cur_byte;
     mbedtls_ssl_session session;
+    uint8_t should_corrupt_byte[] = { corrupt_major  == 1,
+                                      corrupt_minor  == 1,
+                                      corrupt_patch  == 1,
+                                      corrupt_config == 1,
+                                      corrupt_config == 1 };
+
     mbedtls_ssl_session_init( &session );
 
-     /* Infer length of serialized session. */
+    /* Infer length of serialized session. */
     TEST_ASSERT( mbedtls_ssl_session_save( &session,
                                            serialized_session,
                                            sizeof( serialized_session ),
                                            &serialized_session_len ) == 0 );
 
-     mbedtls_ssl_session_free( &session );
+    mbedtls_ssl_session_free( &session );
 
-     /* Without any modification, we should be able to successfully
+    /* Without any modification, we should be able to successfully
      * de-serialize the session - double-check that. */
     TEST_ASSERT( mbedtls_ssl_session_load( &session,
                                            serialized_session,
                                            serialized_session_len ) == 0 );
     mbedtls_ssl_session_free( &session );
 
-     if( corrupt_major )
-        serialized_session[0] ^= (uint8_t) 0x1;
-
-     if( corrupt_minor )
-        serialized_session[1] ^= (uint8_t) 0x1;
-
-     if( corrupt_patch )
-        serialized_session[2] ^= (uint8_t) 0x1;
-
-     if( corrupt_config )
+    /* Go through the bytes in the serialized session header and
+     * corrupt them bit-by-bit. */
+    for( cur_byte = 0; cur_byte < sizeof( should_corrupt_byte ); cur_byte++ )
     {
-        serialized_session[3] ^= (uint8_t) 0x1;
-        serialized_session[4] ^= (uint8_t) 0x1;
-        serialized_session[5] ^= (uint8_t) 0x1;
+        int cur_bit;
+        unsigned char * const byte = &serialized_session[ cur_byte ];
+
+        if( should_corrupt_byte[ cur_byte ] == 0 )
+            continue;
+
+        for( cur_bit = 0; cur_bit < CHAR_BIT; cur_bit++ )
+        {
+            unsigned char const corrupted_bit = 0x1u << cur_bit;
+            /* Modify a single bit in the serialized session. */
+            *byte ^= corrupted_bit;
+
+            /* Attempt to deserialize */
+            TEST_ASSERT( mbedtls_ssl_session_load( &session,
+                                                   serialized_session,
+                                                   serialized_session_len ) ==
+                         MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+            /* Undo the change */
+            *byte ^= corrupted_bit;
+        }
     }
 
-     TEST_ASSERT( mbedtls_ssl_session_load( &session,
-                                           serialized_session,
-                                           serialized_session_len ) ==
-                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 }
 /* END_CASE */

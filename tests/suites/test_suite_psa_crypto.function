@@ -530,9 +530,9 @@ static int exercise_key_derivation_key( psa_key_handle_t handle,
 
     if( usage & PSA_KEY_USAGE_DERIVE )
     {
+        PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
         if( PSA_ALG_IS_HKDF( alg ) )
         {
-            PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
             PSA_ASSERT( psa_key_derivation_input_bytes( &operation,
                                                         PSA_KEY_DERIVATION_INPUT_SALT,
                                                         label,
@@ -545,17 +545,26 @@ static int exercise_key_derivation_key( psa_key_handle_t handle,
                                                         seed,
                                                         seed_length ) );
         }
-#if defined(PSA_PRE_1_0_KEY_DERIVATION)
+        else if( PSA_ALG_IS_TLS12_PRF( alg ) ||
+                 PSA_ALG_IS_TLS12_PSK_TO_MS( alg ) )
+        {
+            PSA_ASSERT( psa_key_derivation_input_bytes( &operation,
+                                                        PSA_KEY_DERIVATION_INPUT_SEED,
+                                                        seed,
+                                                        seed_length ) );
+            PSA_ASSERT( psa_key_derivation_input_key( &operation,
+                                                      PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                      handle ) );
+            PSA_ASSERT( psa_key_derivation_input_bytes( &operation,
+                                                        PSA_KEY_DERIVATION_INPUT_LABEL,
+                                                        label,
+                                                        label_length ) );
+        }
         else
         {
-            // legacy
-            PSA_ASSERT( psa_key_derivation( &operation,
-                                            handle, alg,
-                                            label, label_length,
-                                            seed, seed_length,
-                                            sizeof( output ) ) );
+            TEST_ASSERT( ! "Key derivation algorithm not supported" );
         }
-#endif
+
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
                                                      output,
                                                      sizeof( output ) ) );

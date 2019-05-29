@@ -279,8 +279,9 @@ class AbiChecker(object):
                 )
                 if not (self.keep_all_reports or self.brief):
                     os.remove(output_path)
-            os.remove(self.old_version.abi_dumps[mbed_module])
-            os.remove(self.new_version.abi_dumps[mbed_module])
+        for version in [self.old_version, self.new_version]:
+            for mbed_module, mbed_module_dump in version.abi_dumps.items():
+                os.remove(mbed_module_dump)
         if self.can_remove_report_dir:
             os.rmdir(self.report_dir)
         self.log.info(compatibility_report)

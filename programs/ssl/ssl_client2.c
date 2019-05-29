@@ -35,6 +35,8 @@
 #define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
 #define mbedtls_snprintf   snprintf
+#define mbedtls_calloc     calloc
+#define mbedtls_free       free
 #define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
@@ -80,6 +82,7 @@ int main( void )
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_REQUEST_SIZE        -1
 #define DFL_DEBUG_LEVEL         0
+#define DFL_CONTEXT_CRT_CB      0
 #define DFL_NBIO                0
 #define DFL_EVENT               0
 #define DFL_READ_TIMEOUT        0
@@ -122,10 +125,22 @@ int main( void )
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_CA_CALLBACK         0
+#define DFL_EAP_TLS             0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#define USAGE_CONTEXT_CRT_CB \
+    "    context_crt_cb=%%d   This determines whether the CRT verification callback is bound\n" \
+    "                        to the SSL configuration of the SSL context.\n" \
+    "                        Possible values:\n"\
+    "                        - 0 (default): Use CRT callback bound to configuration\n" \
+    "                        - 1: Use CRT callback bound to SSL context\n"
+#else
+#define USAGE_CONTEXT_CRT_CB ""
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_FS_IO)
 #define USAGE_IO \
@@ -174,12 +189,27 @@ int main( void )
 #define USAGE_PSK ""
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+#define USAGE_CA_CALLBACK                       \
+    "   ca_callback=%%d       default: 0 (disabled)\n"      \
+    "                         Enable this to use the trusted certificate callback function\n"
+#else
+#define USAGE_CA_CALLBACK ""
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"
 #else
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+#define USAGE_EAP_TLS                                       \
+    "    eap_tls=%%d          default: 0 (disabled)\n"
+#else
+#define USAGE_EAP_TLS ""
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 #define USAGE_TRUNC_HMAC                                    \
@@ -312,6 +342,7 @@ int main( void )
     "                        options: none, optional, required\n" \
     USAGE_IO                                                \
     USAGE_KEY_OPAQUE                                        \
+    USAGE_CA_CALLBACK                                       \
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
@@ -324,8 +355,10 @@ int main( void )
     "    reco_delay=%%d       default: 0 seconds\n"         \
     "    reconnect_hard=%%d   default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \
+    USAGE_EAP_TLS                                           \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
+    USAGE_CONTEXT_CRT_CB                                    \
     USAGE_ALPN                                              \
     USAGE_FALLBACK                                          \
     USAGE_EMS                                               \
@@ -386,6 +419,9 @@ struct options
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     int psk_opaque;
 #endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    int ca_callback;            /* Use callback for trusted certificate list */
+#endif
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
     const char *ecjpake_pw;     /* the EC J-PAKE password                   */
@@ -419,9 +455,47 @@ struct options
     int dgram_packing;          /* allow/forbid datagram packing            */
     int extended_ms;            /* negotiate extended master secret?        */
     int etm;                    /* negotiate encrypt then mac?              */
+    int context_crt_cb;         /* use context-specific CRT verify callback */
+    int eap_tls;                /* derive EAP-TLS keying material?          */
 } opt;
 
 int query_config( const char *config );
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+typedef struct eap_tls_keys
+{
+    unsigned char master_secret[48];
+    unsigned char randbytes[64];
+    mbedtls_tls_prf_types tls_prf_type;
+} eap_tls_keys;
+
+static int eap_tls_key_derivation ( void *p_expkey,
+                                    const unsigned char *ms,
+                                    const unsigned char *kb,
+                                    size_t maclen,
+                                    size_t keylen,
+                                    size_t ivlen,
+                                    unsigned char client_random[32],
+                                    unsigned char server_random[32],
+                                    mbedtls_tls_prf_types tls_prf_type )
+{
+    eap_tls_keys *keys = (eap_tls_keys *)p_expkey;
+
+    ( ( void ) kb );
+    memcpy( keys->master_secret, ms, sizeof( keys->master_secret ) );
+    memcpy( keys->randbytes, client_random, 32 );
+    memcpy( keys->randbytes + 32, server_random, 32 );
+    keys->tls_prf_type = tls_prf_type;
+
+    if( opt.debug_level > 2 )
+    {
+        mbedtls_printf("exported maclen is %u\n", (unsigned)maclen);
+        mbedtls_printf("exported keylen is %u\n", (unsigned)keylen);
+        mbedtls_printf("exported ivlen is %u\n", (unsigned)ivlen);
+    }
+    return( 0 );
+}
+#endif
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -438,6 +512,62 @@ static void my_debug( void *ctx, int level,
                      basename, line, level, str );
     fflush(  (FILE *) ctx  );
 }
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+int ca_callback( void *data, mbedtls_x509_crt const *child,
+                 mbedtls_x509_crt **candidates )
+{
+    int ret = 0;
+    mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
+    mbedtls_x509_crt *first;
+
+    /* This is a test-only implementation of the CA callback
+     * which always returns the entire list of trusted certificates.
+     * Production implementations managing a large number of CAs
+     * should use an efficient presentation and lookup for the
+     * set of trusted certificates (such as a hashtable) and only
+     * return those trusted certificates which satisfy basic
+     * parental checks, such as the matching of child `Issuer`
+     * and parent `Subject` field or matching key identifiers. */
+    ((void) child);
+
+    first = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
+    if( first == NULL )
+    {
+        ret = -1;
+        goto exit;
+    }
+    mbedtls_x509_crt_init( first );
+
+    if( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) != 0 )
+    {
+        ret = -1;
+        goto exit;
+    }
+
+    while( ca->next != NULL )
+    {
+        ca = ca->next;
+        if( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) != 0 )
+        {
+            ret = -1;
+            goto exit;
+        }
+    }
+
+exit:
+
+    if( ret != 0 )
+    {
+        mbedtls_x509_crt_free( first );
+        mbedtls_free( first );
+        first = NULL;
+    }
+
+    *candidates = first;
+    return( ret );
+}
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 /*
  * Test recv/send functions that make sure each try returns
@@ -628,6 +758,12 @@ int main( int argc, char *argv[] )
 #endif
     char *p, *q;
     const int *list;
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    unsigned char eap_tls_keymaterial[16];
+    unsigned char eap_tls_iv[8];
+    const char* eap_tls_label = "client EAP encryption";
+    eap_tls_keys eap_tls_keying;
+#endif
 
     /*
      * Make sure memory references are valid.
@@ -685,6 +821,7 @@ int main( int argc, char *argv[] )
     opt.debug_level         = DFL_DEBUG_LEVEL;
     opt.nbio                = DFL_NBIO;
     opt.event               = DFL_EVENT;
+    opt.context_crt_cb      = DFL_CONTEXT_CRT_CB;
     opt.read_timeout        = DFL_READ_TIMEOUT;
     opt.max_resend          = DFL_MAX_RESEND;
     opt.request_page        = DFL_REQUEST_PAGE;
@@ -697,6 +834,9 @@ int main( int argc, char *argv[] )
     opt.psk                 = DFL_PSK;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     opt.psk_opaque          = DFL_PSK_OPAQUE;
+#endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    opt.ca_callback         = DFL_CA_CALLBACK;
 #endif
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
@@ -729,6 +869,7 @@ int main( int argc, char *argv[] )
     opt.extended_ms         = DFL_EXTENDED_MS;
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
+    opt.eap_tls             = DFL_EAP_TLS;
 
     for( i = 1; i < argc; i++ )
     {
@@ -757,6 +898,12 @@ int main( int argc, char *argv[] )
         {
             opt.debug_level = atoi( q );
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
+                goto usage;
+        }
+        else if( strcmp( p, "context_crt_cb" ) == 0 )
+        {
+            opt.context_crt_cb = atoi( q );
+            if( opt.context_crt_cb != 0 && opt.context_crt_cb != 1 )
                 goto usage;
         }
         else if( strcmp( p, "nbio" ) == 0 )
@@ -805,6 +952,10 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         else if( strcmp( p, "psk_opaque" ) == 0 )
             opt.psk_opaque = atoi( q );
+#endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        else if( strcmp( p, "ca_callback" ) == 0)
+            opt.ca_callback = atoi( q );
 #endif
         else if( strcmp( p, "psk_identity" ) == 0 )
             opt.psk_identity = q;
@@ -1076,6 +1227,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "query_config" ) == 0 )
         {
             return query_config( q );
+        }
+        else if( strcmp( p, "eap_tls" ) == 0 )
+        {
+            opt.eap_tls = atoi( q );
+            if( opt.eap_tls < 0 || opt.eap_tls > 1 )
+                goto usage;
         }
         else
             goto usage;
@@ -1511,7 +1668,9 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_sig_hashes( &conf, ssl_sig_hashes_for_test );
     }
 
-    mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+    if( opt.context_crt_cb == 0 )
+        mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -1549,6 +1708,12 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     if( opt.etm != DFL_ETM )
         mbedtls_ssl_conf_encrypt_then_mac( &conf, opt.etm );
+#endif
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( opt.eap_tls != 0 )
+        mbedtls_ssl_conf_export_keys_ext_cb( &conf, eap_tls_key_derivation,
+                                             &eap_tls_keying );
 #endif
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
@@ -1600,7 +1765,12 @@ int main( int argc, char *argv[] )
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
-        mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        if( opt.ca_callback != 0 )
+            mbedtls_ssl_conf_ca_cb( &conf, ca_callback, &cacert );
+        else
+#endif
+            mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
     }
     if( strcmp( opt.crt_file, "none" ) != 0 &&
         strcmp( opt.key_file, "none" ) != 0 )
@@ -1715,6 +1885,11 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if( opt.context_crt_cb == 1 )
+        mbedtls_ssl_set_verify( &ssl, my_verify, NULL );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
     if( opt.nbio == 2 )
         mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv, NULL );
     else
@@ -1806,6 +1981,57 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( opt.eap_tls != 0  )
+    {
+        size_t j = 0;
+
+        if( ( ret = mbedtls_ssl_tls_prf( eap_tls_keying.tls_prf_type,
+                                         eap_tls_keying.master_secret,
+                                         sizeof( eap_tls_keying.master_secret ),
+                                         eap_tls_label,
+                                         eap_tls_keying.randbytes,
+                                         sizeof( eap_tls_keying.randbytes ),
+                                         eap_tls_keymaterial,
+                                         sizeof( eap_tls_keymaterial ) ) )
+                                         != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                            -ret );
+            goto exit;
+        }
+
+        mbedtls_printf( "    EAP-TLS key material is:" );
+        for( j = 0; j < sizeof( eap_tls_keymaterial ); j++ )
+        {
+            if( j % 8 == 0 )
+                mbedtls_printf("\n    ");
+            mbedtls_printf("%02x ", eap_tls_keymaterial[j] );
+        }
+        mbedtls_printf("\n");
+
+        if( ( ret = mbedtls_ssl_tls_prf( eap_tls_keying.tls_prf_type, NULL, 0,
+                                         eap_tls_label,
+                                         eap_tls_keying.randbytes,
+                                         sizeof( eap_tls_keying.randbytes ),
+                                         eap_tls_iv,
+                                         sizeof( eap_tls_iv ) ) ) != 0 )
+         {
+             mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                             -ret );
+             goto exit;
+         }
+
+        mbedtls_printf( "    EAP-TLS IV is:" );
+        for( j = 0; j < sizeof( eap_tls_iv ); j++ )
+        {
+            if( j % 8 == 0 )
+                mbedtls_printf("\n    ");
+            mbedtls_printf("%02x ", eap_tls_iv[j] );
+        }
+        mbedtls_printf("\n");
+    }
+#endif
     if( opt.reconnect != 0 )
     {
         mbedtls_printf("  . Saving session for reuse..." );

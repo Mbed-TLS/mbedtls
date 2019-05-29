@@ -12,13 +12,9 @@ LOCAL_LDFLAGS = -L../library			\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
-ifdef USE_CRYPTO_SUBMODULE
 LOCAL_LDFLAGS += -L../crypto/library
 LOCAL_CFLAGS += -I../crypto/include
 CRYPTO := ../crypto/library/
-else
-CRYPTO := ../library/
-endif
 
 # Enable definition of various functions used throughout the testsuite
 # (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
@@ -66,7 +62,6 @@ endif
 # constructed by stripping path 'suites/' and extension .data.
 APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
 
-ifdef USE_CRYPTO_SUBMODULE
 APPS := $(filter-out \
 		test_suite_aes.% \
 		test_suite_arc4 \
@@ -111,7 +106,6 @@ APPS := $(filter-out \
 		test_suite_timing \
 		test_suite_xtea \
 		,$(APPS))
-endif
 
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))

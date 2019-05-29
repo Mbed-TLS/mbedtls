@@ -146,7 +146,16 @@
 #define MBEDTLS_SSL_COMPRESSION_ADD             0
 #endif
 
-#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||   \
+    ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
+      ( defined(MBEDTLS_AES_C)      ||                                  \
+        defined(MBEDTLS_CAMELLIA_C) ||                                  \
+        defined(MBEDTLS_ARIA_C)     ||                                  \
+        defined(MBEDTLS_DES_C) ) )
+#define MBEDTLS_SSL_SOME_MODES_USE_MAC
+#endif
+
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 /* Ciphersuites using HMAC */
 #if defined(MBEDTLS_SHA512_C)
 #define MBEDTLS_SSL_MAC_ADD                 48  /* SHA-384 used for HMAC */
@@ -155,7 +164,7 @@
 #else
 #define MBEDTLS_SSL_MAC_ADD                 20  /* SHA-1   used for HMAC */
 #endif
-#else
+#else /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 /* AEAD ciphersuites: GCM and CCM use a 128 bits tag */
 #define MBEDTLS_SSL_MAC_ADD                 16
 #endif
@@ -267,6 +276,10 @@ struct mbedtls_ssl_sig_hash_set_t
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
+typedef int  mbedtls_ssl_tls_prf_cb( const unsigned char *secret, size_t slen,
+                                     const char *label,
+                                     const unsigned char *random, size_t rlen,
+                                     unsigned char *dstbuf, size_t dlen );
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -416,9 +429,9 @@ struct mbedtls_ssl_handshake_params
     void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(mbedtls_ssl_context *, unsigned char *);
     void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
-    int  (*tls_prf)(const unsigned char *, size_t, const char *,
-                    const unsigned char *, size_t,
-                    unsigned char *, size_t);
+    mbedtls_ssl_tls_prf_cb *tls_prf;
+
+    mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
 
     size_t pmslen;                      /*!<  premaster length        */
 
@@ -455,24 +468,115 @@ struct mbedtls_ssl_handshake_params
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 
 /*
- * This structure contains a full set of runtime transform parameters
- * either in negotiation or active.
+ * Representation of decryption/encryption transformations on records
+ *
+ * There are the following general types of record transformations:
+ * - Stream transformations (TLS versions <= 1.2 only)
+ *   Transformation adding a MAC and applying a stream-cipher
+ *   to the authenticated message.
+ * - CBC block cipher transformations ([D]TLS versions <= 1.2 only)
+ *   In addition to the distinction of the order of encryption and
+ *   authentication, there's a fundamental difference between the
+ *   handling in SSL3 & TLS 1.0 and TLS 1.1 and TLS 1.2: For SSL3
+ *   and TLS 1.0, the final IV after processing a record is used
+ *   as the IV for the next record. No explicit IV is contained
+ *   in an encrypted record. The IV for the first record is extracted
+ *   at key extraction time. In contrast, for TLS 1.1 and 1.2, no
+ *   IV is generated at key extraction time, but every encrypted
+ *   record is explicitly prefixed by the IV with which it was encrypted.
+ * - AEAD transformations ([D]TLS versions >= 1.2 only)
+ *   These come in two fundamentally different versions, the first one
+ *   used in TLS 1.2, excluding ChaChaPoly ciphersuites, and the second
+ *   one used for ChaChaPoly ciphersuites in TLS 1.2 as well as for TLS 1.3.
+ *   In the first transformation, the IV to be used for a record is obtained
+ *   as the concatenation of an explicit, static 4-byte IV and the 8-byte
+ *   record sequence number, and explicitly prepending this sequence number
+ *   to the encrypted record. In contrast, in the second transformation
+ *   the IV is obtained by XOR'ing a static IV obtained at key extraction
+ *   time with the 8-byte record sequence number, without prepending the
+ *   latter to the encrypted record.
+ *
+ * In addition to type and version, the following parameters are relevant:
+ * - The symmetric cipher algorithm to be used.
+ * - The (static) encryption/decryption keys for the cipher.
+ * - For stream/CBC, the type of message digest to be used.
+ * - For stream/CBC, (static) encryption/decryption keys for the digest.
+ * - For AEAD transformations, the size (potentially 0) of an explicit,
+ *   random initialization vector placed in encrypted records.
+ * - For some transformations (currently AEAD and CBC in SSL3 and TLS 1.0)
+ *   an implicit IV. It may be static (e.g. AEAD) or dynamic (e.g. CBC)
+ *   and (if present) is combined with the explicit IV in a transformation-
+ *   dependent way (e.g. appending in TLS 1.2 and XOR'ing in TLS 1.3).
+ * - For stream/CBC, a flag determining the order of encryption and MAC.
+ * - The details of the transformation depend on the SSL/TLS version.
+ * - The length of the authentication tag.
+ *
+ * Note: Except for CBC in SSL3 and TLS 1.0, these parameters are
+ *       constant across multiple encryption/decryption operations.
+ *       For CBC, the implicit IV needs to be updated after each
+ *       operation.
+ *
+ * The struct below refines this abstract view as follows:
+ * - The cipher underlying the transformation is managed in
+ *   cipher contexts cipher_ctx_{enc/dec}, which must have the
+ *   same cipher type. The mode of these cipher contexts determines
+ *   the type of the transformation in the sense above: e.g., if
+ *   the type is MBEDTLS_CIPHER_AES_256_CBC resp. MBEDTLS_CIPHER_AES_192_GCM
+ *   then the transformation has type CBC resp. AEAD.
+ * - The cipher keys are never stored explicitly but
+ *   are maintained within cipher_ctx_{enc/dec}.
+ * - For stream/CBC transformations, the message digest contexts
+ *   used for the MAC's are stored in md_ctx_{enc/dec}. These contexts
+ *   are unused for AEAD transformations.
+ * - For stream/CBC transformations and versions > SSL3, the
+ *   MAC keys are not stored explicitly but maintained within
+ *   md_ctx_{enc/dec}.
+ * - For stream/CBC transformations and version SSL3, the MAC
+ *   keys are stored explicitly in mac_enc, mac_dec and have
+ *   a fixed size of 20 bytes. These fields are unused for
+ *   AEAD transformations or transformations >= TLS 1.0.
+ * - For transformations using an implicit IV maintained within
+ *   the transformation context, its contents are stored within
+ *   iv_{enc/dec}.
+ * - The value of ivlen indicates the length of the IV.
+ *   This is redundant in case of stream/CBC transformations
+ *   which always use 0 resp. the cipher's block length as the
+ *   IV length, but is needed for AEAD ciphers and may be
+ *   different from the underlying cipher's block length
+ *   in this case.
+ * - The field fixed_ivlen is nonzero for AEAD transformations only
+ *   and indicates the length of the static part of the IV which is
+ *   constant throughout the communication, and which is stored in
+ *   the first fixed_ivlen bytes of the iv_{enc/dec} arrays.
+ *   Note: For CBC in SSL3 and TLS 1.0, the fields iv_{enc/dec}
+ *   still store IV's for continued use across multiple transformations,
+ *   so it is not true that fixed_ivlen == 0 means that iv_{enc/dec} are
+ *   not being used!
+ * - minor_ver denotes the SSL/TLS version
+ * - For stream/CBC transformations, maclen denotes the length of the
+ *   authentication tag, while taglen is unused and 0.
+ * - For AEAD transformations, taglen denotes the length of the
+ *   authentication tag, while maclen is unused and 0.
+ * - For CBC transformations, encrypt_then_mac determines the
+ *   order of encryption and authentication. This field is unused
+ *   in other transformations.
+ *
  */
 struct mbedtls_ssl_transform
 {
     /*
      * Session specific crypto layer
      */
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-                                        /*!<  Chosen cipersuite_info  */
-    unsigned int keylen;                /*!<  symmetric key length (bytes)  */
     size_t minlen;                      /*!<  min. ciphertext length  */
     size_t ivlen;                       /*!<  IV length               */
     size_t fixed_ivlen;                 /*!<  Fixed part of IV (AEAD) */
-    size_t maclen;                      /*!<  MAC length              */
+    size_t maclen;                      /*!<  MAC(CBC) len            */
+    size_t taglen;                      /*!<  TAG(AEAD) len           */
 
     unsigned char iv_enc[16];           /*!<  IV (encryption)         */
     unsigned char iv_dec[16];           /*!<  IV (decryption)         */
+
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
     /* Needed only for SSL v3.0 secret */
@@ -483,8 +587,15 @@ struct mbedtls_ssl_transform
     mbedtls_md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     mbedtls_md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
 
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    int encrypt_then_mac;       /*!< flag for EtM activation                */
+#endif
+
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+
     mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
     mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
+    int minor_ver;
 
     /*
      * Session specific compression layer
@@ -494,6 +605,39 @@ struct mbedtls_ssl_transform
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
 };
+
+/*
+ * Internal representation of record frames
+ *
+ * Instances come in two flavors:
+ * (1) Encrypted
+ *     These always have data_offset = 0
+ * (2) Unencrypted
+ *     These have data_offset set to the amount of
+ *     pre-expansion during record protection. Concretely,
+ *     this is the length of the fixed part of the explicit IV
+ *     used for encryption, or 0 if no explicit IV is used
+ *     (e.g. for CBC in TLS 1.0, or stream ciphers).
+ *
+ * The reason for the data_offset in the unencrypted case
+ * is to allow for in-place conversion of an unencrypted to
+ * an encrypted record. If the offset wasn't included, the
+ * encrypted content would need to be shifted afterwards to
+ * make space for the fixed IV.
+ *
+ */
+typedef struct
+{
+    uint8_t ctr[8];         /*!< Record sequence number        */
+    uint8_t type;           /*!< Record type                   */
+    uint8_t ver[2];         /*!< SSL/TLS version               */
+
+    unsigned char *buf;     /*!< Memory buffer enclosing the record content */
+    size_t buf_len;         /*!< Buffer length */
+    size_t data_offset;     /*!< Offset of record content */
+    size_t data_len;        /*!< Length of record content */
+
+} mbedtls_record;
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /*
@@ -815,5 +959,15 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
 #ifdef __cplusplus
 }
 #endif
+
+void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform );
+int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
+                             mbedtls_ssl_transform *transform,
+                             mbedtls_record *rec,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng );
+int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
+                             mbedtls_ssl_transform *transform,
+                             mbedtls_record *rec );
 
 #endif /* ssl_internal.h */

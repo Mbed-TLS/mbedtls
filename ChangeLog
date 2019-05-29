@@ -8,6 +8,20 @@ Features
    * It is now possible to use NIST key wrap mode via the mbedtls_cipher API.
      Contributed by Jack Lloyd and Fortanix Inc.
    * Add the Wi-SUN Field Area Network (FAN) device extended key usage.
+   * Add the oid certificate policy x509 extension.
+   * It is now possible to perform RSA PKCS v1.5 signatures with RIPEMD-160 digest.
+     Contributed by Jack Lloyd and Fortanix Inc.
+   * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
+     and the used tls-prf.
+   * Add public API for tls-prf function, according to requested enum.
+   * Add support for parsing otherName entries in the Subject Alternative Name
+     X.509 certificate extension, specifically type hardware module name,
+     as defined in RFC 4108 section 5.
+   * Add support for parsing certificate policies extension, as defined in
+     RFC 5280 section 4.2.1.4. Currently, only the "Any Policy" policy is
+     supported.
+   * List all SAN types in the subject_alt_names field of the certificate.
+     Resolves #459.
 
 Bugfix
    * Fix private key DER output in the key_app_writer example. File contents
@@ -17,12 +31,29 @@ Bugfix
      Junhwan Park, #2106.
    * Reduce stack usage of hkdf tests. Fixes #2195.
    * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
-     used with negative inputs. Found by Guido Vranken in #2404.
+     used with negative inputs. Found by Guido Vranken in #2404. Credit to
+     OSS-Fuzz.
    * Fix bugs in the AEAD test suite which would be exposed by ciphers which
      either used both encrypt and decrypt key schedules, or which perform padding.
      GCM and CCM were not affected. Fixed by Jack Lloyd.
    * Fix incorrect default port number in ssl_mail_client example's usage.
      Found and fixed by irwir. #2337
+   * Add psa_util.h to test/cpp_dummy_build to fix build_default_make_gcc_and_cxx.
+     Fixed by Peter Kolbus (Garmin). #2579
+   * Add missing parentheses around parameters in the definition of the
+     public macro MBEDTLS_X509_ID_FLAG. This could lead to invalid evaluation
+     in case operators binding less strongly than subtraction were used
+     for the parameter.
+   * Add a check for MBEDTLS_X509_CRL_PARSE_C in ssl_server2, guarding the crl
+     sni entry parameter. Reported by inestlerode in #560.
+   * Set the next sequence of the subject_alt_name to NULL when deleting
+     sequence on failure. Found and fix suggested by Philippe Antoine.
+     Credit to OSS-Fuzz.
+
+API Changes
+   * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
+     and the used tls-prf.
+   * Add public API for tls-prf function, according to requested enum.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default
@@ -39,6 +70,8 @@ Changes
    * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
      Contributed by Peter Kolbus (Garmin).
    * Extended .gitignore to ignore Visual Studio artifacts. Fixed by ConfusedSushi.
+   * Change wording in the `mbedtls_ssl_conf_max_frag_len()`'s documentation to
+     improve clarity. Fixes #2258.
 
 = mbed TLS 2.17.0 branch released 2019-03-19
 

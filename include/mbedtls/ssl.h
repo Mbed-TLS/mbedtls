@@ -450,6 +450,18 @@ typedef enum
 }
 mbedtls_ssl_states;
 
+/*
+ * The tls_prf function types.
+ */
+typedef enum
+{
+   MBEDTLS_SSL_TLS_PRF_NONE,
+   MBEDTLS_SSL_TLS_PRF_SSL3,
+   MBEDTLS_SSL_TLS_PRF_TLS1,
+   MBEDTLS_SSL_TLS_PRF_SHA384,
+   MBEDTLS_SSL_TLS_PRF_SHA256
+}
+mbedtls_tls_prf_types;
 /**
  * \brief          Callback type: send data on the network.
  *
@@ -920,6 +932,11 @@ struct mbedtls_ssl_config
     /** Callback to export key block and master secret                      */
     int (*f_export_keys)( void *, const unsigned char *,
             const unsigned char *, size_t, size_t, size_t );
+    /** Callback to export key block, master secret,
+     *  tls_prf and random bytes. Should replace f_export_keys    */
+    int (*f_export_keys_ext)( void *, const unsigned char *,
+                const unsigned char *, size_t, size_t, size_t,
+                unsigned char[32], unsigned char[32], mbedtls_tls_prf_types );
     void *p_export_keys;            /*!< context for key export callback    */
 #endif
 
@@ -928,6 +945,10 @@ struct mbedtls_ssl_config
     mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
     mbedtls_x509_crt *ca_chain;     /*!< trusted CAs                        */
     mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    mbedtls_x509_crt_ca_cb_t f_ca_cb;
+    void *p_ca_cb;
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
@@ -1089,6 +1110,12 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
 #endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    /** Callback to customize X.509 certificate chain verification          */
+    int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
+    void *p_vrfy;                   /*!< context for X.509 verify callback */
+#endif
 
     mbedtls_ssl_send_t *f_send; /*!< Callback for network send */
     mbedtls_ssl_recv_t *f_recv; /*!< Callback for network receive */
@@ -1366,13 +1393,17 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 /**
  * \brief          Set the verification callback (Optional).
  *
- *                 If set, the verify callback is called for each
- *                 certificate in the chain. For implementation
- *                 information, please see \c mbedtls_x509_crt_verify()
+ *                 If set, the provided verify callback is called for each
+ *                 certificate in the peer's CRT chain, including the trusted
+ *                 root. For more information, please see the documentation of
+ *                 \c mbedtls_x509_crt_verify().
  *
- * \param conf     SSL configuration
- * \param f_vrfy   verification function
- * \param p_vrfy   verification parameter
+ * \note           For per context callbacks and contexts, please use
+ *                 mbedtls_ssl_set_verify() instead.
+ *
+ * \param conf     The SSL configuration to use.
+ * \param f_vrfy   The verification callback to use during CRT verification.
+ * \param p_vrfy   The opaque context to be passed to the callback.
  */
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
@@ -1490,6 +1521,30 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+/**
+ * \brief          Set a connection-specific verification callback (optional).
+ *
+ *                 If set, the provided verify callback is called for each
+ *                 certificate in the peer's CRT chain, including the trusted
+ *                 root. For more information, please see the documentation of
+ *                 \c mbedtls_x509_crt_verify().
+ *
+ * \note           This call is analogous to mbedtls_ssl_conf_verify() but
+ *                 binds the verification callback and context to an SSL context
+ *                 as opposed to an SSL configuration.
+ *                 If mbedtls_ssl_conf_verify() and mbedtls_ssl_set_verify()
+ *                 are both used, mbedtls_ssl_set_verify() takes precedence.
+ *
+ * \param ssl      The SSL context to use.
+ * \param f_vrfy   The verification callback to use during CRT verification.
+ * \param p_vrfy   The opaque context to be passed to the callback.
+ */
+void mbedtls_ssl_set_verify( mbedtls_ssl_context *ssl,
+                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
 /**
  * \brief          Set the timeout period for mbedtls_ssl_read()
  *                 (Default: no timeout.)
@@ -1586,6 +1641,41 @@ typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
                                 size_t maclen,
                                 size_t keylen,
                                 size_t ivlen );
+
+/**
+ * \brief           Callback type: Export key block, master secret,
+ *                                 handshake randbytes and the tls_prf function
+ *                                 used to derive keys.
+ *
+ * \note            This is required for certain uses of TLS, e.g. EAP-TLS
+ *                  (RFC 5216) and Thread. The key pointers are ephemeral and
+ *                  therefore must not be stored. The master secret and keys
+ *                  should not be used directly except as an input to a key
+ *                  derivation function.
+ *
+ * \param p_expkey  Context for the callback.
+ * \param ms        Pointer to master secret (fixed length: 48 bytes).
+ * \param kb            Pointer to key block, see RFC 5246 section 6.3.
+ *                      (variable length: 2 * maclen + 2 * keylen + 2 * ivlen).
+ * \param maclen        MAC length.
+ * \param keylen        Key length.
+ * \param ivlen         IV length.
+ * \param client_random The client random bytes.
+ * \param server_random The server random bytes.
+ * \param tls_prf_type The tls_prf enum type.
+ *
+ * \return          0 if successful, or
+ *                  a specific MBEDTLS_ERR_XXX code.
+ */
+typedef int mbedtls_ssl_export_keys_ext_t( void *p_expkey,
+                                           const unsigned char *ms,
+                                           const unsigned char *kb,
+                                           size_t maclen,
+                                           size_t keylen,
+                                           size_t ivlen,
+                                           unsigned char client_random[32],
+                                           unsigned char server_random[32],
+                                           mbedtls_tls_prf_types tls_prf_type );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 /**
@@ -1650,6 +1740,20 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
  */
 void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_export_keys_t *f_export_keys,
+        void *p_export_keys );
+
+/**
+ * \brief           Configure extended key export callback.
+ *                  (Default: none.)
+ *
+ * \note            See \c mbedtls_ssl_export_keys_ext_t.
+ *
+ * \param conf      SSL configuration context
+ * \param f_export_keys_ext Callback for exporting keys
+ * \param p_export_keys     Context for the callback
+ */
+void mbedtls_ssl_conf_export_keys_ext_cb( mbedtls_ssl_config *conf,
+        mbedtls_ssl_export_keys_ext_t *f_export_keys_ext,
         void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
@@ -2070,6 +2174,63 @@ void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
                                mbedtls_x509_crt *ca_chain,
                                mbedtls_x509_crl *ca_crl );
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+/**
+ * \brief          Set the trusted certificate callback.
+ *
+ *                 This API allows to register the set of trusted certificates
+ *                 through a callback, instead of a linked list as configured
+ *                 by mbedtls_ssl_conf_ca_chain().
+ *
+ *                 This is useful for example in contexts where a large number
+ *                 of CAs are used, and the inefficiency of maintaining them
+ *                 in a linked list cannot be tolerated. It is also useful when
+ *                 the set of trusted CAs needs to be modified frequently.
+ *
+ *                 See the documentation of `mbedtls_x509_crt_ca_cb_t` for
+ *                 more information.
+ *
+ * \param conf     The SSL configuration to register the callback with.
+ * \param f_ca_cb  The trusted certificate callback to use when verifying
+ *                 certificate chains.
+ * \param p_ca_cb  The context to be passed to \p f_ca_cb (for example,
+ *                 a reference to a trusted CA database).
+ *
+ * \note           This API is incompatible with mbedtls_ssl_conf_ca_chain():
+ *                 Any call to this function overwrites the values set through
+ *                 earlier calls to mbedtls_ssl_conf_ca_chain() or
+ *                 mbedtls_ssl_conf_ca_cb().
+ *
+ * \note           This API is incompatible with CA indication in
+ *                 CertificateRequest messages: A server-side SSL context which
+ *                 is bound to an SSL configuration that uses a CA callback
+ *                 configured via mbedtls_ssl_conf_ca_cb(), and which requires
+ *                 client authentication, will send an empty CA list in the
+ *                 corresponding CertificateRequest message.
+ *
+ * \note           This API is incompatible with mbedtls_ssl_set_hs_ca_chain():
+ *                 If an SSL context is bound to an SSL configuration which uses
+ *                 CA callbacks configured via mbedtls_ssl_conf_ca_cb(), then
+ *                 calls to mbedtls_ssl_set_hs_ca_chain() have no effect.
+ *
+ * \note           The use of this API disables the use of restartable ECC
+ *                 during X.509 CRT signature verification (but doesn't affect
+ *                 other uses).
+ *
+ * \warning        This API is incompatible with the use of CRLs. Any call to
+ *                 mbedtls_ssl_conf_ca_cb() unsets CRLs configured through
+ *                 earlier calls to mbedtls_ssl_conf_ca_chain().
+ *
+ * \warning        In multi-threaded environments, the callback \p f_ca_cb
+ *                 must be thread-safe, and it is the user's responsibility
+ *                 to guarantee this (for example through a mutex
+ *                 contained in the callback context pointed to by \p p_ca_cb).
+ */
+void mbedtls_ssl_conf_ca_cb( mbedtls_ssl_config *conf,
+                             mbedtls_x509_crt_ca_cb_t f_ca_cb,
+                             void *p_ca_cb );
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 /**
  * \brief          Set own certificate chain and private key
@@ -2659,13 +2820,19 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
- * \brief          Set the maximum fragment length to emit and/or negotiate
- *                 (Default: the smaller of MBEDTLS_SSL_IN_CONTENT_LEN and
- *                 MBEDTLS_SSL_OUT_CONTENT_LEN, usually 2^14 bytes)
+ * \brief          Set the maximum fragment length to emit and/or negotiate.
+ *                 (Typical: the smaller of #MBEDTLS_SSL_IN_CONTENT_LEN and
+ *                 #MBEDTLS_SSL_OUT_CONTENT_LEN, usually `2^14` bytes)
  *                 (Server: set maximum fragment length to emit,
- *                 usually negotiated by the client during handshake
+ *                 usually negotiated by the client during handshake)
  *                 (Client: set maximum fragment length to emit *and*
  *                 negotiate with the server during handshake)
+ *                 (Default: #MBEDTLS_SSL_MAX_FRAG_LEN_NONE)
+ *
+ * \note           On the client side, the maximum fragment length extension
+ *                 *will not* be used, unless the maximum fragment length has
+ *                 been set via this function to a value different than
+ *                 #MBEDTLS_SSL_MAX_FRAG_LEN_NONE.
  *
  * \note           With TLS, this currently only affects ApplicationData (sent
  *                 with \c mbedtls_ssl_read()), not handshake messages.
@@ -3391,6 +3558,27 @@ void mbedtls_ssl_session_init( mbedtls_ssl_session *session );
  * \param session  SSL session
  */
 void mbedtls_ssl_session_free( mbedtls_ssl_session *session );
+
+/**
+ * \brief          TLS-PRF function for key derivation.
+ *
+ * \param prf      The tls_prf type funtion type to be used.
+ * \param secret   Secret for the key derivation function.
+ * \param slen     Length of the secret.
+ * \param label    String label for the key derivation function,
+ *                 terminated with null character.
+ * \param random   Random bytes.
+ * \param rlen     Length of the random bytes buffer.
+ * \param dstbuf   The buffer holding the derived key.
+ * \param dlen     Length of the output buffer.
+ *
+ * \return         0 on sucess. An SSL specific error on failure.
+ */
+int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
+                          const unsigned char *secret, size_t slen,
+                          const char *label,
+                          const unsigned char *random, size_t rlen,
+                          unsigned char *dstbuf, size_t dlen );
 
 #ifdef __cplusplus
 }

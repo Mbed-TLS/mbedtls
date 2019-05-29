@@ -1498,6 +1498,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION */
 
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    if( strcmp( "MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
+
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
     if( strcmp( "MBEDTLS_X509_CHECK_KEY_USAGE", config ) == 0 )
     {

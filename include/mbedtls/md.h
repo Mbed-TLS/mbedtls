@@ -74,6 +74,12 @@ typedef enum {
 #define MBEDTLS_MD_MAX_SIZE         32  /* longest known is SHA256 or less */
 #endif
 
+#if defined(MBEDTLS_SHA512_C)
+#define MBEDTLS_MD_MAX_BLOCK_SIZE         128
+#else
+#define MBEDTLS_MD_MAX_BLOCK_SIZE         64
+#endif
+
 /**
  * Opaque struct defined in md_internal.h.
  */

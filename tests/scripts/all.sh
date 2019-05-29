@@ -597,7 +597,7 @@ component_check_files () {
 
 component_check_names () {
     msg "test/build: declared and exported names" # < 3s
-    record_status tests/scripts/check-names.sh
+    record_status tests/scripts/check-names.sh -v
 }
 
 component_check_doxygen_warnings () {
@@ -610,6 +610,17 @@ component_check_doxygen_warnings () {
 ################################################################
 #### Build and test many configurations and targets
 ################################################################
+
+component_test_default_out_of_box () {
+    msg "build: make, default config (out-of-box)" # ~1min
+    make
+
+    msg "test: main suites make, default config (out-of-box)" # ~10s
+    make test
+
+    msg "selftest: make, default config (out-of-box)" # ~10s
+    programs/test/selftest
+}
 
 component_test_default_cmake_gcc_asan () {
     msg "build: cmake, gcc, ASan" # ~ 1 min 50s
@@ -676,23 +687,6 @@ component_test_rsa_no_crt () {
 
     msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
     if_build_succeeded tests/compat.sh -t RSA
-}
-
-component_test_new_ecdh_context () {
-    msg "build: new ECDH context (ASan build)" # ~ 6 min
-    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: new ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
-    make test
-
-    msg "test: new ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    if_build_succeeded tests/ssl-opt.sh -f ECDH
-
-    msg "test: new ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
-    # Exclude some symmetric ciphers that are redundant here to gain time.
-    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
 }
 
 component_test_small_ssl_out_content_len () {
@@ -775,7 +769,6 @@ component_build_deprecated () {
     make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
 }
 
-
 component_test_depends_curves () {
     msg "test/build: curves.pl (gcc)" # ~ 4 min
     record_status tests/scripts/curves.pl
@@ -807,93 +800,35 @@ component_build_default_make_gcc_and_cxx () {
     make TEST_CPP=1
 }
 
-component_test_submodule_cmake () {
-    # USE_CRYPTO_SUBMODULE: check that the build works with CMake
-    msg "build: cmake, full config + USE_CRYPTO_SUBMODULE, gcc+debug"
-    scripts/config.pl full # enables md4 and submodule doesn't enable md4
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    CC=gcc cmake -D USE_CRYPTO_SUBMODULE=1 -D CMAKE_BUILD_TYPE=Debug .
-    make
-    msg "test: top-level libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded not test -f library/libmbedcrypto.a
-    msg "test: libmbedcrypto symbols are from crypto files (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep -E 'crypto/library$' > /dev/null
-    msg "test: libmbedcrypto uses top-level config (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep 'md4.c' > /dev/null
-    msg "test: main suites (USE_CRYPTO_SUBMODULE, cmake)"
-    make test
-    msg "test: ssl-opt.sh (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded tests/ssl-opt.sh
-}
-
-component_test_submodule_make () {
-    # USE_CRYPTO_SUBMODULE: check that the build works with make
-    msg "build: make, full config + USE_CRYPTO_SUBMODULE, gcc+debug"
-    scripts/config.pl full # enables md4 and submodule doesn't enable md4
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    make CC=gcc CFLAGS='-g' USE_CRYPTO_SUBMODULE=1
-    msg "test: top-level libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded not test -f library/libmbedcrypto.a
-    msg "test: libmbedcrypto symbols are from crypto files (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep -E 'crypto/library$' > /dev/null
-    msg "test: libmbedcrypto uses top-level config (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep 'md4.c' > /dev/null
-    msg "test: main suites (USE_CRYPTO_SUBMODULE, make)"
-    make CC=gcc USE_CRYPTO_SUBMODULE=1 test
-    msg "test: ssl-opt.sh (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded tests/ssl-opt.sh
-}
-
-component_test_not_submodule_make () {
-    # Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with make
-    msg "build: make, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
-    scripts/config.pl full
-    make CC=gcc CFLAGS='-g'
-    msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded not test -f crypto/library/libmbedcrypto.a
-    msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
-}
-
-component_test_not_submodule_cmake () {
-    # Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with CMake
-    msg "build: cmake, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
-    scripts/config.pl full
-    CC=gcc cmake -D CMAKE_BUILD_TYPE=Debug .
-    make
-    msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded not test -f crypto/library/libmbedcrypto.a
-    msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
-}
-
-component_test_use_psa_crypto_full_cmake_asan() {
-    # MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
+component_test_no_use_psa_crypto_full_cmake_asan() {
+    # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
     msg "build: cmake, full config + MBEDTLS_USE_PSA_CRYPTO, ASan"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.pl unset MBEDTLS_ECP_RESTARTABLE  # restartable ECC not supported through PSA
     scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.pl set MBEDTLS_USE_PSA_CRYPTO
-    CC=gcc cmake -D USE_CRYPTO_SUBMODULE=1 -D CMAKE_BUILD_TYPE:String=Asan .
+    scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: main suites (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO)"
     make test
 
-    msg "test: ssl-opt.sh (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: ssl-opt.sh (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded tests/ssl-opt.sh
 
-    msg "test: compat.sh default (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh default (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded tests/compat.sh
 
-    msg "test: compat.sh ssl3 (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh ssl3 (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
-    msg "test: compat.sh RC4, DES & NULL (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh RC4, DES & NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
-    msg "test: compat.sh ARIA + ChachaPoly (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh ARIA + ChachaPoly (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
@@ -938,6 +873,8 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_FS_IO
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
@@ -1043,37 +980,9 @@ component_test_platform_calloc_macro () {
     make test
 }
 
-component_test_aes_fewer_tables () {
-    msg "build: default config with AES_FEWER_TABLES enabled"
-    scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
-
-    msg "test: AES_FEWER_TABLES"
-    make test
-}
-
-component_test_aes_rom_tables () {
-    msg "build: default config with AES_ROM_TABLES enabled"
-    scripts/config.pl set MBEDTLS_AES_ROM_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
-
-    msg "test: AES_ROM_TABLES"
-    make test
-}
-
-component_test_aes_fewer_tables_and_rom_tables () {
-    msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
-    scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
-    scripts/config.pl set MBEDTLS_AES_ROM_TABLES
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
-
-    msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
-    make test
-}
-
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
-    make SHARED=1 all check
+    make SHARED=1 all check -j1
 }
 
 component_test_m32_o0 () {
@@ -1096,10 +1005,16 @@ component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
     scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
     make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
     msg "test: i386, make, gcc -O1 (ASan build)"
     make test
+
+    msg "test ssl-opt.sh, i386, make, gcc-O1"
+    if_build_succeeded tests/ssl-opt.sh
 }
 support_test_m32_o1 () {
     support_test_m32_o0 "$@"
@@ -1120,60 +1035,6 @@ support_test_mx32 () {
     esac
 }
 
-component_test_min_mpi_window_size () {
-    msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
-    scripts/config.pl set MBEDTLS_MPI_WINDOW_SIZE 1
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
-    make test
-}
-
-component_test_have_int32 () {
-    msg "build: gcc, force 32-bit bignum limbs"
-    scripts/config.pl unset MBEDTLS_HAVE_ASM
-    scripts/config.pl unset MBEDTLS_AESNI_C
-    scripts/config.pl unset MBEDTLS_PADLOCK_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
-
-    msg "test: gcc, force 32-bit bignum limbs"
-    make test
-}
-
-component_test_have_int64 () {
-    msg "build: gcc, force 64-bit bignum limbs"
-    scripts/config.pl unset MBEDTLS_HAVE_ASM
-    scripts/config.pl unset MBEDTLS_AESNI_C
-    scripts/config.pl unset MBEDTLS_PADLOCK_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
-
-    msg "test: gcc, force 64-bit bignum limbs"
-    make test
-}
-
-component_test_no_udbl_division () {
-    msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
-    make CFLAGS='-Werror -O1'
-
-    msg "test: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
-    make test
-}
-
-component_test_no_64bit_multiplication () {
-    msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
-    make CFLAGS='-Werror -O1'
-
-    msg "test: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
-    make test
-}
-
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
     scripts/config.pl full
@@ -1182,6 +1043,8 @@ component_build_arm_none_eabi_gcc () {
     scripts/config.pl unset MBEDTLS_FS_IO
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
     # following things are not in the default config
     scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
     scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
@@ -1199,6 +1062,8 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
     scripts/config.pl unset MBEDTLS_FS_IO
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
     # following things are not in the default config
     scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
     scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
@@ -1218,6 +1083,8 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     scripts/config.pl unset MBEDTLS_TIMING_C
     scripts/config.pl unset MBEDTLS_FS_IO
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
     # following things are not in the default config
     scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
@@ -1241,6 +1108,8 @@ component_build_armcc () {
     scripts/config.pl unset MBEDTLS_HAVE_TIME
     scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
     # following things are not in the default config
     scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
     scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
@@ -1280,16 +1149,22 @@ component_test_allow_sha1 () {
 
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs -j1
 
     # note Make tests only builds the tests, but doesn't run them
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests -j1
     make WINDOWS_BUILD=1 clean
 
     msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs -j1
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests -j1
     make WINDOWS_BUILD=1 clean
+}
+support_build_mingw() {
+    case $(i686-w64-mingw32-gcc -dumpversion) in
+        [0-5]*) false;;
+        *) true;;
+    esac
 }
 
 component_test_memsan () {
@@ -1320,10 +1195,8 @@ component_test_valgrind () {
     msg "test: main suites valgrind (Release)"
     make memcheck
 
-    # Optional part(s)
-    # Currently broken, programs don't seem to receive signals
-    # under valgrind on OS X
-
+    # Optional parts (slow; currently broken on OS X because programs don't
+    # seem to receive signals under valgrind on OS X).
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: ssl-opt.sh --memcheck (Release)"
         if_build_succeeded tests/ssl-opt.sh --memcheck

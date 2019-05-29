@@ -30,6 +30,7 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
+#define mbedtls_calloc     calloc
 #define mbedtls_free       free
 #define mbedtls_time       time
 #define mbedtls_time_t     time_t
@@ -166,6 +167,8 @@ int main( void )
 #define DFL_DGRAM_PACKING        1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_CA_CALLBACK         0
+#define DFL_EAP_TLS             0
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -264,7 +267,13 @@ int main( void )
 #else
 #define USAGE_PSK ""
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
-
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+#define USAGE_CA_CALLBACK                       \
+    "   ca_callback=%%d       default: 0 (disabled)\n"      \
+    "                         Enable this to use the trusted certificate callback function\n"
+#else
+#define USAGE_CA_CALLBACK ""
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
@@ -272,6 +281,13 @@ int main( void )
 #else
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+#define USAGE_EAP_TLS                                       \
+    "    eap_tls=%%d          default: 0 (disabled)\n"
+#else
+#define USAGE_EAP_TLS ""
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_CACHE_C)
 #define USAGE_CACHE                                             \
@@ -282,8 +298,14 @@ int main( void )
 #endif /* MBEDTLS_SSL_CACHE_C */
 
 #if defined(SNI_OPTION)
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
+#define SNI_CRL              ",crl"
+#else
+#define SNI_CRL              ""
+#endif
+
 #define USAGE_SNI                                                           \
-    "    sni=%%s              name1,cert1,key1,ca1,crl1,auth1[,...]\n"  \
+    "    sni=%%s              name1,cert1,key1,ca1"SNI_CRL",auth1[,...]\n"  \
     "                        default: disabled\n"
 #else
 #define USAGE_SNI ""
@@ -420,6 +442,7 @@ int main( void )
     USAGE_SNI                                               \
     "\n"                                                    \
     USAGE_PSK                                               \
+    USAGE_CA_CALLBACK                                       \
     USAGE_ECJPAKE                                           \
     "\n"                                                    \
     "    allow_legacy=%%d     default: (library default: no)\n"      \
@@ -427,6 +450,7 @@ int main( void )
     "    exchanges=%%d        default: 1\n"                 \
     "\n"                                                    \
     USAGE_TICKETS                                           \
+    USAGE_EAP_TLS                                           \
     USAGE_CACHE                                             \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
@@ -507,6 +531,9 @@ struct options
     int psk_opaque;
     int psk_list_opaque;
 #endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    int ca_callback;            /* Use callback for trusted certificate list */
+#endif
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
     char *psk_list;             /* list of PSK id/key pairs for callback    */
@@ -545,9 +572,46 @@ struct options
     int dtls_mtu;               /* UDP Maximum tranport unit for DTLS       */
     int dgram_packing;          /* allow/forbid datagram packing            */
     int badmac_limit;           /* Limit of records with bad MAC            */
+    int eap_tls;                /* derive EAP-TLS keying material?          */
 } opt;
 
 int query_config( const char *config );
+
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+typedef struct eap_tls_keys
+{
+    unsigned char master_secret[48];
+    unsigned char randbytes[64];
+    mbedtls_tls_prf_types tls_prf_type;
+} eap_tls_keys;
+
+static int eap_tls_key_derivation ( void *p_expkey,
+                                    const unsigned char *ms,
+                                    const unsigned char *kb,
+                                    size_t maclen,
+                                    size_t keylen,
+                                    size_t ivlen,
+                                    unsigned char client_random[32],
+                                    unsigned char server_random[32],
+                                    mbedtls_tls_prf_types tls_prf_type )
+{
+    eap_tls_keys *keys = (eap_tls_keys *)p_expkey;
+
+    ( ( void ) kb );
+    memcpy( keys->master_secret, ms, sizeof( keys->master_secret ) );
+    memcpy( keys->randbytes, client_random, 32 );
+    memcpy( keys->randbytes + 32, server_random, 32 );
+    keys->tls_prf_type = tls_prf_type;
+
+    if( opt.debug_level > 2 )
+    {
+        mbedtls_printf("exported maclen is %u\n", (unsigned)maclen);
+        mbedtls_printf("exported keylen is %u\n", (unsigned)keylen);
+        mbedtls_printf("exported ivlen is %u\n", (unsigned)ivlen);
+    }
+    return( 0 );
+}
+#endif
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -563,6 +627,62 @@ static void my_debug( void *ctx, int level,
     mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s", basename, line, level, str );
     fflush(  (FILE *) ctx  );
 }
+
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+int ca_callback( void *data, mbedtls_x509_crt const *child,
+                 mbedtls_x509_crt **candidates)
+{
+    int ret = 0;
+    mbedtls_x509_crt *ca = (mbedtls_x509_crt *) data;
+    mbedtls_x509_crt *first;
+
+    /* This is a test-only implementation of the CA callback
+     * which always returns the entire list of trusted certificates.
+     * Production implementations managing a large number of CAs
+     * should use an efficient presentation and lookup for the
+     * set of trusted certificates (such as a hashtable) and only
+     * return those trusted certificates which satisfy basic
+     * parental checks, such as the matching of child `Issuer`
+     * and parent `Subject` field. */
+    ((void) child);
+
+    first = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
+    if( first == NULL )
+    {
+        ret = -1;
+        goto exit;
+    }
+    mbedtls_x509_crt_init( first );
+
+    if( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) != 0 )
+    {
+        ret = -1;
+        goto exit;
+    }
+
+    while( ca->next != NULL )
+    {
+        ca = ca->next;
+        if( mbedtls_x509_crt_parse_der( first, ca->raw.p, ca->raw.len ) != 0 )
+        {
+            ret = -1;
+            goto exit;
+        }
+    }
+
+exit:
+
+    if( ret != 0 )
+    {
+        mbedtls_x509_crt_free( first );
+        mbedtls_free( first );
+        first = NULL;
+    }
+
+    *candidates = first;
+    return( ret );
+}
+#endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 /*
  * Test recv/send functions that make sure each try returns
@@ -621,11 +741,14 @@ static int get_auth_mode( const char *s )
  * Used by sni_parse and psk_parse to handle coma-separated lists
  */
 #define GET_ITEM( dst )         \
-    dst = p;                    \
-    while( *p != ',' )          \
-        if( ++p > end )         \
-            goto error;         \
-    *p++ = '\0';
+    do                          \
+    {                           \
+        (dst) = p;              \
+        while( *p != ',' )      \
+            if( ++p > end )     \
+                goto error;     \
+        *p++ = '\0';            \
+    } while( 0 )
 
 #if defined(SNI_OPTION)
 typedef struct _sni_entry sni_entry;
@@ -654,10 +777,10 @@ void sni_free( sni_entry *head )
 
         mbedtls_x509_crt_free( cur->ca );
         mbedtls_free( cur->ca );
-
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
         mbedtls_x509_crl_free( cur->crl );
         mbedtls_free( cur->crl );
-
+#endif
         next = cur->next;
         mbedtls_free( cur );
         cur = next;
@@ -676,7 +799,10 @@ sni_entry *sni_parse( char *sni_string )
     sni_entry *cur = NULL, *new = NULL;
     char *p = sni_string;
     char *end = p;
-    char *crt_file, *key_file, *ca_file, *crl_file, *auth_str;
+    char *crt_file, *key_file, *ca_file, *auth_str;
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
+    char *crl_file;
+#endif
 
     while( *end != '\0' )
         ++end;
@@ -694,7 +820,9 @@ sni_entry *sni_parse( char *sni_string )
         GET_ITEM( crt_file );
         GET_ITEM( key_file );
         GET_ITEM( ca_file );
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
         GET_ITEM( crl_file );
+#endif
         GET_ITEM( auth_str );
 
         if( ( new->cert = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) ) ) == NULL ||
@@ -719,6 +847,7 @@ sni_entry *sni_parse( char *sni_string )
                 goto error;
         }
 
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
         if( strcmp( crl_file, "-" ) != 0 )
         {
             if( ( new->crl = mbedtls_calloc( 1, sizeof( mbedtls_x509_crl ) ) ) == NULL )
@@ -729,6 +858,7 @@ sni_entry *sni_parse( char *sni_string )
             if( mbedtls_x509_crl_parse_file( new->crl, crl_file ) != 0 )
                 goto error;
         }
+#endif
 
         if( strcmp( auth_str, "-" ) != 0 )
         {
@@ -782,15 +912,18 @@ int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 
-#define HEX2NUM( c )                    \
-        if( c >= '0' && c <= '9' )      \
-            c -= '0';                   \
-        else if( c >= 'a' && c <= 'f' ) \
-            c -= 'a' - 10;              \
-        else if( c >= 'A' && c <= 'F' ) \
-            c -= 'A' - 10;              \
-        else                            \
-            return( -1 );
+#define HEX2NUM( c )                        \
+    do                                      \
+    {                                       \
+        if( (c) >= '0' && (c) <= '9' )      \
+            (c) -= '0';                     \
+        else if( (c) >= 'a' && (c) <= 'f' ) \
+            (c) -= 'a' - 10;                \
+        else if( (c) >= 'A' && (c) <= 'F' ) \
+            (c) -= 'A' - 10;                \
+        else                                \
+            return( -1 );                   \
+    } while( 0 )
 
 /*
  * Convert a hex string to bytes.
@@ -1357,6 +1490,12 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
 #endif
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    unsigned char eap_tls_keymaterial[16];
+    unsigned char eap_tls_iv[8];
+    const char* eap_tls_label = "client EAP encryption";
+    eap_tls_keys eap_tls_keying;
+#endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
@@ -1458,6 +1597,9 @@ int main( int argc, char *argv[] )
     opt.psk_opaque          = DFL_PSK_OPAQUE;
     opt.psk_list_opaque     = DFL_PSK_LIST_OPAQUE;
 #endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+    opt.ca_callback         = DFL_CA_CALLBACK;
+#endif
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.psk_list            = DFL_PSK_LIST;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
@@ -1495,6 +1637,7 @@ int main( int argc, char *argv[] )
     opt.badmac_limit        = DFL_BADMAC_LIMIT;
     opt.extended_ms         = DFL_EXTENDED_MS;
     opt.etm                 = DFL_ETM;
+    opt.eap_tls             = DFL_EAP_TLS;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1591,6 +1734,10 @@ int main( int argc, char *argv[] )
             opt.psk_opaque = atoi( q );
         else if( strcmp( p, "psk_list_opaque" ) == 0 )
             opt.psk_list_opaque = atoi( q );
+#endif
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        else if( strcmp( p, "ca_callback" ) == 0)
+            opt.ca_callback = atoi( q );
 #endif
         else if( strcmp( p, "psk_identity" ) == 0 )
             opt.psk_identity = q;
@@ -1880,6 +2027,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "query_config" ) == 0 )
         {
             return query_config( q );
+        }
+        else if( strcmp( p, "eap_tls" ) == 0 )
+        {
+            opt.eap_tls = atoi( q );
+            if( opt.eap_tls < 0 || opt.eap_tls > 1 )
+                goto usage;
         }
         else
             goto usage;
@@ -2443,6 +2596,12 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_encrypt_then_mac( &conf, opt.etm );
 #endif
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( opt.eap_tls != 0 )
+        mbedtls_ssl_conf_export_keys_ext_cb( &conf, eap_tls_key_derivation,
+                                             &eap_tls_keying );
+#endif
+
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
         if( ( ret = mbedtls_ssl_conf_alpn_protocols( &conf, alpn_list ) ) != 0 )
@@ -2570,7 +2729,12 @@ int main( int argc, char *argv[] )
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
-        mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
+#if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
+        if( opt.ca_callback != 0 )
+            mbedtls_ssl_conf_ca_cb( &conf, ca_callback, &cacert);
+        else
+#endif
+            mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
     }
     if( key_cert_init )
     {
@@ -3018,6 +3182,57 @@ handshake:
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( opt.eap_tls != 0 )
+    {
+        size_t j = 0;
+
+        if( ( ret = mbedtls_ssl_tls_prf( eap_tls_keying.tls_prf_type,
+                                         eap_tls_keying.master_secret,
+                                         sizeof( eap_tls_keying.master_secret ),
+                                         eap_tls_label,
+                                         eap_tls_keying.randbytes,
+                                         sizeof( eap_tls_keying.randbytes ),
+                                         eap_tls_keymaterial,
+                                         sizeof( eap_tls_keymaterial ) ) )
+                                         != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                            -ret );
+            goto exit;
+        }
+
+        mbedtls_printf( "    EAP-TLS key material is:" );
+        for( j = 0; j < sizeof( eap_tls_keymaterial ); j++ )
+        {
+            if( j % 8 == 0 )
+                mbedtls_printf("\n    ");
+            mbedtls_printf("%02x ", eap_tls_keymaterial[j] );
+        }
+        mbedtls_printf("\n");
+
+        if( ( ret = mbedtls_ssl_tls_prf( eap_tls_keying.tls_prf_type, NULL, 0,
+                                         eap_tls_label,
+                                         eap_tls_keying.randbytes,
+                                         sizeof( eap_tls_keying.randbytes ),
+                                         eap_tls_iv,
+                                         sizeof( eap_tls_iv ) ) ) != 0 )
+         {
+             mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                             -ret );
+             goto exit;
+         }
+
+        mbedtls_printf( "    EAP-TLS IV is:" );
+        for( j = 0; j < sizeof( eap_tls_iv ); j++ )
+        {
+            if( j % 8 == 0 )
+                mbedtls_printf("\n    ");
+            mbedtls_printf("%02x ", eap_tls_iv[j] );
+        }
+        mbedtls_printf("\n");
+    }
+#endif
     if( opt.exchanges == 0 )
         goto close_notify;
 

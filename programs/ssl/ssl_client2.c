@@ -2396,8 +2396,6 @@ send_request:
 
             goto exit;
         }
-
-        goto send_request;
     }
 
 

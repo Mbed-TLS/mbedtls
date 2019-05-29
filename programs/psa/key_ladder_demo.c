@@ -333,11 +333,9 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
 
     *wrapping_key_handle = 0;
-    psa_set_key_usage_flags( &attributes, usage );
-    psa_set_key_algorithm( &attributes, WRAPPING_ALG );
-    psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
-    psa_set_key_bits( &attributes, WRAPPING_KEY_BITS );
 
+    /* Set up a key derivation operation from the key derived from
+     * the master key. */
     PSA_CHECK( psa_key_derivation_setup( &operation, KDF_ALG ) );
     PSA_CHECK( psa_key_derivation_input_bytes(
                    &operation, PSA_KEY_DERIVATION_INPUT_SALT,
@@ -348,16 +346,17 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
     PSA_CHECK( psa_key_derivation_input_bytes(
                    &operation, PSA_KEY_DERIVATION_INPUT_INFO,
                    NULL, 0 ) );
+
+    /* Create the wrapping key. */
+    psa_set_key_usage_flags( &attributes, usage );
+    psa_set_key_algorithm( &attributes, WRAPPING_ALG );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
+    psa_set_key_bits( &attributes, WRAPPING_KEY_BITS );
     PSA_CHECK( psa_key_derivation_output_key( &attributes, &operation,
                                               wrapping_key_handle ) );
 
 exit:
     psa_key_derivation_abort( &operation );
-    if( status != PSA_SUCCESS )
-    {
-        psa_close_key( *wrapping_key_handle );
-        *wrapping_key_handle = 0;
-    }
     return( status );
 }
 

@@ -2907,7 +2907,56 @@ send_request:
     }
 
     /*
-     * 7c. Continue doing data exchanges?
+     * 7c. Simulate serialize/deserialize and go back to data exchange
+     */
+    if( opt.serialize != 0)
+    {
+        size_t len;
+        unsigned char *buf = NULL;
+
+        opt.serialize = 0;
+        mbedtls_printf( " Serializing live connection..." );
+
+        if( ( ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &len) ) != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned -0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        if( ( buf = mbedtls_calloc(1, len) ) == NULL )
+        {
+            mbedtls_printf( " failed\n  ! Couldn't allocate buffer for serialized context" );
+
+            goto exit;
+        }
+
+        if( ( ret = mbedtls_ssl_context_save( &ssl, buf, len, &len ) ) != 0 )
+        {
+            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_save returned -0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        mbedtls_ssl_free( &ssl );
+
+        mbedtls_printf( " Deserializing connection..." );
+
+        mbedtls_ssl_init( &ssl );
+
+        if( ( ret = mbedtls_ssl_context_load( &ssl, buf, len ) ) != 0 )
+        {
+            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned -0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        goto send_request;
+    }
+
+
+    /*
+     * 7d. Continue doing data exchanges?
      */
     if( --opt.exchanges > 0 )
         goto send_request;

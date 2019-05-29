@@ -8861,7 +8861,12 @@ static unsigned char ssl_serialized_session_header[] = {
  *  opaque session_format[2];    // version-specific 16-bit field determining
  *                               // the format of the remaining
  *                               // serialized data.
- *                               // In this version, this indicates whether
+ *
+ *  Note: When updating the format, remember to keep
+ *        these version+format bytes.
+ *
+ *                               // In this version, `session_format`
+ *                               // indicates whether
  *                               // MBEDTLS_SSL_SERIALIZED_STRUCTURES_LOCAL_ONLY
  *                               // is set, plus the setting of those compile-
  *                               // time configuration options which influence

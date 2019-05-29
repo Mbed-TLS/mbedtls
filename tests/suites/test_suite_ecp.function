@@ -675,6 +675,56 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void ecp_test_mul( int id, data_t * n_hex,
+                   data_t *  Px_hex, data_t *  Py_hex, data_t *  Pz_hex,
+                   data_t * nPx_hex, data_t * nPy_hex, data_t * nPz_hex,
+                   int expected_ret )
+{
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point P, nP, R;
+    mbedtls_mpi n;
+    rnd_pseudo_info rnd_info;
+
+    mbedtls_ecp_group_init( &grp ); mbedtls_ecp_point_init( &R );
+    mbedtls_ecp_point_init( &P ); mbedtls_ecp_point_init( &nP );
+    mbedtls_mpi_init( &n );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &grp.G ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_binary( &n, n_hex->x, n_hex->len ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_binary( &P.X, Px_hex->x, Px_hex->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &P.Y, Py_hex->x, Py_hex->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &P.Z, Pz_hex->x, Pz_hex->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &nP.X, nPx_hex->x, nPx_hex->len )
+                 == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &nP.Y, nPy_hex->x, nPy_hex->len )
+                 == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &nP.Z, nPz_hex->x, nPz_hex->len )
+                 == 0 );
+
+    TEST_ASSERT( mbedtls_ecp_mul( &grp, &R, &n, &P,
+                                  &rnd_pseudo_rand, &rnd_info )
+                 == expected_ret );
+
+    if( expected_ret == 0 )
+    {
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &nP.X, &R.X ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &nP.Y, &R.Y ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &nP.Z, &R.Z ) == 0 );
+    }
+
+exit:
+    mbedtls_ecp_group_free( &grp ); mbedtls_ecp_point_free( &R );
+    mbedtls_ecp_point_free( &P ); mbedtls_ecp_point_free( &nP );
+    mbedtls_mpi_free( &n );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void ecp_fast_mod( int id, char * N_str )
 {
     mbedtls_ecp_group grp;

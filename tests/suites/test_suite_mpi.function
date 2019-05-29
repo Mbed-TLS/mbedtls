@@ -294,6 +294,8 @@ void mpi_read_write_string( int radix_X, char * input_X, int radix_A,
 
     mbedtls_mpi_init( &X );
 
+    memset( str, '!', sizeof( str ) );
+
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == result_read );
     if( result_read == 0 )
     {
@@ -301,6 +303,7 @@ void mpi_read_write_string( int radix_X, char * input_X, int radix_A,
         if( result_write == 0 )
         {
             TEST_ASSERT( strcasecmp( str, input_A ) == 0 );
+            TEST_ASSERT( str[len] == '!' );
         }
     }
 

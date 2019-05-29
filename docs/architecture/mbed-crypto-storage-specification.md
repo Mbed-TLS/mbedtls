@@ -84,46 +84,47 @@ An undocumented build-time configuration value `CRYPTO_STORAGE_FILE_LOCATION` al
 * `sprintf(CRYPTO_STORAGE_FILE_LOCATION "psa_key_slot_%lu", key_id)` [content](#key-file-format-for-0.1.0) of the [key whose identifier](#key-names-for-0.1.0) is `key_id`.
 * Other files: unused.
 
-Mbed Crypto 0.2.0
+Mbed Crypto 1.0.0
 -----------------
 
-**Warning:** the information in this section is provisional and may change before Mbed Crypto is released for Mbed OS 5.12. At the time of writing, we don't even know whether this version will be called 0.2.0.
+Tags: mbedcrypto-1.0.0d4, mbedcrypto-1.0.0
 
-To be released for Mbed OS 5.12.
+Released in February 2019. <br>
+Integrated in Mbed OS 5.12.
 
 Supported integrations:
 
-* [PSA platform](#file-namespace-on-a-psa-platform-for-0.2.0)
-* [library using PSA ITS](#file-namespace-on-its-as-a-library-for-0.2.0)
-* [library using C stdio](#file-namespace-on-stdio-for-0.2.0)
+* [PSA platform](#file-namespace-on-a-psa-platform-for-1.0.0)
+* [library using PSA ITS](#file-namespace-on-its-as-a-library-for-1.0.0)
+* [library using C stdio](#file-namespace-on-stdio-for-1.0.0)
 
 Supported features:
 
-* [Persistent transparent keys](#key-file-format-for-0.2.0) designated by a [key identifier and owner](#key-names-for-0.2.0).
-* [Nonvolatile random seed](#nonvolatile-random-seed-file-format-for-0.2.0) on ITS only.
+* [Persistent transparent keys](#key-file-format-for-1.0.0) designated by a [key identifier and owner](#key-names-for-1.0.0).
+* [Nonvolatile random seed](#nonvolatile-random-seed-file-format-for-1.0.0) on ITS only.
 
 Backward compatibility commitments: TBD
 
-### Key names for 0.2.0
+### Key names for 1.0.0
 
 Information about each key is stored in a dedicated file designated by a _key file identifier_ (`psa_key_file_id_t`). The key file identifier is constructed from the 32-bit key identifier (`psa_key_id_t`) and, if applicable, an identifier of the owner of the key. In integrations where there is no concept of key owner (in particular, in library integrations), the key file identifier is exactly the key identifier. When the library is integrated into a service, the service determines the semantics of the owner identifier.
 
-The way in which the file name is constructed from the key file identifier depends on the storage backend. The content of the file is described [below](#key-file-format-for-0.2.0).
+The way in which the file name is constructed from the key file identifier depends on the storage backend. The content of the file is described [below](#key-file-format-for-1.0.0).
 
 The valid values for a key identifier are the range from 1 to 0xfffeffff. This limitation on the range is not documented in user-facing documentation: according to the user-facing documentation, arbitrary 32-bit values are valid.
 
 * Library integration: the key file name is just the key identifer. This is a 32-bit value.
 * PSA service integration: the key file identifier is `(uint32_t)owner_uid << 32 | key_id` where `key_id` is the key identifier specified by the application and `owner_uid` (of type `int32_t`) is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
 
-### Key file format for 0.2.0
+### Key file format for 1.0.0
 
 The layout is identical to [0.1.0](#key-file-format-for-0.1.0) so far. However note that the encoding of key types, algorithms and key material has changed, therefore the storage format is not compatible (despite using the same value in the version field so far).
 
-### Nonvolatile random seed file format for 0.2.0
+### Nonvolatile random seed file format for 1.0.0
 
 [Identical to 0.1.0](#nonvolatile-random-seed-file-format-for-0.1.0).
 
-### File namespace on a PSA platform for 0.2.0
+### File namespace on a PSA platform for 1.0.0
 
 Assumption: ITS provides a 64-bit file identifier namespace. The Crypto service can use arbitrary file identifiers and no other part of the system accesses the same file identifier namespace.
 
@@ -131,31 +132,64 @@ Assumption: the owner identifier is a nonzero value of type `int32_t`.
 
 * Files 0 through 0xffffff51, 0xffffff53 through 0xffffffff: unused, reserved for internal use of the crypto library or crypto service.
 * File 0xffffff52 (`PSA_CRYPTO_ITS_RANDOM_SEED_UID`): [nonvolatile random seed](#nonvolatile-random-seed-file-format-for-0.1.0).
-* Files 0x100000000 through 0xffffffffffff: [content](#key-file-format-for-0.2.0) of the [key whose identifier is the file identifier](#key-names-for-0.2.0). The upper 32 bits determine the owner.
+* Files 0x100000000 through 0xffffffffffff: [content](#key-file-format-for-1.0.0) of the [key whose identifier is the file identifier](#key-names-for-1.0.0). The upper 32 bits determine the owner.
 
-### File namespace on ITS as a library for 0.2.0
+### File namespace on ITS as a library for 1.0.0
 
 Assumption: ITS provides a 64-bit file identifier namespace. The entity using the crypto library can use arbitrary file identifiers and no other part of the system accesses the same file identifier namespace.
 
 This is a library integration, so there is no owner. The key file identifier is identical to the key identifier.
 
 * File 0: unused.
-* Files 1 through 0xfffeffff: [content](#key-file-format-for-0.2.0) of the [key whose identifier is the file identifier](#key-names-for-0.2.0).
-* File 0xffffff52 (`PSA_CRYPTO_ITS_RANDOM_SEED_UID`): [nonvolatile random seed](#nonvolatile-random-seed-file-format-for-0.2.0).
+* Files 1 through 0xfffeffff: [content](#key-file-format-for-1.0.0) of the [key whose identifier is the file identifier](#key-names-for-1.0.0).
+* File 0xffffff52 (`PSA_CRYPTO_ITS_RANDOM_SEED_UID`): [nonvolatile random seed](#nonvolatile-random-seed-file-format-for-1.0.0).
 * Files 0xffff0000 through 0xffffff51, 0xffffff53 through 0xffffffff, 0x100000000 through 0xffffffffffffffff: unused.
 
-### File namespace on stdio for 0.2.0
+### File namespace on stdio for 1.0.0
 
 This is a library integration, so there is no owner. The key file identifier is identical to the key identifier.
 
 [Identical to 0.1.0](#file-namespace-on-stdio-for-0.1.0).
 
-### Upgrade from 0.1.0 to 0.2.0.
+### Upgrade from 0.1.0 to 1.0.0.
 
 * Delete files 1 through 0xfffeffff, which contain keys in a format that is no longer supported.
 
-### Suggested changes to make before 0.2.0
+### Suggested changes to make before 1.0.0
 
 The library integration and the PSA platform integration use different sets of file names. This is annoyingly non-uniform. For example, if we want to store non-key files, we have room in different ranges (0 through 0xffffffff on a PSA platform, 0xffff0000 through 0xffffffffffffffff in a library integration).
 
 It would simplify things to always have a 32-bit owner, with a nonzero value, and thus reserve the range 0–0xffffffff for internal library use.
+
+Mbed Crypto 1.0.1
+-----------------
+
+Tags: TBD
+
+Released in May 2019. <br>
+Integrated in Mbed OS 5.13.
+
+Identical to [1.0.0](#mbed-crypto-1.0.0) except for some changes in the key file format.
+
+### Key file format for 1.0.1
+
+The key file format is identical to [1.0.0](#key-file-format-for-1.0.0), except for the following changes:
+
+* A new policy field, marked as [NEW:1.0.1] below.
+* The encoding of key types, algorithms and key material has changed, therefore the storage format is not compatible (despite using the same value in the version field so far).
+
+A self-contained description of the file layout follows.
+
+All integers are encoded in little-endian order in 8-bit bytes.
+
+The layout of a key file is:
+
+* magic (8 bytes): `"PSA\0KEY\0"`
+* version (4 bytes): 0
+* type (4 bytes): `psa_key_type_t` value
+* policy usage flags (4 bytes): `psa_key_usage_t` value
+* policy usage algorithm (4 bytes): `psa_algorithm_t` value
+* policy enrollment algorithm (4 bytes): `psa_algorithm_t` value [NEW:1.0.1]
+* key material length (4 bytes)
+* key material: output of `psa_export_key`
+* Any trailing data is rejected on load.

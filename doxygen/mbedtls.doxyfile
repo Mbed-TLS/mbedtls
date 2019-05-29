@@ -1618,7 +1618,6 @@ PREDEFINED             = WIN32 \
                          P2MP \
                          P2MP_SERVER \
                          USE_CRYPTO \
-                         USE_SSL \
                          ENABLE_PLUGIN \
                          ENABLE_MANAGEMENT \
                          ENABLE_OCC \

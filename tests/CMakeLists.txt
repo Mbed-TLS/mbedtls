@@ -71,6 +71,9 @@ add_test_suite(ssl)
 add_test_suite(version)
 add_test_suite(x509parse)
 add_test_suite(x509write)
+if(LINK_WITH_PTHREAD)
+        add_test_suite(x509parse_pthread)
+endif(LINK_WITH_PTHREAD)
 
 # Make scripts and data files needed for testing available in an
 # out-of-source build.

@@ -116,6 +116,10 @@ APPS := $(filter-out \
 		test_suite_xtea \
 		,$(APPS))
 
+ifndef PTHREAD
+APPS := $(filter-out test_suite_x509parse_pthread, $(APPS))
+endif
+
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
 

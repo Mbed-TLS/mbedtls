@@ -922,52 +922,52 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on */
-void ssl_session_serialise_version_check( int corrupt_major,
+/* BEGIN_CASE */
+void ssl_session_serialize_version_check( int corrupt_major,
                                           int corrupt_minor,
                                           int corrupt_patch,
                                           int corrupt_config )
 {
-    unsigned char serialised_session[ 2048 ];
-    size_t serialised_session_len;
+    unsigned char serialized_session[ 2048 ];
+    size_t serialized_session_len;
 
     mbedtls_ssl_session session;
     mbedtls_ssl_session_init( &session );
 
-    /* Infer length of serialised session. */
+     /* Infer length of serialized session. */
     TEST_ASSERT( mbedtls_ssl_session_save( &session,
-                                           serialised_session,
-                                           sizeof( serialised_session ),
-                                           &serialised_session_len ) == 0 );
+                                           serialized_session,
+                                           sizeof( serialized_session ),
+                                           &serialized_session_len ) == 0 );
 
-    mbedtls_ssl_session_free( &session );
+     mbedtls_ssl_session_free( &session );
 
-    /* Without any modification, we should be able to successfully
-     * de-serialise the session - double-check that. */
+     /* Without any modification, we should be able to successfully
+     * de-serialize the session - double-check that. */
     TEST_ASSERT( mbedtls_ssl_session_load( &session,
-                                           serialised_session,
-                                           serialised_session_len ) == 0 );
+                                           serialized_session,
+                                           serialized_session_len ) == 0 );
     mbedtls_ssl_session_free( &session );
 
-    if( corrupt_major )
-        serialised_session[0] ^= (uint8_t) 0x1;
+     if( corrupt_major )
+        serialized_session[0] ^= (uint8_t) 0x1;
 
-    if( corrupt_minor )
-        serialised_session[1] ^= (uint8_t) 0x1;
+     if( corrupt_minor )
+        serialized_session[1] ^= (uint8_t) 0x1;
 
-    if( corrupt_patch )
-        serialised_session[2] ^= (uint8_t) 0x1;
+     if( corrupt_patch )
+        serialized_session[2] ^= (uint8_t) 0x1;
 
-    if( corrupt_config )
+     if( corrupt_config )
     {
-        serialised_session[3] ^= (uint8_t) 0x1;
-        serialised_session[4] ^= (uint8_t) 0x1;
-        serialised_session[5] ^= (uint8_t) 0x1;
+        serialized_session[3] ^= (uint8_t) 0x1;
+        serialized_session[4] ^= (uint8_t) 0x1;
+        serialized_session[5] ^= (uint8_t) 0x1;
     }
 
-    TEST_ASSERT( mbedtls_ssl_session_load( &session,
-                                           serialised_session,
-                                           serialised_session_len ) ==
+     TEST_ASSERT( mbedtls_ssl_session_load( &session,
+                                           serialized_session,
+                                           serialized_session_len ) ==
                  MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 }
 /* END_CASE */

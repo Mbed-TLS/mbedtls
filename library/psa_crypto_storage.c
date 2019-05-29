@@ -269,6 +269,7 @@ void psa_format_key_data_for_storage( const uint8_t *data,
     PUT_UINT32_LE(type, storage_format->type, 0);
     PUT_UINT32_LE(policy->usage, storage_format->policy, 0);
     PUT_UINT32_LE(policy->alg, storage_format->policy, sizeof( uint32_t ));
+    PUT_UINT32_LE(policy->alg2, storage_format->policy, 2 * sizeof( uint32_t ) );
     PUT_UINT32_LE(data_length, storage_format->data_len, 0);
     memcpy( storage_format->key_data, data, data_length );
 }
@@ -324,6 +325,7 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
     GET_UINT32_LE(*type, storage_format->type, 0);
     GET_UINT32_LE(policy->usage, storage_format->policy, 0);
     GET_UINT32_LE(policy->alg, storage_format->policy, sizeof( uint32_t ));
+    GET_UINT32_LE(policy->alg2, storage_format->policy, 2 * sizeof( uint32_t ));
 
     return( PSA_SUCCESS );
 }

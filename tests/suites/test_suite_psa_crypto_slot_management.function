@@ -74,7 +74,7 @@ static void psa_purge_key_storage( void )
  */
 
 /* BEGIN_CASE */
-void transient_slot_lifecycle( int alg_arg, int usage_arg,
+void transient_slot_lifecycle( int usage_arg, int alg_arg,
                                int type_arg, data_t *key_data,
                                int close_method_arg )
 {
@@ -124,19 +124,22 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
-                                int alg_arg, int usage_arg,
+                                int usage_arg, int alg_arg, int alg2_arg,
                                 int type_arg, data_t *key_data,
                                 int close_method_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_id_t id = id_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t alg2 = alg2_arg;
     psa_key_usage_t usage_flags = usage_arg;
     psa_key_type_t type = type_arg;
     close_method_t close_method = close_method_arg;
-    psa_key_type_t read_type;
     psa_key_handle_t handle = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t read_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t *reexported = NULL;
+    size_t reexported_length = -1;
 
     TEST_USES_KEY_ID( id );
 
@@ -148,17 +151,28 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     psa_set_key_type( &attributes, type );
     psa_set_key_usage_flags( &attributes, usage_flags );
     psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_enrollment_algorithm( &attributes, alg2 );
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &handle ) );
     TEST_ASSERT( handle != 0 );
-    PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
-    TEST_EQUAL( read_type, type );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );
+    TEST_EQUAL( psa_get_key_id( &attributes ), id );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
+    TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
+    TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ), alg2 );
+    TEST_EQUAL( psa_get_key_type( &attributes ), type );
 
     /* Close the key and reopen it. */
     PSA_ASSERT( psa_close_key( handle ) );
     PSA_ASSERT( psa_open_key( id, &handle ) );
-    PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
-    TEST_EQUAL( read_type, type );
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    TEST_EQUAL( psa_get_key_lifetime( &attributes ), lifetime );
+    TEST_EQUAL( psa_get_key_id( &attributes ), id );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
+    TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
+    TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ), alg2 );
+    TEST_EQUAL( psa_get_key_type( &attributes ), type );
 
     /* Do something that invalidates the handle. */
     switch( close_method )
@@ -175,19 +189,49 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
             break;
     }
     /* Test that the handle is now invalid. */
-    TEST_EQUAL( psa_get_key_information( handle, &read_type, NULL ),
+    TEST_EQUAL( psa_get_key_attributes( handle, &read_attributes ),
                 PSA_ERROR_INVALID_HANDLE );
+    psa_reset_key_attributes( &read_attributes );
     TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
 
     /* Try to reopen the key. If we destroyed it, check that it doesn't
-     * exist, otherwise check that it still exists. */
+     * exist. Otherwise check that it still exists and has the expected
+     * content. */
     switch( close_method )
     {
         case CLOSE_BY_CLOSE:
         case CLOSE_BY_SHUTDOWN:
             PSA_ASSERT( psa_open_key( id, &handle ) );
-            PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
-            TEST_EQUAL( read_type, type );
+            PSA_ASSERT( psa_get_key_attributes( handle, &read_attributes ) );
+            TEST_EQUAL( psa_get_key_lifetime( &attributes ),
+                        psa_get_key_lifetime( &read_attributes ) );
+            TEST_EQUAL( psa_get_key_id( &attributes ),
+                        psa_get_key_id( &read_attributes ) );
+            TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage_flags );
+            TEST_EQUAL( psa_get_key_algorithm( &attributes ),
+                        psa_get_key_algorithm( &read_attributes ) );
+            TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ),
+                        psa_get_key_enrollment_algorithm( &read_attributes ) );
+            TEST_EQUAL( psa_get_key_type( &attributes ),
+                        psa_get_key_type( &read_attributes ) );
+            TEST_EQUAL( psa_get_key_bits( &attributes ),
+                        psa_get_key_bits( &read_attributes ) );
+            if( usage_flags & PSA_KEY_USAGE_EXPORT )
+            {
+                ASSERT_ALLOC( reexported, key_data->len );
+                PSA_ASSERT( psa_export_key( handle,
+                                            reexported, key_data->len,
+                                            &reexported_length ) );
+                ASSERT_COMPARE( key_data->x, key_data->len,
+                                reexported, reexported_length );
+            }
+            else
+            {
+                TEST_EQUAL( psa_export_key( handle,
+                                            reexported, sizeof( reexported ),
+                                            &reexported_length ),
+                            PSA_ERROR_NOT_PERMITTED );
+            }
             break;
         case CLOSE_BY_DESTROY:
             TEST_EQUAL( psa_open_key( id, &handle ),
@@ -198,6 +242,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
 exit:
     mbedtls_psa_crypto_free( );
     psa_purge_key_storage( );
+    mbedtls_free( reexported );
 }
 /* END_CASE */
 
@@ -318,11 +363,14 @@ exit:
 
 /* BEGIN_CASE */
 void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
-                            int source_usage_arg, int source_alg_arg,
+                            int source_usage_arg,
+                            int source_alg_arg, int source_alg2_arg,
                             int type_arg, data_t *material,
                             int target_lifetime_arg, int target_id_arg,
-                            int target_usage_arg, int target_alg_arg,
-                            int expected_usage_arg, int expected_alg_arg )
+                            int target_usage_arg,
+                            int target_alg_arg, int target_alg2_arg,
+                            int expected_usage_arg,
+                            int expected_alg_arg, int expected_alg2_arg )
 {
     psa_key_lifetime_t source_lifetime = source_lifetime_arg;
     psa_key_id_t source_id = source_id_arg;
@@ -339,6 +387,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     psa_key_attributes_t target_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_usage_t expected_usage = expected_usage_arg;
     psa_algorithm_t expected_alg = expected_alg_arg;
+    psa_algorithm_t expected_alg2 = expected_alg2_arg;
     uint8_t *export_buffer = NULL;
 
     TEST_USES_KEY_ID( source_id );
@@ -355,6 +404,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     psa_set_key_type( &source_attributes, source_type );
     psa_set_key_usage_flags( &source_attributes, source_usage );
     psa_set_key_algorithm( &source_attributes, source_alg );
+    psa_set_key_enrollment_algorithm( &source_attributes, source_alg2_arg );
     PSA_ASSERT( psa_import_key( &source_attributes,
                                 material->x, material->len,
                                 &source_handle ) );
@@ -369,6 +419,7 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
     }
     psa_set_key_usage_flags( &target_attributes, target_usage );
     psa_set_key_algorithm( &target_attributes, target_alg );
+    psa_set_key_enrollment_algorithm( &target_attributes, target_alg2_arg );
 
     /* Copy the key. */
     PSA_ASSERT( psa_copy_key( source_handle,
@@ -396,6 +447,8 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
                 psa_get_key_bits( &target_attributes ) );
     TEST_EQUAL( expected_usage, psa_get_key_usage_flags( &target_attributes ) );
     TEST_EQUAL( expected_alg, psa_get_key_algorithm( &target_attributes ) );
+    TEST_EQUAL( expected_alg2,
+                psa_get_key_enrollment_algorithm( &target_attributes ) );
     if( expected_usage & PSA_KEY_USAGE_EXPORT )
     {
         size_t length;

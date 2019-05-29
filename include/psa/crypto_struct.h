@@ -251,10 +251,11 @@ struct psa_key_policy_s
 {
     psa_key_usage_t usage;
     psa_algorithm_t alg;
+    psa_algorithm_t alg2;
 };
 typedef struct psa_key_policy_s psa_key_policy_t;
 
-#define PSA_KEY_POLICY_INIT {0, 0}
+#define PSA_KEY_POLICY_INIT {0, 0, 0}
 static inline struct psa_key_policy_s psa_key_policy_init( void )
 {
     const struct psa_key_policy_s v = PSA_KEY_POLICY_INIT;
@@ -272,7 +273,7 @@ struct psa_key_attributes_s
     size_t domain_parameters_size;
 };
 
-#define PSA_KEY_ATTRIBUTES_INIT {0, 0, {0, 0}, 0, 0, NULL, 0}
+#define PSA_KEY_ATTRIBUTES_INIT {0, 0, {0, 0, 0}, 0, 0, NULL, 0}
 static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 {
     const struct psa_key_attributes_s v = PSA_KEY_ATTRIBUTES_INIT;

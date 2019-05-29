@@ -62,6 +62,50 @@ extern "C" {
     MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_INSUFFICIENT_DATA )
 #endif
 
+/** \addtogroup attributes
+ * @{
+ */
+
+/** \brief Declare the enrollment algorithm for a key.
+ *
+ * An operation on a key may indifferently use the algorithm set with
+ * psa_set_key_algorithm() or with this function.
+ *
+ * \param[out] attributes       The attribute structure to write to.
+ * \param alg2                  A second algorithm that the key may be used
+ *                              for, in addition to the algorithm set with
+ *                              psa_set_key_algorithm().
+ *
+ * \warning Setting an enrollment algorithm is not recommended, because
+ *          using the same key with different algorithms can allow some
+ *          attacks based on arithmetic relations between different
+ *          computations made with the same key, or can escalate harmless
+ *          side channels into exploitable ones. Use this function only
+ *          if it is necessary to support a protocol for which it has been
+ *          verified that the usage of the key with multiple algorithms
+ *          is safe.
+ */
+static inline void psa_set_key_enrollment_algorithm(
+    psa_key_attributes_t *attributes,
+    psa_algorithm_t alg2)
+{
+    attributes->policy.alg2 = alg2;
+}
+
+/** Retrieve the enrollment algorithm policy from key attributes.
+ *
+ * \param[in] attributes        The key attribute structure to query.
+ *
+ * \return The enrollment algorithm stored in the attribute structure.
+ */
+static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
+    const psa_key_attributes_t *attributes)
+{
+    return( attributes->policy.alg2 );
+}
+
+/**@}*/
+
 /**
  * \brief Library deinitialization.
  *

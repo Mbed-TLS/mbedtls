@@ -122,6 +122,7 @@ int main( void )
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_SERIALIZE           0
 #define DFL_EXTENDED_MS_ENFORCE -1
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
@@ -343,6 +344,7 @@ int main( void )
     "                                configuration macro is defined and 1\n"  \
     "                                otherwise. The expansion of the macro\n" \
     "                                is printed if it is defined\n"     \
+    "    serialize=%%d        default: 0 (do not serialize/deserialize)\n" \
     " acceptable ciphersuite names:\n"
 
 #define ALPN_LIST_SIZE  10
@@ -419,6 +421,7 @@ struct options
     int cid_enabled_renego;     /* whether to use the CID extension or not
                                  * during renegotiation                     */
     const char *cid_val;        /* the CID to use for incoming messages     */
+    int serialize;              /* serialize/deserialize connection         */
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
 } opt;
@@ -832,6 +835,7 @@ int main( int argc, char *argv[] )
     opt.enforce_extended_master_secret = DFL_EXTENDED_MS_ENFORCE;
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
+    opt.serialize           = DFL_SERIALIZE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1214,6 +1218,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "query_config" ) == 0 )
         {
             return query_config( q );
+        }
+        else if( strcmp( p, "serialize") == 0 )
+        {
+            opt.serialize = atoi( q );
+            if( opt.serialize < 0 || opt.serialize > 1)
+                goto usage;
         }
         else
             goto usage;

@@ -63,6 +63,10 @@ endif
 # constructed by stripping path 'suites/' and extension .data.
 APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
 
+ifndef PTHREAD
+APPS := $(filter-out test_suite_x509parse_pthread, $(APPS))
+endif
+
 # Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
@@ -141,4 +145,3 @@ $(EMBEDDED_TESTS): embedded_%: suites/$$(firstword $$(subst ., ,$$*)).function s
 		-o ./TESTS/mbedtls/$*
 
 generate-target-tests: $(EMBEDDED_TESTS)
-

@@ -42,6 +42,7 @@ Bugfix
    * Fix multiple X.509 functions previously returning ASN.1 low-level error
      codes to always wrap these codes into X.509 high level error codes before
      returning. Fixes #2431.
+   * Fix typo in net_would_block(). Fixes #528 reported by github-monoculture.
 
 Changes
    * Return from various debugging routines immediately if the

@@ -849,7 +849,7 @@ static int x509_get_ext_key_usage( unsigned char **p,
                                                0xFF, MBEDTLS_ASN1_OID,
                                                0, 0,
                                                asn1_build_sequence_cb,
-                                               (void*) &ext_key_usage ) );
+                                               (void *) &ext_key_usage ) );
 }
 
 /*
@@ -888,7 +888,7 @@ static int x509_get_subject_alt_name( unsigned char *p,
                                                MBEDTLS_ASN1_TAG_VALUE_MASK,
                                                2 /* SubjectAlt DNS */,
                                                asn1_build_sequence_cb,
-                                               (void*) &subject_alt_name ) );
+                                               (void *) &subject_alt_name ) );
 }
 
 /*
@@ -3367,13 +3367,13 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
                                       MBEDTLS_ASN1_TAG_VALUE_MASK,
                                       2 /* SubjectAlt DNS */,
                                       x509_crt_subject_alt_check_name,
-                                      (void*) cn );
+                                      (void *) cn );
     }
     else
     {
         ret = mbedtls_x509_name_cmp_raw( &frame->subject_raw,
                                          &frame->subject_raw,
-                                         x509_crt_check_name, (void*) cn );
+                                         x509_crt_check_name, (void *) cn );
     }
 
     mbedtls_x509_crt_frame_release( crt );

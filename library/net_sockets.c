@@ -72,8 +72,8 @@
 #endif
 #endif /* _MSC_VER */
 
-#define read(fd,buf,len)        recv( fd, (char*)( buf ), (int)( len ), 0 )
-#define write(fd,buf,len)       send( fd, (char*)( buf ), (int)( len ), 0 )
+#define read(fd,buf,len)        recv( fd, (char *)( buf ), (int)( len ), 0 )
+#define write(fd,buf,len)       send( fd, (char *)( buf ), (int)( len ), 0 )
 #define close(fd)               closesocket(fd)
 
 static int wsa_init_done = 0;

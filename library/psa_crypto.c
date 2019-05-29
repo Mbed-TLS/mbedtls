@@ -4778,6 +4778,7 @@ psa_status_t psa_key_derivation_input_bytes( psa_key_derivation_operation_t *ope
         case PSA_KEY_DERIVATION_INPUT_LABEL:
         case PSA_KEY_DERIVATION_INPUT_SALT:
         case PSA_KEY_DERIVATION_INPUT_INFO:
+        case PSA_KEY_DERIVATION_INPUT_SEED:
             return( psa_key_derivation_input_raw( operation, step,
                                                   data, data_length ) );
         default:

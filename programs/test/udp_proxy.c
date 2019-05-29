@@ -128,6 +128,9 @@ int main( void )
     "    mtu=%%d              default: 0 (unlimited)\n"                     \
     "                        drop packets larger than N bytes\n"            \
     "    bad_ad=0/1          default: 0 (don't add bad ApplicationData)\n"  \
+    "    bad_cid=%%d          default: 0 (don't corrupt Connection IDs)\n"   \
+    "                        duplicate 1:N packets containing a CID,\n" \
+    "                        modifying CID in first instance of the packet.\n" \
     "    protect_hvr=0/1     default: 0 (don't protect HelloVerifyRequest)\n" \
     "    protect_len=%%d      default: (don't protect packets of this size)\n" \
     "\n"                                                                    \
@@ -160,6 +163,7 @@ static struct options
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */
     int bad_ad;                 /* inject corrupted ApplicationData record  */
+    unsigned bad_cid;           /* inject corrupted CID record              */
     int protect_hvr;            /* never drop or delay HelloVerifyRequest   */
     int protect_len;            /* never drop/delay packet of the given size*/
     unsigned pack;              /* merge packets into single datagram for
@@ -292,6 +296,12 @@ static void get_options( int argc, char *argv[] )
             if( opt.bad_ad < 0 || opt.bad_ad > 1 )
                 exit_usage( p, q );
         }
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+        else if( strcmp( p, "bad_cid" ) == 0 )
+        {
+            opt.bad_cid = (unsigned) atoi( q );
+        }
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         else if( strcmp( p, "protect_hvr" ) == 0 )
         {
             opt.protect_hvr = atoi( q );
@@ -323,6 +333,7 @@ static const char *msg_type( unsigned char *msg, size_t len )
         case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:    return( "ChangeCipherSpec" );
         case MBEDTLS_SSL_MSG_ALERT:                 return( "Alert" );
         case MBEDTLS_SSL_MSG_APPLICATION_DATA:      return( "ApplicationData" );
+        case MBEDTLS_SSL_MSG_CID:                   return( "CID" );
         case MBEDTLS_SSL_MSG_HANDSHAKE:             break; /* See below */
         default:                            return( "Unknown" );
     }
@@ -436,7 +447,10 @@ static int ctx_buffer_append( ctx_buffer *buf,
     if( sizeof( buf->data ) - buf->len < len )
     {
         if( ( ret = ctx_buffer_flush( buf ) ) <= 0 )
+        {
+            mbedtls_printf( "ctx_buffer_flush failed with -%#04x", -ret );
             return( ret );
+        }
     }
 
     memcpy( buf->data + buf->len, data, len );
@@ -453,6 +467,7 @@ static int dispatch_data( mbedtls_net_context *ctx,
                           const unsigned char * data,
                           size_t len )
 {
+    int ret;
 #if defined(MBEDTLS_TIMING_C)
     ctx_buffer *buf = NULL;
     if( opt.pack > 0 )
@@ -469,7 +484,12 @@ static int dispatch_data( mbedtls_net_context *ctx,
     }
 #endif /* MBEDTLS_TIMING_C */
 
-    return( mbedtls_net_send( ctx, data, len ) );
+    ret = mbedtls_net_send( ctx, data, len );
+    if( ret < 0 )
+    {
+        mbedtls_printf( "net_send returned -%#04x\n", -ret );
+    }
+    return( ret );
 }
 
 typedef struct
@@ -507,6 +527,25 @@ int send_packet( const packet *p, const char *why )
 {
     int ret;
     mbedtls_net_context *dst = p->dst;
+
+    /* insert corrupted CID record? */
+    if( opt.bad_cid != 0 &&
+        strcmp( p->type, "CID" ) == 0 &&
+        ( rand() % opt.bad_cid ) == 0 )
+    {
+        unsigned char buf[MAX_MSG_SIZE];
+        memcpy( buf, p->buf, p->len );
+
+        /* The CID resides at offset 11 in the DTLS record header. */
+        buf[11] ^= 1;
+        print_packet( p, "modified CID" );
+
+        if( ( ret = dispatch_data( dst, buf, p->len ) ) <= 0 )
+        {
+            mbedtls_printf( "  ! dispatch returned %d\n", ret );
+            return( ret );
+        }
+    }
 
     /* insert corrupted ApplicationData record? */
     if( opt.bad_ad &&
@@ -688,6 +727,7 @@ int handle_message( const char *way,
     if( ( opt.mtu != 0 &&
           cur.len > (unsigned) opt.mtu ) ||
         ( opt.drop != 0 &&
+          strcmp( cur.type, "CID" ) != 0             &&
           strcmp( cur.type, "ApplicationData" ) != 0 &&
           ! ( opt.protect_hvr &&
               strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
@@ -700,6 +740,7 @@ int handle_message( const char *way,
     else if( ( opt.delay_ccs == 1 &&
                strcmp( cur.type, "ChangeCipherSpec" ) == 0 ) ||
              ( opt.delay != 0 &&
+               strcmp( cur.type, "CID" ) != 0             &&
                strcmp( cur.type, "ApplicationData" ) != 0 &&
                ! ( opt.protect_hvr &&
                    strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&

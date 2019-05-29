@@ -433,7 +433,7 @@ static int ssl_parse_max_fragment_length_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
                               const unsigned char *buf,
                               size_t len )
@@ -450,8 +450,8 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
     }
 
     /*
-     * Quoting
-     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04:
+     * Quoting draft-ietf-tls-dtls-connection-id-05
+     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05
      *
      *   struct {
      *      opaque cid<0..2^8-1>;
@@ -503,7 +503,7 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 static int ssl_parse_truncated_hmac_ext( mbedtls_ssl_context *ssl,
@@ -1312,7 +1312,7 @@ read_record_header:
             return( ssl_parse_client_hello_v2( ssl ) );
 #endif
 
-    MBEDTLS_SSL_DEBUG_BUF( 4, "record header", buf, mbedtls_ssl_hdr_len( ssl ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "record header", buf, mbedtls_ssl_in_hdr_len( ssl ) );
 
     /*
      * SSLv3/TLS Client Hello
@@ -1401,7 +1401,7 @@ read_record_header:
         }
 
         if( ( ret = mbedtls_ssl_fetch_input( ssl,
-                       mbedtls_ssl_hdr_len( ssl ) + msg_len ) ) != 0 )
+                       mbedtls_ssl_in_hdr_len( ssl ) + msg_len ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
             return( ret );
@@ -1410,7 +1410,7 @@ read_record_header:
     /* Done reading this record, get ready for the next one */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
         if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-            ssl->next_record_offset = msg_len + mbedtls_ssl_hdr_len( ssl );
+            ssl->next_record_offset = msg_len + mbedtls_ssl_in_hdr_len( ssl );
         else
 #endif
             ssl->in_left = 0;
@@ -1855,7 +1855,7 @@ read_record_header:
                 break;
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
             case MBEDTLS_TLS_EXT_CID:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found CID extension" ) );
 
@@ -2142,7 +2142,7 @@ static void ssl_write_truncated_hmac_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
                                unsigned char *buf,
                                size_t *olen )
@@ -2169,8 +2169,8 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding CID extension" ) );
 
     /*
-     * Quoting
-     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04:
+     * Quoting draft-ietf-tls-dtls-connection-id-05
+     * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05
      *
      *   struct {
      *      opaque cid<0..2^8-1>;
@@ -2188,7 +2188,7 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
 
     *olen = ssl->own_cid_len + 5;
 }
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
@@ -2711,7 +2711,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ssl_write_cid_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif

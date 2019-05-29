@@ -166,10 +166,17 @@
 #define MBEDTLS_SSL_PADDING_ADD              0
 #endif
 
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#define MBEDTLS_SSL_MAX_CID_EXPANSION      MBEDTLS_SSL_CID_PADDING_GRANULARITY
+#else
+#define MBEDTLS_SSL_MAX_CID_EXPANSION        0
+#endif
+
 #define MBEDTLS_SSL_PAYLOAD_OVERHEAD ( MBEDTLS_SSL_COMPRESSION_ADD +    \
                                        MBEDTLS_MAX_IV_LENGTH +          \
                                        MBEDTLS_SSL_MAC_ADD +            \
-                                       MBEDTLS_SSL_PADDING_ADD          \
+                                       MBEDTLS_SSL_PADDING_ADD +        \
+                                       MBEDTLS_SSL_MAX_CID_EXPANSION    \
                                        )
 
 #define MBEDTLS_SSL_IN_PAYLOAD_LEN ( MBEDTLS_SSL_PAYLOAD_OVERHEAD + \
@@ -222,11 +229,23 @@
    implicit sequence number. */
 #define MBEDTLS_SSL_HEADER_LEN 13
 
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_IN_BUFFER_LEN  \
     ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_IN_PAYLOAD_LEN ) )
+#else
+#define MBEDTLS_SSL_IN_BUFFER_LEN  \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_IN_PAYLOAD_LEN ) \
+      + ( MBEDTLS_SSL_CID_IN_LEN_MAX ) )
+#endif
 
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_OUT_BUFFER_LEN  \
     ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_OUT_PAYLOAD_LEN ) )
+#else
+#define MBEDTLS_SSL_OUT_BUFFER_LEN                               \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_OUT_PAYLOAD_LEN )    \
+      + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
+#endif
 
 #ifdef MBEDTLS_ZLIB_SUPPORT
 /* Compression buffer holds both IN and OUT buffers, so should be size of the larger */
@@ -343,17 +362,17 @@ struct mbedtls_ssl_handshake_params
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* The state of CID configuration in this handshake. */
 
     uint8_t cid_in_use; /*!< This indicates whether the use of the CID extension
-                         *   has been negotited. Possible values are
+                         *   has been negotiated. Possible values are
                          *   #MBEDTLS_SSL_CID_ENABLED and
                          *   #MBEDTLS_SSL_CID_DISABLED. */
     unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ]; /*! The peer's CID */
     uint8_t peer_cid_len;                                  /*!< The length of
                                                             *   \c peer_cid.  */
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     struct
     {
@@ -574,12 +593,12 @@ struct mbedtls_ssl_transform
     mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
     int minor_ver;
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     uint8_t in_cid_len;
     uint8_t out_cid_len;
     unsigned char in_cid [ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
     unsigned char out_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     /*
      * Session specific compression layer
@@ -627,11 +646,10 @@ typedef struct
     size_t data_offset;     /* Offset of record content */
     size_t data_len;        /* Length of record content */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     uint8_t cid_len;        /* Length of the CID (0 if not present) */
     unsigned char cid[ MBEDTLS_SSL_CID_LEN_MAX ]; /* The CID        */
-#endif /* MBEDTLS_SSL_CID */
-
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 } mbedtls_record;
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -875,15 +893,14 @@ void mbedtls_ssl_write_version( int major, int minor, int transport,
 void mbedtls_ssl_read_version( int *major, int *minor, int transport,
                        const unsigned char ver[2] );
 
-static inline size_t mbedtls_ssl_hdr_len( const mbedtls_ssl_context *ssl )
+static inline size_t mbedtls_ssl_in_hdr_len( const mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 13 );
-#else
-    ((void) ssl);
-#endif
-    return( 5 );
+    return( (size_t) ( ssl->in_iv - ssl->in_hdr ) );
+}
+
+static inline size_t mbedtls_ssl_out_hdr_len( const mbedtls_ssl_context *ssl )
+{
+    return( (size_t) ( ssl->out_iv - ssl->out_hdr ) );
 }
 
 static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )

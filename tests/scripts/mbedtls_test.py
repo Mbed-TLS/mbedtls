@@ -79,8 +79,7 @@ class TestDataParser(object):
         split_colon_fn = lambda x: re.sub(r'\\' + split_char, split_char, x)
         if len(split_char) > 1:
             raise ValueError('Expected split character. Found string!')
-        out = map(split_colon_fn, re.split(r'(?<!\\)' + split_char, inp_str))
-        out = [x for x in out if x]
+        out = list(map(split_colon_fn, re.split(r'(?<!\\)' + split_char, inp_str)))
         return out
 
     def __parse(self, data_f):
@@ -90,20 +89,24 @@ class TestDataParser(object):
         :param data_f: Data file object
         :return:
         """
-        for line in data_f:
-            line = line.strip()
+        while True:
+            line = data_f.readline().strip()
             if not line:
-                continue
+                break
             # Read test name
             name = line
 
             # Check dependencies
             dependencies = []
-            line = data_f.next().strip()
+            line = data_f.readline().strip()
+            if not line:
+                break
             match = re.search('depends_on:(.*)', line)
             if match:
                 dependencies = [int(x) for x in match.group(1).split(':')]
-                line = data_f.next().strip()
+                line = data_f.readline().strip()
+                if not line:
+                    break
 
             # Read test vectors
             line = line.replace('\\n', '\n')
@@ -115,7 +118,7 @@ class TestDataParser(object):
                 err_str_fmt = "Number of test arguments({}) should be even: {}"
                 raise TestDataParserError(err_str_fmt.format(args_count, line))
             grouped_args = [(args[i * 2], args[(i * 2) + 1])
-                            for i in range(len(args)/2)]
+                            for i in range(int(len(args)/2))]
             self.tests.append((name, function_name, dependencies,
                                grouped_args))
 
@@ -310,7 +313,7 @@ class MbedTlsTest(BaseHostTest):
 
         param_bytes, length = self.test_vector_to_bytes(function_id,
                                                         dependencies, args)
-        self.send_kv(length, param_bytes)
+        self.send_kv(bytes(length).decode(), bytes(param_bytes).decode())
 
     @staticmethod
     def get_result(value):

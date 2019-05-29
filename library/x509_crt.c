@@ -1086,7 +1086,7 @@ static int x509_crt_get_ext_cb( void *ctx,
             ret = MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
             goto err;
         }
-#endif
+#endif /* MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION */
         return( 0 );
     }
 

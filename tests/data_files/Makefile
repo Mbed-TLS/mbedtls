@@ -203,15 +203,15 @@ cli2.crt.der: cli2.crt
 	$(OPENSSL) x509 -in $< -out $@ -inform PEM -outform DER
 all_final += cli2.crt.der
 
- cli2.key.der: cli2.key
+cli2.key.der: cli2.key
 	$(OPENSSL) pkey -in $< -out $@ -inform PEM -outform DER
 all_final += cli2.key.der
 
- server5.crt.der: server5.crt
+server5.crt.der: server5.crt
 	$(OPENSSL) x509 -in $< -out $@ -inform PEM -outform DER
 all_final += server5.crt.der
 
- server5.key.der: server5.key
+server5.key.der: server5.key
 	$(OPENSSL) pkey -in $< -out $@ -inform PEM -outform DER
 all_final += server5.key.der
 

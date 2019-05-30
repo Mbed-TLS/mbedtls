@@ -65,6 +65,8 @@ Bugfix
      returning. Fixes #2431.
    * Fix typo in net_would_block(). Fixes #528 reported by github-monoculture.
    * Remove redundant include file in timing.c. Fixes #2640 reported by irwir.
+   * Fix build failure when building with mingw on Windows by including
+     stdarg.h where needed. Fixes #2656.
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

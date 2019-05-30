@@ -256,6 +256,7 @@ int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
  *   the destination buffer is too short.
  */
 #if defined(MBEDTLS_PLATFORM_HAS_NON_CONFORMING_VSNPRINTF)
+#include <stdarg.h>
 /* For Older Windows (inc. MSYS2), we provide our own fixed implementation */
 int mbedtls_platform_win32_vsnprintf( char *s, size_t n, const char *fmt, va_list arg );
 #endif

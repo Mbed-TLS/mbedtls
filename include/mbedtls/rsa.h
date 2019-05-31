@@ -819,6 +819,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
+ *                 A buffer length of #MBEDTLS_MPI_MAX_SIZE is always safe.
  *
  * \note           For PKCS#1 v2.1 encoding, see comments on
  *                 mbedtls_rsa_rsassa_pss_sign() for details on
@@ -862,6 +863,7 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
+ *                 A buffer length of #MBEDTLS_MPI_MAX_SIZE is always safe.
  */
 int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
                                int (*f_rng)(void *, unsigned char *, size_t),
@@ -902,6 +904,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
+ *                 A buffer length of #MBEDTLS_MPI_MAX_SIZE is always safe.
  *
  * \note           The \p hash_id in the RSA context is the one used for the
  *                 encoding. \p md_alg in the function call is the type of hash

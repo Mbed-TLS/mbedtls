@@ -38,7 +38,7 @@
 
 
 # default values, can be overridden by the environment
-: ${MBEDTLS_DOCKER_GUEST:=xenial}
+: ${MBEDTLS_DOCKER_GUEST:=bionic}
 
 
 DOCKER_IMAGE_TAG="armmbed/mbedtls-test:${MBEDTLS_DOCKER_GUEST}"

@@ -22,7 +22,7 @@
 #
 # This file is part of Mbed TLS (https://tls.mbed.org)
 
-FROM ubuntu:xenial
+FROM ubuntu:bionic
 
 ARG MAKEFLAGS_PARALLEL=""
 

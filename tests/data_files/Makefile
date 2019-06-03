@@ -808,7 +808,33 @@ server1.v1.der.openssl: server1.v1.crt.openssl
 
 server1_all: server1.csr server1.crt server1.noauthid.crt server1.crt.openssl server1.v1.crt server1.v1.crt.openssl server1.key_usage.crt server1.key_usage_noauthid.crt server1.key_usage.crt.openssl server1.cert_type.crt server1.cert_type_noauthid.crt server1.cert_type.crt.openssl server1.der server1.der.openssl server1.v1.der server1.v1.der.openssl server1.key_usage.der server1.key_usage.der.openssl server1.cert_type.der server1.cert_type.der.openssl
 
+# MD2, MD4, MD5 test certificates
 
+cert_md_test_key = $(cli_crt_key_file_rsa)
+
+cert_md2.csr: $(cert_md_test_key)
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Cert MD2" md=MD2
+all_intermediate += cert_md2.csr
+
+cert_md2.crt: cert_md2.csr
+	$(MBEDTLS_CERT_WRITE) request_file=$< serial=4 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=MD2 version=3 output_file=$@
+all_final += cert_md2.crt
+
+cert_md4.csr: $(cert_md_test_key)
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Cert MD4" md=MD4
+all_intermediate += cert_md4.csr
+
+cert_md4.crt: cert_md4.csr
+	$(MBEDTLS_CERT_WRITE) request_file=$< serial=4 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=MD4 version=3 output_file=$@
+all_final += cert_md4.crt
+
+cert_md5.csr: $(cert_md_test_key)
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Cert MD5" md=MD5
+all_intermediate += cert_md5.csr
+
+cert_md5.crt: cert_md5.csr
+	$(MBEDTLS_CERT_WRITE) request_file=$< serial=4 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=MD5 version=3 output_file=$@
+all_final += cert_md5.crt
 
 ################################################################
 #### Meta targets

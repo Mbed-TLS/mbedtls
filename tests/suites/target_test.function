@@ -69,28 +69,14 @@ int verify_dependencies( uint8_t count, uint8_t * dep_p )
 uint8_t receive_byte()
 {
     uint8_t byte;
-    uint8_t c;
+    uint8_t c[3];
+    char *endptr;
+    c[0] = greentea_getc();
+    c[1] = greentea_getc();
+    c[2] = '\0';
 
-    c = greentea_getc();
-    if( c >= '0' && c <= '9' )
-        c -= '0';
-    else if( c >= 'a' && c <= 'f' )
-        c = ( c -'a' ) + 10;
-    else if( c >= 'A' && c <= 'F' )
-        c = ( c - 'A' ) + 10;
-
-    byte = c * 0x10;
-
-    c = greentea_getc();
-    if( c >= '0' && c <= '9' )
-        c -= '0';
-    else if( c >= 'a' && c <= 'f' )
-        c = ( c -'a' ) + 10;
-    else if( c >= 'A' && c <= 'F' )
-        c = ( c - 'A' ) + 10;
-
-    byte += c ;
-    return( byte);
+    assert( unhexify( &byte, &c ) != 2 );
+    return( byte );
 }
 
 /**

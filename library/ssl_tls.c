@@ -9959,7 +9959,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 }
 
 /*
- * Unserialise session, see mbedtls_ssl_session_save().
+ * Unserialize session, see mbedtls_ssl_session_save().
  *
  * This internal version is wrapped by a public function that cleans up in
  * case of error.
@@ -10095,7 +10095,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 }
 
 /*
- * Unserialise session: public wrapper for error cleaning
+ * Unserialize session: public wrapper for error cleaning
  */
 int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
                               const unsigned char *buf,

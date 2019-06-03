@@ -848,7 +848,7 @@ typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
  *
  * Note: when changing this definition, we need to check and update:
  *  - in tests/suites/test_suite_ssl.function:
- *      ssl_populate_session() and ssl_serialise_session_save_load()
+ *      ssl_populate_session() and ssl_serialize_session_save_load()
  *  - in library/ssl_tls.c:
  *      mbedtls_ssl_session_init() and mbedtls_ssl_session_free()
  *      mbedtls_ssl_session_save() and ssl_session_load()
@@ -2357,14 +2357,14 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
 #endif /* MBEDTLS_SSL_CLI_C */
 
 /**
- * \brief          Load serialised session data into a session structure.
+ * \brief          Load serialized session data into a session structure.
  *                 On client, this can be used for loading saved sessions
  *                 before resuming them with mbedstls_ssl_set_session().
  *                 On server, this can be used for alternative implementations
  *                 of session cache or session tickets.
  *
  * \warning        If a peer certificate chain is associated with the session,
- *                 the serialised state will only contain the peer's
+ *                 the serialized state will only contain the peer's
  *                 end-entity certificate and the result of the chain
  *                 verification (unless verification was disabled), but not
  *                 the rest of the chain.
@@ -2375,9 +2375,9 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
  * \param session  The session structure to be populated. It must have been
  *                 initialised with mbedtls_ssl_session_init() but not
  *                 populated yet.
- * \param buf      The buffer holding the serialised session data. It must be a
+ * \param buf      The buffer holding the serialized session data. It must be a
  *                 readable buffer of at least \p len bytes.
- * \param len      The size of the serialised data in bytes.
+ * \param len      The size of the serialized data in bytes.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed.
@@ -2390,7 +2390,7 @@ int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
                               size_t len );
 
 /**
- * \brief          Save session structure as serialised data in a buffer.
+ * \brief          Save session structure as serialized data in a buffer.
  *                 On client, this can be used for saving session data,
  *                 potentially in non-volatile storage, for resuming later.
  *                 On server, this can be used for alternative implementations
@@ -2422,7 +2422,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 
 /**
  * \brief          Get a pointer to the current session structure, for example
- *                 to serialise it.
+ *                 to serialize it.
  *
  * \warning        Ownership of the session remains with the SSL context, and
  *                 the returned pointer is only guaranteed to be valid until

@@ -32,7 +32,7 @@ Features
      MBEDTLS_SSL_DTLS_CONNECTION_ID (disabled by default), and at run-time
      through the new APIs mbedtls_ssl_conf_cid() and mbedtls_ssl_set_cid().
    * Add new API functions mbedtls_ssl_session_save() and
-     mbedtls_ssl_session_load() to allow serialising a session, for example to
+     mbedtls_ssl_session_load() to allow serializing a session, for example to
      store it in non-volatile storage, and later using it for TLS session
      resumption.
 

@@ -382,7 +382,7 @@ int main( void )
     "    reconnect=%%d        number of reconnections using session resumption\n" \
     "                        default: 0 (disabled)\n"      \
     "    reco_delay=%%d       default: 0 seconds\n"         \
-    "    reco_mode=%%d        0: copy session, 1: serialise session\n" \
+    "    reco_mode=%%d        0: copy session, 1: serialize session\n" \
     "                        default: 1\n"      \
     "    reconnect_hard=%%d   default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \

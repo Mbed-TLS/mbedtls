@@ -527,11 +527,15 @@ X509 Certificate verification #10 (Not trusted Cert, Expired CRL)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C
 x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
 
-X509 Certificate verification #12 (Valid Cert MD4 Digest)
+X509 Certificate verification #12 (Valid Cert MD2 Digest, MD2 forbidden)
+depends_on:MBEDTLS_MD2_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+x509_verify:"data_files/cert_md2.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"compat":"NULL"
+
+X509 Certificate verification #12 (Valid Cert MD4 Digest, MD4 forbidden)
 depends_on:MBEDTLS_MD4_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"compat":"NULL"
 
-X509 Certificate verification #13 (Valid Cert MD5 Digest)
+X509 Certificate verification #13 (Valid Cert MD5 Digest, MD5 forbidden)
 depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"compat":"NULL"
 

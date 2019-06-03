@@ -44,6 +44,9 @@ Bugfix
      returning. Fixes #2431.
    * Fix typo in net_would_block(). Fixes #528 reported by github-monoculture.
    * Remove redundant include file in timing.c. Fixes #2640 reported by irwir.
+   * Fix Visual Studio Release x64 build configuration by inheriting
+     PlatformToolset from the project configuration. Fixes #1430 reported by
+     irwir.
 
 Changes
    * Return from various debugging routines immediately if the

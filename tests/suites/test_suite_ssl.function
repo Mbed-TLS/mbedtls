@@ -975,7 +975,7 @@ void ssl_session_serialize_version_check( int corrupt_major,
             TEST_ASSERT( mbedtls_ssl_session_load( &session,
                                                    serialized_session,
                                                    serialized_session_len ) ==
-                         MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+                         MBEDTLS_ERR_SSL_VERSION_MISMATCH );
 
             /* Undo the change */
             *byte ^= corrupted_bit;

@@ -10184,8 +10184,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     if( memcmp( p, ssl_serialized_session_header,
                 sizeof( ssl_serialized_session_header ) ) != 0 )
     {
-        /* A more specific error code might be used here. */
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
     }
     p += sizeof( ssl_serialized_session_header );
 

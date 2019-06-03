@@ -813,6 +813,7 @@ component_test_memory_buffer_allocator () {
     msg "build: default config with memory buffer allocator enabled"
     scripts/config.pl set MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl set MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
     CC=gcc cmake .
     make
 

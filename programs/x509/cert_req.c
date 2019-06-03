@@ -99,7 +99,7 @@ int main( void )
     "                          Add NsCertType even if it is empty\n"    \
     "    md=%%s               default: SHA256\n"       \
     "                          possible values:\n"     \
-    "                          MD4, MD5, SHA1\n"       \
+    "                          MD2, MD4, MD5, SHA1\n"  \
     "                          SHA224, SHA256\n"       \
     "                          SHA384, SHA512\n"       \
     "\n"
@@ -234,6 +234,13 @@ int main( int argc, char *argv[] )
             }
             else
 #endif /* MBEDTLS_MD5_C */
+#if defined(MBEDTLS_MD2_C)
+            if( strcmp( q, "MD2" ) == 0 )
+            {
+                opt.md_alg = MBEDTLS_MD_MD2;
+            }
+            else
+#endif /* MBEDTLS_MD2_C */
 #if defined(MBEDTLS_SHA1_C)
             if( strcmp( q, "SHA1" ) == 0 )
             {

@@ -89,24 +89,20 @@ class TestDataParser(object):
         :param data_f: Data file object
         :return:
         """
-        while True:
-            line = data_f.readline().strip()
+        for line in data_f:
+            line = line.strip()
             if not line:
-                break
+                continue
             # Read test name
             name = line
 
             # Check dependencies
             dependencies = []
-            line = data_f.readline().strip()
-            if not line:
-                break
+            line = next(data_f).strip()
             match = re.search('depends_on:(.*)', line)
             if match:
                 dependencies = [int(x) for x in match.group(1).split(':')]
-                line = data_f.readline().strip()
-                if not line:
-                    break
+                line = next(data_f).strip()
 
             # Read test vectors
             line = line.replace('\\n', '\n')
@@ -265,20 +261,20 @@ class MbedTlsTest(BaseHostTest):
         for typ, param in parameters:
             if typ == 'int' or typ == 'exp':
                 i = int(param)
-                data_bytes += 'I' if typ == 'int' else 'E'
+                data_bytes += b'I' if typ == 'int' else b'E'
                 self.align_32bit(data_bytes)
                 data_bytes += self.int32_to_big_endian_bytes(i)
             elif typ == 'char*':
                 param = param.strip('"')
                 i = len(param) + 1  # + 1 for null termination
-                data_bytes += 'S'
+                data_bytes += b'S'
                 self.align_32bit(data_bytes)
                 data_bytes += self.int32_to_big_endian_bytes(i)
-                data_bytes += bytearray(list(param))
-                data_bytes += '\0'   # Null terminate
+                data_bytes += bytes(param, 'ascii')
+                data_bytes += b'\0'   # Null terminate
             elif typ == 'hex':
                 binary_data = self.hex_str_bytes(param)
-                data_bytes += 'H'
+                data_bytes += b'H'
                 self.align_32bit(data_bytes)
                 i = len(binary_data)
                 data_bytes += self.int32_to_big_endian_bytes(i)
@@ -313,7 +309,7 @@ class MbedTlsTest(BaseHostTest):
 
         param_bytes, length = self.test_vector_to_bytes(function_id,
                                                         dependencies, args)
-        self.send_kv(bytes(length).decode(), bytes(param_bytes).decode())
+        self.send_kv(length.hex(), param_bytes.hex())
 
     @staticmethod
     def get_result(value):

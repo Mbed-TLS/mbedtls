@@ -59,10 +59,43 @@ int verify_dependencies( uint8_t count, uint8_t * dep_p )
     return( DEPENDENCY_SUPPORTED );
 }
 
+/**
+ * \brief       Receives hex string on serial interface, and converts to a byte.
+ *
+ * \param none
+ *
+ * \return      unsigned int8
+ */
+uint8_t receive_byte()
+{
+    uint8_t byte;
+    uint8_t c;
+
+    c = greentea_getc();
+    if( c >= '0' && c <= '9' )
+        c -= '0';
+    else if( c >= 'a' && c <= 'f' )
+        c = ( c -'a' ) + 10;
+    else if( c >= 'A' && c <= 'F' )
+        c = ( c - 'A' ) + 10;
+
+    byte = c * 0x10;
+
+    c = greentea_getc();
+    if( c >= '0' && c <= '9' )
+        c -= '0';
+    else if( c >= 'a' && c <= 'f' )
+        c = ( c -'a' ) + 10;
+    else if( c >= 'A' && c <= 'F' )
+        c = ( c - 'A' ) + 10;
+
+    byte += c ;
+    return( byte);
+}
 
 /**
  * \brief       Receives unsigned integer on serial interface.
- *              Integers are encoded in network order.
+ *              Integers are encoded in network order, and sent as hex ascii string.
  *
  * \param none
  *
@@ -71,10 +104,10 @@ int verify_dependencies( uint8_t count, uint8_t * dep_p )
 uint32_t receive_uint32()
 {
     uint32_t value;
-    value =  (uint8_t)greentea_getc() << 24;
-    value |= (uint8_t)greentea_getc() << 16;
-    value |= (uint8_t)greentea_getc() << 8;
-    value |= (uint8_t)greentea_getc();
+    value =  receive_byte() << 24;
+    value |= receive_byte() << 16;
+    value |= receive_byte() << 8;
+    value |= receive_byte();
     return( (uint32_t)value );
 }
 
@@ -132,7 +165,7 @@ uint8_t * receive_data( uint32_t * data_len )
     greentea_getc(); // read ';' received after key i.e. *data_len
 
     for( i = 0; i < *data_len; i++ )
-        data[i] = greentea_getc();
+        data[i] = receive_byte();
 
     /* Read closing braces */
     for( i = 0; i < 2; i++ )

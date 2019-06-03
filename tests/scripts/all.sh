@@ -988,7 +988,6 @@ component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
     make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
     msg "test: i386, make, gcc -O1 (ASan build)"

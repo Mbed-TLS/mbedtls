@@ -270,7 +270,7 @@ class MbedTlsTest(BaseHostTest):
                 data_bytes += b'S'
                 self.align_32bit(data_bytes)
                 data_bytes += self.int32_to_big_endian_bytes(i)
-                data_bytes += bytes(param, 'ascii')
+                data_bytes += bytearray(param, encoding='ascii')
                 data_bytes += b'\0'   # Null terminate
             elif typ == 'hex':
                 binary_data = self.hex_str_bytes(param)
@@ -309,7 +309,7 @@ class MbedTlsTest(BaseHostTest):
 
         param_bytes, length = self.test_vector_to_bytes(function_id,
                                                         dependencies, args)
-        self.send_kv(length.hex(), param_bytes.hex())
+        self.send_kv(''.join('{:02x}'.format(x) for x in length), ''.join('{:02x}'.format(x) for x in param_bytes))
 
     @staticmethod
     def get_result(value):

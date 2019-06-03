@@ -121,7 +121,7 @@ int main( void )
     "    max_pathlen=%%d          default: -1 (none)\n"     \
     "    md=%%s                   default: SHA256\n"        \
     "                            Supported values:\n"       \
-    "                            MD5, SHA1, SHA256, SHA512\n"\
+    "                            MD2, MD4, MD5, SHA1, SHA256, SHA512\n"\
     "    version=%%d              default: 3\n"            \
     "                            Possible values: 1, 2, 3\n"\
     "    subject_identifier=%%s   default: 1\n"             \

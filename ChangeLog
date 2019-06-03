@@ -67,6 +67,9 @@ Bugfix
    * Remove redundant include file in timing.c. Fixes #2640 reported by irwir.
    * Fix build failure when building with mingw on Windows by including
      stdarg.h where needed. Fixes #2656.
+   * Fix Visual Studio Release x64 build configuration by inheriting
+     PlatformToolset from the project configuration. Fixes #1430 reported by
+     irwir.
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

@@ -463,6 +463,18 @@ X509 Certificate verification #13 (Valid Cert MD5 Digest, MD5 forbidden)
 depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD:"compat":"NULL"
 
+X509 Certificate verification #12 (Valid Cert MD2 Digest, MD2 allowed)
+depends_on:MBEDTLS_MD2_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+x509_verify:"data_files/cert_md2.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"all":"NULL"
+
+X509 Certificate verification #12 (Valid Cert MD4 Digest, MD4 allowed)
+depends_on:MBEDTLS_MD4_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+x509_verify:"data_files/cert_md4.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"all":"NULL"
+
+X509 Certificate verification #13 (Valid Cert MD5 Digest, MD5 allowed)
+depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+x509_verify:"data_files/cert_md5.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"all":"NULL"
+
 X509 Certificate verification #14 (Valid Cert SHA1 Digest explicitly allowed in profile)
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_sha1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"compat":"NULL"

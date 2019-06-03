@@ -98,6 +98,7 @@ Changes
    * Change wording in the `mbedtls_ssl_conf_max_frag_len()`'s documentation to
      improve clarity. Fixes #2258.
    * Replace multiple uses of MD2 by SHA-256 in X.509 test suite. Fixes #821.
+   * Make `make clean` clean all programs always. Fixes #1862.
 
 = mbed TLS 2.17.0 branch released 2019-03-19
 

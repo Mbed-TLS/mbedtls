@@ -945,7 +945,7 @@ cert_md2.csr: $(cert_md_test_key)
 all_intermediate += cert_md2.csr
 
 cert_md2.crt: cert_md2.csr
-	$(MBEDTLS_CERT_WRITE) request_file=$< serial=4 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=MD2 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) request_file=$< serial=9 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20000101121212 not_after=20300101121212 md=MD2 version=3 output_file=$@
 all_final += cert_md2.crt
 
 cert_md4.csr: $(cert_md_test_key)
@@ -953,7 +953,7 @@ cert_md4.csr: $(cert_md_test_key)
 all_intermediate += cert_md4.csr
 
 cert_md4.crt: cert_md4.csr
-	$(MBEDTLS_CERT_WRITE) request_file=$< serial=4 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=MD4 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) request_file=$< serial=5 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20000101121212 not_after=20300101121212 md=MD4 version=3 output_file=$@
 all_final += cert_md4.crt
 
 cert_md5.csr: $(cert_md_test_key)
@@ -961,7 +961,7 @@ cert_md5.csr: $(cert_md_test_key)
 all_intermediate += cert_md5.csr
 
 cert_md5.crt: cert_md5.csr
-	$(MBEDTLS_CERT_WRITE) request_file=$< serial=4 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=MD5 version=3 output_file=$@
+	$(MBEDTLS_CERT_WRITE) request_file=$< serial=6 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20000101121212 not_after=20300101121212 md=MD5 version=3 output_file=$@
 all_final += cert_md5.crt
 
 ################################################################

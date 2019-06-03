@@ -10536,8 +10536,12 @@ static int ssl_preset_suiteb_hashes[] = {
 
 #if defined(MBEDTLS_ECP_C)
 static mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
     MBEDTLS_ECP_DP_SECP256R1,
+#endif
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
     MBEDTLS_ECP_DP_SECP384R1,
+#endif
     MBEDTLS_ECP_DP_NONE
 };
 #endif

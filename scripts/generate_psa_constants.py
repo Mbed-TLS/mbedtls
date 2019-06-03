@@ -187,9 +187,9 @@ BIT_TEST_TEMPLATE = '''\
 class MacroCollector:
     """Collect PSA crypto macro definitions from C header files.
 
-1. Call `read_file` on the input header file(s).
-2. Call `write_file` to write ``psa_constant_names_generated.c``.
-"""
+    1. Call `read_file` on the input header file(s).
+    2. Call `write_file` to write ``psa_constant_names_generated.c``.
+    """
 
     def __init__(self):
         self.statuses = set()
@@ -212,7 +212,8 @@ class MacroCollector:
     def read_line(self, line):
         """Parse a C header line and record the PSA identifier it defines if any.
         This function analyzes lines that start with "#define PSA_"
-        (up to non-significant whitespace) and skips all non-matching lines."""
+        (up to non-significant whitespace) and skips all non-matching lines.
+        """
         # pylint: disable=too-many-branches
         m = re.match(self.definition_re, line)
         if not m:
@@ -356,7 +357,8 @@ class MacroCollector:
 
     def write_file(self, output_file):
         """Generate the pretty-printer function code from the gathered
-        constant definitions."""
+        constant definitions.
+        """
         data = {}
         data['status_cases'] = self._make_status_cases()
         data['ecc_curve_cases'] = self._make_ecc_curve_cases()

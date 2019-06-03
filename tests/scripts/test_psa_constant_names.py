@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-'''Test the program psa_constant_names.
+"""Test the program psa_constant_names.
 Gather constant names from header files and test cases. Compile a C program
 to print out their numerical values, feed these numerical values to
 psa_constant_names, and check that the output is the original name.
 Return 0 if all test cases pass, 1 if the output was not always as expected,
-or 1 (with a Python backtrace) if there was an operational error.'''
+or 1 (with a Python backtrace) if there was an operational error.
+"""
 
 import argparse
 import itertools
@@ -25,16 +26,22 @@ class ReadFileLineException(Exception):
 class read_file_lines:
     # Dear Pylint, conventionally, a context manager class name is lowercase.
     # pylint: disable=invalid-name,too-few-public-methods
-    '''Context manager to read a text file line by line.
-with read_file_lines(filename) as lines:
-    for line in lines:
-        process(line)
-is equivalent to
-with open(filename, 'r') as input_file:
-    for line in input_file:
-        process(line)
-except that if process(line) raises an exception, then the read_file_lines
-snippet annotates the exception with the file name and line number.'''
+    """Context manager to read a text file line by line.
+
+    ```
+    with read_file_lines(filename) as lines:
+        for line in lines:
+            process(line)
+    ```
+    is equivalent to
+    ```
+    with open(filename, 'r') as input_file:
+        for line in input_file:
+            process(line)
+    ```
+    except that if process(line) raises an exception, then the read_file_lines
+    snippet annotates the exception with the file name and line number.
+    """
     def __init__(self, filename):
         self.filename = filename
         self.line_number = 'entry'
@@ -53,9 +60,11 @@ snippet annotates the exception with the file name and line number.'''
                 from exc_value
 
 class Inputs:
-    '''Accumulate information about macros to test.
-This includes macro names as well as information about their arguments
-when applicable.'''
+    """Accumulate information about macros to test.
+    This includes macro names as well as information about their arguments
+    when applicable.
+    """
+
     def __init__(self):
         # Sets of names per type
         self.statuses = set(['PSA_SUCCESS'])
@@ -91,8 +100,9 @@ when applicable.'''
         }
 
     def gather_arguments(self):
-        '''Populate the list of values for macro arguments.
-Call this after parsing all the inputs.'''
+        """Populate the list of values for macro arguments.
+        Call this after parsing all the inputs.
+        """
         self.arguments_for['hash_alg'] = sorted(self.hash_algorithms)
         self.arguments_for['mac_alg'] = sorted(self.mac_algorithms)
         self.arguments_for['ka_alg'] = sorted(self.ka_algorithms)
@@ -103,14 +113,16 @@ Call this after parsing all the inputs.'''
 
     @staticmethod
     def _format_arguments(name, arguments):
-        '''Format a macro call with arguments..'''
+        """Format a macro call with arguments.."""
         return name + '(' + ', '.join(arguments) + ')'
 
     def distribute_arguments(self, name):
-        '''Generate macro calls with each tested argument set.
-If name is a macro without arguments, just yield "name".
-If name is a macro with arguments, yield a series of "name(arg1,...,argN)"
-where each argument takes each possible value at least once.'''
+        """Generate macro calls with each tested argument set.
+        If name is a macro without arguments, just yield "name".
+        If name is a macro with arguments, yield a series of
+        "name(arg1,...,argN)" where each argument takes each possible
+        value at least once.
+        """
         try:
             if name not in self.argspecs:
                 yield name
@@ -160,7 +172,7 @@ where each argument takes each possible value at least once.'''
                           ])
 
     def parse_header_line(self, line):
-        '''Parse a C header line, looking for "#define PSA_xxx".'''
+        """Parse a C header line, looking for "#define PSA_xxx"."""
         m = re.match(self._header_line_re, line)
         if not m:
             return
@@ -176,13 +188,13 @@ where each argument takes each possible value at least once.'''
             self.argspecs[name] = self._argument_split(m.group(3))
 
     def parse_header(self, filename):
-        '''Parse a C header file, looking for "#define PSA_xxx".'''
+        """Parse a C header file, looking for "#define PSA_xxx"."""
         with read_file_lines(filename) as lines:
             for line in lines:
                 self.parse_header_line(line)
 
     def add_test_case_line(self, function, argument):
-        '''Parse a test case data line, looking for algorithm metadata tests.'''
+        """Parse a test case data line, looking for algorithm metadata tests."""
         if function.endswith('_algorithm'):
             # As above, ECDH and FFDH algorithms are excluded for now.
             # Support for them will be added in the future.
@@ -207,7 +219,7 @@ where each argument takes each possible value at least once.'''
     # regex is good enough in practice.
     _test_case_line_re = re.compile(r'(?!depends_on:)(\w+):([^\n :][^:\n]*)')
     def parse_test_cases(self, filename):
-        '''Parse a test case file (*.data), looking for algorithm metadata tests.'''
+        """Parse a test case file (*.data), looking for algorithm metadata tests."""
         with read_file_lines(filename) as lines:
             for line in lines:
                 m = re.match(self._test_case_line_re, line)
@@ -215,7 +227,7 @@ where each argument takes each possible value at least once.'''
                     self.add_test_case_line(m.group(1), m.group(2))
 
 def gather_inputs(headers, test_suites):
-    '''Read the list of inputs to test psa_constant_names with.'''
+    """Read the list of inputs to test psa_constant_names with."""
     inputs = Inputs()
     for header in headers:
         inputs.parse_header(header)
@@ -225,7 +237,7 @@ def gather_inputs(headers, test_suites):
     return inputs
 
 def remove_file_if_exists(filename):
-    '''Remove the specified file, ignoring errors.'''
+    """Remove the specified file, ignoring errors."""
     if not filename:
         return
     try:
@@ -234,7 +246,7 @@ def remove_file_if_exists(filename):
         pass
 
 def run_c(options, type_word, names):
-    '''Generate and run a program to print out numerical values for names.'''
+    """Generate and run a program to print out numerical values for names."""
     if type_word == 'status':
         cast_to = 'long'
         printf_format = '%ld'
@@ -282,15 +294,18 @@ int main(void)
 
 NORMALIZE_STRIP_RE = re.compile(r'\s+')
 def normalize(expr):
-    '''Normalize the C expression so as not to care about trivial differences.
-Currently "trivial differences" means whitespace.'''
+    """Normalize the C expression so as not to care about trivial differences.
+    Currently "trivial differences" means whitespace.
+    """
     expr = re.sub(NORMALIZE_STRIP_RE, '', expr, len(expr))
     return expr.strip().split('\n')
 
 def do_test(options, inputs, type_word, names):
-    '''Test psa_constant_names for the specified type.
-Run program on names.
-Use inputs to figure out what arguments to pass to macros that take arguments.'''
+    """Test psa_constant_names for the specified type.
+    Run program on names.
+    Use inputs to figure out what arguments to pass to macros that
+    take arguments.
+    """
     names = sorted(itertools.chain(*map(inputs.distribute_arguments, names)))
     values = run_c(options, type_word, names)
     output = subprocess.check_output([options.program, type_word] + values)
@@ -301,16 +316,17 @@ Use inputs to figure out what arguments to pass to macros that take arguments.''
     return len(names), errors
 
 def report_errors(errors):
-    '''Describe each case where the output is not as expected.'''
+    """Describe each case where the output is not as expected."""
     for type_word, name, value, output in errors:
         print('For {} "{}", got "{}" (value: {})'
               .format(type_word, name, output, value))
 
 def run_tests(options, inputs):
-    '''Run psa_constant_names on all the gathered inputs.
-Return a tuple (count, errors) where count is the total number of inputs
-that were tested and errors is the list of cases where the output was
-not as expected.'''
+    """Run psa_constant_names on all the gathered inputs.
+    Return a tuple (count, errors) where count is the total number of inputs
+    that were tested and errors is the list of cases where the output was
+    not as expected.
+    """
     count = 0
     errors = []
     for type_word, names in [('status', inputs.statuses),

@@ -112,9 +112,12 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 .SILENT:
 
-.PHONY: all check test clean
+.PHONY: all check test clean fuzz
 
-all: $(BINARIES)
+all: $(BINARIES) fuzz
+
+fuzz:
+	$(MAKE) -C fuzz
 
 $(DEP):
 	$(MAKE) -C ../library

@@ -24,7 +24,7 @@ You can use `undefined` sanitizer as well as `address` sanitizer
 And you can run any of the fuzz targets like `fuzz_client`
 
 To run the fuzz targets without oss-fuzz, you first need to install one libFuzzingEngine (libFuzzer for instance)
-Then you need to compile the code
+Then you need to compile the code with the compiler flags of the wished sanitizer
 ```
 perl scripts/config.pl set MBEDTLS_PLATFORM_TIME_ALT
 mkdir build

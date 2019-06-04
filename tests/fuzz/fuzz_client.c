@@ -70,7 +70,7 @@ static int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
     ret = mbedtls_ctr_drbg_random(p_rng, output, output_len);
     for (i=0; i<output_len; i++) {
         //replace result with pseudo random
-        output[i] = (unsigned char) random();
+        output[i] = (unsigned char) rand();
     }
     return( ret );
 }
@@ -85,7 +85,7 @@ static int dummy_entropy( void *data, unsigned char *output, size_t len )
     //ret = mbedtls_entropy_func(data, output, len);
     for (i=0; i<len; i++) {
         //replace result with pseudo random
-        output[i] = (unsigned char) random();
+        output[i] = (unsigned char) rand();
     }
     return( 0 );
 }
@@ -182,7 +182,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     //There may be other options to add :
     // mbedtls_ssl_conf_cert_profile, mbedtls_ssl_conf_sig_hashes
 
-    srandom(1);
+    srand(1);
     mbedtls_ssl_conf_rng( &conf, dummy_random, &ctr_drbg );
 
     if( mbedtls_ssl_setup( &ssl, &conf ) != 0 )

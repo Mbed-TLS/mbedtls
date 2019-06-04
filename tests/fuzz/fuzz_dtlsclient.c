@@ -71,7 +71,7 @@ static int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
     ret = mbedtls_ctr_drbg_random(p_rng, output, output_len);
     for (i=0; i<output_len; i++) {
         //replace result with pseudo random
-        output[i] = (unsigned char) random();
+        output[i] = (unsigned char) rand();
     }
     return( ret );
 }
@@ -86,7 +86,7 @@ static int dummy_entropy( void *data, unsigned char *output, size_t len )
     //ret = mbedtls_entropy_func(data, output, len);
     for (i=0; i<len; i++) {
         //replace result with pseudo random
-        output[i] = (unsigned char) random();
+        output[i] = (unsigned char) rand();
     }
     return( 0 );
 }
@@ -121,7 +121,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );
 
-    srandom(1);
+    srand(1);
     if( mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy, &entropy,
                               (const unsigned char *) pers, strlen( pers ) ) != 0 )
         goto exit;

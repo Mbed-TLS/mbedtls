@@ -9853,12 +9853,6 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
  * structure of serialized SSL sessions.
  */
 
-#if defined(MBEDTLS_SSL_SERIALIZED_STRUCTURES_LOCAL_ONLY)
-#define SSL_SERIALIZED_SESSION_CONFIG_LOCAL 1
-#else
-#define SSL_SERIALIZED_SESSION_CONFIG_LOCAL 0
-#endif /* MBEDTLS_SSL_SERIALIZED_STRUCTURES_LOCAL_ONLY */
-
 #if defined(MBEDTLS_HAVE_TIME)
 #define SSL_SERIALIZED_SESSION_CONFIG_TIME 1
 #else
@@ -9908,7 +9902,6 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 #define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    4
 #define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           5
 #define SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        6
-#define SSL_SERIALIZED_SESSION_CONFIG_LOCAL_BIT         7
 
 #define SSL_SERIALIZED_SESSION_CONFIG_BITFLAG                           \
     ( (uint16_t) (                                                      \
@@ -9918,8 +9911,7 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
         ( SSL_SERIALIZED_SESSION_CONFIG_MFL           << SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT           ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC    << SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_ETM           << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           ) | \
-        ( SSL_SERIALIZED_SESSION_CONFIG_TICKET        << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        ) | \
-        ( SSL_SERIALIZED_SESSION_CONFIG_LOCAL         << SSL_SERIALIZED_SESSION_CONFIG_LOCAL_BIT         ) ) )
+        ( SSL_SERIALIZED_SESSION_CONFIG_TICKET        << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        ) ) )
 
 static unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,
@@ -9941,11 +9933,9 @@ static unsigned char ssl_serialized_session_header[] = {
  *  Note: When updating the format, remember to keep
  *        these version+format bytes.
  *
- *                               // In this version, `session_format`
- *                               // indicates whether
- *                               // MBEDTLS_SSL_SERIALIZED_STRUCTURES_LOCAL_ONLY
- *                               // is set, plus the setting of those compile-
- *                               // time configuration options which influence
+ *                               // In this version, `session_format` determines
+ *                               // the setting of those compile-time
+ *                               // configuration options which influence
  *                               // the structure of mbedtls_ssl_session.
  *  uint64 start_time;
  *  uint8 ciphersuite[2];        // defined by the standard

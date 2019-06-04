@@ -47,6 +47,7 @@
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/version.h"
 
 #include <string.h>
 
@@ -8776,22 +8777,112 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 }
 
 /*
+ * Define ticket header determining Mbed TLS version
+ * and structure of the ticket.
+ */
+
+/*
+ * Define bitflag determining compile-time settings influencing
+ * structure of serialized SSL sessions.
+ */
+
+#if defined(MBEDTLS_HAVE_TIME)
+#define SSL_SERIALIZED_SESSION_CONFIG_TIME 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_TIME 0
+#endif /* MBEDTLS_HAVE_TIME */
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#define SSL_SERIALIZED_SESSION_CONFIG_CRT 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_CRT 0
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+#define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET 0
+#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+#define SSL_SERIALIZED_SESSION_CONFIG_MFL 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_MFL 0
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+#define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC 0
+#endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+#define SSL_SERIALIZED_SESSION_CONFIG_ETM 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_ETM 0
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+#define SSL_SERIALIZED_SESSION_CONFIG_TICKET 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_TICKET 0
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#define SSL_SERIALIZED_SESSION_CONFIG_TIME_BIT          0
+#define SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT           1
+#define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT 2
+#define SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT           3
+#define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    4
+#define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           5
+#define SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        6
+
+#define SSL_SERIALIZED_SESSION_CONFIG_BITFLAG                           \
+    ( (uint16_t) (                                                      \
+        ( SSL_SERIALIZED_SESSION_CONFIG_TIME          << SSL_SERIALIZED_SESSION_CONFIG_TIME_BIT          ) | \
+        ( SSL_SERIALIZED_SESSION_CONFIG_CRT           << SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT           ) | \
+        ( SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET << SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT ) | \
+        ( SSL_SERIALIZED_SESSION_CONFIG_MFL           << SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT           ) | \
+        ( SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC    << SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    ) | \
+        ( SSL_SERIALIZED_SESSION_CONFIG_ETM           << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           ) | \
+        ( SSL_SERIALIZED_SESSION_CONFIG_TICKET        << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        ) ) )
+
+static unsigned char ssl_serialized_session_header[] = {
+    MBEDTLS_VERSION_MAJOR,
+    MBEDTLS_VERSION_MINOR,
+    MBEDTLS_VERSION_PATCH,
+    ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 8 ) & 0xFF,
+    ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 0 ) & 0xFF,
+};
+
+/*
  * Serialize a session in the following format:
  * (in the presentation language of TLS, RFC 8446 section 3)
  *
+ *  opaque mbedtls_version[3];   // major, minor, patch
+ *  opaque session_format[2];    // version-specific 16-bit field determining
+ *                               // the format of the remaining
+ *                               // serialized data.
+ *
+ *  Note: When updating the format, remember to keep
+ *        these version+format bytes.
+ *
+ *                               // In this version, `session_format` determines
+ *                               // the setting of those compile-time
+ *                               // configuration options which influence
+ *                               // the structure of mbedtls_ssl_session.
  *  uint64 start_time;
- *  uint8 ciphersuite[2];           // defined by the standard
- *  uint8 compression;              // 0 or 1
- *  uint8 session_id_len;           // at most 32
+ *  uint8 ciphersuite[2];        // defined by the standard
+ *  uint8 compression;           // 0 or 1
+ *  uint8 session_id_len;        // at most 32
  *  opaque session_id[32];
- *  opaque master[48];              // fixed length in the standard
+ *  opaque master[48];           // fixed length in the standard
  *  uint32 verify_result;
- *  opaque peer_cert<0..2^24-1>;    // length 0 means no peer cert
- *  opaque ticket<0..2^24-1>;       // length 0 means no ticket
+ *  opaque peer_cert<0..2^24-1>; // length 0 means no peer cert
+ *  opaque ticket<0..2^24-1>;    // length 0 means no ticket
  *  uint32 ticket_lifetime;
- *  uint8 mfl_code;                 // up to 255 according to standard
- *  uint8 trunc_hmac;               // 0 or 1
- *  uint8 encrypt_then_mac;         // 0 or 1
+ *  uint8 mfl_code;              // up to 255 according to standard
+ *  uint8 trunc_hmac;            // 0 or 1
+ *  uint8 encrypt_then_mac;      // 0 or 1
  *
  * The order is the same as in the definition of the structure, except
  * verify_result is put before peer_cert so that all mandatory fields come
@@ -8810,6 +8901,19 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     size_t cert_len;
 #endif
+
+    /*
+     * Add version identifier
+     */
+
+    used += sizeof( ssl_serialized_session_header );
+
+    if( used <= buf_len )
+    {
+        memcpy( p, ssl_serialized_session_header,
+                sizeof( ssl_serialized_session_header ) );
+        p += sizeof( ssl_serialized_session_header );
+    }
 
     /*
      * Time
@@ -8963,6 +9067,20 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     size_t cert_len;
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    /*
+     * Check version identifier
+     */
+
+    if( (size_t)( end - p ) < sizeof( ssl_serialized_session_header ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( memcmp( p, ssl_serialized_session_header,
+                sizeof( ssl_serialized_session_header ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+    }
+    p += sizeof( ssl_serialized_session_header );
 
     /*
      * Time

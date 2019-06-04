@@ -525,6 +525,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "SSL - Internal-only message signaling that a message arrived early" );
         if( use_ret == -(MBEDTLS_ERR_SSL_UNEXPECTED_CID) )
             mbedtls_snprintf( buf, buflen, "SSL - An encrypted DTLS-frame with an unexpected CID was received" );
+        if( use_ret == -(MBEDTLS_ERR_SSL_VERSION_MISMATCH) )
+            mbedtls_snprintf( buf, buflen, "SSL - An operation failed due to an unexpected version or configuration" );
         if( use_ret == -(MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) )
             mbedtls_snprintf( buf, buflen, "SSL - A cryptographic operation is in progress. Try again later" );
 #endif /* MBEDTLS_SSL_TLS_C */

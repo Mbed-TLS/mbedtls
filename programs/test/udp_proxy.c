@@ -598,32 +598,17 @@ int send_delayed()
 static unsigned char dropped[2048] = { 0 };
 #define DROP_MAX 2
 
-/*
- * OpenSSL groups packets in a datagram the first time it sends them, but not
- * when it resends them. Count every record as seen the first time.
- */
+/* We only drop packets at the level of entire datagrams, not at the level
+ * of records. In particular, if the peer changes the way it packs multiple
+ * records into a single datagram, we don't necessarily count the number of
+ * times a record has been dropped correctly. However, the only known reason
+ * why a peer would change datagram packing is disabling the latter on
+ * retransmission, in which case we'd drop involved records at most
+ * DROP_MAX + 1 times. */
 void update_dropped( const packet *p )
 {
     size_t id = p->len % sizeof( dropped );
-    const unsigned char *end = p->buf + p->len;
-    const unsigned char *cur = p->buf;
-    size_t len = ( ( cur[11] << 8 ) | cur[12] ) + 13;
-
     ++dropped[id];
-
-    /* Avoid counting single record twice */
-    if( len == p->len )
-        return;
-
-    while( cur < end )
-    {
-        len = ( ( cur[11] << 8 ) | cur[12] ) + 13;
-
-        id = len % sizeof( dropped );
-        ++dropped[id];
-
-        cur += len;
-    }
 }
 
 int handle_message( const char *way,

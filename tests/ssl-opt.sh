@@ -1115,7 +1115,7 @@ run_test    "Truncated HMAC, DTLS: client enabled, server enabled" \
 # Tests for Context serialization
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "Context serialization, client serializes/deserializes" \
+run_test    "(STUB) Context serialization, client serializes/deserializes" \
             "$P_SRV serialize=0 exchanges=2" \
             "$P_CLI serialize=1 exchanges=2" \
             0 \
@@ -1123,7 +1123,7 @@ run_test    "Context serialization, client serializes/deserializes" \
             -S "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "Context serialization, server serializes/deserializes" \
+run_test    "(STUB) Context serialization, server serializes/deserializes" \
             "$P_SRV serialize=1 exchanges=2" \
             "$P_CLI serialize=0 exchanges=2" \
             0 \
@@ -1131,7 +1131,7 @@ run_test    "Context serialization, server serializes/deserializes" \
             -s "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "Context serialization, both serialize/deserialize" \
+run_test    "(STUB) Context serialization, both serialize/deserialize" \
             "$P_SRV serialize=1 exchanges=2" \
             "$P_CLI serialize=1 exchanges=2" \
             0 \

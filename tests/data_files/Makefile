@@ -733,6 +733,14 @@ server1.req.cert_type_empty: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1 force_ns_cert_type=1
 all_final += server1.req.cert_type_empty
 
+###
+### A generic SECP521R1 private key
+###
+
+secp521r1_prv.der:
+	$(OPENSSL) ecparam -genkey -name secp521r1 -noout -out secp521r1_prv.der
+all_final += secp521r1_prv.der
+
 ################################################################
 ### Generate certificates for CRT write check tests
 ################################################################

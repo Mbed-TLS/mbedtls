@@ -103,6 +103,8 @@ Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h
      suggests). #2671
    * Make `make clean` clean all programs always. Fixes #1862.
+   * Adds fuzz targets, especially for continuous fuzzing with OSS-Fuzz.
+     Contributed by Philippe Antoine (Catena cyber).
 
 = mbed TLS 2.17.0 branch released 2019-03-19
 

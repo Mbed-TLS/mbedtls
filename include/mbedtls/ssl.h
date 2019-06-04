@@ -160,6 +160,9 @@
 #define MBEDTLS_SSL_EXTENDED_MS_DISABLED        0
 #define MBEDTLS_SSL_EXTENDED_MS_ENABLED         1
 
+#define MBEDTLS_SSL_CID_DISABLED                0
+#define MBEDTLS_SSL_CID_ENABLED                 1
+
 #define MBEDTLS_SSL_ETM_DISABLED                0
 #define MBEDTLS_SSL_ETM_ENABLED                 1
 
@@ -254,6 +257,17 @@
  */
 #if !defined(MBEDTLS_SSL_DTLS_MAX_BUFFERING)
 #define MBEDTLS_SSL_DTLS_MAX_BUFFERING 32768
+#endif
+
+/*
+ * Maximum length of CIDs for incoming and outgoing messages.
+ */
+#if !defined(MBEDTLS_SSL_CID_IN_LEN_MAX)
+#define MBEDTLS_SSL_CID_IN_LEN_MAX         32
+#endif
+
+#if !defined(MBEDTLS_SSL_CID_OUT_LEN_MAX)
+#define MBEDTLS_SSL_CID_OUT_LEN_MAX         32
 #endif
 
 /* \} name SECTION: Module settings */
@@ -1476,6 +1490,135 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
                           mbedtls_ssl_recv_timeout_t *f_recv_timeout );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+
+#if defined(MBEDTLS_SSL_CID)
+
+
+/**
+ * \brief             (STUB) Configure the use of the Connection ID (CID)
+ *                    extension in the next handshake.
+ *
+ *                    Reference:
+ *                    https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04
+ *
+ *                    The DTLS CID extension allows to reliably associate
+ *                    DTLS records to DTLS connections across changes in the
+ *                    underlying transport (changed IP+Port metadata) by adding
+ *                    explicit connection identifiers (CIDs) to the headers of
+ *                    encrypted DTLS records. The desired CIDs are configured
+ *                    by the application layer and are exchanged in new
+ *                    `ClientHello` / `ServerHello` extensions during the
+ *                    handshake, where each side indicates the CID it wants the
+ *                    peer to use when writing encrypted messages. The CIDs are
+ *                    put to use once records get encrypted: the stack discards
+ *                    any incoming records that don't include the configured CID
+ *                    in their header, and adds the peer's requested CID to the
+ *                    headers of outgoing messages.
+ *
+ *                    This API allows to enable/disable the use of the CID
+ *                    extension in the next handshake and to set the value of
+ *                    the CID to be used for incoming messages.
+ *
+ * \warning           The current implementation of this API does nothing!
+ *                    It is included solely to allow review and coding against
+ *                    the new Connection CID API.
+ *                    The actual implementation will be added in the future.
+ *
+ * \param ssl         The SSL context to configure. This must be initialized.
+ * \param enable      This value determines whether the CID extension should
+ *                    be used or not. Possible values are:
+ *                    - MBEDTLS_SSL_CID_ENABLED to enable the use of the CID.
+ *                    - MBEDTLS_SSL_CID_DISABLED (default) to disable the use
+ *                      of the CID.
+ * \param own_cid     The address of the readable buffer holding the CID we want
+ *                    the peer to use when sending encrypted messages to us.
+ *                    This may be \c NULL if \p own_cid_len is \c 0.
+ *                    This parameter is unused if \p enabled is set to
+ *                    MBEDTLS_SSL_CID_DISABLED.
+ * \param own_cid_len The length of \p own_cid.
+ *                    This parameter is unused if \p enabled is set to
+ *                    MBEDTLS_SSL_CID_DISABLED.
+ *
+ * \note              This CID configuration applies to subsequent handshakes
+ *                    performed on the SSL context \p ssl, but does not trigger
+ *                    one. You still have to call `mbedtls_ssl_handshake()`
+ *                    (for the initial handshake) or `mbedtls_ssl_renegotiate()`
+ *                    (for a renegotiation handshake) explicitly after a
+ *                    successful call to this function to run the handshake.
+ *
+ * \note              This call cannot guarantee that the use of the CID
+ *                    will be successfully negotiated in the next handshake,
+ *                    because the peer might not support it. Specifically:
+ *                    - On the Client, enabling the use of the CID through
+ *                      this call implies that the `ClientHello` in the next
+ *                      handshake will include the CID extension, thereby
+ *                      offering the use of the CID to the server. Only if
+ *                      the `ServerHello` contains the CID extension, too,
+ *                      the CID extension will actually be put to use.
+ *                    - On the Server, enabling the use of the CID through
+ *                      this call implies that that the server will look for
+ *                      the CID extension in a `ClientHello` from the client,
+ *                      and, if present, reply with a CID extension in its
+ *                      `ServerHello`.
+ *
+ * \note              To check whether the use of the CID was negotiated
+ *                    after the subsequent handshake has completed, please
+ *                    use the API mbedtls_ssl_get_peer_cid().
+ *
+ * \warning           If the use of the CID extension is enabled in this call
+ *                    and the subsequent handshake negotiates its use, Mbed TLS
+ *                    will silently drop every packet whose CID does not match
+ *                    the CID configured in \p own_cid. It is the responsibility
+ *                    of the user to adapt the underlying transport to take care
+ *                    of CID-based demultiplexing before handing datagrams to
+ *                    Mbed TLS.
+ *
+ * \return            \c 0 on success. In this case, the CID configuration
+ *                    applies to the next handshake.
+ * \return            A negative error code on failure.
+ */
+int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
+                         int enable,
+                         unsigned char const *own_cid,
+                         size_t own_cid_len );
+
+/**
+ * \brief              (STUB) Get information about the current use of the
+ *                     CID extension.
+ *
+ * \warning            The current implementation of this API does nothing
+ *                     except setting `*enabled` to MBEDTLS_SSL_CID_DISABLED!
+ *                     It is included solely to allow review and coding against
+ *                     the new Connection CID API.
+ *                     The actual implementation will be added in the future.
+ *
+ * \param ssl          The SSL context to query.
+ * \param enabled      The address at which to store whether the CID extension
+ *                     is currently in use or not. If the CID is in use,
+ *                     `*enabled` is set to MBEDTLS_SSL_CID_ENABLED;
+ *                     otherwise, it is set to MBEDTLS_SSL_CID_DISABLED.
+ * \param peer_cid     The address of the buffer in which to store the CID
+ *                     chosen by the peer (if the CID extension is used).
+ * \param peer_cid_len The address at which to store the size of the CID
+ *                     chosen by the peer (if the CID extension is used).
+ *                     This is also the number of Bytes in \p peer_cid that
+ *                     have been written.
+ *
+ * \note               This applies to the state of the CID negotiated in
+ *                     the last complete handshake. If a handshake is in
+ *                     progress, this function will attempt to complete
+ *                     the handshake first.
+ *
+ * \return            \c 0 on success.
+ * \return            A negative error code on failure.
+ */
+int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
+                     int *enabled,
+                     unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ],
+                     size_t *peer_cid_len );
+
+#endif /* MBEDTLS_SSL_CID */
+
 /**
  * \brief          Set the Maximum Tranport Unit (MTU).
  *                 Special value: 0 means unset (no limit).

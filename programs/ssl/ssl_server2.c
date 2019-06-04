@@ -3356,23 +3356,27 @@ data_exchange:
         opt.serialize = 0;
         mbedtls_printf( " Serializing live connection..." );
 
-        if( ( ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &len) ) != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
+        if( ( ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &len ) )
+                != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
+                            "-0x%x\n\n", -ret );
 
             goto exit;
         }
 
         if( ( buf = mbedtls_calloc(1, len) ) == NULL )
         {
-            mbedtls_printf( " failed\n  ! Couldn't allocate buffer for serialized context" );
+            mbedtls_printf( " failed\n  ! Couldn't allocate buffer for "
+                            "serialized context" );
 
             goto exit;
         }
 
         if( ( ret = mbedtls_ssl_context_save( &ssl, buf, len, &len ) ) != 0 )
         {
-            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_save returned -0x%x\n\n", -ret );
+            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_save returned "
+                            "-0x%x\n\n", -ret );
 
             goto exit;
         }
@@ -3381,12 +3385,13 @@ data_exchange:
 
         if( ( ret = mbedtls_ssl_context_load( &ssl, buf, len ) ) != 0 )
         {
-            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned -0x%x\n\n", -ret );
+            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned "
+                            "-0x%x\n\n", -ret );
 
             goto exit;
         }
     }
-#endif
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
     /*
      * 7c. Continue doing data exchanges?

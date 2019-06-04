@@ -3356,8 +3356,11 @@ data_exchange:
         opt.serialize = 0;
         mbedtls_printf( " Serializing live connection..." );
 
-        if( ( ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &len ) )
-                != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
+        ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &len );
+
+        /* Allow stub implementation returning 0 for now */
+        if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL &&
+            ret != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
                             "-0x%x\n\n", -ret );

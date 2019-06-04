@@ -2946,11 +2946,7 @@ send_request:
             goto exit;
         }
 
-        mbedtls_ssl_free( &ssl );
-
         mbedtls_printf( " Deserializing connection..." );
-
-        mbedtls_ssl_init( &ssl );
 
         if( ( ret = mbedtls_ssl_context_load( &ssl, buf, len ) ) != 0 )
         {

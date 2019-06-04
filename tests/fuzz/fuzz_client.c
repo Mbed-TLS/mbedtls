@@ -2,6 +2,7 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/certs.h"
+#include "common.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -90,7 +91,6 @@ static int dummy_entropy( void *data, unsigned char *output, size_t len )
     return( 0 );
 }
 
-
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     int ret;
     size_t len;
@@ -113,6 +113,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
         alpn_list[0] = "HTTP";
         alpn_list[1] = "fuzzalpn";
         alpn_list[2] = NULL;
+
+        dummy_init();
 
         initialized = 1;
     }

@@ -3,6 +3,7 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/certs.h"
 #include "mbedtls/ssl_ticket.h"
+#include "common.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -130,6 +131,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
         alpn_list[0] = "HTTP";
         alpn_list[1] = "fuzzalpn";
         alpn_list[2] = NULL;
+
+        dummy_init();
 
         initialized = 1;
     }

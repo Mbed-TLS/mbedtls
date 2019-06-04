@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "common.h"
 #include "mbedtls/ssl.h"
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 #include "mbedtls/entropy.h"
@@ -120,6 +121,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
                                  mbedtls_test_srv_key_len, NULL, 0 ) != 0)
             return 1;
 #endif
+        dummy_init();
+
         initialized = 1;
     }
     mbedtls_ssl_init( &ssl );

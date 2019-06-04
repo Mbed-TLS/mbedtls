@@ -25,14 +25,14 @@ target_link_libraries(fuzz_privkey ${libs})
 add_executable(fuzz_pubkey fuzz_pubkey.c onefile.c)
 target_link_libraries(fuzz_pubkey ${libs})
 
-add_executable(fuzz_client fuzz_client.c onefile.c)
+add_executable(fuzz_client fuzz_client.c common.c onefile.c)
 target_link_libraries(fuzz_client ${libs})
 
-add_executable(fuzz_server fuzz_server.c onefile.c)
+add_executable(fuzz_server fuzz_server.c common.c onefile.c)
 target_link_libraries(fuzz_server ${libs})
 
-add_executable(fuzz_dtlsclient fuzz_dtlsclient.c onefile.c)
+add_executable(fuzz_dtlsclient fuzz_dtlsclient.c common.c onefile.c)
 target_link_libraries(fuzz_dtlsclient ${libs})
 
-add_executable(fuzz_dtlsserver fuzz_dtlsserver.c onefile.c)
+add_executable(fuzz_dtlsserver fuzz_dtlsserver.c common.c onefile.c)
 target_link_libraries(fuzz_dtlsserver ${libs})

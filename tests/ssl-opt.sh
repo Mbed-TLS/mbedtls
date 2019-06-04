@@ -7711,11 +7711,11 @@ run_test    "DTLS reordering: Buffer encrypted Finished message" \
 #   without fragmentation or be reassembled within the bounds of
 #   MBEDTLS_SSL_DTLS_MAX_BUFFERING. Achieve this by testing with a PSK-based
 #   handshake, omitting CRTs.
-requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 240
-requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 280
+requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 190
+requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 230
 run_test    "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket" \
             -p "$P_PXY delay_srv=NewSessionTicket delay_srv=NewSessionTicket delay_ccs=1" \
-            "$P_SRV mtu=190 dgram_packing=0 psk=abc123 psk_identity=foo cookies=0 dtls=1 debug_level=2" \
+            "$P_SRV mtu=140 response_size=90 dgram_packing=0 psk=abc123 psk_identity=foo cookies=0 dtls=1 debug_level=2" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 psk=abc123 psk_identity=foo" \
             0 \
             -s "Buffer record from epoch 1" \

@@ -385,6 +385,13 @@ int main( void )
 #define USAGE_CURVES ""
 #endif
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+#define USAGE_SERIALIZATION \
+    "    serialize=%%d        default: 0 (do not serialize/deserialize)\n"
+#else
+#define USAGE_SERIALIZATION ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -446,7 +453,7 @@ int main( void )
     "                                configuration macro is defined and 1\n"  \
     "                                otherwise. The expansion of the macro\n" \
     "                                is printed if it is defined\n"     \
-    "    serialize=%%d        default: 0 (do not serialize/deserialize)\n" \
+    USAGE_SERIALIZATION                                     \
     " acceptable ciphersuite names:\n"
 
 
@@ -3340,6 +3347,7 @@ data_exchange:
     /*
      * 7b. Simulate serialize/deserialize and go back to data exchange
      */
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     if( opt.serialize != 0)
     {
         size_t len;
@@ -3382,6 +3390,7 @@ data_exchange:
             goto exit;
         }
     }
+#endif
 
     /*
      * 7c. Continue doing data exchanges?

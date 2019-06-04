@@ -3718,7 +3718,7 @@ handshake:
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
                             (unsigned int) -ret );
-            goto exit;
+            goto reset;
         }
 
         mbedtls_printf( "    EAP-TLS key material is:" );
@@ -3739,7 +3739,7 @@ handshake:
          {
              mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
                              (unsigned int) -ret );
-             goto exit;
+             goto reset;
          }
 
         mbedtls_printf( "    EAP-TLS IV is:" );

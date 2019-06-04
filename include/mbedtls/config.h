@@ -1327,28 +1327,32 @@
 #define MBEDTLS_SSL_ALL_ALERT_MESSAGES
 
 /**
- * \def MBEDTLS_SSL_CID
+ * \def MBEDTLS_SSL_DTLS_CONNECTION_ID
  *
  * Enable support for the DTLS Connection ID extension
- * (version draft-ietf-tls-dtls-connection-id-04)
+ * (version draft-ietf-tls-dtls-connection-id-05,
+ * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05)
  * which allows to identify DTLS connections across changes
  * in the underlying transport.
  *
- * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`
- * and `mbedtls_ssl_get_peer_cid()`. See their documentation for more
- * information.
+ * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`,
+ * `mbedtls_ssl_get_peer_cid()` and `mbedtls_ssl_conf_cid()`.
+ * See the corresponding documentation for more information.
  *
  * \warning The Connection ID extension is still in draft state.
  *          We make no stability promises for the availability
  *          or the shape of the API controlled by this option.
  *
- * See also MBEDTLS_SSL_CID_OUT_LEN_MAX and MBEDTLS_SSL_CID_IN_LEN_MAX.
+ * The maximum lengths of outgoing and incoming CIDs can be configured
+ * through the options
+ * - MBEDTLS_SSL_CID_OUT_LEN_MAX
+ * - MBEDTLS_SSL_CID_IN_LEN_MAX.
  *
  * Requires: MBEDTLS_SSL_PROTO_DTLS
  *
  * Uncomment to enable the Connection ID extension.
  */
-#define MBEDTLS_SSL_CID
+//#define MBEDTLS_SSL_DTLS_CONNECTION_ID
 
 /**
  * \def MBEDTLS_SSL_ASYNC_PRIVATE
@@ -3350,6 +3354,23 @@
  *
  */
 //#define MBEDTLS_SSL_CID_OUT_LEN_MAX 32
+
+/** \def MBEDTLS_SSL_CID_PADDING_GRANULARITY
+ *
+ * This option controls the use of record plaintext padding
+ * when using the Connection ID extension in DTLS 1.2.
+ *
+ * The padding will always be chosen so that the length of the
+ * padded plaintext is a multiple of the value of this option.
+ *
+ * Note: A value of \c 1 means that no padding will be used
+ *       for outgoing records.
+ *
+ * Note: On systems lacking division instructions,
+ *       a power of two should be preferred.
+ *
+ */
+//#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
 
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *

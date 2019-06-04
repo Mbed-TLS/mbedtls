@@ -126,6 +126,7 @@
 #define MBEDTLS_ERR_SSL_CONTINUE_PROCESSING               -0x6580  /**< Internal-only message signaling that further message-processing should be done */
 #define MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS                 -0x6500  /**< The asynchronous operation is not completed yet. */
 #define MBEDTLS_ERR_SSL_EARLY_MESSAGE                     -0x6480  /**< Internal-only message signaling that a message arrived early. */
+#define MBEDTLS_ERR_SSL_UNEXPECTED_CID                    -0x6000  /**< An encrypted DTLS-frame with an unexpected CID was received. */
 #define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x7000  /**< A cryptographic operation is in progress. Try again later. */
 
 /*
@@ -263,11 +264,15 @@
  * Maximum length of CIDs for incoming and outgoing messages.
  */
 #if !defined(MBEDTLS_SSL_CID_IN_LEN_MAX)
-#define MBEDTLS_SSL_CID_IN_LEN_MAX         32
+#define MBEDTLS_SSL_CID_IN_LEN_MAX          32
 #endif
 
 #if !defined(MBEDTLS_SSL_CID_OUT_LEN_MAX)
 #define MBEDTLS_SSL_CID_OUT_LEN_MAX         32
+#endif
+
+#if !defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY)
+#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
 #endif
 
 /* \} name SECTION: Module settings */
@@ -388,7 +393,8 @@
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
 
 /* The value of the CID extension is still TBD as of
- * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04. */
+ * draft-ietf-tls-dtls-connection-id-05
+ * (https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05) */
 #define MBEDTLS_TLS_EXT_CID                        254 /* TBD */
 
 #define MBEDTLS_TLS_EXT_ECJPAKE_KKPP               256 /* experimental */
@@ -959,6 +965,10 @@ struct mbedtls_ssl_config
     void *p_export_keys;            /*!< context for key export callback    */
 #endif
 
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    size_t cid_len; /*!< The length of CIDs for incoming DTLS records.      */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     const mbedtls_x509_crt_profile *cert_profile; /*!< verification profile */
     mbedtls_ssl_key_cert *key_cert; /*!< own certificate/key pair(s)        */
@@ -1105,6 +1115,11 @@ struct mbedtls_ssl_config
     unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
 #endif
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    unsigned int ignore_unexpected_cid : 1; /*!< Determines whether DTLS
+                                             *   record with unexpected CID
+                                             *   should lead to failure.    */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
 
@@ -1178,6 +1193,10 @@ struct mbedtls_ssl_context
                                      TLS: maintained by us
                                      DTLS: read from peer             */
     unsigned char *in_hdr;      /*!< start of record header           */
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    unsigned char *in_cid;      /*!< The start of the CID;
+                                 *   (the end is marked by in_len).   */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     unsigned char *in_len;      /*!< two-bytes message length field   */
     unsigned char *in_iv;       /*!< ivlen-byte IV                    */
     unsigned char *in_msg;      /*!< message contents (in_iv+ivlen)   */
@@ -1214,6 +1233,10 @@ struct mbedtls_ssl_context
     unsigned char *out_buf;     /*!< output buffer                    */
     unsigned char *out_ctr;     /*!< 64-bit outgoing message counter  */
     unsigned char *out_hdr;     /*!< start of record header           */
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    unsigned char *out_cid;     /*!< The start of the CID;
+                                 *   (the end is marked by in_len).   */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     unsigned char *out_len;     /*!< two-bytes message length field   */
     unsigned char *out_iv;      /*!< ivlen-byte IV                    */
     unsigned char *out_msg;     /*!< message contents (out_iv+ivlen)  */
@@ -1272,7 +1295,7 @@ struct mbedtls_ssl_context
     char peer_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* CID configuration to use in subsequent handshakes. */
 
     /*! The next incoming CID, chosen by the user and applying to
@@ -1285,7 +1308,7 @@ struct mbedtls_ssl_context
                             *   be negotiated in the next handshake or not.
                             *   Possible values are #MBEDTLS_SSL_CID_ENABLED
                             *   and #MBEDTLS_SSL_CID_DISABLED. */
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
@@ -1511,23 +1534,23 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
-#if defined(MBEDTLS_SSL_CID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 
 
 /**
- * \brief             (STUB) Configure the use of the Connection ID (CID)
+ * \brief             Configure the use of the Connection ID (CID)
  *                    extension in the next handshake.
  *
- *                    Reference:
- *                    https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-04
+ *                    Reference: draft-ietf-tls-dtls-connection-id-05
+ *                    https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05
  *
- *                    The DTLS CID extension allows to reliably associate
+ *                    The DTLS CID extension allows the reliable association of
  *                    DTLS records to DTLS connections across changes in the
- *                    underlying transport (changed IP+Port metadata) by adding
- *                    explicit connection identifiers (CIDs) to the headers of
- *                    encrypted DTLS records. The desired CIDs are configured
- *                    by the application layer and are exchanged in new
- *                    `ClientHello` / `ServerHello` extensions during the
+ *                    underlying transport (changed IP and Port metadata) by
+ *                    adding explicit connection identifiers (CIDs) to the
+ *                    headers of encrypted DTLS records. The desired CIDs are
+ *                    configured by the application layer and are exchanged in
+ *                    new `ClientHello` / `ServerHello` extensions during the
  *                    handshake, where each side indicates the CID it wants the
  *                    peer to use when writing encrypted messages. The CIDs are
  *                    put to use once records get encrypted: the stack discards
@@ -1535,14 +1558,9 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                    in their header, and adds the peer's requested CID to the
  *                    headers of outgoing messages.
  *
- *                    This API allows to enable/disable the use of the CID
- *                    extension in the next handshake and to set the value of
- *                    the CID to be used for incoming messages.
- *
- * \warning           The current implementation of this API does nothing!
- *                    It is included solely to allow review and coding against
- *                    the new Connection CID API.
- *                    The actual implementation will be added in the future.
+ *                    This API enables or disables the use of the CID extension
+ *                    in the next handshake and sets the value of the CID to
+ *                    be used for incoming messages.
  *
  * \param ssl         The SSL context to configure. This must be initialized.
  * \param enable      This value determines whether the CID extension should
@@ -1558,6 +1576,11 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  * \param own_cid_len The length of \p own_cid.
  *                    This parameter is unused if \p enabled is set to
  *                    MBEDTLS_SSL_CID_DISABLED.
+ *
+ * \note              The value of \p own_cid_len must match the value of the
+ *                    \c len parameter passed to mbedtls_ssl_conf_cid()
+ *                    when configuring the ::mbedtls_ssl_config that \p ssl
+ *                    is bound to.
  *
  * \note              This CID configuration applies to subsequent handshakes
  *                    performed on the SSL context \p ssl, but does not trigger
@@ -1603,14 +1626,8 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          size_t own_cid_len );
 
 /**
- * \brief              (STUB) Get information about the current use of the
- *                     CID extension.
- *
- * \warning            The current implementation of this API does nothing
- *                     except setting `*enabled` to MBEDTLS_SSL_CID_DISABLED!
- *                     It is included solely to allow review and coding against
- *                     the new Connection CID API.
- *                     The actual implementation will be added in the future.
+ * \brief              Get information about the use of the CID extension
+ *                     in the current connection.
  *
  * \param ssl          The SSL context to query.
  * \param enabled      The address at which to store whether the CID extension
@@ -1619,10 +1636,16 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
  *                     otherwise, it is set to MBEDTLS_SSL_CID_DISABLED.
  * \param peer_cid     The address of the buffer in which to store the CID
  *                     chosen by the peer (if the CID extension is used).
+ *                     This may be \c NULL in case the value of peer CID
+ *                     isn't needed. If it is not \c NULL, \p peer_cid_len
+ *                     must not be \c NULL.
  * \param peer_cid_len The address at which to store the size of the CID
  *                     chosen by the peer (if the CID extension is used).
  *                     This is also the number of Bytes in \p peer_cid that
  *                     have been written.
+ *                     This may be \c NULL in case the length of the peer CID
+ *                     isn't needed. If it is \c NULL, \p peer_cid must be
+ *                     \c NULL, too.
  *
  * \note               This applies to the state of the CID negotiated in
  *                     the last complete handshake. If a handshake is in
@@ -1644,7 +1667,7 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
                      unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ],
                      size_t *peer_cid_len );
 
-#endif /* MBEDTLS_SSL_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 /**
  * \brief          Set the Maximum Tranport Unit (MTU).
@@ -2292,6 +2315,45 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
  */
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
+#define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
+/**
+ * \brief               Specify the length of Connection IDs for incoming
+ *                      encrypted DTLS records, as well as the behaviour
+ *                      on unexpected CIDs.
+ *
+ *                      By default, the CID length is set to \c 0,
+ *                      and unexpected CIDs are silently ignored.
+ *
+ * \param conf          The SSL configuration to modify.
+ * \param len           The length in Bytes of the CID fields in encrypted
+ *                      DTLS records using the CID mechanism. This must
+ *                      not be larger than #MBEDTLS_SSL_CID_OUT_LEN_MAX.
+ * \param ignore_other_cids This determines the stack's behaviour when
+ *                          receiving a record with an unexpected CID.
+ *                          Possible values are:
+ *                          - #MBEDTLS_SSL_UNEXPECTED_CID_IGNORE
+ *                            In this case, the record is silently ignored.
+ *                          - #MBEDTLS_SSL_UNEXPECTED_CID_FAIL
+ *                            In this case, the stack fails with the specific
+ *                            error code #MBEDTLS_ERR_SSL_UNEXPECTED_CID.
+ *
+ * \note                The CID specification allows implementations to either
+ *                      use a common length for all incoming connection IDs or
+ *                      allow variable-length incoming IDs. Mbed TLS currently
+ *                      requires a common length for all connections sharing the
+ *                      same SSL configuration; this allows simpler parsing of
+ *                      record headers.
+ *
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p own_cid_len
+ *                      is too large.
+ */
+int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
+                          int ignore_other_cids );
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 /**
  * \brief               Set the list of allowed ciphersuites and the

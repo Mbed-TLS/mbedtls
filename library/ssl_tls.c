@@ -8767,6 +8767,221 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
 }
 #endif /* MBEDTLS_SSL_CLI_C */
 
+const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_context *ssl )
+{
+    if( ssl == NULL )
+        return( NULL );
+
+    return( ssl->session );
+}
+
+/*
+ * Serialize a session in the following format:
+ * (in the presentation language of TLS, RFC 8446 section 3)
+ *
+ *  opaque session_struct[n];       // n = sizeof(mbedtls_ssl_session)
+ *  opaque peer_cert<0..2^24-1>;    // 0 means no peer cert
+ *  opaque ticket<0..2^24-1>;       // 0 means no ticket
+ *
+ * Only the peer's certificate is saved, not the whole chain.
+ */
+int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
+                              unsigned char *buf,
+                              size_t buf_len,
+                              size_t *olen )
+{
+    unsigned char *p = buf;
+    size_t used = 0;
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    size_t cert_len;
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    /*
+     * Shallow copy of the session structure
+     */
+    used += sizeof( mbedtls_ssl_session );
+
+    if( used <= buf_len )
+    {
+        memcpy( p, session, sizeof( mbedtls_ssl_session ) );
+        p += sizeof( mbedtls_ssl_session );
+    }
+
+    /*
+     * Copy of the peer's end-entity certificate
+     */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if( session->peer_cert == NULL )
+        cert_len = 0;
+    else
+        cert_len = session->peer_cert->raw.len;
+
+    used += 3 + cert_len;
+
+    if( used <= buf_len )
+    {
+        *p++ = (unsigned char)( ( cert_len >> 16 ) & 0xFF );
+        *p++ = (unsigned char)( ( cert_len >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( cert_len       ) & 0xFF );
+
+        if( session->peer_cert != NULL )
+        {
+            memcpy( p, session->peer_cert->raw.p, cert_len );
+            p += cert_len;
+        }
+    }
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    /*
+     * Copy of the session ticket if any
+     */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    used += 3 + session->ticket_len;
+
+    if( used <= buf_len )
+    {
+        *p++ = (unsigned char)( ( session->ticket_len >> 16 ) & 0xFF );
+        *p++ = (unsigned char)( ( session->ticket_len >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( session->ticket_len       ) & 0xFF );
+
+        if( session->ticket != NULL )
+        {
+            memcpy( p, session->ticket, session->ticket_len );
+            p += session->ticket_len;
+        }
+    }
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+
+    /* Done */
+    *olen = used;
+
+    if( used > buf_len )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    return( 0 );
+}
+
+/*
+ * Unserialize session, see mbedtls_ssl_session_save().
+ *
+ * This internal version is wrapped by a public function that cleans up in
+ * case of error.
+ */
+static int ssl_session_load( mbedtls_ssl_session *session,
+                             const unsigned char *buf,
+                             size_t len )
+{
+    const unsigned char *p = buf;
+    const unsigned char * const end = buf + len;
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    size_t cert_len;
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    /*
+     * Shallow session structure
+     */
+    if( sizeof( mbedtls_ssl_session ) > (size_t)( end - p ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( session, p, sizeof( mbedtls_ssl_session ) );
+    p += sizeof( mbedtls_ssl_session );
+
+    /* Immediately clear invalid pointer values that have been read, in case
+     * we exit early before we replaced them with valid ones. */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    session->peer_cert = NULL;
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    session->ticket = NULL;
+#endif
+
+    /*
+     * Peer certificate
+     */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if( 3 > (size_t)( end - p ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    cert_len = ( p[0] << 16 ) | ( p[1] << 8 ) | p[2];
+    p += 3;
+
+    if( cert_len == 0 )
+    {
+        session->peer_cert = NULL;
+    }
+    else
+    {
+        int ret;
+
+        if( cert_len > (size_t)( end - p ) )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+        session->peer_cert = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
+
+        if( session->peer_cert == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+        mbedtls_x509_crt_init( session->peer_cert );
+
+        if( ( ret = mbedtls_x509_crt_parse_der( session->peer_cert,
+                                                p, cert_len ) ) != 0 )
+        {
+            mbedtls_x509_crt_free( session->peer_cert );
+            mbedtls_free( session->peer_cert );
+            session->peer_cert = NULL;
+            return( ret );
+        }
+
+        p += cert_len;
+    }
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+    /*
+     * Session ticket
+     */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    if( 3 > (size_t)( end - p ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    session->ticket_len = ( p[0] << 16 ) | ( p[1] << 8 ) | p[2];
+    p += 3;
+
+    if( session->ticket_len != 0 )
+    {
+        if( session->ticket_len > (size_t)( end - p ) )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+        session->ticket = mbedtls_calloc( 1, session->ticket_len );
+        if( session->ticket == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+        memcpy( session->ticket, p, session->ticket_len );
+        p += session->ticket_len;
+    }
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+
+    /* Done, should have consumed entire buffer */
+    if( p != end )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    return( 0 );
+}
+
+/*
+ * Unserialize session: public wrapper for error cleaning
+ */
+int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
+                              const unsigned char *buf,
+                              size_t len )
+{
+    int ret = ssl_session_load( session, buf, len );
+
+    if( ret != 0 )
+        mbedtls_ssl_session_free( session );
+
+    return( ret );
+}
+
 /*
  * Perform a single step of the SSL handshake
  */

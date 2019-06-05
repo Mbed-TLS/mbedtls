@@ -214,7 +214,7 @@ class AbiChecker(object):
 
     def _remove_extra_detail_from_report(self, report_root):
         for tag in ['test_info', 'test_results', 'problem_summary',
-                    'added_symbols', 'removed_symbols', 'affected']:
+                    'added_symbols', 'affected']:
             self._remove_children_with_tag(report_root, tag)
 
         for report in report_root:

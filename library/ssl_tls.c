@@ -730,12 +730,14 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
 static int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                    int ciphersuite,
                                    const unsigned char master[48],
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
                                    int encrypt_then_mac,
 #endif
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
                                    int trunc_hmac,
 #endif
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 #if defined(MBEDTLS_ZLIB_SUPPORT)
                                    int compression,
 #endif
@@ -766,7 +768,8 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 #endif
 
     /* Copy info about negotiated version and extensions */
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
+    defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     transform->encrypt_then_mac = encrypt_then_mac;
 #endif
     transform->minor_ver = minor_ver;
@@ -1327,12 +1330,14 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     ret = ssl_populate_transform( ssl->transform_negotiate,
                                   ssl->session_negotiate->ciphersuite,
                                   ssl->session_negotiate->master,
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
                                   ssl->session_negotiate->encrypt_then_mac,
 #endif
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
                                   ssl->session_negotiate->trunc_hmac,
 #endif
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 #if defined(MBEDTLS_ZLIB_SUPPORT)
                                   ssl->session_negotiate->compression,
 #endif

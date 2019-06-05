@@ -57,8 +57,11 @@ void psa_wipe_all_key_slots( void );
 
 /** Find a free key slot and mark it as in use.
  *
- * \param[out] handle   On success, a slot number that is not in use. This
- *                      value can be used as a handle to the slot.
+ * \param[out] handle   On success, a slot number that can be used as a
+ *                      handle to the slot. The selected slot was not
+ *                      in use before. This function marks it as in use
+ *                      and otherwise leaves it in a freshly-initialized
+ *                      state.
  * \param[out] p_slot   On success, a pointer to the slot.
  *
  * \retval #PSA_SUCCESS

@@ -3880,24 +3880,25 @@ int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
 
 /**
- * \brief          Save a live connection as serialized data in a buffer.
- *                 This allows to free or re-use the SSL context while still
- *                 picking up the connection later in a way that it entirely
- *                 transparent to the peer.
+ * \brief          Save an active connection as serialized data in a buffer.
+ *                 This allows the freeing or re-using of the SSL context
+ *                 while still picking up the connection later in a way that
+ *                 it entirely transparent to the peer.
  *
  * \see            mbedtls_ssl_context_load()
  *
  * \note           This feature is currently only available under certain
- *                 conditions, see the documentation of return value
+ *                 conditions, see the documentation of the return value
  *                 #MBEDTLS_ERR_SSL_BAD_INPUT_DATA for details.
  *
- * \note           When the function succeeds, it calls
+ * \note           When this function succeeds, it calls
  *                 mbedtls_ssl_session_reset() on \p ssl which as a result is
  *                 no longer associated with the connection that has been
- *                 serialized. This avoid creating copies of the session
+ *                 serialized. This avoids creating copies of the session
  *                 state. You're then free to either re-use the context
  *                 structure for a different connection, or call
- *                 mbedtls_ssl_session_free() on it.
+ *                 mbedtls_ssl_session_free() on it. See the documentation of
+ *                 mbedtls_ssl_session_reset() for more details.
  *
  * \param ssl      The SSL context to save. On success, it is no longer
  *                 associated with the connection that has been serialized.
@@ -3915,7 +3916,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
- * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if a handsahke is in
+ * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if a handshake is in
  *                 progress, or there is pending data for reading or sending,
  *                 or the connection does not use DTLS 1.2 with and AEAD
  *                 ciphersuite, or renegotiation is enabled.
@@ -3945,10 +3946,13 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  *                 calling mbedtls_ssl_session_reset() on a context that was
  *                 previously prepared as above but used in the meantime.
  *
- * \note           After calling this function sucessfully, you still need to
- *                 configure some connection-specific callback and settings
- *                 before you can use the connection again. Specifically, you
- *                 want to call at least mbedtls_ssl_set_bio() and possibly
+ * \note           Before or after calling this function successfully, you
+ *                 also need to configure some connection-specific callback
+ *                 and settings before you can use the connection again
+ *                 (unless they were already set before calling
+ *                 mbedtls_ssl_session_reset() and the values are suitable for
+ *                 the present connection). Specifically, you want to call
+ *                 at least mbedtls_ssl_set_bio() and possibly
  *                 mbedtls_ssl_set_timer_cb(). You might also want to call
  *                 mbedtls_ssl_set_mtu() if new information about the PMTU is
  *                 available - otherwise the saved information will be used.

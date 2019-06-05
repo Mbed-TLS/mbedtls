@@ -953,7 +953,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
 
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
+    defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     transform->encrypt_then_mac = session->encrypt_then_mac;
 #endif
     transform->minor_ver = ssl->minor_ver;

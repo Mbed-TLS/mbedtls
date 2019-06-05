@@ -9,7 +9,6 @@
 # Sets the version numbers in the source code to those given.
 #
 # Usage: bump_version.sh [ --version <version> ] [ --so-crypto <version>]
-#                           [ --so-x509 <version> ] [ --so-tls <version> ]
 #                           [ -v | --verbose ] [ -h | --help ]
 #
 
@@ -30,14 +29,6 @@ do
       shift
       SO_CRYPTO=$1
       ;;
-    --so-x509)
-      shift
-      SO_X509=$1
-      ;;
-    --so-tls)
-      shift
-      SO_TLS=$1
-      ;;
     -v|--verbose)
       # Be verbose
       VERBOSE="1"
@@ -48,8 +39,6 @@ do
       echo -e "  -h|--help\t\tPrint this help."
       echo -e "  --version <version>\tVersion to bump to."
       echo -e "  --so-crypto <version>\tSO version to bump libmbedcrypto to."
-      echo -e "  --so-x509 <version>\tSO version to bump libmbedx509 to."
-      echo -e "  --so-tls <version>\tSO version to bump libmbedtls to."
       echo -e "  -v|--verbose\t\tVerbose."
       exit 1
       ;;
@@ -80,28 +69,6 @@ then
 
   [ $VERBOSE ] && echo "Bumping SOVERSION for libmbedcrypto in library/Makefile"
   sed -e "s/SOEXT_CRYPTO=so.[0-9]\{1,\}/SOEXT_CRYPTO=so.$SO_CRYPTO/g" < library/Makefile > tmp
-  mv tmp library/Makefile
-fi
-
-if [ "X" != "X$SO_X509" ];
-then
-  [ $VERBOSE ] && echo "Bumping SOVERSION for libmbedx509 in library/CMakeLists.txt"
-  sed -e "/mbedx509/ s/ SOVERSION [0-9]\{1,\}/ SOVERSION $SO_X509/g" < library/CMakeLists.txt > tmp
-  mv tmp library/CMakeLists.txt
-
-  [ $VERBOSE ] && echo "Bumping SOVERSION for libmbedx509 in library/Makefile"
-  sed -e "s/SOEXT_X509=so.[0-9]\{1,\}/SOEXT_X509=so.$SO_X509/g" < library/Makefile > tmp
-  mv tmp library/Makefile
-fi
-
-if [ "X" != "X$SO_TLS" ];
-then
-  [ $VERBOSE ] && echo "Bumping SOVERSION for libmbedtls in library/CMakeLists.txt"
-  sed -e "/mbedtls/ s/ SOVERSION [0-9]\{1,\}/ SOVERSION $SO_TLS/g" < library/CMakeLists.txt > tmp
-  mv tmp library/CMakeLists.txt
-
-  [ $VERBOSE ] && echo "Bumping SOVERSION for libmbedtls in library/Makefile"
-  sed -e "s/SOEXT_TLS=so.[0-9]\{1,\}/SOEXT_TLS=so.$SO_TLS/g" < library/Makefile > tmp
   mv tmp library/Makefile
 fi
 

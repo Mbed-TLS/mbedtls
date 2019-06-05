@@ -1011,6 +1011,23 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
     TEST_ASSERT( memcmp( output, clear->x, clear->len ) == 0 );
 
     /* then encrypt the clear->x and make sure we get the same ciphertext and tag->x */
+    mbedtls_cipher_free( &ctx );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( use_psa == 1 )
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
+                              mbedtls_cipher_info_from_type( cipher_id ),
+                              tag->len ) );
+    }
+    else
+#endif
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
+                              mbedtls_cipher_info_from_type( cipher_id ) ) );
+    }
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key->x, 8 * key->len,
+                                             MBEDTLS_ENCRYPT ) );
+
     memset( output, 0xFF, sizeof( output ) );
     outlen = 0;
 
@@ -1023,7 +1040,7 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
                                output_tag, tag->len );
     TEST_ASSERT( ret == 0 );
 
-    TEST_ASSERT( outlen == clear->len );
+    TEST_ASSERT( outlen == cipher->len );
     TEST_ASSERT( memcmp( output, cipher->x, cipher->len ) == 0 );
     TEST_ASSERT( memcmp( output_tag, tag->x, tag->len ) == 0 );
 

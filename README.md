@@ -30,7 +30,7 @@ There are currently a few deviations where the library does not yet implement th
 
 ### PSA Cryptography API
 
-You can read the [complete PSA cryptography API specification as a PDF document](https://github.com/ARMmbed/mbed-crypto/blob/psa-crypto-api/docs/PSA_Cryptography_API_Specification.pdf). The API reference is also available in [HTML format](https://htmlpreview.github.io/?https://github.com/ARMmbed/mbed-crypto/blob/psa-crypto-api/docs/html/modules.html).
+You can read the [complete PSA cryptography API specification as a PDF document](https://github.com/ARMmbed/mbed-crypto/raw/psa-crypto-api/docs/PSA_Cryptography_API_Specification.pdf). The API reference is also available in [HTML format](https://armmbed.github.io/mbed-crypto/html/index.html).
 
 ### Browsable library documentation
 

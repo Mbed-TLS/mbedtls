@@ -50,22 +50,24 @@
  * Macro to generate an internal function for oid_XXX_from_asn1() (used by
  * the other functions)
  */
-#define FN_OID_TYPED_FROM_ASN1( TYPE_T, NAME, LIST )                        \
-static const TYPE_T * oid_ ## NAME ## _from_asn1( const mbedtls_asn1_buf *oid )     \
-{                                                                           \
-    const TYPE_T *p = LIST;                                                 \
-    const mbedtls_oid_descriptor_t *cur = (const mbedtls_oid_descriptor_t *) p;             \
-    if( p == NULL || oid == NULL ) return( NULL );                          \
-    while( cur->asn1 != NULL ) {                                            \
-        if( cur->asn1_len == oid->len &&                                    \
-            memcmp( cur->asn1, oid->p, oid->len ) == 0 ) {                  \
-            return( p );                                                    \
-        }                                                                   \
-        p++;                                                                \
-        cur = (const mbedtls_oid_descriptor_t *) p;                                 \
-    }                                                                       \
-    return( NULL );                                                         \
-}
+#define FN_OID_TYPED_FROM_ASN1( TYPE_T, NAME, LIST )                    \
+    static const TYPE_T * oid_ ## NAME ## _from_asn1(                   \
+                                      const mbedtls_asn1_buf *oid )     \
+    {                                                                   \
+        const TYPE_T *p = (LIST);                                       \
+        const mbedtls_oid_descriptor_t *cur =                           \
+            (const mbedtls_oid_descriptor_t *) p;                       \
+        if( p == NULL || oid == NULL ) return( NULL );                  \
+        while( cur->asn1 != NULL ) {                                    \
+            if( cur->asn1_len == oid->len &&                            \
+                memcmp( cur->asn1, oid->p, oid->len ) == 0 ) {          \
+                return( p );                                            \
+            }                                                           \
+            p++;                                                        \
+            cur = (const mbedtls_oid_descriptor_t *) p;                 \
+        }                                                               \
+        return( NULL );                                                 \
+    }
 
 /*
  * Macro to generate a function for retrieving a single attribute from the
@@ -99,12 +101,13 @@ int FN_NAME( const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1 )                  
  */
 #define FN_OID_GET_ATTR2(FN_NAME, TYPE_T, TYPE_NAME, ATTR1_TYPE, ATTR1,     \
                          ATTR2_TYPE, ATTR2)                                 \
-int FN_NAME( const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1, ATTR2_TYPE * ATTR2 )  \
+int FN_NAME( const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1,               \
+                                          ATTR2_TYPE * ATTR2 )              \
 {                                                                           \
     const TYPE_T *data = oid_ ## TYPE_NAME ## _from_asn1( oid );            \
-    if( data == NULL ) return( MBEDTLS_ERR_OID_NOT_FOUND );                \
-    *ATTR1 = data->ATTR1;                                                   \
-    *ATTR2 = data->ATTR2;                                                   \
+    if( data == NULL ) return( MBEDTLS_ERR_OID_NOT_FOUND );                 \
+    *(ATTR1) = data->ATTR1;                                                 \
+    *(ATTR2) = data->ATTR2;                                                 \
     return( 0 );                                                            \
 }
 
@@ -115,16 +118,16 @@ int FN_NAME( const mbedtls_asn1_buf *oid, ATTR1_TYPE * ATTR1, ATTR2_TYPE * ATTR2
 #define FN_OID_GET_OID_BY_ATTR1(FN_NAME, TYPE_T, LIST, ATTR1_TYPE, ATTR1)   \
 int FN_NAME( ATTR1_TYPE ATTR1, const char **oid, size_t *olen )             \
 {                                                                           \
-    const TYPE_T *cur = LIST;                                               \
+    const TYPE_T *cur = (LIST);                                             \
     while( cur->descriptor.asn1 != NULL ) {                                 \
-        if( cur->ATTR1 == ATTR1 ) {                                         \
+        if( cur->ATTR1 == (ATTR1) ) {                                       \
             *oid = cur->descriptor.asn1;                                    \
             *olen = cur->descriptor.asn1_len;                               \
             return( 0 );                                                    \
         }                                                                   \
         cur++;                                                              \
     }                                                                       \
-    return( MBEDTLS_ERR_OID_NOT_FOUND );                                   \
+    return( MBEDTLS_ERR_OID_NOT_FOUND );                                    \
 }
 
 /*
@@ -136,9 +139,9 @@ int FN_NAME( ATTR1_TYPE ATTR1, const char **oid, size_t *olen )             \
 int FN_NAME( ATTR1_TYPE ATTR1, ATTR2_TYPE ATTR2, const char **oid ,         \
              size_t *olen )                                                 \
 {                                                                           \
-    const TYPE_T *cur = LIST;                                               \
+    const TYPE_T *cur = (LIST);                                             \
     while( cur->descriptor.asn1 != NULL ) {                                 \
-        if( cur->ATTR1 == ATTR1 && cur->ATTR2 == ATTR2 ) {                  \
+        if( cur->ATTR1 == (ATTR1) && cur->ATTR2 == (ATTR2) ) {              \
             *oid = cur->descriptor.asn1;                                    \
             *olen = cur->descriptor.asn1_len;                               \
             return( 0 );                                                    \
@@ -254,24 +257,28 @@ typedef struct {
 static const oid_x509_ext_t oid_x509_ext[] =
 {
     {
-        { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",   "Basic Constraints" },
+        { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",    "Basic Constraints" },
         MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),            "id-ce-keyUsage",           "Key Usage" },
+        { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),            "id-ce-keyUsage",            "Key Usage" },
         MBEDTLS_OID_X509_EXT_KEY_USAGE,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",        "Extended Key Usage" },
+        { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",         "Extended Key Usage" },
         MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",     "Subject Alt Name" },
+        { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",      "Subject Alt Name" },
         MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),         "id-netscape-certtype",     "Netscape Certificate Type" },
+        { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),         "id-netscape-certtype",      "Netscape Certificate Type" },
         MBEDTLS_OID_X509_EXT_NS_CERT_TYPE,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_CERTIFICATE_POLICIES ), "id-ce-certificatePolicies", "Certificate Policies" },
+        MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES,
     },
     {
         { NULL, 0, NULL, NULL },
@@ -284,12 +291,13 @@ FN_OID_GET_ATTR1(mbedtls_oid_get_x509_ext_type, oid_x509_ext_t, x509_ext, int, e
 
 static const mbedtls_oid_descriptor_t oid_ext_key_usage[] =
 {
-    { ADD_LEN( MBEDTLS_OID_SERVER_AUTH ),      "id-kp-serverAuth",      "TLS Web Server Authentication" },
-    { ADD_LEN( MBEDTLS_OID_CLIENT_AUTH ),      "id-kp-clientAuth",      "TLS Web Client Authentication" },
-    { ADD_LEN( MBEDTLS_OID_CODE_SIGNING ),     "id-kp-codeSigning",     "Code Signing" },
-    { ADD_LEN( MBEDTLS_OID_EMAIL_PROTECTION ), "id-kp-emailProtection", "E-mail Protection" },
-    { ADD_LEN( MBEDTLS_OID_TIME_STAMPING ),    "id-kp-timeStamping",    "Time Stamping" },
-    { ADD_LEN( MBEDTLS_OID_OCSP_SIGNING ),     "id-kp-OCSPSigning",     "OCSP Signing" },
+    { ADD_LEN( MBEDTLS_OID_SERVER_AUTH ),      "id-kp-serverAuth",       "TLS Web Server Authentication" },
+    { ADD_LEN( MBEDTLS_OID_CLIENT_AUTH ),      "id-kp-clientAuth",       "TLS Web Client Authentication" },
+    { ADD_LEN( MBEDTLS_OID_CODE_SIGNING ),     "id-kp-codeSigning",      "Code Signing" },
+    { ADD_LEN( MBEDTLS_OID_EMAIL_PROTECTION ), "id-kp-emailProtection",  "E-mail Protection" },
+    { ADD_LEN( MBEDTLS_OID_TIME_STAMPING ),    "id-kp-timeStamping",     "Time Stamping" },
+    { ADD_LEN( MBEDTLS_OID_OCSP_SIGNING ),     "id-kp-OCSPSigning",      "OCSP Signing" },
+    { ADD_LEN( MBEDTLS_OID_WISUN_FAN ),        "id-kp-wisun-fan-device", "Wi-SUN Alliance Field Area Network (FAN)" },
     { NULL, 0, NULL, NULL },
 };
 
@@ -619,6 +627,12 @@ static const oid_md_alg_t oid_md_alg[] =
         MBEDTLS_MD_SHA512,
     },
 #endif /* MBEDTLS_SHA512_C */
+#if defined(MBEDTLS_RIPEMD160_C)
+    {
+        { ADD_LEN( MBEDTLS_OID_DIGEST_ALG_RIPEMD160 ),       "id-ripemd160",       "RIPEMD-160" },
+        MBEDTLS_MD_RIPEMD160,
+    },
+#endif /* MBEDTLS_RIPEMD160_C */
     {
         { NULL, 0, NULL, NULL },
         MBEDTLS_MD_NONE,

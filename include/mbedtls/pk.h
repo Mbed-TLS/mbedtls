@@ -217,7 +217,7 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx );
  *
  * \note            For contexts that have been set up with
  *                  mbedtls_pk_setup_opaque(), this does not free the underlying
- *                  key slot and you still need to call psa_destroy_key()
+ *                  PSA key and you still need to call psa_destroy_key()
  *                  independently if you want to destroy that key.
  */
 void mbedtls_pk_free( mbedtls_pk_context *ctx );
@@ -259,21 +259,21 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
- * \brief           Initialize a PK context to wrap a PSA key slot.
+ * \brief           Initialize a PK context to wrap a PSA key.
  *
  * \note            This function replaces mbedtls_pk_setup() for contexts
- *                  that wrap a (possibly opaque) PSA key slot instead of
+ *                  that wrap a (possibly opaque) PSA key instead of
  *                  storing and manipulating the key material directly.
  *
  * \param ctx       The context to initialize. It must be empty (type NONE).
- * \param key       The PSA key slot to wrap, which must hold an ECC key pair
+ * \param key       The PSA key to wrap, which must hold an ECC key pair
  *                  (see notes below).
  *
- * \note            The wrapped key slot must remain valid as long as the
+ * \note            The wrapped key must remain valid as long as the
  *                  wrapping PK context is in use, that is at least between
  *                  the point this function is called and the point
  *                  mbedtls_pk_free() is called on this context. The wrapped
- *                  key slot might then be independently used or destroyed.
+ *                  key might then be independently used or destroyed.
  *
  * \note            This function is currently only available for ECC key
  *                  pairs (that is, ECC keys containing private key material).
@@ -281,7 +281,7 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input
- *                  (context already used, invalid key slot).
+ *                  (context already used, invalid key handle).
  * \return          #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if the key is not an
  *                  ECC key pair.
  * \return          #MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
@@ -788,7 +788,7 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
- * \brief           Turn an EC key into an Opaque one
+ * \brief           Turn an EC key into an opaque one.
  *
  * \warning         This is a temporary utility function for tests. It might
  *                  change or be removed at any time without notice.
@@ -796,18 +796,19 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
  * \note            Only ECDSA keys are supported so far. Signing with the
  *                  specified hash is the only allowed use of that key.
  *
- * \param pk        Input: the EC key to transfer to a PSA key slot.
- *                  Output: a PK context wrapping that PSA key slot.
- * \param slot      Output: the chosen slot for storing the key.
- *                  It's the caller's responsibility to destroy that slot
- *                  after calling mbedtls_pk_free() on the PK context.
+ * \param pk        Input: the EC key to import to a PSA key.
+ *                  Output: a PK context wrapping that PSA key.
+ * \param handle    Output: a PSA key handle.
+ *                  It's the caller's responsibility to call
+ *                  psa_destroy_key() on that handle after calling
+ *                  mbedtls_pk_free() on the PK context.
  * \param hash_alg  The hash algorithm to allow for use with that key.
  *
  * \return          \c 0 if successful.
  * \return          An Mbed TLS error code otherwise.
  */
 int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
-                               psa_key_handle_t *slot,
+                               psa_key_handle_t *handle,
                                psa_algorithm_t hash_alg );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

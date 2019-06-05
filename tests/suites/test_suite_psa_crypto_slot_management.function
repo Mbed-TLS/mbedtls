@@ -584,8 +584,6 @@ void invalid_handle( )
 {
     psa_key_handle_t handle1 = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_type_t read_type;
-    size_t read_bits;
     uint8_t material[1] = "a";
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -608,9 +606,10 @@ void invalid_handle( )
     TEST_EQUAL( psa_destroy_key( handle1 + 1 ), PSA_ERROR_INVALID_HANDLE );
 
     /* After all this, check that the original handle is intact. */
-    PSA_ASSERT( psa_get_key_information( handle1, &read_type, &read_bits ) );
-    TEST_EQUAL( read_type, PSA_KEY_TYPE_RAW_DATA );
-    TEST_EQUAL( read_bits, PSA_BYTES_TO_BITS( sizeof( material ) ) );
+    PSA_ASSERT( psa_get_key_attributes( handle1, &attributes ) );
+    TEST_EQUAL( psa_get_key_type( &attributes ), PSA_KEY_TYPE_RAW_DATA );
+    TEST_EQUAL( psa_get_key_bits( &attributes ),
+                PSA_BYTES_TO_BITS( sizeof( material ) ) );
     PSA_ASSERT( psa_close_key( handle1 ) );
 
 exit:

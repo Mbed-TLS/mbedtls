@@ -206,9 +206,6 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
     status = psa_generate_random( input, sizeof( input ) );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_allocate_key( &key_handle );
-    ASSERT_STATUS( status, PSA_SUCCESS );
-
     psa_set_key_usage_flags( &attributes,
                              PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
     psa_set_key_algorithm( &attributes, alg );

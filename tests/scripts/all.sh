@@ -894,7 +894,7 @@ component_test_when_no_ciphersuites_have_mac () {
     make test
 
     msg "test ssl-opt.sh: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
-    if_build_succeeded tests/ssl-opt.sh
+    if_build_succeeded tests/ssl-opt.sh -f 'Default\|EtM' -e 'without EtM'
 }
 
 component_test_null_entropy () {

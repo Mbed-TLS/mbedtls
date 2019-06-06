@@ -1304,12 +1304,13 @@ read_record_header:
 
     buf = ssl->in_hdr;
 
-#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_STREAM )
-#endif
-        if( ( buf[0] & 0x80 ) != 0 )
-            return( ssl_parse_client_hello_v2( ssl ) );
+#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO) && \
+    defined(MBEDTLS_SSL_PROTO_TLS)
+    if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) &&
+        ( buf[0] & 0x80 ) != 0 )
+    {
+        return( ssl_parse_client_hello_v2( ssl ) );
+    }
 #endif
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "record header", buf, mbedtls_ssl_in_hdr_len( ssl ) );
@@ -1407,13 +1408,19 @@ read_record_header:
             return( ret );
         }
 
-    /* Done reading this record, get ready for the next one */
+        /* Done reading this record, get ready for the next one */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
+        {
             ssl->next_record_offset = msg_len + mbedtls_ssl_in_hdr_len( ssl );
-        else
+        }
+        MBEDTLS_SSL_TRANSPORT_ELSE
 #endif
+#if defined(MBEDTLS_SSL_PROTO_TLS)
+        {
             ssl->in_left = 0;
+        }
+#endif
     }
 
     buf = ssl->in_msg;
@@ -1595,7 +1602,7 @@ read_record_header:
      * Check the cookie length and content
      */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         cookie_offset = 35 + sess_len;
         cookie_len = buf[cookie_offset];
@@ -1650,9 +1657,13 @@ read_record_header:
      */
         ciph_offset = cookie_offset + 1 + cookie_len;
     }
-    else
+    MBEDTLS_SSL_TRANSPORT_ELSE
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+#if defined(MBEDTLS_SSL_PROTO_TLS)
+    {
         ciph_offset = 35 + sess_len;
+    }
+#endif
 
     ciph_len = ( buf[ciph_offset + 0] << 8 )
              | ( buf[ciph_offset + 1]      );

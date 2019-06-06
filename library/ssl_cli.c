@@ -1762,12 +1762,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     /* See comments in ssl_write_client_hello() */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        accept_comp = 0;
-    else
-#endif
-        accept_comp = 1;
+    accept_comp = MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport );
 
     if( comp != MBEDTLS_SSL_COMPRESS_NULL &&
         ( comp != MBEDTLS_SSL_COMPRESS_DEFLATE || accept_comp == 0 ) )

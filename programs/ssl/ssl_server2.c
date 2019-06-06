@@ -3948,7 +3948,7 @@ data_exchange:
             goto exit;
         }
 
-        if( ( buf = mbedtls_calloc(1, len) ) == NULL )
+        if( ( buf = mbedtls_calloc( 1, len ) ) == NULL )
         {
             mbedtls_printf( " failed\n  ! Couldn't allocate buffer for "
                             "serialized context" );

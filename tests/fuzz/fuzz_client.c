@@ -28,6 +28,7 @@ const char *pers = "fuzz_client";
 
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
+#ifdef MBEDTLS_SSL_CLI_C
     int ret;
     size_t len;
     mbedtls_ssl_context ssl;
@@ -161,6 +162,11 @@ exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_ssl_config_free( &conf );
     mbedtls_ssl_free( &ssl );
+
+#else
+    (void) Data;
+    (void) Size;
+#endif //MBEDTLS_SSL_CLI_C
 
     return 0;
 }

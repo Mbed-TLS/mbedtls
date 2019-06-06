@@ -23,7 +23,7 @@ const char *pers = "fuzz_dtlsclient";
 
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_CLI_C)
     int ret;
     size_t len;
     mbedtls_ssl_context ssl;

@@ -439,7 +439,9 @@ int main( void )
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
 #define USAGE_SERIALIZATION \
-    "    serialize=%%d        default: 0 (do not serialize/deserialize)\n"
+    "    serialize=%%d        default: 0 (do not serialize/deserialize)\n" \
+    "                         options: 1 (serialize)\n"                    \
+    "                                  2 (serialize with re-initialization)\n"
 #else
 #define USAGE_SERIALIZATION ""
 #endif
@@ -2301,7 +2303,7 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "serialize") == 0 )
         {
             opt.serialize = atoi( q );
-            if( opt.serialize < 0 || opt.serialize > 1)
+            if( opt.serialize < 0 || opt.serialize > 2)
                 goto usage;
         }
         else if( strcmp( p, "eap_tls" ) == 0 )
@@ -3928,7 +3930,7 @@ data_exchange:
      * 7b. Simulate serialize/deserialize and go back to data exchange
      */
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    if( opt.serialize != 0)
+    if( opt.serialize != 0 )
     {
         size_t len;
         unsigned char *buf = NULL;
@@ -3962,6 +3964,27 @@ data_exchange:
                             "-0x%x\n\n", -ret );
 
             goto exit;
+        }
+
+        if( opt.serialize == 2 )
+        {
+            mbedtls_ssl_free( &ssl );
+
+            mbedtls_ssl_init( &ssl );
+
+            if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n",
+                                -ret );
+                goto exit;
+            }
+
+            if( opt.nbio == 2 )
+                mbedtls_ssl_set_bio( &ssl, &client_fd, delayed_send, delayed_recv, NULL );
+            else
+                mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv,
+                                    opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+
         }
 
         mbedtls_printf( " Deserializing connection..." );

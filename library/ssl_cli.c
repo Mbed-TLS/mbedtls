@@ -2288,7 +2288,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     int ret;
     size_t len_bytes = ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
     unsigned char *p = ssl->handshake->premaster + pms_offset;
-    mbedtls_pk_context * peer_pk;
+    mbedtls_pk_context *peer_pk = NULL;
 
     if( offset + len_bytes > MBEDTLS_SSL_OUT_CONTENT_LEN )
     {
@@ -2315,16 +2315,23 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     ssl->handshake->pmslen = 48;
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    peer_pk = &ssl->handshake->peer_pubkey;
+    /* Because the peer CRT pubkey is embedded into the handshake
+     * params currently, and there's no 'is_init' functions for PK
+     * contexts, we need to break the abstraction and peek into
+     * the PK context to see if it has been initialized. */
+    if( ssl->handshake->peer_pubkey.pk_info != NULL )
+        peer_pk = &ssl->handshake->peer_pubkey;
 #else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    if( ssl->session_negotiate->peer_cert == NULL )
+    if( ssl->session_negotiate->peer_cert != NULL )
+        peer_pk = &ssl->session_negotiate->peer_cert->pk;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+    if( peer_pk == NULL )
     {
         /* Should never happen */
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    peer_pk = &ssl->session_negotiate->peer_cert->pk;
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     /*
      * Now write it out, encrypted

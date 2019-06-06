@@ -4161,7 +4161,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     mbedtls_md_type_t md_alg;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
-    mbedtls_pk_context * peer_pk;
+    mbedtls_pk_context *peer_pk = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
@@ -4172,21 +4172,30 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    if( ssl->session_negotiate->peer_cert == NULL )
+    /* Skip if we haven't received a certificate from the client.
+     * If MBEDTLS_SSL_KEEP_PEER_CERTIFICATE is set, this can be
+     * inferred from the setting of mbedtls_ssl_session::peer_cert.
+     * If MBEDTLS_SSL_KEEP_PEER_CERTIFICATE is not set, it can
+     * be inferred from whether we've held back the peer CRT's
+     * public key in mbedtls_ssl_handshake_params::peer_pubkey. */
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    /* Because the peer CRT pubkey is embedded into the handshake
+     * params currently, and there's no 'is_init' functions for PK
+     * contexts, we need to break the abstraction and peek into
+     * the PK context to see if it has been initialized. */
+    if( ssl->handshake->peer_pubkey.pk_info != NULL )
+        peer_pk = &ssl->handshake->peer_pubkey;
+#else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    if( ssl->session_negotiate->peer_cert != NULL )
+        peer_pk = &ssl->session_negotiate->peer_cert->pk;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+    if( peer_pk == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
         ssl->state++;
         return( 0 );
     }
-#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    if( ssl->session_negotiate->peer_cert_digest == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
-        return( 0 );
-    }
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     /* Read the message without adding it to the checksum */
     ret = mbedtls_ssl_read_record( ssl, 0 /* no checksum update */ );
@@ -4207,17 +4216,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     }
 
     i = mbedtls_ssl_hs_hdr_len( ssl );
-
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    peer_pk = &ssl->handshake->peer_pubkey;
-#else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    if( ssl->session_negotiate->peer_cert == NULL )
-    {
-        /* Should never happen */
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-    peer_pk = &ssl->session_negotiate->peer_cert->pk;
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     /*
      *  struct {

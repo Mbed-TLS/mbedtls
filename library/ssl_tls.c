@@ -9498,6 +9498,13 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 
     if( session->peer_cert_digest_len != 0 )
     {
+        const mbedtls_md_info_t *md_info =
+            mbedtls_md_info_from_type( session->peer_cert_digest_type );
+        if( md_info == NULL )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        if( session->peer_cert_digest_len != mbedtls_md_get_size( md_info ) )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
         if( session->peer_cert_digest_len > (size_t)( end - p ) )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 

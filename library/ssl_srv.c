@@ -441,7 +441,7 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
     size_t peer_cid_len;
 
     /* CID extension only makes sense in DTLS */
-    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -899,7 +899,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ( suite_info->flags & MBEDTLS_CIPHERSUITE_NODTLS ) )
         return( 0 );
 #endif
@@ -1354,7 +1354,7 @@ read_record_header:
     /* For DTLS if this is the initial handshake, remember the client sequence
      * number to use it in our next message (RFC 6347 4.2.1) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
 #endif
@@ -1463,7 +1463,7 @@ read_record_header:
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         /*
          * Copy the client's handshake message_seq on initial handshakes,
@@ -1715,7 +1715,7 @@ read_record_header:
 
     /* See comments in ssl_write_client_hello() */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         ssl->session_negotiate->compression = MBEDTLS_SSL_COMPRESS_NULL;
 #endif
 
@@ -2097,7 +2097,7 @@ have_ciphersuite:
     ssl->state++;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         mbedtls_ssl_recv_flight_completed( ssl );
 #endif
 
@@ -2532,7 +2532,7 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
@@ -2558,7 +2558,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server hello" ) );
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->handshake->verify_cookie_len != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "client hello was not authenticated" ) );
@@ -3516,7 +3516,7 @@ static int ssl_write_server_hello_done( mbedtls_ssl_context *ssl )
     ssl->state++;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         mbedtls_ssl_send_flight_completed( ssl );
 #endif
 
@@ -3527,7 +3527,7 @@ static int ssl_write_server_hello_done( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
@@ -4412,7 +4412,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
         return( ret );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
     {
         if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )

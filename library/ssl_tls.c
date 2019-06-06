@@ -137,7 +137,7 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          unsigned char const *own_cid,
                          size_t own_cid_len )
 {
-    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     ssl->negotiate_cid = enable;
@@ -172,7 +172,7 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
 {
     *enabled = MBEDTLS_SSL_CID_DISABLED;
 
-    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
+    if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) ||
         ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -3692,7 +3692,7 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->handshake != NULL &&
         ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
     {
@@ -3735,7 +3735,7 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
          *      uint24 fragment_length;
          */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         {
             /* Make room for the additional DTLS fields */
             if( MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen < 8 )
@@ -3777,7 +3777,7 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 
     /* Either send now, or just save to be sent (and resent) later */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ! ( ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
             hs_type          == MBEDTLS_SSL_HS_HELLO_REQUEST ) )
     {
@@ -3915,7 +3915,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* In case of DTLS, double-check that we don't exceed
          * the remaining space in the datagram. */
-        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         {
             ret = ssl_get_remaining_space_in_datagram( ssl );
             if( ret < 0 )
@@ -3957,7 +3957,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         flush == SSL_DONT_FORCE_FLUSH )
     {
         size_t remaining;
@@ -4232,7 +4232,7 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
 
     /* Handshake message is complete, increment counter */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->handshake != NULL )
     {
         unsigned offset;
@@ -4584,7 +4584,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 
     /* Check record type */
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->in_msgtype      == MBEDTLS_SSL_MSG_CID            &&
         ssl->conf->cid_len   != 0 )
     {
@@ -4681,7 +4681,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
      * record leads to the entire datagram being dropped.
      */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         unsigned int rec_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
 
@@ -4949,7 +4949,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_ZLIB_SUPPORT */
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         mbedtls_ssl_dtls_replay_update( ssl );
     }
@@ -4995,7 +4995,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
 
                 /* We only check for buffered messages if the
                  * current datagram is fully consumed. */
-                if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+                if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
                     ssl_next_record_is_in_datagram( ssl ) == 0 )
                 {
                     if( ssl_load_buffered_message( ssl ) == 0 )
@@ -5518,7 +5518,7 @@ static int ssl_load_buffered_record( mbedtls_ssl_context *ssl )
     size_t rec_len;
     unsigned rec_epoch;
 
-    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) )
         return( 0 );
 
     if( hs == NULL )
@@ -5656,7 +5656,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
     if( ( ret = ssl_parse_record_header( ssl ) ) != 0 )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
             ret != MBEDTLS_ERR_SSL_CLIENT_RECONNECT )
         {
             if( ret == MBEDTLS_ERR_SSL_EARLY_MESSAGE )
@@ -5822,7 +5822,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
         }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
             ssl->state != MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC    &&
             ssl->state != MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
         {
@@ -5897,7 +5897,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         /* Drop unexpected ApplicationData records,
          * except at the beginning of renegotiations */
@@ -7076,7 +7076,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->handshake->flight != NULL )
     {
         /* Cancel handshake timer */
@@ -7193,7 +7193,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         mbedtls_ssl_send_flight_completed( ssl );
 #endif
 
@@ -7204,7 +7204,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
@@ -7293,7 +7293,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         ssl->state++;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         mbedtls_ssl_recv_flight_completed( ssl );
 #endif
 
@@ -7425,7 +7425,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     ssl_handshake_params_init( ssl->handshake );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         ssl->handshake->alt_transform_out = ssl->transform_out;
 
@@ -8525,7 +8525,7 @@ int mbedtls_ssl_check_pending( const mbedtls_ssl_context *ssl )
      */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->in_left > ssl->next_record_offset )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ssl_check_pending: more records within current datagram" ) );
@@ -8584,7 +8584,7 @@ const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl )
 const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         switch( ssl->minor_ver )
         {
@@ -9379,7 +9379,7 @@ static int ssl_start_renegotiation( mbedtls_ssl_context *ssl )
     /* RFC 6347 4.2.2: "[...] the HelloRequest will have message_seq = 0 and
      * the ServerHello will have message_seq = 1" */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
     {
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
@@ -9505,7 +9505,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> read" ) );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
             return( ret );
@@ -9606,7 +9606,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
                 /* With DTLS, drop the packet (probably from last handshake) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-                if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+                if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
                 {
                     continue;
                 }
@@ -9623,7 +9623,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
                 /* With DTLS, drop the packet (probably from last handshake) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-                if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+                if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
                 {
                     continue;
                 }
@@ -9645,7 +9645,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 
                 /* DTLS clients need to know renego is server-initiated */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-                if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+                if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
                     ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
                 {
                     ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_PENDING;
@@ -10428,7 +10428,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-            if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+            if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( transport ) )
                 conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
 #endif
 

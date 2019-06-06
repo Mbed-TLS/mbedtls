@@ -452,7 +452,7 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
     */
 
     *olen = 0;
-    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
+    if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) ||
         ssl->negotiate_cid == MBEDTLS_SSL_CID_DISABLED )
     {
         return;
@@ -734,7 +734,7 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
      * When responding to a verify request, MUST reuse random (RFC 6347 4.2.1)
      */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->handshake->verify_cookie != NULL )
     {
         return( 0 );
@@ -785,7 +785,7 @@ static int ssl_validate_ciphersuite( const mbedtls_ssl_ciphersuite_t * suite_inf
         return( 1 );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
             ( suite_info->flags & MBEDTLS_CIPHERSUITE_NODTLS ) )
         return( 1 );
 #endif
@@ -926,7 +926,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      * DTLS cookie
      */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         if( ssl->handshake->verify_cookie == NULL )
         {
@@ -1021,7 +1021,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      * an actual need for it.
      */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         offer_compress = 0;
 #endif
 
@@ -1137,7 +1137,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ssl->state++;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         mbedtls_ssl_send_flight_completed( ssl );
 #endif
 
@@ -1148,7 +1148,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
@@ -1252,7 +1252,7 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
     size_t peer_cid_len;
 
     if( /* CID extension only makes sense in DTLS */
-        ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
+        MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) ||
         /* The server must only send the CID extension if we have offered it. */
         ssl->negotiate_cid == MBEDTLS_SSL_CID_DISABLED )
     {
@@ -1645,7 +1645,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         if( buf[0] == MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST )
         {
@@ -2996,7 +2996,7 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
     ssl->state++;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         mbedtls_ssl_recv_flight_completed( ssl );
 #endif
 
@@ -3628,7 +3628,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         return( ret );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
     {
         if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )

@@ -131,6 +131,7 @@ int main( void )
 #define DFL_ETM                 -1
 #define DFL_CA_CALLBACK         0
 #define DFL_EAP_TLS             0
+#define DFL_REPRODUCIBLE        0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -482,6 +483,7 @@ struct options
     const char *cid_val;        /* the CID to use for incoming messages     */
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
+    int reproducible;              /* make communication reproducible          */
 } opt;
 
 int query_config( const char *config );
@@ -536,6 +538,42 @@ static void my_debug( void *ctx, int level,
     mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s",
                      basename, line, level, str );
     fflush(  (FILE *) ctx  );
+}
+
+
+mbedtls_time_t dummy_constant_time( mbedtls_time_t* time )
+{
+    (void) time;
+    return 0x5af2a056;
+}
+
+int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
+{
+    int ret;
+    size_t i;
+
+    //use mbedtls_ctr_drbg_random to find bugs in it
+    ret = mbedtls_ctr_drbg_random(p_rng, output, output_len);
+    for (i=0; i<output_len; i++) {
+        //replace result with pseudo random
+        output[i] = (unsigned char) rand();
+    }
+    return( ret );
+}
+
+int dummy_entropy( void *data, unsigned char *output, size_t len )
+{
+    size_t i;
+    (void) data;
+
+    //use mbedtls_entropy_func to find bugs in it
+    //test performance impact of entropy
+    //ret = mbedtls_entropy_func(data, output, len);
+    for (i=0; i<len; i++) {
+        //replace result with pseudo random
+        output[i] = (unsigned char) rand();
+    }
+    return( 0 );
 }
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
@@ -1025,6 +1063,7 @@ int main( int argc, char *argv[] )
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
     opt.eap_tls             = DFL_EAP_TLS;
+    opt.reproducible        = DFL_REPRODUCIBLE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1411,6 +1450,10 @@ int main( int argc, char *argv[] )
             if( opt.eap_tls < 0 || opt.eap_tls > 1 )
                 goto usage;
         }
+        else if( strcmp( p, "reproducible" ) == 0 )
+        {
+            opt.reproducible = 1;
+        }
         else
             goto usage;
     }
@@ -1663,13 +1706,24 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                       &entropy, (const unsigned char *) pers,
-                                       strlen( pers ) ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                        -ret );
-        goto exit;
+    if (opt.reproducible) {
+        if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy,
+                                          &entropy, (const unsigned char *) pers,
+                                          strlen( pers ) ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                           -ret );
+            goto exit;
+        }
+    } else {
+        if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
+                                          &entropy, (const unsigned char *) pers,
+                                          strlen( pers ) ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                           -ret );
+            goto exit;
+        }
     }
 
     mbedtls_printf( " ok\n" );
@@ -1949,7 +2003,17 @@ int main( int argc, char *argv[] )
         }
 #endif
 
-    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    if (opt.reproducible) {
+        srand(1);
+        mbedtls_ssl_conf_rng( &conf, dummy_random, &ctr_drbg );
+#if defined(MBEDTLS_PLATFORM_TIME_ALT)
+        mbedtls_platform_set_time( dummy_constant_time );
+#else
+        fprintf(stderr, "Warning: reprpduce without constant time\n");
+#endif
+    } else {
+        mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    }
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
     mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );

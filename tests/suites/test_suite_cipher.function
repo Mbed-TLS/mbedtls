@@ -710,7 +710,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void dec_empty_buf(  )
+void dec_empty_buf( int cipher )
 {
     unsigned char key[32];
     unsigned char iv[16];
@@ -723,6 +723,8 @@ void dec_empty_buf(  )
 
     size_t outlen = 0;
 
+    int expected_ret;
+
     memset( key, 0, 32 );
     memset( iv , 0, 16 );
 
@@ -732,12 +734,15 @@ void dec_empty_buf(  )
     memset( decbuf, 0, 64 );
 
     /* Initialise context */
-    cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_CBC );
+    cipher_info = mbedtls_cipher_info_from_type( cipher );
     TEST_ASSERT( NULL != cipher_info);
+    TEST_ASSERT( sizeof(key) * 8 >= cipher_info->key_bitlen );
 
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );
 
-    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx_dec, key, 128, MBEDTLS_DECRYPT ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx_dec,
+                                             key, cipher_info->key_bitlen,
+                                             MBEDTLS_DECRYPT ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, 16 ) );
 
@@ -750,8 +755,23 @@ void dec_empty_buf(  )
     /* decode 0-byte string */
     TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx_dec, encbuf, 0, decbuf, &outlen ) );
     TEST_ASSERT( 0 == outlen );
-    TEST_ASSERT( MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED == mbedtls_cipher_finish(
-                 &ctx_dec, decbuf + outlen, &outlen ) );
+
+    if ( cipher_info->mode == MBEDTLS_MODE_CBC ||
+         cipher_info->mode == MBEDTLS_MODE_ECB )
+    {
+        /* CBC and ECB ciphers need a full block of input. */
+        expected_ret = MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+    }
+    else
+    {
+        /* Non-CBC and non-ECB ciphers are OK with decrypting empty buffers and
+         * return success, not MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED, when
+         * decrypting an empty buffer. */
+        expected_ret = 0;
+    }
+
+    TEST_ASSERT( expected_ret == mbedtls_cipher_finish(
+                                    &ctx_dec, decbuf + outlen, &outlen ) );
     TEST_ASSERT( 0 == outlen );
 
 exit:

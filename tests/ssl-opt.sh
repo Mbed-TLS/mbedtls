@@ -1282,26 +1282,56 @@ run_test    "Truncated HMAC, DTLS: client enabled, server enabled" \
 
 # Tests for Context serialization
 
+skip_next_test
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "(STUB) Context serialization, client serializes/deserializes" \
+run_test    "(STUB) Context serialization, client serializes" \
             "$P_SRV serialize=0 exchanges=2" \
             "$P_CLI serialize=1 exchanges=2" \
             0 \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
 
+skip_next_test
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "(STUB) Context serialization, server serializes/deserializes" \
+run_test    "(STUB) Context serialization, server serializes" \
             "$P_SRV serialize=1 exchanges=2" \
             "$P_CLI serialize=0 exchanges=2" \
             0 \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
 
+skip_next_test
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "(STUB) Context serialization, both serialize/deserialize" \
+run_test    "(STUB) Context serialization, both serialize" \
             "$P_SRV serialize=1 exchanges=2" \
             "$P_CLI serialize=1 exchanges=2" \
+            0 \
+            -c "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+skip_next_test
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "(STUB) Context serialization, re-init, client serializes" \
+            "$P_SRV serialize=0 exchanges=2" \
+            "$P_CLI serialize=2 exchanges=2" \
+            0 \
+            -c "Deserializing connection..." \
+            -S "Deserializing connection..."
+
+skip_next_test
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "(STUB) Context serialization, re-init, server serializes" \
+            "$P_SRV serialize=2 exchanges=2" \
+            "$P_CLI serialize=0 exchanges=2" \
+            0 \
+            -C "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+skip_next_test
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "(STUB) Context serialization, re-init, both serialize" \
+            "$P_SRV serialize=2 exchanges=2" \
+            "$P_CLI serialize=2 exchanges=2" \
             0 \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."

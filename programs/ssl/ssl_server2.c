@@ -3932,13 +3932,13 @@ data_exchange:
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     if( opt.serialize != 0 )
     {
-        size_t len;
-        unsigned char *buf = NULL;
+        size_t buf_len;
+        unsigned char *context_buf = NULL;
 
         opt.serialize = 0;
         mbedtls_printf( " Serializing live connection..." );
 
-        ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &len );
+        ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &buf_len );
 
         /* Allow stub implementation returning 0 for now */
         if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL &&
@@ -3950,7 +3950,7 @@ data_exchange:
             goto exit;
         }
 
-        if( ( buf = mbedtls_calloc( 1, len ) ) == NULL )
+        if( ( context_buf = mbedtls_calloc( 1, buf_len ) ) == NULL )
         {
             mbedtls_printf( " failed\n  ! Couldn't allocate buffer for "
                             "serialized context" );
@@ -3958,7 +3958,7 @@ data_exchange:
             goto exit;
         }
 
-        if( ( ret = mbedtls_ssl_context_save( &ssl, buf, len, &len ) ) != 0 )
+        if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf, buf_len, &buf_len ) ) != 0 )
         {
             mbedtls_printf( "failed\n  ! mbedtls_ssl_context_save returned "
                             "-0x%x\n\n", -ret );
@@ -3989,7 +3989,7 @@ data_exchange:
 
         mbedtls_printf( " Deserializing connection..." );
 
-        if( ( ret = mbedtls_ssl_context_load( &ssl, buf, len ) ) != 0 )
+        if( ( ret = mbedtls_ssl_context_load( &ssl, context_buf, buf_len ) ) != 0 )
         {
             mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned "
                             "-0x%x\n\n", -ret );

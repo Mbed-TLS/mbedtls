@@ -666,8 +666,8 @@ int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
     size_t i;
 
     //use mbedtls_ctr_drbg_random to find bugs in it
-    ret = mbedtls_ctr_drbg_random(p_rng, output, output_len);
-    for (i=0; i<output_len; i++) {
+    ret = mbedtls_ctr_drbg_random( p_rng, output, output_len );
+    for ( i = 0; i < output_len; i++ ) {
         //replace result with pseudo random
         output[i] = (unsigned char) rand();
     }
@@ -679,10 +679,8 @@ int dummy_entropy( void *data, unsigned char *output, size_t len )
     size_t i;
     (void) data;
 
-    //use mbedtls_entropy_func to find bugs in it
-    //test performance impact of entropy
-    //ret = mbedtls_entropy_func(data, output, len);
-    for (i=0; i<len; i++) {
+    //ret = mbedtls_entropy_func( data, output, len );
+    for (i = 0; i < len; i++ ) {
         //replace result with pseudo random
         output[i] = (unsigned char) rand();
     }
@@ -2488,22 +2486,25 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if (opt.reproducible) {
+    if (opt.reproducible)
+    {
         if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy,
-                                          &entropy, (const unsigned char *) pers,
-                                          strlen( pers ) ) ) != 0 )
+                                           &entropy, (const unsigned char *) pers,
+                                           strlen( pers ) ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                           -ret );
+                            -ret );
             goto exit;
         }
-    } else {
+    }
+    else
+    {
         if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                          &entropy, (const unsigned char *) pers,
-                                          strlen( pers ) ) ) != 0 )
+                                           &entropy, (const unsigned char *) pers,
+                                           strlen( pers ) ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                           -ret );
+                            -ret );
             goto exit;
         }
     }
@@ -2824,15 +2825,18 @@ int main( int argc, char *argv[] )
         }
 #endif
 
-    if (opt.reproducible) {
-        srand(1);
+    if (opt.reproducible)
+    {
+        srand( 1 );
         mbedtls_ssl_conf_rng( &conf, dummy_random, &ctr_drbg );
 #if defined(MBEDTLS_PLATFORM_TIME_ALT)
         mbedtls_platform_set_time( dummy_constant_time );
 #else
-        fprintf(stderr, "Warning: reprpduce without constant time\n");
+        fprintf( stderr, "Warning: reproduce without constant time\n" );
 #endif
-    } else {
+    }
+    else
+    {
         mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     }
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );

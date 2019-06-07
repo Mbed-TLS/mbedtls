@@ -440,8 +440,8 @@ int main( void )
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
 #define USAGE_SERIALIZATION \
     "    serialize=%%d        default: 0 (do not serialize/deserialize)\n" \
-    "                         options: 1 (serialize)\n"                    \
-    "                                  2 (serialize with re-initialization)\n"
+    "                        options: 1 (serialize)\n"                    \
+    "                                 2 (serialize with re-initialization)\n"
 #else
 #define USAGE_SERIALIZATION ""
 #endif

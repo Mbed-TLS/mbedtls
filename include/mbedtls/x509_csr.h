@@ -86,9 +86,13 @@ mbedtls_x509write_csr;
  *
  * \note           CSR attributes (if any) are currently silently ignored.
  *
- * \param csr      CSR context to fill
- * \param buf      buffer holding the CRL data
- * \param buflen   size of the buffer
+ * \param csr      CSR context to fill. This must be a pointer to a
+ *                 structure which does not need to be already initialized
+ *                 and which must not be already in use. You must eventually
+ *                 free it with mbedtls_x509_csr_free() whether this function
+ *                 succeeds or fails.
+ * \param buf      Buffer holding the CRL data.
+ * \param buflen   Size of the buffer.
  *
  * \return         0 if successful, or a specific X509 error code
  */
@@ -100,10 +104,14 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
  *
  * \note           See notes for \c mbedtls_x509_csr_parse_der()
  *
- * \param csr      CSR context to fill
- * \param buf      buffer holding the CRL data
- * \param buflen   size of the buffer
- *                 (including the terminating null byte for PEM data)
+ * \param csr      CSR context to fill. This must be a pointer to a
+ *                 structure which does not need to be already initialized
+ *                 and which must not be already in use. You must eventually
+ *                 free it with mbedtls_x509_csr_free() whether this function
+ *                 succeeds or fails.
+ * \param buf      Buffer holding the CRL data.
+ * \param buflen   Size of the buffer
+ *                 (including the terminating null byte for PEM data).
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
@@ -115,8 +123,12 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
  *
  * \note           See notes for \c mbedtls_x509_csr_parse()
  *
- * \param csr      CSR context to fill
- * \param path     filename to read the CSR from
+ * \param csr      CSR context to fill. This must be a pointer to a
+ *                 structure which does not need to be already initialized
+ *                 and which must not be already in use. You must eventually
+ *                 free it with mbedtls_x509_csr_free() whether this function
+ *                 succeeds or fails.
+ * \param path     File name to read the CSR from.
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */

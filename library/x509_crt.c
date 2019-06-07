@@ -696,14 +696,12 @@ static int x509_get_dates( unsigned char **p,
  */
 static int x509_get_uid( unsigned char **p,
                          const unsigned char *end,
-                         mbedtls_x509_buf *uid, int n )
+                         mbedtls_x509_buf_raw *uid, int n )
 {
     int ret;
 
     if( *p == end )
         return( 0 );
-
-    uid->tag = **p;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &uid->len,
             MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | n ) ) != 0 )
@@ -1303,25 +1301,17 @@ static int x509_crt_parse_frame( unsigned char *start,
          *  issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,
          *                       -- If present, version shall be v2 or v3
          */
-
-        ret = x509_get_uid( &p, end, &tmp, 1 /* implicit tag */ );
+        ret = x509_get_uid( &p, end, &frame->issuer_id, 1 /* implicit tag */ );
         if( ret != 0 )
             return( ret );
-
-        frame->issuer_id.p   = tmp.p;
-        frame->issuer_id.len = tmp.len;
 
         /*
          *  subjectUniqueID [2]  IMPLICIT UniqueIdentifier OPTIONAL,
          *                       -- If present, version shall be v2 or v3
          */
-
-        ret = x509_get_uid( &p, end, &tmp, 2 /* implicit tag */ );
+        ret = x509_get_uid( &p, end, &frame->subject_id, 2 /* implicit tag */ );
         if( ret != 0 )
             return( ret );
-
-        frame->subject_id.p   = tmp.p;
-        frame->subject_id.len = tmp.len;
     }
 
     /*

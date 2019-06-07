@@ -567,13 +567,13 @@ int dummy_entropy( void *data, unsigned char *output, size_t len )
     size_t i;
     (void) data;
 
-    //ret = mbedtls_entropy_func( data, output, len );
+    ret = mbedtls_entropy_func( data, output, len );
     for ( i = 0; i < len; i++ )
     {
         //replace result with pseudo random
         output[i] = (unsigned char) rand();
     }
-    return( 0 );
+    return( ret );
 }
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
@@ -2013,7 +2013,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_TIME_ALT)
         mbedtls_platform_set_time( dummy_constant_time );
 #else
-        fprintf( stderr, "Warning: reproduce without constant time\n" );
+        fprintf( stderr, "Warning: reproducible without constant time\n" );
 #endif
     }
     else

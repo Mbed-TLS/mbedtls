@@ -94,6 +94,11 @@ baremetal_build_gcc()
     echo "ROM statistics written to:"
     echo "* $ROM_OUT_FILE"
     echo "* $ROM_OUT_SYMS"
+
+    # Print summary
+    cat $ROM_OUT_FILE | grep "libmbedtls.a"    | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    cat $ROM_OUT_FILE | grep "libmbedcrypto.a" | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    cat $ROM_OUT_FILE | grep "libmbedx509.a"   | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
 }
 
 baremetal_build_armc5()
@@ -122,6 +127,11 @@ baremetal_build_armc5()
     echo "ROM statistics written to:"
     echo "* $ROM_OUT_FILE"
     echo "* $ROM_OUT_SYMS"
+
+    # Print summary
+    cat $ROM_OUT_FILE | grep "libmbedtls.a"    | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    cat $ROM_OUT_FILE | grep "libmbedcrypto.a" | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    cat $ROM_OUT_FILE | grep "libmbedx509.a"   | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
 }
 
 baremetal_build_armc6()
@@ -150,6 +160,11 @@ baremetal_build_armc6()
     echo "ROM statistics written to:"
     echo "* $ROM_OUT_FILE"
     echo "* $ROM_OUT_SYMS"
+
+    # Print summary
+    cat $ROM_OUT_FILE | grep "libmbedtls.a"    | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    cat $ROM_OUT_FILE | grep "libmbedcrypto.a" | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    cat $ROM_OUT_FILE | grep "libmbedx509.a"   | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
 }
 
 # 32-bit host-build of library, tests and example programs,

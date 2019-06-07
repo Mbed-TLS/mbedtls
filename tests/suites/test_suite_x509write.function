@@ -143,13 +143,14 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     rnd_pseudo_info rnd_info;
 
-    psa_crypto_init();
+    mbedtls_pk_init( &key );
     memset( &rnd_info, 0x2a, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
     md_alg_psa = mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
     TEST_ASSERT( md_alg_psa != MBEDTLS_MD_NONE );
 
-    mbedtls_pk_init( &key );
     TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL ) == 0 );
     TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &key, &slot, md_alg_psa ) == 0 );
 

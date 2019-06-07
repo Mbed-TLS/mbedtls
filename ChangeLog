@@ -49,6 +49,8 @@ Bugfix
    * Set the next sequence of the subject_alt_name to NULL when deleting
      sequence on failure. Found and fix suggested by Philippe Antoine.
      Credit to OSS-Fuzz.
+   * Support MBEDTLS_CHECK_PARAMS defined as assert as suggested in config.h.
+     #2671
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

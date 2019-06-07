@@ -43,6 +43,10 @@ extern "C" {
 
 #if defined(MBEDTLS_CHECK_PARAMS)
 
+/* Allow the user to define MBEDTLS_PARAM_FAILED to something like assert
+ * (which is what our config.h suggests). */
+#include <assert.h>
+
 #if defined(MBEDTLS_PARAM_FAILED)
 /** An alternative definition of MBEDTLS_PARAM_FAILED has been set in config.h.
  *

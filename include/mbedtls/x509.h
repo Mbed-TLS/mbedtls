@@ -250,6 +250,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
  */
 int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *serial );
 
+#if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
  * \brief          Check a given mbedtls_x509_time against the system time
  *                 and tell if it's in the past.
@@ -277,6 +278,7 @@ int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
  *                 0 otherwise.
  */
 int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
 /**
  * \brief          Free a dynamic linked list presentation of an X.509 name
@@ -300,6 +302,20 @@ static inline void mbedtls_x509_sequence_free( mbedtls_x509_sequence *seq )
 {
     mbedtls_asn1_sequence_free( (mbedtls_asn1_sequence*) seq );
 }
+
+#if !defined(MBEDTLS_HAVE_TIME_DATE)
+static inline int mbedtls_x509_time_is_past( const mbedtls_x509_time *to )
+{
+    ((void) to);
+    return( 0 );
+}
+
+static inline int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
+{
+    ((void) from);
+    return( 0 );
+}
+#endif /* !MBEDTLS_HAVE_TIME_DATE */
 
 #if defined(MBEDTLS_SELF_TEST)
 

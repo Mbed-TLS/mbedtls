@@ -1192,21 +1192,7 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
 
     return( x509_check_time( from, &now ) );
 }
-
-#else  /* MBEDTLS_HAVE_TIME_DATE */
-
-int mbedtls_x509_time_is_past( const mbedtls_x509_time *to )
-{
-    ((void) to);
-    return( 0 );
-}
-
-int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
-{
-    ((void) from);
-    return( 0 );
-}
-#endif /* MBEDTLS_HAVE_TIME_DATE */
+#endif  /* MBEDTLS_HAVE_TIME_DATE */
 
 void mbedtls_x509_name_free( mbedtls_x509_name *name )
 {

@@ -58,11 +58,13 @@ Bugfix
    * Set the next sequence of the subject_alt_name to NULL when deleting
      sequence on failure. Found and fix suggested by Philippe Antoine.
      Credit to OSS-Fuzz.
+   * Fix misuse of signed arithmetic in the HAVEGE module. #2598
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
      and the used tls-prf.
    * Add public API for tls-prf function, according to requested enum.
+   * The HAVEGE state type now uses uint32_t elements instead of int.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

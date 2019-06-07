@@ -866,8 +866,14 @@ static inline int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
 #endif /* MBEDTLS_THREADING_C */
 
 #if defined(MBEDTLS_X509_ALWAYS_FLUSH)
-        (void) mbedtls_x509_crt_flush_cache_frame( crt );
+    (void) mbedtls_x509_crt_flush_cache_frame( crt );
 #endif /* MBEDTLS_X509_ALWAYS_FLUSH */
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) && \
+    !defined(MBEDTLS_THREADING_C)
+    ((void) crt);
+#endif
+
     return( 0 );
 }
 
@@ -948,8 +954,13 @@ static inline int mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
 #endif /* MBEDTLS_THREADING_C */
 
 #if defined(MBEDTLS_X509_ALWAYS_FLUSH)
-        (void) mbedtls_x509_crt_flush_cache_pk( crt );
+    (void) mbedtls_x509_crt_flush_cache_pk( crt );
 #endif /* MBEDTLS_X509_ALWAYS_FLUSH */
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) && \
+    !defined(MBEDTLS_THREADING_C)
+    ((void) crt);
+#endif
 
     return( 0 );
 }

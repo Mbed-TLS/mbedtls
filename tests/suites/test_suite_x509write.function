@@ -39,25 +39,29 @@ static int x509_crt_verifycsr( const unsigned char *buf, size_t buflen )
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
     mbedtls_x509_csr csr;
+    int ret;
 
-    if( mbedtls_x509_csr_parse( &csr, buf, buflen ) != 0 )
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+    mbedtls_x509_csr_init( &csr );
+
+    ret = mbedtls_x509_csr_parse( &csr, buf, buflen );
+    if( ret != 0 )
+        goto exit;
 
     md_info = mbedtls_md_info_from_type( csr.sig_md );
     if( mbedtls_md( md_info, csr.cri.p, csr.cri.len, hash ) != 0 )
     {
         /* Note: this can't happen except after an internal error */
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+        ret = MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+        goto exit;
     }
 
-    if( mbedtls_pk_verify_ext( csr.sig_pk, csr.sig_opts, &csr.pk,
-                       csr.sig_md, hash, mbedtls_md_get_size( md_info ),
-                       csr.sig.p, csr.sig.len ) != 0 )
-    {
-        return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
-    }
+    ret = mbedtls_pk_verify_ext( csr.sig_pk, csr.sig_opts, &csr.pk,
+                                 csr.sig_md, hash, mbedtls_md_get_size( md_info ),
+                                 csr.sig.p, csr.sig.len );
 
-    return( 0 );
+exit:
+    mbedtls_x509_csr_free( &csr );
+    return( ret );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

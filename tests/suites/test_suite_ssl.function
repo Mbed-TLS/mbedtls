@@ -553,7 +553,7 @@ void ssl_tls_prf( int type, data_t * secret, data_t * random,
         goto exit;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    TEST_ASSERT( psa_crypto_init() == 0 );
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 #endif
 
     TEST_ASSERT( mbedtls_ssl_tls_prf( type, secret->x, secret->len,

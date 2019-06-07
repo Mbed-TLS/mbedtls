@@ -104,7 +104,11 @@ MBEDTLS_NO_64BIT_MULTIPLICATION
 MBEDTLS_PSA_CRYPTO_SPM
 MBEDTLS_PSA_INJECT_ENTROPY
 MBEDTLS_ECP_RESTARTABLE
+MBEDTLS_CTR_DRBG_ENTROPY_LEN
+MBEDTLS_PLATFORM_STD_NV_SEED_READ
+MBEDTLS_PLATFORM_STD_NV_SEED_WRITE
 MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+MBEDTLS_PLATFORM_\w+_MACRO
 _ALT\s*$
 );
 
@@ -230,7 +234,8 @@ if ($action ne "get") {
 my $done;
 for my $line (@config_lines) {
     if ($action eq "full" || $action eq "realfull" || $action eq "baremetal" ) {
-        if ($line =~ /name SECTION: Module configuration options/) {
+        if ($action eq "baremetal" &&
+                $line =~ /name SECTION: Module configuration options/) {
             $done = 1;
         }
 
@@ -296,12 +301,7 @@ if ($action eq "get") {
     }
 }
 
-if ($action eq "full" && !$done) {
-    die "Configuration section was not found in $config_file\n";
-
-}
-
-if ($action ne "full" && $action ne "unset" && !$done) {
+if ($action eq "set" && !$done) {
     die "A #define for the symbol $name was not found in $config_file\n";
 }
 

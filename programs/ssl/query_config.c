@@ -178,6 +178,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
+#if defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
+    if( strcmp( "MBEDTLS_PLATFORM_GMTIME_R_ALT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PLATFORM_GMTIME_R_ALT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PLATFORM_GMTIME_R_ALT */
+
 #if defined(MBEDTLS_PLATFORM_MEMORY)
     if( strcmp( "MBEDTLS_PLATFORM_MEMORY", config ) == 0 )
     {
@@ -257,6 +265,14 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT */
+
+#if defined(MBEDTLS_PLATFORM_ZEROIZE_ALT)
+    if( strcmp( "MBEDTLS_PLATFORM_ZEROIZE_ALT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PLATFORM_ZEROIZE_ALT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
 
 #if defined(MBEDTLS_DEPRECATED_WARNING)
     if( strcmp( "MBEDTLS_DEPRECATED_WARNING", config ) == 0 )
@@ -1450,6 +1466,22 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT */
 
+#if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES)
+    if( strcmp( "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES );
+        return( 0 );
+    }
+#endif /* MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES */
+
+#if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE)
+    if( strcmp( "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE */
+
 #if defined(MBEDTLS_THREADING_ALT)
     if( strcmp( "MBEDTLS_THREADING_ALT", config ) == 0 )
     {
@@ -2561,38 +2593,6 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_X509_MAX_FILE_PATH_LEN */
-
-#if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES)
-    if( strcmp( "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES );
-        return( 0 );
-    }
-#endif /* MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES */
-
-#if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE)
-    if( strcmp( "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE );
-        return( 0 );
-    }
-#endif /* MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE */
-
-#if defined(MBEDTLS_PLATFORM_ZEROIZE_ALT)
-    if( strcmp( "MBEDTLS_PLATFORM_ZEROIZE_ALT", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_PLATFORM_ZEROIZE_ALT );
-        return( 0 );
-    }
-#endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
-
-#if defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
-    if( strcmp( "MBEDTLS_PLATFORM_GMTIME_R_ALT", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_PLATFORM_GMTIME_R_ALT );
-        return( 0 );
-    }
-#endif /* MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
     /* If the symbol is not found, return an error */
     return( 1 );

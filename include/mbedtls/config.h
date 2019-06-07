@@ -156,6 +156,25 @@
 #define MBEDTLS_HAVE_TIME_DATE
 
 /**
+ * Uncomment the macro to let Mbed TLS use your alternate implementation of
+ * mbedtls_platform_gmtime_r(). This replaces the default implementation in
+ * platform_util.c.
+ *
+ * gmtime() is not a thread-safe function as defined in the C standard. The
+ * library will try to use safer implementations of this function, such as
+ * gmtime_r() when available. However, if Mbed TLS cannot identify the target
+ * system, the implementation of mbedtls_platform_gmtime_r() will default to
+ * using the standard gmtime(). In this case, calls from the library to
+ * gmtime() will be guarded by the global mutex mbedtls_threading_gmtime_mutex
+ * if MBEDTLS_THREADING_C is enabled. We recommend that calls from outside the
+ * library are also guarded with this mutex to avoid race conditions. However,
+ * if the macro MBEDTLS_PLATFORM_GMTIME_R_ALT is defined, Mbed TLS will
+ * unconditionally use the implementation for mbedtls_platform_gmtime_r()
+ * supplied at compile time.
+ */
+//#define MBEDTLS_PLATFORM_GMTIME_R_ALT
+
+/**
  * \def MBEDTLS_PLATFORM_MEMORY
  *
  * Enable the memory allocation layer.
@@ -229,6 +248,26 @@
 //#define MBEDTLS_PLATFORM_VSNPRINTF_ALT
 //#define MBEDTLS_PLATFORM_NV_SEED_ALT
 //#define MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT
+
+/**
+ * Uncomment the macro to let mbed TLS use your alternate implementation of
+ * mbedtls_platform_zeroize(). This replaces the default implementation in
+ * platform_util.c.
+ *
+ * mbedtls_platform_zeroize() is a widely used function across the library to
+ * zero a block of memory. The implementation is expected to be secure in the
+ * sense that it has been written to prevent the compiler from removing calls
+ * to mbedtls_platform_zeroize() as part of redundant code elimination
+ * optimizations. However, it is difficult to guarantee that calls to
+ * mbedtls_platform_zeroize() will not be optimized by the compiler as older
+ * versions of the C language standards do not provide a secure implementation
+ * of memset(). Therefore, MBEDTLS_PLATFORM_ZEROIZE_ALT enables users to
+ * configure their own implementation of mbedtls_platform_zeroize(), for
+ * example by using directives specific to their compiler, features from newer
+ * C standards (e.g using memset_s() in C11) or calling a secure memset() from
+ * their system (e.g explicit_bzero() in BSD).
+ */
+//#define MBEDTLS_PLATFORM_ZEROIZE_ALT
 
 /**
  * \def MBEDTLS_DEPRECATED_WARNING
@@ -1700,6 +1739,37 @@
  * Requires: MBEDTLS_SSL_TRUNCATED_HMAC
  */
 //#define MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
+
+/**
+ * Allow SHA-1 in the default TLS configuration for certificate signing.
+ * Without this build-time option, SHA-1 support must be activated explicitly
+ * through mbedtls_ssl_conf_cert_profile. Turning on this option is not
+ * recommended because of it is possible to generate SHA-1 collisions, however
+ * this may be safe for legacy infrastructure where additional controls apply.
+ *
+ * \warning   SHA-1 is considered a weak message digest and its use constitutes
+ *            a security risk. If possible, we recommend avoiding dependencies
+ *            on it, and considering stronger message digests instead.
+ *
+ */
+// #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+
+/**
+ * Allow SHA-1 in the default TLS configuration for TLS 1.2 handshake
+ * signature and ciphersuite selection. Without this build-time option, SHA-1
+ * support must be activated explicitly through mbedtls_ssl_conf_sig_hashes.
+ * The use of SHA-1 in TLS <= 1.1 and in HMAC-SHA-1 is always allowed by
+ * default. At the time of writing, there is no practical attack on the use
+ * of SHA-1 in handshake signatures, hence this option is turned on by default
+ * to preserve compatibility with existing peers, but the general
+ * warning applies nonetheless:
+ *
+ * \warning   SHA-1 is considered a weak message digest and its use constitutes
+ *            a security risk. If possible, we recommend avoiding dependencies
+ *            on it, and considering stronger message digests instead.
+ *
+ */
+#define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE
 
 /**
  * \def MBEDTLS_THREADING_ALT
@@ -3375,76 +3445,6 @@
 /* X509 options */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8   /**< Maximum number of intermediate CAs in a verification chain. */
 //#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512 /**< Maximum length of a path/filename string in bytes including the null terminator character ('\0'). */
-
-/**
- * Allow SHA-1 in the default TLS configuration for certificate signing.
- * Without this build-time option, SHA-1 support must be activated explicitly
- * through mbedtls_ssl_conf_cert_profile. Turning on this option is not
- * recommended because of it is possible to generate SHA-1 collisions, however
- * this may be safe for legacy infrastructure where additional controls apply.
- *
- * \warning   SHA-1 is considered a weak message digest and its use constitutes
- *            a security risk. If possible, we recommend avoiding dependencies
- *            on it, and considering stronger message digests instead.
- *
- */
-// #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-
-/**
- * Allow SHA-1 in the default TLS configuration for TLS 1.2 handshake
- * signature and ciphersuite selection. Without this build-time option, SHA-1
- * support must be activated explicitly through mbedtls_ssl_conf_sig_hashes.
- * The use of SHA-1 in TLS <= 1.1 and in HMAC-SHA-1 is always allowed by
- * default. At the time of writing, there is no practical attack on the use
- * of SHA-1 in handshake signatures, hence this option is turned on by default
- * to preserve compatibility with existing peers, but the general
- * warning applies nonetheless:
- *
- * \warning   SHA-1 is considered a weak message digest and its use constitutes
- *            a security risk. If possible, we recommend avoiding dependencies
- *            on it, and considering stronger message digests instead.
- *
- */
-#define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE
-
-/**
- * Uncomment the macro to let mbed TLS use your alternate implementation of
- * mbedtls_platform_zeroize(). This replaces the default implementation in
- * platform_util.c.
- *
- * mbedtls_platform_zeroize() is a widely used function across the library to
- * zero a block of memory. The implementation is expected to be secure in the
- * sense that it has been written to prevent the compiler from removing calls
- * to mbedtls_platform_zeroize() as part of redundant code elimination
- * optimizations. However, it is difficult to guarantee that calls to
- * mbedtls_platform_zeroize() will not be optimized by the compiler as older
- * versions of the C language standards do not provide a secure implementation
- * of memset(). Therefore, MBEDTLS_PLATFORM_ZEROIZE_ALT enables users to
- * configure their own implementation of mbedtls_platform_zeroize(), for
- * example by using directives specific to their compiler, features from newer
- * C standards (e.g using memset_s() in C11) or calling a secure memset() from
- * their system (e.g explicit_bzero() in BSD).
- */
-//#define MBEDTLS_PLATFORM_ZEROIZE_ALT
-
-/**
- * Uncomment the macro to let Mbed TLS use your alternate implementation of
- * mbedtls_platform_gmtime_r(). This replaces the default implementation in
- * platform_util.c.
- *
- * gmtime() is not a thread-safe function as defined in the C standard. The
- * library will try to use safer implementations of this function, such as
- * gmtime_r() when available. However, if Mbed TLS cannot identify the target
- * system, the implementation of mbedtls_platform_gmtime_r() will default to
- * using the standard gmtime(). In this case, calls from the library to
- * gmtime() will be guarded by the global mutex mbedtls_threading_gmtime_mutex
- * if MBEDTLS_THREADING_C is enabled. We recommend that calls from outside the
- * library are also guarded with this mutex to avoid race conditions. However,
- * if the macro MBEDTLS_PLATFORM_GMTIME_R_ALT is defined, Mbed TLS will
- * unconditionally use the implementation for mbedtls_platform_gmtime_r()
- * supplied at compile time.
- */
-//#define MBEDTLS_PLATFORM_GMTIME_R_ALT
 
 /* \} name SECTION: Customisation configuration options */
 

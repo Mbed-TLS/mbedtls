@@ -104,6 +104,7 @@ MBEDTLS_NO_64BIT_MULTIPLICATION
 MBEDTLS_PSA_CRYPTO_SPM
 MBEDTLS_PSA_INJECT_ENTROPY
 MBEDTLS_ECP_RESTARTABLE
+MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 _ALT\s*$
 );
 
@@ -129,7 +130,7 @@ MBEDTLS_PSA_CRYPTO_STORAGE_C
 
 # Things that should be enabled in "full" even if they match @excluded
 my @non_excluded = qw(
-PLATFORM_[A-Z0-9]+_ALT
+PLATFORM_(?!ZEROIZE_)[A-Z0-9]+_ALT
 );
 
 # Things that should be enabled in "baremetal"

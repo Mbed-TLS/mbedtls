@@ -164,6 +164,7 @@ ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
 endif
 endif
+	$(MAKE) -C fuzz clean
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES)

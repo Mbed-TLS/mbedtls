@@ -832,6 +832,33 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
+component_test_do_use_psa_crypto_full_cmake_asan() {
+    msg "build: cmake, full config, ASan"
+    scripts/config.pl full
+    # memory_buffer_alloc is slow and makes Asan less effective.
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: main suites (full)"
+    make test
+
+    msg "test: ssl-opt.sh (full)"
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: compat.sh default (full)"
+    if_build_succeeded tests/compat.sh
+
+    msg "test: compat.sh ssl3 (full)"
+    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
+
+    msg "test: compat.sh RC4, DES & NULL (full)"
+    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+
+    msg "test: compat.sh ARIA + ChachaPoly (full)"
+    if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+}
+
 component_test_check_params_without_platform () {
     msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
     scripts/config.pl full # includes CHECK_PARAMS

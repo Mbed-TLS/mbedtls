@@ -1454,7 +1454,7 @@ static int x509_crt_parse_frame( unsigned char *start,
     p += len;
     frame->pubkey_raw.len = p - frame->pubkey_raw.p;
 
-    if( frame->version == 2 || frame->version == 3 )
+    if( frame->version != 1 )
     {
         /*
          *  issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,

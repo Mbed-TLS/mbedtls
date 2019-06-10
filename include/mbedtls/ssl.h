@@ -2833,7 +2833,7 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  *                  support the extension, the connection is dropped.
  *
  * \param conf      SSL configuration
- * \param ems_enf   MBEDTLS_SSL_EXTENDED_MS_ENFROCE_ENABLED or
+ * \param ems_enf   MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED or
  *                  MBEDTLS_SSL_EXTENDED_MS_DISABLED
  */
 void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,

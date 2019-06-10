@@ -8343,7 +8343,7 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
 }
 
 void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,
-                                                        char ems_enf );
+                                                        char ems_enf )
 {
     conf->enforce_extended_master_secret = ems_enf;
 }

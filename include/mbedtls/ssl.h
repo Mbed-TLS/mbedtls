@@ -158,6 +158,9 @@
 #define MBEDTLS_SSL_EXTENDED_MS_DISABLED        0
 #define MBEDTLS_SSL_EXTENDED_MS_ENABLED         1
 
+#define MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED    0
+#define MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED     1
+
 #define MBEDTLS_SSL_CID_DISABLED                0
 #define MBEDTLS_SSL_CID_ENABLED                 1
 
@@ -2834,10 +2837,10 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  *
  * \param conf      SSL configuration
  * \param ems_enf   MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED or
- *                  MBEDTLS_SSL_EXTENDED_MS_DISABLED
+ *                  MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED
  */
 void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,
-                                                        char ems_enf);
+                                                        char ems_enf );
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 #if defined(MBEDTLS_ARC4_C)

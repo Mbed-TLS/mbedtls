@@ -836,7 +836,7 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
     return( (int) ( size - n ) );
 }
 
-#if defined(MBEDTLS_X509_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /*
  * Helper for writing signature algorithms
  */
@@ -881,7 +881,7 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *s
 
     return( (int)( size - n ) );
 }
-#endif /* MBEDTLS_X509_INFO */
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 /*
  * Helper for writing "RSA key size", "EC key size", etc

@@ -235,8 +235,11 @@ typedef struct
 
     /* for find_parent_in() */
     mbedtls_x509_crt *parent; /* non-null iff parent_in in progress */
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
     mbedtls_x509_crt *fallback_parent;
     int fallback_signature_is_good;
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
     /* for find_parent() */
     int parent_is_trusted; /* -1 if find_parent is not in progress */

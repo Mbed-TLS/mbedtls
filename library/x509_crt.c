@@ -2844,8 +2844,13 @@ static int x509_crt_find_parent_in(
                         mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
-    mbedtls_x509_crt *parent_crt, *fallback_parent;
-    int signature_is_good, fallback_signature_is_good;
+    mbedtls_x509_crt *parent_crt;
+    int signature_is_good;
+
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+    mbedtls_x509_crt *fallback_parent;
+    int fallback_signature_is_good;
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* did we have something in progress? */
@@ -2853,21 +2858,27 @@ static int x509_crt_find_parent_in(
     {
         /* restore saved state */
         parent_crt = rs_ctx->parent;
+#if defined(MBEDTLS_HAVE_TIME_DATE)
         fallback_parent = rs_ctx->fallback_parent;
         fallback_signature_is_good = rs_ctx->fallback_signature_is_good;
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
         /* clear saved state */
         rs_ctx->parent = NULL;
+#if defined(MBEDTLS_HAVE_TIME_DATE)
         rs_ctx->fallback_parent = NULL;
         rs_ctx->fallback_signature_is_good = 0;
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
         /* resume where we left */
         goto check_signature;
     }
 #endif
 
+#if defined(MBEDTLS_HAVE_TIME_DATE)
     fallback_parent = NULL;
     fallback_signature_is_good = 0;
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
     for( parent_crt = candidates; parent_crt != NULL;
          parent_crt = parent_crt->next )
@@ -2918,8 +2929,10 @@ check_signature:
         {
             /* save state */
             rs_ctx->parent = parent_crt;
+#if defined(MBEDTLS_HAVE_TIME_DATE)
             rs_ctx->fallback_parent = fallback_parent;
             rs_ctx->fallback_signature_is_good = fallback_signature_is_good;
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
             return( ret );
         }
@@ -2934,11 +2947,13 @@ check_signature:
         /* optional time check */
         if( !parent_valid )
         {
+#if defined(MBEDTLS_HAVE_TIME_DATE)
             if( fallback_parent == NULL )
             {
                 fallback_parent = parent_crt;
                 fallback_signature_is_good = signature_is_good;
             }
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
             continue;
         }
@@ -2953,8 +2968,12 @@ check_signature:
     }
     else
     {
+#if defined(MBEDTLS_HAVE_TIME_DATE)
         *r_parent = fallback_parent;
         *r_signature_is_good = fallback_signature_is_good;
+#else /* MBEDTLS_HAVE_TIME_DATE */
+        *r_parent = NULL;
+#endif /* !MBEDTLS_HAVE_TIME_DATE */
     }
 
     return( 0 );
@@ -3643,8 +3662,10 @@ void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx )
     mbedtls_pk_restart_init( &ctx->pk );
 
     ctx->parent = NULL;
+#if defined(MBEDTLS_HAVE_TIME_DATE)
     ctx->fallback_parent = NULL;
     ctx->fallback_signature_is_good = 0;
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 
     ctx->parent_is_trusted = -1;
 

@@ -1031,6 +1031,9 @@ struct mbedtls_ssl_config
 #endif
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     unsigned int extended_ms : 1;   /*!< negotiate extended master secret?  */
+    unsigned int enforce_extended_master_secret : 1; /*!< enforce the usage
+                                                      *   of extended master
+                                                      *   secret            */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     unsigned int anti_replay : 1;   /*!< detect and prevent replay?         */
@@ -2820,6 +2823,21 @@ void mbedtls_ssl_conf_encrypt_then_mac( mbedtls_ssl_config *conf, char etm );
  * \param ems       MBEDTLS_SSL_EXTENDED_MS_ENABLED or MBEDTLS_SSL_EXTENDED_MS_DISABLED
  */
 void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems );
+
+/**
+ * \brief           Enable or disable Extended Master Secret enforcing.
+ *                  (Default: MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED)
+ *
+ * \note            This enforces the peer to use the Extended Master Secret
+ *                  extension, if the option is enabled and the peer doesn't
+ *                  support the extension, the connection is dropped.
+ *
+ * \param conf      SSL configuration
+ * \param ems_enf   MBEDTLS_SSL_EXTENDED_MS_ENFROCE_ENABLED or
+ *                  MBEDTLS_SSL_EXTENDED_MS_DISABLED
+ */
+void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,
+                                                        char ems_enf);
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 #if defined(MBEDTLS_ARC4_C)

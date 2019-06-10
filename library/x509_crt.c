@@ -2849,8 +2849,8 @@ check_signature:
             if( ret != 0 )
                 return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
-            if( mbedtls_x509_time_is_past( &parent->valid_from ) &&
-                mbedtls_x509_time_is_future( &parent->valid_to ) )
+            if( !mbedtls_x509_time_is_past( &parent->valid_to ) &&
+                !mbedtls_x509_time_is_future( &parent->valid_from ) )
             {
                 parent_valid = 1;
             }

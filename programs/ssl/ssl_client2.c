@@ -122,6 +122,7 @@ int main( void )
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_EXTENDED_MS_ENFORCE -1
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -243,7 +244,8 @@ int main( void )
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 #define USAGE_EMS \
-    "    extended_ms=0/1     default: (library default: on)\n"
+    "    extended_ms=0/1     default: (library default: on)\n" \
+    "    enforce_extended_master_secret=0/1 default: (library default: off)\n"
 #else
 #define USAGE_EMS ""
 #endif
@@ -410,6 +412,8 @@ struct options
     int fallback;               /* is this a fallback connection?           */
     int dgram_packing;          /* allow/forbid datagram packing            */
     int extended_ms;            /* negotiate extended master secret?        */
+    int enforce_extended_master_secret; /* Enforce the usage of extended
+                                         * master secret */
     int etm;                    /* negotiate encrypt then mac?              */
     int cid_enabled;            /* whether to use the CID extension or not  */
     int cid_enabled_renego;     /* whether to use the CID extension or not
@@ -825,6 +829,7 @@ int main( int argc, char *argv[] )
     opt.dtls_mtu            = DFL_DTLS_MTU;
     opt.fallback            = DFL_FALLBACK;
     opt.extended_ms         = DFL_EXTENDED_MS;
+    opt.enforce_extended_master_secret = DFL_EXTENDED_MS_ENFORCE;
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
 
@@ -1021,6 +1026,21 @@ int main( int argc, char *argv[] )
                     break;
                 case 1:
                     opt.extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
+                    break;
+                default: goto usage;
+            }
+        }
+        else if( strcmp( p, "enforce_extended_master_secret" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0:
+                    opt.enforce_extended_master_secret =
+                        MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED;
+                    break;
+                case 1:
+                    opt.enforce_extended_master_secret =
+                        MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED;
                     break;
                 default: goto usage;
             }
@@ -1638,6 +1658,9 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     if( opt.extended_ms != DFL_EXTENDED_MS )
         mbedtls_ssl_conf_extended_master_secret( &conf, opt.extended_ms );
+    if( opt.enforce_extended_master_secret != DFL_EXTENDED_MS_ENFORCE )
+        mbedtls_ssl_conf_extended_master_secret_enforce( &conf,
+            opt.enforce_extended_master_secret );
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)

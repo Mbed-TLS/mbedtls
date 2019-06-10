@@ -2829,7 +2829,7 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
 
 /**
  * \brief           Enable or disable Extended Master Secret enforcing.
- *                  (Default: MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED)
+ *                  (Default: MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED)
  *
  * \note            This enforces the peer to use the Extended Master Secret
  *                  extension, if the option is enabled and the peer doesn't

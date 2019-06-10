@@ -10302,7 +10302,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     conf->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
     conf->enforce_extended_master_secret =
-        MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED;
+        MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED;
 #endif
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)

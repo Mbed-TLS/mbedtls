@@ -953,6 +953,20 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
     if_build_succeeded tests/ssl-opt.sh -f "Max fragment length\|Large buffer"
 }
 
+component_test_when_no_ciphersuites_have_mac () {
+    msg "build: when no ciphersuites have MAC"
+    scripts/config.pl unset MBEDTLS_CIPHER_NULL_CIPHER
+    scripts/config.pl unset MBEDTLS_ARC4_C
+    scripts/config.pl unset MBEDTLS_CIPHER_MODE_CBC
+    make
+
+    msg "test: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
+    make test
+
+    msg "test ssl-opt.sh: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
+    if_build_succeeded tests/ssl-opt.sh -f 'Default\|EtM' -e 'without EtM'
+}
+
 component_test_null_entropy () {
     msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
     scripts/config.pl set MBEDTLS_TEST_NULL_ENTROPY

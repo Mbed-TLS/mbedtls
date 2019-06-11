@@ -2013,7 +2013,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_TIME_ALT)
         mbedtls_platform_set_time( dummy_constant_time );
 #else
-        fprintf( stderr, "Warning: reproducible without constant time\n" );
+        fprintf( stderr, "Warning: reproducible option used without constant time\n" );
 #endif
     }
     else

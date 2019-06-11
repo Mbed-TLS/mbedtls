@@ -732,19 +732,19 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
 }
 
 component_test_full_cmake_clang () {
-    msg "build: cmake, full config, clang" # ~ 50s
-    scripts/config.pl full
+    msg "build: cmake, veryfull config, clang" # ~ 50s
+    scripts/config.pl veryfull
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
     make
 
-    msg "test: main suites (full config)" # ~ 5s
+    msg "test: main suites (veryfull config)" # ~ 5s
     make test
 
-    msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
+    msg "test: ssl-opt.sh default, ECJPAKE, SSL async (veryfull config)" # ~ 1s
     if_build_succeeded tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
 
-    msg "test: compat.sh RC4, DES, 3DES & NULL (full config)" # ~ 2 min
+    msg "test: compat.sh RC4, DES, 3DES & NULL (veryfull config)" # ~ 2 min
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
     msg "test: compat.sh ARIA + ChachaPoly"
@@ -752,14 +752,14 @@ component_test_full_cmake_clang () {
 }
 
 component_build_deprecated () {
-    msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
-    scripts/config.pl full
+    msg "build: make, veryfull config + DEPRECATED_WARNING, gcc -O" # ~ 30s
+    scripts/config.pl veryfull
     scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
     # Build with -O -Wextra to catch a maximum of issues.
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
 
-    msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
+    msg "build: make, veryfull config + DEPRECATED_REMOVED, clang -O" # ~ 30s
     # No cleanup, just tweak the configuration and rebuild
     make clean
     scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
@@ -802,8 +802,8 @@ component_build_default_make_gcc_and_cxx () {
 
 component_test_no_use_psa_crypto_full_cmake_asan() {
     # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
-    msg "build: cmake, full config minus MBEDTLS_USE_PSA_CRYPTO, ASan"
-    scripts/config.pl full
+    msg "build: cmake, veryfull config minus MBEDTLS_USE_PSA_CRYPTO, ASan"
+    scripts/config.pl veryfull
     # memory_buffer_alloc is slow and makes Asan less effective.
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO
@@ -813,49 +813,49 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: main suites (veryfull minus MBEDTLS_USE_PSA_CRYPTO)"
     make test
 
-    msg "test: ssl-opt.sh (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: ssl-opt.sh (veryfull minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded tests/ssl-opt.sh
 
-    msg "test: compat.sh default (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh default (veryfull minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded tests/compat.sh
 
-    msg "test: compat.sh ssl3 (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh ssl3 (veryfull minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
-    msg "test: compat.sh RC4, DES & NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh RC4, DES & NULL (veryfull minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
-    msg "test: compat.sh ARIA + ChachaPoly (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh ARIA + ChachaPoly (veryfull minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
 component_test_do_use_psa_crypto_full_cmake_asan() {
-    msg "build: cmake, full config, ASan"
-    scripts/config.pl full
+    msg "build: cmake, veryfull config, ASan"
+    scripts/config.pl veryfull
     # memory_buffer_alloc is slow and makes Asan less effective.
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: main suites (full)"
+    msg "test: main suites (veryfull)"
     make test
 
-    msg "test: ssl-opt.sh (full)"
+    msg "test: ssl-opt.sh (veryfull)"
     if_build_succeeded tests/ssl-opt.sh
 
-    msg "test: compat.sh default (full)"
+    msg "test: compat.sh default (veryfull)"
     if_build_succeeded tests/compat.sh
 
-    msg "test: compat.sh ssl3 (full)"
+    msg "test: compat.sh ssl3 (veryfull)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
-    msg "test: compat.sh RC4, DES & NULL (full)"
+    msg "test: compat.sh RC4, DES & NULL (veryfull)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
-    msg "test: compat.sh ARIA + ChachaPoly (full)"
+    msg "test: compat.sh ARIA + ChachaPoly (veryfull)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
@@ -877,7 +877,7 @@ component_test_check_params_without_platform () {
 
 component_test_check_params_silent () {
     msg "build+test: MBEDTLS_CHECK_PARAMS with alternative MBEDTLS_PARAM_FAILED()"
-    scripts/config.pl full # includes CHECK_PARAMS
+    scripts/config.pl veryfull # includes CHECK_PARAMS
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     sed -i 's/.*\(#define MBEDTLS_PARAM_FAILED( cond )\).*/\1/' "$CONFIG_H"
     make CC=gcc CFLAGS='-Werror -O1' all test
@@ -1031,7 +1031,7 @@ support_test_m32_o0 () {
 component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
-    scripts/config.pl full
+    scripts/config.pl veryfull
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_MEMORY_DEBUG

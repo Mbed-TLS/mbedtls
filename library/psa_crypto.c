@@ -4311,6 +4311,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
 /****************************************************************/
 
 #if defined(MBEDTLS_MD_C)
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 /* Set up an HKDF-based operation. This is exactly the extract phase
  * of the HKDF algorithm.
  *
@@ -4354,9 +4355,11 @@ static psa_status_t psa_key_derivation_hkdf_setup( psa_hkdf_key_derivation_t *hk
     hkdf->info_set = 1;
     return( PSA_SUCCESS );
 }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
 #if defined(MBEDTLS_MD_C)
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 /* Set up a TLS-1.2-prf-based operation (see RFC 5246, Section 5).
  *
  * Note that if this function fails, you must call psa_key_derivation_abort()
@@ -4413,7 +4416,9 @@ static psa_status_t psa_key_derivation_tls12_prf_setup(
 
     return( PSA_SUCCESS );
 }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 /* Set up a TLS-1.2-PSK-to-MS-based operation. */
 static psa_status_t psa_key_derivation_tls12_psk_to_ms_setup(
     psa_tls12_prf_key_derivation_t *tls12_prf,
@@ -4454,8 +4459,10 @@ static psa_status_t psa_key_derivation_tls12_psk_to_ms_setup(
     mbedtls_platform_zeroize( pms, sizeof( pms ) );
     return( status );
 }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 /* Note that if this function fails, you must call psa_key_derivation_abort()
  * to potentially free embedded data structures and wipe confidential data.
  */
@@ -4554,7 +4561,9 @@ static psa_status_t psa_key_derivation_internal(
 
     return( PSA_SUCCESS );
 }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 psa_status_t psa_key_derivation( psa_key_derivation_operation_t *operation,
                                  psa_key_handle_t handle,
                                  psa_algorithm_t alg,
@@ -4594,6 +4603,7 @@ psa_status_t psa_key_derivation( psa_key_derivation_operation_t *operation,
         psa_key_derivation_abort( operation );
     return( status );
 }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 
 static psa_status_t psa_key_derivation_setup_kdf(
     psa_key_derivation_operation_t *operation,

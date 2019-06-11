@@ -545,6 +545,7 @@ static int exercise_key_derivation_key( psa_key_handle_t handle,
                                                         seed,
                                                         seed_length ) );
         }
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
         else
         {
             // legacy
@@ -554,6 +555,7 @@ static int exercise_key_derivation_key( psa_key_handle_t handle,
                                             seed, seed_length,
                                             sizeof( output ) ) );
         }
+#endif
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
                                                      output,
                                                      sizeof( output ) ) );
@@ -1776,7 +1778,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:PSA_PRE_1_0_KEY_DERIVATION */
 void derive_key_policy( int policy_usage,
                         int policy_alg,
                         int key_type,
@@ -4024,7 +4026,7 @@ void key_derivation_init( )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:PSA_PRE_1_0_KEY_DERIVATION */
 void derive_setup( int key_type_arg,
                    data_t *key_data,
                    int alg_arg,
@@ -4063,7 +4065,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:PSA_PRE_1_0_KEY_DERIVATION */
 void test_derive_invalid_key_derivation_state( )
 {
     psa_key_handle_t handle = 0;
@@ -4199,6 +4201,7 @@ void derive_output( int alg_arg,
                                                     PSA_KEY_DERIVATION_INPUT_INFO,
                                                     label->x, label->len ) );
     }
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
     else
     {
         // legacy
@@ -4207,6 +4210,7 @@ void derive_output( int alg_arg,
                                         label->x, label->len,
                                         requested_capacity ) );
     }
+#endif
     PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
                                                  &current_capacity ) );
     TEST_EQUAL( current_capacity, requested_capacity );
@@ -4295,6 +4299,8 @@ void derive_full( int alg_arg,
                                                     PSA_KEY_DERIVATION_INPUT_INFO,
                                                     label->x, label->len ) );
     }
+
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
     else
     {
         // legacy
@@ -4303,6 +4309,7 @@ void derive_full( int alg_arg,
                                         label->x, label->len,
                                         requested_capacity ) );
     }
+#endif
     PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
                                                  &current_capacity ) );
     TEST_EQUAL( current_capacity, expected_capacity );
@@ -4335,7 +4342,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:PSA_PRE_1_0_KEY_DERIVATION */
 void derive_key_exercise( int alg_arg,
                           data_t *key_data,
                           data_t *salt,
@@ -4395,7 +4402,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:PSA_PRE_1_0_KEY_DERIVATION */
 void derive_key_export( int alg_arg,
                         data_t *key_data,
                         data_t *salt,

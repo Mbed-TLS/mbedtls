@@ -3612,23 +3612,42 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  *                 including but not limited to loss of confidentiality.
  *
  * \note           Before calling this function, the SSL context must be
- *                 prepared either by calling mbedtls_ssl_setup() on it with
+ *                 prepared in one of the two following ways. The first way is
+ *                 to take a context freshly initialised with
+ *                 mbedtls_ssl_init() and call mbedtls_ssl_setup() on it with
  *                 the same ::mbedtls_ssl_config structure that was used in
- *                 the original connection, and not using it with any other
- *                 function between mbedtls_ssl_setup() and this one, or by
- *                 calling mbedtls_ssl_session_reset() on a context that was
+ *                 the original connection. The second way is to
+ *                 call mbedtls_ssl_session_reset() on a context that was
  *                 previously prepared as above but used in the meantime.
+ *                 Either way, you must not use the context to perform a
+ *                 handshake between calling mbedtls_ssl_setup() or
+ *                 mbedtls_ssl_session_reset() and calling this function. You
+ *                 may however call other setter functions in that time frame
+ *                 as indicated in the note below.
  *
  * \note           Before or after calling this function successfully, you
- *                 also need to configure some connection-specific callback
+ *                 also need to configure some connection-specific callbacks
  *                 and settings before you can use the connection again
  *                 (unless they were already set before calling
  *                 mbedtls_ssl_session_reset() and the values are suitable for
  *                 the present connection). Specifically, you want to call
- *                 at least mbedtls_ssl_set_bio() and possibly
- *                 mbedtls_ssl_set_timer_cb(). You might also want to call
- *                 mbedtls_ssl_set_mtu() if new information about the PMTU is
- *                 available - otherwise the saved information will be used.
+ *                 at least mbedtls_ssl_set_bio(). If you're using a read
+ *                 timeout (that is, you called
+ *                 mbedtls_ssl_conf_read_timeout() with a non-zero timeout)
+ *                 and non-blocking I/O, you also need to set timer callbacks
+ *                 by calling mbedtls_ssl_set_timer_cb(). All other SSL setter
+ *                 functions are not necessary to call, either because they're
+ *                 only used in handshakes, or because the setting is already
+ *                 saved. You might choose to call them anyway, for example in
+ *                 order to share code between the cases of establishing a new
+ *                 connection and the case of loading an already-established
+ *                 connection.
+ *
+ * \note           If you have new information about the path MTU, you want to
+ *                 call mbedtls_ssl_set_mtu() after calling this function, as
+ *                 otherwise this function would overwrite your
+ *                 newly-configured value with the value that was active when
+ *                 the context was saved.
  *
  * \param ssl      The SSL context structure to be populated. It must have
  *                 been prepared as described in the note above.

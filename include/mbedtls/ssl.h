@@ -2831,16 +2831,21 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  * \brief           Enable or disable Extended Master Secret enforcing.
  *                  (Default: MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED)
  *
- * \note            This enforces the peer to use the Extended Master Secret
- *                  extension, if the option is enabled and the peer doesn't
- *                  support the extension, the connection is dropped.
+ * \note            If the use of extended master secret is configured (see
+ *                  `mbedtls_ssl_conf_extended_master_secret()`) and this
+ *                  option is set, handshakes not leading to the use of the
+ *                  extended master secret will be aborted: On the server, fail
+ *                  the handshake if the client doesn't advertise the
+ *                  ExtendedMasterSecret extension. On the client: Fail the
+ *                  handshake if the server doesn't consent to the use of the
+ *                  ExtendedMasterSecret extension in its ServerHello.
  *
- * \param conf      SSL configuration
+ * \param conf      Currently used SSL configuration struct.
  * \param ems_enf   MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED or
  *                  MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED
  */
 void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,
-                                                        char ems_enf );
+                                                      char ems_enf );
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 #if defined(MBEDTLS_ARC4_C)

@@ -2031,7 +2031,7 @@ read_record_header:
     if( ssl->conf->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED &&
         ssl->conf->enforce_extended_master_secret ==
         MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED &&
-        ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED)
+        ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Peer not offering extended master "
                                     "secret, while it is enforced") );

@@ -483,7 +483,7 @@ struct options
     const char *cid_val;        /* the CID to use for incoming messages     */
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
-    int reproducible;              /* make communication reproducible          */
+    int reproducible;           /* make communication reproducible          */
 } opt;
 
 int query_config( const char *config );

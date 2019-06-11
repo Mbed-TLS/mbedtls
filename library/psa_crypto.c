@@ -3881,11 +3881,11 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
         mbedtls_free( operation->ctx.hkdf.info );
         status = psa_hmac_abort_internal( &operation->ctx.hkdf.hmac );
     }
-#if defined(PSA_PRE_1_0_KEY_DERIVATION)
     else if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
              /* TLS-1.2 PSK-to-MS KDF uses the same core as TLS-1.2 PRF */
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
         if( operation->ctx.tls12_prf.key != NULL )
         {
             mbedtls_platform_zeroize( operation->ctx.tls12_prf.key,
@@ -3899,8 +3899,27 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
                              operation->ctx.tls12_prf.Ai_with_seed_len );
             mbedtls_free( operation->ctx.tls12_prf.Ai_with_seed );
         }
-    }
+#else
+        if( operation->ctx.tls12_prf.seed != NULL )
+        {
+            mbedtls_platform_zeroize( operation->ctx.tls12_prf.seed,
+                                      operation->ctx.tls12_prf.seed_length );
+            mbedtls_free( operation->ctx.tls12_prf.seed );
+        }
+
+        if( operation->ctx.tls12_prf.label != NULL )
+        {
+            mbedtls_platform_zeroize( operation->ctx.tls12_prf.label,
+                                      operation->ctx.tls12_prf.label_length );
+            mbedtls_free( operation->ctx.tls12_prf.label );
+        }
+
+        status = psa_hmac_abort_internal( &operation->ctx.tls12_prf.hmac );
+
+        /* We leave the fields Ai and output_block to be erased safely by the
+         * mbedtls_platform_zeroize() in the end of this function. */
 #endif /* PSA_PRE_1_0_KEY_DERIVATION */
+    }
     else
 #endif /* MBEDTLS_MD_C */
     {

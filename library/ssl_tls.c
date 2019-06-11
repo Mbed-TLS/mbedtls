@@ -4925,7 +4925,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
                 if( ++ssl->in_ctr[i - 1] != 0 )
                     break;
 
-            /* The loop goes to its end iff the counter is wrapping */
+            /* The loop goes to its end only if the counter is wrapping around */
             if( i == 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "incoming message counter would wrap" ) );
@@ -10841,7 +10841,7 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
             ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
     }
     MBEDTLS_SSL_TRANSPORT_ELSE
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 #if defined(MBEDTLS_SSL_PROTO_TLS)
     {
         *major = ver[0];

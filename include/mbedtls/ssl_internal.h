@@ -269,8 +269,8 @@
  *
  * Goals for these helpers:
  *  - generate minimal code, eg don't test if mode is DTLS in a DTLS-only build
- *  - make the flow clear to the compiler, ie that in dual-mode builds,
- *    when there are two branchs, exactly one of them is taken
+ *  - make the flow clear to the compiler, so that in TLS and DTLS combined
+ *  builds, when there are two branches, it knows exactly one of them is taken
  *  - preserve readability
  *
  * There are three macros:
@@ -299,7 +299,7 @@
  *  #endif
  */
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_PROTO_TLS) /* both */
-#define MBEDTLS_SSL_TRANSPORT__BOTH /* shorcut for future tests */
+#define MBEDTLS_SSL_TRANSPORT__BOTH /* shortcut for future tests */
 #define MBEDTLS_SSL_TRANSPORT_IS_TLS( transport ) \
     ( (transport) == MBEDTLS_SSL_TRANSPORT_STREAM )
 #define MBEDTLS_SSL_TRANSPORT_IS_DTLS( transport ) \

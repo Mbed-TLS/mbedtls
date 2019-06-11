@@ -871,6 +871,7 @@ component_test_check_params_without_platform () {
     scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_C
     make CC=gcc CFLAGS='-Werror -O1' all test
 }
@@ -898,6 +899,7 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_FS_IO
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
@@ -914,6 +916,7 @@ component_build_no_std_function () {
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
 }
 
@@ -986,6 +989,7 @@ component_test_null_entropy () {
     scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
     scripts/config.pl set MBEDTLS_ENTROPY_C
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
     scripts/config.pl unset MBEDTLS_HAVEGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan -D UNSAFE_BUILD=ON .
@@ -1069,6 +1073,7 @@ component_build_arm_none_eabi_gcc () {
     scripts/config.pl unset MBEDTLS_TIMING_C
     scripts/config.pl unset MBEDTLS_FS_IO
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
@@ -1088,6 +1093,7 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
     scripts/config.pl unset MBEDTLS_TIMING_C
     scripts/config.pl unset MBEDTLS_FS_IO
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
@@ -1110,6 +1116,7 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     scripts/config.pl unset MBEDTLS_TIMING_C
     scripts/config.pl unset MBEDTLS_FS_IO
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
@@ -1132,6 +1139,7 @@ component_build_armcc () {
     scripts/config.pl unset MBEDTLS_TIMING_C
     scripts/config.pl unset MBEDTLS_FS_IO
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_HAVE_TIME
     scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY

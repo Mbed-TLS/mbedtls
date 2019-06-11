@@ -113,6 +113,7 @@ MBEDTLS_THREADING_C
 MBEDTLS_THREADING_PTHREAD
 MBEDTLS_MEMORY_BACKTRACE
 MBEDTLS_MEMORY_BUFFER_ALLOC_C
+MBEDTLS_PLATFORM_NV_SEED_ALT
 MBEDTLS_PLATFORM_TIME_ALT
 MBEDTLS_PLATFORM_FPRINTF_ALT
 MBEDTLS_PSA_ITS_FILE_C
@@ -126,9 +127,10 @@ my @non_excluded = qw_with_comments(q(
 # a runtime mechanism which defaults to the built-in implementation,
 # so merely enabling them doesn't require third-party code, so we do
 # want them enabled in the full config.
-# MBEDTLS_PLATFORM_ZEROIZE_ALT is an exception: it behaves like
-# non-platform xxx_ALT, and so remains excluded.
-MBEDTLS_PLATFORM_(?!ZEROIZE_)[A-Z0-9]+_ALT
+# MBEDTLS_PLATFORM_GMTIME_R_ALT, MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT and
+# MBEDTLS_PLATFORM_ZEROIZE_ALT are exception: they behaves like
+# non-platform xxx_ALT, and so they remain excluded.
+MBEDTLS_PLATFORM_(?!(?:GMTIME_R|SETUP_TEARDOWN|ZEROIZE)_)[A-Z_0-9]+_ALT
 ));
 
 # Things that should be enabled in "baremetal"

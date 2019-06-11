@@ -517,7 +517,8 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     int new_session_ticket;             /*!< use NewSessionTicket?    */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) &&      \
+    !defined(MBEDTLS_SSL_EXTENDED_MS_ENFORCED)
     int extended_ms;                    /*!< use Extended Master Secret? */
 #endif
 

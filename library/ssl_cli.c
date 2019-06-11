@@ -2097,7 +2097,9 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     {
         if( extended_ms_seen )
         {
+#if !defined(MBEDTLS_SSL_EXTENDED_MS_ENFORCED)
             ssl->handshake->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
+#endif /* !MBEDTLS_SSL_EXTENDED_MS_ENFORCED */
         }
         else if( mbedtls_ssl_conf_get_ems_enforced( ssl->conf ) ==
                  MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED )

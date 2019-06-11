@@ -203,6 +203,7 @@ typedef struct
 #define PSA_PRE_1_0_KEY_DERIVATION
 
 #if defined(MBEDTLS_MD_C)
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 typedef struct psa_tls12_prf_key_derivation_s
 {
     /* The TLS 1.2 PRF uses the key for each HMAC iteration,
@@ -231,6 +232,43 @@ typedef struct psa_tls12_prf_key_derivation_s
     uint8_t block_number;
 
 } psa_tls12_prf_key_derivation_t;
+#else
+
+typedef enum
+{
+    TLS12_PRF_STATE_INIT,       /* no input provided */
+    TLS12_PRF_STATE_SEED_SET,   /* seed has been set */
+    TLS12_PRF_STATE_KEY_SET,    /* key has been set */
+    TLS12_PRF_STATE_LABEL_SET,  /* label has been set */
+    TLS12_PRF_STATE_OUTPUT      /* output has been started */
+} psa_tls12_prf_key_derivation_state_t;
+
+typedef struct psa_tls12_prf_key_derivation_s
+{
+#if PSA_HASH_MAX_SIZE > 0xff
+#error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
+#endif
+
+    /* Indicates how many bytes in the current HMAC block have
+     * already been read by the user. */
+    uint8_t offset_in_block;
+
+    /* The 1-based number of the block. */
+    uint8_t block_number;
+
+    psa_tls12_prf_key_derivation_state_t state;
+
+    uint8_t *seed;
+    size_t seed_length;
+    uint8_t *label;
+    size_t label_length;
+    psa_hmac_internal_data hmac;
+    uint8_t Ai[PSA_HASH_MAX_SIZE];
+
+    /* `HMAC_hash( prk, A(i) + seed )` in the notation of RFC 5246, Sect. 5. */
+    uint8_t output_block[PSA_HASH_MAX_SIZE];
+} psa_tls12_prf_key_derivation_t;
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
 struct psa_key_derivation_s

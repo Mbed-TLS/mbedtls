@@ -2122,11 +2122,13 @@ static psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac )
     return( psa_hash_abort( &hmac->hash_ctx ) );
 }
 
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 static void psa_hmac_init_internal( psa_hmac_internal_data *hmac )
 {
     /* Instances of psa_hash_operation_s can be initialized by zeroization. */
     memset( hmac, 0, sizeof( *hmac ) );
 }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
 psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
@@ -3879,6 +3881,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
         mbedtls_free( operation->ctx.hkdf.info );
         status = psa_hmac_abort_internal( &operation->ctx.hkdf.hmac );
     }
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
     else if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
              /* TLS-1.2 PSK-to-MS KDF uses the same core as TLS-1.2 PRF */
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
@@ -3897,6 +3900,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
             mbedtls_free( operation->ctx.tls12_prf.Ai_with_seed );
         }
     }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
     else
 #endif /* MBEDTLS_MD_C */
     {
@@ -4000,6 +4004,7 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
     return( PSA_SUCCESS );
 }
 
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
     psa_tls12_prf_key_derivation_t *tls12_prf,
     psa_algorithm_t alg )
@@ -4111,7 +4116,9 @@ cleanup:
 
     return( status );
 }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 /* Read some bytes from an TLS-1.2-PRF-based operation.
  * See Section 5 of RFC 5246. */
 static psa_status_t psa_key_derivation_tls12_prf_read(
@@ -4151,6 +4158,7 @@ static psa_status_t psa_key_derivation_tls12_prf_read(
 
     return( PSA_SUCCESS );
 }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
 psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *operation,
@@ -4210,6 +4218,7 @@ psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *op
         status = psa_key_derivation_hkdf_read( &operation->ctx.hkdf, hash_alg,
                                           output, output_length );
     }
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
     else if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
@@ -4217,6 +4226,7 @@ psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *op
                                                kdf_alg, output,
                                                output_length );
     }
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
     else
 #endif /* MBEDTLS_MD_C */
     {

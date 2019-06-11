@@ -2001,6 +2001,7 @@ int main( int argc, char *argv[] )
     else
         mbedtls_printf( " ok\n" );
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
     if( mbedtls_ssl_get_peer_cert( &ssl ) != NULL )
     {
         mbedtls_printf( "  . Peer certificate information    ...\n" );
@@ -2008,6 +2009,7 @@ int main( int argc, char *argv[] )
                        mbedtls_ssl_get_peer_cert( &ssl ) );
         mbedtls_printf( "%s\n", buf );
     }
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)

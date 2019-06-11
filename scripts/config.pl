@@ -13,7 +13,7 @@
 #
 # Usage: config.pl [-f <file> | --file <file>] [-o | --force]
 #                   [set <symbol> <value> | unset <symbol> | get <symbol> |
-#                       full | realfull]
+#                    full | veryfull | realfull | baremetal]
 #
 # Full usage description provided below.
 #
@@ -50,7 +50,7 @@ my $config_file = "include/mbedtls/config.h";
 my $usage = <<EOU;
 $0 [-f <file> | --file <file>] [-o | --force]
                    [set <symbol> <value> | unset <symbol> | get <symbol> |
-                        full | realfull | baremetal]
+                        full | veryfull | realfull | baremetal]
 
 Commands
     set <symbol> [<value>]  - Uncomments or adds a #define for the <symbol> to
@@ -65,10 +65,19 @@ Commands
                               not. The value of the symbol is output if one is
                               specified in the configuration file.
     full                    - Uncomments all #define's in the configuration file
-                              excluding some reserved symbols, until the
-                              'Module configuration options' section
+                              excluding some reserved symbols and the
+                              'Module configuration options' section.
+                              This is a good basis for testing the exclusion
+                              of specific additional options.
+    veryfull                - Uncomments all #define's in the configuration file
+                              excluding some reserved symbols. This is a good
+                              basis for testing on platforms where all
+                              prerequisites are available.
     realfull                - Uncomments all #define's with no exclusions
-    baremetal               - Sets full configuration suitable for baremetal build.
+                              The code is not expected to build. This is
+                              used to process the documentation.
+    baremetal               - Sets full configuration suitable for a bare-metal
+                              build.
 
 Options
     -f | --file <filename>  - The file or file path for the configuration file
@@ -166,7 +175,8 @@ while ($arg = shift) {
         # ...else assume it's a command
         $action = $arg;
 
-        if ($action eq "full" || $action eq "realfull" || $action eq "baremetal" ) {
+        if ($action eq "full" || $action eq "veryfull" ||
+                $action eq "realfull"  || $action eq "baremetal") {
             # No additional parameters
             die $usage if @ARGV;
 
@@ -233,8 +243,9 @@ if ($action ne "get") {
 
 my $done;
 for my $line (@config_lines) {
-    if ($action eq "full" || $action eq "realfull" || $action eq "baremetal" ) {
-        if ($action eq "baremetal" &&
+    if ($action eq "full" || $action eq "veryfull" ||
+            $action eq "realfull" || $action eq "baremetal") {
+        if (($action eq "baremetal" || $action eq "full") &&
                 $line =~ /name SECTION: Module configuration options/) {
             $done = 1;
         }

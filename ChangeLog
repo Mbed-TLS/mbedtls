@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.7.x branch released xxxx-xx-xx
+= mbed TLS 2.7.11 branch released 2019-06-11
 
 Security
    * Make mbedtls_ecdh_get_params return an error if the second key

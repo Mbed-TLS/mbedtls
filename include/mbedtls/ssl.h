@@ -1060,10 +1060,14 @@ struct mbedtls_ssl_config
     unsigned int encrypt_then_mac : 1 ; /*!< negotiate encrypt-then-mac?    */
 #endif
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+#if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
     unsigned int extended_ms : 1;   /*!< negotiate extended master secret?  */
+#endif /* !MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
+#if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
     unsigned int enforce_extended_master_secret : 1; /*!< enforce the usage
                                                       *   of extended master
                                                       *   secret            */
+#endif /* !MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     unsigned int anti_replay : 1;   /*!< detect and prevent replay?         */
@@ -1094,6 +1098,34 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
+/*
+ * Getter functions for fields in mbedtls_ssl_config which may
+ * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
+ */
+
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+static inline unsigned int mbedtls_ssl_conf_get_ems(
+    mbedtls_ssl_config const *conf )
+{
+#if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
+    return( conf->extended_ms );
+#else
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET );
+#endif /* MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET */
+}
+
+static inline unsigned int
+mbedtls_ssl_conf_get_ems_enforced( mbedtls_ssl_config const *conf )
+{
+#if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
+    return( conf->enforce_extended_master_secret );
+#else
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET );
+#endif /* MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
+}
+#endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 struct mbedtls_ssl_context
 {

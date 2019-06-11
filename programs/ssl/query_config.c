@@ -2098,6 +2098,22 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_XTEA_C */
 
+#if defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
+    if( strcmp( "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET */
+
+#if defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
+    if( strcmp( "MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
+
 #if defined(MBEDTLS_MPI_WINDOW_SIZE)
     if( strcmp( "MBEDTLS_MPI_WINDOW_SIZE", config ) == 0 )
     {

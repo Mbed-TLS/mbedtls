@@ -94,6 +94,7 @@ MBEDTLS_CTR_DRBG_ENTROPY_LEN            # permitted values depend on other optio
 MBEDTLS_PLATFORM_STD_NV_SEED_READ       # requires plug-in code
 MBEDTLS_PLATFORM_STD_NV_SEED_WRITE      # requires plug-in code
 MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES # insecure
+MBEDTLS_SSL_CIPHERSUITES                # config.h shows an example, not the default
 MBEDTLS_PLATFORM_\w+_MACRO              # requires plug-in code
 _ALT\s*$                                # requires plug-in code
 ));

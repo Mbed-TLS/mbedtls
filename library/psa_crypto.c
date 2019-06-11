@@ -4754,6 +4754,41 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }
+
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
+static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
+                                         psa_algorithm_t hash_alg,
+                                         psa_key_derivation_step_t step,
+                                         const uint8_t *data,
+                                         size_t data_length )
+{
+    (void) prf;
+    (void) hash_alg;
+    (void) step;
+    (void) data;
+    (void) data_length;
+
+    return( PSA_ERROR_INVALID_ARGUMENT );
+}
+#else
+static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
+                                         psa_algorithm_t hash_alg,
+                                         psa_key_derivation_step_t step,
+                                         const uint8_t *data,
+                                         size_t data_length )
+{
+    (void) prf;
+    (void) hash_alg;
+    (void) data;
+    (void) data_length;
+
+    switch( step )
+    {
+        default:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+}
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
 static psa_status_t psa_key_derivation_input_raw(
@@ -4793,7 +4828,10 @@ static psa_status_t psa_key_derivation_input_raw(
         PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
         // To do: implement this
-        status = PSA_ERROR_NOT_SUPPORTED;
+        status = psa_tls12_prf_input( &operation->ctx.tls12_prf,
+                                      PSA_ALG_HKDF_GET_HASH( kdf_alg ),
+                                      step, data, data_length );
+
     }
     else
 #endif /* MBEDTLS_MD_C */

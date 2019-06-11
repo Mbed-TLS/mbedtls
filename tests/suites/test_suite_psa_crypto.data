@@ -461,7 +461,7 @@ depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_key_policy:PSA_KEY_USAGE_DERIVE:PSA_ALG_HKDF(PSA_ALG_SHA_256):PSA_KEY_TYPE_DERIVE:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_HKDF(PSA_ALG_SHA_256)
 
 PSA key policy: derive via TLS 1.2 PRF, permitted
-depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C:!PSA_PRE_1_0_KEY_DERIVATION
 derive_key_policy:PSA_KEY_USAGE_DERIVE:PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256):PSA_KEY_TYPE_DERIVE:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256)
 
 PSA key policy: derive via HKDF, not permitted
@@ -469,7 +469,7 @@ depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_key_policy:0:PSA_ALG_HKDF(PSA_ALG_SHA_256):PSA_KEY_TYPE_DERIVE:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_HKDF(PSA_ALG_SHA_256)
 
 PSA key policy: derive via TLS 1.2 PRF, not permitted
-depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C:!PSA_PRE_1_0_KEY_DERIVATION
 derive_key_policy:0:PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256):PSA_KEY_TYPE_DERIVE:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256)
 
 PSA key policy: derive via HKDF, wrong algorithm
@@ -477,7 +477,7 @@ depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_key_policy:PSA_KEY_USAGE_DERIVE:PSA_ALG_HKDF(PSA_ALG_SHA_256):PSA_KEY_TYPE_DERIVE:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_HKDF(PSA_ALG_SHA_224)
 
 PSA key policy: derive via TLS 1.2 PRF, wrong algorithm
-depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C:!PSA_PRE_1_0_KEY_DERIVATION
 derive_key_policy:PSA_KEY_USAGE_DERIVE:PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256):PSA_KEY_TYPE_DERIVE:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_HKDF(PSA_ALG_SHA_224)
 
 PSA key policy: agreement + KDF, permitted

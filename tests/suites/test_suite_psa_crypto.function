@@ -1778,7 +1778,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_PRE_1_0_KEY_DERIVATION */
+/* BEGIN_CASE */
 void derive_key_policy( int policy_usage,
                         int policy_alg,
                         int key_type,
@@ -1799,11 +1799,19 @@ void derive_key_policy( int policy_usage,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &handle ) );
 
-    status = psa_key_derivation( &operation, handle,
-                                 exercise_alg,
-                                 NULL, 0,
-                                 NULL, 0,
-                                 1 );
+    PSA_ASSERT( psa_key_derivation_setup( &operation, exercise_alg ) );
+
+    if( PSA_ALG_IS_TLS12_PRF( exercise_alg ) ||
+            PSA_ALG_IS_TLS12_PSK_TO_MS( exercise_alg ) )
+        PSA_ASSERT( psa_key_derivation_input_bytes(
+                                            &operation,
+                                            PSA_KEY_DERIVATION_INPUT_SEED,
+                                            (const uint8_t*) "", 0) );
+
+    status = psa_key_derivation_input_key( &operation,
+                                           PSA_KEY_DERIVATION_INPUT_SECRET,
+                                           handle );
+
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_DERIVE ) != 0 )
         PSA_ASSERT( status );

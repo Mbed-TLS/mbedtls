@@ -3902,7 +3902,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
     {
         status = PSA_ERROR_BAD_STATE;
     }
-    memset( operation, 0, sizeof( *operation ) );
+    mbedtls_platform_zeroize( operation, sizeof( *operation ) );
     return( status );
 }
 

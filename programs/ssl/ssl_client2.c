@@ -565,8 +565,8 @@ int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
 int dummy_entropy( void *data, unsigned char *output, size_t len )
 {
     size_t i;
-    (void) data;
     int ret;
+    (void) data;
 
     ret = mbedtls_entropy_func( data, output, len );
     for ( i = 0; i < len; i++ )

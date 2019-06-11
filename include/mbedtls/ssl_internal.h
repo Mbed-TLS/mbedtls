@@ -321,6 +321,18 @@
 #define MBEDTLS_SSL_TRANSPORT_ELSE                  /* empty: no other branch */
 #endif /* TLS and/or DTLS */
 
+/* Check if the use of the ExtendedMasterSecret extension
+ * is enforced at compile-time. If so, we don't need to
+ * track its status in the handshake parameters. */
+#if defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)         && \
+    defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET) && \
+    MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET ==                  \
+      MBEDTLS_SSL_EXTENDED_MS_ENABLED                        && \
+    MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET ==          \
+      MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED
+#define MBEDTLS_SSL_EXTENDED_MS_ENFORCED
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

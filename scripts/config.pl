@@ -16,32 +16,6 @@
 #                    full | veryfull | realfull | baremetal]
 #
 # Full usage description provided below.
-#
-# The following options are disabled instead of enabled with "full".
-#
-#   MBEDTLS_TEST_NULL_ENTROPY
-#   MBEDTLS_DEPRECATED_REMOVED
-#   MBEDTLS_HAVE_SSE2
-#   MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
-#   MBEDTLS_ECP_DP_M221_ENABLED
-#   MBEDTLS_ECP_DP_M383_ENABLED
-#   MBEDTLS_ECP_DP_M511_ENABLED
-#   MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-#   MBEDTLS_NO_PLATFORM_ENTROPY
-#   MBEDTLS_REMOVE_ARC4_CIPHERSUITES
-#   MBEDTLS_REMOVE_3DES_CIPHERSUITES
-#   MBEDTLS_SSL_HW_RECORD_ACCEL
-#   MBEDTLS_RSA_NO_CRT
-#   MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
-#   MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
-#       - this could be enabled if the respective tests were adapted
-#   MBEDTLS_ZLIB_SUPPORT
-#   MBEDTLS_PKCS11_C
-#   MBEDTLS_PSA_CRYPTO_SPM
-#   MBEDTLS_PSA_INJECT_ENTROPY
-#   MBEDTLS_ECP_RESTARTABLE
-#   and any symbol beginning _ALT
-#
 
 use warnings;
 use strict;

@@ -844,6 +844,8 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
 
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
+#else
+    ((void) result_str);
 #endif
 
     mbedtls_x509_crt_free( &crt );

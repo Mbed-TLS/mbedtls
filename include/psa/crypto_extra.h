@@ -224,16 +224,6 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats );
 psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
                                         size_t seed_size);
 
-/*
- * If this option is not turned on, then the function `psa_key_derivation()`
- * is removed.
- *
- * The sole purpose of this option is to make the transition to the new API
- * smoother. Once the transition is complete it can and should be removed
- * along with the old API and its implementation.
- */
-#define PSA_PRE_1_0_KEY_DERIVATION
-
 #if defined(PSA_PRE_1_0_KEY_DERIVATION)
 /** Set up a key derivation operation.
  *

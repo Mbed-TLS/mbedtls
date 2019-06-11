@@ -191,6 +191,17 @@ typedef struct
 } psa_hkdf_key_derivation_t;
 #endif /* MBEDTLS_MD_C */
 
+/*
+ * If this option is not turned on, then the function `psa_key_derivation()`
+ * is removed. And the new psa_tls12_prf_key_derivation_t context is used along
+ * with the corresponding new API.
+ *
+ * The sole purpose of this option is to make the transition to the new API
+ * smoother. Once the transition is complete it can and should be removed
+ * along with the old API and its implementation.
+ */
+#define PSA_PRE_1_0_KEY_DERIVATION
+
 #if defined(MBEDTLS_MD_C)
 typedef struct psa_tls12_prf_key_derivation_s
 {

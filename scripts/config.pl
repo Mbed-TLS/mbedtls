@@ -90,36 +90,42 @@ Options
 
 EOU
 
-my @excluded = qw(
-MBEDTLS_TEST_NULL_ENTROPY
-MBEDTLS_DEPRECATED_REMOVED
-MBEDTLS_HAVE_SSE2
-MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
-MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-MBEDTLS_NO_PLATFORM_ENTROPY
-MBEDTLS_RSA_NO_CRT
-MBEDTLS_REMOVE_ARC4_CIPHERSUITES
-MBEDTLS_REMOVE_3DES_CIPHERSUITES
-MBEDTLS_SSL_HW_RECORD_ACCEL
-MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
-MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
-MBEDTLS_ZLIB_SUPPORT
-MBEDTLS_PKCS11_C
-MBEDTLS_NO_UDBL_DIVISION
-MBEDTLS_NO_64BIT_MULTIPLICATION
-MBEDTLS_PSA_CRYPTO_SPM
-MBEDTLS_PSA_INJECT_ENTROPY
-MBEDTLS_ECP_RESTARTABLE
-MBEDTLS_CTR_DRBG_ENTROPY_LEN
-MBEDTLS_PLATFORM_STD_NV_SEED_READ
-MBEDTLS_PLATFORM_STD_NV_SEED_WRITE
-MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-MBEDTLS_PLATFORM_\w+_MACRO
-_ALT\s*$
-);
+sub qw_with_comments {
+    my ($string) = @_;
+    $string =~ s/(?:^|[ \t])#.*$//mg;
+    return split(' ', $string);
+}
+
+my @excluded = qw_with_comments(q(
+MBEDTLS_TEST_NULL_ENTROPY               # insecure
+MBEDTLS_DEPRECATED_REMOVED              # removes functionality
+MBEDTLS_HAVE_SSE2                       # platform-specific
+MBEDTLS_PLATFORM_NO_STD_FUNCTIONS       # removes functionality; requires additional code
+MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES      # removes functionality
+MBEDTLS_NO_PLATFORM_ENTROPY             # removes functionality
+MBEDTLS_RSA_NO_CRT                      # alternative implementation
+MBEDTLS_REMOVE_ARC4_CIPHERSUITES        # removes functionality
+MBEDTLS_REMOVE_3DES_CIPHERSUITES        # removes functionality
+MBEDTLS_SSL_HW_RECORD_ACCEL             # requires plug-in code
+MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3    # unusual legacy requirement
+MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION # insecure
+MBEDTLS_ZLIB_SUPPORT                    # requires third-party library
+MBEDTLS_PKCS11_C                        # requires third-party library
+MBEDTLS_NO_UDBL_DIVISION                # alternative implementation
+MBEDTLS_NO_64BIT_MULTIPLICATION         # alternative implementation
+MBEDTLS_PSA_CRYPTO_SPM                  # platform-specific
+MBEDTLS_PSA_INJECT_ENTROPY              # requires plug-in code
+MBEDTLS_ECP_RESTARTABLE                 # incompatible with MBEDTLS_USE_PSA_CRYPTO
+MBEDTLS_CTR_DRBG_ENTROPY_LEN            # permitted values depend on other options
+MBEDTLS_PLATFORM_STD_NV_SEED_READ       # requires plug-in code
+MBEDTLS_PLATFORM_STD_NV_SEED_WRITE      # requires plug-in code
+MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES # insecure
+MBEDTLS_PLATFORM_\w+_MACRO              # requires plug-in code
+_ALT\s*$                                # requires plug-in code
+));
 
 # Things that should be disabled in "baremetal"
-my @excluded_baremetal = qw(
+my @excluded_baremetal = qw_with_comments(q(
 MBEDTLS_NET_C
 MBEDTLS_TIMING_C
 MBEDTLS_FS_IO
@@ -136,17 +142,24 @@ MBEDTLS_PLATFORM_TIME_ALT
 MBEDTLS_PLATFORM_FPRINTF_ALT
 MBEDTLS_PSA_ITS_FILE_C
 MBEDTLS_PSA_CRYPTO_STORAGE_C
-);
+));
 
 # Things that should be enabled in "full" even if they match @excluded
-my @non_excluded = qw(
-PLATFORM_(?!ZEROIZE_)[A-Z0-9]+_ALT
-);
+my @non_excluded = qw_with_comments(q(
+# Most xxx_ALT replace built-in functions by third-party code.
+# PLATFORM_xxx_ALT are exceptions: they replace built-in functions by
+# a runtime mechanism which defaults to the built-in implementation,
+# so merely enabling them doesn't require third-party code, so we do
+# want them enabled in the full config.
+# MBEDTLS_PLATFORM_ZEROIZE_ALT is an exception: it behaves like
+# non-platform xxx_ALT, and so remains excluded.
+MBEDTLS_PLATFORM_(?!ZEROIZE_)[A-Z0-9]+_ALT
+));
 
 # Things that should be enabled in "baremetal"
-my @non_excluded_baremetal = qw(
+my @non_excluded_baremetal = qw_with_comments(q(
 MBEDTLS_NO_PLATFORM_ENTROPY
-);
+));
 
 # Process the command line arguments
 

@@ -2270,7 +2270,8 @@ static void ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
 
-    if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
+    if( mbedtls_ssl_hs_get_extended_ms( ssl->handshake )
+          == MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
         ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         *olen = 0;

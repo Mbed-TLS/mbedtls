@@ -1273,7 +1273,8 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
                                                   handshake->pmslen );
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    if( handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
+    if( mbedtls_ssl_hs_get_extended_ms( handshake )
+          == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
     {
         unsigned char session_hash[48];
         size_t hash_len;

@@ -535,6 +535,24 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 };
 
+/*
+ * Getter functions for fields in mbedtls_ssl_handshake_params which
+ * may be statically implied by the configuration and hence be omitted
+ * from the structure.
+ */
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+static inline int mbedtls_ssl_hs_get_extended_ms(
+    mbedtls_ssl_handshake_params const *params )
+{
+#if !defined(MBEDTLS_SSL_EXTENDED_MS_ENFORCED)
+    return( params->extended_ms );
+#else
+    ((void) params);
+    return( MBEDTLS_SSL_EXTENDED_MS_ENABLED );
+#endif /* MBEDTLS_SSL_EXTENDED_MS_ENFORCED */
+}
+#endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
+
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 
 /*

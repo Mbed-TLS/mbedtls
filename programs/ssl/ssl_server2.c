@@ -2829,10 +2829,10 @@ int main( int argc, char *argv[] )
     {
         srand( 1 );
         mbedtls_ssl_conf_rng( &conf, dummy_random, &ctr_drbg );
+#if defined(MBEDTLS_HAVE_TIME)
 #if defined(MBEDTLS_PLATFORM_TIME_ALT)
         mbedtls_platform_set_time( dummy_constant_time );
 #else
-#if defined(MBEDTLS_HAVE_TIME)
         fprintf( stderr, "Warning: reproducible option used without constant time\n" );
 #endif
 #endif

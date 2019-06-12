@@ -1098,35 +1098,6 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
-/*
- * Getter functions for fields in mbedtls_ssl_config which may
- * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
- */
-
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-static inline unsigned int mbedtls_ssl_conf_get_ems(
-    mbedtls_ssl_config const *conf )
-{
-#if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
-    return( conf->extended_ms );
-#else
-    ((void) conf);
-    return( MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET );
-#endif /* MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET */
-}
-
-static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
-    mbedtls_ssl_config const *conf )
-{
-#if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
-    return( conf->enforce_extended_master_secret );
-#else
-    ((void) conf);
-    return( MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET );
-#endif /* MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
-}
-#endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
-
 struct mbedtls_ssl_context
 {
     const mbedtls_ssl_config *conf; /*!< configuration information          */

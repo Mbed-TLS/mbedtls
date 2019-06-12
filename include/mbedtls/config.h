@@ -338,6 +338,36 @@
  */
 //#define MBEDTLS_CHECK_PARAMS
 
+/**
+ * \brief       This macro is invoked by the library when an invalid parameter
+ *              is detected that is only checked with MBEDTLS_CHECK_PARAMS
+ *              (see the documentation of that option for context).
+ *
+ *              When you leave this undefined here, a default definition is
+ *              provided that invokes the function mbedtls_param_failed(),
+ *              which is declared in platform_util.h for the benefit of the
+ *              library, but that you need to define in your application.
+ *
+ *              When you define this here, this replaces the default
+ *              definition in platform_util.h (which no longer declares the
+ *              function mbedtls_param_failed()) and it is your responsibility
+ *              to make sure this macro expands to something suitable (in
+ *              particular, that all the necessary declarations are visible
+ *              from within the library - you can ensure that by providing
+ *              them in this file next to the macro definition).
+ *
+ *              Note that you may define this macro to expand to nothing, in
+ *              which case you don't have to worry about declarations or
+ *              definitions. However, you will then be notified about invalid
+ *              parameters only in non-void functions, and void function will
+ *              just silently return early on invalid parameters, which
+ *              partially negates the benefits of enabling
+ *              #MBEDTLS_CHECK_PARAMS in the first place, so is discouraged.
+ *
+ * \param cond  The expression that should evaluate to true, but doesn't.
+ */
+//#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
+
 /* \} name SECTION: System support */
 
 /**
@@ -3295,36 +3325,6 @@
 //#define MBEDTLS_PLATFORM_VSNPRINTF_MACRO    vsnprintf /**< Default vsnprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
-
-/**
- * \brief       This macro is invoked by the library when an invalid parameter
- *              is detected that is only checked with MBEDTLS_CHECK_PARAMS
- *              (see the documentation of that option for context).
- *
- *              When you leave this undefined here, a default definition is
- *              provided that invokes the function mbedtls_param_failed(),
- *              which is declared in platform_util.h for the benefit of the
- *              library, but that you need to define in your application.
- *
- *              When you define this here, this replaces the default
- *              definition in platform_util.h (which no longer declares the
- *              function mbedtls_param_failed()) and it is your responsibility
- *              to make sure this macro expands to something suitable (in
- *              particular, that all the necessary declarations are visible
- *              from within the library - you can ensure that by providing
- *              them in this file next to the macro definition).
- *
- *              Note that you may define this macro to expand to nothing, in
- *              which case you don't have to worry about declarations or
- *              definitions. However, you will then be notified about invalid
- *              parameters only in non-void functions, and void function will
- *              just silently return early on invalid parameters, which
- *              partially negates the benefits of enabling
- *              #MBEDTLS_CHECK_PARAMS in the first place, so is discouraged.
- *
- * \param cond  The expression that should evaluate to true, but doesn't.
- */
-//#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
 
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */

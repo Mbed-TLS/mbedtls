@@ -1763,7 +1763,18 @@ run_test    "Encrypt then MAC: client enabled, server SSLv3" \
 
 # Tests for Extended Master Secret extension
 
-run_test    "Extended Master Secret: default (both enabled, both enforcing)" \
+run_test    "Extended Master Secret: default (not enforcing)" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "client hello, adding extended_master_secret extension" \
+            -s "found extended master secret extension" \
+            -s "server hello, adding extended master secret extension" \
+            -c "found extended_master_secret extension" \
+            -c "session hash for extended master secret" \
+            -s "session hash for extended master secret"
+
+run_test    "Extended Master Secret: both enabled, both enforcing" \
             "$P_SRV debug_level=3 enforce_extended_master_secret=1" \
             "$P_CLI debug_level=3 enforce_extended_master_secret=1" \
             0 \
@@ -1815,17 +1826,6 @@ run_test    "Extended Master Secret enforced: client disabled, server enabled, s
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
             -s "Peer not offering extended master secret, while it is enforced"
-
-run_test    "Extended Master Secret: default (not enforcing)" \
-            "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3" \
-            0 \
-            -c "client hello, adding extended_master_secret extension" \
-            -s "found extended master secret extension" \
-            -s "server hello, adding extended master secret extension" \
-            -c "found extended_master_secret extension" \
-            -c "session hash for extended master secret" \
-            -s "session hash for extended master secret"
 
 run_test    "Extended Master Secret: client enabled, server disabled, not enforcing" \
             "$P_SRV debug_level=3 extended_ms=0" \

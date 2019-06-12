@@ -1663,7 +1663,7 @@ read_record_header:
     {
         ciph_offset = 35 + sess_len;
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS */
 
     ciph_len = ( buf[ciph_offset + 0] << 8 )
              | ( buf[ciph_offset + 1]      );

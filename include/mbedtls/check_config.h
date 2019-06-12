@@ -566,7 +566,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C) && \
-    (!defined(MBEDTLS_SSL_PROTO_TLS) && !defined(MBEDTLS_SSL_PROTO_DTLS))
+    ( !defined(MBEDTLS_SSL_PROTO_TLS) && !defined(MBEDTLS_SSL_PROTO_DTLS) )
 #error "MBEDTLS_SSL_TLS_C defined, but neither TLS or DTLS is active"
 #endif
 

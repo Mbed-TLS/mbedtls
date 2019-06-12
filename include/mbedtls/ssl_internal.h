@@ -270,7 +270,7 @@
  * Goals for these helpers:
  *  - generate minimal code, eg don't test if mode is DTLS in a DTLS-only build
  *  - make the flow clear to the compiler, so that in TLS and DTLS combined
- *  builds, when there are two branches, it knows exactly one of them is taken
+ *    builds, when there are two branches, it knows exactly one of them is taken
  *  - preserve readability
  *
  * There are three macros:

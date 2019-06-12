@@ -1525,7 +1525,7 @@
  * Enable this and MBEDTLS_SSL_PROTO_TLS1_2 to enable TLS 1.2;
  * enable this and MBEDTLS_SSL_PROTO_TLS1_1 to enable TLS 1.1;
  * enable this and MBEDTLS_SSL_PROTO_TLS1   to enable TLS 1.0;
- * and/or this and MBEDTLS_SSL_PROTO_SSL3 to enable SSL 3.0 (deprecated).
+ * and/or this and MBEDTLS_SSL_PROTO_SSL3   to enable SSL 3.0 (deprecated).
  *
  * \see MBEDTLS_SSL_PROTO_DTLS
  *

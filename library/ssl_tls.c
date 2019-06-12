@@ -4216,7 +4216,7 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
         }
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS */
 
     return( 0 );
 }
@@ -10847,7 +10847,7 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
         *major = ver[0];
         *minor = ver[1];
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS */
 }
 
 int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )

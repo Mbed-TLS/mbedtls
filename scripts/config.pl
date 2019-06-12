@@ -77,6 +77,7 @@ MBEDTLS_HAVE_SSE2                       # platform-specific
 MBEDTLS_PLATFORM_NO_STD_FUNCTIONS       # removes functionality; requires additional code
 MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES      # removes functionality
 MBEDTLS_NO_PLATFORM_ENTROPY             # removes functionality
+MBEDTLS_ENTROPY_FORCE_SHA256            # alternative implementation; incompatible with the suggested value for MBEDTLS_CTR_DRBG_ENTROPY_LEN
 MBEDTLS_RSA_NO_CRT                      # alternative implementation
 MBEDTLS_REMOVE_ARC4_CIPHERSUITES        # removes functionality
 MBEDTLS_REMOVE_3DES_CIPHERSUITES        # removes functionality
@@ -90,7 +91,6 @@ MBEDTLS_NO_64BIT_MULTIPLICATION         # alternative implementation
 MBEDTLS_PSA_CRYPTO_SPM                  # platform-specific
 MBEDTLS_PSA_INJECT_ENTROPY              # requires plug-in code
 MBEDTLS_ECP_RESTARTABLE                 # incompatible with MBEDTLS_USE_PSA_CRYPTO
-MBEDTLS_CTR_DRBG_ENTROPY_LEN            # permitted values depend on other options
 MBEDTLS_PLATFORM_STD_NV_SEED_READ       # requires plug-in code
 MBEDTLS_PLATFORM_STD_NV_SEED_WRITE      # requires plug-in code
 MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES # insecure

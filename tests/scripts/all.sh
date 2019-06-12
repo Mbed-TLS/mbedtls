@@ -403,12 +403,8 @@ pre_check_git () {
 }
 
 pre_check_seedfile () {
-    if [ ! -f "./tests/seedfile" ]; then
-        dd if=/dev/urandom of=./tests/seedfile bs=32 count=1
-    fi
-    if [ ! -f "./crypto/tests/seedfile" ]; then
-        dd if=/dev/urandom of=./crypto/tests/seedfile bs=32 count=1
-    fi
+    dd if=/dev/urandom of=./tests/seedfile bs=64 count=1
+    cp tests/seedfile crypto/tests/seedfile
 }
 
 pre_setup_keep_going () {

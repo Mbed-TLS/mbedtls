@@ -74,9 +74,7 @@ make -j
 # Step 2 - Execute the tests
 TEST_OUTPUT=out_${PPID}
 cd tests
-if [ ! -f "seedfile" ]; then
-    dd if=/dev/urandom of="seedfile" bs=32 count=1
-fi
+dd if=/dev/urandom of="seedfile" bs=64 count=1
 
 # Step 2a - Unit Tests
 perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT

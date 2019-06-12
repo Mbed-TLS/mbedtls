@@ -34,9 +34,6 @@
 #ifndef MBEDTLS_BAREMETAL_CONFIG_H
 #define MBEDTLS_BAREMETAL_CONFIG_H
 
-#define MBEDTLS_HAVE_TIME
-#define MBEDTLS_HAVE_TIME_DATE
-
 /* Symmetric crypto: AES-CCM only */
 #define MBEDTLS_CIPHER_C
 #define MBEDTLS_AES_C

@@ -48,6 +48,7 @@ while (my $line = <CONFIG_H>)
     next if (!$in_section && $line !~ /SECTION/);
 
     if ($in_section) {
+        next if $line =~ /#define \w+\(/;
         if ($line =~ /SECTION/) {
             $in_section = 0;
             next;

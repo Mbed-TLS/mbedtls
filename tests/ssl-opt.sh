@@ -543,6 +543,20 @@ check_cmdline_authmode_compat() {
     fi
 }
 
+check_cmdline_legacy_renego_compat() {
+    __VAL="$( get_config_value_or_default "MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION" )"
+    if [ ! -z "$__VAL" ]; then
+        extract_cmdline_argument "allow_legacy"
+        if [ "$__ARG" = "-1" ] && [ "$__VAL" != "2" ]; then
+            SKIP_NEXT="YES";
+        elif [ "$__ARG" = "0" ] && [ "$__VAL" != "0" ]; then
+            SKIP_NEXT="YES"
+        elif [ "$__ARG" = "1" ] && [ "$__VAL" != "1" ]; then
+            SKIP_NEXT="YES"
+        fi
+    fi
+}
+
 # Go through all options that can be hardcoded at compile-time and
 # detect whether the command line configures them in a conflicting
 # way. If so, skip the test. Otherwise, remove the corresponding
@@ -569,6 +583,9 @@ check_cmdline_compat() {
 
     # Authentication mode
     check_cmdline_authmode_compat
+
+    # Legacy renegotiation
+    check_cmdline_legacy_renego_compat
 }
 
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]

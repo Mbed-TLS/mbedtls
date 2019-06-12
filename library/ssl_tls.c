@@ -8675,10 +8675,12 @@ void mbedtls_ssl_conf_cbc_record_splitting( mbedtls_ssl_config *conf, char split
 }
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
 void mbedtls_ssl_conf_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy )
 {
     conf->allow_legacy_renegotiation = allow_legacy;
 }
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 void mbedtls_ssl_conf_renegotiation( mbedtls_ssl_config *conf, int renegotiation )
@@ -9999,7 +10001,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
             /* Determine whether renegotiation attempt should be accepted */
             if( ! ( ssl->conf->disable_renegotiation == MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
                     ( ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-                      ssl->conf->allow_legacy_renegotiation ==
+                      mbedtls_ssl_conf_get_allow_legacy_renegotiation( ssl->conf ) ==
                                                    MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION ) ) )
             {
                 /*

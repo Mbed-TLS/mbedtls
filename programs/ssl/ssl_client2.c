@@ -301,6 +301,12 @@ int main( void )
 #define USAGE_AUTH_MODE ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
+#define USAGE_ALLOW_LEGACY_RENEGO    "    allow_legacy=%%d     default: (library default: no)\n"
+#else
+#define USAGE_ALLOW_LEGACY_RENEGO ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -332,7 +338,7 @@ int main( void )
     USAGE_ECJPAKE                                           \
     USAGE_ECRESTART                                         \
     "\n"                                                    \
-    "    allow_legacy=%%d     default: (library default: no)\n"   \
+    USAGE_ALLOW_LEGACY_RENEGO                               \
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     "    reconnect=%%d        number of reconnections using session resumption\n" \
@@ -987,6 +993,7 @@ int main( int argc, char *argv[] )
                 MBEDTLS_SSL_RENEGOTIATION_ENABLED :
                 MBEDTLS_SSL_RENEGOTIATION_DISABLED;
         }
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
         else if( strcmp( p, "allow_legacy" ) == 0 )
         {
             switch( atoi( q ) )
@@ -1003,6 +1010,7 @@ int main( int argc, char *argv[] )
                 default: goto usage;
             }
         }
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
         else if( strcmp( p, "renegotiate" ) == 0 )
         {
             opt.renegotiate = atoi( q );
@@ -1771,8 +1779,10 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_arc4_support( &conf, opt.arc4 );
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     mbedtls_ssl_conf_renegotiation( &conf, opt.renegotiation );
 #endif

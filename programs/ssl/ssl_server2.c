@@ -408,6 +408,13 @@ int main( void )
 #define USAGE_AUTH_MODE ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
+#define USAGE_ALLOW_LEGACY_RENEGO  \
+    "    allow_legacy=%%d     default: (library default: no)\n"
+#else
+#define USAGE_ALLOW_LEGACY_RENEGO ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -440,7 +447,7 @@ int main( void )
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
     "\n"                                                    \
-    "    allow_legacy=%%d     default: (library default: no)\n"      \
+    USAGE_ALLOW_LEGACY_RENEGO                               \
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     "\n"                                                    \
@@ -1668,6 +1675,7 @@ int main( int argc, char *argv[] )
                 MBEDTLS_SSL_RENEGOTIATION_ENABLED :
                 MBEDTLS_SSL_RENEGOTIATION_DISABLED;
         }
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
         else if( strcmp( p, "allow_legacy" ) == 0 )
         {
             switch( atoi( q ) )
@@ -1684,6 +1692,7 @@ int main( int argc, char *argv[] )
                 default: goto usage;
             }
         }
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
         else if( strcmp( p, "renegotiate" ) == 0 )
         {
             opt.renegotiate = atoi( q );
@@ -2637,8 +2646,10 @@ int main( int argc, char *argv[] )
                                           MBEDTLS_SSL_MINOR_VERSION_3 );
     }
 
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );
+#endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     mbedtls_ssl_conf_renegotiation( &conf, opt.renegotiation );
 

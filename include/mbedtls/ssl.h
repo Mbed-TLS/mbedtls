@@ -1052,8 +1052,10 @@ struct mbedtls_ssl_config
 #if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
     unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
 #endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
     unsigned int allow_legacy_renegotiation : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
 #if defined(MBEDTLS_ARC4_C)
     unsigned int arc4_disabled : 1; /*!< blacklist RC4 ciphersuites?        */
 #endif
@@ -3047,6 +3049,7 @@ void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets
 void mbedtls_ssl_conf_renegotiation( mbedtls_ssl_config *conf, int renegotiation );
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
 /**
  * \brief          Prevent or allow legacy renegotiation.
  *                 (Default: MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION)
@@ -3073,8 +3076,14 @@ void mbedtls_ssl_conf_renegotiation( mbedtls_ssl_config *conf, int renegotiation
  * \param allow_legacy  Prevent or allow (SSL_NO_LEGACY_RENEGOTIATION,
  *                                        SSL_ALLOW_LEGACY_RENEGOTIATION or
  *                                        MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE)
+ *
+ *
+ * \note            On constrained systems, this option can also be
+ *                  fixed at compile-time by defining the constant
+ *                  MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION.
  */
 void mbedtls_ssl_conf_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy );
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 /**

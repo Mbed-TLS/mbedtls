@@ -6664,9 +6664,9 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
                        ? ssl->handshake->sni_authmode
-                       : ssl->conf->authmode;
+                       : mbedtls_ssl_conf_get_authmode( ssl->conf );
 #else
-    const int authmode = ssl->conf->authmode;
+    const int authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
 #endif
     void *rs_ctx = NULL;
     mbedtls_x509_crt *chain = NULL;
@@ -8095,7 +8095,12 @@ void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf,
 
 void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode )
 {
-    conf->authmode   = authmode;
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
+    conf->authmode = authmode;
+#else
+    ((void) conf);
+    ((void) authmode);
+#endif /* MBEDTLS_SSL_CONF_AUTHMODE */
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -10713,7 +10718,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_CLI_C)
     if( endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
         conf->authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
+#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         conf->session_tickets = MBEDTLS_SSL_SESSION_TICKETS_ENABLED;
 #endif

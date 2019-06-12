@@ -2578,6 +2578,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
+#if defined(MBEDTLS_SSL_CONF_AUTHMODE)
+    if( strcmp( "MBEDTLS_SSL_CONF_AUTHMODE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_AUTHMODE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_AUTHMODE */
+
 #if defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
     if( strcmp( "MBEDTLS_SSL_CONF_ANTI_REPLAY", config ) == 0 )
     {

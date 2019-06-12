@@ -1085,6 +1085,21 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
  * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
  */
 
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
+static inline int mbedtls_ssl_conf_get_authmode(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->authmode );
+}
+#else /* !MBEDTLS_SSL_CONF_AUTHMODE */
+static inline int mbedtls_ssl_conf_get_authmode(
+    mbedtls_ssl_config const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_AUTHMODE );
+}
+#endif /* MBEDTLS_SSL_CONF_AUTHMODE */
+
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
 #if !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
 static inline unsigned int mbedtls_ssl_conf_get_badmac_limit(

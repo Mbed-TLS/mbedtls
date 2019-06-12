@@ -293,6 +293,14 @@ int main( void )
 #define USAGE_SERIALIZATION ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
+#define USAGE_AUTH_MODE \
+    "    auth_mode=%%s        default: (library default: none)\n" \
+    "                        options: none, optional, required\n"
+#else
+#define USAGE_AUTH_MODE ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -317,8 +325,7 @@ int main( void )
     USAGE_DTLS                                              \
     USAGE_CID                                               \
     "\n"                                                    \
-    "    auth_mode=%%s        default: (library default: none)\n" \
-    "                        options: none, optional, required\n" \
+    USAGE_AUTH_MODE                                         \
     USAGE_IO                                                \
     "\n"                                                    \
     USAGE_PSK                                               \
@@ -1175,6 +1182,7 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
             if( strcmp( q, "none" ) == 0 )
@@ -1186,6 +1194,7 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+#endif
         else if( strcmp( p, "max_frag_len" ) == 0 )
         {
             if( strcmp( q, "512" ) == 0 )

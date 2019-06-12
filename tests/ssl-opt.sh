@@ -529,6 +529,20 @@ check_cmdline_param_compat() {
     fi
 }
 
+check_cmdline_authmode_compat() {
+    __VAL="$( get_config_value_or_default "MBEDTLS_SSL_CONF_AUTHMODE" )"
+    if [ ! -z "$__VAL" ]; then
+        extract_cmdline_argument "auth_mode"
+        if [ "$__ARG" = "none" ] && [ "$__VAL" != "0" ]; then
+            SKIP_NEXT="YES";
+        elif [ "$__ARG" = "optional" ] && [ "$__VAL" != "1" ]; then
+            SKIP_NEXT="YES"
+        elif [ "$__ARG" = "required" ] && [ "$__VAL" != "2" ]; then
+            SKIP_NEXT="YES"
+        fi
+    fi
+}
+
 # Go through all options that can be hardcoded at compile-time and
 # detect whether the command line configures them in a conflicting
 # way. If so, skip the test. Otherwise, remove the corresponding
@@ -552,6 +566,9 @@ check_cmdline_compat() {
     # DTLS bad MAC limit
     check_cmdline_param_compat "badmac_limit" \
                                "MBEDTLS_SSL_CONF_BADMAC_LIMIT"
+
+    # Authentication mode
+    check_cmdline_authmode_compat
 }
 
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]

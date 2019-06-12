@@ -2848,7 +2848,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         authmode = ssl->handshake->sni_authmode;
     else
 #endif
-        authmode = ssl->conf->authmode;
+        authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
 
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) ||
         authmode == MBEDTLS_SSL_VERIFY_NONE )

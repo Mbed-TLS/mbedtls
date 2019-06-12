@@ -400,6 +400,14 @@ int main( void )
 #define USAGE_SERIALIZATION ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
+#define USAGE_AUTH_MODE \
+    "    auth_mode=%%s        default: (library default: none)\n" \
+    "                        options: none, optional, required\n"
+#else
+#define USAGE_AUTH_MODE ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -422,8 +430,7 @@ int main( void )
     USAGE_ANTI_REPLAY                                       \
     USAGE_BADMAC_LIMIT                                      \
     "\n"                                                    \
-    "    auth_mode=%%s        default: (library default: none)\n"      \
-    "                        options: none, optional, required\n" \
+    USAGE_AUTH_MODE                                         \
     "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
     "                        options: 1 (send ca list), 0 (don't send)\n" \
     USAGE_IO                                                \
@@ -619,6 +626,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     return( ret );
 }
 
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
 /*
  * Return authmode from string, or -1 on error
  */
@@ -633,6 +641,7 @@ static int get_auth_mode( const char *s )
 
     return( -1 );
 }
+#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 
 /*
  * Used by sni_parse and psk_parse to handle coma-separated lists
@@ -1787,11 +1796,13 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
             if( ( opt.auth_mode = get_auth_mode( q ) ) < 0 )
                 goto usage;
         }
+#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
         else if( strcmp( p, "cert_req_ca_list" ) == 0 )
         {
             opt.cert_req_ca_list = atoi( q );
@@ -2445,8 +2456,10 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );
+#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 
     if( opt.cert_req_ca_list != DFL_CERT_REQ_CA_LIST )
         mbedtls_ssl_conf_cert_req_ca_list( &conf, opt.cert_req_ca_list );

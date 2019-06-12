@@ -1791,6 +1791,10 @@ PSA key derivation: unsupported key derivation algorithm
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_setup:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_CATEGORY_KEY_DERIVATION:"":"":42:PSA_ERROR_NOT_SUPPORTED
 
+PSA key derivation: HKDF-SHA-256, good case
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+derive_input:PSA_ALG_HKDF(PSA_ALG_SHA_256):PSA_KEY_TYPE_DERIVE:PSA_KEY_DERIVATION_INPUT_SALT:"":PSA_KEY_DERIVATION_INPUT_SECRET:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_KEY_DERIVATION_INPUT_INFO:"":PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS
+
 PSA key derivation: invalid state (double generate + read past capacity)
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 test_derive_invalid_key_derivation_state:

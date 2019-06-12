@@ -4791,7 +4791,7 @@ static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
 #endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
-static psa_status_t psa_key_derivation_input_raw(
+static psa_status_t psa_key_derivation_input_internal(
     psa_key_derivation_operation_t *operation,
     psa_key_derivation_step_t step,
     const uint8_t *data,
@@ -4856,8 +4856,8 @@ psa_status_t psa_key_derivation_input_bytes( psa_key_derivation_operation_t *ope
         case PSA_KEY_DERIVATION_INPUT_SALT:
         case PSA_KEY_DERIVATION_INPUT_INFO:
         case PSA_KEY_DERIVATION_INPUT_SEED:
-            return( psa_key_derivation_input_raw( operation, step,
-                                                  data, data_length ) );
+            return( psa_key_derivation_input_internal( operation, step,
+                                                       data, data_length ) );
         default:
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
@@ -4884,10 +4884,10 @@ psa_status_t psa_key_derivation_input_key( psa_key_derivation_operation_t *opera
      * and leak values derived from the key. So be conservative. */
     if( step != PSA_KEY_DERIVATION_INPUT_SECRET )
         return( PSA_ERROR_INVALID_ARGUMENT );
-    return( psa_key_derivation_input_raw( operation,
-                                          step,
-                                          slot->data.raw.data,
-                                          slot->data.raw.bytes ) );
+    return( psa_key_derivation_input_internal( operation,
+                                               step,
+                                               slot->data.raw.data,
+                                               slot->data.raw.bytes ) );
 }
 
 
@@ -4999,8 +4999,9 @@ static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *
 
     /* Step 2: set up the key derivation to generate key material from
      * the shared secret. */
-    status = psa_key_derivation_input_raw( operation, step,
-                                           shared_secret, shared_secret_length );
+    status = psa_key_derivation_input_internal( operation, step,
+                                                shared_secret,
+                                                shared_secret_length );
 
 exit:
     mbedtls_platform_zeroize( shared_secret, shared_secret_length );

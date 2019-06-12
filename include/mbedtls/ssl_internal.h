@@ -1085,6 +1085,23 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
  * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
  */
 
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
+static inline unsigned int mbedtls_ssl_conf_get_anti_replay(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->anti_replay );
+}
+#else /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
+static inline unsigned int mbedtls_ssl_conf_get_anti_replay(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_ANTI_REPLAY );
+}
+#endif /* MBEDTLS_SSL_CONF_ANTI_REPLAY */
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
+
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 static inline unsigned int mbedtls_ssl_conf_get_ems(
     mbedtls_ssl_config const *conf )

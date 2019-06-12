@@ -317,7 +317,8 @@ int main( void )
 #define USAGE_COOKIES ""
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) && \
+    !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
 #define USAGE_ANTI_REPLAY \
     "    anti_replay=0/1     default: (library default: enabled)\n"
 #else
@@ -1889,12 +1890,14 @@ int main( int argc, char *argv[] )
             if( opt.cookies < -1 || opt.cookies > 1)
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
         else if( strcmp( p, "anti_replay" ) == 0 )
         {
             opt.anti_replay = atoi( q );
             if( opt.anti_replay < 0 || opt.anti_replay > 1)
                 goto usage;
         }
+#endif /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
         else if( strcmp( p, "badmac_limit" ) == 0 )
         {
             opt.badmac_limit = atoi( q );
@@ -2580,7 +2583,8 @@ int main( int argc, char *argv[] )
             ; /* Nothing to do */
         }
 
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) && \
+    !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
         if( opt.anti_replay != DFL_ANTI_REPLAY )
             mbedtls_ssl_conf_dtls_anti_replay( &conf, opt.anti_replay );
 #endif

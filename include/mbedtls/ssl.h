@@ -1070,8 +1070,10 @@ struct mbedtls_ssl_config
 #endif /* !MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
     unsigned int anti_replay : 1;   /*!< detect and prevent replay?         */
-#endif
+#endif /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     unsigned int cbc_record_splitting : 1;  /*!< do cbc record splitting    */
 #endif
@@ -2016,14 +2018,16 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */
 
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) && \
+    !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
 /**
  * \brief          Enable or disable anti-replay protection for DTLS.
  *                 (DTLS only, no effect on TLS.)
  *                 Default: enabled.
  *
  * \param conf     SSL configuration
- * \param mode     MBEDTLS_SSL_ANTI_REPLAY_ENABLED or MBEDTLS_SSL_ANTI_REPLAY_DISABLED.
+ * \param mode     MBEDTLS_SSL_ANTI_REPLAY_ENABLED or
+ *                 MBEDTLS_SSL_ANTI_REPLAY_DISABLED.
  *
  * \warning        Disabling this is a security risk unless the application
  *                 protocol handles duplicated packets in a safe way. You
@@ -2031,9 +2035,13 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
  *                 However, if your application already detects duplicated
  *                 packets and needs information about them to adjust its
  *                 transmission strategy, then you'll want to disable this.
+ *
+ * \note            On constrained systems, this option can also be
+ *                  fixed at compile-time by defining the constant
+ *                  MBEDTLS_SSL_CONF_ANTI_REPLAY.
  */
 void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
-#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY && !MBEDTLS_SSL_CONF_ANTI_REPLAY */
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
 /**

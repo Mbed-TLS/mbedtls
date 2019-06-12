@@ -4322,8 +4322,11 @@ int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl )
     uint64_t rec_seqnum = ssl_load_six_bytes( ssl->in_ctr + 2 );
     uint64_t bit;
 
-    if( ssl->conf->anti_replay == MBEDTLS_SSL_ANTI_REPLAY_DISABLED )
+    if( mbedtls_ssl_conf_get_anti_replay( ssl->conf ) ==
+        MBEDTLS_SSL_ANTI_REPLAY_DISABLED )
+    {
         return( 0 );
+    }
 
     if( rec_seqnum > ssl->in_window_top )
         return( 0 );
@@ -4346,8 +4349,11 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl )
 {
     uint64_t rec_seqnum = ssl_load_six_bytes( ssl->in_ctr + 2 );
 
-    if( ssl->conf->anti_replay == MBEDTLS_SSL_ANTI_REPLAY_DISABLED )
+    if( mbedtls_ssl_conf_get_anti_replay( ssl->conf ) ==
+        MBEDTLS_SSL_ANTI_REPLAY_DISABLED )
+    {
         return;
+    }
 
     if( rec_seqnum > ssl->in_window_top )
     {
@@ -8054,12 +8060,13 @@ void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport )
     conf->transport = transport;
 }
 
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) && \
+    !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
 void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode )
 {
-    conf->anti_replay = mode;
+    conf->anti_replay   = mode;
 }
-#endif
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY && !MBEDTLS_SSL_CONF_ANTI_REPLAY */
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
 void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit )
@@ -10738,7 +10745,8 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->f_cookie_check = ssl_cookie_check_dummy;
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) && \
+    !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
     conf->anti_replay = MBEDTLS_SSL_ANTI_REPLAY_ENABLED;
 #endif
 

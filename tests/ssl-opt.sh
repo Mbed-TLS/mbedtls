@@ -544,6 +544,11 @@ check_cmdline_compat() {
                                "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET"
     check_cmdline_param_compat "enforce_extended_master_secret" \
                                "MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET"
+
+    # DTLS anti replay protection configuration
+    check_cmdline_param_compat "anti_replay" \
+                               "MBEDTLS_SSL_CONF_ANTI_REPLAY"
+
 }
 
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
@@ -7669,7 +7674,7 @@ run_test    "DTLS proxy: reference" \
 not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: duplicate every packet" \
             -p "$P_PXY duplicate=1" \
-            "$P_SRV dtls=1 dgram_packing=0 debug_level=2" \
+            "$P_SRV dtls=1 dgram_packing=0 debug_level=2 anti_replay=1" \
             "$P_CLI dtls=1 dgram_packing=0 debug_level=2" \
             0 \
             -c "replayed record" \

@@ -100,17 +100,6 @@ int main( void )
     "    permissive=%%d       default: 0 (disabled)\n"  \
     "\n"
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#define mbedtls_exit            exit
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 /*
  * global options

@@ -2845,6 +2845,7 @@ void mbedtls_ssl_conf_encrypt_then_mac( mbedtls_ssl_config *conf, char etm );
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+#if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
 /**
  * \brief           Enable or disable Extended Master Secret negotiation.
  *                  (Default: MBEDTLS_SSL_EXTENDED_MS_ENABLED)
@@ -2853,11 +2854,20 @@ void mbedtls_ssl_conf_encrypt_then_mac( mbedtls_ssl_config *conf, char etm );
  *                  protocol, and should not cause any interoperability issue
  *                  (used only if the peer supports it too).
  *
+ * \note            On constrained systems, this option can also be
+ *                  fixed at compile-time by defining the constant
+ *                  MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET
+ *                  as MBEDTLS_SSL_EXTENDED_MS_ENABLED or
+ *                  MBEDTLS_SSL_EXTENDED_MS_DISABLED.
+ *
  * \param conf      SSL configuration
- * \param ems       MBEDTLS_SSL_EXTENDED_MS_ENABLED or MBEDTLS_SSL_EXTENDED_MS_DISABLED
+ * \param ems       MBEDTLS_SSL_EXTENDED_MS_ENABLED or
+ *                  MBEDTLS_SSL_EXTENDED_MS_DISABLED
  */
 void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems );
+#endif /* !MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET */
 
+#if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
 /**
  * \brief           Enable or disable Extended Master Secret enforcing.
  *                  (Default: MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED)
@@ -2874,9 +2884,17 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  * \param conf      Currently used SSL configuration struct.
  * \param ems_enf   MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED or
  *                  MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED
+
+ * \note            On constrained systems, this option can also be
+ *                  fixed at compile-time by defining the constant
+ *                  MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET
+ *                  as MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED or
+ *                  MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED.
+ *
  */
 void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,
                                                       char ems_enf );
+#endif /* !MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 #if defined(MBEDTLS_ARC4_C)

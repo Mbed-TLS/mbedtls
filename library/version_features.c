@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-static const char *features[] = {
+static const char * const features[] = {
 #if defined(MBEDTLS_VERSION_FEATURES)
 #if defined(MBEDTLS_HAVE_ASM)
     "MBEDTLS_HAVE_ASM",
@@ -792,7 +792,7 @@ static const char *features[] = {
 
 int mbedtls_version_check_feature( const char *feature )
 {
-    const char **idx = features;
+    const char * const *idx = features;
 
     if( *idx == NULL )
         return( -2 );

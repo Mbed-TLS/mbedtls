@@ -1115,8 +1115,8 @@ static inline unsigned int mbedtls_ssl_conf_get_ems(
 #endif /* MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET */
 }
 
-static inline unsigned int
-mbedtls_ssl_conf_get_ems_enforced( mbedtls_ssl_config const *conf )
+static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
+    mbedtls_ssl_config const *conf )
 {
 #if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
     return( conf->enforce_extended_master_secret );

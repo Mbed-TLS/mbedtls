@@ -1132,10 +1132,18 @@ struct mbedtls_ssl_config
     unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
     unsigned char max_major_ver;    /*!< max. major version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
     unsigned char max_minor_ver;    /*!< max. minor version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
     unsigned char min_major_ver;    /*!< min. major version used            */
+#endif /* !MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
     unsigned char min_minor_ver;    /*!< min. minor version used            */
+#endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
 
     /*
      * Flags (bitfields)

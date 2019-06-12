@@ -1423,6 +1423,50 @@ static inline mbedtls_frng_t* mbedtls_ssl_conf_get_frng(
 }
 #endif /* MBEDTLS_SSL_CONF_RNG */
 
+static inline int mbedtls_ssl_conf_get_max_major_ver(
+    mbedtls_ssl_config const *conf )
+{
+#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
+    return( conf->max_major_ver );
+#else
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_MAX_MAJOR_VER );
+#endif /* MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
+}
+
+static inline int mbedtls_ssl_conf_get_min_major_ver(
+    mbedtls_ssl_config const *conf )
+{
+#if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
+    return( conf->min_major_ver );
+#else /* !MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_MIN_MAJOR_VER );
+#endif /* MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+}
+
+static inline int mbedtls_ssl_conf_get_max_minor_ver(
+    mbedtls_ssl_config const *conf )
+{
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
+    return( conf->max_minor_ver );
+#else /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_MAX_MINOR_VER );
+#endif /* MBEDTLS_SSL_CONF_MAX_MINOR_VER */
+}
+
+static inline int mbedtls_ssl_conf_get_min_minor_ver(
+    mbedtls_ssl_config const *conf )
+{
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
+    return( conf->min_minor_ver );
+#else /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_MIN_MINOR_VER );
+#endif /* MBEDTLS_SSL_CONF_MIN_MINOR_VER */
+}
+
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 static inline unsigned int mbedtls_ssl_conf_get_ems(
     mbedtls_ssl_config const *conf )

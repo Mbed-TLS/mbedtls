@@ -4705,7 +4705,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
-    if( minor_ver > ssl->conf->max_minor_ver )
+    if( minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "minor version mismatch" ) );
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
@@ -8717,14 +8717,42 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor )
 {
+#if defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER) && \
+    defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
+    ((void) conf);
+#endif
+
+#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
     conf->max_major_ver = major;
+#else
+    ((void) major);
+#endif /* MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
+
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
     conf->max_minor_ver = minor;
+#else
+    ((void) minor);
+#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
 }
 
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor )
 {
+#if defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) && \
+    defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
+    ((void) conf);
+#endif
+
+#if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
     conf->min_major_ver = major;
+#else
+    ((void) major);
+#endif /* MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
     conf->min_minor_ver = minor;
+#else
+    ((void) minor);
+#endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
 }
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
@@ -10961,10 +10989,18 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
          * NSA Suite B
          */
         case MBEDTLS_SSL_PRESET_SUITEB:
+#if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
             conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+#endif /* !MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
             conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3; /* TLS 1.2 */
+#endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
             conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
             conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
@@ -10991,21 +11027,28 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
          * Default
          */
         default:
+#if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
             conf->min_major_ver = ( MBEDTLS_SSL_MIN_MAJOR_VERSION >
                                     MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION ) ?
                                     MBEDTLS_SSL_MIN_MAJOR_VERSION :
                                     MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION;
+#endif /* !MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
             conf->min_minor_ver = ( MBEDTLS_SSL_MIN_MINOR_VERSION >
                                     MBEDTLS_SSL_MIN_VALID_MINOR_VERSION ) ?
                                     MBEDTLS_SSL_MIN_MINOR_VERSION :
                                     MBEDTLS_SSL_MIN_VALID_MINOR_VERSION;
-            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
-            conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
-
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
             if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( transport ) )
                 conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
 #endif
+#endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
+            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
+            conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =

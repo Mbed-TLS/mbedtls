@@ -1090,15 +1090,17 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     }
 
     ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-    ssl->minor_ver = ( buf[4] <= ssl->conf->max_minor_ver )
-                     ? buf[4]  : ssl->conf->max_minor_ver;
+    ssl->minor_ver =
+        ( buf[4] <= mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+        ? buf[4]  : mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
 
-    if( ssl->minor_ver < ssl->conf->min_minor_ver )
+    if( ssl->minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
                             " [%d:%d] < [%d:%d]",
                             ssl->major_ver, ssl->minor_ver,
-                            ssl->conf->min_major_ver, ssl->conf->min_minor_ver ) );
+                            mbedtls_ssl_conf_get_min_major_ver( ssl->conf ),
+                            mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ) );
 
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
@@ -1213,7 +1215,8 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
 
-            if( ssl->minor_ver < ssl->conf->max_minor_ver )
+            if( ssl->minor_ver <
+                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 
@@ -1624,25 +1627,26 @@ read_record_header:
     ssl->handshake->max_major_ver = ssl->major_ver;
     ssl->handshake->max_minor_ver = ssl->minor_ver;
 
-    if( ssl->major_ver < ssl->conf->min_major_ver ||
-        ssl->minor_ver < ssl->conf->min_minor_ver )
+    if( ssl->major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
+        ssl->minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
                             " [%d:%d] < [%d:%d]",
                             ssl->major_ver, ssl->minor_ver,
-                            ssl->conf->min_major_ver, ssl->conf->min_minor_ver ) );
+                            mbedtls_ssl_conf_get_min_major_ver( ssl->conf ),
+                            mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
         return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
     }
 
-    if( ssl->major_ver > ssl->conf->max_major_ver )
+    if( ssl->major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) )
     {
-        ssl->major_ver = ssl->conf->max_major_ver;
-        ssl->minor_ver = ssl->conf->max_minor_ver;
+        ssl->major_ver = mbedtls_ssl_conf_get_max_major_ver( ssl->conf );
+        ssl->minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
     }
-    else if( ssl->minor_ver > ssl->conf->max_minor_ver )
-        ssl->minor_ver = ssl->conf->max_minor_ver;
+    else if( ssl->minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+        ssl->minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
 
     /*
      * Save client random (inc. Unix time)
@@ -2019,7 +2023,8 @@ read_record_header:
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
 
-            if( ssl->minor_ver < ssl->conf->max_minor_ver )
+            if( ssl->minor_ver <
+                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 

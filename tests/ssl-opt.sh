@@ -549,6 +549,9 @@ check_cmdline_compat() {
     check_cmdline_param_compat "anti_replay" \
                                "MBEDTLS_SSL_CONF_ANTI_REPLAY"
 
+    # DTLS bad MAC limit
+    check_cmdline_param_compat "badmac_limit" \
+                               "MBEDTLS_SSL_CONF_BADMAC_LIMIT"
 }
 
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]

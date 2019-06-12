@@ -2586,6 +2586,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_ANTI_REPLAY */
 
+#if defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
+    if( strcmp( "MBEDTLS_SSL_CONF_BADMAC_LIMIT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_BADMAC_LIMIT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_BADMAC_LIMIT */
+
 #if defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
     if( strcmp( "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET", config ) == 0 )
     {

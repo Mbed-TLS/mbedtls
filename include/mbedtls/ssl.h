@@ -1029,7 +1029,9 @@ struct mbedtls_ssl_config
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
     unsigned int badmac_limit;      /*!< limit of records with a bad MAC    */
+#endif /* !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
@@ -2043,7 +2045,8 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY && !MBEDTLS_SSL_CONF_ANTI_REPLAY */
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) && \
+    !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
 /**
  * \brief          Set a limit on the number of records with a bad MAC
  *                 before terminating the connection.
@@ -2066,9 +2069,13 @@ void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
  *                 connection. On the other hand, a high limit or no limit
  *                 might make us waste resources checking authentication on
  *                 many bogus packets.
+ *
+ * \note           On constrained systems, this option can also be
+ *                 fixed at compile-time by defining the constant
+ *                 MBEDTLS_SSL_CONF_BADMAC_LIMIT.
  */
 void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit );
-#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT && !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 

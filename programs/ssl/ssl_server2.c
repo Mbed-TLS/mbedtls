@@ -325,7 +325,8 @@ int main( void )
 #define USAGE_ANTI_REPLAY ""
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) && \
+    !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
 #define USAGE_BADMAC_LIMIT \
     "    badmac_limit=%%d     default: (library default: disabled)\n"
 #else
@@ -1898,12 +1899,14 @@ int main( int argc, char *argv[] )
                 goto usage;
         }
 #endif /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
+#if !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
         else if( strcmp( p, "badmac_limit" ) == 0 )
         {
             opt.badmac_limit = atoi( q );
             if( opt.badmac_limit < 0 )
                 goto usage;
         }
+#endif /* !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
         else if( strcmp( p, "hs_timeout" ) == 0 )
         {
             if( ( p = strchr( q, '-' ) ) == NULL )
@@ -2589,7 +2592,8 @@ int main( int argc, char *argv[] )
             mbedtls_ssl_conf_dtls_anti_replay( &conf, opt.anti_replay );
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) && \
+    !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
         if( opt.badmac_limit != DFL_BADMAC_LIMIT )
             mbedtls_ssl_conf_dtls_badmac_limit( &conf, opt.badmac_limit );
 #endif

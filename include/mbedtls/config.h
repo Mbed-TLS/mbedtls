@@ -3450,8 +3450,9 @@
  * \{
  */
 
-/* DTLS Anti replay */
+/* DTLS-specific settings */
 //#define MBEDTLS_SSL_CONF_ANTI_REPLAY MBEDTLS_SSL_ANTI_REPLAY_ENABLED
+//#define MBEDTLS_SSL_CONF_BADMAC_LIMIT 0
 
 /* ExtendedMasterSecret extension
  * The following two options must be set/unset simultaneously. */

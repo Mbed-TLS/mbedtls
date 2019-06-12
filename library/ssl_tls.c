@@ -5780,8 +5780,8 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
                 }
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
-                if( ssl->conf->badmac_limit != 0 &&
-                    ++ssl->badmac_seen >= ssl->conf->badmac_limit )
+                if( mbedtls_ssl_conf_get_badmac_limit( ssl->conf ) != 0 &&
+                    ++ssl->badmac_seen >= mbedtls_ssl_conf_get_badmac_limit( ssl->conf ) )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 1, ( "too many records with bad MAC" ) );
                     return( MBEDTLS_ERR_SSL_INVALID_MAC );
@@ -8068,12 +8068,14 @@ void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode )
 }
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY && !MBEDTLS_SSL_CONF_ANTI_REPLAY */
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
-void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit )
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) && \
+    !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
+void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf,
+                                         unsigned limit )
 {
     conf->badmac_limit = limit;
 }
-#endif
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT && !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 

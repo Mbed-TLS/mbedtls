@@ -63,6 +63,18 @@
 #include "platform_time.h"
 #endif
 
+#if defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER) && \
+    defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) && \
+    ( MBEDTLS_SSL_CONF_MAX_MAJOR_VER == MBEDTLS_SSL_CONF_MIN_MAJOR_VER )
+#define MBEDTLS_SSL_CONF_FIXED_MAJOR_VER MBEDTLS_SSL_CONF_MIN_MAJOR_VER
+#endif
+
+#if defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) && \
+    defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) && \
+    ( MBEDTLS_SSL_CONF_MAX_MINOR_VER == MBEDTLS_SSL_CONF_MIN_MINOR_VER )
+#define MBEDTLS_SSL_CONF_FIXED_MINOR_VER MBEDTLS_SSL_CONF_MIN_MINOR_VER
+#endif
+
 /*
  * SSL Error codes
  */
@@ -1229,8 +1241,12 @@ struct mbedtls_ssl_context
                                   renego_max_records is < 0           */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
     int major_ver;              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_seen;       /*!< records with a bad MAC received    */

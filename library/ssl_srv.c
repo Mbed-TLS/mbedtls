@@ -1654,8 +1654,12 @@ read_record_header:
         else if( minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
             minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
 
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
         ssl->major_ver = major_ver;
+#endif /* MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
         ssl->minor_ver = minor_ver;
+#endif /* MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
     }
 
     /*

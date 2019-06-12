@@ -962,12 +962,22 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
 
 static inline int mbedtls_ssl_get_minor_ver( mbedtls_ssl_context const *ssl )
 {
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     return( ssl->minor_ver );
+#else /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
+    ((void) ssl);
+    return( MBEDTLS_SSL_CONF_FIXED_MINOR_VER );
+#endif /* MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
 }
 
 static inline int mbedtls_ssl_get_major_ver( mbedtls_ssl_context const *ssl )
 {
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
     return( ssl->major_ver );
+#else /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
+    ((void) ssl);
+    return( MBEDTLS_SSL_CONF_FIXED_MAJOR_VER );
+#endif /* MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

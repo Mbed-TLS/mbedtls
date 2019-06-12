@@ -850,8 +850,12 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
     if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
         ssl->major_ver = mbedtls_ssl_conf_get_min_major_ver( ssl->conf );
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
         ssl->minor_ver = mbedtls_ssl_conf_get_min_minor_ver( ssl->conf );
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
     }
 
     if( mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) == 0 )
@@ -1743,8 +1747,13 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
         }
 
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
         ssl->minor_ver = minor_ver;
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
+
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
         ssl->major_ver = major_ver;
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu",

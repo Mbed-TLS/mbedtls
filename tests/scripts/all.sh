@@ -685,6 +685,28 @@ component_test_rsa_no_crt () {
     if_build_succeeded tests/compat.sh -t RSA
 }
 
+component_test_entropy_force_sha256 () {
+    msg "build: Full + MBEDTLS_ENTROPY_FORCE_SHA256"
+    scripts/config.pl full
+    scripts/config.pl set MBEDTLS_ENTROPY_FORCE_SHA256
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Full + MBEDTLS_ENTROPY_FORCE_SHA256 - main suites"
+    make test
+
+    msg "test: Full + MBEDTLS_ENTROPY_FORCE_SHA256 - ssl-opt.sh smoke"
+    if_build_succeeded tests/ssl-opt.sh -f Default
+
+    # This component uses a smaller seedfile (32 bytes) than the other
+    # components (64 bytes). The NV seed read function ignores extra bytes,
+    # so this component runs normally with a larger seedfile. Re-create
+    # a larger seedfile for the sake of subsequent components.
+    rm tests/seedfile crypto/tests/seedfile
+    pre_check_seedfile
+}
+
 component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384

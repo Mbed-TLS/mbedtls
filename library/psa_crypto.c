@@ -4791,6 +4791,25 @@ static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
 #endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
+static psa_status_t psa_key_derivation_input_raw(
+    psa_key_derivation_operation_t *operation,
+    const uint8_t *data,
+    size_t data_length )
+{
+    if( operation->capacity != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    operation->ctx.buffer.data = mbedtls_calloc( 1, data_length );
+    if( operation->ctx.buffer.data == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    memcpy( operation->ctx.buffer.data, data, data_length );
+    operation->ctx.buffer.size = data_length;
+    operation->capacity = data_length;
+
+    return PSA_SUCCESS;
+}
+
 static psa_status_t psa_key_derivation_input_internal(
     psa_key_derivation_operation_t *operation,
     psa_key_derivation_step_t step,
@@ -4802,15 +4821,7 @@ static psa_status_t psa_key_derivation_input_internal(
 
     if( kdf_alg == PSA_ALG_SELECT_RAW )
     {
-        if( operation->capacity != 0 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        operation->ctx.buffer.data = mbedtls_calloc( 1, data_length );
-        if( operation->ctx.buffer.data == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-        memcpy( operation->ctx.buffer.data, data, data_length );
-        operation->ctx.buffer.size = data_length;
-        operation->capacity = data_length;
-        status = PSA_SUCCESS;
+        status = psa_key_derivation_input_raw( operation, data, data_length );
     }
     else
 #if defined(MBEDTLS_MD_C)

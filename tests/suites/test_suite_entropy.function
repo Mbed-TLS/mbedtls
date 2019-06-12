@@ -305,6 +305,10 @@ void entropy_nv_seed( char *read_seed_str )
 {
     mbedtls_sha512_context accumulator;
     mbedtls_entropy_context ctx;
+    int (*original_mbedtls_nv_seed_read)( unsigned char *buf, size_t buf_len ) =
+        mbedtls_nv_seed_read;
+    int (*original_mbedtls_nv_seed_write)( unsigned char *buf, size_t buf_len ) =
+        mbedtls_nv_seed_write;
 
     unsigned char header[2];
     unsigned char entropy[MBEDTLS_ENTROPY_BLOCK_SIZE];
@@ -373,7 +377,10 @@ void entropy_nv_seed( char *read_seed_str )
     TEST_ASSERT( memcmp( check_seed, buffer_seed, MBEDTLS_ENTROPY_BLOCK_SIZE ) == 0 );
     TEST_ASSERT( memcmp( check_entropy, entropy, MBEDTLS_ENTROPY_BLOCK_SIZE ) == 0 );
 
+exit:
     mbedtls_entropy_free( &ctx );
+    mbedtls_nv_seed_read = original_mbedtls_nv_seed_read;
+    mbedtls_nv_seed_write = original_mbedtls_nv_seed_write;
 }
 /* END_CASE */
 

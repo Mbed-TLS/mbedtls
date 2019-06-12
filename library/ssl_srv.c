@@ -1110,8 +1110,12 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
     }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||        \
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
     ssl->handshake->max_major_ver = buf[3];
     ssl->handshake->max_minor_ver = buf[4];
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 
     if( ( ret = mbedtls_ssl_fetch_input( ssl, 2 + n ) ) != 0 )
     {
@@ -1630,8 +1634,12 @@ read_record_header:
                                   ssl->conf->transport,
                                   buf );
 
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||        \
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
         ssl->handshake->max_major_ver = major_ver;
         ssl->handshake->max_minor_ver = minor_ver;
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 
         if( major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
             minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )

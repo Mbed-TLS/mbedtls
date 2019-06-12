@@ -514,8 +514,14 @@ struct mbedtls_ssl_handshake_params
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     int resume;                         /*!<  session resume indicator*/
 #endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
+
+#if defined(MBEDTLS_SSL_SRV_C) &&                        \
+    ( defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||       \
+      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ) )
     int max_major_ver;                  /*!< max. major version client*/
     int max_minor_ver;                  /*!< max. minor version client*/
+#endif /* MBEDTLS_SSL_SRV_C && ( MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ||
+                                 MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ) */
     int cli_exts;                       /*!< client extension presence*/
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

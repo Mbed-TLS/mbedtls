@@ -4771,19 +4771,37 @@ static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
     return( PSA_ERROR_INVALID_ARGUMENT );
 }
 #else
+static psa_status_t psa_tls12_prf_set_seed( psa_tls12_prf_key_derivation_t *prf,
+                                            const uint8_t *data,
+                                            size_t data_length )
+{
+    if( prf->state != TLS12_PRF_STATE_INIT )
+        return( PSA_ERROR_BAD_STATE );
+
+    prf->seed = mbedtls_calloc( 1, data_length );
+    if( prf->seed == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    memcpy( prf->seed, data, data_length );
+    prf->seed_length = data_length;
+
+    prf->state = TLS12_PRF_STATE_SEED_SET;
+
+    return( PSA_SUCCESS );
+}
+
 static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
                                          psa_algorithm_t hash_alg,
                                          psa_key_derivation_step_t step,
                                          const uint8_t *data,
                                          size_t data_length )
 {
-    (void) prf;
     (void) hash_alg;
-    (void) data;
-    (void) data_length;
 
     switch( step )
     {
+        case PSA_KEY_DERIVATION_INPUT_SEED:
+            return( psa_tls12_prf_set_seed( prf, data, data_length ) );
         default:
             return( PSA_ERROR_INVALID_ARGUMENT );
     }

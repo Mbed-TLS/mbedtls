@@ -1623,7 +1623,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         /* Write length only when we know the actual value */
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       p + 2, end - ( p + 2 ), &len,
-                                      ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                                      mbedtls_ssl_conf_get_frng( ssl->conf ),
+                                      ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
@@ -1644,7 +1645,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
                                        p + 2, end - ( p + 2 ),
-                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                                       mbedtls_ssl_conf_get_frng( ssl->conf ),
+                                       ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( ret );
@@ -3941,7 +3943,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
             if( ( ret = mbedtls_ssl_encrypt_buf( ssl, ssl->transform_out, &rec,
-                                         ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                                         mbedtls_ssl_conf_get_frng( ssl->conf ),
+                                         ssl->conf->p_rng ) ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_encrypt_buf", ret );
                 return( ret );
@@ -8185,6 +8188,7 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
 void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
@@ -8192,6 +8196,13 @@ void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
     conf->f_rng      = f_rng;
     conf->p_rng      = p_rng;
 }
+#else
+void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
+                               void *p_rng )
+{
+    conf->p_rng      = p_rng;
+}
+#endif
 
 void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
                   void (*f_dbg)(void *, int, const char *, int, const char *),

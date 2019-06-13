@@ -51,6 +51,8 @@
 
 /* ssl_client2 and ssl_server2 use CTR-DRBG so far. */
 #define MBEDTLS_CTR_DRBG_C
+#undef MBEDTLS_SSL_CONF_RNG
+#define MBEDTLS_SSL_CONF_RNG mbedtls_ctr_drbg_random
 
 /* The ticket implementation hardcodes AES-GCM */
 #define MBEDTLS_GCM_C

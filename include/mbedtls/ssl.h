@@ -902,8 +902,10 @@ struct mbedtls_ssl_config
     void (*f_dbg)(void *, int, const char *, int, const char *);
     void *p_dbg;                    /*!< context for the debug function     */
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
     /** Callback for getting (pseudo-)random numbers                        */
     int  (*f_rng)(void *, unsigned char *, size_t);
+#endif /* !MBEDTLS_SSL_CONF_RNG */
     void *p_rng;                    /*!< context for the RNG function       */
 
 #if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
@@ -1462,8 +1464,15 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      void *p_vrfy );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
 /**
  * \brief          Set the random number generator callback
+ *
+ * \note           On constrained systems, the RNG can also be
+ *                 configured at compile-time via the option
+ *                 MBEDTLS_SSL_CONF_RNG. In this case, the
+ *                 \p f_rng argument in this function has no
+ *                 effect.
  *
  * \param conf     SSL configuration
  * \param f_rng    RNG function
@@ -1472,6 +1481,16 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng );
+#else
+/**
+ * \brief          Set the random number generator callback context.
+ *
+ * \param conf     SSL configuration
+ * \param p_rng    RNG parameter
+ */
+void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
+                               void *p_rng );
+#endif
 
 /**
  * \brief          Set the debug callback

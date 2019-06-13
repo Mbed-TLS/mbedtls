@@ -3601,6 +3601,13 @@
 //#define MBEDTLS_SSL_CONF_CID_LEN 0
 //#define MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID MBEDTLS_SSL_UNEXPECTED_CID_IGNORE
 
+/* The PRNG to use by the SSL module. If defined, this must
+ * evaluate to the name on externally defined function with signature
+ * int (*f_rng)(void *, unsigned char *, size_t),
+ * e.g. mbedtls_ctr_drbg_random or mbedtls_hmac_drbg_random.
+ */
+//#define MBEDTLS_SSL_CONF_RNG mbedtls_ctr_drbg_random
+
 /* ExtendedMasterSecret extension
  * The following two options must be set/unset simultaneously. */
 //#define MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET MBEDTLS_SSL_EXTENDED_MS_ENABLED

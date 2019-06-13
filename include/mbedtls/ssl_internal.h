@@ -1289,6 +1289,27 @@ static inline unsigned int mbedtls_ssl_conf_get_anti_replay(
 #endif /* MBEDTLS_SSL_CONF_ANTI_REPLAY */
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
+typedef int (*mbedtls_frng_t)( void*, unsigned char*, size_t );
+
+#if !defined(MBEDTLS_SSL_CONF_RNG)
+static inline mbedtls_frng_t mbedtls_ssl_conf_get_frng(
+    mbedtls_ssl_config const *conf )
+{
+    return( conf->f_rng );
+}
+#else /* !MBEDTLS_SSL_CONF_RNG */
+
+#define mbedtls_ssl_conf_rng_func MBEDTLS_SSL_CONF_RNG
+extern int mbedtls_ssl_conf_rng_func( void*, unsigned char*, size_t );
+
+static inline mbedtls_frng_t mbedtls_ssl_conf_get_frng(
+    mbedtls_ssl_config const *conf )
+{
+    ((void) conf);
+    return ((mbedtls_frng_t*) mbedtls_ssl_conf_rng_func);
+}
+#endif /* MBEDTLS_SSL_CONF_RNG */
+
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 static inline unsigned int mbedtls_ssl_conf_get_ems(
     mbedtls_ssl_config const *conf )

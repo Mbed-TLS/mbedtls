@@ -209,7 +209,11 @@ int main( void )
         goto exit;
     }
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#else
+    mbedtls_ssl_conf_rng_ctx( &conf, &ctr_drbg );
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     mbedtls_ssl_conf_psk( &conf, psk, sizeof( psk ),

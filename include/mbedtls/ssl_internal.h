@@ -1085,6 +1085,21 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
  * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
  */
 
+#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
+static inline unsigned int mbedtls_ssl_conf_get_endpoint(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->endpoint );
+}
+#else /* !MBEDTLS_SSL_CONF_ENDPOINT */
+static inline unsigned int mbedtls_ssl_conf_get_endpoint(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_ENDPOINT );
+}
+#endif /* MBEDTLS_SSL_CONF_ENDPOINT */
+
 #if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
 static inline uint32_t mbedtls_ssl_conf_get_read_timeout(
     mbedtls_ssl_config  const *conf )

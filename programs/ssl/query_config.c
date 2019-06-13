@@ -2602,6 +2602,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
+#if defined(MBEDTLS_SSL_CONF_ENDPOINT)
+    if( strcmp( "MBEDTLS_SSL_CONF_ENDPOINT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_ENDPOINT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_ENDPOINT */
+
 #if defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
     if( strcmp( "MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN", config ) == 0 )
     {

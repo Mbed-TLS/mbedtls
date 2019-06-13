@@ -1055,7 +1055,9 @@ struct mbedtls_ssl_config
      * Flags (bitfields)
      */
 
+#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
     unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
+#endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
     unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
 #if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
     unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
@@ -1381,13 +1383,18 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
  */
 int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
 
+#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
 /**
  * \brief          Set the current endpoint type
+ *
+ * \note           On constrained systems, this can also be configured
+ *                 at compile-time via MBEDTLS_SSL_CONF_ENDPOINT.
  *
  * \param conf     SSL configuration
  * \param endpoint must be MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
  */
 void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
+#endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
 
 /**
  * \brief           Set the transport type (TLS or DTLS).

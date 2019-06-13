@@ -1015,14 +1015,20 @@ struct mbedtls_ssl_config
      * Numerical settings (int then char)
      */
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
     uint32_t read_timeout;          /*!< timeout for mbedtls_ssl_read (ms)  */
+#endif /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
     uint32_t hs_timeout_min;        /*!< initial value of the handshake
                                          retransmission timeout (ms)        */
+#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX)
     uint32_t hs_timeout_max;        /*!< maximum value of the handshake
                                          retransmission timeout (ms)        */
-#endif
+#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renego_max_records;         /*!< grace period for renegotiation     */
@@ -1692,6 +1698,7 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
 /**
  * \brief          Set the timeout period for mbedtls_ssl_read()
  *                 (Default: no timeout.)
@@ -1705,10 +1712,14 @@ void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
  *                 With non-blocking I/O, this will only work if timer
  *                 callbacks were set with \c mbedtls_ssl_set_timer_cb().
  *
+ * \note           On constrained systems, this option can also be configured
+ *                 at compile-time via MBEDTLS_SSL_CONF_READ_TIMEOUT.
+ *
  * \note           With non-blocking I/O, you may also skip this function
  *                 altogether and handle timeouts at the application layer.
  */
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
+#endif /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
 /**
  * \brief          Set the timer callbacks (Mandatory for DTLS.)

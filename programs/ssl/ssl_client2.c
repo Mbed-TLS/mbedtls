@@ -307,6 +307,13 @@ int main( void )
 #define USAGE_ALLOW_LEGACY_RENEGO ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
+#define USAGE_READ_TIMEOUT                              \
+    "    read_timeout=%%d     default: 0 ms (no timeout)\n"
+#else
+#define USAGE_READ_TIMEOUT ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -325,7 +332,7 @@ int main( void )
     "                        options: 1 (non-blocking), 2 (added delays)\n"   \
     "    event=%%d            default: 0 (loop)\n"                            \
     "                        options: 1 (level-triggered, implies nbio=1),\n" \
-    "    read_timeout=%%d     default: 0 ms (no timeout)\n"        \
+    USAGE_READ_TIMEOUT                                                  \
     "    max_resend=%%d       default: 0 (no resend on timeout)\n" \
     "\n"                                                    \
     USAGE_DTLS                                              \
@@ -921,8 +928,10 @@ int main( int argc, char *argv[] )
             if( opt.event < 0 || opt.event > 2 )
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
         else if( strcmp( p, "read_timeout" ) == 0 )
             opt.read_timeout = atoi( q );
+#endif
         else if( strcmp( p, "max_resend" ) == 0 )
         {
             opt.max_resend = atoi( q );
@@ -1769,7 +1778,9 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
     mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
+#endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     mbedtls_ssl_conf_session_tickets( &conf, opt.tickets );

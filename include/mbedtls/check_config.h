@@ -638,6 +638,13 @@
 #error "MBEDTLS_SSL_CONF_CID_LEN and MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID must be defined simultaneously"
 #endif
 
+#if (  defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN) &&       \
+      !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX) ) ||    \
+    ( !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN) &&       \
+       defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX) )
+#error "MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN and MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX must be defined simultaneously"
+#endif
+
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) &&                              \
     ( !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
 #error "MBEDTLS_SSL_DTLS_BADMAC_LIMIT  defined, but not all prerequisites"

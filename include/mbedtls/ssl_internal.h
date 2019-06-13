@@ -1085,6 +1085,53 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
  * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
  */
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
+static inline uint32_t mbedtls_ssl_conf_get_read_timeout(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->read_timeout );
+}
+#else /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
+static inline uint32_t mbedtls_ssl_conf_get_read_timeout(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_READ_TIMEOUT );
+}
+#endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
+static inline uint32_t mbedtls_ssl_conf_get_hs_timeout_min(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->hs_timeout_min );
+}
+#else /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+static inline uint32_t mbedtls_ssl_conf_get_hs_timeout_min(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN );
+}
+#endif /* MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX)
+static inline uint32_t mbedtls_ssl_conf_get_hs_timeout_max(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->hs_timeout_max );
+}
+#else /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+static inline uint32_t mbedtls_ssl_conf_get_hs_timeout_max(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX );
+}
+#endif /* MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #if !defined(MBEDTLS_SSL_CONF_CID_LEN)
 static inline size_t mbedtls_ssl_conf_get_cid_len(

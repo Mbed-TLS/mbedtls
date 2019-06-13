@@ -318,8 +318,11 @@ static int ssl_double_retransmit_timeout( mbedtls_ssl_context *ssl )
 {
     uint32_t new_timeout;
 
-    if( ssl->handshake->retransmit_timeout >= ssl->conf->hs_timeout_max )
+    if( ssl->handshake->retransmit_timeout >=
+        mbedtls_ssl_conf_get_hs_timeout_max( ssl->conf ) )
+    {
         return( -1 );
+    }
 
     /* Implement the final paragraph of RFC 6347 section 4.1.1.1
      * in the following way: after the initial transmission and a first
@@ -327,7 +330,8 @@ static int ssl_double_retransmit_timeout( mbedtls_ssl_context *ssl )
      * This value is guaranteed to be deliverable (if not guaranteed to be
      * delivered) of any compliant IPv4 (and IPv6) network, and should work
      * on most non-IP stacks too. */
-    if( ssl->handshake->retransmit_timeout != ssl->conf->hs_timeout_min )
+    if( ssl->handshake->retransmit_timeout !=
+        mbedtls_ssl_conf_get_hs_timeout_min( ssl->conf ) )
     {
         ssl->handshake->mtu = 508;
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "mtu autoreduction to %d bytes", ssl->handshake->mtu ) );
@@ -337,9 +341,9 @@ static int ssl_double_retransmit_timeout( mbedtls_ssl_context *ssl )
 
     /* Avoid arithmetic overflow and range overflow */
     if( new_timeout < ssl->handshake->retransmit_timeout ||
-        new_timeout > ssl->conf->hs_timeout_max )
+        new_timeout > mbedtls_ssl_conf_get_hs_timeout_max( ssl->conf ) )
     {
-        new_timeout = ssl->conf->hs_timeout_max;
+        new_timeout = mbedtls_ssl_conf_get_hs_timeout_max( ssl->conf );
     }
 
     ssl->handshake->retransmit_timeout = new_timeout;
@@ -351,7 +355,7 @@ static int ssl_double_retransmit_timeout( mbedtls_ssl_context *ssl )
 
 static void ssl_reset_retransmit_timeout( mbedtls_ssl_context *ssl )
 {
-    ssl->handshake->retransmit_timeout = ssl->conf->hs_timeout_min;
+    ssl->handshake->retransmit_timeout = mbedtls_ssl_conf_get_hs_timeout_min( ssl->conf );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "update timeout value to %d millisecs",
                         ssl->handshake->retransmit_timeout ) );
 }
@@ -3011,7 +3015,9 @@ static int ssl_resend_hello_request( mbedtls_ssl_context *ssl )
      * timeout if we were using the usual handshake doubling scheme */
     if( ssl->conf->renego_max_records < 0 )
     {
-        uint32_t ratio = ssl->conf->hs_timeout_max / ssl->conf->hs_timeout_min + 1;
+        uint32_t ratio =
+            mbedtls_ssl_conf_get_hs_timeout_max( ssl->conf ) /
+            mbedtls_ssl_conf_get_hs_timeout_min( ssl->conf ) + 1;
         unsigned char doublings = 1;
 
         while( ratio != 0 )
@@ -3152,7 +3158,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
             if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
                 timeout = ssl->handshake->retransmit_timeout;
             else
-                timeout = ssl->conf->read_timeout;
+                timeout = mbedtls_ssl_conf_get_read_timeout( ssl->conf );
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "f_recv_timeout: %u ms", timeout ) );
 
@@ -3227,8 +3233,8 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
                 if( ssl->f_recv_timeout != NULL )
                 {
                     ret = ssl->f_recv_timeout( ssl->p_bio,
-                                               ssl->in_hdr + ssl->in_left, len,
-                                               ssl->conf->read_timeout );
+                             ssl->in_hdr + ssl->in_left, len,
+                             mbedtls_ssl_conf_get_read_timeout( ssl->conf ) );
                 }
                 else
                 {
@@ -8103,13 +8109,27 @@ void mbedtls_ssl_set_datagram_packing( mbedtls_ssl_context *ssl,
     ssl->disable_datagram_packing = !allow_packing;
 }
 
+#if !( defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX) &&      \
+       defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN) )
 void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf,
                                          uint32_t min, uint32_t max )
 {
     conf->hs_timeout_min = min;
     conf->hs_timeout_max = max;
 }
-#endif
+#else /* !( MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN &&
+            MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX ) */
+void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf,
+                                         uint32_t min, uint32_t max )
+{
+    ((void) conf);
+    ((void) min);
+    ((void) max);
+}
+#endif /* MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN &&
+          MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode )
 {
@@ -8166,10 +8186,12 @@ void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu )
 }
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 {
     conf->read_timeout   = timeout;
 }
+#endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
 void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
                                void *p_timer,
@@ -9932,7 +9954,8 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         if( ssl->f_get_timer != NULL &&
             ssl->f_get_timer( ssl->p_timer ) == -1 )
         {
-            ssl_set_timer( ssl, ssl->conf->read_timeout );
+            ssl_set_timer( ssl,
+                           mbedtls_ssl_conf_get_read_timeout( ssl->conf ) );
         }
 
         if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
@@ -10784,9 +10807,13 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
     conf->hs_timeout_min = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN;
+#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX)
     conf->hs_timeout_max = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX;
-#endif
+#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     conf->renego_max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;

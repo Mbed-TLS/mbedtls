@@ -415,6 +415,13 @@ int main( void )
 #define USAGE_ALLOW_LEGACY_RENEGO ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
+#define USAGE_READ_TIMEOUT                              \
+    "    read_timeout=%%d     default: 0 ms (no timeout)\n"
+#else
+#define USAGE_READ_TIMEOUT ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -430,7 +437,7 @@ int main( void )
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
     "    event=%%d            default: 0 (loop)\n"                            \
     "                        options: 1 (level-triggered, implies nbio=1),\n" \
-    "    read_timeout=%%d     default: 0 ms (no timeout)\n"    \
+    USAGE_READ_TIMEOUT                                                  \
     "\n"                                                    \
     USAGE_DTLS                                              \
     USAGE_COOKIES                                           \
@@ -1575,8 +1582,10 @@ int main( int argc, char *argv[] )
             if( opt.event < 0 || opt.event > 2 )
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
         else if( strcmp( p, "read_timeout" ) == 0 )
             opt.read_timeout = atoi( q );
+#endif
         else if( strcmp( p, "buffer_size" ) == 0 )
         {
             opt.buffer_size = atoi( q );
@@ -2927,7 +2936,9 @@ reset:
         goto exit;
     }
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
     mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
+#endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )

@@ -2594,6 +2594,30 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_AUTHMODE */
 
+#if defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
+    if( strcmp( "MBEDTLS_SSL_CONF_READ_TIMEOUT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_READ_TIMEOUT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
+
+#if defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
+    if( strcmp( "MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+
+#if defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX)
+    if( strcmp( "MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+
 #if defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
     if( strcmp( "MBEDTLS_SSL_CONF_ANTI_REPLAY", config ) == 0 )
     {

@@ -4034,41 +4034,20 @@ void key_derivation_init( )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_PRE_1_0_KEY_DERIVATION */
-void derive_setup( int key_type_arg,
-                   data_t *key_data,
-                   int alg_arg,
-                   data_t *salt,
-                   data_t *label,
-                   int requested_capacity_arg,
-                   int expected_status_arg )
+/* BEGIN_CASE */
+void derive_setup( int alg_arg, int expected_status_arg )
 {
-    psa_key_handle_t handle = 0;
-    size_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
-    size_t requested_capacity = requested_capacity_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
-    psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, key_type );
-
-    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
-                                &handle ) );
-
-    TEST_EQUAL( psa_key_derivation( &operation, handle, alg,
-                                    salt->x, salt->len,
-                                    label->x, label->len,
-                                    requested_capacity ),
+    TEST_EQUAL( psa_key_derivation_setup( &operation, alg ),
                 expected_status );
 
 exit:
     psa_key_derivation_abort( &operation );
-    psa_destroy_key( handle );
     PSA_DONE( );
 }
 /* END_CASE */

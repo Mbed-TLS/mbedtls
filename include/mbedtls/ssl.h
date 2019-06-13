@@ -1183,8 +1183,12 @@ struct mbedtls_ssl_context
      */
     void *p_timer;              /*!< context for the timer callbacks */
 
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER)
     mbedtls_ssl_set_timer_t *f_set_timer;       /*!< set timer callback */
+#endif /* !MBEDTLS_SSL_CONF_SET_TIMER */
+#if !defined(MBEDTLS_SSL_CONF_GET_TIMER)
     mbedtls_ssl_get_timer_t *f_get_timer;       /*!< get timer callback */
+#endif /* !MBEDTLS_SSL_CONF_GET_TIMER */
 
     /*
      * Record layer (incoming data)
@@ -1779,6 +1783,8 @@ void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
 #endif /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
+    !defined(MBEDTLS_SSL_CONF_GET_TIMER)
 /**
  * \brief          Set the timer callbacks (Mandatory for DTLS.)
  *
@@ -1796,6 +1802,12 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
  *                 \c mbedtls_timing_get_delay() that are suitable for using
  *                 here, except if using an event-driven style.
  *
+ * \note           On constrained systems, the timer callbacks \p f_set_timer
+ *                 and \p f_get_timer may also be configured at compile-time
+ *                 via MBEDTLS_SSL_CONF_GET_TIMER and MBEDTLS_SSL_CONF_SET_TIMER.
+ *                 In this case, the corresponding arguments to this function
+ *                 are ignored.
+ *
  * \note           See also the "DTLS tutorial" article in our knowledge base.
  *                 https://tls.mbed.org/kb/how-to/dtls-tutorial
  */
@@ -1803,6 +1815,18 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
                                void *p_timer,
                                mbedtls_ssl_set_timer_t *f_set_timer,
                                mbedtls_ssl_get_timer_t *f_get_timer );
+#else
+/**
+ * \brief          Set the context to be passed to the timer callbacks
+ *                 (Mandatory for DTLS.)
+ *
+ * \param ssl      The SSL context to configure.
+ * \param p_timer  The context to be passed to the timer callbacks.
+ *
+ */
+void mbedtls_ssl_set_timer_cb_ctx( mbedtls_ssl_context *ssl,
+                                   void *p_timer );
+#endif
 
 /**
  * \brief           Callback type: generate and write session ticket

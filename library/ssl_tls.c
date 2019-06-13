@@ -81,11 +81,13 @@ static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
  */
 static void ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
 {
-    if( ssl->f_set_timer == NULL )
+    if( mbedtls_ssl_get_set_timer( ssl ) == NULL )
         return;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "set_timer to %d ms", (int) millisecs ) );
-    ssl->f_set_timer( ssl->p_timer, millisecs / 4, millisecs );
+    mbedtls_ssl_get_set_timer( ssl )( ssl->p_timer,
+                                           millisecs / 4,
+                                           millisecs );
 }
 
 /*
@@ -93,10 +95,10 @@ static void ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
  */
 static int ssl_check_timer( mbedtls_ssl_context *ssl )
 {
-    if( ssl->f_get_timer == NULL )
+    if( mbedtls_ssl_get_get_timer( ssl ) == NULL )
         return( 0 );
 
-    if( ssl->f_get_timer( ssl->p_timer ) == 2 )
+    if( mbedtls_ssl_get_get_timer( ssl )( ssl->p_timer ) == 2 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "timer expired" ) );
         return( -1 );
@@ -3084,7 +3086,8 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
         uint32_t timeout;
 
         /* Just to be sure */
-        if( ssl->f_set_timer == NULL || ssl->f_get_timer == NULL )
+        if( mbedtls_ssl_get_set_timer( ssl ) == NULL ||
+            mbedtls_ssl_get_get_timer( ssl ) == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "You must use "
                         "mbedtls_ssl_set_timer_cb() for DTLS" ) );
@@ -8254,6 +8257,8 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 }
 #endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
+    !defined(MBEDTLS_SSL_CONF_GET_TIMER)
 void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
                                void *p_timer,
                                mbedtls_ssl_set_timer_t *f_set_timer,
@@ -8262,10 +8267,18 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
     ssl->p_timer        = p_timer;
     ssl->f_set_timer    = f_set_timer;
     ssl->f_get_timer    = f_get_timer;
-
     /* Make sure we start with no timer running */
     ssl_set_timer( ssl, 0 );
 }
+#else
+void mbedtls_ssl_set_timer_cb_ctx( mbedtls_ssl_context *ssl,
+                               void *p_timer )
+{
+    ssl->p_timer        = p_timer;
+    /* Make sure we start with no timer running */
+    ssl_set_timer( ssl, 0 );
+}
+#endif
 
 #if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
 void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
@@ -10017,8 +10030,8 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     while( ssl->in_offt == NULL )
     {
         /* Start timer if not already running */
-        if( ssl->f_get_timer != NULL &&
-            ssl->f_get_timer( ssl->p_timer ) == -1 )
+        if( mbedtls_ssl_get_get_timer( ssl ) != NULL &&
+            mbedtls_ssl_get_get_timer( ssl )( ssl->p_timer ) == -1 )
         {
             ssl_set_timer( ssl,
                            mbedtls_ssl_conf_get_read_timeout( ssl->conf ) );

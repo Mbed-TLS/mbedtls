@@ -1915,8 +1915,13 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_TIMING_C)
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
+    !defined(MBEDTLS_SSL_CONF_GET_TIMER)
     mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
+#else
+    mbedtls_ssl_set_timer_cb_ctx( &ssl, &timer );
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2507,9 +2512,16 @@ send_request:
 
 #if defined(MBEDTLS_TIMING_C)
             if( opt.nbio != 0 && opt.read_timeout != 0 )
+            {
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
+    !defined(MBEDTLS_SSL_CONF_GET_TIMER)
                 mbedtls_ssl_set_timer_cb( &ssl, &timer,
                                           mbedtls_timing_set_delay,
                                           mbedtls_timing_get_delay );
+#else
+                mbedtls_ssl_set_timer_cb_ctx( &ssl, &timer );
+#endif
+            }
 #endif /* MBEDTLS_TIMING_C */
         }
 

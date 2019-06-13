@@ -93,6 +93,8 @@
 #define MBEDTLS_SSL_CONF_AUTHMODE MBEDTLS_SSL_VERIFY_REQUIRED
 #define MBEDTLS_SSL_CONF_BADMAC_LIMIT 0
 #define MBEDTLS_SSL_CONF_ANTI_REPLAY MBEDTLS_SSL_ANTI_REPLAY_ENABLED
+#define MBEDTLS_SSL_CONF_GET_TIMER mbedtls_timing_get_delay
+#define MBEDTLS_SSL_CONF_SET_TIMER mbedtls_timing_set_delay
 #define MBEDTLS_SSL_CONF_RECV mbedtls_net_recv
 #define MBEDTLS_SSL_CONF_SEND mbedtls_net_send
 #define MBEDTLS_SSL_CONF_RECV_TIMEOUT mbedtls_net_recv_timeout

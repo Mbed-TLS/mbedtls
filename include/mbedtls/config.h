@@ -3601,6 +3601,18 @@
 //#define MBEDTLS_SSL_CONF_CID_LEN 0
 //#define MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID MBEDTLS_SSL_UNEXPECTED_CID_IGNORE
 
+/* The timer callbacks to use by the SSL module.
+ * If defined,
+ * - MBEDTLS_SSL_CONF_SET_TIMER must evaluate to the name of an externally
+ *   defined function with signature
+ *      void (*f_set_timer)( void* , uint32_t, uint32_t ),
+ * * MBEDTLS_SSL_CONF_SEND must evaluate to the name of an externally
+ *   defined function with signature
+ *      int (*f_get_timer)( void* ).
+ */
+//#define MBEDTLS_SSL_CONF_GET_TIMER mbedtls_timing_get_delay
+//#define MBEDTLS_SSL_CONF_SET_TIMER mbedtls_timing_set_delay
+
 /* The send and receive callbacks to use by the SSL module.
  * If defined,
  * - MBEDTLS_SSL_CONF_RECV must evaluate to the name of an externally

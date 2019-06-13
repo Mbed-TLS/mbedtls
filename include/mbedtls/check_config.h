@@ -683,6 +683,13 @@
 #define "MBEDTLS_SSL_CONF_SEND/RECV/RECV_TIMEOUT must be defined simultaneously"
 #endif
 
+#if ( defined(MBEDTLS_SSL_CONF_GET_TIMER) &&            \
+      !defined(MBEDTLS_SSL_CONF_SET_TIMER) ) || \
+    ( !defined(MBEDTLS_SSL_CONF_GET_TIMER) &&           \
+      defined(MBEDTLS_SSL_CONF_SET_TIMER) )
+#define "MBEDTLS_SSL_CONF_GET_TIMER and MBEDTLS_SSL_CONF_SET_TIMER must be defined together."
+#endif
+
 #if defined(MBEDTLS_SSL_TICKET_C) && !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif

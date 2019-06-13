@@ -24,6 +24,14 @@ Features
      mbedtls_ssl_session_load() to allow serializing a session, for example to
      store it in non-volatile storage, and later using it for TLS session
      resumption.
+   * Add new API function mbedtls_ssl_conf_extended_master_secret_enforce() to
+     allow enforcing the usage of ExtendedMasterSecret extension. If the
+     extension is used and this option is enabled, handshakes not leading to
+     the use of the extended master secret will be aborted. On the server,
+     fail the handshake if client doesn't advertise the ExtendedMasterSecret
+     extension. On the client, fail the handshake if the server doesn't
+     consent to the use of the ExtendedMasterSecret extension in its
+     ServerHello.
 
 Bugfix
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

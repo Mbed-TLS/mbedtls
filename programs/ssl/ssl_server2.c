@@ -422,6 +422,14 @@ int main( void )
 #define USAGE_READ_TIMEOUT ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
+#define USAGE_CERT_REQ_CA_LIST                              \
+    "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
+    "                        options: 1 (send ca list), 0 (don't send)\n"
+#else
+#define USAGE_CERT_REQ_CA_LIST ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -445,8 +453,7 @@ int main( void )
     USAGE_BADMAC_LIMIT                                      \
     "\n"                                                    \
     USAGE_AUTH_MODE                                         \
-    "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
-    "                        options: 1 (send ca list), 0 (don't send)\n" \
+    USAGE_CERT_REQ_CA_LIST                                  \
     USAGE_IO                                                \
     USAGE_SSL_ASYNC                                         \
     USAGE_SNI                                               \
@@ -2479,8 +2486,10 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );
 #endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
     if( opt.cert_req_ca_list != DFL_CERT_REQ_CA_LIST )
         mbedtls_ssl_conf_cert_req_ca_list( &conf, opt.cert_req_ca_list );
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )

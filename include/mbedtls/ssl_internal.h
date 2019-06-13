@@ -1085,6 +1085,23 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
  * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
  */
 
+#if defined(MBEDTLS_SSL_SRV_C)
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
+static inline unsigned int mbedtls_ssl_conf_get_cert_req_ca_list(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->cert_req_ca_list );
+}
+#else /* !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
+static inline unsigned int mbedtls_ssl_conf_get_cert_req_ca_list(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST );
+}
+#endif /* MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
 static inline unsigned int mbedtls_ssl_conf_get_endpoint(
     mbedtls_ssl_config  const *conf )

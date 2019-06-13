@@ -1106,8 +1106,10 @@ struct mbedtls_ssl_config
     unsigned int fallback : 1;      /*!< is this a fallback?                */
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
     unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
+#endif /* !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #if !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
@@ -2965,11 +2967,14 @@ void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
 #endif /* MBEDTLS_ARC4_C */
 
-#if defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
 /**
  * \brief          Whether to send a list of acceptable CAs in
  *                 CertificateRequest messages.
  *                 (Default: do send)
+ *
+ * \note           On constrained systems, this options can also be configured
+ *                 at compile-time via MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST.
  *
  * \param conf     SSL configuration
  * \param cert_req_ca_list   MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED or
@@ -2977,7 +2982,7 @@ void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
  */
 void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
                                           char cert_req_ca_list );
-#endif /* MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**

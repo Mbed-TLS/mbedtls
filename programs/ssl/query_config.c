@@ -2610,6 +2610,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_ENDPOINT */
 
+#if defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
+    if( strcmp( "MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
+
 #if defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
     if( strcmp( "MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN", config ) == 0 )
     {

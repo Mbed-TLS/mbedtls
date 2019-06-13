@@ -2947,7 +2947,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
     total_dn_size = 0;
 
-    if( ssl->conf->cert_req_ca_list ==  MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED )
+    if( mbedtls_ssl_conf_get_cert_req_ca_list( ssl->conf )
+        == MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED )
     {
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         if( ssl->handshake->sni_ca_chain != NULL )

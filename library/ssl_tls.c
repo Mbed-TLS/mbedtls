@@ -8665,7 +8665,7 @@ void mbedtls_ssl_conf_fallback( mbedtls_ssl_config *conf, char fallback )
 }
 #endif
 
-#if defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
 void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
                                           char cert_req_ca_list )
 {
@@ -10829,8 +10829,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_C)
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
     conf->cert_req_ca_list = MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED;
-#endif
+#endif /* !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 #if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)

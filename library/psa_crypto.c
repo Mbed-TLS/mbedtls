@@ -4808,6 +4808,25 @@ static psa_status_t psa_tls12_prf_set_key( psa_tls12_prf_key_derivation_t *prf,
     return( PSA_SUCCESS );
 }
 
+static psa_status_t psa_tls12_prf_set_label( psa_tls12_prf_key_derivation_t *prf,
+                                             const uint8_t *data,
+                                             size_t data_length )
+{
+    if( prf->state != TLS12_PRF_STATE_KEY_SET )
+        return( PSA_ERROR_BAD_STATE );
+
+    prf->label = mbedtls_calloc( 1, data_length );
+    if( prf->label == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    memcpy( prf->label, data, data_length );
+    prf->label_length = data_length;
+
+    prf->state = TLS12_PRF_STATE_LABEL_SET;
+
+    return( PSA_SUCCESS );
+}
+
 static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
                                          psa_algorithm_t hash_alg,
                                          psa_key_derivation_step_t step,
@@ -4820,6 +4839,8 @@ static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
             return( psa_tls12_prf_set_seed( prf, data, data_length ) );
         case PSA_KEY_DERIVATION_INPUT_SECRET:
             return( psa_tls12_prf_set_key( prf, hash_alg, data, data_length ) );
+        case PSA_KEY_DERIVATION_INPUT_LABEL:
+            return( psa_tls12_prf_set_label( prf, data, data_length ) );
         default:
             return( PSA_ERROR_INVALID_ARGUMENT );
     }

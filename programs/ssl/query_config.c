@@ -2610,6 +2610,22 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_BADMAC_LIMIT */
 
+#if defined(MBEDTLS_SSL_CONF_CID_LEN)
+    if( strcmp( "MBEDTLS_SSL_CONF_CID_LEN", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_CID_LEN );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_CID_LEN */
+
+#if defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
+    if( strcmp( "MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
+
 #if defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
     if( strcmp( "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET", config ) == 0 )
     {

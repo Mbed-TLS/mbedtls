@@ -117,6 +117,9 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 /* Top-level Connection ID API */
 
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    !defined(MBEDTLS_SSL_CONF_CID_LEN) &&      \
+    !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
 int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf,
                           size_t len,
                           int ignore_other_cid )
@@ -134,6 +137,21 @@ int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf,
     conf->cid_len = len;
     return( 0 );
 }
+#else  /* MBEDTLS_SSL_DTLS_CONNECTION_ID &&
+          !MBEDTLS_SSL_CONF_CID_LEN &&
+          !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
+
+#if MBEDTLS_SSL_CONF_CID_LEN > MBEDTLS_SSL_CID_IN_LEN_MAX
+#error "Invalid hardcoded value for MBEDTLS_SSL_CONF_CID_LEN"
+#endif
+#if MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID != MBEDTLS_SSL_UNEXPECTED_CID_IGNORE && \
+    MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID != MBEDTLS_SSL_UNEXPECTED_CID_FAIL
+#error "Invalid hardcoded value for MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID"
+#endif
+
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID &&
+          !MBEDTLS_SSL_CONF_CID_LEN &&
+          !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
 int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          int enable,
@@ -152,11 +170,11 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Enable use of CID extension." ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "Own CID", own_cid, own_cid_len );
 
-    if( own_cid_len != ssl->conf->cid_len )
+    if( own_cid_len != mbedtls_ssl_conf_get_cid_len( ssl->conf ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "CID length %u does not match CID length %u in config",
                                     (unsigned) own_cid_len,
-                                    (unsigned) ssl->conf->cid_len ) );
+                                    (unsigned) mbedtls_ssl_conf_get_cid_len( ssl->conf ) ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -4617,7 +4635,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->in_msgtype      == MBEDTLS_SSL_MSG_CID            &&
-        ssl->conf->cid_len   != 0 )
+        mbedtls_ssl_conf_get_cid_len( ssl->conf ) != 0 )
     {
         /* Shift pointers to account for record header including CID
          * struct {
@@ -4634,7 +4652,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 
         /* So far, we only support static CID lengths
          * fixed in the configuration. */
-        ssl->in_len = ssl->in_cid + ssl->conf->cid_len;
+        ssl->in_len = ssl->in_cid + mbedtls_ssl_conf_get_cid_len( ssl->conf );
         ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
     }
     else
@@ -4863,8 +4881,8 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
             if( ret == MBEDTLS_ERR_SSL_UNEXPECTED_CID &&
-                ssl->conf->ignore_unexpected_cid
-                    == MBEDTLS_SSL_UNEXPECTED_CID_IGNORE )
+                mbedtls_ssl_conf_get_ignore_unexpected_cid( ssl->conf )
+                  == MBEDTLS_SSL_UNEXPECTED_CID_IGNORE )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "ignoring unexpected CID" ) );
                 ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;

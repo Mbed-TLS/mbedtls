@@ -957,7 +957,9 @@ struct mbedtls_ssl_config
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if !defined(MBEDTLS_SSL_CONF_CID_LEN)
     size_t cid_len; /*!< The length of CIDs for incoming DTLS records.      */
+#endif /* !MBEDTLS_SSL_CONF_CID_LEN */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -1100,9 +1102,11 @@ struct mbedtls_ssl_config
                                           Certificate Request messages?     */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
     unsigned int ignore_unexpected_cid : 1; /*!< Determines whether DTLS
                                              *   record with unexpected CID
                                              *   should lead to failure.    */
+#endif /* !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
@@ -2312,9 +2316,11 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    !defined(MBEDTLS_SSL_CONF_CID_LEN) &&      \
+    !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
 /**
  * \brief               Specify the length of Connection IDs for incoming
  *                      encrypted DTLS records, as well as the behaviour
@@ -2343,13 +2349,19 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
  *                      same SSL configuration; this allows simpler parsing of
  *                      record headers.
  *
+ * \note                On constrained systems, this configuration can also be
+ *                      fixed at compile-time via MBEDTLS_SSL_CONF_CID_LEN and
+ *                      MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID.
+ *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p own_cid_len
  *                      is too large.
  */
 int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
                           int ignore_other_cids );
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID &&
+          !MBEDTLS_SSL_CONF_CID_LEN &&
+          !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
 /**
  * \brief               Set the list of allowed ciphersuites and the

@@ -1085,6 +1085,38 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
  * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
  */
 
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if !defined(MBEDTLS_SSL_CONF_CID_LEN)
+static inline size_t mbedtls_ssl_conf_get_cid_len(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->cid_len );
+}
+#else /* !MBEDTLS_SSL_CONF_CID_LEN */
+static inline size_t mbedtls_ssl_conf_get_cid_len(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_CID_LEN );
+}
+#endif /* MBEDTLS_SSL_CONF_CID_LEN */
+
+#if !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
+static inline unsigned int mbedtls_ssl_conf_get_ignore_unexpected_cid(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->ignore_unexpected_cid );
+}
+#else /* !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
+static inline unsigned int mbedtls_ssl_conf_get_ignore_unexpected_cid(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID );
+}
+#endif /* MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
 #if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
 static inline unsigned int mbedtls_ssl_conf_get_allow_legacy_renegotiation(
     mbedtls_ssl_config  const *conf )

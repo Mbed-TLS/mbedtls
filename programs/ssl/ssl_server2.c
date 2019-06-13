@@ -2489,7 +2489,9 @@ int main( int argc, char *argv[] )
     };
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    !defined(MBEDTLS_SSL_CONF_CID_LEN) &&      \
+    !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
     if( opt.cid_enabled == 1 || opt.cid_enabled_renego == 1 )
     {
         if( opt.cid_enabled == 1        &&
@@ -2514,7 +2516,9 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID &&
+          !MBEDTLS_SSL_CONF_CID_LEN &&
+          !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )

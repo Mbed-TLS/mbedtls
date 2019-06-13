@@ -3457,6 +3457,8 @@
 /* DTLS-specific settings */
 //#define MBEDTLS_SSL_CONF_ANTI_REPLAY MBEDTLS_SSL_ANTI_REPLAY_ENABLED
 //#define MBEDTLS_SSL_CONF_BADMAC_LIMIT 0
+//#define MBEDTLS_SSL_CONF_CID_LEN 0
+//#define MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID MBEDTLS_SSL_UNEXPECTED_CID_IGNORE
 
 /* ExtendedMasterSecret extension
  * The following two options must be set/unset simultaneously. */

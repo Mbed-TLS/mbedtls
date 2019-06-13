@@ -617,7 +617,6 @@ component_test_large_ecdsa_key_signature () {
 
     msg "build: cmake + MBEDTLS_MPI_MAX_SIZE=${SMALL_MPI_MAX_SIZE}, gcc, ASan" # ~ 1 min 50s
     scripts/config.pl set MBEDTLS_MPI_MAX_SIZE $SMALL_MPI_MAX_SIZE
-    crypto/scripts/config.pl set MBEDTLS_MPI_MAX_SIZE $SMALL_MPI_MAX_SIZE
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 

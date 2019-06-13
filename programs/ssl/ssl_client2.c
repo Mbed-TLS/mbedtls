@@ -2393,7 +2393,8 @@ send_request:
             goto exit;
         }
 
-        if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf, buf_len, &buf_len ) ) != 0 )
+        if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf,
+                                              buf_len, &buf_len ) ) != 0 )
         {
             mbedtls_printf( "failed\n  ! mbedtls_ssl_context_save returned "
                             "-0x%x\n\n", -ret );
@@ -2409,28 +2410,31 @@ send_request:
 
             if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
             {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n",
-                                -ret );
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned "
+                                " -0x%x\n\n", -ret );
                 goto exit;
             }
 
             if( opt.nbio == 2 )
-                mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv, NULL );
+                mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv,
+                                     NULL );
             else
                 mbedtls_ssl_set_bio( &ssl, &server_fd,
-                                    mbedtls_net_send, mbedtls_net_recv,
-                                    opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+                            mbedtls_net_send, mbedtls_net_recv,
+                            opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
 
 #if defined(MBEDTLS_TIMING_C)
             if( opt.nbio != 0 && opt.read_timeout != 0 )
-            mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
-                                            mbedtls_timing_get_delay );
+                mbedtls_ssl_set_timer_cb( &ssl, &timer,
+                                          mbedtls_timing_set_delay,
+                                          mbedtls_timing_get_delay );
 #endif /* MBEDTLS_TIMING_C */
         }
 
         mbedtls_printf( " Deserializing connection..." );
 
-        if( ( ret = mbedtls_ssl_context_load( &ssl, context_buf, buf_len ) ) != 0 )
+        if( ( ret = mbedtls_ssl_context_load( &ssl, context_buf,
+                                              buf_len ) ) != 0 )
         {
             mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned "
                             "-0x%x\n\n", -ret );

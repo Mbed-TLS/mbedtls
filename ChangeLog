@@ -71,6 +71,8 @@ Changes
      Contributed by Peter Kolbus (Garmin).
    * Change wording in the `mbedtls_ssl_conf_max_frag_len()`'s documentation to
      improve clarity. Fixes #2258.
+   * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h
+     suggests). #2671
 
 = mbed TLS 2.17.0 branch released 2019-03-19
 

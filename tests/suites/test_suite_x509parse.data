@@ -1464,8 +1464,11 @@ X509 CRT ASN1 (TBS, inv SubPubKeyInfo, check failed, expanded length notation)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 x509parse_crt:"308196308180a0030201008204deadbeef300d06092a864886f70d01010b0500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210fffffffffffffffffffffffffffffffe0202ffff300d06092a864886f70d01010b0500030200ff":"":MBEDTLS_ERR_PK_INVALID_PUBKEY
 
-# We don't expect MBEDTLS_ERR_ASN1_UNEXPECTED_TAG here because the IssuerID is optional;
-# the stack is expected to ignore it and will hence end up with a length mismatch.
+# We expect an extension parsing error here because the IssuerID is optional.
+# Hence, if we find an ASN.1 tag doesn't match the IssuerID, we assume the
+# IssuerID is skipped and that the tag should hence belong to the next field,
+# namely the v3 extensions. However, the tag the test exercises is a NULL tag,
+# and hence we obtain an INVALID_TAG error during extension parsing.
 X509 CRT ASN1 (TBS, inv IssuerID, inv tag)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 x509parse_crt:"308198308182a0030201028204deadbeef300d06092a864886f70d01010b0500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff0500300d06092a864886f70d01010b0500030200ff":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG

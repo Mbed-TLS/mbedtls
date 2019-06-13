@@ -2706,6 +2706,30 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
+#if defined(MBEDTLS_SSL_CONF_RECV)
+    if( strcmp( "MBEDTLS_SSL_CONF_RECV", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_RECV );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_RECV */
+
+#if defined(MBEDTLS_SSL_CONF_SEND)
+    if( strcmp( "MBEDTLS_SSL_CONF_SEND", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_SEND );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_SEND */
+
+#if defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
+    if( strcmp( "MBEDTLS_SSL_CONF_RECV_TIMEOUT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_RECV_TIMEOUT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_RECV_TIMEOUT */
+
 #if defined(MBEDTLS_SSL_CONF_RNG)
     if( strcmp( "MBEDTLS_SSL_CONF_RNG", config ) == 0 )
     {

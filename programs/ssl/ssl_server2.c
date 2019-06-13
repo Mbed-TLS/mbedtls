@@ -597,6 +597,10 @@ static void my_debug( void *ctx, int level,
     fflush(  (FILE *) ctx  );
 }
 
+
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
 /*
  * Test recv/send functions that make sure each try returns
  * WANT_READ/WANT_WRITE at least once before sucesseding
@@ -634,6 +638,9 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
         first_try = 1; /* Next call will be a new operation */
     return( ret );
 }
+#endif /* MBEDTLS_SSL_CONF_RECV &&
+          MBEDTLS_SSL_CONF_SEND &&
+          MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
 #if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
 /*
@@ -2859,11 +2866,18 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
     if( opt.nbio == 2 )
         mbedtls_ssl_set_bio( &ssl, &client_fd, my_send, my_recv, NULL );
     else
-        mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv,
+        mbedtls_ssl_set_bio( &ssl, &client_fd,
+                             mbedtls_net_send, mbedtls_net_recv,
                              opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+#else
+     mbedtls_ssl_set_bio_ctx( &ssl, &client_fd );
+#endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )

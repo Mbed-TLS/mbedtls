@@ -3601,6 +3601,22 @@
 //#define MBEDTLS_SSL_CONF_CID_LEN 0
 //#define MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID MBEDTLS_SSL_UNEXPECTED_CID_IGNORE
 
+/* The send and receive callbacks to use by the SSL module.
+ * If defined,
+ * - MBEDTLS_SSL_CONF_RECV must evaluate to the name of an externally
+ *   defined function with signature
+ *      int (*f_recv)( void*, unsigned char *, size_t ),
+ * * MBEDTLS_SSL_CONF_SEND must evaluate to the name of an externally
+ *   defined function with signature
+ *      int (*f_send)( void*, const unsigned char *, size_t ),
+ * * MBEDTLS_SSL_CONF_RECV_TIMEOUT must evaluate to the name of an
+ * externally defined function with signature
+ *      int (*f_recv_timeout)( void*, const unsigned char *, size_t, uint32_t ).
+ */
+//#define MBEDTLS_SSL_CONF_RECV mbedtls_net_recv
+//#define MBEDTLS_SSL_CONF_SEND mbedtls_net_send
+//#define MBEDTLS_SSL_CONF_RECV_TIMEOUT mbedtls_net_recv_timeout
+
 /* The PRNG to use by the SSL module. If defined, this must
  * evaluate to the name on externally defined function with signature
  * int (*f_rng)(void *, unsigned char *, size_t),

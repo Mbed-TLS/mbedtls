@@ -1146,9 +1146,15 @@ struct mbedtls_ssl_context
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
 #endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
+#if !defined(MBEDTLS_SSL_CONF_SEND)
     mbedtls_ssl_send_t *f_send; /*!< Callback for network send */
+#endif /* !MBEDTLS_SSL_CONF_SEND */
+#if !defined(MBEDTLS_SSL_CONF_RECV)
     mbedtls_ssl_recv_t *f_recv; /*!< Callback for network receive */
+#endif /* !MBEDTLS_SSL_CONF_RECV */
+#if !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
     mbedtls_ssl_recv_timeout_t *f_recv_timeout;
+#endif /* !MBEDTLS_SSL_CONF_RECV_TIMEOUT */
                                 /*!< Callback for network receive with timeout */
 
     void *p_bio;                /*!< context for I/O operations   */
@@ -1510,6 +1516,9 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
                   void (*f_dbg)(void *, int, const char *, int, const char *),
                   void  *p_dbg );
 
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
 /**
  * \brief          Set the underlying BIO callbacks for write, read and
  *                 read-with-timeout.
@@ -1535,6 +1544,13 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
  *                 \c mbedtls_ssl_recv_t and \c mbedtls_ssl_recv_timeout_t for
  *                 the conventions those callbacks must follow.
  *
+ * \note           On constrained systems, the pointers \p f_send, \p f_recv,
+ *                 and \p f_recv_timeout can also be configured at compile-time
+ *                 via the macros MBEDTLS_SSL_CONF_RECV, MBEDTLS_SSL_CONF_SEND
+ *                 and MBEDTLS_SSL_CONF_RECV_TIMEOUT. In this case, the
+ *                 corresponding parameters to this function don't take
+ *                 any effect.
+ *
  * \note           On some platforms, net_sockets.c provides
  *                 \c mbedtls_net_send(), \c mbedtls_net_recv() and
  *                 \c mbedtls_net_recv_timeout() that are suitable to be used
@@ -1545,6 +1561,18 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
                           mbedtls_ssl_send_t *f_send,
                           mbedtls_ssl_recv_t *f_recv,
                           mbedtls_ssl_recv_timeout_t *f_recv_timeout );
+#else
+/**
+ * \brief          Set the context to be passed to the underlying BIO callbacks
+ *                 for write, read and read-with-timeout.
+ *
+ * \param ssl      The SSL context to configure.
+ * \param p_bio    The parameter (context) to be used for the BIO callbacks.
+ *
+ */
+void mbedtls_ssl_set_bio_ctx( mbedtls_ssl_context *ssl,
+                              void *p_bio );
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 

@@ -3064,7 +3064,8 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> fetch input" ) );
 
-    if( ssl->f_recv == NULL && ssl->f_recv_timeout == NULL )
+    if( mbedtls_ssl_get_recv( ssl ) == NULL &&
+        mbedtls_ssl_get_recv_timeout( ssl ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
                             "or mbedtls_ssl_set_bio()" ) );
@@ -3166,11 +3167,16 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "f_recv_timeout: %u ms", timeout ) );
 
-            if( ssl->f_recv_timeout != NULL )
-                ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len,
-                                                                    timeout );
+            if( mbedtls_ssl_get_recv_timeout( ssl ) != NULL )
+            {
+                ret = mbedtls_ssl_get_recv_timeout( ssl )
+                    ( ssl->p_bio, ssl->in_hdr, len, timeout );
+            }
             else
-                ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
+            {
+                ret = mbedtls_ssl_get_recv( ssl )
+                    ( ssl->p_bio, ssl->in_hdr, len );
+            }
 
             MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_recv(_timeout)", ret );
 
@@ -3235,15 +3241,15 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
                 ret = MBEDTLS_ERR_SSL_TIMEOUT;
             else
             {
-                if( ssl->f_recv_timeout != NULL )
+                if( mbedtls_ssl_get_recv_timeout( ssl ) != NULL )
                 {
-                    ret = ssl->f_recv_timeout( ssl->p_bio,
-                             ssl->in_hdr + ssl->in_left, len,
-                             mbedtls_ssl_conf_get_read_timeout( ssl->conf ) );
+                    ret = mbedtls_ssl_get_recv_timeout( ssl )( ssl->p_bio,
+                       ssl->in_hdr + ssl->in_left, len,
+                       mbedtls_ssl_conf_get_read_timeout( ssl->conf ) );
                 }
                 else
                 {
-                    ret = ssl->f_recv( ssl->p_bio,
+                    ret = mbedtls_ssl_get_recv( ssl )( ssl->p_bio,
                                        ssl->in_hdr + ssl->in_left, len );
                 }
             }
@@ -3286,7 +3292,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> flush output" ) );
 
-    if( ssl->f_send == NULL )
+    if( mbedtls_ssl_get_send( ssl ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
                             "or mbedtls_ssl_set_bio()" ) );
@@ -3306,7 +3312,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
                        mbedtls_ssl_out_hdr_len( ssl ) + ssl->out_msglen, ssl->out_left ) );
 
         buf = ssl->out_hdr - ssl->out_left;
-        ret = ssl->f_send( ssl->p_bio, buf, ssl->out_left );
+        ret = mbedtls_ssl_get_send( ssl )( ssl->p_bio, buf, ssl->out_left );
 
         MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_send", ret );
 
@@ -4581,7 +4587,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
         /* Don't check write errors as we can't do anything here.
          * If the error is permanent we'll catch it later,
          * if it's not, then hopefully it'll work next time. */
-        (void) ssl->f_send( ssl->p_bio, ssl->out_buf, len );
+        (void) mbedtls_ssl_get_send( ssl )( ssl->p_bio, ssl->out_buf, len );
 
         return( MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED );
     }
@@ -8212,17 +8218,27 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
     conf->p_dbg      = p_dbg;
 }
 
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
 void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
         void *p_bio,
         mbedtls_ssl_send_t *f_send,
         mbedtls_ssl_recv_t *f_recv,
         mbedtls_ssl_recv_timeout_t *f_recv_timeout )
 {
-    ssl->p_bio          = p_bio;
-    ssl->f_send         = f_send;
-    ssl->f_recv         = f_recv;
+    ssl->p_bio = p_bio;
+    ssl->f_send = f_send;
+    ssl->f_recv = f_recv;
     ssl->f_recv_timeout = f_recv_timeout;
 }
+#else
+void mbedtls_ssl_set_bio_ctx( mbedtls_ssl_context *ssl,
+                              void *p_bio )
+{
+    ssl->p_bio = p_bio;
+}
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu )

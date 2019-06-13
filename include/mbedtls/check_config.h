@@ -671,6 +671,18 @@
 #define "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET and MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET must be defined together."
 #endif
 
+#if ( defined(MBEDTLS_SSL_CONF_SEND) &&                 \
+      !( defined(MBEDTLS_SSL_CONF_RECV) &&              \
+         defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT) ) ) ||  \
+    ( defined(MBEDTLS_SSL_CONF_RECV) &&                 \
+      !( defined(MBEDTLS_SSL_CONF_SEND) &&              \
+         defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT) ) ) ||  \
+    ( defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT) &&         \
+      !( defined(MBEDTLS_SSL_CONF_SEND) &&              \
+         defined(MBEDTLS_SSL_CONF_RECV) ) )
+#define "MBEDTLS_SSL_CONF_SEND/RECV/RECV_TIMEOUT must be defined simultaneously"
+#endif
+
 #if defined(MBEDTLS_SSL_TICKET_C) && !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif

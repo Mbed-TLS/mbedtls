@@ -4790,18 +4790,36 @@ static psa_status_t psa_tls12_prf_set_seed( psa_tls12_prf_key_derivation_t *prf,
     return( PSA_SUCCESS );
 }
 
+static psa_status_t psa_tls12_prf_set_key( psa_tls12_prf_key_derivation_t *prf,
+                                           psa_algorithm_t hash_alg,
+                                           const uint8_t *data,
+                                           size_t data_length )
+{
+    psa_status_t status;
+    if( prf->state != TLS12_PRF_STATE_SEED_SET )
+        return( PSA_ERROR_BAD_STATE );
+
+    status = psa_hmac_setup_internal( &prf->hmac, data, data_length, hash_alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    prf->state = TLS12_PRF_STATE_KEY_SET;
+
+    return( PSA_SUCCESS );
+}
+
 static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
                                          psa_algorithm_t hash_alg,
                                          psa_key_derivation_step_t step,
                                          const uint8_t *data,
                                          size_t data_length )
 {
-    (void) hash_alg;
-
     switch( step )
     {
         case PSA_KEY_DERIVATION_INPUT_SEED:
             return( psa_tls12_prf_set_seed( prf, data, data_length ) );
+        case PSA_KEY_DERIVATION_INPUT_SECRET:
+            return( psa_tls12_prf_set_key( prf, hash_alg, data, data_length ) );
         default:
             return( PSA_ERROR_INVALID_ARGUMENT );
     }

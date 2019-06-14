@@ -41,6 +41,11 @@ Bugfix
    * Add DER-encoded test CRTs to library/certs.c, allowing
      the example programs ssl_server2 and ssl_client2 to be run
      if MBEDTLS_FS_IO and MBEDTLS_PEM_PARSE_C are unset. Fixes #2254.
+   * Fix missing bounds checks in X.509 parsing functions that could
+     lead to successful parsing of ill-formed X.509 CRTs. Fixes #2437.
+   * Fix multiple X.509 functions previously returning ASN.1 low-level error
+     codes to always wrap these codes into X.509 high level error codes before
+     returning. Fixes #2431.
 
 Changes
    * Return from various debugging routines immediately if the

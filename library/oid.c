@@ -283,15 +283,15 @@ static const oid_x509_ext_t oid_x509_ext[] =
         MBEDTLS_X509_EXT_KEY_USAGE,
     },
     {
-        OID_DESCRIPTOR( MBEDTLS_OID_EXTENDED_KEY_USAGE, "id-ce-extKeyUsage", "Extended Key Usage" ),
+        OID_DESCRIPTOR( MBEDTLS_OID_EXTENDED_KEY_USAGE,   "id-ce-extKeyUsage",        "Extended Key Usage" ),
         MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE,
     },
     {
-        OID_DESCRIPTOR( MBEDTLS_OID_SUBJECT_ALT_NAME, "id-ce-subjectAltName", "Subject Alt Name" ),
+        OID_DESCRIPTOR( MBEDTLS_OID_SUBJECT_ALT_NAME,     "id-ce-subjectAltName",     "Subject Alt Name" ),
         MBEDTLS_X509_EXT_SUBJECT_ALT_NAME,
     },
     {
-        OID_DESCRIPTOR( MBEDTLS_OID_NS_CERT_TYPE, "id-netscape-certtype", "Netscape Certificate Type" ),
+        OID_DESCRIPTOR( MBEDTLS_OID_NS_CERT_TYPE,         "id-netscape-certtype",     "Netscape Certificate Type" ),
         MBEDTLS_X509_EXT_NS_CERT_TYPE,
     },
     {
@@ -446,15 +446,15 @@ typedef struct {
 static const oid_pk_alg_t oid_pk_alg[] =
 {
     {
-        OID_DESCRIPTOR( MBEDTLS_OID_PKCS1_RSA,      "rsaEncryption",   "RSA" ),
+        OID_DESCRIPTOR( MBEDTLS_OID_PKCS1_RSA,           "rsaEncryption",    "RSA" ),
         MBEDTLS_PK_RSA,
     },
     {
-        OID_DESCRIPTOR( MBEDTLS_OID_EC_ALG_UNRESTRICTED,  "id-ecPublicKey",   "Generic EC key" ),
+        OID_DESCRIPTOR( MBEDTLS_OID_EC_ALG_UNRESTRICTED, "id-ecPublicKey",   "Generic EC key" ),
         MBEDTLS_PK_ECKEY,
     },
     {
-        OID_DESCRIPTOR( MBEDTLS_OID_EC_ALG_ECDH,          "id-ecDH",          "EC key for ECDH" ),
+        OID_DESCRIPTOR( MBEDTLS_OID_EC_ALG_ECDH,         "id-ecDH",          "EC key for ECDH" ),
         MBEDTLS_PK_ECKEY_DH,
     },
     {

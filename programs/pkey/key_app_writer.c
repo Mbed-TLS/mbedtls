@@ -39,7 +39,6 @@
 #if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
-#include "mbedtls/error.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -88,12 +87,13 @@
     USAGE_OUT                                           \
     "\n"
 
-#if !defined(MBEDTLS_PK_PARSE_C) || \
+#if !defined(MBEDTLS_ERROR_C) || \
+    !defined(MBEDTLS_PK_PARSE_C) || \
     !defined(MBEDTLS_PK_WRITE_C) || \
     !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    mbedtls_printf( "MBEDTLS_PK_PARSE_C and/or MBEDTLS_PK_WRITE_C and/or MBEDTLS_FS_IO not defined.\n" );
+    mbedtls_printf( "MBEDTLS_ERROR_C and/or MBEDTLS_PK_PARSE_C and/or MBEDTLS_PK_WRITE_C and/or MBEDTLS_FS_IO not defined.\n" );
     return( 0 );
 }
 #else
@@ -438,4 +438,4 @@ exit:
 
     return( exit_code );
 }
-#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C && MBEDTLS_FS_IO */
+#endif /* MBEDTLS_ERROR_C && MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C && MBEDTLS_FS_IO */

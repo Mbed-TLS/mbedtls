@@ -4053,6 +4053,28 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void derive_set_capacity( int alg_arg, int capacity_arg,
+                          int expected_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    size_t capacity = capacity_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
+
+    TEST_EQUAL( psa_key_derivation_set_capacity( &operation, capacity ),
+                expected_status );
+
+exit:
+    psa_key_derivation_abort( &operation );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void derive_input( int alg_arg,
                    int key_type_arg,
                    int step1_arg, data_t *input1,

@@ -4851,17 +4851,11 @@ psa_status_t psa_key_derivation_input_bytes( psa_key_derivation_operation_t *ope
                                              const uint8_t *data,
                                              size_t data_length )
 {
-    switch( step )
-    {
-        case PSA_KEY_DERIVATION_INPUT_LABEL:
-        case PSA_KEY_DERIVATION_INPUT_SALT:
-        case PSA_KEY_DERIVATION_INPUT_INFO:
-        case PSA_KEY_DERIVATION_INPUT_SEED:
-            return( psa_key_derivation_input_internal( operation, step,
-                                                       data, data_length ) );
-        default:
-            return( PSA_ERROR_INVALID_ARGUMENT );
-    }
+    if( step == PSA_KEY_DERIVATION_INPUT_SECRET )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    return( psa_key_derivation_input_internal( operation, step,
+                                               data, data_length ) );
 }
 
 psa_status_t psa_key_derivation_input_key( psa_key_derivation_operation_t *operation,

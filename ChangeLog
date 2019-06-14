@@ -47,6 +47,9 @@ Changes
      Contributed by Peter Kolbus (Garmin).
    * Change wording in the `mbedtls_ssl_conf_max_frag_len()`'s documentation to
      improve clarity. Fixes #2258.
+   * Improve debug output of ssl_client2 and ssl_server2 in case suitable
+     test CRTs are available because MBEDTLS_PEM_PARSE_C is disabled.
+     Fixes #2254.
 
 = mbed TLS 2.7.10 branch released 2019-03-19
 

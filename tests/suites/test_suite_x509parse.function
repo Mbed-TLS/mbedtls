@@ -15,6 +15,15 @@ than the current threshold 19. To test larger values, please \
 adapt the script tests/data_files/dir-max/long.sh."
 #endif
 
+/* Test-only profile allowing all digests, PK algorithms, and curves. */
+const mbedtls_x509_crt_profile profile_all =
+{
+    0xFFFFFFFF, /* Any MD        */
+    0xFFFFFFFF, /* Any PK alg    */
+    0xFFFFFFFF, /* Any curve     */
+    1024,
+};
+
 /* Profile for backward compatibility. Allows SHA-1, unlike the default
    profile. */
 const mbedtls_x509_crt_profile compat_profile =
@@ -349,6 +358,8 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
         profile = &mbedtls_x509_crt_profile_suiteb;
     else if( strcmp( profile_str, "compat" ) == 0 )
         profile = &compat_profile;
+    else if( strcmp( profile_str, "all" ) == 0 )
+        profile = &profile_all;
     else
         TEST_ASSERT( "Unknown algorithm profile" == 0 );
 

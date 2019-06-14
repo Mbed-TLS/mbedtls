@@ -51,6 +51,7 @@ Changes
      Contributed by Peter Kolbus (Garmin).
    * Change wording in the `mbedtls_ssl_conf_max_frag_len()`'s documentation to
      improve clarity. Fixes #2258.
+   * Replace multiple uses of MD2 by SHA-256 in X.509 test suite. Fixes #821.
 
 = mbed TLS 2.16.1 branch released 2019-03-19
 

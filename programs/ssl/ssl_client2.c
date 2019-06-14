@@ -124,8 +124,10 @@ int main( void )
 #define USAGE_IO \
     "    ca_file=%%s          The single file containing the top-level CA(s) you fully trust\n" \
     "                        default: \"\" (pre-loaded)\n" \
+    "                        use \"none\" to skip loading any top-level CAs.\n" \
     "    ca_path=%%s          The path containing the top-level CA(s) you fully trust\n" \
     "                        default: \"\" (pre-loaded) (overrides ca_file)\n" \
+    "                        use \"none\" to skip loading any top-level CAs.\n" \
     "    crt_file=%%s         Your own cert and chain (in bottom to top order, top may be omitted)\n" \
     "                        default: \"\" (pre-loaded)\n" \
     "    key_file=%%s         default: \"\" (pre-loaded)\n"
@@ -1221,20 +1223,22 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Loading the CA root certificate ..." );
     fflush( stdout );
 
+    if( strcmp( opt.ca_path, "none" ) == 0 ||
+        strcmp( opt.ca_file, "none" ) == 0 )
+    {
+        ret = 0;
+    }
+    else
 #if defined(MBEDTLS_FS_IO)
     if( strlen( opt.ca_path ) )
-        if( strcmp( opt.ca_path, "none" ) == 0 )
-            ret = 0;
-        else
-            ret = mbedtls_x509_crt_parse_path( &cacert, opt.ca_path );
+        ret = mbedtls_x509_crt_parse_path( &cacert, opt.ca_path );
     else if( strlen( opt.ca_file ) )
-        if( strcmp( opt.ca_file, "none" ) == 0 )
-            ret = 0;
-        else
-            ret = mbedtls_x509_crt_parse_file( &cacert, opt.ca_file );
+        ret = mbedtls_x509_crt_parse_file( &cacert, opt.ca_file );
     else
 #endif
 #if defined(MBEDTLS_CERTS_C)
+    {
+#if defined(MBEDTLS_PEM_PARSE_C)
         for( i = 0; mbedtls_test_cas[i] != NULL; i++ )
         {
             ret = mbedtls_x509_crt_parse( &cacert,
@@ -1243,12 +1247,23 @@ int main( int argc, char *argv[] )
             if( ret != 0 )
                 break;
         }
+        if( ret == 0 )
+#endif /* MBEDTLS_PEM_PARSE_C */
+        for( i = 0; mbedtls_test_cas_der[i] != NULL; i++ )
+        {
+            ret = mbedtls_x509_crt_parse_der( &cacert,
+                         (const unsigned char *) mbedtls_test_cas_der[i],
+                         mbedtls_test_cas_der_len[i] );
+            if( ret != 0 )
+                break;
+        }
+    }
 #else
     {
         ret = 1;
         mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
     }
-#endif
+#endif /* MBEDTLS_CERTS_C */
     if( ret < 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
@@ -1266,12 +1281,12 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Loading the client cert. and key..." );
     fflush( stdout );
 
+    if( strcmp( opt.crt_file, "none" ) == 0 )
+        ret = 0;
+    else
 #if defined(MBEDTLS_FS_IO)
     if( strlen( opt.crt_file ) )
-        if( strcmp( opt.crt_file, "none" ) == 0 )
-            ret = 0;
-        else
-            ret = mbedtls_x509_crt_parse_file( &clicert, opt.crt_file );
+        ret = mbedtls_x509_crt_parse_file( &clicert, opt.crt_file );
     else
 #endif
 #if defined(MBEDTLS_CERTS_C)
@@ -1281,7 +1296,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_printf("MBEDTLS_CERTS_C not defined.");
+        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )
@@ -1291,12 +1306,12 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+    if( strcmp( opt.key_file, "none" ) == 0 )
+        ret = 0;
+    else
 #if defined(MBEDTLS_FS_IO)
     if( strlen( opt.key_file ) )
-        if( strcmp( opt.key_file, "none" ) == 0 )
-            ret = 0;
-        else
-            ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, "" );
+        ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, "" );
     else
 #endif
 #if defined(MBEDTLS_CERTS_C)
@@ -1306,7 +1321,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_printf("MBEDTLS_CERTS_C not defined.");
+        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )

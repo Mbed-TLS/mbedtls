@@ -277,11 +277,8 @@ struct psa_key_derivation_s
     size_t capacity;
     union
     {
-        struct
-        {
-            uint8_t *data;
-            size_t size;
-        } buffer;
+        /* Make the union non-empty even with no supported algorithms. */
+        uint8_t dummy;
 #if defined(MBEDTLS_MD_C)
         psa_hkdf_key_derivation_t hkdf;
         psa_tls12_prf_key_derivation_t tls12_prf;
@@ -289,7 +286,8 @@ struct psa_key_derivation_s
     } ctx;
 };
 
-#define PSA_KEY_DERIVATION_OPERATION_INIT {0, 0, {{0, 0}}}
+/* This only zeroes out the first byte in the union, the rest is unspecified. */
+#define PSA_KEY_DERIVATION_OPERATION_INIT {0, 0, {0}}
 static inline struct psa_key_derivation_s psa_key_derivation_operation_init( void )
 {
     const struct psa_key_derivation_s v = PSA_KEY_DERIVATION_OPERATION_INIT;

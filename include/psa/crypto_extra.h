@@ -283,9 +283,6 @@ psa_status_t psa_key_derivation(psa_key_derivation_operation_t *operation,
                                 size_t capacity);
 #endif /* PSA_PRE_1_0_KEY_DERIVATION */
 
-/* FIXME Deprecated. Remove this as soon as all the tests are updated. */
-#define PSA_ALG_SELECT_RAW                      ((psa_algorithm_t)0x31000001)
-
 /** \addtogroup crypto_types
  * @{
  */

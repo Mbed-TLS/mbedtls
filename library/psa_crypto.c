@@ -3865,16 +3865,6 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
          * nothing to do. */
     }
     else
-    if( kdf_alg == PSA_ALG_SELECT_RAW )
-    {
-        if( operation->ctx.buffer.data != NULL )
-        {
-            mbedtls_platform_zeroize( operation->ctx.buffer.data,
-                             operation->ctx.buffer.size );
-            mbedtls_free( operation->ctx.buffer.data );
-        }
-    }
-    else
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( kdf_alg ) )
     {
@@ -4213,23 +4203,6 @@ psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *op
     }
     operation->capacity -= output_length;
 
-    if( kdf_alg == PSA_ALG_SELECT_RAW )
-    {
-        /* Initially, the capacity of a selection operation is always
-         * the size of the buffer, i.e. `operation->ctx.buffer.size`,
-         * abbreviated in this comment as `size`. When the remaining
-         * capacity is `c`, the next bytes to serve start `c` bytes
-         * from the end of the buffer, i.e. `size - c` from the
-         * beginning of the buffer. Since `operation->capacity` was just
-         * decremented above, we need to serve the bytes from
-         * `size - operation->capacity - output_length` to
-         * `size - operation->capacity`. */
-        size_t offset =
-            operation->ctx.buffer.size - operation->capacity - output_length;
-        memcpy( output, operation->ctx.buffer.data + offset, output_length );
-        status = PSA_SUCCESS;
-    }
-    else
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( kdf_alg ) )
     {
@@ -4237,16 +4210,17 @@ psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *op
         status = psa_key_derivation_hkdf_read( &operation->ctx.hkdf, hash_alg,
                                           output, output_length );
     }
+    else
 #if defined(PSA_PRE_1_0_KEY_DERIVATION)
-    else if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
+    if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
         status = psa_key_derivation_tls12_prf_read( &operation->ctx.tls12_prf,
                                                kdf_alg, output,
                                                output_length );
     }
-#endif /* PSA_PRE_1_0_KEY_DERIVATION */
     else
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
     {
         return( PSA_ERROR_BAD_STATE );
@@ -4509,23 +4483,6 @@ static psa_status_t psa_key_derivation_internal(
     /* Set operation->alg even on failure so that abort knows what to do. */
     operation->alg = alg;
 
-    if( alg == PSA_ALG_SELECT_RAW )
-    {
-        (void) salt;
-        if( salt_length != 0 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        (void) label;
-        if( label_length != 0 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        operation->ctx.buffer.data = mbedtls_calloc( 1, secret_length );
-        if( operation->ctx.buffer.data == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-        memcpy( operation->ctx.buffer.data, secret, secret_length );
-        operation->ctx.buffer.size = secret_length;
-        max_capacity = secret_length;
-        status = PSA_SUCCESS;
-    }
-    else
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( alg ) )
     {
@@ -4848,25 +4805,6 @@ static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
 #endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
-static psa_status_t psa_key_derivation_input_raw(
-    psa_key_derivation_operation_t *operation,
-    const uint8_t *data,
-    size_t data_length )
-{
-    if( operation->capacity != 0 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    operation->ctx.buffer.data = mbedtls_calloc( 1, data_length );
-    if( operation->ctx.buffer.data == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-    memcpy( operation->ctx.buffer.data, data, data_length );
-    operation->ctx.buffer.size = data_length;
-    operation->capacity = data_length;
-
-    return PSA_SUCCESS;
-}
-
 static psa_status_t psa_key_derivation_input_internal(
     psa_key_derivation_operation_t *operation,
     psa_key_derivation_step_t step,
@@ -4876,11 +4814,6 @@ static psa_status_t psa_key_derivation_input_internal(
     psa_status_t status;
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
 
-    if( kdf_alg == PSA_ALG_SELECT_RAW )
-    {
-        status = psa_key_derivation_input_raw( operation, data, data_length );
-    }
-    else
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( kdf_alg ) )
     {

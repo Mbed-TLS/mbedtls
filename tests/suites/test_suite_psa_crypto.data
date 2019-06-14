@@ -1767,10 +1767,6 @@ PSA key derivation: TLS 1.2 PRF SHA-256, good case
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_setup:PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256):PSA_SUCCESS
 
-PSA key derivation: not a key derivation algorithm (selection)
-depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
-derive_setup:PSA_ALG_SELECT_RAW:PSA_ERROR_INVALID_ARGUMENT
-
 PSA key derivation: not a key derivation algorithm (HMAC)
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_setup:PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_ERROR_INVALID_ARGUMENT

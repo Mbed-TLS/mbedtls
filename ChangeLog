@@ -58,6 +58,11 @@ Bugfix
    * Set the next sequence of the subject_alt_name to NULL when deleting
      sequence on failure. Found and fix suggested by Philippe Antoine.
      Credit to OSS-Fuzz.
+   * Fix missing bounds checks in X.509 parsing functions that could
+     lead to successful parsing of ill-formed X.509 CRTs. Fixes #2437.
+   * Fix multiple X.509 functions previously returning ASN.1 low-level error
+     codes to always wrap these codes into X.509 high level error codes before
+     returning. Fixes #2431.
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

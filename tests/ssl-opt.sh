@@ -551,6 +551,12 @@ run_test() {
     CLI_EXPECT="$3"
     shift 3
 
+    # Check if test uses files
+    TEST_USES_FILES=$(echo "$SRV_CMD $CLI_CMD" | grep "\.\(key\|crt\|pem\)" )
+    if [ ! -z "$TEST_USES_FILES" ]; then
+       requires_config_enabled MBEDTLS_FS_IO
+    fi
+
     # Check if server forces ciphersuite
     FORCE_CIPHERSUITE=$(echo "$SRV_CMD" | sed -n 's/^.*force_ciphersuite=\([a-zA-Z0-9\-]*\).*$/\1/p')
     if [ ! -z "$FORCE_CIPHERSUITE" ]; then

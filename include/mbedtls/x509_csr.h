@@ -136,7 +136,7 @@ int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path );
  */
 int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
                    const mbedtls_x509_csr *csr );
-#endif
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 /**
  * \brief          Initialize a CSR

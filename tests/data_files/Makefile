@@ -44,7 +44,9 @@ all_intermediate += test-ca.req.sha256
 
 test-ca.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=3 request_file=test-ca.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144400 not_after=20210212144400 md=SHA1 version=3 output_file=$@
-all_final += test-ca.crt
+test-ca.der: test-ca.crt
+	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
+all_final += test-ca.crt test-ca.der
 
 test-ca-sha1.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
 	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=3 request_file=test-ca.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144400 not_after=20210212144400 md=SHA1 version=3 output_file=$@
@@ -903,7 +905,9 @@ server1_all: server1.crt server1.noauthid.crt server1.crt.openssl server1.v1.crt
 
 server2.crt: server2.req.sha256
 	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=SHA1 version=3 output_file=$@
-all_final += server2.crt
+server2.der: server2.crt
+	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
+all_final += server2.crt server2.der
 
 server2-sha256.crt: server2.req.sha256
 	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=SHA256 version=3 output_file=$@

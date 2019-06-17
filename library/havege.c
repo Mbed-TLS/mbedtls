@@ -58,7 +58,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * ------------------------------------------------------------------------
  */
 
-#define SWAP(X,Y) { int *T = X; X = Y; Y = T; }
+#define SWAP(X,Y) { unsigned *T = (X); (X) = (Y); (Y) = T; }
 
 #define TST1_ENTER if( PTEST & 1 ) { PTEST ^= 3; PTEST >>= 1;
 #define TST2_ENTER if( PTEST & 1 ) { PTEST ^= 3; PTEST >>= 1;
@@ -81,7 +81,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     PTX = (PT1 >> 18) & 7;                              \
     PT1 &= 0x1FFF;                                      \
     PT2 &= 0x1FFF;                                      \
-    CLK = (int) mbedtls_timing_hardclock();                            \
+    CLK = (unsigned) mbedtls_timing_hardclock();        \
                                                         \
     i = 0;                                              \
     A = &WALK[PT1    ]; RES[i++] ^= *A;                 \
@@ -104,7 +104,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
                                                         \
     IN = (*A >> (5)) ^ (*A << (27)) ^ CLK;              \
     *A = (*B >> (6)) ^ (*B << (26)) ^ CLK;              \
-    *B = IN; CLK = (int) mbedtls_timing_hardclock();                   \
+    *B = IN; CLK = (unsigned) mbedtls_timing_hardclock(); \
     *C = (*C >> (7)) ^ (*C << (25)) ^ CLK;              \
     *D = (*D >> (8)) ^ (*D << (24)) ^ CLK;              \
                                                         \
@@ -155,19 +155,20 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     PT1 ^= (PT2 ^ 0x10) & 0x10;                         \
                                                         \
     for( n++, i = 0; i < 16; i++ )                      \
-        hs->pool[n % MBEDTLS_HAVEGE_COLLECT_SIZE] ^= RES[i];
+        POOL[n % MBEDTLS_HAVEGE_COLLECT_SIZE] ^= RES[i];
 
 /*
  * Entropy gathering function
  */
 static void havege_fill( mbedtls_havege_state *hs )
 {
-    int i, n = 0;
-    int  U1,  U2, *A, *B, *C, *D;
-    int PT1, PT2, *WALK, RES[16];
-    int PTX, PTY, CLK, PTEST, IN;
+    unsigned i, n = 0;
+    unsigned  U1,  U2, *A, *B, *C, *D;
+    unsigned PT1, PT2, *WALK, *POOL, RES[16];
+    unsigned PTX, PTY, CLK, PTEST, IN;
 
-    WALK = hs->WALK;
+    WALK = (unsigned *) hs->WALK;
+    POOL = (unsigned *) hs->pool;
     PT1  = hs->PT1;
     PT2  = hs->PT2;
 

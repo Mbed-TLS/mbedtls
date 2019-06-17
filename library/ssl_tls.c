@@ -8413,6 +8413,12 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
 {
     conf->extended_ms = ems;
 }
+
+void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,
+                                                        char ems_enf )
+{
+    conf->enforce_extended_master_secret = ems_enf;
+}
 #endif
 
 #if defined(MBEDTLS_ARC4_C)
@@ -10375,6 +10381,8 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     conf->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
+    conf->enforce_extended_master_secret =
+        MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED;
 #endif
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)

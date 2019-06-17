@@ -2035,6 +2035,21 @@ read_record_header:
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
+    /*
+     * Check if extended master secret is being enforced
+     */
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    if( ssl->conf->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED &&
+        ssl->conf->enforce_extended_master_secret ==
+        MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED &&
+        ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Peer not offering extended master "
+                                    "secret, while it is enforced") );
+        handshake_failure = 1;
+    }
+#endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
+
     if( handshake_failure == 1 )
     {
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,

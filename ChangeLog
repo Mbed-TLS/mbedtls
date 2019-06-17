@@ -28,6 +28,14 @@ Features
      which allows copy-less parsing of DER encoded X.509 CRTs,
      at the cost of additional lifetime constraints on the input
      buffer, but at the benefit of reduced RAM consumption.
+   * Add new API function mbedtls_ssl_conf_extended_master_secret_enforce() to
+     allow enforcing the usage of ExtendedMasterSecret extension. If the
+     extension is used and this option is enabled, handshakes not leading to
+     the use of the extended master secret will be aborted. On the server,
+     fail the handshake if client doesn't advertise the ExtendedMasterSecret
+     extension. On the client, fail the handshake if the server doesn't
+     consent to the use of the ExtendedMasterSecret extension in its
+     ServerHello.
 
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.

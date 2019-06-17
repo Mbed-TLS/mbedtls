@@ -37,7 +37,18 @@
 #include "mbedtls/havege.h"
 #include "mbedtls/timing.h"
 
+#include <limits.h>
 #include <string.h>
+
+/* If int isn't capable of storing 2^32 distinct values, the code of this
+ * module may cause a processor trap or a miscalculation. If int is more
+ * than 32 bits, the code may not calculate the intended values. */
+#if INT_MIN + 1 != -0x7fffffff
+#error "The HAVEGE module requires int to be exactly 32 bits, with INT_MIN = -2^31."
+#endif
+#if UINT_MAX != 0xffffffff
+#error "The HAVEGE module requires unsigned to be exactly 32 bits."
+#endif
 
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {

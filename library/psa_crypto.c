@@ -4125,6 +4125,50 @@ cleanup:
 
     return( status );
 }
+#else
+static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
+    psa_tls12_prf_key_derivation_t *tls12_prf,
+    psa_algorithm_t alg )
+{
+    psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
+    uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
+    psa_status_t status;
+
+    /* We can't be wanting more output after block 0xff, otherwise
+     * the capacity check in psa_key_derivation_output_bytes() would have
+     * prevented this call. It could happen only if the operation
+     * object was corrupted or if this function is called directly
+     * inside the library. */
+    if( tls12_prf->block_number == 0xff )
+        return( PSA_ERROR_BAD_STATE );
+
+    /* We need a new block */
+    ++tls12_prf->block_number;
+    tls12_prf->offset_in_block = 0;
+
+    /* Recall the definition of the TLS-1.2-PRF from RFC 5246:
+     *
+     * PRF(secret, label, seed) = P_<hash>(secret, label + seed)
+     *
+     * P_hash(secret, seed) = HMAC_hash(secret, A(1) + seed) +
+     *                        HMAC_hash(secret, A(2) + seed) +
+     *                        HMAC_hash(secret, A(3) + seed) + ...
+     *
+     * A(0) = seed
+     * A(i) = HMAC_hash( secret, A(i-1) )
+     *
+     * The `psa_tls12_prf_key_derivation` structures saves the block
+     * `HMAC_hash(secret, A(i) + seed)` from which the output
+     * is currently extracted as `output_block`.
+     */
+
+    (void) hash_length;
+    (void) status;
+
+cleanup:
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
 #endif /* PSA_PRE_1_0_KEY_DERIVATION */
 
 #if defined(PSA_PRE_1_0_KEY_DERIVATION)

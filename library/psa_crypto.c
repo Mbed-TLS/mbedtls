@@ -4131,10 +4131,10 @@ cleanup:
 /* Read some bytes from an TLS-1.2-PRF-based operation.
  * See Section 5 of RFC 5246. */
 static psa_status_t psa_key_derivation_tls12_prf_read(
-                                        psa_tls12_prf_key_derivation_t *tls12_prf,
-                                        psa_algorithm_t alg,
-                                        uint8_t *output,
-                                        size_t output_length )
+    psa_tls12_prf_key_derivation_t *tls12_prf,
+    psa_algorithm_t alg,
+    uint8_t *output,
+    size_t output_length )
 {
     psa_algorithm_t hash_alg = PSA_ALG_TLS12_PRF_GET_HASH( alg );
     uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
@@ -4149,7 +4149,7 @@ static psa_status_t psa_key_derivation_tls12_prf_read(
         if( n == 0 )
         {
             status = psa_key_derivation_tls12_prf_generate_next_block( tls12_prf,
-                                                                  alg );
+                                                                       alg );
             if( status != PSA_SUCCESS )
                 return( status );
 
@@ -4170,9 +4170,10 @@ static psa_status_t psa_key_derivation_tls12_prf_read(
 #endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
-psa_status_t psa_key_derivation_output_bytes( psa_key_derivation_operation_t *operation,
-                                 uint8_t *output,
-                                 size_t output_length )
+psa_status_t psa_key_derivation_output_bytes(
+    psa_key_derivation_operation_t *operation,
+    uint8_t *output,
+    size_t output_length )
 {
     psa_status_t status;
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );

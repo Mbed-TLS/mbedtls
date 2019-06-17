@@ -3407,6 +3407,7 @@ run_test    "Authentication: client no cert, openssl server required" \
             -c "! mbedtls_ssl_handshake returned"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Authentication: client no cert, ssl3" \
             "$P_SRV debug_level=3 auth_mode=optional force_version=ssl3" \
             "$P_CLI debug_level=3 crt_file=none key_file=none min_version=ssl3" \
@@ -6030,6 +6031,7 @@ run_test    "SSL async private: sign, RSA, TLS 1.1" \
             -s "Async resume (slot [0-9]): sign done, status=0"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SSL async private: sign, SNI" \
             "$P_SRV debug_level=3 \
              async_operations=s async_private_delay1=0 async_private_delay2=0 \

@@ -46,6 +46,7 @@ Bugfix
    * Fix multiple X.509 functions previously returning ASN.1 low-level error
      codes to always wrap these codes into X.509 high level error codes before
      returning. Fixes #2431.
+   * Fix misuse of signed arithmetic in the HAVEGE module. #2598
 
 Changes
    * Return from various debugging routines immediately if the

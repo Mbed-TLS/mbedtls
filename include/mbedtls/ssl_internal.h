@@ -58,6 +58,12 @@
 #define inline __inline
 #endif
 
+/* The public option is negative for backwards compatibility,
+ * but internally a poisitive option is more convenient. */
+#if !defined(MBEDTLS_SSL_PROTO_NO_TLS)
+#define MBEDTLS_SSL_PROTO_TLS
+#endif
+
 /* Determine minimum supported version */
 #define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 

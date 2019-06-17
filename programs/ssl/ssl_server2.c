@@ -329,7 +329,7 @@ int main( void )
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 #define USAGE_DTLS \
-    "    dtls=%%d             default: 0 (TLS)\n"                           \
+    "    dtls=%%d             default: 0 (TLS) (if both enabled)\n" \
     "    hs_timeout=%%d-%%d    default: (library default: 1000-60000)\n"    \
     "                        range of DTLS handshake timeouts in millisecs\n" \
     "    mtu=%%d              default: (library default: unlimited)\n"  \

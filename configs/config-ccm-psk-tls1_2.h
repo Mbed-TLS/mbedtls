@@ -41,6 +41,7 @@
 /* mbed TLS feature support */
 #define MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
 #define MBEDTLS_SSL_PROTO_TLS1_2
+#define MBEDTLS_SSL_PROTO_TLS
 
 /* mbed TLS modules */
 #define MBEDTLS_AES_C

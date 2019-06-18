@@ -906,11 +906,13 @@ struct mbedtls_ssl_config
     int  (*f_rng)(void *, unsigned char *, size_t);
     void *p_rng;                    /*!< context for the RNG function       */
 
+#if defined(MBEDTLS_SSL_SESSION_CACHE)
     /** Callback to retrieve a session from the cache                       */
     int (*f_get_cache)(void *, mbedtls_ssl_session *);
     /** Callback to store a session into the cache                          */
     int (*f_set_cache)(void *, const mbedtls_ssl_session *);
     void *p_cache;                  /*!< context for cache callbacks        */
+#endif
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     /** Callback for setting cert according to SNI extension                */
@@ -2129,7 +2131,7 @@ void mbedtls_ssl_set_datagram_packing( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min, uint32_t max );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SESSION_CACHE)
 /**
  * \brief          Set the session cache callbacks (server-side only)
  *                 If not set, no session resuming is done (except if session
@@ -2171,9 +2173,9 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
         void *p_cache,
         int (*f_get_cache)(void *, mbedtls_ssl_session *),
         int (*f_set_cache)(void *, const mbedtls_ssl_session *) );
-#endif /* MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_SESSION_CACHE */
 
-#if defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SESSION_CACHE)
 /**
  * \brief          Request resumption of session (client-side only)
  *                 Session data is copied from presented session structure.
@@ -2189,7 +2191,7 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
  * \sa             mbedtls_ssl_get_session()
  */
 int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session );
-#endif /* MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_SESSION_CACHE */
 
 /**
  * \brief          Load serialized session data into a session structure.

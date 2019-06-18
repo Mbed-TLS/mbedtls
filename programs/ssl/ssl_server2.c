@@ -2527,9 +2527,11 @@ int main( int argc, char *argv[] )
     if( opt.cache_timeout != -1 )
         mbedtls_ssl_cache_set_timeout( &cache, opt.cache_timeout );
 
+#if defined(MBEDTLS_SSL_SESSION_CACHE)
     mbedtls_ssl_conf_session_cache( &conf, &cache,
                                    mbedtls_ssl_cache_get,
                                    mbedtls_ssl_cache_set );
+#endif /* MBEDTLS_SSL_SESSION_CACHE */
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

@@ -1669,6 +1669,14 @@
 #define MBEDTLS_SSL_SESSION_TICKETS
 
 /**
+ * \def MBEDTLS_SSL_SESSION_CACHE
+ *
+ *
+ * Comment this macro to disable support for SSL session cache
+ */
+//#define MBEDTLS_SSL_SESSION_CACHE
+
+/**
  * \def MBEDTLS_SSL_EXPORT_KEYS
  *
  * Enable support for exporting key block and master secret.

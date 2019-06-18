@@ -2637,6 +2637,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 
+#if defined(MBEDTLS_SSL_SESSION_CACHE)
     /*
      * Resume is 0  by default, see ssl_handshake_init().
      * It may be already set to 1 by ssl_parse_session_ticket_ext().
@@ -2653,6 +2654,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
         ssl->handshake->resume = 1;
     }
+#endif /* MBEDTLS_SSL_SESSION_CACHE */
 
     if( ssl->handshake->resume == 0 )
     {

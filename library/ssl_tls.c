@@ -9155,9 +9155,11 @@ static unsigned char ssl_serialized_session_header[] = {
  *  opaque session_id[32];
  *  opaque master[48];           // fixed length in the standard
  *  uint32 verify_result;
- *  opaque peer_cert<0..2^24-1>; // length 0 means no peer cert
- *  uint8_t peer_cert_digest_type;
- *  opaque peer_cert_digest<0..2^8-1>;
+ *  select (MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) {
+ *      case enabled:  opaque peer_cert<0..2^24-1>; // length 0 means no cert
+ *      case disabled: uint8_t peer_cert_digest_type;
+ *                     opaque peer_cert_digest<0..2^8-1>;
+ *  }
  *  opaque ticket<0..2^24-1>;    // length 0 means no ticket
  *  uint32 ticket_lifetime;
  *  uint8 mfl_code;              // up to 255 according to standard

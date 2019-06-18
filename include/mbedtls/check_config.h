@@ -283,7 +283,7 @@
     ( !defined(MBEDTLS_SHA256_C) &&                             \
       !defined(MBEDTLS_SHA512_C) &&                             \
       !defined(MBEDTLS_SHA1_C) )
-#error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires MBEDTLS_SHA512_C, MBEDTLS_SHA256_C or MBEDTLS_SHA1_C"
+#error "MBEDTLS_SSL_KEEP_PEER_CERTIFICATE defined, but not all prerequesites"
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \

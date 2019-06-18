@@ -383,7 +383,7 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    mbedtls_ecp_curve_info const *curve_info;  /*!< Info for EC for ECDHE. */
+    uint16_t curve_tls_id;                      /*!< TLS ID of EC for ECDHE. */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char *psk;                 /*!<  PSK from the callback         */

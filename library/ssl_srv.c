@@ -321,8 +321,8 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
                 if( info->grp_id != *gid )
                     continue;
 
-                if( ssl->handshake->curve_info == NULL )
-                    ssl->handshake->curve_info = info;
+                if( ssl->handshake->curve_tls_id == 0 )
+                    ssl->handshake->curve_tls_id = tls_id;
             }
 
             *curve_ids++ = info->grp_id;
@@ -968,7 +968,7 @@ static int ssl_ciphersuite_is_match( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
     if( mbedtls_ssl_ciphersuite_uses_ec( suite_info ) &&
-        ssl->handshake->curve_info == NULL )
+        ssl->handshake->curve_tls_id == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
                             "no common elliptic curve" ) );
@@ -3327,7 +3327,8 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
          *     ECPoint      public;
          * } ServerECDHParams;
          */
-        const mbedtls_ecp_curve_info *curve = ssl->handshake->curve_info;
+        const mbedtls_ecp_curve_info *curve =
+            mbedtls_ecp_curve_info_from_tls_id( ssl->handshake->curve_tls_id );
         int ret;
         size_t len = 0;
 

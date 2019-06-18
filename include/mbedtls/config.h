@@ -1674,7 +1674,7 @@
  *
  * Comment this macro to disable support for SSL session cache
  */
-//#define MBEDTLS_SSL_SESSION_CACHE
+#define MBEDTLS_SSL_SESSION_CACHE
 
 /**
  * \def MBEDTLS_SSL_EXPORT_KEYS

@@ -969,8 +969,11 @@ static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         return( 12 );
+    MBEDTLS_SSL_TRANSPORT_ELSE
 #endif
-    return( 4 );
+#if defined(MBEDTLS_SSL_PROTO_TLS)
+        return( 4 );
+#endif
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

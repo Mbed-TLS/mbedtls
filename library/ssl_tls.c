@@ -68,8 +68,11 @@ static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         return( 2 );
+    MBEDTLS_SSL_TRANSPORT_ELSE
 #endif
+#if defined(MBEDTLS_SSL_PROTO_TLS)
     return( 0 );
+#endif
 }
 
 /*
@@ -8598,25 +8601,29 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
                 return( "unknown (DTLS)" );
         }
     }
-#endif
-
-    switch( ssl->minor_ver )
+    MBEDTLS_SSL_TRANSPORT_ELSE
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+#if defined(MBEDTLS_SSL_PROTO_TLS)
     {
-        case MBEDTLS_SSL_MINOR_VERSION_0:
-            return( "SSLv3.0" );
+        switch( ssl->minor_ver )
+        {
+            case MBEDTLS_SSL_MINOR_VERSION_0:
+                return( "SSLv3.0" );
 
-        case MBEDTLS_SSL_MINOR_VERSION_1:
-            return( "TLSv1.0" );
+            case MBEDTLS_SSL_MINOR_VERSION_1:
+                return( "TLSv1.0" );
 
-        case MBEDTLS_SSL_MINOR_VERSION_2:
-            return( "TLSv1.1" );
+            case MBEDTLS_SSL_MINOR_VERSION_2:
+                return( "TLSv1.1" );
 
-        case MBEDTLS_SSL_MINOR_VERSION_3:
-            return( "TLSv1.2" );
+            case MBEDTLS_SSL_MINOR_VERSION_3:
+                return( "TLSv1.2" );
 
-        default:
-            return( "unknown" );
+            default:
+                return( "unknown" );
+        }
     }
+#endif /* MBEDTLS_SSL_PROTO_TLS */
 }
 
 int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
@@ -9610,8 +9617,13 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 {
                     continue;
                 }
+                MBEDTLS_SSL_TRANSPORT_ELSE
 #endif
-                return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+#if defined(MBEDTLS_SSL_PROTO_TLS)
+                {
+                    return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+                }
+#endif
             }
 #endif /* MBEDTLS_SSL_CLI_C */
 
@@ -9627,8 +9639,13 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 {
                     continue;
                 }
+                MBEDTLS_SSL_TRANSPORT_ELSE
 #endif
-                return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+#if defined(MBEDTLS_SSL_PROTO_TLS)
+                {
+                    return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+                }
+#endif
             }
 #endif /* MBEDTLS_SSL_SRV_C */
 

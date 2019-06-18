@@ -1521,7 +1521,8 @@
  * \def MBEDTLS_SSL_PROTO_NO_TLS
  *
  * Disable support for SSL/TLS (all available versions) - this doesn't affect
- * support for DTLS which is controlled by #MBEDTLS_SSL_PROTO_DTLS.
+ * support for DTLS which is controlled by #MBEDTLS_SSL_PROTO_DTLS. This is
+ * useful to reduce code size in configurations where only DTLS is used.
  *
  * Disable this and enable MBEDTLS_SSL_PROTO_TLS1_2 to enable TLS 1.2;
  * disable this and enable MBEDTLS_SSL_PROTO_TLS1_1 to enable TLS 1.1;

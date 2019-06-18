@@ -1309,6 +1309,33 @@
 //#define MBEDTLS_SSL_ASYNC_PRIVATE
 
 /**
+ * \def MBEDTLS_SSL_CONTEXT_SERIALIZATION
+ *
+ * Enable serialization of the TLS context structures, through use of the
+ * functions mbedtls_ssl_context_save() and mbedtls_ssl_context_load().
+ *
+ * This pair of functions allows one side of a connection to serialize the
+ * context associated with the connection, then free or re-use that context
+ * while the serialized state is persisted elsewhere, and finally deserialize
+ * that state to a live context for resuming read/write operations on the
+ * connection. From a protocol perspective, the state of the connection is
+ * unaffected, in particular this is entirely transparent to the peer.
+ *
+ * Note: this is distinct from TLS session resumption, which is part of the
+ * protocol and fully visible by the peer. TLS session resumption enables
+ * establishing new connections associated to a saved session with shorter,
+ * lighter handshakes, while context serialization is a local optimization in
+ * handling a single, potentially long-lived connection.
+ *
+ * Enabling these APIs makes some SSL structures larger, as 64 extra bytes are
+ * saved after the handshake to allow for more efficient serialization, so if
+ * you don't need this feature you'll save RAM by disabling it.
+ *
+ * Comment to disable the context serialization APIs.
+ */
+#define MBEDTLS_SSL_CONTEXT_SERIALIZATION
+
+/**
  * \def MBEDTLS_SSL_DEBUG_ALL
  *
  * Enable the debug messages in SSL module for all issues.

@@ -24,6 +24,8 @@ Features
      mbedtls_ssl_session_load() to allow serializing a session, for example to
      store it in non-volatile storage, and later using it for TLS session
      resumption.
+   * Add new configuration option MBEDTLS_SSL_PROTO_NO_TLS that enables code
+     size savings in configurations where only DTLS is used.
 
 Bugfix
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

@@ -280,9 +280,9 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
                         const unsigned char *buf, size_t len,
-                        mbedtls_ecp_group_id curve_ids[ MBEDTLS_ECP_DP_MAX ] )
+                        unsigned char const **list_start, size_t *list_len )
 {
-    size_t list_size, our_size;
+    size_t list_size;
     const unsigned char *p;
 
     if ( len < 2 ) {
@@ -302,10 +302,12 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
     }
 
     p = buf + 2;
-    our_size = MBEDTLS_ECP_DP_MAX;
 
-    /* Leave room for final 0-entry */
-    while( list_size > 0 && our_size > 1 )
+    /* Remember list for later. */
+    *list_start = p;
+    *list_len = list_size / 2;
+
+    while( list_size > 0 )
     {
         uint16_t const tls_id = ( p[0] << 8 ) | p[1];
         mbedtls_ecp_curve_info const * const info =
@@ -324,15 +326,11 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
                 if( ssl->handshake->curve_tls_id == 0 )
                     ssl->handshake->curve_tls_id = tls_id;
             }
-
-            *curve_ids++ = info->grp_id;
-            our_size--;
         }
 
         list_size -= 2;
         p += 2;
     }
-    *curve_ids = MBEDTLS_ECP_DP_NONE;
 
     return( 0 );
 }
@@ -736,18 +734,28 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
  */
 #if defined(MBEDTLS_ECDSA_C)
 static int ssl_check_key_curve( mbedtls_pk_context *pk,
-                          mbedtls_ecp_group_id const *acceptable_ec_grp_ids )
+                                unsigned char const *acceptable_ec_tls_ids,
+                                size_t ec_tls_ids_len )
 {
+    mbedtls_ecp_curve_info const *info;
     mbedtls_ecp_group_id grp_id = mbedtls_pk_ec( *pk )->grp.id;
 
-    if( acceptable_ec_grp_ids == NULL )
+    info = mbedtls_ecp_curve_info_from_grp_id( grp_id );
+    if( info == NULL )
         return( -1 );
 
-    while( *acceptable_ec_grp_ids != MBEDTLS_ECP_DP_NONE )
+    if( acceptable_ec_tls_ids == NULL )
+        return( -1 );
+
+    while( ec_tls_ids_len-- != 0 )
     {
-        if( *acceptable_ec_grp_ids == grp_id )
+        uint16_t const cur_tls_id =
+            ( acceptable_ec_tls_ids[0] << 8 ) | acceptable_ec_tls_ids[1];
+
+        if( cur_tls_id == info->tls_id )
             return( 0 );
-        acceptable_ec_grp_ids++;
+
+        acceptable_ec_tls_ids += 2;
     }
 
     return( -1 );
@@ -760,7 +768,8 @@ static int ssl_check_key_curve( mbedtls_pk_context *pk,
  */
 static int ssl_pick_cert( mbedtls_ssl_context *ssl,
                           mbedtls_ssl_ciphersuite_handle_t ciphersuite_info,
-                          mbedtls_ecp_group_id const *acceptable_ec_grp_ids )
+                          unsigned char const *acceptable_ec_tls_ids,
+                          size_t ec_tls_ids_len )
 {
     mbedtls_ssl_key_cert *cur, *list, *fallback = NULL;
     mbedtls_pk_type_t pk_alg =
@@ -825,13 +834,16 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECDSA_C)
         if( pk_alg == MBEDTLS_PK_ECDSA &&
-            ssl_check_key_curve( pk, acceptable_ec_grp_ids ) != 0 )
+            ssl_check_key_curve( pk,
+                                 acceptable_ec_tls_ids,
+                                 ec_tls_ids_len ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );
             match = 0;
         }
 #else
-        ((void) acceptable_ec_grp_ids);
+        ((void) acceptable_ec_tls_ids);
+        ((void) ec_tls_ids_len);
 #endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
@@ -920,7 +932,8 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
  */
 static int ssl_ciphersuite_is_match( mbedtls_ssl_context *ssl,
                             mbedtls_ssl_ciphersuite_handle_t suite_info,
-                            mbedtls_ecp_group_id const *acceptable_ec_grp_ids )
+                            unsigned char const *acceptable_ec_tls_ids,
+                            size_t ec_tls_ids_len )
 {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
@@ -1016,14 +1029,17 @@ static int ssl_ciphersuite_is_match( mbedtls_ssl_context *ssl,
      * - try the next ciphersuite if we don't
      * This must be done last since we modify the key_cert list.
      */
-    if( ssl_pick_cert( ssl, suite_info, acceptable_ec_grp_ids ) != 0 )
+    if( ssl_pick_cert( ssl, suite_info,
+                       acceptable_ec_tls_ids,
+                       ec_tls_ids_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
                             "no suitable certificate" ) );
         return( 0 );
     }
 #else
-    ((void) acceptable_ec_grp_ids);
+    ((void) acceptable_ec_tls_ids);
+    ((void) ec_tls_ids_len);
 #endif
 
     return( 1 );
@@ -1256,7 +1272,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 
             got_common_suite = 1;
 
-            if( ssl_ciphersuite_is_match( ssl, cur_info, NULL ) )
+            if( ssl_ciphersuite_is_match( ssl, cur_info, NULL, 0 ) )
             {
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
                 ciphersuite_info = cur_info;
@@ -1346,12 +1362,8 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
 #endif
     int major, minor;
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    mbedtls_ecp_group_id acceptable_ec_grp_ids[ MBEDTLS_ECP_DP_MAX ];
-#else
-    mbedtls_ecp_group_id * acceptable_ec_grp_ids = NULL;
-#endif
+    unsigned char const *acceptable_ec_tls_ids = NULL;
+    size_t ec_tls_ids_len = 0;
 
     /* If there is no signature-algorithm extension present,
      * we need to fall back to the default values for allowed
@@ -1894,7 +1906,8 @@ read_record_header:
 
                 ret = ssl_parse_supported_elliptic_curves( ssl, ext + 4,
                                                       ext_size,
-                                                      acceptable_ec_grp_ids );
+                                                      &acceptable_ec_tls_ids,
+                                                      &ec_tls_ids_len );
                 if( ret != 0 )
                     return( ret );
                 break;
@@ -2175,7 +2188,8 @@ read_record_header:
             got_common_suite = 1;
 
             if( ssl_ciphersuite_is_match( ssl, cur_info,
-                                          acceptable_ec_grp_ids) )
+                                          acceptable_ec_tls_ids,
+                                          ec_tls_ids_len ) != 0 )
             {
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
                 ciphersuite_info = cur_info;

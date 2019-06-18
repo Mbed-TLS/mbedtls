@@ -309,24 +309,15 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
 
     while( list_size > 0 )
     {
-        uint16_t const tls_id = ( p[0] << 8 ) | p[1];
-        mbedtls_ecp_curve_info const * const info =
-            mbedtls_ecp_curve_info_from_tls_id( tls_id );
+        uint16_t const peer_tls_id = ( p[0] << 8 ) | p[1];
 
-        if( info != NULL )
+        MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( own_tls_id )
+        if( own_tls_id == peer_tls_id &&
+            ssl->handshake->curve_tls_id == 0 )
         {
-            mbedtls_ecp_group_id const *gid;
-            /* Remember the first curve that we also support. */
-            for( gid = ssl->conf->curve_list;
-                 *gid != MBEDTLS_ECP_DP_NONE; gid++ )
-            {
-                if( info->grp_id != *gid )
-                    continue;
-
-                if( ssl->handshake->curve_tls_id == 0 )
-                    ssl->handshake->curve_tls_id = tls_id;
-            }
+            ssl->handshake->curve_tls_id = own_tls_id;
         }
+        MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID
 
         list_size -= 2;
         p += 2;

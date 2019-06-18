@@ -251,6 +251,18 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+static size_t ssl_get_ec_curve_list_length( mbedtls_ssl_context *ssl )
+{
+    size_t ec_list_len = 0;
+
+    MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( tls_id )
+    ((void) tls_id);
+    ec_list_len++;
+    MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID
+
+    return( ec_list_len );
+}
+
 static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
                                                      unsigned char *buf,
                                                      size_t *olen )
@@ -259,28 +271,15 @@ static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
     unsigned char *elliptic_curve_list = p + 6;
     size_t elliptic_curve_len = 0;
-    const mbedtls_ecp_curve_info *info;
-#if defined(MBEDTLS_ECP_C)
-    const mbedtls_ecp_group_id *grp_id;
-#else
-    ((void) ssl);
-#endif
 
     *olen = 0;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported_elliptic_curves extension" ) );
 
-    for( grp_id = ssl->conf->curve_list; *grp_id != MBEDTLS_ECP_DP_NONE; grp_id++ )
-    {
-        info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
-        if( info == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid curve in ssl configuration" ) );
-            return;
-        }
-
-        elliptic_curve_len += 2;
-    }
+    /* Each elliptic curve is encoded in 2 bytes. */
+    elliptic_curve_len = 2 * ssl_get_ec_curve_list_length( ssl );
+    if( elliptic_curve_len == 0 )
+        return;
 
     if( end < p || (size_t)( end - p ) < 6 + elliptic_curve_len )
     {
@@ -290,15 +289,10 @@ static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
 
     elliptic_curve_len = 0;
 
-    for( grp_id = ssl->conf->curve_list; *grp_id != MBEDTLS_ECP_DP_NONE; grp_id++ )
-    {
-        info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
-        elliptic_curve_list[elliptic_curve_len++] = info->tls_id >> 8;
-        elliptic_curve_list[elliptic_curve_len++] = info->tls_id & 0xFF;
-    }
-
-    if( elliptic_curve_len == 0 )
-        return;
+    MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( tls_id )
+    elliptic_curve_list[elliptic_curve_len++] = tls_id >> 8;
+    elliptic_curve_list[elliptic_curve_len++] = tls_id & 0xFF;
+    MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID
 
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES      ) & 0xFF );

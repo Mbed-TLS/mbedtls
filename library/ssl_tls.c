@@ -11241,14 +11241,13 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
  */
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
 {
-    const mbedtls_ecp_group_id *gid;
-
     if( ssl->conf->curve_list == NULL )
         return( -1 );
 
-    for( gid = ssl->conf->curve_list; *gid != MBEDTLS_ECP_DP_NONE; gid++ )
-        if( *gid == grp_id )
-            return( 0 );
+    MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( own_ec_id )
+    if( own_ec_id == grp_id )
+        return( 0 );
+    MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_GRP_ID
 
     return( -1 );
 }

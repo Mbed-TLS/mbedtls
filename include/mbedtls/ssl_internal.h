@@ -1484,4 +1484,33 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( TLS_ID_VAR )    \
+    {                                                                   \
+        mbedtls_ecp_group_id const *__gid;                              \
+        mbedtls_ecp_curve_info const *__info;                           \
+        for( __gid = ssl->conf->curve_list;                             \
+             *__gid != MBEDTLS_ECP_DP_NONE; __gid++ )                   \
+        {                                                               \
+            uint16_t TLS_ID_VAR;                                        \
+            __info = mbedtls_ecp_curve_info_from_grp_id( *__gid );      \
+            if( __info == NULL )                                        \
+                continue;                                               \
+            TLS_ID_VAR = __info->tls_id;
+
+#define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID                    \
+        }                                                               \
+    }
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( EC_ID_VAR )     \
+    {                                                                   \
+        mbedtls_ecp_group_id const *__gid;                              \
+        for( __gid = ssl->conf->curve_list;                             \
+             *__gid != MBEDTLS_ECP_DP_NONE; __gid++ )                   \
+        {                                                               \
+            mbedtls_ecp_group_id EC_ID_VAR = *__gid;                    \
+
+#define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_GRP_ID                    \
+        }                                                               \
+    }
+
 #endif /* ssl_internal.h */

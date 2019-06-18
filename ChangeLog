@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.18.0 branch released 2019-06-11
 
 Features
    * Add the Any Policy certificate policy oid, as defined in

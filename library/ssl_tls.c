@@ -6398,9 +6398,10 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    return( -1 );
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
           MBEDTLS_SSL_PROTO_TLS1_2 */
+
+    return( -1 );
 }
 #endif /* MBEDTLS_SSL_SRV_C */
 

@@ -339,6 +339,7 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path );
 int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
 #endif /* MBEDTLS_FS_IO */
 
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 /**
  * \brief          Returns an informational string about the
  *                 certificate.
@@ -368,6 +369,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
  */
 int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
                           uint32_t flags );
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 /**
  * \brief          Verify the certificate signature

@@ -214,7 +214,7 @@ class AbiChecker(object):
 
     def _remove_extra_detail_from_report(self, report_root):
         for tag in ['test_info', 'test_results', 'problem_summary',
-                    'added_symbols', 'removed_symbols', 'affected']:
+                    'added_symbols', 'affected']:
             self._remove_children_with_tag(report_root, tag)
 
         for report in report_root:
@@ -280,8 +280,9 @@ class AbiChecker(object):
                 )
                 if not (self.keep_all_reports or self.brief):
                     os.remove(output_path)
-            os.remove(self.old_version.abi_dumps[mbed_module])
-            os.remove(self.new_version.abi_dumps[mbed_module])
+        for version in [self.old_version, self.new_version]:
+            for mbed_module, mbed_module_dump in version.abi_dumps.items():
+                os.remove(mbed_module_dump)
         if self.can_remove_report_dir:
             os.rmdir(self.report_dir)
         self.log.info(compatibility_report)

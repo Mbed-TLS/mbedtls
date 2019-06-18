@@ -45,7 +45,7 @@
     !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_CTR_DRBG_C) ||            \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) ||      \
     !defined(MBEDTLS_THREADING_C) || !defined(MBEDTLS_THREADING_PTHREAD) || \
-    !defined(MBEDTLS_PEM_PARSE_C) || !defined(MBEDTLS_SSL_PROTO_TLS)
+    !defined(MBEDTLS_PEM_PARSE_C) || defined(MBEDTLS_SSL_PROTO_NO_TLS)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_CERTS_C and/or MBEDTLS_ENTROPY_C "
@@ -53,8 +53,8 @@ int main( void )
            "MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
            "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
            "MBEDTLS_THREADING_C and/or MBEDTLS_THREADING_PTHREAD "
-           "and/or MBEDTLS_PEM_PARSE_C and/or "
-           "MBEDTLS_SSL_PROTO_TLS not defined.\n");
+           "and/or MBEDTLS_PEM_PARSE_C not defined, and/or "
+           "MBEDTLS_SSL_PROTO_NO_TLS defined.\n");
     return( 0 );
 }
 #else

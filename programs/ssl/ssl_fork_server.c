@@ -44,7 +44,7 @@
     !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_CTR_DRBG_C) ||    \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_TIMING_C) || \
     !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_PEM_PARSE_C) || \
-    !defined(MBEDTLS_SSL_PROTO_TLS)
+    defined(MBEDTLS_SSL_PROTO_NO_TLS)
 int main( int argc, char *argv[] )
 {
     ((void) argc);
@@ -54,8 +54,8 @@ int main( int argc, char *argv[] )
            "and/or MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_SRV_C and/or "
            "MBEDTLS_NET_C and/or MBEDTLS_RSA_C and/or "
            "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
-           "MBEDTLS_TIMING_C and/or MBEDTLS_PEM_PARSE_C and/or "
-           "MBEDTLS_SSL_PROTO_TLS not defined.\n");
+           "MBEDTLS_TIMING_C and/or MBEDTLS_PEM_PARSE_C not defined, and/or "
+           "MBEDTLS_SSL_PROTO_NO_TLS defined.\n");
     return( 0 );
 }
 #elif defined(_WIN32)

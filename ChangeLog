@@ -36,6 +36,8 @@ Features
      extension. On the client, fail the handshake if the server doesn't
      consent to the use of the ExtendedMasterSecret extension in its
      ServerHello.
+   * Add new configuration option MBEDTLS_SSL_PROTO_NO_TLS that enables code
+     size savings in configurations where only DTLS is used.
 
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.

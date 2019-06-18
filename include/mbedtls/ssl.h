@@ -1343,8 +1343,8 @@ void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
 
 /**
  * \brief           Set the transport type (TLS or DTLS).
- *                  Default: TLS if #MBEDTLS_SSL_PROTO_TLS is defined, else
- *                  DTLS.
+ *                  Default: TLS unless #MBEDTLS_SSL_PROTO_NO_TLS is defined,
+ *                  else DTLS.
  *
  * \note            For DTLS, you must either provide a recv callback that
  *                  doesn't block, or one that handles timeouts, see

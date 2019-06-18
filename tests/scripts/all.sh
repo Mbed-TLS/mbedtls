@@ -1169,6 +1169,12 @@ component_build_armcc () {
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 }
 
+# need _armcc in the name for pre_check_tools()
+component_build_baremetal_script_gcc_armcc () {
+    msg "build: scripts/baremetal.sh gcc/armc5/armc6"
+    scripts/baremetal.sh --rom --gcc --armc5 --armc6 --check
+}
+
 component_build_armcc_tinycrypt_baremetal () {
     msg "build: ARM Compiler 5, make with tinycrypt and baremetal"
     scripts/config.pl baremetal

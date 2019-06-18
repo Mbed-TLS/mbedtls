@@ -58,6 +58,12 @@
 #define inline __inline
 #endif
 
+/* The public option is negative for backwards compatibility,
+ * but internally a poisitive option is more convenient. */
+#if !defined(MBEDTLS_SSL_PROTO_NO_TLS)
+#define MBEDTLS_SSL_PROTO_TLS
+#endif
+
 /* Determine minimum supported version */
 #define MBEDTLS_SSL_MIN_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 
@@ -963,8 +969,11 @@ static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         return( 12 );
+    MBEDTLS_SSL_TRANSPORT_ELSE
 #endif
-    return( 4 );
+#if defined(MBEDTLS_SSL_PROTO_TLS)
+        return( 4 );
+#endif
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

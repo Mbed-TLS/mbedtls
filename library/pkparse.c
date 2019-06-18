@@ -1164,7 +1164,11 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
                   const unsigned char *key, size_t keylen,
                   const unsigned char *pwd, size_t pwdlen )
 {
+#if defined(MBEDTLS_PKCS12_C) || \
+    defined(MBEDTLS_PKCS5_C) || \
+    defined(MBEDTLS_PEM_PARSE_C)
     int ret;
+#endif
     const mbedtls_pk_info_t *pk_info;
 #if defined(MBEDTLS_PEM_PARSE_C)
     size_t len;
@@ -1327,7 +1331,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     }
 #endif /* MBEDTLS_PKCS12_C || MBEDTLS_PKCS5_C */
 
-    if( ( ret = pk_parse_key_pkcs8_unencrypted_der( pk, key, keylen ) ) == 0 )
+    if( pk_parse_key_pkcs8_unencrypted_der( pk, key, keylen ) == 0 )
         return( 0 );
 
     mbedtls_pk_free( pk );

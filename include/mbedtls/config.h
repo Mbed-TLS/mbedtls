@@ -1535,7 +1535,7 @@
  * Enable this and MBEDTLS_SSL_PROTO_TLS1_2 to enable DTLS 1.2,
  * and/or this and MBEDTLS_SSL_PROTO_TLS1_1 to enable DTLS 1.0.
  *
- * \see MBEDTLS_SSL_PROTO_TLS
+ * \see MBEDTLS_SSL_PROTO_NO_TLS
  *
  * Requires: MBEDTLS_SSL_PROTO_TLS1_1
  *        or MBEDTLS_SSL_PROTO_TLS1_2
@@ -1545,25 +1545,23 @@
 #define MBEDTLS_SSL_PROTO_DTLS
 
 /**
- * \def MBEDTLS_SSL_PROTO_TLS
+ * \def MBEDTLS_SSL_PROTO_NO_TLS
  *
- * Enable support for SSL/TLS (all available versions).
+ * Disable support for SSL/TLS (all available versions) - this doesn't affect
+ * support for DTLS which is controlled by #MBEDTLS_SSL_PROTO_DTLS. This is
+ * useful to reduce code size in configurations where only DTLS is used.
  *
- * Enable this and MBEDTLS_SSL_PROTO_TLS1_2 to enable TLS 1.2;
- * enable this and MBEDTLS_SSL_PROTO_TLS1_1 to enable TLS 1.1;
- * enable this and MBEDTLS_SSL_PROTO_TLS1   to enable TLS 1.0;
- * and/or this and MBEDTLS_SSL_PROTO_SSL3   to enable SSL 3.0 (deprecated).
+ * Disable this and enable MBEDTLS_SSL_PROTO_TLS1_2 to enable TLS 1.2;
+ * disable this and enable MBEDTLS_SSL_PROTO_TLS1_1 to enable TLS 1.1;
+ * disable this and enable MBEDTLS_SSL_PROTO_TLS1   to enable TLS 1.0;
+ * disable this and enable MBEDTLS_SSL_PROTO_SSL3   to enable SSL 3.0.
  *
- * \see MBEDTLS_SSL_PROTO_DTLS
+ * Requirements: if this macro is disabled, at least one of the above
+ * TLS versions needs to be enabled.
  *
- * Requires: MBEDTLS_SSL_PROTO_TLS1_2
- *        or MBEDTLS_SSL_PROTO_TLS1_1
- *        or MBEDTLS_SSL_PROTO_TLS1
- *        or MBEDTLS_SSL_PROTO_SSL3 (deprecated)
- *
- * Comment this macro to disable support for TLS
+ * Uncomment this macro to disable support for TLS.
  */
-#define MBEDTLS_SSL_PROTO_TLS
+//#define MBEDTLS_SSL_PROTO_NO_TLS
 
 /**
  * \def MBEDTLS_SSL_ALPN

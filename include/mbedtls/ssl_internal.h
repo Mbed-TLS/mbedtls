@@ -509,7 +509,9 @@ struct mbedtls_ssl_handshake_params
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
 
+#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
     int resume;                         /*!<  session resume indicator*/
+#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
     int max_major_ver;                  /*!< max. major version client*/
     int max_minor_ver;                  /*!< max. minor version client*/
     int cli_exts;                       /*!< client extension presence*/

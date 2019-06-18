@@ -888,7 +888,11 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
 #endif
+#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
         ssl->handshake->resume == 0 )
+#else /* MBEDTLS_SSL_SESSION_RESUMPTION */
+        0 )
+#endif
     {
         n = 0;
     }
@@ -1795,6 +1799,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 35, n );
 
+#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
     /*
      * Check if the session can be resumed
      */
@@ -1818,6 +1823,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         memcpy( ssl->session_negotiate->id, buf + 35, n );
     }
     else
+#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
     {
         ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
 
@@ -1830,8 +1836,10 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         }
     }
 
+#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
                    ssl->handshake->resume ? "a" : "no" ) );
+#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %04x", i ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[37 + n] ) );

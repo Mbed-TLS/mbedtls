@@ -1677,6 +1677,14 @@
 #define MBEDTLS_SSL_SESSION_CACHE
 
 /**
+ * \def MBEDTLS_SSL_SESSION_RESUMPTION
+ *
+ *
+ * Comment this macro to disable support for SSL session resumption
+ */
+#define MBEDTLS_SSL_SESSION_RESUMPTION
+
+/**
  * \def MBEDTLS_SSL_EXPORT_KEYS
  *
  * Enable support for exporting key block and master secret.

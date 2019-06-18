@@ -1263,11 +1263,13 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     (void) ssl;
 #endif
 
+#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
     if( handshake->resume != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
         return( 0 );
     }
+#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "premaster secret", handshake->premaster,
                                                   handshake->pmslen );
@@ -7364,6 +7366,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_FINISHED;
 
+#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
     /*
      * In case of session resuming, invert the client and server
      * ChangeCipherSpec messages order.
@@ -7380,6 +7383,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 #endif
     }
     else
+#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
         ssl->state++;
 
     /*
@@ -7520,6 +7524,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
     memcpy( ssl->peer_verify_data, buf, hash_len );
 #endif
 
+#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
     if( ssl->handshake->resume != 0 )
     {
 #if defined(MBEDTLS_SSL_CLI_C)
@@ -7532,6 +7537,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 #endif
     }
     else
+#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
         ssl->state++;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

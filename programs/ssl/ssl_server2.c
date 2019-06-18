@@ -402,6 +402,9 @@ int main( void )
 #define USAGE_ETM ""
 #endif
 
+#define USAGE_REPRODUCIBLE \
+    "    reproducible=0/1     default: 0 (disabled)\n"
+
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 #define USAGE_RENEGO \
     "    renegotiation=%%d    default: 0 (disabled)\n"      \
@@ -470,6 +473,7 @@ int main( void )
     "\n"                                                    \
     USAGE_TICKETS                                           \
     USAGE_EAP_TLS                                           \
+    USAGE_REPRODUCIBLE                                      \
     USAGE_CACHE                                             \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
@@ -658,20 +662,6 @@ mbedtls_time_t dummy_constant_time( mbedtls_time_t* time )
 {
     (void) time;
     return 0x5af2a056;
-}
-
-int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
-{
-    int ret;
-    size_t i;
-
-    //use mbedtls_ctr_drbg_random to find bugs in it
-    ret = mbedtls_ctr_drbg_random( p_rng, output, output_len );
-    for ( i = 0; i < output_len; i++ ) {
-        //replace result with pseudo random
-        output[i] = (unsigned char) rand();
-    }
-    return( ret );
 }
 
 int dummy_entropy( void *data, unsigned char *output, size_t len )
@@ -2489,6 +2479,7 @@ int main( int argc, char *argv[] )
     mbedtls_entropy_init( &entropy );
     if (opt.reproducible)
     {
+        srand( 1 );
         if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy,
                                            &entropy, (const unsigned char *) pers,
                                            strlen( pers ) ) ) != 0 )
@@ -2828,8 +2819,6 @@ int main( int argc, char *argv[] )
 
     if (opt.reproducible)
     {
-        srand( 1 );
-        mbedtls_ssl_conf_rng( &conf, dummy_random, &ctr_drbg );
 #if defined(MBEDTLS_HAVE_TIME)
 #if defined(MBEDTLS_PLATFORM_TIME_ALT)
         mbedtls_platform_set_time( dummy_constant_time );

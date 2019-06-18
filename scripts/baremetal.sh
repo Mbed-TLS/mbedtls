@@ -75,14 +75,19 @@ baremetal_build_gcc()
     echo "Create 32-bit library-only baremetal build (GCC, config: $BAREMETAL_CONFIG)"
     gcc_ver=$($GCC_CC --version | head -n 1 | sed -n 's/^.*\([0-9]\.[0-9]\.[0-9]\).*$/\1/p')
 
-    CFLAGS_BAREMETAL="-Os -mthumb -mcpu=cortex-m0plus"
+    CFLAGS_BAREMETAL="-Os -mthumb -mcpu=cortex-m0plus --std=c99"
+    if [ $check -ne 0 ]; then
+        CFLAGS_BAREMETAL="$CFLAGS_BAREMETAL -Werror"
+    fi
     CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG"
-
-    $GCC_CC --version
 
     echo "GCC version: $gcc_ver"
     echo "Flags: $CFLAGS_BAREMETAL"
     make CC=$GCC_CC AR=$GCC_AR CFLAGS="$CFLAGS" lib -j > /dev/null
+
+    if [ $check -ne 0 ]; then
+        return
+    fi
 
     ROM_OUT_FILE="rom_files__${date}__${NAME}__gcc_${gcc_ver}"
     ROM_OUT_SYMS="rom_syms__${date}__${NAME}__gcc_${gcc_ver}"
@@ -108,9 +113,17 @@ baremetal_build_armc5()
     CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG"
     WARNING_CFLAGS="--strict --c99"
 
+    if [ $check -ne 0 ]; then
+        WARNING_CFLAGS="$WARNING_CFLAGS --diag_error=warning"
+    fi
+
     echo "ARMC5 version: $armc5_ver"
     echo "Flags: $WARNING_CFLAGS $CFLAGS_BAREMETAL"
     make WARNING_CFLAGS="$WARNING_CFLAGS" CC=$ARMC5_CC AR=$ARMC5_AR CFLAGS="$CFLAGS" lib -j > /dev/null
+
+    if [ $check -ne 0 ]; then
+        return
+    fi
 
     ROM_OUT_FILE="rom_files__${date}__${NAME}__armc5_${armc5_ver}"
     ROM_OUT_SYMS="rom_syms__${date}__${NAME}__armc5_${armc5_ver}"
@@ -132,13 +145,19 @@ baremetal_build_armc6()
     echo "Create 32-bit library-only baremetal build (ARMC6, Config: $BAREMETAL_CONFIG)"
     armc6_ver=$($ARMC6_CC --version | sed -n 's/.*ARM Compiler \([^ ]*\)$/\1/p')
 
-    CFLAGS_BAREMETAL="-Os --target=arm-arm-none-eabi -mthumb -mcpu=cortex-m0plus"
+    CFLAGS_BAREMETAL="-Os --target=arm-arm-none-eabi -mthumb -mcpu=cortex-m0plus -xc --std=c99"
+    if [ $check -ne 0 ]; then
+        CFLAGS_BAREMETAL="$CFLAGS_BAREMETAL -Werror"
+    fi
     CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG"
-    WARNING_CFLAGS="-xc -std=c99"
 
     echo "ARMC6 version: $armc6_ver"
-    echo "Flags: $WARNING_CFLAGS $CFLAGS_BAREMETAL"
-    make WARNING_CFLAGS="$WARNING_CFLAGS" CC=$ARMC6_CC AR=$ARMC6_AR CFLAGS="$CFLAGS" lib -j > /dev/null
+    echo "Flags: $CFLAGS_BAREMETAL"
+    make CC=$ARMC6_CC AR=$ARMC6_AR CFLAGS="$CFLAGS" lib -j > /dev/null
+
+    if [ $check -ne 0 ]; then
+        return
+    fi
 
     ROM_OUT_FILE="rom_files__${date}__${NAME}__armc6_${armc6_ver}"
     ROM_OUT_SYMS="rom_syms__${date}__${NAME}__armc6_${armc6_ver}"
@@ -284,7 +303,7 @@ baremetal_ram_stack() {
 }
 
 show_usage() {
-    echo "Usage: $0 [--rom [--gcc] [--armc5] [--armc6]|--ram [--stack] [--heap]]"
+    echo "Usage: $0 [--rom [--check] [--gcc] [--armc5] [--armc6]|--ram [--stack] [--heap]]"
 }
 
 test_build=0
@@ -297,6 +316,8 @@ build_armc6=0
 measure_heap=0
 measure_stack=0
 
+check=0
+
 while [ $# -gt 0 ]; do
     case "$1" in
         --gcc)   build_gcc=1;;
@@ -306,6 +327,7 @@ while [ $# -gt 0 ]; do
         --rom) raw_build=1;;
         --heap)  measure_heap=1;;
         --stack) measure_stack=1;;
+        --check) check=1;;
         -*)
             echo >&2 "Unknown option: $1"
             show_usage

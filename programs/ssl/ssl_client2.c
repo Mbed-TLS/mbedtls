@@ -122,6 +122,7 @@ int main( void )
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_SERIALIZE           0
 #define DFL_EXTENDED_MS_ENFORCE -1
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
@@ -279,6 +280,15 @@ int main( void )
 #define USAGE_ECRESTART ""
 #endif
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+#define USAGE_SERIALIZATION \
+    "    serialize=%%d        default: 0 (do not serialize/deserialize)\n" \
+    "                        options: 1 (serialize)\n"                    \
+    "                                 2 (serialize with re-initialization)\n"
+#else
+#define USAGE_SERIALIZATION ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -343,6 +353,7 @@ int main( void )
     "                                configuration macro is defined and 1\n"  \
     "                                otherwise. The expansion of the macro\n" \
     "                                is printed if it is defined\n"     \
+    USAGE_SERIALIZATION                                     \
     " acceptable ciphersuite names:\n"
 
 #define ALPN_LIST_SIZE  10
@@ -419,6 +430,7 @@ struct options
     int cid_enabled_renego;     /* whether to use the CID extension or not
                                  * during renegotiation                     */
     const char *cid_val;        /* the CID to use for incoming messages     */
+    int serialize;              /* serialize/deserialize connection         */
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
 } opt;
@@ -832,6 +844,7 @@ int main( int argc, char *argv[] )
     opt.enforce_extended_master_secret = DFL_EXTENDED_MS_ENFORCE;
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
+    opt.serialize           = DFL_SERIALIZE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1214,6 +1227,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "query_config" ) == 0 )
         {
             return query_config( q );
+        }
+        else if( strcmp( p, "serialize") == 0 )
+        {
+            opt.serialize = atoi( q );
+            if( opt.serialize < 0 || opt.serialize > 2)
+                goto usage;
         }
         else
             goto usage;
@@ -2343,7 +2362,90 @@ send_request:
     }
 
     /*
-     * 7c. Continue doing data exchanges?
+     * 7c. Simulate serialize/deserialize and go back to data exchange
+     */
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( opt.serialize != 0 )
+    {
+        size_t buf_len;
+        unsigned char *context_buf = NULL;
+
+        opt.serialize = 0;
+        mbedtls_printf( " Serializing live connection..." );
+
+        ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &buf_len );
+
+        /* Allow stub implementation returning 0 for now */
+        if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL &&
+            ret != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
+                            "-0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        if( ( context_buf = mbedtls_calloc( 1, buf_len ) ) == NULL )
+        {
+            mbedtls_printf( " failed\n  ! Couldn't allocate buffer for "
+                            "serialized context" );
+
+            goto exit;
+        }
+
+        if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf,
+                                              buf_len, &buf_len ) ) != 0 )
+        {
+            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_save returned "
+                            "-0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        if( opt.serialize == 2 )
+        {
+            mbedtls_ssl_free( &ssl );
+
+            mbedtls_ssl_init( &ssl );
+
+            if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned "
+                                " -0x%x\n\n", -ret );
+                goto exit;
+            }
+
+            if( opt.nbio == 2 )
+                mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv,
+                                     NULL );
+            else
+                mbedtls_ssl_set_bio( &ssl, &server_fd,
+                            mbedtls_net_send, mbedtls_net_recv,
+                            opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+
+#if defined(MBEDTLS_TIMING_C)
+            if( opt.nbio != 0 && opt.read_timeout != 0 )
+                mbedtls_ssl_set_timer_cb( &ssl, &timer,
+                                          mbedtls_timing_set_delay,
+                                          mbedtls_timing_get_delay );
+#endif /* MBEDTLS_TIMING_C */
+        }
+
+        mbedtls_printf( " Deserializing connection..." );
+
+        if( ( ret = mbedtls_ssl_context_load( &ssl, context_buf,
+                                              buf_len ) ) != 0 )
+        {
+            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned "
+                            "-0x%x\n\n", -ret );
+
+            goto exit;
+        }
+    }
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
+    /*
+     * 7d. Continue doing data exchanges?
      */
     if( --opt.exchanges > 0 )
         goto send_request;

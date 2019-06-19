@@ -1484,6 +1484,8 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
+
 #define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( TLS_ID_VAR )    \
     {                                                                   \
         mbedtls_ecp_group_id const *__gid;                              \
@@ -1512,5 +1514,25 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 #define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_GRP_ID                    \
         }                                                               \
     }
+
+#else /* !MBEDTLS_SSL_CONF_SINGLE_EC */
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( TLS_ID_VAR )    \
+    {                                                                   \
+        uint16_t TLS_ID_VAR = MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID;        \
+        ((void) ssl);
+
+#define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID                    \
+    }
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( EC_ID_VAR )         \
+    {                                                                       \
+        mbedtls_ecp_group_id EC_ID_VAR = MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID; \
+        ((void) ssl);
+
+#define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_GRP_ID                    \
+    }
+
+#endif /* MBEDTLS_SSL_CONF_SINGLE_EC */
 
 #endif /* ssl_internal.h */

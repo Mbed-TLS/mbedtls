@@ -1070,7 +1070,9 @@ struct mbedtls_ssl_config
 #endif
 
 #if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
     const mbedtls_ecp_group_id *curve_list; /*!< allowed curves             */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_EC */
 #endif
 
 #if defined(MBEDTLS_DHM_C)
@@ -2785,6 +2787,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
 /**
  * \brief          Set the allowed curves in order of preference.
  *                 (Default: all defined curves.)
@@ -2808,12 +2811,17 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  * \note           This list should be ordered by decreasing preference
  *                 (preferred curve first).
  *
+ * \note           On highly constrained systems, the support for a single
+ *                 fixed elliptic curve can be configured at compile time
+ *                 through the option MBEDTLS_SSL_CONF_SINGLE_EC.
+ *
  * \param conf     SSL configuration
  * \param curves   Ordered list of allowed curves,
  *                 terminated by MBEDTLS_ECP_DP_NONE.
  */
 void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
                               const mbedtls_ecp_group_id *curves );
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_EC */
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)

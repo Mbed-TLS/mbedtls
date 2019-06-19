@@ -8616,6 +8616,7 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 #if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
 /*
  * Set the allowed elliptic curves
  */
@@ -8624,6 +8625,7 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
 {
     conf->curve_list = curve_list;
 }
+#endif /* MBEDTLS_SSL_CONF_SINGLE_EC */
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -10840,7 +10842,7 @@ static int ssl_preset_suiteb_hashes[] = {
 };
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
 static mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
     MBEDTLS_ECP_DP_SECP256R1,
@@ -10983,7 +10985,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
             conf->curve_list = ssl_preset_suiteb_curves;
+#endif
 #endif
             break;
 
@@ -11024,7 +11028,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
             conf->curve_list = mbedtls_ecp_grp_id_list();
+#endif
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)

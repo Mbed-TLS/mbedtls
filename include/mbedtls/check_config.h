@@ -93,6 +93,12 @@
 #error "MBEDTLS_SSL_CONF_SINGLE_EC defined, but not all prerequesites"
 #endif
 
+#if defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH) &&           \
+    ( !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID) || \
+      !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID) )
+#error "MBEDTLS_SSL_CONF_SINGLE_SIG_HASH defined, but not all prerequesites"
+#endif
+
 #if defined(MBEDTLS_USE_TINYCRYPT) && defined(MBEDTLS_NO_64BIT_MULTIPLICATION)
 #error "MBEDTLS_USE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
 #endif

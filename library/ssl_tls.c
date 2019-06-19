@@ -8630,7 +8630,12 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                   const int *hashes )
 {
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
     conf->sig_hashes = hashes;
+#else
+    ((void) conf);
+    ((void) hashes);
+#endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
@@ -10839,6 +10844,7 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
 static int ssl_preset_default_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
@@ -10854,6 +10860,7 @@ static int ssl_preset_default_hashes[] = {
     MBEDTLS_MD_NONE
 };
 #endif
+#endif
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 static int ssl_preset_suiteb_ciphersuites[] = {
@@ -10864,11 +10871,13 @@ static int ssl_preset_suiteb_ciphersuites[] = {
 #endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
 static int ssl_preset_suiteb_hashes[] = {
     MBEDTLS_MD_SHA256,
     MBEDTLS_MD_SHA384,
     MBEDTLS_MD_NONE
 };
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
@@ -11018,7 +11027,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
             conf->sig_hashes = ssl_preset_suiteb_hashes;
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_C)
@@ -11068,7 +11079,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
             conf->sig_hashes = ssl_preset_default_hashes;
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_C)
@@ -11308,9 +11321,6 @@ int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_i
 int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md )
 {
-    if( ssl->conf->sig_hashes == NULL )
-        return( -1 );
-
     MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH( md_alg )
     if( md_alg == md )
         return( 0 );

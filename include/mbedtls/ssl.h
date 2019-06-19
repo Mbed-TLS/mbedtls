@@ -1078,7 +1078,9 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
     const int *sig_hashes;          /*!< allowed signature hashes           */
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
 #endif
 
 #if defined(MBEDTLS_ECP_C)
@@ -2862,6 +2864,10 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
  *
  * \note           This list should be ordered by decreasing preference
  *                 (preferred hash first).
+ *
+ * \note           On highly constrained systems, the support for a single
+ *                 fixed signature hash algorithm can be configured at compile
+ *                 time through the option MBEDTLS_SSL_CONF_SINGLE_SIG_HASH.
  *
  * \param conf     SSL configuration
  * \param hashes   Ordered list of allowed signature hashes,

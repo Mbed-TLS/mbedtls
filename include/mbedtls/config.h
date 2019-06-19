@@ -3685,6 +3685,34 @@
 //#define MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID
 //#define MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID
 
+/* Enable support a single signature hash algorithm
+ * at compile-time, at the benefit of code-size.
+ *
+ * On highly constrained systems which large control
+ * over the configuration of the connection endpoints,
+ * this option can be used to hardcode the choice of
+ * hash algorithm to be used for signatures in the
+ * ServerKeyExchange and CertificateVerify messages.
+ *
+ * If this is set, you must also define the following:
+ * - MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID
+ *   This must resolve to the Mbed TLS hash ID for the hash
+ *   algorithm to use (e.g. MBEDTLS_MD_SHA256). See
+ *   ::mbedtls_md_type_t in mbedtls/md.h for a complete
+ *   list of supported hash algorithm identifiers.
+ * - MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID
+ *   This must resolve to the TLS identifier for the hash
+ *   algorithm to use. See
+ *   https://tools.ietf.org/html/rfc5246#section-7.4.1.4.1
+ *   for a list of the supported identifiers.
+ *
+ * If defined, this option overwrites the effect of the
+ * runtime configuration API mbedtls_ssl_conf_sig_hashes().
+ */
+//#define MBEDTLS_SSL_CONF_SINGLE_SIG_HASH
+//#define MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID
+//#define MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID
+
 /* \} SECTION: Compile-time SSL configuration */
 
 /* Target and application specific configurations

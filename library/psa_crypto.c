@@ -4132,7 +4132,8 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
 {
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
     uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
-    psa_status_t status;
+    psa_hash_operation_t backup = PSA_HASH_OPERATION_INIT;
+    psa_status_t status, cleanup_status;
 
     /* We can't be wanting more output after block 0xff, otherwise
      * the capacity check in psa_key_derivation_output_bytes() would have
@@ -4155,19 +4156,81 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
      *                        HMAC_hash(secret, A(3) + seed) + ...
      *
      * A(0) = seed
-     * A(i) = HMAC_hash( secret, A(i-1) )
+     * A(i) = HMAC_hash(secret, A(i-1))
      *
-     * The `psa_tls12_prf_key_derivation` structures saves the block
+     * The `psa_tls12_prf_key_derivation` structure saves the block
      * `HMAC_hash(secret, A(i) + seed)` from which the output
      * is currently extracted as `output_block`.
      */
 
-    (void) hash_length;
-    (void) status;
+    /* Save the hash context before using it, to preserve the hash state with
+     * only the inner padding in it. We need this, because inner padding depends
+     * on the key (secret in the RFC's terminology). */
+    status = psa_hash_clone( &tls12_prf->hmac.hash_ctx, &backup );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    /* Calculate A(i) where i = tls12_prf->block_number. */
+    if( tls12_prf->block_number == 1 )
+    {
+        /* A(1) = HMAC_hash(secret, A(0)), where A(0) = seed. (The RFC overloads
+         * the variable seed and in this instance means it in the context of the
+         * P_hash function, where seed = label + seed.) */
+        status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
+                                  tls12_prf->label, tls12_prf->label_length );
+        if( status != PSA_SUCCESS )
+            goto cleanup;
+        status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
+                                  tls12_prf->seed, tls12_prf->seed_length );
+        if( status != PSA_SUCCESS )
+            goto cleanup;
+    }
+    else
+    {
+        /* A(i) = HMAC_hash(secret, A(i-1)) */
+        status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
+                                  tls12_prf->Ai, hash_length );
+        if( status != PSA_SUCCESS )
+            goto cleanup;
+    }
+
+    status = psa_hmac_finish_internal( &tls12_prf->hmac,
+                                       tls12_prf->Ai, hash_length );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+    status = psa_hash_clone( &backup, &tls12_prf->hmac.hash_ctx );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    /* Calculate HMAC_hash(secret, A(i) + label + seed). */
+    status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
+                              tls12_prf->Ai, hash_length );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+    status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
+                              tls12_prf->label, tls12_prf->label_length );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+    status = psa_hash_update( &tls12_prf->hmac.hash_ctx,
+                              tls12_prf->seed, tls12_prf->seed_length );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+    status = psa_hmac_finish_internal( &tls12_prf->hmac,
+                                       tls12_prf->output_block, hash_length );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+    status = psa_hash_clone( &backup, &tls12_prf->hmac.hash_ctx );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
 
 cleanup:
 
-    return( PSA_ERROR_NOT_SUPPORTED );
+    cleanup_status = psa_hash_abort( &backup );
+    if( status == PSA_SUCCESS && cleanup_status != PSA_SUCCESS )
+        status = cleanup_status;
+
+    return( status );
 }
 #endif /* PSA_PRE_1_0_KEY_DERIVATION */
 
@@ -4295,7 +4358,6 @@ psa_status_t psa_key_derivation_output_bytes(
                                           output, output_length );
     }
     else
-#if defined(PSA_PRE_1_0_KEY_DERIVATION)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
              PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
     {
@@ -4304,7 +4366,6 @@ psa_status_t psa_key_derivation_output_bytes(
                                                output_length );
     }
     else
-#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
     {
         return( PSA_ERROR_BAD_STATE );

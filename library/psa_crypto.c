@@ -4144,7 +4144,7 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
 
     /* We need a new block */
     ++tls12_prf->block_number;
-    tls12_prf->offset_in_block = 0;
+    tls12_prf->left_in_block = hash_length;
 
     /* Recall the definition of the TLS-1.2-PRF from RFC 5246:
      *
@@ -4207,6 +4207,45 @@ static psa_status_t psa_key_derivation_tls12_prf_read(
         output += n;
         output_length -= n;
         tls12_prf->offset_in_block += n;
+    }
+
+    return( PSA_SUCCESS );
+}
+#else
+static psa_status_t psa_key_derivation_tls12_prf_read(
+    psa_tls12_prf_key_derivation_t *tls12_prf,
+    psa_algorithm_t alg,
+    uint8_t *output,
+    size_t output_length )
+{
+    psa_algorithm_t hash_alg = PSA_ALG_TLS12_PRF_GET_HASH( alg );
+    uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
+    psa_status_t status;
+    uint8_t offset, length;
+
+    while( output_length != 0 )
+    {
+        /* Check if we have fully processed the current block. */
+        if( tls12_prf->left_in_block == 0 )
+        {
+            status = psa_key_derivation_tls12_prf_generate_next_block( tls12_prf,
+                                                                       alg );
+            if( status != PSA_SUCCESS )
+                return( status );
+
+            continue;
+        }
+
+        if( tls12_prf->left_in_block > output_length )
+            length = (uint8_t) output_length;
+        else
+            length = tls12_prf->left_in_block;
+
+        offset = hash_length - tls12_prf->left_in_block;
+        memcpy( output, tls12_prf->output_block + offset, length );
+        output += length;
+        output_length -= length;
+        tls12_prf->left_in_block -= length;
     }
 
     return( PSA_SUCCESS );

@@ -250,8 +250,8 @@ typedef struct psa_tls12_prf_key_derivation_s
 #endif
 
     /* Indicates how many bytes in the current HMAC block have
-     * already been read by the user. */
-    uint8_t offset_in_block;
+     * not yet been read by the user. */
+    uint8_t left_in_block;
 
     /* The 1-based number of the block. */
     uint8_t block_number;

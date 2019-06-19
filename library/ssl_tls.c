@@ -11241,9 +11241,6 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
  */
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
 {
-    if( ssl->conf->curve_list == NULL )
-        return( -1 );
-
     MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( own_ec_id )
     if( own_ec_id == grp_id )
         return( 0 );

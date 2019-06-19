@@ -269,7 +269,6 @@ static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
-    unsigned char *elliptic_curve_list = p + 6;
     size_t elliptic_curve_len = 0;
 
     *olen = 0;
@@ -287,13 +286,6 @@ static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
         return;
     }
 
-    elliptic_curve_len = 0;
-
-    MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( tls_id )
-    elliptic_curve_list[elliptic_curve_len++] = tls_id >> 8;
-    elliptic_curve_list[elliptic_curve_len++] = tls_id & 0xFF;
-    MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID
-
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES      ) & 0xFF );
 
@@ -302,6 +294,11 @@ static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
 
     *p++ = (unsigned char)( ( ( elliptic_curve_len     ) >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( ( elliptic_curve_len     )      ) & 0xFF );
+
+    MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( tls_id )
+    *p++ = tls_id >> 8;
+    *p++ = tls_id & 0xFF;
+    MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID
 
     *olen = 6 + elliptic_curve_len;
 }

@@ -1664,6 +1664,8 @@
  * tickets, including authenticated encryption and key management. Example
  * callbacks are provided by MBEDTLS_SSL_TICKET_C.
  *
+ * Requires: MBEDTLS_SSL_SESSION_RESUMPTION
+ *
  * Comment this macro to disable support for SSL session tickets
  */
 #define MBEDTLS_SSL_SESSION_TICKETS
@@ -1671,6 +1673,9 @@
 /**
  * \def MBEDTLS_SSL_SESSION_CACHE
  *
+ * Enable support for cache based session resumption.
+ *
+ * Requires: MBEDTLS_SSL_SESSION_RESUMPTION
  *
  * Comment this macro to disable support for SSL session cache
  */
@@ -1679,6 +1684,10 @@
 /**
  * \def MBEDTLS_SSL_SESSION_RESUMPTION
  *
+ * Enable support for session resumption. This is the main feature flag and
+ * enabling this allow to enable following flags:
+ *     MBEDTLS_SSL_SESSION_TICKETS
+ *     MBEDTLS_SSL_SESSION_CACHE
  *
  * Comment this macro to disable support for SSL session resumption
  */

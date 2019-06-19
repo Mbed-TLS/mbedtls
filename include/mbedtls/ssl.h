@@ -898,9 +898,11 @@ struct mbedtls_ssl_config
 
     const int *ciphersuite_list[4]; /*!< allowed ciphersuites per version   */
 
+#if defined(MBEDTLS_DEBUG_C)
     /** Callback for printing debug output                                  */
     void (*f_dbg)(void *, int, const char *, int, const char *);
     void *p_dbg;                    /*!< context for the debug function     */
+#endif /* MBEDTLS_DEBUG_C */
 
 #if !defined(MBEDTLS_SSL_CONF_RNG)
     /** Callback for getting (pseudo-)random numbers                        */

@@ -604,43 +604,6 @@ exit:
     return( ok );
 }
 
-static int is_oid_of_key_type( psa_key_type_t type,
-                               const uint8_t *oid, size_t oid_length )
-{
-    const uint8_t *expected_oid = NULL;
-    size_t expected_oid_length = 0;
-#if defined(MBEDTLS_RSA_C)
-    if( PSA_KEY_TYPE_IS_RSA( type ) )
-    {
-        expected_oid = (uint8_t *) MBEDTLS_OID_PKCS1_RSA;
-        expected_oid_length = sizeof( MBEDTLS_OID_PKCS1_RSA ) - 1;
-    }
-    else
-#endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC( type ) )
-    {
-        expected_oid = (uint8_t *) MBEDTLS_OID_EC_ALG_UNRESTRICTED;
-        expected_oid_length = sizeof( MBEDTLS_OID_EC_ALG_UNRESTRICTED ) - 1;
-    }
-    else
-#endif /* MBEDTLS_ECP_C */
-    {
-        char message[40];
-        mbedtls_snprintf( message, sizeof( message ),
-                          "OID not known for key type=0x%08lx",
-                          (unsigned long) type );
-        test_fail( message, __LINE__, __FILE__ );
-        return( 0 );
-    }
-
-    ASSERT_COMPARE( expected_oid, expected_oid_length, oid, oid_length );
-    return( 1 );
-
-exit:
-    return( 0 );
-}
-
 static int asn1_skip_integer( unsigned char **p, const unsigned char *end,
                               size_t min_bits, size_t max_bits,
                               int must_be_odd )
@@ -677,25 +640,6 @@ static int asn1_skip_integer( unsigned char **p, const unsigned char *end,
     *p += len;
     return( 1 );
 exit:
-    return( 0 );
-}
-
-static int asn1_get_implicit_tag( unsigned char **p, const unsigned char *end,
-                                  size_t *len,
-                                  unsigned char n, unsigned char tag )
-{
-    int ret;
-    ret = mbedtls_asn1_get_tag( p, end, len,
-                                MBEDTLS_ASN1_CONTEXT_SPECIFIC |
-                                MBEDTLS_ASN1_CONSTRUCTED | ( n ) );
-    if( ret != 0 )
-        return( ret );
-    end = *p + *len;
-    ret = mbedtls_asn1_get_tag( p, end, len, tag );
-    if( ret != 0 )
-        return( ret );
-    if( *p + *len != end )
-        return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     return( 0 );
 }
 

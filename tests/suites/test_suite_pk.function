@@ -12,7 +12,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
-#include "psa_helpers.function"
+#include "psa_crypto_helpers.h"
 #endif
 
 static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );

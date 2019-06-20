@@ -19,6 +19,9 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+#ifndef PSA_CRYPTO_HELPERS_H
+#define PSA_CRYPTO_HELPERS_H
+
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
 #include "spm/psa_defs.h"
 #endif
@@ -78,8 +81,4 @@ static void test_helper_psa_done( int line, const char *file )
  */
 #define PSA_DONE( ) test_helper_psa_done( __LINE__, __FILE__ )
 
-/*
- * Local Variables:
- * mode: c
- * End:
- */
+#endif /* PSA_CRYPTO_HELPERS_H */

@@ -1,7 +1,7 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
-#include "psa_helpers.function"
+#include "psa_crypto_helpers.h"
 #include "psa_crypto_storage.h"
 
 typedef enum

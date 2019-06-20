@@ -104,7 +104,7 @@ $(BINARIES): %$(EXEXT): %.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-$(filter test_suite_psa_crypto%, $(BINARIES)): psa_helpers.function
+$(filter test_suite_psa_crypto%, $(BINARIES)): psa_crypto_helpers.h
 
 clean:
 ifndef WINDOWS

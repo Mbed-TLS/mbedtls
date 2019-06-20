@@ -52,7 +52,7 @@ function(add_test_suite suite_name)
     target_include_directories(${exe_name}
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${MBEDTLS_DIR}/crypto/include/
-        PRIVATE ${MBEDTLS_DIR}/crypto/library/)
+        PUBLIC ${MBEDTLS_DIR}/crypto/library/)
 
     if(${data_name} MATCHES ${SKIP_TEST_SUITES_REGEX})
         message(STATUS "The test suite ${data_name} will not be executed.")

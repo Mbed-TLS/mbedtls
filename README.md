@@ -146,6 +146,12 @@ Regarding variables, also note that if you set CFLAGS when invoking cmake,
 your value of CFLAGS doesn't override the content provided by cmake (depending
 on the build mode as seen above), it's merely prepended to it.
 
+#### Mbed TLS as a subproject
+
+Mbed TLS, like Mbed Crypto, supports being built as a CMake subproject. One can
+use `add_subdirectory()` from a parent CMake project to include Mbed TLS as a
+subproject.
+
 ### Microsoft Visual Studio
 
 The build files for Microsoft Visual Studio are generated for Visual Studio 2010.

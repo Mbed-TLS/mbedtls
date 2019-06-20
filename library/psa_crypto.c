@@ -4740,6 +4740,10 @@ static psa_status_t psa_key_derivation_setup_kdf(
     psa_key_derivation_operation_t *operation,
     psa_algorithm_t kdf_alg )
 {
+    /* Make sure that operation->ctx is properly zero-initialised. (Macro
+     * initialisers for this union leave some bytes unspecified.) */
+    memset( &operation->ctx, 0, sizeof( operation->ctx ) );
+
     /* Make sure that kdf_alg is a supported key derivation algorithm. */
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( kdf_alg ) ||

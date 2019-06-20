@@ -1,5 +1,5 @@
 /*
- * Helper functions for tests that use the PSA API.
+ * Helper functions for tests that use the PSA Crypto API.
  */
 /*  Copyright (C) 2019, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -22,18 +22,9 @@
 #ifndef PSA_CRYPTO_HELPERS_H
 #define PSA_CRYPTO_HELPERS_H
 
-#if defined(MBEDTLS_PSA_CRYPTO_SPM)
-#include "spm/psa_defs.h"
-#endif
-#include <psa/crypto.h>
+#include "psa_helpers.h"
 
-/** Evaluate an expression and fail the test case if it returns an error.
- *
- * \param expr      The expression to evaluate. This is typically a call
- *                  to a \c psa_xxx function that returns a value of type
- *                  #psa_status_t.
- */
-#define PSA_ASSERT( expr ) TEST_EQUAL( ( expr ), PSA_SUCCESS )
+#include <psa/crypto.h>
 
 static int test_helper_is_psa_pristine( int line, const char *file )
 {
@@ -60,7 +51,7 @@ static int test_helper_is_psa_pristine( int line, const char *file )
     return( msg == NULL );
 }
 
-/** Check that no PSA slots are in use.
+/** Check that no PSA Crypto key slots are in use.
  */
 #define ASSERT_PSA_PRISTINE( )                                    \
     do                                                            \
@@ -76,7 +67,7 @@ static void test_helper_psa_done( int line, const char *file )
     mbedtls_psa_crypto_free( );
 }
 
-/** Shut down the PSA subsystem. Expect a clean shutdown, with no slots
+/** Shut down the PSA Crypto subsystem. Expect a clean shutdown, with no slots
  * in use.
  */
 #define PSA_DONE( ) test_helper_psa_done( __LINE__, __FILE__ )

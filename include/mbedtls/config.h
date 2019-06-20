@@ -1664,34 +1664,60 @@
  * tickets, including authenticated encryption and key management. Example
  * callbacks are provided by MBEDTLS_SSL_TICKET_C.
  *
- * Requires: MBEDTLS_SSL_SESSION_RESUMPTION
+ * Requires: !MBEDTLS_SSL_NO_SESSION_RESUMPTION
  *
  * Comment this macro to disable support for SSL session tickets
  */
-#define MBEDTLS_SSL_SESSION_TICKETS
+//#define MBEDTLS_SSL_SESSION_TICKETS
 
 /**
- * \def MBEDTLS_SSL_SESSION_CACHE
+ * \def MBEDTLS_SSL_NO_SESSION_CACHE
  *
- * Enable support for cache based session resumption.
+ * Disable support for cache based session resumption.
  *
- * Requires: MBEDTLS_SSL_SESSION_RESUMPTION
+ * This option is only about the server-side support of the session caches.
+ * Client will only need the MBEDTLS_SSL_SESSION_RESUMPTION to support
+ * cache based session resumption.
  *
- * Comment this macro to disable support for SSL session cache
+ * Server-side, you also need to provide callbacks for storing and reading
+ * sessions from cache. Example callbacks are provided by MBEDTLS_SSL_CACHE_C.
+ *
+ * If MBEDTLS_SSL_NO_SESSION_RESUMPTION is defined, this needs to be defined
+ * as well.
+ *
+ * Uncomment this macro to disable support for SSL session cache
  */
-#define MBEDTLS_SSL_SESSION_CACHE
+#define MBEDTLS_SSL_NO_SESSION_CACHE
 
 /**
- * \def MBEDTLS_SSL_SESSION_RESUMPTION
+ * \def MBEDTLS_SSL_NO_SESSION_RESUMPTION
  *
- * Enable support for session resumption. This is the main feature flag and
- * enabling this allow to enable following flags:
- *     MBEDTLS_SSL_SESSION_TICKETS
- *     MBEDTLS_SSL_SESSION_CACHE
+ * Disable support for session resumption. This is useful in constrained
+ * devices where session resumption isn't used.
  *
- * Comment this macro to disable support for SSL session resumption
+ * \note Session resumption is part of the TLS standard, disabling this
+ * option means that the full implementation of the standard is no longer
+ * used. This shouldn't cause any interoperability issues as by the standard
+ * mandates that peers who want to resume a session need to be prepared to
+ * fall back to a full handshake.
+ *
+ * When this flag is enabled, following needs to be true:
+ *     MBEDTLS_SSL_NO_SESSION_CACHE enabled
+ *     MBEDTLS_SSL_SESSION_TICKETS disabled
+ *
+ * Client-side, this is enough to enable support for cache-based session
+ * resumption (as defined by the TLS standard); for ticket-based resumption
+ * you'll also need to enable MBEDTLS_SSL_SESSION_TICKETS.
+ *
+ * Server-side, this option is only useful in conjunction with at least
+ * one of `!MBEDTLS_SSL_NO_SESSION_CACHE` or `MBEDTLS_SSL_SESSION_TICKETS`.
+ * Each one of these additionally requires an implementation of the cache
+ * or tickets, examples of which are provided by `MBEDTLS_SSL_CACHE_C`
+ * and `MBEDTLS_SSL_TICKETS_C` respectively.
+ *
+ * Uncomment this macro to disable support for SSL session resumption
  */
-#define MBEDTLS_SSL_SESSION_RESUMPTION
+#define MBEDTLS_SSL_NO_SESSION_RESUMPTION
 
 /**
  * \def MBEDTLS_SSL_EXPORT_KEYS

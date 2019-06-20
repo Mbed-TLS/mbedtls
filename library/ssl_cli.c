@@ -888,9 +888,9 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
 #endif
-#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
         ssl->handshake->resume == 0 )
-#else /* MBEDTLS_SSL_SESSION_RESUMPTION */
+#else /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
         0 )
 #endif
     {
@@ -1803,8 +1803,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     /*
      * Check if the session can be resumed
      */
-#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
-    if( ssl->handshake->resume == 0 || n == 0 ||
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    if( n == 0 ||
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
 #endif
@@ -1812,22 +1812,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         ssl->session_negotiate->compression != comp ||
         ssl->session_negotiate->id_len != n ||
         memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
-#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
-    {
-        ssl->state++;
-#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
         ssl->handshake->resume = 0;
-#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
-#if defined(MBEDTLS_HAVE_TIME)
-        ssl->session_negotiate->start = mbedtls_time( NULL );
-#endif
-        ssl->session_negotiate->ciphersuite = i;
-        ssl->session_negotiate->compression = comp;
-        ssl->session_negotiate->id_len = n;
-        memcpy( ssl->session_negotiate->id, buf + 35, n );
-    }
-#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
-    else
+    if( ssl->handshake->resume == 1 )
     {
         ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
 
@@ -1839,12 +1825,26 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             return( ret );
         }
     }
-#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
+    else
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
+    {
+        ssl->state++;
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+        ssl->handshake->resume = 0;
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
+#if defined(MBEDTLS_HAVE_TIME)
+        ssl->session_negotiate->start = mbedtls_time( NULL );
+#endif
+        ssl->session_negotiate->ciphersuite = i;
+        ssl->session_negotiate->compression = comp;
+        ssl->session_negotiate->id_len = n;
+        memcpy( ssl->session_negotiate->id, buf + 35, n );
+    }
 
-#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
                    ssl->handshake->resume ? "a" : "no" ) );
-#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %04x", i ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[37 + n] ) );

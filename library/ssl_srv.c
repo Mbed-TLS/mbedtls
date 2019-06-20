@@ -2637,7 +2637,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 
-#if defined(MBEDTLS_SSL_SESSION_CACHE)
+#if !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     /*
      * Resume is 0  by default, see ssl_handshake_init().
      * It may be already set to 1 by ssl_parse_session_ticket_ext().
@@ -2654,11 +2654,25 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
         ssl->handshake->resume = 1;
     }
-#endif /* MBEDTLS_SSL_SESSION_CACHE */
+#endif /* !MBEDTLS_SSL_NO_SESSION_CACHE */
 
-#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
-    if( ssl->handshake->resume == 0 )
-#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    if( ssl->handshake->resume == 1 )
+    {
+        /*
+         * Resuming a session
+         */
+        n = ssl->session_negotiate->id_len;
+        ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
+
+        if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
     {
         /*
          * New session, create a new session id,
@@ -2685,22 +2699,6 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
                 return( ret );
         }
     }
-#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
-    else
-    {
-        /*
-         * Resuming a session
-         */
-        n = ssl->session_negotiate->id_len;
-        ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
-
-        if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
-            return( ret );
-        }
-    }
-#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
 
     /*
      *    38  .  38     session id length
@@ -2716,10 +2714,10 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );
-#if defined(MBEDTLS_SSL_SESSION_RESUMPTION)
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
                    ssl->handshake->resume ? "a" : "no" ) );
-#endif /* MBEDTLS_SSL_SESSION_RESUMPTION */
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite >> 8 );
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite      );

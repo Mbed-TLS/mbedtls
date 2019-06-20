@@ -2545,14 +2545,14 @@ reconnect:
             }
         }
 
-#if defined(MBEDTLS_SSL_SESSION_CACHE)
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
         if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
-#endif /* MBEDTLS_SSL_SESSION_CACHE */
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
         if( ( ret = mbedtls_net_connect( &server_fd,
                         opt.server_addr, opt.server_port,

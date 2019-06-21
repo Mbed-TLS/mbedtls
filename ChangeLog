@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix to allow building test suites with any warning that detects unused
+     functions. Fixes #1628.
+
 = mbed TLS 2.16.2 branch released 2019-06-11
 
 Security

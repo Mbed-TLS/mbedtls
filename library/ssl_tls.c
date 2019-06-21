@@ -2606,7 +2606,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
         }
 
         /*
-         * A record can't be split accross datagrams. If we need to read but
+         * A record can't be split across datagrams. If we need to read but
          * are not at the beginning of a new record, the caller did something
          * wrong.
          */

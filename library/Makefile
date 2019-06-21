@@ -38,7 +38,7 @@ SOEXT_CRYPTO=so.2
 # Set DLEXT=dylib to compile as a shared library for Mac OS X
 DLEXT ?= so
 
-# Set AR_DASH= (empty string) to use an ar implentation that does not accept
+# Set AR_DASH= (empty string) to use an ar implementation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)
 AR_DASH ?= -
 

@@ -3444,7 +3444,7 @@
  * This section allows to fix parts of the SSL configuration
  * at compile-time. If a field is fixed at compile-time, the
  * corresponding SSL configuration API `mbedtls_ssl_conf_xxx()`
- * remains present, but takes no effect anymore.
+ * is removed.
  *
  * This can be used on constrained systems to reduce code-size.
  * \{

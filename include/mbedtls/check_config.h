@@ -650,6 +650,13 @@
 #error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequsites"
 #endif
 
+#if ( defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET) &&            \
+      !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET) ) || \
+    ( !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET) &&           \
+      defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET) )
+#define "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET and MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET must be defined together."
+#endif
+
 #if defined(MBEDTLS_SSL_TICKET_C) && !defined(MBEDTLS_CIPHER_C)
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif

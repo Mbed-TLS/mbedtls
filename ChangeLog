@@ -65,6 +65,15 @@ Bugfix
      returning. Fixes #2431.
    * Fix to allow building test suites with any warning that detects unused
      functions. Fixes #1628.
+   * Fix typo in net_would_block(). Fixes #528 reported by github-monoculture.
+   * Remove redundant include file in timing.c. Fixes #2640 reported by irwir.
+   * Fix build failure when building with mingw on Windows by including
+     stdarg.h where needed. Fixes #2656.
+   * Fix Visual Studio Release x64 build configuration by inheriting
+     PlatformToolset from the project configuration. Fixes #1430 reported by
+     irwir.
+   * Enable Suite B with subset of ECP curves. Make sure the code compiles even
+     if some curves are not defined. Fixes #1591 reported by dbedev.
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
@@ -93,6 +102,7 @@ Changes
    * Replace multiple uses of MD2 by SHA-256 in X.509 test suite. Fixes #821.
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h
      suggests). #2671
+   * Make `make clean` clean all programs always. Fixes #1862.
 
 = mbed TLS 2.17.0 branch released 2019-03-19
 

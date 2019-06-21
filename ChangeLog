@@ -6,6 +6,10 @@ Bugfix
    * Fix to allow building test suites with any warning that detects unused
      functions. Fixes #1628.
 
+Changes
+   * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h
+     suggests). #2671
+
 = mbed TLS 2.16.2 branch released 2019-06-11
 
 Security

@@ -846,9 +846,21 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
+component_test_check_params_functionality () {
+    msg "build+test: MBEDTLS_CHECK_PARAMS functionality"
+    scripts/config.pl full # includes CHECK_PARAMS
+    # Make MBEDTLS_PARAM_FAILED call mbedtls_param_failed().
+    scripts/config.pl unset MBEDTLS_CHECK_PARAMS_ASSERT
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    # Only build and run tests. Do not build sample programs, because
+    # they don't have a mbedtls_param_failed() function.
+    make CC=gcc CFLAGS='-Werror -O1' lib test
+}
+
 component_test_check_params_without_platform () {
     msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
     scripts/config.pl full # includes CHECK_PARAMS
+    # Keep MBEDTLS_PARAM_FAILED as assert.
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
@@ -866,6 +878,7 @@ component_test_check_params_silent () {
     msg "build+test: MBEDTLS_CHECK_PARAMS with alternative MBEDTLS_PARAM_FAILED()"
     scripts/config.pl full # includes CHECK_PARAMS
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    # Set MBEDTLS_PARAM_FAILED to nothing.
     sed -i 's/.*\(#define MBEDTLS_PARAM_FAILED( cond )\).*/\1/' "$CONFIG_H"
     make CC=gcc CFLAGS='-Werror -O1' all test
 }
@@ -1017,7 +1030,7 @@ component_test_m32_o0 () {
     # Build once with -O0, to compile out the i386 specific inline assembly
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.pl full
-    make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
+    make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32'
 
     msg "test: i386, make, gcc -O0 (ASan build)"
     make test
@@ -1036,7 +1049,7 @@ component_test_m32_o1 () {
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
-    make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
+    make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32'
 
     msg "test: i386, make, gcc -O1 (ASan build)"
     make test
@@ -1051,7 +1064,7 @@ support_test_m32_o1 () {
 component_test_mx32 () {
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
     scripts/config.pl full
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32' LDFLAGS='-mx32'
 
     msg "test: 64-bit ILP32, make, gcc"
     make test

@@ -179,7 +179,7 @@ static int parse_arguments( char *buf, size_t len, char **params,
             if( p + 1 < buf + len )
             {
                 cur = p + 1;
-                assert( cnt < params_len );
+                TEST_HELPER_ASSERT( cnt < params_len );
                 params[cnt++] = cur;
             }
             *p = '\0';

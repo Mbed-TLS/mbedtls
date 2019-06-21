@@ -410,17 +410,6 @@ int main( void )
 #define ALPN_LIST_SIZE  10
 #define CURVE_LIST_SIZE 20
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 /*
  * global options
@@ -1483,7 +1472,6 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
-
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.psk_opaque != 0 )

@@ -296,6 +296,8 @@ x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 clean:
 ifndef WINDOWS
 	rm -f $(APPS)
+	-rm -f ssl/ssl_pthread_server$(EXEXT)
+	-rm -f test/cpp_dummy_build$(EXEXT)
 else
 	del /S /Q /F *.o *.exe
 endif

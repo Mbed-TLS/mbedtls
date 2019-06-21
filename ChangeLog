@@ -63,6 +63,8 @@ Bugfix
    * Fix multiple X.509 functions previously returning ASN.1 low-level error
      codes to always wrap these codes into X.509 high level error codes before
      returning. Fixes #2431.
+   * Fix to allow building test suites with any warning that detects unused
+     functions. Fixes #1628.
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

@@ -131,6 +131,7 @@ int main( void )
 #define DFL_ETM                 -1
 #define DFL_CA_CALLBACK         0
 #define DFL_EAP_TLS             0
+#define DFL_REPRODUCIBLE        0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -313,6 +314,9 @@ int main( void )
 #define USAGE_ETM ""
 #endif
 
+#define USAGE_REPRODUCIBLE \
+    "    reproducible=0/1     default: 0 (disabled)\n"
+
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 #define USAGE_RENEGO \
     "    renegotiation=%%d    default: 0 (disabled)\n"      \
@@ -384,6 +388,7 @@ int main( void )
     USAGE_FALLBACK                                          \
     USAGE_EMS                                               \
     USAGE_ETM                                               \
+    USAGE_REPRODUCIBLE                                      \
     USAGE_CURVES                                            \
     USAGE_RECSPLIT                                          \
     USAGE_DHMLEN                                            \
@@ -484,6 +489,7 @@ struct options
     const char *cid_val;        /* the CID to use for incoming messages     */
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
+    int reproducible;           /* make communication reproducible          */
 } opt;
 
 int query_config( const char *config );
@@ -538,6 +544,28 @@ static void my_debug( void *ctx, int level,
     mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s",
                      basename, line, level, str );
     fflush(  (FILE *) ctx  );
+}
+
+
+mbedtls_time_t dummy_constant_time( mbedtls_time_t* time )
+{
+    (void) time;
+    return 0x5af2a056;
+}
+
+int dummy_entropy( void *data, unsigned char *output, size_t len )
+{
+    size_t i;
+    int ret;
+    (void) data;
+
+    ret = mbedtls_entropy_func( data, output, len );
+    for ( i = 0; i < len; i++ )
+    {
+        //replace result with pseudo random
+        output[i] = (unsigned char) rand();
+    }
+    return( ret );
 }
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
@@ -1027,6 +1055,7 @@ int main( int argc, char *argv[] )
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
     opt.eap_tls             = DFL_EAP_TLS;
+    opt.reproducible        = DFL_REPRODUCIBLE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -1413,6 +1442,10 @@ int main( int argc, char *argv[] )
             if( opt.eap_tls < 0 || opt.eap_tls > 1 )
                 goto usage;
         }
+        else if( strcmp( p, "reproducible" ) == 0 )
+        {
+            opt.reproducible = 1;
+        }
         else
             goto usage;
     }
@@ -1665,13 +1698,28 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                       &entropy, (const unsigned char *) pers,
-                                       strlen( pers ) ) ) != 0 )
+    if (opt.reproducible)
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                        -ret );
-        goto exit;
+        srand( 1 );
+        if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy,
+                                           &entropy, (const unsigned char *) pers,
+                                           strlen( pers ) ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                            -ret );
+            goto exit;
+        }
+    }
+    else
+    {
+        if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
+                                           &entropy, (const unsigned char *) pers,
+                                           strlen( pers ) ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                            -ret );
+            goto exit;
+        }
     }
 
     mbedtls_printf( " ok\n" );
@@ -1964,6 +2012,16 @@ int main( int argc, char *argv[] )
         }
 #endif
 
+    if (opt.reproducible)
+    {
+#if defined(MBEDTLS_HAVE_TIME)
+#if defined(MBEDTLS_PLATFORM_TIME_ALT)
+        mbedtls_platform_set_time( dummy_constant_time );
+#else
+        fprintf( stderr, "Warning: reproducible option used without constant time\n" );
+#endif
+#endif
+    }
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 

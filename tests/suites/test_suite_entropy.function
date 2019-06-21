@@ -47,7 +47,7 @@ static int entropy_dummy_source( void *data, unsigned char *output,
  * This might break memory checks in the future if sources need 'free-ing' then
  * as well.
  */
-static void entropy_clear_sources( mbedtls_entropy_context *ctx )
+void entropy_clear_sources( mbedtls_entropy_context *ctx )
 {
     ctx->source_count = 0;
 }
@@ -57,7 +57,7 @@ static void entropy_clear_sources( mbedtls_entropy_context *ctx )
  */
 static unsigned char buffer_seed[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
-static int buffer_nv_seed_read( unsigned char *buf, size_t buf_len )
+int buffer_nv_seed_read( unsigned char *buf, size_t buf_len )
 {
     if( buf_len != MBEDTLS_ENTROPY_BLOCK_SIZE )
         return( -1 );
@@ -66,7 +66,7 @@ static int buffer_nv_seed_read( unsigned char *buf, size_t buf_len )
     return( 0 );
 }
 
-static int buffer_nv_seed_write( unsigned char *buf, size_t buf_len )
+int buffer_nv_seed_write( unsigned char *buf, size_t buf_len )
 {
     if( buf_len != MBEDTLS_ENTROPY_BLOCK_SIZE )
         return( -1 );
@@ -78,7 +78,7 @@ static int buffer_nv_seed_write( unsigned char *buf, size_t buf_len )
 /*
  * NV seed read/write helpers that fill the base seedfile
  */
-static int write_nv_seed( unsigned char *buf, size_t buf_len )
+int write_nv_seed( unsigned char *buf, size_t buf_len )
 {
     FILE *f;
 
@@ -97,7 +97,7 @@ static int write_nv_seed( unsigned char *buf, size_t buf_len )
     return( 0 );
 }
 
-static int read_nv_seed( unsigned char *buf, size_t buf_len )
+int read_nv_seed( unsigned char *buf, size_t buf_len )
 {
     FILE *f;
 

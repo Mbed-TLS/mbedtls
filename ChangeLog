@@ -5,6 +5,16 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix to allow building test suites with any warning that detects unused
      functions. Fixes #1628.
+   * Fix typo in net_would_block(). Fixes #528 reported by github-monoculture.
+   * Remove redundant include file in timing.c. Fixes #2640 reported by irwir.
+   * Fix Visual Studio Release x64 build configuration by inheriting
+     PlatformToolset from the project configuration. Fixes #1430 reported by
+     irwir.
+   * Enable Suite B with subset of ECP curves. Make sure the code compiles even
+     if some curves are not defined. Fixes #1591 reported by dbedev.
+
+Changes
+   * Make `make clean` clean all programs always. Fixes #1862.
 
 = mbed TLS 2.7.11 branch released 2019-06-11
 

@@ -1065,39 +1065,13 @@ support_test_mx32 () {
 
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_NET_C
-    scripts/config.pl unset MBEDTLS_TIMING_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    # following things are not in the default config
-    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-    scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    scripts/config.pl baremetal
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {
     msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_NET_C
-    scripts/config.pl unset MBEDTLS_TIMING_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    # following things are not in the default config
-    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-    scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
@@ -1106,20 +1080,7 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
 
 component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     msg "build: arm-none-eabi-gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_NET_C
-    scripts/config.pl unset MBEDTLS_TIMING_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-    # following things are not in the default config
-    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-    scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
     echo "Checking that software 64-bit multiplication is not required"
@@ -1128,24 +1089,7 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
 
 component_build_armcc () {
     msg "build: ARM Compiler 5, make"
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_NET_C
-    scripts/config.pl unset MBEDTLS_TIMING_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl unset MBEDTLS_HAVE_TIME
-    scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
-    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    # following things are not in the default config
-    scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
-    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-    scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-    scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
+    scripts/config.pl baremetal
 
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
     make clean

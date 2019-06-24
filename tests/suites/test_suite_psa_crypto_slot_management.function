@@ -1,18 +1,16 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
-#if defined(MBEDTLS_PSA_CRYPTO_SPM)
-#include "spm/psa_defs.h"
-#endif
-#include "psa/crypto.h"
-
+#include "psa_crypto_helpers.h"
 #include "psa_crypto_storage.h"
 
 typedef enum
 {
-    CLOSE_BY_CLOSE,
-    CLOSE_BY_DESTROY,
-    CLOSE_BY_SHUTDOWN,
+    CLOSE_BY_CLOSE, /**< Close the handle(s). */
+    CLOSE_BY_DESTROY, /**< Destroy the handle(s). */
+    CLOSE_BY_SHUTDOWN, /**< Deinit and reinit without closing handles. */
+    CLOSE_BY_CLOSE_WITH_SHUTDOWN, /**< Close handle(s) then deinit/reinit. */
+    CLOSE_BY_DESTROY_WITH_SHUTDOWN, /**< Destroy handle(s) then deinit/reinit. */
 } close_method_t;
 
 typedef enum
@@ -66,6 +64,58 @@ static void psa_purge_key_storage( void )
 #define TEST_USES_KEY_ID( key_id ) ( (void) ( key_id ) )
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
+/** Apply \p close_method to invalidate the specified handles:
+ * close it, destroy it, or do nothing;
+ */
+static int invalidate_handle( close_method_t close_method,
+                              psa_key_handle_t handle )
+{
+    switch( close_method )
+    {
+        case CLOSE_BY_CLOSE:
+        case CLOSE_BY_CLOSE_WITH_SHUTDOWN:
+            PSA_ASSERT( psa_close_key( handle ) );
+            break;
+        case CLOSE_BY_DESTROY:
+        case CLOSE_BY_DESTROY_WITH_SHUTDOWN:
+            PSA_ASSERT( psa_destroy_key( handle ) );
+            break;
+        case CLOSE_BY_SHUTDOWN:
+            break;
+    }
+    return( 1 );
+exit:
+    return( 0 );
+}
+
+/** Restart the PSA subsystem if \p close_method says so. */
+static int invalidate_psa( close_method_t close_method )
+{
+    switch( close_method )
+    {
+        case CLOSE_BY_CLOSE:
+        case CLOSE_BY_DESTROY:
+            return( 1 );
+        case CLOSE_BY_CLOSE_WITH_SHUTDOWN:
+        case CLOSE_BY_DESTROY_WITH_SHUTDOWN:
+            /* All keys must have been closed. */
+            PSA_DONE( );
+            break;
+        case CLOSE_BY_SHUTDOWN:
+            /* Some keys may remain behind, and we're testing that this
+             * properly closes them. */
+            mbedtls_psa_crypto_free( );
+            break;
+    }
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    ASSERT_PSA_PRISTINE( );
+    return( 1 );
+
+exit:
+    return( 0 );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -98,19 +148,10 @@ void transient_slot_lifecycle( int usage_arg, int alg_arg,
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
 
     /* Do something that invalidates the handle. */
-    switch( close_method )
-    {
-        case CLOSE_BY_CLOSE:
-            PSA_ASSERT( psa_close_key( handle ) );
-            break;
-        case CLOSE_BY_DESTROY:
-            PSA_ASSERT( psa_destroy_key( handle ) );
-            break;
-        case CLOSE_BY_SHUTDOWN:
-            mbedtls_psa_crypto_free( );
-            PSA_ASSERT( psa_crypto_init( ) );
-            break;
-    }
+    if( ! invalidate_handle( close_method, handle ) )
+        goto exit;
+    if( ! invalidate_psa( close_method ) )
+        goto exit;
 
     /* Test that the handle is now invalid. */
     TEST_EQUAL( psa_get_key_attributes( handle, &attributes ),
@@ -118,7 +159,7 @@ void transient_slot_lifecycle( int usage_arg, int alg_arg,
     TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -175,19 +216,11 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     TEST_EQUAL( psa_get_key_type( &attributes ), type );
 
     /* Do something that invalidates the handle. */
-    switch( close_method )
-    {
-        case CLOSE_BY_CLOSE:
-            PSA_ASSERT( psa_close_key( handle ) );
-            break;
-        case CLOSE_BY_DESTROY:
-            PSA_ASSERT( psa_destroy_key( handle ) );
-            break;
-        case CLOSE_BY_SHUTDOWN:
-            mbedtls_psa_crypto_free( );
-            PSA_ASSERT( psa_crypto_init( ) );
-            break;
-    }
+    if( ! invalidate_handle( close_method, handle ) )
+        goto exit;
+    if( ! invalidate_psa( close_method ) )
+        goto exit;
+
     /* Test that the handle is now invalid. */
     TEST_EQUAL( psa_get_key_attributes( handle, &read_attributes ),
                 PSA_ERROR_INVALID_HANDLE );
@@ -200,6 +233,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     switch( close_method )
     {
         case CLOSE_BY_CLOSE:
+        case CLOSE_BY_CLOSE_WITH_SHUTDOWN:
         case CLOSE_BY_SHUTDOWN:
             PSA_ASSERT( psa_open_key( id, &handle ) );
             PSA_ASSERT( psa_get_key_attributes( handle, &read_attributes ) );
@@ -232,15 +266,18 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
                                             &reexported_length ),
                             PSA_ERROR_NOT_PERMITTED );
             }
+            PSA_ASSERT( psa_close_key( handle ) );
             break;
+
         case CLOSE_BY_DESTROY:
+        case CLOSE_BY_DESTROY_WITH_SHUTDOWN:
             TEST_EQUAL( psa_open_key( id, &handle ),
                         PSA_ERROR_DOES_NOT_EXIST );
             break;
     }
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     psa_purge_key_storage( );
     mbedtls_free( reexported );
 }
@@ -306,8 +343,10 @@ void create_existent( int lifetime_arg, int id_arg,
     ASSERT_COMPARE( material1, sizeof( material1 ),
                     reexported, reexported_length );
 
+    PSA_ASSERT( psa_close_key( handle1 ) );
+
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     psa_purge_key_storage( );
 }
 /* END_CASE */
@@ -326,7 +365,7 @@ void open_fail( int id_arg,
     TEST_EQUAL( handle, 0 );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -354,7 +393,7 @@ void create_fail( int lifetime_arg, int id_arg,
     TEST_EQUAL( handle, 0 );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_purge_key_storage( );
 #endif
@@ -467,8 +506,10 @@ void copy_across_lifetimes( int source_lifetime_arg, int source_id_arg,
                     PSA_ERROR_NOT_PERMITTED );
     }
 
+    PSA_ASSERT( psa_destroy_key( target_handle ) );
+
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     mbedtls_free( export_buffer );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_purge_key_storage( );
@@ -570,8 +611,12 @@ void copy_to_occupied( int source_lifetime_arg, int source_id_arg,
                         export_buffer, length );
     }
 
+    PSA_ASSERT( psa_destroy_key( source_handle ) );
+    if( target_handle != source_handle )
+        PSA_ASSERT( psa_destroy_key( target_handle ) );
+
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     mbedtls_free( export_buffer );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_purge_key_storage( );
@@ -613,7 +658,7 @@ void invalid_handle( )
     PSA_ASSERT( psa_close_key( handle1 ) );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -661,7 +706,7 @@ void many_transient_handles( int max_handles_arg )
     PSA_ASSERT( psa_close_key( handles[i - 1] ) );
 
 exit:
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     mbedtls_free( handles );
 }
 /* END_CASE */

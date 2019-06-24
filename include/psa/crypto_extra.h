@@ -116,6 +116,43 @@ static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
  */
 void mbedtls_psa_crypto_free( void );
 
+/** \brief Statistics about
+ * resource consumption related to the PSA keystore.
+ *
+ * \note The content of this structure is not part of the stable API and ABI
+ *       of Mbed Crypto and may change arbitrarily from version to version.
+ */
+typedef struct mbedtls_psa_stats_s
+{
+    /** Number of slots containing key material for a volatile key. */
+    size_t volatile_slots;
+    /** Number of slots containing key material for a key which is in
+     * internal persistent storage. */
+    size_t persistent_slots;
+    /** Number of slots containing a reference to a key in a
+     * secure element. */
+    size_t external_slots;
+    /** Number of slots which are occupied, but do not contain
+     * key material yet. */
+    size_t half_filled_slots;
+    /** Number of slots that contain cache data. */
+    size_t cache_slots;
+    /** Number of slots that are not used for anything. */
+    size_t empty_slots;
+    /** Largest key id value among open keys in internal persistent storage. */
+    psa_key_id_t max_open_internal_key_id;
+    /** Largest key id value among open keys in secure elements. */
+    psa_key_id_t max_open_external_key_id;
+} mbedtls_psa_stats_t;
+
+/** \brief Get statistics about
+ * resource consumption related to the PSA keystore.
+ *
+ * \note When Mbed Crypto is built as part of a service, with isolation
+ *       between the application and the keystore, the service may or
+ *       may not expose this function.
+ */
+void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats );
 
 /**
  * \brief Inject an initial entropy seed for the random generator into

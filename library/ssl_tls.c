@@ -817,7 +817,12 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     transform->encrypt_then_mac = encrypt_then_mac;
 #endif
+
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     transform->minor_ver = minor_ver;
+#else
+    ((void) minor_ver);
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
 
     /*
      * Get various info structures
@@ -1994,7 +1999,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) ==
+            MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             unsigned char mac[SSL_MAC_MAX_BYTES];
             ssl_mac( &transform->md_ctx_enc, transform->mac_enc,
@@ -2005,7 +2011,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
         defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( transform->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) >=
+            MBEDTLS_SSL_MINOR_VERSION_1 )
         {
             unsigned char mac[MBEDTLS_SSL_MAC_ADD];
 
@@ -2184,7 +2191,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
          * Prepend per-record IV for block cipher in TLS v1.1 and up as per
          * Method 1 (6.2.3.2. in RFC4346 and RFC5246)
          */
-        if( transform->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) >=
+            MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             if( f_rng == NULL )
             {
@@ -2233,7 +2241,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
-        if( transform->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) <
+            MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /*
              * Save IV in SSL3 and TLS1
@@ -2482,7 +2491,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
          * Check immediate ciphertext sanity
          */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( transform->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) >=
+            MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /* The ciphertext is prefixed with the CBC IV. */
             minlen += transform->ivlen;
@@ -2573,7 +2583,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         /*
          * Initialize for prepended IV for block cipher in TLS v1.1 and up
          */
-        if( transform->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) >=
+            MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /* This is safe because data_len >= minlen + maclen + 1 initially,
              * and at this point we have at most subtracted maclen (note that
@@ -2601,7 +2612,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
-        if( transform->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) <
+            MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /*
              * Save IV in SSL3 and TLS1
@@ -2643,7 +2655,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
          * we have data_len >= padlen here. */
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) ==
+            MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             if( padlen > transform->ivlen )
             {
@@ -2659,7 +2672,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( transform->minor_ver > MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) >
+            MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             /* The padding check involves a series of up to 256
              * consecutive memory reads at the end of the record
@@ -2745,7 +2759,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) ==
+            MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             ssl_mac( &transform->md_ctx_dec,
                      transform->mac_dec,
@@ -2757,7 +2772,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
         defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( transform->minor_ver > MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( mbedtls_ssl_transform_get_minor_ver( transform ) >
+            MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             /*
              * Process MAC and always update for padlen afterwards to make

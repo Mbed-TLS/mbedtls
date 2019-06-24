@@ -709,7 +709,10 @@ struct mbedtls_ssl_transform
 
     mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
     mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
+
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     int minor_ver;
+#endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     uint8_t in_cid_len;
@@ -726,6 +729,16 @@ struct mbedtls_ssl_transform
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
 };
+
+static inline int mbedtls_ssl_transform_get_minor_ver( mbedtls_ssl_transform const *transform )
+{
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
+    return( transform->minor_ver );
+#else
+    ((void) transform);
+    return( MBEDTLS_SSL_CONF_FIXED_MINOR_VER );
+#endif
+}
 
 /*
  * Internal representation of record frames

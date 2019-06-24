@@ -160,7 +160,7 @@
 static void havege_fill( mbedtls_havege_state *hs )
 {
     size_t n = 0;
-    unsigned i;
+    size_t i;
     uint32_t  U1,  U2, *A, *B, *C, *D;
     uint32_t PT1, PT2, *WALK, RES[16];
     uint32_t PTX, PTY, CLK, PTEST, IN;

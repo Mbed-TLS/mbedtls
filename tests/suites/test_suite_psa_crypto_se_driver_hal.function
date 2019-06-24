@@ -2,6 +2,11 @@
 #include "psa_crypto_helpers.h"
 #include "psa/crypto_se_driver.h"
 
+#include "psa_crypto_se.h"
+
+/* The minimum valid lifetime value for a secure element driver. */
+#define MIN_DRIVER_LIFETIME 2
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -20,6 +25,52 @@ void register_one( int lifetime, int version, int expected_status_arg )
 
     TEST_EQUAL( psa_register_se_driver( lifetime, &driver ),
                 expected_status );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void register_twice( int count )
+{
+    psa_drv_se_t driver;
+    psa_key_lifetime_t lifetime;
+    psa_key_lifetime_t max = MIN_DRIVER_LIFETIME + count;
+
+    memset( &driver, 0, sizeof( driver ) );
+    driver.hal_version = PSA_DRV_SE_HAL_VERSION;
+
+    for( lifetime = MIN_DRIVER_LIFETIME; lifetime < max; lifetime++ )
+        PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    for( lifetime = MIN_DRIVER_LIFETIME; lifetime < max; lifetime++ )
+        TEST_EQUAL( psa_register_se_driver( lifetime, &driver ),
+                    PSA_ERROR_ALREADY_EXISTS );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void register_max( )
+{
+    psa_drv_se_t driver;
+    psa_key_lifetime_t lifetime;
+    psa_key_lifetime_t max = MIN_DRIVER_LIFETIME + PSA_MAX_SE_DRIVERS;
+
+    memset( &driver, 0, sizeof( driver ) );
+    driver.hal_version = PSA_DRV_SE_HAL_VERSION;
+
+    for( lifetime = MIN_DRIVER_LIFETIME; lifetime < max; lifetime++ )
+        PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+
+    TEST_EQUAL( psa_register_se_driver( lifetime, &driver ),
+                PSA_ERROR_INSUFFICIENT_MEMORY );
 
     PSA_ASSERT( psa_crypto_init( ) );
 

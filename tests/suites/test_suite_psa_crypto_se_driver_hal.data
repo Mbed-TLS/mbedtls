@@ -1,2 +1,22 @@
 Register SE driver: good
 register_one:2:PSA_DRV_SE_HAL_VERSION:PSA_SUCCESS
+
+# Run this test case a second time to verify that the library deinit
+# unregistered the first driver.
+Register SE driver: good, again
+register_one:2:PSA_DRV_SE_HAL_VERSION:PSA_SUCCESS
+
+Register SE driver: invalid lifetime (VOLATILE)
+register_one:PSA_KEY_LIFETIME_VOLATILE:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
+
+Register SE driver: invalid lifetime (PERSISTENT)
+register_one:PSA_KEY_LIFETIME_VOLATILE:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
+
+Register SE driver: invalid version
+register_one:2:PSA_DRV_SE_HAL_VERSION - 1:PSA_ERROR_NOT_SUPPORTED
+
+Register SE driver: already registered
+register_twice:3
+
+Register SE driver: maximum number of drivers
+register_max:

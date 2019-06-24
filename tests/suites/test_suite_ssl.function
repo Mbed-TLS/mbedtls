@@ -296,7 +296,14 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
         if( ret != 0 )
             return( ret );
 
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+        /* Move temporary CRT. */
+        session->peer_cert = mbedtls_calloc( 1, sizeof( *session->peer_cert ) );
+        if( session->peer_cert == NULL )
+            return( -1 );
+        *session->peer_cert = tmp_crt;
+        memset( &tmp_crt, 0, sizeof( tmp_crt ) );
+#elif defined(MBEDTLS_SSL_RENEGOTIATION)
         /* Calculate digest of temporary CRT. */
         session->peer_cert_digest =
             mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
@@ -312,14 +319,7 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
             MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE;
         session->peer_cert_digest_len =
             MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN;
-#else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-        /* Move temporary CRT. */
-        session->peer_cert = mbedtls_calloc( 1, sizeof( *session->peer_cert ) );
-        if( session->peer_cert == NULL )
-            return( -1 );
-        *session->peer_cert = tmp_crt;
-        memset( &tmp_crt, 0, sizeof( tmp_crt ) );
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 
         mbedtls_x509_crt_free( &tmp_crt );
     }
@@ -718,7 +718,7 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
                              restored.peer_cert->raw.p,
                              original.peer_cert->raw.len ) == 0 );
     }
-#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#elif defined(MBEDTLS_SSL_RENEGOTIATION)
     TEST_ASSERT( original.peer_cert_digest_type ==
                  restored.peer_cert_digest_type );
     TEST_ASSERT( original.peer_cert_digest_len ==
@@ -731,7 +731,7 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
                              restored.peer_cert_digest,
                              original.peer_cert_digest_len ) == 0 );
     }
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     TEST_ASSERT( original.verify_result == restored.verify_result );
 

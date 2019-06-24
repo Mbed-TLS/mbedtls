@@ -395,7 +395,7 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
             return( ret );
         }
     }
-#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#elif defined(MBEDTLS_SSL_RENEGOTIATION)
     if( src->peer_cert_digest != NULL )
     {
         dst->peer_cert_digest =
@@ -408,7 +408,7 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
         dst->peer_cert_digest_type = src->peer_cert_digest_type;
         dst->peer_cert_digest_len = src->peer_cert_digest_len;
     }
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -5999,7 +5999,7 @@ static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
         mbedtls_free( session->peer_cert );
         session->peer_cert = NULL;
     }
-#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#elif defined(MBEDTLS_SSL_RENEGOTIATION)
     if( session->peer_cert_digest != NULL )
     {
         /* Zeroization is not necessary. */
@@ -6008,7 +6008,9 @@ static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
         session->peer_cert_digest_type = MBEDTLS_MD_NONE;
         session->peer_cert_digest_len  = 0;
     }
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#else
+    ((void) session);
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -6184,7 +6186,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
 
     return( memcmp( peer_crt->raw.p, crt_buf, crt_buf_len ) );
 }
-#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#elif defined(MBEDTLS_SSL_RENEGOTIATION)
 static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
                                          unsigned char *crt_buf,
                                          size_t crt_buf_len )
@@ -6212,7 +6214,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
 
     return( memcmp( tmp_digest, peer_cert_digest, digest_len ) );
 }
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
 /*
@@ -6594,6 +6596,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
 }
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
 static int ssl_remember_peer_crt_digest( mbedtls_ssl_context *ssl,
                                          unsigned char *start, size_t len )
 {
@@ -6624,6 +6628,7 @@ static int ssl_remember_peer_crt_digest( mbedtls_ssl_context *ssl,
 
     return( ret );
 }
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 static int ssl_remember_peer_pubkey( mbedtls_ssl_context *ssl,
                                      unsigned char *start, size_t len )
@@ -6738,16 +6743,21 @@ crt_verify:
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     {
-        unsigned char *crt_start, *pk_start;
-        size_t crt_len, pk_len;
+        size_t pk_len;
+        unsigned char *pk_start;
 
         /* We parse the CRT chain without copying, so
          * these pointers point into the input buffer,
          * and are hence still valid after freeing the
          * CRT chain. */
 
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+        unsigned char *crt_start;
+        size_t crt_len;
+
         crt_start = chain->raw.p;
         crt_len   = chain->raw.len;
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
         pk_start = chain->pk_raw.p;
         pk_len   = chain->pk_raw.len;
@@ -6758,9 +6768,11 @@ crt_verify:
         mbedtls_free( chain );
         chain = NULL;
 
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
         ret = ssl_remember_peer_crt_digest( ssl, crt_start, crt_len );
         if( ret != 0 )
             goto exit;
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
         ret = ssl_remember_peer_pubkey( ssl, pk_start, pk_len );
         if( ret != 0 )
@@ -9280,7 +9292,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
         }
     }
 
-#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#elif defined(MBEDTLS_SSL_RENEGOTIATION)
     /* Digest of peer certificate */
     if( session->peer_cert_digest != NULL )
     {
@@ -9303,7 +9315,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
             *p++ = 0;
         }
     }
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*
@@ -9448,9 +9460,9 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     session->peer_cert = NULL;
-#else
+#elif defined(MBEDTLS_SSL_RENEGOTIATION)
     session->peer_cert_digest = NULL;
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     session->ticket = NULL;
@@ -9496,7 +9508,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 
         p += cert_len;
     }
-#else /* defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#elif defined(MBEDTLS_SSL_RENEGOTIATION)
     /* Deserialize CRT digest from the end of the ticket. */
     if( 2 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -9525,7 +9537,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
                 session->peer_cert_digest_len );
         p += session->peer_cert_digest_len;
     }
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*

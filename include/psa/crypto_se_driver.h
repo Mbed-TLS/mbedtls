@@ -8,11 +8,11 @@
  * space in which the PSA Crypto implementation runs, typically secure
  * elements (SEs).
  *
- * This file is part of the PSA Crypto Driver Model, containing functions for
- * driver developers to implement to enable hardware to be called in a
- * standardized way by a PSA Cryptographic API implementation. The functions
- * comprising the driver model, which driver authors implement, are not
- * intended to be called by application developers.
+ * This file is part of the PSA Crypto Driver HAL (hardware abstraction layer),
+ * containing functions for driver developers to implement to enable hardware
+ * to be called in a standardized way by a PSA Cryptography API
+ * implementation. The functions comprising the driver HAL, which driver
+ * authors implement, are not intended to be called by application developers.
  */
 
 /*
@@ -958,6 +958,38 @@ typedef struct {
      * exports the key */
     psa_drv_se_key_derivation_export_t     p_export;
 } psa_drv_se_key_derivation_t;
+
+/**@}*/
+
+/** \defgroup se_registration Secure element driver registration
+ */
+/**@{*/
+
+/** A structure containing pointers to all the entry points of a
+ * secure element driver.
+ *
+ * Future versions of this specification may add extra substructures at
+ * the end of this structure.
+ */
+typedef struct {
+    /** The version of the driver model that this driver implements.
+     * This is a protection against linking driver binaries built against
+     * a different version of this specification.
+     * Use #PSA_DRV_SE_HAL_VERSION.
+     */
+    uint32_t hal_version;
+    psa_drv_se_key_management_t key_management;
+    psa_drv_se_mac_t mac;
+    psa_drv_se_cipher_t cipher;
+    psa_drv_se_aead_t aead;
+    psa_drv_se_asymmetric_t asymmetric;
+    psa_drv_se_key_derivation_t derivation;
+} psa_drv_se_t;
+
+/** The current version of the opaque driver model.
+ */
+/* 0.0.0 patchlevel 5 */
+#define PSA_DRV_SE_HAL_VERSION 0x00000005
 
 /**@}*/
 

@@ -3082,9 +3082,17 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
         {
             unsigned char hash = mbedtls_ssl_hash_from_md_alg( *cur );
-
-            if( MBEDTLS_SSL_HASH_NONE == hash || mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
+            if( !( 0
+#if defined(MBEDTLS_SHA512_C)
+                   || hash == MBEDTLS_SSL_HASH_SHA384
+#endif
+#if defined(MBEDTLS_SHA256_C)
+                   || hash == MBEDTLS_SSL_HASH_SHA256
+#endif
+                    ) )
+            {
                 continue;
+            }
 
 #if defined(MBEDTLS_RSA_C)
             p[2 + sa_len++] = hash;

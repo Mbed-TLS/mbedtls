@@ -1,0 +1,29 @@
+/* BEGIN_HEADER */
+#include "psa_crypto_helpers.h"
+#include "psa/crypto_se_driver.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void register_one( int lifetime, int version, int expected_status_arg )
+{
+    psa_status_t expected_status = expected_status_arg;
+    psa_drv_se_t driver;
+
+    memset( &driver, 0, sizeof( driver ) );
+    driver.hal_version = version;
+
+    TEST_EQUAL( psa_register_se_driver( lifetime, &driver ),
+                expected_status );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */

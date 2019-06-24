@@ -3557,7 +3557,6 @@ run_test    "Authentication: client SHA256, server required" \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
             0 \
-            -c "Supported Signature Algorithm found: 4," \
             -c "Supported Signature Algorithm found: 5,"
 
 run_test    "Authentication: client SHA384, server required" \
@@ -3566,7 +3565,6 @@ run_test    "Authentication: client SHA384, server required" \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
-            -c "Supported Signature Algorithm found: 4," \
             -c "Supported Signature Algorithm found: 5,"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3

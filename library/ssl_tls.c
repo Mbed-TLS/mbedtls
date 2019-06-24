@@ -11412,12 +11412,9 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
 {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( mbedtls_ssl_get_minor_ver( ssl ) != MBEDTLS_SSL_MINOR_VERSION_3 )
-        return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
-
     switch( md )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
@@ -11446,13 +11443,8 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
     }
 
     return 0;
-#else /* !MBEDTLS_SSL_PROTO_TLS1_2 */
-    (void) ssl;
-    (void) md;
-
-    return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)

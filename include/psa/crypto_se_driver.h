@@ -991,6 +991,51 @@ typedef struct {
 /* 0.0.0 patchlevel 5 */
 #define PSA_DRV_SE_HAL_VERSION 0x00000005
 
+/** Register an external cryptoprocessor driver.
+ *
+ * This function is only intended to be used by driver code, not by
+ * application code. In implementations with separation between the
+ * PSA cryptography module and applications, this function should
+ * only be available to callers that run in the same memory space as
+ * the cryptography module, and should not be exposed to applications
+ * running in a different memory space.
+ *
+ * This function may be called before psa_crypto_init(). It is
+ * implementation-defined whether this function may be called
+ * after psa_crypto_init().
+ *
+ * \param lifetime      The lifetime value through which this driver will
+ *                      be exposed to applications.
+ *                      The values #PSA_KEY_LIFETIME_VOLATILE and
+ *                      #PSA_KEY_LIFETIME_PERSISTENT are reserved and
+ *                      may not be used for opaque drivers. Implementations
+ *                      may reserve other values.
+ * \param[in] methods   The method table of the driver. This structure must
+ *                      remain valid for as long as the cryptography
+ *                      module keeps running. It is typically a global
+ *                      constant.
+ *
+ * \return PSA_SUCCESS
+ *         The driver was successfully registered. Applications can now
+ *         use \p lifetime to access keys through the methods passed to
+ *         this function.
+ * \return PSA_ERROR_BAD_STATE
+ *         This function was called after the initialization of the
+ *         cryptography module, and this implementation does not support
+ *         driver registration at this stage.
+ * \return PSA_ERROR_ALREADY_EXISTS
+ *         There is already a registered driver for this value of \p lifetime.
+ * \return PSA_ERROR_INVALID_ARGUMENT
+ *         \p lifetime is a reserved value
+ * \return PSA_ERROR_NOT_SUPPORTED
+ *         `methods->interface_version` is not supported by this implementation.
+ * \return PSA_ERROR_INSUFFICIENT_MEMORY
+ * \return PSA_ERROR_NOT_PERMITTED
+ */
+psa_status_t psa_register_se_driver(
+    psa_key_lifetime_t lifetime,
+    const psa_drv_se_t *methods);
+
 /**@}*/
 
 #ifdef __cplusplus

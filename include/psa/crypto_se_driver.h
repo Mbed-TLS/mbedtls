@@ -726,7 +726,7 @@ typedef psa_status_t (*psa_drv_se_import_key_t)(psa_key_slot_number_t key_slot,
  * \retval #PSA_SUCCESS
  *         The slot's content, if any, has been erased.
  */
-typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_number_t key);
+typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_number_t key_slot);
 
 /**
  * \brief A function that exports a secure element key in binary format
@@ -878,7 +878,7 @@ typedef struct {
  * \param[in,out] p_context A hardware-specific structure containing any
  *                          context information for the implementation
  * \param[in] kdf_alg       The algorithm to be used for the key derivation
- * \param[in] souce_key     The key to be used as the source material for the
+ * \param[in] source_key    The key to be used as the source material for the
  *                          key derivation
  *
  * \retval PSA_SUCCESS

@@ -793,6 +793,14 @@ server5.req.ku.sha1: server5.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
 all_final += server5.req.ku.sha1
 
+###
+### A generic SECP521R1 private key
+###
+
+secp521r1_prv.der:
+	$(OPENSSL) ecparam -genkey -name secp521r1 -noout -out secp521r1_prv.der
+all_final += secp521r1_prv.der
+
 ################################################################
 ### Generate CSRs for X.509 write test suite
 ################################################################

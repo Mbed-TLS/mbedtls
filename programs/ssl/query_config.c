@@ -2834,6 +2834,30 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID */
 
+#if defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
+    if( strcmp( "MBEDTLS_SSL_CONF_SINGLE_SIG_HASH", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_SINGLE_SIG_HASH );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
+
+#if defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID)
+    if( strcmp( "MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID */
+
+#if defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID)
+    if( strcmp( "MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID */
+
     /* If the symbol is not found, return an error */
     return( 1 );
 }

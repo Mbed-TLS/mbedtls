@@ -34,4 +34,12 @@
 /** The maximum number of registered secure element driver lifetimes. */
 #define PSA_MAX_SE_DRIVERS 4
 
+/** Unregister all secure element drivers.
+ *
+ * \warning Do not call this function while the library is in the initialized
+ *          state. This function is only intended to be called at the end
+ *          of mbedtls_psa_crypto_free().
+ */
+void psa_unregister_all_se_drivers( void );
+
 #endif /* PSA_CRYPTO_SE_H */

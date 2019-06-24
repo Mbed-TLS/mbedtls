@@ -27,6 +27,8 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
+#include <string.h>
+
 #include "psa_crypto_se.h"
 
 typedef struct
@@ -67,6 +69,11 @@ psa_status_t psa_register_se_driver(
     driver_table[i].lifetime = lifetime;
     driver_table[i].methods = methods;
     return( PSA_SUCCESS );
+}
+
+void psa_unregister_all_se_drivers( void )
+{
+    memset( driver_table, 0, sizeof( driver_table ) );
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

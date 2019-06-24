@@ -832,6 +832,14 @@ ec_prv.pk8param.pem: ec_prv.pk8param.der
 	$(OPENSSL) pkey -in $< -inform DER -out $@
 all_final += ec_prv.pk8param.pem
 
+###
+### A generic SECP521R1 private key
+###
+
+secp521r1_prv.der:
+	$(OPENSSL) ecparam -genkey -name secp521r1 -noout -out secp521r1_prv.der
+all_final += secp521r1_prv.der
+
 ################################################################
 ### Generate CSRs for X.509 write test suite
 ################################################################

@@ -4141,7 +4141,7 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
      * object was corrupted or if this function is called directly
      * inside the library. */
     if( tls12_prf->block_number == 0xff )
-        return( PSA_ERROR_BAD_STATE );
+        return( PSA_ERROR_CORRUPTION_DETECTED );
 
     /* We need a new block */
     ++tls12_prf->block_number;

@@ -33,3 +33,36 @@ cmake ..
 make
 ```
 Finally, you can run the targets like `./test/fuzz/fuzz_client`.
+
+
+Corpus generation for network trafic targets
+------
+
+These targets use network trafic as inputs :
+* client : simulates a client against (fuzzed) server traffic
+* server : simulates a server against (fuzzed) client traffic
+* dtls_client
+* dtls_server
+
+They also use the last bytes as configuration options.
+
+To generate corpus for these targets, you can do the following, not fully automated steps :
+* Build mbedtls programs ssl_server2 and ssl_client2
+* Run them one against the other with `reproducible` option turned on while capturing trafic into test.pcap
+* Extract tcp payloads, for instance with tshark : `tshark -Tfields -e tcp.dstport -e tcp.payload -r test.pcap > test.txt`
+* Run a dummy python script to output either client or server corpus file like `python dummy.py test.txt > test.cor`
+* Finally, you can add the options by appending the last bytes to the file test.cor
+
+Here is an example of dummy.py for extracting payload from client to server (if we used `tcp.dstport` in tshark command)
+```
+import sys
+import binascii
+
+f = open(sys.argv[1])
+for l in f.readlines():
+    portAndPl=l.split()
+    if len(portAndPl) == 2:
+        # determine client or server based on port
+        if portAndPl[0] == "4433":
+            print(binascii.unhexlify(portAndPl[1].replace(":","")))
+```

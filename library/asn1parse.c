@@ -273,11 +273,11 @@ int mbedtls_asn1_traverse_sequence_of(
         if( ( tag & tag_must_mask ) != tag_must_val )
             return( MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
 
+        if( ( ret = mbedtls_asn1_get_len( p, end, &len ) ) != 0 )
+            return( ret );
+
         if( ( tag & tag_may_mask ) == tag_may_val )
         {
-            if( ( ret = mbedtls_asn1_get_len( p, end, &len ) ) != 0 )
-                return( ret );
-
             if( cb != NULL )
             {
                 ret = cb( ctx, tag, *p, len );

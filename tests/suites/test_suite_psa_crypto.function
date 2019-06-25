@@ -4340,8 +4340,8 @@ exit:
 /* BEGIN_CASE */
 void derive_full( int alg_arg,
                   data_t *key_data,
-                  data_t *salt,
-                  data_t *label,
+                  data_t *input1,
+                  data_t *input2,
                   int requested_capacity_arg )
 {
     psa_key_handle_t handle = 0;
@@ -4362,33 +4362,41 @@ void derive_full( int alg_arg,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &handle ) );
 
+    PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
+    PSA_ASSERT( psa_key_derivation_set_capacity( &operation,
+                                                 requested_capacity ) );
+
     /* Extraction phase. */
     if( PSA_ALG_IS_HKDF( alg ) )
     {
-        PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
-        PSA_ASSERT( psa_key_derivation_set_capacity( &operation,
-                                                     requested_capacity ) );
         PSA_ASSERT( psa_key_derivation_input_bytes( &operation,
                                                     PSA_KEY_DERIVATION_INPUT_SALT,
-                                                    salt->x, salt->len ) );
+                                                    input1->x, input1->len ) );
         PSA_ASSERT( psa_key_derivation_input_key( &operation,
                                                   PSA_KEY_DERIVATION_INPUT_SECRET,
                                                   handle ) );
         PSA_ASSERT( psa_key_derivation_input_bytes( &operation,
                                                     PSA_KEY_DERIVATION_INPUT_INFO,
-                                                    label->x, label->len ) );
+                                                    input2->x, input2->len ) );
     }
-
-#if defined(PSA_PRE_1_0_KEY_DERIVATION)
+    else if( PSA_ALG_IS_TLS12_PRF( alg ) ||
+             PSA_ALG_IS_TLS12_PSK_TO_MS( alg ) )
+    {
+        PSA_ASSERT( psa_key_derivation_input_bytes( &operation,
+                                                    PSA_KEY_DERIVATION_INPUT_SEED,
+                                                    input1->x, input1->len ) );
+        PSA_ASSERT( psa_key_derivation_input_key( &operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                  handle ) );
+        PSA_ASSERT( psa_key_derivation_input_bytes( &operation,
+                                                    PSA_KEY_DERIVATION_INPUT_LABEL,
+                                                    input2->x, input2->len ) );
+    }
     else
     {
-        // legacy
-        PSA_ASSERT( psa_key_derivation( &operation, handle, alg,
-                                        salt->x, salt->len,
-                                        label->x, label->len,
-                                        requested_capacity ) );
+        TEST_ASSERT( ! "Key derivation algorithm not supported" );
     }
-#endif
+
     PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
                                                  &current_capacity ) );
     TEST_EQUAL( current_capacity, expected_capacity );

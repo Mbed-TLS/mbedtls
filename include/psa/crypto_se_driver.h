@@ -819,6 +819,8 @@ typedef struct {
     psa_drv_se_destroy_key_t    p_destroy;
     /** Function that performs a key export operation */
     psa_drv_se_export_key_t     p_export;
+    /** Function that performs a public key export operation */
+    psa_drv_se_export_key_t     p_export_public;
 } psa_drv_se_key_management_t;
 
 /**@}*/

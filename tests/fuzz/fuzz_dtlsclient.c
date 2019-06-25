@@ -11,14 +11,15 @@
 #include "mbedtls/timing.h"
 
 
+#ifdef MBEDTLS_SSL_CLI_C
 static bool initialized = 0;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static mbedtls_x509_crt cacert;
 #endif
 
-
 const char *pers = "fuzz_dtlsclient";
-#endif
+#endif // MBEDTLS_SSL_CLI_C
+#endif // MBEDTLS_SSL_PROTO_DTLS
 
 
 

@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 
+#ifdef MBEDTLS_SSL_SRV_C
 const char *pers = "fuzz_server";
 static bool initialized = 0;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -25,6 +26,7 @@ const unsigned char psk[] = {
 };
 const char psk_id[] = "Client_identity";
 #endif
+#endif // MBEDTLS_SSL_SRV_C
 
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {

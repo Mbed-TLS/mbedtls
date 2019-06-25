@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 
+#ifdef MBEDTLS_SSL_CLI_C
 static bool initialized = 0;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static mbedtls_x509_crt cacert;
@@ -25,6 +26,7 @@ const char psk_id[] = "Client_identity";
 #endif
 
 const char *pers = "fuzz_client";
+#endif //MBEDTLS_SSL_CLI_C
 
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {

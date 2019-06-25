@@ -12,6 +12,7 @@
 #include "mbedtls/ssl_cookie.h"
 
 
+#ifdef MBEDTLS_SSL_SRV_C
 const char *pers = "fuzz_dtlsserver";
 const unsigned char client_ip[4] = {0x7F, 0, 0, 1};
 static bool initialized = 0;
@@ -19,7 +20,8 @@ static bool initialized = 0;
 static mbedtls_x509_crt srvcert;
 static mbedtls_pk_context pkey;
 #endif
-#endif
+#endif // MBEDTLS_SSL_SRV_C
+#endif // MBEDTLS_SSL_PROTO_DTLS
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 #if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_SRV_C)

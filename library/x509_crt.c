@@ -1931,6 +1931,71 @@ cleanup:
 }
 #endif /* MBEDTLS_FS_IO */
 
+typedef struct mbedtls_x509_crt_sig_info
+{
+    mbedtls_md_type_t sig_md;
+    mbedtls_pk_type_t sig_pk;
+    void *sig_opts;
+    uint8_t crt_hash[MBEDTLS_MD_MAX_SIZE];
+    size_t crt_hash_len;
+    mbedtls_x509_buf_raw sig;
+    mbedtls_x509_buf_raw issuer_raw;
+} mbedtls_x509_crt_sig_info;
+
+static void x509_crt_free_sig_info( mbedtls_x509_crt_sig_info *info )
+{
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+    mbedtls_free( info->sig_opts );
+#else
+    ((void) info);
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+}
+
+static int x509_crt_get_sig_info( mbedtls_x509_crt_frame const *frame,
+                                  mbedtls_x509_crt_sig_info *info )
+{
+    const mbedtls_md_info_t *md_info;
+
+    md_info = mbedtls_md_info_from_type( frame->sig_md );
+    if( mbedtls_md( md_info, frame->tbs.p, frame->tbs.len,
+                    info->crt_hash ) != 0 )
+    {
+        /* Note: this can't happen except after an internal error */
+        return( -1 );
+    }
+
+    info->crt_hash_len = mbedtls_md_get_size( md_info );
+
+    /* Make sure that this function leaves the target structure
+     * ready to be freed, regardless of success of failure. */
+    info->sig_opts = NULL;
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+    {
+        int ret;
+        unsigned char *alg_start = frame->sig_alg.p;
+        unsigned char *alg_end = alg_start + frame->sig_alg.len;
+
+        /* Get signature options -- currently only
+         * necessary for RSASSA-PSS. */
+        ret = mbedtls_x509_get_sig_alg_raw( &alg_start, alg_end, &info->sig_md,
+                                            &info->sig_pk, &info->sig_opts );
+        if( ret != 0 )
+        {
+            /* Note: this can't happen except after an internal error */
+            return( -1 );
+        }
+    }
+#else /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+    info->sig_md   = frame->sig_md;
+    info->sig_pk   = frame->sig_pk;
+#endif /* !MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+
+    info->issuer_raw = frame->issuer_raw;
+    info->sig = frame->sig;
+    return( 0 );
+}
+
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 static int x509_info_subject_alt_name( char **buf, size_t *size,
                                        const mbedtls_x509_sequence *subject_alt_name )
@@ -2058,71 +2123,6 @@ static int x509_info_ext_key_usage( char **buf, size_t *size,
     *size = n;
     *buf = p;
 
-    return( 0 );
-}
-
-typedef struct mbedtls_x509_crt_sig_info
-{
-    mbedtls_md_type_t sig_md;
-    mbedtls_pk_type_t sig_pk;
-    void *sig_opts;
-    uint8_t crt_hash[MBEDTLS_MD_MAX_SIZE];
-    size_t crt_hash_len;
-    mbedtls_x509_buf_raw sig;
-    mbedtls_x509_buf_raw issuer_raw;
-} mbedtls_x509_crt_sig_info;
-
-static void x509_crt_free_sig_info( mbedtls_x509_crt_sig_info *info )
-{
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    mbedtls_free( info->sig_opts );
-#else
-    ((void) info);
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-}
-
-static int x509_crt_get_sig_info( mbedtls_x509_crt_frame const *frame,
-                                  mbedtls_x509_crt_sig_info *info )
-{
-    const mbedtls_md_info_t *md_info;
-
-    md_info = mbedtls_md_info_from_type( frame->sig_md );
-    if( mbedtls_md( md_info, frame->tbs.p, frame->tbs.len,
-                    info->crt_hash ) != 0 )
-    {
-        /* Note: this can't happen except after an internal error */
-        return( -1 );
-    }
-
-    info->crt_hash_len = mbedtls_md_get_size( md_info );
-
-    /* Make sure that this function leaves the target structure
-     * ready to be freed, regardless of success of failure. */
-    info->sig_opts = NULL;
-
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    {
-        int ret;
-        unsigned char *alg_start = frame->sig_alg.p;
-        unsigned char *alg_end = alg_start + frame->sig_alg.len;
-
-        /* Get signature options -- currently only
-         * necessary for RSASSA-PSS. */
-        ret = mbedtls_x509_get_sig_alg_raw( &alg_start, alg_end, &info->sig_md,
-                                            &info->sig_pk, &info->sig_opts );
-        if( ret != 0 )
-        {
-            /* Note: this can't happen except after an internal error */
-            return( -1 );
-        }
-    }
-#else /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-    info->sig_md   = frame->sig_md;
-    info->sig_pk   = frame->sig_pk;
-#endif /* !MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-
-    info->issuer_raw = frame->issuer_raw;
-    info->sig = frame->sig;
     return( 0 );
 }
 

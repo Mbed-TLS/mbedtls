@@ -750,6 +750,11 @@
 #error "MBEDTLS_X509_CSR_WRITE_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_X509_CRT_REMOVE_TIME) && \
+    defined(MBEDTLS_HAVE_TIME_DATE)
+#error "MBEDTLS_X509_CRT_REMOVE_TIME and MBEDTLS_HAVE_TIME_DATE cannot be defined simultaneously"
+#endif
+
 #if defined(MBEDTLS_HAVE_INT32) && defined(MBEDTLS_HAVE_INT64)
 #error "MBEDTLS_HAVE_INT32 and MBEDTLS_HAVE_INT64 cannot be defined simultaneously"
 #endif /* MBEDTLS_HAVE_INT32 && MBEDTLS_HAVE_INT64 */

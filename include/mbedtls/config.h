@@ -1943,6 +1943,19 @@
 //#define MBEDTLS_X509_REMOVE_INFO
 
 /**
+ * \def MBEDTLS_X509_CRT_REMOVE_TIME
+ *
+ * Don't store time validity fields in X.509 certificate structures.
+ *
+ * Uncomment this to save some code and RAM on constrained systems which
+ * don't have time and where there's no use of the time validity fields
+ * in a certificate.
+ *
+ * Requires: !MBEDTLS_HAVE_TIME_DATE
+ */
+//#define MBEDTLS_X509_CRT_REMOVE_TIME
+
+/**
  * \def MBEDTLS_X509_RSASSA_PSS_SUPPORT
  *
  * Enable parsing and verification of X.509 certificates, CRLs and CSRS

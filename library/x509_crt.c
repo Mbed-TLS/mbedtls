@@ -223,8 +223,12 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
     frame->version = crt->version;
     frame->sig_md = crt->sig_md;
     frame->sig_pk = crt->sig_pk;
+
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
     frame->valid_from = crt->valid_from;
     frame->valid_to = crt->valid_to;
+#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
+
     x509_buf_to_buf_raw( &frame->raw, &crt->raw );
     x509_buf_to_buf_raw( &frame->tbs, &crt->tbs );
     x509_buf_to_buf_raw( &frame->serial, &crt->serial );
@@ -694,6 +698,7 @@ static int x509_get_version( unsigned char **p,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
 /*
  *  Validity ::= SEQUENCE {
  *       notBefore      Time,
@@ -725,6 +730,26 @@ static int x509_get_dates( unsigned char **p,
 
     return( 0 );
 }
+#else /* !MBEDTLS_X509_CRT_REMOVE_TIME */
+static int x509_skip_dates( unsigned char **p,
+                           const unsigned char *end )
+{
+    int ret;
+    size_t len;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_DATE + ret );
+
+    end = *p + len;
+
+    if( *p != end )
+        return( MBEDTLS_ERR_X509_INVALID_DATE +
+                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_X509_CRT_REMOVE_TIME */
 
 /*
  * X.509 v2/v3 unique identifier (not parsed)
@@ -1293,9 +1318,15 @@ static int x509_crt_parse_frame( unsigned char *start,
     /*
      * Validity ::= SEQUENCE { ...
      */
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
     ret = x509_get_dates( &p, end, &frame->valid_from, &frame->valid_to );
     if( ret != 0 )
         return( ret );
+#else /* !MBEDTLS_X509_CRT_REMOVE_TIME */
+    ret = x509_skip_dates( &p, end );
+    if( ret != 0 )
+        return( ret );
+#endif /* MBEDTLS_X509_CRT_REMOVE_TIME */
 
     /*
      * subject              Name
@@ -1536,8 +1567,12 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     x509_buf_raw_to_buf( &crt->pk_raw, &frame->pubkey_raw );
     x509_buf_raw_to_buf( &crt->sig, &frame->sig );
     x509_buf_raw_to_buf( &crt->v3_ext, &frame->v3_ext );
+
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
     crt->valid_from = frame->valid_from;
     crt->valid_to = frame->valid_to;
+#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
+
     crt->version      = frame->version;
     crt->ca_istrue    = frame->ca_istrue;
     crt->max_pathlen  = frame->max_pathlen;
@@ -2270,6 +2305,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     ret = mbedtls_x509_dn_gets( p, n, subject );
     MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
 
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
     ret = mbedtls_snprintf( p, n, "\n%sissued  on        : " \
                    "%04d-%02d-%02d %02d:%02d:%02d", prefix,
                    frame.valid_from.year, frame.valid_from.mon,
@@ -2283,6 +2319,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
                    frame.valid_to.day,  frame.valid_to.hour,
                    frame.valid_to.min,  frame.valid_to.sec );
     MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
+#endif /* MBEDTLS_X509_CRT_REMOVE_TIME */
 
     ret = mbedtls_snprintf( p, n, "\n%ssigned using      : ", prefix );
     MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
@@ -2897,11 +2934,13 @@ check_signature:
             if( ret != 0 )
                 return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
             if( !mbedtls_x509_time_is_past( &parent->valid_to ) &&
                 !mbedtls_x509_time_is_future( &parent->valid_from ) )
             {
                 parent_valid = 1;
             }
+#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
 
             /* basic parenting skills (name, CA bit, key usage) */
             if( x509_crt_check_parent( child_sig, parent, top ) == 0 )
@@ -3198,11 +3237,13 @@ find_parent:
                 if( ret != 0 )
                     return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
                 /* Check time-validity (all certificates) */
                 if( mbedtls_x509_time_is_past( &child->valid_to ) )
                     *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
                 if( mbedtls_x509_time_is_future( &child->valid_from ) )
                     *flags |= MBEDTLS_X509_BADCERT_FUTURE;
+#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
 
                 /* Stop here for trusted roots (but not for trusted EE certs) */
                 if( child_is_trusted )

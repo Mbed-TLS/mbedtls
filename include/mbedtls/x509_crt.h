@@ -70,8 +70,10 @@ typedef struct mbedtls_x509_crt_frame
     uint32_t ext_types;                     /**< Bitfield indicating which extensions are present.
                                              *   See the values in x509.h.                                      */
 
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
     mbedtls_x509_time valid_from;           /**< The start time of certificate validity.                        */
     mbedtls_x509_time valid_to;             /**< The end time of certificate validity.                          */
+#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
 
     mbedtls_x509_buf_raw raw;               /**< The raw certificate data in DER.                               */
     mbedtls_x509_buf_raw tbs;               /**< The part of the CRT that is [T]o [B]e [S]igned.                */
@@ -123,8 +125,10 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_name issuer;           /**< The parsed issuer data (named information object). */
     mbedtls_x509_name subject;          /**< The parsed subject data (named information object). */
 
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
     mbedtls_x509_time valid_from;       /**< Start time of certificate validity. */
     mbedtls_x509_time valid_to;         /**< End time of certificate validity. */
+#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
 
     mbedtls_x509_buf pk_raw;
     mbedtls_pk_context pk;              /**< Container for the public key context. */

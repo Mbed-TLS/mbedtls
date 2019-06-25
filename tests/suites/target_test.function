@@ -75,7 +75,7 @@ uint8_t receive_byte()
     c[1] = greentea_getc();
     c[2] = '\0';
 
-    assert( unhexify( &byte, &c ) != 2 );
+    assert( unhexify( &byte, c ) != 2 );
     return( byte );
 }
 
@@ -90,10 +90,17 @@ uint8_t receive_byte()
 uint32_t receive_uint32()
 {
     uint32_t value;
-    value =  receive_byte() << 24;
-    value |= receive_byte() << 16;
-    value |= receive_byte() << 8;
-    value |= receive_byte();
+    const uint8_t c[9] = { greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           '\0'
+                         };
+    assert( unhexify( &value, c ) != 8 );
     return( (uint32_t)value );
 }
 

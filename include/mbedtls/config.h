@@ -1956,6 +1956,16 @@
 //#define MBEDTLS_X509_CRT_REMOVE_TIME
 
 /**
+ * \def MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID
+ *
+ * Don't store subject and issuer ID in X.509 certificate structures.
+ *
+ * Uncomment this to save some code and RAM on constrained systems which
+ * don't need to inspect issuer and subject ID fields in certificates.
+ */
+//#define MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID
+
+/**
  * \def MBEDTLS_X509_RSASSA_PSS_SUPPORT
  *
  * Enable parsing and verification of X.509 certificates, CRLs and CSRS

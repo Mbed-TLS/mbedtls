@@ -82,10 +82,12 @@ typedef struct mbedtls_x509_crt_frame
 
     mbedtls_x509_buf_raw pubkey_raw;        /**< The raw public key data (DER).                                 */
 
+#if !defined(MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID)
     mbedtls_x509_buf_raw issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier.                 */
-    mbedtls_x509_buf_raw issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison.          */
-
     mbedtls_x509_buf_raw subject_id;        /**< Optional X.509 v2/v3 subject unique identifier.                */
+#endif /* !MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID */
+
+    mbedtls_x509_buf_raw issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison.          */
     mbedtls_x509_buf_raw subject_raw;       /**< The raw subject data (DER). Used for quick comparison.         */
 
     mbedtls_x509_buf_raw sig;               /**< Signature: hash of the tbs part signed with the private key.   */
@@ -133,8 +135,10 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf pk_raw;
     mbedtls_pk_context pk;              /**< Container for the public key context. */
 
+#if !defined(MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID)
     mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
     mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
+#endif /* !MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID */
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
     mbedtls_x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only dNSName supported). */
 

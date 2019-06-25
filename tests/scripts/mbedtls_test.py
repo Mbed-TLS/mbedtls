@@ -80,6 +80,7 @@ class TestDataParser(object):
         if len(split_char) > 1:
             raise ValueError('Expected split character. Found string!')
         out = list(map(split_colon_fn, re.split(r'(?<!\\)' + split_char, inp_str)))
+        out = [x for x in out if x]
         return out
 
     def __parse(self, data_f):
@@ -260,7 +261,7 @@ class MbedTlsTest(BaseHostTest):
         data_bytes += bytearray([function_id, len(parameters)])
         for typ, param in parameters:
             if typ == 'int' or typ == 'exp':
-                i = int(param)
+                i = int(param, 0)
                 data_bytes += b'I' if typ == 'int' else b'E'
                 self.align_32bit(data_bytes)
                 data_bytes += self.int32_to_big_endian_bytes(i)

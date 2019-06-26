@@ -831,8 +831,6 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     unsigned char *buf;
     unsigned char *p, *q;
     unsigned char offer_compress;
-    const int *ciphersuites;
-    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     int uses_ec = 0;
@@ -972,21 +970,27 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     /*
      * Ciphersuite list
      */
-    ciphersuites = ssl->conf->ciphersuite_list[ssl->minor_ver];
 
     /* Skip writing ciphersuite length for now */
     n = 0;
     q = p;
     p += 2;
 
-    for( i = 0; ciphersuites[i] != 0; i++ )
+    MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,
+                                            ssl->minor_ver,
+                                            ciphersuite_info )
     {
-        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuites[i] );
-
         if( ssl_validate_ciphersuite( ciphersuite_info, ssl,
                                       ssl->conf->min_minor_ver,
                                       ssl->conf->max_minor_ver ) != 0 )
-            continue;
+        {
+            /* Logically, we want to continue the ciphersuite iteration
+             * here, but We can't just use `continue` because
+             * MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE()
+             * doesn't unfold to a loop in case only a single
+             * ciphersuite is enabled. */
+            goto next_suite;
+        }
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %04x",
                               mbedtls_ssl_suite_get_id( ciphersuite_info ) ) );
@@ -1001,7 +1005,13 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
             mbedtls_ssl_suite_get_id( ciphersuite_info ) >> 8 );
         *p++ = (unsigned char)(
             mbedtls_ssl_suite_get_id( ciphersuite_info )      );
+
+    next_suite:
+        /* Need something here to avoid
+         * 'label at end of compound statement' error. */
+        ((void) 0);
     }
+    MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, got %d ciphersuites (excluding SCSVs)", n ) );
 
@@ -1626,7 +1636,9 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     int extended_ms_seen = 0;
 #endif
     int handshake_failure = 0;
-    mbedtls_ssl_ciphersuite_handle_t suite_info;
+
+    /* The ciphersuite chosen by the server. */
+    mbedtls_ssl_ciphersuite_handle_t server_suite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
@@ -1802,17 +1814,18 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     /*
      * Initialize update checksum functions
      */
-    ssl->handshake->ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( i );
-    if( ssl->handshake->ciphersuite_info ==
-        MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
+    server_suite_info = mbedtls_ssl_ciphersuite_from_id( i );
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+    ssl->handshake->ciphersuite_info = server_suite_info;
+#endif
+    if( server_suite_info == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found", i ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
-
-    mbedtls_ssl_optimize_checksum( ssl, ssl->handshake->ciphersuite_info );
+    mbedtls_ssl_optimize_checksum( ssl, server_suite_info );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 35, n );
@@ -1875,38 +1888,48 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     /*
      * Perform cipher suite validation in same way as in ssl_write_client_hello.
      */
-    i = 0;
-    while( 1 )
+    MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,
+                                            ssl->minor_ver,
+                                            ciphersuite_info )
     {
-        if( ssl->conf->ciphersuite_list[ssl->minor_ver][i] == 0 )
+        if( ssl_validate_ciphersuite( ciphersuite_info, ssl,
+                                      ssl->conf->min_minor_ver,
+                                      ssl->conf->max_minor_ver ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-            return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
+            /* Logically, we want to continue the ciphersuite iteration
+             * here, but We can't just use `continue` because
+             * MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE()
+             * doesn't unfold to a loop in case only a single
+             * ciphersuite is enabled. */
+            goto next_suite;
         }
 
-        if( ssl->conf->ciphersuite_list[ssl->minor_ver][i++] ==
-            ssl->session_negotiate->ciphersuite )
-        {
-            break;
-        }
-    }
+        if( ciphersuite_info != server_suite_info )
+            goto next_suite;
 
-    suite_info = mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite );
-    if( ssl_validate_ciphersuite( suite_info, ssl, ssl->minor_ver, ssl->minor_ver ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
+        goto server_picked_valid_suite;
+
+    next_suite:
+        /* Need something here to avoid
+         * 'label at end of compound statement' error. */
+        ((void) 0);
     }
+    MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE
+
+    /* If we reach this code-path, the server's chosen ciphersuite
+     * wasn't among those advertised by us. */
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
+    mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                    MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
+    return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
+
+server_picked_valid_suite:
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %s",
-                                mbedtls_ssl_suite_get_name( suite_info ) ) );
+                                mbedtls_ssl_suite_get_name( server_suite_info ) ) );
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-    if( mbedtls_ssl_suite_get_key_exchange( suite_info ) ==
+    if( mbedtls_ssl_suite_get_key_exchange( server_suite_info ) ==
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA &&
         ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {

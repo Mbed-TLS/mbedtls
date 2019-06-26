@@ -1430,4 +1430,41 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
+/*
+ * Macros for the traversal of the list of all enabled ciphersuites.
+ * This is implemented as a plain loop in case we have a runtime
+ * configurable list of ciphersuites, and as a simple variable
+ * instantiation in case a single ciphersuite is enabled at
+ * compile-time.
+ */
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl, ver, info ) \
+    {                                                            \
+        int const *__id_ptr;                                     \
+        for( __id_ptr=(ssl)->conf->ciphersuite_list[ (ver) ];    \
+             *__id_ptr != 0; __id_ptr++ )                        \
+        {                                                        \
+           const int __id = *__id_ptr;                           \
+           mbedtls_ssl_ciphersuite_handle_t info;                \
+           info = mbedtls_ssl_ciphersuite_from_id( __id );       \
+           if( info == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )  \
+               continue;
+
+#define MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE  \
+        }                                     \
+    }
+
+#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl, ver, info )             \
+    {                                                                        \
+        const mbedtls_ssl_ciphersuite_handle_t info =                        \
+            MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE;
+
+#define MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE    \
+    }
+
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+
 #endif /* ssl_internal.h */

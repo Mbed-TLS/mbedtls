@@ -364,6 +364,7 @@ typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;
 #define MBEDTLS_SSL_SUITE_MAX_MINOR_VER( SUITE ) MBEDTLS_SSL_SUITE_MAX_MINOR_VER_T( SUITE )
 #define MBEDTLS_SSL_SUITE_FLAGS(         SUITE ) MBEDTLS_SSL_SUITE_FLAGS_T(         SUITE )
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
 /**
  * \brief   This structure is used for storing ciphersuite information
  */
@@ -402,6 +403,15 @@ typedef mbedtls_ssl_ciphersuite_t const * mbedtls_ssl_ciphersuite_handle_t;
       MBEDTLS_SSL_SUITE_MAX_MAJOR_VER( SUITE ),   \
       MBEDTLS_SSL_SUITE_MAX_MINOR_VER( SUITE ),   \
       MBEDTLS_SSL_SUITE_FLAGS( SUITE ) }
+
+#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+
+typedef unsigned char mbedtls_ssl_ciphersuite_handle_t;
+#define MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE      ( (mbedtls_ssl_ciphersuite_handle_t) 0 )
+#define MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE ( (mbedtls_ssl_ciphersuite_handle_t) 1 )
+
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+
 /*
  * Getter functions for the extraction of ciphersuite attributes
  * from a ciphersuite handle.
@@ -411,6 +421,7 @@ typedef mbedtls_ssl_ciphersuite_t const * mbedtls_ssl_ciphersuite_handle_t;
  * is passed.
  */
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
 /*
  * Implementation of getter functions when the ciphersuite handle
  * is a pointer to the ciphersuite information structure.
@@ -468,6 +479,77 @@ static inline unsigned char mbedtls_ssl_suite_get_flags(
 {
     return( info->flags );
 }
+#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+/*
+ * Implementations of getter functions in the case of only
+ * a single possible ciphersuite. In this case, the handle
+ * is logically a boolean (either the invalid handle or the
+ * unique valid handle representing the single enabled
+ * ciphersuite), and the precondition that the handle is valid
+ * means that we can statically return the hardcoded attribute
+ * of the enabled ciphersuite.
+ */
+static inline int mbedtls_ssl_suite_get_id(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+static inline const char* mbedtls_ssl_suite_get_name(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+static inline mbedtls_cipher_type_t mbedtls_ssl_suite_get_cipher(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_CIPHER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+static inline mbedtls_md_type_t mbedtls_ssl_suite_get_mac(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_MAC( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+static inline mbedtls_key_exchange_type_t mbedtls_ssl_suite_get_key_exchange(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_KEY_EXCHANGE( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+static inline int mbedtls_ssl_suite_get_min_major_ver(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_MIN_MAJOR_VER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+static inline int mbedtls_ssl_suite_get_min_minor_ver(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_MIN_MINOR_VER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+static inline int mbedtls_ssl_suite_get_max_major_ver(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_MAX_MAJOR_VER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+static inline int mbedtls_ssl_suite_get_max_minor_ver(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_MAX_MINOR_VER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+static inline unsigned char mbedtls_ssl_suite_get_flags(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    ((void) info);
+    return( MBEDTLS_SSL_SUITE_FLAGS( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
 static inline int mbedtls_ssl_ciphersuite_has_pfs(
     mbedtls_ssl_ciphersuite_handle_t info )

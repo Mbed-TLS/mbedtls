@@ -33,6 +33,7 @@
 #include "pk.h"
 #include "cipher.h"
 #include "md.h"
+#include "ssl.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -311,6 +312,58 @@ typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;
                                                      eg for CCM_8 */
 #define MBEDTLS_CIPHERSUITE_NODTLS     0x04    /**< Can't be used with DTLS */
 
+/*
+ * Ciphersuite macro definitions
+ *
+ * This is highly incomplete and only contains those ciphersuites for
+ * which we need to be able to build the library with support for that
+ * ciphersuite only (currently MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8
+ * as an example).
+ */
+
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8()
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_ID              MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_NAME            "TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8"
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_CIPHER          MBEDTLS_CIPHER_AES_128_CCM
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_MAC             MBEDTLS_MD_SHA256
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_KEY_EXCHANGE    MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_MIN_MAJOR_VER   MBEDTLS_SSL_MAJOR_VERSION_3
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_MIN_MINOR_VER   MBEDTLS_SSL_MINOR_VERSION_3
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_MAX_MAJOR_VER   MBEDTLS_SSL_MAJOR_VERSION_3
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_MAX_MINOR_VER   MBEDTLS_SSL_MINOR_VERSION_3
+#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_FLAGS           MBEDTLS_CIPHERSUITE_SHORT_TAG
+
+/*
+ * Helper macros to extract fields from ciphersuites.
+ */
+
+#define MBEDTLS_SSL_SUITE_ID_T(            SUITE ) SUITE ## _ID
+#define MBEDTLS_SSL_SUITE_NAME_T(          SUITE ) SUITE ## _NAME
+#define MBEDTLS_SSL_SUITE_CIPHER_T(        SUITE ) SUITE ## _CIPHER
+#define MBEDTLS_SSL_SUITE_MAC_T(           SUITE ) SUITE ## _MAC
+#define MBEDTLS_SSL_SUITE_KEY_EXCHANGE_T(  SUITE ) SUITE ## _KEY_EXCHANGE
+#define MBEDTLS_SSL_SUITE_MIN_MAJOR_VER_T( SUITE ) SUITE ## _MIN_MAJOR_VER
+#define MBEDTLS_SSL_SUITE_MIN_MINOR_VER_T( SUITE ) SUITE ## _MIN_MINOR_VER
+#define MBEDTLS_SSL_SUITE_MAX_MAJOR_VER_T( SUITE ) SUITE ## _MAX_MAJOR_VER
+#define MBEDTLS_SSL_SUITE_MAX_MINOR_VER_T( SUITE ) SUITE ## _MAX_MINOR_VER
+#define MBEDTLS_SSL_SUITE_FLAGS_T(         SUITE ) SUITE ## _FLAGS
+
+/* Wrapper around MBEDTLS_SSL_SUITE_XXX_T() which makes sure that
+ * the argument is macro-expanded before concatenated with the
+ * field name. This allows to call these macros as
+ *    MBEDTLS_SSL_SUITE_XXX( MBEDTLS_SSL_SINGLE_CIPHERSUITE ),
+ * where MBEDTLS_SSL_SINGLE_CIPHERSUITE expands to MBEDTLS_SSL_SUITE_XXX. */
+#define MBEDTLS_SSL_SUITE_ID(            SUITE ) MBEDTLS_SSL_SUITE_ID_T(            SUITE )
+#define MBEDTLS_SSL_SUITE_NAME(          SUITE ) MBEDTLS_SSL_SUITE_NAME_T(          SUITE )
+#define MBEDTLS_SSL_SUITE_CIPHER(        SUITE ) MBEDTLS_SSL_SUITE_CIPHER_T(        SUITE )
+#define MBEDTLS_SSL_SUITE_MAC(           SUITE ) MBEDTLS_SSL_SUITE_MAC_T(           SUITE )
+#define MBEDTLS_SSL_SUITE_KEY_EXCHANGE(  SUITE ) MBEDTLS_SSL_SUITE_KEY_EXCHANGE_T(  SUITE )
+#define MBEDTLS_SSL_SUITE_MIN_MAJOR_VER( SUITE ) MBEDTLS_SSL_SUITE_MIN_MAJOR_VER_T( SUITE )
+#define MBEDTLS_SSL_SUITE_MIN_MINOR_VER( SUITE ) MBEDTLS_SSL_SUITE_MIN_MINOR_VER_T( SUITE )
+#define MBEDTLS_SSL_SUITE_MAX_MAJOR_VER( SUITE ) MBEDTLS_SSL_SUITE_MAX_MAJOR_VER_T( SUITE )
+#define MBEDTLS_SSL_SUITE_MAX_MINOR_VER( SUITE ) MBEDTLS_SSL_SUITE_MAX_MINOR_VER_T( SUITE )
+#define MBEDTLS_SSL_SUITE_FLAGS(         SUITE ) MBEDTLS_SSL_SUITE_FLAGS_T(         SUITE )
+
 /**
  * \brief   This structure is used for storing ciphersuite information
  */
@@ -334,6 +387,21 @@ struct mbedtls_ssl_ciphersuite_t
 typedef mbedtls_ssl_ciphersuite_t const * mbedtls_ssl_ciphersuite_handle_t;
 #define MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE ( (mbedtls_ssl_ciphersuite_handle_t) NULL )
 
+/**
+ * \brief   This macro builds an instance of ::mbedtls_ssl_ciphersuite_t
+ *          from an \c MBEDTLS_SUITE_XXX identifier.
+ */
+#define MBEDTLS_SSL_SUITE_INFO( SUITE )           \
+    { MBEDTLS_SSL_SUITE_ID( SUITE ),              \
+      MBEDTLS_SSL_SUITE_NAME( SUITE ),            \
+      MBEDTLS_SSL_SUITE_CIPHER( SUITE ),          \
+      MBEDTLS_SSL_SUITE_MAC( SUITE ),             \
+      MBEDTLS_SSL_SUITE_KEY_EXCHANGE(  SUITE ),   \
+      MBEDTLS_SSL_SUITE_MIN_MAJOR_VER( SUITE ),   \
+      MBEDTLS_SSL_SUITE_MIN_MINOR_VER( SUITE ),   \
+      MBEDTLS_SSL_SUITE_MAX_MAJOR_VER( SUITE ),   \
+      MBEDTLS_SSL_SUITE_MAX_MINOR_VER( SUITE ),   \
+      MBEDTLS_SSL_SUITE_FLAGS( SUITE ) }
 /*
  * Getter functions for the extraction of ciphersuite attributes
  * from a ciphersuite handle.

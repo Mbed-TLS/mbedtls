@@ -4160,7 +4160,8 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
      *
      * The `psa_tls12_prf_key_derivation` structure saves the block
      * `HMAC_hash(secret, A(i) + seed)` from which the output
-     * is currently extracted as `output_block`.
+     * is currently extracted as `output_block` and where i is
+     * `block_number`.
      */
 
     /* Save the hash context before using it, to preserve the hash state with

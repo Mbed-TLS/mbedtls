@@ -923,7 +923,9 @@ struct mbedtls_ssl_session
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t start;       /*!< starting time      */
 #endif
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     int ciphersuite;            /*!< chosen ciphersuite */
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
     int compression;            /*!< chosen compression */
     size_t id_len;              /*!< session id length  */
     unsigned char id[32];       /*!< session identifier */

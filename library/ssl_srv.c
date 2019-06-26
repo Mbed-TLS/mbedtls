@@ -1037,7 +1037,9 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     size_t n;
     unsigned int ciph_len, sess_len, chal_len;
     unsigned char *buf, *p;
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello v2" ) );
 
@@ -1256,7 +1258,9 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 
             if( ssl_ciphersuite_is_match( ssl, cur_info, NULL ) )
             {
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
                 ciphersuite_info = cur_info;
+#endif
                 goto have_ciphersuite_v2;
             }
 
@@ -1289,9 +1293,9 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 
 have_ciphersuite_v2:
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     ssl->session_negotiate->ciphersuite =
         mbedtls_ssl_suite_get_id( ciphersuite_info );
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     ssl->handshake->ciphersuite_info = ciphersuite_info;
 #endif
 
@@ -1341,7 +1345,10 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
     int extended_ms_seen = 0;
 #endif
     int handshake_failure = 0;
+
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
+#endif
     int major, minor;
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
@@ -2175,7 +2182,9 @@ read_record_header:
             if( ssl_ciphersuite_is_match( ssl, cur_info,
                                           acceptable_ec_grp_ids) )
             {
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
                 ciphersuite_info = cur_info;
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
                 goto have_ciphersuite;
             }
 
@@ -2212,9 +2221,9 @@ read_record_header:
 
 have_ciphersuite:
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     ssl->session_negotiate->ciphersuite =
         mbedtls_ssl_suite_get_id( ciphersuite_info );
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     ssl->handshake->ciphersuite_info = ciphersuite_info;
 #endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
@@ -2354,7 +2363,7 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
      * encrypt-then-MAC response extension back to the client."
      */
     suite = mbedtls_ssl_ciphersuite_from_id(
-        ssl->session_negotiate->ciphersuite );
+        mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ) );
     if( suite == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
     {
         *olen = 0;
@@ -2695,6 +2704,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     mbedtls_time_t t;
 #endif
     int ret;
+    int ciphersuite;
     size_t olen, ext_len = 0, n;
     unsigned char *buf, *p;
 
@@ -2844,12 +2854,13 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
             mbedtls_ssl_handshake_get_resume( ssl->handshake ) ? "a" : "no" ) );
 
-    *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite >> 8 );
-    *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite      );
+    ciphersuite = mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate );
+    *p++ = (unsigned char)( ciphersuite >> 8 );
+    *p++ = (unsigned char)( ciphersuite      );
     *p++ = (unsigned char)( ssl->session_negotiate->compression      );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %s",
-           mbedtls_ssl_get_ciphersuite_name( ssl->session_negotiate->ciphersuite ) ) );
+           mbedtls_ssl_get_ciphersuite_name( ciphersuite ) ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
                    ssl->session_negotiate->compression ) );
 
@@ -2898,7 +2909,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if ( mbedtls_ssl_ciphersuite_uses_ec(
-         mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite ) ) )
+           mbedtls_ssl_ciphersuite_from_id(
+             mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ) ) ) )
     {
         ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
         ext_len += olen;

@@ -1845,7 +1845,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     if( n == 0 ||
         mbedtls_ssl_get_renego_status( ssl ) != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
-        ssl->session_negotiate->ciphersuite != i ||
+        mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ) != i ||
         ssl->session_negotiate->compression != comp ||
         ssl->session_negotiate->id_len != n ||
         memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
@@ -1874,7 +1874,9 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_HAVE_TIME)
         ssl->session_negotiate->start = mbedtls_time( NULL );
 #endif
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
         ssl->session_negotiate->ciphersuite = i;
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
         ssl->session_negotiate->compression = comp;
         ssl->session_negotiate->id_len = n;
         memcpy( ssl->session_negotiate->id, buf + 35, n );

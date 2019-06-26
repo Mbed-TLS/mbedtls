@@ -1378,24 +1378,24 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
     /* Populate transform structure */
     ret = ssl_populate_transform( ssl->transform_negotiate,
-                                  ssl->session_negotiate->ciphersuite,
-                                  ssl->session_negotiate->master,
+                  mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ),
+                  ssl->session_negotiate->master,
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-                                  ssl->session_negotiate->encrypt_then_mac,
+                  ssl->session_negotiate->encrypt_then_mac,
 #endif
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-                                  ssl->session_negotiate->trunc_hmac,
+                  ssl->session_negotiate->trunc_hmac,
 #endif
 #endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 #if defined(MBEDTLS_ZLIB_SUPPORT)
-                                  ssl->session_negotiate->compression,
+                  ssl->session_negotiate->compression,
 #endif
-                                  ssl->handshake->tls_prf,
-                                  ssl->handshake->randbytes,
-                                  ssl->minor_ver,
-                                  mbedtls_ssl_conf_get_endpoint( ssl->conf ),
-                                  ssl );
+                  ssl->handshake->tls_prf,
+                  ssl->handshake->randbytes,
+                  ssl->minor_ver,
+                  mbedtls_ssl_conf_get_endpoint( ssl->conf ),
+                  ssl );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_populate_transform", ret );
@@ -8968,10 +8968,13 @@ uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl )
 
 const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl )
 {
+    int suite;
+
     if( ssl == NULL || ssl->session == NULL )
         return( NULL );
 
-    return mbedtls_ssl_get_ciphersuite_name( ssl->session->ciphersuite );
+    suite = mbedtls_ssl_session_get_ciphersuite( ssl->session );
+    return( mbedtls_ssl_get_ciphersuite_name( suite ) );
 }
 
 const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
@@ -9393,8 +9396,10 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 
     if( used <= buf_len )
     {
-        *p++ = (unsigned char)( ( session->ciphersuite >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( session->ciphersuite      ) & 0xFF );
+        const int ciphersuite =
+            mbedtls_ssl_session_get_ciphersuite( session );
+        *p++ = (unsigned char)( ( ciphersuite >> 8 ) & 0xFF );
+        *p++ = (unsigned char)( ( ciphersuite      ) & 0xFF );
 
         *p++ = (unsigned char)( session->compression & 0xFF );
 
@@ -9532,6 +9537,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 {
     const unsigned char *p = buf;
     const unsigned char * const end = buf + len;
+    int ciphersuite;
 #if defined(MBEDTLS_HAVE_TIME)
     uint64_t start;
 #endif
@@ -9578,11 +9584,22 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     /*
      * Basic mandatory fields
      */
+
     if( 2 + 1 + 1 + 32 + 48 + 4 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    session->ciphersuite = ( p[0] << 8 ) | p[1];
+    ciphersuite = ( p[0] << 8 ) | p[1];
     p += 2;
+
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+    session->ciphersuite = ciphersuite;
+#else
+    if( ciphersuite !=
+        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) )
+    {
+        return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+    }
+#endif
 
     session->compression = *p++;
 

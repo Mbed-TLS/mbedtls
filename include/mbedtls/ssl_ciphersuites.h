@@ -681,6 +681,21 @@ static inline int mbedtls_ssl_ciphersuite_uses_server_signature(
     }
 }
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+static inline int mbedtls_ssl_session_get_ciphersuite(
+    mbedtls_ssl_session const * session )
+{
+    return( session->ciphersuite );
+}
+#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+static inline int mbedtls_ssl_session_get_ciphersuite(
+    mbedtls_ssl_session const * session )
+{
+    ((void) session);
+    return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+}
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+
 const int *mbedtls_ssl_list_ciphersuites( void );
 
 mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_string( const char *ciphersuite_name );

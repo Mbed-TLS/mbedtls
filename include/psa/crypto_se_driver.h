@@ -972,8 +972,8 @@ typedef struct {
  * the end of this structure.
  */
 typedef struct {
-    /** The version of the driver model that this driver implements.
-     * This is a protection against linking driver binaries built against
+    /** The version of the driver HAL that this driver implements.
+     * This is a protection against loading driver binaries built against
      * a different version of this specification.
      * Use #PSA_DRV_SE_HAL_VERSION.
      */
@@ -986,12 +986,12 @@ typedef struct {
     psa_drv_se_key_derivation_t derivation;
 } psa_drv_se_t;
 
-/** The current version of the opaque driver model.
+/** The current version of the secure element driver HAL.
  */
 /* 0.0.0 patchlevel 5 */
 #define PSA_DRV_SE_HAL_VERSION 0x00000005
 
-/** Register an external cryptoprocessor driver.
+/** Register an external cryptoprocessor (secure element) driver.
  *
  * This function is only intended to be used by driver code, not by
  * application code. In implementations with separation between the
@@ -1004,11 +1004,18 @@ typedef struct {
  * implementation-defined whether this function may be called
  * after psa_crypto_init().
  *
+ * \note Implementations store metadata about keys including the lifetime
+ *       value. Therefore, from one instantiation of the PSA Cryptography
+ *       library to the next one, if there is a key in storage with a certain
+ *       lifetime value, you must always register the same driver (or an
+ *       updated version that communicates with the same secure element)
+ *       with the same lifetime value.
+ *
  * \param lifetime      The lifetime value through which this driver will
  *                      be exposed to applications.
  *                      The values #PSA_KEY_LIFETIME_VOLATILE and
  *                      #PSA_KEY_LIFETIME_PERSISTENT are reserved and
- *                      may not be used for opaque drivers. Implementations
+ *                      may not be used for drivers. Implementations
  *                      may reserve other values.
  * \param[in] methods   The method table of the driver. This structure must
  *                      remain valid for as long as the cryptography
@@ -1026,9 +1033,9 @@ typedef struct {
  * \return PSA_ERROR_ALREADY_EXISTS
  *         There is already a registered driver for this value of \p lifetime.
  * \return PSA_ERROR_INVALID_ARGUMENT
- *         \p lifetime is a reserved value
+ *         \p lifetime is a reserved value.
  * \return PSA_ERROR_NOT_SUPPORTED
- *         `methods->interface_version` is not supported by this implementation.
+ *         `methods->hal_version` is not supported by this implementation.
  * \return PSA_ERROR_INSUFFICIENT_MEMORY
  * \return PSA_ERROR_NOT_PERMITTED
  */

@@ -980,12 +980,12 @@ typedef struct {
      * Use #PSA_DRV_SE_HAL_VERSION.
      */
     uint32_t hal_version;
-    psa_drv_se_key_management_t key_management;
-    psa_drv_se_mac_t mac;
-    psa_drv_se_cipher_t cipher;
-    psa_drv_se_aead_t aead;
-    psa_drv_se_asymmetric_t asymmetric;
-    psa_drv_se_key_derivation_t derivation;
+    const psa_drv_se_key_management_t *key_management;
+    const psa_drv_se_mac_t *mac;
+    const psa_drv_se_cipher_t *cipher;
+    const psa_drv_se_aead_t *aead;
+    const psa_drv_se_asymmetric_t *asymmetric;
+    const psa_drv_se_key_derivation_t *derivation;
 } psa_drv_se_t;
 
 /** The current version of the secure element driver HAL.

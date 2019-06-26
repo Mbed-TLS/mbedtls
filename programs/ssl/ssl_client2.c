@@ -1788,8 +1788,10 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_conf_session_tickets( &conf, opt.tickets );
 #endif
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_ARC4_C)
     if( opt.arc4 != DFL_ARC4 )

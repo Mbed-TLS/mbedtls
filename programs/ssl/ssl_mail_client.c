@@ -621,8 +621,10 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
+#endif /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
     mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
     if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )

@@ -972,7 +972,9 @@ struct mbedtls_ssl_config
      * Pointers
      */
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     const int *ciphersuite_list[4]; /*!< allowed ciphersuites per version   */
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
     /** Callback for printing debug output                                  */
     void (*f_dbg)(void *, int, const char *, int, const char *);
@@ -2466,6 +2468,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
  */
 const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_context *ssl );
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
 /**
  * \brief               Set the list of allowed ciphersuites and the preference
  *                      order. First in the list has the highest preference.
@@ -2478,11 +2481,43 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
  *                      over the preference of the client unless
  *                      MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE is defined!
  *
+ * \note                On constrained systems, support for a single ciphersuite
+ *                      (in all versions) can be fixed at compile-time through
+ *                      the configuration option MBEDTLS_SSL_SINGLE_CIPHERSUITE.
+ *
  * \param conf          SSL configuration
  * \param ciphersuites  0-terminated list of allowed ciphersuites
  */
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
-                                   const int *ciphersuites );
+                                    const int *ciphersuites );
+
+/**
+ * \brief               Set the list of allowed ciphersuites and the
+ *                      preference order for a specific version of the protocol.
+ *                      (Only useful on the server side)
+ *
+ *                      The ciphersuites array is not copied, and must remain
+ *                      valid for the lifetime of the ssl_config.
+ *
+ * \param conf          SSL configuration
+ * \param ciphersuites  0-terminated list of allowed ciphersuites
+ * \param major         Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3
+ *                      supported)
+ * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
+ *                      MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
+ *                      MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ *
+ * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0
+ *                      and MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
+ *
+ * \note                On constrained systems, support for a single ciphersuite
+ *                      (in all versions) can be fixed at compile-time through
+ *                      the configuration option MBEDTLS_SSL_SINGLE_CIPHERSUITE.
+ */
+void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
+                                       const int *ciphersuites,
+                                       int major, int minor );
+#endif /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
@@ -2530,29 +2565,6 @@ int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID &&
           !MBEDTLS_SSL_CONF_CID_LEN &&
           !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
-
-/**
- * \brief               Set the list of allowed ciphersuites and the
- *                      preference order for a specific version of the protocol.
- *                      (Only useful on the server side)
- *
- *                      The ciphersuites array is not copied, and must remain
- *                      valid for the lifetime of the ssl_config.
- *
- * \param conf          SSL configuration
- * \param ciphersuites  0-terminated list of allowed ciphersuites
- * \param major         Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3
- *                      supported)
- * \param minor         Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
- *                      MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
- *                      MBEDTLS_SSL_MINOR_VERSION_3 supported)
- *
- * \note                With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0
- *                      and MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
- */
-void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
-                                       const int *ciphersuites,
-                                       int major, int minor );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**

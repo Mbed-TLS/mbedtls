@@ -2662,14 +2662,17 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
+#endif /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_ARC4_C)
     if( opt.arc4 != DFL_ARC4 )
         mbedtls_ssl_conf_arc4_support( &conf, opt.arc4 );
 #endif
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     if( opt.version_suites != NULL )
     {
         mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[0],
@@ -2685,6 +2688,7 @@ int main( int argc, char *argv[] )
                                           MBEDTLS_SSL_MAJOR_VERSION_3,
                                           MBEDTLS_SSL_MINOR_VERSION_3 );
     }
+#endif /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
 #if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )

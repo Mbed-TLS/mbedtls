@@ -4939,6 +4939,7 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
 {
     psa_status_t status;
     unsigned char pms[ 4 + 2 * PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN ];
+    unsigned char* cur = pms;
 
     if( data_length > PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN )
         return( PSA_ERROR_INVALID_ARGUMENT );
@@ -4950,14 +4951,16 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
      * uint16 with the value N, and the PSK itself.
      */
 
-    pms[0] = ( data_length >> 8 ) & 0xff;
-    pms[1] = ( data_length >> 0 ) & 0xff;
-    memset( pms + 2, 0, data_length );
-    pms[2 + data_length + 0] = pms[0];
-    pms[2 + data_length + 1] = pms[1];
-    memcpy( pms + 4 + data_length, data, data_length );
+    *cur++ = ( data_length >> 8 ) & 0xff;
+    *cur++ = ( data_length >> 0 ) & 0xff;
+    memset( cur, 0, data_length );
+    cur += data_length;
+    *cur++ = pms[0];
+    *cur++ = pms[1];
+    memcpy( cur, data, data_length );
+    cur += data_length;
 
-    status = psa_tls12_prf_set_key( prf, hash_alg, pms, 4 + 2 * data_length );
+    status = psa_tls12_prf_set_key( prf, hash_alg, pms, cur - pms );
 
     mbedtls_platform_zeroize( pms, sizeof( pms ) );
     return( status );

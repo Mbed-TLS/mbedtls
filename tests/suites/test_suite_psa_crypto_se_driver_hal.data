@@ -6,11 +6,14 @@ register_one:2:PSA_DRV_SE_HAL_VERSION:PSA_SUCCESS
 Register SE driver: good, again
 register_one:2:PSA_DRV_SE_HAL_VERSION:PSA_SUCCESS
 
+Register SE driver: invalid lifetime (0)
+register_one:0:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
+
 Register SE driver: invalid lifetime (VOLATILE)
 register_one:PSA_KEY_LIFETIME_VOLATILE:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
 
 Register SE driver: invalid lifetime (PERSISTENT)
-register_one:PSA_KEY_LIFETIME_VOLATILE:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
+register_one:PSA_KEY_LIFETIME_PERSISTENT:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
 
 Register SE driver: invalid version (ancient)
 register_one:2:0x00000003:PSA_ERROR_NOT_SUPPORTED

@@ -602,11 +602,21 @@ component_test_full_cmake_clang () {
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
     make
 
-    msg "test: main suites (full config)" # ~ 5s
+    msg "test: main suites (full config, clang)" # ~ 5s
     make test
 
-    msg "test: psa_constant_names (full config)" # ~ 1s
+    msg "test: psa_constant_names (full config, clang)" # ~ 1s
     record_status tests/scripts/test_psa_constant_names.py
+}
+
+component_test_full_make_gcc () {
+    msg "build: make, full config, gcc" # ~ 50s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    make
+
+    msg "test: main suites (full config, gcc)" # ~ 5s
+    make test
 }
 
 component_build_deprecated () {

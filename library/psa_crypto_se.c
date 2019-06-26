@@ -27,6 +27,7 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 
+#include <assert.h>
 #include <string.h>
 
 #include "psa_crypto_se.h"
@@ -47,6 +48,12 @@ psa_status_t psa_register_se_driver(
 
     if( methods->hal_version != PSA_DRV_SE_HAL_VERSION )
         return( PSA_ERROR_NOT_SUPPORTED );
+    /* Driver table entries are 0-initialized. 0 is not a valid driver
+     * lifetime because it means a volatile key. */
+#if defined(static_assert)
+    static_assert( PSA_KEY_LIFETIME_VOLATILE == 0,
+                   "Secure element support requires 0 to mean a volatile key" );
+#endif
     if( lifetime == PSA_KEY_LIFETIME_VOLATILE ||
         lifetime == PSA_KEY_LIFETIME_PERSISTENT )
     {

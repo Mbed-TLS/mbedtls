@@ -32,13 +32,53 @@
 
 #include "psa_crypto_se.h"
 
-typedef struct
+/****************************************************************/
+/* Driver lookup */
+/****************************************************************/
+
+typedef struct psa_se_drv_table_entry_s
 {
     psa_key_lifetime_t lifetime;
     const psa_drv_se_t *methods;
-} method_table_entry_t;
+} psa_se_drv_table_entry_t;
 
-static method_table_entry_t driver_table[PSA_MAX_SE_DRIVERS];
+static psa_se_drv_table_entry_t driver_table[PSA_MAX_SE_DRIVERS];
+
+const psa_se_drv_table_entry_t *psa_get_se_driver_entry(
+    psa_key_lifetime_t lifetime )
+{
+    size_t i;
+    if( lifetime == 0 )
+        return( NULL );
+    for( i = 0; i < PSA_MAX_SE_DRIVERS; i++ )
+    {
+        if( driver_table[i].lifetime == lifetime )
+            return( &driver_table[i] );
+    }
+    return( NULL );
+}
+
+const psa_drv_se_t *psa_get_se_driver_methods(
+    const psa_se_drv_table_entry_t *drv )
+{
+    return( drv->methods );
+}
+
+const psa_drv_se_t *psa_get_se_driver( psa_key_lifetime_t lifetime )
+{
+    const psa_se_drv_table_entry_t *drv = psa_get_se_driver_entry( lifetime );
+    if( drv == NULL )
+        return( NULL );
+    else
+        return( drv->methods );
+}
+
+
+
+
+/****************************************************************/
+/* Driver registration */
+/****************************************************************/
 
 psa_status_t psa_register_se_driver(
     psa_key_lifetime_t lifetime,
@@ -82,5 +122,11 @@ void psa_unregister_all_se_drivers( void )
 {
     memset( driver_table, 0, sizeof( driver_table ) );
 }
+
+
+
+/****************************************************************/
+/* The end */
+/****************************************************************/
 
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */

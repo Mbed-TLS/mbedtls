@@ -759,9 +759,8 @@ static int ssl_check_key_curve( mbedtls_pk_context *pk,
  * return 0 on success and -1 on failure.
  */
 static int ssl_pick_cert( mbedtls_ssl_context *ssl,
-                          const mbedtls_ssl_ciphersuite_t * ciphersuite_info,
+                          mbedtls_ssl_ciphersuite_handle_t ciphersuite_info,
                           mbedtls_ecp_group_id const *acceptable_ec_grp_ids )
-
 {
     mbedtls_ssl_key_cert *cur, *list, *fallback = NULL;
     mbedtls_pk_type_t pk_alg =
@@ -920,10 +919,10 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
  * Sets ciphersuite_info only if the suite matches.
  */
 static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
-                           const mbedtls_ssl_ciphersuite_t **ciphersuite_info,
+                           mbedtls_ssl_ciphersuite_handle_t *ciphersuite_info,
                            mbedtls_ecp_group_id const *acceptable_ec_grp_ids )
 {
-    const mbedtls_ssl_ciphersuite_t *suite_info;
+    mbedtls_ssl_ciphersuite_handle_t suite_info;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
@@ -931,16 +930,17 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
 #endif
 
     suite_info = mbedtls_ssl_ciphersuite_from_id( suite_id );
-    if( suite_info == NULL )
+    if( suite_info == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "trying ciphersuite: %s", suite_info->name ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "trying ciphersuite: %s",
+                                mbedtls_ssl_suite_get_name( suite_info ) ) );
 
-    if( suite_info->min_minor_ver > ssl->minor_ver ||
-        suite_info->max_minor_ver < ssl->minor_ver )
+    if( mbedtls_ssl_suite_get_min_minor_ver( suite_info ) > ssl->minor_ver ||
+        mbedtls_ssl_suite_get_max_minor_ver( suite_info ) < ssl->minor_ver )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: version" ) );
         return( 0 );
@@ -948,13 +948,16 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
-        ( suite_info->flags & MBEDTLS_CIPHERSUITE_NODTLS ) )
+        ( mbedtls_ssl_suite_get_flags( suite_info ) &
+          MBEDTLS_CIPHERSUITE_NODTLS ) )
+    {
         return( 0 );
+    }
 #endif
 
 #if defined(MBEDTLS_ARC4_C)
     if( ssl->conf->arc4_disabled == MBEDTLS_SSL_ARC4_DISABLED &&
-            suite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
+        mbedtls_ssl_suite_get_cipher( suite_info ) == MBEDTLS_CIPHER_ARC4_128 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: rc4" ) );
         return( 0 );
@@ -962,7 +965,8 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
+    if( mbedtls_ssl_suite_get_key_exchange( suite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
         ( ssl->handshake->cli_exts & MBEDTLS_TLS_EXT_ECJPAKE_KKPP_OK ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: ecjpake "
@@ -1044,7 +1048,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     unsigned int ciph_len, sess_len, chal_len;
     unsigned char *buf, *p;
     const int *ciphersuites;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello v2" ) );
 
@@ -1235,7 +1239,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 
     got_common_suite = 0;
     ciphersuites = ssl->conf->ciphersuite_list[ssl->minor_ver];
-    ciphersuite_info = NULL;
+    ciphersuite_info = MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE;
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
         for( i = 0; ciphersuites[i] != 0; i++ )
@@ -1258,7 +1262,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
                 return( ret );
             }
 
-            if( ciphersuite_info != NULL )
+            if( ciphersuite_info != MBEDTLS_SSL_CIPHERSUITE_INVALD_HANDLE )
                 goto have_ciphersuite_v2;
         }
 
@@ -1275,7 +1279,8 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     }
 
 have_ciphersuite_v2:
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s", ciphersuite_info->name ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
+                                mbedtls_ssl_suite_get_name( ciphersuite_info ) ) );
 
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl->handshake->ciphersuite_info = ciphersuite_info;
@@ -1323,7 +1328,7 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
 #endif
     int handshake_failure = 0;
     const int *ciphersuites;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
     int major, minor;
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
@@ -2129,7 +2134,7 @@ read_record_header:
      */
     got_common_suite = 0;
     ciphersuites = ssl->conf->ciphersuite_list[ssl->minor_ver];
-    ciphersuite_info = NULL;
+    ciphersuite_info = MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE;
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
         for( i = 0; ciphersuites[i] != 0; i++ )
@@ -2151,7 +2156,7 @@ read_record_header:
                 return( ret );
             }
 
-            if( ciphersuite_info != NULL )
+            if( ciphersuite_info != MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
                 goto have_ciphersuite;
         }
 
@@ -2172,7 +2177,8 @@ read_record_header:
     }
 
 have_ciphersuite:
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s", ciphersuite_info->name ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
+                                mbedtls_ssl_suite_get_name( ciphersuite_info ) ) );
 
     ssl->session_negotiate->ciphersuite = ciphersuites[i];
     ssl->handshake->ciphersuite_info = ciphersuite_info;
@@ -2290,7 +2296,8 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
                                             size_t *olen )
 {
     unsigned char *p = buf;
-    const mbedtls_ssl_ciphersuite_t *suite = NULL;
+    mbedtls_ssl_ciphersuite_handle_t suite =
+        MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE;
     const mbedtls_cipher_info_t *cipher = NULL;
 
     if( ssl->session_negotiate->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED ||
@@ -2306,9 +2313,17 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
      * with Associated Data (AEAD) ciphersuite, it MUST NOT send an
      * encrypt-then-MAC response extension back to the client."
      */
-    if( ( suite = mbedtls_ssl_ciphersuite_from_id(
-                    ssl->session_negotiate->ciphersuite ) ) == NULL ||
-        ( cipher = mbedtls_cipher_info_from_type( suite->cipher ) ) == NULL ||
+    suite = mbedtls_ssl_ciphersuite_from_id(
+        ssl->session_negotiate->ciphersuite );
+    if( suite == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
+    {
+        *olen = 0;
+        return;
+    }
+
+    cipher = mbedtls_cipher_info_from_type(
+        mbedtls_ssl_suite_get_cipher( suite ) );
+    if( cipher == NULL ||
         cipher->mode != MBEDTLS_MODE_CBC )
     {
         *olen = 0;
@@ -2491,7 +2506,7 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
     *olen = 0;
 
     /* Skip costly computation if not needed */
-    if( ssl->handshake->ciphersuite_info->key_exchange !=
+    if( mbedtls_ssl_suite_get_key_exchange( ssl->handshake->ciphersuite_info ) !=
         MBEDTLS_KEY_EXCHANGE_ECJPAKE )
         return;
 
@@ -2884,7 +2899,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #if !defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
 static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         ssl->handshake->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
@@ -2903,7 +2918,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         ssl->handshake->ciphersuite_info;
     size_t dn_size, total_dn_size; /* excluding length bytes */
     size_t ct_len, sa_len; /* including length bytes */
@@ -3134,7 +3149,7 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
 static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                                             size_t *signature_len )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         ssl->handshake->ciphersuite_info;
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED)
@@ -3160,7 +3175,8 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
      * - ECJPAKE key exchanges
      */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
         int ret;
         size_t len = 0;
@@ -3188,8 +3204,8 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
      **/
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)   || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
         ssl->out_msg[ssl->out_msglen++] = 0x00;
         ssl->out_msg[ssl->out_msglen++] = 0x00;
@@ -3353,7 +3369,8 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
+        if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+            == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
         {
             /* B: Default hash SHA1 */
             md_alg = MBEDTLS_MD_SHA1;
@@ -3495,7 +3512,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     int ret;
     size_t signature_len = 0;
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED)
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
                             ssl->handshake->ciphersuite_info;
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED */
 
@@ -3939,7 +3956,7 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
 static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
     unsigned char *p, *end;
 
     ciphersuite_info = ssl->handshake->ciphersuite_info;
@@ -3949,8 +3966,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \
     ( defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) || \
       defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
-    if( ( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-          ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA ) &&
+    if( ( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
+          mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) == MBEDTLS_KEY_EXCHANGE_RSA ) &&
         ( ssl->handshake->async_in_progress != 0 ) )
     {
         /* We've already read a record and there is an asynchronous
@@ -3982,7 +3999,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_RSA )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_DHE_RSA )
     {
         if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
         {
@@ -4015,10 +4033,14 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_RSA ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                       ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA                     ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_RSA                        ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
         if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx,
                                       p, end - p) ) != 0 )
@@ -4050,7 +4072,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
           MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_PSK )
     {
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
@@ -4065,7 +4088,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         }
 
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-                        ciphersuite_info->key_exchange ) ) != 0 )
+               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );
@@ -4074,7 +4097,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if ( ssl->handshake->async_in_progress != 0 )
@@ -4102,7 +4126,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         }
 
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-                        ciphersuite_info->key_exchange ) ) != 0 )
+               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );
@@ -4111,7 +4135,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_DHE_PSK )
     {
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
@@ -4131,7 +4156,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         }
 
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-                        ciphersuite_info->key_exchange ) ) != 0 )
+               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );
@@ -4140,7 +4165,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
@@ -4159,7 +4185,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
                                 MBEDTLS_DEBUG_ECDH_QP );
 
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-                        ciphersuite_info->key_exchange ) ) != 0 )
+               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );
@@ -4168,7 +4194,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_RSA )
     {
         if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 0 ) ) != 0 )
         {
@@ -4179,7 +4206,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
         ret = mbedtls_ecjpake_read_round_two( &ssl->handshake->ecjpake_ctx,
                                               p, end - p );
@@ -4222,7 +4250,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if !defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
 static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         ssl->handshake->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
@@ -4249,7 +4277,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     mbedtls_pk_type_t pk_alg;
 #endif
     mbedtls_md_type_t md_alg;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         ssl->handshake->ciphersuite_info;
     mbedtls_pk_context *peer_pk = NULL;
 

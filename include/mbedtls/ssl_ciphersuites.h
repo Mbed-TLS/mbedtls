@@ -331,22 +331,80 @@ struct mbedtls_ssl_ciphersuite_t
     unsigned char flags;
 };
 
-const int *mbedtls_ssl_list_ciphersuites( void );
+typedef mbedtls_ssl_ciphersuite_t const * mbedtls_ssl_ciphersuite_handle_t;
+#define MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE ( (mbedtls_ssl_ciphersuite_handle_t) NULL )
 
-const mbedtls_ssl_ciphersuite_t *mbedtls_ssl_ciphersuite_from_string( const char *ciphersuite_name );
-const mbedtls_ssl_ciphersuite_t *mbedtls_ssl_ciphersuite_from_id( int ciphersuite_id );
+/*
+ * Getter functions for the extraction of ciphersuite attributes
+ * from a ciphersuite handle.
+ *
+ * These functions have the validity of the handle as a precondition!
+ * Their behaviour is undefined when MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE
+ * is passed.
+ */
 
-#if defined(MBEDTLS_PK_C)
-mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( const mbedtls_ssl_ciphersuite_t *info );
-mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg( const mbedtls_ssl_ciphersuite_t *info );
-#endif
-
-int mbedtls_ssl_ciphersuite_uses_ec( const mbedtls_ssl_ciphersuite_t *info );
-int mbedtls_ssl_ciphersuite_uses_psk( const mbedtls_ssl_ciphersuite_t *info );
-
-static inline int mbedtls_ssl_ciphersuite_has_pfs( const mbedtls_ssl_ciphersuite_t *info )
+/*
+ * Implementation of getter functions when the ciphersuite handle
+ * is a pointer to the ciphersuite information structure.
+ *
+ * The precondition that the handle is valid means that
+ * we don't need to check that info != NULL.
+ */
+static inline int mbedtls_ssl_suite_get_id(
+    mbedtls_ssl_ciphersuite_handle_t const info )
 {
-    switch( info->key_exchange )
+    return( info->id );
+}
+static inline const char* mbedtls_ssl_suite_get_name(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    return( info->name );
+}
+static inline mbedtls_cipher_type_t mbedtls_ssl_suite_get_cipher(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    return( info->cipher );
+}
+static inline mbedtls_md_type_t mbedtls_ssl_suite_get_mac(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    return( info->mac );
+}
+static inline mbedtls_key_exchange_type_t mbedtls_ssl_suite_get_key_exchange(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    return( info->key_exchange );
+}
+static inline int mbedtls_ssl_suite_get_min_major_ver(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    return( info->min_major_ver );
+}
+static inline int mbedtls_ssl_suite_get_min_minor_ver(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    return( info->min_minor_ver );
+}
+static inline int mbedtls_ssl_suite_get_max_major_ver(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    return( info->max_major_ver );
+}
+static inline int mbedtls_ssl_suite_get_max_minor_ver(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    return( info->max_minor_ver );
+}
+static inline unsigned char mbedtls_ssl_suite_get_flags(
+    mbedtls_ssl_ciphersuite_handle_t const info )
+{
+    return( info->flags );
+}
+
+static inline int mbedtls_ssl_ciphersuite_has_pfs(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
     {
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
@@ -361,9 +419,10 @@ static inline int mbedtls_ssl_ciphersuite_has_pfs( const mbedtls_ssl_ciphersuite
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_no_pfs( const mbedtls_ssl_ciphersuite_t *info )
+static inline int mbedtls_ssl_ciphersuite_no_pfs(
+    mbedtls_ssl_ciphersuite_handle_t info )
 {
-    switch( info->key_exchange )
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
     {
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
@@ -377,9 +436,10 @@ static inline int mbedtls_ssl_ciphersuite_no_pfs( const mbedtls_ssl_ciphersuite_
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_ecdh( const mbedtls_ssl_ciphersuite_t *info )
+static inline int mbedtls_ssl_ciphersuite_uses_ecdh(
+    mbedtls_ssl_ciphersuite_handle_t info )
 {
-    switch( info->key_exchange )
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
     {
         case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
@@ -390,9 +450,10 @@ static inline int mbedtls_ssl_ciphersuite_uses_ecdh( const mbedtls_ssl_ciphersui
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_cert_req_allowed( const mbedtls_ssl_ciphersuite_t *info )
+static inline int mbedtls_ssl_ciphersuite_cert_req_allowed(
+    mbedtls_ssl_ciphersuite_handle_t info )
 {
-    switch( info->key_exchange )
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
     {
         case MBEDTLS_KEY_EXCHANGE_RSA:
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
@@ -407,9 +468,10 @@ static inline int mbedtls_ssl_ciphersuite_cert_req_allowed( const mbedtls_ssl_ci
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_srv_cert( const mbedtls_ssl_ciphersuite_t *info )
+static inline int mbedtls_ssl_ciphersuite_uses_srv_cert(
+    mbedtls_ssl_ciphersuite_handle_t info )
 {
-    switch( info->key_exchange )
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
     {
         case MBEDTLS_KEY_EXCHANGE_RSA:
         case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
@@ -425,9 +487,10 @@ static inline int mbedtls_ssl_ciphersuite_uses_srv_cert( const mbedtls_ssl_ciphe
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_dhe( const mbedtls_ssl_ciphersuite_t *info )
+static inline int mbedtls_ssl_ciphersuite_uses_dhe(
+    mbedtls_ssl_ciphersuite_handle_t info )
 {
-    switch( info->key_exchange )
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
     {
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
@@ -438,9 +501,10 @@ static inline int mbedtls_ssl_ciphersuite_uses_dhe( const mbedtls_ssl_ciphersuit
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_ecdhe( const mbedtls_ssl_ciphersuite_t *info )
+static inline int mbedtls_ssl_ciphersuite_uses_ecdhe(
+    mbedtls_ssl_ciphersuite_handle_t info )
 {
-    switch( info->key_exchange )
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
     {
         case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
@@ -452,9 +516,10 @@ static inline int mbedtls_ssl_ciphersuite_uses_ecdhe( const mbedtls_ssl_ciphersu
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_server_signature( const mbedtls_ssl_ciphersuite_t *info )
+static inline int mbedtls_ssl_ciphersuite_uses_server_signature(
+    mbedtls_ssl_ciphersuite_handle_t info )
 {
-    switch( info->key_exchange )
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
     {
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
@@ -465,6 +530,19 @@ static inline int mbedtls_ssl_ciphersuite_uses_server_signature( const mbedtls_s
             return( 0 );
     }
 }
+
+const int *mbedtls_ssl_list_ciphersuites( void );
+
+mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_string( const char *ciphersuite_name );
+mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_id( int ciphersuite_id );
+
+#if defined(MBEDTLS_PK_C)
+mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( mbedtls_ssl_ciphersuite_handle_t info );
+mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg( mbedtls_ssl_ciphersuite_handle_t info );
+#endif
+
+int mbedtls_ssl_ciphersuite_uses_ec( mbedtls_ssl_ciphersuite_handle_t info );
+int mbedtls_ssl_ciphersuite_uses_psk( mbedtls_ssl_ciphersuite_handle_t info );
 
 #ifdef __cplusplus
 }

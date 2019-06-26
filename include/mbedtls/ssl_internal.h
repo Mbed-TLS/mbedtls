@@ -501,7 +501,7 @@ struct mbedtls_ssl_handshake_params
                     const unsigned char *, size_t,
                     unsigned char *, size_t);
 
-    mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
 
     size_t pmslen;                      /*!<  premaster length        */
 
@@ -918,7 +918,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl );
 
 void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
-                            const mbedtls_ssl_ciphersuite_t *ciphersuite_info );
+                            mbedtls_ssl_ciphersuite_handle_t ciphersuite_info );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex );
@@ -978,7 +978,7 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
  * Return 0 if everything is OK, -1 if not.
  */
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
-                          const mbedtls_ssl_ciphersuite_t *ciphersuite,
+                          mbedtls_ssl_ciphersuite_handle_t ciphersuite,
                           int cert_endpoint,
                           uint32_t *flags );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

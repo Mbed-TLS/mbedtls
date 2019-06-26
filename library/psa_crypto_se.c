@@ -25,7 +25,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 
 #include <string.h>
 
@@ -76,4 +76,4 @@ void psa_unregister_all_se_drivers( void )
     memset( driver_table, 0, sizeof( driver_table ) );
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */

@@ -32,7 +32,9 @@
 
 #include "psa_crypto_core.h"
 #include "psa_crypto_invasive.h"
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 #include "psa_crypto_se.h"
+#endif
 #include "psa_crypto_slot_management.h"
 /* Include internal declarations that are useful for implementing persistently
  * stored keys. */
@@ -5212,9 +5214,11 @@ void mbedtls_psa_crypto_free( void )
      * In particular, this sets all state indicator to the value
      * indicating "uninitialized". */
     mbedtls_platform_zeroize( &global_data, sizeof( global_data ) );
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* Unregister all secure element drivers, so that we restart from
      * a pristine state. */
     psa_unregister_all_se_drivers( );
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 }
 
 psa_status_t psa_crypto_init( void )

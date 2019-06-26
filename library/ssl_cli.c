@@ -1452,7 +1452,8 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
     int ret;
 
     if( mbedtls_ssl_suite_get_key_exchange(
-            ssl->handshake->ciphersuite_info ) != MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+            mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake ) )
+        != MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip ecjpake kkpp extension" ) );
         return( 0 );
@@ -2595,7 +2596,7 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     unsigned char *p = NULL, *end = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
@@ -2981,7 +2982,7 @@ exit:
 static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
 
@@ -3003,7 +3004,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     size_t n = 0;
     size_t cert_type_len = 0, dn_len = 0;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
 
@@ -3204,7 +3205,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
     int ret;
     size_t i, n;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client key exchange" ) );
 
@@ -3507,7 +3508,7 @@ ecdh_calc_secret:
 static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     int ret;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
@@ -3533,7 +3534,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     size_t n = 0, offset = 0;
     unsigned char hash[48];
     unsigned char *hash_start = hash;
@@ -3638,7 +3639,8 @@ sign:
          * Reason: Otherwise we should have running hashes for SHA512 and SHA224
          *         in order to satisfy 'weird' needs from the server side.
          */
-        if( mbedtls_ssl_suite_get_mac( ssl->handshake->ciphersuite_info )
+        if( mbedtls_ssl_suite_get_mac(
+                mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake ) )
             == MBEDTLS_MD_SHA384 )
         {
             md_alg = MBEDTLS_MD_SHA384;

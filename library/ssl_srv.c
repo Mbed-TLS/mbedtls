@@ -1291,7 +1291,9 @@ have_ciphersuite_v2:
 
     ssl->session_negotiate->ciphersuite =
         mbedtls_ssl_suite_get_id( ciphersuite_info );
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     ssl->handshake->ciphersuite_info = ciphersuite_info;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
         mbedtls_ssl_get_ciphersuite_name(
@@ -2212,7 +2214,9 @@ have_ciphersuite:
 
     ssl->session_negotiate->ciphersuite =
         mbedtls_ssl_suite_get_id( ciphersuite_info );
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     ssl->handshake->ciphersuite_info = ciphersuite_info;
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
         mbedtls_ssl_get_ciphersuite_name(
@@ -2542,9 +2546,12 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
     *olen = 0;
 
     /* Skip costly computation if not needed */
-    if( mbedtls_ssl_suite_get_key_exchange( ssl->handshake->ciphersuite_info ) !=
+    if( mbedtls_ssl_suite_get_key_exchange(
+            mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake ) ) !=
         MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    {
         return;
+    }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, ecjpake kkpp extension" ) );
 
@@ -2936,7 +2943,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
@@ -2955,7 +2962,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     size_t dn_size, total_dn_size; /* excluding length bytes */
     size_t ct_len, sa_len; /* including length bytes */
     unsigned char *buf, *p;
@@ -3186,7 +3193,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                                             size_t *signature_len )
 {
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED)
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
@@ -3549,7 +3556,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     size_t signature_len = 0;
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-                            ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
@@ -3992,10 +3999,9 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
 static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
-    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     unsigned char *p, *end;
-
-    ciphersuite_info = ssl->handshake->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client key exchange" ) );
 
@@ -4287,7 +4293,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
@@ -4314,7 +4320,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 #endif
     mbedtls_md_type_t md_alg;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     mbedtls_pk_context *peer_pk = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );

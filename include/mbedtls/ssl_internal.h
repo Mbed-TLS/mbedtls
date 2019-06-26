@@ -501,7 +501,9 @@ struct mbedtls_ssl_handshake_params
                     const unsigned char *, size_t,
                     unsigned char *, size_t);
 
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
+#endif /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
     size_t pmslen;                      /*!<  premaster length        */
 
@@ -555,6 +557,21 @@ static inline int mbedtls_ssl_hs_get_extended_ms(
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENFORCED */
 }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
+
+#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+static inline mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_handshake_get_ciphersuite(
+    mbedtls_ssl_handshake_params const *handshake )
+{
+    return( handshake->ciphersuite_info );
+}
+#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+static inline mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_handshake_get_ciphersuite(
+    mbedtls_ssl_handshake_params const *handshake )
+{
+    ((void) handshake);
+    return( MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE );
+}
+#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
 
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 

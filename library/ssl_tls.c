@@ -1340,8 +1340,8 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
     int ret;
-    mbedtls_ssl_ciphersuite_handle_t  const ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t const ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
 
@@ -6072,7 +6072,8 @@ static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
 /* No certificate support -> dummy functions */
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info = ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
@@ -6089,7 +6090,8 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info = ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
@@ -6112,7 +6114,8 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
     const mbedtls_x509_crt *crt;
-    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info = ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
@@ -6477,7 +6480,7 @@ static int ssl_parse_certificate_coordinate( mbedtls_ssl_context *ssl,
                                              int authmode )
 {
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     if( !mbedtls_ssl_ciphersuite_uses_srv_cert( ciphersuite_info ) )
         return( SSL_CERTIFICATE_SKIP );
@@ -6512,6 +6515,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
 {
     int verify_ret;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     mbedtls_x509_crt *ca_chain;
     mbedtls_x509_crl *ca_crl;
 

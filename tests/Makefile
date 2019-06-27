@@ -112,12 +112,9 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 .SILENT:
 
-.PHONY: all check test clean fuzz
+.PHONY: all check test clean
 
-all: $(BINARIES) fuzz
-
-fuzz:
-	$(MAKE) -C fuzz
+all: $(BINARIES)
 
 $(DEP):
 	$(MAKE) -C ../library
@@ -164,7 +161,6 @@ ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
 endif
 endif
-	$(MAKE) -C fuzz clean
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES)

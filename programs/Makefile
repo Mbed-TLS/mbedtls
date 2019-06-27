@@ -90,9 +90,12 @@ endif
 
 .SILENT:
 
-.PHONY: all clean list
+.PHONY: all clean list fuzz
 
-all: $(APPS)
+all: $(APPS) fuzz
+
+fuzz:
+	$(MAKE) -C fuzz
 
 $(DEP):
 	$(MAKE) -C ../library
@@ -305,6 +308,7 @@ ifndef WINDOWS
 else
 	del /S /Q /F *.o *.exe
 endif
+	$(MAKE) -C fuzz clean
 
 list:
 	echo $(APPS)

@@ -54,7 +54,7 @@
  */
 static const int ciphersuite_preference[] =
 {
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 #if defined(MBEDTLS_SSL_CIPHERSUITES)
     MBEDTLS_SSL_CIPHERSUITES,
 #else
@@ -312,13 +312,13 @@ static const int ciphersuite_preference[] =
     MBEDTLS_TLS_PSK_WITH_NULL_SHA,
 
 #endif /* MBEDTLS_SSL_CIPHERSUITES */
-#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
-    MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE ),
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+    MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ),
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
     0
 };
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
 {
 #if defined(MBEDTLS_CHACHAPOLY_C) && \
@@ -2171,9 +2171,9 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_CIPHER_NONE, MBEDTLS_MD_NONE, MBEDTLS_KEY_EXCHANGE_NONE,
       0, 0, 0, 0, 0 }
 };
-#endif /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
-#if defined(MBEDTLS_SSL_CIPHERSUITES) || defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if defined(MBEDTLS_SSL_CIPHERSUITES) || defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 const int *mbedtls_ssl_list_ciphersuites( void )
 {
     return( ciphersuite_preference );
@@ -2232,9 +2232,9 @@ const int *mbedtls_ssl_list_ciphersuites( void )
 
     return( supported_ciphersuites );
 }
-#endif /* !( MBEDTLS_SSL_CIPHERSUITES || MBEDTLS_SSL_SINGLE_CIPHERSUITE ) */
+#endif /* !( MBEDTLS_SSL_CIPHERSUITES || MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) */
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_string(
                                                 const char *ciphersuite_name )
 {
@@ -2293,13 +2293,13 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )
     return( cur->id );
 }
 
-#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_string(
                                                 const char *ciphersuite_name )
 {
     static const char * const single_suite_name =
-        MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_SINGLE_CIPHERSUITE );
+        MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
 
     if( strcmp( ciphersuite_name, single_suite_name ) == 0 )
         return( MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE );
@@ -2310,7 +2310,7 @@ mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_string(
 mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_id( int ciphersuite )
 {
     static const int single_suite_id =
-        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE );
+        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
 
     if( ciphersuite == single_suite_id )
         return( MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE );
@@ -2321,10 +2321,10 @@ mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_id( int ciphersuit
 const char *mbedtls_ssl_get_ciphersuite_name( const int ciphersuite_id )
 {
     static const int single_suite_id =
-        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE );
+        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
 
     if( ciphersuite_id == single_suite_id )
-        return( MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+        return( MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 
     return( NULL );
 }
@@ -2332,15 +2332,15 @@ const char *mbedtls_ssl_get_ciphersuite_name( const int ciphersuite_id )
 int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )
 {
     static const char * const single_suite_name =
-        MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_SINGLE_CIPHERSUITE );
+        MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
 
     if( strcmp( ciphersuite_name, single_suite_name ) == 0 )
-        return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+        return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 
     return( 0 );
 }
 
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_PK_C)
 mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( mbedtls_ssl_ciphersuite_handle_t info )

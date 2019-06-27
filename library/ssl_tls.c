@@ -8323,7 +8323,7 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
 }
 #endif /* MBEDTLS_SSL_CLI_C && !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites )
 {
@@ -8345,7 +8345,7 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
 
     conf->ciphersuite_list[minor] = ciphersuites;
 }
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
@@ -9591,11 +9591,11 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     ciphersuite = ( p[0] << 8 ) | p[1];
     p += 2;
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     session->ciphersuite = ciphersuite;
 #else
     if( ciphersuite !=
-        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) )
+        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) )
     {
         return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
     }
@@ -10822,13 +10822,13 @@ static int ssl_preset_default_hashes[] = {
 };
 #endif
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 static int ssl_preset_suiteb_ciphersuites[] = {
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
     0
 };
-#endif /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 static int ssl_preset_suiteb_hashes[] = {
@@ -10964,13 +10964,13 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
             conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
                                    ssl_preset_suiteb_ciphersuites;
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
             conf->cert_profile = &mbedtls_x509_crt_profile_suiteb;
@@ -11005,13 +11005,13 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
                 conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
 #endif
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
                                    mbedtls_ssl_list_ciphersuites();
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
             conf->cert_profile = &mbedtls_x509_crt_profile_default;

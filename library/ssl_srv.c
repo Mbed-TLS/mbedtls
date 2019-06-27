@@ -1037,7 +1037,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     size_t n;
     unsigned int ciph_len, sess_len, chal_len;
     unsigned char *buf, *p;
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
 #endif
 
@@ -1258,7 +1258,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 
             if( ssl_ciphersuite_is_match( ssl, cur_info, NULL ) )
             {
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
                 ciphersuite_info = cur_info;
 #endif
                 goto have_ciphersuite_v2;
@@ -1293,7 +1293,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 
 have_ciphersuite_v2:
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     ssl->session_negotiate->ciphersuite =
         mbedtls_ssl_suite_get_id( ciphersuite_info );
     ssl->handshake->ciphersuite_info = ciphersuite_info;
@@ -1346,7 +1346,7 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
 #endif
     int handshake_failure = 0;
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
 #endif
     int major, minor;
@@ -2182,9 +2182,9 @@ read_record_header:
             if( ssl_ciphersuite_is_match( ssl, cur_info,
                                           acceptable_ec_grp_ids) )
             {
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
                 ciphersuite_info = cur_info;
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
                 goto have_ciphersuite;
             }
 
@@ -2221,11 +2221,11 @@ read_record_header:
 
 have_ciphersuite:
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     ssl->session_negotiate->ciphersuite =
         mbedtls_ssl_suite_get_id( ciphersuite_info );
     ssl->handshake->ciphersuite_info = ciphersuite_info;
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
         mbedtls_ssl_get_ciphersuite_name(

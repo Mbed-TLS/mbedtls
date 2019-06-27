@@ -1816,7 +1816,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      * Initialize update checksum functions
      */
     server_suite_info = mbedtls_ssl_ciphersuite_from_id( i );
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     ssl->handshake->ciphersuite_info = server_suite_info;
 #endif
     if( server_suite_info == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
@@ -1874,9 +1874,9 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_HAVE_TIME)
         ssl->session_negotiate->start = mbedtls_time( NULL );
 #endif
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
         ssl->session_negotiate->ciphersuite = i;
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
         ssl->session_negotiate->compression = comp;
         ssl->session_negotiate->id_len = n;
         memcpy( ssl->session_negotiate->id, buf + 35, n );

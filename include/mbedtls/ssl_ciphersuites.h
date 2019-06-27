@@ -351,8 +351,8 @@ typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;
 /* Wrapper around MBEDTLS_SSL_SUITE_XXX_T() which makes sure that
  * the argument is macro-expanded before concatenated with the
  * field name. This allows to call these macros as
- *    MBEDTLS_SSL_SUITE_XXX( MBEDTLS_SSL_SINGLE_CIPHERSUITE ),
- * where MBEDTLS_SSL_SINGLE_CIPHERSUITE expands to MBEDTLS_SSL_SUITE_XXX. */
+ *    MBEDTLS_SSL_SUITE_XXX( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ),
+ * where MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE expands to MBEDTLS_SSL_SUITE_XXX. */
 #define MBEDTLS_SSL_SUITE_ID(            SUITE ) MBEDTLS_SSL_SUITE_ID_T(            SUITE )
 #define MBEDTLS_SSL_SUITE_NAME(          SUITE ) MBEDTLS_SSL_SUITE_NAME_T(          SUITE )
 #define MBEDTLS_SSL_SUITE_CIPHER(        SUITE ) MBEDTLS_SSL_SUITE_CIPHER_T(        SUITE )
@@ -364,7 +364,7 @@ typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;
 #define MBEDTLS_SSL_SUITE_MAX_MINOR_VER( SUITE ) MBEDTLS_SSL_SUITE_MAX_MINOR_VER_T( SUITE )
 #define MBEDTLS_SSL_SUITE_FLAGS(         SUITE ) MBEDTLS_SSL_SUITE_FLAGS_T(         SUITE )
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 /**
  * \brief   This structure is used for storing ciphersuite information
  */
@@ -404,13 +404,13 @@ typedef mbedtls_ssl_ciphersuite_t const * mbedtls_ssl_ciphersuite_handle_t;
       MBEDTLS_SSL_SUITE_MAX_MINOR_VER( SUITE ),   \
       MBEDTLS_SSL_SUITE_FLAGS( SUITE ) }
 
-#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 typedef unsigned char mbedtls_ssl_ciphersuite_handle_t;
 #define MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE      ( (mbedtls_ssl_ciphersuite_handle_t) 0 )
 #define MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE ( (mbedtls_ssl_ciphersuite_handle_t) 1 )
 
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 /*
  * Getter functions for the extraction of ciphersuite attributes
@@ -421,7 +421,7 @@ typedef unsigned char mbedtls_ssl_ciphersuite_handle_t;
  * is passed.
  */
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 /*
  * Implementation of getter functions when the ciphersuite handle
  * is a pointer to the ciphersuite information structure.
@@ -479,7 +479,7 @@ static inline unsigned char mbedtls_ssl_suite_get_flags(
 {
     return( info->flags );
 }
-#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 /*
  * Implementations of getter functions in the case of only
  * a single possible ciphersuite. In this case, the handle
@@ -493,63 +493,63 @@ static inline int mbedtls_ssl_suite_get_id(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
 static inline const char* mbedtls_ssl_suite_get_name(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
 static inline mbedtls_cipher_type_t mbedtls_ssl_suite_get_cipher(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_CIPHER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_CIPHER( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
 static inline mbedtls_md_type_t mbedtls_ssl_suite_get_mac(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_MAC( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_MAC( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
 static inline mbedtls_key_exchange_type_t mbedtls_ssl_suite_get_key_exchange(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_KEY_EXCHANGE( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_KEY_EXCHANGE( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
 static inline int mbedtls_ssl_suite_get_min_major_ver(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_MIN_MAJOR_VER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_MIN_MAJOR_VER( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
 static inline int mbedtls_ssl_suite_get_min_minor_ver(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_MIN_MINOR_VER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_MIN_MINOR_VER( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
 static inline int mbedtls_ssl_suite_get_max_major_ver(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_MAX_MAJOR_VER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_MAX_MAJOR_VER( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
 static inline int mbedtls_ssl_suite_get_max_minor_ver(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_MAX_MINOR_VER( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_MAX_MINOR_VER( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
 static inline unsigned char mbedtls_ssl_suite_get_flags(
     mbedtls_ssl_ciphersuite_handle_t const info )
 {
     ((void) info);
-    return( MBEDTLS_SSL_SUITE_FLAGS( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_FLAGS( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 static inline int mbedtls_ssl_ciphersuite_has_pfs(
     mbedtls_ssl_ciphersuite_handle_t info )
@@ -681,20 +681,20 @@ static inline int mbedtls_ssl_ciphersuite_uses_server_signature(
     }
 }
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 static inline int mbedtls_ssl_session_get_ciphersuite(
     mbedtls_ssl_session const * session )
 {
     return( session->ciphersuite );
 }
-#else /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 static inline int mbedtls_ssl_session_get_ciphersuite(
     mbedtls_ssl_session const * session )
 {
     ((void) session);
-    return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_SINGLE_CIPHERSUITE ) );
+    return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 }
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 const int *mbedtls_ssl_list_ciphersuites( void );
 

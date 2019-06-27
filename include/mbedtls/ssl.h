@@ -923,9 +923,9 @@ struct mbedtls_ssl_session
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t start;       /*!< starting time      */
 #endif
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     int ciphersuite;            /*!< chosen ciphersuite */
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
     int compression;            /*!< chosen compression */
     size_t id_len;              /*!< session id length  */
     unsigned char id[32];       /*!< session identifier */
@@ -974,9 +974,9 @@ struct mbedtls_ssl_config
      * Pointers
      */
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     const int *ciphersuite_list[4]; /*!< allowed ciphersuites per version   */
-#endif /* MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
     /** Callback for printing debug output                                  */
     void (*f_dbg)(void *, int, const char *, int, const char *);
@@ -2470,7 +2470,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
  */
 const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_context *ssl );
 
-#if !defined(MBEDTLS_SSL_SINGLE_CIPHERSUITE)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 /**
  * \brief               Set the list of allowed ciphersuites and the preference
  *                      order. First in the list has the highest preference.
@@ -2485,7 +2485,7 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
  *
  * \note                On constrained systems, support for a single ciphersuite
  *                      (in all versions) can be fixed at compile-time through
- *                      the configuration option MBEDTLS_SSL_SINGLE_CIPHERSUITE.
+ *                      the configuration option MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE.
  *
  * \param conf          SSL configuration
  * \param ciphersuites  0-terminated list of allowed ciphersuites
@@ -2514,12 +2514,12 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
  *
  * \note                On constrained systems, support for a single ciphersuite
  *                      (in all versions) can be fixed at compile-time through
- *                      the configuration option MBEDTLS_SSL_SINGLE_CIPHERSUITE.
+ *                      the configuration option MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE.
  */
 void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
                                        const int *ciphersuites,
                                        int major, int minor );
-#endif /* !MBEDTLS_SSL_SINGLE_CIPHERSUITE */
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1

@@ -25,7 +25,7 @@
 # configuration. The following files must be committed into git:
 #    * include/mbedtls/config.h
 #    * Makefile, library/Makefile, programs/Makefile, tests/Makefile,
-#      tests/fuzz/Makefile
+#      programs/fuzz/Makefile
 # After running this script, the CMake cache will be lost and CMake
 # will no longer be initialised.
 #
@@ -77,7 +77,7 @@
 # * Restore `include/mbedtks/config.h` from a backup made before running
 #   the component.
 # * Check out `Makefile`, `library/Makefile`, `programs/Makefile`,
-#   `tests/Makefile` and `tests/fuzz/Makefile` from git.
+#   `tests/Makefile` and `programs/fuzz/Makefile` from git.
 #   This cleans up after an in-tree use of CMake.
 #
 # Any command that is expected to fail must be protected so that the
@@ -235,8 +235,8 @@ cleanup()
               -iname CMakeCache.txt \) -exec rm {} \+
     # Recover files overwritten by in-tree CMake builds
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
-    git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile tests/fuzz/Makefile
-    git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile tests/fuzz/Makefile
+    git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile
+    git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile
     cd crypto
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile

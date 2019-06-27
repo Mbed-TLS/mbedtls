@@ -609,13 +609,13 @@ component_test_full_cmake_clang () {
     record_status tests/scripts/test_psa_constant_names.py
 }
 
-component_test_full_make_gcc () {
-    msg "build: make, full config, gcc" # ~ 50s
+component_test_full_make_gcc_o0 () {
+    msg "build: make, full config, gcc -O0" # ~ 50s
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    make
+    make CC=gcc CFLAGS='-O0'
 
-    msg "test: main suites (full config, gcc)" # ~ 5s
+    msg "test: main suites (full config, gcc -O0)" # ~ 5s
     make test
 }
 

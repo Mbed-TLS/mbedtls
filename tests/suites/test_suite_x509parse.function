@@ -810,6 +810,99 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
+void x509_nested_acquire( data_t * buf )
+{
+    /* This tests exercises the behavior of the library when
+     * facing nested calls to mbedtls_x509_crt_xxx_acquire().
+     * This is allowed if !MBEDTLS_X509_ALWAYS_FLUSH or
+     * MBEDTLS_THREADING_C, but forbidden otherwise. */
+
+    mbedtls_x509_crt crt;
+    mbedtls_x509_crt_init( &crt );
+    TEST_ASSERT( mbedtls_x509_crt_parse_der( &crt, buf->x, buf->len ) == 0 );
+
+    /* Nested aquire for CRT frames */
+    {
+        int ret;
+        mbedtls_x509_crt_frame const *frame1;
+        mbedtls_x509_crt_frame const *frame2;
+
+        /* Perform a (hopefully) innocent acquire-release pair first. */
+
+        TEST_ASSERT( mbedtls_x509_crt_frame_acquire( &crt, &frame1 ) == 0 );
+        TEST_ASSERT( mbedtls_x509_crt_frame_release( &crt ) == 0 );
+
+        /* Perform two nested acquire calls. */
+
+        TEST_ASSERT( mbedtls_x509_crt_frame_acquire( &crt, &frame1 ) == 0 );
+
+        ret = mbedtls_x509_crt_frame_acquire( &crt, &frame2 );
+#if defined(MBEDTLS_X509_ALWAYS_FLUSH) &&      \
+    !defined(MBEDTLS_THREADING_C)
+        TEST_ASSERT( ret == MBEDTLS_ERR_X509_FATAL_ERROR );
+#else
+        TEST_ASSERT( ret == 0 );
+        TEST_ASSERT( mbedtls_x509_crt_frame_release( &crt ) == 0 );
+#endif
+
+        TEST_ASSERT( mbedtls_x509_crt_frame_release( &crt ) == 0 );
+
+        ret = mbedtls_x509_crt_frame_release( &crt );
+
+        /* In contexts which use resource counting, we expect an
+         * error on an attempted release() without prior acquire(). */
+#if defined(MBEDTLS_X509_ALWAYS_FLUSH) &&      \
+    !defined(MBEDTLS_THREADING_C)
+        TEST_ASSERT( ret == 0 );
+#else
+        TEST_ASSERT( ret == MBEDTLS_ERR_X509_FATAL_ERROR );
+#endif
+    }
+
+    /* Nested aquire for PK contexts */
+    {
+        int ret;
+        mbedtls_pk_context *pk1;
+        mbedtls_pk_context *pk2;
+
+        /* Perform a (hopefully) innocent acquire-release pair first. */
+
+        TEST_ASSERT( mbedtls_x509_crt_pk_acquire( &crt, &pk1 ) == 0 );
+        TEST_ASSERT( mbedtls_x509_crt_pk_release( &crt ) == 0 );
+
+        /* Perform two nested acquire calls. */
+
+        TEST_ASSERT( mbedtls_x509_crt_pk_acquire( &crt, &pk1 ) == 0 );
+
+        ret = mbedtls_x509_crt_pk_acquire( &crt, &pk2 );
+#if defined(MBEDTLS_X509_ALWAYS_FLUSH) &&      \
+    !defined(MBEDTLS_THREADING_C)
+        TEST_ASSERT( ret == MBEDTLS_ERR_X509_FATAL_ERROR );
+#else
+        TEST_ASSERT( ret == 0 );
+        TEST_ASSERT( mbedtls_x509_crt_pk_release( &crt ) == 0 );
+#endif
+
+        TEST_ASSERT( mbedtls_x509_crt_pk_release( &crt ) == 0 );
+
+        ret = mbedtls_x509_crt_pk_release( &crt );
+
+        /* In contexts which use resource counting, we expect an
+         * error on an attempted release() without prior acquire(). */
+#if defined(MBEDTLS_X509_ALWAYS_FLUSH) &&      \
+    !defined(MBEDTLS_THREADING_C)
+        TEST_ASSERT( ret == 0 );
+#else
+        TEST_ASSERT( ret == MBEDTLS_ERR_X509_FATAL_ERROR );
+#endif
+    }
+
+exit:
+    mbedtls_x509_crt_free( &crt );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRL_PARSE_C */
 void x509parse_crl( data_t * buf, char * result_str, int result )
 {

@@ -82,8 +82,121 @@ install:
 - export GNUTLS_NEXT_CLI=/usr/local/gnutls-3.6.5/bin/gnutls-cli
 - export GNUTLS_NEXT_SERV=/usr/local/gnutls-3.6.5/bin/gnutls-serv
 
+# Very fragile list of all.sh components. May want to autogenerate this.
+matrix:
+  include:
+  - name: "check_recursion"
+    env: COMPONENT=check_recursion
+  - name: "check_generated_files"
+    env: COMPONENT=check_generated_files
+  - name: "check_doxy_blocks"
+    env: COMPONENT=check_doxy_blocks
+  - name: "check_files"
+    env: COMPONENT=check_files
+  - name: "check_names"
+    env: COMPONENT=check_names
+  - name: "check_doxygen_warnings"
+    env: COMPONENT=check_doxygen_warnings
+  - name: "test_default_out_of_box"
+    env: COMPONENT=test_default_out_of_box
+  - name: "test_default_cmake_gcc_asan"
+    env: COMPONENT=test_default_cmake_gcc_asan
+  - name: "test_ref_configs"
+    env: COMPONENT=test_ref_configs
+  - name: "test_sslv3"
+    env: COMPONENT=test_sslv3
+  - name: "test_no_renegotiation"
+    env: COMPONENT=test_no_renegotiation
+  - name: "test_no_pem_no_fs"
+    env: COMPONENT=test_no_pem_no_fs
+  - name: "test_rsa_no_crt"
+    env: COMPONENT=test_rsa_no_crt
+  - name: "test_small_ssl_out_content_len"
+    env: COMPONENT=test_small_ssl_out_content_len
+  - name: "test_small_ssl_in_content_len"
+    env: COMPONENT=test_small_ssl_in_content_len
+  - name: "test_small_ssl_dtls_max_buffering"
+    env: COMPONENT=test_small_ssl_dtls_max_buffering
+  - name: "test_small_mbedtls_ssl_dtls_max_buffering"
+    env: COMPONENT=test_small_mbedtls_ssl_dtls_max_buffering
+  - name: "test_full_cmake_clang"
+    env: COMPONENT=test_full_cmake_clang
+  - name: "build_deprecated"
+    env: COMPONENT=build_deprecated
+  - name: "test_depends_curves"
+    env: COMPONENT=test_depends_curves
+  - name: "test_depends_hashes"
+    env: COMPONENT=test_depends_hashes
+  - name: "test_depends_pkalgs"
+    env: COMPONENT=test_depends_pkalgs
+  - name: "build_key_exchanges"
+    env: COMPONENT=build_key_exchanges
+  - name: "build_default_make_gcc_and_cxx"
+    env: COMPONENT=build_default_make_gcc_and_cxx
+  - name: "test_no_use_psa_crypto_full_cmake_asan"
+    env: COMPONENT=test_no_use_psa_crypto_full_cmake_asan
+  - name: "test_check_params_functionality"
+    env: COMPONENT=test_check_params_functionality
+  - name: "test_check_params_without_platform"
+    env: COMPONENT=test_check_params_without_platform
+  - name: "test_check_params_silent"
+    env: COMPONENT=test_check_params_silent
+  - name: "test_no_platform"
+    env: COMPONENT=test_no_platform
+  - name: "build_no_std_function"
+    env: COMPONENT=build_no_std_function
+  - name: "build_no_ssl_srv"
+    env: COMPONENT=build_no_ssl_srv
+  - name: "build_no_ssl_cli"
+    env: COMPONENT=build_no_ssl_cli
+  - name: "build_no_sockets"
+    env: COMPONENT=build_no_sockets
+  - name: "test_no_max_fragment_length"
+    env: COMPONENT=test_no_max_fragment_length
+  - name: "test_asan_remove_peer_certificate"
+    env: COMPONENT=test_asan_remove_peer_certificate
+  - name: "test_no_max_fragment_length_small_ssl_out_content_len"
+    env: COMPONENT=test_no_max_fragment_length_small_ssl_out_content_len
+  - name: "test_when_no_ciphersuites_have_mac"
+    env: COMPONENT=test_when_no_ciphersuites_have_mac
+  - name: "test_null_entropy"
+    env: COMPONENT=test_null_entropy
+  - name: "test_platform_calloc_macro"
+    env: COMPONENT=test_platform_calloc_macro
+  - name: "test_make_shared"
+    env: COMPONENT=test_make_shared
+  - name: "test_m32_o0"
+    env: COMPONENT=test_m32_o0
+  - name: "test_m32_o1"
+    env: COMPONENT=test_m32_o1
+  - name: "test_mx32"
+    env: COMPONENT=test_mx32
+  - name: "build_arm_none_eabi_gcc"
+    env: COMPONENT=build_arm_none_eabi_gcc
+  - name: "build_arm_none_eabi_gcc_no_udbl_division"
+    env: COMPONENT=build_arm_none_eabi_gcc_no_udbl_division
+  - name: "build_arm_none_eabi_gcc_no_64bit_multiplication"
+    env: COMPONENT=build_arm_none_eabi_gcc_no_64bit_multiplication
+  - name: "build_armcc"
+    env: COMPONENT=build_armcc
+  - name: "test_allow_sha1"
+    env: COMPONENT=test_allow_sha1
+  - name: "build_mingw"
+    env: COMPONENT=build_mingw
+  - name: "test_memsan"
+    env: COMPONENT=test_memsan
+  - name: "test_valgrind"
+    env: COMPONENT=test_valgrind
+  - name: "test_cmake_out_of_source"
+    env: COMPONENT=test_cmake_out_of_source
+  - name: "test_zeroize"
+    env: COMPONENT=test_zeroize
+  - name: "check_python_files"
+    env: COMPONENT=check_python_files
+  - name: "check_generate_test_code"
+    env: COMPONENT=check_generate_test_code
 script:
-- tests/scripts/all.sh --release-test --no-armcc
+- tests/scripts/all.sh --release-test --no-armcc $COMPONENT
 after_failure:
 - tests/scripts/travis-log-failure.sh
 env:

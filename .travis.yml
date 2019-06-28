@@ -48,7 +48,7 @@ install:
 - export PKG_CONFIG_PATH=/usr/local/lib/libp11-kit-0.23.10/lib/pkgconfig:/usr/local/lib/libp11-kit-0.23.10/lib64/pkgconfig:$PKG_CONFIG_PATH
 - wget -q https://www.gnupg.org/ftp/gcrypt/gnutls/v3.4/gnutls-3.4.10.tar.xz
 - tar xf gnutls-3.4.10.tar.xz
-- pushd gnutls-3.4.10 && ./configure --prefix=/usr/local/gnutls-3.4.10 --exec_prefix=/usr/local/gnutls-3.4.10 --disable-shared make && sudo make install && popd
+- pushd gnutls-3.4.10 && ./configure --prefix=/usr/local/gnutls-3.4.10 --exec_prefix=/usr/local/gnutls-3.4.10 --disable-shared && make && sudo make install && popd
 - rm -rf gnutls-3.4.10*
 - export GNUTLS_CLI=/usr/local/gnutls-3.4.10/bin/gnutls-cli
 - export GNUTLS_SERV=/usr/local/gnutls-3.4.10/bin/gnutls-serv
@@ -56,7 +56,7 @@ install:
 # Install Gnu TLS 3.3.8 for legacy testing
 - wget -q https://ftp.gnu.org/gnu/nettle/nettle-2.7.1.tar.gz
 - tar xf nettle-2.7.1.tar.gz
-- pushd nettle-2.7.1 && ./configure --prefix=/usr/local/libnettle-2.7.1 --exec_prefix=/usr/local/libnettle-2.7.1  --disable-shared && make && sudo make install && popd
+- pushd nettle-2.7.1 && ./configure --prefix=/usr/local/libnettle-2.7.1 --exec_prefix=/usr/local/libnettle-2.7.1 --disable-shared && make && sudo make install && popd
 - rm -rf nettle-2.7.1*
 - export PKG_CONFIG_PATH=/usr/local/libnettle-2.7.1/lib/pkgconfig:/usr/local/libnettle-2.7.1/lib64/pkgconfig:/usr/local/lib/pkgconfig
 - wget -q https://www.gnupg.org/ftp/gcrypt/gnutls/v3.3/gnutls-3.3.8.tar.xz
@@ -68,7 +68,7 @@ install:
 # Install GNU TLS 3.6.5 for broader interoperability testing
 - wget -q https://ftp.gnu.org/gnu/nettle/nettle-3.4.1.tar.gz
 - tar xf nettle-3.4.1.tar.gz
-- pushd nettle-3.4.1 && ./configure --prefix=/usr/local/libnettle-3.4.1 --exec_prefix=/usr/local/libnettle-3.4.1  --disable-shared && make && sudo make install && popd
+- pushd nettle-3.4.1 && ./configure --prefix=/usr/local/libnettle-3.4.1 --exec_prefix=/usr/local/libnettle-3.4.1 --disable-shared && make && sudo make install && popd
 - rm -rf nettle-3.4.1*
 - wget -q https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.9.tar.gz
 - tar xf libtasn1-4.9.tar.gz

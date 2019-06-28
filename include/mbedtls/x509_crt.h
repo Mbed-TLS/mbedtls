@@ -1001,19 +1001,17 @@ static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
 
     if( crt->cache->frame_readers == 0 )
-#endif /* MBEDTLS_THREADING_C */
-    {
         ret = mbedtls_x509_crt_cache_provide_frame( crt );
-    }
 
-#if defined(MBEDTLS_THREADING_C)
     if( crt->cache->frame_readers == MBEDTLS_X509_CACHE_FRAME_READERS_MAX )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     crt->cache->frame_readers++;
 
+#if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif /* MBEDTLS_THREADING_C */
@@ -1034,12 +1032,14 @@ static inline int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
 
     if( crt->cache->frame_readers == 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     crt->cache->frame_readers--;
 
+#if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_unlock( &crt->cache->frame_mutex );
 #endif /* MBEDTLS_THREADING_C */
 
@@ -1089,19 +1089,17 @@ static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
 
     if( crt->cache->pk_readers == 0 )
-#endif /* MBEDTLS_THREADING_C */
-    {
         ret = mbedtls_x509_crt_cache_provide_pk( crt );
-    }
 
-#if defined(MBEDTLS_THREADING_C)
     if( crt->cache->pk_readers == MBEDTLS_X509_CACHE_PK_READERS_MAX )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     crt->cache->pk_readers++;
 
+#if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif /* MBEDTLS_THREADING_C */
@@ -1122,12 +1120,14 @@ static inline int mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
 
     if( crt->cache->pk_readers == 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     crt->cache->pk_readers--;
 
+#if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_unlock( &crt->cache->pk_mutex );
 #endif /* MBEDTLS_THREADING_C */
 

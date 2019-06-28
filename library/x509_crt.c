@@ -118,10 +118,9 @@ int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-
+#endif
     /* Can only free the PK context if nobody is using it. */
     if( crt->cache->pk_readers == 0 )
-#endif
     {
 #if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
         /* The cache holds a shallow copy of the PK context
@@ -146,10 +145,10 @@ int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt )
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif
 
     /* Can only free the frame if nobody is using it. */
     if( crt->cache->frame_readers == 0 )
-#endif
     {
         mbedtls_free( crt->cache->frame );
         crt->cache->frame = NULL;

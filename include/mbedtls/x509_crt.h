@@ -1048,7 +1048,7 @@ static inline int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
 #if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
     defined(MBEDTLS_THREADING_C)
     if( crt->cache->frame_readers == 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
     crt->cache->frame_readers--;
 #endif
@@ -1150,7 +1150,7 @@ static inline int mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
 #if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
     defined(MBEDTLS_THREADING_C)
     if( crt->cache->pk_readers == 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
     crt->cache->pk_readers--;
 #endif

@@ -29,7 +29,7 @@ install:
 # Install openssl 1.1.1a for ARIA cipher testing
 - wget -q https://www.openssl.org/source/openssl-1.1.1a.tar.gz
 - tar xf openssl-1.1.1a.tar.gz
-- pushd openssl-1.1.1a && - ./config --prefix=/usr/local/openssl-1.1.1a -Wl,--enable-new-dtags,-rpath,'$(LIBRPATH)' && make && sudo make install && popd
+- pushd openssl-1.1.1a && ./config --prefix=/usr/local/openssl-1.1.1a -Wl,--enable-new-dtags,-rpath,'$(LIBRPATH)' && make && sudo make install && popd
 - rm -rf openssl-1.1.1a*
 - export OPENSSL_NEXT=/usr/local/openssl-1.1.1a/bin/openssl
 - export PATH=/usr/local/openssl-1.1.1a/bin:$PATH

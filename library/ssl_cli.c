@@ -2422,9 +2422,8 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
                                            &peer_pk );
         if( ret != 0 )
         {
-            /* Should never happen */
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
+            return( ret );
         }
     }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
@@ -2566,9 +2565,8 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
                                        &peer_pk );
     if( ret != 0 )
     {
-        /* Should never happen */
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
+        return( ret );
     }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
@@ -2934,9 +2932,8 @@ start_processing:
                                            &peer_pk );
         if( ret != 0 )
         {
-            /* Should never happen */
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
+            return( ret );
         }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 

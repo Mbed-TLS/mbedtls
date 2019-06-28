@@ -7198,7 +7198,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         mbedtls_pk_context *pk;
         ret = mbedtls_x509_crt_pk_acquire( chain, &pk );
         if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
             return( ret );
+        }
 
         /* If certificate uses an EC key, make sure the curve is OK */
         if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) )

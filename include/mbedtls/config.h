@@ -3438,6 +3438,25 @@
 
 /* \} name SECTION: Customisation configuration options */
 
+/**
+ * \name SECTION: Compile-time SSL configuration
+ *
+ * This section allows to fix parts of the SSL configuration
+ * at compile-time. If a field is fixed at compile-time, the
+ * corresponding SSL configuration API `mbedtls_ssl_conf_xxx()`
+ * is removed.
+ *
+ * This can be used on constrained systems to reduce code-size.
+ * \{
+ */
+
+/* ExtendedMasterSecret extension
+ * The following two options must be set/unset simultaneously. */
+//#define MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET MBEDTLS_SSL_EXTENDED_MS_ENABLED
+//#define MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED
+
+/* \} SECTION: Compile-time SSL configuration */
+
 /* Target and application specific configurations
  *
  * Allow user to override any previous default.

@@ -321,6 +321,18 @@
 #define MBEDTLS_SSL_TRANSPORT_ELSE                  /* empty: no other branch */
 #endif /* TLS and/or DTLS */
 
+/* Check if the use of the ExtendedMasterSecret extension
+ * is enforced at compile-time. If so, we don't need to
+ * track its status in the handshake parameters. */
+#if defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)         && \
+    defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET) && \
+    MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET ==                  \
+      MBEDTLS_SSL_EXTENDED_MS_ENABLED                        && \
+    MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET ==          \
+      MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED
+#define MBEDTLS_SSL_EXTENDED_MS_ENFORCED
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -505,7 +517,8 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     int new_session_ticket;             /*!< use NewSessionTicket?    */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) &&      \
+    !defined(MBEDTLS_SSL_EXTENDED_MS_ENFORCED)
     int extended_ms;                    /*!< use Extended Master Secret? */
 #endif
 
@@ -522,6 +535,24 @@ struct mbedtls_ssl_handshake_params
     void *user_async_ctx;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 };
+
+/*
+ * Getter functions for fields in mbedtls_ssl_handshake_params which
+ * may be statically implied by the configuration and hence be omitted
+ * from the structure.
+ */
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+static inline int mbedtls_ssl_hs_get_extended_ms(
+    mbedtls_ssl_handshake_params const *params )
+{
+#if !defined(MBEDTLS_SSL_EXTENDED_MS_ENFORCED)
+    return( params->extended_ms );
+#else
+    ((void) params);
+    return( MBEDTLS_SSL_EXTENDED_MS_ENABLED );
+#endif /* MBEDTLS_SSL_EXTENDED_MS_ENFORCED */
+}
+#endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 
@@ -1047,5 +1078,35 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
                              mbedtls_ssl_transform *transform,
                              mbedtls_record *rec );
+
+
+/*
+ * Getter functions for fields in mbedtls_ssl_config which may
+ * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
+ */
+
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+static inline unsigned int mbedtls_ssl_conf_get_ems(
+    mbedtls_ssl_config const *conf )
+{
+#if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
+    return( conf->extended_ms );
+#else
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET );
+#endif /* MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET */
+}
+
+static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
+    mbedtls_ssl_config const *conf )
+{
+#if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
+    return( conf->enforce_extended_master_secret );
+#else
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET );
+#endif /* MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
+}
+#endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 #endif /* ssl_internal.h */

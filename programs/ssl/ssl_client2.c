@@ -245,7 +245,9 @@ int main( void )
 #define USAGE_FALLBACK ""
 #endif
 
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) &&       \
+    !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET) && \
+    !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
 #define USAGE_EMS \
     "    extended_ms=0/1     default: (library default: on)\n" \
     "    enforce_extended_master_secret=0/1 default: (library default: off)\n"
@@ -1706,7 +1708,9 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_truncated_hmac( &conf, opt.trunc_hmac );
 #endif
 
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) &&       \
+    !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET) && \
+    !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
     if( opt.extended_ms != DFL_EXTENDED_MS )
         mbedtls_ssl_conf_extended_master_secret( &conf, opt.extended_ms );
     if( opt.enforce_extended_master_secret != DFL_EXTENDED_MS_ENFORCE )

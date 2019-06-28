@@ -503,6 +503,49 @@ detect_dtls() {
     fi
 }
 
+# Strip off a particular parameter from the command line
+# and return its value.
+# Parameter 1: Command line parameter to strip off
+# ENV I/O: CMD command line to search and modify
+extract_cmdline_argument() {
+    __ARG=$(echo "$CMD" | sed -n "s/^.* $1=\([^ ]*\).*$/\1/p")
+    CMD=$(echo "$CMD" | sed "s/$1=\([^ ]*\)//")
+}
+
+# Check compatibility of the ssl_client2/ssl_server2 command-line
+# with a particular compile-time configurable option.
+# Parameter 1: Command-line argument (e.g. extended_ms)
+# Parameter 2: Corresponding compile-time configuration
+#              (e.g. MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
+# ENV I/O: CMD command line to search and modify
+#          SKIP_NEXT set to "YES" on a mismatch
+check_cmdline_param_compat() {
+    __VAL="$( get_config_value_or_default "$2" )"
+    if [ ! -z "$__VAL" ]; then
+        extract_cmdline_argument "$1"
+        if [ ! -z "$__ARG" ] && [ "$__ARG" != "$__VAL" ]; then
+            SKIP_NEXT="YES"
+        fi
+    fi
+}
+
+# Go through all options that can be hardcoded at compile-time and
+# detect whether the command line configures them in a conflicting
+# way. If so, skip the test. Otherwise, remove the corresponding
+# entry.
+# Parameter 1: Command line to inspect
+# Output: Modified command line
+# ENV I/O: SKIP_TEST set to 1 on mismatch.
+check_cmdline_compat() {
+    CMD="$1"
+
+    # ExtendedMasterSecret configuration
+    check_cmdline_param_compat "extended_ms" \
+                               "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET"
+    check_cmdline_param_compat "enforce_extended_master_secret" \
+                               "MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET"
+}
+
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -531,14 +574,6 @@ run_test() {
         SKIP_NEXT="YES"
     fi
 
-    # should we skip?
-    if [ "X$SKIP_NEXT" = "XYES" ]; then
-        SKIP_NEXT="NO"
-        echo "SKIP"
-        SKIPS=$(( $SKIPS + 1 ))
-        return
-    fi
-
     # does this test use a proxy?
     if [ "X$1" = "X-p" ]; then
         PXY_CMD="$2"
@@ -552,6 +587,12 @@ run_test() {
     CLI_CMD="$2"
     CLI_EXPECT="$3"
     shift 3
+
+    check_cmdline_compat "$SRV_CMD"
+    SRV_CMD="$CMD"
+
+    check_cmdline_compat "$CLI_CMD"
+    CLI_CMD="$CMD"
 
     # Check if test uses files
     TEST_USES_FILES=$(echo "$SRV_CMD $CLI_CMD" | grep "\.\(key\|crt\|pem\)" )
@@ -1836,8 +1877,8 @@ run_test    "Encrypt then MAC: client enabled, server SSLv3" \
 # Tests for Extended Master Secret extension
 
 run_test    "Extended Master Secret: default (not enforcing)" \
-            "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3" \
+            "$P_SRV debug_level=3 extended_ms=1 enforce_extended_master_secret=0 " \
+            "$P_CLI debug_level=3 extended_ms=1 enforce_extended_master_secret=0" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -s "found extended master secret extension" \
@@ -1847,8 +1888,8 @@ run_test    "Extended Master Secret: default (not enforcing)" \
             -s "session hash for extended master secret"
 
 run_test    "Extended Master Secret: both enabled, both enforcing" \
-            "$P_SRV debug_level=3 enforce_extended_master_secret=1" \
-            "$P_CLI debug_level=3 enforce_extended_master_secret=1" \
+            "$P_SRV debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
+            "$P_CLI debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -s "found extended master secret extension" \
@@ -1858,8 +1899,8 @@ run_test    "Extended Master Secret: both enabled, both enforcing" \
             -s "session hash for extended master secret"
 
 run_test    "Extended Master Secret: both enabled, client enforcing" \
-            "$P_SRV debug_level=3 enforce_extended_master_secret=0" \
-            "$P_CLI debug_level=3 enforce_extended_master_secret=1" \
+            "$P_SRV debug_level=3 extended_ms=1 enforce_extended_master_secret=0" \
+            "$P_CLI debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -s "found extended master secret extension" \
@@ -1869,8 +1910,8 @@ run_test    "Extended Master Secret: both enabled, client enforcing" \
             -s "session hash for extended master secret"
 
 run_test    "Extended Master Secret: both enabled, server enforcing" \
-            "$P_SRV debug_level=3 enforce_extended_master_secret=1" \
-            "$P_CLI debug_level=3 enforce_extended_master_secret=0" \
+            "$P_SRV debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
+            "$P_CLI debug_level=3 extended_ms=1 enforce_extended_master_secret=0" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -s "found extended master secret extension" \
@@ -1880,7 +1921,7 @@ run_test    "Extended Master Secret: both enabled, server enforcing" \
             -s "session hash for extended master secret"
 
 run_test    "Extended Master Secret: client enabled, server disabled, client enforcing" \
-            "$P_SRV debug_level=3 extended_ms=0" \
+            "$P_SRV debug_level=3 extended_ms=0 enforce_extended_master_secret=0" \
             "$P_CLI debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
             1 \
             -c "client hello, adding extended_master_secret extension" \
@@ -1891,7 +1932,7 @@ run_test    "Extended Master Secret: client enabled, server disabled, client enf
 
 run_test    "Extended Master Secret enforced: client disabled, server enabled, server enforcing" \
             "$P_SRV debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
-            "$P_CLI debug_level=3 extended_ms=0" \
+            "$P_CLI debug_level=3 extended_ms=0 enforce_extended_master_secret=0" \
             1 \
             -C "client hello, adding extended_master_secret extension" \
             -S "found extended master secret extension" \
@@ -1900,8 +1941,8 @@ run_test    "Extended Master Secret enforced: client disabled, server enabled, s
             -s "Peer not offering extended master secret, while it is enforced"
 
 run_test    "Extended Master Secret: client enabled, server disabled, not enforcing" \
-            "$P_SRV debug_level=3 extended_ms=0" \
-            "$P_CLI debug_level=3 extended_ms=1" \
+            "$P_SRV debug_level=3 extended_ms=0 enforce_extended_master_secret=0" \
+            "$P_CLI debug_level=3 extended_ms=1 enforce_extended_master_secret=0" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -s "found extended master secret extension" \
@@ -1911,8 +1952,8 @@ run_test    "Extended Master Secret: client enabled, server disabled, not enforc
             -S "session hash for extended master secret"
 
 run_test    "Extended Master Secret: client disabled, server enabled, not enforcing" \
-            "$P_SRV debug_level=3 extended_ms=1" \
-            "$P_CLI debug_level=3 extended_ms=0" \
+            "$P_SRV debug_level=3 extended_ms=1 enforce_extended_master_secret=0" \
+            "$P_CLI debug_level=3 extended_ms=0 enforce_extended_master_secret=0" \
             0 \
             -C "client hello, adding extended_master_secret extension" \
             -S "found extended master secret extension" \
@@ -1922,8 +1963,8 @@ run_test    "Extended Master Secret: client disabled, server enabled, not enforc
             -S "session hash for extended master secret"
 
 run_test    "Extended Master Secret: client disabled, server disabled" \
-            "$P_SRV debug_level=3 extended_ms=0" \
-            "$P_CLI debug_level=3 extended_ms=0" \
+            "$P_SRV debug_level=3 extended_ms=0 enforce_extended_master_secret=0" \
+            "$P_CLI debug_level=3 extended_ms=0 enforce_extended_master_secret=0" \
             0 \
             -C "client hello, adding extended_master_secret extension" \
             -S "found extended master secret extension" \
@@ -1934,8 +1975,8 @@ run_test    "Extended Master Secret: client disabled, server disabled" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client SSLv3, server enabled" \
-            "$P_SRV debug_level=3 min_version=ssl3" \
-            "$P_CLI debug_level=3 force_version=ssl3" \
+            "$P_SRV debug_level=3 min_version=ssl3 extended_ms=1 enforce_extended_master_secret=0" \
+            "$P_CLI debug_level=3 force_version=ssl3 extended_ms=1  enforce_extended_master_secret=0" \
             0 \
             -C "client hello, adding extended_master_secret extension" \
             -S "found extended master secret extension" \
@@ -1946,8 +1987,8 @@ run_test    "Extended Master Secret: client SSLv3, server enabled" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client enabled, server SSLv3" \
-            "$P_SRV debug_level=3 force_version=ssl3" \
-            "$P_CLI debug_level=3 min_version=ssl3" \
+            "$P_SRV debug_level=3 force_version=ssl3 extended_ms=1 enforce_extended_master_secret=0" \
+            "$P_CLI debug_level=3 min_version=ssl3 extended_ms=1  enforce_extended_master_secret=0" \
             0 \
             -c "client hello, adding extended_master_secret extension" \
             -S "found extended master secret extension" \

@@ -567,12 +567,6 @@ static int ssl_parse_extended_ms_ext( mbedtls_ssl_context *ssl,
 
     ((void) buf);
 
-    if( ssl->conf->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED &&
-        ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 )
-    {
-        ssl->handshake->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
-    }
-
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
@@ -1266,6 +1260,9 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renegotiation_info_seen = 0;
 #endif
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    int extended_ms_seen = 0;
+#endif
     int handshake_failure = 0;
     const int *ciphersuites;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
@@ -1893,6 +1890,7 @@ read_record_header:
                 ret = ssl_parse_extended_ms_ext( ssl, ext + 4, ext_size );
                 if( ret != 0 )
                     return( ret );
+                extended_ms_seen = 1;
                 break;
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
@@ -2039,14 +2037,22 @@ read_record_header:
      * Check if extended master secret is being enforced
      */
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    if( ssl->conf->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED &&
-        ssl->conf->enforce_extended_master_secret ==
-        MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED &&
-        ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED )
+    if( mbedtls_ssl_conf_get_ems( ssl->conf ) ==
+          MBEDTLS_SSL_EXTENDED_MS_ENABLED )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Peer not offering extended master "
-                                    "secret, while it is enforced") );
-        handshake_failure = 1;
+        if( extended_ms_seen )
+        {
+#if !defined(MBEDTLS_SSL_EXTENDED_MS_ENFORCED)
+            ssl->handshake->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
+#endif /* !MBEDTLS_SSL_EXTENDED_MS_ENFORCED */
+        }
+        else if( mbedtls_ssl_conf_get_ems_enforced( ssl->conf ) ==
+                 MBEDTLS_SSL_EXTENDED_MS_ENFORCE_ENABLED )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Peer not offering extended master "
+                                        "secret, while it is enforced") );
+            handshake_failure = 1;
+        }
     }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
@@ -2266,7 +2272,8 @@ static void ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
 
-    if( ssl->handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
+    if( mbedtls_ssl_hs_get_extended_ms( ssl->handshake )
+          == MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
         ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         *olen = 0;

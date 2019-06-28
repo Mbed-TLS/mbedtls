@@ -1273,7 +1273,8 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
                                                   handshake->pmslen );
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    if( handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
+    if( mbedtls_ssl_hs_get_extended_ms( handshake )
+          == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
     {
         unsigned char session_hash[48];
         size_t hash_len;
@@ -8609,17 +8610,20 @@ void mbedtls_ssl_conf_encrypt_then_mac( mbedtls_ssl_config *conf, char etm )
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+#if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
 void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems )
 {
     conf->extended_ms = ems;
 }
-
+#endif /* !MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET */
+#if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
 void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,
                                                         char ems_enf )
 {
     conf->enforce_extended_master_secret = ems_enf;
 }
-#endif
+#endif /* !MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
+#endif /* !MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 #if defined(MBEDTLS_ARC4_C)
 void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 )
@@ -10716,9 +10720,13 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+#if !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
     conf->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
+#endif /* !MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET */
+#if !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
     conf->enforce_extended_master_secret =
         MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED;
+#endif /* !MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
 #endif
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)

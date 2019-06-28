@@ -37,9 +37,9 @@ struct mbedtls_x509_crt_frame;
 #define MBEDTLS_X509_CACHE_FRAME_READERS_MAX ((uint32_t) -1)
 typedef struct mbedtls_x509_crt_cache
 {
-#if defined(MBEDTLS_THREADING_C)
     uint32_t frame_readers;
     uint32_t pk_readers;
+#if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t frame_mutex;
     mbedtls_threading_mutex_t pk_mutex;
 #endif

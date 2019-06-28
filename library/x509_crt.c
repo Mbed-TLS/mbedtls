@@ -169,6 +169,7 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt )
 }
 
 static int x509_crt_frame_parse_ext( mbedtls_x509_crt_frame *frame );
+
 int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
 {
     mbedtls_x509_crt_cache *cache = crt->cache;

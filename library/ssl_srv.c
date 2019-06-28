@@ -815,7 +815,10 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
             int ret;
             ret = mbedtls_x509_crt_pk_acquire( cur->cert, &pk );
             if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
                 return( ret );
+            }
         }
 #else
         /* Outside of ASYNC_PRIVATE, use private key context directly
@@ -877,7 +880,10 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
                 mbedtls_x509_crt_frame const *frame;
                 ret = mbedtls_x509_crt_frame_acquire( cur->cert, &frame );
                 if( ret != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_frame_acquire", ret );
                     return( ret );
+                }
                 sig_md = frame->sig_md;
                 mbedtls_x509_crt_frame_release( cur->cert );
             }
@@ -2999,7 +3005,10 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
             mbedtls_x509_crt_frame const *frame;
             ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
             if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_frame_acquire", ret );
                 return( ret );
+            }
 
             dn_size = frame->subject_raw.len;
 
@@ -4247,9 +4256,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
                                            &peer_pk );
         if( ret != 0 )
         {
-            /* Should never happen */
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
+            return( ret );
         }
     }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */

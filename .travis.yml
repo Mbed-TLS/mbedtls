@@ -86,21 +86,7 @@ install:
 - export GNUTLS_NEXT_SERV=/usr/local/gnutls-3.6.5/bin/gnutls-serv
 
 script:
-- tests/scripts/recursion.pl library/*.c
-- tests/scripts/check-generated-files.sh
-- tests/scripts/check-doxy-blocks.pl
-- tests/scripts/check-names.sh
-- tests/scripts/check-files.py
-- tests/scripts/doxygen.sh
-- cmake -D CMAKE_BUILD_TYPE:String="Check" .
-- make
-- make test
-- programs/test/selftest
-- OSSL_NO_DTLS=1 tests/compat.sh
-- tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl'
-- tests/scripts/test-ref-configs.pl
-- tests/scripts/curves.pl
-- tests/scripts/key-exchanges.pl
+- tests/scripts/all.sh --release-test --no-armcc
 after_failure:
 - tests/scripts/travis-log-failure.sh
 env:

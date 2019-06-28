@@ -2,7 +2,6 @@ os: linux
 dist: xenial
 language: c
 compiler:
-- clang
 - gcc
 cache: ccache
 

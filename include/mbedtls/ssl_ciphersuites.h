@@ -34,6 +34,7 @@
 #include "cipher.h"
 #include "md.h"
 #include "ssl.h"
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -412,6 +413,21 @@ typedef unsigned char mbedtls_ssl_ciphersuite_handle_t;
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
+static inline int mbedtls_ssl_session_get_ciphersuite(
+    mbedtls_ssl_session const * session )
+{
+    return( session->ciphersuite );
+}
+#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+static inline int mbedtls_ssl_session_get_ciphersuite(
+    mbedtls_ssl_session const * session )
+{
+    ((void) session);
+    return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
+}
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+
 /*
  * Getter functions for the extraction of ciphersuite attributes
  * from a ciphersuite handle.
@@ -551,7 +567,22 @@ static inline unsigned char mbedtls_ssl_suite_get_flags(
 }
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
-static inline int mbedtls_ssl_ciphersuite_has_pfs(
+const int *mbedtls_ssl_list_ciphersuites( void );
+
+/*
+ * Various small helper functions for ciphersuites.
+ *
+ * Like the getter functions, they assume that the provided ciphersuite
+ * handle is valid, and hence can be optimized in case there's only one
+ * ciphersuite enabled.
+ *
+ * To avoid code-duplication between inline and non-inline implementations
+ * of this, we define internal static inline versions of all functions first,
+ * and define wrappers around these either here or in ssl_ciphersuites.c,
+ * depending on whether MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE is defined.
+ */
+
+static inline int mbedtls_ssl_ciphersuite_has_pfs_internal(
     mbedtls_ssl_ciphersuite_handle_t info )
 {
     switch( mbedtls_ssl_suite_get_key_exchange( info ) )
@@ -569,7 +600,7 @@ static inline int mbedtls_ssl_ciphersuite_has_pfs(
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_no_pfs(
+static inline int mbedtls_ssl_ciphersuite_no_pfs_internal(
     mbedtls_ssl_ciphersuite_handle_t info )
 {
     switch( mbedtls_ssl_suite_get_key_exchange( info ) )
@@ -586,7 +617,7 @@ static inline int mbedtls_ssl_ciphersuite_no_pfs(
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_ecdh(
+static inline int mbedtls_ssl_ciphersuite_uses_ecdh_internal(
     mbedtls_ssl_ciphersuite_handle_t info )
 {
     switch( mbedtls_ssl_suite_get_key_exchange( info ) )
@@ -600,7 +631,7 @@ static inline int mbedtls_ssl_ciphersuite_uses_ecdh(
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_cert_req_allowed(
+static inline int mbedtls_ssl_ciphersuite_cert_req_allowed_internal(
     mbedtls_ssl_ciphersuite_handle_t info )
 {
     switch( mbedtls_ssl_suite_get_key_exchange( info ) )
@@ -618,7 +649,7 @@ static inline int mbedtls_ssl_ciphersuite_cert_req_allowed(
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_srv_cert(
+static inline int mbedtls_ssl_ciphersuite_uses_srv_cert_internal(
     mbedtls_ssl_ciphersuite_handle_t info )
 {
     switch( mbedtls_ssl_suite_get_key_exchange( info ) )
@@ -637,7 +668,7 @@ static inline int mbedtls_ssl_ciphersuite_uses_srv_cert(
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_dhe(
+static inline int mbedtls_ssl_ciphersuite_uses_dhe_internal(
     mbedtls_ssl_ciphersuite_handle_t info )
 {
     switch( mbedtls_ssl_suite_get_key_exchange( info ) )
@@ -651,7 +682,7 @@ static inline int mbedtls_ssl_ciphersuite_uses_dhe(
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_ecdhe(
+static inline int mbedtls_ssl_ciphersuite_uses_ecdhe_internal(
     mbedtls_ssl_ciphersuite_handle_t info )
 {
     switch( mbedtls_ssl_suite_get_key_exchange( info ) )
@@ -666,7 +697,7 @@ static inline int mbedtls_ssl_ciphersuite_uses_ecdhe(
     }
 }
 
-static inline int mbedtls_ssl_ciphersuite_uses_server_signature(
+static inline int mbedtls_ssl_ciphersuite_uses_server_signature_internal(
     mbedtls_ssl_ciphersuite_handle_t info )
 {
     switch( mbedtls_ssl_suite_get_key_exchange( info ) )
@@ -681,33 +712,237 @@ static inline int mbedtls_ssl_ciphersuite_uses_server_signature(
     }
 }
 
+#if defined(MBEDTLS_PK_C)
+static inline mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg_internal(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
+    {
+        case MBEDTLS_KEY_EXCHANGE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
+            return( MBEDTLS_PK_RSA );
+
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
+            return( MBEDTLS_PK_ECDSA );
+
+        case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
+            return( MBEDTLS_PK_ECKEY );
+
+        default:
+            return( MBEDTLS_PK_NONE );
+    }
+}
+
+static inline mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg_internal(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
+    {
+        case MBEDTLS_KEY_EXCHANGE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
+            return( MBEDTLS_PK_RSA );
+
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
+            return( MBEDTLS_PK_ECDSA );
+
+        default:
+            return( MBEDTLS_PK_NONE );
+    }
+}
+
+#endif /* MBEDTLS_PK_C */
+
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+static inline int mbedtls_ssl_ciphersuite_uses_ec_internal(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
+    {
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
+        case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
+        case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
+        case MBEDTLS_KEY_EXCHANGE_ECJPAKE:
+            return( 1 );
+
+        default:
+            return( 0 );
+    }
+}
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+static inline int mbedtls_ssl_ciphersuite_uses_psk_internal(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
+    {
+        case MBEDTLS_KEY_EXCHANGE_PSK:
+        case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
+        case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
+        case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
+            return( 1 );
+
+        default:
+            return( 0 );
+    }
+}
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+/*
+ * Wrappers around internal helper functions to be used by the rest of
+ * the library, either defined static inline here or in ssl_ciphersuites.c.
+ */
+
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
-static inline int mbedtls_ssl_session_get_ciphersuite(
-    mbedtls_ssl_session const * session )
-{
-    return( session->ciphersuite );
-}
-#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
-static inline int mbedtls_ssl_session_get_ciphersuite(
-    mbedtls_ssl_session const * session )
-{
-    ((void) session);
-    return( MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
-}
-#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
-const int *mbedtls_ssl_list_ciphersuites( void );
+mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_string(
+    const char *ciphersuite_name );
+mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_id(
+    int ciphersuite_id );
 
-mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_string( const char *ciphersuite_name );
-mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_id( int ciphersuite_id );
+int mbedtls_ssl_ciphersuite_has_pfs( mbedtls_ssl_ciphersuite_handle_t info );
+int mbedtls_ssl_ciphersuite_no_pfs(  mbedtls_ssl_ciphersuite_handle_t info );
+int mbedtls_ssl_ciphersuite_uses_ecdh( mbedtls_ssl_ciphersuite_handle_t info );
+int mbedtls_ssl_ciphersuite_cert_req_allowed(
+    mbedtls_ssl_ciphersuite_handle_t info );
+int mbedtls_ssl_ciphersuite_uses_srv_cert(
+    mbedtls_ssl_ciphersuite_handle_t info );
+int mbedtls_ssl_ciphersuite_uses_dhe( mbedtls_ssl_ciphersuite_handle_t info );
+int mbedtls_ssl_ciphersuite_uses_ecdhe( mbedtls_ssl_ciphersuite_handle_t info );
+int mbedtls_ssl_ciphersuite_uses_server_signature(
+    mbedtls_ssl_ciphersuite_handle_t info );
 
 #if defined(MBEDTLS_PK_C)
-mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( mbedtls_ssl_ciphersuite_handle_t info );
-mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg( mbedtls_ssl_ciphersuite_handle_t info );
-#endif
+mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg(
+    mbedtls_ssl_ciphersuite_handle_t info );
+mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg(
+    mbedtls_ssl_ciphersuite_handle_t info );
+#endif /* MBEDTLS_PK_C */
 
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 int mbedtls_ssl_ciphersuite_uses_ec( mbedtls_ssl_ciphersuite_handle_t info );
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int mbedtls_ssl_ciphersuite_uses_psk( mbedtls_ssl_ciphersuite_handle_t info );
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+
+static inline int mbedtls_ssl_ciphersuite_has_pfs(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_has_pfs_internal( info ) );
+}
+
+static inline int mbedtls_ssl_ciphersuite_no_pfs(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_no_pfs_internal( info ) );
+}
+
+static inline int mbedtls_ssl_ciphersuite_uses_ecdh(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_ecdh_internal( info ) );
+}
+
+static inline int mbedtls_ssl_ciphersuite_cert_req_allowed(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_cert_req_allowed_internal( info ) );
+}
+
+static inline int mbedtls_ssl_ciphersuite_uses_srv_cert(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_srv_cert_internal( info ) );
+}
+
+static inline int mbedtls_ssl_ciphersuite_uses_dhe(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_dhe_internal( info ) );
+}
+
+static inline int mbedtls_ssl_ciphersuite_uses_ecdhe(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_ecdhe_internal( info ) );
+}
+
+static inline int mbedtls_ssl_ciphersuite_uses_server_signature(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_server_signature_internal( info ) );
+}
+
+#if defined(MBEDTLS_PK_C)
+static inline mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_get_ciphersuite_sig_pk_alg_internal( info ) );
+}
+
+static inline mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_get_ciphersuite_sig_alg_internal( info ) );
+}
+#endif /* MBEDTLS_PK_C */
+
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+static inline int mbedtls_ssl_ciphersuite_uses_ec(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_ec_internal( info ) );
+}
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+static inline int mbedtls_ssl_ciphersuite_uses_psk(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_psk_internal( info ) );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+static inline mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_id(
+    int ciphersuite )
+{
+    static const int single_suite_id =
+        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
+
+    if( ciphersuite == single_suite_id )
+        return( MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE );
+
+    return( MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE );
+}
+
+static inline mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_string(
+                                                const char *ciphersuite_name )
+{
+    static const char * const single_suite_name =
+        MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
+
+    if( strcmp( ciphersuite_name, single_suite_name ) == 0 )
+        return( MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE );
+
+    return( MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE );
+}
+
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #ifdef __cplusplus
 }

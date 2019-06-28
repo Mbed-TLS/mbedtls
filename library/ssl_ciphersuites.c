@@ -2293,32 +2293,90 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )
     return( cur->id );
 }
 
+int mbedtls_ssl_ciphersuite_has_pfs(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_has_pfs_internal( info ) );
+}
+
+int mbedtls_ssl_ciphersuite_no_pfs(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_no_pfs_internal( info ) );
+}
+
+int mbedtls_ssl_ciphersuite_uses_ecdh(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_ecdh_internal( info ) );
+}
+
+int mbedtls_ssl_ciphersuite_cert_req_allowed(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_cert_req_allowed_internal( info ) );
+}
+
+int mbedtls_ssl_ciphersuite_uses_srv_cert(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_srv_cert_internal( info ) );
+}
+
+int mbedtls_ssl_ciphersuite_uses_dhe(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_dhe_internal( info ) );
+}
+
+int mbedtls_ssl_ciphersuite_uses_ecdhe(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_ecdhe_internal( info ) );
+}
+
+int mbedtls_ssl_ciphersuite_uses_server_signature(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_server_signature_internal( info ) );
+}
+
+#if defined(MBEDTLS_PK_C)
+mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_get_ciphersuite_sig_pk_alg_internal( info ) );
+}
+
+mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_get_ciphersuite_sig_alg_internal( info ) );
+}
+#endif /* MBEDTLS_PK_C */
+
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+int mbedtls_ssl_ciphersuite_uses_ec(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_ec_internal( info ) );
+}
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+int mbedtls_ssl_ciphersuite_uses_psk(
+    mbedtls_ssl_ciphersuite_handle_t info )
+{
+    return( mbedtls_ssl_ciphersuite_uses_psk_internal( info ) );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
 #else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
-mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_string(
-                                                const char *ciphersuite_name )
-{
-    static const char * const single_suite_name =
-        MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
-
-    if( strcmp( ciphersuite_name, single_suite_name ) == 0 )
-        return( MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE );
-
-    return( MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE );
-}
-
-mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_ciphersuite_from_id( int ciphersuite )
-{
-    static const int single_suite_id =
-        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
-
-    if( ciphersuite == single_suite_id )
-        return( MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE );
-
-    return( MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE );
-}
-
-const char *mbedtls_ssl_get_ciphersuite_name( const int ciphersuite_id )
+const char *mbedtls_ssl_get_ciphersuite_name(
+    const int ciphersuite_id )
 {
     static const int single_suite_id =
         MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
@@ -2341,84 +2399,5 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )
 }
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
-
-#if defined(MBEDTLS_PK_C)
-mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( mbedtls_ssl_ciphersuite_handle_t info )
-{
-    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
-    {
-        case MBEDTLS_KEY_EXCHANGE_RSA:
-        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
-        case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
-        case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
-            return( MBEDTLS_PK_RSA );
-
-        case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-            return( MBEDTLS_PK_ECDSA );
-
-        case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
-        case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
-            return( MBEDTLS_PK_ECKEY );
-
-        default:
-            return( MBEDTLS_PK_NONE );
-    }
-}
-
-mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg( mbedtls_ssl_ciphersuite_handle_t info )
-{
-    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
-    {
-        case MBEDTLS_KEY_EXCHANGE_RSA:
-        case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
-        case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
-            return( MBEDTLS_PK_RSA );
-
-        case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-            return( MBEDTLS_PK_ECDSA );
-
-        default:
-            return( MBEDTLS_PK_NONE );
-    }
-}
-
-#endif /* MBEDTLS_PK_C */
-
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-int mbedtls_ssl_ciphersuite_uses_ec( mbedtls_ssl_ciphersuite_handle_t info )
-{
-    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
-    {
-        case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
-        case MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA:
-        case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
-        case MBEDTLS_KEY_EXCHANGE_ECDH_RSA:
-        case MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA:
-        case MBEDTLS_KEY_EXCHANGE_ECJPAKE:
-            return( 1 );
-
-        default:
-            return( 0 );
-    }
-}
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
-
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-int mbedtls_ssl_ciphersuite_uses_psk( mbedtls_ssl_ciphersuite_handle_t info )
-{
-    switch( mbedtls_ssl_suite_get_key_exchange( info ) )
-    {
-        case MBEDTLS_KEY_EXCHANGE_PSK:
-        case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
-        case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
-        case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
-            return( 1 );
-
-        default:
-            return( 0 );
-    }
-}
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #endif /* MBEDTLS_SSL_TLS_C */

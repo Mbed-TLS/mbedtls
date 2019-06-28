@@ -1,8 +1,9 @@
+os: linux
+dist: xenial
 language: c
 compiler:
 - clang
 - gcc
-sudo: false
 cache: ccache
 
 # blocklist
@@ -10,6 +11,79 @@ branches:
   except:
   - development-psa
   - coverity_scan
+
+install:
+# Install openssl 1.0.2g
+- wget -q https://www.openssl.org/source/old/1.0.2/openssl-1.0.2g.tar.gz
+- tar xf openssl-1.0.2g.tar.gz
+- pushd openssl-1.0.2g && ./config --openssldir=/usr/local/openssl-1.0.2g && make && sudo make install && popd
+- rm -rf openssl-1.0.2g*
+- export OPENSSL=/usr/local/openssl-1.0.2g/bin/openssl
+- export PATH=/usr/local/openssl-1.0.2g/bin:$PATH
+# Install openssl 1.0.1j for legacy testing
+- wget -q https://www.openssl.org/source/old/1.0.1/openssl-1.0.1j.tar.gz
+- tar xf openssl-1.0.1j.tar.gz
+- pushd openssl-1.0.1j && ./config --openssldir=/usr/local/openssl-1.0.1j && make && sudo make install && popd
+- rm -rf openssl-1.0.1j*
+- export OPENSSL_LEGACY=/usr/local/openssl-1.0.1j/bin/openssl
+- export PATH=/usr/local/openssl-1.0.1j/bin:$PATH
+# Install openssl 1.1.1a for ARIA cipher testing
+- wget -q https://www.openssl.org/source/openssl-1.1.1a.tar.gz
+- tar xf openssl-1.1.1a.tar.gz
+- pushd openssl-1.1.1a && - ./config --prefix=/usr/local/openssl-1.1.1a -Wl,--enable-new-dtags,-rpath,'$(LIBRPATH)' && make && sudo make install && popd
+- rm -rf openssl-1.1.1a*
+- export OPENSSL_NEXT=/usr/local/openssl-1.1.1a/bin/openssl
+- export PATH=/usr/local/openssl-1.1.1a/bin:$PATH
+# Install Gnu TLS 3.4.10
+- wget -q https://ftp.gnu.org/gnu/nettle/nettle-3.1.tar.gz
+- tar xf nettle-3.1.tar.gz
+- pushd nettle-3.1 && ./configure --prefix=/usr/local/libnettle-3.1 --exec_prefix=/usr/local/libnettle-3.1 --disable-shared && make && sudo make install && popd
+- rm -rf nettle-3.1*
+- export PKG_CONFIG_PATH=/usr/local/libnettle-3.1/lib/pkgconfig:/usr/local/libnettle-3.1/lib64/pkgconfig:/usr/local/lib/pkgconfig
+- wget -q https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.3.tar.gz
+- tar xf libtasn1-4.3.tar.gz
+- pushd libtasn1-4.3 && ./configure && make && sudo make install && popd
+- rm -rf libtasn1-4.3*
+- wget -q https://github.com/p11-glue/p11-kit/releases/download/0.23.10/p11-kit-0.23.10.tar.gz
+- tar xf p11-kit-0.23.10.tar.gz
+- pushd p11-kit-0.23.10 && ./configure --prefix=/usr/local/libp11-kit-0.23.10 && make && sudo make install && popd
+- rm -rf p11-kit-0.23.10*
+- export PKG_CONFIG_PATH=/usr/local/lib/libp11-kit-0.23.10/lib/pkgconfig:/usr/local/lib/libp11-kit-0.23.10/lib64/pkgconfig:$PKG_CONFIG_PATH
+- wget -q https://www.gnupg.org/ftp/gcrypt/gnutls/v3.4/gnutls-3.4.10.tar.xz
+- tar xf gnutls-3.4.10.tar.xz
+- pushd gnutls-3.4.10 && ./configure --prefix=/usr/local/gnutls-3.4.10 --exec_prefix=/usr/local/gnutls-3.4.10 --disable-shared make && sudo make install && popd
+- rm -rf gnutls-3.4.10*
+- export GNUTLS_CLI=/usr/local/gnutls-3.4.10/bin/gnutls-cli
+- export GNUTLS_SERV=/usr/local/gnutls-3.4.10/bin/gnutls-serv
+- export PATH=/usr/local/gnutls-3.4.10/bin:$PATH
+# Install Gnu TLS 3.3.8 for legacy testing
+- wget -q https://ftp.gnu.org/gnu/nettle/nettle-2.7.1.tar.gz
+- tar xf nettle-2.7.1.tar.gz
+- pushd nettle-2.7.1 && ./configure --prefix=/usr/local/libnettle-2.7.1 --exec_prefix=/usr/local/libnettle-2.7.1  --disable-shared && make && sudo make install && popd
+- rm -rf nettle-2.7.1*
+- export PKG_CONFIG_PATH=/usr/local/libnettle-2.7.1/lib/pkgconfig:/usr/local/libnettle-2.7.1/lib64/pkgconfig:/usr/local/lib/pkgconfig
+- wget -q https://www.gnupg.org/ftp/gcrypt/gnutls/v3.3/gnutls-3.3.8.tar.xz
+- tar xf gnutls-3.3.8.tar.xz
+- pushd gnutls-3.3.8 && ./configure --prefix=/usr/local/gnutls-3.3.8 --exec_prefix=/usr/local/gnutls-3.3.8 --disable-shared && make && sudo make install && popd
+- rm -rf gnutls-3.3.8*
+- export GNUTLS_LEGACY_CLI=/usr/local/gnutls-3.3.8/bin/gnutls-cli
+- export GNUTLS_LEGACY_SERV=/usr/local/gnutls-3.3.8/bin/gnutls-serv
+# Install GNU TLS 3.6.5 for broader interoperability testing
+- wget -q https://ftp.gnu.org/gnu/nettle/nettle-3.4.1.tar.gz
+- tar xf nettle-3.4.1.tar.gz
+- pushd nettle-3.4.1 && ./configure --prefix=/usr/local/libnettle-3.4.1 --exec_prefix=/usr/local/libnettle-3.4.1  --disable-shared && make && sudo make install && popd
+- rm -rf nettle-3.4.1*
+- wget -q https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.9.tar.gz
+- tar xf libtasn1-4.9.tar.gz
+- pushd libtasn1-4.9 && ./configure && make && sudo make install && popd
+- rm -rf libtasn1-4.9*
+- export PKG_CONFIG_PATH=/usr/local/libnettle-3.4.1/lib/pkgconfig:/usr/local/libnettle-3.4.1/lib64/pkgconfig:/usr/local/lib/pkgconfig
+- wget -q https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/gnutls-3.6.5.tar.xz
+- tar xf gnutls-3.6.5.tar.xz
+- pushd gnutls-3.6.5 && ./configure --prefix=/usr/local/gnutls-3.6.5 --exec_prefix=/usr/local/gnutls-3.6.5 --disable-shared && make && sudo make install && popd
+- rm -rf gnutls-3.6.5*
+- export GNUTLS_NEXT_CLI=/usr/local/gnutls-3.6.5/bin/gnutls-cli
+- export GNUTLS_NEXT_SERV=/usr/local/gnutls-3.6.5/bin/gnutls-serv
 
 script:
 - tests/scripts/recursion.pl library/*.c
@@ -37,8 +111,20 @@ env:
 addons:
   apt:
     packages:
+    - clang
     - doxygen
+    - gcc-mingw-w64-i686
+    - gcc-multilib
     - graphviz
+    - libgmp-dev
+    - libgmp10
+    - libp11-kit-dev
+    - libunistring-dev
+    - m4
+    - p11-kit
+    - pkg-config
+    - valgrind
+    - wget
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"

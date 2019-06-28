@@ -1024,6 +1024,9 @@ component_test_m32_o0 () {
     # Build once with -O0, to compile out the i386 specific inline assembly
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
     make CC=gcc PTHREAD=1 CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
     msg "test: i386, make, gcc -O0 (ASan build)"

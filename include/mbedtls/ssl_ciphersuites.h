@@ -497,13 +497,11 @@ static inline unsigned char mbedtls_ssl_suite_get_flags(
 }
 #else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 /*
- * Implementations of getter functions in the case of only
- * a single possible ciphersuite. In this case, the handle
- * is logically a boolean (either the invalid handle or the
- * unique valid handle representing the single enabled
- * ciphersuite), and the precondition that the handle is valid
- * means that we can statically return the hardcoded attribute
- * of the enabled ciphersuite.
+ * Implementations of getter functions in the case of only a single possible
+ * ciphersuite. In this case, the handle is logically a boolean (either the
+ * invalid handle or the unique valid handle representing the single enabled
+ * ciphersuite), and the precondition that the handle is valid means that we
+ * can statically return the hardcoded attribute of the enabled ciphersuite.
  */
 static inline int mbedtls_ssl_suite_get_id(
     mbedtls_ssl_ciphersuite_handle_t const info )

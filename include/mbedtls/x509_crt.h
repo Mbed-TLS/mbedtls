@@ -1074,8 +1074,8 @@ static inline int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
  *               in a thread-safe way. In particular, the caller must only
  *               use the context with functions which are `const` on the input
  *               context, or those which are known to be thread-safe. The latter
- *               for example includes mbedtls_pk_sign() and mbedtls_pk_verify()
- *               for ECC or RSA public key contexts.
+ *               for example includes mbedtls_pk_verify() for ECC or RSA public
+ *               key contexts.
  *
  * \return       \c 0 on success. In this case, `*pk_ptr` is updated
  *               to hold the address of a public key context for the given

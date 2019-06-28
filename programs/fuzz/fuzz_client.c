@@ -11,7 +11,7 @@
 
 #ifdef MBEDTLS_SSL_CLI_C
 static bool initialized = 0;
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
 static mbedtls_x509_crt cacert;
 #endif
 const char *alpn_list[3];
@@ -42,7 +42,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     uint16_t options;
 
     if (initialized == 0) {
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
         mbedtls_x509_crt_init( &cacert );
         if (mbedtls_x509_crt_parse( &cacert, (const unsigned char *) mbedtls_test_cas_pem,
                                    mbedtls_test_cas_pem_len ) != 0)
@@ -88,7 +88,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     }
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
     if (options & 4) {
         mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
         mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
@@ -129,7 +129,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     if( mbedtls_ssl_setup( &ssl, &conf ) != 0 )
         goto exit;
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
     if ((options & 1) == 0) {
         if( mbedtls_ssl_set_hostname( &ssl, "localhost" ) != 0 )
             goto exit;

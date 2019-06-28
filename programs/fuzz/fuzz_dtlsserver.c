@@ -16,7 +16,7 @@
 const char *pers = "fuzz_dtlsserver";
 const unsigned char client_ip[4] = {0x7F, 0, 0, 1};
 static bool initialized = 0;
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
 static mbedtls_x509_crt srvcert;
 static mbedtls_pk_context pkey;
 #endif
@@ -37,7 +37,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     fuzzBufferOffset_t biomemfuzz;
 
     if (initialized == 0) {
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
         mbedtls_x509_crt_init( &srvcert );
         mbedtls_pk_init( &pkey );
         if (mbedtls_x509_crt_parse( &srvcert, (const unsigned char *) mbedtls_test_srv_crt,
@@ -75,7 +75,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     srand(1);
     mbedtls_ssl_conf_rng( &conf, dummy_random, &ctr_drbg );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
     if( mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) != 0 )
         goto exit;

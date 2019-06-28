@@ -820,6 +820,11 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt );
  *               as \p crt is valid and mbedtls_x509_crt_frame_release() hasn't
  *               been issued.
  *
+ * \note         In a single-threaded application using
+ *               MBEDTLS_X509_ALWAYS_FLUSH, nested calls to this function
+ *               are not allowed and will fail gracefully with
+ *               MBEDTLS_ERR_X509_FATAL_ERROR.
+ *
  * \return       \c 0 on success. In this case, `*frame_ptr` is updated
  *               to hold the address of a frame for the given CRT.
  * \return       A negative error code on failure.
@@ -833,13 +838,19 @@ static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif /* MBEDTLS_THREADING_C */
 
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
     if( crt->cache->frame_readers == 0 )
+#endif
         ret = mbedtls_x509_crt_cache_provide_frame( crt );
 
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
     if( crt->cache->frame_readers == MBEDTLS_X509_CACHE_FRAME_READERS_MAX )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     crt->cache->frame_readers++;
+#endif
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
@@ -864,10 +875,13 @@ static inline int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif /* MBEDTLS_THREADING_C */
 
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
     if( crt->cache->frame_readers == 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     crt->cache->frame_readers--;
+#endif
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_unlock( &crt->cache->frame_mutex );
@@ -907,6 +921,11 @@ static inline int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
  *               for example includes mbedtls_pk_verify() for ECC or RSA public
  *               key contexts.
  *
+ * \note         In a single-threaded application using
+ *               MBEDTLS_X509_ALWAYS_FLUSH, nested calls to this function
+ *               are not allowed and will fail gracefully with
+ *               MBEDTLS_ERR_X509_FATAL_ERROR.
+ *
  * \return       \c 0 on success. In this case, `*pk_ptr` is updated
  *               to hold the address of a public key context for the given
  *               certificate.
@@ -921,13 +940,19 @@ static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif /* MBEDTLS_THREADING_C */
 
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
     if( crt->cache->pk_readers == 0 )
+#endif
         ret = mbedtls_x509_crt_cache_provide_pk( crt );
 
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
     if( crt->cache->pk_readers == MBEDTLS_X509_CACHE_PK_READERS_MAX )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     crt->cache->pk_readers++;
+#endif
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
@@ -952,10 +977,13 @@ static inline int mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif /* MBEDTLS_THREADING_C */
 
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
     if( crt->cache->pk_readers == 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 
     crt->cache->pk_readers--;
+#endif
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_unlock( &crt->cache->pk_mutex );

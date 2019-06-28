@@ -113,8 +113,17 @@ int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
     if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
-    /* Can only free the PK context if nobody is using it. */
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
+    /* Can only free the PK context if nobody is using it.
+     * If MBEDTLS_X509_ALWAYS_FLUSH is set, nested uses
+     * of xxx_acquire() are prohibited, and no reference
+     * counting is needed. Also, notice that the code-path
+     * below is safe if the cache isn't filled. */
     if( crt->cache->pk_readers == 0 )
+#endif /* !MBEDTLS_X509_ALWAYS_FLUSH ||
+          MBEDTLS_THREADING_C */
     {
 #if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
         /* The cache holds a shallow copy of the PK context
@@ -141,8 +150,16 @@ int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
-    /* Can only free the frame if nobody is using it. */
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
+    /* Can only free the PK context if nobody is using it.
+     * If MBEDTLS_X509_ALWAYS_FLUSH is set, nested uses
+     * of xxx_acquire() are prohibited, and no reference
+     * counting is needed. Also, notice that the code-path
+     * below is safe if the cache isn't filled. */
     if( crt->cache->frame_readers == 0 )
+#endif /* !MBEDTLS_X509_ALWAYS_FLUSH ||
+          MBEDTLS_THREADING_C */
     {
         mbedtls_free( crt->cache->frame );
         crt->cache->frame = NULL;
@@ -175,7 +192,15 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
     mbedtls_x509_crt_frame *frame;
 
     if( cache->frame != NULL )
+    {
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH)
         return( 0 );
+#else
+        /* If MBEDTLS_X509_ALWAYS_FLUSH is set, we don't
+         * allow nested uses of acquire. */
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+#endif
+    }
 
     frame = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_frame ) );
     if( frame == NULL )
@@ -227,7 +252,15 @@ int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
     mbedtls_pk_context *pk;
 
     if( cache->pk != NULL )
+    {
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH)
         return( 0 );
+#else
+        /* If MBEDTLS_X509_ALWAYS_FLUSH is set, we don't
+         * allow nested uses of acquire. */
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+#endif
+    }
 
     pk = mbedtls_calloc( 1, sizeof( mbedtls_pk_context ) );
     if( pk == NULL )

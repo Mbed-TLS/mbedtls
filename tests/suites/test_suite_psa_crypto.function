@@ -1803,10 +1803,12 @@ void derive_key_policy( int policy_usage,
 
     if( PSA_ALG_IS_TLS12_PRF( exercise_alg ) ||
             PSA_ALG_IS_TLS12_PSK_TO_MS( exercise_alg ) )
+    {
         PSA_ASSERT( psa_key_derivation_input_bytes(
                                             &operation,
                                             PSA_KEY_DERIVATION_INPUT_SEED,
                                             (const uint8_t*) "", 0) );
+    }
 
     status = psa_key_derivation_input_key( &operation,
                                            PSA_KEY_DERIVATION_INPUT_SECRET,

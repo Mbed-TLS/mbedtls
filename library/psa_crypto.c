@@ -5012,8 +5012,10 @@ static psa_status_t psa_tls12_prf_psk_to_ms_input(
     size_t data_length )
 {
     if( step == PSA_KEY_DERIVATION_INPUT_SECRET )
+    {
         return( psa_tls12_prf_psk_to_ms_set_key( prf, hash_alg,
                                                  data, data_length ) );
+    }
 
     return( psa_tls12_prf_input( prf, hash_alg, step, data, data_length ) );
 }

@@ -656,6 +656,10 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
  *                  ::mbedtls_x509_crt_frame on the stack and call this function
  *                  on it, in which case no allocation/freeing has to be done.
  *
+ * \note            You may also use mbedtls_x509_crt_frame_acquire() and
+ *                  mbedtls_x509_crt_frame_release() for copy-less variants
+ *                  of this function.
+ *
  * \return          \c 0 on success. In this case, \p dst is updated
  *                  to hold the frame for the given CRT.
  * \return          A negative error code on failure.
@@ -669,6 +673,10 @@ int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
  * \param crt       The certificate to use. This must be initialized and set up.
  * \param pk        The address of the destination PK context to fill.
  *                  This must be initialized via mbedtls_pk_init().
+ *
+ * \note            You may also use mbedtls_x509_crt_pk_acquire() and
+ *                  mbedtls_x509_crt_pk_release() for copy-less variants
+ *                  of this function.
  *
  * \return          \c 0 on success. In this case, the user takes ownership
  *                  of the destination PK context, and is responsible for

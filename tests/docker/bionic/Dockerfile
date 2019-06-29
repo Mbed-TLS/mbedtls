@@ -21,10 +21,11 @@
 # limitations under the License.
 #
 # This file is part of Mbed TLS (https://tls.mbed.org)
-
-FROM ubuntu:bionic
-
 ARG MAKEFLAGS_PARALLEL=""
+ARG MY_REGISTRY=
+
+FROM ${MY_REGISTRY}ubuntu:bionic
+
 
 ENV DEBIAN_FRONTEND noninteractive
 

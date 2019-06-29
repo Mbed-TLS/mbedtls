@@ -14,7 +14,10 @@
 # This script expects a Linux x86_64 system with a recent version of Docker
 # installed and available for use, as well as http/https access. If a proxy
 # server must be used, invoke this script with the usual environment variables
-# (http_proxy and https_proxy) set appropriately.
+# (http_proxy and https_proxy) set appropriately. If an alternate Docker
+# registry is needed, specify MBEDTLS_DOCKER_REGISTRY to point at the
+# host name.
+#
 #
 # Running this script directly will check for Docker availability and set up
 # the Docker image.
@@ -63,8 +66,10 @@ ${DOCKER} image build \
     -t ${DOCKER_IMAGE_TAG} \
     --cache-from=${DOCKER_IMAGE_TAG} \
     --build-arg MAKEFLAGS_PARALLEL="-j $(nproc)" \
+    --network host \
     ${http_proxy+--build-arg http_proxy=${http_proxy}} \
     ${https_proxy+--build-arg https_proxy=${https_proxy}} \
+    ${MBEDTLS_DOCKER_REGISTRY+--build-arg MY_REGISTRY="${MBEDTLS_DOCKER_REGISTRY}/"} \
     tests/docker/${MBEDTLS_DOCKER_GUEST}
 
 run_in_docker()

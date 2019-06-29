@@ -6038,7 +6038,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2:MBEDTLS_MPS_STATE_VALIDATION */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2:MBEDTLS_MPS_STATE_VALIDATION:MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING */
 void mbedtls_mps_l2_random( int allocator_buffer_sz,
                             int layer0_buffer_sz,
                             int num_epochs,

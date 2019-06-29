@@ -2552,7 +2552,7 @@ int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
     next_offset = ctx->epochs.next;
     if( next_offset == MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE )
     {
-        TRACE( trace_error, "The epoch window of size %u is full.",
+        TRACE( trace_error, "The epoch window (size %u) is full.",
                (unsigned) MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE );
         RETURN( MPS_ERR_EPOCH_WINDOW_EXCEEDED );
     }
@@ -2607,7 +2607,7 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         RETURN( ret );
 
-    TRACE( trace_comment, "* Old:   %u", (unsigned) epoch->usage );
+    TRACE( trace_comment, "* Old:   %04x", (unsigned) epoch->usage );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     /* In TLS, there's at most one epoch holding read permissions;
@@ -2616,7 +2616,14 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
     {
         uint8_t offset;
         for( offset = 0; offset < ctx->epochs.next; offset++ )
+        {
+            TRACE( trace_comment,
+                   "Modify epoch %u usage from %#x to %#x",
+                   (unsigned) offset + ctx->epochs.base,
+                   (unsigned) ctx->epochs.window[offset].usage,
+                   (unsigned) ctx->epochs.window[offset].usage & ~set );
             ctx->epochs.window[offset].usage &= ~set;
+        }
 
         if( ( clear & MPS_EPOCH_READ_MASK )  != 0 )
             ctx->epochs.default_in = MBEDTLS_MPS_EPOCH_NONE;
@@ -2632,7 +2639,7 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
 
     epoch->usage |= set;
     epoch->usage &= ~clear;
-    TRACE( trace_comment, "* New:   %u", (unsigned) epoch->usage );
+    TRACE( trace_comment, "* New:   %04x", (unsigned) epoch->usage );
 
     RETURN( l2_epoch_cleanup( ctx ) );
 }
@@ -2690,9 +2697,10 @@ int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     /* An epoch is in use if its flags are not empty. */
     for( offset = 0; offset < ctx->epochs.next; offset++ )
     {
-        TRACE( trace_comment, "Checking epoch %u at window offset %u",
+        TRACE( trace_comment, "Checking epoch %u at window offset %u, usage %x",
                (unsigned)( ctx->epochs.base + offset ),
-               (unsigned) offset );
+               (unsigned) offset,
+               (unsigned) ctx->epochs.window[offset].usage );
         if( ctx->epochs.window[offset].usage == 0 )
         {
             TRACE( trace_comment, "No longer needed" );

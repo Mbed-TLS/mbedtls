@@ -127,8 +127,6 @@ MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
  * and for outgoing flight retransmission.
  */
 
-/* The API between outgoing fragmentation and the rest of the MPS code. */
-
 /*! The type of an outgoing handshake message.
  *
  *  Possible values are:
@@ -161,6 +159,10 @@ typedef uint8_t mps_dtls_outgoing_hs_msg_mode;
 #define MPS_DTLS_FRAG_OUT_START_USE_L3     ( (mps_dtls_outgoing_hs_msg_mode) 0 )
 #define MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY ( (mps_dtls_outgoing_hs_msg_mode) 1 )
 #define MPS_DTLS_FRAG_OUT_START_FROM_QUEUE ( (mps_dtls_outgoing_hs_msg_mode) 2 )
+
+/*
+ * The API between outgoing fragmentation and the rest of the MPS code.
+*/
 
 /*! Start a new outgoing handshake message.
  *

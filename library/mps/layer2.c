@@ -1421,6 +1421,14 @@ int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx, uint8_t force )
     int ret;
     TRACE_INIT( "l2_out_release_and_dispatch, force %u", force );
 
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
+    {
+        TRACE( trace_error, "Unexpected writer state in l2_out_release_and_dispatch()" );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
+
     /* Attempt to detach the underlying record buffer from the writer.
      * This fails if `force` is unset and there is sufficient space
      * left in the buffer for more data to be added to the record. */
@@ -2586,6 +2594,21 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
     TRACE( trace_comment, "* Epoch: %d", epoch_id );
     TRACE( trace_comment, "* Clear: %u", (unsigned) clear );
     TRACE( trace_comment, "* Set:   %u", (unsigned) set );
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+    if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
+    {
+        TRACE( trace_error, "Unexpected operation" );
+        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+    }
+
+    if( mps_l2_readers_active_state( ctx )
+        == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
+    {
+        TRACE( trace_comment, "Unexpected operation" );
+        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+    }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
 #if defined(MBEDTLS_MPS_ASSERT)
     if( ( clear & set ) != 0 )

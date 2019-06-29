@@ -748,14 +748,14 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
 {
     int ret;
     mps_rec rec;
-    TRACE_INIT( "l2_out_dispatch_record" );
-    TRACE( trace_comment, "Plaintext length: %u",
-           (unsigned) ctx->io.out.payload.data_len );
-
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 #endif
+
+    TRACE_INIT( "l2_out_dispatch_record" );
+    TRACE( trace_comment, "Plaintext length: %u",
+           (unsigned) ctx->io.out.payload.data_len );
 
     if( ctx->io.out.payload.data_len == 0 )
     {

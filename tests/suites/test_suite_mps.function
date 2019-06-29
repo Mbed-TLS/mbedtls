@@ -6278,6 +6278,13 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                     TEST_ASSERT( epoch == latest_epoch[self] );
                 }
 
+                /* Clear read flag for old epoch. */
+                TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
+                                                 read_epoch[self],
+                                                 MPS_EPOCH_READ,
+                                                 0 ) == 0 );
+
+                /* Set usage for new epoch */
                 TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
                                                  epoch, 0,
                                                  MPS_EPOCH_READ ) == 0 );
@@ -6424,6 +6431,13 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                     TEST_ASSERT( epoch == latest_epoch[self] );
                 }
 
+                /* Clear write flag for old epoch. */
+                TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
+                                                 write_epoch[self],
+                                                 MPS_EPOCH_WRITE,
+                                                 0 ) == 0 );
+
+                /* Set write usage for new epoch */
                 TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
                                                  epoch, 0,
                                                  MPS_EPOCH_WRITE ) == 0 );

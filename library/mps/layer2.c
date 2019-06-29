@@ -853,11 +853,9 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         }
 #endif
 
-        if(
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-            MBEDTLS_MPS_IS_TLS( mode ) &&
+        if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-            ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET )
         {
             epoch->usage &= ~MPS_EPOCH_USAGE_INTERNAL_OUT_RECORD_OPEN;
         }

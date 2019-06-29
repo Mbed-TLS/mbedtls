@@ -732,7 +732,7 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
 }
 
 /* Please consult the documentation of mbedtls_mps_l2 for a basic description
- * of the state flow when preapring outgoing records.
+ * of the state flow when preparing outgoing records.
  *
  * This function assumes that the record header and record plaintext pointers
  * are valid ( := obtained from l2_out_prepare ) and some content has been

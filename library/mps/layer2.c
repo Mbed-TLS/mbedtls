@@ -2403,8 +2403,8 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
           minor_ver )
     {
         TRACE( trace_error, "Invalid minor record version %u received, expected %u",
-               (unsigned) minor_ver, mbedtls_
-               l2_conf_get_version( &ctx->conf ) );
+               (unsigned) minor_ver,
+               mbedtls_mps_l2_conf_get_version( &ctx->conf ) );
         RETURN( MPS_ERR_INVALID_RECORD );
     }
     rec->major_ver = major_ver;

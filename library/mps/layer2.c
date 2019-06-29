@@ -840,8 +840,13 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
             RETURN( ret );
 
 #if defined(MBEDTLS_MPS_ASSERT)
-        if( ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_UNSET &&
-            ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING )
+        if( !( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+               || ( MBEDTLS_MPS_IS_TLS( mode )
+                    && ctx->io.out.state ==
+                       MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING )
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+            ) )
         {
             TRACE( trace_error, "Unexpected writer state at the end of l2_out_dispatch_record()." );
             RETURN( MPS_ERR_INTERNAL_ERROR );

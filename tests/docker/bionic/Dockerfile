@@ -28,8 +28,8 @@ ARG MAKEFLAGS_PARALLEL=""
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt update \
-    && apt -y install software-properties-common \
+RUN apt-get update \
+    && apt-get -y install software-properties-common \
     && rm -rf /var/lib/apt/lists
 
 RUN add-apt-repository -y ppa:team-gcc-arm-embedded/ppa

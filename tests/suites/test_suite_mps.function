@@ -10286,7 +10286,8 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
                                           int rounds,
                                           int server_reset,
                                           int permute,
-                                          int use_mock_timer )
+                                          int use_mock_timer,
+                                          int multiple_epochs )
 {
     /* This test exercises client and server exchanging
      * flights of handshake messages, which may be subject
@@ -10310,6 +10311,11 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
      *              should be permuted on the underlying transport.
      * - `use_mock_timer`: Indicates whether a dummy timer should be
      *                     used in which time passes infinitely fast.
+     * -  multiple_epochs: Indicates whether epoch switching should
+     *                     happen during the handshake. Possible values are:
+     *                     - 0: No epoch switching
+     *                     - 1: Epoch switch at the end of a flight.
+     *                     - 2: Epoch switch in the middle of a flight.
      */
 
     /* Allocator objects */
@@ -10347,6 +10353,9 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
     mock_timer_ctx timer_srv;
 
     dummy_cb_ctx *cb_ctxs;
+
+    ((void) multiple_epochs);
+
     cb_ctxs = malloc( sizeof( *cb_ctxs ) * ( rounds * num_hs ) );
     TEST_ASSERT( cb_ctxs != NULL );
     for( round = 0; round < (unsigned) ( rounds * num_hs ); round++ )

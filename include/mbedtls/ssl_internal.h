@@ -1127,4 +1127,15 @@ static inline int mbedtls_ssl_handshake_get_resume(
 #endif
 }
 
+static inline int mbedtls_ssl_get_renego_status(
+        const mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    return( ssl->renego_status );
+#else
+    (void) ssl;
+    return( MBEDTLS_SSL_INITIAL_HANDSHAKE );
+#endif
+}
+
 #endif /* ssl_internal.h */

@@ -828,9 +828,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_NO_RNG );
     }
 
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
+    if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
         ssl->major_ver = ssl->conf->min_major_ver;
         ssl->minor_ver = ssl->conf->min_minor_ver;
@@ -885,9 +883,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     n = ssl->session_negotiate->id_len;
 
     if( n < 16 || n > 32 ||
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
-#endif
+        mbedtls_ssl_get_renego_status( ssl ) != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
         mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 )
     {
         n = 0;
@@ -898,20 +894,16 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
      * generate and include a Session ID in the TLS ClientHello."
      */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
+    if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
+        ssl->session_negotiate->ticket != NULL &&
+        ssl->session_negotiate->ticket_len != 0 )
     {
-        if( ssl->session_negotiate->ticket != NULL &&
-                ssl->session_negotiate->ticket_len != 0 )
-        {
-            ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->session_negotiate->id, 32 );
+        ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->session_negotiate->id, 32 );
 
-            if( ret != 0 )
-                return( ret );
+        if( ret != 0 )
+            return( ret );
 
-            ssl->session_negotiate->id_len = n = 32;
-        }
+        ssl->session_negotiate->id_len = n = 32;
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
@@ -985,9 +977,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     /*
      * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
      */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
+    if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding EMPTY_RENEGOTIATION_INFO_SCSV" ) );
         *p++ = (unsigned char)( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
@@ -1800,9 +1790,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     if( n == 0 ||
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
-#endif
+        mbedtls_ssl_get_renego_status( ssl ) != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
         ssl->session_negotiate->ciphersuite != i ||
         ssl->session_negotiate->compression != comp ||
         ssl->session_negotiate->id_len != n ||

@@ -1287,16 +1287,12 @@ read_record_header:
      * otherwise read it ourselves manually in order to support SSLv2
      * ClientHello, which doesn't use the same record layer format.
      */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
+    if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
+        ( ret = mbedtls_ssl_fetch_input( ssl, 5 ) ) != 0 )
     {
-        if( ( ret = mbedtls_ssl_fetch_input( ssl, 5 ) ) != 0 )
-        {
-            /* No alert on a read error. */
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
-            return( ret );
-        }
+        /* No alert on a read error. */
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
+        return( ret );
     }
 
     buf = ssl->in_hdr;
@@ -1351,11 +1347,8 @@ read_record_header:
     /* For DTLS if this is the initial handshake, remember the client sequence
      * number to use it in our next message (RFC 6347 4.2.1) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport )
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
-#endif
-        )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
+        mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
         /* Epoch should be 0 for initial handshakes */
         if( ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0 )
@@ -1616,11 +1609,8 @@ read_record_header:
                        buf + cookie_offset + 1, cookie_len );
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
-        if( ssl->conf->f_cookie_check != NULL
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-            && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
-#endif
-            )
+        if( ssl->conf->f_cookie_check != NULL &&
+            mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
         {
             if( ssl->conf->f_cookie_check( ssl->conf->p_cookie,
                                      buf + cookie_offset + 1, cookie_len,
@@ -2644,9 +2634,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
      * If not, try looking up session ID in our cache.
      */
     if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 &&
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
-#endif
+        mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
         ssl->session_negotiate->id_len != 0 &&
         ssl->conf->f_get_cache != NULL &&
         ssl->conf->f_get_cache( ssl->conf->p_cache, ssl->session_negotiate ) == 0 )

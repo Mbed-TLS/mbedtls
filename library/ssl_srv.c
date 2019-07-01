@@ -918,23 +918,14 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
  * Check if a given ciphersuite is suitable for use with our config/keys/etc
  * Sets ciphersuite_info only if the suite matches.
  */
-static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
-                           mbedtls_ssl_ciphersuite_handle_t *ciphersuite_info,
-                           mbedtls_ecp_group_id const *acceptable_ec_grp_ids )
+static int ssl_ciphersuite_is_match( mbedtls_ssl_context *ssl,
+                            mbedtls_ssl_ciphersuite_handle_t suite_info,
+                            mbedtls_ecp_group_id const *acceptable_ec_grp_ids )
 {
-    mbedtls_ssl_ciphersuite_handle_t suite_info;
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     mbedtls_pk_type_t sig_type;
 #endif
-
-    suite_info = mbedtls_ssl_ciphersuite_from_id( suite_id );
-    if( suite_info == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "trying ciphersuite: %s",
                                 mbedtls_ssl_suite_get_name( suite_info ) ) );
@@ -1035,8 +1026,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     ((void) acceptable_ec_grp_ids);
 #endif
 
-    *ciphersuite_info = suite_info;
-    return( 0 );
+    return( 1 );
 }
 
 #if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
@@ -1047,7 +1037,6 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     size_t n;
     unsigned int ciph_len, sess_len, chal_len;
     unsigned char *buf, *p;
-    const int *ciphersuites;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello v2" ) );
@@ -1238,33 +1227,53 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_FALLBACK_SCSV */
 
     got_common_suite = 0;
-    ciphersuites = ssl->conf->ciphersuite_list[ssl->minor_ver];
-    ciphersuite_info = MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE;
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
-        for( i = 0; ciphersuites[i] != 0; i++ )
-#else
-    for( i = 0; ciphersuites[i] != 0; i++ )
-        for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
-#endif
+    {
+        MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                    \
+                                                ssl->minor_ver,         \
+                                                cur_info )
         {
+#else
+    MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                \
+                                            ssl->minor_ver,     \
+                                            cur_info )
+    {
+        for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
+        {
+#endif
+            const int ciphersuite_id =
+                mbedtls_ssl_suite_get_id( cur_info );
+
             if( p[0] != 0 ||
-                p[1] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
-                p[2] != ( ( ciphersuites[i]      ) & 0xFF ) )
-                continue;
+                p[1] != ( ( ciphersuite_id >> 8 ) & 0xFF ) ||
+                p[2] != ( ( ciphersuite_id      ) & 0xFF ) )
+            {
+                goto next_suite;
+            }
 
             got_common_suite = 1;
 
-            if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
-                                               &ciphersuite_info,
-                                               NULL ) ) )
+            if( ssl_ciphersuite_is_match( ssl, cur_info, NULL ) )
             {
-                return( ret );
+                ciphersuite_info = cur_info;
+                goto have_ciphersuite_v2;
             }
 
-            if( ciphersuite_info != MBEDTLS_SSL_CIPHERSUITE_INVALD_HANDLE )
-                goto have_ciphersuite_v2;
+        next_suite:
+            /* Need something here to avoid
+             * 'label at end of compound statement' error. */
+            ((void) 0);
+
+#if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
         }
+        MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE
+    }
+#else
+        }
+    }
+    MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE
+#endif
 
     if( got_common_suite )
     {
@@ -1279,11 +1288,14 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     }
 
 have_ciphersuite_v2:
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
-                                mbedtls_ssl_suite_get_name( ciphersuite_info ) ) );
 
-    ssl->session_negotiate->ciphersuite = ciphersuites[i];
+    ssl->session_negotiate->ciphersuite =
+        mbedtls_ssl_suite_get_id( ciphersuite_info );
     ssl->handshake->ciphersuite_info = ciphersuite_info;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
+        mbedtls_ssl_get_ciphersuite_name(
+            mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ) ) ) );
 
     /*
      * SSLv2 Client Hello relevant renegotiation security checks
@@ -1327,7 +1339,6 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
     int extended_ms_seen = 0;
 #endif
     int handshake_failure = 0;
-    const int *ciphersuites;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
     int major, minor;
 
@@ -2133,32 +2144,53 @@ read_record_header:
      * and certificate from the SNI callback triggered by the SNI extension.)
      */
     got_common_suite = 0;
-    ciphersuites = ssl->conf->ciphersuite_list[ssl->minor_ver];
-    ciphersuite_info = MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE;
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
-        for( i = 0; ciphersuites[i] != 0; i++ )
-#else
-    for( i = 0; ciphersuites[i] != 0; i++ )
-        for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
-#endif
+    {
+        MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                    \
+                                                ssl->minor_ver,         \
+                                                cur_info )
         {
-            if( p[0] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
-                p[1] != ( ( ciphersuites[i]      ) & 0xFF ) )
-                continue;
+#else
+    MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                \
+                                            ssl->minor_ver,     \
+                                            cur_info )
+    {
+        for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
+        {
+#endif
+            const int ciphersuite_id =
+                mbedtls_ssl_suite_get_id( cur_info );
+
+            if( p[0] != ( ( ciphersuite_id >> 8 ) & 0xFF ) ||
+                p[1] != ( ( ciphersuite_id      ) & 0xFF ) )
+            {
+                goto next_suite;
+            }
 
             got_common_suite = 1;
 
-            if( ( ret = ssl_ciphersuite_match( ssl, ciphersuites[i],
-                                               &ciphersuite_info,
-                                               acceptable_ec_grp_ids ) ) != 0 )
+            if( ssl_ciphersuite_is_match( ssl, cur_info,
+                                          acceptable_ec_grp_ids) )
             {
-                return( ret );
+                ciphersuite_info = cur_info;
+                goto have_ciphersuite;
             }
 
-            if( ciphersuite_info != MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
-                goto have_ciphersuite;
+        next_suite:
+            /* Need something here to avoid
+             * 'label at end of compound statement' error. */
+            ((void) 0);
+
+#if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
         }
+        MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE
+    }
+#else
+        }
+    }
+    MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE
+#endif
 
     if( got_common_suite )
     {
@@ -2177,11 +2209,14 @@ read_record_header:
     }
 
 have_ciphersuite:
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
-                                mbedtls_ssl_suite_get_name( ciphersuite_info ) ) );
 
-    ssl->session_negotiate->ciphersuite = ciphersuites[i];
+    ssl->session_negotiate->ciphersuite =
+        mbedtls_ssl_suite_get_id( ciphersuite_info );
     ssl->handshake->ciphersuite_info = ciphersuite_info;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
+        mbedtls_ssl_get_ciphersuite_name(
+            mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ) ) ) );
 
     ssl->state++;
 
@@ -2196,7 +2231,8 @@ have_ciphersuite:
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        mbedtls_pk_type_t sig_alg = mbedtls_ssl_get_ciphersuite_sig_alg( ciphersuite_info );
+        mbedtls_pk_type_t sig_alg = mbedtls_ssl_get_ciphersuite_sig_alg(
+                mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake ) );
         if( sig_alg != MBEDTLS_PK_NONE )
         {
             mbedtls_md_type_t md_alg = mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs,

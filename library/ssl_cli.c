@@ -1830,9 +1830,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
     {
         ssl->state++;
-#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-        ssl->handshake->resume = 0;
-#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 #if defined(MBEDTLS_HAVE_TIME)
         ssl->session_negotiate->start = mbedtls_time( NULL );
 #endif

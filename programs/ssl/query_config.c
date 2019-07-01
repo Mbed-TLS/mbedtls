@@ -2770,6 +2770,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
 
+#if defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
+    if( strcmp( "MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+
     /* If the symbol is not found, return an error */
     return( 1 );
 }

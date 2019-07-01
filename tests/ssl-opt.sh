@@ -2130,6 +2130,9 @@ run_test    "Fallback SCSV: end of list" \
             -s "inapropriate fallback"
 
 ## Here the expected response is a valid ServerHello prefix, up to the random.
+## Due to the way the clienthello was generated, this currently needs the
+## server to have support for session tickets.
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: not in list" \
             "$P_SRV debug_level=2" \
@@ -7932,6 +7935,8 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
             -S "Injecting buffered CCS message" \
             -S "Remember CCS message"
 
+# This needs session tickets; otherwise CCS is the first message in its flight
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
             -p "$P_PXY delay_srv=NewSessionTicket" \
             "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2 \

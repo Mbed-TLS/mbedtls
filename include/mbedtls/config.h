@@ -1715,7 +1715,7 @@
  * one of !MBEDTLS_SSL_NO_SESSION_CACHE or MBEDTLS_SSL_SESSION_TICKETS.
  * Each one of these additionally requires an implementation of the cache
  * or tickets, examples of which are provided by MBEDTLS_SSL_CACHE_C
- * and MBEDTLS_SSL_TICKETS_C respectively.
+ * and MBEDTLS_SSL_TICKET_C respectively.
  *
  * Uncomment this macro to disable support for SSL session resumption.
  */

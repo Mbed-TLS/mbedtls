@@ -1666,14 +1666,16 @@
  *
  * Requires: !MBEDTLS_SSL_NO_SESSION_RESUMPTION
  *
- * Comment this macro to disable support for SSL session tickets
+ * Comment this macro to disable support for SSL session tickets.
  */
 #define MBEDTLS_SSL_SESSION_TICKETS
 
 /**
  * \def MBEDTLS_SSL_NO_SESSION_CACHE
  *
- * Disable support for cache based session resumption.
+ * Disable support for cache based session resumption. This is useful to
+ * reduce code size in configurations where cache-based session resumption is
+ * not used.
  *
  * This option is only about the server-side support of the session caches.
  * Client will only need !MBEDTLS_SSL_NO_SESSION_RESUMPTION to support
@@ -1685,19 +1687,19 @@
  * If MBEDTLS_SSL_NO_SESSION_RESUMPTION is defined, this needs to be defined
  * as well.
  *
- * Uncomment this macro to disable support for SSL session cache
+ * Uncomment this macro to disable support for SSL session cache.
  */
 //#define MBEDTLS_SSL_NO_SESSION_CACHE
 
 /**
  * \def MBEDTLS_SSL_NO_SESSION_RESUMPTION
  *
- * Disable support for session resumption. This is useful in constrained
- * devices where session resumption isn't used.
+ * Disable support for session resumption. This is useful to reduce code size
+ * in configurations where no form of session resumption is used.
  *
  * \note Session resumption is part of the TLS standard, disabling this
  * option means that the full implementation of the standard is no longer
- * used. This shouldn't cause any interoperability issues as by the standard
+ * used. This shouldn't cause any interoperability issues as the standard
  * mandates that peers who want to resume a session need to be prepared to
  * fall back to a full handshake.
  *
@@ -1715,7 +1717,7 @@
  * or tickets, examples of which are provided by MBEDTLS_SSL_CACHE_C
  * and MBEDTLS_SSL_TICKETS_C respectively.
  *
- * Uncomment this macro to disable support for SSL session resumption
+ * Uncomment this macro to disable support for SSL session resumption.
  */
 //#define MBEDTLS_SSL_NO_SESSION_RESUMPTION
 

@@ -38,10 +38,12 @@ Features
      ServerHello.
    * Add new configuration option MBEDTLS_SSL_PROTO_NO_TLS that enables code
      size savings in configurations where only DTLS is used.
-   * Add new configuration option MBEDTLS_SSL_NO_SESSION_CACHE that can be used
-     to disable cache based session resumption
-   * Add new configuration option MBEDTLS_SSL_NO_SESSION_RESUMPTION that can be
-     used to disable session resumption feature entirely.
+   * Add new configuration option MBEDTLS_SSL_NO_SESSION_CACHE that enables
+     code size savings in configurations where cache-based session resumption is
+     not used.
+   * Add new configuration option MBEDTLS_SSL_NO_SESSION_RESUMPTION that
+     enables code size savings in configurations where no form of session
+     resumption is used.
 
 API Changes
    * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.

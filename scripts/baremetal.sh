@@ -155,7 +155,7 @@ baremetal_build_armc6()
     echo "Create 32-bit library-only baremetal build (ARMC6, Config: $BAREMETAL_CONFIG)"
     armc6_ver=$($ARMC6_CC --version | sed -n 's/.*ARM Compiler \([^ ]*\)$/\1/p')
 
-    CFLAGS_BAREMETAL="-Os --target=arm-arm-none-eabi -mthumb -mcpu=cortex-m0plus -xc --std=c99"
+    CFLAGS_BAREMETAL="-Oz --target=arm-arm-none-eabi -mthumb -mcpu=cortex-m0plus -xc --std=c99"
     if [ $check -ne 0 ]; then
         CFLAGS_BAREMETAL="$CFLAGS_BAREMETAL -Werror"
     fi

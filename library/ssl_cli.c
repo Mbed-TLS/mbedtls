@@ -1799,7 +1799,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 35, n );
 
-
     /*
      * Check if the session can be resumed
      */
@@ -1812,7 +1811,9 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         ssl->session_negotiate->compression != comp ||
         ssl->session_negotiate->id_len != n ||
         memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
+    {
         ssl->handshake->resume = 0;
+    }
     if( ssl->handshake->resume == 1 )
     {
         ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;

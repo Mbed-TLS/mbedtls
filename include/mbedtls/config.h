@@ -1676,7 +1676,7 @@
  * Disable support for cache based session resumption.
  *
  * This option is only about the server-side support of the session caches.
- * Client will only need the MBEDTLS_SSL_SESSION_RESUMPTION to support
+ * Client will only need !MBEDTLS_SSL_NO_SESSION_RESUMPTION to support
  * cache based session resumption.
  *
  * Server-side, you also need to provide callbacks for storing and reading

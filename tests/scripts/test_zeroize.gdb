@@ -17,7 +17,7 @@
 # seem to be a mechanism to reliably check whether the zeroize calls are being
 # eliminated by compiler optimizations from within the compiled program. The
 # problem is that a compiler would typically remove what it considers to be
-# "unecessary" assignments as part of redundant code elimination. To identify
+# "unnecessary" assignments as part of redundant code elimination. To identify
 # such code, the compilar will create some form dependency graph between
 # reads and writes to variables (among other situations). It will then use this
 # data structure to remove redundant code that does not have an impact on the

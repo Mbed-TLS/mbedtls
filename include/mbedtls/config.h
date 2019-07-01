@@ -1278,8 +1278,8 @@
  * which allows to identify DTLS connections across changes
  * in the underlying transport.
  *
- * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`,
- * `mbedtls_ssl_get_peer_cid()` and `mbedtls_ssl_conf_cid()`.
+ * Setting this option enables the SSL APIs mbedtls_ssl_set_cid(),
+ * mbedtls_ssl_get_peer_cid() and mbedtls_ssl_conf_cid().
  * See the corresponding documentation for more information.
  *
  * \warning The Connection ID extension is still in draft state.
@@ -1710,10 +1710,10 @@
  * you'll also need to enable MBEDTLS_SSL_SESSION_TICKETS.
  *
  * Server-side, this option is only useful in conjunction with at least
- * one of `!MBEDTLS_SSL_NO_SESSION_CACHE` or `MBEDTLS_SSL_SESSION_TICKETS`.
+ * one of !MBEDTLS_SSL_NO_SESSION_CACHE or MBEDTLS_SSL_SESSION_TICKETS.
  * Each one of these additionally requires an implementation of the cache
- * or tickets, examples of which are provided by `MBEDTLS_SSL_CACHE_C`
- * and `MBEDTLS_SSL_TICKETS_C` respectively.
+ * or tickets, examples of which are provided by MBEDTLS_SSL_CACHE_C
+ * and MBEDTLS_SSL_TICKETS_C respectively.
  *
  * Uncomment this macro to disable support for SSL session resumption
  */

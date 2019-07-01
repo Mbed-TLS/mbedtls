@@ -664,6 +664,8 @@ static int send_cb( void *ctx, unsigned char const *buf, size_t len )
           !MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
 static unsigned char peer_crt_info[1024];
 
 /*
@@ -704,6 +706,7 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
 
     return( 0 );
 }
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -1894,8 +1897,10 @@ int main( int argc, char *argv[] )
 #endif
     }
 
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
     mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
@@ -2316,10 +2321,11 @@ int main( int argc, char *argv[] )
     else
         mbedtls_printf( " ok\n" );
 
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO) && \
+    !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
     mbedtls_printf( "  . Peer certificate information    ...\n" );
     mbedtls_printf( "%s\n", peer_crt_info );
-#endif /* !MBEDTLS_X509_REMOVE_INFO */
+#endif /* !MBEDTLS_X509_REMOVE_INFO && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -2648,9 +2654,10 @@ send_request:
         mbedtls_printf( "  . Restarting connection from same port..." );
         fflush( stdout );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
@@ -2825,9 +2832,10 @@ reconnect:
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {

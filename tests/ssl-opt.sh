@@ -1188,6 +1188,7 @@ run_test    "CertificateRequest with empty CA list, TLS 1.0 (GnuTLS server)" \
 
 requires_config_disabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SHA-1 forbidden by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI debug_level=2 allow_sha1=0" \
@@ -1212,6 +1213,7 @@ run_test    "SHA-256 allowed by default in server certificate" \
 
 requires_config_disabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SHA-1 forbidden by default in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
@@ -3653,6 +3655,7 @@ run_test    "DER format: with 9 trailing random bytes" \
 # Tests for auth_mode
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: server badcert, client required" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -3664,6 +3667,7 @@ run_test    "Authentication: server badcert, client required" \
             -c "X509 - Certificate verification failed"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: server badcert, client optional" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -3675,6 +3679,7 @@ run_test    "Authentication: server badcert, client optional" \
             -C "X509 - Certificate verification failed"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: server goodcert, client optional, no trusted CA" \
             "$P_SRV" \
             "$P_CLI debug_level=3 auth_mode=optional ca_file=none ca_path=none" \
@@ -3687,6 +3692,7 @@ run_test    "Authentication: server goodcert, client optional, no trusted CA" \
             -C "SSL - No CA Chain is set, but required to operate"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: server goodcert, client required, no trusted CA" \
             "$P_SRV" \
             "$P_CLI debug_level=3 auth_mode=required ca_file=none ca_path=none" \
@@ -3783,6 +3789,7 @@ run_test    "Authentication: client has no cert, server required (TLS)" \
             -s "No client certification received from the client, but required by the authentication mode"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: client badcert, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
@@ -3805,6 +3812,7 @@ run_test    "Authentication: client badcert, server required" \
 # before reading the alert message.
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: client cert not trusted, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
@@ -3823,6 +3831,7 @@ run_test    "Authentication: client cert not trusted, server required" \
             -s "X509 - Certificate verification failed"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: client badcert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
@@ -3858,6 +3867,7 @@ run_test    "Authentication: client badcert, server none" \
             -S "X509 - Certificate verification failed"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: client no cert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=none key_file=none" \
@@ -3876,6 +3886,7 @@ run_test    "Authentication: client no cert, server optional" \
             -S "X509 - Certificate verification failed"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: openssl client no cert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional ca_file=data_files/test-ca2.crt" \
             "$O_CLI" \
@@ -3908,6 +3919,7 @@ run_test    "Authentication: client no cert, openssl server required" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: client no cert, ssl3" \
             "$P_SRV debug_level=3 auth_mode=optional force_version=ssl3" \
             "$P_CLI debug_level=3 crt_file=none key_file=none min_version=ssl3" \
@@ -4026,6 +4038,7 @@ run_test    "Authentication: do not send CA list in CertificateRequest" \
             -S "requested DN"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Authentication: send CA list in CertificateRequest, client self signed" \
             "$P_SRV debug_level=3 auth_mode=required cert_req_ca_list=0" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
@@ -4041,6 +4054,7 @@ run_test    "Authentication: send CA list in CertificateRequest, client self sig
 # Tests for certificate selection based on SHA verson
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -4052,6 +4066,7 @@ run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
             -C "signed using.*ECDSA with SHA1"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Certificate hash: client TLS 1.1 -> SHA-1" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -4063,6 +4078,7 @@ run_test    "Certificate hash: client TLS 1.1 -> SHA-1" \
             -c "signed using.*ECDSA with SHA1"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Certificate hash: client TLS 1.0 -> SHA-1" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -4074,6 +4090,7 @@ run_test    "Certificate hash: client TLS 1.0 -> SHA-1" \
             -c "signed using.*ECDSA with SHA1"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 1)" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -4086,6 +4103,7 @@ run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 1)" \
             -C "signed using.*ECDSA with SHA1"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 2)" \
             "$P_SRV crt_file=data_files/server6.crt \
                     key_file=data_files/server6.key \
@@ -4100,6 +4118,7 @@ run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 2)" \
 # tests for SNI
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: no SNI callback" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
@@ -4111,6 +4130,7 @@ run_test    "SNI: no SNI callback" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: matching cert 1" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4123,6 +4143,7 @@ run_test    "SNI: matching cert 1" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: matching cert 2" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4189,6 +4210,7 @@ run_test    "SNI: client auth override: optional -> none" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: CA no override" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4209,6 +4231,7 @@ run_test    "SNI: CA no override" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: CA override" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4229,6 +4252,7 @@ run_test    "SNI: CA override" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: CA override with CRL" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4250,6 +4274,7 @@ run_test    "SNI: CA override with CRL" \
 # Tests for SNI and DTLS
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: DTLS, no SNI callback" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
@@ -4261,6 +4286,7 @@ run_test    "SNI: DTLS, no SNI callback" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: DTLS, matching cert 1" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4273,6 +4299,7 @@ run_test    "SNI: DTLS, matching cert 1" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: DTLS, matching cert 2" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4339,6 +4366,7 @@ run_test    "SNI: DTLS, client auth override: optional -> none" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: DTLS, CA no override" \
             "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
@@ -4378,6 +4406,7 @@ run_test    "SNI: DTLS, CA override" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SNI: DTLS, CA override with CRL" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=data_files/server5.crt key_file=data_files/server5.key dtls=1 \
@@ -4816,6 +4845,7 @@ run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail" \
             -C "Ciphersuite is TLS-"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "keyUsage cli: KeyEncipherment, DHE-RSA: fail, soft" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
@@ -4848,6 +4878,7 @@ run_test    "keyUsage cli: DigitalSignature, RSA: fail" \
             -C "Ciphersuite is TLS-"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "keyUsage cli: DigitalSignature, RSA: fail, soft" \
             "$O_SRV -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
@@ -6399,6 +6430,7 @@ run_test    "EC restart: TLS, max_ops=1000" \
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "EC restart: TLS, max_ops=1000, badsign" \
             "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt \
              crt_file=data_files/server5-badsign.crt \
@@ -6435,6 +6467,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign" \
             -C "X509 - Certificate verification failed"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign" \
             "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt \
@@ -6535,6 +6568,7 @@ run_test    "SSL async private: sign, RSA, TLS 1.1" \
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_disabled MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "SSL async private: sign, SNI" \
             "$P_SRV debug_level=3 \
              async_operations=s async_private_delay1=0 async_private_delay2=0 \
@@ -6998,6 +7032,7 @@ run_test    "DTLS client auth: required" \
             -s "Verifying peer X.509 certificate... ok"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "DTLS client auth: optional, client has no cert" \
             "$P_SRV dtls=1 auth_mode=optional" \
             "$P_CLI dtls=1 crt_file=none key_file=none" \
@@ -7005,6 +7040,7 @@ run_test    "DTLS client auth: optional, client has no cert" \
             -s "! Certificate was missing"
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
+requires_config_disabled MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 run_test    "DTLS client auth: none, client has no cert" \
             "$P_SRV dtls=1 auth_mode=none" \
             "$P_CLI dtls=1 crt_file=none key_file=none debug_level=2" \

@@ -3590,9 +3590,12 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
                      const char *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
-                     uint32_t *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                     void *p_vrfy )
+                     uint32_t *flags
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                     , int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *)
+                     , void *p_vrfy
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+    )
 {
     return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
                 &mbedtls_x509_crt_profile_default,
@@ -3600,7 +3603,10 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                 cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
                 flags,
-                f_vrfy, p_vrfy, NULL ) );
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                f_vrfy, p_vrfy,
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+                NULL ) );
 }
 
 /*
@@ -3613,16 +3619,23 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
                      const char *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
-                     uint32_t *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                     void *p_vrfy )
+                     uint32_t *flags
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                     , int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *)
+                     , void *p_vrfy
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+    )
 {
     return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
                 profile,
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
                 cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
-                flags, f_vrfy, p_vrfy, NULL ) );
+                flags,
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                f_vrfy, p_vrfy,
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+                NULL ) );
 }
 
 /*
@@ -3643,8 +3656,10 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      const char *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
                      uint32_t *flags,
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy,
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
                      mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
@@ -3702,7 +3717,11 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     ver_chain.items[0].flags |= ee_flags;
 
     /* Build final flags, calling callback on the way if any */
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
     ret = x509_crt_merge_flags_with_cb( flags, &ver_chain, f_vrfy, p_vrfy );
+#else
+    ret = x509_crt_merge_flags_with_cb( flags, &ver_chain, NULL, NULL );
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 exit:
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

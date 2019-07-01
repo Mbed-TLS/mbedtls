@@ -502,14 +502,17 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  *                 verification process.
  */
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
-                     mbedtls_x509_crt *trust_ca,
-                     mbedtls_x509_crl *ca_crl,
+                   mbedtls_x509_crt *trust_ca,
+                   mbedtls_x509_crl *ca_crl,
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION) || defined(DOXYGEN_ONLY)
-                     const char *cn,
+                   const char *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION || defined(DOXYGEN_ONLY) */
-                     uint32_t *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                     void *p_vrfy );
+                   uint32_t *flags
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                   , int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                   void *p_vrfy
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+    );
 
 /**
  * \brief          Verify the certificate signature according to profile
@@ -545,9 +548,12 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION) || defined(DOXYGEN_ONLY)
                      const char *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION || defined(DOXYGEN_ONLY) */
-                     uint32_t *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                     void *p_vrfy );
+                     uint32_t *flags
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                     , int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                     void *p_vrfy
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+    );
 
 /**
  * \brief          Restartable version of \c mbedtls_crt_verify_with_profile()
@@ -579,8 +585,10 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      const char *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION || defined(DOXYGEN_ONLY) */
                      uint32_t *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                     void *p_vrfy,
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                   int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+                   void *p_vrfy,
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
                      mbedtls_x509_crt_restart_ctx *rs_ctx );
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)

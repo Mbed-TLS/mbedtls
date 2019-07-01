@@ -1348,6 +1348,21 @@ component_test_no_hostname_verification () {
     if_build_succeeded tests/ssl-opt.sh
 }
 
+component_test_no_x509_verify_callback () {
+    msg "build: full + MBEDTLS_X509_REMOVE_VERIFY_CALLBACK" # ~ 10s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl set MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
+    make CFLAGS='-Werror -O1'
+
+    msg "test: full + MBEDTLS_X509_REMOVE_VERIFY_CALLBACK" # ~ 10s
+    make test
+
+    msg "test: ssl-opt.sh, full + MBEDTLS_X509_REMOVE_VERIFY_CALLBACK" # ~ 1 min
+    if_build_succeeded tests/ssl-opt.sh
+}
+
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
     scripts/config.pl baremetal

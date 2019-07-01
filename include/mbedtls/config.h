@@ -1668,7 +1668,7 @@
  *
  * Comment this macro to disable support for SSL session tickets
  */
-//#define MBEDTLS_SSL_SESSION_TICKETS
+#define MBEDTLS_SSL_SESSION_TICKETS
 
 /**
  * \def MBEDTLS_SSL_NO_SESSION_CACHE
@@ -1687,7 +1687,7 @@
  *
  * Uncomment this macro to disable support for SSL session cache
  */
-#define MBEDTLS_SSL_NO_SESSION_CACHE
+//#define MBEDTLS_SSL_NO_SESSION_CACHE
 
 /**
  * \def MBEDTLS_SSL_NO_SESSION_RESUMPTION
@@ -1717,7 +1717,7 @@
  *
  * Uncomment this macro to disable support for SSL session resumption
  */
-#define MBEDTLS_SSL_NO_SESSION_RESUMPTION
+//#define MBEDTLS_SSL_NO_SESSION_RESUMPTION
 
 /**
  * \def MBEDTLS_SSL_EXPORT_KEYS

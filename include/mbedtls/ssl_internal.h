@@ -1111,4 +1111,20 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
+
+/*
+ * Accessor functions for optional fields of various structures
+ */
+
+static inline int mbedtls_ssl_handshake_get_resume(
+        const mbedtls_ssl_handshake_params *handshake )
+{
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    return( handshake->resume );
+#else
+    (void) handshake;
+    return( 0 );
+#endif
+}
+
 #endif /* ssl_internal.h */

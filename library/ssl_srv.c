@@ -2643,7 +2643,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
      * It may be already set to 1 by ssl_parse_session_ticket_ext().
      * If not, try looking up session ID in our cache.
      */
-    if( ssl->handshake->resume == 0 &&
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 &&
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
 #endif
@@ -2657,7 +2657,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #endif /* !MBEDTLS_SSL_NO_SESSION_CACHE */
 
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-    if( ssl->handshake->resume == 1 )
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 1 )
     {
         /*
          * Resuming a session
@@ -2714,10 +2714,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );
-#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
-                   ssl->handshake->resume ? "a" : "no" ) );
-#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
+            mbedtls_ssl_handshake_get_resume( ssl->handshake ) ? "a" : "no" ) );
 
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite >> 8 );
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite      );

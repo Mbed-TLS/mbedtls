@@ -906,13 +906,13 @@ struct mbedtls_ssl_config
     int  (*f_rng)(void *, unsigned char *, size_t);
     void *p_rng;                    /*!< context for the RNG function       */
 
-#if !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
+#if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     /** Callback to retrieve a session from the cache                       */
     int (*f_get_cache)(void *, mbedtls_ssl_session *);
     /** Callback to store a session into the cache                          */
     int (*f_set_cache)(void *, const mbedtls_ssl_session *);
     void *p_cache;                  /*!< context for cache callbacks        */
-#endif /* !MBEDTLS_SSL_NO_SESSION_CACHE */
+#endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     /** Callback for setting cert according to SNI extension                */

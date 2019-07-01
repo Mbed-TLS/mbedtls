@@ -880,13 +880,23 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      *   ..   . ..    extensions length (2 bytes)
      *   ..   . ..    extensions
      */
-    n = ssl->session_negotiate->id_len;
 
-    if( n < 16 || n > 32 ||
+    /*
+     * We'll write a session of non-zero length if resumption was requested
+     * by the user, we're not renegotiating, and the session ID is of
+     * appropriate length. Otherwise make the length 0 (for now, see next code
+     * block for behaviour with tickets).
+     */
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 ||
         mbedtls_ssl_get_renego_status( ssl ) != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
-        mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 )
+        ssl->session_negotiate->id_len < 16 ||
+        ssl->session_negotiate->id_len > 32 )
     {
         n = 0;
+    }
+    else
+    {
+        n = ssl->session_negotiate->id_len;
     }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -1787,6 +1797,14 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
     /*
      * Check if the session can be resumed
+     *
+     * We're only resuming a session if it was requested (handshake->resume
+     * already set to 1 by mbedtls_ssl_set_session()), and further conditions
+     * are satisfied (not renegotiating, ID and ciphersuite match, etc).
+     *
+     * Update handshake->resume to the value it will keep for the rest of the
+     * handshake, and that will be used to determine the relative order
+     * client/server last flights, as well as in handshake_wrapup().
      */
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     if( n == 0 ||
@@ -1798,8 +1816,11 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     {
         ssl->handshake->resume = 0;
     }
-    if( ssl->handshake->resume == 1 )
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
+
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 1 )
     {
+        /* Resume a session */
         ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
 
         if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
@@ -1811,8 +1832,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         }
     }
     else
-#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
     {
+        /* Start a new session */
         ssl->state++;
 #if defined(MBEDTLS_HAVE_TIME)
         ssl->session_negotiate->start = mbedtls_time( NULL );

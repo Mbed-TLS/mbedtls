@@ -432,7 +432,7 @@ static inline int mbedtls_ssl_session_get_ciphersuite(
  * Getter functions for the extraction of ciphersuite attributes
  * from a ciphersuite handle.
  *
- * These functions have the validity of the handle as a precondition!
+ * Warning: These functions have the validity of the handle as a precondition!
  * Their behaviour is undefined when MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE
  * is passed.
  */

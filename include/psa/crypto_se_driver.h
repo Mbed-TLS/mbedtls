@@ -8,11 +8,11 @@
  * space in which the PSA Crypto implementation runs, typically secure
  * elements (SEs).
  *
- * This file is part of the PSA Crypto Driver Model, containing functions for
- * driver developers to implement to enable hardware to be called in a
- * standardized way by a PSA Cryptographic API implementation. The functions
- * comprising the driver model, which driver authors implement, are not
- * intended to be called by application developers.
+ * This file is part of the PSA Crypto Driver HAL (hardware abstraction layer),
+ * containing functions for driver developers to implement to enable hardware
+ * to be called in a standardized way by a PSA Cryptography API
+ * implementation. The functions comprising the driver HAL, which driver
+ * authors implement, are not intended to be called by application developers.
  */
 
 /*
@@ -726,7 +726,7 @@ typedef psa_status_t (*psa_drv_se_import_key_t)(psa_key_slot_number_t key_slot,
  * \retval #PSA_SUCCESS
  *         The slot's content, if any, has been erased.
  */
-typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_number_t key);
+typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_number_t key_slot);
 
 /**
  * \brief A function that exports a secure element key in binary format
@@ -878,7 +878,7 @@ typedef struct {
  * \param[in,out] p_context A hardware-specific structure containing any
  *                          context information for the implementation
  * \param[in] kdf_alg       The algorithm to be used for the key derivation
- * \param[in] souce_key     The key to be used as the source material for the
+ * \param[in] source_key    The key to be used as the source material for the
  *                          key derivation
  *
  * \retval PSA_SUCCESS
@@ -958,6 +958,90 @@ typedef struct {
      * exports the key */
     psa_drv_se_key_derivation_export_t     p_export;
 } psa_drv_se_key_derivation_t;
+
+/**@}*/
+
+/** \defgroup se_registration Secure element driver registration
+ */
+/**@{*/
+
+/** A structure containing pointers to all the entry points of a
+ * secure element driver.
+ *
+ * Future versions of this specification may add extra substructures at
+ * the end of this structure.
+ */
+typedef struct {
+    /** The version of the driver HAL that this driver implements.
+     * This is a protection against loading driver binaries built against
+     * a different version of this specification.
+     * Use #PSA_DRV_SE_HAL_VERSION.
+     */
+    uint32_t hal_version;
+    psa_drv_se_key_management_t key_management;
+    psa_drv_se_mac_t mac;
+    psa_drv_se_cipher_t cipher;
+    psa_drv_se_aead_t aead;
+    psa_drv_se_asymmetric_t asymmetric;
+    psa_drv_se_key_derivation_t derivation;
+} psa_drv_se_t;
+
+/** The current version of the secure element driver HAL.
+ */
+/* 0.0.0 patchlevel 5 */
+#define PSA_DRV_SE_HAL_VERSION 0x00000005
+
+/** Register an external cryptoprocessor (secure element) driver.
+ *
+ * This function is only intended to be used by driver code, not by
+ * application code. In implementations with separation between the
+ * PSA cryptography module and applications, this function should
+ * only be available to callers that run in the same memory space as
+ * the cryptography module, and should not be exposed to applications
+ * running in a different memory space.
+ *
+ * This function may be called before psa_crypto_init(). It is
+ * implementation-defined whether this function may be called
+ * after psa_crypto_init().
+ *
+ * \note Implementations store metadata about keys including the lifetime
+ *       value. Therefore, from one instantiation of the PSA Cryptography
+ *       library to the next one, if there is a key in storage with a certain
+ *       lifetime value, you must always register the same driver (or an
+ *       updated version that communicates with the same secure element)
+ *       with the same lifetime value.
+ *
+ * \param lifetime      The lifetime value through which this driver will
+ *                      be exposed to applications.
+ *                      The values #PSA_KEY_LIFETIME_VOLATILE and
+ *                      #PSA_KEY_LIFETIME_PERSISTENT are reserved and
+ *                      may not be used for drivers. Implementations
+ *                      may reserve other values.
+ * \param[in] methods   The method table of the driver. This structure must
+ *                      remain valid for as long as the cryptography
+ *                      module keeps running. It is typically a global
+ *                      constant.
+ *
+ * \return PSA_SUCCESS
+ *         The driver was successfully registered. Applications can now
+ *         use \p lifetime to access keys through the methods passed to
+ *         this function.
+ * \return PSA_ERROR_BAD_STATE
+ *         This function was called after the initialization of the
+ *         cryptography module, and this implementation does not support
+ *         driver registration at this stage.
+ * \return PSA_ERROR_ALREADY_EXISTS
+ *         There is already a registered driver for this value of \p lifetime.
+ * \return PSA_ERROR_INVALID_ARGUMENT
+ *         \p lifetime is a reserved value.
+ * \return PSA_ERROR_NOT_SUPPORTED
+ *         `methods->hal_version` is not supported by this implementation.
+ * \return PSA_ERROR_INSUFFICIENT_MEMORY
+ * \return PSA_ERROR_NOT_PERMITTED
+ */
+psa_status_t psa_register_se_driver(
+    psa_key_lifetime_t lifetime,
+    const psa_drv_se_t *methods);
 
 /**@}*/
 

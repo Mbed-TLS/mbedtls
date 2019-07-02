@@ -555,6 +555,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PSA_CRYPTO_C)
     "MBEDTLS_PSA_CRYPTO_C",
 #endif /* MBEDTLS_PSA_CRYPTO_C */
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    "MBEDTLS_PSA_CRYPTO_SE_C",
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     "MBEDTLS_PSA_CRYPTO_STORAGE_C",
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */

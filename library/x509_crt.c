@@ -193,7 +193,8 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
 
     if( cache->frame != NULL )
     {
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH)
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
         return( 0 );
 #else
         /* If MBEDTLS_X509_ALWAYS_FLUSH is set, we don't
@@ -253,7 +254,8 @@ int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
 
     if( cache->pk != NULL )
     {
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH)
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
         return( 0 );
 #else
         /* If MBEDTLS_X509_ALWAYS_FLUSH is set, we don't

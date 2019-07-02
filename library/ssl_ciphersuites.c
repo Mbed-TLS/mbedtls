@@ -2363,7 +2363,7 @@ int mbedtls_ssl_ciphersuite_uses_ec(
     return( mbedtls_ssl_ciphersuite_uses_ec_internal( info ) );
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
-          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int mbedtls_ssl_ciphersuite_uses_psk(

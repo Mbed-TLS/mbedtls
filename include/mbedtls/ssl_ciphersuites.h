@@ -773,7 +773,7 @@ static inline int mbedtls_ssl_ciphersuite_uses_ec_internal(
             return( 0 );
     }
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED*/
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 static inline int mbedtls_ssl_ciphersuite_uses_psk_internal(

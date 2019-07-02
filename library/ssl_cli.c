@@ -984,12 +984,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
                                       ssl->conf->min_minor_ver,
                                       ssl->conf->max_minor_ver ) != 0 )
         {
-            /* Logically, we want to continue the ciphersuite iteration
-             * here, but We can't just use `continue` because
-             * MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE()
-             * doesn't unfold to a loop in case only a single
-             * ciphersuite is enabled. */
-            goto next_suite;
+            continue;
         }
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %04x",
@@ -1005,11 +1000,6 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
             mbedtls_ssl_suite_get_id( ciphersuite_info ) >> 8 );
         *p++ = (unsigned char)(
             mbedtls_ssl_suite_get_id( ciphersuite_info )      );
-
-    next_suite:
-        /* Need something here to avoid
-         * 'label at end of compound statement' error. */
-        ((void) 0);
     }
     MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE
 
@@ -1899,23 +1889,13 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
                                       ssl->conf->min_minor_ver,
                                       ssl->conf->max_minor_ver ) != 0 )
         {
-            /* Logically, we want to continue the ciphersuite iteration
-             * here, but We can't just use `continue` because
-             * MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE()
-             * doesn't unfold to a loop in case only a single
-             * ciphersuite is enabled. */
-            goto next_suite;
+            continue;
         }
 
         if( ciphersuite_info != server_suite_info )
-            goto next_suite;
+            continue;
 
         goto server_picked_valid_suite;
-
-    next_suite:
-        /* Need something here to avoid
-         * 'label at end of compound statement' error. */
-        ((void) 0);
     }
     MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE
 

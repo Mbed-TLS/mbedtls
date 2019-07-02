@@ -1475,12 +1475,12 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 #else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #define MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl, ver, info )             \
-    {                                                                        \
+    do {                                                                     \
         const mbedtls_ssl_ciphersuite_handle_t info =                        \
             MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE;
 
 #define MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE    \
-    }
+    } while( 0 );
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 

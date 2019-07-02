@@ -1251,7 +1251,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
                 p[1] != ( ( ciphersuite_id >> 8 ) & 0xFF ) ||
                 p[2] != ( ( ciphersuite_id      ) & 0xFF ) )
             {
-                goto next_suite;
+                continue;
             }
 
             got_common_suite = 1;
@@ -1263,11 +1263,6 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 #endif
                 goto have_ciphersuite_v2;
             }
-
-        next_suite:
-            /* Need something here to avoid
-             * 'label at end of compound statement' error. */
-            ((void) 0);
 
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
         }
@@ -2174,7 +2169,7 @@ read_record_header:
             if( p[0] != ( ( ciphersuite_id >> 8 ) & 0xFF ) ||
                 p[1] != ( ( ciphersuite_id      ) & 0xFF ) )
             {
-                goto next_suite;
+                continue;
             }
 
             got_common_suite = 1;
@@ -2187,12 +2182,6 @@ read_record_header:
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
                 goto have_ciphersuite;
             }
-
-        next_suite:
-            /* Need something here to avoid
-             * 'label at end of compound statement' error. */
-            ((void) 0);
-
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
         }
         MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE

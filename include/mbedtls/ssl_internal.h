@@ -1083,6 +1083,33 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
 
 
 /*
+ * Accessor functions for optional fields of various structures
+ */
+
+static inline int mbedtls_ssl_handshake_get_resume(
+        const mbedtls_ssl_handshake_params *handshake )
+{
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    return( handshake->resume );
+#else
+    (void) handshake;
+    return( 0 );
+#endif
+}
+
+static inline int mbedtls_ssl_get_renego_status(
+        const mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    return( ssl->renego_status );
+#else
+    (void) ssl;
+    return( MBEDTLS_SSL_INITIAL_HANDSHAKE );
+#endif
+}
+
+
+/*
  * Getter functions for fields in mbedtls_ssl_config which may
  * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
  */
@@ -1110,32 +1137,5 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 #endif /* MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
 }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
-
-
-/*
- * Accessor functions for optional fields of various structures
- */
-
-static inline int mbedtls_ssl_handshake_get_resume(
-        const mbedtls_ssl_handshake_params *handshake )
-{
-#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-    return( handshake->resume );
-#else
-    (void) handshake;
-    return( 0 );
-#endif
-}
-
-static inline int mbedtls_ssl_get_renego_status(
-        const mbedtls_ssl_context *ssl )
-{
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    return( ssl->renego_status );
-#else
-    (void) ssl;
-    return( MBEDTLS_SSL_INITIAL_HANDSHAKE );
-#endif
-}
 
 #endif /* ssl_internal.h */

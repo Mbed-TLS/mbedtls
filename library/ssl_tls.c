@@ -8213,19 +8213,15 @@ void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
 }
 #endif
 
+#if defined(MBEDTLS_DEBUG_C)
 void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
                   void (*f_dbg)(void *, int, const char *, int, const char *),
                   void  *p_dbg )
 {
-#if defined(MBEDTLS_DEBUG_C)
     conf->f_dbg      = f_dbg;
     conf->p_dbg      = p_dbg;
-#else
-    ((void) conf);
-    ((void) f_dbg);
-    ((void) p_dbg);
-#endif /* MBEDTLS_DEBUG_C */
 }
+#endif /* MBEDTLS_DEBUG_C */
 
 #if !defined(MBEDTLS_SSL_CONF_RECV) && \
     !defined(MBEDTLS_SSL_CONF_SEND) && \

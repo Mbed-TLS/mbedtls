@@ -433,7 +433,9 @@ int main( void )
     }
 
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#if defined(MBEDTLS_DEBUG_C)
     mbedtls_ssl_conf_dbg( &conf, my_mutexed_debug, stdout );
+#endif
 
     /* mbedtls_ssl_cache_get() and mbedtls_ssl_cache_set() are thread-safe if
      * MBEDTLS_THREADING_C is set.

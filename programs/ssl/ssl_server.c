@@ -85,6 +85,7 @@ int main( void )
 #define DEBUG_LEVEL 0
 
 
+#if defined(MBEDTLS_DEBUG_C)
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
                       const char *str )
@@ -94,6 +95,7 @@ static void my_debug( void *ctx, int level,
     mbedtls_fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
     fflush(  (FILE *) ctx  );
 }
+#endif /* MBEDTLS_DEBUG_C */
 
 int main( void )
 {
@@ -211,7 +213,9 @@ int main( void )
     }
 
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#if defined(MBEDTLS_DEBUG_C)
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
+#endif
 
 #if defined(MBEDTLS_SSL_CACHE_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     mbedtls_ssl_conf_session_cache( &conf, &cache,

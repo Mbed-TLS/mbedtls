@@ -1501,6 +1501,7 @@ void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
                                void *p_rng );
 #endif /* MBEDTLS_SSL_CONF_RNG */
 
+#if defined(MBEDTLS_DEBUG_C)
 /**
  * \brief          Set the debug callback
  *
@@ -1518,6 +1519,7 @@ void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
                   void (*f_dbg)(void *, int, const char *, int, const char *),
                   void  *p_dbg );
+#endif /* MBEDTLS_DEBUG_C */
 
 #if !defined(MBEDTLS_SSL_CONF_RECV) && \
     !defined(MBEDTLS_SSL_CONF_SEND) && \

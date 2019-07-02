@@ -117,6 +117,7 @@ struct options
     int permissive;             /* permissive parsing                   */
 } opt;
 
+#if defined(MBEDTLS_DEBUG_C)
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
                       const char *str )
@@ -126,6 +127,7 @@ static void my_debug( void *ctx, int level,
     mbedtls_fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
     fflush(  (FILE *) ctx  );
 }
+#endif /* MBEDTLS_DEBUG_C */
 
 static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags )
 {
@@ -423,7 +425,9 @@ int main( int argc, char *argv[] )
             mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_NONE );
 
         mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#if defined(MBEDTLS_DEBUG_C)
         mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
+#endif
 
         if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
         {

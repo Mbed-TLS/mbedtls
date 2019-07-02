@@ -2384,7 +2384,7 @@ const char *mbedtls_ssl_get_ciphersuite_name(
     if( ciphersuite_id == single_suite_id )
         return( MBEDTLS_SSL_SUITE_NAME( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) );
 
-    return( NULL );
+    return( "unknown" );
 }
 
 int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )

@@ -1283,6 +1283,7 @@ static int x509_crt_parse_frame( unsigned char *start,
     p += len;
     frame->issuer_raw.len = p - frame->issuer_raw.p;
 
+    /* Comparing the raw buffer to itself amounts to structural validation. */
     ret = mbedtls_x509_name_cmp_raw( &frame->issuer_raw,
                                      &frame->issuer_raw,
                                      NULL, NULL );
@@ -1313,6 +1314,7 @@ static int x509_crt_parse_frame( unsigned char *start,
     p += len;
     frame->subject_raw.len = p - frame->subject_raw.p;
 
+    /* Comparing the raw buffer to itself amounts to structural validation. */
     ret = mbedtls_x509_name_cmp_raw( &frame->subject_raw,
                                      &frame->subject_raw,
                                      NULL, NULL );

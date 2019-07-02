@@ -433,7 +433,6 @@ static int x509_set_sequence_iterate( unsigned char **p,
                                       unsigned char const *end,
                                       mbedtls_x509_buf *oid,
                                       mbedtls_x509_buf *val )
-
 {
     int ret;
     size_t set_len;

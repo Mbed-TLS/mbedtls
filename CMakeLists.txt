@@ -5,6 +5,9 @@ else()
     project("mbed TLS" C)
 endif()
 
+# Set the project root directory.
+set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)

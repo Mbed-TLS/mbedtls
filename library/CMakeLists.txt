@@ -2,6 +2,13 @@ option(USE_STATIC_MBEDTLS_LIBRARY "Build mbed TLS static library." ON)
 option(USE_SHARED_MBEDTLS_LIBRARY "Build mbed TLS shared library." OFF)
 option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
 
+# Set the project root directory if it's not already defined, as may happen if
+# the library folder is included directly by a parent project, without
+# including the top level CMakeLists.txt.
+if(NOT DEFINED MBEDTLS_DIR)
+    set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
+endif()
+
 set(src_crypto
     aes.c
     aesni.c
@@ -72,9 +79,9 @@ set(src_crypto
 if(USE_CRYPTO_SUBMODULE)
 set(src_crypto
     ${src_crypto}
-    ${CMAKE_SOURCE_DIR}/library/version.c
-    ${CMAKE_SOURCE_DIR}/library/version_features.c
-    ${CMAKE_SOURCE_DIR}/library/error.c
+    ${MBEDTLS_DIR}/library/version.c
+    ${MBEDTLS_DIR}/library/version_features.c
+    ${MBEDTLS_DIR}/library/error.c
 )
 else()
 set(src_crypto
@@ -133,8 +140,8 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
     target_link_libraries(${mbedcrypto_static_target} ${libs})
     target_include_directories(${mbedcrypto_static_target}
-        PUBLIC ${CMAKE_SOURCE_DIR}/include/
-        PUBLIC ${CMAKE_SOURCE_DIR}/crypto/include/)
+        PUBLIC ${MBEDTLS_DIR}/include/
+        PUBLIC ${MBEDTLS_DIR}/crypto/include/)
 
     install(TARGETS ${mbedcrypto_static_target}
             DESTINATION ${LIB_INSTALL_DIR}
@@ -146,8 +153,8 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     set_target_properties(mbedcrypto PROPERTIES VERSION 2.17.0 SOVERSION 3)
     target_link_libraries(mbedcrypto ${libs})
     target_include_directories(mbedcrypto
-        PUBLIC ${CMAKE_SOURCE_DIR}/include/
-        PUBLIC ${CMAKE_SOURCE_DIR}/crypto/include/)
+        PUBLIC ${MBEDTLS_DIR}/include/
+        PUBLIC ${MBEDTLS_DIR}/crypto/include/)
 
     install(TARGETS mbedcrypto
             DESTINATION ${LIB_INSTALL_DIR}

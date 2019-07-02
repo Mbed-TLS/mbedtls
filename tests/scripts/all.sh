@@ -218,6 +218,11 @@ cleanup()
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
     git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
 
+    # Remove any artifacts from the component_test_cmake_as_subdirectory test.
+    rm -rf programs/test/cmake_subproject/build
+    rm -f programs/test/cmake_subproject/Makefile
+    rm -f programs/test/cmake_subproject/cmake_subproject
+
     if [ -f "$CONFIG_BAK" ]; then
         mv "$CONFIG_BAK" "$CONFIG_H"
     fi
@@ -1053,6 +1058,19 @@ component_test_cmake_out_of_source () {
 
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
+    unset MBEDTLS_ROOT_DIR
+}
+
+component_test_cmake_as_subdirectory () {
+    msg "build: cmake 'as-subdirectory' build"
+    MBEDTLS_ROOT_DIR="$PWD"
+
+    cd programs/test/cmake_subproject
+    cmake .
+    make
+    if_build_succeeded ./cmake_subproject
+
+    cd "$MBEDTLS_ROOT_DIR"
     unset MBEDTLS_ROOT_DIR
 }
 

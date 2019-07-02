@@ -4274,7 +4274,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( 0 != ret )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record" ), ret );
-        return( ret );
+        goto exit;
     }
 
     ssl->state++;
@@ -4284,7 +4284,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE_VERIFY )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY;
+        goto exit;
     }
 
     i = mbedtls_ssl_hs_hdr_len( ssl );

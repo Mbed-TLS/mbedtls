@@ -837,6 +837,13 @@ component_test_make_shared () {
     make SHARED=1 all check
 }
 
+component_test_cmake_shared () {
+    msg "build/test: cmake shared" # ~ 2min
+    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
+    make
+    make test
+}
+
 component_build_mbedtls_config_file () {
     msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
     # Use the full config so as to catch a maximum of places where

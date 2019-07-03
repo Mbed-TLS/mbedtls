@@ -293,6 +293,27 @@ int main( void )
 #define USAGE_SERIALIZATION ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
+#define USAGE_AUTH_MODE \
+    "    auth_mode=%%s        default: (library default: none)\n" \
+    "                        options: none, optional, required\n"
+#else
+#define USAGE_AUTH_MODE ""
+#endif
+
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
+#define USAGE_ALLOW_LEGACY_RENEGO    "    allow_legacy=%%d     default: (library default: no)\n"
+#else
+#define USAGE_ALLOW_LEGACY_RENEGO ""
+#endif
+
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
+#define USAGE_READ_TIMEOUT                              \
+    "    read_timeout=%%d     default: 0 ms (no timeout)\n"
+#else
+#define USAGE_READ_TIMEOUT ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -311,21 +332,20 @@ int main( void )
     "                        options: 1 (non-blocking), 2 (added delays)\n"   \
     "    event=%%d            default: 0 (loop)\n"                            \
     "                        options: 1 (level-triggered, implies nbio=1),\n" \
-    "    read_timeout=%%d     default: 0 ms (no timeout)\n"        \
+    USAGE_READ_TIMEOUT                                                  \
     "    max_resend=%%d       default: 0 (no resend on timeout)\n" \
     "\n"                                                    \
     USAGE_DTLS                                              \
     USAGE_CID                                               \
     "\n"                                                    \
-    "    auth_mode=%%s        default: (library default: none)\n" \
-    "                        options: none, optional, required\n" \
+    USAGE_AUTH_MODE                                         \
     USAGE_IO                                                \
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
     USAGE_ECRESTART                                         \
     "\n"                                                    \
-    "    allow_legacy=%%d     default: (library default: no)\n"   \
+    USAGE_ALLOW_LEGACY_RENEGO                               \
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     "    reconnect=%%d        number of reconnections using session resumption\n" \
@@ -908,8 +928,10 @@ int main( int argc, char *argv[] )
             if( opt.event < 0 || opt.event > 2 )
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
         else if( strcmp( p, "read_timeout" ) == 0 )
             opt.read_timeout = atoi( q );
+#endif
         else if( strcmp( p, "max_resend" ) == 0 )
         {
             opt.max_resend = atoi( q );
@@ -980,6 +1002,7 @@ int main( int argc, char *argv[] )
                 MBEDTLS_SSL_RENEGOTIATION_ENABLED :
                 MBEDTLS_SSL_RENEGOTIATION_DISABLED;
         }
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
         else if( strcmp( p, "allow_legacy" ) == 0 )
         {
             switch( atoi( q ) )
@@ -996,6 +1019,7 @@ int main( int argc, char *argv[] )
                 default: goto usage;
             }
         }
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
         else if( strcmp( p, "renegotiate" ) == 0 )
         {
             opt.renegotiate = atoi( q );
@@ -1175,6 +1199,7 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
             if( strcmp( q, "none" ) == 0 )
@@ -1186,6 +1211,7 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+#endif
         else if( strcmp( p, "max_frag_len" ) == 0 )
         {
             if( strcmp( q, "512" ) == 0 )
@@ -1655,7 +1681,9 @@ int main( int argc, char *argv[] )
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    !defined(MBEDTLS_SSL_CONF_CID_LEN) &&      \
+    !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
     if( opt.cid_enabled == 1 || opt.cid_enabled_renego == 1 )
     {
         if( opt.cid_enabled == 1        &&
@@ -1680,7 +1708,9 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID &&
+          !MBEDTLS_SSL_CONF_CID_LEN &&
+          !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );
@@ -1748,7 +1778,9 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
     mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
+#endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     mbedtls_ssl_conf_session_tickets( &conf, opt.tickets );
@@ -1762,8 +1794,10 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_arc4_support( &conf, opt.arc4 );
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     mbedtls_ssl_conf_renegotiation( &conf, opt.renegotiation );
 #endif

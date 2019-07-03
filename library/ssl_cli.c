@@ -2073,7 +2073,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      * Renegotiation security checks
      */
     if( ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-        ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
+        mbedtls_ssl_conf_get_allow_legacy_renegotiation( ssl->conf ) ==
+          MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
         handshake_failure = 1;
@@ -2088,7 +2089,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     }
     else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
              ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-             ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION )
+             mbedtls_ssl_conf_get_allow_legacy_renegotiation( ssl->conf ) ==
+               MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation not allowed" ) );
         handshake_failure = 1;

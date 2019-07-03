@@ -55,7 +55,7 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
                                  const unsigned char *info,
                                  size_t ilen )
 {
-    if( ssl->conf->endpoint != MBEDTLS_SSL_IS_SERVER )
+    if( mbedtls_ssl_conf_get_endpoint( ssl->conf ) != MBEDTLS_SSL_IS_SERVER )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     mbedtls_free( ssl->cli_id );
@@ -1281,7 +1281,8 @@ have_ciphersuite_v2:
      * SSLv2 Client Hello relevant renegotiation security checks
      */
     if( ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-        ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
+        mbedtls_ssl_conf_get_allow_legacy_renegotiation( ssl->conf ) ==
+          MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -2048,7 +2049,8 @@ read_record_header:
      * Renegotiation security checks
      */
     if( ssl->secure_renegotiation != MBEDTLS_SSL_SECURE_RENEGOTIATION &&
-        ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
+        mbedtls_ssl_conf_get_allow_legacy_renegotiation( ssl->conf ) ==
+          MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
         handshake_failure = 1;
@@ -2063,7 +2065,8 @@ read_record_header:
     }
     else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
              ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-             ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION )
+             mbedtls_ssl_conf_get_allow_legacy_renegotiation( ssl->conf )
+               == MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation not allowed" ) );
         handshake_failure = 1;
@@ -2894,7 +2897,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         authmode = ssl->handshake->sni_authmode;
     else
 #endif
-        authmode = ssl->conf->authmode;
+        authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
 
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) ||
         authmode == MBEDTLS_SSL_VERIFY_NONE )
@@ -2990,7 +2993,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
     total_dn_size = 0;
 
-    if( ssl->conf->cert_req_ca_list ==  MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED )
+    if( mbedtls_ssl_conf_get_cert_req_ca_list( ssl->conf )
+        == MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED )
     {
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
         if( ssl->handshake->sni_ca_chain != NULL )

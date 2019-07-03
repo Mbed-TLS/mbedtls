@@ -529,6 +529,34 @@ check_cmdline_param_compat() {
     fi
 }
 
+check_cmdline_authmode_compat() {
+    __VAL="$( get_config_value_or_default "MBEDTLS_SSL_CONF_AUTHMODE" )"
+    if [ ! -z "$__VAL" ]; then
+        extract_cmdline_argument "auth_mode"
+        if [ "$__ARG" = "none" ] && [ "$__VAL" != "0" ]; then
+            SKIP_NEXT="YES";
+        elif [ "$__ARG" = "optional" ] && [ "$__VAL" != "1" ]; then
+            SKIP_NEXT="YES"
+        elif [ "$__ARG" = "required" ] && [ "$__VAL" != "2" ]; then
+            SKIP_NEXT="YES"
+        fi
+    fi
+}
+
+check_cmdline_legacy_renego_compat() {
+    __VAL="$( get_config_value_or_default "MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION" )"
+    if [ ! -z "$__VAL" ]; then
+        extract_cmdline_argument "allow_legacy"
+        if [ "$__ARG" = "-1" ] && [ "$__VAL" != "2" ]; then
+            SKIP_NEXT="YES";
+        elif [ "$__ARG" = "0" ] && [ "$__VAL" != "0" ]; then
+            SKIP_NEXT="YES"
+        elif [ "$__ARG" = "1" ] && [ "$__VAL" != "1" ]; then
+            SKIP_NEXT="YES"
+        fi
+    fi
+}
+
 # Go through all options that can be hardcoded at compile-time and
 # detect whether the command line configures them in a conflicting
 # way. If so, skip the test. Otherwise, remove the corresponding
@@ -544,6 +572,20 @@ check_cmdline_compat() {
                                "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET"
     check_cmdline_param_compat "enforce_extended_master_secret" \
                                "MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET"
+
+    # DTLS anti replay protection configuration
+    check_cmdline_param_compat "anti_replay" \
+                               "MBEDTLS_SSL_CONF_ANTI_REPLAY"
+
+    # DTLS bad MAC limit
+    check_cmdline_param_compat "badmac_limit" \
+                               "MBEDTLS_SSL_CONF_BADMAC_LIMIT"
+
+    # Authentication mode
+    check_cmdline_authmode_compat
+
+    # Legacy renegotiation
+    check_cmdline_legacy_renego_compat
 }
 
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
@@ -7740,7 +7782,7 @@ run_test    "DTLS proxy: reference" \
 not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: duplicate every packet" \
             -p "$P_PXY duplicate=1" \
-            "$P_SRV dtls=1 dgram_packing=0 debug_level=2" \
+            "$P_SRV dtls=1 dgram_packing=0 debug_level=2 anti_replay=1" \
             "$P_CLI dtls=1 dgram_packing=0 debug_level=2" \
             0 \
             -c "replayed record" \

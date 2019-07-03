@@ -4708,7 +4708,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
          * Section 4.1.2.7, that is, send alert only with TLS */
         if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) )
         {
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+            mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                     MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS */
@@ -5833,7 +5833,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_ALL_ALERT_MESSAGES)
                     if( ret == MBEDTLS_ERR_SSL_INVALID_MAC )
                     {
-                        mbedtls_ssl_send_alert_message( ssl,
+                        mbedtls_ssl_pend_alert_message( ssl,
                                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                 MBEDTLS_SSL_ALERT_MSG_BAD_RECORD_MAC );
                     }
@@ -5870,7 +5870,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_ALL_ALERT_MESSAGES)
             if( ret == MBEDTLS_ERR_SSL_INVALID_MAC )
             {
-                mbedtls_ssl_send_alert_message( ssl,
+                mbedtls_ssl_pend_alert_message( ssl,
                         MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                         MBEDTLS_SSL_ALERT_MSG_BAD_RECORD_MAC );
             }
@@ -6033,8 +6033,8 @@ int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl )
 }
 
 int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
-                            unsigned char level,
-                            unsigned char message )
+                                    unsigned char level,
+                                    unsigned char message )
 {
     int ret;
 
@@ -6308,7 +6308,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
@@ -6317,7 +6317,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
         ssl->in_hslen < mbedtls_ssl_hs_hdr_len( ssl ) + 3 + 3 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
     }
@@ -6333,7 +6333,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
         ssl->in_hslen != n + 3 + mbedtls_ssl_hs_hdr_len( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
     }
@@ -6347,7 +6347,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
         /* Check that there's room for the next CRT's length fields. */
         if ( i + 3 > ssl->in_hslen ) {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            mbedtls_ssl_send_alert_message( ssl,
+            mbedtls_ssl_pend_alert_message( ssl,
                               MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                               MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
@@ -6357,7 +6357,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
         if( ssl->in_msg[i] != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            mbedtls_ssl_send_alert_message( ssl,
+            mbedtls_ssl_pend_alert_message( ssl,
                             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                             MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
@@ -6371,7 +6371,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
         if( n < 128 || i + n > ssl->in_hslen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            mbedtls_ssl_send_alert_message( ssl,
+            mbedtls_ssl_pend_alert_message( ssl,
                                  MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                  MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
@@ -6394,7 +6394,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
                                               n ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "new server cert during renegotiation" ) );
-                mbedtls_ssl_send_alert_message( ssl,
+                mbedtls_ssl_pend_alert_message( ssl,
                                                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                                 MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
                 return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
@@ -6432,7 +6432,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
             default:
                 alert = MBEDTLS_SSL_ALERT_MSG_BAD_CERT;
             crt_parse_der_failed:
-                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL, alert );
+                mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL, alert );
                 MBEDTLS_SSL_DEBUG_RET( 1, " mbedtls_x509_crt_parse_der", ret );
                 return( ret );
         }
@@ -6666,7 +6666,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
             alert = MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA;
         else
             alert = MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN;
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         alert );
     }
 
@@ -6699,7 +6699,7 @@ static int ssl_remember_peer_crt_digest( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                                     sizeof( MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN ) ) );
-        mbedtls_ssl_send_alert_message( ssl,
+        mbedtls_ssl_pend_alert_message( ssl,
                                         MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
 
@@ -6804,7 +6804,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                                     sizeof( mbedtls_x509_crt ) ) );
-        mbedtls_ssl_send_alert_message( ssl,
+        mbedtls_ssl_pend_alert_message( ssl,
                                         MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
 
@@ -6937,7 +6937,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
@@ -6985,7 +6985,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
         if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_INBOUND ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+            mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                             MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
@@ -7579,7 +7579,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
@@ -7596,7 +7596,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) + hash_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
@@ -7605,7 +7605,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
                       buf, hash_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
@@ -10245,12 +10245,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
                 if( mbedtls_ssl_get_minor_ver( ssl ) >= MBEDTLS_SSL_MINOR_VERSION_1 )
                 {
-                    if( ( ret = mbedtls_ssl_send_alert_message( ssl,
+                    mbedtls_ssl_send_alert_message( ssl,
                                     MBEDTLS_SSL_ALERT_LEVEL_WARNING,
-                                    MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION ) ) != 0 )
-                    {
-                        return( ret );
-                    }
+                                    MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION );
                 }
                 else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||
@@ -11531,7 +11528,7 @@ exit:
     mbedtls_sha1_free( &mbedtls_sha1 );
 
     if( ret != 0 )
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
 
     return( ret );
@@ -11591,7 +11588,7 @@ exit:
     mbedtls_md_free( &ctx );
 
     if( ret != 0 )
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+        mbedtls_ssl_pend_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
 
     return( ret );

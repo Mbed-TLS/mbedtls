@@ -6493,7 +6493,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
                                          mbedtls_x509_crt *chain,
                                          void *rs_ctx )
 {
-    int ret = 0;
     int verify_ret;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
@@ -6543,6 +6542,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECP_C)
     {
+        int ret;
         mbedtls_pk_context *pk;
         ret = mbedtls_x509_crt_pk_acquire( chain, &pk );
         if( ret != 0 )

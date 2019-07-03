@@ -1030,12 +1030,14 @@ component_test_platform_calloc_macro () {
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check -j1
+    ldd programs/util/strerror | grep libmbedcrypto
 }
 
 component_test_cmake_shared () {
     msg "build/test: cmake shared" # ~ 2min
     cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
     make
+    ldd programs/util/strerror | grep libmbedcrypto
     make test
 }
 

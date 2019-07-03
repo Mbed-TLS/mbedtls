@@ -534,6 +534,68 @@ typedef struct
     mbedtls_net_context *net;
 } io_ctx_t;
 
+#if defined(MBEDTLS_SSL_RECORD_CHECKING)
+static int ssl_check_record( mbedtls_ssl_context const *ssl,
+                             unsigned char const *buf, size_t len )
+{
+    int ret;
+    unsigned char *tmp_buf;
+
+    tmp_buf = mbedtls_calloc( 1, len );
+    if( tmp_buf == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    memcpy( tmp_buf, buf, len );
+
+    ret = mbedtls_ssl_check_record( ssl, tmp_buf, len );
+    if( ret != MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE )
+    {
+        int ret_repeated;
+
+        /* Test-only: Make sure that mbedtls_ssl_check_record()
+         *            doesn't alter state. */
+        memcpy( tmp_buf, buf, len ); /* Restore buffer */
+        ret_repeated = mbedtls_ssl_check_record( ssl, tmp_buf, len );
+        if( ret != ret_repeated )
+        {
+            ret = -1;
+            goto exit;
+        }
+
+        switch( ret )
+        {
+            case 0:
+                break;
+
+            case MBEDTLS_ERR_SSL_INVALID_RECORD:
+                if( opt.debug_level > 1 )
+                    mbedtls_printf( "mbedtls_ssl_check_record() detected invalid record.\n" );
+                break;
+
+            case MBEDTLS_ERR_SSL_INVALID_MAC:
+                if( opt.debug_level > 1 )
+                    mbedtls_printf( "mbedtls_ssl_check_record() detected unauthentic record.\n" );
+                break;
+
+            case MBEDTLS_ERR_SSL_UNEXPECTED_RECORD:
+                if( opt.debug_level > 1 )
+                    mbedtls_printf( "mbedtls_ssl_check_record() detected unexpected record.\n" );
+                break;
+
+            default:
+                mbedtls_printf( "mbedtls_ssl_check_record() failed fatally with -%#04x.\n", -ret );
+                return( -1 );
+        }
+
+        /* Regardless of the outcome, forward the record to the stack. */
+    }
+
+exit:
+    mbedtls_free( tmp_buf );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_RECORD_CHECKING */
+
 static int recv_cb( void *ctx, unsigned char *buf, size_t len )
 {
     io_ctx_t *io_ctx = (io_ctx_t*) ctx;
@@ -553,7 +615,10 @@ static int recv_cb( void *ctx, unsigned char *buf, size_t len )
         /* Here's the place to do any datagram/record checking
          * in between receiving the packet from the underlying
          * transport and passing it on to the TLS stack. */
-        mbedtls_printf( "[RECV] Datagram of size %u\n", (unsigned) recv_len );
+#if defined(MBEDTLS_SSL_RECORD_CHECKING)
+        if( ssl_check_record( io_ctx->ssl, buf, recv_len ) != 0 )
+            return( -1 );
+#endif /* MBEDTLS_SSL_RECORD_CHECKING */
     }
 
     return( (int) recv_len );
@@ -576,7 +641,10 @@ static int recv_timeout_cb( void *ctx, unsigned char *buf, size_t len,
         /* Here's the place to do any datagram/record checking
          * in between receiving the packet from the underlying
          * transport and passing it on to the TLS stack. */
-        mbedtls_printf( "[RECV] Datagram of size %u\n", (unsigned) recv_len );
+#if defined(MBEDTLS_SSL_RECORD_CHECKING)
+        if( ssl_check_record( io_ctx->ssl, buf, recv_len ) != 0 )
+            return( -1 );
+#endif /* MBEDTLS_SSL_RECORD_CHECKING */
     }
 
     return( (int) recv_len );

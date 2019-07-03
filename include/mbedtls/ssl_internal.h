@@ -1724,7 +1724,13 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
 
-__attribute__((always_inline)) static inline int mbedtls_ssl_pend_alert_message(
+#if defined(__GNUC__) || defined(__arm__)
+#define MBEDTLS_ALWAYS_INLINE __attribute__((always_inline))
+#else
+#define MBEDTLS_ALWAYS_INLINE
+#endif
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_pend_alert_message(
     mbedtls_ssl_context *ssl,
     unsigned char level,
     unsigned char message )

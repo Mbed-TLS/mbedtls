@@ -7983,6 +7983,9 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         goto error;
 
+    ssl->pend_alert_msg   = MBEDTLS_SSL_ALERT_MSG_NONE;
+    ssl->pend_alert_level = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+
     return( 0 );
 
 error:
@@ -9835,6 +9838,14 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
         ret = mbedtls_ssl_handshake_server_step( ssl );
 #endif
 
+    if( ssl->pend_alert_msg != MBEDTLS_SSL_ALERT_MSG_NONE )
+    {
+        mbedtls_ssl_send_alert_message( ssl,
+                                        ssl->pend_alert_level,
+                                        ssl->pend_alert_msg );
+        ssl->pend_alert_msg   = MBEDTLS_SSL_ALERT_MSG_NONE;
+        ssl->pend_alert_level = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+    }
     return( ret );
 }
 

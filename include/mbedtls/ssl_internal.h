@@ -1724,4 +1724,15 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
 
+__attribute__((always_inline)) static inline int mbedtls_ssl_pend_alert_message(
+    mbedtls_ssl_context *ssl,
+    unsigned char level,
+    unsigned char message )
+{
+    if( level != MBEDTLS_SSL_ALERT_LEVEL_FATAL )
+        ssl->pend_alert_level = level;
+    ssl->pend_alert_msg = message;
+    return( 0 );
+}
+
 #endif /* ssl_internal.h */

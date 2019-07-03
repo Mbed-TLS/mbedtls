@@ -366,6 +366,7 @@
 #define MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME    112  /* 0x70 */
 #define MBEDTLS_SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY 115  /* 0x73 */
 #define MBEDTLS_SSL_ALERT_MSG_NO_APPLICATION_PROTOCOL 120 /* 0x78 */
+#define MBEDTLS_SSL_ALERT_MSG_NONE                 255  /* internal */
 
 #define MBEDTLS_SSL_HS_HELLO_REQUEST            0
 #define MBEDTLS_SSL_HS_CLIENT_HELLO             1
@@ -1233,6 +1234,9 @@ struct mbedtls_ssl_config
 struct mbedtls_ssl_context
 {
     const mbedtls_ssl_config *conf; /*!< configuration information          */
+
+    unsigned char pend_alert_level;
+    unsigned char pend_alert_msg;
 
     /*
      * Miscellaneous

@@ -4163,13 +4163,17 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_PRE_1_0_KEY_DERIVATION */
-void test_derive_invalid_key_derivation_state( )
+/* BEGIN_CASE */
+void test_derive_invalid_key_derivation_state( int alg_arg )
 {
+    psa_algorithm_t alg = alg_arg;
     psa_key_handle_t handle = 0;
     size_t key_type = PSA_KEY_TYPE_DERIVE;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
-    psa_algorithm_t alg = PSA_ALG_HKDF( PSA_ALG_SHA_256 );
+    unsigned char input1[] = "Input 1";
+    size_t input1_length = sizeof( input1 );
+    unsigned char input2[] = "Input 2";
+    size_t input2_length = sizeof( input2 );
     uint8_t buffer[42];
     size_t capacity = sizeof( buffer );
     const uint8_t key_data[22] = { 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
@@ -4188,16 +4192,14 @@ void test_derive_invalid_key_derivation_state( )
                                 &handle ) );
 
     /* valid key derivation */
-    PSA_ASSERT(  psa_key_derivation( &operation, handle, alg,
-                                     NULL, 0,
-                                     NULL, 0,
-                                     capacity ) );
+    if( !setup_key_derivation_wrap( &operation, handle, alg,
+                                    input1, input1_length,
+                                    input2, input2_length,
+                                    capacity ) )
+        goto exit;
 
     /* state of operation shouldn't allow additional generation */
-    TEST_EQUAL(  psa_key_derivation( &operation, handle, alg,
-                                     NULL, 0,
-                                     NULL, 0,
-                                     capacity ),
+    TEST_EQUAL(  psa_key_derivation_setup( &operation, alg ),
                  PSA_ERROR_BAD_STATE );
 
     PSA_ASSERT( psa_key_derivation_output_bytes( &operation, buffer, capacity ) );

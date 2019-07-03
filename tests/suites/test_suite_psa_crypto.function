@@ -4419,11 +4419,11 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_PRE_1_0_KEY_DERIVATION */
+/* BEGIN_CASE */
 void derive_key_exercise( int alg_arg,
                           data_t *key_data,
-                          data_t *salt,
-                          data_t *label,
+                          data_t *input1,
+                          data_t *input2,
                           int derived_type_arg,
                           int derived_bits_arg,
                           int derived_usage_arg,
@@ -4450,10 +4450,11 @@ void derive_key_exercise( int alg_arg,
                                 &base_handle ) );
 
     /* Derive a key. */
-    PSA_ASSERT( psa_key_derivation( &operation, base_handle, alg,
-                                    salt->x, salt->len,
-                                    label->x, label->len,
-                                    capacity ) );
+    if ( setup_key_derivation_wrap( &operation, base_handle, alg,
+                                    input1->x, input1->len,
+                                    input2->x, input2->len, capacity ) )
+        goto exit;
+
     psa_set_key_usage_flags( &attributes, derived_usage );
     psa_set_key_algorithm( &attributes, derived_alg );
     psa_set_key_type( &attributes, derived_type );

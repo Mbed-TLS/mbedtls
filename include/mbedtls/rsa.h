@@ -150,13 +150,13 @@ mbedtls_rsa_context;
  * \note           The choice of padding mode is strictly enforced for private key
  *                 operations, since there might be security concerns in
  *                 mixing padding modes. For public key operations it is
- *                 a default value, which can be overriden by calling specific
+ *                 a default value, which can be overridden by calling specific
  *                 \c rsa_rsaes_xxx or \c rsa_rsassa_xxx functions.
  *
  * \note           The hash selected in \p hash_id is always used for OEAP
  *                 encryption. For PSS signatures, it is always used for
- *                 making signatures, but can be overriden for verifying them.
- *                 If set to #MBEDTLS_MD_NONE, it is always overriden.
+ *                 making signatures, but can be overridden for verifying them.
+ *                 If set to #MBEDTLS_MD_NONE, it is always overridden.
  *
  * \param ctx      The RSA context to initialize. This must not be \c NULL.
  * \param padding  The padding mode to use. This must be either

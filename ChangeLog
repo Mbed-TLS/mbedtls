@@ -1,6 +1,41 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.x.x branch released xxxx-xx-xx
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Features
+   * Add new configuration option MBEDTLS_SSL_NO_SESSION_CACHE that enables
+     code size savings in configurations where cache-based session resumption is
+     not used.
+   * Add new configuration option MBEDTLS_SSL_NO_SESSION_RESUMPTION that
+     enables code size savings in configurations where no form of session
+     resumption is used.
+
+Bugfix
+   * Fix to allow building test suites with any warning that detects unused
+     functions. Fixes #1628.
+   * Fix typo in net_would_block(). Fixes #528 reported by github-monoculture.
+   * Remove redundant include file in timing.c. Fixes #2640 reported by irwir.
+   * Fix Visual Studio Release x64 build configuration by inheriting
+     PlatformToolset from the project configuration. Fixes #1430 reported by
+     irwir.
+   * Enable Suite B with subset of ECP curves. Make sure the code compiles even
+     if some curves are not defined. Fixes #1591 reported by dbedev.
+
+Changes
+   * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h
+     suggests). #2671
+   * Make `make clean` clean all programs always. Fixes #1862.
+
+API Changes
+   * Add a new compile-time option `MBEDTLS_X509_ON_DEMAND_PARSING`,
+     disabled by default, which allows to parse and cache X.509 CRTs
+     on demand only, at the benefit of lower RAM usage. Enabling
+     this option breaks the structure API of X.509 in that most
+     fields of `mbedtls_x509_crt` are removed, but it keeps the
+     X.509 function API. See the API changes section as well as
+     the documentation in `config.h` for more information.
+
+= mbed TLS 2.16.2 branch released 2019-06-11
 
 Security
    * Make mbedtls_ecdh_get_params return an error if the second key
@@ -38,12 +73,17 @@ Features
      ServerHello.
    * Add new configuration option MBEDTLS_SSL_PROTO_NO_TLS that enables code
      size savings in configurations where only DTLS is used.
-   * Add new configuration option MBEDTLS_SSL_NO_SESSION_CACHE that enables
-     code size savings in configurations where cache-based session resumption is
-     not used.
-   * Add new configuration option MBEDTLS_SSL_NO_SESSION_RESUMPTION that
-     enables code size savings in configurations where no form of session
-     resumption is used.
+
+API Changes
+   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.
+     See the Features section for more information.
+   * Allow to opt in to the removal the API mbedtls_ssl_get_peer_cert()
+     for the benefit of saving RAM, by disabling the new compile-time
+     option MBEDTLS_SSL_KEEP_PEER_CERTIFICATE (enabled by default for
+     API stability). Disabling this option makes mbedtls_ssl_get_peer_cert()
+     always return NULL, and removes the peer_cert field from the
+     mbedtls_ssl_session structure which otherwise stores the peer's
+     certificate.
 
 Bugfix
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default
@@ -92,24 +132,6 @@ Changes
    * Change wording in the `mbedtls_ssl_conf_max_frag_len()`'s documentation to
      improve clarity. Fixes #2258.
    * Replace multiple uses of MD2 by SHA-256 in X.509 test suite. Fixes #821.
-
-API Changes
-   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.
-     See the Features section for more information.
-   * Allow to opt in to the removal the API mbedtls_ssl_get_peer_cert()
-     for the benefit of saving RAM, by disabling the new compile-time
-     option MBEDTLS_SSL_KEEP_PEER_CERTIFICATE (enabled by default for
-     API stability). Disabling this option makes mbedtls_ssl_get_peer_cert()
-     always return NULL, and removes the peer_cert field from the
-     mbedtls_ssl_session structure which otherwise stores the peer's
-     certificate.
-   * Add a new compile-time option `MBEDTLS_X509_ON_DEMAND_PARSING`,
-     disabled by default, which allows to parse and cache X.509 CRTs
-     on demand only, at the benefit of lower RAM usage. Enabling
-     this option breaks the structure API of X.509 in that most
-     fields of `mbedtls_x509_crt` are removed, but it keeps the
-     X.509 function API. See the API changes section as well as
-     the documentation in `config.h` for more information.
 
 = mbed TLS 2.16.1 branch released 2019-03-19
 
@@ -475,7 +497,7 @@ Security
      1.2, that allowed a local attacker, able to execute code on the local
      machine as well as manipulate network packets, to partially recover the
      plaintext of messages under some conditions by using a cache attack
-     targetting an internal MD/SHA buffer. With TLS or if
+     targeting an internal MD/SHA buffer. With TLS or if
      mbedtls_ssl_conf_dtls_badmac_limit() was used, the attack only worked if
      the same secret (for example a HTTP Cookie) has been repeatedly sent over
      connections manipulated by the attacker. Connections using GCM or CCM
@@ -1361,7 +1383,7 @@ Bugfix
    * Fix potential build failures related to the 'apidoc' target, introduced
      in the previous patch release. Found by Robert Scheck. #390 #391
    * Fix issue in Makefile that prevented building using armar. #386
-   * Fix memory leak that occured only when ECJPAKE was enabled and ECDHE and
+   * Fix memory leak that occurred only when ECJPAKE was enabled and ECDHE and
      ECDSA was disabled in config.h . The leak didn't occur by default.
    * Fix an issue that caused valid certificates to be rejected whenever an
      expired or not yet valid certificate was parsed before a valid certificate
@@ -1603,7 +1625,7 @@ API Changes
      You now need to link to all of them if you use TLS for example.
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.
      Some names have been further changed to make them more consistent.
-     Migration helpers scripts/rename.pl and include/mbedlts/compat-1.3.h are
+     Migration helpers scripts/rename.pl and include/mbedtls/compat-1.3.h are
      provided. Full list of renamings in scripts/data_files/rename-1.3-2.0.txt
    * Renamings of fields inside structures, not covered by the previous list:
      mbedtls_cipher_info_t.key_length -> key_bitlen
@@ -1658,7 +1680,7 @@ API Changes
    * net_accept() gained new arguments for the size of the client_ip buffer.
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.
-   * ecdsa_write_signature() gained an addtional md_alg argument and
+   * ecdsa_write_signature() gained an additional md_alg argument and
      ecdsa_write_signature_det() was deprecated.
    * pk_sign() no longer accepts md_alg == POLARSSL_MD_NONE with ECDSA.
    * Last argument of x509_crt_check_key_usage() and
@@ -3193,7 +3215,7 @@ XySSL ChangeLog
       not swapped on PadLock; also fixed compilation on older versions
       of gcc (bug reported by David Barrett)
     * Correctly handle the case in padlock_xcryptcbc() when input or
-      ouput data is non-aligned by falling back to the software
+      output data is non-aligned by falling back to the software
       implementation, as VIA Nehemiah cannot handle non-aligned buffers
     * Fixed a memory leak in x509parse_crt() which was reported by Greg
       Robson-Garth; some x509write.c fixes by Pascal Vizeli, thanks to

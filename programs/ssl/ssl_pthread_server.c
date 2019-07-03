@@ -82,17 +82,6 @@ int main( void )
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 #define HTTP_RESPONSE \
     "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
@@ -463,7 +452,6 @@ int main( void )
     }
 
     mbedtls_printf( " ok\n" );
-
 
     /*
      * 2. Setup the listening TCP socket

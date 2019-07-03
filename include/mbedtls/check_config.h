@@ -762,7 +762,7 @@
 /*
  * Avoid warning from -pedantic. This is a convenient place for this
  * workaround since this is included by every single file before the
- * #if defined(MBEDTLS_xxx_C) that results in emtpy translation units.
+ * #if defined(MBEDTLS_xxx_C) that results in empty translation units.
  */
 typedef int mbedtls_iso_c_forbids_empty_translation_units;
 

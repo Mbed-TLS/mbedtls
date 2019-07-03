@@ -26,7 +26,7 @@ if cd $( dirname $0 ); then :; else
     exit 1
 fi
 
-# default values, can be overriden by the environment
+# default values, can be overridden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
 : ${P_PXY:=../programs/test/udp_proxy}
@@ -780,7 +780,7 @@ run_test() {
 
                 # The filtering in the following two options (-u and -U) do the following
                 #   - ignore valgrind output
-                #   - filter out everything but lines right after the pattern occurances
+                #   - filter out everything but lines right after the pattern occurrences
                 #   - keep one of each non-unique line
                 #   - count how many lines remain
                 # A line with '--' will remain in the result from previous outputs, so the number of lines in the result will be 1
@@ -3659,7 +3659,7 @@ run_test    "Authentication: server max_int chain, client default" \
                     key_file=data_files/dir-maxpath/09.key" \
             "$P_CLI server_name=CA09 ca_file=data_files/dir-maxpath/00.crt" \
             0 \
-            -C "X509 - A fatal error occured"
+            -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client default" \
@@ -3667,7 +3667,7 @@ run_test    "Authentication: server max_int+1 chain, client default" \
                     key_file=data_files/dir-maxpath/10.key" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt" \
             1 \
-            -c "X509 - A fatal error occured"
+            -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client optional" \
@@ -3676,7 +3676,7 @@ run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=optional" \
             1 \
-            -c "X509 - A fatal error occured"
+            -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client none" \
@@ -3685,7 +3685,7 @@ run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_CLI server_name=CA10 ca_file=data_files/dir-maxpath/00.crt \
                     auth_mode=none" \
             0 \
-            -C "X509 - A fatal error occured"
+            -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server default" \
@@ -3693,7 +3693,7 @@ run_test    "Authentication: client max_int+1 chain, server default" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             0 \
-            -S "X509 - A fatal error occured"
+            -S "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server optional" \
@@ -3701,7 +3701,7 @@ run_test    "Authentication: client max_int+1 chain, server optional" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "X509 - A fatal error occured"
+            -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server required" \
@@ -3709,7 +3709,7 @@ run_test    "Authentication: client max_int+1 chain, server required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
             1 \
-            -s "X509 - A fatal error occured"
+            -s "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
 run_test    "Authentication: client max_int chain, server required" \
@@ -3717,7 +3717,7 @@ run_test    "Authentication: client max_int chain, server required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
             0 \
-            -S "X509 - A fatal error occured"
+            -S "X509 - A fatal error occurred"
 
 # Tests for CA list in CertificateRequest messages
 

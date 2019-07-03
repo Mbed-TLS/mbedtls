@@ -286,7 +286,9 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     session->ciphersuite = 0xabcd;
 #endif
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     session->compression = 1;
+#endif
     session->id_len = sizeof( session->id );
     memset( session->id, 66, session->id_len );
     memset( session->master, 17, sizeof( session->master ) );
@@ -716,7 +718,9 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     TEST_ASSERT( original.ciphersuite == restored.ciphersuite );
 #endif
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     TEST_ASSERT( original.compression == restored.compression );
+#endif
     TEST_ASSERT( original.id_len == restored.id_len );
     TEST_ASSERT( memcmp( original.id,
                          restored.id, sizeof( original.id ) ) == 0 );

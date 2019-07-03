@@ -86,7 +86,8 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session )
 
         if( mbedtls_ssl_session_get_ciphersuite( session ) !=
             mbedtls_ssl_session_get_ciphersuite( &entry->session ) ||
-            session->compression != entry->session.compression ||
+            mbedtls_ssl_session_get_compression( session ) !=
+            mbedtls_ssl_session_get_compression( &entry->session ) ||
             session->id_len != entry->session.id_len )
         {
             continue;

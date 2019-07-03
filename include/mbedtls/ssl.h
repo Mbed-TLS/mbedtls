@@ -939,7 +939,9 @@ struct mbedtls_ssl_session
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     int ciphersuite;            /*!< chosen ciphersuite */
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     int compression;            /*!< chosen compression */
+#endif /* MBEDTLS_ZLIB_SUPPORT */
     size_t id_len;              /*!< session id length  */
     unsigned char id[32];       /*!< session identifier */
     unsigned char master[48];   /*!< the master secret  */

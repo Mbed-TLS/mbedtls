@@ -1780,4 +1780,19 @@ MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_pend_fatal_alert(
     ssl->pending_fatal_alert_msg = message;
 }
 
+/*
+ * Getter functions for fields in SSL session.
+ */
+
+static inline int mbedtls_ssl_session_get_compression(
+    mbedtls_ssl_session const *session )
+{
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+    return( session->compression );
+#else
+    ( (void) session );
+    return( MBEDTLS_SSL_COMPRESS_NULL );
+#endif
+}
+
 #endif /* ssl_internal.h */

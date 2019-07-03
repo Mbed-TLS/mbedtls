@@ -1987,7 +1987,7 @@ static int chachapoly_setkey_wrap( void *ctx,
     if( key_bitlen != 256U )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    if ( 0 != mbedtls_chachapoly_setkey( (mbedtls_chachapoly_context*)ctx, key ) )
+    if ( 0 != mbedtls_chachapoly_setkey( (mbedtls_chachapoly_context *)ctx, key ) )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     return( 0 );

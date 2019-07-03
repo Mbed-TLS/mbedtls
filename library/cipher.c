@@ -331,13 +331,13 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
                 ? MBEDTLS_CHACHAPOLY_ENCRYPT
                 : MBEDTLS_CHACHAPOLY_DECRYPT;
 
-        result = mbedtls_chachapoly_starts( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+        result = mbedtls_chachapoly_starts( (mbedtls_chachapoly_context *) ctx->cipher_ctx,
                                                         ctx->iv,
                                                         mode );
         if ( result != 0 )
             return( result );
 
-        return( mbedtls_chachapoly_update_aad( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+        return( mbedtls_chachapoly_update_aad( (mbedtls_chachapoly_context *) ctx->cipher_ctx,
                                                ad, ad_len ) );
     }
 #endif
@@ -391,7 +391,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     if ( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
     {
         *olen = ilen;
-        return( mbedtls_chachapoly_update( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+        return( mbedtls_chachapoly_update( (mbedtls_chachapoly_context *) ctx->cipher_ctx,
                                            ilen, input, output ) );
     }
 #endif
@@ -924,7 +924,7 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
         if ( tag_len != 16U )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-        return( mbedtls_chachapoly_finish( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+        return( mbedtls_chachapoly_finish( (mbedtls_chachapoly_context *) ctx->cipher_ctx,
                                            tag ) );
     }
 #endif
@@ -975,7 +975,7 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         if ( tag_len != sizeof( check_tag ) )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-        ret = mbedtls_chachapoly_finish( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+        ret = mbedtls_chachapoly_finish( (mbedtls_chachapoly_context *) ctx->cipher_ctx,
                                                      check_tag );
         if ( ret != 0 )
         {

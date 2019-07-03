@@ -1210,6 +1210,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_ALL_ALERT_MESSAGES */
 
+#if defined(MBEDTLS_SSL_RECORD_CHECKING)
+    if( strcmp( "MBEDTLS_SSL_RECORD_CHECKING", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_RECORD_CHECKING );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_RECORD_CHECKING */
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( strcmp( "MBEDTLS_SSL_DTLS_CONNECTION_ID", config ) == 0 )
     {

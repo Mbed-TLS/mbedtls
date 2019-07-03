@@ -2293,54 +2293,6 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )
     return( cur->id );
 }
 
-int mbedtls_ssl_ciphersuite_has_pfs(
-    mbedtls_ssl_ciphersuite_handle_t info )
-{
-    return( mbedtls_ssl_ciphersuite_has_pfs_internal( info ) );
-}
-
-int mbedtls_ssl_ciphersuite_no_pfs(
-    mbedtls_ssl_ciphersuite_handle_t info )
-{
-    return( mbedtls_ssl_ciphersuite_no_pfs_internal( info ) );
-}
-
-int mbedtls_ssl_ciphersuite_uses_ecdh(
-    mbedtls_ssl_ciphersuite_handle_t info )
-{
-    return( mbedtls_ssl_ciphersuite_uses_ecdh_internal( info ) );
-}
-
-int mbedtls_ssl_ciphersuite_cert_req_allowed(
-    mbedtls_ssl_ciphersuite_handle_t info )
-{
-    return( mbedtls_ssl_ciphersuite_cert_req_allowed_internal( info ) );
-}
-
-int mbedtls_ssl_ciphersuite_uses_srv_cert(
-    mbedtls_ssl_ciphersuite_handle_t info )
-{
-    return( mbedtls_ssl_ciphersuite_uses_srv_cert_internal( info ) );
-}
-
-int mbedtls_ssl_ciphersuite_uses_dhe(
-    mbedtls_ssl_ciphersuite_handle_t info )
-{
-    return( mbedtls_ssl_ciphersuite_uses_dhe_internal( info ) );
-}
-
-int mbedtls_ssl_ciphersuite_uses_ecdhe(
-    mbedtls_ssl_ciphersuite_handle_t info )
-{
-    return( mbedtls_ssl_ciphersuite_uses_ecdhe_internal( info ) );
-}
-
-int mbedtls_ssl_ciphersuite_uses_server_signature(
-    mbedtls_ssl_ciphersuite_handle_t info )
-{
-    return( mbedtls_ssl_ciphersuite_uses_server_signature_internal( info ) );
-}
-
 #if defined(MBEDTLS_PK_C)
 mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg(
     mbedtls_ssl_ciphersuite_handle_t info )

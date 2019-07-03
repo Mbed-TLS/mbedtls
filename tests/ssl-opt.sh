@@ -2130,6 +2130,9 @@ run_test    "Fallback SCSV: end of list" \
             -s "inapropriate fallback"
 
 ## Here the expected response is a valid ServerHello prefix, up to the random.
+## Due to the way the clienthello was generated, this currently needs the
+## server to have support for session tickets.
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: not in list" \
             "$P_SRV debug_level=2" \
@@ -2206,6 +2209,8 @@ run_test    "CBC Record splitting: TLS 1.0, splitting, nbio" \
 
 # Tests for Session Tickets
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: basic" \
             "$P_SRV debug_level=3 tickets=1" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1" \
@@ -2220,6 +2225,8 @@ run_test    "Session resume using tickets: basic" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: cache disabled" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1" \
@@ -2234,6 +2241,8 @@ run_test    "Session resume using tickets: cache disabled" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: timeout" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0 ticket_timeout=1" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1 reco_delay=2" \
@@ -2248,6 +2257,8 @@ run_test    "Session resume using tickets: timeout" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: session copy" \
             "$P_SRV debug_level=3 tickets=1 cache_max=0" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1 reco_mode=0" \
@@ -2262,6 +2273,8 @@ run_test    "Session resume using tickets: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl server" \
             "$O_SRV" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1" \
@@ -2271,6 +2284,8 @@ run_test    "Session resume using tickets: openssl server" \
             -c "parse new session ticket" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl client" \
             "$P_SRV debug_level=3 tickets=1" \
             "( $O_CLI -sess_out $SESSION; \
@@ -2285,6 +2300,8 @@ run_test    "Session resume using tickets: openssl client" \
 
 # Tests for Session Tickets with DTLS
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: basic" \
             "$P_SRV debug_level=3 dtls=1 tickets=1" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1" \
@@ -2299,6 +2316,8 @@ run_test    "Session resume using tickets, DTLS: basic" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: cache disabled" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1" \
@@ -2313,6 +2332,8 @@ run_test    "Session resume using tickets, DTLS: cache disabled" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: timeout" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0 ticket_timeout=1" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 reco_delay=2" \
@@ -2327,6 +2348,8 @@ run_test    "Session resume using tickets, DTLS: timeout" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: session copy" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
             "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 reco_mode=0" \
@@ -2341,6 +2364,8 @@ run_test    "Session resume using tickets, DTLS: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: openssl server" \
             "$O_SRV -dtls1" \
             "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
@@ -2350,6 +2375,8 @@ run_test    "Session resume using tickets, DTLS: openssl server" \
             -c "parse new session ticket" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
             "( $O_CLI -dtls1 -sess_out $SESSION; \
@@ -2364,6 +2391,9 @@ run_test    "Session resume using tickets, DTLS: openssl client" \
 
 # Tests for Session Resume based on session-ID and cache
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: tickets enabled on client" \
             "$P_SRV debug_level=3 tickets=0" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1" \
@@ -2378,6 +2408,9 @@ run_test    "Session resume using cache: tickets enabled on client" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: tickets enabled on server" \
             "$P_SRV debug_level=3 tickets=1" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1" \
@@ -2392,6 +2425,8 @@ run_test    "Session resume using cache: tickets enabled on server" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: cache_max=0" \
             "$P_SRV debug_level=3 tickets=0 cache_max=0" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1" \
@@ -2401,6 +2436,8 @@ run_test    "Session resume using cache: cache_max=0" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: cache_max=1" \
             "$P_SRV debug_level=3 tickets=0 cache_max=1" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1" \
@@ -2410,6 +2447,8 @@ run_test    "Session resume using cache: cache_max=1" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: timeout > delay" \
             "$P_SRV debug_level=3 tickets=0" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=0" \
@@ -2419,6 +2458,8 @@ run_test    "Session resume using cache: timeout > delay" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: timeout < delay" \
             "$P_SRV debug_level=3 tickets=0 cache_timeout=1" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
@@ -2428,6 +2469,8 @@ run_test    "Session resume using cache: timeout < delay" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: no timeout" \
             "$P_SRV debug_level=3 tickets=0 cache_timeout=0" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
@@ -2437,6 +2480,8 @@ run_test    "Session resume using cache: no timeout" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: session copy" \
             "$P_SRV debug_level=3 tickets=0" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_mode=0" \
@@ -2446,6 +2491,8 @@ run_test    "Session resume using cache: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: openssl client" \
             "$P_SRV debug_level=3 tickets=0" \
             "( $O_CLI -sess_out $SESSION; \
@@ -2458,6 +2505,8 @@ run_test    "Session resume using cache: openssl client" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: openssl server" \
             "$O_SRV" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1" \
@@ -2468,6 +2517,9 @@ run_test    "Session resume using cache: openssl server" \
 
 # Tests for Session Resume based on session-ID and cache, DTLS
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: tickets enabled on client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
             "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
@@ -2482,6 +2534,9 @@ run_test    "Session resume using cache, DTLS: tickets enabled on client" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: tickets enabled on server" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
@@ -2496,6 +2551,8 @@ run_test    "Session resume using cache, DTLS: tickets enabled on server" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: cache_max=0" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_max=0" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
@@ -2505,6 +2562,8 @@ run_test    "Session resume using cache, DTLS: cache_max=0" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: cache_max=1" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_max=1" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
@@ -2514,6 +2573,8 @@ run_test    "Session resume using cache, DTLS: cache_max=1" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: timeout > delay" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=0" \
@@ -2523,6 +2584,8 @@ run_test    "Session resume using cache, DTLS: timeout > delay" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: timeout < delay" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_timeout=1" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
@@ -2532,6 +2595,8 @@ run_test    "Session resume using cache, DTLS: timeout < delay" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: no timeout" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_timeout=0" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
@@ -2541,6 +2606,8 @@ run_test    "Session resume using cache, DTLS: no timeout" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: session copy" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_mode=0" \
@@ -2550,6 +2617,8 @@ run_test    "Session resume using cache, DTLS: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
             "( $O_CLI -dtls1 -sess_out $SESSION; \
@@ -2562,6 +2631,8 @@ run_test    "Session resume using cache, DTLS: openssl client" \
             -S "session successfully restored from ticket" \
             -s "a session has been resumed"
 
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: openssl server" \
             "$O_SRV -dtls1" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
@@ -7864,6 +7935,8 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
             -S "Injecting buffered CCS message" \
             -S "Remember CCS message"
 
+# This needs session tickets; otherwise CCS is the first message in its flight
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
             -p "$P_PXY delay_srv=NewSessionTicket" \
             "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
@@ -8006,6 +8079,9 @@ run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -c "HTTP/1.0 200 OK"
 
 client_needs_more_time 4
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
@@ -8020,6 +8096,9 @@ run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -c "HTTP/1.0 200 OK"
 
 client_needs_more_time 4
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \

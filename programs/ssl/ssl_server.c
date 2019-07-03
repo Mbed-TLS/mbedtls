@@ -224,11 +224,11 @@ int main( void )
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
-#if defined(MBEDTLS_SSL_CACHE_C)
+#if defined(MBEDTLS_SSL_CACHE_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     mbedtls_ssl_conf_session_cache( &conf, &cache,
                                    mbedtls_ssl_cache_get,
                                    mbedtls_ssl_cache_set );
-#endif
+#endif /* MBEDTLS_SSL_CACHE_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
     mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
     if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )

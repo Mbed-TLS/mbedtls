@@ -671,6 +671,16 @@
 #error "MBEDTLS_SSL_SERVER_NAME_INDICATION defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) &&  \
+    defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+#error "MBEDTLS_SSL_SESSION_TICKETS cannot be defined with MBEDTLS_SSL_NO_SESSION_RESUMPTION"
+#endif
+
+#if !defined(MBEDTLS_SSL_NO_SESSION_CACHE) &&  \
+    defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+#error "MBEDTLS_SSL_NO_SESSION_CACHE needs to be defined with MBEDTLS_SSL_NO_SESSION_RESUMPTION"
+#endif
+
 #if defined(MBEDTLS_THREADING_PTHREAD)
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_PTHREAD defined, but not all prerequisites"

@@ -1263,11 +1263,13 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     (void) ssl;
 #endif
 
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     if( handshake->resume != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
         return( 0 );
     }
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "premaster secret", handshake->premaster,
                                                   handshake->pmslen );
@@ -7285,8 +7287,6 @@ static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
 
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
-    int resume = ssl->handshake->resume;
-
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -7314,16 +7314,18 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     ssl->session = ssl->session_negotiate;
     ssl->session_negotiate = NULL;
 
+#if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     /*
      * Add cache entry
      */
     if( ssl->conf->f_set_cache != NULL &&
         ssl->session->id_len != 0 &&
-        resume == 0 )
+        ssl->handshake->resume == 0 )
     {
         if( ssl->conf->f_set_cache( ssl->conf->p_cache, ssl->session ) != 0 )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
     }
+#endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
@@ -7372,6 +7374,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_FINISHED;
 
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     /*
      * In case of session resuming, invert the client and server
      * ChangeCipherSpec messages order.
@@ -7388,6 +7391,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 #endif
     }
     else
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
         ssl->state++;
 
     /*
@@ -7528,6 +7532,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
     memcpy( ssl->peer_verify_data, buf, hash_len );
 #endif
 
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     if( ssl->handshake->resume != 0 )
     {
 #if defined(MBEDTLS_SSL_CLI_C)
@@ -7540,6 +7545,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 #endif
     }
     else
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
         ssl->state++;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -8164,7 +8170,7 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
     ssl_set_timer( ssl, 0 );
 }
 
-#if defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
 void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
         void *p_cache,
         int (*f_get_cache)(void *, mbedtls_ssl_session *),
@@ -8174,9 +8180,9 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
     conf->f_get_cache = f_get_cache;
     conf->f_set_cache = f_set_cache;
 }
-#endif /* MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
-#if defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C) && !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
 int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session )
 {
     int ret;
@@ -8197,7 +8203,7 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C && !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites )

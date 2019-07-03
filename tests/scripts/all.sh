@@ -682,6 +682,21 @@ component_test_rsa_no_crt () {
     if_build_succeeded tests/compat.sh -t RSA
 }
 
+component_test_no_resumption () {
+    msg "build: Default + MBEDTLS_SSL_NO_SESSION_RESUMPTION (ASan build)" # ~ 6 min
+    scripts/config.pl unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.pl set MBEDTLS_SSL_NO_SESSION_CACHE
+    scripts/config.pl set MBEDTLS_SSL_NO_SESSION_RESUMPTION
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: MBEDTLS_SSL_NO_SESSION_RESUMPTION - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: MBEDTLS_SSL_NO_SESSION_RESUMPTION - ssl-opt.sh (ASan build)" # ~ 6 min
+    if_build_succeeded tests/ssl-opt.sh
+}
+
 component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
     scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384

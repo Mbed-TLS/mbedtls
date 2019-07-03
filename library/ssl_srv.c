@@ -1341,16 +1341,12 @@ read_record_header:
      * otherwise read it ourselves manually in order to support SSLv2
      * ClientHello, which doesn't use the same record layer format.
      */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
+    if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
+        ( ret = mbedtls_ssl_fetch_input( ssl, 5 ) ) != 0 )
     {
-        if( ( ret = mbedtls_ssl_fetch_input( ssl, 5 ) ) != 0 )
-        {
-            /* No alert on a read error. */
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
-            return( ret );
-        }
+        /* No alert on a read error. */
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
+        return( ret );
     }
 
     buf = ssl->in_hdr;
@@ -1405,11 +1401,8 @@ read_record_header:
     /* For DTLS if this is the initial handshake, remember the client sequence
      * number to use it in our next message (RFC 6347 4.2.1) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport )
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
-#endif
-        )
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
+        mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
         /* Epoch should be 0 for initial handshakes */
         if( ssl->in_ctr[0] != 0 || ssl->in_ctr[1] != 0 )
@@ -1670,11 +1663,8 @@ read_record_header:
                        buf + cookie_offset + 1, cookie_len );
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
-        if( ssl->conf->f_cookie_check != NULL
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-            && ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE
-#endif
-            )
+        if( ssl->conf->f_cookie_check != NULL &&
+            mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
         {
             if( ssl->conf->f_cookie_check( ssl->conf->p_cookie,
                                      buf + cookie_offset + 1, cookie_len,
@@ -2691,15 +2681,14 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 
+#if !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     /*
      * Resume is 0  by default, see ssl_handshake_init().
      * It may be already set to 1 by ssl_parse_session_ticket_ext().
      * If not, try looking up session ID in our cache.
      */
-    if( ssl->handshake->resume == 0 &&
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
-#endif
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 &&
+        mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
         ssl->session_negotiate->id_len != 0 &&
         ssl->conf->f_get_cache != NULL &&
         ssl->conf->f_get_cache( ssl->conf->p_cache, ssl->session_negotiate ) == 0 )
@@ -2707,8 +2696,25 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
         ssl->handshake->resume = 1;
     }
+#endif /* !MBEDTLS_SSL_NO_SESSION_CACHE */
 
-    if( ssl->handshake->resume == 0 )
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 1 )
+    {
+        /*
+         * Resuming a session
+         */
+        n = ssl->session_negotiate->id_len;
+        ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
+
+        if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
     {
         /*
          * New session, create a new session id,
@@ -2735,20 +2741,6 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
                 return( ret );
         }
     }
-    else
-    {
-        /*
-         * Resuming a session
-         */
-        n = ssl->session_negotiate->id_len;
-        ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
-
-        if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
-            return( ret );
-        }
-    }
 
     /*
      *    38  .  38     session id length
@@ -2765,7 +2757,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
-                   ssl->handshake->resume ? "a" : "no" ) );
+            mbedtls_ssl_handshake_get_resume( ssl->handshake ) ? "a" : "no" ) );
 
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite >> 8 );
     *p++ = (unsigned char)( ssl->session_negotiate->ciphersuite      );

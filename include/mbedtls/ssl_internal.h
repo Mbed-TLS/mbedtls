@@ -509,7 +509,9 @@ struct mbedtls_ssl_handshake_params
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
 
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     int resume;                         /*!<  session resume indicator*/
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
     int max_major_ver;                  /*!< max. major version client*/
     int max_minor_ver;                  /*!< max. minor version client*/
     int cli_exts;                       /*!< client extension presence*/
@@ -1078,6 +1080,33 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
                              mbedtls_ssl_transform *transform,
                              mbedtls_record *rec );
+
+
+/*
+ * Accessor functions for optional fields of various structures
+ */
+
+static inline int mbedtls_ssl_handshake_get_resume(
+        const mbedtls_ssl_handshake_params *handshake )
+{
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    return( handshake->resume );
+#else
+    (void) handshake;
+    return( 0 );
+#endif
+}
+
+static inline int mbedtls_ssl_get_renego_status(
+        const mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    return( ssl->renego_status );
+#else
+    (void) ssl;
+    return( MBEDTLS_SSL_INITIAL_HANDSHAKE );
+#endif
+}
 
 
 /*

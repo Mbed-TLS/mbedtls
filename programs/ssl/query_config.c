@@ -1410,6 +1410,22 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
+#if defined(MBEDTLS_SSL_NO_SESSION_CACHE)
+    if( strcmp( "MBEDTLS_SSL_NO_SESSION_CACHE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_NO_SESSION_CACHE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_NO_SESSION_CACHE */
+
+#if defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    if( strcmp( "MBEDTLS_SSL_NO_SESSION_RESUMPTION", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_NO_SESSION_RESUMPTION );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_NO_SESSION_RESUMPTION */
+
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( strcmp( "MBEDTLS_SSL_EXPORT_KEYS", config ) == 0 )
     {

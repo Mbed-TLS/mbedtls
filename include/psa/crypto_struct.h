@@ -191,7 +191,19 @@ typedef struct
 } psa_hkdf_key_derivation_t;
 #endif /* MBEDTLS_MD_C */
 
+/*
+ * If this option is not turned on, then the function `psa_key_derivation()`
+ * is removed. And the new psa_tls12_prf_key_derivation_t context is used along
+ * with the corresponding new API.
+ *
+ * The sole purpose of this option is to make the transition to the new API
+ * smoother. Once the transition is complete it can and should be removed
+ * along with the old API and its implementation.
+ */
+#define PSA_PRE_1_0_KEY_DERIVATION
+
 #if defined(MBEDTLS_MD_C)
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 typedef struct psa_tls12_prf_key_derivation_s
 {
     /* The TLS 1.2 PRF uses the key for each HMAC iteration,
@@ -220,6 +232,43 @@ typedef struct psa_tls12_prf_key_derivation_s
     uint8_t block_number;
 
 } psa_tls12_prf_key_derivation_t;
+#else
+
+typedef enum
+{
+    TLS12_PRF_STATE_INIT,       /* no input provided */
+    TLS12_PRF_STATE_SEED_SET,   /* seed has been set */
+    TLS12_PRF_STATE_KEY_SET,    /* key has been set */
+    TLS12_PRF_STATE_LABEL_SET,  /* label has been set */
+    TLS12_PRF_STATE_OUTPUT      /* output has been started */
+} psa_tls12_prf_key_derivation_state_t;
+
+typedef struct psa_tls12_prf_key_derivation_s
+{
+#if PSA_HASH_MAX_SIZE > 0xff
+#error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
+#endif
+
+    /* Indicates how many bytes in the current HMAC block have
+     * not yet been read by the user. */
+    uint8_t left_in_block;
+
+    /* The 1-based number of the block. */
+    uint8_t block_number;
+
+    psa_tls12_prf_key_derivation_state_t state;
+
+    uint8_t *seed;
+    size_t seed_length;
+    uint8_t *label;
+    size_t label_length;
+    psa_hmac_internal_data hmac;
+    uint8_t Ai[PSA_HASH_MAX_SIZE];
+
+    /* `HMAC_hash( prk, A(i) + seed )` in the notation of RFC 5246, Sect. 5. */
+    uint8_t output_block[PSA_HASH_MAX_SIZE];
+} psa_tls12_prf_key_derivation_t;
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
 struct psa_key_derivation_s
@@ -228,11 +277,8 @@ struct psa_key_derivation_s
     size_t capacity;
     union
     {
-        struct
-        {
-            uint8_t *data;
-            size_t size;
-        } buffer;
+        /* Make the union non-empty even with no supported algorithms. */
+        uint8_t dummy;
 #if defined(MBEDTLS_MD_C)
         psa_hkdf_key_derivation_t hkdf;
         psa_tls12_prf_key_derivation_t tls12_prf;
@@ -240,7 +286,8 @@ struct psa_key_derivation_s
     } ctx;
 };
 
-#define PSA_KEY_DERIVATION_OPERATION_INIT {0, 0, {{0, 0}}}
+/* This only zeroes out the first byte in the union, the rest is unspecified. */
+#define PSA_KEY_DERIVATION_OPERATION_INIT {0, 0, {0}}
 static inline struct psa_key_derivation_s psa_key_derivation_operation_init( void )
 {
     const struct psa_key_derivation_s v = PSA_KEY_DERIVATION_OPERATION_INIT;

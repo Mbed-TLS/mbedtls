@@ -224,6 +224,7 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats );
 psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
                                         size_t seed_size);
 
+#if defined(PSA_PRE_1_0_KEY_DERIVATION)
 /** Set up a key derivation operation.
  *
  * FIMXE This function is no longer part of the official API. Its prototype
@@ -280,9 +281,7 @@ psa_status_t psa_key_derivation(psa_key_derivation_operation_t *operation,
                                 const uint8_t *label,
                                 size_t label_length,
                                 size_t capacity);
-
-/* FIXME Deprecated. Remove this as soon as all the tests are updated. */
-#define PSA_ALG_SELECT_RAW                      ((psa_algorithm_t)0x31000001)
+#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 
 /** \addtogroup crypto_types
  * @{

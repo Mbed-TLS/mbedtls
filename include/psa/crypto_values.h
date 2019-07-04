@@ -1244,10 +1244,11 @@
  * specified in Section 5 of RFC 5246. It is based on HMAC and can be
  * used with either SHA-256 or SHA-384.
  *
- * This key derivation algorithm uses the following inputs:
+ * This key derivation algorithm uses the following inputs, which must be
+ * passed in the order given here:
+ * - #PSA_KEY_DERIVATION_INPUT_SEED is the seed.
  * - #PSA_KEY_DERIVATION_INPUT_SECRET is the secret key.
  * - #PSA_KEY_DERIVATION_INPUT_LABEL is the label.
- * - #PSA_KEY_DERIVATION_INPUT_SEED is the seed.
  *
  * For the application to TLS-1.2 key expansion, the seed is the
  * concatenation of ServerHello.Random + ClientHello.Random,
@@ -1288,10 +1289,11 @@
  * The latter is based on HMAC and can be used with either SHA-256
  * or SHA-384.
  *
- * This key derivation algorithm uses the following inputs:
+ * This key derivation algorithm uses the following inputs, which must be
+ * passed in the order given here:
+ * - #PSA_KEY_DERIVATION_INPUT_SEED is the seed.
  * - #PSA_KEY_DERIVATION_INPUT_SECRET is the secret key.
  * - #PSA_KEY_DERIVATION_INPUT_LABEL is the label.
- * - #PSA_KEY_DERIVATION_INPUT_SEED is the seed.
  *
  * For the application to TLS-1.2, the seed (which is
  * forwarded to the TLS-1.2 PRF) is the concatenation of the

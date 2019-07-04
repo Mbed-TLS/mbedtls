@@ -1478,11 +1478,8 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
 /**
  * \brief          Set the random number generator callback
  *
- * \note           On constrained systems, the RNG can also be
- *                 configured at compile-time via the option
- *                 MBEDTLS_SSL_CONF_RNG. In this case, the
- *                 \p f_rng argument in this function has no
- *                 effect.
+ * \note           On constrained systems, the RNG can also be configured at
+ *                 compile-time via the option MBEDTLS_SSL_CONF_RNG.
  *
  * \param conf     SSL configuration
  * \param f_rng    RNG function
@@ -1491,7 +1488,7 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng );
-#else
+#else /* !MBEDTLS_SSL_CONF_RNG */
 /**
  * \brief          Set the random number generator callback context.
  *
@@ -1500,7 +1497,7 @@ void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
  */
 void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
                                void *p_rng );
-#endif
+#endif /* MBEDTLS_SSL_CONF_RNG */
 
 /**
  * \brief          Set the debug callback

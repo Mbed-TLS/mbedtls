@@ -57,7 +57,7 @@ typedef struct mbedtls_ripemd160_context
 mbedtls_ripemd160_context;
 
 #else  /* MBEDTLS_RIPEMD160_ALT */
-#include "ripemd160.h"
+#include "ripemd160_alt.h"
 #endif /* MBEDTLS_RIPEMD160_ALT */
 
 /**

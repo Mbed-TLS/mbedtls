@@ -4901,12 +4901,15 @@ static psa_status_t psa_tls12_prf_set_seed( psa_tls12_prf_key_derivation_t *prf,
     if( prf->state != TLS12_PRF_STATE_INIT )
         return( PSA_ERROR_BAD_STATE );
 
-    prf->seed = mbedtls_calloc( 1, data_length );
-    if( prf->seed == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    if( data_length != 0 )
+    {
+        prf->seed = mbedtls_calloc( 1, data_length );
+        if( prf->seed == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-    memcpy( prf->seed, data, data_length );
-    prf->seed_length = data_length;
+        memcpy( prf->seed, data, data_length );
+        prf->seed_length = data_length;
+    }
 
     prf->state = TLS12_PRF_STATE_SEED_SET;
 
@@ -4973,12 +4976,15 @@ static psa_status_t psa_tls12_prf_set_label( psa_tls12_prf_key_derivation_t *prf
     if( prf->state != TLS12_PRF_STATE_KEY_SET )
         return( PSA_ERROR_BAD_STATE );
 
-    prf->label = mbedtls_calloc( 1, data_length );
-    if( prf->label == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    if( data_length != 0 )
+    {
+        prf->label = mbedtls_calloc( 1, data_length );
+        if( prf->label == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-    memcpy( prf->label, data, data_length );
-    prf->label_length = data_length;
+        memcpy( prf->label, data, data_length );
+        prf->label_length = data_length;
+    }
 
     prf->state = TLS12_PRF_STATE_LABEL_SET;
 

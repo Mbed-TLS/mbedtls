@@ -63,26 +63,24 @@
 
 #include "mbedtls/platform_util.h" // for mbedtls_platform_zeroize
 
+#include <psa/crypto.h>
+
 /* If the build options we need are not enabled, compile a placeholder. */
 #if !defined(MBEDTLS_SHA256_C) || !defined(MBEDTLS_MD_C) ||     \
     !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CCM_C) ||       \
     !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_FS_IO) ||\
-    !defined(PSA_PRE_1_0_KEY_DERIVATION)
+    defined(PSA_PRE_1_0_KEY_DERIVATION)
 int main( void )
 {
     printf("MBEDTLS_SHA256_C and/or MBEDTLS_MD_C and/or "
            "MBEDTLS_AES_C and/or MBEDTLS_CCM_C and/or "
            "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_FS_IO and/or "
-           "PSA_PRE_1_0_KEY_DERIVATION not defined.\n");
+           "not defined and/or PSA_PRE_1_0_KEY_DERIVATION defined.\n");
     return( 0 );
 }
 #else
 
 /* The real program starts here. */
-
-
-
-#include <psa/crypto.h>
 
 /* Run a system function and bail out if it fails. */
 #define SYS_CHECK( expr )                                       \
@@ -281,7 +279,7 @@ static psa_status_t derive_key_ladder( const char *ladder[],
 {
     psa_status_t status = PSA_SUCCESS;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     size_t i;
 
     psa_set_key_usage_flags( &attributes,
@@ -295,26 +293,28 @@ static psa_status_t derive_key_ladder( const char *ladder[],
     {
         /* Start deriving material from the master key (if i=0) or from
          * the current intermediate key (if i>0). */
-        PSA_CHECK( psa_key_derivation(
-                       &generator,
-                       *key_handle,
-                       KDF_ALG,
-                       DERIVE_KEY_SALT, DERIVE_KEY_SALT_LENGTH,
-                       (uint8_t*) ladder[i], strlen( ladder[i] ),
-                       KEY_SIZE_BYTES ) );
+        PSA_CHECK( psa_key_derivation_setup( &operation, KDF_ALG ) );
+        PSA_CHECK( psa_key_derivation_input_bytes(
+                       &operation, PSA_KEY_DERIVATION_INPUT_SALT,
+                       DERIVE_KEY_SALT, DERIVE_KEY_SALT_LENGTH ) );
+        PSA_CHECK( psa_key_derivation_input_key(
+                       &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
+                       *key_handle ) );
+        PSA_CHECK( psa_key_derivation_input_bytes(
+                       &operation, PSA_KEY_DERIVATION_INPUT_INFO,
+                       (uint8_t*) ladder[i], strlen( ladder[i] ) ) );
         /* When the parent key is not the master key, destroy it,
          * since it is no longer needed. */
         PSA_CHECK( psa_close_key( *key_handle ) );
         *key_handle = 0;
-        /* Use the generator obtained from the parent key to create
-         * the next intermediate key. */
-        PSA_CHECK( psa_key_derivation_output_key( &attributes, &generator,
-                                             key_handle ) );
-        PSA_CHECK( psa_key_derivation_abort( &generator ) );
+        /* Derive the next intermediate key from the parent key. */
+        PSA_CHECK( psa_key_derivation_output_key( &attributes, &operation,
+                                                  key_handle ) );
+        PSA_CHECK( psa_key_derivation_abort( &operation ) );
     }
 
 exit:
-    psa_key_derivation_abort( &generator );
+    psa_key_derivation_abort( &operation );
     if( status != PSA_SUCCESS )
     {
         psa_close_key( *key_handle );
@@ -330,31 +330,33 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
 {
     psa_status_t status = PSA_SUCCESS;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
 
     *wrapping_key_handle = 0;
+
+    /* Set up a key derivation operation from the key derived from
+     * the master key. */
+    PSA_CHECK( psa_key_derivation_setup( &operation, KDF_ALG ) );
+    PSA_CHECK( psa_key_derivation_input_bytes(
+                   &operation, PSA_KEY_DERIVATION_INPUT_SALT,
+                   WRAPPING_KEY_SALT, WRAPPING_KEY_SALT_LENGTH ) );
+    PSA_CHECK( psa_key_derivation_input_key(
+                   &operation, PSA_KEY_DERIVATION_INPUT_SECRET,
+                   derived_key_handle ) );
+    PSA_CHECK( psa_key_derivation_input_bytes(
+                   &operation, PSA_KEY_DERIVATION_INPUT_INFO,
+                   NULL, 0 ) );
+
+    /* Create the wrapping key. */
     psa_set_key_usage_flags( &attributes, usage );
     psa_set_key_algorithm( &attributes, WRAPPING_ALG );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
     psa_set_key_bits( &attributes, WRAPPING_KEY_BITS );
-
-    PSA_CHECK( psa_key_derivation(
-                   &generator,
-                   derived_key_handle,
-                   KDF_ALG,
-                   WRAPPING_KEY_SALT, WRAPPING_KEY_SALT_LENGTH,
-                   NULL, 0,
-                   PSA_BITS_TO_BYTES( WRAPPING_KEY_BITS ) ) );
-    PSA_CHECK( psa_key_derivation_output_key( &attributes, &generator,
-                                         wrapping_key_handle ) );
+    PSA_CHECK( psa_key_derivation_output_key( &attributes, &operation,
+                                              wrapping_key_handle ) );
 
 exit:
-    psa_key_derivation_abort( &generator );
-    if( status != PSA_SUCCESS )
-    {
-        psa_close_key( *wrapping_key_handle );
-        *wrapping_key_handle = 0;
-    }
+    psa_key_derivation_abort( &operation );
     return( status );
 }
 

@@ -355,7 +355,9 @@ def run_main():
         )
         parser.add_argument(
             "-s", "--skip-file", type=str,
-            help="path to file containing symbols and types to skip"
+            help=("path to file containing symbols and types to skip "
+                  "(typically \"-s identifiers\" after running "
+                  "\"tests/scripts/list-identifiers.sh --internal\")")
         )
         parser.add_argument(
             "-b", "--brief", action="store_true",

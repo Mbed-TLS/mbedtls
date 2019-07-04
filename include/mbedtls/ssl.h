@@ -1548,9 +1548,7 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
  * \note           On constrained systems, the pointers \p f_send, \p f_recv,
  *                 and \p f_recv_timeout can also be configured at compile-time
  *                 via the macros MBEDTLS_SSL_CONF_RECV, MBEDTLS_SSL_CONF_SEND
- *                 and MBEDTLS_SSL_CONF_RECV_TIMEOUT. In this case, the
- *                 corresponding parameters to this function don't take
- *                 any effect.
+ *                 and MBEDTLS_SSL_CONF_RECV_TIMEOUT.
  *
  * \note           On some platforms, net_sockets.c provides
  *                 \c mbedtls_net_send(), \c mbedtls_net_recv() and
@@ -1562,7 +1560,9 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
                           mbedtls_ssl_send_t *f_send,
                           mbedtls_ssl_recv_t *f_recv,
                           mbedtls_ssl_recv_timeout_t *f_recv_timeout );
-#else
+#else /* !( MBEDTLS_SSL_CONF_RECV &&
+            MBEDTLS_SSL_CONF_SEND &&
+            MBEDTLS_SSL_CONF_RECV_TIMEOUT ) */
 /**
  * \brief          Set the context to be passed to the underlying BIO callbacks
  *                 for write, read and read-with-timeout.
@@ -1573,7 +1573,9 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  */
 void mbedtls_ssl_set_bio_ctx( mbedtls_ssl_context *ssl,
                               void *p_bio );
-#endif
+#endif /* MBEDTLS_SSL_CONF_RECV &&
+          MBEDTLS_SSL_CONF_SEND &&
+          MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 

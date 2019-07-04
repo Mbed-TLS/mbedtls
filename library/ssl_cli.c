@@ -828,9 +828,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_NO_RNG );
     }
 
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
+    if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
         ssl->major_ver = ssl->conf->min_major_ver;
         ssl->minor_ver = ssl->conf->min_minor_ver;
@@ -882,15 +880,23 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      *   ..   . ..    extensions length (2 bytes)
      *   ..   . ..    extensions
      */
-    n = ssl->session_negotiate->id_len;
 
-    if( n < 16 || n > 32 ||
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
-#endif
-        ssl->handshake->resume == 0 )
+    /*
+     * We'll write a session of non-zero length if resumption was requested
+     * by the user, we're not renegotiating, and the session ID is of
+     * appropriate length. Otherwise make the length 0 (for now, see next code
+     * block for behaviour with tickets).
+     */
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 ||
+        mbedtls_ssl_get_renego_status( ssl ) != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
+        ssl->session_negotiate->id_len < 16 ||
+        ssl->session_negotiate->id_len > 32 )
     {
         n = 0;
+    }
+    else
+    {
+        n = ssl->session_negotiate->id_len;
     }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -898,20 +904,16 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
      * generate and include a Session ID in the TLS ClientHello."
      */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
+    if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
+        ssl->session_negotiate->ticket != NULL &&
+        ssl->session_negotiate->ticket_len != 0 )
     {
-        if( ssl->session_negotiate->ticket != NULL &&
-                ssl->session_negotiate->ticket_len != 0 )
-        {
-            ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->session_negotiate->id, 32 );
+        ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->session_negotiate->id, 32 );
 
-            if( ret != 0 )
-                return( ret );
+        if( ret != 0 )
+            return( ret );
 
-            ssl->session_negotiate->id_len = n = 32;
-        }
+        ssl->session_negotiate->id_len = n = 32;
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
@@ -985,9 +987,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     /*
      * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
      */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
+    if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding EMPTY_RENEGOTIATION_INFO_SCSV" ) );
         *p++ = (unsigned char)( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
@@ -1797,28 +1797,30 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
     /*
      * Check if the session can be resumed
+     *
+     * We're only resuming a session if it was requested (handshake->resume
+     * already set to 1 by mbedtls_ssl_set_session()), and further conditions
+     * are satisfied (not renegotiating, ID and ciphersuite match, etc).
+     *
+     * Update handshake->resume to the value it will keep for the rest of the
+     * handshake, and that will be used to determine the relative order
+     * client/server last flights, as well as in handshake_wrapup().
      */
-    if( ssl->handshake->resume == 0 || n == 0 ||
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
-#endif
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    if( n == 0 ||
+        mbedtls_ssl_get_renego_status( ssl ) != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
         ssl->session_negotiate->ciphersuite != i ||
         ssl->session_negotiate->compression != comp ||
         ssl->session_negotiate->id_len != n ||
         memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
     {
-        ssl->state++;
         ssl->handshake->resume = 0;
-#if defined(MBEDTLS_HAVE_TIME)
-        ssl->session_negotiate->start = mbedtls_time( NULL );
-#endif
-        ssl->session_negotiate->ciphersuite = i;
-        ssl->session_negotiate->compression = comp;
-        ssl->session_negotiate->id_len = n;
-        memcpy( ssl->session_negotiate->id, buf + 35, n );
     }
-    else
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
+
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 1 )
     {
+        /* Resume a session */
         ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
 
         if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
@@ -1829,9 +1831,21 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             return( ret );
         }
     }
+    else
+    {
+        /* Start a new session */
+        ssl->state++;
+#if defined(MBEDTLS_HAVE_TIME)
+        ssl->session_negotiate->start = mbedtls_time( NULL );
+#endif
+        ssl->session_negotiate->ciphersuite = i;
+        ssl->session_negotiate->compression = comp;
+        ssl->session_negotiate->id_len = n;
+        memcpy( ssl->session_negotiate->id, buf + 35, n );
+    }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
-                   ssl->handshake->resume ? "a" : "no" ) );
+               mbedtls_ssl_handshake_get_resume( ssl->handshake ) ? "a" : "no" ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %04x", i ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[37 + n] ) );
@@ -2059,7 +2073,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      * Renegotiation security checks
      */
     if( ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-        ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
+        mbedtls_ssl_conf_get_allow_legacy_renegotiation( ssl->conf ) ==
+          MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
         handshake_failure = 1;
@@ -2074,7 +2089,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     }
     else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
              ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-             ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION )
+             mbedtls_ssl_conf_get_allow_legacy_renegotiation( ssl->conf ) ==
+               MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation not allowed" ) );
         handshake_failure = 1;
@@ -2334,7 +2350,15 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
         peer_pk = &ssl->handshake->peer_pubkey;
 #else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     if( ssl->session_negotiate->peer_cert != NULL )
-        peer_pk = &ssl->session_negotiate->peer_cert->pk;
+    {
+        ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
+                                           &peer_pk );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
+            return( ret );
+        }
+    }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     if( peer_pk == NULL )
@@ -2350,7 +2374,8 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     if( ! mbedtls_pk_can_do( peer_pk, MBEDTLS_PK_RSA ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate key type mismatch" ) );
-        return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
+        ret = MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
+        goto cleanup;
     }
 
     if( ( ret = mbedtls_pk_encrypt( peer_pk,
@@ -2360,7 +2385,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
                             ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_rsa_pkcs1_encrypt", ret );
-        return( ret );
+        goto cleanup;
     }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
@@ -2373,11 +2398,16 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     }
 #endif
 
+cleanup:
+
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /* We don't need the peer's public key anymore. Free it. */
     mbedtls_pk_free( peer_pk );
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    return( 0 );
+#else
+    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+    return( ret );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
@@ -2463,13 +2493,21 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    peer_pk = &ssl->session_negotiate->peer_cert->pk;
+
+    ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
+                                       &peer_pk );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
+        return( ret );
+    }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     if( ! mbedtls_pk_can_do( peer_pk, MBEDTLS_PK_ECKEY ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key not ECDH capable" ) );
-        return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
+        ret = MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
+        goto cleanup;
     }
 
     peer_key = mbedtls_pk_ec( *peer_pk );
@@ -2478,21 +2516,26 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
                                  MBEDTLS_ECDH_THEIRS ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_get_params" ), ret );
-        return( ret );
+        goto cleanup;
     }
 
     if( ssl_check_server_ecdh_params( ssl ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server certificate (ECDH curve)" ) );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
+        ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
+        goto cleanup;
     }
+
+cleanup:
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /* We don't need the peer's public key anymore. Free it,
      * so that more RAM is available for upcoming expensive
      * operations like ECDHE. */
     mbedtls_pk_free( peer_pk );
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#else
+    mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     return( ret );
 }
@@ -2799,7 +2842,14 @@ start_processing:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
-        peer_pk = &ssl->session_negotiate->peer_cert->pk;
+
+        ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
+                                           &peer_pk );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
+            return( ret );
+        }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
         /*
@@ -2810,6 +2860,9 @@ start_processing:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                             MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+            mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
             return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
         }
 
@@ -2831,6 +2884,9 @@ start_processing:
             if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
                 ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
 #endif
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+            mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
             return( ret );
         }
 
@@ -2839,7 +2895,9 @@ start_processing:
          * so that more RAM is available for upcoming expensive
          * operations like ECDHE. */
         mbedtls_pk_free( peer_pk );
-#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#else
+        mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 

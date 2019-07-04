@@ -317,14 +317,16 @@ int main( void )
 #define USAGE_COOKIES ""
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) && \
+    !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
 #define USAGE_ANTI_REPLAY \
     "    anti_replay=0/1     default: (library default: enabled)\n"
 #else
 #define USAGE_ANTI_REPLAY ""
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) && \
+    !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
 #define USAGE_BADMAC_LIMIT \
     "    badmac_limit=%%d     default: (library default: disabled)\n"
 #else
@@ -398,6 +400,36 @@ int main( void )
 #define USAGE_SERIALIZATION ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
+#define USAGE_AUTH_MODE \
+    "    auth_mode=%%s        default: (library default: none)\n" \
+    "                        options: none, optional, required\n"
+#else
+#define USAGE_AUTH_MODE ""
+#endif
+
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
+#define USAGE_ALLOW_LEGACY_RENEGO  \
+    "    allow_legacy=%%d     default: (library default: no)\n"
+#else
+#define USAGE_ALLOW_LEGACY_RENEGO ""
+#endif
+
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
+#define USAGE_READ_TIMEOUT                              \
+    "    read_timeout=%%d     default: 0 ms (no timeout)\n"
+#else
+#define USAGE_READ_TIMEOUT ""
+#endif
+
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
+#define USAGE_CERT_REQ_CA_LIST                              \
+    "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
+    "                        options: 1 (send ca list), 0 (don't send)\n"
+#else
+#define USAGE_CERT_REQ_CA_LIST ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -413,17 +445,15 @@ int main( void )
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
     "    event=%%d            default: 0 (loop)\n"                            \
     "                        options: 1 (level-triggered, implies nbio=1),\n" \
-    "    read_timeout=%%d     default: 0 ms (no timeout)\n"    \
+    USAGE_READ_TIMEOUT                                                  \
     "\n"                                                    \
     USAGE_DTLS                                              \
     USAGE_COOKIES                                           \
     USAGE_ANTI_REPLAY                                       \
     USAGE_BADMAC_LIMIT                                      \
     "\n"                                                    \
-    "    auth_mode=%%s        default: (library default: none)\n"      \
-    "                        options: none, optional, required\n" \
-    "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
-    "                        options: 1 (send ca list), 0 (don't send)\n" \
+    USAGE_AUTH_MODE                                         \
+    USAGE_CERT_REQ_CA_LIST                                  \
     USAGE_IO                                                \
     USAGE_SSL_ASYNC                                         \
     USAGE_SNI                                               \
@@ -431,7 +461,7 @@ int main( void )
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
     "\n"                                                    \
-    "    allow_legacy=%%d     default: (library default: no)\n"      \
+    USAGE_ALLOW_LEGACY_RENEGO                               \
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     "\n"                                                    \
@@ -462,7 +492,6 @@ int main( void )
     USAGE_SERIALIZATION                                     \
     " acceptable ciphersuite names:\n"
 
-
 #define ALPN_LIST_SIZE  10
 #define CURVE_LIST_SIZE 20
 
@@ -478,17 +507,6 @@ int main( void )
     (out_be)[(i) + 7] = (unsigned char)( ( (in_le) >> 0  ) & 0xFF );    \
 }
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 /*
  * global options
@@ -617,6 +635,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
     return( ret );
 }
 
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
 /*
  * Return authmode from string, or -1 on error
  */
@@ -631,6 +650,7 @@ static int get_auth_mode( const char *s )
 
     return( -1 );
 }
+#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 
 /*
  * Used by sni_parse and psk_parse to handle coma-separated lists
@@ -1067,6 +1087,7 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
                             const unsigned char *input,
                             size_t input_len )
 {
+    int ret;
     ssl_async_key_context_t *config_data =
         mbedtls_ssl_conf_get_async_config_data( ssl->conf );
     unsigned slot;
@@ -1075,9 +1096,17 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
 
     {
         char dn[100];
-        if( mbedtls_x509_dn_gets( dn, sizeof( dn ), &cert->subject ) > 0 )
+        mbedtls_x509_name *subject;
+
+        ret = mbedtls_x509_crt_get_subject( cert, &subject );
+        if( ret != 0 )
+            return( ret );
+
+        if( mbedtls_x509_dn_gets( dn, sizeof( dn ), subject ) > 0 )
             mbedtls_printf( "Async %s callback: looking for DN=%s\n",
                             op_name, dn );
+
+        mbedtls_x509_name_free( subject );
     }
 
     /* Look for a private key that matches the public key in cert.
@@ -1086,8 +1115,14 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
      * public key. */
     for( slot = 0; slot < config_data->slots_used; slot++ )
     {
-        if( mbedtls_pk_check_pair( &cert->pk,
-                                   config_data->slots[slot].pk ) == 0 )
+        mbedtls_pk_context *pk;
+        int match;
+        ret = mbedtls_x509_crt_pk_acquire( cert, &pk );
+        if( ret != 0 )
+            return( ret );
+        match = mbedtls_pk_check_pair( pk, config_data->slots[slot].pk );
+        mbedtls_x509_crt_pk_release( cert );
+        if( match == 0 )
             break;
     }
     if( slot == config_data->slots_used )
@@ -1557,8 +1592,10 @@ int main( int argc, char *argv[] )
             if( opt.event < 0 || opt.event > 2 )
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
         else if( strcmp( p, "read_timeout" ) == 0 )
             opt.read_timeout = atoi( q );
+#endif
         else if( strcmp( p, "buffer_size" ) == 0 )
         {
             opt.buffer_size = atoi( q );
@@ -1657,6 +1694,7 @@ int main( int argc, char *argv[] )
                 MBEDTLS_SSL_RENEGOTIATION_ENABLED :
                 MBEDTLS_SSL_RENEGOTIATION_DISABLED;
         }
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
         else if( strcmp( p, "allow_legacy" ) == 0 )
         {
             switch( atoi( q ) )
@@ -1673,6 +1711,7 @@ int main( int argc, char *argv[] )
                 default: goto usage;
             }
         }
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
         else if( strcmp( p, "renegotiate" ) == 0 )
         {
             opt.renegotiate = atoi( q );
@@ -1785,11 +1824,13 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
             if( ( opt.auth_mode = get_auth_mode( q ) ) < 0 )
                 goto usage;
         }
+#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
         else if( strcmp( p, "cert_req_ca_list" ) == 0 )
         {
             opt.cert_req_ca_list = atoi( q );
@@ -1889,18 +1930,22 @@ int main( int argc, char *argv[] )
             if( opt.cookies < -1 || opt.cookies > 1)
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
         else if( strcmp( p, "anti_replay" ) == 0 )
         {
             opt.anti_replay = atoi( q );
             if( opt.anti_replay < 0 || opt.anti_replay > 1)
                 goto usage;
         }
+#endif /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
+#if !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
         else if( strcmp( p, "badmac_limit" ) == 0 )
         {
             opt.badmac_limit = atoi( q );
             if( opt.badmac_limit < 0 )
                 goto usage;
         }
+#endif /* !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
         else if( strcmp( p, "hs_timeout" ) == 0 )
         {
             if( ( p = strchr( q, '-' ) ) == NULL )
@@ -2439,11 +2484,15 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
     if( opt.auth_mode != DFL_AUTH_MODE )
         mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );
+#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
     if( opt.cert_req_ca_list != DFL_CERT_REQ_CA_LIST )
         mbedtls_ssl_conf_cert_req_ca_list( &conf, opt.cert_req_ca_list );
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
@@ -2461,7 +2510,9 @@ int main( int argc, char *argv[] )
     };
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    !defined(MBEDTLS_SSL_CONF_CID_LEN) &&      \
+    !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
     if( opt.cid_enabled == 1 || opt.cid_enabled_renego == 1 )
     {
         if( opt.cid_enabled == 1        &&
@@ -2486,7 +2537,9 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID &&
+          !MBEDTLS_SSL_CONF_CID_LEN &&
+          !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
@@ -2527,9 +2580,11 @@ int main( int argc, char *argv[] )
     if( opt.cache_timeout != -1 )
         mbedtls_ssl_cache_set_timeout( &cache, opt.cache_timeout );
 
+#if !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     mbedtls_ssl_conf_session_cache( &conf, &cache,
                                    mbedtls_ssl_cache_get,
                                    mbedtls_ssl_cache_set );
+#endif /* !MBEDTLS_SSL_NO_SESSION_CACHE */
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -2580,12 +2635,14 @@ int main( int argc, char *argv[] )
             ; /* Nothing to do */
         }
 
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) && \
+    !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
         if( opt.anti_replay != DFL_ANTI_REPLAY )
             mbedtls_ssl_conf_dtls_anti_replay( &conf, opt.anti_replay );
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) && \
+    !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
         if( opt.badmac_limit != DFL_BADMAC_LIMIT )
             mbedtls_ssl_conf_dtls_badmac_limit( &conf, opt.badmac_limit );
 #endif
@@ -2616,8 +2673,10 @@ int main( int argc, char *argv[] )
                                           MBEDTLS_SSL_MINOR_VERSION_3 );
     }
 
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
         mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );
+#endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     mbedtls_ssl_conf_renegotiation( &conf, opt.renegotiation );
 
@@ -2891,7 +2950,9 @@ reset:
         goto exit;
     }
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
     mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
+#endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )

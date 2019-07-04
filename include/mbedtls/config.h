@@ -139,7 +139,7 @@
  *
  * System has time.h, time(), and an implementation for
  * mbedtls_platform_gmtime_r() (see below).
- * The time needs to be correct (not necesarily very accurate, but at least
+ * The time needs to be correct (not necessarily very accurate, but at least
  * the date should be correct). This is used to verify the validity period of
  * X.509 certificates.
  *
@@ -276,27 +276,51 @@
  * For example, when a function accepts as input a pointer to a buffer that may
  * contain untrusted data, and its documentation mentions that this pointer
  * must not be NULL:
- * - the pointer is checked to be non-NULL only if this option is enabled
- * - the content of the buffer is always validated
+ * - The pointer is checked to be non-NULL only if this option is enabled.
+ * - The content of the buffer is always validated.
  *
  * When this flag is defined, if a library function receives a parameter that
- * is invalid, it will:
- * - invoke the macro MBEDTLS_PARAM_FAILED() which by default expands to a
- *   call to the function mbedtls_param_failed()
- * - immediately return (with a specific error code unless the function
- *   returns void and can't communicate an error).
+ * is invalid:
+ * 1. The function will invoke the macro MBEDTLS_PARAM_FAILED().
+ * 2. If MBEDTLS_PARAM_FAILED() did not terminate the program, the function
+ *   will immediately return. If the function returns an Mbed TLS error code,
+ *   the error code in this case is MBEDTLS_ERR_xxx_BAD_INPUT_DATA.
  *
- * When defining this flag, you also need to:
- * - either provide a definition of the function mbedtls_param_failed() in
- *   your application (see platform_util.h for its prototype) as the library
- *   calls that function, but does not provide a default definition for it,
- * - or provide a different definition of the macro MBEDTLS_PARAM_FAILED()
- *   below if the above mechanism is not flexible enough to suit your needs.
- *   See the documentation of this macro later in this file.
+ * When defining this flag, you also need to arrange a definition for
+ * MBEDTLS_PARAM_FAILED(). You can do this by any of the following methods:
+ * - By default, the library defines MBEDTLS_PARAM_FAILED() to call a
+ *   function mbedtls_param_failed(), but the library does not define this
+ *   function. If you do not make any other arrangements, you must provide
+ *   the function mbedtls_param_failed() in your application.
+ *   See `platform_util.h` for its prototype.
+ * - If you enable the macro #MBEDTLS_CHECK_PARAMS_ASSERT, then the
+ *   library defines #MBEDTLS_PARAM_FAILED(\c cond) to be `assert(cond)`.
+ *   You can still supply an alternative definition of
+ *   MBEDTLS_PARAM_FAILED(), which may call `assert`.
+ * - If you define a macro MBEDTLS_PARAM_FAILED() before including `config.h`
+ *   or you uncomment the definition of MBEDTLS_PARAM_FAILED() in `config.h`,
+ *   the library will call the macro that you defined and will not supply
+ *   its own version. Note that if MBEDTLS_PARAM_FAILED() calls `assert`,
+ *   you need to enable #MBEDTLS_CHECK_PARAMS_ASSERT so that library source
+ *   files include `<assert.h>`.
  *
  * Uncomment to enable validation of application-controlled parameters.
  */
 //#define MBEDTLS_CHECK_PARAMS
+
+/**
+ * \def MBEDTLS_CHECK_PARAMS_ASSERT
+ *
+ * Allow MBEDTLS_PARAM_FAILED() to call `assert`, and make it default to
+ * `assert`. This macro is only used if #MBEDTLS_CHECK_PARAMS is defined.
+ *
+ * If this macro is not defined, then MBEDTLS_PARAM_FAILED() defaults to
+ * calling a function mbedtls_param_failed(). See the documentation of
+ * #MBEDTLS_CHECK_PARAMS for details.
+ *
+ * Uncomment to allow MBEDTLS_PARAM_FAILED() to call `assert`.
+ */
+//#define MBEDTLS_CHECK_PARAMS_ASSERT
 
 /* \} name SECTION: System support */
 
@@ -401,7 +425,7 @@
  * \note Because of a signature change, the core AES encryption and decryption routines are
  *       currently named mbedtls_aes_internal_encrypt and mbedtls_aes_internal_decrypt,
  *       respectively. When setting up alternative implementations, these functions should
- *       be overriden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
+ *       be overridden, but the wrapper functions mbedtls_aes_decrypt and mbedtls_aes_encrypt
  *       must stay untouched.
  *
  * \note If you use the AES_xxx_ALT macros, then is is recommended to also set
@@ -1278,8 +1302,8 @@
  * which allows to identify DTLS connections across changes
  * in the underlying transport.
  *
- * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`,
- * `mbedtls_ssl_get_peer_cid()` and `mbedtls_ssl_conf_cid()`.
+ * Setting this option enables the SSL APIs mbedtls_ssl_set_cid(),
+ * mbedtls_ssl_get_peer_cid() and mbedtls_ssl_conf_cid().
  * See the corresponding documentation for more information.
  *
  * \warning The Connection ID extension is still in draft state.
@@ -1658,15 +1682,68 @@
  * \def MBEDTLS_SSL_SESSION_TICKETS
  *
  * Enable support for RFC 5077 session tickets in SSL.
- * Client-side, provides full support for session tickets (maintainance of a
+ * Client-side, provides full support for session tickets (maintenance of a
  * session store remains the responsibility of the application, though).
  * Server-side, you also need to provide callbacks for writing and parsing
  * tickets, including authenticated encryption and key management. Example
  * callbacks are provided by MBEDTLS_SSL_TICKET_C.
  *
- * Comment this macro to disable support for SSL session tickets
+ * Requires: !MBEDTLS_SSL_NO_SESSION_RESUMPTION
+ *
+ * Comment this macro to disable support for SSL session tickets.
  */
 #define MBEDTLS_SSL_SESSION_TICKETS
+
+/**
+ * \def MBEDTLS_SSL_NO_SESSION_CACHE
+ *
+ * Disable support for cache based session resumption. This is useful to
+ * reduce code size in configurations where cache-based session resumption is
+ * not used.
+ *
+ * This option is only about the server-side support of the session caches.
+ * Client will only need !MBEDTLS_SSL_NO_SESSION_RESUMPTION to support
+ * cache based session resumption.
+ *
+ * Server-side, you also need to provide callbacks for storing and reading
+ * sessions from cache. Example callbacks are provided by MBEDTLS_SSL_CACHE_C.
+ *
+ * If MBEDTLS_SSL_NO_SESSION_RESUMPTION is defined, this needs to be defined
+ * as well.
+ *
+ * Uncomment this macro to disable support for SSL session cache.
+ */
+//#define MBEDTLS_SSL_NO_SESSION_CACHE
+
+/**
+ * \def MBEDTLS_SSL_NO_SESSION_RESUMPTION
+ *
+ * Disable support for session resumption. This is useful to reduce code size
+ * in configurations where no form of session resumption is used.
+ *
+ * \note Session resumption is part of the TLS standard, disabling this
+ * option means that the full implementation of the standard is no longer
+ * used. This shouldn't cause any interoperability issues as the standard
+ * mandates that peers who want to resume a session need to be prepared to
+ * fall back to a full handshake.
+ *
+ * When this flag is enabled, following needs to be true:
+ *     MBEDTLS_SSL_NO_SESSION_CACHE enabled
+ *     MBEDTLS_SSL_SESSION_TICKETS disabled
+ *
+ * Client-side, this is enough to enable support for cache-based session
+ * resumption (as defined by the TLS standard); for ticket-based resumption
+ * you'll also need to enable MBEDTLS_SSL_SESSION_TICKETS.
+ *
+ * Server-side, this option is only useful in conjunction with at least
+ * one of !MBEDTLS_SSL_NO_SESSION_CACHE or MBEDTLS_SSL_SESSION_TICKETS.
+ * Each one of these additionally requires an implementation of the cache
+ * or tickets, examples of which are provided by MBEDTLS_SSL_CACHE_C
+ * and MBEDTLS_SSL_TICKET_C respectively.
+ *
+ * Uncomment this macro to disable support for SSL session resumption.
+ */
+//#define MBEDTLS_SSL_NO_SESSION_RESUMPTION
 
 /**
  * \def MBEDTLS_SSL_EXPORT_KEYS
@@ -1758,6 +1835,54 @@
 #define MBEDTLS_VERSION_FEATURES
 
 /**
+ * \def MBEDTLS_X509_ON_DEMAND_PARSING
+ *
+ * Save RAM by reducing mbedtls_x509_crt to a pointer
+ * to the raw CRT data and parsing CRTs on demand only.
+ *
+ * \warning This option changes the API by removing most of
+ *          the structure fields of mbedtls_x509_crt.
+ *
+ * \warning This option and its corresponding X.509 API are currently
+ *          under development and may change at any time.
+ *
+ * Regardless of whether this option is enabled or not, direct access of
+ * structure fields of `mbedtls_x509_crt` should be replaced by calls to
+ * one of the following functions:
+ * - mbedtls_x509_crt_get_frame(), to obtain a CRT frame giving
+ *   access to several basic CRT fields (such as the CRT version),
+ *   as well as pointers to the raw ASN.1 data of more complex fields
+ *   (such as the issuer).
+ * - mbedtls_x509_crt_get_pk(), to obtain a public key context
+ *   for the public key contained in the certificate.
+ * - mbedtls_x509_crt_get_issuer(), to obtain the issuer name.
+ * - mbedtls_x509_crt_get_subject(), to obtain the subject name.
+ * - mbedtls_x509_crt_get_subject_alt_names(), to obtain the
+ *   alternative names from the subject alternative names extension.
+ * - mbedtls_x509_crt_get_ext_key_usage(), to obtain the state of
+ *   the extended key usage extension.
+ *
+ * Uncomment this to enable on-demand CRT parsing to save RAM.
+ */
+//#define MBEDTLS_X509_ON_DEMAND_PARSING
+
+/**
+ * \def MBEDTLS_X509_ALWAYS_FLUSH
+ *
+ * Save RAM by having Mbed TLS always flush caches for parsed X.509
+ * structures after use: This means, firstly, that caches of X.509
+ * structures used by an API call are flushed when the call returns,
+ * but it also encompasses immediate flushing of caches when Mbed TLS uses
+ * multiple structures in succession, thereby reducing the peak RAM usage.
+ * Setting this option leads to minimal RAM usage of the X.509 module at
+ * the cost of performance penalties when using X.509 structures multiple
+ * times (such as trusted CRTs on systems serving many connections).
+ *
+ * Uncomment this to always flush caches for unused X.509 structures.
+ */
+#define MBEDTLS_X509_ALWAYS_FLUSH
+
+/**
  * \def MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate
@@ -1835,7 +1960,7 @@
  *
  * \warning TLS-level compression MAY REDUCE SECURITY! See for example the
  * CRIME attack. Before enabling this option, you should examine with care if
- * CRIME or similar exploits may be a applicable to your use case.
+ * CRIME or similar exploits may be applicable to your use case.
  *
  * \note Currently compression can't be used with DTLS.
  *
@@ -3163,7 +3288,7 @@
 //#define MBEDTLS_PLATFORM_STD_TIME            time /**< Default time to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
 //#define MBEDTLS_PLATFORM_STD_FPRINTF      fprintf /**< Default fprintf to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_PRINTF        printf /**< Default printf to use, can be undefined */
-/* Note: your snprintf must correclty zero-terminate the buffer! */
+/* Note: your snprintf must correctly zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_STD_SNPRINTF    snprintf /**< Default snprintf to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS       0 /**< Default exit value to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE       1 /**< Default exit value to use, can be undefined */
@@ -3180,20 +3305,23 @@
 //#define MBEDTLS_PLATFORM_TIME_TYPE_MACRO       time_t /**< Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf /**< Default fprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_PRINTF_MACRO        printf /**< Default printf macro to use, can be undefined */
-/* Note: your snprintf must correclty zero-terminate the buffer! */
+/* Note: your snprintf must correctly zero-terminate the buffer! */
 //#define MBEDTLS_PLATFORM_SNPRINTF_MACRO    snprintf /**< Default snprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
 
 /**
  * \brief       This macro is invoked by the library when an invalid parameter
- *              is detected that is only checked with MBEDTLS_CHECK_PARAMS
+ *              is detected that is only checked with #MBEDTLS_CHECK_PARAMS
  *              (see the documentation of that option for context).
  *
- *              When you leave this undefined here, a default definition is
- *              provided that invokes the function mbedtls_param_failed(),
- *              which is declared in platform_util.h for the benefit of the
- *              library, but that you need to define in your application.
+ *              When you leave this undefined here, the library provides
+ *              a default definition. If the macro #MBEDTLS_CHECK_PARAMS_ASSERT
+ *              is defined, the default definition is `assert(cond)`,
+ *              otherwise the default definition calls a function
+ *              mbedtls_param_failed(). This function is declared in
+ *              `platform_util.h` for the benefit of the library, but
+ *              you need to define in your application.
  *
  *              When you define this here, this replaces the default
  *              definition in platform_util.h (which no longer declares the
@@ -3202,6 +3330,9 @@
  *              particular, that all the necessary declarations are visible
  *              from within the library - you can ensure that by providing
  *              them in this file next to the macro definition).
+ *              If you define this macro to call `assert`, also define
+ *              #MBEDTLS_CHECK_PARAMS_ASSERT so that library source files
+ *              include `<assert.h>`.
  *
  *              Note that you may define this macro to expand to nothing, in
  *              which case you don't have to worry about declarations or
@@ -3449,6 +3580,26 @@
  * This can be used on constrained systems to reduce code-size.
  * \{
  */
+
+//#define MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+//#define MBEDTLS_SSL_CONF_AUTHMODE MBEDTLS_SSL_VERIFY_REQUIRED
+
+/* Timeout */
+//#define MBEDTLS_SSL_CONF_READ_TIMEOUT 0
+
+/* Endpoint (Client/Server) */
+//#define MBEDTLS_SSL_CONF_ENDPOINT MBEDTLS_SSL_IS_CLIENT
+
+//#define MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED
+
+/* DTLS-specific settings */
+//#define MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN
+//#define MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX
+//#define MBEDTLS_SSL_CONF_ANTI_REPLAY MBEDTLS_SSL_ANTI_REPLAY_ENABLED
+//#define MBEDTLS_SSL_CONF_BADMAC_LIMIT 0
+//#define MBEDTLS_SSL_CONF_CID_LEN 0
+//#define MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID MBEDTLS_SSL_UNEXPECTED_CID_IGNORE
 
 /* ExtendedMasterSecret extension
  * The following two options must be set/unset simultaneously. */

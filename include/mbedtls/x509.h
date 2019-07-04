@@ -77,7 +77,7 @@
 #define MBEDTLS_ERR_X509_ALLOC_FAILED                     -0x2880  /**< Allocation of memory failed. */
 #define MBEDTLS_ERR_X509_FILE_IO_ERROR                    -0x2900  /**< Read/write of file failed. */
 #define MBEDTLS_ERR_X509_BUFFER_TOO_SMALL                 -0x2980  /**< Destination buffer is too small. */
-#define MBEDTLS_ERR_X509_FATAL_ERROR                      -0x3000  /**< A fatal error occured, eg the chain is too long or the vrfy callback failed. */
+#define MBEDTLS_ERR_X509_FATAL_ERROR                      -0x3000  /**< A fatal error occurred, eg the chain is too long or the vrfy callback failed. */
 /* \} name */
 
 /**
@@ -184,6 +184,15 @@ extern "C" {
  */
 
 /**
+ * Basic length-value buffer structure
+ */
+typedef struct mbedtls_x509_buf_raw
+{
+    unsigned char *p;    /*!< The address of the first byte in the buffer. */
+    size_t len;          /*!< The number of Bytes in the buffer.           */
+} mbedtls_x509_buf_raw;
+
+/**
  * Type-length-value structure that allows for ASN1 using DER.
  */
 typedef mbedtls_asn1_buf mbedtls_x509_buf;
@@ -250,7 +259,7 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
  *
  * \param to       mbedtls_x509_time to check
  *
- * \return         1 if the given time is in the past or an error occured,
+ * \return         1 if the given time is in the past or an error occurred,
  *                 0 otherwise.
  */
 int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
@@ -264,10 +273,33 @@ int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
  *
  * \param from     mbedtls_x509_time to check
  *
- * \return         1 if the given time is in the future or an error occured,
+ * \return         1 if the given time is in the future or an error occurred,
  *                 0 otherwise.
  */
 int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
+
+/**
+ * \brief          Free a dynamic linked list presentation of an X.509 name
+ *                 as returned e.g. by mbedtls_x509_crt_get_subject().
+ *
+ * \param name     The address of the first name component. This may
+ *                 be \c NULL, in which case this functions returns
+ *                 immediately.
+ */
+void mbedtls_x509_name_free( mbedtls_x509_name *name );
+
+/**
+ * \brief          Free a dynamic linked list presentation of an X.509 sequence
+ *                 as returned e.g. by mbedtls_x509_crt_get_subject_alt_name().
+ *
+ * \param seq      The address of the first sequence component. This may
+ *                 be \c NULL, in which case this functions returns
+ *                 immediately.
+ */
+static inline void mbedtls_x509_sequence_free( mbedtls_x509_sequence *seq )
+{
+    mbedtls_asn1_sequence_free( (mbedtls_asn1_sequence*) seq );
+}
 
 #if defined(MBEDTLS_SELF_TEST)
 
@@ -280,53 +312,22 @@ int mbedtls_x509_self_test( int verbose );
 
 #endif /* MBEDTLS_SELF_TEST */
 
-/*
- * Internal module functions. You probably do not want to use these unless you
- * know you do.
- */
-int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
-                   mbedtls_x509_name *cur );
-int mbedtls_x509_get_alg_null( unsigned char **p, const unsigned char *end,
-                       mbedtls_x509_buf *alg );
-int mbedtls_x509_get_alg( unsigned char **p, const unsigned char *end,
-                  mbedtls_x509_buf *alg, mbedtls_x509_buf *params );
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-int mbedtls_x509_get_rsassa_pss_params( const mbedtls_x509_buf *params,
-                                mbedtls_md_type_t *md_alg, mbedtls_md_type_t *mgf_md,
-                                int *salt_len );
-#endif
-int mbedtls_x509_get_sig( unsigned char **p, const unsigned char *end, mbedtls_x509_buf *sig );
-int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x509_buf *sig_params,
-                      mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg,
-                      void **sig_opts );
-int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
-                   mbedtls_x509_time *t );
-int mbedtls_x509_get_serial( unsigned char **p, const unsigned char *end,
-                     mbedtls_x509_buf *serial );
-int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
-                  mbedtls_x509_buf *ext, int tag );
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
-int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *sig_oid,
-                       mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg,
-                       const void *sig_opts );
-#endif
-int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name );
-int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *name );
-int mbedtls_x509_set_extension( mbedtls_asn1_named_data **head, const char *oid, size_t oid_len,
-                        int critical, const unsigned char *val,
-                        size_t val_len );
-int mbedtls_x509_write_extensions( unsigned char **p, unsigned char *start,
-                           mbedtls_asn1_named_data *first );
-int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
-                      mbedtls_asn1_named_data *first );
-int mbedtls_x509_write_sig( unsigned char **p, unsigned char *start,
-                    const char *oid, size_t oid_len,
-                    unsigned char *sig, size_t size );
-
 #define MBEDTLS_X509_SAFE_SNPRINTF                          \
     do {                                                    \
         if( ret < 0 || (size_t) ret >= n )                  \
             return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );    \
+                                                            \
+        n -= (size_t) ret;                                  \
+        p += (size_t) ret;                                  \
+    } while( 0 )
+
+#define MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP             \
+    do {                                                    \
+        if( ret < 0 || (size_t) ret >= n )                  \
+        {                                                   \
+            ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;        \
+            goto cleanup;                                   \
+        }                                                   \
                                                             \
         n -= (size_t) ret;                                  \
         p += (size_t) ret;                                  \

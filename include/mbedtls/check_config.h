@@ -631,6 +631,20 @@
 #error "MBEDTLS_SSL_CID_OUT_LEN_MAX too large (max 255)"
 #endif
 
+#if (  defined(MBEDTLS_SSL_CONF_CID_LEN) &&                     \
+      !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID) ) ||     \
+    ( !defined(MBEDTLS_SSL_CONF_CID_LEN) &&                     \
+       defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID) )
+#error "MBEDTLS_SSL_CONF_CID_LEN and MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID must be defined simultaneously"
+#endif
+
+#if (  defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN) &&       \
+      !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX) ) ||    \
+    ( !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN) &&       \
+       defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX) )
+#error "MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN and MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX must be defined simultaneously"
+#endif
+
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) &&                              \
     ( !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
 #error "MBEDTLS_SSL_DTLS_BADMAC_LIMIT  defined, but not all prerequisites"
@@ -669,6 +683,16 @@
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
         !defined(MBEDTLS_X509_CRT_PARSE_C)
 #error "MBEDTLS_SSL_SERVER_NAME_INDICATION defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) &&  \
+    defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+#error "MBEDTLS_SSL_SESSION_TICKETS cannot be defined with MBEDTLS_SSL_NO_SESSION_RESUMPTION"
+#endif
+
+#if !defined(MBEDTLS_SSL_NO_SESSION_CACHE) &&  \
+    defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+#error "MBEDTLS_SSL_NO_SESSION_CACHE needs to be defined with MBEDTLS_SSL_NO_SESSION_RESUMPTION"
 #endif
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
@@ -738,7 +762,7 @@
 /*
  * Avoid warning from -pedantic. This is a convenient place for this
  * workaround since this is included by every single file before the
- * #if defined(MBEDTLS_xxx_C) that results in emtpy translation units.
+ * #if defined(MBEDTLS_xxx_C) that results in empty translation units.
  */
 typedef int mbedtls_iso_c_forbids_empty_translation_units;
 

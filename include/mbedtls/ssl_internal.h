@@ -509,7 +509,9 @@ struct mbedtls_ssl_handshake_params
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
 
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     int resume;                         /*!<  session resume indicator*/
+#endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
     int max_major_ver;                  /*!< max. major version client*/
     int max_minor_ver;                  /*!< max. minor version client*/
     int cli_exts;                       /*!< client extension presence*/
@@ -1081,9 +1083,211 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
 
 
 /*
+ * Accessor functions for optional fields of various structures
+ */
+
+static inline int mbedtls_ssl_handshake_get_resume(
+        const mbedtls_ssl_handshake_params *handshake )
+{
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    return( handshake->resume );
+#else
+    (void) handshake;
+    return( 0 );
+#endif
+}
+
+static inline int mbedtls_ssl_get_renego_status(
+        const mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    return( ssl->renego_status );
+#else
+    (void) ssl;
+    return( MBEDTLS_SSL_INITIAL_HANDSHAKE );
+#endif
+}
+
+
+/*
  * Getter functions for fields in mbedtls_ssl_config which may
  * be fixed at compile time via one of MBEDTLS_SSL_SSL_CONF_XXX.
  */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
+static inline unsigned int mbedtls_ssl_conf_get_cert_req_ca_list(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->cert_req_ca_list );
+}
+#else /* !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
+static inline unsigned int mbedtls_ssl_conf_get_cert_req_ca_list(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST );
+}
+#endif /* MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
+#endif /* MBEDTLS_SSL_SRV_C */
+
+#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
+static inline unsigned int mbedtls_ssl_conf_get_endpoint(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->endpoint );
+}
+#else /* !MBEDTLS_SSL_CONF_ENDPOINT */
+static inline unsigned int mbedtls_ssl_conf_get_endpoint(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_ENDPOINT );
+}
+#endif /* MBEDTLS_SSL_CONF_ENDPOINT */
+
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
+static inline uint32_t mbedtls_ssl_conf_get_read_timeout(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->read_timeout );
+}
+#else /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
+static inline uint32_t mbedtls_ssl_conf_get_read_timeout(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_READ_TIMEOUT );
+}
+#endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
+static inline uint32_t mbedtls_ssl_conf_get_hs_timeout_min(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->hs_timeout_min );
+}
+#else /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+static inline uint32_t mbedtls_ssl_conf_get_hs_timeout_min(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN );
+}
+#endif /* MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX)
+static inline uint32_t mbedtls_ssl_conf_get_hs_timeout_max(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->hs_timeout_max );
+}
+#else /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+static inline uint32_t mbedtls_ssl_conf_get_hs_timeout_max(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX );
+}
+#endif /* MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if !defined(MBEDTLS_SSL_CONF_CID_LEN)
+static inline size_t mbedtls_ssl_conf_get_cid_len(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->cid_len );
+}
+#else /* !MBEDTLS_SSL_CONF_CID_LEN */
+static inline size_t mbedtls_ssl_conf_get_cid_len(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_CID_LEN );
+}
+#endif /* MBEDTLS_SSL_CONF_CID_LEN */
+
+#if !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
+static inline unsigned int mbedtls_ssl_conf_get_ignore_unexpected_cid(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->ignore_unexpected_cid );
+}
+#else /* !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
+static inline unsigned int mbedtls_ssl_conf_get_ignore_unexpected_cid(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID );
+}
+#endif /* MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
+static inline unsigned int mbedtls_ssl_conf_get_allow_legacy_renegotiation(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->allow_legacy_renegotiation );
+}
+#else /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
+static inline unsigned int mbedtls_ssl_conf_get_allow_legacy_renegotiation(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION );
+}
+#endif /* MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
+
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
+static inline int mbedtls_ssl_conf_get_authmode(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->authmode );
+}
+#else /* !MBEDTLS_SSL_CONF_AUTHMODE */
+static inline int mbedtls_ssl_conf_get_authmode(
+    mbedtls_ssl_config const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_AUTHMODE );
+}
+#endif /* MBEDTLS_SSL_CONF_AUTHMODE */
+
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
+static inline unsigned int mbedtls_ssl_conf_get_badmac_limit(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->badmac_limit );
+}
+#else /* !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
+static inline unsigned int mbedtls_ssl_conf_get_badmac_limit(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_BADMAC_LIMIT );
+}
+#endif /* MBEDTLS_SSL_CONF_BADMAC_LIMIT */
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
+
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
+static inline unsigned int mbedtls_ssl_conf_get_anti_replay(
+    mbedtls_ssl_config  const *conf )
+{
+    return( conf->anti_replay );
+}
+#else /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
+static inline unsigned int mbedtls_ssl_conf_get_anti_replay(
+    mbedtls_ssl_config  const *conf )
+{
+    ((void) conf);
+    return( MBEDTLS_SSL_CONF_ANTI_REPLAY );
+}
+#endif /* MBEDTLS_SSL_CONF_ANTI_REPLAY */
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 static inline unsigned int mbedtls_ssl_conf_get_ems(

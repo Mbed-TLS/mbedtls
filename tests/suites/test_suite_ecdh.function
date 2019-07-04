@@ -387,7 +387,7 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
         mbedtls_ecdh_enable_restart( &cli );
     }
 
-    /* server writes its paramaters */
+    /* server writes its parameters */
     memset( buf, 0x00, sizeof( buf ) );
     len = 0;
 

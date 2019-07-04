@@ -75,7 +75,7 @@ typedef struct mbedtls_x509_crl
     int version;            /**< CRL version (1=v1, 2=v2) */
     mbedtls_x509_buf sig_oid;       /**< CRL signature type identifier */
 
-    mbedtls_x509_buf issuer_raw;    /**< The raw issuer data (DER). */
+    mbedtls_x509_buf_raw issuer_raw;           /**< The raw issuer data (DER). */
 
     mbedtls_x509_name issuer;       /**< The parsed issuer data (named information object). */
 
@@ -111,7 +111,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
 /**
  * \brief          Parse one or more CRLs and append them to the chained list
  *
- * \note           Mutliple CRLs are accepted only if using PEM format
+ * \note           Multiple CRLs are accepted only if using PEM format
  *
  * \param chain    points to the start of the chain
  * \param buf      buffer holding the CRL data in PEM or DER format
@@ -126,7 +126,7 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
 /**
  * \brief          Load one or more CRLs and append them to the chained list
  *
- * \note           Mutliple CRLs are accepted only if using PEM format
+ * \note           Multiple CRLs are accepted only if using PEM format
  *
  * \param chain    points to the start of the chain
  * \param path     filename to read the CRLs from (in PEM or DER encoding)

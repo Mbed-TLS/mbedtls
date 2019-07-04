@@ -906,11 +906,13 @@ struct mbedtls_ssl_config
     int  (*f_rng)(void *, unsigned char *, size_t);
     void *p_rng;                    /*!< context for the RNG function       */
 
+#if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     /** Callback to retrieve a session from the cache                       */
     int (*f_get_cache)(void *, mbedtls_ssl_session *);
     /** Callback to store a session into the cache                          */
     int (*f_set_cache)(void *, const mbedtls_ssl_session *);
     void *p_cache;                  /*!< context for cache callbacks        */
+#endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     /** Callback for setting cert according to SNI extension                */
@@ -957,7 +959,9 @@ struct mbedtls_ssl_config
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if !defined(MBEDTLS_SSL_CONF_CID_LEN)
     size_t cid_len; /*!< The length of CIDs for incoming DTLS records.      */
+#endif /* !MBEDTLS_SSL_CONF_CID_LEN */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -1013,14 +1017,20 @@ struct mbedtls_ssl_config
      * Numerical settings (int then char)
      */
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
     uint32_t read_timeout;          /*!< timeout for mbedtls_ssl_read (ms)  */
+#endif /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
     uint32_t hs_timeout_min;        /*!< initial value of the handshake
                                          retransmission timeout (ms)        */
+#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+#if !defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX)
     uint32_t hs_timeout_max;        /*!< maximum value of the handshake
                                          retransmission timeout (ms)        */
-#endif
+#endif /* !MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renego_max_records;         /*!< grace period for renegotiation     */
@@ -1029,7 +1039,9 @@ struct mbedtls_ssl_config
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
     unsigned int badmac_limit;      /*!< limit of records with a bad MAC    */
+#endif /* !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
@@ -1045,11 +1057,17 @@ struct mbedtls_ssl_config
      * Flags (bitfields)
      */
 
+#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
     unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
+#endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
     unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
+#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
     unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
+#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
     unsigned int allow_legacy_renegotiation : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
 #if defined(MBEDTLS_ARC4_C)
     unsigned int arc4_disabled : 1; /*!< blacklist RC4 ciphersuites?        */
 #endif
@@ -1070,8 +1088,10 @@ struct mbedtls_ssl_config
 #endif /* !MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
     unsigned int anti_replay : 1;   /*!< detect and prevent replay?         */
-#endif
+#endif /* !MBEDTLS_SSL_CONF_ANTI_REPLAY */
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     unsigned int cbc_record_splitting : 1;  /*!< do cbc record splitting    */
 #endif
@@ -1088,13 +1108,17 @@ struct mbedtls_ssl_config
     unsigned int fallback : 1;      /*!< is this a fallback?                */
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
+#if !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
     unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
+#endif /* !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
     unsigned int ignore_unexpected_cid : 1; /*!< Determines whether DTLS
                                              *   record with unexpected CID
                                              *   should lead to failure.    */
+#endif /* !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 
@@ -1363,13 +1387,18 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
  */
 int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl );
 
+#if !defined(MBEDTLS_SSL_CONF_ENDPOINT)
 /**
  * \brief          Set the current endpoint type
+ *
+ * \note           On constrained systems, this can also be configured
+ *                 at compile-time via MBEDTLS_SSL_CONF_ENDPOINT.
  *
  * \param conf     SSL configuration
  * \param endpoint must be MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
  */
 void mbedtls_ssl_conf_endpoint( mbedtls_ssl_config *conf, int endpoint );
+#endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
 
 /**
  * \brief           Set the transport type (TLS or DTLS).
@@ -1680,6 +1709,7 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
 /**
  * \brief          Set the timeout period for mbedtls_ssl_read()
  *                 (Default: no timeout.)
@@ -1693,10 +1723,14 @@ void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
  *                 With non-blocking I/O, this will only work if timer
  *                 callbacks were set with \c mbedtls_ssl_set_timer_cb().
  *
+ * \note           On constrained systems, this option can also be configured
+ *                 at compile-time via MBEDTLS_SSL_CONF_READ_TIMEOUT.
+ *
  * \note           With non-blocking I/O, you may also skip this function
  *                 altogether and handle timeouts at the application layer.
  */
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
+#endif /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
 /**
  * \brief          Set the timer callbacks (Mandatory for DTLS.)
@@ -2016,14 +2050,16 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */
 
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY) && \
+    !defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
 /**
  * \brief          Enable or disable anti-replay protection for DTLS.
  *                 (DTLS only, no effect on TLS.)
  *                 Default: enabled.
  *
  * \param conf     SSL configuration
- * \param mode     MBEDTLS_SSL_ANTI_REPLAY_ENABLED or MBEDTLS_SSL_ANTI_REPLAY_DISABLED.
+ * \param mode     MBEDTLS_SSL_ANTI_REPLAY_ENABLED or
+ *                 MBEDTLS_SSL_ANTI_REPLAY_DISABLED.
  *
  * \warning        Disabling this is a security risk unless the application
  *                 protocol handles duplicated packets in a safe way. You
@@ -2031,11 +2067,16 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
  *                 However, if your application already detects duplicated
  *                 packets and needs information about them to adjust its
  *                 transmission strategy, then you'll want to disable this.
+ *
+ * \note            On constrained systems, this option can also be
+ *                  fixed at compile-time by defining the constant
+ *                  MBEDTLS_SSL_CONF_ANTI_REPLAY.
  */
 void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
-#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY && !MBEDTLS_SSL_CONF_ANTI_REPLAY */
 
-#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) && \
+    !defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
 /**
  * \brief          Set a limit on the number of records with a bad MAC
  *                 before terminating the connection.
@@ -2058,9 +2099,13 @@ void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
  *                 connection. On the other hand, a high limit or no limit
  *                 might make us waste resources checking authentication on
  *                 many bogus packets.
+ *
+ * \note           On constrained systems, this option can also be
+ *                 fixed at compile-time by defining the constant
+ *                 MBEDTLS_SSL_CONF_BADMAC_LIMIT.
  */
 void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit );
-#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT && !MBEDTLS_SSL_CONF_BADMAC_LIMIT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
@@ -2129,7 +2174,7 @@ void mbedtls_ssl_set_datagram_packing( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min, uint32_t max );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
 /**
  * \brief          Set the session cache callbacks (server-side only)
  *                 If not set, no session resuming is done (except if session
@@ -2171,9 +2216,9 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
         void *p_cache,
         int (*f_get_cache)(void *, mbedtls_ssl_session *),
         int (*f_set_cache)(void *, const mbedtls_ssl_session *) );
-#endif /* MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
-#if defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C) && !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
 /**
  * \brief          Request resumption of session (client-side only)
  *                 Session data is copied from presented session structure.
@@ -2189,7 +2234,7 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
  * \sa             mbedtls_ssl_get_session()
  */
 int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session );
-#endif /* MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C && !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
 /**
  * \brief          Load serialized session data into a session structure.
@@ -2293,9 +2338,11 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites );
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
 #define MBEDTLS_SSL_UNEXPECTED_CID_FAIL   1
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    !defined(MBEDTLS_SSL_CONF_CID_LEN) &&      \
+    !defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
 /**
  * \brief               Specify the length of Connection IDs for incoming
  *                      encrypted DTLS records, as well as the behaviour
@@ -2324,13 +2371,19 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
  *                      same SSL configuration; this allows simpler parsing of
  *                      record headers.
  *
+ * \note                On constrained systems, this configuration can also be
+ *                      fixed at compile-time via MBEDTLS_SSL_CONF_CID_LEN and
+ *                      MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID.
+ *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if \p own_cid_len
  *                      is too large.
  */
 int mbedtls_ssl_conf_cid( mbedtls_ssl_config *conf, size_t len,
                           int ignore_other_cids );
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID &&
+          !MBEDTLS_SSL_CONF_CID_LEN &&
+          !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
 /**
  * \brief               Set the list of allowed ciphersuites and the
@@ -2395,7 +2448,7 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
  *                 provision more than one cert/key pair (eg one ECDSA, one
  *                 RSA with SHA-256, one RSA with SHA-1). An adequate
  *                 certificate will be selected according to the client's
- *                 advertised capabilities. In case mutliple certificates are
+ *                 advertised capabilities. In case multiple certificates are
  *                 adequate, preference is given to the one set by the first
  *                 call to this function, then second, etc.
  *
@@ -2916,11 +2969,14 @@ void mbedtls_ssl_conf_extended_master_secret_enforce( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
 #endif /* MBEDTLS_ARC4_C */
 
-#if defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
 /**
  * \brief          Whether to send a list of acceptable CAs in
  *                 CertificateRequest messages.
  *                 (Default: do send)
+ *
+ * \note           On constrained systems, this options can also be configured
+ *                 at compile-time via MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST.
  *
  * \param conf     SSL configuration
  * \param cert_req_ca_list   MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED or
@@ -2928,7 +2984,7 @@ void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 );
  */
 void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
                                           char cert_req_ca_list );
-#endif /* MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
@@ -3030,6 +3086,7 @@ void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets
 void mbedtls_ssl_conf_renegotiation( mbedtls_ssl_config *conf, int renegotiation );
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
+#if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
 /**
  * \brief          Prevent or allow legacy renegotiation.
  *                 (Default: MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION)
@@ -3056,8 +3113,14 @@ void mbedtls_ssl_conf_renegotiation( mbedtls_ssl_config *conf, int renegotiation
  * \param allow_legacy  Prevent or allow (SSL_NO_LEGACY_RENEGOTIATION,
  *                                        SSL_ALLOW_LEGACY_RENEGOTIATION or
  *                                        MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE)
+ *
+ *
+ * \note            On constrained systems, this option can also be
+ *                  fixed at compile-time by defining the constant
+ *                  MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION.
  */
 void mbedtls_ssl_conf_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy );
+#endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 /**
@@ -3733,7 +3796,7 @@ int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
  *                 mbedtls_ssl_config_defaults() or mbedtls_ssl_config_free().
  *
  * \note           You need to call mbedtls_ssl_config_defaults() unless you
- *                 manually set all of the relevent fields yourself.
+ *                 manually set all of the relevant fields yourself.
  *
  * \param conf     SSL configuration context
  */

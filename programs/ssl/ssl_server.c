@@ -84,17 +84,6 @@ int main( void )
 
 #define DEBUG_LEVEL 0
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -224,11 +213,11 @@ int main( void )
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
-#if defined(MBEDTLS_SSL_CACHE_C)
+#if defined(MBEDTLS_SSL_CACHE_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     mbedtls_ssl_conf_session_cache( &conf, &cache,
                                    mbedtls_ssl_cache_get,
                                    mbedtls_ssl_cache_set );
-#endif
+#endif /* MBEDTLS_SSL_CACHE_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
     mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
     if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )

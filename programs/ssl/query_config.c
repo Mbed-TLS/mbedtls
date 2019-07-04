@@ -274,6 +274,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_CHECK_PARAMS */
 
+#if defined(MBEDTLS_CHECK_PARAMS_ASSERT)
+    if( strcmp( "MBEDTLS_CHECK_PARAMS_ASSERT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_CHECK_PARAMS_ASSERT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_CHECK_PARAMS_ASSERT */
+
 #if defined(MBEDTLS_TIMING_ALT)
     if( strcmp( "MBEDTLS_TIMING_ALT", config ) == 0 )
     {
@@ -1410,6 +1418,22 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
+#if defined(MBEDTLS_SSL_NO_SESSION_CACHE)
+    if( strcmp( "MBEDTLS_SSL_NO_SESSION_CACHE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_NO_SESSION_CACHE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_NO_SESSION_CACHE */
+
+#if defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    if( strcmp( "MBEDTLS_SSL_NO_SESSION_RESUMPTION", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_NO_SESSION_RESUMPTION );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_NO_SESSION_RESUMPTION */
+
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( strcmp( "MBEDTLS_SSL_EXPORT_KEYS", config ) == 0 )
     {
@@ -1465,6 +1489,22 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_VERSION_FEATURES */
+
+#if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+    if( strcmp( "MBEDTLS_X509_ON_DEMAND_PARSING", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_ON_DEMAND_PARSING );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
+
+#if defined(MBEDTLS_X509_ALWAYS_FLUSH)
+    if( strcmp( "MBEDTLS_X509_ALWAYS_FLUSH", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_ALWAYS_FLUSH );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_ALWAYS_FLUSH */
 
 #if defined(MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3)
     if( strcmp( "MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3", config ) == 0 )
@@ -2577,6 +2617,94 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_PLATFORM_GMTIME_R_ALT */
+
+#if defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
+    if( strcmp( "MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
+
+#if defined(MBEDTLS_SSL_CONF_AUTHMODE)
+    if( strcmp( "MBEDTLS_SSL_CONF_AUTHMODE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_AUTHMODE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_AUTHMODE */
+
+#if defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
+    if( strcmp( "MBEDTLS_SSL_CONF_READ_TIMEOUT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_READ_TIMEOUT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
+
+#if defined(MBEDTLS_SSL_CONF_ENDPOINT)
+    if( strcmp( "MBEDTLS_SSL_CONF_ENDPOINT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_ENDPOINT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_ENDPOINT */
+
+#if defined(MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST)
+    if( strcmp( "MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_CERT_REQ_CA_LIST */
+
+#if defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN)
+    if( strcmp( "MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_HS_TIMEOUT_MIN */
+
+#if defined(MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX)
+    if( strcmp( "MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_HS_TIMEOUT_MAX */
+
+#if defined(MBEDTLS_SSL_CONF_ANTI_REPLAY)
+    if( strcmp( "MBEDTLS_SSL_CONF_ANTI_REPLAY", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_ANTI_REPLAY );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_ANTI_REPLAY */
+
+#if defined(MBEDTLS_SSL_CONF_BADMAC_LIMIT)
+    if( strcmp( "MBEDTLS_SSL_CONF_BADMAC_LIMIT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_BADMAC_LIMIT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_BADMAC_LIMIT */
+
+#if defined(MBEDTLS_SSL_CONF_CID_LEN)
+    if( strcmp( "MBEDTLS_SSL_CONF_CID_LEN", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_CID_LEN );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_CID_LEN */
+
+#if defined(MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID)
+    if( strcmp( "MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
 #if defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
     if( strcmp( "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET", config ) == 0 )

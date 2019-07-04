@@ -106,6 +106,12 @@ class AbiChecker(object):
             stderr=subprocess.STDOUT
         )
         self.log.debug(worktree_output.decode("utf-8"))
+        version.commit = subprocess.check_output(
+            [self.git_command, "rev-parse", worktree_rev],
+            cwd=git_worktree_path,
+            stderr=subprocess.STDOUT
+        ).decode("ascii").rstrip()
+        self.log.debug("Commit is {}".format(version.commit))
         return git_worktree_path
 
     def _update_git_submodules(self, git_worktree_path, version):
@@ -161,6 +167,13 @@ class AbiChecker(object):
                     os.path.join(root, file)
                 )
 
+    @staticmethod
+    def _pretty_revision(version):
+        if version.revision == version.commit:
+            return version.revision
+        else:
+            return "{} ({})".format(version.revision, version.commit)
+
     def _get_abi_dumps_from_shared_libraries(self, version):
         """Generate the ABI dumps for the specified git revision.
         The shared libraries must have been built and the module paths
@@ -175,7 +188,7 @@ class AbiChecker(object):
                 "abi-dumper",
                 module_path,
                 "-o", output_path,
-                "-lver", version.revision
+                "-lver", self._pretty_revision(version),
             ]
             abi_dump_output = subprocess.check_output(
                 abi_dump_command,
@@ -224,7 +237,10 @@ class AbiChecker(object):
         """Generate a report of the differences between the reference ABI
         and the new ABI. ABI dumps from self.old_version and self.new_version
         must be available."""
-        compatibility_report = ""
+        compatibility_report = ("Checking evolution from {} to {}\n".format(
+            self._pretty_revision(self.old_version),
+            self._pretty_revision(self.new_version)
+        ))
         compliance_return_code = 0
         shared_modules = list(set(self.old_version.modules.keys()) &
                               set(self.new_version.modules.keys()))
@@ -371,6 +387,7 @@ def run_main():
             version="old",
             repository=abi_args.old_repo,
             revision=abi_args.old_rev,
+            commit=None,
             crypto_repository=abi_args.old_crypto_repo,
             crypto_revision=abi_args.old_crypto_rev,
             abi_dumps={},
@@ -380,6 +397,7 @@ def run_main():
             version="new",
             repository=abi_args.new_repo,
             revision=abi_args.new_rev,
+            commit=None,
             crypto_repository=abi_args.new_crypto_repo,
             crypto_revision=abi_args.new_crypto_rev,
             abi_dumps={},

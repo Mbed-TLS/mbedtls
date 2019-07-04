@@ -32,9 +32,9 @@ done
 
 if [ $INTERNAL ]
 then
-    HEADERS=$( ls include/mbedtls/*_internal.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+    HEADERS=$( ls include/mbedtls/*_internal.h crypto/include/mbedtls/*_internal.h | egrep -v 'compat-1\.3\.h|bn_mul' )
 else
-    HEADERS=$( ls include/mbedtls/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+    HEADERS=$( ls include/mbedtls/*.h crypto/include/mbedtls/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
 fi
 
 rm -f identifiers

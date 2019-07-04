@@ -295,7 +295,7 @@
  *   the function mbedtls_param_failed() in your application.
  *   See `platform_util.h` for its prototype.
  * - If you enable the macro #MBEDTLS_CHECK_PARAMS_ASSERT, then the
- *   library defines #MBEDTLS_PARAM_FAILED(\c cond) to be `assert(cond)`.
+ *   library defines MBEDTLS_PARAM_FAILED(\c cond) to be `assert(cond)`.
  *   You can still supply an alternative definition of
  *   MBEDTLS_PARAM_FAILED(), which may call `assert`.
  * - If you define a macro MBEDTLS_PARAM_FAILED() before including `config.h`

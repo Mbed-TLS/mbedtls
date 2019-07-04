@@ -1289,8 +1289,6 @@ static inline unsigned int mbedtls_ssl_conf_get_anti_replay(
 #endif /* MBEDTLS_SSL_CONF_ANTI_REPLAY */
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
-typedef int (*mbedtls_frng_t)( void*, unsigned char*, size_t );
-
 #if !defined(MBEDTLS_SSL_CONF_SET_TIMER)
 static inline mbedtls_ssl_set_timer_t* mbedtls_ssl_get_set_timer(
     mbedtls_ssl_context const *ssl )

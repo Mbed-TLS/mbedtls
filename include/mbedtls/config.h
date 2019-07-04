@@ -3622,7 +3622,7 @@
  *   defined function with signature
  *      int f_send( void*, const unsigned char *, size_t ),
  * * MBEDTLS_SSL_CONF_RECV_TIMEOUT must evaluate to the name of an
- * externally defined function with signature
+ *   externally defined function with signature
  *      int f_recv_timeout( void*, const unsigned char *, size_t, uint32_t ).
  */
 //#define MBEDTLS_SSL_CONF_RECV mbedtls_net_recv

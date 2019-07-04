@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
+
+# This file is part of Mbed TLS (https://tls.mbed.org)
+# Copyright (c) 2018, Arm Limited, All Rights Reserved
+
 """
-This file is part of Mbed TLS (https://tls.mbed.org)
-
-Copyright (c) 2018, Arm Limited, All Rights Reserved
-
-Purpose
-
 This script checks the current state of the source code for minor issues,
 including incorrect file permissions, presence of tabs, non-Unix line endings,
 trailing whitespace, presence of UTF-8 BOM, and TODO comments.
@@ -257,15 +255,7 @@ class IntegrityChecker(object):
 
 
 def run_main():
-    parser = argparse.ArgumentParser(
-        description=(
-            "This script checks the current state of the source code for "
-            "minor issues, including incorrect file permissions, "
-            "presence of tabs, non-Unix line endings, trailing whitespace, "
-            "presence of UTF-8 BOM, and TODO comments. "
-            "Note: requires python 3, must be run from Mbed TLS root."
-        )
-    )
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "-l", "--log_file", type=str, help="path to optional output log",
     )

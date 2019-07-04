@@ -25,12 +25,12 @@
 #define MBEDTLS_ASN1_WRITE_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "asn1.h"
+#include "mbedtls/asn1.h"
 
 #define MBEDTLS_ASN1_CHK_ADD(g, f)                      \
     do                                                  \

@@ -27,12 +27,12 @@
 #define MBEDTLS_CIPHER_WRAP_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "cipher.h"
+#include "mbedtls/cipher.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"

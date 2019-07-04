@@ -34,13 +34,13 @@
 #define MBEDTLS_PLATFORM_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
-#include "platform_time.h"
+#include "mbedtls/platform_time.h"
 #endif
 
 #define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED     -0x0070 /**< Hardware accelerator failed */

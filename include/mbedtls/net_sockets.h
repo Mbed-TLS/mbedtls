@@ -41,12 +41,12 @@
 #define MBEDTLS_NET_SOCKETS_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "ssl.h"
+#include "mbedtls/ssl.h"
 
 #include <stddef.h>
 #include <stdint.h>

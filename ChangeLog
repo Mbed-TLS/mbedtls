@@ -74,6 +74,7 @@ Bugfix
      irwir.
    * Enable Suite B with subset of ECP curves. Make sure the code compiles even
      if some curves are not defined. Fixes #1591 reported by dbedev.
+   * Fix misuse of signed arithmetic in the HAVEGE module. #2598
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,
@@ -82,6 +83,7 @@ API Changes
    * Add DER-encoded test CRTs to library/certs.c, allowing
      the example programs ssl_server2 and ssl_client2 to be run
      if MBEDTLS_FS_IO and MBEDTLS_PEM_PARSE_C are unset. Fixes #2254.
+   * The HAVEGE state type now uses uint32_t elements instead of int.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

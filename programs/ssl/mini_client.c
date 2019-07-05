@@ -209,7 +209,11 @@ int main( void )
         goto exit;
     }
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#else
+    mbedtls_ssl_conf_rng_ctx( &conf, &ctr_drbg );
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     mbedtls_ssl_conf_psk( &conf, psk, sizeof( psk ),
@@ -265,7 +269,13 @@ int main( void )
         goto exit;
     }
 
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
     mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
+#else
+     mbedtls_ssl_set_bio_ctx( &ssl, &server_fd );
+#endif
 
     if( mbedtls_ssl_handshake( &ssl ) != 0 )
     {

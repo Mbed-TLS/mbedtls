@@ -466,6 +466,10 @@ static void my_debug( void *ctx, int level,
     fflush(  (FILE *) ctx  );
 }
 
+
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
 /*
  * Test recv/send functions that make sure each try returns
  * WANT_READ/WANT_WRITE at least once before sucesseding
@@ -503,6 +507,9 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
         first_try = 1; /* Next call will be a new operation */
     return( ret );
 }
+#endif /* MBEDTLS_SSL_CONF_RECV &&
+          MBEDTLS_SSL_CONF_SEND &&
+          MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static unsigned char peer_crt_info[1024];
@@ -1764,7 +1771,12 @@ int main( int argc, char *argv[] )
         }
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#else
+    mbedtls_ssl_conf_rng_ctx( &conf, &ctr_drbg );
+#endif
+
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 
 #if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
@@ -1871,12 +1883,18 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
     if( opt.nbio == 2 )
         mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv, NULL );
     else
         mbedtls_ssl_set_bio( &ssl, &server_fd,
                              mbedtls_net_send, mbedtls_net_recv,
                              opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+#else
+     mbedtls_ssl_set_bio_ctx( &ssl, &server_fd );
+#endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -1897,8 +1915,13 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_TIMING_C)
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
+    !defined(MBEDTLS_SSL_CONF_GET_TIMER)
     mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
+#else
+    mbedtls_ssl_set_timer_cb_ctx( &ssl, &timer );
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2489,9 +2512,16 @@ send_request:
 
 #if defined(MBEDTLS_TIMING_C)
             if( opt.nbio != 0 && opt.read_timeout != 0 )
+            {
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
+    !defined(MBEDTLS_SSL_CONF_GET_TIMER)
                 mbedtls_ssl_set_timer_cb( &ssl, &timer,
                                           mbedtls_timing_set_delay,
                                           mbedtls_timing_get_delay );
+#else
+                mbedtls_ssl_set_timer_cb_ctx( &ssl, &timer );
+#endif
+            }
 #endif /* MBEDTLS_TIMING_C */
         }
 

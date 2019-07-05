@@ -902,8 +902,10 @@ struct mbedtls_ssl_config
     void (*f_dbg)(void *, int, const char *, int, const char *);
     void *p_dbg;                    /*!< context for the debug function     */
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
     /** Callback for getting (pseudo-)random numbers                        */
     int  (*f_rng)(void *, unsigned char *, size_t);
+#endif /* !MBEDTLS_SSL_CONF_RNG */
     void *p_rng;                    /*!< context for the RNG function       */
 
 #if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
@@ -1144,9 +1146,15 @@ struct mbedtls_ssl_context
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
 #endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
+#if !defined(MBEDTLS_SSL_CONF_SEND)
     mbedtls_ssl_send_t *f_send; /*!< Callback for network send */
+#endif /* !MBEDTLS_SSL_CONF_SEND */
+#if !defined(MBEDTLS_SSL_CONF_RECV)
     mbedtls_ssl_recv_t *f_recv; /*!< Callback for network receive */
+#endif /* !MBEDTLS_SSL_CONF_RECV */
+#if !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
     mbedtls_ssl_recv_timeout_t *f_recv_timeout;
+#endif /* !MBEDTLS_SSL_CONF_RECV_TIMEOUT */
                                 /*!< Callback for network receive with timeout */
 
     void *p_bio;                /*!< context for I/O operations   */
@@ -1175,8 +1183,12 @@ struct mbedtls_ssl_context
      */
     void *p_timer;              /*!< context for the timer callbacks */
 
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER)
     mbedtls_ssl_set_timer_t *f_set_timer;       /*!< set timer callback */
+#endif /* !MBEDTLS_SSL_CONF_SET_TIMER */
+#if !defined(MBEDTLS_SSL_CONF_GET_TIMER)
     mbedtls_ssl_get_timer_t *f_get_timer;       /*!< get timer callback */
+#endif /* !MBEDTLS_SSL_CONF_GET_TIMER */
 
     /*
      * Record layer (incoming data)
@@ -1462,8 +1474,12 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      void *p_vrfy );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
 /**
  * \brief          Set the random number generator callback
+ *
+ * \note           On constrained systems, the RNG can also be configured at
+ *                 compile-time via the option MBEDTLS_SSL_CONF_RNG.
  *
  * \param conf     SSL configuration
  * \param f_rng    RNG function
@@ -1472,6 +1488,16 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng );
+#else /* !MBEDTLS_SSL_CONF_RNG */
+/**
+ * \brief          Set the random number generator callback context.
+ *
+ * \param conf     SSL configuration
+ * \param p_rng    RNG parameter
+ */
+void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
+                               void *p_rng );
+#endif /* MBEDTLS_SSL_CONF_RNG */
 
 /**
  * \brief          Set the debug callback
@@ -1491,6 +1517,9 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
                   void (*f_dbg)(void *, int, const char *, int, const char *),
                   void  *p_dbg );
 
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
 /**
  * \brief          Set the underlying BIO callbacks for write, read and
  *                 read-with-timeout.
@@ -1516,6 +1545,11 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
  *                 \c mbedtls_ssl_recv_t and \c mbedtls_ssl_recv_timeout_t for
  *                 the conventions those callbacks must follow.
  *
+ * \note           On constrained systems, the pointers \p f_send, \p f_recv,
+ *                 and \p f_recv_timeout can also be configured at compile-time
+ *                 via the macros MBEDTLS_SSL_CONF_RECV, MBEDTLS_SSL_CONF_SEND
+ *                 and MBEDTLS_SSL_CONF_RECV_TIMEOUT.
+ *
  * \note           On some platforms, net_sockets.c provides
  *                 \c mbedtls_net_send(), \c mbedtls_net_recv() and
  *                 \c mbedtls_net_recv_timeout() that are suitable to be used
@@ -1526,6 +1560,22 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
                           mbedtls_ssl_send_t *f_send,
                           mbedtls_ssl_recv_t *f_recv,
                           mbedtls_ssl_recv_timeout_t *f_recv_timeout );
+#else /* !( MBEDTLS_SSL_CONF_RECV &&
+            MBEDTLS_SSL_CONF_SEND &&
+            MBEDTLS_SSL_CONF_RECV_TIMEOUT ) */
+/**
+ * \brief          Set the context to be passed to the underlying BIO callbacks
+ *                 for write, read and read-with-timeout.
+ *
+ * \param ssl      The SSL context to configure.
+ * \param p_bio    The parameter (context) to be used for the BIO callbacks.
+ *
+ */
+void mbedtls_ssl_set_bio_ctx( mbedtls_ssl_context *ssl,
+                              void *p_bio );
+#endif /* MBEDTLS_SSL_CONF_RECV &&
+          MBEDTLS_SSL_CONF_SEND &&
+          MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
@@ -1732,30 +1782,50 @@ void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
 #endif /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
+    !defined(MBEDTLS_SSL_CONF_GET_TIMER)
 /**
- * \brief          Set the timer callbacks (Mandatory for DTLS.)
+ * \brief         Set the timer callbacks (Mandatory for DTLS.)
  *
- * \param ssl      SSL context
- * \param p_timer  parameter (context) shared by timer callbacks
+ * \param ssl     SSL context
+ * \param p_timer parameter (context) shared by timer callbacks
  * \param f_set_timer   set timer callback
  * \param f_get_timer   get timer callback. Must return:
  *
- * \note           See the documentation of \c mbedtls_ssl_set_timer_t and
- *                 \c mbedtls_ssl_get_timer_t for the conventions this pair of
- *                 callbacks must follow.
+ * \note          See the documentation of \c mbedtls_ssl_set_timer_t and
+ *                \c mbedtls_ssl_get_timer_t for the conventions this pair of
+ *                callbacks must follow.
  *
- * \note           On some platforms, timing.c provides
- *                 \c mbedtls_timing_set_delay() and
- *                 \c mbedtls_timing_get_delay() that are suitable for using
- *                 here, except if using an event-driven style.
+ * \note          On some platforms, timing.c provides
+ *                \c mbedtls_timing_set_delay() and
+ *                \c mbedtls_timing_get_delay() that are suitable for using
+ *                here, except if using an event-driven style.
  *
- * \note           See also the "DTLS tutorial" article in our knowledge base.
- *                 https://tls.mbed.org/kb/how-to/dtls-tutorial
+ * \note          On constrained systems, the timer callbacks \p f_set_timer
+ *                and \p f_get_timer may also be configured at compile-time
+ *                via MBEDTLS_SSL_CONF_GET_TIMER and MBEDTLS_SSL_CONF_SET_TIMER.
+ *
+ * \note          See also the "DTLS tutorial" article in our knowledge base.
+ *                https://tls.mbed.org/kb/how-to/dtls-tutorial
  */
 void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
                                void *p_timer,
                                mbedtls_ssl_set_timer_t *f_set_timer,
                                mbedtls_ssl_get_timer_t *f_get_timer );
+#else /* !( MBEDTLS_SSL_CONF_SET_TIMER &&
+            MBEDTLS_SSL_CONF_GET_TIMER ) */
+/**
+ * \brief          Set the context to be passed to the timer callbacks
+ *                 (Mandatory for DTLS.)
+ *
+ * \param ssl      The SSL context to configure.
+ * \param p_timer  The context to be passed to the timer callbacks.
+ *
+ */
+void mbedtls_ssl_set_timer_cb_ctx( mbedtls_ssl_context *ssl,
+                                   void *p_timer );
+#endif /* MBEDTLS_SSL_CONF_SET_TIMER &&
+          MBEDTLS_SSL_CONF_GET_TIMER */
 
 /**
  * \brief           Callback type: generate and write session ticket

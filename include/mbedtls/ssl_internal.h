@@ -1289,6 +1289,123 @@ static inline unsigned int mbedtls_ssl_conf_get_anti_replay(
 #endif /* MBEDTLS_SSL_CONF_ANTI_REPLAY */
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER)
+static inline mbedtls_ssl_set_timer_t* mbedtls_ssl_get_set_timer(
+    mbedtls_ssl_context const *ssl )
+{
+    return( ssl->f_set_timer );
+}
+#else /* !MBEDTLS_SSL_CONF_SET_TIMER */
+
+#define mbedtls_ssl_conf_set_timer_func MBEDTLS_SSL_CONF_SET_TIMER
+extern void mbedtls_ssl_conf_set_timer_func( void*, uint32_t, uint32_t );
+
+static inline mbedtls_ssl_set_timer_t* mbedtls_ssl_get_set_timer(
+    mbedtls_ssl_context const *ssl )
+{
+    ((void) ssl);
+    return ((mbedtls_ssl_set_timer_t*) mbedtls_ssl_conf_set_timer_func);
+}
+#endif /* MBEDTLS_SSL_CONF_SET_TIMER */
+
+#if !defined(MBEDTLS_SSL_CONF_GET_TIMER)
+static inline mbedtls_ssl_get_timer_t* mbedtls_ssl_get_get_timer(
+    mbedtls_ssl_context const *ssl )
+{
+    return( ssl->f_get_timer );
+}
+#else /* !MBEDTLS_SSL_CONF_GET_TIMER */
+
+#define mbedtls_ssl_conf_get_timer_func MBEDTLS_SSL_CONF_GET_TIMER
+extern int mbedtls_ssl_conf_get_timer_func( void* );
+
+static inline mbedtls_ssl_get_timer_t* mbedtls_ssl_get_get_timer(
+    mbedtls_ssl_context const *ssl )
+{
+    ((void) ssl);
+    return ((mbedtls_ssl_get_timer_t*) mbedtls_ssl_conf_get_timer_func);
+}
+#endif /* MBEDTLS_SSL_CONF_GET_TIMER */
+
+#if !defined(MBEDTLS_SSL_CONF_RECV)
+static inline mbedtls_ssl_recv_t* mbedtls_ssl_get_recv(
+    mbedtls_ssl_context const *ssl )
+{
+    return( ssl->f_recv );
+}
+#else /* !MBEDTLS_SSL_CONF_RECV */
+
+#define mbedtls_ssl_conf_recv_func MBEDTLS_SSL_CONF_RECV
+extern int mbedtls_ssl_conf_recv_func( void*, unsigned char*, size_t );
+
+static inline mbedtls_ssl_recv_t* mbedtls_ssl_get_recv(
+    mbedtls_ssl_context const *ssl )
+{
+    ((void) ssl);
+    return ((mbedtls_ssl_recv_t*) mbedtls_ssl_conf_recv_func);
+}
+#endif /* MBEDTLS_SSL_CONF_RECV */
+
+#if !defined(MBEDTLS_SSL_CONF_SEND)
+static inline mbedtls_ssl_send_t* mbedtls_ssl_get_send(
+    mbedtls_ssl_context const *ssl )
+{
+    return( ssl->f_send );
+}
+#else /* !MBEDTLS_SSL_CONF_SEND */
+
+#define mbedtls_ssl_conf_send_func MBEDTLS_SSL_CONF_SEND
+extern int mbedtls_ssl_conf_send_func( void*, unsigned char const*, size_t );
+
+static inline mbedtls_ssl_send_t* mbedtls_ssl_get_send(
+    mbedtls_ssl_context const *ssl )
+{
+    ((void) ssl);
+    return ((mbedtls_ssl_send_t*) mbedtls_ssl_conf_send_func);
+}
+#endif /* MBEDTLS_SSL_CONF_SEND */
+
+#if !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
+static inline mbedtls_ssl_recv_timeout_t* mbedtls_ssl_get_recv_timeout(
+    mbedtls_ssl_context const *ssl )
+{
+    return( ssl->f_recv_timeout );
+}
+#else /* !MBEDTLS_SSL_CONF_RECV_TIMEOUT */
+
+#define mbedtls_ssl_conf_recv_timeout_func MBEDTLS_SSL_CONF_RECV_TIMEOUT
+extern int mbedtls_ssl_conf_recv_timeout_func(
+    void*, unsigned char*, size_t, uint32_t );
+
+static inline mbedtls_ssl_recv_timeout_t* mbedtls_ssl_get_recv_timeout(
+    mbedtls_ssl_context const *ssl )
+{
+    ((void) ssl);
+    return ((mbedtls_ssl_recv_timeout_t*) mbedtls_ssl_conf_recv_timeout_func);
+}
+#endif /* MBEDTLS_SSL_CONF_RECV_TIMEOUT */
+
+typedef int mbedtls_frng_t( void*, unsigned char*, size_t );
+
+#if !defined(MBEDTLS_SSL_CONF_RNG)
+static inline mbedtls_frng_t* mbedtls_ssl_conf_get_frng(
+    mbedtls_ssl_config const *conf )
+{
+    return( conf->f_rng );
+}
+#else /* !MBEDTLS_SSL_CONF_RNG */
+
+#define mbedtls_ssl_conf_rng_func MBEDTLS_SSL_CONF_RNG
+extern int mbedtls_ssl_conf_rng_func( void*, unsigned char*, size_t );
+
+static inline mbedtls_frng_t* mbedtls_ssl_conf_get_frng(
+    mbedtls_ssl_config const *conf )
+{
+    ((void) conf);
+    return ((mbedtls_frng_t*) mbedtls_ssl_conf_rng_func);
+}
+#endif /* MBEDTLS_SSL_CONF_RNG */
+
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 static inline unsigned int mbedtls_ssl_conf_get_ems(
     mbedtls_ssl_config const *conf )

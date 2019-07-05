@@ -2706,6 +2706,54 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
+#if defined(MBEDTLS_SSL_CONF_GET_TIMER)
+    if( strcmp( "MBEDTLS_SSL_CONF_GET_TIMER", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_GET_TIMER );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_GET_TIMER */
+
+#if defined(MBEDTLS_SSL_CONF_SET_TIMER)
+    if( strcmp( "MBEDTLS_SSL_CONF_SET_TIMER", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_SET_TIMER );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_SET_TIMER */
+
+#if defined(MBEDTLS_SSL_CONF_RECV)
+    if( strcmp( "MBEDTLS_SSL_CONF_RECV", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_RECV );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_RECV */
+
+#if defined(MBEDTLS_SSL_CONF_SEND)
+    if( strcmp( "MBEDTLS_SSL_CONF_SEND", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_SEND );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_SEND */
+
+#if defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
+    if( strcmp( "MBEDTLS_SSL_CONF_RECV_TIMEOUT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_RECV_TIMEOUT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_RECV_TIMEOUT */
+
+#if defined(MBEDTLS_SSL_CONF_RNG)
+    if( strcmp( "MBEDTLS_SSL_CONF_RNG", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_RNG );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_RNG */
+
 #if defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET)
     if( strcmp( "MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET", config ) == 0 )
     {

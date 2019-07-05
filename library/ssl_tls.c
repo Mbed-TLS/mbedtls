@@ -81,11 +81,13 @@ static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
  */
 static void ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
 {
-    if( ssl->f_set_timer == NULL )
+    if( mbedtls_ssl_get_set_timer( ssl ) == NULL )
         return;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "set_timer to %d ms", (int) millisecs ) );
-    ssl->f_set_timer( ssl->p_timer, millisecs / 4, millisecs );
+    mbedtls_ssl_get_set_timer( ssl )( ssl->p_timer,
+                                           millisecs / 4,
+                                           millisecs );
 }
 
 /*
@@ -93,10 +95,10 @@ static void ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
  */
 static int ssl_check_timer( mbedtls_ssl_context *ssl )
 {
-    if( ssl->f_get_timer == NULL )
+    if( mbedtls_ssl_get_get_timer( ssl ) == NULL )
         return( 0 );
 
-    if( ssl->f_get_timer( ssl->p_timer ) == 2 )
+    if( mbedtls_ssl_get_get_timer( ssl )( ssl->p_timer ) == 2 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "timer expired" ) );
         return( -1 );
@@ -1623,7 +1625,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         /* Write length only when we know the actual value */
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       p + 2, end - ( p + 2 ), &len,
-                                      ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                                      mbedtls_ssl_conf_get_frng( ssl->conf ),
+                                      ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
@@ -1644,7 +1647,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
                                        p + 2, end - ( p + 2 ),
-                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                                       mbedtls_ssl_conf_get_frng( ssl->conf ),
+                                       ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( ret );
@@ -3062,7 +3066,8 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> fetch input" ) );
 
-    if( ssl->f_recv == NULL && ssl->f_recv_timeout == NULL )
+    if( mbedtls_ssl_get_recv( ssl ) == NULL &&
+        mbedtls_ssl_get_recv_timeout( ssl ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
                             "or mbedtls_ssl_set_bio()" ) );
@@ -3081,7 +3086,8 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
         uint32_t timeout;
 
         /* Just to be sure */
-        if( ssl->f_set_timer == NULL || ssl->f_get_timer == NULL )
+        if( mbedtls_ssl_get_set_timer( ssl ) == NULL ||
+            mbedtls_ssl_get_get_timer( ssl ) == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "You must use "
                         "mbedtls_ssl_set_timer_cb() for DTLS" ) );
@@ -3164,11 +3170,16 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "f_recv_timeout: %u ms", timeout ) );
 
-            if( ssl->f_recv_timeout != NULL )
-                ret = ssl->f_recv_timeout( ssl->p_bio, ssl->in_hdr, len,
-                                                                    timeout );
+            if( mbedtls_ssl_get_recv_timeout( ssl ) != NULL )
+            {
+                ret = mbedtls_ssl_get_recv_timeout( ssl )
+                    ( ssl->p_bio, ssl->in_hdr, len, timeout );
+            }
             else
-                ret = ssl->f_recv( ssl->p_bio, ssl->in_hdr, len );
+            {
+                ret = mbedtls_ssl_get_recv( ssl )
+                    ( ssl->p_bio, ssl->in_hdr, len );
+            }
 
             MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_recv(_timeout)", ret );
 
@@ -3233,15 +3244,15 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
                 ret = MBEDTLS_ERR_SSL_TIMEOUT;
             else
             {
-                if( ssl->f_recv_timeout != NULL )
+                if( mbedtls_ssl_get_recv_timeout( ssl ) != NULL )
                 {
-                    ret = ssl->f_recv_timeout( ssl->p_bio,
-                             ssl->in_hdr + ssl->in_left, len,
-                             mbedtls_ssl_conf_get_read_timeout( ssl->conf ) );
+                    ret = mbedtls_ssl_get_recv_timeout( ssl )( ssl->p_bio,
+                       ssl->in_hdr + ssl->in_left, len,
+                       mbedtls_ssl_conf_get_read_timeout( ssl->conf ) );
                 }
                 else
                 {
-                    ret = ssl->f_recv( ssl->p_bio,
+                    ret = mbedtls_ssl_get_recv( ssl )( ssl->p_bio,
                                        ssl->in_hdr + ssl->in_left, len );
                 }
             }
@@ -3284,7 +3295,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> flush output" ) );
 
-    if( ssl->f_send == NULL )
+    if( mbedtls_ssl_get_send( ssl ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad usage of mbedtls_ssl_set_bio() "
                             "or mbedtls_ssl_set_bio()" ) );
@@ -3304,7 +3315,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
                        mbedtls_ssl_out_hdr_len( ssl ) + ssl->out_msglen, ssl->out_left ) );
 
         buf = ssl->out_hdr - ssl->out_left;
-        ret = ssl->f_send( ssl->p_bio, buf, ssl->out_left );
+        ret = mbedtls_ssl_get_send( ssl )( ssl->p_bio, buf, ssl->out_left );
 
         MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_send", ret );
 
@@ -3941,7 +3952,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
             if( ( ret = mbedtls_ssl_encrypt_buf( ssl, ssl->transform_out, &rec,
-                                         ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                                         mbedtls_ssl_conf_get_frng( ssl->conf ),
+                                         ssl->conf->p_rng ) ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_encrypt_buf", ret );
                 return( ret );
@@ -4578,7 +4590,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
         /* Don't check write errors as we can't do anything here.
          * If the error is permanent we'll catch it later,
          * if it's not, then hopefully it'll work next time. */
-        (void) ssl->f_send( ssl->p_bio, ssl->out_buf, len );
+        (void) mbedtls_ssl_get_send( ssl )( ssl->p_bio, ssl->out_buf, len );
 
         return( MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED );
     }
@@ -8185,6 +8197,7 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
 void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
@@ -8192,6 +8205,13 @@ void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
     conf->f_rng      = f_rng;
     conf->p_rng      = p_rng;
 }
+#else
+void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
+                               void *p_rng )
+{
+    conf->p_rng      = p_rng;
+}
+#endif
 
 void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
                   void (*f_dbg)(void *, int, const char *, int, const char *),
@@ -8201,17 +8221,27 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
     conf->p_dbg      = p_dbg;
 }
 
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
 void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
         void *p_bio,
         mbedtls_ssl_send_t *f_send,
         mbedtls_ssl_recv_t *f_recv,
         mbedtls_ssl_recv_timeout_t *f_recv_timeout )
 {
-    ssl->p_bio          = p_bio;
-    ssl->f_send         = f_send;
-    ssl->f_recv         = f_recv;
+    ssl->p_bio = p_bio;
+    ssl->f_send = f_send;
+    ssl->f_recv = f_recv;
     ssl->f_recv_timeout = f_recv_timeout;
 }
+#else
+void mbedtls_ssl_set_bio_ctx( mbedtls_ssl_context *ssl,
+                              void *p_bio )
+{
+    ssl->p_bio = p_bio;
+}
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu )
@@ -8227,6 +8257,8 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 }
 #endif /* MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
+#if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
+    !defined(MBEDTLS_SSL_CONF_GET_TIMER)
 void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
                                void *p_timer,
                                mbedtls_ssl_set_timer_t *f_set_timer,
@@ -8235,10 +8267,18 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
     ssl->p_timer        = p_timer;
     ssl->f_set_timer    = f_set_timer;
     ssl->f_get_timer    = f_get_timer;
-
     /* Make sure we start with no timer running */
     ssl_set_timer( ssl, 0 );
 }
+#else
+void mbedtls_ssl_set_timer_cb_ctx( mbedtls_ssl_context *ssl,
+                               void *p_timer )
+{
+    ssl->p_timer        = p_timer;
+    /* Make sure we start with no timer running */
+    ssl_set_timer( ssl, 0 );
+}
+#endif
 
 #if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
 void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
@@ -9990,8 +10030,8 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     while( ssl->in_offt == NULL )
     {
         /* Start timer if not already running */
-        if( ssl->f_get_timer != NULL &&
-            ssl->f_get_timer( ssl->p_timer ) == -1 )
+        if( mbedtls_ssl_get_get_timer( ssl ) != NULL &&
+            mbedtls_ssl_get_get_timer( ssl )( ssl->p_timer ) == -1 )
         {
             ssl_set_timer( ssl,
                            mbedtls_ssl_conf_get_read_timeout( ssl->conf ) );

@@ -168,8 +168,10 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     ((void) etm);
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     t_out->minor_ver = ver;
     t_in->minor_ver = ver;
+#endif
     t_out->ivlen = ivlen;
     t_in->ivlen = ivlen;
 
@@ -432,6 +434,11 @@ void ssl_crypt_record( int cipher_type, int hash_id,
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
+
+#if defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
+    TEST_ASSUME( ver == MBEDTLS_SSL_CONF_FIXED_MINOR_VER );
+#endif
+
     TEST_ASSERT( build_transforms( &t0, &t1, cipher_type, hash_id,
                                    etm, tag_mode, ver,
                                    (size_t) cid0_len,
@@ -572,6 +579,10 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
                                    etm, tag_mode, ver,
                                    (size_t) cid0_len,
                                    (size_t) cid1_len ) == 0 );
+
+#if defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
+    TEST_ASSUME( ver == MBEDTLS_SSL_CONF_FIXED_MINOR_VER );
+#endif
 
     TEST_ASSERT( ( buf = mbedtls_calloc( 1, buflen ) ) != NULL );
 

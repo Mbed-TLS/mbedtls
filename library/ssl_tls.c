@@ -10586,12 +10586,6 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #endif
 #endif
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    /* explicit void pointer cast for buggy MS compiler */
-    mbedtls_free( (void *) handshake->curves );
-#endif
-
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( handshake->psk != NULL )
     {

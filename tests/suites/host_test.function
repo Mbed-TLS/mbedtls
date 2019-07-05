@@ -498,7 +498,8 @@ int execute_tests( int argc , const char ** argv )
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
-            mbedtls_fprintf( stdout, "%s%.66s", test_info.failed ? "\n" : "", buf );
+            mbedtls_fprintf( stdout, "%s%.66s",
+                    test_info.result == TEST_RESULT_FAILED ? "\n" : "", buf );
             mbedtls_fprintf( stdout, " " );
             for( i = strlen( buf ) + 1; i < 67; i++ )
                 mbedtls_fprintf( stdout, "." );
@@ -545,7 +546,7 @@ int execute_tests( int argc , const char ** argv )
             // If there are no unmet dependencies execute the test
             if( unmet_dep_count == 0 )
             {
-                test_info.failed = 0;
+                test_info.result = TEST_RESULT_SUCCESS;
                 test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_IDLE;
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
@@ -610,9 +611,14 @@ int execute_tests( int argc , const char ** argv )
             }
             else if( ret == DISPATCH_TEST_SUCCESS )
             {
-                if( test_info.failed == 0 )
+                if( test_info.result == TEST_RESULT_SUCCESS )
                 {
                     mbedtls_fprintf( stdout, "PASS\n" );
+                }
+                else if( test_info.result == TEST_RESULT_SKIPPED )
+                {
+                    mbedtls_fprintf( stdout, "----\n" );
+                    total_skipped++;
                 }
                 else
                 {

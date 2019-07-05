@@ -156,7 +156,7 @@ void execute_function_ptr(TestWrapper_t fp, void **params)
     else
     {
         /* Unexpected parameter validation error */
-        test_info.failed = 1;
+        test_info.result = TEST_RESULT_FAILED;
     }
 
     memset( param_fail_jmp, 0, sizeof(jmp_buf) );

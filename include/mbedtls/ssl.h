@@ -3019,10 +3019,10 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
  * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
  *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
- * \note           On constrained systems, the minimum major/minor version can
+ * \note           On constrained systems, the maximum major/minor version can
  *                 also be configured at compile-time by setting
- *                 MBEDTLS_SSL_CONF_MIN_MAJOR_VER and
- *                 MBEDTLS_SSL_CONF_MIN_MINOR_VER.
+ *                 MBEDTLS_SSL_CONF_MAX_MAJOR_VER and
+ *                 MBEDTLS_SSL_CONF_MAX_MINOR_VER.
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
@@ -3046,8 +3046,8 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  *
  * \note           On constrained systems, the minimum major/minor version can
  *                 also be configured at compile-time by setting
- *                 MBEDTLS_SSL_CONF_MAX_MAJOR_VER and
- *                 MBEDTLS_SSL_CONF_MAX_MINOR_VER.
+ *                 MBEDTLS_SSL_CONF_MIN_MAJOR_VER and
+ *                 MBEDTLS_SSL_CONF_MIN_MINOR_VER.
  *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)

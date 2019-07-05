@@ -563,6 +563,84 @@ check_cmdline_legacy_renego_compat() {
     fi
 }
 
+check_cmdline_min_minor_version_compat() {
+    __VAL="$( get_config_value_or_default "MBEDTLS_SSL_CONF_MIN_MINOR_VER" )"
+    if [ ! -z "$__VAL" ]; then
+        extract_cmdline_argument "min_version"
+        if   [ "$__ARG" = "ssl3" ]   && [ "$__VAL" != "0" ]; then
+            SKIP_NEXT="YES";
+        elif [ "$__ARG" = "tls1" ]   && [ "$__VAL" != "1" ]; then
+            SKIP_NEXT="YES"
+        elif [ "$__ARG" = "tls1_1" ] && [ "$__VAL" != "2" ]; then
+            SKIP_NEXT="YES"
+        elif [ "$__ARG" = "tls1_2" ] && [ "$__VAL" != "3" ]; then
+            SKIP_NEXT="YES"
+        fi
+    fi
+}
+
+check_cmdline_max_minor_version_compat() {
+    __VAL="$( get_config_value_or_default "MBEDTLS_SSL_CONF_MAX_MINOR_VER" )"
+    if [ ! -z "$__VAL" ]; then
+        extract_cmdline_argument "max_version"
+        if   [ "$__ARG" = "ssl3" ]   && [ "$__VAL" != "0" ]; then
+            SKIP_NEXT="YES";
+        elif [ "$__ARG" = "tls1" ]   && [ "$__VAL" != "1" ]; then
+            SKIP_NEXT="YES"
+        elif [ "$__ARG" = "tls1_1" ] && [ "$__VAL" != "2" ]; then
+            SKIP_NEXT="YES"
+        elif [ "$__ARG" = "tls1_2" ] && [ "$__VAL" != "3" ]; then
+            SKIP_NEXT="YES"
+        fi
+    fi
+}
+
+check_cmdline_force_version_compat() {
+    __VAL_MAX="$( get_config_value_or_default "MBEDTLS_SSL_CONF_MAX_MINOR_VER" )"
+    __VAL_MIN="$( get_config_value_or_default "MBEDTLS_SSL_CONF_MIN_MINOR_VER" )"
+    if [ ! -z "$__VAL_MIN" ]; then
+
+        # SSL cli/srv cmd line
+
+        extract_cmdline_argument "force_version"
+        if   [ "$__ARG" = "ssl3" ] && \
+                 ( [ "$__VAL_MIN" != "0" ] || [ "$__VAL_MAX" != "0" ] ); then
+            SKIP_NEXT="YES";
+        elif  [ "$__ARG" = "tls1" ] && \
+                 ( [ "$__VAL_MIN" != "1" ] || [ "$__VAL_MAX" != "1" ] ); then
+            SKIP_NEXT="YES"
+        elif ( [ "$__ARG" = "tls1_1" ] || [ "$__ARG" = "dtls1" ] ) && \
+                 ( [ "$__VAL_MIN" != "2" ] || [ "$__VAL_MAX" != "2" ] ); then
+            SKIP_NEXT="YES"
+        elif ( [ "$__ARG" = "tls1_2" ] || [ "$__ARG" = "dtls1_2" ] ) && \
+                  ( [ "$__VAL_MIN" != "3" ] || [ "$__VAL_MAX" != "3" ] ); then
+            echo "FORCE SKIP"
+            SKIP_NEXT="YES"
+        fi
+
+        # OpenSSL cmd line
+
+        if echo "$CMD" | grep -e "-tls1\($\|[^_]\)" > /dev/null; then
+            if [ "$__VAL_MIN" != "1" ] || [ "$__VAL_MAX" != "1" ]; then
+                SKIP_NEXT="YES"
+            fi
+        fi
+
+        if echo "$CMD" | grep -e "-\(dtls1\($\|[^_]\)\|tls1_1\)" > /dev/null; then
+            if [ "$__VAL_MIN" != "2" ] || [ "$__VAL_MAX" != "2" ]; then
+                SKIP_NEXT="YES"
+            fi
+        fi
+
+        if echo "$CMD" | grep -e "-\(dtls1_2\($\|[^_]\)\|tls1_2\)" > /dev/null; then
+            if [ "$__VAL_MIN" != "3" ] || [ "$__VAL_MAX" != "3" ]; then
+                SKIP_NEXT="YES"
+            fi
+        fi
+
+    fi
+}
+
 # Go through all options that can be hardcoded at compile-time and
 # detect whether the command line configures them in a conflicting
 # way. If so, skip the test. Otherwise, remove the corresponding
@@ -592,6 +670,11 @@ check_cmdline_compat() {
 
     # Legacy renegotiation
     check_cmdline_legacy_renego_compat
+
+    # Version configuration
+    check_cmdline_min_minor_version_compat
+    check_cmdline_max_minor_version_compat
+    check_cmdline_force_version_compat
 }
 
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]

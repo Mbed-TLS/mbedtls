@@ -614,6 +614,18 @@
 #error "MBEDTLS_SSL_DTLS_ANTI_REPLAY  defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) || \
+    defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) || \
+    defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) || \
+    defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
+#if !( defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) &&        \
+       defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) &&        \
+       defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) &&        \
+       defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER) )
+#error "MBEDTLS_SSL_CONF_MIN_MINOR_VER, MBEDTLS_SSL_CONF_MAX_MINOR_VER, MBEDTLS_SSL_CONF_MIN_MAJOR_VER, MBEDTLS_SSL_CONF_MAX_MAJOR_VER must be defined simultaneously"
+#endif
+#endif
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) &&                              \
     ( !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
 #error "MBEDTLS_SSL_DTLS_CONNECTION_ID  defined, but not all prerequisites"

@@ -3009,6 +3009,8 @@ int mbedtls_ssl_conf_alpn_protocols( mbedtls_ssl_config *conf, const char **prot
 const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_ALPN */
 
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
 /**
  * \brief          Set the maximum supported version sent from the client side
  *                 and/or accepted at the server side
@@ -3031,7 +3033,11 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
+#endif /* MBEDTLS_SSL_CONF_MAX_MINOR_VER ||
+          MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
 
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
  *                 (Default: TLS 1.0)
@@ -3056,6 +3062,8 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
+#endif /* MBEDTLS_SSL_CONF_MIN_MINOR_VER ||
+          MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
 /**

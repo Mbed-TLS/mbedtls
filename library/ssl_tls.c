@@ -8734,45 +8734,27 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_ALPN */
 
-void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor )
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
+void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf,
+                                   int major, int minor )
 {
-#if defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER) && \
-    defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
-    ((void) conf);
-#endif
-
-#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
     conf->max_major_ver = major;
-#else
-    ((void) major);
-#endif /* MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
-
-#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
     conf->max_minor_ver = minor;
-#else
-    ((void) minor);
-#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
 }
+#endif /* MBEDTLS_SSL_CONF_MAX_MINOR_VER ||
+          MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
 
-void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor )
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
+void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf,
+                                   int major, int minor )
 {
-#if defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) && \
-    defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
-    ((void) conf);
-#endif
-
-#if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
     conf->min_major_ver = major;
-#else
-    ((void) major);
-#endif /* MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
-
-#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
     conf->min_minor_ver = minor;
-#else
-    ((void) minor);
-#endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
 }
+#endif /* MBEDTLS_SSL_CONF_MIN_MINOR_VER ||
+          MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
 void mbedtls_ssl_conf_fallback( mbedtls_ssl_config *conf, char fallback )

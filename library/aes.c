@@ -130,6 +130,7 @@ static const unsigned char FSb[256] =
     0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 };
 
+#if !defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
 /*
  * Forward tables
  */
@@ -218,6 +219,7 @@ static const uint32_t FT2[256] = { FT };
 static const uint32_t FT3[256] = { FT };
 #undef V
 
+#endif /* !MBEDTLS_AES_SBOX_TABLE_ONLY */
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
 
 #undef FT
@@ -369,23 +371,29 @@ static const uint32_t RCON[10] =
  * Forward S-box & tables
  */
 static unsigned char FSb[256];
+
+#if !defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
 static uint32_t FT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
 static uint32_t FT1[256];
 static uint32_t FT2[256];
 static uint32_t FT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_SBOX_TABLE_ONLY */
 
 /*
  * Reverse S-box & tables
  */
 static unsigned char RSb[256];
+
+#if !defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
 static uint32_t RT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
 static uint32_t RT1[256];
 static uint32_t RT2[256];
 static uint32_t RT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_SBOX_TABLE_ONLY */
 
 /*
  * Round constants
@@ -485,11 +493,12 @@ static void aes_gen_tables( void )
 
 #endif /* MBEDTLS_AES_ROM_TABLES */
 
-#if defined(MBEDTLS_AES_FEWER_TABLES)
-
 #define ROTL8(x)  ( (uint32_t)( ( x ) <<  8 ) + (uint32_t)( ( x ) >> 24 ) )
 #define ROTL16(x) ( (uint32_t)( ( x ) << 16 ) + (uint32_t)( ( x ) >> 16 ) )
 #define ROTL24(x) ( (uint32_t)( ( x ) << 24 ) + (uint32_t)( ( x ) >>  8 ) )
+
+#if !defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
+#if defined(MBEDTLS_AES_FEWER_TABLES)
 
 #define AES_RT0(idx) RT0[idx]
 #define AES_RT1(idx) ROTL8(  RT0[idx] )
@@ -514,6 +523,7 @@ static void aes_gen_tables( void )
 #define AES_FT3(idx) FT3[idx]
 
 #endif /* MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_SBOX_TABLE_ONLY */
 
 void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
@@ -815,6 +825,64 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
 
 #endif /* !MBEDTLS_AES_SETKEY_DEC_ALT */
 
+#if defined( MBEDTLS_AES_SBOX_TABLE_ONLY )
+
+static uint32_t aes_round(unsigned char i)
+{
+    int x, y, z;
+    uint32_t result;
+
+    x = FSb[i];
+    y = XTIME( x ) & 0xFF;
+    z =  ( y ^ x ) & 0xFF;
+
+    result = ( (uint32_t) y       ) ^
+             ( (uint32_t) x <<  8 ) ^
+             ( (uint32_t) x << 16 ) ^
+             ( (uint32_t) z << 24 );
+
+    return result;
+}
+
+#define AES_FT0(idx) ( aes_round(idx) )
+#define AES_FT1(idx) ROTL8(  aes_round(idx) )
+#define AES_FT2(idx) ROTL16( aes_round(idx) )
+#define AES_FT3(idx) ROTL24( aes_round(idx) )
+
+static void mbedtls_aes_forward_round(uint32_t* out_x0, uint32_t* out_x1,
+                                      uint32_t* out_x2, uint32_t* out_x3,
+                                      uint32_t in_y0, uint32_t in_y1,
+                                      uint32_t in_y2, uint32_t in_y3,
+                                      uint32_t *in_RK, uint32_t **out_RK )
+{
+    *out_x0 = *in_RK++ ^ AES_FT0( ( (in_y0)       ) & 0xFF ) ^
+                         AES_FT1( ( (in_y1) >>  8 ) & 0xFF ) ^
+                         AES_FT2( ( (in_y2) >> 16 ) & 0xFF ) ^
+                         AES_FT3( ( (in_y3) >> 24 ) & 0xFF );
+
+    *out_x1 = *in_RK++ ^ AES_FT0( ( (in_y1)       ) & 0xFF ) ^
+                         AES_FT1( ( (in_y2) >>  8 ) & 0xFF ) ^
+                         AES_FT2( ( (in_y3) >> 16 ) & 0xFF ) ^
+                         AES_FT3( ( (in_y0) >> 24 ) & 0xFF );
+
+    *out_x2 = *in_RK++ ^ AES_FT0( ( (in_y2)       ) & 0xFF ) ^
+                         AES_FT1( ( (in_y3) >>  8 ) & 0xFF ) ^
+                         AES_FT2( ( (in_y0) >> 16 ) & 0xFF ) ^
+                         AES_FT3( ( (in_y1) >> 24 ) & 0xFF );
+
+    *out_x3 = *in_RK++ ^ AES_FT0( ( (in_y3)       ) & 0xFF ) ^
+                         AES_FT1( ( (in_y0) >>  8 ) & 0xFF ) ^
+                         AES_FT2( ( (in_y1) >> 16 ) & 0xFF ) ^
+                         AES_FT3( ( (in_y2) >> 24 ) & 0xFF );
+
+    /* Store the roundkey  */
+    *out_RK = in_RK;
+}
+
+#define AES_FROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                     \
+            mbedtls_aes_forward_round(&X0, &X1, &X2, &X3, Y0, Y1, Y2, Y3, RK, &RK)
+
+#else
 #define AES_FROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                     \
     do                                                          \
     {                                                           \
@@ -838,6 +906,8 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
                        AES_FT2( ( (Y1) >> 16 ) & 0xFF ) ^       \
                        AES_FT3( ( (Y2) >> 24 ) & 0xFF );        \
     } while( 0 )
+
+#endif
 
 #define AES_RROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                 \
     do                                                      \

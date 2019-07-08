@@ -171,6 +171,8 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 #if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     t_out->minor_ver = ver;
     t_in->minor_ver = ver;
+#else
+    ((void) ver);
 #endif
     t_out->ivlen = ivlen;
     t_in->ivlen = ivlen;

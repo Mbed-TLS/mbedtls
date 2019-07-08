@@ -322,7 +322,6 @@ typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;
  * as an example).
  */
 
-//#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
 #define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_ID              MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
 #define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_NAME            "TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8"
 #define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_CIPHER          MBEDTLS_CIPHER_AES_128_CCM
@@ -333,6 +332,9 @@ typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;
 #define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_MAX_MAJOR_VER   MBEDTLS_SSL_MAJOR_VERSION_3
 #define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_MAX_MINOR_VER   MBEDTLS_SSL_MINOR_VERSION_3
 #define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_FLAGS           MBEDTLS_CIPHERSUITE_SHORT_TAG
+
+/* This is just to make check-names.sh happy -- don't uncomment. */
+//#define MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
 
 /*
  * Helper macros to extract fields from ciphersuites.

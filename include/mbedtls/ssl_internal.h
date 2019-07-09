@@ -642,6 +642,12 @@ struct mbedtls_ssl_transform
     z_stream ctx_deflate;               /*!<  compression context     */
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    /* We need the Hello random bytes in order to re-derive keys from the
+     * Master Secret and other session info, see ssl_populate_transform() */
+    unsigned char randbytes[64]; /*!< ServerHello.random+ClientHello.random */
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 };
 
 /*

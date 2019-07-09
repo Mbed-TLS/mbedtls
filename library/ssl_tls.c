@@ -812,7 +812,9 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     (void) ssl;
 #endif
 
-    /* Copy info about negotiated version and extensions */
+    /*
+     * Some data just needs copying into the structure
+     */
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
     defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     transform->encrypt_then_mac = encrypt_then_mac;
@@ -823,6 +825,10 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 #else
     ((void) minor_ver);
 #endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    memcpy( transform->randbytes, randbytes, sizeof( transform->randbytes ) );
+#endif
 
     /*
      * Get various info structures

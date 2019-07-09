@@ -125,6 +125,9 @@ Changes
      cyber) in #2681.
    * Enable building of Mbed TLS as a CMake subproject. Suggested and fixed by
      Ashley Duncan in #2609.
+   * Add `reproducible` option to `ssl_client2` and `ssl_server2` to enable
+     test runs without variability. Contributed by Philippe Antoine (Catena
+     cyber) in #2681.
 
 = mbed TLS 2.17.0 branch released 2019-03-19
 

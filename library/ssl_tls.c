@@ -4854,8 +4854,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
     /* Check length against bounds of the current transform and version */
     if( ssl->transform_in == NULL )
     {
-        if( ssl->in_msglen < 1 ||
-            ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
+        if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );

@@ -4852,43 +4852,13 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 
 
     /* Check length against bounds of the current transform and version */
-    if( ssl->transform_in == NULL )
-    {
-        if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-        }
-    }
-    else
+    if( ssl->transform_in != NULL )
     {
         if( ssl->in_msglen < ssl->transform_in->minlen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-        if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_0 &&
-            ssl->in_msglen > ssl->transform_in->minlen + MBEDTLS_SSL_IN_CONTENT_LEN )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-        }
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        /*
-         * TLS encrypted messages can have up to 256 bytes of padding
-         */
-        if( mbedtls_ssl_get_minor_ver( ssl ) >= MBEDTLS_SSL_MINOR_VERSION_1 &&
-            ssl->in_msglen > ssl->transform_in->minlen +
-                             MBEDTLS_SSL_IN_CONTENT_LEN + 256 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-        }
-#endif
     }
 
     return( 0 );
@@ -4994,12 +4964,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
         }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-        if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-        }
-        else if( ssl->in_msglen == 0 )
+        if( ssl->in_msglen == 0 )
         {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
             if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3
@@ -5068,6 +5033,14 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
         mbedtls_ssl_dtls_replay_update( ssl );
     }
 #endif
+
+    /* Check actual (decrypted) record content length against
+     * configured maximum. */
+    if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+    }
 
     return( 0 );
 }

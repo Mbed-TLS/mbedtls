@@ -26,7 +26,10 @@ int dummy_send( void *ctx, const unsigned char *buf, size_t len )
     (void) buf;
 
     //pretends we wrote everything ok
-    return( len );
+    if (len > INT_MAX) {
+        return -1;
+    }
+    return int( len );
 }
 
 int fuzz_recv( void *ctx, unsigned char *buf, size_t len )

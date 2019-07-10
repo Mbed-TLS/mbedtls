@@ -2572,11 +2572,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> decrypt buf" ) );
-    if( transform == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "no transform provided to decrypt_buf" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
     if( rec == NULL                     ||
         rec->buf == NULL                ||
         rec->buf_len < rec->data_offset ||

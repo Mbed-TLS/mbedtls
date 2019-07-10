@@ -4924,6 +4924,18 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
          * fixed in the configuration. */
         ssl->in_len = ssl->in_cid + ssl->conf->cid_len;
         ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+
+        /* Now that the total length of the record header is known, ensure
+         * that the current datagram is large enough to hold it.
+         * This would fail, for example, if we received a datagram of
+         * size 13 + n Bytes where n is less than the size of incoming CIDs.
+         */
+        ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_in_hdr_len( ssl ) );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
+            return( ret );
+        }
     }
     else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -4955,16 +4967,6 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
-    /* Now that the total length of the record header is known, ensure
-     * that the current datagram is large enough to hold it.
-     * This would fail, for example, if we received a datagram of
-     * size 13 + n Bytes where n is less than the size of incoming CIDs. */
-    ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_in_hdr_len( ssl ) );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
-        return( ret );
-    }
     MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, mbedtls_ssl_in_hdr_len( ssl ) );
 
     /* Parse and validate record length

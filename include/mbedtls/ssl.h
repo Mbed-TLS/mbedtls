@@ -3932,13 +3932,14 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
  * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if a handshake is in
  *                 progress, or there is pending data for reading or sending,
- *                 or the connection does not use DTLS 1.2 with and AEAD
+ *                 or the connection does not use DTLS 1.2 with an AEAD
  *                 ciphersuite, or renegotiation is enabled.
  */
 int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
                               unsigned char *buf,
                               size_t buf_len,
                               size_t *olen );
+
 /**
  * \brief          Load serialized connection data to an SSL context.
  *

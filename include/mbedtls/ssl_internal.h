@@ -747,6 +747,21 @@ static inline int mbedtls_ssl_transform_get_minor_ver( mbedtls_ssl_transform con
 }
 
 /*
+ * Return 1 if the transform uses an AEAD cipher, 0 otherwise.
+ * Equivalently, return 0 if a separate MAC is used, 1 otherwise.
+ */
+static inline int mbedtls_ssl_transform_uses_aead(
+        const mbedtls_ssl_transform *transform )
+{
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+    return( transform->maclen == 0 && transform->taglen != 0 );
+#else
+    (void) transform;
+    return( 1 );
+#endif
+}
+
+/*
  * Internal representation of record frames
  *
  * Instances come in two flavors:

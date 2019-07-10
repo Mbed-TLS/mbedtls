@@ -4776,13 +4776,6 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
      * the presence of a CID. */
 
     ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
-    if( ssl->in_msglen > MBEDTLS_SSL_IN_BUFFER_LEN
-                         - (size_t)( ssl->in_msg - ssl->in_buf ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-    }
-
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
                                 "version = [%d:%d], msglen = %d",
                                 ssl->in_msgtype,

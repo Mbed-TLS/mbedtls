@@ -11292,9 +11292,34 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
                               size_t buf_len,
                               size_t *olen )
 {
-    /* Unimplemented */
-    (void) ssl;
+    /*
+     * Enforce current usage restrictions
+     */
+    if( /* The initial handshake is over ... */
+        ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER ||
+        ssl->handshake != NULL ||
+        /* ... and the various sub-structures are indeed ready. */
+        ssl->transform == NULL ||
+        ssl->session == NULL ||
+        /* There is no pending incoming or outgoing data ... */
+        mbedtls_ssl_check_pending( ssl ) != 0 ||
+        ssl->out_left != 0 ||
+        /* We're using DTLS 1.2 ... */
+        ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
+        ssl->major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 ||
+        ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 ||
+        /* ... with an AEAD ciphersuite. */
+        mbedtls_ssl_transform_uses_aead( ssl->transform ) != 1 ||
+        /* Renegotation is disabled. */
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+        ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED
+#endif
+        )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
 
+    /* Unimplemented */
     if( buf != NULL )
         memset( buf, 0, buf_len );
 

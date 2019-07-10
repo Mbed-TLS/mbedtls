@@ -92,7 +92,13 @@ endif
 
 .PHONY: all clean list fuzz
 
-all: $(APPS) fuzz
+all: $(APPS)
+ifndef WINDOWS
+# APPS doesn't include the fuzzing programs, which aren't "normal"
+# sample or test programs, and don't build with MSVC which is
+# warning about fopen
+all: fuzz
+endif
 
 fuzz:
 	$(MAKE) -C fuzz

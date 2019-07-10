@@ -3,3 +3,6 @@ mock_import:
 
 SE key exporting mock test
 mock_export:
+
+SE key generating mock test
+mock_generate:

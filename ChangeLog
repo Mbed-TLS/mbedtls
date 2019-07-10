@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix a missing error detection in ECJPAKE. This could have caused a
+     predictable shared secret if a hardware accelerator failed and the other
+     side of the key exchange had a similar bug.
+
 Bugfix
    * Fix to allow building test suites with any warning that detects unused
      functions. Fixes #1628.

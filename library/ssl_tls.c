@@ -4725,7 +4725,6 @@ static int ssl_check_record_type( uint8_t record_type )
 static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 {
     int major_ver, minor_ver;
-    int ret;
 
     /* Parse and validate record content type and version */
 
@@ -4761,11 +4760,11 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
          * This would fail, for example, if we received a datagram of
          * size 13 + n Bytes where n is less than the size of incoming CIDs.
          */
-        ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_in_hdr_len( ssl ) );
-        if( ret != 0 )
+        if( ssl->in_left < mbedtls_ssl_in_hdr_len( ssl ) )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
-            return( ret );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "datagram too short to contain DTLS record header including CID of length %u.",
+                                        (unsigned) mbedtls_ssl_conf_get_cid_len( ssl->conf ) ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
     }
     else

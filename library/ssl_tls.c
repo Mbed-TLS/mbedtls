@@ -2627,6 +2627,13 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         unsigned char iv[12];
         size_t explicit_iv_len = transform->ivlen - transform->fixed_ivlen;
 
+        /*
+         * Prepare IV from explicit and implicit data.
+         */
+
+        /* Check that there's enough space for the explicit IV
+         * (at the beginning of the record) and the MAC (at the
+         * end of the record). */
         if( rec->data_len < explicit_iv_len + transform->taglen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
@@ -2635,17 +2642,20 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_INVALID_MAC );
         }
 
-        /*
-         * Prepare IV
-         */
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
         if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
         {
-            /* GCM and CCM: fixed || explicit (transmitted) */
-            memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
-            memcpy( iv + transform->fixed_ivlen, data, 8 );
+            /* GCM and CCM: fixed || explicit */
 
+            /* Fixed */
+            memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
+            /* Explicit */
+            memcpy( iv + transform->fixed_ivlen, data, 8 );
         }
-        else if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
+        else
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
+#if defined(MBEDTLS_CHACHAPOLY_C)
+        if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
         {
             /* ChachaPoly: fixed XOR sequence number */
             unsigned char i;
@@ -2656,12 +2666,15 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
                 iv[i+4] ^= rec->ctr[i];
         }
         else
+#endif /* MBEDTLS_CHACHAPOLY_C */
         {
             /* Reminder if we ever add an AEAD mode with a different size */
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
+        /* Group changes to data, data_len, and add_data, because
+         * add_data depends on data_len. */
         data += explicit_iv_len;
         rec->data_offset += explicit_iv_len;
         rec->data_len -= explicit_iv_len + transform->taglen;
@@ -2670,13 +2683,18 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
                                add_data, add_data_len );
 
+        /* Because of the check above, we know that there are
+         * explicit_iv_len Bytes preceeding data, and taglen
+         * bytes following data + data_len. This justifies
+         * the memcpy, debug message and invocation of
+         * mbedtls_cipher_auth_decrypt() below. */
+
         memcpy( transform->iv_dec + transform->fixed_ivlen,
                 data - explicit_iv_len, explicit_iv_len );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used", iv, transform->ivlen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "TAG used", data + rec->data_len,
                                transform->taglen );
-
 
         /*
          * Decrypt and authenticate
@@ -2698,6 +2716,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         }
         auth_done++;
 
+        /* Double-check that AEAD decryption doesn't change content length. */
         if( olen != rec->data_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
@@ -2764,11 +2783,20 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
 
-            /* Safe due to the check data_len >= minlen + maclen + 1 above. */
+            /* Update data_len in tandem with add_data.
+             *
+             * The subtraction is safe because of the previous check
+             * data_len >= minlen + maclen + 1.
+             *
+             * Afterwards, we know that data + data_len is followed by at
+             * least maclen Bytes, which justifies the call to
+             * mbedtls_ssl_safer_memcmp() below.
+             *
+             * Further, we still know that data_len > minlen */
             rec->data_len -= transform->maclen;
-
             ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
 
+            /* Calculate expected MAC. */
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
                                    add_data_len );
             mbedtls_md_hmac_update( &transform->md_ctx_dec, add_data,
@@ -2783,6 +2811,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_BUF( 4, "expected mac", mac_expect,
                                    transform->maclen );
 
+            /* Compare expected MAC with MAC at the end of the record. */
             if( mbedtls_ssl_safer_memcmp( data + rec->data_len, mac_expect,
                                           transform->maclen ) != 0 )
             {
@@ -2796,6 +2825,10 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         /*
          * Check length sanity
          */
+
+        /* We know from above that data_len > minlen >= 0,
+         * so the following check in particular implies that
+         * data_len >= minlen + ivlen ( = minlen or 2 * minlen ). */
         if( rec->data_len % transform->ivlen != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) %% ivlen (%d) != 0",
@@ -2809,9 +2842,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
          */
         if( transform->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
         {
-            /* This is safe because data_len >= minlen + maclen + 1 initially,
-             * and at this point we have at most subtracted maclen (note that
-             * minlen == transform->ivlen here). */
+            /* Safe because data_len >= minlen + ivlen = 2 * ivlen. */
             memcpy( transform->iv_dec, data, transform->ivlen );
 
             data += transform->ivlen;
@@ -2819,6 +2850,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
             rec->data_len -= transform->ivlen;
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_1 || MBEDTLS_SSL_PROTO_TLS1_2 */
+
+        /* We still have data_len % ivlen == 0 and data_len >= ivlen here. */
 
         if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_dec,
                                    transform->iv_dec, transform->ivlen,
@@ -2828,6 +2861,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
             return( ret );
         }
 
+        /* Double-check that length hasn't changed during decryption. */
         if( rec->data_len != olen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
@@ -2838,7 +2872,10 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         if( transform->minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 )
         {
             /*
-             * Save IV in SSL3 and TLS1
+             * Save IV in SSL3 and TLS1, where CBC decryption of consecutive
+             * records is equivalent to CBC decryption of the concatenation
+             * of the records; in other words, IVs are maintained across
+             * record decryptions.
              */
             memcpy( transform->iv_dec, transform->cipher_ctx_dec.iv,
                     transform->ivlen );
@@ -2847,7 +2884,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
 
         /* Safe since data_len >= minlen + maclen + 1, so after having
          * subtracted at most minlen and maclen up to this point,
-         * data_len > 0. */
+         * data_len > 0 (because of data_len % ivlen == 0, it's actually
+         * >= ivlen ). */
         padlen = data[rec->data_len - 1];
 
         if( auth_done == 1 )
@@ -2975,7 +3013,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
          * hence data_len >= maclen in any case.
          */
         rec->data_len -= transform->maclen;
-
         ssl_extract_add_data_from_record( add_data, &add_data_len, rec );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
@@ -3028,7 +3065,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
              * in_msglen over all padlen values.
              *
              * They're independent of padlen, since we previously did
-             * in_msglen -= padlen.
+             * data_len -= padlen.
              *
              * Note that max_len + maclen is never more than the buffer
              * length, as we previously did in_msglen -= maclen too.

@@ -163,6 +163,7 @@ struct options
     int force_ciphersuite[2];   /* protocol/ciphersuite to use, or all      */
 } opt;
 
+#if defined(MBEDTLS_DEBUG_C)
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
                       const char *str )
@@ -172,6 +173,7 @@ static void my_debug( void *ctx, int level,
     mbedtls_fprintf( (FILE *) ctx, "%s:%04d: %s", file, line, str );
     fflush(  (FILE *) ctx  );
 }
+#endif /* MBEDTLS_DEBUG_C */
 
 static int do_handshake( mbedtls_ssl_context *ssl )
 {
@@ -619,7 +621,9 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_OPTIONAL );
 
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#if defined(MBEDTLS_DEBUG_C)
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
+#endif
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )

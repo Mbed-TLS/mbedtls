@@ -583,6 +583,7 @@ struct options
 
 int query_config( const char *config );
 
+#if defined(MBEDTLS_DEBUG_C)
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
                       const char *str )
@@ -597,6 +598,7 @@ static void my_debug( void *ctx, int level,
     mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s", basename, line, level, str );
     fflush(  (FILE *) ctx  );
 }
+#endif /* MBEDTLS_DEBUG_C */
 
 
 #if !defined(MBEDTLS_SSL_CONF_RECV) && \
@@ -2584,7 +2586,9 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_conf_rng_ctx( &conf, &ctr_drbg );
 #endif
 
+#if defined(MBEDTLS_DEBUG_C)
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
+#endif
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     if( opt.cache_max != -1 )

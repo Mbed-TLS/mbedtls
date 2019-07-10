@@ -2627,9 +2627,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         unsigned char iv[12];
         size_t explicit_iv_len = transform->ivlen - transform->fixed_ivlen;
 
-        /*
-         * Compute and update sizes
-         */
         if( rec->data_len < explicit_iv_len + transform->taglen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "

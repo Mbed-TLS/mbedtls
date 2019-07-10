@@ -1486,18 +1486,18 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
 
-#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( TLS_ID_VAR )    \
-    {                                                                   \
-        mbedtls_ecp_group_id const *__gid;                              \
-        mbedtls_ecp_curve_info const *__info;                           \
-        for( __gid = ssl->conf->curve_list;                             \
-             *__gid != MBEDTLS_ECP_DP_NONE; __gid++ )                   \
-        {                                                               \
-            uint16_t TLS_ID_VAR;                                        \
-            __info = mbedtls_ecp_curve_info_from_grp_id( *__gid );      \
-            if( __info == NULL )                                        \
-                continue;                                               \
-            TLS_ID_VAR = __info->tls_id;
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( TLS_ID_VAR )     \
+    {                                                                    \
+        mbedtls_ecp_group_id const *_gid;                                \
+        mbedtls_ecp_curve_info const *_info;                             \
+        for( _gid = ssl->conf->curve_list;                               \
+             *_gid != MBEDTLS_ECP_DP_NONE; _gid++ )                      \
+        {                                                                \
+            uint16_t TLS_ID_VAR;                                         \
+            _info = mbedtls_ecp_curve_info_from_grp_id( *_gid )   ;      \
+            if( _info == NULL )                                          \
+                continue;                                                \
+            TLS_ID_VAR = _info->tls_id;
 
 #define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID                    \
         }                                                               \
@@ -1505,11 +1505,11 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( EC_ID_VAR )     \
     {                                                                   \
-        mbedtls_ecp_group_id const *__gid;                              \
-        for( __gid = ssl->conf->curve_list;                             \
-             *__gid != MBEDTLS_ECP_DP_NONE; __gid++ )                   \
+        mbedtls_ecp_group_id const *_gid;                               \
+        for( _gid = ssl->conf->curve_list;                              \
+             *_gid != MBEDTLS_ECP_DP_NONE; _gid++ )                     \
         {                                                               \
-            mbedtls_ecp_group_id EC_ID_VAR = *__gid;                    \
+            mbedtls_ecp_group_id EC_ID_VAR = *_gid;                     \
 
 #define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_GRP_ID                    \
         }                                                               \

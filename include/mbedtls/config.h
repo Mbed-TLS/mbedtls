@@ -3652,13 +3652,13 @@
  */
 //#define MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
 
-/* Enable support a single elliptic curve fixed
+/* Enable support of a single elliptic curve fixed
  * at compile-time, at the benefit of code-size.
  *
- * On highly constrained systems which large control
+ * On highly constrained systems with large control
  * over the configuration of the connection endpoints,
  * this option can be used to hardcode the choice of
- * a single elliptic curve to use for all elliptic
+ * a single elliptic curve to be used for all elliptic
  * curve operations during the handshake.
  *
  * If this is set, you must also define the following:

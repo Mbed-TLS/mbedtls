@@ -2686,11 +2686,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
         /* Because of the check above, we know that there are
          * explicit_iv_len Bytes preceeding data, and taglen
          * bytes following data + data_len. This justifies
-         * the memcpy, debug message and invocation of
+         * the debug message and the invocation of
          * mbedtls_cipher_auth_decrypt() below. */
-
-        memcpy( transform->iv_dec + transform->fixed_ivlen,
-                data - explicit_iv_len, explicit_iv_len );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used", iv, transform->ivlen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "TAG used", data + rec->data_len,

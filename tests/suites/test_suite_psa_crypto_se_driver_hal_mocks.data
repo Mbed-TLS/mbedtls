@@ -1,8 +1,23 @@
 SE key importing mock test
-mock_import:
+mock_import:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS
+
+SE key importing mock test: alloc failed
+mock_import:PSA_ERROR_HARDWARE_FAILURE:PSA_SUCCESS:PSA_ERROR_HARDWARE_FAILURE
+
+SE key importing mock test: import failed
+mock_import:PSA_SUCCESS:PSA_ERROR_HARDWARE_FAILURE:PSA_ERROR_HARDWARE_FAILURE
 
 SE key exporting mock test
-mock_export:
+mock_export:PSA_SUCCESS:PSA_SUCCESS
+
+SE key exporting mock test: export failed
+mock_export:PSA_ERROR_HARDWARE_FAILURE:PSA_ERROR_HARDWARE_FAILURE
 
 SE key generating mock test
-mock_generate:
+mock_generate:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS
+
+SE key generating mock test: alloc failed
+mock_generate:PSA_ERROR_HARDWARE_FAILURE:PSA_SUCCESS:PSA_ERROR_HARDWARE_FAILURE
+
+SE key generating mock test: generating failed
+mock_generate:PSA_SUCCESS:PSA_ERROR_HARDWARE_FAILURE:PSA_ERROR_HARDWARE_FAILURE

@@ -4772,17 +4772,6 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
     if( ssl_check_record_type( ssl->in_msgtype ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
-
-#if defined(MBEDTLS_SSL_PROTO_TLS)
-        /* Silently ignore invalid DTLS records as recommended by RFC 6347
-         * Section 4.1.2.7, that is, send alert only with TLS */
-        if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) )
-        {
-            mbedtls_ssl_pend_fatal_alert( ssl,
-                                MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
-        }
-#endif /* MBEDTLS_SSL_PROTO_TLS */
-
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 

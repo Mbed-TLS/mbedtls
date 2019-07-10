@@ -1687,7 +1687,7 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
 
     if( p + len >= end )
     {
-        mbedtls_platform_zeroize( other_name, sizeof( other_name ) );
+        mbedtls_platform_zeroize( other_name, sizeof( *other_name ) );
         return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
@@ -1709,7 +1709,7 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
 
     if( p + len >= end )
     {
-        mbedtls_platform_zeroize( other_name, sizeof( other_name ) );
+        mbedtls_platform_zeroize( other_name, sizeof( *other_name ) );
         return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }
@@ -1725,7 +1725,7 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
     if( p != end )
     {
         mbedtls_platform_zeroize( other_name,
-                                  sizeof( other_name ) );
+                                  sizeof( *other_name ) );
         return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }

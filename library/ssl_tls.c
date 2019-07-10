@@ -10721,6 +10721,41 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
 
 /*
  * Serialize a full SSL context
+ *
+ * The format of the serialized data is:
+ * (in the presentation language of TLS, RFC 8446 section 3)
+ *
+ *  // header
+ *  opaque mbedtls_version[3];   // major, minor, patch
+ *  opaque context_format[n];    // version-specific field determining
+ *                               // the format of the remaining
+ *                               // serialized data. (n TBD)
+ *  Note: When updating the format, remember to keep
+ *        these version+format bytes. (To be confirmed.)
+ *
+ *  // session sub-structure
+ *  opaque session<1..2^32-1>;  // see mbedtls_ssl_session_save()
+ *  // transform sub-structure
+ *  uint8 random[64];           // ServerHello.random+ClientHello.random
+ *  uint8 in_cid<0..2^8-1>      // Connection ID: expected incoming value
+ *  uint8 out_cid<0..2^8-1>     // Connection ID: outgoing value to use
+ *  // fields from ssl_context
+ *  uint32 badmac_seen;         // DTLS: number of records with failing MAC
+ *  uint64 in_window_top;       // DTLS: last validated record seq_num
+ *  uint64 in_window;           // DTLS: bitmask for replay protection
+ *  uint8 disable_datagram_packing; // DTLS: only one record per datagram
+ *  uint64 cur_out_ctr;         // Record layer: outgoing sequence number
+ *  uint16 mtu;                 // DTLS: path mtu (max outgoing fragment size)
+ *  uint8 alpn_chosen<0..2^8-1> // ALPN: negotiated application protocol
+ *
+ * Note that many fields of the ssl_context or sub-structures are not
+ * serialized, as they fall in one of the following categories:
+ *
+ *  1. forced value (eg in_left must be 0)
+ *  2. pointer to dynamically-allocated memory (eg session, transform)
+ *  3. value can be re-derived from other data (eg session keys from MS)
+ *  4. value was temporary (eg content of input buffer)
+ *  5. value will be provided by the user again (eg I/O callbacks and context)
  */
 int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
                               unsigned char *buf,

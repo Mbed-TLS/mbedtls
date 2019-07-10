@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include "common.h"
 #include "mbedtls/ssl.h"
@@ -15,7 +14,7 @@
 #ifdef MBEDTLS_SSL_SRV_C
 const char *pers = "fuzz_dtlsserver";
 const unsigned char client_ip[4] = {0x7F, 0, 0, 1};
-static bool initialized = 0;
+static int initialized = 0;
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
 static mbedtls_x509_crt srvcert;
 static mbedtls_pk_context pkey;

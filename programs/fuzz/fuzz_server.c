@@ -6,13 +6,12 @@
 #include "common.h"
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 
 #ifdef MBEDTLS_SSL_SRV_C
 const char *pers = "fuzz_server";
-static bool initialized = 0;
+static int initialized = 0;
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
 static mbedtls_x509_crt srvcert;
 static mbedtls_pk_context pkey;

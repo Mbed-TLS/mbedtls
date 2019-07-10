@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+// Get platform-specific definition
+#include "mbedtls/config.h"
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size);
 

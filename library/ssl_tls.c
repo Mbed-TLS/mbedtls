@@ -5042,17 +5042,6 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-
-    /* Check length against bounds of the current transform and version */
-    if( ssl->transform_in != NULL )
-    {
-        if( ssl->in_msglen < ssl->transform_in->minlen )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-        }
-    }
-
     return( 0 );
 }
 

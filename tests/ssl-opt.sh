@@ -164,6 +164,12 @@ requires_config_disabled() {
     fi
 }
 
+requires_ciphersuite_enabled() {
+    if [ -z "$($P_CLI --help | grep "$1")" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 get_config_value_or_default() {
     # This function uses the query_config command line option to query the
     # required Mbed TLS compile time configuration from the ssl_server2
@@ -952,11 +958,25 @@ trap cleanup INT TERM HUP
 
 # Basic test
 
+run_test    "Default" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI" \
+            0
+
+run_test    "Default, DTLS" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1" \
+            0
+
 # Checks that:
 # - things work with all ciphersuites active (used with config-full in all.sh)
 # - the expected (highest security) parameters are selected
 #   ("signature_algorithm ext: 6" means SHA-512 (highest common hash))
-run_test    "Default" \
+requires_ciphersuite_enabled "TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
+requires_config_enabled MBEDTLS_SHA512_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_ECP_DP_SECP521R1_ENABLED
+run_test    "Default, choose highest security suite and hash" \
             "$P_SRV debug_level=3" \
             "$P_CLI" \
             0 \
@@ -967,12 +987,18 @@ run_test    "Default" \
             -S "error" \
             -C "error"
 
-run_test    "Default, DTLS" \
-            "$P_SRV dtls=1" \
+requires_ciphersuite_enabled "TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
+requires_config_enabled MBEDTLS_SHA512_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_ECP_DP_SECP521R1_ENABLED
+run_test    "Default, choose highest security suite and hash, DTLS" \
+            "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI dtls=1" \
             0 \
             -s "Protocol is DTLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
+            -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256" \
+            -s "client hello v3, signature_algorithm ext: 6" \
+            -s "ECDHE curve: secp521r1"
 
 # Test current time in ServerHello
 requires_config_enabled MBEDTLS_HAVE_TIME

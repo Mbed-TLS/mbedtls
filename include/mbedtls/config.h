@@ -3641,6 +3641,17 @@
 //#define MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET MBEDTLS_SSL_EXTENDED_MS_ENABLED
 //#define MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET MBEDTLS_SSL_EXTENDED_MS_ENFORCE_DISABLED
 
+/* Set this to MBEDTLS_SUITE_{OFFICIAL_SUITE_NAME} to hardcode
+ * the choice of a fixed ciphersuite at compile-time.
+ *
+ * You need to make sure that the corresponding ciphersuite attributes
+ * are defined through macros in ssl_ciphersuites.h. See the definitions
+ * of MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8_XXX for an example.
+ *
+ * If this option is set, the API mbedtls_ssl_conf_ciphersuites() is removed.
+ */
+//#define MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
+
 /* \} SECTION: Compile-time SSL configuration */
 
 /* Target and application specific configurations

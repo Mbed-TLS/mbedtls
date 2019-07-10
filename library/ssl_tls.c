@@ -801,7 +801,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     size_t mac_key_len;
     size_t iv_copy_len;
     unsigned keylen;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
 
@@ -823,26 +823,28 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
      * Get various info structures
      */
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuite );
-    if( ciphersuite_info == NULL )
+    if( ciphersuite_info == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite info for %d not found",
                                     ciphersuite ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
+    cipher_info = mbedtls_cipher_info_from_type(
+        mbedtls_ssl_suite_get_cipher( ciphersuite_info ) );
     if( cipher_info == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher info for %d not found",
-                                    ciphersuite_info->cipher ) );
+                       mbedtls_ssl_suite_get_cipher( ciphersuite_info ) ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    md_info = mbedtls_md_info_from_type( ciphersuite_info->mac );
+    md_info = mbedtls_md_info_from_type(
+        mbedtls_ssl_suite_get_mac( ciphersuite_info ) );
     if( md_info == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_md info for %d not found",
-                            ciphersuite_info->mac ) );
+                       mbedtls_ssl_suite_get_mac( ciphersuite_info ) ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -899,8 +901,8 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
         transform->maclen = 0;
         mac_key_len = 0;
-        transform->taglen =
-            ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+        transform->taglen = mbedtls_ssl_suite_get_flags( ciphersuite_info ) &
+            MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
 
         /* All modes haves 96-bit IVs;
          * GCM and CCM has 4 implicit and 8 explicit bytes
@@ -1338,15 +1340,15 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
     int ret;
-    const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t const ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
 
     /* Set PRF, calc_verify and calc_finished function pointers */
     ret = ssl_set_handshake_prfs( ssl->handshake,
-                                  ssl->minor_ver,
-                                  ciphersuite_info->mac );
+                            ssl->minor_ver,
+                            mbedtls_ssl_suite_get_mac( ciphersuite_info ) );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_set_handshake_prfs", ret );
@@ -1376,24 +1378,24 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
     /* Populate transform structure */
     ret = ssl_populate_transform( ssl->transform_negotiate,
-                                  ssl->session_negotiate->ciphersuite,
-                                  ssl->session_negotiate->master,
+                  mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ),
+                  ssl->session_negotiate->master,
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-                                  ssl->session_negotiate->encrypt_then_mac,
+                  ssl->session_negotiate->encrypt_then_mac,
 #endif
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-                                  ssl->session_negotiate->trunc_hmac,
+                  ssl->session_negotiate->trunc_hmac,
 #endif
 #endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 #if defined(MBEDTLS_ZLIB_SUPPORT)
-                                  ssl->session_negotiate->compression,
+                  ssl->session_negotiate->compression,
 #endif
-                                  ssl->handshake->tls_prf,
-                                  ssl->handshake->randbytes,
-                                  ssl->minor_ver,
-                                  mbedtls_ssl_conf_get_endpoint( ssl->conf ),
-                                  ssl );
+                  ssl->handshake->tls_prf,
+                  ssl->handshake->randbytes,
+                  ssl->minor_ver,
+                  mbedtls_ssl_conf_get_endpoint( ssl->conf ),
+                  ssl );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_populate_transform", ret );
@@ -6070,7 +6072,8 @@ static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
 /* No certificate support -> dummy functions */
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
@@ -6087,7 +6090,8 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
@@ -6110,7 +6114,8 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
     const mbedtls_x509_crt *crt;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
@@ -6474,8 +6479,8 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
 static int ssl_parse_certificate_coordinate( mbedtls_ssl_context *ssl,
                                              int authmode )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     if( !mbedtls_ssl_ciphersuite_uses_srv_cert( ciphersuite_info ) )
         return( SSL_CERTIFICATE_SKIP );
@@ -6483,8 +6488,11 @@ static int ssl_parse_certificate_coordinate( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SRV_C)
     if( mbedtls_ssl_conf_get_endpoint( ssl->conf ) == MBEDTLS_SSL_IS_SERVER )
     {
-        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+        if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+            MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+        {
             return( SSL_CERTIFICATE_SKIP );
+        }
 
         if( authmode == MBEDTLS_SSL_VERIFY_NONE )
         {
@@ -6506,8 +6514,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
                                          void *rs_ctx )
 {
     int verify_ret;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     mbedtls_x509_crt *ca_chain;
     mbedtls_x509_crl *ca_crl;
 
@@ -6973,7 +6981,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
 }
 
 void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
-                            const mbedtls_ssl_ciphersuite_t *ciphersuite_info )
+                            mbedtls_ssl_ciphersuite_handle_t ciphersuite_info )
 {
     ((void) ciphersuite_info);
 
@@ -6985,12 +6993,12 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA512_C)
-    if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+    if( mbedtls_ssl_suite_get_mac( ciphersuite_info ) == MBEDTLS_MD_SHA384 )
         ssl->handshake->update_checksum = ssl_update_checksum_sha384;
     else
 #endif
 #if defined(MBEDTLS_SHA256_C)
-    if( ciphersuite_info->mac != MBEDTLS_MD_SHA384 )
+    if( mbedtls_ssl_suite_get_mac( ciphersuite_info ) != MBEDTLS_MD_SHA384 )
         ssl->handshake->update_checksum = ssl_update_checksum_sha256;
     else
 #endif
@@ -8315,6 +8323,7 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
 }
 #endif /* MBEDTLS_SSL_CLI_C && !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                    const int *ciphersuites )
 {
@@ -8336,6 +8345,7 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
 
     conf->ciphersuite_list[minor] = ciphersuites;
 }
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
@@ -8958,10 +8968,13 @@ uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl )
 
 const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl )
 {
+    int suite;
+
     if( ssl == NULL || ssl->session == NULL )
         return( NULL );
 
-    return mbedtls_ssl_get_ciphersuite_name( ssl->session->ciphersuite );
+    suite = mbedtls_ssl_session_get_ciphersuite( ssl->session );
+    return( mbedtls_ssl_get_ciphersuite_name( suite ) );
 }
 
 const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
@@ -9383,8 +9396,10 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 
     if( used <= buf_len )
     {
-        *p++ = (unsigned char)( ( session->ciphersuite >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( session->ciphersuite      ) & 0xFF );
+        const int ciphersuite =
+            mbedtls_ssl_session_get_ciphersuite( session );
+        *p++ = (unsigned char)( ( ciphersuite >> 8 ) & 0xFF );
+        *p++ = (unsigned char)( ( ciphersuite      ) & 0xFF );
 
         *p++ = (unsigned char)( session->compression & 0xFF );
 
@@ -9522,6 +9537,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 {
     const unsigned char *p = buf;
     const unsigned char * const end = buf + len;
+    int ciphersuite;
 #if defined(MBEDTLS_HAVE_TIME)
     uint64_t start;
 #endif
@@ -9568,11 +9584,22 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     /*
      * Basic mandatory fields
      */
+
     if( 2 + 1 + 1 + 32 + 48 + 4 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    session->ciphersuite = ( p[0] << 8 ) | p[1];
+    ciphersuite = ( p[0] << 8 ) | p[1];
     p += 2;
+
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
+    session->ciphersuite = ciphersuite;
+#else
+    if( ciphersuite !=
+        MBEDTLS_SSL_SUITE_ID( MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE ) )
+    {
+        return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+    }
+#endif
 
     session->compression = *p++;
 
@@ -10795,11 +10822,13 @@ static int ssl_preset_default_hashes[] = {
 };
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 static int ssl_preset_suiteb_ciphersuites[] = {
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
     0
 };
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 static int ssl_preset_suiteb_hashes[] = {
@@ -10935,11 +10964,13 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
             conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
                                    ssl_preset_suiteb_ciphersuites;
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
             conf->cert_profile = &mbedtls_x509_crt_profile_suiteb;
@@ -10974,11 +11005,13 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
                 conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
             conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
                                    mbedtls_ssl_list_ciphersuites();
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
             conf->cert_profile = &mbedtls_x509_crt_profile_default;
@@ -11242,7 +11275,7 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
-                          const mbedtls_ssl_ciphersuite_t *ciphersuite,
+                          mbedtls_ssl_ciphersuite_handle_t ciphersuite,
                           int cert_endpoint,
                           uint32_t *flags )
 {
@@ -11266,7 +11299,7 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
     if( cert_endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         /* Server part of the key exchange */
-        switch( ciphersuite->key_exchange )
+        switch( mbedtls_ssl_suite_get_key_exchange( ciphersuite ) )
         {
             case MBEDTLS_KEY_EXCHANGE_RSA:
             case MBEDTLS_KEY_EXCHANGE_RSA_PSK:

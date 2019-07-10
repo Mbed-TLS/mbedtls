@@ -55,6 +55,7 @@ int main( void )
 
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/ssl.h"
+#include "mbedtls/ssl_ciphersuites.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/certs.h"
@@ -2018,19 +2019,19 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] > 0 )
     {
-        const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+        mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
         ciphersuite_info =
             mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
 
         if( opt.max_version != -1 &&
-            ciphersuite_info->min_minor_ver > opt.max_version )
+            mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ) > opt.max_version )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
         if( opt.min_version != -1 &&
-            ciphersuite_info->max_minor_ver < opt.min_version )
+            mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ) < opt.min_version )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
@@ -2040,13 +2041,13 @@ int main( int argc, char *argv[] )
         /* If we select a version that's not supported by
          * this suite, then there will be no common ciphersuite... */
         if( opt.max_version == -1 ||
-            opt.max_version > ciphersuite_info->max_minor_ver )
+            opt.max_version > mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ) )
         {
-            opt.max_version = ciphersuite_info->max_minor_ver;
+            opt.max_version = mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info );
         }
-        if( opt.min_version < ciphersuite_info->min_minor_ver )
+        if( opt.min_version < mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ) )
         {
-            opt.min_version = ciphersuite_info->min_minor_ver;
+            opt.min_version = mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info );
             /* DTLS starts with TLS 1.1 */
             if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
                 opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
@@ -2054,7 +2055,7 @@ int main( int argc, char *argv[] )
         }
 
         /* Enable RC4 if needed and not explicitly disabled */
-        if( ciphersuite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
+        if( mbedtls_ssl_suite_get_cipher( ciphersuite_info ) == MBEDTLS_CIPHER_ARC4_128 )
         {
             if( opt.arc4 == MBEDTLS_SSL_ARC4_DISABLED )
             {
@@ -2661,14 +2662,17 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
         mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_ARC4_C)
     if( opt.arc4 != DFL_ARC4 )
         mbedtls_ssl_conf_arc4_support( &conf, opt.arc4 );
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     if( opt.version_suites != NULL )
     {
         mbedtls_ssl_conf_ciphersuites_for_version( &conf, version_suites[0],
@@ -2684,6 +2688,7 @@ int main( int argc, char *argv[] )
                                           MBEDTLS_SSL_MAJOR_VERSION_3,
                                           MBEDTLS_SSL_MINOR_VERSION_3 );
     }
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )

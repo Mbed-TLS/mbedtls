@@ -501,7 +501,9 @@ struct mbedtls_ssl_handshake_params
                     const unsigned char *, size_t,
                     unsigned char *, size_t);
 
-    mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
     size_t pmslen;                      /*!<  premaster length        */
 
@@ -555,6 +557,21 @@ static inline int mbedtls_ssl_hs_get_extended_ms(
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENFORCED */
 }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
+
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
+static inline mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_handshake_get_ciphersuite(
+    mbedtls_ssl_handshake_params const *handshake )
+{
+    return( handshake->ciphersuite_info );
+}
+#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+static inline mbedtls_ssl_ciphersuite_handle_t mbedtls_ssl_handshake_get_ciphersuite(
+    mbedtls_ssl_handshake_params const *handshake )
+{
+    ((void) handshake);
+    return( MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE );
+}
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 
@@ -918,7 +935,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl );
 
 void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
-                            const mbedtls_ssl_ciphersuite_t *ciphersuite_info );
+                            mbedtls_ssl_ciphersuite_handle_t ciphersuite_info );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex );
@@ -978,7 +995,7 @@ static inline mbedtls_x509_crt *mbedtls_ssl_own_cert( mbedtls_ssl_context *ssl )
  * Return 0 if everything is OK, -1 if not.
  */
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
-                          const mbedtls_ssl_ciphersuite_t *ciphersuite,
+                          mbedtls_ssl_ciphersuite_handle_t ciphersuite,
                           int cert_endpoint,
                           uint32_t *flags );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
@@ -1429,5 +1446,42 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 #endif /* MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET */
 }
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
+
+/*
+ * Macros for the traversal of the list of all enabled ciphersuites.
+ * This is implemented as a plain loop in case we have a runtime
+ * configurable list of ciphersuites, and as a simple variable
+ * instantiation in case a single ciphersuite is enabled at
+ * compile-time.
+ */
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl, ver, info ) \
+    {                                                            \
+        int const *__id_ptr;                                     \
+        for( __id_ptr=(ssl)->conf->ciphersuite_list[ (ver) ];    \
+             *__id_ptr != 0; __id_ptr++ )                        \
+        {                                                        \
+           const int __id = *__id_ptr;                           \
+           mbedtls_ssl_ciphersuite_handle_t info;                \
+           info = mbedtls_ssl_ciphersuite_from_id( __id );       \
+           if( info == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )  \
+               continue;
+
+#define MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE  \
+        }                                     \
+    }
+
+#else /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl, ver, info )             \
+    do {                                                                     \
+        const mbedtls_ssl_ciphersuite_handle_t info =                        \
+            MBEDTLS_SSL_CIPHERSUITE_UNIQUE_VALID_HANDLE;
+
+#define MBEDTLS_SSL_END_FOR_EACH_CIPHERSUITE    \
+    } while( 0 );
+
+#endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #endif /* ssl_internal.h */

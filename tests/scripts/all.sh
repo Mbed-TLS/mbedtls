@@ -759,6 +759,21 @@ component_test_full_cmake_clang () {
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
+component_test_hardcoded_ciphersuite_cmake_clang() {
+    msg "build: cmake, full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE, clang" # ~ 50s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
+    make
+
+    msg "test: main suites (full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)" # ~ 5s
+    make test
+
+    msg "test: ssl-opt.sh default (full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f '^Default$\|^Default, DTLS$'
+}
+
 component_build_deprecated () {
     msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
     scripts/config.pl full

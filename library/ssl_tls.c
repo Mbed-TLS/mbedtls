@@ -4818,6 +4818,13 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
     {
         unsigned int rec_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
 
+        /* Check that the datagram is large enough to contain a record
+         * of the advertised length. */
+        if( ssl->in_left < mbedtls_ssl_in_hdr_len( ssl ) + ssl->in_msglen )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Datagram too small to contain record." ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
         if( rec_epoch == (unsigned) ssl->in_epoch + 1 )
         {
             /* Consider buffering the record. */
@@ -5801,21 +5808,9 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         }
     }
 
-    /*
-     * Make sure the entire record contents are available.
-     *
-     * In TLS, this means fetching them from the underlying transport.
-     * In DTLS, it means checking that the incoming datagram is large enough.
-     */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
-        if( ssl->in_left < mbedtls_ssl_in_hdr_len( ssl ) + ssl->in_msglen )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Datagram too small to contain record." ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-        }
-
         /* Remember offset of next record within datagram. */
         ssl->next_record_offset = ssl->in_msglen + mbedtls_ssl_in_hdr_len( ssl );
         if( ssl->next_record_offset < ssl->in_left )
@@ -5827,6 +5822,9 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 #if defined(MBEDTLS_SSL_PROTO_TLS)
     {
+        /*
+         * Fetch record contents from underlying transport.
+         */
         ret = mbedtls_ssl_fetch_input( ssl,
                               mbedtls_ssl_in_hdr_len( ssl ) + ssl->in_msglen );
         if( ret != 0 )

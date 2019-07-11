@@ -11340,6 +11340,8 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
     size_t used = 0;
+    size_t session_len;
+    int ret = 0;
 
     /*
      * Enforce current usage restrictions
@@ -11381,6 +11383,29 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     }
 
     /*
+     * Session (length + data)
+     */
+    ret = mbedtls_ssl_session_save( ssl->session, NULL, 0, &session_len );
+    if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
+        return( ret );
+
+    used += 4 + session_len;
+    if( used <= buf_len )
+    {
+        *p++ = (unsigned char)( ( session_len >> 24 ) & 0xFF );
+        *p++ = (unsigned char)( ( session_len >> 16 ) & 0xFF );
+        *p++ = (unsigned char)( ( session_len >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( session_len       ) & 0xFF );
+
+        ret = mbedtls_ssl_session_save( ssl->session,
+                                        p, session_len, &session_len );
+        if( ret != 0 )
+            return( ret );
+
+        p += session_len;
+    }
+
+    /*
      * Done
      */
     *olen = used;
@@ -11388,18 +11413,25 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     if( used > buf_len )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
+    MBEDTLS_SSL_DEBUG_BUF( 4, "saved context", buf, used );
+
     return( 0 );
 }
 
 /*
- * Deserialize a full SSL context
+ * Unserialize context, see mbedtls_ssl_context_save() for format.
+ *
+ * This internal version is wrapped by a public function that cleans up in
+ * case of error.
  */
-int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
-                              const unsigned char *buf,
-                              size_t len )
+static int ssl_context_load( mbedtls_ssl_context *ssl,
+                             const unsigned char *buf,
+                             size_t len )
 {
     const unsigned char *p = buf;
     const unsigned char * const end = buf + len;
+    size_t session_len;
+    int ret;
 
     /*
      * The context should have been freshly setup or reset.
@@ -11430,6 +11462,8 @@ int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
+    MBEDTLS_SSL_DEBUG_BUF( 4, "context to load", buf, len );
+
     /*
      * Check version identifier
      */
@@ -11444,12 +11478,56 @@ int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
     p += sizeof( ssl_serialized_context_header );
 
     /*
+     * Session
+     */
+    if( (size_t)( end - p ) < 4 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    session_len = ( (size_t) p[0] << 24 ) |
+                  ( (size_t) p[1] << 16 ) |
+                  ( (size_t) p[2] <<  8 ) |
+                  ( (size_t) p[3]       );
+    p += 4;
+
+    ssl->session = mbedtls_calloc( 1, sizeof( mbedtls_ssl_session ) );
+    if( ssl->session == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    mbedtls_ssl_session_init( ssl->session );
+
+    ssl->session_in = ssl->session;
+    ssl->session_out = ssl->session;
+
+    if( (size_t)( end - p ) < session_len )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ret = mbedtls_ssl_session_load( ssl->session, p, session_len );
+    if( ret != 0 )
+        return( ret );
+
+    p += session_len;
+
+    /*
      * Done - should have consumed entire buffer
      */
     if( p != end )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     return( 0 );
+}
+
+/*
+ * Unserialize context: public wrapper for error cleaning
+ */
+int mbedtls_ssl_context_load( mbedtls_ssl_context *context,
+                              const unsigned char *buf,
+                              size_t len )
+{
+    int ret = ssl_context_load( context, buf, len );
+
+    if( ret != 0 )
+        mbedtls_ssl_free( context );
+
+    return( ret );
 }
 
 /*

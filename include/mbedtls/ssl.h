@@ -3912,7 +3912,11 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  * \note           \p olen is updated to the correct value regardless of
  *                 whether \p buf_len was large enough. This makes it possible
  *                 to determine the necessary size by calling this function
- *                 with \p buf set to \c NULL and \p buf_len to \c 0.
+ *                 with \p buf set to \c NULL and \p buf_len to \c 0. However,
+ *                 the value of \p olen is only guaranteed to be correct when
+ *                 the function returns #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL or
+ *                 \c 0. If the return value is different, then the value of
+ *                 \p olen is undefined.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
@@ -3976,6 +3980,11 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  *                 otherwise this function would overwrite your
  *                 newly-configured value with the value that was active when
  *                 the context was saved.
+ *
+ * \note           When this function returns an error code, it calls
+ *                 mbedtls_ssl_free() on \p ssl. In this case, you need to
+ *                 prepare the context with the usual sequence starting with a
+ *                 call to mbedtls_ssl_init() if you want to use it again.
  *
  * \param ssl      The SSL context structure to be populated. It must have
  *                 been prepared as described in the note above.

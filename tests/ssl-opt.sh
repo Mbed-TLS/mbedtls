@@ -21,6 +21,10 @@
 
 set -u
 
+# Limit the size of each log to 10 GiB, in case of failures with this script
+# where it may output seemingly unlimited length error logs.
+ulimit -f 20971520
+
 # default values, can be overridden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}

@@ -5918,7 +5918,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         /* Remember offset of next record within datagram. */
-        ssl->next_record_offset = ssl->in_msglen + mbedtls_ssl_in_hdr_len( ssl );
+        ssl->next_record_offset = rec.buf_len;
         if( ssl->next_record_offset < ssl->in_left )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "more than one record within datagram" ) );

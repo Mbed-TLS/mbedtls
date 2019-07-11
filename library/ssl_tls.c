@@ -10805,8 +10805,36 @@ int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
                               const unsigned char *buf,
                               size_t len )
 {
+    /*
+     * The context should have been freshly setup or reset.
+     * Give the user an error in case of obvious misuse.
+     * (Checking session is useful because if won't be NULL if we're
+     * renegotiating, or if the user mistakenly loaded a session first.)
+     */
+    if( ssl->state != MBEDTLS_SSL_HELLO_REQUEST ||
+        ssl->session != NULL )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    /*
+     * We can't check that the config matches the initial one, but we can at
+     * least check it matches the requirements for serializing.
+     */
+    if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) ||
+        ssl->conf->max_major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
+        ssl->conf->min_major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
+        ssl->conf->max_minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 ||
+        ssl->conf->min_minor_ver > MBEDTLS_SSL_MINOR_VERSION_3 ||
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+        ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED
+#endif
+        )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
     /* Unimplemented */
-    (void) ssl;
     (void) buf;
     (void) len;
 

@@ -13,6 +13,12 @@ mock_export:PSA_SUCCESS:PSA_SUCCESS
 SE key exporting mock test: export failed
 mock_export:PSA_ERROR_HARDWARE_FAILURE:PSA_ERROR_HARDWARE_FAILURE
 
+SE public key exporting mock test
+mock_export_public:PSA_SUCCESS:PSA_SUCCESS
+
+SE public key exporting mock test: export failed
+mock_export_public:PSA_ERROR_HARDWARE_FAILURE:PSA_ERROR_HARDWARE_FAILURE
+
 SE key generating mock test
 mock_generate:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS
 

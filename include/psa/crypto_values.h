@@ -845,7 +845,6 @@
 #define PSA_ALG_CBC_MAC                         ((psa_algorithm_t)0x02c00001)
 /** The CMAC construction over a block cipher */
 #define PSA_ALG_CMAC                            ((psa_algorithm_t)0x02c00002)
-#define PSA_ALG_GMAC                            ((psa_algorithm_t)0x02c00003)
 
 /** Whether the specified algorithm is a MAC algorithm based on a block cipher.
  *

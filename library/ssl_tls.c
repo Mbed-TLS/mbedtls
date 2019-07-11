@@ -4891,20 +4891,73 @@ static int ssl_check_record_type( uint8_t record_type )
  * Point 2 is needed when the peer is resending, and we have already received
  * the first record from a datagram but are still waiting for the others.
  */
-static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
+static int ssl_parse_record_header( mbedtls_ssl_context *ssl,
+                                    unsigned char *buf,
+                                    size_t len,
+                                    mbedtls_record *rec )
 {
     int major_ver, minor_ver;
 
-    /* Parse and validate record content type and version */
+    size_t const rec_hdr_type_offset    = 0;
+    size_t const rec_hdr_type_len       = 1;
 
-    ssl->in_msgtype =  ssl->in_hdr[0];
-    mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, ssl->in_hdr + 1 );
+    size_t const rec_hdr_version_offset = rec_hdr_type_offset +
+                                          rec_hdr_type_len;
+    size_t const rec_hdr_version_len    = 2;
 
-    /* Check record type */
+    size_t const rec_hdr_ctr_len        = 8;
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint32_t rec_epoch;
+    size_t const rec_hdr_ctr_offset     = rec_hdr_version_offset +
+                                          rec_hdr_version_len;
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    size_t const rec_hdr_cid_offset     = rec_hdr_ctr_offset +
+                                          rec_hdr_ctr_len;
+    size_t rec_hdr_cid_len              = 0;
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+    size_t       rec_hdr_len_offset; /* To be determined */
+    size_t const rec_hdr_len_len    = 2;
+
+    /*
+     * Check minimum lengths for record header.
+     */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        rec_hdr_len_offset = rec_hdr_ctr_offset + rec_hdr_ctr_len;
+    }
+    else
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+    {
+        rec_hdr_len_offset = rec_hdr_version_offset + rec_hdr_version_len;
+    }
+
+    if( len < rec_hdr_len_offset + rec_hdr_len_len )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "datagram of length %u too small to hold DTLS record header of length %u",
+                 (unsigned) len,
+                 (unsigned)( rec_hdr_len_len + rec_hdr_len_len ) ) );
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+    }
+
+    /*
+     * Parse and validate record content type
+     */
+
+    rec->type = buf[ rec_hdr_type_offset ];
+    ssl->in_msgtype = rec->type;
+
+    /* Check record content type */
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    rec->cid_len = 0;
+
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ssl->in_msgtype      == MBEDTLS_SSL_MSG_CID            &&
-        ssl->conf->cid_len   != 0 )
+        ssl->conf->cid_len != 0                                &&
+        rec->type == MBEDTLS_SSL_MSG_CID )
     {
         /* Shift pointers to account for record header including CID
          * struct {
@@ -4921,30 +4974,45 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 
         /* So far, we only support static CID lengths
          * fixed in the configuration. */
-        ssl->in_len = ssl->in_cid + ssl->conf->cid_len;
-        ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+        rec_hdr_cid_len = ssl->conf->cid_len;
+        rec_hdr_len_offset += rec_hdr_cid_len;
 
-        /* Now that the total length of the record header is known, ensure
-         * that the current datagram is large enough to hold it.
-         * This would fail, for example, if we received a datagram of
-         * size 13 + n Bytes where n is less than the size of incoming CIDs.
-         */
-        if( ssl->in_left < mbedtls_ssl_in_hdr_len( ssl ) )
+        if( len < rec_hdr_len_offset + rec_hdr_len_len )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "datagram too short to contain DTLS record header including CID of length %u.",
-                                        (unsigned) mbedtls_ssl_conf_get_cid_len( ssl->conf ) ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "datagram of length %u too small to hold DTLS record header including CID, length %u",
+                (unsigned) len,
+                (unsigned)( rec_hdr_len_offset + rec_hdr_len_len ) ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
+
+        rec->cid_len = rec_hdr_cid_len;
+        memcpy( rec->cid, buf + rec_hdr_cid_offset, rec_hdr_cid_len );
+
+        ssl->in_len = ssl->in_cid + mbedtls_ssl_conf_get_cid_len( ssl->conf );
+        ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
     }
     else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-    if( ssl_check_record_type( ssl->in_msgtype ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
-        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        if( ssl_check_record_type( rec->type ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
     }
 
-    /* Check version */
+    /*
+     * Parse and validate record version
+     */
+
+    memcpy( &rec->ver[0],
+            buf + rec_hdr_version_offset,
+            rec_hdr_version_len );
+
+    mbedtls_ssl_read_version( &major_ver, &minor_ver,
+                              ssl->conf->transport,
+                              buf + rec_hdr_version_offset );
+
     if( major_ver != ssl->major_ver )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "major version mismatch" ) );
@@ -4957,18 +5025,44 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
-    MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, mbedtls_ssl_in_hdr_len( ssl ) );
+    /*
+     * Parse/Copy record sequence number.
+     */
 
-    /* Parse and validate record length
-     * This must happen after the CID parsing because
-     * its position in the record header depends on
-     * the presence of a CID. */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        /* Copy explicit record sequence number from input buffer. */
+        memcpy( &rec->ctr[0], buf + rec_hdr_ctr_offset,
+                rec_hdr_ctr_len );
+    }
+    else
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+    {
+        /* Copy implicit record sequence number from SSL context structure. */
+        memcpy( &rec->ctr[0], ssl->in_ctr, rec_hdr_ctr_len );
+    }
 
-    ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
+    /*
+     * Parse record length.
+     */
+
+#define READ_UINT16_BE( p )                      \
+    ( ( *( (unsigned char*)( p ) + 0 ) << 8 ) |  \
+      ( *( (unsigned char*)( p ) + 1 ) << 0 ) )
+
+    rec->data_offset = rec_hdr_len_offset + rec_hdr_len_len;
+    rec->data_len    = (size_t) READ_UINT16_BE( buf + rec_hdr_len_offset );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", buf, rec->data_offset );
+
+    ssl->in_msglen   = rec->data_len;
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
                                 "version = [%d:%d], msglen = %d",
-                                ssl->in_msgtype,
-                                major_ver, minor_ver, ssl->in_msglen ) );
+                                rec->type,
+                                major_ver, minor_ver, rec->data_len ) );
+
+    rec->buf     = buf;
+    rec->buf_len = rec->data_offset + rec->data_len;
 
     /*
      * DTLS-related tests.
@@ -4985,13 +5079,15 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        unsigned int rec_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
+        rec_epoch = ( rec->ctr[0] << 8 ) | rec->ctr[1];
 
         /* Check that the datagram is large enough to contain a record
          * of the advertised length. */
-        if( ssl->in_left < mbedtls_ssl_in_hdr_len( ssl ) + ssl->in_msglen )
+        if( len < rec->data_offset + rec->data_len )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Datagram too small to contain record." ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Datagram of length %u too small to contain record of advertised length %u.",
+                             (unsigned) len,
+                             (unsigned)( rec->data_offset + rec->data_len ) ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 
@@ -5905,6 +6001,7 @@ static int ssl_buffer_future_record( mbedtls_ssl_context *ssl )
 static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 {
     int ret;
+    mbedtls_record rec;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     /* We might have buffered a future record; if so,
@@ -5933,7 +6030,8 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    if( ( ret = ssl_parse_record_header( ssl ) ) != 0 )
+    ret = ssl_parse_record_header( ssl, ssl->in_hdr, ssl->in_left, &rec );
+    if( ret != 0 )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
         if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )

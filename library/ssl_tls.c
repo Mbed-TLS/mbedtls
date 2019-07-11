@@ -11284,6 +11284,17 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
     mbedtls_platform_zeroize( session, sizeof( mbedtls_ssl_session ) );
 }
 
+static unsigned char ssl_serialized_context_header[] = {
+    MBEDTLS_VERSION_MAJOR,
+    MBEDTLS_VERSION_MINOR,
+    MBEDTLS_VERSION_PATCH,
+    ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 8 ) & 0xFF,
+    ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 0 ) & 0xFF,
+    0, /* placeholder */
+    0, /* placeholder */
+    0, /* placeholder */
+};
+
 /*
  * Serialize a full SSL context
  *
@@ -11292,9 +11303,9 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
  *
  *  // header
  *  opaque mbedtls_version[3];   // major, minor, patch
- *  opaque context_format[n];    // version-specific field determining
+ *  opaque context_format[5];    // version-specific field determining
  *                               // the format of the remaining
- *                               // serialized data. (n TBD)
+ *                               // serialized data.
  *  Note: When updating the format, remember to keep
  *        these version+format bytes. (To be confirmed.)
  *
@@ -11327,6 +11338,9 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
                               size_t buf_len,
                               size_t *olen )
 {
+    unsigned char *p = buf;
+    size_t used = 0;
+
     /*
      * Enforce current usage restrictions
      */
@@ -11354,11 +11368,25 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    /* Unimplemented */
-    if( buf != NULL )
-        memset( buf, 0, buf_len );
+    /*
+     * Version and format identifier
+     */
+    used += sizeof( ssl_serialized_context_header );
 
-    *olen = 0;
+    if( used <= buf_len )
+    {
+        memcpy( p, ssl_serialized_context_header,
+                sizeof( ssl_serialized_context_header ) );
+        p += sizeof( ssl_serialized_context_header );
+    }
+
+    /*
+     * Done
+     */
+    *olen = used;
+
+    if( used > buf_len )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
     return( 0 );
 }
@@ -11370,6 +11398,9 @@ int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
                               const unsigned char *buf,
                               size_t len )
 {
+    const unsigned char *p = buf;
+    const unsigned char * const end = buf + len;
+
     /*
      * The context should have been freshly setup or reset.
      * Give the user an error in case of obvious misuse.
@@ -11399,9 +11430,24 @@ int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    /* Unimplemented */
-    (void) buf;
-    (void) len;
+    /*
+     * Check version identifier
+     */
+    if( (size_t)( end - p ) < sizeof( ssl_serialized_context_header ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( memcmp( p, ssl_serialized_context_header,
+                sizeof( ssl_serialized_context_header ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+    }
+    p += sizeof( ssl_serialized_context_header );
+
+    /*
+     * Done - should have consumed entire buffer
+     */
+    if( p != end )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     return( 0 );
 }

@@ -5889,8 +5889,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 #endif
 
                 /* Skip unexpected record (but not whole datagram) */
-                ssl->next_record_offset = ssl->in_msglen
-                                        + mbedtls_ssl_in_hdr_len( ssl );
+                ssl->next_record_offset = rec.buf_len;
 
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "discarding unexpected record "
                                             "(header)" ) );

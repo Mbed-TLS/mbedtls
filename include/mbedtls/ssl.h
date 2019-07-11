@@ -3999,6 +3999,8 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed.
+ * \return         #MBEDTLS_ERR_SSL_VERSION_MISMATCH if the serialized data
+ *                 comes from a different Mbed TLS version or build.
  * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if input data is invalid.
  */
 int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,

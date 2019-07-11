@@ -5155,12 +5155,13 @@ static int ssl_check_client_reconnect( mbedtls_ssl_context *ssl )
 /*
  * If applicable, decrypt (and decompress) record content
  */
-static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
+static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
+                                       mbedtls_record *rec )
 {
     int ret, done = 0;
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "input record from network",
-                   ssl->in_hdr, mbedtls_ssl_in_hdr_len( ssl ) + ssl->in_msglen );
+                           rec->buf, rec->buf_len );
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_read != NULL )
@@ -5180,24 +5181,8 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
     if( !done && ssl->transform_in != NULL )
     {
-        mbedtls_record rec;
-
-        rec.buf         = ssl->in_iv;
-        rec.buf_len     = MBEDTLS_SSL_IN_BUFFER_LEN
-            - ( ssl->in_iv - ssl->in_buf );
-        rec.data_len    = ssl->in_msglen;
-        rec.data_offset = 0;
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID )
-        rec.cid_len     = (uint8_t)( ssl->in_len - ssl->in_cid );
-        memcpy( rec.cid, ssl->in_cid, rec.cid_len );
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
-        memcpy( &rec.ctr[0], ssl->in_ctr, 8 );
-        mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
-                                   ssl->conf->transport, rec.ver );
-        rec.type = ssl->in_msgtype;
         if( ( ret = mbedtls_ssl_decrypt_buf( ssl, ssl->transform_in,
-                                             &rec ) ) != 0 )
+                                             rec ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decrypt_buf", ret );
 
@@ -5214,24 +5199,24 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-        if( ssl->in_msgtype != rec.type )
+        if( ssl->in_msgtype != rec->type )
         {
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "record type after decrypt (before %d): %d",
-                                        ssl->in_msgtype, rec.type ) );
+                                        ssl->in_msgtype, rec->type ) );
         }
 
         /* The record content type may change during decryption,
          * so re-read it. */
-        ssl->in_msgtype = rec.type;
+        ssl->in_msgtype = rec->type;
         /* Also update the input buffer, because unfortunately
          * the server-side ssl_parse_client_hello() reparses the
          * record header when receiving a ClientHello initiating
          * a renegotiation. */
-        ssl->in_hdr[0] = rec.type;
-        ssl->in_msg    = rec.buf + rec.data_offset;
-        ssl->in_msglen = rec.data_len;
-        ssl->in_len[0] = (unsigned char)( rec.data_len >> 8 );
-        ssl->in_len[1] = (unsigned char)( rec.data_len      );
+        ssl->in_hdr[0] = rec->type;
+        ssl->in_msg    = rec->buf + rec->data_offset;
+        ssl->in_msglen = rec->data_len;
+        ssl->in_len[0] = (unsigned char)( rec->data_len >> 8 );
+        ssl->in_len[1] = (unsigned char)( rec->data_len      );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "input payload after decrypt",
                        ssl->in_msg, ssl->in_msglen );
@@ -6109,7 +6094,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
      * Decrypt record contents.
      */
 
-    if( ( ret = ssl_prepare_record_content( ssl ) ) != 0 )
+    if( ( ret = ssl_prepare_record_content( ssl, &rec ) ) != 0 )
     {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
         if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )

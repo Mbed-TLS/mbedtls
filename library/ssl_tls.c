@@ -6095,8 +6095,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         /*
          * Fetch record contents from underlying transport.
          */
-        ret = mbedtls_ssl_fetch_input( ssl,
-                              mbedtls_ssl_in_hdr_len( ssl ) + ssl->in_msglen );
+        ret = mbedtls_ssl_fetch_input( ssl, rec.buf_len );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );

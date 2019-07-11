@@ -33,3 +33,9 @@ mock_sign:PSA_SUCCESS:PSA_SUCCESS
 
 SE signing mock test: sign failed
 mock_sign:PSA_ERROR_HARDWARE_FAILURE:PSA_ERROR_HARDWARE_FAILURE
+
+SE verification mock test
+mock_verify:PSA_SUCCESS:PSA_SUCCESS
+
+SE verification mock test: verify failed
+mock_verify:PSA_ERROR_HARDWARE_FAILURE:PSA_ERROR_HARDWARE_FAILURE

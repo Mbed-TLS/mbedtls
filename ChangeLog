@@ -128,6 +128,8 @@ Changes
    * Add `reproducible` option to `ssl_client2` and `ssl_server2` to enable
      test runs without variability. Contributed by Philippe Antoine (Catena
      cyber) in #2681.
+   * Adds fuzz targets, especially for continuous fuzzing with OSS-Fuzz.
+     Contributed by Philippe Antoine (Catena cyber).
 
 = mbed TLS 2.17.0 branch released 2019-03-19
 

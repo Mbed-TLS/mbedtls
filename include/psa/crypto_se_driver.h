@@ -97,6 +97,8 @@ typedef struct {
 /** \brief A driver initialization function.
  *
  * \param[in,out] drv_context       The driver context structure.
+ * \param[in,out] persistent_data   A pointer to the persistent data
+ *                                  that allows writing.
  * \param lifetime                  The lifetime value for which this driver
  *                                  is registered.
  *
@@ -109,6 +111,7 @@ typedef struct {
  *         The core will NOT update the persistent data in storage.
  */
 typedef psa_status_t (*psa_drv_se_init_t)(psa_drv_se_context_t *drv_context,
+                                          void *persistent_data,
                                           psa_key_lifetime_t lifetime);
 
 /** An internal designation of a key slot between the core part of the
@@ -787,6 +790,8 @@ typedef struct psa_key_attributes_s psa_key_attributes_t;
 /** \brief A function that allocates a slot for a key.
  *
  * \param[in,out] drv_context       The driver context structure.
+ * \param[in,out] persistent_data   A pointer to the persistent data
+ *                                  that allows writing.
  * \param[in] attributes    Attributes of the key.
  * \param[out] key_slot     Slot where the key will be stored.
  *                          This must be a valid slot for a key of the
@@ -801,6 +806,7 @@ typedef struct psa_key_attributes_s psa_key_attributes_t;
  */
 typedef psa_status_t (*psa_drv_se_allocate_key_t)(
     psa_drv_se_context_t *drv_context,
+    void *persistent_data,
     const psa_key_attributes_t *attributes,
     psa_key_slot_number_t *key_slot);
 
@@ -843,6 +849,8 @@ typedef psa_status_t (*psa_drv_se_import_key_t)(psa_drv_se_context_t *drv_contex
  * This function returns the specified slot to its default state.
  *
  * \param[in,out] drv_context       The driver context structure.
+ * \param[in,out] persistent_data   A pointer to the persistent data
+ *                                  that allows writing.
  * \param key_slot          The key slot to erase.
  *
  * \retval #PSA_SUCCESS
@@ -850,6 +858,7 @@ typedef psa_status_t (*psa_drv_se_import_key_t)(psa_drv_se_context_t *drv_contex
  */
 typedef psa_status_t (*psa_drv_se_destroy_key_t)(
     psa_drv_se_context_t *drv_context,
+    void *persistent_data,
     psa_key_slot_number_t key_slot);
 
 /**

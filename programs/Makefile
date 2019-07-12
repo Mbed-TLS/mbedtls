@@ -90,9 +90,18 @@ endif
 
 .SILENT:
 
-.PHONY: all clean list
+.PHONY: all clean list fuzz
 
 all: $(APPS)
+ifndef WINDOWS
+# APPS doesn't include the fuzzing programs, which aren't "normal"
+# sample or test programs, and don't build with MSVC which is
+# warning about fopen
+all: fuzz
+endif
+
+fuzz:
+	$(MAKE) -C fuzz
 
 $(DEP):
 	$(MAKE) -C ../library
@@ -305,6 +314,7 @@ ifndef WINDOWS
 else
 	del /S /Q /F *.o *.exe
 endif
+	$(MAKE) -C fuzz clean
 
 list:
 	echo $(APPS)

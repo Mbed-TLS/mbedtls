@@ -159,6 +159,22 @@ psa_status_t psa_find_se_slot_for_key(
     return( status );
 }
 
+psa_status_t psa_destroy_se_key( psa_se_drv_table_entry_t *driver,
+                                 psa_key_slot_number_t slot_number )
+{
+    psa_status_t status;
+    psa_status_t storage_status;
+    if( driver->methods->key_management == NULL ||
+        driver->methods->key_management->p_destroy == NULL )
+        return( PSA_ERROR_NOT_PERMITTED );
+    status = driver->methods->key_management->p_destroy(
+        &driver->context,
+        driver->internal.persistent_data,
+        slot_number );
+    storage_status = psa_save_se_persistent_data( driver );
+    return( status == PSA_SUCCESS ? storage_status : status );
+}
+
 
 
 /****************************************************************/

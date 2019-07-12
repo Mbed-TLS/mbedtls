@@ -939,10 +939,20 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
     psa_key_slot_t *slot;
     psa_status_t status = PSA_SUCCESS;
     psa_status_t storage_status = PSA_SUCCESS;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    psa_se_drv_table_entry_t *driver;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     status = psa_get_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    driver = psa_get_se_driver_entry( slot->lifetime );
+    if( driver != NULL )
+        status = psa_destroy_se_key( driver, slot->data.se.slot_number );
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
     {
@@ -950,6 +960,7 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
             psa_destroy_persistent_key( slot->persistent_storage_id );
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
     status = psa_wipe_key_slot( slot );
     if( status != PSA_SUCCESS )
         return( status );

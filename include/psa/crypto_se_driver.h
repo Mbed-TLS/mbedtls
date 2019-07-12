@@ -43,7 +43,7 @@ extern "C" {
 /** An internal designation of a key slot between the core part of the
  * PSA Crypto implementation and the driver. The meaning of this value
  * is driver-dependent. */
-typedef uint32_t psa_key_slot_number_t; // Change this to psa_key_slot_t after psa_key_slot_t is removed from Mbed crypto
+typedef uint64_t psa_key_slot_number_t;
 
 /** \defgroup se_mac Secure Element Message Authentication Codes
  * Generation and authentication of Message Authentication Codes (MACs) using

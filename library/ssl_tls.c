@@ -5038,19 +5038,6 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
                                         old_msg_type, rec->type ) );
         }
 
-        /* The record content type may change during decryption,
-         * so re-read it. */
-        ssl->in_msgtype = rec->type;
-        /* Also update the input buffer, because unfortunately
-         * the server-side ssl_parse_client_hello() reparses the
-         * record header when receiving a ClientHello initiating
-         * a renegotiation. */
-        ssl->in_hdr[0] = rec->type;
-        ssl->in_msg    = rec->buf + rec->data_offset;
-        ssl->in_msglen = rec->data_len;
-        ssl->in_len[0] = (unsigned char)( rec->data_len >> 8 );
-        ssl->in_len[1] = (unsigned char)( rec->data_len      );
-
         MBEDTLS_SSL_DEBUG_BUF( 4, "input payload after decrypt",
                                rec->buf + rec->data_offset, rec->data_len );
 
@@ -6009,6 +5996,19 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS */
     }
+
+    /* The record content type may change during decryption,
+     * so re-read it. */
+    ssl->in_msgtype = rec.type;
+    /* Also update the input buffer, because unfortunately
+     * the server-side ssl_parse_client_hello() reparses the
+     * record header when receiving a ClientHello initiating
+     * a renegotiation. */
+    ssl->in_hdr[0] = rec.type;
+    ssl->in_msg    = rec.buf + rec.data_offset;
+    ssl->in_msglen = rec.data_len;
+    ssl->in_len[0] = (unsigned char)( rec.data_len >> 8 );
+    ssl->in_len[1] = (unsigned char)( rec.data_len      );
 
     return( 0 );
 }

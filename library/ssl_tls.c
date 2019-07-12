@@ -5176,6 +5176,8 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
     if( !done && ssl->transform_in != NULL )
     {
+        unsigned char const old_msg_type = rec->type;
+
         if( ( ret = mbedtls_ssl_decrypt_buf( ssl, ssl->transform_in,
                                              rec ) ) != 0 )
         {
@@ -5194,10 +5196,10 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
             return( ret );
         }
 
-        if( ssl->in_msgtype != rec->type )
+        if( old_msg_type != rec->type )
         {
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "record type after decrypt (before %d): %d",
-                                        ssl->in_msgtype, rec->type ) );
+                                        old_msg_type, rec->type ) );
         }
 
         /* The record content type may change during decryption,
@@ -5214,7 +5216,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
         ssl->in_len[1] = (unsigned char)( rec->data_len      );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "input payload after decrypt",
-                       ssl->in_msg, ssl->in_msglen );
+                               rec->buf + rec->data_offset, rec->data_len );
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         /* We have already checked the record content type
@@ -5224,18 +5226,18 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
          * Since with the use of CIDs, the record content type
          * might change during decryption, re-check the record
          * content type, but treat a failure as fatal this time. */
-        if( ssl_check_record_type( ssl->in_msgtype ) )
+        if( ssl_check_record_type( rec->type ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "unknown record type" ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-        if( ssl->in_msglen == 0 )
+        if( rec->data_len == 0 )
         {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
             if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3
-                && ssl->in_msgtype != MBEDTLS_SSL_MSG_APPLICATION_DATA )
+                && rec->type != MBEDTLS_SSL_MSG_APPLICATION_DATA )
             {
                 /* TLS v1.2 explicitly disallows zero-length messages which are not application data */
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid zero-length message type: %d", ssl->in_msgtype ) );

@@ -780,6 +780,30 @@ typedef struct {
  */
 /**@{*/
 
+/* This type is documented in crypto.h. As far as drivers are concerned,
+ * this is an opaque type. */
+typedef struct psa_key_attributes_s psa_key_attributes_t;
+
+/** \brief A function that allocates a slot for a key.
+ *
+ * \param[in,out] drv_context       The driver context structure.
+ * \param[in] attributes    Attributes of the key.
+ * \param[out] key_slot     Slot where the key will be stored.
+ *                          This must be a valid slot for a key of the
+ *                          chosen type. It must be unoccupied.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ *         The core will record \c *key_slot as the key slot where the key
+ *         is stored and will update the persistent data in storage.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ */
+typedef psa_status_t (*psa_drv_se_allocate_key_t)(
+    psa_drv_se_context_t *drv_context,
+    const psa_key_attributes_t *attributes,
+    psa_key_slot_number_t *key_slot);
+
 /** \brief A function that imports a key into a secure element in binary format
  *
  * This function can support any output from psa_export_key(). Refer to the
@@ -915,6 +939,8 @@ typedef psa_status_t (*psa_drv_se_generate_key_t)(psa_drv_se_context_t *drv_cont
  * If one of the functions is not implemented, it should be set to NULL.
  */
 typedef struct {
+    /** Function that allocates a slot. */
+    psa_drv_se_allocate_key_t   p_allocate;
     /** Function that performs a key import operation */
     psa_drv_se_import_key_t     p_import;
     /** Function that performs a generation */

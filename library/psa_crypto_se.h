@@ -99,6 +99,21 @@ const psa_drv_se_t *psa_get_se_driver_methods(
 psa_drv_se_context_t *psa_get_se_driver_context(
     psa_se_drv_table_entry_t *driver );
 
+/** Find a free slot for a key that is to be created.
+ *
+ * This function calls the relevant method in the driver to find a suitable
+ * slot for a key with the given attributes.
+ *
+ * \param[in] attributes    Metadata about the key that is about to be created.
+ * \param[in] driver        The driver table entry to query.
+ * \param[out] slot_number  On success, a slot number that is free in this
+ *                          secure element.
+ */
+psa_status_t psa_find_se_slot_for_key(
+    const psa_key_attributes_t *attributes,
+    psa_se_drv_table_entry_t *driver,
+    psa_key_slot_number_t *slot_number );
+
 /** Load the persistent data of a secure element driver.
  *
  * \param driver        The driver table entry containing the persistent

@@ -130,6 +130,35 @@ psa_status_t psa_save_se_persistent_data(
     return( PSA_SUCCESS );
 }
 
+psa_status_t psa_find_se_slot_for_key(
+    const psa_key_attributes_t *attributes,
+    psa_se_drv_table_entry_t *driver,
+    psa_key_slot_number_t *slot_number )
+{
+    psa_status_t status;
+    psa_drv_se_allocate_key_t p_allocate = NULL;
+
+    /* If the lifetime is wrong, it's a bug in the library. */
+    if( driver->lifetime != attributes->lifetime )
+        return( PSA_ERROR_CORRUPTION_DETECTED );
+
+    /* If the driver doesn't support key creation in any way, give up now. */
+    if( driver->methods->key_management == NULL )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    p_allocate = driver->methods->key_management->p_allocate;
+
+    /* If the driver doesn't tell us how to allocate a slot, that's
+     * not supported for the time being. */
+    if( p_allocate == NULL )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    status = ( *p_allocate )( &driver->context,
+                              driver->internal.persistent_data,
+                              attributes,
+                              slot_number );
+    return( status );
+}
+
 
 
 /****************************************************************/

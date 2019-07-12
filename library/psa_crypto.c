@@ -1348,6 +1348,18 @@ static psa_status_t psa_start_key_creation(
     }
     slot->type = attributes->type;
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    /* Find a slot number. Don't yet mark it as allocated in case
+     * the key creation fails or there is a power failure. */
+    if( *p_drv != NULL )
+    {
+        status = psa_find_se_slot_for_key( attributes, *p_drv,
+                                           &slot->data.se.slot_number );
+        if( status != PSA_SUCCESS )
+            return( status );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
     return( status );
 }
 
@@ -1404,6 +1416,18 @@ static psa_status_t psa_finish_key_creation(
         mbedtls_free( buffer );
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( driver != NULL )
+    {
+        status = psa_save_se_persistent_data( driver );
+        if( status != PSA_SUCCESS )
+        {
+            psa_destroy_persistent_key( slot->persistent_storage_id );
+            return( status );
+        }
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     return( status );
 }

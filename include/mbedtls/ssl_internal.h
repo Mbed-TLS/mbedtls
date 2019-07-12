@@ -1073,7 +1073,22 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
 
 static inline size_t mbedtls_ssl_in_hdr_len( const mbedtls_ssl_context *ssl )
 {
-    return( (size_t) ( ssl->in_iv - ssl->in_hdr ) );
+#if !defined(MBEDTLS_SSL_PROTO__BOTH)
+    ((void) ssl);
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
+    {
+        return( 13 );
+    }
+    MBEDTLS_SSL_TRANSPORT_ELSE
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+#if defined(MBEDTLS_SSL_PROTO_TLS)
+    {
+        return( 5 );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS */
 }
 
 static inline size_t mbedtls_ssl_out_hdr_len( const mbedtls_ssl_context *ssl )

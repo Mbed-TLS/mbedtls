@@ -5856,7 +5856,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
                 ssl->in_len = ssl->in_cid + rec.cid_len;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-                ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+                ssl->in_msg = ssl->in_len + 2;
                 ssl->in_msglen = rec.data_len;
 
                 ret = ssl_check_client_reconnect( ssl );
@@ -5992,7 +5992,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ssl->in_len = ssl->in_cid + rec.cid_len;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-    ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+    ssl->in_msg = ssl->in_len + 2;
 
     /* The record content type may change during decryption,
      * so re-read it. */
@@ -7991,9 +7991,8 @@ static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
 static void ssl_update_in_pointers( mbedtls_ssl_context *ssl )
 {
     /* This function sets the pointers to match the case
-     * of unprotected TLS/DTLS records, with both  ssl->in_iv
-     * and ssl->in_msg pointing to the beginning of the record
-     * content.
+     * of unprotected TLS/DTLS records, with ssl->in_msg
+     * pointing to the beginning of the record content.
      *
      * When decrypting a protected record, ssl->in_msg
      * will be shifted to point to the beginning of the
@@ -8014,7 +8013,7 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl )
 #else /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         ssl->in_len = ssl->in_ctr + 8;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-        ssl->in_iv  = ssl->in_len + 2;
+        ssl->in_msg  = ssl->in_len + 2;
     }
     MBEDTLS_SSL_TRANSPORT_ELSE
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
@@ -8025,12 +8024,9 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         ssl->in_cid = ssl->in_len;
 #endif
-        ssl->in_iv  = ssl->in_hdr + 5;
+        ssl->in_msg  = ssl->in_hdr + 5;
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS */
-
-    /* This will be adjusted at record decryption time. */
-    ssl->in_msg = ssl->in_iv;
 }
 
 /*
@@ -8119,7 +8115,6 @@ error:
     ssl->in_hdr = NULL;
     ssl->in_ctr = NULL;
     ssl->in_len = NULL;
-    ssl->in_iv = NULL;
     ssl->in_msg = NULL;
 
     ssl->out_hdr = NULL;

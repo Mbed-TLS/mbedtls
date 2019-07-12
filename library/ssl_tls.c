@@ -10150,7 +10150,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 }
 
 /*
- * Unserialize session, see mbedtls_ssl_session_save() for format.
+ * Deserialize session, see mbedtls_ssl_session_save() for format.
  *
  * This internal version is wrapped by a public function that cleans up in
  * case of error.
@@ -10375,7 +10375,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 }
 
 /*
- * Unserialize session: public wrapper for error cleaning
+ * Deserialize session: public wrapper for error cleaning
  */
 int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
                               const unsigned char *buf,
@@ -11419,7 +11419,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
 }
 
 /*
- * Unserialize context, see mbedtls_ssl_context_save() for format.
+ * Deserialize context, see mbedtls_ssl_context_save() for format.
  *
  * This internal version is wrapped by a public function that cleans up in
  * case of error.
@@ -11516,7 +11516,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 }
 
 /*
- * Unserialize context: public wrapper for error cleaning
+ * Deserialize context: public wrapper for error cleaning
  */
 int mbedtls_ssl_context_load( mbedtls_ssl_context *context,
                               const unsigned char *buf,

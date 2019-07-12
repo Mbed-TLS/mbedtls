@@ -40,10 +40,83 @@
 extern "C" {
 #endif
 
+/** \defgroup se_init Secure element driver initialization
+ */
+/**@{*/
+
+/** \brief Driver context structure
+ *
+ * Driver functions receive a pointer to this structure.
+ * Each registered driver has one instance of this structure.
+ *
+ * Implementations must include the fields specified here and
+ * may include other fields.
+ */
+typedef struct {
+    /** A read-only pointer to the driver's persistent data.
+     *
+     * The PSA Cryptography core saves the persistent data from one
+     * session to the next.
+     *
+     * The core allocates a memory buffer for the persistent data.
+     * The pointer is guaranteed to be suitably alignedfor any data type,
+     * like a pointer returned by `malloc` (but the core can use any
+     * method to allocate the buffer, not necessarily `malloc`).
+     *
+     * The size of this buffer is given by psa_drv_se_t::persistent_data_size
+     * when the driver is registered, and this value is also recorded in the
+     * ::persistent_data_size field of this structure.
+     *
+     * Before the driver is initialized for the first time, the content of
+     * the persistent data is all-bits-zero. After a driver upgrade, if the
+     * size of the persistent data has increased, the original data is padded
+     * on the right with zeros; if the size has decreased, the original data
+     * is truncated to the new size.
+     *
+     * This pointer is to read-only data. Only a few driver functions are
+     * allowed to modify the persistent data. These functions receive a
+     * writable pointer.
+     */
+    const void *const persistent_data;
+
+    /** The size of \c persistent_data in bytes.
+     *
+     * This is always equal to the value of
+     * psa_drv_se_t::persistent_data_size when the driver is registered.
+     */
+    const size_t persistent_data_size;
+
+    /** Driver transient data.
+     *
+     * The core initializes this value to 0 and does not read or modify it
+     * afterwards. The driver may store whatever it wants in this field.
+     */
+    uintptr_t transient_data;
+} psa_drv_se_context_t;
+
+/** \brief A driver initialization function.
+ *
+ * \param[in,out] drv_context       The driver context structure.
+ * \param lifetime                  The lifetime value for which this driver
+ *                                  is registered.
+ *
+ * \retval #PSA_SUCCESS
+ *         The driver is operational.
+ *         The core will update the persistent data in storage.
+ * \return
+ *         Any other return value prevents the driver from being used in
+ *         this session.
+ *         The core will NOT update the persistent data in storage.
+ */
+typedef psa_status_t (*psa_drv_se_init_t)(psa_drv_se_context_t *drv_context,
+                                          psa_key_lifetime_t lifetime);
+
 /** An internal designation of a key slot between the core part of the
  * PSA Crypto implementation and the driver. The meaning of this value
  * is driver-dependent. */
 typedef uint64_t psa_key_slot_number_t;
+
+/**@}*/
 
 /** \defgroup se_mac Secure Element Message Authentication Codes
  * Generation and authentication of Message Authentication Codes (MACs) using
@@ -980,6 +1053,22 @@ typedef struct {
      * Use #PSA_DRV_SE_HAL_VERSION.
      */
     uint32_t hal_version;
+
+    /** The size of the driver's persistent data in bytes. */
+    size_t persistent_data_size;
+
+    /** The driver initialization function.
+     *
+     * This function is called once during the initialization of the
+     * PSA Cryptography subsystem, before any other function of the
+     * driver is called. If this function returns a failure status,
+     * the driver will be unusable, at least until the next system reset.
+     *
+     * If this field is \c NULL, it is equivalent to a function that does
+     * nothing and returns #PSA_SUCCESS.
+     */
+    psa_drv_se_init_t p_init;
+
     const psa_drv_se_key_management_t *key_management;
     const psa_drv_se_mac_t *mac;
     const psa_drv_se_cipher_t *cipher;

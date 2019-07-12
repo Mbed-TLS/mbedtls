@@ -15,6 +15,10 @@
 
 set -u
 
+# Limit the size of each log to 10 GiB, in case of failures with this script
+# where it may output seemingly unlimited length error logs.
+ulimit -f 20971520
+
 # initialise counters
 TESTS=0
 FAILED=0

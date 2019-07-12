@@ -122,7 +122,7 @@ static inline int psa_key_lifetime_is_external( psa_key_lifetime_t lifetime )
 psa_status_t psa_validate_persistent_key_parameters(
     psa_key_lifetime_t lifetime,
     psa_key_file_id_t id,
-    const psa_se_drv_table_entry_t **p_drv,
+    psa_se_drv_table_entry_t **p_drv,
     int creating );
 
 

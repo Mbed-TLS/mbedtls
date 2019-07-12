@@ -1306,7 +1306,7 @@ static psa_status_t psa_start_key_creation(
     const psa_key_attributes_t *attributes,
     psa_key_handle_t *handle,
     psa_key_slot_t **p_slot,
-    const psa_se_drv_table_entry_t **p_drv )
+    psa_se_drv_table_entry_t **p_drv )
 {
     psa_status_t status;
     psa_key_slot_t *slot;
@@ -1356,7 +1356,7 @@ static psa_status_t psa_start_key_creation(
  */
 static psa_status_t psa_finish_key_creation(
     psa_key_slot_t *slot,
-    const psa_se_drv_table_entry_t *driver )
+    psa_se_drv_table_entry_t *driver )
 {
     psa_status_t status = PSA_SUCCESS;
     (void) slot;
@@ -1407,7 +1407,7 @@ static psa_status_t psa_finish_key_creation(
  *                      or NULL for a transparent key.
  */
 static void psa_fail_key_creation( psa_key_slot_t *slot,
-                                   const psa_se_drv_table_entry_t *driver )
+                                   psa_se_drv_table_entry_t *driver )
 {
     (void) driver;
 
@@ -1483,7 +1483,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
-    const psa_se_drv_table_entry_t *driver = NULL;
+    psa_se_drv_table_entry_t *driver = NULL;
 
     status = psa_start_key_creation( attributes, handle, &slot, &driver );
     if( status != PSA_SUCCESS )
@@ -1540,7 +1540,7 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     psa_key_slot_t *source_slot = NULL;
     psa_key_slot_t *target_slot = NULL;
     psa_key_attributes_t actual_attributes = *specified_attributes;
-    const psa_se_drv_table_entry_t *driver = NULL;
+    psa_se_drv_table_entry_t *driver = NULL;
 
     status = psa_get_key_from_slot( source_handle, &source_slot,
                                     PSA_KEY_USAGE_COPY, 0 );
@@ -4464,7 +4464,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
-    const psa_se_drv_table_entry_t *driver = NULL;
+    psa_se_drv_table_entry_t *driver = NULL;
     status = psa_start_key_creation( attributes, handle, &slot, &driver );
     if( status == PSA_SUCCESS )
     {
@@ -5495,7 +5495,7 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
 {
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
-    const psa_se_drv_table_entry_t *driver = NULL;
+    psa_se_drv_table_entry_t *driver = NULL;
     status = psa_start_key_creation( attributes, handle, &slot, &driver );
     if( status == PSA_SUCCESS )
     {

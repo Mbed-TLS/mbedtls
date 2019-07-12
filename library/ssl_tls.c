@@ -4892,7 +4892,7 @@ static int ssl_check_record_type( uint8_t record_type )
  * Point 2 is needed when the peer is resending, and we have already received
  * the first record from a datagram but are still waiting for the others.
  */
-static int ssl_parse_record_header( mbedtls_ssl_context *ssl,
+static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
                                     unsigned char *buf,
                                     size_t len,
                                     mbedtls_record *rec )

@@ -1133,10 +1133,32 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
                                              size_t *data_length,
                                              int export_public_key )
 {
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
     *data_length = 0;
 
     if( export_public_key && ! PSA_KEY_TYPE_IS_ASYMMETRIC( slot->type ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_get_se_driver( slot->lifetime, &drv, &drv_context ) )
+    {
+        psa_drv_se_export_key_t method;
+        if( drv->key_management == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        method = ( export_public_key ?
+                   drv->key_management->p_export_public :
+                   drv->key_management->p_export );
+        if( method == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        return( ( *method )( drv_context,
+                             slot->data.se.slot_number,
+                             data, data_size, data_length ) );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     if( key_type_is_raw_bytes( slot->type ) )
     {
@@ -1538,12 +1560,33 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_import_key_into_slot( slot, data, data_length );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    status = psa_check_key_slot_attributes( slot, attributes );
-    if( status != PSA_SUCCESS )
-        goto exit;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( driver != NULL )
+    {
+        const psa_drv_se_t *drv = psa_get_se_driver_methods( driver );
+        if( drv->key_management == NULL ||
+            drv->key_management->p_import == NULL )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+        status = drv->key_management->p_import(
+            psa_get_se_driver_context( driver ),
+            slot->data.se.slot_number,
+            slot->lifetime, slot->type, slot->policy.alg, slot->policy.usage,
+            data, data_length );
+        /* TOnogrepDO: psa_check_key_slot_attributes? */
+    }
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+    {
+        status = psa_import_key_into_slot( slot, data, data_length );
+        if( status != PSA_SUCCESS )
+            goto exit;
+        status = psa_check_key_slot_attributes( slot, attributes );
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
 
     status = psa_finish_key_creation( slot, driver );
 exit:

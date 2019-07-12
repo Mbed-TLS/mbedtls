@@ -2491,14 +2491,10 @@ send_request:
         size_t buf_len;
         unsigned char *context_buf = NULL;
 
-        opt.serialize = 0;
-        mbedtls_printf( " Serializing live connection..." );
+        mbedtls_printf( "  . Serializing live connection..." );
 
         ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &buf_len );
-
-        /* Allow stub implementation returning 0 for now */
-        if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL &&
-            ret != 0 )
+        if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
                             "-0x%x\n\n", -ret );
@@ -2517,14 +2513,32 @@ send_request:
         if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf,
                                               buf_len, &buf_len ) ) != 0 )
         {
-            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_save returned "
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
                             "-0x%x\n\n", -ret );
 
             goto exit;
         }
 
+        mbedtls_printf( " ok\n" );
+
+        if( opt.serialize == 1 )
+        {
+            mbedtls_printf( "  . Reseting context..." );
+
+            if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned "
+                                "-0x%x\n\n", -ret );
+                goto exit;
+            }
+
+            mbedtls_printf( " ok\n" );
+        }
+
         if( opt.serialize == 2 )
         {
+            mbedtls_printf( "  . Freeing and reinitializing context..." );
+
             mbedtls_ssl_free( &ssl );
 
             mbedtls_ssl_init( &ssl );
@@ -2532,7 +2546,7 @@ send_request:
             if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned "
-                                " -0x%x\n\n", -ret );
+                                "-0x%x\n\n", -ret );
                 goto exit;
             }
 
@@ -2540,8 +2554,8 @@ send_request:
                 mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv,
                                      NULL );
             else
-                mbedtls_ssl_set_bio( &ssl, &server_fd,
-                            mbedtls_net_send, mbedtls_net_recv,
+                mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send,
+                            mbedtls_net_recv,
                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
 
 #if defined(MBEDTLS_TIMING_C)
@@ -2557,9 +2571,11 @@ send_request:
 #endif
             }
 #endif /* MBEDTLS_TIMING_C */
+
+            mbedtls_printf( " ok\n" );
         }
 
-        mbedtls_printf( " Deserializing connection..." );
+        mbedtls_printf( "  . Deserializing connection..." );
 
         if( ( ret = mbedtls_ssl_context_load( &ssl, context_buf,
                                               buf_len ) ) != 0 )
@@ -2569,6 +2585,8 @@ send_request:
 
             goto exit;
         }
+
+        mbedtls_printf( " ok\n" );
     }
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 

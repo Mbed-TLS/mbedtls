@@ -363,6 +363,13 @@ static psa_status_t mbedtls_to_psa_error( int ret )
 /* Key management */
 /****************************************************************/
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+static inline int psa_key_slot_is_external( const psa_key_slot_t *slot )
+{
+    return( psa_key_lifetime_is_external( slot->lifetime ) );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
 #if defined(MBEDTLS_ECP_C)
 static psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid )
 {
@@ -867,6 +874,13 @@ static psa_status_t psa_get_key_from_slot( psa_key_handle_t handle,
 /** Wipe key data from a slot. Preserve metadata such as the policy. */
 static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
 {
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_key_slot_is_external( slot ) )
+    {
+        /* No key material to clean. */
+    }
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     if( slot->type == PSA_KEY_TYPE_NONE )
     {
         /* No key material to clean. */

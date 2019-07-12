@@ -5890,19 +5890,6 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         }
     }
 
-    /* Reset in pointers to default state for TLS/DTLS records,
-     * assuming no CID and no offset between record content and
-     * record plaintext. */
-    ssl_update_in_pointers( ssl );
-
-    /* Setup internal message pointers from record structure. */
-    ssl->in_msgtype = rec.type;
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    ssl->in_len = ssl->in_cid + rec.cid_len;
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-    ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
-    ssl->in_msglen = rec.data_len;
-
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
@@ -5996,6 +5983,20 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS */
     }
+
+
+    /* Reset in pointers to default state for TLS/DTLS records,
+     * assuming no CID and no offset between record content and
+     * record plaintext. */
+    ssl_update_in_pointers( ssl );
+
+    /* Setup internal message pointers from record structure. */
+    ssl->in_msgtype = rec.type;
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    ssl->in_len = ssl->in_cid + rec.cid_len;
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+    ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+    ssl->in_msglen = rec.data_len;
 
     /* The record content type may change during decryption,
      * so re-read it. */

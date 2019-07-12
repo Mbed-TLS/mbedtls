@@ -1,5 +1,15 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.18.1 branch released 2019-07-12
+
+Bugfix
+   * Fix build failure when building with mingw on Windows by including
+     stdarg.h where needed. Fixes #2656.
+
+Changes
+   * Enable building of Mbed TLS as a CMake subproject. Suggested and fixed by
+     Ashley Duncan in #2609.
+
 = mbed TLS 2.18.0 branch released 2019-06-11
 
 Features

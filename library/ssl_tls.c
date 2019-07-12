@@ -4608,7 +4608,7 @@ static inline uint64_t ssl_load_six_bytes( unsigned char *buf )
 /*
  * Return 0 if sequence number is acceptable, -1 otherwise
  */
-int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context const *ssl )
 {
     uint64_t rec_seqnum = ssl_load_six_bytes( ssl->in_ctr + 2 );
     uint64_t bit;

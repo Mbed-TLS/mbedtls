@@ -2005,8 +2005,6 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     }
     else if( alg == PSA_ALG_CMAC )
         mode = MBEDTLS_MODE_ECB;
-    else if( alg == PSA_ALG_GMAC )
-        mode = MBEDTLS_MODE_GCM;
     else
         return( NULL );
 

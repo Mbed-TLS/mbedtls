@@ -1223,7 +1223,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                              mbedtls_record *rec,
                              int (*f_rng)(void *, unsigned char *, size_t),
                              void *p_rng );
-int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                              mbedtls_ssl_transform *transform,
                              mbedtls_record *rec );
 

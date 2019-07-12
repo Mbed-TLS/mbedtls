@@ -5994,11 +5994,6 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
         return( ret );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    /* Reset in pointers to default state for TLS/DTLS records,
-     * assuming no CID and no offset between record content and
-     * record plaintext. */
-    ssl_update_in_pointers( ssl );
-
     /* Ensure that we have enough space available for the default form
      * of TLS / DTLS record headers (5 Bytes for TLS, 13 Bytes for DTLS,
      * with no space for CIDs counted in). */
@@ -6028,6 +6023,11 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
             if( ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD )
             {
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
+                /* Reset in pointers to default state for TLS/DTLS records,
+                 * assuming no CID and no offset between record content and
+                 * record plaintext. */
+                ssl_update_in_pointers( ssl );
+
                 /* Setup internal message pointers from record structure. */
                 ssl->in_msgtype = rec.type;
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -6066,6 +6066,11 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
             return( ret );
         }
     }
+
+    /* Reset in pointers to default state for TLS/DTLS records,
+     * assuming no CID and no offset between record content and
+     * record plaintext. */
+    ssl_update_in_pointers( ssl );
 
     /* Setup internal message pointers from record structure. */
     ssl->in_msgtype = rec.type;

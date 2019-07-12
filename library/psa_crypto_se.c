@@ -28,23 +28,49 @@
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 
 #include <assert.h>
+#include <stdint.h>
 #include <string.h>
 
+#include "psa/crypto_se_driver.h"
+
 #include "psa_crypto_se.h"
+
+#include "mbedtls/platform.h"
+#if !defined(MBEDTLS_PLATFORM_C)
+#define mbedtls_calloc calloc
+#define mbedtls_free   free
+#endif
+
+
 
 /****************************************************************/
 /* Driver lookup */
 /****************************************************************/
 
+/* This structure is identical to psa_drv_se_context_t declared in
+ * `crypto_se_driver.h`, except that some parts are writable here
+ * (non-const, or pointer to non-const). */
+typedef struct
+{
+    void *persistent_data;
+    size_t persistent_data_size;
+    uintptr_t transient_data;
+} psa_drv_se_internal_context_t;
+
 typedef struct psa_se_drv_table_entry_s
 {
     psa_key_lifetime_t lifetime;
     const psa_drv_se_t *methods;
+    union
+    {
+        psa_drv_se_internal_context_t internal;
+        psa_drv_se_context_t context;
+    };
 } psa_se_drv_table_entry_t;
 
 static psa_se_drv_table_entry_t driver_table[PSA_MAX_SE_DRIVERS];
 
-const psa_se_drv_table_entry_t *psa_get_se_driver_entry(
+psa_se_drv_table_entry_t *psa_get_se_driver_entry(
     psa_key_lifetime_t lifetime )
 {
     size_t i;
@@ -59,20 +85,50 @@ const psa_se_drv_table_entry_t *psa_get_se_driver_entry(
 }
 
 const psa_drv_se_t *psa_get_se_driver_methods(
-    const psa_se_drv_table_entry_t *drv )
+    const psa_se_drv_table_entry_t *driver )
 {
-    return( drv->methods );
+    return( driver->methods );
 }
 
-const psa_drv_se_t *psa_get_se_driver( psa_key_lifetime_t lifetime )
+psa_drv_se_context_t *psa_get_se_driver_context(
+    psa_se_drv_table_entry_t *driver )
 {
-    const psa_se_drv_table_entry_t *drv = psa_get_se_driver_entry( lifetime );
-    if( drv == NULL )
-        return( NULL );
-    else
-        return( drv->methods );
+    return( &driver->context );
 }
 
+int psa_get_se_driver( psa_key_lifetime_t lifetime,
+                       const psa_drv_se_t **p_methods,
+                       psa_drv_se_context_t **p_drv_context)
+{
+    psa_se_drv_table_entry_t *driver = psa_get_se_driver_entry( lifetime );
+    if( p_methods != NULL )
+        *p_methods = ( driver ? driver->methods : NULL );
+    if( p_drv_context != NULL )
+        *p_drv_context = ( driver ? &driver->context : NULL );
+    return( driver != NULL );
+}
+
+
+
+/****************************************************************/
+/* Persistent data management */
+/****************************************************************/
+
+psa_status_t psa_load_se_persistent_data(
+    const psa_se_drv_table_entry_t *driver )
+{
+    /*TODO*/
+    (void) driver;
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_save_se_persistent_data(
+    const psa_se_drv_table_entry_t *driver )
+{
+    /*TODO*/
+    (void) driver;
+    return( PSA_SUCCESS );
+}
 
 
 
@@ -85,6 +141,7 @@ psa_status_t psa_register_se_driver(
     const psa_drv_se_t *methods)
 {
     size_t i;
+    psa_status_t status;
 
     if( methods->hal_version != PSA_DRV_SE_HAL_VERSION )
         return( PSA_ERROR_NOT_SUPPORTED );
@@ -115,11 +172,38 @@ psa_status_t psa_register_se_driver(
 
     driver_table[i].lifetime = lifetime;
     driver_table[i].methods = methods;
+
+    if( methods->persistent_data_size != 0 )
+    {
+        driver_table[i].internal.persistent_data =
+            mbedtls_calloc( 1, methods->persistent_data_size );
+        if( driver_table[i].internal.persistent_data == NULL )
+        {
+            status = PSA_ERROR_INSUFFICIENT_MEMORY;
+            goto error;
+        }
+        status = psa_load_se_persistent_data( &driver_table[i] );
+        if( status != PSA_SUCCESS )
+            goto error;
+    }
+    driver_table[i].internal.persistent_data_size =
+        methods->persistent_data_size;
+
     return( PSA_SUCCESS );
+
+error:
+    memset( &driver_table[i], 0, sizeof( driver_table[i] ) );
+    return( status );
 }
 
 void psa_unregister_all_se_drivers( void )
 {
+    size_t i;
+    for( i = 0; i < PSA_MAX_SE_DRIVERS; i++ )
+    {
+        if( driver_table[i].internal.persistent_data != NULL )
+            mbedtls_free( driver_table[i].internal.persistent_data );
+    }
     memset( driver_table, 0, sizeof( driver_table ) );
 }
 

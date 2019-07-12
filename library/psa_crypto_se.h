@@ -45,10 +45,29 @@ void psa_unregister_all_se_drivers( void );
 /** A structure that describes a registered secure element driver.
  *
  * A secure element driver table entry contains a pointer to the
- * driver's method table and a pointer to the driver's slot usage
- * structure.
+ * driver's method table as well as the driver context structure.
  */
 typedef struct psa_se_drv_table_entry_s psa_se_drv_table_entry_t;
+
+/** Return the secure element driver information for a lifetime value.
+ *
+ * \param lifetime              The lifetime value to query.
+ * \param[out] p_methods        On output, if there is a driver,
+ *                              \c *methods points to its method table.
+ *                              Otherwise \c *methods is \c NULL.
+ * \param[out] p_drv_context    On output, if there is a driver,
+ *                              \c *drv_context points to its context
+ *                              structure.
+ *                              Otherwise \c *drv_context is \c NULL.
+ *
+ * \retval 1
+ *         \p lifetime corresponds to a registered driver.
+ * \retval 0
+ *         \p lifetime does not correspond to a registered driver.
+ */
+int psa_get_se_driver( psa_key_lifetime_t lifetime,
+                       const psa_drv_se_t **p_methods,
+                       psa_drv_se_context_t **p_drv_context);
 
 /** Return the secure element driver table entry for a lifetime value.
  *
@@ -57,27 +76,43 @@ typedef struct psa_se_drv_table_entry_s psa_se_drv_table_entry_t;
  * \return The driver table entry for \p lifetime, or
  *         \p NULL if \p lifetime does not correspond to a registered driver.
  */
-const psa_se_drv_table_entry_t *psa_get_se_driver_entry(
+psa_se_drv_table_entry_t *psa_get_se_driver_entry(
     psa_key_lifetime_t lifetime );
 
 /** Return the method table for a secure element driver.
  *
- * \param[in] drv       The driver table entry to access.
+ * \param[in] driver    The driver table entry to access, or \c NULL.
  *
- * \return The driver table entry for \p lifetime, or
- *         \p NULL if \p lifetime does not correspond to a registered driver.
+ * \return The driver's method table.
+ *         \c NULL if \p driver is \c NULL.
  */
 const psa_drv_se_t *psa_get_se_driver_methods(
-    const psa_se_drv_table_entry_t *drv );
+    const psa_se_drv_table_entry_t *driver );
 
-/** Return the secure element driver method table for a lifetime value.
+/** Return the context of a secure element driver.
  *
- * \param lifetime      The lifetime value to query.
+ * \param[in] driver    The driver table entry to access, or \c NULL.
  *
- * \return The driver method table for \p lifetime, or
- *         \p NULL if \p lifetime does not correspond to a registered driver.
+ * \return A pointer to the driver context.
+ *         \c NULL if \p driver is \c NULL.
  */
-const psa_drv_se_t *psa_get_se_driver(
-    psa_key_lifetime_t lifetime );
+psa_drv_se_context_t *psa_get_se_driver_context(
+    psa_se_drv_table_entry_t *driver );
+
+/** Load the persistent data of a secure element driver.
+ *
+ * \param driver        The driver table entry containing the persistent
+ *                      data to load from storage.
+ */
+psa_status_t psa_load_se_persistent_data(
+    const psa_se_drv_table_entry_t *driver );
+
+/** Save the persistent data of a secure element driver.
+ *
+ * \param[in] driver    The driver table entry containing the persistent
+ *                      data to save to storage.
+ */
+psa_status_t psa_save_se_persistent_data(
+    const psa_se_drv_table_entry_t *driver );
 
 #endif /* PSA_CRYPTO_SE_H */

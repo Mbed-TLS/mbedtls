@@ -4783,7 +4783,6 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl,
      */
 
     rec->type = buf[ rec_hdr_type_offset ];
-    ssl->in_msgtype = rec->type;
 
     /* Check record content type */
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -4821,9 +4820,6 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl,
 
         rec->cid_len = rec_hdr_cid_len;
         memcpy( rec->cid, buf + rec_hdr_cid_offset, rec_hdr_cid_len );
-
-        ssl->in_len = ssl->in_cid + mbedtls_ssl_conf_get_cid_len( ssl->conf );
-        ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
     }
     else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -4891,7 +4887,6 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl,
     rec->data_len    = (size_t) READ_UINT16_BE( buf + rec_hdr_len_offset );
     MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", buf, rec->data_offset );
 
-    ssl->in_msglen   = rec->data_len;
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
                                 "version = [%d:%d], msglen = %d",
                                 rec->type,
@@ -5867,6 +5862,14 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
             if( ret == MBEDTLS_ERR_SSL_UNEXPECTED_RECORD )
             {
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
+                /* Setup internal message pointers from record structure. */
+                ssl->in_msgtype = rec.type;
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+                ssl->in_len = ssl->in_cid + rec.cid_len;
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+                ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+                ssl->in_msglen = rec.data_len;
+
                 ret = ssl_check_client_reconnect( ssl );
                 if( ret != 0 )
                     return( ret );
@@ -5897,6 +5900,14 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
             return( ret );
         }
     }
+
+    /* Setup internal message pointers from record structure. */
+    ssl->in_msgtype = rec.type;
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    ssl->in_len = ssl->in_cid + rec.cid_len;
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+    ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+    ssl->in_msglen = rec.data_len;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )

@@ -941,7 +941,20 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
 
 static inline size_t mbedtls_ssl_in_hdr_len( const mbedtls_ssl_context *ssl )
 {
-    return( (size_t) ( ssl->in_iv - ssl->in_hdr ) );
+#if !defined(MBEDTLS_SSL_PROTO_DTLS)
+    ((void) ssl);
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        return( 13 );
+    }
+    else
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+    {
+        return( 5 );
+    }
 }
 
 static inline size_t mbedtls_ssl_out_hdr_len( const mbedtls_ssl_context *ssl )

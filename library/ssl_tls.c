@@ -59,10 +59,6 @@
 #include "mbedtls/oid.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "mbedtls/psa_util.h"
-#endif
-
 static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 

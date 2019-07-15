@@ -2996,7 +2996,6 @@ send_request:
                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
 
 #if defined(MBEDTLS_TIMING_C)
-            if( opt.nbio != 0 && opt.read_timeout != 0 )
                 mbedtls_ssl_set_timer_cb( &ssl, &timer,
                                           mbedtls_timing_set_delay,
                                           mbedtls_timing_get_delay );

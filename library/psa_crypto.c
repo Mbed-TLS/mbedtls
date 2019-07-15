@@ -5313,7 +5313,7 @@ psa_status_t psa_generate_random( uint8_t *output,
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 #include "mbedtls/entropy_poll.h"
 
-psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
+psa_status_t mbedtls_psa_inject_entropy( const uint8_t *seed,
                                          size_t seed_size )
 {
     if( global_data.initialized )

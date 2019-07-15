@@ -221,7 +221,7 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats );
  *         The library has already been initialized. It is no longer
  *         possible to call this function.
  */
-psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
+psa_status_t mbedtls_psa_inject_entropy(uint8_t *seed,
                                         size_t seed_size);
 
 #if defined(PSA_PRE_1_0_KEY_DERIVATION)

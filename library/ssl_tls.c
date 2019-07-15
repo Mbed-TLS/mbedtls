@@ -10841,6 +10841,31 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     }
 
     /*
+     * Transform
+     */
+    used += sizeof( ssl->transform->randbytes );
+    if( used <= buf_len )
+    {
+        memcpy( p, ssl->transform->randbytes,
+           sizeof( ssl->transform->randbytes ) );
+        p += sizeof( ssl->transform->randbytes );
+    }
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    used += 2 + ssl->transform->in_cid_len + ssl->transform->out_cid_len;
+    if( used <= buf_len )
+    {
+        *p++ = ssl->transform->in_cid_len;
+        memcpy( p, ssl->transform->in_cid, ssl->transform->in_cid_len );
+        p += ssl->transform->in_cid_len;
+
+        *p++ = ssl->transform->out_cid_len;
+        memcpy( p, ssl->transform->out_cid, ssl->transform->out_cid_len );
+        p += ssl->transform->out_cid_len;
+    }
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+    /*
      * Done
      */
     *olen = used;
@@ -10851,6 +10876,23 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 4, "saved context", buf, used );
 
     return( 0 );
+}
+
+/*
+ * Helper to get TLS 1.2 PRF from ciphersuite
+ * (Duplicates bits of logic from ssl_set_handshake_prfs().)
+ */
+typedef int (*tls_prf_fn)( const unsigned char *secret, size_t slen,
+                           const char *label,
+                           const unsigned char *random, size_t rlen,
+                           unsigned char *dstbuf, size_t dlen );
+static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
+{
+    mbedtls_ssl_ciphersuite_handle_t const info =
+        mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
+    const mbedtls_md_type_t hash = mbedtls_ssl_suite_get_mac( info );
+
+    return hash == MBEDTLS_MD_SHA384 ? tls_prf_sha384 : tls_prf_sha256;
 }
 
 /*
@@ -10940,6 +10982,70 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
         return( ret );
 
     p += session_len;
+
+    /*
+     * Transform
+     */
+
+    /* Allocate and initialize structure */
+    ssl->transform = mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
+    if( ssl->transform == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    mbedtls_ssl_transform_init( ssl->transform );
+
+    ssl->transform_in = ssl->transform;
+    ssl->transform_out = ssl->transform;
+
+    /* Read random bytes and populate structure */
+    if( (size_t)( end - p ) < sizeof( ssl->transform->randbytes ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ret = ssl_populate_transform( ssl->transform,
+                  mbedtls_ssl_session_get_ciphersuite( ssl->session ),
+                  ssl->session->master,
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+                  ssl->session->encrypt_then_mac,
+#endif
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+                  ssl->session->trunc_hmac,
+#endif
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+                  ssl->session->compression,
+#endif
+                  ssl_tls12prf_from_cs(
+                      mbedtls_ssl_session_get_ciphersuite( ssl->session) ),
+                  p, /* currently pointing to randbytes */
+                  MBEDTLS_SSL_MINOR_VERSION_3, /* (D)TLS 1.2 is forced */
+                  mbedtls_ssl_conf_get_endpoint( ssl->conf ),
+                  ssl );
+    if( ret != 0 )
+        return( ret );
+
+    p += sizeof( ssl->transform->randbytes );
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    /* Read connection IDs and store them */
+    if( (size_t)( end - p ) < 1 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ssl->transform->in_cid_len = *p++;
+
+    if( (size_t)( end - p ) < ssl->transform->in_cid_len + 1 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( ssl->transform->in_cid, p, ssl->transform->in_cid_len );
+    p += ssl->transform->in_cid_len;
+
+    ssl->transform->out_cid_len = *p++;
+
+    if( (size_t)( end - p ) < ssl->transform->out_cid_len )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( ssl->transform->out_cid, p, ssl->transform->out_cid_len );
+    p += ssl->transform->out_cid_len;
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     /*
      * Done - should have consumed entire buffer

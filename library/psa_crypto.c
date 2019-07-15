@@ -2207,7 +2207,7 @@ static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
                                              size_t key_length,
                                              psa_algorithm_t hash_alg )
 {
-    unsigned char ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
+    uint8_t ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
     size_t i;
     size_t hash_size = PSA_HASH_SIZE( hash_alg );
     size_t block_size = psa_get_hash_block_size( hash_alg );
@@ -2281,7 +2281,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     size_t key_bits;
     psa_key_usage_t usage =
         is_sign ? PSA_KEY_USAGE_SIGN : PSA_KEY_USAGE_VERIFY;
-    unsigned char truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
+    uint8_t truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
     psa_algorithm_t full_length_alg = PSA_ALG_FULL_LENGTH_MAC( alg );
 
     /* A context must be freshly initialized before it can be set up. */
@@ -2446,7 +2446,7 @@ static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
                                               uint8_t *mac,
                                               size_t mac_size )
 {
-    unsigned char tmp[MBEDTLS_MD_MAX_SIZE];
+    uint8_t tmp[MBEDTLS_MD_MAX_SIZE];
     psa_algorithm_t hash_alg = hmac->hash_ctx.alg;
     size_t hash_size = 0;
     size_t block_size = psa_get_hash_block_size( hash_alg );
@@ -3227,7 +3227,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( slot->type == PSA_KEY_TYPE_DES && key_bits == 128 )
     {
         /* Two-key Triple-DES is 3-key Triple-DES with K1=K3 */
-        unsigned char keys[24];
+        uint8_t keys[24];
         memcpy( keys, slot->data.raw.data, 16 );
         memcpy( keys + 16, slot->data.raw.data, 8 );
         ret = mbedtls_cipher_setkey( &operation->ctx.cipher,
@@ -3300,7 +3300,7 @@ psa_status_t psa_cipher_decrypt_setup( psa_cipher_operation_t *operation,
 }
 
 psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
-                                     unsigned char *iv,
+                                     uint8_t *iv,
                                      size_t iv_size,
                                      size_t *iv_length )
 {
@@ -3333,7 +3333,7 @@ exit:
 }
 
 psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
-                                const unsigned char *iv,
+                                const uint8_t *iv,
                                 size_t iv_length )
 {
     psa_status_t status;
@@ -3360,7 +3360,7 @@ exit:
 psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
                                 const uint8_t *input,
                                 size_t input_length,
-                                unsigned char *output,
+                                uint8_t *output,
                                 size_t output_size,
                                 size_t *output_length )
 {
@@ -4024,7 +4024,7 @@ static psa_status_t psa_key_derivation_tls12_prf_generate_next_block(
     psa_hmac_internal_data hmac;
     psa_status_t status, cleanup_status;
 
-    unsigned char *Ai;
+    uint8_t *Ai;
     size_t Ai_len;
 
     /* We can't be wanting more output after block 0xff, otherwise
@@ -4517,7 +4517,7 @@ static psa_status_t psa_key_derivation_hkdf_setup( psa_hkdf_key_derivation_t *hk
  */
 static psa_status_t psa_key_derivation_tls12_prf_setup(
     psa_tls12_prf_key_derivation_t *tls12_prf,
-    const unsigned char *key,
+    const uint8_t *key,
     size_t key_len,
     psa_algorithm_t hash_alg,
     const uint8_t *salt,
@@ -4572,7 +4572,7 @@ static psa_status_t psa_key_derivation_tls12_prf_setup(
 /* Set up a TLS-1.2-PSK-to-MS-based operation. */
 static psa_status_t psa_key_derivation_tls12_psk_to_ms_setup(
     psa_tls12_prf_key_derivation_t *tls12_prf,
-    const unsigned char *psk,
+    const uint8_t *psk,
     size_t psk_len,
     psa_algorithm_t hash_alg,
     const uint8_t *salt,
@@ -4581,7 +4581,7 @@ static psa_status_t psa_key_derivation_tls12_psk_to_ms_setup(
     size_t label_length )
 {
     psa_status_t status;
-    unsigned char pms[ 4 + 2 * PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN ];
+    uint8_t pms[ 4 + 2 * PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN ];
 
     if( psk_len > PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN )
         return( PSA_ERROR_INVALID_ARGUMENT );
@@ -4942,8 +4942,8 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
     size_t data_length )
 {
     psa_status_t status;
-    unsigned char pms[ 4 + 2 * PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN ];
-    unsigned char* cur = pms;
+    uint8_t pms[ 4 + 2 * PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN ];
+    uint8_t *cur = pms;
 
     if( data_length > PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN )
         return( PSA_ERROR_INVALID_ARGUMENT );
@@ -5313,7 +5313,7 @@ psa_status_t psa_generate_random( uint8_t *output,
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 #include "mbedtls/entropy_poll.h"
 
-psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
+psa_status_t mbedtls_psa_inject_entropy( const uint8_t *seed,
                                          size_t seed_size )
 {
     if( global_data.initialized )

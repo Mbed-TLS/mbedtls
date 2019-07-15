@@ -1035,6 +1035,11 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
 /* Return the size of the key in the given slot, in bits. */
 static size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
 {
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_get_se_driver( slot->lifetime, NULL, NULL ) )
+        return( slot->data.se.bits );
+#endif /* defined(MBEDTLS_PSA_CRYPTO_SE_C) */
+
     if( key_type_is_raw_bytes( slot->type ) )
         return( slot->data.raw.bytes * 8 );
 #if defined(MBEDTLS_RSA_C)
@@ -1489,6 +1494,10 @@ static psa_status_t psa_start_key_creation(
             (void) psa_crypto_stop_transaction( );
             return( status );
         }
+
+        /* TOnogrepDO: validate bits. How to do this depends on the key
+         * creation method, so setting bits might not belong here. */
+        slot->data.se.bits = psa_get_key_bits( attributes );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 

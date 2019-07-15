@@ -3977,15 +3977,12 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  *                 (unless they were already set before calling
  *                 mbedtls_ssl_session_reset() and the values are suitable for
  *                 the present connection). Specifically, you want to call
- *                 at least mbedtls_ssl_set_bio(). If you're using a read
- *                 timeout (that is, you called
- *                 mbedtls_ssl_conf_read_timeout() with a non-zero timeout)
- *                 and non-blocking I/O, you also need to set timer callbacks
- *                 by calling mbedtls_ssl_set_timer_cb(). All other SSL setter
- *                 functions are not necessary to call, either because they're
- *                 only used in handshakes, or because the setting is already
- *                 saved. You might choose to call them anyway, for example in
- *                 order to share code between the cases of establishing a new
+ *                 at least mbedtls_ssl_set_bio() and
+ *                 mbedtls_ssl_set_timer_cb(). All other SSL setter functions
+ *                 are not necessary to call, either because they're only used
+ *                 in handshakes, or because the setting is already saved. You
+ *                 might choose to call them anyway, for example in order to
+ *                 share code between the cases of establishing a new
  *                 connection and the case of loading an already-established
  *                 connection.
  *

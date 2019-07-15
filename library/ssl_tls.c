@@ -11785,6 +11785,31 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_ALPN */
 
     /*
+     * Forced fields from top-level ssl_context structure
+     *
+     * Most of them already set to the correct value by mbedtls_ssl_init() and
+     * mbedtls_ssl_reset(), so we only need to set the remaining ones.
+     */
+    ssl->state = MBEDTLS_SSL_HANDSHAKE_OVER;
+
+    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+    ssl->minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    ssl->in_epoch = 1;
+#endif
+
+    /* mbedtls_ssl_reset() leaves the handshake sub-structure allocated,
+     * which we don't want - otherwise we'd end up freeing the wrong transform
+     * by calling ssl_handshake_wrapup_free_hs_transform() inappropriately. */
+    if( ssl->handshake != NULL )
+    {
+        mbedtls_ssl_handshake_free( ssl );
+        mbedtls_free( ssl->handshake );
+        ssl->handshake = NULL;
+    }
+
+    /*
      * Done - should have consumed entire buffer
      */
     if( p != end )

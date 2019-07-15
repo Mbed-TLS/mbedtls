@@ -431,6 +431,20 @@ int main( void )
 #define USAGE_CERT_REQ_CA_LIST ""
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
+#define USAGE_MAX_VERSION    "    max_version=%%s      default: (library default: tls1_2)\n"
+#define USAGE_MIN_VERSION    "    min_version=%%s      default: (library default: tls1)\n"
+#define USAGE_FORCE_VERSION    "    force_version=%%s    default: \"\" (none)\n"       \
+           "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n"
+#else
+#define USAGE_MAX_VERSION   ""
+#define USAGE_MIN_VERSION   ""
+#define USAGE_FORCE_VERSION ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -477,10 +491,9 @@ int main( void )
     "\n"                                                    \
     "    arc4=%%d             default: (library default: 0)\n" \
     "    allow_sha1=%%d       default: 0\n"                             \
-    "    min_version=%%s      default: (library default: tls1)\n"       \
-    "    max_version=%%s      default: (library default: tls1_2)\n"     \
-    "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: ssl3, tls1, tls1_1, tls1_2, dtls1, dtls1_2\n" \
+    USAGE_MIN_VERSION                                                   \
+    USAGE_MAX_VERSION                                                   \
+    USAGE_FORCE_VERSION                                                 \
     "\n"                                                                \
     "    version_suites=a,b,c,d      per-version ciphersuites\n"        \
     "                                in order from ssl3 to tls1_2\n"    \
@@ -1749,6 +1762,10 @@ int main( int argc, char *argv[] )
             if( opt.exchanges < 0 )
                 goto usage;
         }
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
         else if( strcmp( p, "min_version" ) == 0 )
         {
             if( strcmp( q, "ssl3" ) == 0 )
@@ -1778,24 +1795,6 @@ int main( int argc, char *argv[] )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
             else
                 goto usage;
-        }
-        else if( strcmp( p, "arc4" ) == 0 )
-        {
-            switch( atoi( q ) )
-            {
-                case 0:     opt.arc4 = MBEDTLS_SSL_ARC4_DISABLED;   break;
-                case 1:     opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;    break;
-                default:    goto usage;
-            }
-        }
-        else if( strcmp( p, "allow_sha1" ) == 0 )
-        {
-            switch( atoi( q ) )
-            {
-                case 0:     opt.allow_sha1 = 0;   break;
-                case 1:     opt.allow_sha1 = 1;    break;
-                default:    goto usage;
-            }
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
@@ -1834,6 +1833,31 @@ int main( int argc, char *argv[] )
             else
                 goto usage;
         }
+#endif
+        else if( strcmp( p, "arc4" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0:     opt.arc4 = MBEDTLS_SSL_ARC4_DISABLED;   break;
+                case 1:     opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;    break;
+                default:    goto usage;
+            }
+        }
+        else if( strcmp( p, "allow_sha1" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+                case 0:     opt.allow_sha1 = 0;   break;
+                case 1:     opt.allow_sha1 = 1;    break;
+                default:    goto usage;
+            }
+        }
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
+
+#endif
 #if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
@@ -2863,11 +2887,16 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
     if( opt.min_version != DFL_MIN_VERSION )
         mbedtls_ssl_conf_min_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.min_version );
 
     if( opt.max_version != DFL_MIN_VERSION )
         mbedtls_ssl_conf_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.max_version );
+#endif
 
     if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {

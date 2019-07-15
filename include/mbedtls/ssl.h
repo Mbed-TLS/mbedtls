@@ -63,6 +63,18 @@
 #include "platform_time.h"
 #endif
 
+#if defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER) && \
+    defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER) && \
+    ( MBEDTLS_SSL_CONF_MAX_MAJOR_VER == MBEDTLS_SSL_CONF_MIN_MAJOR_VER )
+#define MBEDTLS_SSL_CONF_FIXED_MAJOR_VER MBEDTLS_SSL_CONF_MIN_MAJOR_VER
+#endif
+
+#if defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) && \
+    defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) && \
+    ( MBEDTLS_SSL_CONF_MAX_MINOR_VER == MBEDTLS_SSL_CONF_MIN_MINOR_VER )
+#define MBEDTLS_SSL_CONF_FIXED_MINOR_VER MBEDTLS_SSL_CONF_MIN_MINOR_VER
+#endif
+
 /*
  * SSL Error codes
  */
@@ -1132,10 +1144,18 @@ struct mbedtls_ssl_config
     unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
 #endif
 
+#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
     unsigned char max_major_ver;    /*!< max. major version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
     unsigned char max_minor_ver;    /*!< max. minor version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
     unsigned char min_major_ver;    /*!< min. major version used            */
+#endif /* !MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
     unsigned char min_minor_ver;    /*!< min. minor version used            */
+#endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
 
     /*
      * Flags (bitfields)
@@ -1221,8 +1241,12 @@ struct mbedtls_ssl_context
                                   renego_max_records is < 0           */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
     int major_ver;              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
@@ -2985,6 +3009,8 @@ int mbedtls_ssl_conf_alpn_protocols( mbedtls_ssl_config *conf, const char **prot
 const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_ALPN */
 
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
 /**
  * \brief          Set the maximum supported version sent from the client side
  *                 and/or accepted at the server side
@@ -2995,6 +3021,11 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
  * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
  *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
+ * \note           On constrained systems, the maximum major/minor version can
+ *                 also be configured at compile-time by setting
+ *                 MBEDTLS_SSL_CONF_MAX_MAJOR_VER and
+ *                 MBEDTLS_SSL_CONF_MAX_MINOR_VER.
+ *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
  * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
@@ -3002,7 +3033,11 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
+#endif /* MBEDTLS_SSL_CONF_MAX_MINOR_VER ||
+          MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
 
+#if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER) || \
+    !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
  *                 (Default: TLS 1.0)
@@ -3015,6 +3050,11 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_2 for DTLS 1.0 and
  *                 MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
  *
+ * \note           On constrained systems, the minimum major/minor version can
+ *                 also be configured at compile-time by setting
+ *                 MBEDTLS_SSL_CONF_MIN_MAJOR_VER and
+ *                 MBEDTLS_SSL_CONF_MIN_MINOR_VER.
+ *
  * \param conf     SSL configuration
  * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
  * \param minor    Minor version number (MBEDTLS_SSL_MINOR_VERSION_0,
@@ -3022,6 +3062,8 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
+#endif /* MBEDTLS_SSL_CONF_MIN_MINOR_VER ||
+          MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
 /**

@@ -180,8 +180,11 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    if( ssl->conf->max_minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) !=
+        MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
         return;
+    }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding signature_algorithms extension" ) );
 
@@ -558,7 +561,8 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
     *olen = 0;
 
     if( ssl->conf->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED ||
-        ssl->conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ==
+          MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         return;
     }
@@ -593,7 +597,8 @@ static void ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
 
     if( mbedtls_ssl_conf_get_ems( ssl->conf ) ==
           MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
-        ssl->conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ==
+          MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         return;
     }
@@ -788,7 +793,6 @@ static int ssl_validate_ciphersuite( mbedtls_ssl_ciphersuite_handle_t suite_info
     if( suite_info == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
         return( 1 );
 
-
     if( mbedtls_ssl_suite_get_min_minor_ver( suite_info ) > max_minor_ver ||
         mbedtls_ssl_suite_get_max_minor_ver( suite_info ) < min_minor_ver )
     {
@@ -846,11 +850,15 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
     if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
-        ssl->major_ver = ssl->conf->min_major_ver;
-        ssl->minor_ver = ssl->conf->min_minor_ver;
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
+        ssl->major_ver = mbedtls_ssl_conf_get_min_major_ver( ssl->conf );
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
+        ssl->minor_ver = mbedtls_ssl_conf_get_min_minor_ver( ssl->conf );
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
     }
 
-    if( ssl->conf->max_major_ver == 0 )
+    if( mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "configured max major version is invalid, "
                             "consider using mbedtls_ssl_config_defaults()" ) );
@@ -867,8 +875,9 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     buf = ssl->out_msg;
     p = buf + 4;
 
-    mbedtls_ssl_write_version( ssl->conf->max_major_ver, ssl->conf->max_minor_ver,
-                       ssl->conf->transport, p );
+    mbedtls_ssl_write_version( mbedtls_ssl_conf_get_max_major_ver( ssl->conf ),
+                               mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ),
+                               ssl->conf->transport, p );
     p += 2;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, max version: [%d:%d]",
@@ -981,8 +990,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
                                             ciphersuite_info )
     {
         if( ssl_validate_ciphersuite( ciphersuite_info, ssl,
-                                      ssl->conf->min_minor_ver,
-                                      ssl->conf->max_minor_ver ) != 0 )
+                       mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ),
+                       mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) != 0 )
         {
             continue;
         }
@@ -1328,7 +1337,7 @@ static int ssl_parse_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
                                          size_t len )
 {
     if( ssl->conf->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED ||
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ||
+        mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_0 ||
         len != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-matching encrypt-then-MAC extension" ) );
@@ -1352,7 +1361,7 @@ static int ssl_parse_extended_ms_ext( mbedtls_ssl_context *ssl,
 {
     if( mbedtls_ssl_conf_get_ems( ssl->conf ) ==
           MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ||
+        mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_0 ||
         len != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-matching extended master secret extension" ) );
@@ -1563,8 +1572,8 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
      */
     if( major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
         minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 ||
-        major_ver > ssl->conf->max_major_ver  ||
-        minor_ver > ssl->conf->max_minor_ver  )
+        major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf )  ||
+        minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf )  )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server version" ) );
 
@@ -1711,25 +1720,40 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
     buf += mbedtls_ssl_hs_hdr_len( ssl );
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
-    mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
-                      ssl->conf->transport, buf + 0 );
-
-    if( ssl->major_ver < ssl->conf->min_major_ver ||
-        ssl->minor_ver < ssl->conf->min_minor_ver ||
-        ssl->major_ver > ssl->conf->max_major_ver ||
-        ssl->minor_ver > ssl->conf->max_minor_ver )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "server version out of bounds - "
-                            " min: [%d:%d], server: [%d:%d], max: [%d:%d]",
-                            ssl->conf->min_major_ver, ssl->conf->min_minor_ver,
-                            ssl->major_ver, ssl->minor_ver,
-                            ssl->conf->max_major_ver, ssl->conf->max_minor_ver ) );
+        int major_ver, minor_ver;
 
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                     MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
+        mbedtls_ssl_read_version( &major_ver, &minor_ver,
+                                  ssl->conf->transport,
+                                  buf + 0 );
 
-        return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+        if( major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
+            minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ||
+            major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) ||
+            minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "server version out of bounds - "
+                         " min: [%d:%d], server: [%d:%d], max: [%d:%d]",
+                         mbedtls_ssl_conf_get_min_major_ver( ssl->conf ),
+                         mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ),
+                         major_ver, minor_ver,
+                         mbedtls_ssl_conf_get_max_major_ver( ssl->conf ),
+                         mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) );
+
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
+
+            return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+        }
+
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
+        ssl->minor_ver = minor_ver;
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
+
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
+        ssl->major_ver = major_ver;
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu",
@@ -1886,8 +1910,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
                                             ciphersuite_info )
     {
         if( ssl_validate_ciphersuite( ciphersuite_info, ssl,
-                                      ssl->conf->min_minor_ver,
-                                      ssl->conf->max_minor_ver ) != 0 )
+                    mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ),
+                    mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) != 0 )
         {
             continue;
         }
@@ -1914,7 +1938,7 @@ server_picked_valid_suite:
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( mbedtls_ssl_suite_get_key_exchange( server_suite_info ) ==
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA &&
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         ssl->handshake->ecrs_enabled = 1;
     }
@@ -1928,14 +1952,15 @@ server_picked_valid_suite:
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
+                                   MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
     ssl->session_negotiate->compression = comp;
 
     ext = buf + 40 + n;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "server hello, total extension length: %d", ext_len ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "server hello, total extension length: %d",
+                                ext_len ) );
 
     while( ext_len )
     {
@@ -1948,7 +1973,7 @@ server_picked_valid_suite:
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+                                       MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
@@ -2343,7 +2368,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
                                     size_t pms_offset )
 {
     int ret;
-    size_t len_bytes = ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
+    size_t len_bytes = mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
     unsigned char *p = ssl->handshake->premaster + pms_offset;
     mbedtls_pk_context *peer_pk = NULL;
 
@@ -2360,8 +2385,9 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
      *      opaque random[46];
      *  } PreMasterSecret;
      */
-    mbedtls_ssl_write_version( ssl->conf->max_major_ver, ssl->conf->max_minor_ver,
-                       ssl->conf->transport, p );
+    mbedtls_ssl_write_version( mbedtls_ssl_conf_get_max_major_ver( ssl->conf ),
+                               mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ),
+                               ssl->conf->transport, p );
 
     if( ( ret = mbedtls_ssl_conf_get_frng( ssl->conf )
           ( ssl->conf->p_rng, p + 2, 46 ) ) != 0 )
@@ -2459,7 +2485,7 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
     *pk_alg = MBEDTLS_PK_NONE;
 
     /* Only in TLS 1.2 */
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_get_minor_ver( ssl ) != MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         return( 0 );
     }
@@ -2786,7 +2812,7 @@ start_processing:
          * Handle the digitally-signed structure
          */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             if( ssl_parse_signature_algorithm( ssl, &p, end,
                                                &md_alg, &pk_alg ) != 0 )
@@ -2809,7 +2835,7 @@ start_processing:
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( mbedtls_ssl_get_minor_ver( ssl ) < MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
 
@@ -3081,7 +3107,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 
     /* supported_signature_algorithms */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         size_t sig_alg_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
                              | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
@@ -3574,7 +3600,7 @@ sign:
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_get_minor_ver( ssl ) != MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         /*
          * digitally-signed struct {
@@ -3604,7 +3630,7 @@ sign:
 #endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
           MBEDTLS_SSL_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         /*
          * digitally-signed struct {

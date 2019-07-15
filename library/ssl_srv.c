@@ -536,7 +536,7 @@ static int ssl_parse_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
     ((void) buf);
 
     if( ssl->conf->encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED &&
-        ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 )
+        mbedtls_ssl_get_minor_ver( ssl ) != MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         ssl->session_negotiate->encrypt_then_mac = MBEDTLS_SSL_ETM_ENABLED;
     }
@@ -864,7 +864,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
          * present them a SHA-higher cert rather than failing if it's the only
          * one we got that satisfies the other conditions.
          */
-        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( mbedtls_ssl_get_minor_ver( ssl ) < MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             mbedtls_md_type_t sig_md;
             {
@@ -930,8 +930,10 @@ static int ssl_ciphersuite_is_match( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "trying ciphersuite: %s",
                                 mbedtls_ssl_suite_get_name( suite_info ) ) );
 
-    if( mbedtls_ssl_suite_get_min_minor_ver( suite_info ) > ssl->minor_ver ||
-        mbedtls_ssl_suite_get_max_minor_ver( suite_info ) < ssl->minor_ver )
+    if( mbedtls_ssl_suite_get_min_minor_ver( suite_info )
+          > mbedtls_ssl_get_minor_ver( ssl ) ||
+        mbedtls_ssl_suite_get_max_minor_ver( suite_info )
+          < mbedtls_ssl_get_minor_ver( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: version" ) );
         return( 0 );
@@ -993,7 +995,7 @@ static int ssl_ciphersuite_is_match( mbedtls_ssl_context *ssl,
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     /* If the ciphersuite requires signing, check whether
      * a suitable hash algorithm is present. */
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         sig_type = mbedtls_ssl_get_ciphersuite_sig_alg( suite_info );
         if( sig_type != MBEDTLS_PK_NONE &&
@@ -1090,23 +1092,30 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     }
 
     ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-    ssl->minor_ver = ( buf[4] <= ssl->conf->max_minor_ver )
-                     ? buf[4]  : ssl->conf->max_minor_ver;
+    ssl->minor_ver =
+        ( buf[4] <= mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+        ? buf[4]  : mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
 
-    if( ssl->minor_ver < ssl->conf->min_minor_ver )
+    if( mbedtls_ssl_get_minor_ver( ssl ) < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
                             " [%d:%d] < [%d:%d]",
-                            ssl->major_ver, ssl->minor_ver,
-                            ssl->conf->min_major_ver, ssl->conf->min_minor_ver ) );
+                            mbedtls_ssl_get_major_ver( ssl ),
+                            mbedtls_ssl_get_minor_ver( ssl ),
+                            mbedtls_ssl_conf_get_min_major_ver( ssl->conf ),
+                            mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ) );
 
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
         return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
     }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||        \
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
     ssl->handshake->max_major_ver = buf[3];
     ssl->handshake->max_minor_ver = buf[4];
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 
     if( ( ret = mbedtls_ssl_fetch_input( ssl, 2 + n ) ) != 0 )
     {
@@ -1213,7 +1222,8 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
 
-            if( ssl->minor_ver < ssl->conf->max_minor_ver )
+            if( mbedtls_ssl_get_minor_ver( ssl ) <
+                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 
@@ -1618,31 +1628,47 @@ read_record_header:
      */
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, version", buf, 2 );
 
-    mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
-                      ssl->conf->transport, buf );
-
-    ssl->handshake->max_major_ver = ssl->major_ver;
-    ssl->handshake->max_minor_ver = ssl->minor_ver;
-
-    if( ssl->major_ver < ssl->conf->min_major_ver ||
-        ssl->minor_ver < ssl->conf->min_minor_ver )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
+        int minor_ver, major_ver;
+        mbedtls_ssl_read_version( &major_ver, &minor_ver,
+                                  ssl->conf->transport,
+                                  buf );
+
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||        \
+    defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
+        ssl->handshake->max_major_ver = major_ver;
+        ssl->handshake->max_minor_ver = minor_ver;
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
+
+        if( major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
+            minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
                             " [%d:%d] < [%d:%d]",
-                            ssl->major_ver, ssl->minor_ver,
-                            ssl->conf->min_major_ver, ssl->conf->min_minor_ver ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                     MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
-        return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
-    }
+                            major_ver, minor_ver,
+                            mbedtls_ssl_conf_get_min_major_ver( ssl->conf ),
+                            mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ) );
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                            MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
+            return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
+        }
 
-    if( ssl->major_ver > ssl->conf->max_major_ver )
-    {
-        ssl->major_ver = ssl->conf->max_major_ver;
-        ssl->minor_ver = ssl->conf->max_minor_ver;
+        if( major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) )
+        {
+            major_ver = mbedtls_ssl_conf_get_max_major_ver( ssl->conf );
+            minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
+        }
+        else if( minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+            minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
+
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
+        ssl->major_ver = major_ver;
+#endif /* MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
+        ssl->minor_ver = minor_ver;
+#endif /* MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
     }
-    else if( ssl->minor_ver > ssl->conf->max_minor_ver )
-        ssl->minor_ver = ssl->conf->max_minor_ver;
 
     /*
      * Save client random (inc. Unix time)
@@ -1793,7 +1819,8 @@ read_record_header:
 
     /* Do not parse the extensions if the protocol is SSLv3 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( ( ssl->major_ver != 3 ) || ( ssl->minor_ver != 0 ) )
+    if( ( mbedtls_ssl_get_major_ver( ssl ) != 3 ) ||
+        ( mbedtls_ssl_get_minor_ver( ssl ) != 0 ) )
     {
 #endif
         /*
@@ -2019,7 +2046,8 @@ read_record_header:
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
 
-            if( ssl->minor_ver < ssl->conf->max_minor_ver )
+            if( mbedtls_ssl_get_minor_ver( ssl ) <
+                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 
@@ -2231,7 +2259,7 @@ have_ciphersuite:
 #if defined(MBEDTLS_DEBUG_C)                         && \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)                && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         mbedtls_pk_type_t sig_alg = mbedtls_ssl_get_ciphersuite_sig_alg(
                 mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake ) );
@@ -2339,7 +2367,7 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
     const mbedtls_cipher_info_t *cipher = NULL;
 
     if( ssl->session_negotiate->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED ||
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         *olen = 0;
         return;
@@ -2389,7 +2417,7 @@ static void ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
 
     if( mbedtls_ssl_hs_get_extended_ms( ssl->handshake )
           == MBEDTLS_SSL_EXTENDED_MS_DISABLED ||
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         *olen = 0;
         return;
@@ -2633,8 +2661,9 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
 
     /* The RFC is not clear on this point, but sending the actual negotiated
      * version looks like the most interoperable thing to do. */
-    mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
-                       ssl->conf->transport, p );
+    mbedtls_ssl_write_version( mbedtls_ssl_get_major_ver( ssl ),
+                               mbedtls_ssl_get_minor_ver( ssl ),
+                               ssl->conf->transport, p );
     MBEDTLS_SSL_DEBUG_BUF( 3, "server version", p, 2 );
     p += 2;
 
@@ -2726,8 +2755,9 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     buf = ssl->out_msg;
     p = buf + 4;
 
-    mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
-                       ssl->conf->transport, p );
+    mbedtls_ssl_write_version( mbedtls_ssl_get_major_ver( ssl ),
+                               mbedtls_ssl_get_minor_ver( ssl ),
+                               ssl->conf->transport, p );
     p += 2;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen version: [%d:%d]",
@@ -2855,7 +2885,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     /* Do not write the extensions if the protocol is SSLv3 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( ( ssl->major_ver != 3 ) || ( ssl->minor_ver != 0 ) )
+    if( ( mbedtls_ssl_get_major_ver( ssl ) != 3 ) || ( mbedtls_ssl_get_minor_ver( ssl ) != 0 ) )
     {
 #endif
 
@@ -3037,7 +3067,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      *     enum { (255) } HashAlgorithm;
      *     enum { (255) } SignatureAlgorithm;
      */
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         const int *cur;
 
@@ -3395,7 +3425,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         mbedtls_pk_type_t sig_alg =
             mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             /* A: For TLS 1.2, obey signature-hash-algorithm extension
              *    (RFC 5246, Sec. 7.4.1.4.1). */
@@ -3471,7 +3501,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
          * 2.3: Compute and add the signature
          */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             /*
              * For TLS 1.2, we need to specify signature and hash algorithm
@@ -3775,7 +3805,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 )
+     if( mbedtls_ssl_get_minor_ver( ssl ) != MBEDTLS_SSL_MINOR_VERSION_0 )
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
     {
         if( len < 2 )
@@ -4395,7 +4425,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
      */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_get_minor_ver( ssl ) != MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         md_alg = MBEDTLS_MD_NONE;
         hashlen = 36;
@@ -4412,7 +4442,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 ||
           MBEDTLS_SSL_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         if( i + 2 > ssl->in_hslen )
         {

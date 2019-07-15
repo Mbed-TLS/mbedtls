@@ -1083,6 +1083,10 @@ int main( int argc, char *argv[] )
 #endif
     char *p, *q;
     const int *list;
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    unsigned char *context_buf = NULL;
+    size_t context_buf_len;
+#endif
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     unsigned char eap_tls_keymaterial[16];
     unsigned char eap_tls_iv[8];
@@ -2922,7 +2926,6 @@ send_request:
     if( opt.serialize != 0 )
     {
         size_t buf_len;
-        unsigned char *context_buf = NULL;
 
         mbedtls_printf( "  . Serializing live connection..." );
 
@@ -2942,6 +2945,7 @@ send_request:
 
             goto exit;
         }
+        context_buf_len = buf_len;
 
         if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf,
                                               buf_len, &buf_len ) ) != 0 )
@@ -3011,6 +3015,10 @@ send_request:
 
             goto exit;
         }
+
+        mbedtls_free( context_buf );
+        context_buf = NULL;
+        context_buf_len = 0;
 
         mbedtls_printf( " ok\n" );
     }
@@ -3152,6 +3160,11 @@ exit:
     if( session_data != NULL )
         mbedtls_platform_zeroize( session_data, session_data_len );
     mbedtls_free( session_data );
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( context_buf != NULL )
+        mbedtls_platform_zeroize( context_buf, context_buf_len );
+    mbedtls_free( context_buf );
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)

@@ -87,6 +87,12 @@
 #error "MBEDTLS_CMAC_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_CONF_SINGLE_EC) &&           \
+    ( !defined(MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID) || \
+      !defined(MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID) )
+#error "MBEDTLS_SSL_CONF_SINGLE_EC defined, but not all prerequesites"
+#endif
+
 #if defined(MBEDTLS_USE_TINYCRYPT) && defined(MBEDTLS_NO_64BIT_MULTIPLICATION)
 #error "MBEDTLS_USE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
 #endif

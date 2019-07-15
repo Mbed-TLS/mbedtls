@@ -383,7 +383,7 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    mbedtls_ecp_curve_info const *curve_info;  /*!< Info for EC for ECDHE. */
+    uint16_t curve_tls_id;                      /*!< TLS ID of EC for ECDHE. */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char *psk;                 /*!<  PSK from the callback         */
@@ -1624,5 +1624,56 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
     } while( 0 );
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( TLS_ID_VAR )     \
+    {                                                                    \
+        mbedtls_ecp_group_id const *_gid;                                \
+        mbedtls_ecp_curve_info const *_info;                             \
+        for( _gid = ssl->conf->curve_list;                               \
+             *_gid != MBEDTLS_ECP_DP_NONE; _gid++ )                      \
+        {                                                                \
+            uint16_t TLS_ID_VAR;                                         \
+            _info = mbedtls_ecp_curve_info_from_grp_id( *_gid )   ;      \
+            if( _info == NULL )                                          \
+                continue;                                                \
+            TLS_ID_VAR = _info->tls_id;
+
+#define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID                    \
+        }                                                               \
+    }
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( EC_ID_VAR )     \
+    {                                                                   \
+        mbedtls_ecp_group_id const *_gid;                               \
+        for( _gid = ssl->conf->curve_list;                              \
+             *_gid != MBEDTLS_ECP_DP_NONE; _gid++ )                     \
+        {                                                               \
+            mbedtls_ecp_group_id EC_ID_VAR = *_gid;                     \
+
+#define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_GRP_ID                    \
+        }                                                               \
+    }
+
+#else /* !MBEDTLS_SSL_CONF_SINGLE_EC */
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( TLS_ID_VAR )    \
+    {                                                                   \
+        uint16_t TLS_ID_VAR = MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID;        \
+        ((void) ssl);
+
+#define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID                    \
+    }
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( EC_ID_VAR )         \
+    {                                                                       \
+        mbedtls_ecp_group_id EC_ID_VAR = MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID; \
+        ((void) ssl);
+
+#define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_GRP_ID                    \
+    }
+
+#endif /* MBEDTLS_SSL_CONF_SINGLE_EC */
 
 #endif /* ssl_internal.h */

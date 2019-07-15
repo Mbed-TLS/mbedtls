@@ -3658,6 +3658,33 @@
  */
 //#define MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
 
+/* Enable support of a single elliptic curve fixed
+ * at compile-time, at the benefit of code-size.
+ *
+ * On highly constrained systems with large control
+ * over the configuration of the connection endpoints,
+ * this option can be used to hardcode the choice of
+ * a single elliptic curve to be used for all elliptic
+ * curve operations during the handshake.
+ *
+ * If this is set, you must also define the following:
+ * - MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID
+ *   This must resolve to the Mbed TLS group ID for the elliptic
+ *   curve to use (e.g. MBEDTLS_ECP_DP_SECP256R1_ENABLED); see
+ *   ::mbedtls_ecp_group_id in mbedtls/ecp.h for a complete list
+ *   of curve identifiers.
+ * - MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID
+ *   This must resolve to the identifier for the elliptic curve
+ *   to use according to the IANA NamedCurve registry:
+ *     https://tools.ietf.org/html/rfc4492#section-5.1
+ *
+ * If defined, this option overwrites the effect of the
+ * runtime configuration API mbedtls_ssl_conf_curves().
+ */
+//#define MBEDTLS_SSL_CONF_SINGLE_EC
+//#define MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID
+//#define MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID
+
 /* \} SECTION: Compile-time SSL configuration */
 
 /* Target and application specific configurations

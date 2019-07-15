@@ -381,7 +381,7 @@ int main( void )
 #define USAGE_ECJPAKE ""
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
 #define USAGE_CURVES \
     "    curves=a,b,c,d      default: \"default\" (library default)\n"  \
     "                        example: \"secp521r1,brainpoolP512r1\"\n"  \
@@ -1425,7 +1425,7 @@ int main( int argc, char *argv[] )
 #if defined(SNI_OPTION)
     sni_entry *sni_info = NULL;
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
     mbedtls_ecp_group_id curve_list[CURVE_LIST_SIZE];
     const mbedtls_ecp_curve_info * curve_cur;
 #endif
@@ -1707,8 +1707,10 @@ int main( int argc, char *argv[] )
             }
             opt.force_ciphersuite[1] = 0;
         }
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
         else if( strcmp( p, "curves" ) == 0 )
             opt.curves = q;
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_EC */
         else if( strcmp( p, "version_suites" ) == 0 )
             opt.version_suites = q;
         else if( strcmp( p, "renegotiation" ) == 0 )
@@ -2176,7 +2178,7 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
     if( opt.curves != NULL )
     {
         p = (char *) opt.curves;
@@ -2230,7 +2232,7 @@ int main( int argc, char *argv[] )
             curve_list[i] = MBEDTLS_ECP_DP_NONE;
         }
     }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_C && !MBEDTLS_SSL_CONF_SINGLE_EC */
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
@@ -2848,12 +2850,14 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
     if( opt.curves != NULL &&
         strcmp( opt.curves, "default" ) != 0 )
     {
         mbedtls_ssl_conf_curves( &conf, curve_list );
     }
-#endif
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_EC */
+#endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( strlen( opt.psk ) != 0 && strlen( opt.psk_identity ) != 0 )

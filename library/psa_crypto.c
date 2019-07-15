@@ -1506,6 +1506,16 @@ static psa_status_t psa_validate_key_attributes(
     return( PSA_SUCCESS );
 }
 
+/** An enumeration indicating how a key is created.
+ */
+typedef enum
+{
+    PSA_KEY_CREATION_IMPORT,
+    PSA_KEY_CREATION_GENERATE,
+    PSA_KEY_CREATION_DERIVE,
+    PSA_KEY_CREATION_COPY,
+} psa_key_creation_method_t;
+
 /** Prepare a key slot to receive key material.
  *
  * This function allocates a key slot and sets its metadata.
@@ -1520,6 +1530,7 @@ static psa_status_t psa_validate_key_attributes(
  * In case of failure at any step, stop the sequence and call
  * psa_fail_key_creation().
  *
+ * \param method            An identification of the calling function.
  * \param[in] attributes    Key attributes for the new key.
  * \param[out] handle       On success, a handle for the allocated slot.
  * \param[out] p_slot       On success, a pointer to the prepared slot.
@@ -1532,6 +1543,7 @@ static psa_status_t psa_validate_key_attributes(
  *         You must call psa_fail_key_creation() to wipe and free the slot.
  */
 static psa_status_t psa_start_key_creation(
+    psa_key_creation_method_t method,
     const psa_key_attributes_t *attributes,
     psa_key_handle_t *handle,
     psa_key_slot_t **p_slot,
@@ -1540,6 +1552,7 @@ static psa_status_t psa_start_key_creation(
     psa_status_t status;
     psa_key_slot_t *slot;
 
+    (void) method;
     *p_drv = NULL;
 
     status = psa_validate_key_attributes( attributes, p_drv );
@@ -1796,7 +1809,8 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
 
-    status = psa_start_key_creation( attributes, handle, &slot, &driver );
+    status = psa_start_key_creation( PSA_KEY_CREATION_IMPORT, attributes,
+                                     handle, &slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -1899,7 +1913,8 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_start_key_creation( &actual_attributes,
+    status = psa_start_key_creation( PSA_KEY_CREATION_COPY,
+                                     &actual_attributes,
                                      target_handle, &target_slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -4817,7 +4832,8 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
-    status = psa_start_key_creation( attributes, handle, &slot, &driver );
+    status = psa_start_key_creation( PSA_KEY_CREATION_DERIVE,
+                                     attributes, handle, &slot, &driver );
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {
@@ -5863,7 +5879,8 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
-    status = psa_start_key_creation( attributes, handle, &slot, &driver );
+    status = psa_start_key_creation( PSA_KEY_CREATION_GENERATE,
+                                     attributes, handle, &slot, &driver );
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {

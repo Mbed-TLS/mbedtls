@@ -1202,6 +1202,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SHA256_SMALLER */
 
+#if defined(MBEDTLS_SHA256_NO_SHA224)
+    if( strcmp( "MBEDTLS_SHA256_NO_SHA224", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA256_NO_SHA224 );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SHA256_NO_SHA224 */
+
 #if defined(MBEDTLS_SSL_ALL_ALERT_MESSAGES)
     if( strcmp( "MBEDTLS_SSL_ALL_ALERT_MESSAGES", config ) == 0 )
     {

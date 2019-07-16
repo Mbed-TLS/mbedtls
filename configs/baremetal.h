@@ -61,6 +61,7 @@
 #define MBEDTLS_MD_C
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_SHA256_SMALLER
+#define MBEDTLS_SHA256_NO_SHA224
 
 /* TLS options */
 #define MBEDTLS_SSL_CLI_C

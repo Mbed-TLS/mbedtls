@@ -477,8 +477,9 @@ static const size_t sha256_test_buflen[3] =
     3, 56, 1000
 };
 
-static const unsigned char sha256_test_sum[6][32] =
+static const unsigned char sha256_test_sum[][32] =
 {
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
     /*
      * SHA-224 test vectors
      */
@@ -494,6 +495,7 @@ static const unsigned char sha256_test_sum[6][32] =
       0xBB, 0xB4, 0xC1, 0xEA, 0x97, 0x61, 0x8A, 0x4B,
       0xF0, 0x3F, 0x42, 0x58, 0x19, 0x48, 0xB2, 0xEE,
       0x4E, 0xE7, 0xAD, 0x67 },
+#endif /* !MBEDTLS_SHA256_NO_SHA224 */
 
     /*
      * SHA-256 test vectors
@@ -511,6 +513,9 @@ static const unsigned char sha256_test_sum[6][32] =
       0xF1, 0x80, 0x9A, 0x48, 0xA4, 0x97, 0x20, 0x0E,
       0x04, 0x6D, 0x39, 0xCC, 0xC7, 0x11, 0x2C, 0xD0 }
 };
+
+#define SHA256_TEST_SUM_N \
+    ( sizeof( sha256_test_sum ) / sizeof( sha256_test_sum[0] ) )
 
 /*
  * Checkup routine
@@ -533,10 +538,14 @@ int mbedtls_sha256_self_test( int verbose )
 
     mbedtls_sha256_init( &ctx );
 
-    for( i = 0; i < 6; i++ )
+    for( i = 0; i < (int) SHA256_TEST_SUM_N; i++ )
     {
         j = i % 3;
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
         k = i < 3;
+#else
+        k = 0;
+#endif
 
         if( verbose != 0 )
             mbedtls_printf( "  SHA-%d test #%d: ", 256 - k * 32, j + 1 );

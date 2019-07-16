@@ -291,7 +291,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA1_C:!M
 mbedtls_x509_csr_info:"data_files/server9.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0x6A)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA224
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C:!MBEDTLS_X509_REMOVE_INFO:!MBEDTLS_SHA256_NO_SHA224
 mbedtls_x509_csr_info:"data_files/server9.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0x62)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA256

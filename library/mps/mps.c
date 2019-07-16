@@ -25,6 +25,9 @@
 
 #include "../../include/mbedtls/platform_util.h"
 
+/* Embed all other MPS translation units into here
+ * for release builds on constrained systems to allow
+ * inlining and hence significantly smaller code size. */
 #if !defined(MBEDTLS_MPS_SEPARATE_LAYERS)
 #define MBEDTLS_MPS_TOP_TRANSLATION_UNIT
 #include "reader.c"
@@ -66,7 +69,10 @@ static int trace_id = TRACE_BIT_LAYER_4;
     mps_generic_failure_handler( mps, ret );    \
     RETURN( ret );                              \
 
-/* Check if the MPS will serve read resp. write API calls.             */
+/* Check if the MPS will serve read resp. write API calls.
+ * It will e.g. reject this if it is blocked or if the user
+ * has already sent/received a closure notification.
+ * See also ::mbedtls_mps_connection_state_t.                          */
 MBEDTLS_MPS_STATIC int mps_check_read ( mbedtls_mps const *mps );
 MBEDTLS_MPS_STATIC int mps_check_write( mbedtls_mps const *mps );
 
@@ -96,12 +102,12 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_alert( mbedtls_mps *mps );
  * a retransmission.
  */
 
+#define MPS_PAUSED_HS_FORBIDDEN 0
+#define MPS_PAUSED_HS_ALLOWED   1
+
 MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_prepare_write( mbedtls_mps *mps,
                                           uint8_t allow_paused_hs );
-
-#define MPS_PAUSED_HS_FORBIDDEN 0
-#define MPS_PAUSED_HS_ALLOWED   1
 MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
                                           uint8_t allow_paused_hs );
 

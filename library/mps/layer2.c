@@ -1422,7 +1422,7 @@ int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx, uint8_t force )
     TRACE_INIT( "l2_out_release_and_dispatch, force %u", force );
 
 #if defined(MBEDTLS_MPS_ASSERT)
-    if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
+    if( ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_INTERNAL )
     {
         TRACE( trace_error, "Unexpected writer state in l2_out_release_and_dispatch()" );
         RETURN( MPS_ERR_INTERNAL_ERROR );

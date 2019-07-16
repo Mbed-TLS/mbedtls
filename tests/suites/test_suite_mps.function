@@ -6271,8 +6271,9 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                                             epochs[self][epoch],
                                             &latest_epoch[self] );
                     TEST_ASSERT( ret == 0                             ||
+                                 ret == MPS_ERR_WANT_WRITE            ||
                                  ret == MPS_ERR_EPOCH_WINDOW_EXCEEDED );
-                    if( ret == MPS_ERR_EPOCH_WINDOW_EXCEEDED )
+                    if( ret != 0 )
                         continue;
 
                     TEST_ASSERT( epoch == latest_epoch[self] );
@@ -6424,8 +6425,9 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                                             epochs[self][epoch],
                                             &latest_epoch[self] );
                     TEST_ASSERT( ret == 0                             ||
+                                 ret == MPS_ERR_WANT_WRITE            ||
                                  ret == MPS_ERR_EPOCH_WINDOW_EXCEEDED );
-                    if( ret == MPS_ERR_EPOCH_WINDOW_EXCEEDED )
+                    if( ret != 0 )
                         continue;
 
                     TEST_ASSERT( epoch == latest_epoch[self] );
@@ -8586,7 +8588,7 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
 
     mbedtls_mps_epoch_id latest_epoch[2];
 
-    srand( 43 );
+    srand( time( NULL ) );
 
     epochs[0] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
     epochs[1] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );

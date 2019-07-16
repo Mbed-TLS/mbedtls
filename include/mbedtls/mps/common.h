@@ -99,7 +99,7 @@
 #define MBEDTLS_MPS_TRANSFORM_VALIDATION
 
 /*! This flag controls whether tracing for MPS should be enabled. */
-//#define MBEDTLS_MPS_TRACE
+#define MBEDTLS_MPS_TRACE
 
 /*! This internal macro determines whether all Layers of MPS should
  *  be compiled into a single source file.
@@ -109,8 +109,8 @@
  */
 #define MBEDTLS_MPS_SEPARATE_LAYERS
 
-/*! This test-only flag controls whether all usually static helper function
- *  in MPS should have external linkage.
+/*! This test-only flag controls whether all usually static helper
+ *  function in MPS should have external linkage.
  *
  *  This is useful when analyzing the code-size of MPS.
  *
@@ -147,7 +147,11 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
  *
  *  In practice, you may comment this if you don't need renegotiation.
  */
-//#define MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING
+#define MBEDTLS_MPS_L2_EPOCH_WINDOW_SHIFTING
+
+/*
+ * Internal helper macros derived from the MPS configuration.
+ */
 
 #if defined(MBEDTLS_MPS_NO_STATIC_FUNCTIONS)
 #define MBEDTLS_MPS_STATIC

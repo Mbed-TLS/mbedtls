@@ -132,6 +132,9 @@ int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 )
     }
     else
     {
+#if defined(MBEDTLS_SHA256_NO_SHA224)
+        return( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA );
+#else
         /* SHA-224 */
         ctx->state[0] = 0xC1059ED8;
         ctx->state[1] = 0x367CD507;
@@ -141,9 +144,12 @@ int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 )
         ctx->state[5] = 0x68581511;
         ctx->state[6] = 0x64F98FA7;
         ctx->state[7] = 0xBEFA4FA4;
+#endif
     }
 
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
     ctx->is224 = is224;
+#endif
 
     return( 0 );
 }
@@ -395,7 +401,9 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     sha256_put_uint32_be( ctx->state[5], output, 20 );
     sha256_put_uint32_be( ctx->state[6], output, 24 );
 
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
     if( ctx->is224 == 0 )
+#endif
         sha256_put_uint32_be( ctx->state[7], output, 28 );
 
     return( 0 );

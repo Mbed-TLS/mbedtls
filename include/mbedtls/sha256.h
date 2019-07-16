@@ -60,8 +60,10 @@ typedef struct mbedtls_sha256_context
     uint32_t total[2];          /*!< The number of Bytes processed.  */
     uint32_t state[8];          /*!< The intermediate digest state.  */
     unsigned char buffer[64];   /*!< The data block being processed. */
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
     int is224;                  /*!< Determines which function to use:
                                      0: Use SHA-256, or 1: Use SHA-224. */
+#endif
 }
 mbedtls_sha256_context;
 

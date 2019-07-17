@@ -92,6 +92,15 @@
 }
 #endif /* PUT_UINT64_BE */
 
+#if defined(MBEDTLS_SHA512_SMALLER)
+static void sha512_put_uint64_be( uint64_t n, unsigned char *b, uint8_t i )
+{
+    PUT_UINT64_BE(n, b, i);
+}
+#else
+#define sha512_put_uint64_be    PUT_UINT64_BE
+#endif /* MBEDTLS_SHA512_SMALLER */
+
 void mbedtls_sha512_init( mbedtls_sha512_context *ctx )
 {
     SHA512_VALIDATE( ctx != NULL );
@@ -403,8 +412,8 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
          | ( ctx->total[1] <<  3 );
     low  = ( ctx->total[0] <<  3 );
 
-    PUT_UINT64_BE( high, ctx->buffer, 112 );
-    PUT_UINT64_BE( low,  ctx->buffer, 120 );
+    sha512_put_uint64_be( high, ctx->buffer, 112 );
+    sha512_put_uint64_be( low,  ctx->buffer, 120 );
 
     if( ( ret = mbedtls_internal_sha512_process( ctx, ctx->buffer ) ) != 0 )
         return( ret );
@@ -412,17 +421,17 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
     /*
      * Output final state
      */
-    PUT_UINT64_BE( ctx->state[0], output,  0 );
-    PUT_UINT64_BE( ctx->state[1], output,  8 );
-    PUT_UINT64_BE( ctx->state[2], output, 16 );
-    PUT_UINT64_BE( ctx->state[3], output, 24 );
-    PUT_UINT64_BE( ctx->state[4], output, 32 );
-    PUT_UINT64_BE( ctx->state[5], output, 40 );
+    sha512_put_uint64_be( ctx->state[0], output,  0 );
+    sha512_put_uint64_be( ctx->state[1], output,  8 );
+    sha512_put_uint64_be( ctx->state[2], output, 16 );
+    sha512_put_uint64_be( ctx->state[3], output, 24 );
+    sha512_put_uint64_be( ctx->state[4], output, 32 );
+    sha512_put_uint64_be( ctx->state[5], output, 40 );
 
     if( ctx->is384 == 0 )
     {
-        PUT_UINT64_BE( ctx->state[6], output, 48 );
-        PUT_UINT64_BE( ctx->state[7], output, 56 );
+        sha512_put_uint64_be( ctx->state[6], output, 48 );
+        sha512_put_uint64_be( ctx->state[7], output, 56 );
     }
 
     return( 0 );

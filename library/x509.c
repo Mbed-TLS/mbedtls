@@ -1065,7 +1065,7 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, mbedtls_pk_type_t pk_alg,
     if( pk_alg == MBEDTLS_PK_RSASSA_PSS )
     {
         const mbedtls_pk_rsassa_pss_options *pss_opts;
-        const mbedtls_md_info_t *md_info, *mgf_md_info;
+        mbedtls_md_handle_t md_info, mgf_md_info;
 
         pss_opts = (const mbedtls_pk_rsassa_pss_options *) sig_opts;
 

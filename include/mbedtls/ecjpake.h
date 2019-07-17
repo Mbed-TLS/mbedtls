@@ -75,7 +75,7 @@ typedef enum {
  */
 typedef struct mbedtls_ecjpake_context
 {
-    const mbedtls_md_info_t *md_info;   /**< Hash to use                    */
+    mbedtls_md_handle_t md_info;        /**< Hash to use                    */
     mbedtls_ecp_group grp;              /**< Elliptic curve                 */
     mbedtls_ecjpake_role role;          /**< Are we client or server?       */
     int point_format;                   /**< Format for point export        */

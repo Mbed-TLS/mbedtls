@@ -63,7 +63,7 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx )
 {
     ECJPAKE_VALIDATE( ctx != NULL );
 
-    ctx->md_info = NULL;
+    ctx->md_info = MBEDTLS_MD_INVALID_HANDLE;
     mbedtls_ecp_group_init( &ctx->grp );
     ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
 
@@ -86,7 +86,7 @@ void mbedtls_ecjpake_free( mbedtls_ecjpake_context *ctx )
     if( ctx == NULL )
         return;
 
-    ctx->md_info = NULL;
+    ctx->md_info = MBEDTLS_MD_INVALID_HANDLE;
     mbedtls_ecp_group_free( &ctx->grp );
 
     mbedtls_ecp_point_free( &ctx->Xm1 );
@@ -119,8 +119,11 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
 
     ctx->role = role;
 
-    if( ( ctx->md_info = mbedtls_md_info_from_type( hash ) ) == NULL )
+    if( ( ctx->md_info = mbedtls_md_info_from_type( hash ) ) ==
+        MBEDTLS_MD_INVALID_HANDLE )
+    {
         return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
+    }
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &ctx->grp, curve ) );
 
@@ -140,7 +143,7 @@ int mbedtls_ecjpake_check( const mbedtls_ecjpake_context *ctx )
 {
     ECJPAKE_VALIDATE_RET( ctx != NULL );
 
-    if( ctx->md_info == NULL ||
+    if( ctx->md_info == MBEDTLS_MD_INVALID_HANDLE ||
         ctx->grp.id == MBEDTLS_ECP_DP_NONE ||
         ctx->s.p == NULL )
     {
@@ -190,7 +193,7 @@ static int ecjpake_write_len_point( unsigned char **p,
 /*
  * Compute hash for ZKP (7.4.2.2.2.1)
  */
-static int ecjpake_hash( const mbedtls_md_info_t *md_info,
+static int ecjpake_hash( mbedtls_md_handle_t md_info,
                          const mbedtls_ecp_group *grp,
                          const int pf,
                          const mbedtls_ecp_point *G,
@@ -240,7 +243,7 @@ cleanup:
 /*
  * Parse a ECShnorrZKP (7.4.2.2.2) and verify it (7.4.2.3.3)
  */
-static int ecjpake_zkp_read( const mbedtls_md_info_t *md_info,
+static int ecjpake_zkp_read( mbedtls_md_handle_t md_info,
                              const mbedtls_ecp_group *grp,
                              const int pf,
                              const mbedtls_ecp_point *G,
@@ -312,7 +315,7 @@ cleanup:
 /*
  * Generate ZKP (7.4.2.3.2) and write it as ECSchnorrZKP (7.4.2.2.2)
  */
-static int ecjpake_zkp_write( const mbedtls_md_info_t *md_info,
+static int ecjpake_zkp_write( mbedtls_md_handle_t md_info,
                               const mbedtls_ecp_group *grp,
                               const int pf,
                               const mbedtls_ecp_point *G,
@@ -373,7 +376,7 @@ cleanup:
  * Parse a ECJPAKEKeyKP (7.4.2.2.1) and check proof
  * Output: verified public key X
  */
-static int ecjpake_kkp_read( const mbedtls_md_info_t *md_info,
+static int ecjpake_kkp_read( mbedtls_md_handle_t md_info,
                              const mbedtls_ecp_group *grp,
                              const int pf,
                              const mbedtls_ecp_point *G,
@@ -410,7 +413,7 @@ cleanup:
  * Generate an ECJPAKEKeyKP
  * Output: the serialized structure, plus private/public key pair
  */
-static int ecjpake_kkp_write( const mbedtls_md_info_t *md_info,
+static int ecjpake_kkp_write( mbedtls_md_handle_t md_info,
                               const mbedtls_ecp_group *grp,
                               const int pf,
                               const mbedtls_ecp_point *G,
@@ -447,7 +450,7 @@ cleanup:
  * Read a ECJPAKEKeyKPPairList (7.4.2.3) and check proofs
  * Ouputs: verified peer public keys Xa, Xb
  */
-static int ecjpake_kkpp_read( const mbedtls_md_info_t *md_info,
+static int ecjpake_kkpp_read( mbedtls_md_handle_t md_info,
                               const mbedtls_ecp_group *grp,
                               const int pf,
                               const mbedtls_ecp_point *G,
@@ -480,7 +483,7 @@ cleanup:
  * Generate a ECJPAKEKeyKPPairList
  * Outputs: the serialized structure, plus two private/public key pairs
  */
-static int ecjpake_kkpp_write( const mbedtls_md_info_t *md_info,
+static int ecjpake_kkpp_write( mbedtls_md_handle_t md_info,
                                const mbedtls_ecp_group *grp,
                                const int pf,
                                const mbedtls_ecp_point *G,

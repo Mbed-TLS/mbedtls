@@ -122,7 +122,7 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
     mbedtls_md_type_t md_type = MBEDTLS_MD_SHA1;
     unsigned char key[32], iv[32];
     size_t olen = 0;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_md_context_t md_ctx;
     mbedtls_cipher_type_t cipher_alg;
@@ -157,7 +157,7 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
     }
 
     md_info = mbedtls_md_info_from_type( md_type );
-    if( md_info == NULL )
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
         return( MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
     if( ( ret = mbedtls_asn1_get_alg( &p, end, &enc_scheme_oid,
@@ -356,14 +356,14 @@ static const unsigned char result_key[MAX_TESTS][32] =
 int mbedtls_pkcs5_self_test( int verbose )
 {
     mbedtls_md_context_t sha1_ctx;
-    const mbedtls_md_info_t *info_sha1;
+    mbedtls_md_handle_t info_sha1;
     int ret, i;
     unsigned char key[64];
 
     mbedtls_md_init( &sha1_ctx );
 
     info_sha1 = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 );
-    if( info_sha1 == NULL )
+    if( info_sha1 == MBEDTLS_MD_INVALID_HANDLE )
     {
         ret = 1;
         goto exit;

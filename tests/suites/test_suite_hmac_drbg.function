@@ -34,7 +34,7 @@ void hmac_drbg_entropy_usage( int md_alg )
 {
     unsigned char out[16];
     unsigned char buf[1024];
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_hmac_drbg_context ctx;
     entropy_ctx entropy;
     size_t last_len, i, reps = 10;
@@ -47,7 +47,7 @@ void hmac_drbg_entropy_usage( int md_alg )
     entropy.p = buf;
 
     md_info = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md_info != NULL );
+    TEST_ASSERT( md_info != MBEDTLS_MD_INVALID_HANDLE );
 
     /* Init must use entropy */
     last_len = entropy.len;
@@ -112,13 +112,13 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void hmac_drbg_seed_file( int md_alg, char * path, int ret )
 {
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_hmac_drbg_context ctx;
 
     mbedtls_hmac_drbg_init( &ctx );
 
     md_info = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md_info != NULL );
+    TEST_ASSERT( md_info != MBEDTLS_MD_INVALID_HANDLE );
 
     TEST_ASSERT( mbedtls_hmac_drbg_seed( &ctx, md_info, rnd_std_rand, NULL,
                                  NULL, 0 ) == 0 );
@@ -136,7 +136,7 @@ void hmac_drbg_buf( int md_alg )
 {
     unsigned char out[16];
     unsigned char buf[100];
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_hmac_drbg_context ctx;
     size_t i;
 
@@ -145,7 +145,7 @@ void hmac_drbg_buf( int md_alg )
     memset( out, 0, sizeof( out ) );
 
     md_info = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md_info != NULL );
+    TEST_ASSERT( md_info != MBEDTLS_MD_INVALID_HANDLE );
     TEST_ASSERT( mbedtls_hmac_drbg_seed_buf( &ctx, md_info, buf, sizeof( buf ) ) == 0 );
 
     /* Make sure it never tries to reseed (would segfault otherwise) */
@@ -168,7 +168,7 @@ void hmac_drbg_no_reseed( int md_alg, data_t * entropy,
     unsigned char data[1024];
     unsigned char my_output[512];
     entropy_ctx p_entropy;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_hmac_drbg_context ctx;
 
     mbedtls_hmac_drbg_init( &ctx );
@@ -177,7 +177,7 @@ void hmac_drbg_no_reseed( int md_alg, data_t * entropy,
     p_entropy.len = entropy->len;
 
     md_info = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md_info != NULL );
+    TEST_ASSERT( md_info != MBEDTLS_MD_INVALID_HANDLE );
 
     /* Test the simplified buffer-based variant */
     memcpy( data, entropy->x, p_entropy.len );
@@ -215,7 +215,7 @@ void hmac_drbg_nopr( int md_alg, data_t * entropy, data_t * custom,
 {
     unsigned char my_output[512];
     entropy_ctx p_entropy;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_hmac_drbg_context ctx;
 
     mbedtls_hmac_drbg_init( &ctx );
@@ -224,7 +224,7 @@ void hmac_drbg_nopr( int md_alg, data_t * entropy, data_t * custom,
     p_entropy.len = entropy->len;
 
     md_info = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md_info != NULL );
+    TEST_ASSERT( md_info != MBEDTLS_MD_INVALID_HANDLE );
 
     TEST_ASSERT( mbedtls_hmac_drbg_seed( &ctx, md_info, mbedtls_test_entropy_func, &p_entropy,
                                  custom->x, custom->len ) == 0 );
@@ -247,7 +247,7 @@ void hmac_drbg_pr( int md_alg, data_t * entropy, data_t * custom,
 {
     unsigned char my_output[512];
     entropy_ctx p_entropy;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_hmac_drbg_context ctx;
 
     mbedtls_hmac_drbg_init( &ctx );
@@ -256,7 +256,7 @@ void hmac_drbg_pr( int md_alg, data_t * entropy, data_t * custom,
     p_entropy.len = entropy->len;
 
     md_info = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md_info != NULL );
+    TEST_ASSERT( md_info != MBEDTLS_MD_INVALID_HANDLE );
 
     TEST_ASSERT( mbedtls_hmac_drbg_seed( &ctx, md_info, mbedtls_test_entropy_func, &p_entropy,
                                  custom->x, custom->len ) == 0 );

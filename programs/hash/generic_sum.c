@@ -53,7 +53,7 @@ int main( void )
 #else
 
 
-static int generic_wrapper( const mbedtls_md_info_t *md_info, char *filename, unsigned char *sum )
+static int generic_wrapper( mbedtls_md_handle_t md_info, char *filename, unsigned char *sum )
 {
     int ret = mbedtls_md_file( md_info, filename, sum );
 
@@ -66,7 +66,7 @@ static int generic_wrapper( const mbedtls_md_info_t *md_info, char *filename, un
     return( ret );
 }
 
-static int generic_print( const mbedtls_md_info_t *md_info, char *filename )
+static int generic_print( mbedtls_md_handle_t md_info, char *filename )
 {
     int i;
     unsigned char sum[MBEDTLS_MD_MAX_SIZE];
@@ -81,7 +81,7 @@ static int generic_print( const mbedtls_md_info_t *md_info, char *filename )
     return( 0 );
 }
 
-static int generic_check( const mbedtls_md_info_t *md_info, char *filename )
+static int generic_check( mbedtls_md_handle_t md_info, char *filename )
 {
     int i;
     size_t n;
@@ -177,7 +177,7 @@ int main( int argc, char *argv[] )
 {
     int ret = 1, i;
     int exit_code = MBEDTLS_EXIT_FAILURE;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
 
     mbedtls_md_init( &md_ctx );
@@ -210,7 +210,7 @@ int main( int argc, char *argv[] )
      * Read the MD from the command line
      */
     md_info = mbedtls_md_info_from_string( argv[1] );
-    if( md_info == NULL )
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
     {
         mbedtls_fprintf( stderr, "Message Digest '%s' not found\n", argv[1] );
         return( exit_code );

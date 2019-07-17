@@ -124,7 +124,7 @@ void mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
  * Simplified HMAC_DRBG initialisation (for use with deterministic ECDSA)
  */
 int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
-                        const mbedtls_md_info_t * md_info,
+                        mbedtls_md_handle_t md_info,
                         const unsigned char *data, size_t data_len )
 {
     int ret;
@@ -246,7 +246,7 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
  * from the entropy source as suggested in 8.6.7.
  */
 int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
-                    const mbedtls_md_info_t * md_info,
+                    mbedtls_md_handle_t md_info,
                     int (*f_entropy)(void *, unsigned char *, size_t),
                     void *p_entropy,
                     const unsigned char *custom,
@@ -564,7 +564,7 @@ int mbedtls_hmac_drbg_self_test( int verbose )
 {
     mbedtls_hmac_drbg_context ctx;
     unsigned char buf[OUTPUT_LEN];
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 );
+    mbedtls_md_handle_t md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 );
 
     mbedtls_hmac_drbg_init( &ctx );
 

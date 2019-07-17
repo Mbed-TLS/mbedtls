@@ -1128,7 +1128,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     int ret;
     unsigned char *p = output;
     unsigned int hlen;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
 
     RSA_VALIDATE_RET( ctx != NULL );
@@ -1145,7 +1145,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) ctx->hash_id );
-    if( md_info == NULL )
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     olen = ctx->len;
@@ -1326,7 +1326,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     unsigned char lhash[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
 
     RSA_VALIDATE_RET( ctx != NULL );
@@ -1349,7 +1349,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) ctx->hash_id );
-    if( md_info == NULL )
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     hlen = mbedtls_md_get_size( md_info );
@@ -1767,7 +1767,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     size_t slen, min_slen, hlen, offset = 0;
     int ret;
     size_t msb;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( mode == MBEDTLS_RSA_PRIVATE ||
@@ -1789,14 +1789,14 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     {
         /* Gather length of hash to sign */
         md_info = mbedtls_md_info_from_type( md_alg );
-        if( md_info == NULL )
+        if( md_info == MBEDTLS_MD_INVALID_HANDLE )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
         hashlen = mbedtls_md_get_size( md_info );
     }
 
     md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) ctx->hash_id );
-    if( md_info == NULL )
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     hlen = mbedtls_md_get_size( md_info );
@@ -1910,8 +1910,8 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     /* Are we signing hashed or raw data? */
     if( md_alg != MBEDTLS_MD_NONE )
     {
-        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
-        if( md_info == NULL )
+        mbedtls_md_handle_t md_info = mbedtls_md_info_from_type( md_alg );
+        if( md_info == MBEDTLS_MD_INVALID_HANDLE )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
         if( mbedtls_oid_get_oid_by_md( md_alg, &oid, &oid_size ) != 0 )
@@ -2150,7 +2150,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     unsigned char zeros[8];
     unsigned int hlen;
     size_t observed_salt_len, msb;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
 
@@ -2186,14 +2186,14 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     {
         /* Gather length of hash to sign */
         md_info = mbedtls_md_info_from_type( md_alg );
-        if( md_info == NULL )
+        if( md_info == MBEDTLS_MD_INVALID_HANDLE )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
         hashlen = mbedtls_md_get_size( md_info );
     }
 
     md_info = mbedtls_md_info_from_type( mgf1_hash_id );
-    if( md_info == NULL )
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     hlen = mbedtls_md_get_size( md_info );

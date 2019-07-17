@@ -79,7 +79,9 @@ extern const mbedtls_md_info_t mbedtls_sha224_info;
 extern const mbedtls_md_info_t mbedtls_sha256_info;
 #endif
 #if defined(MBEDTLS_SHA512_C)
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
 extern const mbedtls_md_info_t mbedtls_sha384_info;
+#endif
 extern const mbedtls_md_info_t mbedtls_sha512_info;
 #endif
 

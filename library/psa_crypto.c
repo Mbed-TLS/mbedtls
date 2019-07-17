@@ -2037,8 +2037,10 @@ static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
             return( &mbedtls_sha256_info );
 #endif
 #if defined(MBEDTLS_SHA512_C)
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
         case PSA_ALG_SHA_384:
             return( &mbedtls_sha384_info );
+#endif
         case PSA_ALG_SHA_512:
             return( &mbedtls_sha512_info );
 #endif

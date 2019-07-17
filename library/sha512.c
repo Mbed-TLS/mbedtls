@@ -256,6 +256,25 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
     for( i = 0; i < 8; i++ )
         A[i] = ctx->state[i];
 
+#if defined(MBEDTLS_SHA512_SMALLER)
+    for( i = 0; i < 80; i++ )
+    {
+        if( i < 16 )
+        {
+            GET_UINT64_BE( W[i], data, i << 3 );
+        }
+        else
+        {
+            W[i] = S1(W[i -  2]) + W[i -  7] +
+                   S0(W[i - 15]) + W[i - 16];
+        }
+
+        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i], K[i] );
+
+        temp1 = A[7]; A[7] = A[6]; A[6] = A[5]; A[5] = A[4]; A[4] = A[3];
+        A[3] = A[2]; A[2] = A[1]; A[1] = A[0]; A[0] = temp1;
+    }
+#else /* MBEDTLS_SHA512_SMALLER */
     for( i = 0; i < 16; i++ )
     {
         GET_UINT64_BE( W[i], data, i << 3 );
@@ -280,6 +299,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
         P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], W[i], K[i] ); i++;
     }
     while( i < 80 );
+#endif /* MBEDTLS_SHA512_SMALLER */
 
     for( i = 0; i < 8; i++ )
         ctx->state[i] += A[i];

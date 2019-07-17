@@ -475,20 +475,8 @@ static int sha256_wrap( const unsigned char *input, size_t ilen,
     return( mbedtls_sha256_ret( input, ilen, output, 0 ) );
 }
 
-const mbedtls_md_info_t mbedtls_sha256_info = {
-    MBEDTLS_MD_SHA256,
-    "SHA256",
-    32,
-    64,
-    sha256_starts_wrap,
-    sha224_update_wrap,
-    sha224_finish_wrap,
-    sha256_wrap,
-    sha224_ctx_alloc,
-    sha224_ctx_free,
-    sha224_clone_wrap,
-    sha224_process_wrap,
-};
+const mbedtls_md_info_t mbedtls_sha256_info =
+    MBEDTLS_MD_INFO( MBEDTLS_MD_INFO_SHA256 );
 
 #endif /* MBEDTLS_SHA256_C */
 

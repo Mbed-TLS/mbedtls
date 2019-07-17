@@ -40,6 +40,59 @@
 extern "C" {
 #endif
 
+/*
+ * Message-digest information macro definition
+ */
+
+/* SHA-256 */
+#define MBEDTLS_MD_INFO_SHA256_TYPE         MBEDTLS_MD_SHA256
+#define MBEDTLS_MD_INFO_SHA256_NAME         "SHA256"
+#define MBEDTLS_MD_INFO_SHA256_SIZE         32
+#define MBEDTLS_MD_INFO_SHA256_BLOCKSIZE    64
+#define MBEDTLS_MD_INFO_SHA256_STARTS_FUNC  sha256_starts_wrap
+#define MBEDTLS_MD_INFO_SHA256_UPDATE_FUNC  sha224_update_wrap
+#define MBEDTLS_MD_INFO_SHA256_FINISH_FUNC  sha224_finish_wrap
+#define MBEDTLS_MD_INFO_SHA256_DIGEST_FUNC  sha256_wrap
+#define MBEDTLS_MD_INFO_SHA256_ALLOC_FUNC   sha224_ctx_alloc
+#define MBEDTLS_MD_INFO_SHA256_FREE_FUNC    sha224_ctx_free
+#define MBEDTLS_MD_INFO_SHA256_CLONE_FUNC   sha224_clone_wrap
+#define MBEDTLS_MD_INFO_SHA256_PROCESS_FUNC sha224_process_wrap
+
+/*
+ * Helper macros to extract fields from ciphersuites.
+ */
+
+#define MBEDTLS_MD_INFO_TYPE_T( MD )         MD ## _TYPE
+#define MBEDTLS_MD_INFO_NAME_T( MD )         MD ## _NAME
+#define MBEDTLS_MD_INFO_SIZE_T( MD )         MD ## _SIZE
+#define MBEDTLS_MD_INFO_BLOCKSIZE_T( MD )    MD ## _BLOCKSIZE
+#define MBEDTLS_MD_INFO_STARTS_FUNC_T( MD )  MD ## _STARTS_FUNC
+#define MBEDTLS_MD_INFO_UPDATE_FUNC_T( MD )  MD ## _UPDATE_FUNC
+#define MBEDTLS_MD_INFO_FINISH_FUNC_T( MD )  MD ## _FINISH_FUNC
+#define MBEDTLS_MD_INFO_DIGEST_FUNC_T( MD )  MD ## _DIGEST_FUNC
+#define MBEDTLS_MD_INFO_ALLOC_FUNC_T( MD )    MD ## _ALLOC_FUNC
+#define MBEDTLS_MD_INFO_FREE_FUNC_T( MD ) MD ## _FREE_FUNC
+#define MBEDTLS_MD_INFO_CLONE_FUNC_T( MD )   MD ## _CLONE_FUNC
+#define MBEDTLS_MD_INFO_PROCESS_FUNC_T( MD ) MD ## _PROCESS_FUNC
+
+/* Wrapper around MBEDTLS_MD_INFO_XXX_T() which makes sure that
+ * the argument is macro-expanded before concatenated with the
+ * field name. This allows to call these macros as
+ *    MBEDTLS_MD_INFO_XXX( MBEDTLS_SSL_CONF_SINGLE_HASH ).
+ * where MBEDTLS_SSL_CONF_SINGLE_HASH expands to MBEDTLS_MD_INFO_XXX. */
+#define MBEDTLS_MD_INFO_TYPE( MD )         MBEDTLS_MD_INFO_TYPE_T( MD )
+#define MBEDTLS_MD_INFO_NAME( MD )         MBEDTLS_MD_INFO_NAME_T( MD )
+#define MBEDTLS_MD_INFO_SIZE( MD )         MBEDTLS_MD_INFO_SIZE_T( MD )
+#define MBEDTLS_MD_INFO_BLOCKSIZE( MD )    MBEDTLS_MD_INFO_BLOCKSIZE_T( MD )
+#define MBEDTLS_MD_INFO_STARTS_FUNC( MD )  MBEDTLS_MD_INFO_STARTS_FUNC_T( MD )
+#define MBEDTLS_MD_INFO_UPDATE_FUNC( MD )  MBEDTLS_MD_INFO_UPDATE_FUNC_T( MD )
+#define MBEDTLS_MD_INFO_FINISH_FUNC( MD )  MBEDTLS_MD_INFO_FINISH_FUNC_T( MD )
+#define MBEDTLS_MD_INFO_DIGEST_FUNC( MD )  MBEDTLS_MD_INFO_DIGEST_FUNC_T( MD )
+#define MBEDTLS_MD_INFO_ALLOC_FUNC( MD )   MBEDTLS_MD_INFO_ALLOC_FUNC_T( MD )
+#define MBEDTLS_MD_INFO_FREE_FUNC( MD )    MBEDTLS_MD_INFO_FREE_FUNC_T( MD )
+#define MBEDTLS_MD_INFO_CLONE_FUNC( MD )   MBEDTLS_MD_INFO_CLONE_FUNC_T( MD )
+#define MBEDTLS_MD_INFO_PROCESS_FUNC( MD ) MBEDTLS_MD_INFO_PROCESS_FUNC_T( MD )
+
 /**
  * Message digest information.
  * Allows message digest functions to be called in a generic way.
@@ -97,6 +150,24 @@ struct mbedtls_md_info_t
     /** Internal use only */
     mbedtls_md_process_func_t *process_func;
 };
+
+/**
+ * \brief   This macro builds an instance of ::mbedtls_md_info_t
+ *          from an \c MBEDTLS_MD_INFO_XXX identifier.
+ */
+#define MBEDTLS_MD_INFO( MD )                  \
+    { MBEDTLS_MD_INFO_TYPE( MD ),              \
+      MBEDTLS_MD_INFO_NAME( MD ),              \
+      MBEDTLS_MD_INFO_SIZE( MD ),              \
+      MBEDTLS_MD_INFO_BLOCKSIZE( MD ),         \
+      MBEDTLS_MD_INFO_STARTS_FUNC(  MD ),      \
+      MBEDTLS_MD_INFO_UPDATE_FUNC( MD ),       \
+      MBEDTLS_MD_INFO_FINISH_FUNC( MD ),       \
+      MBEDTLS_MD_INFO_DIGEST_FUNC( MD ),       \
+      MBEDTLS_MD_INFO_ALLOC_FUNC( MD ),        \
+      MBEDTLS_MD_INFO_FREE_FUNC( MD ),         \
+      MBEDTLS_MD_INFO_CLONE_FUNC( MD ),        \
+      MBEDTLS_MD_INFO_PROCESS_FUNC( MD ) }
 
 /*
  * Getter functions for MD info structure.

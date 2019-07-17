@@ -49,6 +49,8 @@
 #include <stdio.h>
 #endif
 
+#include "md_wrap.c"
+
 /*
  * Reminder: update profiles in x509_crt.c when adding a new hash!
  */

@@ -114,7 +114,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_MD_SINGLE_HASH */
 void test_hkdf_extract_ret( int hash_len, int ret )
 {
     int output_ret;
@@ -141,7 +141,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_MD_SINGLE_HASH */
 void test_hkdf_expand_ret( int hash_len, int prk_len, int okm_len, int ret )
 {
     int output_ret;

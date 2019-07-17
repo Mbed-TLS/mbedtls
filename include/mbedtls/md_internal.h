@@ -44,6 +44,21 @@ extern "C" {
  * Message digest information.
  * Allows message digest functions to be called in a generic way.
  */
+
+typedef int mbedtls_md_starts_func_t( void *ctx );
+typedef int mbedtls_md_update_func_t( void *ctx,
+                                       const unsigned char *input,
+                                       size_t ilen );
+typedef int mbedtls_md_finish_func_t( void *ctx, unsigned char *output );
+typedef int mbedtls_md_digest_func_t( const unsigned char *input,
+                                       size_t ilen,
+                                       unsigned char *output );
+typedef void* mbedtls_md_ctx_alloc_func_t( void );
+typedef void mbedtls_md_ctx_free_func_t( void *ctx );
+typedef void mbedtls_md_clone_func_t( void *st, const void *src );
+typedef int mbedtls_md_process_func_t( void *ctx,
+                                          const unsigned char *input );
+
 struct mbedtls_md_info_t
 {
     /** Digest identifier */
@@ -59,30 +74,105 @@ struct mbedtls_md_info_t
     int block_size;
 
     /** Digest initialisation function */
-    int (*starts_func)( void *ctx );
+    mbedtls_md_starts_func_t *starts_func;
 
     /** Digest update function */
-    int (*update_func)( void *ctx, const unsigned char *input, size_t ilen );
+    mbedtls_md_update_func_t *update_func;
 
     /** Digest finalisation function */
-    int (*finish_func)( void *ctx, unsigned char *output );
+    mbedtls_md_finish_func_t *finish_func;
 
     /** Generic digest function */
-    int (*digest_func)( const unsigned char *input, size_t ilen,
-                        unsigned char *output );
+    mbedtls_md_digest_func_t *digest_func;
 
     /** Allocate a new context */
-    void * (*ctx_alloc_func)( void );
+    mbedtls_md_ctx_alloc_func_t *ctx_alloc_func;
 
     /** Free the given context */
-    void (*ctx_free_func)( void *ctx );
+    mbedtls_md_ctx_free_func_t *ctx_free_func;
 
     /** Clone state from a context */
-    void (*clone_func)( void *dst, const void *src );
+    mbedtls_md_clone_func_t *clone_func;
 
     /** Internal use only */
-    int (*process_func)( void *ctx, const unsigned char *input );
+    mbedtls_md_process_func_t *process_func;
 };
+
+/*
+ * Getter functions for MD info structure.
+ */
+
+static inline mbedtls_md_type_t mbedtls_md_info_type(
+    mbedtls_md_handle_t info )
+{
+    return( info->type );
+}
+
+static inline const char * mbedtls_md_info_name(
+    mbedtls_md_handle_t info )
+{
+    return( info->name );
+}
+
+static inline int mbedtls_md_info_size(
+    mbedtls_md_handle_t info )
+{
+    return( info->size );
+}
+
+static inline int mbedtls_md_info_block_size(
+    mbedtls_md_handle_t info )
+{
+    return( info->block_size );
+}
+
+static inline mbedtls_md_starts_func_t *mbedtls_md_info_starts_func(
+    mbedtls_md_handle_t info )
+{
+    return( info->starts_func );
+}
+
+static inline mbedtls_md_update_func_t *mbedtls_md_info_update_func(
+    mbedtls_md_handle_t info )
+{
+    return( info->update_func );
+}
+
+static inline mbedtls_md_finish_func_t *mbedtls_md_info_finish_func(
+    mbedtls_md_handle_t info )
+{
+    return( info->finish_func );
+}
+
+static inline mbedtls_md_digest_func_t *mbedtls_md_info_digest_func(
+    mbedtls_md_handle_t info )
+{
+    return( info->digest_func );
+}
+
+static inline mbedtls_md_ctx_alloc_func_t *mbedtls_md_info_ctx_alloc_func(
+    mbedtls_md_handle_t info )
+{
+    return( info->ctx_alloc_func );
+}
+
+static inline mbedtls_md_ctx_free_func_t *mbedtls_md_info_ctx_free_func(
+    mbedtls_md_handle_t info )
+{
+    return( info->ctx_free_func );
+}
+
+static inline mbedtls_md_clone_func_t *mbedtls_md_info_clone_func(
+    mbedtls_md_handle_t info )
+{
+    return( info->clone_func );
+}
+
+static inline mbedtls_md_process_func_t *mbedtls_md_info_process_func(
+    mbedtls_md_handle_t info )
+{
+    return( info->process_func );
+}
 
 #if defined(MBEDTLS_MD2_C)
 extern const mbedtls_md_info_t mbedtls_md2_info;

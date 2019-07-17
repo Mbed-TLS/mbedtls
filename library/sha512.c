@@ -228,7 +228,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
 {
     int i;
     uint64_t temp1, temp2, W[80];
-    uint64_t A, B, C, D, E, F, G, H;
+    uint64_t A[8];
 
     SHA512_VALIDATE_RET( ctx != NULL );
     SHA512_VALIDATE_RET( (const unsigned char *)data != NULL );
@@ -253,6 +253,9 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
         (d) += temp1; (h) = temp1 + temp2;                      \
     } while( 0 )
 
+    for( i = 0; i < 8; i++ )
+        A[i] = ctx->state[i];
+
     for( i = 0; i < 16; i++ )
     {
         GET_UINT64_BE( W[i], data, i << 3 );
@@ -264,37 +267,22 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
                S0(W[i - 15]) + W[i - 16];
     }
 
-    A = ctx->state[0];
-    B = ctx->state[1];
-    C = ctx->state[2];
-    D = ctx->state[3];
-    E = ctx->state[4];
-    F = ctx->state[5];
-    G = ctx->state[6];
-    H = ctx->state[7];
     i = 0;
-
     do
     {
-        P( A, B, C, D, E, F, G, H, W[i], K[i] ); i++;
-        P( H, A, B, C, D, E, F, G, W[i], K[i] ); i++;
-        P( G, H, A, B, C, D, E, F, W[i], K[i] ); i++;
-        P( F, G, H, A, B, C, D, E, W[i], K[i] ); i++;
-        P( E, F, G, H, A, B, C, D, W[i], K[i] ); i++;
-        P( D, E, F, G, H, A, B, C, W[i], K[i] ); i++;
-        P( C, D, E, F, G, H, A, B, W[i], K[i] ); i++;
-        P( B, C, D, E, F, G, H, A, W[i], K[i] ); i++;
+        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i], K[i] ); i++;
+        P( A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], W[i], K[i] ); i++;
+        P( A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], W[i], K[i] ); i++;
+        P( A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], W[i], K[i] ); i++;
+        P( A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], W[i], K[i] ); i++;
+        P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], W[i], K[i] ); i++;
+        P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], W[i], K[i] ); i++;
+        P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], W[i], K[i] ); i++;
     }
     while( i < 80 );
 
-    ctx->state[0] += A;
-    ctx->state[1] += B;
-    ctx->state[2] += C;
-    ctx->state[3] += D;
-    ctx->state[4] += E;
-    ctx->state[5] += F;
-    ctx->state[6] += G;
-    ctx->state[7] += H;
+    for( i = 0; i < 8; i++ )
+        ctx->state[i] += A[i];
 
     return( 0 );
 }

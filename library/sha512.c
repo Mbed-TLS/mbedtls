@@ -151,6 +151,9 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
     }
     else
     {
+#if defined(MBEDTLS_SHA512_NO_SHA384)
+        return( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+#else
         /* SHA-384 */
         ctx->state[0] = UL64(0xCBBB9D5DC1059ED8);
         ctx->state[1] = UL64(0x629A292A367CD507);
@@ -160,9 +163,12 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
         ctx->state[5] = UL64(0x8EB44A8768581511);
         ctx->state[6] = UL64(0xDB0C2E0D64F98FA7);
         ctx->state[7] = UL64(0x47B5481DBEFA4FA4);
+#endif /* MBEDTLS_SHA512_NO_SHA384 */
     }
 
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
     ctx->is384 = is384;
+#endif
 
     return( 0 );
 }
@@ -437,7 +443,9 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
     sha512_put_uint64_be( ctx->state[4], output, 32 );
     sha512_put_uint64_be( ctx->state[5], output, 40 );
 
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
     if( ctx->is384 == 0 )
+#endif
     {
         sha512_put_uint64_be( ctx->state[6], output, 48 );
         sha512_put_uint64_be( ctx->state[7], output, 56 );

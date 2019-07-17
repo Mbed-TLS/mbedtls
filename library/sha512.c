@@ -524,8 +524,9 @@ static const size_t sha512_test_buflen[3] =
     3, 112, 1000
 };
 
-static const unsigned char sha512_test_sum[6][64] =
+static const unsigned char sha512_test_sum[][64] =
 {
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
     /*
      * SHA-384 test vectors
      */
@@ -547,6 +548,7 @@ static const unsigned char sha512_test_sum[6][64] =
       0x79, 0x72, 0xCE, 0xC5, 0x70, 0x4C, 0x2A, 0x5B,
       0x07, 0xB8, 0xB3, 0xDC, 0x38, 0xEC, 0xC4, 0xEB,
       0xAE, 0x97, 0xDD, 0xD8, 0x7F, 0x3D, 0x89, 0x85 },
+#endif /* !MBEDTLS_SHA512_NO_SHA384 */
 
     /*
      * SHA-512 test vectors
@@ -577,6 +579,10 @@ static const unsigned char sha512_test_sum[6][64] =
       0x4E, 0xAD, 0xB2, 0x17, 0xAD, 0x8C, 0xC0, 0x9B }
 };
 
+#define SHA512_TEST_SUM_N \
+    ( sizeof( sha512_test_sum ) / sizeof( sha512_test_sum[0] ) )
+
+
 /*
  * Checkup routine
  */
@@ -598,10 +604,14 @@ int mbedtls_sha512_self_test( int verbose )
 
     mbedtls_sha512_init( &ctx );
 
-    for( i = 0; i < 6; i++ )
+    for( i = 0; i < (int) SHA512_TEST_SUM_N; i++ )
     {
         j = i % 3;
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
         k = i < 3;
+#else
+        k = 0;
+#endif
 
         if( verbose != 0 )
             mbedtls_printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );

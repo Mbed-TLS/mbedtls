@@ -414,6 +414,9 @@ static const char * const features[] = {
 #if defined(MBEDTLS_SHA512_SMALLER)
     "MBEDTLS_SHA512_SMALLER",
 #endif /* MBEDTLS_SHA512_SMALLER */
+#if defined(MBEDTLS_SHA512_NO_SHA384)
+    "MBEDTLS_SHA512_NO_SHA384",
+#endif /* MBEDTLS_SHA512_NO_SHA384 */
 #if defined(MBEDTLS_THREADING_ALT)
     "MBEDTLS_THREADING_ALT",
 #endif /* MBEDTLS_THREADING_ALT */

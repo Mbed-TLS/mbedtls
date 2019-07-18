@@ -1996,6 +1996,14 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total input size passed to this operation is not valid for
+ *         this particular algorithm. For example, the algorithm is a based
+ *         on block cipher and requires a whole number of blocks, but the
+ *         total input size is not a multiple of the block size.
+ * \retval #PSA_ERROR_INVALID_PADDING
+ *         This is a decryption operation for an algorithm that includes
+ *         padding, and the ciphertext does not contain valid padding.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (not set up, IV required but
  *         not set, or already completed).

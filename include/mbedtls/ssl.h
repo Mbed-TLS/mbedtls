@@ -1904,7 +1904,7 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
  *                 and authentic record (DTLS only).
  *
  *                 This function does not change the user-visible state
- *                 of the SSL context. It's sole purpose is to provide
+ *                 of the SSL context. Its sole purpose is to provide
  *                 an indication of the legitimacy of an incoming record.
  *
  *                 This can be useful e.g. in distributed server environments
@@ -1922,7 +1922,7 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
  * \note           This routine only checks whether the provided buffer begins
  *                 with a valid, fresh and authentic record, but does not check
  *                 potential data following the initial record. In particular,
- *                 it is possible to pass DTLS datagrams containing  records,
+ *                 it is possible to pass DTLS datagrams containing records,
  *                 in which case only the first record is checked.
  *
  * \note           This function modifies the input buffer \p buf. If you need

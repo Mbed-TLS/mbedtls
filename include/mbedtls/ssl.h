@@ -1759,7 +1759,7 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 #if defined(MBEDTLS_SSL_RECORD_CHECKING)
 /**
  * \brief          Check whether a buffer contains a valid, fresh
- *                 and authentic application data record (DTLS only).
+ *                 and authentic record (DTLS only).
  *
  *                 This function does not change the user-visible state
  *                 of the SSL context. It's sole purpose is to provide
@@ -1786,7 +1786,7 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
  * \note           This function modifies the input buffer \p buf. If you need
  *                 to preserve the original record, you have to maintain a copy.
  *
- * \return         \c 0 if the record is valid, fresh (DTLS only) and authentic.
+ * \return         \c 0 if the record is valid, fresh and authentic.
  * \return         MBEDTLS_ERR_SSL_INVALID_MAC if the check completed
  *                 successfully but the record was found to be not authentic.
  * \return         MBEDTLS_ERR_SSL_INVALID_RECORD if the check completed

@@ -53,20 +53,6 @@ int fuzz_recv( void *ctx, unsigned char *buf, size_t len )
     return( (int) len );
 }
 
-int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
-{
-    int ret;
-    size_t i;
-
-    //use mbedtls_ctr_drbg_random to find bugs in it
-    ret = mbedtls_ctr_drbg_random(p_rng, output, output_len);
-    for (i=0; i<output_len; i++) {
-        //replace result with pseudo random
-        output[i] = (unsigned char) rand();
-    }
-    return( ret );
-}
-
 int dummy_entropy( void *data, unsigned char *output, size_t len )
 {
     size_t i;

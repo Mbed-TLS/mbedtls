@@ -59,6 +59,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     mbedtls_entropy_init( &entropy );
     mbedtls_ssl_cookie_init( &cookie_ctx );
 
+    srand( 1 );
     if( mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy, &entropy,
                               (const unsigned char *) pers, strlen( pers ) ) != 0 )
         goto exit;
@@ -71,8 +72,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
         goto exit;
 
 
-    srand(1);
-    mbedtls_ssl_conf_rng( &conf, dummy_random, &ctr_drbg );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
@@ -80,7 +80,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
         goto exit;
 #endif
 
-    if( mbedtls_ssl_cookie_setup( &cookie_ctx, dummy_random, &ctr_drbg ) != 0 )
+    if( mbedtls_ssl_cookie_setup( &cookie_ctx, mbedtls_ctr_drbg_random, &ctr_drbg ) != 0 )
         goto exit;
 
     mbedtls_ssl_conf_dtls_cookies( &conf, mbedtls_ssl_cookie_write, mbedtls_ssl_cookie_check, &cookie_ctx );

@@ -5141,21 +5141,23 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 
-        /* Records from the next epoch are considered for buffering
-         * (concretely: early Finished messages). */
-        if( rec_epoch == (unsigned) ssl->in_epoch + 1 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "Consider record for buffering" ) );
-            return( MBEDTLS_ERR_SSL_EARLY_MESSAGE );
-        }
         /* Records from other, non-matching epochs are silently discarded.
          * (The case of same-port Client reconnects must be considered in
          *  the caller). */
-        else if( rec_epoch != ssl->in_epoch )
+        if( rec_epoch != ssl->in_epoch )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "record from another epoch: "
                                         "expected %d, received %d",
                                         ssl->in_epoch, rec_epoch ) );
+
+            /* Records from the next epoch are considered for buffering
+             * (concretely: early Finished messages). */
+            if( rec_epoch == (unsigned) ssl->in_epoch + 1 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "Consider record for buffering" ) );
+                return( MBEDTLS_ERR_SSL_EARLY_MESSAGE );
+            }
+
             return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
         }
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)

@@ -792,6 +792,25 @@ component_test_hardcoded_timer_callback_cmake_clang() {
     if_build_succeeded tests/ssl-opt.sh -f '^Default$\|^Default, DTLS$'
 }
 
+component_test_hardcoded_version_cmake_clang() {
+    msg "build: cmake, full config + hardcoded version, clang" # ~ 50s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_SSL_CONF_MIN_MINOR_VER MBEDTLS_SSL_MINOR_VERSION_3
+    scripts/config.pl set MBEDTLS_SSL_CONF_MAX_MINOR_VER MBEDTLS_SSL_MINOR_VERSION_3
+    scripts/config.pl set MBEDTLS_SSL_CONF_MIN_MAJOR_VER MBEDTLS_SSL_MAJOR_VERSION_3
+    scripts/config.pl set MBEDTLS_SSL_CONF_MAX_MAJOR_VER MBEDTLS_SSL_MAJOR_VERSION_3
+    CC=clang cmake -D LINK_WITH_PTHREAD=1 -D CMAKE_BUILD_TYPE:String=ASanDbg -D ENABLE_TESTING=On .
+    make
+
+    msg "test: main suites (full config + hardcoded version)" # ~ 5s
+    make test
+
+    msg "test: ssl-opt.sh default (full config + hardcoded version)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f '^Default$\|^Default, DTLS$'
+}
+
 component_build_deprecated () {
     msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
     scripts/config.pl full

@@ -46,17 +46,17 @@ extern "C" {
  */
 struct mbedtls_md_info_t
 {
-    /** Digest identifier */
-    mbedtls_md_type_t type;
-
     /** Name of the message digest */
     const char * name;
 
+    /** Digest identifier */
+    mbedtls_md_type_t type;
+
     /** Output length of the digest function in bytes */
-    int size;
+    unsigned char size;
 
     /** Block length of the digest function in bytes */
-    int block_size;
+    unsigned char block_size;
 };
 
 #if defined(MBEDTLS_MD2_C)

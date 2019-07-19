@@ -59,8 +59,8 @@
 
 #if defined(MBEDTLS_MD2_C)
 const mbedtls_md_info_t mbedtls_md2_info = {
-    MBEDTLS_MD_MD2,
     "MD2",
+    MBEDTLS_MD_MD2,
     16,
     16,
 };
@@ -68,8 +68,8 @@ const mbedtls_md_info_t mbedtls_md2_info = {
 
 #if defined(MBEDTLS_MD4_C)
 const mbedtls_md_info_t mbedtls_md4_info = {
-    MBEDTLS_MD_MD4,
     "MD4",
+    MBEDTLS_MD_MD4,
     16,
     64,
 };
@@ -77,8 +77,8 @@ const mbedtls_md_info_t mbedtls_md4_info = {
 
 #if defined(MBEDTLS_MD5_C)
 const mbedtls_md_info_t mbedtls_md5_info = {
-    MBEDTLS_MD_MD5,
     "MD5",
+    MBEDTLS_MD_MD5,
     16,
     64,
 };
@@ -86,8 +86,8 @@ const mbedtls_md_info_t mbedtls_md5_info = {
 
 #if defined(MBEDTLS_RIPEMD160_C)
 const mbedtls_md_info_t mbedtls_ripemd160_info = {
-    MBEDTLS_MD_RIPEMD160,
     "RIPEMD160",
+    MBEDTLS_MD_RIPEMD160,
     20,
     64,
 };
@@ -95,8 +95,8 @@ const mbedtls_md_info_t mbedtls_ripemd160_info = {
 
 #if defined(MBEDTLS_SHA1_C)
 const mbedtls_md_info_t mbedtls_sha1_info = {
-    MBEDTLS_MD_SHA1,
     "SHA1",
+    MBEDTLS_MD_SHA1,
     20,
     64,
 };
@@ -104,15 +104,15 @@ const mbedtls_md_info_t mbedtls_sha1_info = {
 
 #if defined(MBEDTLS_SHA256_C)
 const mbedtls_md_info_t mbedtls_sha224_info = {
-    MBEDTLS_MD_SHA224,
     "SHA224",
+    MBEDTLS_MD_SHA224,
     28,
     64,
 };
 
 const mbedtls_md_info_t mbedtls_sha256_info = {
-    MBEDTLS_MD_SHA256,
     "SHA256",
+    MBEDTLS_MD_SHA256,
     32,
     64,
 };
@@ -120,15 +120,15 @@ const mbedtls_md_info_t mbedtls_sha256_info = {
 
 #if defined(MBEDTLS_SHA512_C)
 const mbedtls_md_info_t mbedtls_sha384_info = {
-    MBEDTLS_MD_SHA384,
     "SHA384",
+    MBEDTLS_MD_SHA384,
     48,
     128,
 };
 
 const mbedtls_md_info_t mbedtls_sha512_info = {
-    MBEDTLS_MD_SHA512,
     "SHA512",
+    MBEDTLS_MD_SHA512,
     64,
     128,
 };

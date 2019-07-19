@@ -14,6 +14,7 @@ Bugfix
      if some curves are not defined. Fixes #1591 reported by dbedev.
    * Fix misuse of signed arithmetic in the HAVEGE module. #2598
    * Fix undefined memset(NULL) call in test_suite_nist_kw.
+   * Make NV seed test support MBEDTLS_ENTROPY_FORCE_SHA256.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

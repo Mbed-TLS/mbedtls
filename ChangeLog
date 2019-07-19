@@ -13,6 +13,9 @@ Bugfix
    * Enable Suite B with subset of ECP curves. Make sure the code compiles even
      if some curves are not defined. Fixes #1591 reported by dbedev.
    * Fix misuse of signed arithmetic in the HAVEGE module. #2598
+   * Fix propagation of restart contexts in restartable EC operations.
+     This could previously lead to segmentation faults in builds using an
+     address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

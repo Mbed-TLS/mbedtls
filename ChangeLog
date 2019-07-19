@@ -13,6 +13,7 @@ Bugfix
    * Enable Suite B with subset of ECP curves. Make sure the code compiles even
      if some curves are not defined. Fixes #1591 reported by dbedev.
    * Fix misuse of signed arithmetic in the HAVEGE module. #2598
+   * Make NV seed test support MBEDTLS_ENTROPY_FORCE_SHA256.
 
 Changes
    * Make `make clean` clean all programs always. Fixes #1862.

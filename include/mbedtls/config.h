@@ -2872,6 +2872,41 @@
 //#define MBEDTLS_PSA_ITS_FILE_C
 
 /**
+ * \def MBEDTLS_PSA_ITS_FILE_C_INCLUDE_TEST
+ *
+ *
+ * Compile persistent storage test cases irrespective of whether
+ * MBEDTLS_PSA_ITS_FILE_C is defined or not. For example, affected
+ * test cases include:
+ *  - test_suite_psa_its
+ *  - test_suite_psa_crypto_persistent_key
+ * This is needed when using psa-storage as the backend and therefore
+ * MBEDTLS_PSA_ITS_FILE_C is undefined.
+ *
+ * Module:  test cases
+ *
+ * Requires: None
+ */
+#define MBEDTLS_PSA_ITS_FILE_C_INCLUDE_TEST
+
+/**
+ * \def MBEDTLS_PSA_ITS_FILE_C_STORAGE_PREFIX
+ *
+ * Define the path to the directory for Internal Trusted Storage
+ * (PSA ITS) files representing persisted objects. For example,
+ * to store files in "/home/username" define
+ * MBEDTLS_PSA_ITS_FILE_C_STORAGE_PREFIX "/home/username/"
+ * (note the appended "/").
+ *
+ * Module:  library/psa_its_file.c
+ *
+ * Requires: MBEDTLS_FS_IO
+ */
+#if ! defined(MBEDTLS_PSA_ITS_FILE_C_STORAGE_PREFIX)
+#define MBEDTLS_PSA_ITS_FILE_C_STORAGE_PREFIX ""
+#endif
+
+/**
  * \def MBEDTLS_RIPEMD160_C
  *
  * Enable the RIPEMD-160 hash algorithm.

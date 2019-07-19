@@ -170,10 +170,6 @@ void nist_kw_plaintext_lengths( int in_len, int out_len, int mode, int res )
         TEST_ASSERT( ciphertext != NULL );
     }
 
-    memset( plaintext, 0, in_len );
-    memset( ciphertext, 0, output_len );
-
-
     TEST_ASSERT( mbedtls_nist_kw_setkey( &ctx, MBEDTLS_CIPHER_ID_AES,
                                          key, 8 * sizeof( key ), 1 ) == 0 );
 
@@ -224,10 +220,6 @@ void nist_kw_ciphertext_lengths( int in_len, int out_len, int mode, int res )
         ciphertext = mbedtls_calloc( 1, in_len );
         TEST_ASSERT( ciphertext != NULL );
     }
-
-    memset( plaintext, 0, output_len );
-    memset( ciphertext, 0, in_len );
-
 
     TEST_ASSERT( mbedtls_nist_kw_setkey( &ctx, MBEDTLS_CIPHER_ID_AES,
                                          key, 8 * sizeof( key ), 0 ) == 0 );

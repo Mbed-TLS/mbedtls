@@ -965,7 +965,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     p += 2;
 
     MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,
-                                            ssl->minor_ver,
+                                            mbedtls_ssl_get_minor_ver( ssl ),
                                             ciphersuite_info )
     {
         if( ssl_validate_ciphersuite( ciphersuite_info, ssl,
@@ -1885,7 +1885,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      * Perform cipher suite validation in same way as in ssl_write_client_hello.
      */
     MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,
-                                            ssl->minor_ver,
+                                            mbedtls_ssl_get_minor_ver( ssl ),
                                             ciphersuite_info )
     {
         if( ssl_validate_ciphersuite( ciphersuite_info, ssl,

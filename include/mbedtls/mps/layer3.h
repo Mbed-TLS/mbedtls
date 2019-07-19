@@ -634,6 +634,10 @@ MBEDTLS_MPS_PUBLIC int mps_l3_free( mps_l3 *l3 );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
+
+/* OPTIMIZATION:
+ * Subsume mps_l3_read() with mps_l3_read_XXX() by filling
+ * an indexed union of mps_l3_in_xxx on success. */
 MBEDTLS_MPS_PUBLIC int mps_l3_read( mps_l3 *l3 );
 
 /**

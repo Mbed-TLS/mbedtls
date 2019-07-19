@@ -2681,8 +2681,14 @@ send_request:
                 goto exit;
             }
 
+#if !defined(MBEDTLS_SSL_CONF_RECV) &&          \
+    !defined(MBEDTLS_SSL_CONF_SEND) &&          \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
             mbedtls_ssl_set_bio( &ssl, &io_ctx, send_cb, recv_cb,
                                  opt.nbio == 0 ? recv_timeout_cb : NULL );
+#else
+            mbedtls_ssl_set_bio_ctx( &ssl, &server_fd );
+#endif
 
 #if defined(MBEDTLS_TIMING_C)
 #if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \

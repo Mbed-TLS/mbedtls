@@ -649,7 +649,14 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
+#if !defined(MBEDTLS_SSL_CONF_RECV) &&          \
+    !defined(MBEDTLS_SSL_CONF_SEND) &&          \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
+        mbedtls_ssl_set_bio( &ssl, &server_fd,
+                             mbedtls_net_send, mbedtls_net_recv, NULL );
+#else
+        mbedtls_ssl_set_bio_ctx( &ssl, &server_fd );
+#endif
 
     mbedtls_printf( " ok\n" );
 

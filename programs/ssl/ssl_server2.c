@@ -3714,12 +3714,19 @@ data_exchange:
 
             /*
              * This illustrates the minimum amount of things you need to set
-             * up, however you could set up much more if desired, for example
-             * if you want to share your set up code between the case of
-             * establishing a new connection and this case.
+             * up: I/O and timer callbacks/contexts; however you could set up
+             * much more if desired, for example if you want to share your set
+             * up code between the case of establishing a new connection and
+             * this case.
              */
+#if !defined(MBEDTLS_SSL_CONF_RECV) &&          \
+    !defined(MBEDTLS_SSL_CONF_SEND) &&          \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
             mbedtls_ssl_set_bio( &ssl, &io_ctx, send_cb, recv_cb,
                                  opt.nbio == 0 ? recv_timeout_cb : NULL );
+#else
+            mbedtls_ssl_set_bio_ctx( &ssl, &client_fd );
+#endif
 
 #if defined(MBEDTLS_TIMING_C)
 #if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \

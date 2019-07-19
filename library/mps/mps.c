@@ -138,16 +138,17 @@ MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
  *  Possible values are:
  *  - #MPS_DTLS_FRAG_OUT_START_USE_L3
  *    In this type, the message writer operates on a buffer obtained from
- *    Layer 3, and only resorts to the queue if necessary and available.
+ *    Layer 3, and only resorts to a separately allocated queue if
+ *    necessary and available.
  *    This type is used for messages which don't need to be backed
  *    up for the purpose of retransmission (e.g. because a retransmission
  *    callback is registered for them); for those, it is desirable to work
  *    in place on the buffer(s) obtained from Layer 3 as much as possible.
  *
  *  - #MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY
- *    In this type, the writer operates on the queue only. Gradual copying
- *    and dispatching to fragment buffers from Layer 3 happens only after
- *    the message has been fully written to the queue.
+ *    In this type, the writer operates on a separate queue only. Gradual
+ *    copying and dispatching to fragment buffers from Layer 3 happens only
+ *    after the message has been fully written to the queue.
  *    This type is used to write messages that need to be backed up for
  *    retransmission; in this case, the backup buffer functions as the
  *    queue, so that the user writing the message directly writes it
@@ -189,7 +190,8 @@ typedef uint8_t mps_dtls_outgoing_hs_msg_mode;
  *  - If \p mode is #MPS_DTLS_FRAG_OUT_START_FROM_QUEUE, the outgoing
  *    handshake message structure is in state #MBEDTLS_MPS_HS_PAUSED.
  */
-MBEDTLS_MPS_STATIC int mps_dtls_frag_out_start( mbedtls_mps_handshake_out_internal *hs,
+MBEDTLS_MPS_STATIC int mps_dtls_frag_out_start(
+                                    mbedtls_mps_handshake_out_internal *hs,
                                     unsigned char *queue,
                                     mbedtls_mps_size_t queue_len,
                                     mbedtls_mps_msg_metadata *metadata,
@@ -228,12 +230,8 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
 MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_dtls_frag_out_dispatch( mbedtls_mps *mps );
 
+/* TODO: Document */
 MBEDTLS_MPS_STATIC int mps_dtls_frag_out_bind( mbedtls_mps *mps );
-/*  The combination of mps_dtls_frag_out_get() and
- *  mps_dtls_frag_out_track() moves the outgoing handshake
- *  message structure from state #MBEDTLS_MPS_HS_PAUSED ... */
-/* static int mps_dtls_frag_out_get( mbedtls_mps *mps ); */
-/* static int mps_dtls_frag_out_track( mbedtls_mps *mps ); */
 
 /*
  * State interface for the retransmission state machine
@@ -259,15 +257,25 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps );
  * Incoming flight retransmission detection
  */
 
+/* Check whether an incoming handshake message is a
+ * retransmission from the previous incoming flight. */
 MBEDTLS_MPS_STATIC int mps_retransmit_in_check( mbedtls_mps *mps,
                                     mps_l3_handshake_in *hs );
+/* Remember a handshake message in the current incoming flight
+ * to be able to detect subsequent retransmissions. */
 MBEDTLS_MPS_STATIC int mps_retransmit_in_remember( mbedtls_mps *mps,
                                        mbedtls_mps_handshake_in *hs_in,
                                        uint8_t seq_nr );
+/* Initialize the structure used to remember incoming flights. */
 MBEDTLS_MPS_STATIC int mps_retransmit_in_init( mbedtls_mps *mps );
+/* Free the structure used to remember incoming flights. */
 MBEDTLS_MPS_STATIC int mps_retransmit_in_free( mbedtls_mps *mps );
+/* Clear memory of last incoming flight. Used when receiving the
+ * first message in a new incoming flight, at which point we can
+ * remove all memory of the last incoming flight. */
 MBEDTLS_MPS_STATIC int mps_retransmit_in_forget( mbedtls_mps *mps );
 
+/* TODO: Document */
 MBEDTLS_MPS_STATIC int mps_check_retransmit( mbedtls_mps *mps );
 
 /*

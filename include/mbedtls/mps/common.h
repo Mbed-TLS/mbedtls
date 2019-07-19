@@ -156,9 +156,15 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
 #if defined(MBEDTLS_MPS_NO_STATIC_FUNCTIONS)
 #define MBEDTLS_MPS_STATIC
 #define MBEDTLS_MPS_INLINE
+#define MBEDTLS_MPS_ALWAYS_INLINE
 #else
 #define MBEDTLS_MPS_STATIC static
 #define MBEDTLS_MPS_INLINE static inline
+#if defined(__arm__) || defined(__gcc__)
+#define MBEDTLS_MPS_ALWAYS_INLINE __attribute__((always_inline)) static inline
+#else
+#define MBEDTLS_MPS_ALWAYS_INLINE static inline
+#endif
 #endif /* MBEDTLS_MPS_NO_STATIC_FUNCTIONS */
 
 #if !defined(MBEDTLS_MPS_SEPARATE_LAYERS)

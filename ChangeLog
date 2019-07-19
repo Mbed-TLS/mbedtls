@@ -13,6 +13,9 @@ Bugfix
    * Enable Suite B with subset of ECP curves. Make sure the code compiles even
      if some curves are not defined. Fixes #1591 reported by dbedev.
    * Fix misuse of signed arithmetic in the HAVEGE module. #2598
+   * Remove call to memset() with NULL buffer in NIST KW test suite.
+     This could previously lead to failure of the NIST KW test suite
+     in builds using address sanitizer.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

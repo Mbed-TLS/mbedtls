@@ -37,15 +37,15 @@
 #define MBEDTLS_CTR_DRBG_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "aes.h"
+#include "mbedtls/aes.h"
 
 #if defined(MBEDTLS_THREADING_C)
-#include "threading.h"
+#include "mbedtls/threading.h"
 #endif
 
 #define MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED        -0x0034  /**< The entropy source failed. */

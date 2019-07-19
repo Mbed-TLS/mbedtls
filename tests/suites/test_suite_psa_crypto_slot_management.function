@@ -50,8 +50,8 @@ void psa_purge_key_storage( void )
 #define TEST_MAX_KEY_ID( key_id ) ( (void) ( key_id ) )
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
-static int psa_key_policy_equal( psa_key_policy_t *p1,
-                                 psa_key_policy_t *p2 )
+int psa_key_policy_equal( psa_key_policy_t *p1,
+                          psa_key_policy_t *p2 )
 {
     return( psa_key_policy_get_usage( p1 ) == psa_key_policy_get_usage( p2 ) &&
             psa_key_policy_get_algorithm( p1 ) == psa_key_policy_get_algorithm( p2 ) );

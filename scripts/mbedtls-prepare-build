@@ -871,7 +871,7 @@ class MakefileMaker:
         self.line('')
         self.settings_section()
         self.line('')
-        self.target('default', ['all'], [], phony=True)
+        self.target('default', [self.options.default_target], [], phony=True)
         self.line('')
         self.target('all', ['lib', 'programs', 'tests'], [], phony=True)
         self.line('')
@@ -1154,6 +1154,7 @@ _preset_options = {
     'm0plus': argparse.Namespace(
         _help='Baremetal configuration for Cortex-M0+ target',
         config_name='baremetal',
+        default_target='lib',
         CC='arm-none-eabi-gcc',
         CFLAGS='-Os',
         COMMON_FLAGS='-mthumb -mcpu=cortex-m0plus',
@@ -1178,6 +1179,7 @@ _preset_options = {
 The keys are the field names in the options object.
 """
 _default_options = {
+    'default_target': 'all',
     'dir': os.curdir,
     'executable_extension': '',
     'indirect_extensions': False,
@@ -1262,6 +1264,8 @@ def main():
     parser.add_argument('--config-unset',
                         action='append', default=[],
                         help='Symbol to unset in config.h')
+    parser.add_argument('--default-target',
+                        help='Default makefile target (default: all)')
     parser.add_argument('--dir', '-d',
                         help='Build directory to create (default: build-PRESET if given "-p PRESET", otherwise current directory)')
     parser.add_argument('--executable-extension',

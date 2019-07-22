@@ -1970,6 +1970,22 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PSA_ITS_FILE_C */
 
+#if defined(MBEDTLS_PSA_ITS_FILE_C_INCLUDE_TEST)
+    if( strcmp( "MBEDTLS_PSA_ITS_FILE_C_INCLUDE_TEST", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_ITS_FILE_C_INCLUDE_TEST );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_ITS_FILE_C_INCLUDE_TEST */
+
+#if defined(MBEDTLS_PSA_ITS_FILE_C_STORAGE_PREFIX)
+    if( strcmp( "MBEDTLS_PSA_ITS_FILE_C_STORAGE_PREFIX", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_ITS_FILE_C_STORAGE_PREFIX );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_ITS_FILE_C_STORAGE_PREFIX */
+
 #if defined(MBEDTLS_RIPEMD160_C)
     if( strcmp( "MBEDTLS_RIPEMD160_C", config ) == 0 )
     {

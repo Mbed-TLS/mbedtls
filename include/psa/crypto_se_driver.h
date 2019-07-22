@@ -65,7 +65,7 @@ typedef struct {
      *
      * The size of this buffer is given by psa_drv_se_t::persistent_data_size
      * when the driver is registered, and this value is also recorded in the
-     * ::persistent_data_size field of this structure.
+     * psa_drv_se_context_t::persistent_data_size field of this structure.
      *
      * Before the driver is initialized for the first time, the content of
      * the persistent data is all-bits-zero. After a driver upgrade, if the

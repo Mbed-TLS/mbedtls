@@ -950,7 +950,20 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     driver = psa_get_se_driver_entry( slot->lifetime );
     if( driver != NULL )
+    {
+        psa_crypto_prepare_transaction( PSA_CRYPTO_TRANSACTION_DESTROY_KEY );
+        psa_crypto_transaction.key.lifetime = slot->lifetime;
+        psa_crypto_transaction.key.slot = slot->data.se.slot_number;
+        psa_crypto_transaction.key.id = slot->persistent_storage_id;
+        status = psa_crypto_save_transaction( );
+        if( status != PSA_SUCCESS )
+        {
+            /* TOnogrepDO: destroy what can be destroyed anyway */
+            return( status );
+        }
+
         status = psa_destroy_se_key( driver, slot->data.se.slot_number );
+    }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
@@ -960,6 +973,18 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
             psa_destroy_persistent_key( slot->persistent_storage_id );
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( driver != NULL )
+    {
+        status = psa_crypto_stop_transaction( );
+        if( status != PSA_SUCCESS )
+        {
+            /* TOnogrepDO: destroy what can be destroyed anyway */
+            return( status );
+        }
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     status = psa_wipe_key_slot( slot );
     if( status != PSA_SUCCESS )
@@ -1382,8 +1407,10 @@ static psa_status_t psa_start_key_creation(
     slot->type = attributes->type;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    /* Find a slot number. Don't yet mark it as allocated in case
-     * the key creation fails or there is a power failure. */
+    /* Find a slot number for the new key. Save the slot number in
+     * persistent storage, but do not yet save the driver's persistent
+     * state, so that if the power fails during the key creation process,
+     * we can roll back to a state where the key doesn't exist. */
     if( *p_drv != NULL )
     {
         status = psa_find_se_slot_for_key( attributes, *p_drv,
@@ -1391,6 +1418,13 @@ static psa_status_t psa_start_key_creation(
         if( status != PSA_SUCCESS )
             return( status );
     }
+    psa_crypto_prepare_transaction( PSA_CRYPTO_TRANSACTION_CREATE_KEY );
+    psa_crypto_transaction.key.lifetime = slot->lifetime;
+    psa_crypto_transaction.key.slot = slot->data.se.slot_number;
+    psa_crypto_transaction.key.id = slot->persistent_storage_id;
+    status = psa_crypto_save_transaction( );
+    if( status != PSA_SUCCESS )
+        return( status );
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     return( status );
@@ -1459,6 +1493,9 @@ static psa_status_t psa_finish_key_creation(
             psa_destroy_persistent_key( slot->persistent_storage_id );
             return( status );
         }
+        status = psa_crypto_stop_transaction( );
+        if( status != PSA_SUCCESS )
+            return( status );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
@@ -1490,6 +1527,11 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
      * element, and the failure happened later (when saving metadata
      * to internal storage), we need to destroy the key in the secure
      * element. */
+
+    /* Abort the ongoing transaction if any. We already did what it
+     * takes to undo any partial creation. All that's left is to update
+     * the transaction data itself. */
+    (void) psa_crypto_stop_transaction( );
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     psa_wipe_key_slot( slot );
@@ -5673,6 +5715,19 @@ psa_status_t psa_crypto_init( void )
     status = psa_initialize_key_slots( );
     if( status != PSA_SUCCESS )
         goto exit;
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    status = psa_crypto_load_transaction( );
+    if( status == PSA_SUCCESS )
+    {
+        /*TOnogrepDO: complete or abort the transaction*/
+    }
+    else if( status == PSA_ERROR_DOES_NOT_EXIST )
+    {
+        /* There's no transaction to complete. It's all good. */
+        status = PSA_SUCCESS;
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     /* All done. */
     global_data.initialized = 1;

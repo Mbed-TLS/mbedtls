@@ -29,15 +29,9 @@
 extern "C" {
 #endif
 
-/* Include the Mbed TLS configuration file, the way Mbed TLS does it
- * in each of its header files. */
-#if defined(MBEDTLS_CONFIG_FILE)
-#include MBEDTLS_CONFIG_FILE
-#else
-#include "mbedtls/config.h"
-#endif
-
 #include "psa/crypto.h"
+#include "psa/crypto_se_driver.h"
+
 #include <stdint.h>
 #include <string.h>
 
@@ -223,6 +217,22 @@ typedef uint16_t psa_crypto_transaction_type_t;
  */
 #define PSA_CRYPTO_TRANSACTION_NONE             ( (psa_crypto_transaction_type_t) 0x0000 )
 
+/** A key creation transaction.
+ *
+ * This is only used for keys in an external cryptoprocessor (secure element).
+ * Keys in RAM or in internal storage are created atomically in storage
+ * (simple file creation), so they do not need a transaction mechanism.
+ */
+#define PSA_CRYPTO_TRANSACTION_CREATE_KEY       ( (psa_crypto_transaction_type_t) 0x0001 )
+
+/** A key destruction transaction.
+ *
+ * This is only used for keys in an external cryptoprocessor (secure element).
+ * Keys in RAM or in internal storage are destroyed atomically in storage
+ * (simple file deletion), so they do not need a transaction mechanism.
+ */
+#define PSA_CRYPTO_TRANSACTION_DESTROY_KEY      ( (psa_crypto_transaction_type_t) 0x0002 )
+
 /** Transaction data.
  *
  * This type is designed to be serialized by writing the memory representation
@@ -266,7 +276,21 @@ typedef union
     struct psa_crypto_transaction_unknown_s
     {
         psa_crypto_transaction_type_t type;
+        uint16_t unused1;
+        uint32_t unused2;
+        uint64_t unused3;
+        uint64_t unused4;
     } unknown;
+    /* ::type is #PSA_CRYPTO_TRANSACTION_CREATE_KEY or
+     * #PSA_CRYPTO_TRANSACTION_DESTROY_KEY. */
+    struct psa_crypto_transaction_key_s
+    {
+        psa_crypto_transaction_type_t type;
+        uint16_t unused1;
+        psa_key_lifetime_t lifetime;
+        psa_key_slot_number_t slot;
+        psa_key_id_t id;
+    } key;
 } psa_crypto_transaction_t;
 
 /** The single active transaction.

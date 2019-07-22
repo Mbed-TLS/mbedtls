@@ -39,6 +39,7 @@ class EnvironmentOption:
     Such an option has the following fields:
     * var: the variable name (e.g. 'FOO_BAR').
     * option: the command line option for this script (e.g. '--foo-bar').
+    * attr: the attribute name in the options object.
     * help: help text for the option and the variable.
     * default: a default value if the variable is not in the environment.
     """
@@ -46,6 +47,7 @@ class EnvironmentOption:
     def __init__(self, var, default='', help=None,
                  option=None):
         self.var = var
+        self.attr = var
         self.option = ('--' + var.lower().replace('_', '-')
                        if option is None else option)
         self.default = default
@@ -409,7 +411,7 @@ class MakefileMaker:
             if envopt.help is not None:
                 self.comment('{}', envopt.help)
             self.assign(envopt.var,
-                        getattr(self.options, envopt.var.lower()))
+                        getattr(self.options, envopt.attr))
 
     def settings_section(self):
         """Generate assignments to customizable and internal variables.
@@ -1117,6 +1119,115 @@ class BuildTreeMaker:
         self.makefile.generate()
         self.config.run()
 
+"""Named presets.
+
+This is a dictionary mapping preset names to their descriptions. The
+description of a preset is a namespace object that represents the options to
+set for this preset. The field _help in a description has a special meaning:
+it's the documentation of the preset.
+"""
+_preset_options = {
+    '': {}, # empty preset = use defaults
+    'asan': argparse.Namespace(
+        _help='Clang with Asan, current configuration',
+        config_unset=['MBEDTLS_MEMORY_BUFFER_ALLOC_C'],
+        CC='clang',
+        CFLAGS='-O',
+        COMMON_FLAGS='-fsanitize=address -fno-common -g3',
+    ),
+    'coverage': argparse.Namespace(
+        _help='Build with coverage instrumentation',
+        config_name='full',
+        config_unset=['MBEDTLS_MEMORY_BUFFER_ALLOC_C'],
+        CFLAGS='-O0',
+        COMMON_FLAGS='--coverage -g3',
+    ),
+    'debug': argparse.Namespace(
+        _help='Debug build',
+        CFLAGS='-O0',
+        COMMON_FLAGS='-g3',
+    ),
+    'full': argparse.Namespace(
+        _help='Full configuration',
+        config_name='full',
+    ),
+    'm0plus': argparse.Namespace(
+        _help='Baremetal configuration for Cortex-M0+ target',
+        config_name='baremetal',
+        CC='arm-none-eabi-gcc',
+        CFLAGS='-Os',
+        COMMON_FLAGS='-mthumb -mcpu=cortex-m0plus',
+    ),
+    'msan': argparse.Namespace(
+        _help='Clang Memory sanitizer (MSan), current configuration',
+        config_unset=['MBEDTLS_AESNI_C',
+                      'MBEDTLS_MEMORY_BUFFER_ALLOC_C'],
+        CC='clang',
+        CFLAGS='-O',
+        COMMON_FLAGS='-fsanitize=memory -g3',
+    ),
+    'valgrind': argparse.Namespace(
+        _help='Build for Valgrind, current configuration',
+        config_unset=['MBEDTLS_AESNI_C'],
+        CFLAGS='-O3',
+    ),
+}
+
+"""Default values for some options.
+
+The keys are the field names in the options object.
+"""
+_default_options = {
+    'dir': os.curdir,
+    'executable_extension': '',
+    'indirect_extensions': False,
+    'library_extension': '.a',
+    'object_extension': '.o',
+    'shared_library_extension': '.so',
+    'source': os.curdir,
+}
+
+def set_default_option(options, attr, value):
+    if getattr(options, attr) is None:
+        setattr(options, attr, value)
+    elif isinstance(value, list):
+        setattr(options, attr, value + getattr(options, attr))
+
+def set_default_options(options):
+    """Apply the preset if any and set default for remaining options.
+
+    We set defaults via this function rather than via the `default`
+    keyword argument to `parser.add_argument` in order to apply
+    settings in the correct precedence order: default, then preset,
+    then explicit.
+
+    For options that can be used more than once and whose values
+    are accumulated in a list, the default is always empty, and a
+    preset puts things at the beginning of the list. A command line
+    option can only append to the preset, not remove preset elements.
+    This is implemented by prepending the preset to the explicit elements
+    """
+    # Step 1: apply preset.
+    if options.preset:
+        for attr, value in _preset_options[options.preset]._get_kwargs():
+            if attr.startswith('_'):
+                continue
+            set_default_option(options, attr, value)
+            set_default_option(options, 'dir', 'build-' + options.preset)
+    # Step 2: set remaining defaults.
+    for attr, value in _default_options.items():
+        set_default_option(options, attr, value)
+    for envopt in _environment_options:
+        set_default_option(options, envopt.attr, envopt.default)
+
+def preset_help():
+    """Return a documentation string for the presets."""
+    return '\n'.join(['Presets:'] +
+                     ['{}: {}'.format(name, _preset_options[name]._help)
+                      for name in sorted(_preset_options.keys())
+                      if hasattr(_preset_options[name], '_help')] +
+                     [''])
+
 def arg_type_bool(arg):
     """Boolean argument type for argparse.add_argument."""
     if not isinstance(arg, str):
@@ -1131,10 +1242,12 @@ def arg_type_bool(arg):
 
 def main():
     """Process the command line and prepare a build tree accordingly."""
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=__doc__,
+                                     epilog=preset_help())
     for envopt in _environment_options:
         parser.add_argument(envopt.option,
-                            default=envopt.default,
+                            dest=envopt.attr,
                             help='{} ({})'.format(envopt.help, envopt.var))
     parser.add_argument('--config-file',
                         help='Base config.h to use')
@@ -1150,30 +1263,28 @@ def main():
                         action='append', default=[],
                         help='Symbol to unset in config.h')
     parser.add_argument('--dir', '-d',
-                        default=os.curdir,
-                        help='Build directory to create')
+                        help='Build directory to create (default: build-PRESET if given "-p PRESET", otherwise current directory)')
     parser.add_argument('--executable-extension',
-                        default='',
                         help='File extension for executables')
     parser.add_argument('--indirect-extensions',
-                        type=arg_type_bool, default=False,
+                        type=arg_type_bool,
                         help='Whether to use makefile variable for file extensions')
     parser.add_argument('--library-extension',
-                        default='.a',
                         help='File extension for static libraries')
     parser.add_argument('--object-extension',
-                        help='File extension for object files',
-                        default='.o')
+                        help='File extension for object files')
+    parser.add_argument('--preset', '-p',
+                        choices = sorted(_preset_options.keys()),
+                        help='Apply a preset configuration before processing other options')
     parser.add_argument('--shared-library-extension',
-                        help='File extension for shared libraries',
-                        default='.so')
+                        help='File extension for shared libraries')
     parser.add_argument('--source', '-s',
-                        help='Root directory of the source tree',
-                        default=os.curdir)
+                        help='Root directory of the source tree (default: current directory)')
     parser.add_argument('--var',
                         action='append', default=[],
                         help='Extra variable to define in the makefile')
     options = parser.parse_args()
+    set_default_options(options)
     builder = BuildTreeMaker(options)
     builder.run()
 

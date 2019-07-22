@@ -14,8 +14,21 @@ fi
 
 cp include/mbedtls/config.h include/mbedtls/config.h.bak
 scripts/config.pl full
-CFLAGS=-fno-asynchronous-unwind-tables make clean lib >/dev/null 2>&1
+make clean
+make_ret=
+CFLAGS=-fno-asynchronous-unwind-tables make lib \
+      >list-symbols.make.log 2>&1 ||
+  {
+    make_ret=$?
+    echo "Build failure: CFLAGS=-fno-asynchronous-unwind-tables make lib"
+    cat list-symbols.make.log >&2
+  }
+rm list-symbols.make.log
 mv include/mbedtls/config.h.bak include/mbedtls/config.h
+if [ -n "$make_ret" ]; then
+    exit "$make_ret"
+fi
+
 if uname | grep -F Darwin >/dev/null; then
     nm -gUj library/libmbed*.a 2>/dev/null | sed -n -e 's/^_//p'
 elif uname | grep -F Linux >/dev/null; then

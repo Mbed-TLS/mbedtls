@@ -3688,7 +3688,7 @@
 /* Enable support a single signature hash algorithm
  * at compile-time, at the benefit of code-size.
  *
- * On highly constrained systems which large control
+ * On highly constrained systems with large control
  * over the configuration of the connection endpoints,
  * this option can be used to hardcode the choice of
  * hash algorithm to be used for signatures in the

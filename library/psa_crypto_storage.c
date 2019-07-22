@@ -50,6 +50,12 @@
 #define mbedtls_free     free
 #endif
 
+
+
+/****************************************************************/
+/* Key storage */
+/****************************************************************/
+
 /* Determine a file name (ITS file identifier) for the given key file
  * identifier. The file name must be distinct from any file that is used
  * for a purpose other than storing a key. Currently, the only such file
@@ -399,6 +405,60 @@ exit:
     return( status );
 }
 
+
+
+/****************************************************************/
+/* Transactions */
+/****************************************************************/
+
+#if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
+
+psa_crypto_transaction_t psa_crypto_transaction;
+
+psa_status_t psa_crypto_save_transaction( void )
+{
+    struct psa_storage_info_t p_info;
+    psa_status_t status;
+    status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
+    if( status == PSA_SUCCESS )
+    {
+        /* This shouldn't happen: we're trying to start a transaction while
+         * there is still a transaction that hasn't been replayed. */
+        return( PSA_ERROR_CORRUPTION_DETECTED );
+    }
+    else if( status != PSA_ERROR_DOES_NOT_EXIST )
+        return( status );
+    return( psa_its_set( PSA_CRYPTO_ITS_TRANSACTION_UID,
+                         sizeof( psa_crypto_transaction ),
+                         &psa_crypto_transaction,
+                         0 ) );
+}
+
+psa_status_t psa_crypto_load_transaction( void )
+{
+    return( psa_its_get( PSA_CRYPTO_ITS_TRANSACTION_UID, 0,
+                         sizeof( psa_crypto_transaction ),
+                         &psa_crypto_transaction ) );
+}
+
+psa_status_t psa_crypto_stop_transaction( void )
+{
+    psa_status_t status = psa_its_remove( PSA_CRYPTO_ITS_TRANSACTION_UID );
+    /* Whether or not updating the storage succeeded, the transaction is
+     * finished now. It's too late to go back, so zero out the in-memory
+     * data. */
+    memset( &psa_crypto_transaction, 0, sizeof( psa_crypto_transaction ) );
+    return( status );
+}
+
+#endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
+
+
+
+/****************************************************************/
+/* Random generator state */
+/****************************************************************/
+
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 psa_status_t mbedtls_psa_storage_inject_entropy( const unsigned char *seed,
                                                  size_t seed_size )
@@ -420,5 +480,11 @@ psa_status_t mbedtls_psa_storage_inject_entropy( const unsigned char *seed,
     return( status );
 }
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
+
+
+/****************************************************************/
+/* The end */
+/****************************************************************/
 
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */

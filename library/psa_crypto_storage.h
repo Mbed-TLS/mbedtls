@@ -39,6 +39,7 @@ extern "C" {
 
 #include "psa/crypto.h"
 #include <stdint.h>
+#include <string.h>
 
 /* Limit the maximum key size to 30kB (just in case someone tries to
  * inadvertently store an obscene amount of data) */
@@ -202,6 +203,138 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
                                               size_t *key_data_length,
                                               psa_key_type_t *type,
                                               psa_key_policy_t *policy );
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+/** This symbol is defined if transaction support is required. */
+#define PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS
+#endif
+
+#if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
+
+/** The type of transaction that is in progress.
+ */
+/* This is an integer type rather than an enum for two reasons: to support
+ * unknown values when loading a transaction file, and to ensure that the
+ * type has a known size.
+ */
+typedef uint16_t psa_crypto_transaction_type_t;
+
+/** No transaction is in progress.
+ */
+#define PSA_CRYPTO_TRANSACTION_NONE             ( (psa_crypto_transaction_type_t) 0x0000 )
+
+/** Transaction data.
+ *
+ * This type is designed to be serialized by writing the memory representation
+ * and reading it back on the same device.
+ *
+ * \note The transaction mechanism is designed for a single active transaction
+ *       at a time. The transaction object is #psa_crypto_transaction.
+ *
+ * \note If an API call starts a transaction, it must complete this transaction
+ *       before returning to the application.
+ *
+ * The lifetime of a transaction is the following (note that only one
+ * transaction may be active at a time):
+ *
+ * -# Call psa_crypto_prepare_transaction() to initialize the transaction
+ *    object in memory and declare the type of transaction that is starting.
+ * -# Fill in the type-specific fields of #psa_crypto_transaction.
+ * -# Call psa_crypto_save_transaction() to start the transaction. This
+ *    saves the transaction data to internal storage.
+ * -# If there are intermediate stages in the transaction, update
+ *    the fields of #psa_crypto_transaction and call
+ *    psa_crypto_save_transaction() again when each stage is reached.
+ * -# When the transaction is over, whether it has been committed or aborted,
+ *    call psa_crypto_stop_transaction() to remove the transaction data in
+ *    storage and in memory.
+ *
+ * If the system crashes while a transaction is in progress, psa_crypto_init()
+ * calls psa_crypto_load_transaction() and takes care of completing or
+ * rewinding the transaction.
+ */
+typedef union
+{
+    /* Each element of this union must have the following properties
+     * to facilitate serialization and deserialization:
+     *
+     * - The element is a struct.
+     * - The first field of the struct is `psa_crypto_transaction_type_t type`.
+     * - Elements of the struct are arranged such a way that there is
+     *   no padding.
+     */
+    struct psa_crypto_transaction_unknown_s
+    {
+        psa_crypto_transaction_type_t type;
+    } unknown;
+} psa_crypto_transaction_t;
+
+/** The single active transaction.
+ */
+extern psa_crypto_transaction_t psa_crypto_transaction;
+
+/** Prepare for a transaction.
+ *
+ * There must not be an ongoing transaction.
+ *
+ * \param type          The type of transaction to start.
+ */
+static inline void psa_crypto_prepare_transaction(
+    psa_crypto_transaction_type_t type )
+{
+    psa_crypto_transaction.unknown.type = type;
+}
+
+/** Save the transaction data to storage.
+ *
+ * You may call this function multiple times during a transaction to
+ * atomically update the transaction state.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ */
+psa_status_t psa_crypto_save_transaction( void );
+
+/** Load the transaction data from storage, if any.
+ *
+ * This function is meant to be called from psa_crypto_init() to recover
+ * in case a transaction was interrupted by a system crash.
+ *
+ * \retval #PSA_SUCCESS
+ *         The data about the ongoing transaction has been loaded to
+ *         #psa_crypto_transaction.
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
+ *         There is no ongoing transaction.
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ */
+psa_status_t psa_crypto_load_transaction( void );
+
+/** Indicate that the current transaction is finished.
+ *
+ * Call this function at the very end of transaction processing, whether
+ * the transaction has been committed or aborted.
+ *
+ * This function erases the transaction data in storage (if any) and
+ * resets the transaction data in memory.
+ *
+ * \retval #PSA_SUCCESS
+ *         There was transaction data in storage.
+ * \retval #PSA_ERROR_DOES_NOT_EXIST
+ *         There was no transaction data in storage.
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         It was impossible to determine whether there was transaction data
+ *         in storage, or the transaction data could not be erased.
+ */
+psa_status_t psa_crypto_stop_transaction( void );
+
+/** The ITS file identifier for the transaction data.
+ *
+ * 0xffffffNN = special file; 0x74 = 't' for transaction.
+ */
+#define PSA_CRYPTO_ITS_TRANSACTION_UID ( (psa_key_id_t) 0xffffff74 )
+
+#endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 /** Backend side of mbedtls_psa_inject_entropy().

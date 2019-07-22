@@ -1341,9 +1341,18 @@ component_build_armcc () {
 }
 
 # need _armcc in the name for pre_check_tools()
-component_build_baremetal_script_gcc_armcc () {
+component_baremetal_raw_build () {
     msg "build: scripts/baremetal.sh gcc/armc5/armc6"
     scripts/baremetal.sh --rom --gcc --armc5 --armc6 --check
+}
+
+component_baremetal_test_build () {
+    msg "build: lib+test+programs for baremetal.h + baremetal_test.h"
+    record_status scripts/baremetal.sh --ram --build-only
+
+    msg "test: baremetal.h + baremetal_test.h"
+    if_build_succeeded make test
+    if_build_succeeded tests/ssl-opt.sh --filter "^Default, DTLS$"
 }
 
 component_build_armcc_tinycrypt_baremetal () {

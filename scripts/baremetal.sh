@@ -338,7 +338,7 @@ baremetal_ram_stack() {
 }
 
 show_usage() {
-    echo "Usage: $0 [--rom [--check] [--gcc] [--armc5] [--armc6]|--ram [--stack] [--heap]]"
+    echo "Usage: $0 [--rom [--check] [--gcc] [--armc5] [--armc6]|--ram [--build-only] [--stack] [--heap]]"
 }
 
 test_build=0
@@ -362,6 +362,7 @@ while [ $# -gt 0 ]; do
         --armc6) build_armc6=1;;
         --ram) test_build=1;;
         --rom) raw_build=1;;
+        --build-only) build_only=1;;
         --heap)  measure_heap=1;;
         --stack) measure_stack=1;;
         --check) check=1;;
@@ -385,8 +386,9 @@ fi
 if [ "$test_build" -eq 1 ]; then
 
     if [ "$measure_heap"   -eq 0 ] &&
-       [ "$measure_stack" -eq 0 ]; then
-        echo "Need to set either --heap or --stack with --ram"
+       [ "$measure_stack"  -eq 0 ] &&
+       [ "$build_only"     -eq 0 ]; then
+        echo "Need to set either --build-only, --heap or --stack with --ram"
         show_usage
         exit 1
     fi

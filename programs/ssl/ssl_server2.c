@@ -791,7 +791,6 @@ static int send_cb( void *ctx, unsigned char const *buf, size_t len )
     return( mbedtls_net_send( io_ctx->net, buf, len ) );
 }
 
-#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
 /*
  * Return authmode from string, or -1 on error
  */
@@ -806,7 +805,6 @@ static int get_auth_mode( const char *s )
 
     return( -1 );
 }
-#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 
 /*
  * Used by sni_parse and psk_parse to handle coma-separated lists

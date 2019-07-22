@@ -856,6 +856,10 @@ class MakefileMaker:
                     ['cd tests && $(PERL) scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES)'],
                     help='Run all the test suites.',
                     phony=True)
+        self.target('test', ['check'],
+                    [],
+                    help='Run all the test suites.',
+                    phony=True)
         self.clean.append('tests/*.c tests/*.datax $(test_apps)')
         # TODO: test_psa_constant_names.py
 

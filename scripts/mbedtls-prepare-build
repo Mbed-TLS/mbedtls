@@ -291,7 +291,7 @@ class MakefileMaker:
         self.source_path = source_path
         self.out = None
         self.libraries = None
-        self.help = {'help': 'Show this help.'}
+        self.help = {}
         self.clean = []
         self.dependency_cache = {}
         self.submodules = [submodule for submodule in _submodule_names
@@ -393,7 +393,7 @@ class MakefileMaker:
           make transcript will display this string.
         """
         self.add_dependencies(name, *dependencies)
-        if short is not None:
+        if short:
             self.format('\t@$(ECHO_IF_QUIET) "  {}"', short)
         for com in commands:
             self.format('\t{}{}',
@@ -855,18 +855,32 @@ class MakefileMaker:
         self.target('check', ['$(test_apps)', 'tests/seedfile'],
                     ['cd tests && $(PERL) scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES)'],
                     help='Run all the test suites.',
+                    short='',
                     phony=True)
         self.target('test', ['check'],
                     [],
                     help='Run all the test suites.',
+                    short='',
                     phony=True)
+        self.help['tests/test_suite_%.run'] = 'Run one test suite.'
+        self.help['tests/test_suite_%.valgrind'] = 'Run one test suite with valgrind.'
         self.clean.append('tests/*.c tests/*.datax $(test_apps)')
         # TODO: test_psa_constant_names.py
 
     def help_lines(self):
-        """Emit a makefile rule for the 'help' target."""
-        return ['{} - {}'.format(name, self.help[name])
+        """Return the lines of text to show for the 'help' target."""
+        return ['{:<14} : {}'.format(name, self.help[name])
                 for name in sorted(self.help.keys())]
+
+    def variables_help_lines(self):
+        """Return the lines of text to show for the 'help-variables' target."""
+        env_opts = [(envopt.var, envopt.help)
+                    for envopt in _environment_options]
+        ad_hoc = [
+            ('V', 'Show commands in full if non-empty.')
+        ]
+        return ['{:<14} # {}'.format(name, text)
+                for (name, text) in sorted(env_opts + ad_hoc)]
 
     def output_all(self):
         """Emit the whole makefile."""
@@ -877,7 +891,10 @@ class MakefileMaker:
         self.line('')
         self.target('default', [self.options.default_target], [], phony=True)
         self.line('')
-        self.target('all', ['lib', 'programs', 'tests'], [], phony=True)
+        self.target('all', ['lib', 'programs', 'tests'],
+                    [],
+                    help='Build the library, the tests and the sample programs.',
+                    phony=True)
         self.line('')
         self.target('pwd', [], ['pwd'], phony=True, short='PWD') # for testing
         self.line('')
@@ -893,6 +910,14 @@ class MakefileMaker:
                     short='RM    {generated files}',
                     phony=True)
         self.line('')
+        self.target('help-variables', [],
+                    ['@echo "{}"'.format(line) for line in self.variables_help_lines()],
+                    help='Show useful variables to pass on the make command line.',
+                    phony=True)
+        # The help target must come last because it displays accumulated help
+        # text set by previous calls to self.target. Set its own help manually
+        # because self.target would set it too late for it to be printed.
+        self.help['help'] = 'Show this help listing the most commonly-used non-file targets.'
         self.target('help', [],
                     ['@echo "{}"'.format(line) for line in self.help_lines()],
                     phony=True)

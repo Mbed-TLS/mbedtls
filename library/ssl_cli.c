@@ -2798,6 +2798,39 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
+    {
+        static const uint16_t secp256r1_tls_id = 23;
+        static const unsigned char ecdh_group[] = {
+            MBEDTLS_ECP_TLS_NAMED_CURVE,
+            ( secp256r1_tls_id >> 8 ) & 0xFF,
+            ( secp256r1_tls_id >> 0 ) & 0xFF,
+        };
+
+        /* Check for fixed ECDH parameter preamble. */
+        if( (size_t)( end - p ) < sizeof( ecdh_group ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad server key exchange (too short)" ) );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+
+        if( memcmp( p, ecdh_group, sizeof( ecdh_group ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad server key exchange (unexpected header)" ) );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+        p += sizeof( ecdh_group );
+
+        /* Read server's key share. */
+        if( mbedtls_ssl_ecdh_read_peerkey( ssl, &p, end ) != 0 )
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    }
+    else
+#endif /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)

@@ -1830,4 +1830,9 @@ MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_pend_fatal_alert(
 
 #define MBEDTLS_SSL_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
+                                   unsigned char **p, unsigned char *end );
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #endif /* ssl_internal.h */

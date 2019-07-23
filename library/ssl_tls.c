@@ -65,6 +65,35 @@ static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
 
     return( 0 );
 }
+
+int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
+                                   unsigned char **p, unsigned char *end )
+{
+    size_t const secp256r1_uncompressed_point_length =
+        1 /* length */ + 1 /* length */ + 2 * NUM_ECC_BYTES /* data */;
+
+    if( (size_t)( end - *p ) < secp256r1_uncompressed_point_length )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Bad ECDH peer pubkey (too short)" ) );
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
+
+    if( (*p)[0] != 2 * NUM_ECC_BYTES + 1 ||
+        (*p)[1] != 0x04 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Unexpected ECDH peer pubkey header - expected { %#02x, %#02x }, got { %#02x, %#02x }",
+                               2 * NUM_ECC_BYTES + 1,
+                               0x04,
+                               (unsigned) (*p)[0],
+                               (unsigned) (*p)[1] ) );
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
+
+    memcpy( ssl->handshake->ecdh_peerkey, *p + 2, 2 * NUM_ECC_BYTES );
+
+    *p += secp256r1_uncompressed_point_length;
+    return( 0 );
+}
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
 static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );

@@ -63,9 +63,8 @@ typedef struct {
      * like a pointer returned by `malloc` (but the core can use any
      * method to allocate the buffer, not necessarily `malloc`).
      *
-     * The size of this buffer is given by psa_drv_se_t::persistent_data_size
-     * when the driver is registered, and this value is also recorded in the
-     * psa_drv_se_context_t::persistent_data_size field of this structure.
+     * The size of this buffer is in the \c persistent_data_size field of
+     * this structure.
      *
      * Before the driver is initialized for the first time, the content of
      * the persistent data is all-bits-zero. After a driver upgrade, if the
@@ -81,8 +80,8 @@ typedef struct {
 
     /** The size of \c persistent_data in bytes.
      *
-     * This is always equal to the value of
-     * psa_drv_se_t::persistent_data_size when the driver is registered.
+     * This is always equal to the value of the `persistent_data_size` field
+     * of the ::psa_drv_se_t structure when the driver is registered.
      */
     const size_t persistent_data_size;
 
@@ -902,7 +901,7 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_drv_se_context_t *drv_contex
  * \brief A function that generates a symmetric or asymmetric key on a secure
  * element
  *
- * If \p type is asymmetric (`#PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) == 1`),
+ * If \p type is asymmetric (#PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) = 1),
  * the public component of the generated key will be placed in `p_pubkey_out`.
  * The format of the public key information will match the format specified for
  * the psa_export_key() function for the key type.

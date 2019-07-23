@@ -11284,6 +11284,7 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
     mbedtls_platform_zeroize( session, sizeof( mbedtls_ssl_session ) );
 }
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
 static unsigned char ssl_serialized_context_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
@@ -11829,6 +11830,7 @@ int mbedtls_ssl_context_load( mbedtls_ssl_context *context,
 
     return( ret );
 }
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
 /*
  * Free an SSL context

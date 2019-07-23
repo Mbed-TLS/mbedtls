@@ -3879,6 +3879,7 @@ int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl );
  */
 void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
 /**
  * \brief          Save an active connection as serialized data in a buffer.
  *                 This allows the freeing or re-using of the SSL context
@@ -4000,6 +4001,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
                               const unsigned char *buf,
                               size_t len );
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
 /**
  * \brief          Initialize an SSL configuration context

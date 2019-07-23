@@ -1469,20 +1469,30 @@ static psa_status_t psa_finish_key_creation(
     (void) driver;
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+    if( slot->lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
         uint8_t *buffer = NULL;
         size_t buffer_size = 0;
-        size_t length;
+        size_t length = 0;
 
-        buffer_size = PSA_KEY_EXPORT_MAX_SIZE( slot->type,
-                                               psa_get_key_slot_bits( slot ) );
-        buffer = mbedtls_calloc( 1, buffer_size );
-        if( buffer == NULL && buffer_size != 0 )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-        status = psa_internal_export_key( slot,
-                                          buffer, buffer_size, &length,
-                                          0 );
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+        if( driver != NULL )
+        {
+            buffer = (uint8_t*) &slot->data.se.slot_number;
+            length = sizeof( slot->data.se.slot_number );
+        }
+        else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+        {
+            buffer_size = PSA_KEY_EXPORT_MAX_SIZE( slot->type,
+                                                   psa_get_key_slot_bits( slot ) );
+            buffer = mbedtls_calloc( 1, buffer_size );
+            if( buffer == NULL && buffer_size != 0 )
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
+            status = psa_internal_export_key( slot,
+                                              buffer, buffer_size, &length,
+                                              0 );
+        }
 
         if( status == PSA_SUCCESS )
         {
@@ -1491,9 +1501,14 @@ static psa_status_t psa_finish_key_creation(
             status = psa_save_persistent_key( &attributes, buffer, length );
         }
 
-        if( buffer_size != 0 )
-            mbedtls_platform_zeroize( buffer, buffer_size );
-        mbedtls_free( buffer );
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+        if( driver == NULL )
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+        {
+            if( buffer_size != 0 )
+                mbedtls_platform_zeroize( buffer, buffer_size );
+            mbedtls_free( buffer );
+        }
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 

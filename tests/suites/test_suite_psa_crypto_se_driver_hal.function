@@ -3,6 +3,7 @@
 #include "psa/crypto_se_driver.h"
 
 #include "psa_crypto_se.h"
+#include "psa_crypto_storage.h"
 
 /** The minimum valid lifetime value for a secure element driver. */
 #define MIN_DRIVER_LIFETIME 2
@@ -115,6 +116,18 @@ psa_status_t ram_allocate( psa_drv_se_context_t *context,
     return( PSA_ERROR_INSUFFICIENT_STORAGE );
 }
 
+#define MAX_KEY_ID_FOR_TEST 10
+void psa_purge_storage( void )
+{
+    psa_key_id_t i;
+    /* The tests may have potentially created key ids from 1 to
+     * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
+     * 0, which file-based storage uses as a temporary file. */
+    for( i = 0; i <= MAX_KEY_ID_FOR_TEST; i++ )
+        psa_destroy_persistent_key( i );
+    psa_crypto_stop_transaction( );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -188,7 +201,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void key_creation_import_export( int min_slot )
+void key_creation_import_export( int min_slot, int restart )
 {
     psa_drv_se_t driver;
     psa_drv_se_key_management_t key_management;
@@ -223,6 +236,15 @@ void key_creation_import_export( int min_slot )
                                 key_material, sizeof( key_material ),
                                 &handle ) );
 
+    /* Maybe restart, to check that the information is saved correctly. */
+    if( restart )
+    {
+        mbedtls_psa_crypto_free( );
+        PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+        PSA_ASSERT( psa_crypto_init( ) );
+        PSA_ASSERT( psa_open_key( id, &handle ) );
+    }
+
     /* Test that the key was created in the expected slot. */
     TEST_ASSERT( ram_slots[min_slot].type == PSA_KEY_TYPE_RAW_DATA );
 
@@ -240,5 +262,6 @@ void key_creation_import_export( int min_slot )
 exit:
     PSA_DONE( );
     ram_slots_reset( );
+    psa_purge_storage( );
 }
 /* END_CASE */

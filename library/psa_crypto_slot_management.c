@@ -131,10 +131,28 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *p_slot )
                                       &key_data, &key_data_length );
     if( status != PSA_SUCCESS )
         goto exit;
+    p_slot->lifetime = psa_get_key_lifetime( &attributes );
     p_slot->type = psa_get_key_type( &attributes );
     p_slot->policy = attributes.policy;
-    status = psa_import_key_into_slot( p_slot,
-                                       key_data, key_data_length );
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_key_lifetime_is_external( p_slot->lifetime ) )
+    {
+        if( key_data_length != sizeof( p_slot->data.se.slot_number ) )
+        {
+            status = PSA_ERROR_STORAGE_FAILURE;
+            goto exit;
+        }
+        memcpy( &p_slot->data.se.slot_number, key_data,
+                sizeof( p_slot->data.se.slot_number ) );
+    }
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+    {
+        status = psa_import_key_into_slot( p_slot,
+                                           key_data, key_data_length );
+    }
+
 exit:
     psa_free_persistent_key_data( key_data, key_data_length );
     return( status );

@@ -10856,9 +10856,9 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
         mbedtls_ssl_transform_uses_aead( ssl->transform ) != 1 ||
         /* Renegotation is disabled. */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED
+        ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
 #endif
-        )
+        0 )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -11032,7 +11032,13 @@ static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
         mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
     const mbedtls_md_type_t hash = mbedtls_ssl_suite_get_mac( info );
 
-    return hash == MBEDTLS_MD_SHA384 ? tls_prf_sha384 : tls_prf_sha256;
+#if defined(MBEDTLS_SHA512_C)
+    if( hash == MBEDTLS_MD_SHA384 )
+        return( tls_prf_sha384 );
+#else
+    (void) hash;
+#endif
+    return( tls_prf_sha256 );
 }
 
 /*
@@ -11076,9 +11082,9 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
         mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) >
             MBEDTLS_SSL_MINOR_VERSION_3 ||
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED
+        ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
 #endif
-        )
+        0 )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -11291,8 +11297,12 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
      */
     ssl->state = MBEDTLS_SSL_HANDSHAKE_OVER;
 
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
     ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     ssl->minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->in_epoch = 1;

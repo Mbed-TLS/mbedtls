@@ -4071,22 +4071,6 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
     /* The ClientKeyExchange message is never skipped. */
 
     /* Reading step */
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \
-    ( defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) || \
-      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
-    if( ( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-          == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-          mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-          == MBEDTLS_KEY_EXCHANGE_RSA ) &&
-        ( ssl->handshake->async_in_progress != 0 ) )
-    {
-        /* We've already read a record and there is an asynchronous
-         * operation in progress to decrypt it. So skip reading the
-         * record. */
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "will resume decryption of previously-read record" ) );
-    }
-    else
-#endif
     if( ( ret = mbedtls_ssl_read_record( ssl,
                                          1 /* update checksum */ ) ) != 0 )
     {
@@ -4111,6 +4095,11 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
     SSL_PROC_CHK( ssl_client_key_exchange_postprocess( ssl ) );
 
 cleanup:
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    if ( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+        ssl->keep_current_message = 1;
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client key exchange" ) );
     return( ret );
@@ -4218,12 +4207,6 @@ static int ssl_client_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 2 ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_encrypted_pms" ), ret );
-
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    if ( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
-        return( ret );
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-
             return( ret );
         }
     }

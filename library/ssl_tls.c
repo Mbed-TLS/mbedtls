@@ -11674,7 +11674,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 
     ssl->transform->in_cid_len = *p++;
 
-    if( (size_t)( end - p ) < ssl->transform->in_cid_len + 1 )
+    if( (size_t)( end - p ) < ssl->transform->in_cid_len + 1u )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     memcpy( ssl->transform->in_cid, p, ssl->transform->in_cid_len );

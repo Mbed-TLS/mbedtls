@@ -9373,10 +9373,11 @@ static unsigned char ssl_serialized_session_header[] = {
  * verify_result is put before peer_cert so that all mandatory fields come
  * together in one block.
  */
-int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
-                              unsigned char *buf,
-                              size_t buf_len,
-                              size_t *olen )
+static int ssl_session_save( const mbedtls_ssl_session *session,
+                             unsigned char omit_header,
+                             unsigned char *buf,
+                             size_t buf_len,
+                             size_t *olen )
 {
     unsigned char *p = buf;
     size_t used = 0;
@@ -9389,17 +9390,20 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 #endif
 #endif
 
-    /*
-     * Add version identifier
-     */
-
-    used += sizeof( ssl_serialized_session_header );
-
-    if( used <= buf_len )
+    if( !omit_header )
     {
-        memcpy( p, ssl_serialized_session_header,
-                sizeof( ssl_serialized_session_header ) );
-        p += sizeof( ssl_serialized_session_header );
+        /*
+         * Add version identifier
+         */
+
+        used += sizeof( ssl_serialized_session_header );
+
+        if( used <= buf_len )
+        {
+            memcpy( p, ssl_serialized_session_header,
+                    sizeof( ssl_serialized_session_header ) );
+            p += sizeof( ssl_serialized_session_header );
+        }
     }
 
     /*
@@ -9565,12 +9569,24 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 }
 
 /*
+ * Public wrapper for ssl_session_save()
+ */
+int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
+                              unsigned char *buf,
+                              size_t buf_len,
+                              size_t *olen )
+{
+    return( ssl_session_save( session, 0, buf, buf_len, olen ) );
+}
+
+/*
  * Deserialize session, see mbedtls_ssl_session_save() for format.
  *
  * This internal version is wrapped by a public function that cleans up in
- * case of error.
+ * case of error, and has an extra option omit_header.
  */
 static int ssl_session_load( mbedtls_ssl_session *session,
+                             unsigned char omit_header,
                              const unsigned char *buf,
                              size_t len )
 {
@@ -9586,19 +9602,22 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 #endif
 #endif
 
-    /*
-     * Check version identifier
-     */
-
-    if( (size_t)( end - p ) < sizeof( ssl_serialized_session_header ) )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    if( memcmp( p, ssl_serialized_session_header,
-                sizeof( ssl_serialized_session_header ) ) != 0 )
+    if( !omit_header )
     {
-        return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+        /*
+         * Check version identifier
+         */
+
+        if( (size_t)( end - p ) < sizeof( ssl_serialized_session_header ) )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+        if( memcmp( p, ssl_serialized_session_header,
+                    sizeof( ssl_serialized_session_header ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+        }
+        p += sizeof( ssl_serialized_session_header );
     }
-    p += sizeof( ssl_serialized_session_header );
 
     /*
      * Time
@@ -9811,7 +9830,7 @@ int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
                               const unsigned char *buf,
                               size_t len )
 {
-    int ret = ssl_session_load( session, buf, len );
+    int ret = ssl_session_load( session, 0, buf, len );
 
     if( ret != 0 )
         mbedtls_ssl_session_free( session );
@@ -10859,7 +10878,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     /*
      * Session (length + data)
      */
-    ret = mbedtls_ssl_session_save( ssl->session, NULL, 0, &session_len );
+    ret = ssl_session_save( ssl->session, 1, NULL, 0, &session_len );
     if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
         return( ret );
 
@@ -10871,8 +10890,8 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
         *p++ = (unsigned char)( ( session_len >>  8 ) & 0xFF );
         *p++ = (unsigned char)( ( session_len       ) & 0xFF );
 
-        ret = mbedtls_ssl_session_save( ssl->session,
-                                        p, session_len, &session_len );
+        ret = ssl_session_save( ssl->session, 1,
+                                p, session_len, &session_len );
         if( ret != 0 )
             return( ret );
 
@@ -11101,9 +11120,12 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     if( (size_t)( end - p ) < session_len )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    ret = mbedtls_ssl_session_load( ssl->session, p, session_len );
+    ret = ssl_session_load( ssl->session, 1, p, session_len );
     if( ret != 0 )
+    {
+        mbedtls_ssl_session_free( ssl->session );
         return( ret );
+    }
 
     p += session_len;
 

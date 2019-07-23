@@ -11612,13 +11612,12 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
                   ( (size_t) p[3]       );
     p += 4;
 
-    ssl->session = mbedtls_calloc( 1, sizeof( mbedtls_ssl_session ) );
-    if( ssl->session == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-    mbedtls_ssl_session_init( ssl->session );
-
+    /* This has been allocated by ssl_handshake_init(), called by
+     * by either ssl_session_reset_int() or mbedtls_ssl_setup(). */
+    ssl->session = ssl->session_negotiate;
     ssl->session_in = ssl->session;
     ssl->session_out = ssl->session;
+    ssl->session_negotiate = NULL;
 
     if( (size_t)( end - p ) < session_len )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -11633,14 +11632,12 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
      * Transform
      */
 
-    /* Allocate and initialize structure */
-    ssl->transform = mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
-    if( ssl->transform == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-    mbedtls_ssl_transform_init( ssl->transform );
-
+    /* This has been allocated by ssl_handshake_init(), called by
+     * by either ssl_session_reset_int() or mbedtls_ssl_setup(). */
+    ssl->transform = ssl->transform_negotiate;
     ssl->transform_in = ssl->transform;
     ssl->transform_out = ssl->transform;
+    ssl->transform_negotiate = NULL;
 
     /* Read random bytes and populate structure */
     if( (size_t)( end - p ) < sizeof( ssl->transform->randbytes ) )

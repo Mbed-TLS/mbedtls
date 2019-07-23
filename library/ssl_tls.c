@@ -11522,7 +11522,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "saved context", buf, used );
 
-    return( 0 );
+    return( ssl_session_reset_int( ssl, 0 ) );
 }
 
 /*

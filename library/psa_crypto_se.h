@@ -31,6 +31,30 @@
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
 
+/** The maximum lifetime value that this implementation supports
+ * for a secure element.
+ *
+ * This is not a characteristic that each PSA implementation has, but a
+ * limitation of the current implementation due to the constraints imposed
+ * by storage. See #PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE.
+ *
+ * The minimum lifetime value for a secure element is 2, like on any
+ * PSA implementation (0=volatile and 1=internal-storage are taken).
+ */
+#define PSA_MAX_SE_LIFETIME 255
+
+/** The base of the range of ITS file identifiers for secure element
+ * driver persistent data.
+ *
+ * We use a slice of the implemenation reserved range 0xffff0000..0xffffffff,
+ * specifically the range 0xfffffe00..0xfffffeff. The length of this range
+ * drives the value of #PSA_MAX_SE_LIFETIME.
+ * The identifiers 0xfffffe00 and 0xfffffe01 are actually not used since
+ * they correspond to #PSA_KEY_LIFETIME_VOLATILE and
+ * #PSA_KEY_LIFETIME_PERSISTENT which don't have a driver.
+ */
+#define PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE ( (psa_key_id_t) 0xfffffe00 )
+
 /** The maximum number of registered secure element driver lifetimes. */
 #define PSA_MAX_SE_DRIVERS 4
 
@@ -137,5 +161,14 @@ psa_status_t psa_load_se_persistent_data(
  */
 psa_status_t psa_save_se_persistent_data(
     const psa_se_drv_table_entry_t *driver );
+
+/** Destroy the persistent data of a secure element driver.
+ *
+ * This is currently only used for testing.
+ *
+ * \param[in] lifetime  The driver lifetime whose persistent data should
+ *                      be erased.
+ */
+psa_status_t psa_destroy_se_persistent_data( psa_key_lifetime_t lifetime );
 
 #endif /* PSA_CRYPTO_SE_H */

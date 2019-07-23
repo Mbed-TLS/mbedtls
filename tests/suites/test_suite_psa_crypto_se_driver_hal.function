@@ -119,13 +119,18 @@ psa_status_t ram_allocate( psa_drv_se_context_t *context,
 #define MAX_KEY_ID_FOR_TEST 10
 void psa_purge_storage( void )
 {
-    psa_key_id_t i;
+    psa_key_id_t id;
+    psa_key_lifetime_t lifetime;
     /* The tests may have potentially created key ids from 1 to
      * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
      * 0, which file-based storage uses as a temporary file. */
-    for( i = 0; i <= MAX_KEY_ID_FOR_TEST; i++ )
-        psa_destroy_persistent_key( i );
+    for( id = 0; id <= MAX_KEY_ID_FOR_TEST; id++ )
+        psa_destroy_persistent_key( id );
+    /* Purge the transaction file. */
     psa_crypto_stop_transaction( );
+    /* Purge driver persistent data. */
+    for( lifetime = 0; lifetime < PSA_MAX_SE_LIFETIME; lifetime++ )
+        psa_destroy_se_persistent_data( lifetime );
 }
 
 /* END_HEADER */

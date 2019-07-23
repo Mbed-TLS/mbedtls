@@ -35,6 +35,13 @@
 
 #include "psa_crypto_se.h"
 
+#if defined(MBEDTLS_PSA_ITS_FILE_C)
+#include "psa_crypto_its.h"
+#else /* Native ITS implementation */
+#include "psa/error.h"
+#include "psa/internal_trusted_storage.h"
+#endif
+
 #include "mbedtls/platform.h"
 #if !defined(MBEDTLS_PLATFORM_C)
 #define mbedtls_calloc calloc
@@ -114,20 +121,52 @@ int psa_get_se_driver( psa_key_lifetime_t lifetime,
 /* Persistent data management */
 /****************************************************************/
 
+static psa_status_t psa_get_se_driver_its_file_uid(
+    const psa_se_drv_table_entry_t *driver,
+    psa_storage_uid_t *uid )
+{
+    if( driver->lifetime > PSA_MAX_SE_LIFETIME )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    *uid = PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE + driver->lifetime;
+    return( PSA_SUCCESS );
+}
+
 psa_status_t psa_load_se_persistent_data(
     const psa_se_drv_table_entry_t *driver )
 {
-    /*TODO*/
-    (void) driver;
-    return( PSA_SUCCESS );
+    psa_status_t status;
+    psa_storage_uid_t uid;
+
+    status = psa_get_se_driver_its_file_uid( driver, &uid );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    return( psa_its_get( uid, 0, driver->internal.persistent_data_size,
+                         driver->internal.persistent_data ) );
 }
 
 psa_status_t psa_save_se_persistent_data(
     const psa_se_drv_table_entry_t *driver )
 {
-    /*TODO*/
-    (void) driver;
-    return( PSA_SUCCESS );
+    psa_status_t status;
+    psa_storage_uid_t uid;
+
+    status = psa_get_se_driver_its_file_uid( driver, &uid );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    return( psa_its_set( uid, driver->internal.persistent_data_size,
+                         driver->internal.persistent_data,
+                         0 ) );
+}
+
+psa_status_t psa_destroy_se_persistent_data( psa_key_lifetime_t lifetime )
+{
+    psa_storage_uid_t uid;
+    if( lifetime > PSA_MAX_SE_LIFETIME )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    uid = PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE + lifetime;
+    return( psa_its_remove( uid ) );
 }
 
 psa_status_t psa_find_se_slot_for_key(
@@ -201,6 +240,8 @@ psa_status_t psa_register_se_driver(
     {
         return( PSA_ERROR_INVALID_ARGUMENT );
     }
+    if( lifetime > PSA_MAX_SE_LIFETIME )
+        return( PSA_ERROR_NOT_SUPPORTED );
 
     for( i = 0; i < PSA_MAX_SE_DRIVERS; i++ )
     {
@@ -227,8 +268,11 @@ psa_status_t psa_register_se_driver(
             status = PSA_ERROR_INSUFFICIENT_MEMORY;
             goto error;
         }
+        /* Load the driver's persistent data. On first use, the persistent
+         * data does not exist in storage, and is initialized to
+         * all-bits-zero by the calloc call just above. */
         status = psa_load_se_persistent_data( &driver_table[i] );
-        if( status != PSA_SUCCESS )
+        if( status != PSA_SUCCESS && status != PSA_ERROR_DOES_NOT_EXIST )
             goto error;
     }
     driver_table[i].internal.persistent_data_size =

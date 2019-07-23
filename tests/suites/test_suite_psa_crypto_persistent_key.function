@@ -12,6 +12,7 @@
 typedef struct {
     uint8_t magic[PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH];
     uint8_t version[4];
+    uint8_t lifetime[sizeof( psa_key_lifetime_t )];
     uint8_t type[sizeof( psa_key_type_t )];
     uint8_t policy[sizeof( psa_key_policy_t )];
     uint8_t data_len[4];
@@ -28,13 +29,14 @@ typedef struct {
 /* BEGIN_CASE */
 void format_storage_data_check( data_t *key_data,
                                 data_t *expected_file_data,
-                                int key_type,
+                                int key_lifetime, int key_type,
                                 int key_usage, int key_alg, int key_alg2 )
 {
     uint8_t *file_data;
     size_t file_data_length;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
+    psa_set_key_lifetime( &attributes, key_lifetime );
     psa_set_key_type( &attributes, key_type );
     psa_set_key_usage_flags( &attributes, key_usage );
     psa_set_key_algorithm( &attributes, key_alg );
@@ -55,6 +57,7 @@ void format_storage_data_check( data_t *key_data,
 /* BEGIN_CASE */
 void parse_storage_data_check( data_t *file_data,
                                data_t *expected_key_data,
+                               int expected_key_lifetime,
                                int expected_key_type,
                                int expected_key_usage,
                                int expected_key_alg,
@@ -74,6 +77,8 @@ void parse_storage_data_check( data_t *file_data,
     if( status != PSA_SUCCESS )
         goto exit;
 
+    TEST_EQUAL( psa_get_key_lifetime( &attributes ),
+                (psa_key_type_t) expected_key_lifetime );
     TEST_EQUAL( psa_get_key_type( &attributes ),
                 (psa_key_type_t) expected_key_type );
     TEST_EQUAL( psa_get_key_usage_flags( &attributes ),

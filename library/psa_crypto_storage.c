@@ -255,6 +255,7 @@ static psa_status_t psa_crypto_storage_get_data_length(
 typedef struct {
     uint8_t magic[PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH];
     uint8_t version[4];
+    uint8_t lifetime[sizeof( psa_key_lifetime_t )];
     uint8_t type[sizeof( psa_key_type_t )];
     uint8_t policy[sizeof( psa_key_policy_t )];
     uint8_t data_len[4];
@@ -271,6 +272,7 @@ void psa_format_key_data_for_storage( const uint8_t *data,
 
     memcpy( storage_format->magic, PSA_KEY_STORAGE_MAGIC_HEADER, PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH );
     PUT_UINT32_LE( 0, storage_format->version, 0 );
+    PUT_UINT32_LE( psa_get_key_lifetime( attributes ), storage_format->lifetime, 0 );
     PUT_UINT32_LE( psa_get_key_type( attributes ), storage_format->type, 0 );
     PUT_UINT32_LE( psa_get_key_usage_flags( attributes ), storage_format->policy, 0 );
     PUT_UINT32_LE( psa_get_key_algorithm( attributes ), storage_format->policy, sizeof( uint32_t ) );
@@ -326,6 +328,7 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
         memcpy( *key_data, storage_format->key_data, *key_data_length );
     }
 
+    GET_UINT32_LE( attributes->lifetime, storage_format->lifetime, 0 );
     GET_UINT32_LE( attributes->type, storage_format->type, 0 );
     GET_UINT32_LE( attributes->policy.usage, storage_format->policy, 0 );
     GET_UINT32_LE( attributes->policy.alg, storage_format->policy, sizeof( uint32_t ) );

@@ -782,10 +782,6 @@ typedef struct {
  */
 /**@{*/
 
-/* This type is documented in crypto.h. As far as drivers are concerned,
- * this is an opaque type. */
-typedef struct psa_key_attributes_s psa_key_attributes_t;
-
 /** \brief A function that allocates a slot for a key.
  *
  * \param[in,out] drv_context       The driver context structure.

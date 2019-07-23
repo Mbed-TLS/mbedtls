@@ -4088,11 +4088,11 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
         goto cleanup;
     }
 
-    SSL_PROC_CHK( ssl_client_key_exchange_parse( ssl, ssl->in_msg,
+    MBEDTLS_SSL_CHK( ssl_client_key_exchange_parse( ssl, ssl->in_msg,
                                                  ssl->in_hslen ) );
 
     /* Update state */
-    SSL_PROC_CHK( ssl_client_key_exchange_postprocess( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_client_key_exchange_postprocess( ssl ) );
 
 cleanup:
 

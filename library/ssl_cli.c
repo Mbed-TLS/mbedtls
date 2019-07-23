@@ -2644,11 +2644,11 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
      * Consider: Why don't we do this as post-processing after
      *           the server certificate has been read?
      */
-    SSL_PROC_CHK( ssl_server_key_exchange_prepare( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_server_key_exchange_prepare( ssl ) );
 
     /* Coordination:
      * Check if we expect a ServerKeyExchange */
-    SSL_PROC_CHK( ssl_server_key_exchange_coordinate( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_server_key_exchange_coordinate( ssl ) );
 
     if( ret == SSL_SRV_KEY_EXCHANGE_EXPECTED )
     {
@@ -2670,7 +2670,7 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
         }
         else
         {
-            SSL_PROC_CHK( ssl_server_key_exchange_parse( ssl, ssl->in_msg,
+            MBEDTLS_SSL_CHK( ssl_server_key_exchange_parse( ssl, ssl->in_msg,
                                                          ssl->in_hslen ) );
         }
     }
@@ -2680,7 +2680,7 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
     }
 
     /* Update state */
-    SSL_PROC_CHK( ssl_server_key_exchange_postprocess( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_server_key_exchange_postprocess( ssl ) );
 
 cleanup:
 
@@ -3356,10 +3356,10 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
     }
 #endif
 
-    SSL_PROC_CHK( ssl_client_key_exchange_prepare( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_client_key_exchange_prepare( ssl ) );
 
      /* Prepare CertificateVerify message in output buffer. */
-    SSL_PROC_CHK( ssl_client_key_exchange_write( ssl, ssl->out_msg,
+    MBEDTLS_SSL_CHK( ssl_client_key_exchange_write( ssl, ssl->out_msg,
                                                  MBEDTLS_SSL_MAX_CONTENT_LEN,
                                                  &ssl->out_msglen ) );
 
@@ -3370,11 +3370,11 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
 cli_key_exchange_postprocess:
 #endif
-    SSL_PROC_CHK( ssl_client_key_exchange_postprocess( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_client_key_exchange_postprocess( ssl ) );
 
     /* Dispatch message */
 
-    SSL_PROC_CHK( mbedtls_ssl_write_handshake_msg( ssl ) );
+    MBEDTLS_SSL_CHK( mbedtls_ssl_write_handshake_msg( ssl ) );
 
     /* NOTE: For the new messaging layer, the postprocessing step
      *       might come after the dispatching step if the latter

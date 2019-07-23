@@ -1817,6 +1817,6 @@ MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_pend_fatal_alert(
     ssl->pending_fatal_alert_msg = message;
 }
 
-#define SSL_PROC_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
+#define MBEDTLS_SSL_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
 
 #endif /* ssl_internal.h */

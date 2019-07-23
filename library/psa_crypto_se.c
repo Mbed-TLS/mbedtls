@@ -127,6 +127,13 @@ static psa_status_t psa_get_se_driver_its_file_uid(
 {
     if( driver->lifetime > PSA_MAX_SE_LIFETIME )
         return( PSA_ERROR_NOT_SUPPORTED );
+
+#if SIZE_MAX > UINT32_MAX
+    /* ITS file sizes are limited to 32 bits. */
+    if( driver->internal.persistent_data_size > UINT32_MAX )
+        return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+
     *uid = PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE + driver->lifetime;
     return( PSA_SUCCESS );
 }
@@ -141,7 +148,8 @@ psa_status_t psa_load_se_persistent_data(
     if( status != PSA_SUCCESS )
         return( status );
 
-    return( psa_its_get( uid, 0, driver->internal.persistent_data_size,
+    return( psa_its_get( uid, 0,
+                         (uint32_t) driver->internal.persistent_data_size,
                          driver->internal.persistent_data ) );
 }
 
@@ -155,7 +163,8 @@ psa_status_t psa_save_se_persistent_data(
     if( status != PSA_SUCCESS )
         return( status );
 
-    return( psa_its_set( uid, driver->internal.persistent_data_size,
+    return( psa_its_set( uid,
+                         (uint32_t) driver->internal.persistent_data_size,
                          driver->internal.persistent_data,
                          0 ) );
 }

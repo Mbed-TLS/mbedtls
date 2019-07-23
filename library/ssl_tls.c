@@ -1701,6 +1701,26 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
+    {
+        const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+
+        if( !uECC_shared_secret( ssl->handshake->ecdh_peerkey,
+                                 ssl->handshake->ecdh_privkey,
+                                 ssl->handshake->premaster,
+                                 uecc_curve ) )
+        {
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+
+        ssl->handshake->pmslen = NUM_ECC_BYTES;
+    }
+    else
+#endif
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_DHE_RSA )

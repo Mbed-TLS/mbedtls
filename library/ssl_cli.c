@@ -3573,14 +3573,6 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
 
-        if( !uECC_shared_secret( ssl->handshake->ecdh_peerkey,
-                                 ssl->handshake->ecdh_privkey,
-                                 ssl->handshake->premaster,
-                                 uecc_curve ) )
-        {
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-
         /* TODO: Write the client share. */
         ((void) p);
         ((void) end);

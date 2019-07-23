@@ -55,6 +55,13 @@
 #include "mbedtls/oid.h"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
+{
+    return( mbedtls_ssl_conf_rng_func( NULL, dest, size ) );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 
@@ -8234,6 +8241,10 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
 
     ssl->conf = conf;
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    uECC_set_rng( &uecc_rng_wrapper );
+#endif
+
     /*
      * Prepare base structures
      */
@@ -12164,13 +12175,6 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
             return( MBEDTLS_SSL_HASH_NONE );
     }
 }
-
-#if defined(MBEDTLS_USE_TINYCRYPT)
-int mbetls_uecc_rng_wrapper( uint8_t *dest, unsigned int size )
-{
-    return( mbedtls_ssl_conf_rng_func( NULL, dest, size ) );
-}
-#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_ECP_C)
 /*

@@ -902,10 +902,6 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
 
-#if defined(MBEDTLS_USE_TINYCRYPT)
-int mbetls_uecc_rng_wrapper( uint8_t *dest, unsigned int size );
-#endif
-
 /**
  * \brief       Update record layer
  *

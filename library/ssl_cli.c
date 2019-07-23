@@ -3533,8 +3533,6 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
     {
         const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
 
-        uECC_set_rng( &mbetls_uecc_rng_wrapper );
-
         if( !uECC_make_key( ssl->handshake->ecdh_ownpubkey,
                             ssl->handshake->ecdh_privkey,
                             uecc_curve ) )

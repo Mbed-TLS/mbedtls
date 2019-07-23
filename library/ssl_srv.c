@@ -3384,8 +3384,6 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
          */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-        uECC_set_rng( &mbetls_uecc_rng_wrapper );
-
         if( ssl->handshake->curve_tls_id != 23 )
             return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
 

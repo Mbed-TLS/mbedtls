@@ -10792,8 +10792,8 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
         ssl->out_left != 0 ||
         /* We're using DTLS 1.2 ... */
         MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) ||
-        ssl->major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 ||
+        mbedtls_ssl_get_major_ver( ssl ) != MBEDTLS_SSL_MAJOR_VERSION_3 ||
+        mbedtls_ssl_get_minor_ver( ssl ) != MBEDTLS_SSL_MINOR_VERSION_3 ||
         /* ... with an AEAD ciphersuite. */
         mbedtls_ssl_transform_uses_aead( ssl->transform ) != 1 ||
         /* Renegotation is disabled. */
@@ -11009,10 +11009,14 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
      * least check it matches the requirements for serializing.
      */
     if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) ||
-        ssl->conf->max_major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        ssl->conf->min_major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        ssl->conf->max_minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 ||
-        ssl->conf->min_minor_ver > MBEDTLS_SSL_MINOR_VERSION_3 ||
+        mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) <
+            MBEDTLS_SSL_MAJOR_VERSION_3 ||
+        mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) >
+            MBEDTLS_SSL_MAJOR_VERSION_3 ||
+        mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) <
+            MBEDTLS_SSL_MINOR_VERSION_3 ||
+        mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) >
+            MBEDTLS_SSL_MINOR_VERSION_3 ||
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED
 #endif

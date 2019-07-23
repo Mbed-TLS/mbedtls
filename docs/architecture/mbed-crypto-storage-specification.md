@@ -193,3 +193,92 @@ The layout of a key file is:
 * key material length (4 bytes)
 * key material: output of `psa_export_key`
 * Any trailing data is rejected on load.
+
+Mbed Crypto TBD
+---------------
+
+Tags: TBD
+
+Released in TBD 2019. <br>
+Integrated in Mbed OS TBD.
+
+### Changes introduced in TBD
+
+* The layout of a key file now has a lifetime field before the type field.
+* Key files can store references to keys in a secure element. In such key files, the key material contains the slot number.
+
+### File namespace on a PSA platform on TBD
+
+Assumption: ITS provides a 64-bit file identifier namespace. The Crypto service can use arbitrary file identifiers and no other part of the system accesses the same file identifier namespace.
+
+Assumption: the owner identifier is a nonzero value of type `int32_t`.
+
+* Files 0 through 0xfffeffff: unused.
+* Files 0xffff0000 through 0xffffffff: reserved for internal use of the crypto library or crypto service. See [non-key files](#non-key-files-on-tbd).
+* Files 0x100000000 through 0xffffffffffff: [content](#key-file-format-for-1.0.0) of the [key whose identifier is the file identifier](#key-names-for-1.0.0). The upper 32 bits determine the owner.
+
+### File namespace on ITS as a library on TBD
+
+Assumption: ITS provides a 64-bit file identifier namespace. The entity using the crypto library can use arbitrary file identifiers and no other part of the system accesses the same file identifier namespace.
+
+This is a library integration, so there is no owner. The key file identifier is identical to the key identifier.
+
+* File 0: unused.
+* Files 1 through 0xfffeffff: [content](#key-file-format-for-1.0.0) of the [key whose identifier is the file identifier](#key-names-for-1.0.0).
+* Files 0xffff0000 through 0xffffffff: reserved for internal use of the crypto library or crypto service. See [non-key files](#non-key-files-on-tbd).
+* Files 0x100000000 through 0xffffffffffffffff: unused.
+
+### Non-key files on TBD
+
+File identifiers in the range 0xffff0000 through 0xffffffff are reserved for internal use in Mbed Crypto.
+
+* Files 0xfffffe02 through 0xfffffeff (`PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE + lifetime`): secure element driver storage. The content of the file is the secure element driver's persistent data.
+* File 0xffffff52 (`PSA_CRYPTO_ITS_RANDOM_SEED_UID`): [nonvolatile random seed](#nonvolatile-random-seed-file-format-for-1.0.0).
+* File 0xffffff54 (`PSA_CRYPTO_ITS_TRANSACTION_UID`): [transaction file](#transaction-file-format-for-tbd).
+* Other files are unused and reserved for future use.
+
+### Key file format for TBD
+
+All integers are encoded in little-endian order in 8-bit bytes except where otherwise indicated.
+
+The layout of a key file is:
+
+* magic (8 bytes): `"PSA\0KEY\0"`.
+* version (4 bytes): 0.
+* lifetime (4 bytes): `psa_key_lifetime_t` value.
+* type (4 bytes): `psa_key_type_t` value.
+* policy usage flags (4 bytes): `psa_key_usage_t` value.
+* policy usage algorithm (4 bytes): `psa_algorithm_t` value.
+* policy enrollment algorithm (4 bytes): `psa_algorithm_t` value.
+* key material length (4 bytes).
+* key material:
+    * For a transparent key: output of `psa_export_key`.
+    * For an opaque key (key in a secure element): slot number (8 bytes), in platform endianness.
+* Any trailing data is rejected on load.
+
+### Transaction file format for TBD
+
+The transaction file contains data about an ongoing action that cannot be completed atomically. It exists only if there is an ongoing transaction.
+
+All integers are encoded in platform endianness.
+
+All currently existing transactions concern a key in a secure element.
+
+The layout of a transaction file is:
+
+* type (2 bytes): the [transaction type](#transaction-types-on-tbd).
+* unused (2 bytes)
+* lifetime (4 bytes): `psa_key_lifetime_t` value that corresponds to a key in a secure element.
+* slot number (8 bytes): `psa_key_slot_number_t` value. This is the unique designation of the key for the secure element driver.
+* key identifier (4 bytes in a library integration, 8 bytes on a PSA platform): the internal representation of the key identifier. On a PSA platform, this encodes the key owner in the same way as [in file identifiers for key files](#file-namespace-on-a-psa-platform-on-tbd)).
+
+#### Transaction types on TBD
+
+* 0x0001: key creation. The following locations may or may not contain data about the key that is being created:
+    * The slot in the secure element designated by the slot number.
+    * The file containing the key metadata designated by the key identifier.
+    * The driver persistent data.
+* 0x0002: key destruction. The following locations may or may not still contain data about the key that is being destroyed:
+    * The slot in the secure element designated by the slot number.
+    * The file containing the key metadata designated by the key identifier.
+    * The driver persistent data.

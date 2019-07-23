@@ -11285,15 +11285,53 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
 }
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID 1u
+#else
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID 0u
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT 1u
+#else
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT 0u
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
+
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY 1u
+#else
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY 0u
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
+
+#if defined(MBEDTLS_SSL_ALPN)
+#define SSL_SERIALIZED_CONTEXT_CONFIG_ALPN 1u
+#else
+#define SSL_SERIALIZED_CONTEXT_CONFIG_ALPN 0u
+#endif /* MBEDTLS_SSL_ALPN */
+
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID_BIT    0
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT_BIT     1
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY_BIT      2
+#define SSL_SERIALIZED_CONTEXT_CONFIG_ALPN_BIT                  3
+
+#define SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG   \
+    ( (uint32_t) (                              \
+        ( SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID     << SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID_BIT     ) | \
+        ( SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT      << SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT_BIT      ) | \
+        ( SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY       << SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY_BIT       ) | \
+        ( SSL_SERIALIZED_CONTEXT_CONFIG_ALPN                   << SSL_SERIALIZED_CONTEXT_CONFIG_ALPN_BIT                   ) | \
+        0u ) )
+
 static unsigned char ssl_serialized_context_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
     ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 8 ) & 0xFF,
     ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 0 ) & 0xFF,
-    0, /* placeholder */
-    0, /* placeholder */
-    0, /* placeholder */
+    ( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG >> 16 ) & 0xFF,
+    ( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG >>  8 ) & 0xFF,
+    ( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG >>  0 ) & 0xFF,
 };
 
 /*
@@ -11307,8 +11345,8 @@ static unsigned char ssl_serialized_context_header[] = {
  *  opaque context_format[5];    // version-specific field determining
  *                               // the format of the remaining
  *                               // serialized data.
- *  Note: When updating the format, remember to keep
- *        these version+format bytes. (To be confirmed.)
+ *  Note: When updating the format, remember to keep these
+ *        version+format bytes. (We may make their size part of the API.)
  *
  *  // session sub-structure
  *  opaque session<1..2^32-1>;  // see mbedtls_ssl_session_save()

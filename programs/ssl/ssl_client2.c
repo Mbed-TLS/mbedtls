@@ -2527,16 +2527,8 @@ send_request:
 
         if( opt.serialize == 1 )
         {
-            mbedtls_printf( "  . Reseting context..." );
-
-            if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
-            {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned "
-                                "-0x%x\n\n", -ret );
-                goto exit;
-            }
-
-            mbedtls_printf( " ok\n" );
+            /* nothing to do here, done by context_save() already */
+            mbedtls_printf( "  . Context has been reset... ok" );
         }
 
         if( opt.serialize == 2 )

@@ -3908,10 +3908,10 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  * \note           When this function succeeds, it calls
  *                 mbedtls_ssl_session_reset() on \p ssl which as a result is
  *                 no longer associated with the connection that has been
- *                 serialized. This avoids creating copies of the session
+ *                 serialized. This avoids creating copies of the connection
  *                 state. You're then free to either re-use the context
  *                 structure for a different connection, or call
- *                 mbedtls_ssl_session_free() on it. See the documentation of
+ *                 mbedtls_ssl_free() on it. See the documentation of
  *                 mbedtls_ssl_session_reset() for more details.
  *
  * \param ssl      The SSL context to save. On success, it is no longer
@@ -3934,6 +3934,8 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
+ * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed
+ *                 while reseting the context.
  * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if a handshake is in
  *                 progress, or there is pending data for reading or sending,
  *                 or the connection does not use DTLS 1.2 with an AEAD

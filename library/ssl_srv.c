@@ -1249,13 +1249,13 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
     {
-        MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                    \
-                                                ssl->minor_ver,         \
+        MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                              \
+                                                mbedtls_ssl_get_minor_ver( ssl ), \
                                                 cur_info )
         {
 #else
-    MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                \
-                                            ssl->minor_ver,     \
+    MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                              \
+                                            mbedtls_ssl_get_minor_ver( ssl ), \
                                             cur_info )
     {
         for( j = 0, p = buf + 6; j < ciph_len; j += 3, p += 3 )
@@ -2183,13 +2183,13 @@ read_record_header:
 #if defined(MBEDTLS_SSL_SRV_RESPECT_CLIENT_PREFERENCE)
     for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
     {
-        MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                    \
-                                                ssl->minor_ver,         \
+        MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                              \
+                                                mbedtls_ssl_get_minor_ver( ssl ), \
                                                 cur_info )
         {
 #else
-    MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                \
-                                            ssl->minor_ver,     \
+    MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl,                              \
+                                            mbedtls_ssl_get_minor_ver( ssl ), \
                                             cur_info )
     {
         for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )

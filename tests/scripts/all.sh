@@ -762,9 +762,27 @@ component_test_full_cmake_clang () {
 component_test_hardcoded_ciphersuite_cmake_clang() {
     msg "build: cmake, full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE, clang" # ~ 50s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE MBEDTLS_SUITE_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
+    CC=clang cmake -D LINK_WITH_PTHREAD=1 -D CMAKE_BUILD_TYPE:String=ASanDbg -D ENABLE_TESTING=On .
+    make
+
+    msg "test: main suites (full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)" # ~ 5s
+    make test
+
+    msg "test: ssl-opt.sh default (full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f '^Default$\|^Default, DTLS$'
+}
+
+component_test_hardcoded_timer_callback_cmake_clang() {
+    msg "build: cmake, full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE, clang" # ~ 50s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_SSL_CONF_GET_TIMER mbedtls_timing_get_delay
+    scripts/config.pl set MBEDTLS_SSL_CONF_SET_TIMER mbedtls_timing_set_delay
+    CC=clang cmake -D LINK_WITH_PTHREAD=1 -D CMAKE_BUILD_TYPE:String=ASanDbg -D ENABLE_TESTING=On .
     make
 
     msg "test: main suites (full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)" # ~ 5s

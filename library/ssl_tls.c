@@ -7777,8 +7777,6 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
             ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_PREPARING;
         else
             ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
-
-        ssl_set_timer( ssl, 0 );
     }
 #endif
 

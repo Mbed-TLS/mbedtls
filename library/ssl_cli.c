@@ -3562,9 +3562,13 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 #if defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA)
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
     {
         const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+        ((void) n);
+        ((void) ret);
 
         if( !uECC_make_key( ssl->handshake->ecdh_ownpubkey,
                             ssl->handshake->ecdh_privkey,
@@ -3573,13 +3577,13 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
 
-        /* TODO: Write the client share. */
-        ((void) p);
-        ((void) end);
-        ((void) ret);
-        ((void) n);
+        if( (size_t)( end - p ) < 2 * NUM_ECC_BYTES + 2 )
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
-        mbedtls_platform_zeroize( ssl->handshake->ecdh_privkey, NUM_ECC_BYTES );
+        *p++ = 2 * NUM_ECC_BYTES + 1;
+        *p++ = 0x04; /* uncompressed point presentation */
+        memcpy( p, ssl->handshake->ecdh_ownpubkey, 2 * NUM_ECC_BYTES );
+        p += 2 * NUM_ECC_BYTES;
     }
     else
 #elif defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||              \

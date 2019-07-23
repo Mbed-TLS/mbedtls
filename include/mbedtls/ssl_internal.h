@@ -1560,18 +1560,18 @@ static inline mbedtls_ssl_recv_timeout_t* mbedtls_ssl_get_recv_timeout(
 
 typedef int mbedtls_frng_t( void*, unsigned char*, size_t );
 
-static inline void* mbedtls_ssl_conf_get_prng( mbedtls_ssl_config const *conf )
-{
-    return( conf->p_rng );
-}
 #if !defined(MBEDTLS_SSL_CONF_RNG)
 static inline mbedtls_frng_t* mbedtls_ssl_conf_get_frng(
     mbedtls_ssl_config const *conf )
 {
     return( conf->f_rng );
 }
-#else /* !MBEDTLS_SSL_CONF_RNG */
 
+static inline void* mbedtls_ssl_conf_get_prng( mbedtls_ssl_config const *conf )
+{
+    return( conf->p_rng );
+}
+#else /* !MBEDTLS_SSL_CONF_RNG */
 #define mbedtls_ssl_conf_rng_func MBEDTLS_SSL_CONF_RNG
 extern int mbedtls_ssl_conf_rng_func( void*, unsigned char*, size_t );
 
@@ -1580,6 +1580,12 @@ static inline mbedtls_frng_t* mbedtls_ssl_conf_get_frng(
 {
     ((void) conf);
     return ((mbedtls_frng_t*) mbedtls_ssl_conf_rng_func);
+}
+
+static inline void* mbedtls_ssl_conf_get_prng( mbedtls_ssl_config const *conf )
+{
+    ((void) conf);
+    return( NULL );
 }
 #endif /* MBEDTLS_SSL_CONF_RNG */
 

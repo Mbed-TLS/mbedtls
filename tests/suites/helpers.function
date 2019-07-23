@@ -356,6 +356,18 @@ void mbedtls_param_failed( const char *failure_condition,
 }
 #endif
 
+#if defined(MBEDTLS_SSL_CONF_RNG)
+int rng_wrap( void *ctx, unsigned char *dst, size_t len )
+{
+    ((void) ctx);
+    ((void) dst);
+    ((void) len);
+    /* We don't expect test suites to use SSL functionality
+     * that would trigger the hardcoded RNG. */
+    return( -1 );
+}
+#endif /* MBEDTLS_SSL_CONF_RNG */
+
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 static int redirect_output( FILE** out_stream, const char* path )
 {

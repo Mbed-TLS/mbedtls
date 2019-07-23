@@ -3668,9 +3668,10 @@
 /* The PRNG to use by the SSL module. If defined, this must
  * evaluate to the name on externally defined function with signature
  * int f_rng(void *, unsigned char *, size_t),
- * e.g. mbedtls_ctr_drbg_random or mbedtls_hmac_drbg_random.
+ * which ignores its first parameter (the stack will always
+ * pass NULL to this function).
  */
-//#define MBEDTLS_SSL_CONF_RNG mbedtls_ctr_drbg_random
+//#define MBEDTLS_SSL_CONF_RNG rng_wrap
 
 /* TLS version */
 //#define MBEDTLS_SSL_CONF_MIN_MINOR_VER MBEDTLS_SSL_MINOR_VERSION_3

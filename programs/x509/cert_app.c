@@ -149,6 +149,20 @@ static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *fl
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_CONF_RNG)
+int rng_wrap( void *ctx, unsigned char *dst, size_t len );
+
+mbedtls_ctr_drbg_context *rng_ctx_global = NULL;
+int rng_wrap( void *ctx, unsigned char *dst, size_t len )
+{
+    /* We expect the NULL parameter here. */
+    if( ctx != NULL )
+        return( -1 );
+
+    return( mbedtls_ctr_drbg_random( rng_ctx_global, dst, len ) );
+}
+#endif /* MBEDTLS_SSL_CONF_RNG */
+
 int main( int argc, char *argv[] )
 {
     int ret = 1;
@@ -424,7 +438,12 @@ int main( int argc, char *argv[] )
         else
             mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_NONE );
 
-        mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#if !defined(MBEDTLS_SSL_CONF_RNG)
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#else
+    rng_ctx_global = &ctr_drbg;
+#endif
+
 #if defined(MBEDTLS_DEBUG_C)
         mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 #endif

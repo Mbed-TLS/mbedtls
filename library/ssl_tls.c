@@ -8510,12 +8510,6 @@ void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
     conf->f_rng      = f_rng;
     conf->p_rng      = p_rng;
 }
-#else
-void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
-                               void *p_rng )
-{
-    conf->p_rng      = p_rng;
-}
 #endif
 
 #if defined(MBEDTLS_DEBUG_C)

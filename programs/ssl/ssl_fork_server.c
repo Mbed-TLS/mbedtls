@@ -102,6 +102,20 @@ static void my_debug( void *ctx, int level,
 }
 #endif /* MBEDTLS_DEBUG_C */
 
+#if defined(MBEDTLS_SSL_CONF_RNG)
+int rng_wrap( void *ctx, unsigned char *dst, size_t len );
+
+mbedtls_ctr_drbg_context *rng_ctx_global = NULL;
+int rng_wrap( void *ctx, unsigned char *dst, size_t len )
+{
+    /* We expect the NULL parameter here. */
+    if( ctx != NULL )
+        return( -1 );
+
+    return( mbedtls_ctr_drbg_random( rng_ctx_global, dst, len ) );
+}
+#endif /* MBEDTLS_SSL_CONF_RNG */
+
 int main( void )
 {
     int ret = 1, len, cnt = 0, pid;
@@ -196,7 +210,12 @@ int main( void )
         goto exit;
     }
 
+#if !defined(MBEDTLS_SSL_CONF_RNG)
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+#else
+    rng_ctx_global = &ctr_drbg;
+#endif
+
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
 #endif

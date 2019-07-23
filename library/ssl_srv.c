@@ -4218,6 +4218,12 @@ static int ssl_client_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 2 ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_encrypted_pms" ), ret );
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    if ( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+        return( ret );
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
             return( ret );
         }
     }

@@ -1100,6 +1100,22 @@ exit:
 }
 #endif /* MBEDTLS_RSA_C */
 
+/** Retrieve the readily-accessible attributes of a key in a slot.
+ *
+ * This function does not compute attributes that are not directly
+ * stored in the slot, such as the bit size of a transparent key.
+ */
+static void psa_get_key_slot_attributes( psa_key_slot_t *slot,
+                                         psa_key_attributes_t *attributes )
+{
+    attributes->id = slot->persistent_storage_id;
+    attributes->lifetime = slot->lifetime;
+    attributes->policy = slot->policy;
+    attributes->type = slot->type;
+}
+
+/** Retrieve all the publicly-accessible attributes of a key.
+ */
 psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
                                      psa_key_attributes_t *attributes )
 {
@@ -1112,10 +1128,7 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
     if( status != PSA_SUCCESS )
         return( status );
 
-    attributes->id = slot->persistent_storage_id;
-    attributes->lifetime = slot->lifetime;
-    attributes->policy = slot->policy;
-    attributes->type = slot->type;
+    psa_get_key_slot_attributes( slot, attributes );
     attributes->bits = psa_get_key_slot_bits( slot );
 
     switch( slot->type )
@@ -1473,9 +1486,9 @@ static psa_status_t psa_finish_key_creation(
 
         if( status == PSA_SUCCESS )
         {
-            status = psa_save_persistent_key( slot->persistent_storage_id,
-                                              slot->type, &slot->policy,
-                                              buffer, length );
+            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+            psa_get_key_slot_attributes( slot, &attributes );
+            status = psa_save_persistent_key( &attributes, buffer, length );
         }
 
         if( buffer_size != 0 )

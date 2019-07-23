@@ -83,12 +83,11 @@ int psa_is_key_present_in_storage( const psa_key_file_id_t key );
  * already occupied non-persistent key, as well as validating the key data.
  *
  *
- * \param key           Persistent identifier of the key to be stored. This
- *                      should be an unoccupied storage location.
- * \param type          Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param[in] policy    The key policy to save.
- * \param[in] data      Buffer containing the key data.
- * \param data_length   The number of bytes that make up the key data.
+ * \param[in] attributes    The attributes of the key to save.
+ *                          The key identifier field in the attributes
+ *                          determines the key's location.
+ * \param[in] data          Buffer containing the key data.
+ * \param data_length       The number of bytes that make up the key data.
  *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_INSUFFICIENT_MEMORY
@@ -96,9 +95,7 @@ int psa_is_key_present_in_storage( const psa_key_file_id_t key );
  * \retval PSA_ERROR_STORAGE_FAILURE
  * \retval PSA_ERROR_ALREADY_EXISTS
  */
-psa_status_t psa_save_persistent_key( const psa_key_file_id_t key,
-                                      const psa_key_type_t type,
-                                      const psa_key_policy_t *policy,
+psa_status_t psa_save_persistent_key( const psa_key_attributes_t *attributes,
                                       const uint8_t *data,
                                       const size_t data_length );
 
@@ -114,11 +111,11 @@ psa_status_t psa_save_persistent_key( const psa_key_file_id_t key,
  * this function to zeroize and free this buffer, regardless of whether this
  * function succeeds or fails.
  *
- * \param key               Persistent identifier of the key to be loaded. This
- *                          should be an occupied storage location.
- * \param[out] type         On success, the key type (a \c PSA_KEY_TYPE_XXX
- *                          value).
- * \param[out] policy       On success, the key's policy.
+ * \param[in,out] attributes
+ *                          On input, the key identifier field identifies
+ *                          the key to load. Other fields are ignored.
+ *                          On success, the attribute structure contains
+ *                          the key metadata that was loaded from storage.
  * \param[out] data         Pointer to an allocated key data buffer on return.
  * \param[out] data_length  The number of bytes that make up the key data.
  *
@@ -127,9 +124,7 @@ psa_status_t psa_save_persistent_key( const psa_key_file_id_t key,
  * \retval PSA_ERROR_STORAGE_FAILURE
  * \retval PSA_ERROR_DOES_NOT_EXIST
  */
-psa_status_t psa_load_persistent_key( psa_key_file_id_t key,
-                                      psa_key_type_t *type,
-                                      psa_key_policy_t *policy,
+psa_status_t psa_load_persistent_key( psa_key_attributes_t *attributes,
                                       uint8_t **data,
                                       size_t *data_length );
 
@@ -161,17 +156,15 @@ void psa_free_persistent_key_data( uint8_t *key_data, size_t key_data_length );
 /**
  * \brief Formats key data and metadata for persistent storage
  *
- * \param[in] data          Buffer for the key data.
+ * \param[in] data          Buffer containing the key data.
  * \param data_length       Length of the key data buffer.
- * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param policy            The key policy.
+ * \param[in] attributes    The attributes of the key.
  * \param[out] storage_data Output buffer for the formatted data.
  *
  */
 void psa_format_key_data_for_storage( const uint8_t *data,
                                       const size_t data_length,
-                                      const psa_key_type_t type,
-                                      const psa_key_policy_t *policy,
+                                      const psa_key_attributes_t *attributes,
                                       uint8_t *storage_data );
 
 /**
@@ -183,8 +176,8 @@ void psa_format_key_data_for_storage( const uint8_t *data,
  *                             containing the key data. This must be freed
  *                             using psa_free_persistent_key_data()
  * \param[out] key_data_length Length of the key data buffer
- * \param[out] type            Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param[out] policy          The key policy.
+ * \param[out] attributes      On success, the attribute structure is filled
+ *                             with the loaded key metadata.
  *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_INSUFFICIENT_STORAGE
@@ -195,8 +188,7 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
                                               size_t storage_data_length,
                                               uint8_t **key_data,
                                               size_t *key_data_length,
-                                              psa_key_type_t *type,
-                                              psa_key_policy_t *policy );
+                                              psa_key_attributes_t *attributes );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 /** This symbol is defined if transaction support is required. */

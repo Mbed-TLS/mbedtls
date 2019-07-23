@@ -33,16 +33,17 @@ void format_storage_data_check( data_t *key_data,
 {
     uint8_t *file_data;
     size_t file_data_length;
-    psa_key_policy_t key_policy;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    key_policy.usage = (psa_key_usage_t) key_usage;
-    key_policy.alg = (psa_algorithm_t) key_alg;
-    key_policy.alg2 = (psa_algorithm_t) key_alg2;
+    psa_set_key_type( &attributes, key_type );
+    psa_set_key_usage_flags( &attributes, key_usage );
+    psa_set_key_algorithm( &attributes, key_alg );
+    psa_set_key_enrollment_algorithm( &attributes, key_alg2 );
 
     file_data_length = key_data->len + sizeof( psa_persistent_key_storage_format );
     file_data = mbedtls_calloc( 1, file_data_length );
     psa_format_key_data_for_storage( key_data->x, key_data->len,
-                                     (psa_key_type_t) key_type, &key_policy,
+                                     &attributes,
                                      file_data );
 
     ASSERT_COMPARE( expected_file_data->x, expected_file_data->len,
@@ -62,22 +63,25 @@ void parse_storage_data_check( data_t *file_data,
 {
     uint8_t *key_data = NULL;
     size_t key_data_length = 0;
-    psa_key_type_t key_type = 0;
-    psa_key_policy_t key_policy;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status;
 
     status = psa_parse_key_data_from_storage( file_data->x, file_data->len,
                                               &key_data, &key_data_length,
-                                              &key_type, &key_policy );
+                                              &attributes );
 
     TEST_EQUAL( status, expected_status );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    TEST_EQUAL( key_type, (psa_key_type_t) expected_key_type );
-    TEST_EQUAL( key_policy.usage, (uint32_t) expected_key_usage );
-    TEST_EQUAL( key_policy.alg, (uint32_t) expected_key_alg );
-    TEST_EQUAL( key_policy.alg2, (uint32_t) expected_key_alg2 );
+    TEST_EQUAL( psa_get_key_type( &attributes ),
+                (psa_key_type_t) expected_key_type );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ),
+                (uint32_t) expected_key_usage );
+    TEST_EQUAL( psa_get_key_algorithm( &attributes ),
+                (uint32_t) expected_key_alg );
+    TEST_EQUAL( psa_get_key_enrollment_algorithm( &attributes ),
+                (uint32_t) expected_key_alg2 );
     ASSERT_COMPARE( expected_key_data->x, expected_key_data->len,
                     key_data, key_data_length );
 

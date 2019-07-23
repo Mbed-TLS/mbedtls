@@ -124,13 +124,15 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *p_slot )
     psa_status_t status = PSA_SUCCESS;
     uint8_t *key_data = NULL;
     size_t key_data_length = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    status = psa_load_persistent_key( p_slot->persistent_storage_id,
-                                      &( p_slot )->type,
-                                      &( p_slot )->policy, &key_data,
-                                      &key_data_length );
+    psa_set_key_id( &attributes, p_slot->persistent_storage_id );
+    status = psa_load_persistent_key( &attributes,
+                                      &key_data, &key_data_length );
     if( status != PSA_SUCCESS )
         goto exit;
+    p_slot->type = psa_get_key_type( &attributes );
+    p_slot->policy = attributes.policy;
     status = psa_import_key_into_slot( p_slot,
                                        key_data, key_data_length );
 exit:

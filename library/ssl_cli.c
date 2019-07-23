@@ -173,7 +173,6 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
     size_t sig_alg_len = 0;
-    const int *md;
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C)
     unsigned char *sig_alg_list = buf + 6;
 #endif
@@ -188,15 +187,15 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding signature_algorithms extension" ) );
 
-    for( md = ssl->conf->sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
-    {
+    MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH_TLS( hash )
+    ((void) hash);
 #if defined(MBEDTLS_ECDSA_C)
-        sig_alg_len += 2;
+    sig_alg_len += 2;
 #endif
 #if defined(MBEDTLS_RSA_C)
-        sig_alg_len += 2;
+    sig_alg_len += 2;
 #endif
-    }
+    MBEDTLS_SSL_END_FOR_EACH_SIG_HASH_TLS
 
     if( end < p || (size_t)( end - p ) < sig_alg_len + 6 )
     {
@@ -209,17 +208,16 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
      */
     sig_alg_len = 0;
 
-    for( md = ssl->conf->sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
-    {
+    MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH_TLS( hash )
 #if defined(MBEDTLS_ECDSA_C)
-        sig_alg_list[sig_alg_len++] = mbedtls_ssl_hash_from_md_alg( *md );
-        sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
+    sig_alg_list[sig_alg_len++] = hash;
+    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_ECDSA;
 #endif
 #if defined(MBEDTLS_RSA_C)
-        sig_alg_list[sig_alg_len++] = mbedtls_ssl_hash_from_md_alg( *md );
-        sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_RSA;
+    sig_alg_list[sig_alg_len++] = hash;
+    sig_alg_list[sig_alg_len++] = MBEDTLS_SSL_SIG_RSA;
 #endif
-    }
+    MBEDTLS_SSL_END_FOR_EACH_SIG_HASH_TLS
 
     /*
      * enum {

@@ -3074,18 +3074,19 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      */
     if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        const int *cur;
-
         /*
          * Supported signature algorithms
          */
-        for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
+        MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH_TLS( hash )
+        if( 0
+#if defined(MBEDTLS_SHA512_C)
+            || hash == MBEDTLS_SSL_HASH_SHA384
+#endif
+#if defined(MBEDTLS_SHA256_C)
+            || hash == MBEDTLS_SSL_HASH_SHA256
+#endif
+            )
         {
-            unsigned char hash = mbedtls_ssl_hash_from_md_alg( *cur );
-
-            if( MBEDTLS_SSL_HASH_NONE == hash || mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
-                continue;
-
 #if defined(MBEDTLS_RSA_C)
             p[2 + sa_len++] = hash;
             p[2 + sa_len++] = MBEDTLS_SSL_SIG_RSA;
@@ -3095,6 +3096,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
             p[2 + sa_len++] = MBEDTLS_SSL_SIG_ECDSA;
 #endif
         }
+        MBEDTLS_SSL_END_FOR_EACH_SIG_HASH_TLS
 
         p[0] = (unsigned char)( sa_len >> 8 );
         p[1] = (unsigned char)( sa_len      );

@@ -569,6 +569,7 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_HASH)
 static int ssl_sig_hashes_for_test[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
@@ -584,6 +585,7 @@ static int ssl_sig_hashes_for_test[] = {
 #endif
     MBEDTLS_MD_NONE
 };
+#endif /* !MBEDTLS_SSL_CONF_SINGLE_HASH */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /*
@@ -1693,7 +1695,9 @@ int main( int argc, char *argv[] )
     {
         crt_profile_for_test.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 );
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_HASH)
         mbedtls_ssl_conf_sig_hashes( &conf, ssl_sig_hashes_for_test );
+#endif
     }
 
     mbedtls_ssl_conf_verify( &conf, my_verify, NULL );

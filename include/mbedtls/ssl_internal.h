@@ -1676,4 +1676,52 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_EC */
 
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH( MD_VAR )    \
+    {                                                                   \
+        int const *__md;                                                \
+        for( __md = ssl->conf->sig_hashes;                              \
+             *__md != MBEDTLS_MD_NONE; __md++ )                         \
+        {                                                               \
+            mbedtls_md_type_t MD_VAR = (mbedtls_md_type_t) *__md;       \
+
+ #define MBEDTLS_SSL_END_FOR_EACH_SIG_HASH                              \
+        }                                                               \
+    }
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH_TLS( HASH_VAR )             \
+    {                                                                   \
+        int const *__md;                                                \
+        for( __md = ssl->conf->sig_hashes;                              \
+             *__md != MBEDTLS_MD_NONE; __md++ )                         \
+        {                                                               \
+            unsigned char HASH_VAR;                                     \
+            HASH_VAR = mbedtls_ssl_hash_from_md_alg( *__md );
+
+#define MBEDTLS_SSL_END_FOR_EACH_SIG_HASH_TLS                           \
+        }                                                               \
+    }
+
+#else /* !MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH( MD_VAR )                   \
+    {                                                                   \
+        mbedtls_md_type_t MD_VAR = MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID; \
+        ((void) ssl);
+
+#define MBEDTLS_SSL_END_FOR_EACH_SIG_HASH                               \
+    }
+
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH_TLS( HASH_VAR )                \
+    {                                                                      \
+        unsigned char HASH_VAR = MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID;  \
+        ((void) ssl);
+
+
+#define MBEDTLS_SSL_END_FOR_EACH_SIG_HASH_TLS                           \
+    }
+
+#endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
+
 #endif /* ssl_internal.h */

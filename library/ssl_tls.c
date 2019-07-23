@@ -8628,7 +8628,12 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                   const int *hashes )
 {
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
     conf->sig_hashes = hashes;
+#else
+    ((void) conf);
+    ((void) hashes);
+#endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
@@ -10837,6 +10842,7 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
 static int ssl_preset_default_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
@@ -10852,6 +10858,7 @@ static int ssl_preset_default_hashes[] = {
     MBEDTLS_MD_NONE
 };
 #endif
+#endif
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
 static int ssl_preset_suiteb_ciphersuites[] = {
@@ -10862,11 +10869,13 @@ static int ssl_preset_suiteb_ciphersuites[] = {
 #endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
 static int ssl_preset_suiteb_hashes[] = {
     MBEDTLS_MD_SHA256,
     MBEDTLS_MD_SHA384,
     MBEDTLS_MD_NONE
 };
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_SSL_CONF_SINGLE_EC)
@@ -11016,7 +11025,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
             conf->sig_hashes = ssl_preset_suiteb_hashes;
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_C)
@@ -11066,7 +11077,9 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
             conf->sig_hashes = ssl_preset_default_hashes;
+#endif
 #endif
 
 #if defined(MBEDTLS_ECP_C)
@@ -11306,14 +11319,10 @@ int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_i
 int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md )
 {
-    const int *cur;
-
-    if( ssl->conf->sig_hashes == NULL )
-        return( -1 );
-
-    for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
-        if( *cur == (int) md )
-            return( 0 );
+    MBEDTLS_SSL_BEGIN_FOR_EACH_SIG_HASH( md_alg )
+    if( md_alg == md )
+        return( 0 );
+    MBEDTLS_SSL_END_FOR_EACH_SIG_HASH
 
     return( -1 );
 }
@@ -11410,25 +11419,11 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
 {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( mbedtls_ssl_get_minor_ver( ssl ) != MBEDTLS_SSL_MINOR_VERSION_3 )
-        return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
-
     switch( md )
     {
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-#if defined(MBEDTLS_MD5_C)
-        case MBEDTLS_SSL_HASH_MD5:
-            return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
-#endif
-#if defined(MBEDTLS_SHA1_C)
-        case MBEDTLS_SSL_HASH_SHA1:
-            ssl->handshake->calc_verify = ssl_calc_verify_tls;
-            break;
-#endif
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 #if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_SSL_HASH_SHA384:
             ssl->handshake->calc_verify = ssl_calc_verify_tls_sha384;
@@ -11439,18 +11434,14 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
             ssl->handshake->calc_verify = ssl_calc_verify_tls_sha256;
             break;
 #endif
+
         default:
-            return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
+            return( MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH );
     }
 
-    return 0;
-#else /* !MBEDTLS_SSL_PROTO_TLS1_2 */
-    (void) ssl;
-    (void) md;
-
-    return MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+    return( 0 );
 }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)

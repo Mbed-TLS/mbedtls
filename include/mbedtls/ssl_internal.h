@@ -1560,6 +1560,10 @@ static inline mbedtls_ssl_recv_timeout_t* mbedtls_ssl_get_recv_timeout(
 
 typedef int mbedtls_frng_t( void*, unsigned char*, size_t );
 
+static inline void* mbedtls_ssl_conf_get_prng( mbedtls_ssl_config const *conf )
+{
+    return( conf->p_rng );
+}
 #if !defined(MBEDTLS_SSL_CONF_RNG)
 static inline mbedtls_frng_t* mbedtls_ssl_conf_get_frng(
     mbedtls_ssl_config const *conf )

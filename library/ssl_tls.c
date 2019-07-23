@@ -1669,7 +1669,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
                                       MBEDTLS_PREMASTER_SIZE,
                                      &ssl->handshake->pmslen,
                                       mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                      ssl->conf->p_rng ) ) != 0 )
+                                      mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
@@ -1697,7 +1697,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
                                        ssl->handshake->premaster,
                                        MBEDTLS_MPI_MAX_SIZE,
                                        mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                       ssl->conf->p_rng ) ) != 0 )
+                                       mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( ret );
@@ -1729,7 +1729,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
         ret = mbedtls_ecjpake_derive_secret( &ssl->handshake->ecjpake_ctx,
                 ssl->handshake->premaster, 32, &ssl->handshake->pmslen,
                 mbedtls_ssl_conf_get_frng( ssl->conf ),
-                ssl->conf->p_rng );
+                mbedtls_ssl_conf_get_prng( ssl->conf ) );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_derive_secret", ret );
@@ -1823,7 +1823,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       p + 2, end - ( p + 2 ), &len,
                                       mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                      ssl->conf->p_rng ) ) != 0 )
+                                      mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
@@ -1845,7 +1845,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
                                        p + 2, end - ( p + 2 ),
                                        mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                       ssl->conf->p_rng ) ) != 0 )
+                                       mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( ret );
@@ -4189,7 +4189,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 
             if( ( ret = mbedtls_ssl_encrypt_buf( ssl, ssl->transform_out, &rec,
                                          mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                         ssl->conf->p_rng ) ) != 0 )
+                                         mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_encrypt_buf", ret );
                 return( ret );

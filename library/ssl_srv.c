@@ -2603,7 +2603,7 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
     ret = mbedtls_ecjpake_write_round_one( &ssl->handshake->ecjpake_ctx,
                                         p + 2, end - p - 2, &kkpp_len,
                                         mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                        ssl->conf->p_rng );
+                                        mbedtls_ssl_conf_get_prng( ssl->conf ) );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1 , "mbedtls_ecjpake_write_round_one", ret );
@@ -2783,7 +2783,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", t ) );
 #else
     if( ( ret = mbedtls_ssl_conf_get_frng( ssl->conf )
-          ( ssl->conf->p_rng, p, 4 ) ) != 0 )
+          ( mbedtls_ssl_conf_get_prng( ssl->conf ), p, 4 ) ) != 0 )
     {
         return( ret );
     }
@@ -2792,7 +2792,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_HAVE_TIME */
 
     if( ( ret = mbedtls_ssl_conf_get_frng( ssl->conf )
-          ( ssl->conf->p_rng, p, 28 ) ) != 0 )
+          ( mbedtls_ssl_conf_get_prng( ssl->conf ), p, 28 ) ) != 0 )
     {
         return( ret );
     }
@@ -2859,7 +2859,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
         {
             ssl->session_negotiate->id_len = n = 32;
             if( ( ret = mbedtls_ssl_conf_get_frng( ssl->conf )
-                  ( ssl->conf->p_rng, ssl->session_negotiate->id, n ) ) != 0 )
+                  ( mbedtls_ssl_conf_get_prng( ssl->conf ), ssl->session_negotiate->id, n ) ) != 0 )
             {
                 return( ret );
             }
@@ -3272,7 +3272,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
             ssl->out_msg + ssl->out_msglen,
             MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen, &len,
             mbedtls_ssl_conf_get_frng( ssl->conf ),
-            ssl->conf->p_rng );
+            mbedtls_ssl_conf_get_prng( ssl->conf ) );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_write_round_two", ret );
@@ -3336,7 +3336,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                   (int) mbedtls_mpi_size( &ssl->handshake->dhm_ctx.P ),
                   ssl->out_msg + ssl->out_msglen, &len,
                   mbedtls_ssl_conf_get_frng( ssl->conf ),
-                  ssl->conf->p_rng ) ) != 0 )
+                  mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_make_params", ret );
             return( ret );
@@ -3393,7 +3393,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                   ssl->out_msg + ssl->out_msglen,
                   MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen,
                   mbedtls_ssl_conf_get_frng( ssl->conf ),
-                  ssl->conf->p_rng ) ) != 0 )
+                  mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
             return( ret );
@@ -3579,7 +3579,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                                      ssl->out_msg + ssl->out_msglen + 2,
                                      signature_len,
                                      mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                     ssl->conf->p_rng ) ) != 0 )
+                                     mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
             return( ret );
@@ -3876,7 +3876,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     ret = mbedtls_pk_decrypt( private_key, p, len,
                               peer_pms, peer_pmslen, peer_pmssize,
                               mbedtls_ssl_conf_get_frng( ssl->conf ),
-                              ssl->conf->p_rng );
+                              mbedtls_ssl_conf_get_prng( ssl->conf ) );
     return( ret );
 }
 
@@ -3946,7 +3946,7 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
      * regardless of whether it will ultimately influence the output or not.
      */
     ret = mbedtls_ssl_conf_get_frng( ssl->conf )
-        ( ssl->conf->p_rng, fake_pms, sizeof( fake_pms ) );
+        ( mbedtls_ssl_conf_get_prng( ssl->conf ), fake_pms, sizeof( fake_pms ) );
     if( ret != 0 )
     {
         /* It's ok to abort on an RNG failure, since this does not reveal

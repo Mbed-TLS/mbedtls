@@ -11553,7 +11553,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_ALPN)
     {
         const uint8_t alpn_len = ssl->alpn_chosen
-                               ? strlen( ssl->alpn_chosen )
+                               ? (uint8_t) strlen( ssl->alpn_chosen )
                                : 0;
 
         used += 1 + alpn_len;

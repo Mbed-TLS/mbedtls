@@ -3384,8 +3384,22 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
          */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-        if( ssl->handshake->curve_tls_id != 23 )
+        static const uint16_t secp256r1_tls_id = 23;
+        static const unsigned char ecdh_param_hdr[] = {
+            MBEDTLS_ECP_TLS_NAMED_CURVE,
+            ( secp256r1_tls_id >> 8 ) & 0xFF,
+            ( secp256r1_tls_id >> 0 ) & 0xFF,
+            2 * NUM_ECC_BYTES + 1,
+            0x04 /* Uncompressed */
+        };
+
+        if( ssl->handshake->curve_tls_id != secp256r1_tls_id )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unsupported curve %u (expected %u)",
+                                        (unsigned) ssl->handshake->curve_tls_id,
+                                        secp256r1_tls_id ) );
             return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
+        }
 
         if( !uECC_make_key( ssl->handshake->ecdh_ownpubkey,
                             ssl->handshake->ecdh_privkey,
@@ -3395,24 +3409,17 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        /*
-         * First byte is curve_type, always named_curve
-         */
-        ssl->out_msg[ssl->out_msglen++] = MBEDTLS_ECP_TLS_NAMED_CURVE;
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
+        dig_signed = ssl->out_msg + ssl->out_msglen;
+#endif
 
-        /*
-        * Next two bytes are the namedcurve value
-        */
-        ssl->out_msg[ssl->out_msglen++] = ssl->handshake->curve_tls_id >> 8;
-        ssl->out_msg[ssl->out_msglen++] = ssl->handshake->curve_tls_id & 0xFF;
-
-        /*  Write the public key length */
-        ssl->out_msg[ssl->out_msglen++] = 2*NUM_ECC_BYTES;
+        memcpy( ssl->out_msg + ssl->out_msglen,
+                ecdh_param_hdr, sizeof( ecdh_param_hdr ) );
+        ssl->out_msglen += sizeof( ecdh_param_hdr );
 
         memcpy( &ssl->out_msg[ssl->out_msglen],
                 ssl->handshake->ecdh_ownpubkey,
                 2*NUM_ECC_BYTES );
-
         ssl->out_msglen += 2*NUM_ECC_BYTES;
 
 #else /* MBEDTLS_USE_TINYCRYPT */

@@ -689,8 +689,8 @@ static int ssl_check_record( mbedtls_ssl_context const *ssl,
         ret_repeated = mbedtls_ssl_check_record( ssl, tmp_buf, len );
         if( ret != ret_repeated )
         {
-            ret = -1;
-            goto exit;
+            mbedtls_printf( "mbedtls_ssl_check_record() returned inconsistent results.\n" );
+            return( -1 );
         }
 
         switch( ret )

@@ -1145,10 +1145,10 @@ exit:
 }
 #endif /* MBEDTLS_RSA_C */
 
-/** Retrieve the readily-accessible attributes of a key in a slot.
+/** Retrieve the generic attributes of a key in a slot.
  *
- * This function does not compute attributes that are not directly
- * stored in the slot, such as the bit size of a transparent key.
+ * This function does not retrieve domain parameters, which require
+ * additional memory management.
  */
 static void psa_get_key_slot_attributes( psa_key_slot_t *slot,
                                          psa_key_attributes_t *attributes )
@@ -1157,6 +1157,7 @@ static void psa_get_key_slot_attributes( psa_key_slot_t *slot,
     attributes->lifetime = slot->lifetime;
     attributes->policy = slot->policy;
     attributes->type = slot->type;
+    attributes->bits = psa_get_key_slot_bits( slot );
 }
 
 /** Retrieve all the publicly-accessible attributes of a key.
@@ -1169,21 +1170,26 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
 
     psa_reset_key_attributes( attributes );
 
-    status = psa_get_transparent_key( handle, &slot, 0, 0 );
+    status = psa_get_key_from_slot( handle, &slot, 0, 0 );
     if( status != PSA_SUCCESS )
         return( status );
 
     psa_get_key_slot_attributes( slot, attributes );
-    attributes->bits = psa_get_key_slot_bits( slot );
 
     switch( slot->type )
     {
 #if defined(MBEDTLS_RSA_C)
         case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+            /* TOnogrepDO: reporting the public exponent for opaque keys
+             * is not yet implemented. */
+            if( psa_get_se_driver( slot->lifetime, NULL, NULL ) )
+                break;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
             status = psa_get_rsa_public_exponent( slot->data.rsa, attributes );
             break;
-#endif
+#endif /* MBEDTLS_RSA_C */
         default:
             /* Nothing else to do. */
             break;

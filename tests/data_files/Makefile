@@ -957,6 +957,10 @@ server1.v1.der: server1.v1.crt
 	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
 all_final += server1.v1.crt server1.v1.der
 
+server1.255-bit-serial.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20110212144406 not_after=20210212144406 md=SHA1 version=3 serial=0x4155438b539774a182b1fed03ced3d070f057c20bcfcb082208a869fef2c04ae output_file=$@
+all_final += server1.255-bit-serial.crt
+
 # OpenSSL-generated certificates for comparison
 # Also provide certificates in DER format to allow
 # direct binary comparison using e.g. dumpasn1

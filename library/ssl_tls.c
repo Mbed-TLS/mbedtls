@@ -58,7 +58,12 @@
 #if defined(MBEDTLS_USE_TINYCRYPT)
 static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
 {
-    return( mbedtls_ssl_conf_rng_func( NULL, dest, size ) );
+    int ret;
+    ret = mbedtls_ssl_conf_rng_func( NULL, dest, size );
+    if( ret == 0 )
+        return( (int) size );
+
+    return( 0 );
 }
 #endif /* MBEDTLS_USE_TINYCRYPT */
 

@@ -1,6 +1,6 @@
 /*
  *  Benchmark demonstration program
- *
+*
  *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

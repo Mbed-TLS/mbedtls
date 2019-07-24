@@ -21,152 +21,148 @@ class FileIssueTracker(object):
     """Base class for file-wide issue tracking.
 
     To implement a checker that processes a file as a whole, inherit from
-    this class and implement `check_file_for_issue` and define ``heading``.
+    this class and implement `check_file_for_issue`.
 
-    ``files_exemptions``: files whose name ends with a string in this set
-     will not be checked.
-
-    ``heading``: human-readable description of the issue
+    If a checker should omit certain files based on their names, override
+    `should_check_file` accordingly.
     """
 
-    files_exemptions = frozenset()
-    # heading must be defined in derived classes.
-    # pylint: disable=no-member
+    def __init__(self, issue_collection):
+        self.issue_collection = issue_collection
 
-    def __init__(self):
-        self.files_with_issues = {}
-
-    def should_check_file(self, filepath):
-        for files_exemption in self.files_exemptions:
-            if filepath.endswith(files_exemption):
-                return False
+    @staticmethod
+    def should_check_file(_filepath):
+        """If a file issue tracker should omit certain files, override this
+        method to return False on the files to omit."""
         return True
 
     def check_file_for_issue(self, filepath):
+        """If `filepath` has issues, call `record_issue` on each instance
+        of the issue."""
         raise NotImplementedError
 
-    def record_issue(self, filepath, line_number):
-        if filepath not in self.files_with_issues.keys():
-            self.files_with_issues[filepath] = []
-        self.files_with_issues[filepath].append(line_number)
+    def record_issue(self, filepath, line_number, description):
+        if filepath not in self.issue_collection:
+            self.issue_collection[filepath] = []
+        self.issue_collection[filepath].append((line_number, description))
 
-    def output_file_issues(self, logger):
-        if self.files_with_issues.values():
-            logger.info(self.heading)
-            for filename, lines in sorted(self.files_with_issues.items()):
-                if lines:
-                    logger.info("{}: {}".format(
-                        filename, ", ".join(str(x) for x in lines)
-                    ))
-                else:
-                    logger.info(filename)
-            logger.info("")
-
-class LineIssueTracker(FileIssueTracker):
-    """Base class for line-by-line issue tracking.
+class LineIssueTracker(object):
+    """Class for line-by-line issue tracking.
 
     To implement a checker that processes files line by line, inherit from
     this class and implement `line_with_issue`.
     """
 
-    def issue_with_line(self, line, filepath):
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+    @staticmethod
+    def should_check_file(_basename):
+        """If a line issue tracker should omit certain files, override this
+        method to return False on the files to omit. Files are identified
+        by their basename."""
+        return True
+
+    def issue_with_line(self, line):
         raise NotImplementedError
 
-    def check_file_line(self, filepath, line, line_number):
-        if self.issue_with_line(line, filepath):
-            self.record_issue(filepath, line_number)
+class ContentIssueTracker(FileIssueTracker):
+    """Class for line-by-line issue tracking.
+    """
+
+    def __init__(self, issue_collection, trackers):
+        super().__init__(issue_collection)
+        self.trackers = trackers
 
     def check_file_for_issue(self, filepath):
+        basename = os.path.basename(filepath)
         with open(filepath, "rb") as f:
+            trackers = [tracker(filepath) for tracker in self.trackers
+                        if tracker.should_check_file(basename)]
             for i, line in enumerate(iter(f.readline, b"")):
-                self.check_file_line(filepath, line, i + 1)
+                for tracker in trackers:
+                    description = tracker.issue_with_line(line)
+                    if description is not None:
+                        self.record_issue(filepath, i + 1, description)
 
 class PermissionIssueTracker(FileIssueTracker):
     """Track files with bad permissions.
 
     Files that are not executable scripts must not be executable."""
 
-    heading = "Incorrect permissions:"
-
     def check_file_for_issue(self, filepath):
         is_executable = os.access(filepath, os.X_OK)
         should_be_executable = filepath.endswith((".sh", ".pl", ".py"))
-        if is_executable != should_be_executable:
-            self.files_with_issues[filepath] = None
+        if is_executable and not should_be_executable:
+            self.record_issue(filepath, 0, "File should not be executable")
+        elif not is_executable and should_be_executable:
+            self.record_issue(filepath, 0, "File should be executable")
 
 
-class EndOfFileNewlineIssueTracker(FileIssueTracker):
+class EndOfFileNewlineIssueTracker(LineIssueTracker):
     """Track files that end with an incomplete line
     (no newline character at the end of the last line)."""
 
-    heading = "Missing newline at end of file:"
-
-    def check_file_for_issue(self, filepath):
-        with open(filepath, "rb") as f:
-            if not f.read().endswith(b"\n"):
-                self.files_with_issues[filepath] = None
+    def issue_with_line(self, line):
+        if not line.endswith(b"\n"):
+            return "Missing newline at end of file"
 
 
-class Utf8BomIssueTracker(FileIssueTracker):
-    """Track files that start with a UTF-8 BOM.
-    Files should be ASCII or UTF-8. Valid UTF-8 does not start with a BOM."""
+class Utf8BomIssueTracker(LineIssueTracker):
+    """Track files that contain a line that starts with a UTF-8 BOM.
+    Files should be ASCII or UTF-8. Valid UTF-8 does not contain BOM."""
 
-    heading = "UTF-8 BOM present:"
-
-    def check_file_for_issue(self, filepath):
-        with open(filepath, "rb") as f:
-            if f.read().startswith(codecs.BOM_UTF8):
-                self.files_with_issues[filepath] = None
+    def issue_with_line(self, line):
+        if line.startswith(codecs.BOM_UTF8):
+            return "UTF-8 BOM present"
 
 
 class LineEndingIssueTracker(LineIssueTracker):
     """Track files with non-Unix line endings (i.e. files with CR)."""
 
-    heading = "Non Unix line endings:"
-
-    def issue_with_line(self, line, _filepath):
-        return b"\r" in line
+    def issue_with_line(self, line):
+        if b"\r" in line:
+            return "Non-Unix line ending"
 
 
 class TrailingWhitespaceIssueTracker(LineIssueTracker):
     """Track lines with trailing whitespace."""
 
-    heading = "Trailing whitespace:"
-    files_exemptions = frozenset(".md")
+    @staticmethod
+    def should_check_file(filepath):
+        return not filepath.endswith('.md')
 
-    def issue_with_line(self, line, _filepath):
-        return line.rstrip(b"\r\n") != line.rstrip()
+    def issue_with_line(self, line):
+        if line.rstrip(b"\r\n") != line.rstrip():
+            return "Trailing whitespace"
 
 
 class TabIssueTracker(LineIssueTracker):
     """Track lines with tabs."""
 
-    heading = "Tabs present:"
-    files_exemptions = frozenset([
-        "Makefile",
-        "generate_visualc_files.pl",
-    ])
+    @staticmethod
+    def should_check_file(basename):
+        return not ('Makefile' in basename or
+                    basename == 'generate_visualc_files.pl')
 
-    def issue_with_line(self, line, _filepath):
-        return b"\t" in line
+    def issue_with_line(self, line):
+        if b"\t" in line:
+            return "Tab(s) present"
 
 
 class MergeArtifactIssueTracker(LineIssueTracker):
     """Track lines with merge artifacts.
     These are leftovers from a ``git merge`` that wasn't fully edited."""
 
-    heading = "Merge artifact:"
-
-    def issue_with_line(self, line, _filepath):
+    def issue_with_line(self, line):
         # Detect leftover git conflict markers.
-        if line.startswith(b'<<<<<<< ') or line.startswith(b'>>>>>>> '):
-            return True
-        if line.startswith(b'||||||| '): # from merge.conflictStyle=diff3
-            return True
-        if line.rstrip(b'\r\n') == b'=======' and \
-           not _filepath.endswith('.md'):
-            return True
-        return False
+        if line.startswith((b'<<<<<<< ',
+                            b'||||||| ', # from merge.conflictStyle=diff3
+                            b'>>>>>>> ')):
+            return "Merge artifact"
+        if not self.filepath.endswith('.md') and \
+           line.rstrip(b'\r\n') == b'=======':
+            return "Merge artifact"
 
 
 class IntegrityChecker(object):
@@ -188,14 +184,17 @@ class IntegrityChecker(object):
             'cov-int',
             'examples',
         ]))
+        self.issues = {}
         self.issues_to_check = [
-            PermissionIssueTracker(),
-            EndOfFileNewlineIssueTracker(),
-            Utf8BomIssueTracker(),
-            LineEndingIssueTracker(),
-            TrailingWhitespaceIssueTracker(),
-            TabIssueTracker(),
-            MergeArtifactIssueTracker(),
+            PermissionIssueTracker(self.issues),
+            ContentIssueTracker(self.issues, [
+                EndOfFileNewlineIssueTracker,
+                Utf8BomIssueTracker,
+                LineEndingIssueTracker,
+                TrailingWhitespaceIssueTracker,
+                TabIssueTracker,
+                MergeArtifactIssueTracker,
+            ])
         ]
 
     @staticmethod
@@ -228,17 +227,18 @@ class IntegrityChecker(object):
                 if not filepath.endswith(self.files_to_check):
                     continue
                 for issue_to_check in self.issues_to_check:
-                    if issue_to_check.should_check_file(filepath):
+                    basename = os.path.basename(filepath)
+                    if issue_to_check.should_check_file(basename):
                         issue_to_check.check_file_for_issue(filepath)
 
     def output_issues(self):
-        integrity_return_code = 0
-        for issue_to_check in self.issues_to_check:
-            if issue_to_check.files_with_issues:
-                integrity_return_code = 1
-            issue_to_check.output_file_issues(self.logger)
-        return integrity_return_code
-
+        if not self.issues:
+            return 0
+        for filename in sorted(self.issues.keys()):
+            for line, description in sorted(self.issues[filename]):
+                self.logger.info("{}:{}: {}"
+                                 .format(filename, line, description))
+        return 1
 
 def run_main():
     parser = argparse.ArgumentParser(description=__doc__)

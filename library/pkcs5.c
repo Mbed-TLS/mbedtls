@@ -294,6 +294,110 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
     return( 0 );
 }
 
+int mbedtls_pkcs5_pbkdf2_cmac_prf_128( const unsigned char *password, size_t plen,
+                       const unsigned char *salt, size_t slen,
+                       unsigned int iteration_count,
+                       uint32_t key_length, unsigned char *output )
+{
+    int ret, j;
+    unsigned i;
+    unsigned char work[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char output_tmp[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char zero_key[MBEDTLS_AES_BLOCK_SIZE];
+    unsigned char int_key[MBEDTLS_AES_BLOCK_SIZE];
+    unsigned char block_size = MBEDTLS_AES_BLOCK_SIZE;
+    unsigned char *out_p = output;
+    unsigned char counter[4];
+    size_t use_len;
+    mbedtls_cipher_context_t ctx;
+    const mbedtls_cipher_info_t *cipher_info;
+
+    mbedtls_cipher_init( &ctx );
+
+    cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
+    if( cipher_info == NULL )
+        return ( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+
+    if( iteration_count > 0xFFFFFFFF )
+        return( MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA );
+
+    if( plen == MBEDTLS_AES_BLOCK_SIZE )
+    {
+        /* Use key as is */
+        memcpy( int_key, password, MBEDTLS_AES_BLOCK_SIZE );
+    }
+    else
+    {
+        memset( zero_key, 0, MBEDTLS_AES_BLOCK_SIZE );
+
+        ret = mbedtls_cipher_cmac( cipher_info, zero_key, 128, password,
+                                   plen, int_key );
+    }
+
+    memset( counter, 0, 4 );
+    counter[3] = 1;
+
+    while( key_length )
+    {
+        // Calculate U1
+        //
+        if( ( ret = mbedtls_cipher_setup( &ctx, cipher_info ) ) != 0 )
+            return( ret );
+
+        if( ( ret = mbedtls_cipher_cmac_starts( &ctx, int_key, 128 ) ) != 0 )
+            return( ret );
+
+        if( ( ret = mbedtls_cipher_cmac_update( &ctx, salt, slen ) ) != 0 )
+            return( ret );
+
+        if( ( ret = mbedtls_cipher_cmac_update( &ctx, counter, 4 ) ) != 0 )
+            return( ret );
+
+        if( ( ret = mbedtls_cipher_cmac_finish( &ctx, work ) ) != 0 )
+            return( ret );
+
+        mbedtls_cipher_free( &ctx );
+
+        memcpy( output_tmp, work, block_size );
+
+        for( i = 1; i < iteration_count; i++ )
+        {
+            // Calculate U_c
+            //
+            if( ( ret = mbedtls_cipher_setup( &ctx, cipher_info ) ) != 0 )
+                return( ret );
+
+            if( ( ret = mbedtls_cipher_cmac_starts( &ctx, int_key, 128 ) ) != 0 )
+                return( ret );
+
+            if( ( ret = mbedtls_cipher_cmac_update( &ctx, output_tmp, block_size ) ) != 0 )
+                return( ret );
+
+            if( ( ret = mbedtls_cipher_cmac_finish( &ctx, output_tmp ) ) != 0 )
+                return( ret );
+
+            mbedtls_cipher_free( &ctx );
+
+            // xor U_c
+            //
+            for( j = 0; j < block_size; j++ )
+                work[j] ^= output_tmp[j];
+        }
+
+        use_len = ( key_length < block_size ) ? key_length : block_size;
+        memcpy( out_p, work, use_len );
+
+        key_length -= (uint32_t) use_len;
+        out_p += use_len;
+
+        for( i = 4; i > 0; i-- )
+            if( ++counter[i - 1] != 0 )
+                break;
+    }
+
+    return( 0 );
+}
+
 #if defined(MBEDTLS_SELF_TEST)
 
 #if !defined(MBEDTLS_SHA1_C)

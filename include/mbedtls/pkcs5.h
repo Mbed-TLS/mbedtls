@@ -33,6 +33,7 @@
 #endif
 
 #include "asn1.h"
+#include "cmac.h"
 #include "md.h"
 
 #include <stddef.h>
@@ -92,6 +93,24 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *p
                        uint32_t key_length, unsigned char *output );
 
 #if defined(MBEDTLS_SELF_TEST)
+
+/**
+ * \brief          PKCS#5 PBKDF2 using AES-CMAC-PRF-128
+ *
+ * \param password Password to use when generating key
+ * \param plen     Length of password
+ * \param salt     Salt to use when generating key
+ * \param slen     Length of salt
+ * \param iteration_count       Iteration count
+ * \param key_length            Length of generated key in bytes
+ * \param output   Generated key. Must be at least as big as key_length
+ *
+ * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
+ */
+int mbedtls_pkcs5_pbkdf2_cmac_prf_128( const unsigned char *password, size_t plen,
+                       const unsigned char *salt, size_t slen,
+                       unsigned int iteration_count,
+                       uint32_t key_length, unsigned char *output );
 
 /**
  * \brief          Checkup routine

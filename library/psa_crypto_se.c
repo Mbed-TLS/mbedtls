@@ -81,6 +81,10 @@ psa_se_drv_table_entry_t *psa_get_se_driver_entry(
     psa_key_lifetime_t lifetime )
 {
     size_t i;
+    /* In the driver table, lifetime=0 means an entry that isn't used.
+     * No driver has a lifetime of 0 because it's a reserved value
+     * (which designates volatile keys). Make sure we never return
+     * a driver entry for lifetime 0. */
     if( lifetime == 0 )
         return( NULL );
     for( i = 0; i < PSA_MAX_SE_DRIVERS; i++ )
@@ -134,6 +138,7 @@ static psa_status_t psa_get_se_driver_its_file_uid(
         return( PSA_ERROR_NOT_SUPPORTED );
 #endif
 
+    /* See the documentation of PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE. */
     *uid = PSA_CRYPTO_SE_DRIVER_ITS_UID_BASE + driver->lifetime;
     return( PSA_SUCCESS );
 }
@@ -148,6 +153,9 @@ psa_status_t psa_load_se_persistent_data(
     if( status != PSA_SUCCESS )
         return( status );
 
+    /* psa_get_se_driver_its_file_uid ensures that the size_t
+     * persistent_data_size is in range, but compilers don't know that,
+     * so cast to reassure them. */
     return( psa_its_get( uid, 0,
                          (uint32_t) driver->internal.persistent_data_size,
                          driver->internal.persistent_data ) );
@@ -163,6 +171,9 @@ psa_status_t psa_save_se_persistent_data(
     if( status != PSA_SUCCESS )
         return( status );
 
+    /* psa_get_se_driver_its_file_uid ensures that the size_t
+     * persistent_data_size is in range, but compilers don't know that,
+     * so cast to reassure them. */
     return( psa_its_set( uid,
                          (uint32_t) driver->internal.persistent_data_size,
                          driver->internal.persistent_data,

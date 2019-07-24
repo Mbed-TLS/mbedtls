@@ -3398,14 +3398,6 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                 0x04 /* Uncompressed */
             };
 
-            if( ssl->handshake->curve_tls_id != secp256r1_tls_id )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unsupported curve %u (expected %u)",
-                                            (unsigned) ssl->handshake->curve_tls_id,
-                                            secp256r1_tls_id ) );
-                return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
-            }
-
             if( !uECC_make_key( ssl->handshake->ecdh_ownpubkey,
                                 ssl->handshake->ecdh_privkey,
                                 uecc_curve ) )

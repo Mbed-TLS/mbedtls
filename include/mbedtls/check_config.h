@@ -265,14 +265,17 @@
 #error "MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_RSA_C) ||          \
-      !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_PKCS1_V15) )
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                  \
+    ( !( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_USE_TINYCRYPT) ) || \
+      !defined(MBEDTLS_RSA_C)                                        || \
+      !defined(MBEDTLS_X509_CRT_PARSE_C)                             || \
+      !defined(MBEDTLS_PKCS1_V15) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_ECDSA_C) ||          \
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                \
+    ( !( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_USE_TINYCRYPT) ) || \
+      !defined(MBEDTLS_ECDSA_C) ||                                      \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif

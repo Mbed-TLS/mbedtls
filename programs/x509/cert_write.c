@@ -142,6 +142,8 @@ int main( void )
     "                            key_agreement\n"         \
     "                            key_cert_sign\n"  \
     "                            crl_sign\n"              \
+    "                            encipher_only\n"         \
+    "                            decipher_only\n"         \
     "                            (Considered for v3 only)\n"\
     "    ns_cert_type=%%s         default: (empty)\n"       \
     "                            Comma-separated-list of values:\n"     \
@@ -180,7 +182,7 @@ struct options
     int basic_constraints;      /* add basic constraints ext to CRT     */
     int version;                /* CRT version                          */
     mbedtls_md_type_t md;       /* Hash used for signing                */
-    unsigned char key_usage;    /* key usage flags                      */
+    unsigned int key_usage;     /* key usage flags                      */
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
 
@@ -431,6 +433,10 @@ int main( int argc, char *argv[] )
                     opt.key_usage |= MBEDTLS_X509_KU_KEY_CERT_SIGN;
                 else if( strcmp( q, "crl_sign" ) == 0 )
                     opt.key_usage |= MBEDTLS_X509_KU_CRL_SIGN;
+                else if( strcmp( q, "encipher_only" ) == 0 )
+                    opt.key_usage |= MBEDTLS_X509_KU_ENCIPHER_ONLY;
+                else if( strcmp( q, "decipher_only" ) == 0 )
+                    opt.key_usage |= MBEDTLS_X509_KU_DECIPHER_ONLY;
                 else
                 {
                     mbedtls_printf( "Invalid argument for option %s\n", p );

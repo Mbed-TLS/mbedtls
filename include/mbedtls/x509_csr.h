@@ -197,14 +197,24 @@ void mbedtls_x509write_csr_set_key( mbedtls_x509write_csr *ctx, mbedtls_pk_conte
  */
 void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_type_t md_alg );
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
 /**
- * \brief           Set the Key Usage Extension flags
- *                  (e.g. MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_KEY_CERT_SIGN)
+ * \brief           This function sets the Key Usage Extension flags
+ *                  (e.g. #MBEDTLS_X509_KU_DIGITAL_SIGNATURE |
+                    #MBEDTLS_X509_KU_KEY_CERT_SIGN).
  *
- * \param ctx       CSR context to use
- * \param key_usage key usage flags to set
+ * \deprecated      Superseded by mbedtls_x509write_csr_set_key_usage_ext().
  *
- * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ * \param ctx       The CSR context to use.
+ * \param key_usage The Key Usage flags to set.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_X509_ALLOC_FAILED on failure.
  *
  * \note            The <code>decipherOnly</code> flag from the Key Usage
  *                  extension is represented by bit 8 (i.e.
@@ -214,7 +224,25 @@ void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_ty
  *                  #MBEDTLS_X509_KU_DECIPHER_ONLY) cannot be set using this
  *                  function.
  */
-int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage );
+MBEDTLS_DEPRECATED int mbedtls_x509write_csr_set_key_usage(
+                                                    mbedtls_x509write_csr *ctx,
+                                                    unsigned char key_usage );
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief           This function sets the Key Usage extension flags
+ *                  (e.g. #MBEDTLS_X509_KU_DIGITAL_SIGNATURE |
+ *                  #MBEDTLS_X509_KU_KEY_CERT_SIGN).
+ *
+ * \param ctx       The CSR context to use.
+ * \param key_usage The Key Usage flags to set.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_X509_ALLOC_FAILED on failure.
+ */
+int mbedtls_x509write_csr_set_key_usage_ext( mbedtls_x509write_csr *ctx,
+                                             unsigned int key_usage );
 
 /**
  * \brief           Set the Netscape Cert Type flags

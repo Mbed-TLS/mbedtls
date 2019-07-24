@@ -87,6 +87,8 @@ int main( void )
     "                          key_agreement\n"         \
     "                          key_cert_sign\n"  \
     "                          crl_sign\n"              \
+    "                          encipher_only\n"         \
+    "                          decipher_only\n"         \
     "    force_key_usage=0/1  default: off\n"           \
     "                          Add KeyUsage even if it is empty\n"  \
     "    ns_cert_type=%%s     default: (empty)\n"       \
@@ -118,7 +120,7 @@ struct options
     int debug_level;            /* level of debugging                   */
     const char *output_file;    /* where to store the constructed key file  */
     const char *subject_name;   /* subject name for certificate request */
-    unsigned char key_usage;    /* key usage flags                      */
+    unsigned int key_usage;     /* key usage flags                      */
     int force_key_usage;        /* Force adding the KeyUsage extension  */
     unsigned char ns_cert_type; /* NS cert type                         */
     int force_ns_cert_type;     /* Force adding NsCertType extension    */
@@ -293,6 +295,10 @@ int main( int argc, char *argv[] )
                     opt.key_usage |= MBEDTLS_X509_KU_KEY_CERT_SIGN;
                 else if( strcmp( q, "crl_sign" ) == 0 )
                     opt.key_usage |= MBEDTLS_X509_KU_CRL_SIGN;
+                else if( strcmp( q, "encipher_only" ) == 0 )
+                    opt.key_usage |= MBEDTLS_X509_KU_ENCIPHER_ONLY;
+                else if( strcmp( q, "decipher_only" ) == 0 )
+                    opt.key_usage |= MBEDTLS_X509_KU_DECIPHER_ONLY;
                 else
                     goto usage;
 
@@ -351,7 +357,7 @@ int main( int argc, char *argv[] )
     mbedtls_x509write_csr_set_md_alg( &req, opt.md_alg );
 
     if( opt.key_usage || opt.force_key_usage == 1 )
-        mbedtls_x509write_csr_set_key_usage( &req, opt.key_usage );
+        mbedtls_x509write_csr_set_key_usage_ext( &req, opt.key_usage );
 
     if( opt.ns_cert_type || opt.force_ns_cert_type == 1 )
         mbedtls_x509write_csr_set_ns_cert_type( &req, opt.ns_cert_type );

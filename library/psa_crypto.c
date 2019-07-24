@@ -1711,8 +1711,8 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
             psa_get_se_driver_context( driver ),
             slot->data.se.slot_number,
             slot->lifetime, slot->type, slot->policy.alg, slot->policy.usage,
-            data, data_length );
-        /* TOnogrepDO: psa_check_key_slot_attributes? */
+            data, data_length,
+            &slot->data.se.bits );
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -1720,10 +1720,10 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         status = psa_import_key_into_slot( slot, data, data_length );
         if( status != PSA_SUCCESS )
             goto exit;
-        status = psa_check_key_slot_attributes( slot, attributes );
-        if( status != PSA_SUCCESS )
-            goto exit;
     }
+    status = psa_check_key_slot_attributes( slot, attributes );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
     status = psa_finish_key_creation( slot, driver );
 exit:

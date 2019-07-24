@@ -62,7 +62,8 @@ static psa_status_t null_import( psa_drv_se_context_t *context,
                                  psa_algorithm_t algorithm,
                                  psa_key_usage_t usage,
                                  const uint8_t *p_data,
-                                 size_t data_length )
+                                 size_t data_length,
+                                 size_t *bits )
 {
     (void) context;
     (void) slot_number;
@@ -71,7 +72,9 @@ static psa_status_t null_import( psa_drv_se_context_t *context,
     (void) algorithm;
     (void) usage;
     (void) p_data;
-    (void) data_length;
+    /* We're supposed to return a key size. Return one that's correct for
+     * plain data keys. */
+    *bits = PSA_BYTES_TO_BITS( data_length );
     return( PSA_SUCCESS );
 }
 
@@ -110,7 +113,8 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
                                 psa_algorithm_t algorithm,
                                 psa_key_usage_t usage,
                                 const uint8_t *p_data,
-                                size_t data_length )
+                                size_t data_length,
+                                size_t *bits )
 {
     (void) context;
     DRIVER_ASSERT( slot_number < ARRAY_LENGTH( ram_slots ) );
@@ -119,6 +123,7 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
     ram_slots[slot_number].lifetime = lifetime;
     ram_slots[slot_number].type = type;
     ram_slots[slot_number].bits = PSA_BYTES_TO_BITS( data_length );
+    *bits = PSA_BYTES_TO_BITS( data_length );
     (void) algorithm;
     (void) usage;
     memcpy( ram_slots[slot_number].content, p_data, data_length );

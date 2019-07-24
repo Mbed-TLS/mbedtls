@@ -2216,11 +2216,12 @@ static int ssl_parse_server_dh_params( mbedtls_ssl_context *ssl, unsigned char *
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#if defined(MBEDTLS_ECDH_C) &&                                          \
+    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) )
 static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
 {
     const mbedtls_ecp_curve_info *curve_info;
@@ -2253,15 +2254,17 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#endif /* MBEDTLS_ECDH_C &&
+         ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   ||
+           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+           MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED   ||
+           MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    ||
+           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED  ) */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(MBEDTLS_ECDH_C) &&                                          \
+    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED))
 static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
                                          unsigned char **p,
                                          unsigned char *end )
@@ -2291,9 +2294,10 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
 
     return( ret );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* MBEDTLS_ECDH_C &&
+          ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED    ) */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
@@ -2831,9 +2835,10 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
     }
     else
 #endif /* MBEDTLS_USE_TINYCRYPT */
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if defined(MBEDTLS_ECDH_C) &&                                          \
+    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ) )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                         ||
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
@@ -2850,9 +2855,10 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         }
     }
     else
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+#endif /* MBEDTLS_ECDH_C &&
+          ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ) */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
@@ -3586,10 +3592,12 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         p += 2 * NUM_ECC_BYTES;
     }
     else
-#elif defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||              \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||              \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    ||              \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#endif /* MBEDTLS_USE_TINYCRYPT */
+#if defined(MBEDTLS_ECDH_C) &&                                          \
+        ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||          \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||          \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    ||          \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
@@ -3627,10 +3635,11 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         p += n;
     }
     else
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#endif /* MBEDTLS_ECDH_C && (
+          ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    ||
+            MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED  ) */
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_psk( ciphersuite_info ) )
     {

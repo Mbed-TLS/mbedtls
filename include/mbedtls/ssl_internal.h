@@ -392,11 +392,6 @@ struct mbedtls_ssl_handshake_params
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     uint16_t curve_tls_id;                      /*!< TLS ID of EC for ECDHE. */
 #endif
-#if defined(MBEDTLS_USE_TINYCRYPT)
-    uint8_t ecdh_privkey[NUM_ECC_BYTES];
-    uint8_t ecdh_ownpubkey[2*NUM_ECC_BYTES];
-    uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
-#endif /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
@@ -554,6 +549,12 @@ struct mbedtls_ssl_handshake_params
      * The library does not use it internally. */
     void *user_async_ctx;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    uint8_t ecdh_privkey[NUM_ECC_BYTES];
+    uint8_t ecdh_ownpubkey[2*NUM_ECC_BYTES];
+    uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
+#endif /* MBEDTLS_USE_TINYCRYPT */
 };
 
 /*

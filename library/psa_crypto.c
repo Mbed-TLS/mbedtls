@@ -1756,6 +1756,15 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     if( status != PSA_SUCCESS )
         goto exit;
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( driver != NULL )
+    {
+        /* Copying to a secure element is not implemented yet. */
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
     status = psa_copy_key_material( source_slot, target_slot );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -4661,6 +4670,13 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
     status = psa_start_key_creation( attributes, handle, &slot, &driver );
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( driver != NULL )
+    {
+        /* Deriving a key in a secure element is not implemented yet. */
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     if( status == PSA_SUCCESS )
     {
         status = psa_generate_derived_key_internal( slot,
@@ -5692,6 +5708,13 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
     status = psa_start_key_creation( attributes, handle, &slot, &driver );
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( driver != NULL )
+    {
+        /* Generating a key in a secure element is not implemented yet. */
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     if( status == PSA_SUCCESS )
     {
         status = psa_generate_key_internal(

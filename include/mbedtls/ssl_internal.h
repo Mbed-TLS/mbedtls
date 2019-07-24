@@ -1730,13 +1730,12 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 #define MBEDTLS_ALWAYS_INLINE
 #endif
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_pend_alert_message(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_pend_fatal_alert(
     mbedtls_ssl_context *ssl,
-    unsigned char level,
     unsigned char message )
 {
-    if( level != MBEDTLS_SSL_ALERT_LEVEL_FATAL )
-        ssl->pend_alert_level = level;
+    /* ssl->pend_alert_level is fatal by default,
+     * so we don't need set it here. */
     ssl->pend_alert_msg = message;
     return( 0 );
 }

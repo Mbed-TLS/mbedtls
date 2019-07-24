@@ -652,10 +652,10 @@ int main( int argc, char *argv[] )
 #if !defined(MBEDTLS_SSL_CONF_RECV) &&          \
     !defined(MBEDTLS_SSL_CONF_SEND) &&          \
     !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
-        mbedtls_ssl_set_bio( &ssl, &server_fd,
-                             mbedtls_net_send, mbedtls_net_recv, NULL );
+    mbedtls_ssl_set_bio( &ssl, &server_fd,
+                         mbedtls_net_send, mbedtls_net_recv, NULL );
 #else
-        mbedtls_ssl_set_bio_ctx( &ssl, &server_fd );
+    mbedtls_ssl_set_bio_ctx( &ssl, &server_fd );
 #endif
 
     mbedtls_printf( " ok\n" );

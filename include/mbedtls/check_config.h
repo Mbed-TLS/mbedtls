@@ -103,6 +103,13 @@
 #error "MBEDTLS_USE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT) &&                                   \
+    !( defined(MBEDTLS_SSL_CONF_SINGLE_EC)     &&                       \
+       MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID == 23 &&                       \
+       MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID == MBEDTLS_ECP_DP_SECP256R1 )
+#error "MBEDTLS_USE_TINYCRYPT requires the use of MBEDTLS_SSL_CONF_SINGLE_EC to hardcode the choice of Secp256r1"
+#endif
+
 #if defined(MBEDTLS_USE_TINYCRYPT) && \
     !defined(MBEDTLS_SSL_CONF_RNG)
 #error "MBEDTLS_USE_TINYCRYPT defined, but not all prerequesites"

@@ -3576,19 +3576,17 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         ((void) n);
         ((void) ret);
 
-        if( !uECC_make_key( ssl->handshake->ecdh_ownpubkey,
-                            ssl->handshake->ecdh_privkey,
-                            uecc_curve ) )
-        {
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-
         if( (size_t)( end - p ) < 2 * NUM_ECC_BYTES + 2 )
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
         *p++ = 2 * NUM_ECC_BYTES + 1;
         *p++ = 0x04; /* uncompressed point presentation */
-        memcpy( p, ssl->handshake->ecdh_ownpubkey, 2 * NUM_ECC_BYTES );
+
+        if( !uECC_make_key( p, ssl->handshake->ecdh_privkey,
+                            uecc_curve ) )
+        {
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
         p += 2 * NUM_ECC_BYTES;
     }
     else

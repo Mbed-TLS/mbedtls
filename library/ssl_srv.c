@@ -3398,14 +3398,6 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                 0x04 /* Uncompressed */
             };
 
-            if( !uECC_make_key( ssl->handshake->ecdh_ownpubkey,
-                                ssl->handshake->ecdh_privkey,
-                                uecc_curve ) )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Key creation failed" ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            }
-
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
             dig_signed = ssl->out_msg + ssl->out_msglen;
 #endif
@@ -3414,9 +3406,14 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                     ecdh_param_hdr, sizeof( ecdh_param_hdr ) );
             ssl->out_msglen += sizeof( ecdh_param_hdr );
 
-            memcpy( &ssl->out_msg[ssl->out_msglen],
-                    ssl->handshake->ecdh_ownpubkey,
-                    2*NUM_ECC_BYTES );
+            if( !uECC_make_key( &ssl->out_msg[ ssl->out_msglen ],
+                                ssl->handshake->ecdh_privkey,
+                                uecc_curve ) )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Key creation failed" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+
             ssl->out_msglen += 2*NUM_ECC_BYTES;
         }
         else

@@ -2808,11 +2808,10 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
     {
-        static const uint16_t secp256r1_tls_id = 23;
         static const unsigned char ecdh_group[] = {
             MBEDTLS_ECP_TLS_NAMED_CURVE,
-            ( secp256r1_tls_id >> 8 ) & 0xFF,
-            ( secp256r1_tls_id >> 0 ) & 0xFF,
+            0  /* high bits of secp256r1 TLS ID  */,
+            23 /* low bits of secp256r1 TLS ID   */,
         };
 
         /* Check for fixed ECDH parameter preamble. */

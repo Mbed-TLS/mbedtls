@@ -5,6 +5,12 @@
 #include "psa_crypto_se.h"
 #include "psa_crypto_storage.h"
 
+
+
+/****************************************************************/
+/* Test driver helpers */
+/****************************************************************/
+
 /** The minimum valid lifetime value for a secure element driver. */
 #define MIN_DRIVER_LIFETIME 2
 
@@ -24,6 +30,12 @@
           return( PSA_ERROR_DETECTED_BY_DRIVER );           \
        }                                                    \
     } while( 0 )
+
+
+
+/****************************************************************/
+/* RAM-based test driver */
+/****************************************************************/
 
 #define RAM_MAX_KEY_SIZE 64
 typedef struct
@@ -69,11 +81,11 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
     return( PSA_SUCCESS );
 }
 
-psa_status_t ram_export( psa_drv_se_context_t *context,
-                         psa_key_slot_number_t slot_number,
-                         uint8_t *p_data,
-                         size_t data_size,
-                         size_t *p_data_length )
+static psa_status_t ram_export( psa_drv_se_context_t *context,
+                                psa_key_slot_number_t slot_number,
+                                uint8_t *p_data,
+                                size_t data_size,
+                                size_t *p_data_length )
 {
     size_t actual_size;
     (void) context;
@@ -86,9 +98,9 @@ psa_status_t ram_export( psa_drv_se_context_t *context,
     return( PSA_SUCCESS );
 }
 
-psa_status_t ram_destroy( psa_drv_se_context_t *context,
-                          void *persistent_data,
-                          psa_key_slot_number_t slot_number )
+static psa_status_t ram_destroy( psa_drv_se_context_t *context,
+                                 void *persistent_data,
+                                 psa_key_slot_number_t slot_number )
 {
     ram_slot_usage_t *slot_usage = persistent_data;
     DRIVER_ASSERT( context->persistent_data_size == sizeof( ram_slot_usage_t ) );
@@ -98,10 +110,10 @@ psa_status_t ram_destroy( psa_drv_se_context_t *context,
     return( PSA_SUCCESS );
 }
 
-psa_status_t ram_allocate( psa_drv_se_context_t *context,
-                           void *persistent_data,
-                           const psa_key_attributes_t *attributes,
-                           psa_key_slot_number_t *slot_number )
+static psa_status_t ram_allocate( psa_drv_se_context_t *context,
+                                  void *persistent_data,
+                                  const psa_key_attributes_t *attributes,
+                                  psa_key_slot_number_t *slot_number )
 {
     ram_slot_usage_t *slot_usage = persistent_data;
     (void) attributes;
@@ -116,8 +128,14 @@ psa_status_t ram_allocate( psa_drv_se_context_t *context,
     return( PSA_ERROR_INSUFFICIENT_STORAGE );
 }
 
+
+
+/****************************************************************/
+/* Other test helper functions */
+/****************************************************************/
+
 #define MAX_KEY_ID_FOR_TEST 10
-void psa_purge_storage( void )
+static void psa_purge_storage( void )
 {
     psa_key_id_t id;
     psa_key_lifetime_t lifetime;

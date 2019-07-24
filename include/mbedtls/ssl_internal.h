@@ -1734,8 +1734,6 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_pend_fatal_alert(
     mbedtls_ssl_context *ssl,
     unsigned char message )
 {
-    /* ssl->pend_alert_level is fatal by default,
-     * so we don't need set it here. */
     ssl->pend_alert_msg = message;
     return( 0 );
 }

@@ -1235,7 +1235,6 @@ struct mbedtls_ssl_context
 {
     const mbedtls_ssl_config *conf; /*!< configuration information          */
 
-    unsigned char pend_alert_level;
     unsigned char pend_alert_msg;
 
     /*

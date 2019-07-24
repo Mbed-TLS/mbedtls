@@ -2892,6 +2892,10 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
     {
+        ((void) ret);
+        ((void) p);
+        ((void) end);
+        ((void) ciphersuite_info);
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }

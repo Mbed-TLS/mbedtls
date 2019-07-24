@@ -288,3 +288,39 @@ exit:
     psa_purge_storage( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void generate_key_not_supported( int type_arg, int bits_arg )
+{
+    psa_key_type_t type = type_arg;
+    size_t bits = bits_arg;
+    psa_drv_se_t driver;
+    psa_drv_se_key_management_t key_management;
+    psa_key_lifetime_t lifetime = 2;
+    psa_key_id_t id = 1;
+    psa_key_handle_t handle = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    memset( &driver, 0, sizeof( driver ) );
+    memset( &key_management, 0, sizeof( key_management ) );
+    driver.hal_version = PSA_DRV_SE_HAL_VERSION;
+    driver.key_management = &key_management;
+    driver.persistent_data_size = sizeof( psa_key_slot_number_t );
+    key_management.p_allocate = counter_allocate;
+
+    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_id( &attributes, id );
+    psa_set_key_lifetime( &attributes, lifetime );
+    psa_set_key_type( &attributes, type );
+    psa_set_key_bits( &attributes, bits );
+    TEST_EQUAL( psa_generate_key( &attributes, &handle ),
+                PSA_ERROR_NOT_SUPPORTED );
+
+exit:
+    PSA_DONE( );
+    ram_slots_reset( );
+    psa_purge_storage( );
+}
+/* END_CASE */

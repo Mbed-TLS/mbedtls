@@ -38,3 +38,6 @@ key_creation_import_export:0:1
 
 SE key import-export, check after restart (slot 3)
 key_creation_import_export:3:1
+
+Generate key: not supported
+generate_key_not_supported:PSA_KEY_TYPE_AES:128

@@ -4204,6 +4204,7 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
     {
+        ((void) ret);
         if( mbedtls_ssl_ecdh_read_peerkey( ssl, &p, end ) != 0 )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }

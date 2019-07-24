@@ -1708,6 +1708,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
     {
         const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+        ((void) ret);
 
         if( !uECC_shared_secret( ssl->handshake->ecdh_peerkey,
                                  ssl->handshake->ecdh_privkey,

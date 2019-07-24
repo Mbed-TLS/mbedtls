@@ -5800,7 +5800,7 @@ psa_status_t psa_crypto_init( void )
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
     status = psa_crypto_load_transaction( );
     if( status == PSA_SUCCESS )
     {
@@ -5811,7 +5811,7 @@ psa_status_t psa_crypto_init( void )
         /* There's no transaction to complete. It's all good. */
         status = PSA_SUCCESS;
     }
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+#endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
 
     /* All done. */
     global_data.initialized = 1;

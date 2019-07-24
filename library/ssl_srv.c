@@ -3384,87 +3384,98 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
          */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-        static const uint16_t secp256r1_tls_id = 23;
-        static const unsigned char ecdh_param_hdr[] = {
-            MBEDTLS_ECP_TLS_NAMED_CURVE,
-            ( secp256r1_tls_id >> 8 ) & 0xFF,
-            ( secp256r1_tls_id >> 0 ) & 0xFF,
-            2 * NUM_ECC_BYTES + 1,
-            0x04 /* Uncompressed */
-        };
-
-        if( ssl->handshake->curve_tls_id != secp256r1_tls_id )
+        if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+            == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+            mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+            == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unsupported curve %u (expected %u)",
-                                        (unsigned) ssl->handshake->curve_tls_id,
-                                        secp256r1_tls_id ) );
-            return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
+            static const uint16_t secp256r1_tls_id = 23;
+            static const unsigned char ecdh_param_hdr[] = {
+                MBEDTLS_ECP_TLS_NAMED_CURVE,
+                ( secp256r1_tls_id >> 8 ) & 0xFF,
+                ( secp256r1_tls_id >> 0 ) & 0xFF,
+                2 * NUM_ECC_BYTES + 1,
+                0x04 /* Uncompressed */
+            };
+
+            if( ssl->handshake->curve_tls_id != secp256r1_tls_id )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unsupported curve %u (expected %u)",
+                                            (unsigned) ssl->handshake->curve_tls_id,
+                                            secp256r1_tls_id ) );
+                return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
+            }
+
+            if( !uECC_make_key( ssl->handshake->ecdh_ownpubkey,
+                                ssl->handshake->ecdh_privkey,
+                                uecc_curve ) )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Key creation failed" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
+            dig_signed = ssl->out_msg + ssl->out_msglen;
+#endif
+
+            memcpy( ssl->out_msg + ssl->out_msglen,
+                    ecdh_param_hdr, sizeof( ecdh_param_hdr ) );
+            ssl->out_msglen += sizeof( ecdh_param_hdr );
+
+            memcpy( &ssl->out_msg[ssl->out_msglen],
+                    ssl->handshake->ecdh_ownpubkey,
+                    2*NUM_ECC_BYTES );
+            ssl->out_msglen += 2*NUM_ECC_BYTES;
         }
-
-        if( !uECC_make_key( ssl->handshake->ecdh_ownpubkey,
-                            ssl->handshake->ecdh_privkey,
-                            uecc_curve ) )
+        else
+#endif /* MBEDTLS_ECDH_C */
+#if !defined(MBEDTLS_ECDH_C)
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Key creation failed" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
+#else
+        {
+            const mbedtls_ecp_curve_info *curve =
+                mbedtls_ecp_curve_info_from_tls_id( ssl->handshake->curve_tls_id );
+            int ret;
+            size_t len = 0;
+
+            if( curve == NULL )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
+                return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
+            }
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s", curve->name ) );
+
+            if( ( ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx,
+                                            curve->grp_id ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
+                return( ret );
+            }
+
+            if( ( ret = mbedtls_ecdh_make_params(
+                      &ssl->handshake->ecdh_ctx, &len,
+                      ssl->out_msg + ssl->out_msglen,
+                      MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen,
+                      mbedtls_ssl_conf_get_frng( ssl->conf ),
+                      mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
+                return( ret );
+            }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
-        dig_signed = ssl->out_msg + ssl->out_msglen;
+            dig_signed = ssl->out_msg + ssl->out_msglen;
 #endif
 
-        memcpy( ssl->out_msg + ssl->out_msglen,
-                ecdh_param_hdr, sizeof( ecdh_param_hdr ) );
-        ssl->out_msglen += sizeof( ecdh_param_hdr );
+            ssl->out_msglen += len;
 
-        memcpy( &ssl->out_msg[ssl->out_msglen],
-                ssl->handshake->ecdh_ownpubkey,
-                2*NUM_ECC_BYTES );
-        ssl->out_msglen += 2*NUM_ECC_BYTES;
-
-#else /* MBEDTLS_USE_TINYCRYPT */
-
-        const mbedtls_ecp_curve_info *curve =
-            mbedtls_ecp_curve_info_from_tls_id( ssl->handshake->curve_tls_id );
-        int ret;
-        size_t len = 0;
-
-        if( curve == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "no matching curve for ECDHE" ) );
-            return( MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN );
+            MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
+                                    MBEDTLS_DEBUG_ECDH_Q );
         }
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s", curve->name ) );
-
-        if( ( ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx,
-                                        curve->grp_id ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
-            return( ret );
-        }
-
-        if( ( ret = mbedtls_ecdh_make_params(
-                  &ssl->handshake->ecdh_ctx, &len,
-                  ssl->out_msg + ssl->out_msglen,
-                  MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen,
-                  mbedtls_ssl_conf_get_frng( ssl->conf ),
-                  mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
-            return( ret );
-        }
-
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
-        dig_signed = ssl->out_msg + ssl->out_msglen;
-#endif
-
-        ssl->out_msglen += len;
-
-        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
-                                MBEDTLS_DEBUG_ECDH_Q );
-
-#endif /* MBEDTLS_USE_TINYCRYPT */
-
+#endif /* MBEDTLS_ECDH_C */
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED */
 

@@ -871,6 +871,39 @@ static psa_status_t psa_get_key_from_slot( psa_key_handle_t handle,
     return( PSA_SUCCESS );
 }
 
+/** Retrieve a slot which must contain a transparent key.
+ *
+ * A transparent key is a key for which the key material is directly
+ * available, as opposed to a key in a secure element.
+ *
+ * This is a temporary function until secure element support is
+ * fully implemented.
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+static psa_status_t psa_get_transparent_key( psa_key_handle_t handle,
+                                             psa_key_slot_t **p_slot,
+                                             psa_key_usage_t usage,
+                                             psa_algorithm_t alg )
+{
+    psa_status_t status = psa_get_key_from_slot( handle, p_slot, usage, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+    /* Use a simple, cheap test to check whether the key is transparent.
+     * This check assumes that there are no persistent lifetimes other than
+     * PSA_KEY_LIFETIME_PERSISTENT. */
+    if( ( *p_slot )->lifetime > PSA_KEY_LIFETIME_PERSISTENT )
+    {
+        *p_slot = NULL;
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+    return( PSA_SUCCESS );
+}
+#else /* MBEDTLS_PSA_CRYPTO_SE_C */
+/* With no secure element support, all keys are transparent. */
+#define psa_get_transparent_key( handle, p_slot, usage, alg )   \
+    psa_get_key_from_slot( handle, p_slot, usage, alg )
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
 /** Wipe key data from a slot. Preserve metadata such as the policy. */
 static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
 {
@@ -1124,7 +1157,7 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
 
     psa_reset_key_attributes( attributes );
 
-    status = psa_get_key_slot( handle, &slot );
+    status = psa_get_transparent_key( handle, &slot, 0, 0 );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -1704,7 +1737,7 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     psa_key_attributes_t actual_attributes = *specified_attributes;
     psa_se_drv_table_entry_t *driver = NULL;
 
-    status = psa_get_key_from_slot( source_handle, &source_slot,
+    status = psa_get_transparent_key( source_handle, &source_slot,
                                     PSA_KEY_USAGE_COPY, 0 );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -2485,7 +2518,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     if( is_sign )
         operation->is_sign = 1;
 
-    status = psa_get_key_from_slot( handle, &slot, usage, alg );
+    status = psa_get_transparent_key( handle, &slot, usage, alg );
     if( status != PSA_SUCCESS )
         goto exit;
     key_bits = psa_get_key_slot_bits( slot );
@@ -3064,7 +3097,7 @@ psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
 
     *signature_length = signature_size;
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
+    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
     if( status != PSA_SUCCESS )
         goto exit;
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->type ) )
@@ -3137,7 +3170,7 @@ psa_status_t psa_asymmetric_verify( psa_key_handle_t handle,
     psa_key_slot_t *slot;
     psa_status_t status;
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_VERIFY, alg );
+    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_VERIFY, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -3207,7 +3240,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_handle_t handle,
     if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
+    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( ! ( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) ||
@@ -3287,7 +3320,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_handle_t handle,
     if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_DECRYPT, alg );
+    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->type ) )
@@ -3396,7 +3429,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_get_key_from_slot( handle, &slot, usage, alg);
+    status = psa_get_transparent_key( handle, &slot, usage, alg);
     if( status != PSA_SUCCESS )
         goto exit;
     key_bits = psa_get_key_slot_bits( slot );
@@ -3733,7 +3766,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
     size_t key_bits;
     mbedtls_cipher_id_t cipher_id;
 
-    status = psa_get_key_from_slot( handle, &operation->slot, usage, alg );
+    status = psa_get_transparent_key( handle, &operation->slot, usage, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -4908,7 +4941,7 @@ psa_status_t psa_key_derivation( psa_key_derivation_operation_t *operation,
     if( ! PSA_ALG_IS_KEY_DERIVATION( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_DERIVE, alg );
+    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_DERIVE, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -5282,7 +5315,7 @@ psa_status_t psa_key_derivation_input_key(
 {
     psa_key_slot_t *slot;
     psa_status_t status;
-    status = psa_get_key_from_slot( handle, &slot,
+    status = psa_get_transparent_key( handle, &slot,
                                     PSA_KEY_USAGE_DERIVE,
                                     operation->alg );
     if( status != PSA_SUCCESS )
@@ -5431,7 +5464,7 @@ psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *o
     psa_status_t status;
     if( ! PSA_ALG_IS_KEY_AGREEMENT( operation->alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
-    status = psa_get_key_from_slot( private_key, &slot,
+    status = psa_get_transparent_key( private_key, &slot,
                                     PSA_KEY_USAGE_DERIVE, operation->alg );
     if( status != PSA_SUCCESS )
         return( status );
@@ -5459,7 +5492,7 @@ psa_status_t psa_raw_key_agreement( psa_algorithm_t alg,
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
-    status = psa_get_key_from_slot( private_key, &slot,
+    status = psa_get_transparent_key( private_key, &slot,
                                     PSA_KEY_USAGE_DERIVE, alg );
     if( status != PSA_SUCCESS )
         goto exit;

@@ -1538,40 +1538,32 @@ static psa_status_t psa_finish_key_creation(
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        uint8_t *buffer = NULL;
-        size_t buffer_size = 0;
-        size_t length = 0;
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        psa_get_key_slot_attributes( slot, &attributes );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         if( driver != NULL )
         {
-            buffer = (uint8_t*) &slot->data.se.slot_number;
-            length = sizeof( slot->data.se.slot_number );
+            status = psa_save_persistent_key( &attributes,
+                                              (uint8_t*) &slot->data.se,
+                                              sizeof( slot->data.se ) );
         }
         else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
         {
-            buffer_size = PSA_KEY_EXPORT_MAX_SIZE( slot->type,
-                                                   psa_get_key_slot_bits( slot ) );
-            buffer = mbedtls_calloc( 1, buffer_size );
+            size_t buffer_size =
+                PSA_KEY_EXPORT_MAX_SIZE( slot->type,
+                                         psa_get_key_bits( &attributes ) );
+            uint8_t *buffer = mbedtls_calloc( 1, buffer_size );
+            size_t length = 0;
             if( buffer == NULL && buffer_size != 0 )
                 return( PSA_ERROR_INSUFFICIENT_MEMORY );
             status = psa_internal_export_key( slot,
                                               buffer, buffer_size, &length,
                                               0 );
-        }
+            if( status == PSA_SUCCESS )
+                status = psa_save_persistent_key( &attributes, buffer, length );
 
-        if( status == PSA_SUCCESS )
-        {
-            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-            psa_get_key_slot_attributes( slot, &attributes );
-            status = psa_save_persistent_key( &attributes, buffer, length );
-        }
-
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-        if( driver == NULL )
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-        {
             if( buffer_size != 0 )
                 mbedtls_platform_zeroize( buffer, buffer_size );
             mbedtls_free( buffer );

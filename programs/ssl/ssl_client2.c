@@ -589,7 +589,6 @@ static int ssl_check_record( mbedtls_ssl_context const *ssl,
         /* Regardless of the outcome, forward the record to the stack. */
     }
 
-exit:
     mbedtls_free( tmp_buf );
 
     return( 0 );

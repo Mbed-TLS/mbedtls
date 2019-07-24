@@ -69,6 +69,7 @@ void set_get_remove( int uid_arg, int flags_arg, data_t *data )
     uint32_t flags = flags_arg;
     struct psa_storage_info_t info;
     unsigned char *buffer = NULL;
+    size_t ret_len = 0;
 
     ASSERT_ALLOC( buffer, data->len );
 
@@ -77,8 +78,8 @@ void set_get_remove( int uid_arg, int flags_arg, data_t *data )
     PSA_ASSERT( psa_its_get_info( uid, &info ) );
     TEST_ASSERT( info.size == data->len );
     TEST_ASSERT( info.flags == flags );
-    PSA_ASSERT( psa_its_get( uid, 0, data->len, buffer ) );
-    ASSERT_COMPARE( data->x, data->len, buffer, data->len );
+    PSA_ASSERT( psa_its_get( uid, 0, data->len, buffer, &ret_len ) );
+    ASSERT_COMPARE( data->x, data->len, buffer, ret_len );
 
     PSA_ASSERT( psa_its_remove( uid ) );
 
@@ -98,6 +99,7 @@ void set_overwrite( int uid_arg,
     uint32_t flags2 = flags2_arg;
     struct psa_storage_info_t info;
     unsigned char *buffer = NULL;
+    size_t ret_len = 0;
 
     ASSERT_ALLOC( buffer, MAX( data1->len, data2->len ) );
 
@@ -105,15 +107,16 @@ void set_overwrite( int uid_arg,
     PSA_ASSERT( psa_its_get_info( uid, &info ) );
     TEST_ASSERT( info.size == data1->len );
     TEST_ASSERT( info.flags == flags1 );
-    PSA_ASSERT( psa_its_get( uid, 0, data1->len, buffer ) );
-    ASSERT_COMPARE( data1->x, data1->len, buffer, data1->len );
+    PSA_ASSERT( psa_its_get( uid, 0, data1->len, buffer, &ret_len ) );
+    ASSERT_COMPARE( data1->x, data1->len, buffer, ret_len );
 
     PSA_ASSERT( psa_its_set_wrap( uid, data2->len, data2->x, flags2 ) );
     PSA_ASSERT( psa_its_get_info( uid, &info ) );
     TEST_ASSERT( info.size == data2->len );
     TEST_ASSERT( info.flags == flags2 );
-    PSA_ASSERT( psa_its_get( uid, 0, data2->len, buffer ) );
-    ASSERT_COMPARE( data2->x, data2->len, buffer, data2->len );
+    ret_len = 0;
+    PSA_ASSERT( psa_its_get( uid, 0, data2->len, buffer, &ret_len ) );
+    ASSERT_COMPARE( data2->x, data2->len, buffer, ret_len );
 
     PSA_ASSERT( psa_its_remove( uid ) );
 
@@ -130,6 +133,7 @@ void set_multiple( int first_id, int count )
     psa_storage_uid_t uid;
     char stored[40];
     char retrieved[40];
+    size_t ret_len = 0;
 
     memset( stored, '.', sizeof( stored ) );
     for( uid = uid0; uid < uid0 + count; uid++ )
@@ -143,11 +147,11 @@ void set_multiple( int first_id, int count )
     {
         mbedtls_snprintf( stored, sizeof( stored ),
                           "Content of file 0x%08lx", (unsigned long) uid );
-        PSA_ASSERT( psa_its_get( uid, 0, sizeof( stored ), retrieved ) );
-        ASSERT_COMPARE( retrieved, sizeof( stored ),
+        PSA_ASSERT( psa_its_get( uid, 0, sizeof( stored ), retrieved, &ret_len ) );
+        ASSERT_COMPARE( retrieved, ret_len,
                         stored, sizeof( stored ) );
         PSA_ASSERT( psa_its_remove( uid ) );
-        TEST_ASSERT( psa_its_get( uid, 0, 0, NULL ) ==
+        TEST_ASSERT( psa_its_get( uid, 0, 0, NULL, NULL ) ==
                      PSA_ERROR_DOES_NOT_EXIST );
     }
 
@@ -171,7 +175,7 @@ void nonexistent( int uid_arg, int create_and_remove )
     TEST_ASSERT( psa_its_remove( uid ) == PSA_ERROR_DOES_NOT_EXIST );
     TEST_ASSERT( psa_its_get_info( uid, &info ) ==
                  PSA_ERROR_DOES_NOT_EXIST );
-    TEST_ASSERT( psa_its_get( uid, 0, 0, NULL ) ==
+    TEST_ASSERT( psa_its_get( uid, 0, 0, NULL, NULL ) ==
                  PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
@@ -190,6 +194,7 @@ void get_at( int uid_arg, data_t *data,
     size_t length = length_arg >= 0 ? length_arg : 0;
     unsigned char *trailer;
     size_t i;
+    size_t ret_len = 0;
 
     ASSERT_ALLOC( buffer, length + 16 );
     trailer = buffer + length;
@@ -197,11 +202,11 @@ void get_at( int uid_arg, data_t *data,
 
     PSA_ASSERT( psa_its_set_wrap( uid, data->len, data->x, 0 ) );
 
-    status = psa_its_get( uid, offset, length_arg, buffer );
+    status = psa_its_get( uid, offset, length_arg, buffer, &ret_len );
     TEST_ASSERT( status == (psa_status_t) expected_status );
     if( status == PSA_SUCCESS )
-        ASSERT_COMPARE( data->x + offset, length,
-                        buffer, length );
+        ASSERT_COMPARE( data->x + offset, (size_t) length_arg,
+                        buffer, ret_len );
     for( i = 0; i < 16; i++ )
         TEST_ASSERT( trailer[i] == '-' );
     PSA_ASSERT( psa_its_remove( uid ) );

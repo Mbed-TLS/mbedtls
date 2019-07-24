@@ -103,6 +103,11 @@
 #error "MBEDTLS_USE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT) && \
+    !defined(MBEDTLS_SSL_CONF_RNG)
+#error "MBEDTLS_USE_TINYCRYPT defined, but not all prerequesites"
+#endif
+
 #if defined(MBEDTLS_NIST_KW_C) && \
     ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CIPHER_C) )
 #error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"

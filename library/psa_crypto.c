@@ -1231,9 +1231,9 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
                    drv->key_management->p_export );
         if( method == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
-        return( ( *method )( drv_context,
-                             slot->data.se.slot_number,
-                             data, data_size, data_length ) );
+        return( method( drv_context,
+                        slot->data.se.slot_number,
+                        data, data_size, data_length ) );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 

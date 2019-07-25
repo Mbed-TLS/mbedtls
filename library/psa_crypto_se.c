@@ -211,10 +211,10 @@ psa_status_t psa_find_se_slot_for_key(
     if( p_allocate == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 
-    status = ( *p_allocate )( &driver->context,
-                              driver->internal.persistent_data,
-                              attributes,
-                              slot_number );
+    status = p_allocate( &driver->context,
+                         driver->internal.persistent_data,
+                         attributes,
+                         slot_number );
     return( status );
 }
 

@@ -4961,14 +4961,14 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
 
     size_t const rec_hdr_ctr_len        = 8;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    uint32_t rec_epoch;
+    uint32_t     rec_epoch;
     size_t const rec_hdr_ctr_offset     = rec_hdr_version_offset +
                                           rec_hdr_version_len;
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     size_t const rec_hdr_cid_offset     = rec_hdr_ctr_offset +
                                           rec_hdr_ctr_len;
-    size_t rec_hdr_cid_len              = 0;
+    size_t       rec_hdr_cid_len        = 0;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 

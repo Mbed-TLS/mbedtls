@@ -1346,8 +1346,7 @@ component_baremetal_raw_build_armcc () {
     scripts/baremetal.sh --rom --gcc --armc5 --armc6 --check
 }
 
-# need _armcc in the name for pre_check_tools()
-component_baremetal_test_build_armcc () {
+component_baremetal_test_build () {
     msg "build: lib+test+programs for baremetal.h + baremetal_test.h"
     record_status scripts/baremetal.sh --ram --build-only
 

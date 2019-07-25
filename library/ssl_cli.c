@@ -3399,7 +3399,7 @@ cleanup:
 
 static int ssl_client_key_exchange_prepare( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = 0;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 

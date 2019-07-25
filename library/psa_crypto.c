@@ -1007,7 +1007,11 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {
-        status = psa_crypto_stop_transaction( );
+        psa_status_t status2;
+        status = psa_save_se_persistent_data( driver );
+        status2 = psa_crypto_stop_transaction( );
+        if( status == PSA_SUCCESS )
+            status = status2;
         if( status != PSA_SUCCESS )
         {
             /* TOnogrepDO: destroy what can be destroyed anyway */

@@ -10234,9 +10234,11 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
                 if( mbedtls_ssl_get_minor_ver( ssl ) >= MBEDTLS_SSL_MINOR_VERSION_1 )
                 {
-                    mbedtls_ssl_send_alert_message( ssl,
-                                    MBEDTLS_SSL_ALERT_LEVEL_WARNING,
-                                    MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION );
+                    ret = mbedtls_ssl_send_alert_message( ssl,
+                                             MBEDTLS_SSL_ALERT_LEVEL_WARNING,
+                                             MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION );
+                    if( ret != 0 )
+                        return( ret );
                 }
                 else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 ||

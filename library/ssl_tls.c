@@ -1336,8 +1336,9 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                       session->master, keyblk,
                                       mac_key_len, keylen,
                                       iv_copy_len,
-                                      handshake->randbytes + 32,
-                                      handshake->randbytes,
+                                      /* work around bug in exporter type */
+                                      (unsigned char *) handshake->randbytes + 32,
+                                      (unsigned char *) handshake->randbytes,
                                       tls_prf_get_type( handshake->tls_prf ) );
     }
 #endif

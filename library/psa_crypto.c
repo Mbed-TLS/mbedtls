@@ -993,6 +993,7 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
         status = psa_crypto_save_transaction( );
         if( status != PSA_SUCCESS )
         {
+            (void) psa_crypto_stop_transaction( );
             /* TOnogrepDO: destroy what can be destroyed anyway */
             return( status );
         }
@@ -1484,7 +1485,10 @@ static psa_status_t psa_start_key_creation(
         psa_crypto_transaction.key.id = slot->persistent_storage_id;
         status = psa_crypto_save_transaction( );
         if( status != PSA_SUCCESS )
+        {
+            (void) psa_crypto_stop_transaction( );
             return( status );
+        }
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 

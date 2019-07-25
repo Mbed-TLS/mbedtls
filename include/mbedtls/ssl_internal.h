@@ -1736,14 +1736,14 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
  * The check for pending alerts must be done manually. Currently,
  * it happens only during the handshake loop.
  *
- * This function must not be called multiple times without manually
- * inspecting and clearing ssl->pending_fatal_alert_msg in between.
+ * This function must not be called multiple times without
+ * manually inspecting and clearing ssl->pending_fatal_alert_msg in between.
  */
 MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_pend_fatal_alert(
     mbedtls_ssl_context *ssl,
     unsigned char message )
 {
-    ssl->pend_alert_msg = message;
+    ssl->pending_fatal_alert_msg = message;
 }
 
 #endif /* ssl_internal.h */

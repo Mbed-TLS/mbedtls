@@ -1738,7 +1738,7 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     psa_se_drv_table_entry_t *driver = NULL;
 
     status = psa_get_transparent_key( source_handle, &source_slot,
-                                    PSA_KEY_USAGE_COPY, 0 );
+                                      PSA_KEY_USAGE_COPY, 0 );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -5332,8 +5332,8 @@ psa_status_t psa_key_derivation_input_key(
     psa_key_slot_t *slot;
     psa_status_t status;
     status = psa_get_transparent_key( handle, &slot,
-                                    PSA_KEY_USAGE_DERIVE,
-                                    operation->alg );
+                                      PSA_KEY_USAGE_DERIVE,
+                                      operation->alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( slot->type != PSA_KEY_TYPE_DERIVE )
@@ -5481,7 +5481,7 @@ psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *o
     if( ! PSA_ALG_IS_KEY_AGREEMENT( operation->alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
     status = psa_get_transparent_key( private_key, &slot,
-                                    PSA_KEY_USAGE_DERIVE, operation->alg );
+                                      PSA_KEY_USAGE_DERIVE, operation->alg );
     if( status != PSA_SUCCESS )
         return( status );
     status = psa_key_agreement_internal( operation, step,
@@ -5509,7 +5509,7 @@ psa_status_t psa_raw_key_agreement( psa_algorithm_t alg,
         goto exit;
     }
     status = psa_get_transparent_key( private_key, &slot,
-                                    PSA_KEY_USAGE_DERIVE, alg );
+                                      PSA_KEY_USAGE_DERIVE, alg );
     if( status != PSA_SUCCESS )
         goto exit;
 

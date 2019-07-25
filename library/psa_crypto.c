@@ -888,10 +888,7 @@ static psa_status_t psa_get_transparent_key( psa_key_handle_t handle,
     psa_status_t status = psa_get_key_from_slot( handle, p_slot, usage, alg );
     if( status != PSA_SUCCESS )
         return( status );
-    /* Use a simple, cheap test to check whether the key is transparent.
-     * This check assumes that there are no persistent lifetimes other than
-     * PSA_KEY_LIFETIME_PERSISTENT. */
-    if( ( *p_slot )->lifetime > PSA_KEY_LIFETIME_PERSISTENT )
+    if( psa_key_slot_is_external( *p_slot ) )
     {
         *p_slot = NULL;
         return( PSA_ERROR_NOT_SUPPORTED );

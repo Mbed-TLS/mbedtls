@@ -5782,6 +5782,30 @@ void mbedtls_psa_crypto_free( void )
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 }
 
+#if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
+/** Recover a transaction that was interrupted by a power failure.
+ *
+ * This function is called during initialization, before psa_crypto_init()
+ * returns. If this function returns a failure status, the initialization
+ * fails.
+ */
+static psa_status_t psa_crypto_recover_transaction(
+    const psa_crypto_transaction_t *transaction )
+{
+    switch( transaction->unknown.type )
+    {
+        case PSA_CRYPTO_TRANSACTION_CREATE_KEY:
+        case PSA_CRYPTO_TRANSACTION_DESTROY_KEY:
+            /* TOnogrepDO - fall through to the failure case until this
+             * is implemented */
+        default:
+            /* We found an unsupported transaction in the storage.
+             * We don't know what state the storage is in. Give up. */
+            return( PSA_ERROR_STORAGE_FAILURE );
+    }
+}
+#endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
+
 psa_status_t psa_crypto_init( void )
 {
     psa_status_t status;
@@ -5819,7 +5843,10 @@ psa_status_t psa_crypto_init( void )
     status = psa_crypto_load_transaction( );
     if( status == PSA_SUCCESS )
     {
-        /*TOnogrepDO: complete or abort the transaction*/
+        status = psa_crypto_recover_transaction( &psa_crypto_transaction );
+        if( status != PSA_SUCCESS )
+            goto exit;
+        status = psa_crypto_stop_transaction( );
     }
     else if( status == PSA_ERROR_DOES_NOT_EXIST )
     {

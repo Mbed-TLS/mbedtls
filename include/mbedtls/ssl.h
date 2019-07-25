@@ -1235,7 +1235,8 @@ struct mbedtls_ssl_context
 {
     const mbedtls_ssl_config *conf; /*!< configuration information          */
 
-    unsigned char pending_fatal_alert_msg;
+    unsigned char pending_fatal_alert_msg; /*!< Type of a fatal alert
+                                            *   pending to be delivered.    */
 
     /*
      * Miscellaneous

@@ -876,8 +876,8 @@ static psa_status_t psa_get_key_from_slot( psa_key_handle_t handle,
  * A transparent key is a key for which the key material is directly
  * available, as opposed to a key in a secure element.
  *
- * This is a temporary function until secure element support is
- * fully implemented.
+ * This is a temporary function to use instead of psa_get_key_from_slot()
+ * until secure element support is fully implemented.
  */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 static psa_status_t psa_get_transparent_key( psa_key_handle_t handle,
@@ -981,6 +981,11 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
     driver = psa_get_se_driver_entry( slot->lifetime );
     if( driver != NULL )
     {
+        /* For a key in a secure element, we need to do three things:
+         * remove the key file in internal storage, destroy the
+         * key inside the secure element, and update the driver's
+         * persistent data. Start a transaction that will encompass these
+         * three actions. */
         psa_crypto_prepare_transaction( PSA_CRYPTO_TRANSACTION_DESTROY_KEY );
         psa_crypto_transaction.key.lifetime = slot->lifetime;
         psa_crypto_transaction.key.slot = slot->data.se.slot_number;
@@ -1454,9 +1459,18 @@ static psa_status_t psa_start_key_creation(
     slot->type = attributes->type;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    /* Find a slot number for the new key. Save the slot number in
-     * persistent storage, but do not yet save the driver's persistent
-     * state, so that if the power fails during the key creation process,
+    /* For a key in a secure element, we need to do three things:
+     * create the key file in internal storage, create the
+     * key inside the secure element, and update the driver's
+     * persistent data. Start a transaction that will encompass these
+     * three actions. */
+    /* The first thing to do is to find a slot number for the new key.
+     * We save the slot number in persistent storage as part of the
+     * transaction data. It will be needed to recover if the power
+     * fails during the key creation process, to clean up on the secure
+     * element side after restarting. Obtaining a slot number from the
+     * secure element driver updates its persistent state, but we do not yet
+     * save the driver's persistent state, so that if the power fails,
      * we can roll back to a state where the key doesn't exist. */
     if( *p_drv != NULL )
     {

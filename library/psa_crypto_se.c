@@ -223,6 +223,14 @@ psa_status_t psa_destroy_se_key( psa_se_drv_table_entry_t *driver,
 {
     psa_status_t status;
     psa_status_t storage_status;
+    /* Normally a missing method would mean that the action is not
+     * supported. But psa_destroy_key() is not supposed to return
+     * PSA_ERROR_NOT_SUPPORTED: if you can create a key, you should
+     * be able to destroy it. The only use case for a driver that
+     * does not have a way to destroy keys at all is if the keys are
+     * locked in a read-only state: we can use the keys but not
+     * destroy them. Hence, if the driver doesn't support destroying
+     * keys, it's really a lack of permission. */
     if( driver->methods->key_management == NULL ||
         driver->methods->key_management->p_destroy == NULL )
         return( PSA_ERROR_NOT_PERMITTED );

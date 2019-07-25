@@ -681,7 +681,6 @@ struct mbedtls_ssl_transform
     /*
      * Session specific crypto layer
      */
-    size_t minlen;                      /*!<  min. ciphertext length  */
     size_t ivlen;                       /*!<  IV length               */
     size_t fixed_ivlen;                 /*!<  Fixed part of IV (AEAD) */
     size_t maclen;                      /*!<  MAC(CBC) len            */

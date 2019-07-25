@@ -987,8 +987,6 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
         cipher_info->mode == MBEDTLS_MODE_CCM ||
         cipher_info->mode == MBEDTLS_MODE_CHACHAPOLY )
     {
-        size_t explicit_ivlen;
-
         transform->maclen = 0;
         mac_key_len = 0;
         transform->taglen = mbedtls_ssl_suite_get_flags( ciphersuite_info ) &
@@ -1003,10 +1001,6 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
             transform->fixed_ivlen = 12;
         else
             transform->fixed_ivlen = 4;
-
-        /* Minimum length of encrypted record */
-        explicit_ivlen = transform->ivlen - transform->fixed_ivlen;
-        transform->minlen = explicit_ivlen + transform->taglen;
     }
     else
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
@@ -1047,51 +1041,6 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
         /* IV length */
         transform->ivlen = cipher_info->iv_size;
-
-        /* Minimum length */
-        if( cipher_info->mode == MBEDTLS_MODE_STREAM )
-            transform->minlen = transform->maclen;
-        else
-        {
-            /*
-             * GenericBlockCipher:
-             * 1. if EtM is in use: one block plus MAC
-             *    otherwise: * first multiple of blocklen greater than maclen
-             * 2. IV except for SSL3 and TLS 1.0
-             */
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-            if( encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
-            {
-                transform->minlen = transform->maclen
-                                  + cipher_info->block_size;
-            }
-            else
-#endif
-            {
-                transform->minlen = transform->maclen
-                                  + cipher_info->block_size
-                                  - transform->maclen % cipher_info->block_size;
-            }
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1)
-            if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ||
-                minor_ver == MBEDTLS_SSL_MINOR_VERSION_1 )
-                ; /* No need to adjust minlen */
-            else
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
-            if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_2 ||
-                minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-            {
-                transform->minlen += transform->ivlen;
-            }
-            else
-#endif
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            }
-        }
     }
     else
 #endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
@@ -1100,9 +1049,8 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "keylen: %u, minlen: %u, ivlen: %u, maclen: %u",
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "keylen: %u, ivlen: %u, maclen: %u",
                                 (unsigned) keylen,
-                                (unsigned) transform->minlen,
                                 (unsigned) transform->ivlen,
                                 (unsigned) transform->maclen ) );
 
@@ -9234,7 +9182,6 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 {
     size_t transform_expansion = 0;
     const mbedtls_ssl_transform *transform = ssl->transform_out;
-    unsigned block_size;
 
     size_t out_hdr_len = mbedtls_ssl_out_hdr_len( ssl );
 
@@ -9248,14 +9195,35 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 
     switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
     {
+#if defined(MBEDTLS_GCM_C)        || \
+    defined(MBEDTLS_CCM_C)        || \
+    defined(MBEDTLS_CHACHAPOLY_C)
+#if defined(MBEDTLS_GCM_C)
         case MBEDTLS_MODE_GCM:
+#endif
+#if defined(MBEDTLS_CCM_C)
         case MBEDTLS_MODE_CCM:
+#endif
+#if defined(MBEDTLS_CHACHAPOLY_C)
         case MBEDTLS_MODE_CHACHAPOLY:
-        case MBEDTLS_MODE_STREAM:
-            transform_expansion = transform->minlen;
+#endif
+            transform_expansion =
+                transform->ivlen - transform->fixed_ivlen + transform->taglen;
             break;
 
+#endif /* MBEDTLS_GCM_C        || MBEDTLS_CCM_C ||
+          MBEDTLS_CHACHAPOLY_C */
+
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+        case MBEDTLS_MODE_STREAM:
+            transform_expansion = transform->maclen;
+            break;
+#endif /* MBEDTLS_CIPHER_MODE_STREAM */
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
         case MBEDTLS_MODE_CBC:
+        {
+            size_t block_size;
 
             block_size = mbedtls_cipher_get_block_size(
                 &transform->cipher_ctx_enc );
@@ -9276,6 +9244,8 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_1 || MBEDTLS_SSL_PROTO_TLS1_2 */
 
             break;
+        }
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
 
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );

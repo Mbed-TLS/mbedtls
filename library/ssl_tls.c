@@ -4935,12 +4935,9 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
      * Parse record length.
      */
 
-#define READ_UINT16_BE( p )                      \
-    ( ( *( (unsigned char*)( p ) + 0 ) << 8 ) |  \
-      ( *( (unsigned char*)( p ) + 1 ) << 0 ) )
-
     rec->data_offset = rec_hdr_len_offset + rec_hdr_len_len;
-    rec->data_len    = (size_t) READ_UINT16_BE( buf + rec_hdr_len_offset );
+    rec->data_len    = ( (size_t) buf[ rec_hdr_len_offset + 0 ] << 8 ) |
+                       ( (size_t) buf[ rec_hdr_len_offset + 1 ] << 0 );
     MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", buf, rec->data_offset );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "

@@ -206,6 +206,9 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
 typedef uint16_t psa_crypto_transaction_type_t;
 
 /** No transaction is in progress.
+ *
+ * This has the value 0, so zero-initialization sets a transaction's type to
+ * this value.
  */
 #define PSA_CRYPTO_TRANSACTION_NONE             ( (psa_crypto_transaction_type_t) 0x0000 )
 
@@ -244,16 +247,22 @@ typedef uint16_t psa_crypto_transaction_type_t;
  * -# Fill in the type-specific fields of #psa_crypto_transaction.
  * -# Call psa_crypto_save_transaction() to start the transaction. This
  *    saves the transaction data to internal storage.
+ * -# Perform the work of the transaction by modifying files, contacting
+ *    external entities, or whatever needs doing. Note that the transaction
+ *    may be interrupted by a power failure, so you need to have a way
+ *    recover from interruptions either by undoing what has been done
+ *    so far or by resuming where you left off.
  * -# If there are intermediate stages in the transaction, update
  *    the fields of #psa_crypto_transaction and call
  *    psa_crypto_save_transaction() again when each stage is reached.
- * -# When the transaction is over, whether it has been committed or aborted,
- *    call psa_crypto_stop_transaction() to remove the transaction data in
- *    storage and in memory.
+ * -# When the transaction is over, call psa_crypto_stop_transaction() to
+ *    remove the transaction data in storage and in memory.
  *
  * If the system crashes while a transaction is in progress, psa_crypto_init()
  * calls psa_crypto_load_transaction() and takes care of completing or
- * rewinding the transaction.
+ * rewinding the transaction. This is done in psa_crypto_recover_transaction()
+ * in psa_crypto.c. If you add a new type of transaction, be
+ * sure to add code for it in psa_crypto_recover_transaction().
  */
 typedef union
 {
@@ -328,8 +337,10 @@ psa_status_t psa_crypto_load_transaction( void );
 
 /** Indicate that the current transaction is finished.
  *
- * Call this function at the very end of transaction processing, whether
- * the transaction has been committed or aborted.
+ * Call this function at the very end of transaction processing.
+ * This function does not "commit" or "abort" the transaction: the storage
+ * subsystem has no concept of "commit" and "abort", just saving and
+ * removing the transaction information in storage.
  *
  * This function erases the transaction data in storage (if any) and
  * resets the transaction data in memory.

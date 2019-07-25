@@ -1478,14 +1478,14 @@ static psa_status_t psa_start_key_creation(
                                            &slot->data.se.slot_number );
         if( status != PSA_SUCCESS )
             return( status );
+        psa_crypto_prepare_transaction( PSA_CRYPTO_TRANSACTION_CREATE_KEY );
+        psa_crypto_transaction.key.lifetime = slot->lifetime;
+        psa_crypto_transaction.key.slot = slot->data.se.slot_number;
+        psa_crypto_transaction.key.id = slot->persistent_storage_id;
+        status = psa_crypto_save_transaction( );
+        if( status != PSA_SUCCESS )
+            return( status );
     }
-    psa_crypto_prepare_transaction( PSA_CRYPTO_TRANSACTION_CREATE_KEY );
-    psa_crypto_transaction.key.lifetime = slot->lifetime;
-    psa_crypto_transaction.key.slot = slot->data.se.slot_number;
-    psa_crypto_transaction.key.id = slot->persistent_storage_id;
-    status = psa_crypto_save_transaction( );
-    if( status != PSA_SUCCESS )
-        return( status );
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     return( status );

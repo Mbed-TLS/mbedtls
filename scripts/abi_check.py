@@ -107,7 +107,7 @@ class AbiChecker(object):
         )
         self.log.debug(worktree_output.decode("utf-8"))
         version.commit = subprocess.check_output(
-            [self.git_command, "rev-parse", worktree_rev],
+            [self.git_command, "rev-parse", "HEAD"],
             cwd=git_worktree_path,
             stderr=subprocess.STDOUT
         ).decode("ascii").rstrip()

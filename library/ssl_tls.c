@@ -5116,6 +5116,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
                     if( ret != 0 )
                     {
                         MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_get_next_record" ), ret );
+                        ssl_send_pending_fatal_alert( ssl );
                         return( ret );
                     }
                 }

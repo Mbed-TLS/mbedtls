@@ -4946,6 +4946,9 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
     rec->buf     = buf;
     rec->buf_len = rec->data_offset + rec->data_len;
 
+    if( rec->data_len == 0 )
+        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+
     /*
      * DTLS-related tests.
      * Check epoch before checking length constraint because

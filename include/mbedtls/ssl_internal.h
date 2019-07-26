@@ -1176,6 +1176,8 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
           MBEDTLS_SSL_PROTO_TLS1_2 */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS)
+
 /*
  * Convert version numbers to/from wire format
  * and, for DTLS, to/from TLS equivalent.
@@ -1257,6 +1259,50 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_ver_gt( int v0, int v1 )
 {
     return( v0 > v1 );
 }
+
+#else /* MBEDTLS_SSL_PROTO_TLS */
+
+/* If only DTLS is enabled, we can match the internal encoding
+ * with the standard's encoding of versions. */
+static inline void mbedtls_ssl_write_version( int major, int minor,
+                                              int transport,
+                                              unsigned char ver[2] )
+{
+    ((void) transport);
+    ver[0] = (unsigned char) major;
+    ver[1] = (unsigned char) minor;
+}
+
+static inline void mbedtls_ssl_read_version( int *major, int *minor,
+                                             int transport,
+                                             const unsigned char ver[2] )
+{
+    ((void) transport);
+    *major = ver[0];
+    *minor = ver[1];
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_ver_leq( int v0, int v1 )
+{
+    return( v0 >= v1 );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_ver_lt( int v0, int v1 )
+{
+    return( v0 > v1 );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_ver_geq( int v0, int v1 )
+{
+    return( v0 <= v1 );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_ver_gt( int v0, int v1 )
+{
+    return( v0 < v1 );
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS */
 
 MBEDTLS_ALWAYS_INLINE static inline size_t mbedtls_ssl_minor_ver_index(
     int ver )

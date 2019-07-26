@@ -139,11 +139,19 @@
 /*
  * Various constants
  */
+#if !defined(MBEDTLS_SSL_PROTO_NO_TLS)
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
 #define MBEDTLS_SSL_MINOR_VERSION_0             0   /*!< SSL v3.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
+#else /* MBEDTLS_SSL_PROTO_NO_TLS */
+#define MBEDTLS_SSL_MAJOR_VERSION_3             254
+#define MBEDTLS_SSL_MINOR_VERSION_0             257   /*!< unused    */
+#define MBEDTLS_SSL_MINOR_VERSION_1             256   /*!< unused    */
+#define MBEDTLS_SSL_MINOR_VERSION_2             255   /*!< DTLS v1.0 */
+#define MBEDTLS_SSL_MINOR_VERSION_3             253   /*!< DTLS v1.2 */
+#endif /* MBEDTLS_SSL_PROTO_NO_TLS */
 
 #define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
 #define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
@@ -1151,18 +1159,18 @@ struct mbedtls_ssl_config
     unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
 #endif
 
-#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
-    unsigned char max_major_ver;    /*!< max. major version used            */
-#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
-#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
-    unsigned char max_minor_ver;    /*!< max. minor version used            */
-#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
 #if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
     unsigned char min_major_ver;    /*!< min. major version used            */
 #endif /* !MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
+    unsigned char max_major_ver;    /*!< max. major version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
 #if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
-    unsigned char min_minor_ver;    /*!< min. minor version used            */
+    uint16_t min_minor_ver;    /*!< min. minor version used            */
 #endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
+    uint16_t max_minor_ver;    /*!< max. minor version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
 
     /*
      * Flags (bitfields)

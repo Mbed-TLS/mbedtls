@@ -4891,13 +4891,11 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
      * Parse and validate record version
      */
 
-    memcpy( &rec->ver[0],
-            buf + rec_hdr_version_offset,
-            rec_hdr_version_len );
-
+    rec->ver[0] = buf[ rec_hdr_version_offset + 0 ];
+    rec->ver[1] = buf[ rec_hdr_version_offset + 1 ];
     mbedtls_ssl_read_version( &major_ver, &minor_ver,
                               ssl->conf->transport,
-                              buf + rec_hdr_version_offset );
+                              &rec->ver[0] );
 
     if( major_ver != mbedtls_ssl_get_major_ver( ssl ) )
     {

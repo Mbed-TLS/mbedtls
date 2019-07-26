@@ -75,6 +75,17 @@ static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
 #endif
 }
 
+static void ssl_send_pending_fatal_alert( mbedtls_ssl_context *ssl )
+{
+    if( ssl->pending_fatal_alert_msg == MBEDTLS_SSL_ALERT_MSG_NONE )
+        return;
+
+    mbedtls_ssl_send_alert_message( ssl,
+                                    MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                    ssl->pending_fatal_alert_msg );
+    ssl->pending_fatal_alert_msg = MBEDTLS_SSL_ALERT_MSG_NONE;
+}
+
 /*
  * Start a timer.
  * Passing millisecs = 0 cancels a running timer.
@@ -9828,13 +9839,7 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
         ret = mbedtls_ssl_handshake_server_step( ssl );
 #endif
 
-    if( ssl->pending_fatal_alert_msg != MBEDTLS_SSL_ALERT_MSG_NONE )
-    {
-        mbedtls_ssl_send_alert_message( ssl,
-                                        MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        ssl->pending_fatal_alert_msg );
-        ssl->pending_fatal_alert_msg   = MBEDTLS_SSL_ALERT_MSG_NONE;
-    }
+    ssl_send_pending_fatal_alert( ssl );
     return( ret );
 }
 

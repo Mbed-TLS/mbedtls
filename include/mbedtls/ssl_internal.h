@@ -1733,11 +1733,12 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 /* This internal function can be used to pend a fatal alert for
  * later delivery.
  *
- * The check for pending alerts must be done manually. Currently,
- * it happens only during the handshake loop.
+ * The check for pending alerts must be done by calling
+ * the (static internal) function ssl_send_pending_fatal_alert().
+ * Currently, it happens only during the handshake loop.
  *
  * This function must not be called multiple times without
- * manually inspecting and clearing ssl->pending_fatal_alert_msg in between.
+ * sending the pending fatal alerts in between.
  */
 MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_pend_fatal_alert(
     mbedtls_ssl_context *ssl,

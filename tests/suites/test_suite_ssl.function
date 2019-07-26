@@ -121,7 +121,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
         CHK( mbedtls_md_setup( &t_in->md_ctx_enc,  md_info, 1 ) == 0 );
         CHK( mbedtls_md_setup( &t_in->md_ctx_dec,  md_info, 1 ) == 0 );
 
-        if( ver > MBEDTLS_SSL_MINOR_VERSION_0 )
+        if( mbedtls_ssl_ver_gt( ver, MBEDTLS_SSL_MINOR_VERSION_0 ) )
         {
             CHK( mbedtls_md_hmac_starts( &t_in->md_ctx_enc,
                                          md0, maclen ) == 0 );

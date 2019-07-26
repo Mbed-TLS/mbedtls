@@ -1237,6 +1237,44 @@ MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_read_version(
 #endif /* MBEDTLS_SSL_PROTO_TLS */
 }
 
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_ver_leq( int v0, int v1 )
+{
+    return( v0 <= v1 );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_ver_lt( int v0, int v1 )
+{
+    return( v0 < v1 );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_ver_geq( int v0, int v1 )
+{
+    return( v0 >= v1 );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_ssl_ver_gt( int v0, int v1 )
+{
+    return( v0 > v1 );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline size_t mbedtls_ssl_minor_ver_index(
+    int ver )
+{
+    switch( ver )
+    {
+        case MBEDTLS_SSL_MINOR_VERSION_0:
+            return( 0 );
+        case MBEDTLS_SSL_MINOR_VERSION_1:
+            return( 1 );
+        case MBEDTLS_SSL_MINOR_VERSION_2:
+            return( 2 );
+        case MBEDTLS_SSL_MINOR_VERSION_3:
+            return( 3 );
+    }
+    return( 0 );
+}
+
 #ifdef __cplusplus
 }
 #endif
@@ -1677,7 +1715,8 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 #define MBEDTLS_SSL_BEGIN_FOR_EACH_CIPHERSUITE( ssl, ver, info ) \
     {                                                            \
         int const *__id_ptr;                                     \
-        for( __id_ptr=(ssl)->conf->ciphersuite_list[ (ver) ];    \
+        for( __id_ptr=(ssl)->conf->ciphersuite_list[             \
+                 mbedtls_ssl_minor_ver_index( ver ) ];           \
              *__id_ptr != 0; __id_ptr++ )                        \
         {                                                        \
            const int __id = *__id_ptr;                           \

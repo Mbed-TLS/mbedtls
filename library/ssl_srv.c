@@ -869,7 +869,8 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
          * present them a SHA-higher cert rather than failing if it's the only
          * one we got that satisfies the other conditions.
          */
-        if( mbedtls_ssl_get_minor_ver( ssl ) < MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( mbedtls_ssl_ver_lt( mbedtls_ssl_get_minor_ver( ssl ),
+                                MBEDTLS_SSL_MINOR_VERSION_3 ) )
         {
             mbedtls_md_type_t sig_md;
             {
@@ -936,10 +937,12 @@ static int ssl_ciphersuite_is_match( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "trying ciphersuite: %s",
                                 mbedtls_ssl_suite_get_name( suite_info ) ) );
 
-    if( mbedtls_ssl_suite_get_min_minor_ver( suite_info )
-          > mbedtls_ssl_get_minor_ver( ssl ) ||
-        mbedtls_ssl_suite_get_max_minor_ver( suite_info )
-          < mbedtls_ssl_get_minor_ver( ssl ) )
+    if( mbedtls_ssl_ver_gt(
+            mbedtls_ssl_suite_get_min_minor_ver( suite_info ),
+            mbedtls_ssl_get_minor_ver( ssl ) ) ||
+        mbedtls_ssl_ver_lt(
+            mbedtls_ssl_suite_get_max_minor_ver( suite_info ),
+            mbedtls_ssl_get_minor_ver( ssl ) ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: version" ) );
         return( 0 );
@@ -1111,7 +1114,8 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
         ? buf[4]  : mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
 #endif
 
-    if( mbedtls_ssl_get_minor_ver( ssl ) < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )
+    if( mbedtls_ssl_ver_lt( mbedtls_ssl_get_minor_ver( ssl ),
+                            mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
                             " [%d:%d] < [%d:%d]",
@@ -1237,8 +1241,9 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
 
-            if( mbedtls_ssl_get_minor_ver( ssl ) <
-                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+            if( mbedtls_ssl_ver_lt(
+                    mbedtls_ssl_get_minor_ver( ssl ),
+                    mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 
@@ -1652,8 +1657,10 @@ read_record_header:
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 
-        if( major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
-            minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )
+        if( mbedtls_ssl_ver_lt( major_ver,
+                                mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ) ||
+            mbedtls_ssl_ver_lt( minor_ver,
+                                mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
                             " [%d:%d] < [%d:%d]",
@@ -1665,13 +1672,19 @@ read_record_header:
             return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
         }
 
-        if( major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) )
+        if( mbedtls_ssl_ver_gt(
+                major_ver,
+                mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) ) )
         {
             major_ver = mbedtls_ssl_conf_get_max_major_ver( ssl->conf );
             minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
         }
-        else if( minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+        else if( mbedtls_ssl_ver_gt(
+                     minor_ver,
+                     mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) )
+        {
             minor_ver = mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
+        }
 
 #if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
         ssl->major_ver = major_ver;
@@ -2061,8 +2074,9 @@ read_record_header:
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
 
-            if( mbedtls_ssl_get_minor_ver( ssl ) <
-                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+            if( mbedtls_ssl_ver_lt(
+                    mbedtls_ssl_get_minor_ver( ssl ),
+                    mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "inapropriate fallback" ) );
 

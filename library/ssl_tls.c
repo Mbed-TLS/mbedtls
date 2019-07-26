@@ -10855,10 +10855,8 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
         /* ... with an AEAD ciphersuite. */
         mbedtls_ssl_transform_uses_aead( ssl->transform ) != 1 ||
         /* Renegotation is disabled. */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
-#endif
-        0 )
+        mbedtls_ssl_conf_get_disable_renego( ssl->conf )
+            != MBEDTLS_SSL_RENEGOTIATION_DISABLED )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -11081,10 +11079,8 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_MINOR_VERSION_3 ||
         mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) >
             MBEDTLS_SSL_MINOR_VERSION_3 ||
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
-#endif
-        0 )
+        mbedtls_ssl_conf_get_disable_renego( ssl->conf )
+            != MBEDTLS_SSL_RENEGOTIATION_DISABLED )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }

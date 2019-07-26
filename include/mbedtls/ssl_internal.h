@@ -1243,6 +1243,16 @@ static inline int mbedtls_ssl_get_renego_status(
 #endif
 }
 
+static inline int mbedtls_ssl_conf_get_disable_renego(
+        const mbedtls_ssl_config *conf )
+{
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    return( conf->disable_renegotiation );
+#else
+    (void) conf;
+    return( MBEDTLS_SSL_RENEGOTIATION_DISABLED );
+#endif
+}
 
 /*
  * Getter functions for fields in mbedtls_ssl_config which may

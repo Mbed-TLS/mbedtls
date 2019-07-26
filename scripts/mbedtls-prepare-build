@@ -1108,15 +1108,24 @@ class BuildTreeMaker:
         if not os.path.exists(path):
             os.makedirs(path)
 
-    def make_link(self, sub_link, link):
-        """Create a symbolic link in the build tree to sub_link under the source."""
-        link_path = os.path.join(self.options.dir, *link)
-        if not os.path.lexists(link_path):
-            os.symlink(os.path.join(*([os.pardir] * (len(link) - 1) +
-                                      ['source'] + sub_link)),
-                       link_path)
+    def make_link(self, target, link):
+        """Create a symbolic link called link pointing to target.
 
-    def make_link_maybe(self, link):
+        link is a path relative to the build directory.
+
+        If the link already exists, it is not modified.
+        """
+        link_path = os.path.join(self.options.dir, link)
+        if not os.path.lexists(link_path):
+            os.symlink(target, link_path)
+
+    def link_to_source(self, sub_link, link):
+        """Create a symbolic link in the build tree to sub_link under the source."""
+        self.make_link(os.path.join(*([os.pardir] * (len(link) - 1) +
+                                      ['source'] + sub_link)),
+                       os.path.join(*link))
+
+    def link_to_source_maybe(self, link):
         """Create a symbolic link in the build tree to a target of the same
         name in the source tree in any submodule.
 
@@ -1126,7 +1135,20 @@ class BuildTreeMaker:
         for submodule in [''] + _submodule_names:
             sub_link = [submodule] + link
             if os.path.exists(os.path.join(self.options.source, *sub_link)):
-                self.make_link(sub_link, link)
+                self.link_to_source(sub_link, link)
+
+    def link_test_suites(self):
+        # This is a hack due to the weird paths produced by the test generator.
+        # The test generator generates a file with #file directives that
+        # point to "suites/xxx.function". Since we run the compiler from the
+        # top of the build tree rather than from the tests directory,
+        # the debug information in the binary contains a path of the form
+        # "build-directory/suites/xxx.function" rather than
+        # the correct source path. So arrange for this directory to exist.
+        # This is only a partial workaround, since it points to the main
+        # source tree, but the correct file for any given test may be
+        # in a submodule.
+        self.make_link('source/tests/suites', 'suites')
 
     def run(self):
         """Go ahead and prepate the build tree."""
@@ -1144,7 +1166,8 @@ class BuildTreeMaker:
                      ['tests', 'data_files'],
                      ['tests', 'scripts'],
                      ['tests', 'ssl-opt.sh']]:
-            self.make_link_maybe(link)
+            self.link_to_source_maybe(link)
+        self.link_test_suites()
         self.makefile.generate()
         self.config.run()
 

@@ -1049,10 +1049,10 @@ class ConfigInclude(ConfigMaker):
         self.lines.append('')
 
     def set(self, name, value):
-        if value is None:
-            self.lines.append('#define ' + name)
-        else:
+        if value:
             self.lines.append('#define ' + name + ' ' + value)
+        else:
+            self.lines.append('#define ' + name)
 
     def unset(self, name):
         self.lines.append('#undef ' + name)

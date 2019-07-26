@@ -41,7 +41,7 @@ rm -f identifiers
 
 grep '^[^ /#{]' $HEADERS | \
     sed -e 's/^[^:]*://' | \
-    egrep -v '^(extern "C"|(typedef )?(struct|enum)( {)?$|};?$)' \
+    egrep -v '^(extern "C"|(typedef )?(struct|union|enum)( {)?$|};?$)' \
     > _decls
 
 if true; then

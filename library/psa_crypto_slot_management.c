@@ -124,15 +124,35 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *p_slot )
     psa_status_t status = PSA_SUCCESS;
     uint8_t *key_data = NULL;
     size_t key_data_length = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    status = psa_load_persistent_key( p_slot->persistent_storage_id,
-                                      &( p_slot )->type,
-                                      &( p_slot )->policy, &key_data,
-                                      &key_data_length );
+    psa_set_key_id( &attributes, p_slot->persistent_storage_id );
+    status = psa_load_persistent_key( &attributes,
+                                      &key_data, &key_data_length );
     if( status != PSA_SUCCESS )
         goto exit;
-    status = psa_import_key_into_slot( p_slot,
-                                       key_data, key_data_length );
+    p_slot->lifetime = psa_get_key_lifetime( &attributes );
+    p_slot->type = psa_get_key_type( &attributes );
+    p_slot->policy = attributes.policy;
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_key_lifetime_is_external( p_slot->lifetime ) )
+    {
+        if( key_data_length != sizeof( p_slot->data.se.slot_number ) )
+        {
+            status = PSA_ERROR_STORAGE_FAILURE;
+            goto exit;
+        }
+        memcpy( &p_slot->data.se.slot_number, key_data,
+                sizeof( p_slot->data.se.slot_number ) );
+    }
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+    {
+        status = psa_import_key_into_slot( p_slot,
+                                           key_data, key_data_length );
+    }
+
 exit:
     psa_free_persistent_key_data( key_data, key_data_length );
     return( status );
@@ -168,8 +188,20 @@ static int psa_is_key_id_valid( psa_key_file_id_t file_id,
 psa_status_t psa_validate_persistent_key_parameters(
     psa_key_lifetime_t lifetime,
     psa_key_file_id_t id,
+    psa_se_drv_table_entry_t **p_drv,
     int creating )
 {
+    if( p_drv != NULL )
+        *p_drv = NULL;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_key_lifetime_is_external( lifetime ) )
+    {
+        *p_drv = psa_get_se_driver_entry( lifetime );
+        if( *p_drv == NULL )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     if( lifetime != PSA_KEY_LIFETIME_PERSISTENT )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -194,7 +226,7 @@ psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
     *handle = 0;
 
     status = psa_validate_persistent_key_parameters(
-        PSA_KEY_LIFETIME_PERSISTENT, id, 0 );
+        PSA_KEY_LIFETIME_PERSISTENT, id, NULL, 0 );
     if( status != PSA_SUCCESS )
         return( status );
 

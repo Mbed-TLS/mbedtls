@@ -783,6 +783,24 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make test
 }
 
+component_test_se_default () {
+    msg "build: default config + MBEDTLS_PSA_CRYPTO_SE_C"
+    scripts/config.pl set MBEDTLS_PSA_CRYPTO_SE_C
+    make CC=clang CFLAGS='-Werror -Wall -Wextra -Wno-unused-function -Os -fsanitize=address' LDFLAGS='-fsanitize=address'
+
+    msg "test: default config + MBEDTLS_PSA_CRYPTO_SE_C"
+    make test
+}
+
+component_test_se_full () {
+    msg "build: full config + MBEDTLS_PSA_CRYPTO_SE_C"
+    scripts/config.pl set MBEDTLS_PSA_CRYPTO_SE_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O2 -fsanitize=address' LDFLAGS='-fsanitize=address'
+
+    msg "test: full config + MBEDTLS_PSA_CRYPTO_SE_C"
+    make test
+}
+
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check

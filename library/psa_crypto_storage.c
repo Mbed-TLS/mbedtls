@@ -50,6 +50,12 @@
 #define mbedtls_free     free
 #endif
 
+
+
+/****************************************************************/
+/* Key storage */
+/****************************************************************/
+
 /* Determine a file name (ITS file identifier) for the given key file
  * identifier. The file name must be distinct from any file that is used
  * for a purpose other than storing a key. Currently, the only such file
@@ -221,7 +227,7 @@ static psa_status_t psa_crypto_storage_get_data_length(
  * 32-bit integer manipulation macros (little endian)
  */
 #ifndef GET_UINT32_LE
-#define GET_UINT32_LE(n,b,i)                            \
+#define GET_UINT32_LE( n, b, i )                        \
 {                                                       \
     (n) = ( (uint32_t) (b)[(i)    ]       )             \
         | ( (uint32_t) (b)[(i) + 1] <<  8 )             \
@@ -231,7 +237,7 @@ static psa_status_t psa_crypto_storage_get_data_length(
 #endif
 
 #ifndef PUT_UINT32_LE
-#define PUT_UINT32_LE(n,b,i)                                    \
+#define PUT_UINT32_LE( n, b, i )                                \
 {                                                               \
     (b)[(i)    ] = (unsigned char) ( ( (n)       ) & 0xFF );    \
     (b)[(i) + 1] = (unsigned char) ( ( (n) >>  8 ) & 0xFF );    \
@@ -249,6 +255,7 @@ static psa_status_t psa_crypto_storage_get_data_length(
 typedef struct {
     uint8_t magic[PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH];
     uint8_t version[4];
+    uint8_t lifetime[sizeof( psa_key_lifetime_t )];
     uint8_t type[sizeof( psa_key_type_t )];
     uint8_t policy[sizeof( psa_key_policy_t )];
     uint8_t data_len[4];
@@ -257,20 +264,20 @@ typedef struct {
 
 void psa_format_key_data_for_storage( const uint8_t *data,
                                       const size_t data_length,
-                                      const psa_key_type_t type,
-                                      const psa_key_policy_t *policy,
+                                      const psa_key_attributes_t *attributes,
                                       uint8_t *storage_data )
 {
     psa_persistent_key_storage_format *storage_format =
         (psa_persistent_key_storage_format *) storage_data;
 
     memcpy( storage_format->magic, PSA_KEY_STORAGE_MAGIC_HEADER, PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH );
-    PUT_UINT32_LE(0, storage_format->version, 0);
-    PUT_UINT32_LE(type, storage_format->type, 0);
-    PUT_UINT32_LE(policy->usage, storage_format->policy, 0);
-    PUT_UINT32_LE(policy->alg, storage_format->policy, sizeof( uint32_t ));
-    PUT_UINT32_LE(policy->alg2, storage_format->policy, 2 * sizeof( uint32_t ) );
-    PUT_UINT32_LE(data_length, storage_format->data_len, 0);
+    PUT_UINT32_LE( 0, storage_format->version, 0 );
+    PUT_UINT32_LE( psa_get_key_lifetime( attributes ), storage_format->lifetime, 0 );
+    PUT_UINT32_LE( psa_get_key_type( attributes ), storage_format->type, 0 );
+    PUT_UINT32_LE( psa_get_key_usage_flags( attributes ), storage_format->policy, 0 );
+    PUT_UINT32_LE( psa_get_key_algorithm( attributes ), storage_format->policy, sizeof( uint32_t ) );
+    PUT_UINT32_LE( psa_get_key_enrollment_algorithm( attributes ), storage_format->policy, 2 * sizeof( uint32_t ) );
+    PUT_UINT32_LE( data_length, storage_format->data_len, 0 );
     memcpy( storage_format->key_data, data, data_length );
 }
 
@@ -286,8 +293,7 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
                                               size_t storage_data_length,
                                               uint8_t **key_data,
                                               size_t *key_data_length,
-                                              psa_key_type_t *type,
-                                              psa_key_policy_t *policy )
+                                              psa_key_attributes_t *attributes )
 {
     psa_status_t status;
     const psa_persistent_key_storage_format *storage_format =
@@ -301,11 +307,11 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
     if( status != PSA_SUCCESS )
         return( status );
 
-    GET_UINT32_LE(version, storage_format->version, 0);
+    GET_UINT32_LE( version, storage_format->version, 0 );
     if( version != 0 )
         return( PSA_ERROR_STORAGE_FAILURE );
 
-    GET_UINT32_LE(*key_data_length, storage_format->data_len, 0);
+    GET_UINT32_LE( *key_data_length, storage_format->data_len, 0 );
     if( *key_data_length > ( storage_data_length - sizeof(*storage_format) ) ||
         *key_data_length > PSA_CRYPTO_MAX_STORAGE_SIZE )
         return( PSA_ERROR_STORAGE_FAILURE );
@@ -322,17 +328,16 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
         memcpy( *key_data, storage_format->key_data, *key_data_length );
     }
 
-    GET_UINT32_LE(*type, storage_format->type, 0);
-    GET_UINT32_LE(policy->usage, storage_format->policy, 0);
-    GET_UINT32_LE(policy->alg, storage_format->policy, sizeof( uint32_t ));
-    GET_UINT32_LE(policy->alg2, storage_format->policy, 2 * sizeof( uint32_t ));
+    GET_UINT32_LE( attributes->lifetime, storage_format->lifetime, 0 );
+    GET_UINT32_LE( attributes->type, storage_format->type, 0 );
+    GET_UINT32_LE( attributes->policy.usage, storage_format->policy, 0 );
+    GET_UINT32_LE( attributes->policy.alg, storage_format->policy, sizeof( uint32_t ) );
+    GET_UINT32_LE( attributes->policy.alg2, storage_format->policy, 2 * sizeof( uint32_t ) );
 
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_save_persistent_key( const psa_key_file_id_t key,
-                                      const psa_key_type_t type,
-                                      const psa_key_policy_t *policy,
+psa_status_t psa_save_persistent_key( const psa_key_attributes_t *attributes,
                                       const uint8_t *data,
                                       const size_t data_length )
 {
@@ -348,10 +353,10 @@ psa_status_t psa_save_persistent_key( const psa_key_file_id_t key,
     if( storage_data == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-    psa_format_key_data_for_storage( data, data_length, type, policy,
+    psa_format_key_data_for_storage( data, data_length, attributes,
                                      storage_data );
 
-    status = psa_crypto_storage_store( key,
+    status = psa_crypto_storage_store( psa_get_key_id( attributes ),
                                        storage_data, storage_data_length );
 
     mbedtls_free( storage_data );
@@ -368,15 +373,14 @@ void psa_free_persistent_key_data( uint8_t *key_data, size_t key_data_length )
     mbedtls_free( key_data );
 }
 
-psa_status_t psa_load_persistent_key( psa_key_file_id_t key,
-                                      psa_key_type_t *type,
-                                      psa_key_policy_t *policy,
+psa_status_t psa_load_persistent_key( psa_key_attributes_t *attributes,
                                       uint8_t **data,
                                       size_t *data_length )
 {
     psa_status_t status = PSA_SUCCESS;
     uint8_t *loaded_data;
     size_t storage_data_length = 0;
+    psa_key_id_t key = psa_get_key_id( attributes );
 
     status = psa_crypto_storage_get_data_length( key, &storage_data_length );
     if( status != PSA_SUCCESS )
@@ -392,12 +396,66 @@ psa_status_t psa_load_persistent_key( psa_key_file_id_t key,
         goto exit;
 
     status = psa_parse_key_data_from_storage( loaded_data, storage_data_length,
-                                              data, data_length, type, policy );
+                                              data, data_length, attributes );
 
 exit:
     mbedtls_free( loaded_data );
     return( status );
 }
+
+
+
+/****************************************************************/
+/* Transactions */
+/****************************************************************/
+
+#if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
+
+psa_crypto_transaction_t psa_crypto_transaction;
+
+psa_status_t psa_crypto_save_transaction( void )
+{
+    struct psa_storage_info_t p_info;
+    psa_status_t status;
+    status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
+    if( status == PSA_SUCCESS )
+    {
+        /* This shouldn't happen: we're trying to start a transaction while
+         * there is still a transaction that hasn't been replayed. */
+        return( PSA_ERROR_CORRUPTION_DETECTED );
+    }
+    else if( status != PSA_ERROR_DOES_NOT_EXIST )
+        return( status );
+    return( psa_its_set( PSA_CRYPTO_ITS_TRANSACTION_UID,
+                         sizeof( psa_crypto_transaction ),
+                         &psa_crypto_transaction,
+                         0 ) );
+}
+
+psa_status_t psa_crypto_load_transaction( void )
+{
+    return( psa_its_get( PSA_CRYPTO_ITS_TRANSACTION_UID, 0,
+                         sizeof( psa_crypto_transaction ),
+                         &psa_crypto_transaction ) );
+}
+
+psa_status_t psa_crypto_stop_transaction( void )
+{
+    psa_status_t status = psa_its_remove( PSA_CRYPTO_ITS_TRANSACTION_UID );
+    /* Whether or not updating the storage succeeded, the transaction is
+     * finished now. It's too late to go back, so zero out the in-memory
+     * data. */
+    memset( &psa_crypto_transaction, 0, sizeof( psa_crypto_transaction ) );
+    return( status );
+}
+
+#endif /* PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS */
+
+
+
+/****************************************************************/
+/* Random generator state */
+/****************************************************************/
 
 #if defined(MBEDTLS_PSA_INJECT_ENTROPY)
 psa_status_t mbedtls_psa_storage_inject_entropy( const unsigned char *seed,
@@ -420,5 +478,11 @@ psa_status_t mbedtls_psa_storage_inject_entropy( const unsigned char *seed,
     return( status );
 }
 #endif /* MBEDTLS_PSA_INJECT_ENTROPY */
+
+
+
+/****************************************************************/
+/* The end */
+/****************************************************************/
 
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */

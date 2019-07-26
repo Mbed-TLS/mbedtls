@@ -1735,7 +1735,8 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
  *
  * The check for pending alerts must be done by calling
  * the function ssl_send_pending_fatal_alert() in ssl_tls.c.
- * Currently, it happens only during the handshake loop.
+ * Currently, it happens only during the handshake loop and after
+ * calling ssl_get_next_record() in the record processing stack.
  *
  * This function must not be called multiple times without
  * sending the pending fatal alerts in between.

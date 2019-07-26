@@ -11059,7 +11059,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     /*
      * The context should have been freshly setup or reset.
      * Give the user an error in case of obvious misuse.
-     * (Checking session is useful because if won't be NULL if we're
+     * (Checking session is useful because it won't be NULL if we're
      * renegotiating, or if the user mistakenly loaded a session first.)
      */
     if( ssl->state != MBEDTLS_SSL_HELLO_REQUEST ||

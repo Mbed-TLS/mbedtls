@@ -374,7 +374,10 @@ if __name__ == '__main__':
 
         args = parser.parse_args()
         config = ConfigFile(args.file)
-        if args.command == 'get':
+        if args.command is None:
+            parser.print_help()
+            return 1
+        elif args.command == 'get':
             if args.symbol in config:
                 value = config[args.symbol]
                 if value:

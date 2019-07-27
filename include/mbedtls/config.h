@@ -3518,7 +3518,7 @@
  *            on it, and considering stronger message digests instead.
  *
  */
-// #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+//#define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 
 /**
  * Allow SHA-1 in the default TLS configuration for TLS 1.2 handshake

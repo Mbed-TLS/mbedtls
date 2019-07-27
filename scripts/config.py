@@ -330,6 +330,8 @@ if __name__ == '__main__':
         parser.add_argument('--force', '-o',
                             help="""For the set command, if SYMBOL is not
                             present, add a definition for it.""")
+        parser.add_argument('--write', '-w',
+                            help="""File to write to instead of the input file.""")
         subparsers = parser.add_subparsers(dest='command',
                                            title='Commands')
         parser_get = subparsers.add_parser('get',
@@ -389,7 +391,7 @@ if __name__ == '__main__':
             config.unset(args.symbol)
         else:
             config.adapt(args.adapter)
-        config.write()
+        config.write(args.write)
 
     # Import modules only used by main only if main is defined and called.
     # pylint: disable=wrong-import-position

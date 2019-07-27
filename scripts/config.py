@@ -35,12 +35,14 @@ class Setting:
       with no value.
     * active: True if name is defined, False if a #define for name is
       present in config.h but commented out.
+    * section: the name of the section that contains this symbol.
     """
     # pylint: disable=too-few-public-methods
-    def __init__(self, active, name, value=''):
+    def __init__(self, active, name, value='', section=None):
         self.active = active
         self.name = name
         self.value = value
+        self.section = section
 
 class Config:
     """Representation of the Mbed TLS configuration.
@@ -137,17 +139,92 @@ class Config:
         """Run adapter on each known symbol and (de)activate it accordingly.
 
         `adapter` must be a function that returns a boolean. It is called as
-        `adapter(name, active)` for each setting, where `active` is `True`
-        if `name` is set and `False` if `name` is known but unset. If
+        `adapter(name, active, section)` for each setting, where `active` is
+        `True` if `name` is set and `False` if `name` is known but unset,
+        and `section` is the name of the section containing `name`. If
         `adapter` returns `True`, then set `name` (i.e. make it active),
         otherwise unset `name` (i.e. make it known but inactive).
         """
         for setting in self.settings.values():
-            setting.active = adapter(setting.name, setting.active)
+            setting.active = adapter(setting.name, setting.active,
+                                     setting.section)
 
-def realfull_adapter(_name, _set):
-    """Uncomment everything."""
+def is_full_section(section):
+    """Is this section affected by "config.py full" and friends?"""
+    return section.endswith('support') or section.endswith('modules')
+
+def realfull_adapter(_name, active, section):
+    """Uncomment everything in the system and feature sections."""
+    if not is_full_section(section):
+        return active
     return True
+
+def include_in_full(name):
+    """Rules for symbols in the "full" configuration."""
+    if re.search(r'PLATFORM_[A-Z0-9]+_ALT', name):
+        return True
+    if name in [
+            'MBEDTLS_TEST_NULL_ENTROPY',
+            'MBEDTLS_DEPRECATED_REMOVED',
+            'MBEDTLS_HAVE_SSE2',
+            'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
+            'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY',
+            'MBEDTLS_ECP_DP_M221_ENABLED',
+            'MBEDTLS_ECP_DP_M383_ENABLED',
+            'MBEDTLS_ECP_DP_M511_ENABLED',
+            'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES',
+            'MBEDTLS_NO_PLATFORM_ENTROPY',
+            'MBEDTLS_RSA_NO_CRT',
+            'MBEDTLS_NO_UDBL_DIVISION',
+            'MBEDTLS_NO_64BIT_MULTIPLICATION',
+            'MBEDTLS_PSA_CRYPTO_SE_C',
+            'MBEDTLS_PSA_CRYPTO_SPM',
+            'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER',
+            'MBEDTLS_PSA_INJECT_ENTROPY',
+            'MBEDTLS_ECP_RESTARTABLE',
+            'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED',
+    ]:
+        return False
+    if name.endswith('_ALT'):
+        return False
+    return True
+
+def full_adapter(name, active, section):
+    """Config adapter for "full"."""
+    if not is_full_section(section):
+        return active
+    return include_in_full(name)
+
+def keep_in_baremetal(name):
+    """Rules for symbols in the "baremetal" configuration."""
+    if name in [
+            'MBEDTLS_TIMING_C',
+            'MBEDTLS_FS_IO',
+            'MBEDTLS_ENTROPY_NV_SEED',
+            'MBEDTLS_HAVE_TIME',
+            'MBEDTLS_HAVE_TIME_DATE',
+            'MBEDTLS_DEPRECATED_WARNING',
+            'MBEDTLS_HAVEGE_C',
+            'MBEDTLS_THREADING_C',
+            'MBEDTLS_THREADING_PTHREAD',
+            'MBEDTLS_MEMORY_BACKTRACE',
+            'MBEDTLS_MEMORY_BUFFER_ALLOC_C',
+            'MBEDTLS_PLATFORM_TIME_ALT',
+            'MBEDTLS_PLATFORM_FPRINTF_ALT',
+            'MBEDTLS_PSA_ITS_FILE_C',
+            'MBEDTLS_PSA_CRYPTO_SE_C',
+            'MBEDTLS_PSA_CRYPTO_STORAGE_C',
+    ]:
+        return False
+    return True
+
+def baremetal_adapter(name, active, section):
+    """Config adapter for "baremetal"."""
+    if not is_full_section(section):
+        return active
+    if name == 'MBEDTLS_NO_PLATFORM_ENTROPY':
+        return True
+    return include_in_full(name) and keep_in_baremetal(name)
 
 class ConfigFile(Config):
     """Representation of the Mbed TLS configuration read for a file.
@@ -164,8 +241,10 @@ class ConfigFile(Config):
             filename = self.default_path
         super().__init__()
         self.filename = filename
+        self.current_section = 'header'
         with open(filename) as file:
             self.templates = [self._parse_line(line) for line in file]
+        self.current_section = None
 
     def set(self, name, value=None):
         if name not in self.settings:
@@ -179,11 +258,20 @@ class ConfigFile(Config):
                            r'(?P<arguments>(?:\((?:\w|\s|,)*\))?)' +
                            r'(?P<separator>\s*)' +
                            r'(?P<value>.*)')
+    _section_line_regexp = (r'\s*/?\*+\s*[\\@]name\s+SECTION:\s*' +
+                            r'(?P<section>.*)[ */]*')
+    _config_line_regexp = re.compile(r'|'.join([_define_line_regexp,
+                                                _section_line_regexp]))
     def _parse_line(self, line):
         """Parse a line in config.h and return the corresponding template."""
         line = line.rstrip('\r\n')
-        m = re.match(self._define_line_regexp, line)
-        if m:
+        m = re.match(self._config_line_regexp, line)
+        if m is None:
+            return line
+        elif m.group('section'):
+            self.current_section = m.group('section')
+            return line
+        else:
             active = not m.group('commented_out')
             name = m.group('name')
             value = m.group('value')
@@ -191,10 +279,9 @@ class ConfigFile(Config):
                         m.group('indentation'),
                         m.group('define') + name +
                         m.group('arguments') + m.group('separator'))
-            self.settings[name] = Setting(active, name, value)
+            self.settings[name] = Setting(active, name, value,
+                                          self.current_section)
             return template
-        else:
-            return line
 
     def _format_template(self, name, indent, middle):
         """Build a line for config.h for the given setting.
@@ -267,8 +354,17 @@ if __name__ == '__main__':
         def add_adapter(name, function, description):
             subparser = subparsers.add_parser(name, help=description)
             subparser.set_defaults(adapter=function)
+        add_adapter('baremetal', baremetal_adapter,
+                    """Like full, but exclude features that require platform
+                    features such as file input-output.""")
+        add_adapter('full', full_adapter,
+                    """Uncomment most features.
+                    Exclude alternative implementations and platform support
+                    options, as well as some options that are awkward to test.
+                    """)
         add_adapter('realfull', realfull_adapter,
-                    """Uncomment all #defines. No exceptions.""")
+                    """Uncomment all boolean #defines.
+                    Suitable for generating documentation, but not for building.""")
 
         args = parser.parse_args()
         config = ConfigFile(args.file)

@@ -58,11 +58,11 @@ for my $hash (@hashes) {
     print "* Testing without hash: $hash\n";
     print "******************************************\n";
 
-    system( "scripts/config.pl unset $hash" )
+    system( "scripts/config.py unset $hash" )
         and abort "Failed to disable $hash\n";
 
     for my $opt (@ssl) {
-        system( "scripts/config.pl unset $opt" )
+        system( "scripts/config.py unset $opt" )
             and abort "Failed to disable $opt\n";
     }
 

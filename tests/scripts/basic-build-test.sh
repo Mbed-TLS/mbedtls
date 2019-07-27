@@ -67,8 +67,8 @@ export CFLAGS=' --coverage -g3 -O0 '
 export LDFLAGS=' --coverage'
 make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
+scripts/config.py full
+scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE
 make -j
 
 

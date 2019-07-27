@@ -45,7 +45,7 @@
 #endif
 
 /* Fix the config here. Not convenient to put an #ifdef _WIN32 in config.h as
- * it would confuse config.pl. */
+ * it would confuse config.py. */
 #if !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && \
     !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)
 #define MBEDTLS_PLATFORM_SNPRINTF_ALT

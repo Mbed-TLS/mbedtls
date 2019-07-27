@@ -164,22 +164,22 @@ def include_in_full(name):
     if re.search(r'PLATFORM_[A-Z0-9]+_ALT', name):
         return True
     if name in [
-            'MBEDTLS_TEST_NULL_ENTROPY',
-            'MBEDTLS_DEPRECATED_REMOVED',
-            'MBEDTLS_HAVE_SSE2',
-            'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
             'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY',
+            'MBEDTLS_DEPRECATED_REMOVED',
+            'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED',
+            'MBEDTLS_ECP_RESTARTABLE',
+            'MBEDTLS_HAVE_SSE2',
+            'MBEDTLS_NO_64BIT_MULTIPLICATION',
             'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES',
             'MBEDTLS_NO_PLATFORM_ENTROPY',
-            'MBEDTLS_RSA_NO_CRT',
             'MBEDTLS_NO_UDBL_DIVISION',
-            'MBEDTLS_NO_64BIT_MULTIPLICATION',
+            'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
+            'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER',
             'MBEDTLS_PSA_CRYPTO_SE_C',
             'MBEDTLS_PSA_CRYPTO_SPM',
-            'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER',
             'MBEDTLS_PSA_INJECT_ENTROPY',
-            'MBEDTLS_ECP_RESTARTABLE',
-            'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED',
+            'MBEDTLS_RSA_NO_CRT',
+            'MBEDTLS_TEST_NULL_ENTROPY',
     ]:
         return False
     if name.endswith('_ALT'):
@@ -195,22 +195,22 @@ def full_adapter(name, active, section):
 def keep_in_baremetal(name):
     """Rules for symbols in the "baremetal" configuration."""
     if name in [
-            'MBEDTLS_TIMING_C',
-            'MBEDTLS_FS_IO',
+            'MBEDTLS_DEPRECATED_WARNING',
             'MBEDTLS_ENTROPY_NV_SEED',
+            'MBEDTLS_FS_IO',
+            'MBEDTLS_HAVEGE_C',
             'MBEDTLS_HAVE_TIME',
             'MBEDTLS_HAVE_TIME_DATE',
-            'MBEDTLS_DEPRECATED_WARNING',
-            'MBEDTLS_HAVEGE_C',
-            'MBEDTLS_THREADING_C',
-            'MBEDTLS_THREADING_PTHREAD',
             'MBEDTLS_MEMORY_BACKTRACE',
             'MBEDTLS_MEMORY_BUFFER_ALLOC_C',
-            'MBEDTLS_PLATFORM_TIME_ALT',
             'MBEDTLS_PLATFORM_FPRINTF_ALT',
-            'MBEDTLS_PSA_ITS_FILE_C',
+            'MBEDTLS_PLATFORM_TIME_ALT',
             'MBEDTLS_PSA_CRYPTO_SE_C',
             'MBEDTLS_PSA_CRYPTO_STORAGE_C',
+            'MBEDTLS_PSA_ITS_FILE_C',
+            'MBEDTLS_THREADING_C',
+            'MBEDTLS_THREADING_PTHREAD',
+            'MBEDTLS_TIMING_C',
     ]:
         return False
     return True

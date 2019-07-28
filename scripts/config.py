@@ -377,7 +377,7 @@ if __name__ == '__main__':
                     sys.stdout.write(value + '\n')
             return args.symbol not in config
         elif args.command == 'set':
-            if not args.force and args.symbol not in config:
+            if not args.force and args.symbol not in config.settings:
                 sys.stderr.write("A #define for the symbol {} "
                                  "was not found in {}"
                                  .format(args.symbol, args.file))

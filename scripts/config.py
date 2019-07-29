@@ -24,6 +24,7 @@ Basic usage, to read the Mbed TLS or Mbed Crypto configuration:
 ##
 ## This file is part of Mbed TLS (https://tls.mbed.org)
 
+import os
 import re
 
 class Setting:
@@ -237,12 +238,20 @@ class ConfigFile(Config):
     and modify the configuration.
     """
 
-    default_path = 'include/mbedtls/config.h'
+    _path_in_tree = 'include/mbedtls/config.h'
+    default_path = [_path_in_tree,
+                    os.path.join(os.path.dirname(__file__),
+                                 os.pardir,
+                                 _path_in_tree),
+                    os.path.join(os.path.dirname(os.path.abspath(os.path.dirname(__file__))),
+                                 _path_in_tree)]
 
     def __init__(self, filename=None):
         """Read the Mbed TLS configuration file."""
         if filename is None:
-            filename = self.default_path
+            for filename in self.default_path:
+                if os.path.lexists(filename):
+                    break
         super().__init__()
         self.filename = filename
         self.current_section = 'header'

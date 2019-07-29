@@ -1546,6 +1546,22 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 
+#if defined(MBEDTLS_X509_CRT_REMOVE_TIME)
+    if( strcmp( "MBEDTLS_X509_CRT_REMOVE_TIME", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_CRT_REMOVE_TIME );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_CRT_REMOVE_TIME */
+
+#if defined(MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID)
+    if( strcmp( "MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID */
+
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( strcmp( "MBEDTLS_X509_RSASSA_PSS_SUPPORT", config ) == 0 )
     {

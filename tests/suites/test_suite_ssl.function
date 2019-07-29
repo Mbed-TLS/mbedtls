@@ -287,19 +287,44 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_FS_IO)
     if( strlen( crt_file ) != 0 )
     {
+        mbedtls_x509_crt tmp_crt;
         int ret;
 
+        mbedtls_x509_crt_init( &tmp_crt );
+        ret = mbedtls_x509_crt_parse_file( &tmp_crt, crt_file );
+        if( ret != 0 )
+            return( ret );
+
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+        /* Move temporary CRT. */
         session->peer_cert = mbedtls_calloc( 1, sizeof( *session->peer_cert ) );
         if( session->peer_cert == NULL )
             return( -1 );
-
-        ret = mbedtls_x509_crt_parse_file( session->peer_cert, crt_file );
+        *session->peer_cert = tmp_crt;
+        memset( &tmp_crt, 0, sizeof( tmp_crt ) );
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+        /* Calculate digest of temporary CRT. */
+        session->peer_cert_digest =
+            mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
+        if( session->peer_cert_digest == NULL )
+            return( -1 );
+        ret = mbedtls_md( mbedtls_md_info_from_type(
+                              MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE ),
+                          tmp_crt.raw.p, tmp_crt.raw.len,
+                          session->peer_cert_digest );
         if( ret != 0 )
             return( ret );
+        session->peer_cert_digest_type =
+            MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE;
+        session->peer_cert_digest_len =
+            MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+        mbedtls_x509_crt_free( &tmp_crt );
     }
-#else
+#else /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_FS_IO */
     (void) crt_file;
-#endif
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_FS_IO */
     session->verify_result = 0xdeadbeef;
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
@@ -710,6 +735,7 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
                          restored.master, sizeof( original.master ) ) == 0 );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     TEST_ASSERT( ( original.peer_cert == NULL ) ==
                  ( restored.peer_cert == NULL ) );
     if( original.peer_cert != NULL )
@@ -720,7 +746,21 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
                              restored.peer_cert->raw.p,
                              original.peer_cert->raw.len ) == 0 );
     }
-#endif
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    TEST_ASSERT( original.peer_cert_digest_type ==
+                 restored.peer_cert_digest_type );
+    TEST_ASSERT( original.peer_cert_digest_len ==
+                 restored.peer_cert_digest_len );
+    TEST_ASSERT( ( original.peer_cert_digest == NULL ) ==
+                 ( restored.peer_cert_digest == NULL ) );
+    if( original.peer_cert_digest != NULL )
+    {
+        TEST_ASSERT( memcmp( original.peer_cert_digest,
+                             restored.peer_cert_digest,
+                             original.peer_cert_digest_len ) == 0 );
+    }
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
     TEST_ASSERT( original.verify_result == restored.verify_result );
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)

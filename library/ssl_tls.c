@@ -11402,31 +11402,42 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     int ret = 0;
 
     /*
-     * Enforce current usage restrictions
+     * Enforce usage restrictions, see "return BAD_INPUT_DATA" in
+     * this function's documentation.
+     *
+     * These are due to assumptions/limitations in the implementation. Some of
+     * them are likely to stay (no handshake in progress) some might go away
+     * (only DTLS) but are currently used to simplify the implementation.
      */
-    if( /* The initial handshake is over ... */
-        ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER ||
-        ssl->handshake != NULL ||
-        /* ... and the various sub-structures are indeed ready. */
-        ssl->transform == NULL ||
-        ssl->session == NULL ||
-        /* There is no pending incoming or outgoing data ... */
-        mbedtls_ssl_check_pending( ssl ) != 0 ||
-        ssl->out_left != 0 ||
-        /* We're using DTLS 1.2 ... */
-        ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
-        ssl->major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 ||
-        /* ... with an AEAD ciphersuite. */
-        mbedtls_ssl_transform_uses_aead( ssl->transform ) != 1 ||
-        /* Renegotation is disabled. */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
-#endif
-        0 )
-    {
+    /* The initial handshake must be over */
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
+    if( ssl->handshake != NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* Double-check that sub-structures are indeed ready */
+    if( ssl->transform == NULL || ssl->session == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* There must be no pending incoming or outgoing data */
+    if( mbedtls_ssl_check_pending( ssl ) != 0 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    if( ssl->out_left != 0 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* Protocol must be DLTS, not TLS */
+    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* Version must be 1.2 */
+    if( ssl->major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* We must be using an AEAD ciphersuite */
+    if( mbedtls_ssl_transform_uses_aead( ssl->transform ) != 1 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* Renegotiation must not be enabled */
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+#endif
 
     /*
      * Version and format identifier

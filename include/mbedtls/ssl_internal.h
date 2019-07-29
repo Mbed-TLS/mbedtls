@@ -1243,14 +1243,15 @@ static inline int mbedtls_ssl_get_renego_status(
 #endif
 }
 
-static inline int mbedtls_ssl_conf_get_disable_renego(
+static inline int mbedtls_ssl_conf_is_renegotiation_enabled(
         const mbedtls_ssl_config *conf )
 {
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    return( conf->disable_renegotiation );
+    return( conf->disable_renegotiation ==
+            MBEDTLS_SSL_RENEGOTIATION_ENABLED );
 #else
     (void) conf;
-    return( MBEDTLS_SSL_RENEGOTIATION_DISABLED );
+    return( 0 );
 #endif
 }
 

@@ -1724,4 +1724,28 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
 
+#if defined(__GNUC__) || defined(__arm__)
+#define MBEDTLS_ALWAYS_INLINE __attribute__((always_inline))
+#else
+#define MBEDTLS_ALWAYS_INLINE
+#endif
+
+/* This internal function can be used to pend a fatal alert for
+ * later delivery.
+ *
+ * The check for pending alerts must be done by calling
+ * the function ssl_send_pending_fatal_alert() in ssl_tls.c.
+ * Currently, it happens only during the handshake loop and after
+ * calling ssl_get_next_record() in the record processing stack.
+ *
+ * This function must not be called multiple times without
+ * sending the pending fatal alerts in between.
+ */
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_pend_fatal_alert(
+    mbedtls_ssl_context *ssl,
+    unsigned char message )
+{
+    ssl->pending_fatal_alert_msg = message;
+}
+
 #endif /* ssl_internal.h */

@@ -823,7 +823,9 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     (void) ssl;
 #endif
 
-    /* Copy info about negotiated version and extensions */
+    /*
+     * Some data just needs copying into the structure
+     */
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
     defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
     transform->encrypt_then_mac = encrypt_then_mac;
@@ -834,6 +836,10 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 #else
     ((void) minor_ver);
 #endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    memcpy( transform->randbytes, randbytes, sizeof( transform->randbytes ) );
+#endif
 
     /*
      * Get various info structures
@@ -9375,10 +9381,11 @@ static unsigned char ssl_serialized_session_header[] = {
  * verify_result is put before peer_cert so that all mandatory fields come
  * together in one block.
  */
-int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
-                              unsigned char *buf,
-                              size_t buf_len,
-                              size_t *olen )
+static int ssl_session_save( const mbedtls_ssl_session *session,
+                             unsigned char omit_header,
+                             unsigned char *buf,
+                             size_t buf_len,
+                             size_t *olen )
 {
     unsigned char *p = buf;
     size_t used = 0;
@@ -9391,17 +9398,20 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 #endif
 #endif
 
-    /*
-     * Add version identifier
-     */
-
-    used += sizeof( ssl_serialized_session_header );
-
-    if( used <= buf_len )
+    if( !omit_header )
     {
-        memcpy( p, ssl_serialized_session_header,
-                sizeof( ssl_serialized_session_header ) );
-        p += sizeof( ssl_serialized_session_header );
+        /*
+         * Add version identifier
+         */
+
+        used += sizeof( ssl_serialized_session_header );
+
+        if( used <= buf_len )
+        {
+            memcpy( p, ssl_serialized_session_header,
+                    sizeof( ssl_serialized_session_header ) );
+            p += sizeof( ssl_serialized_session_header );
+        }
     }
 
     /*
@@ -9567,12 +9577,24 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 }
 
 /*
- * Unserialize session, see mbedtls_ssl_session_save() for format.
+ * Public wrapper for ssl_session_save()
+ */
+int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
+                              unsigned char *buf,
+                              size_t buf_len,
+                              size_t *olen )
+{
+    return( ssl_session_save( session, 0, buf, buf_len, olen ) );
+}
+
+/*
+ * Deserialize session, see mbedtls_ssl_session_save() for format.
  *
  * This internal version is wrapped by a public function that cleans up in
- * case of error.
+ * case of error, and has an extra option omit_header.
  */
 static int ssl_session_load( mbedtls_ssl_session *session,
+                             unsigned char omit_header,
                              const unsigned char *buf,
                              size_t len )
 {
@@ -9588,19 +9610,22 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 #endif
 #endif
 
-    /*
-     * Check version identifier
-     */
-
-    if( (size_t)( end - p ) < sizeof( ssl_serialized_session_header ) )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    if( memcmp( p, ssl_serialized_session_header,
-                sizeof( ssl_serialized_session_header ) ) != 0 )
+    if( !omit_header )
     {
-        return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+        /*
+         * Check version identifier
+         */
+
+        if( (size_t)( end - p ) < sizeof( ssl_serialized_session_header ) )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+        if( memcmp( p, ssl_serialized_session_header,
+                    sizeof( ssl_serialized_session_header ) ) != 0 )
+        {
+            return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+        }
+        p += sizeof( ssl_serialized_session_header );
     }
-    p += sizeof( ssl_serialized_session_header );
 
     /*
      * Time
@@ -9807,13 +9832,13 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 }
 
 /*
- * Unserialize session: public wrapper for error cleaning
+ * Deserialize session: public wrapper for error cleaning
  */
 int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
                               const unsigned char *buf,
                               size_t len )
 {
-    int ret = ssl_session_load( session, buf, len );
+    int ret = ssl_session_load( session, 0, buf, len );
 
     if( ret != 0 )
         mbedtls_ssl_session_free( session );
@@ -10014,7 +10039,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 
     if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER ||
         ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING ||
-        ssl->conf->disable_renegotiation == MBEDTLS_SSL_RENEGOTIATION_DISABLED )
+        ! mbedtls_ssl_conf_is_renegotiation_enabled( ssl->conf ) )
     {
         return( 0 );
     }
@@ -10721,39 +10746,616 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
     mbedtls_platform_zeroize( session, sizeof( mbedtls_ssl_session ) );
 }
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID 1u
+#else
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID 0u
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT 1u
+#else
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT 0u
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
+
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY 1u
+#else
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY 0u
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
+
+#if defined(MBEDTLS_SSL_ALPN)
+#define SSL_SERIALIZED_CONTEXT_CONFIG_ALPN 1u
+#else
+#define SSL_SERIALIZED_CONTEXT_CONFIG_ALPN 0u
+#endif /* MBEDTLS_SSL_ALPN */
+
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID_BIT    0
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT_BIT     1
+#define SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY_BIT      2
+#define SSL_SERIALIZED_CONTEXT_CONFIG_ALPN_BIT                  3
+
+#define SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG   \
+    ( (uint32_t) (                              \
+        ( SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID     << SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_CONNECTION_ID_BIT     ) | \
+        ( SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT      << SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_BADMAC_LIMIT_BIT      ) | \
+        ( SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY       << SSL_SERIALIZED_CONTEXT_CONFIG_DTLS_ANTI_REPLAY_BIT       ) | \
+        ( SSL_SERIALIZED_CONTEXT_CONFIG_ALPN                   << SSL_SERIALIZED_CONTEXT_CONFIG_ALPN_BIT                   ) | \
+        0u ) )
+
+static unsigned char ssl_serialized_context_header[] = {
+    MBEDTLS_VERSION_MAJOR,
+    MBEDTLS_VERSION_MINOR,
+    MBEDTLS_VERSION_PATCH,
+    ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 8 ) & 0xFF,
+    ( SSL_SERIALIZED_SESSION_CONFIG_BITFLAG >> 0 ) & 0xFF,
+    ( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG >> 16 ) & 0xFF,
+    ( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG >>  8 ) & 0xFF,
+    ( SSL_SERIALIZED_CONTEXT_CONFIG_BITFLAG >>  0 ) & 0xFF,
+};
+
 /*
  * Serialize a full SSL context
+ *
+ * The format of the serialized data is:
+ * (in the presentation language of TLS, RFC 8446 section 3)
+ *
+ *  // header
+ *  opaque mbedtls_version[3];   // major, minor, patch
+ *  opaque context_format[5];    // version-specific field determining
+ *                               // the format of the remaining
+ *                               // serialized data.
+ *  Note: When updating the format, remember to keep these
+ *        version+format bytes. (We may make their size part of the API.)
+ *
+ *  // session sub-structure
+ *  opaque session<1..2^32-1>;  // see mbedtls_ssl_session_save()
+ *  // transform sub-structure
+ *  uint8 random[64];           // ServerHello.random+ClientHello.random
+ *  uint8 in_cid<0..2^8-1>      // Connection ID: expected incoming value
+ *  uint8 out_cid<0..2^8-1>     // Connection ID: outgoing value to use
+ *  // fields from ssl_context
+ *  uint32 badmac_seen;         // DTLS: number of records with failing MAC
+ *  uint64 in_window_top;       // DTLS: last validated record seq_num
+ *  uint64 in_window;           // DTLS: bitmask for replay protection
+ *  uint8 disable_datagram_packing; // DTLS: only one record per datagram
+ *  uint64 cur_out_ctr;         // Record layer: outgoing sequence number
+ *  uint16 mtu;                 // DTLS: path mtu (max outgoing fragment size)
+ *  uint8 alpn_chosen<0..2^8-1> // ALPN: negotiated application protocol
+ *
+ * Note that many fields of the ssl_context or sub-structures are not
+ * serialized, as they fall in one of the following categories:
+ *
+ *  1. forced value (eg in_left must be 0)
+ *  2. pointer to dynamically-allocated memory (eg session, transform)
+ *  3. value can be re-derived from other data (eg session keys from MS)
+ *  4. value was temporary (eg content of input buffer)
+ *  5. value will be provided by the user again (eg I/O callbacks and context)
  */
 int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
                               unsigned char *buf,
                               size_t buf_len,
                               size_t *olen )
 {
-    /* Unimplemented */
-    (void) ssl;
+    unsigned char *p = buf;
+    size_t used = 0;
+    size_t session_len;
+    int ret = 0;
 
-    if( buf != NULL )
-        memset( buf, 0, buf_len );
+    /*
+     * Enforce usage restrictions, see "return BAD_INPUT_DATA" in
+     * this function's documentation.
+     *
+     * These are due to assumptions/limitations in the implementation. Some of
+     * them are likely to stay (no handshake in progress) some might go away
+     * (only DTLS) but are currently used to simplify the implementation.
+     */
+    /* The initial handshake must be over */
+    if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    if( ssl->handshake != NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* Double-check that sub-structures are indeed ready */
+    if( ssl->transform == NULL || ssl->session == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* There must be no pending incoming or outgoing data */
+    if( mbedtls_ssl_check_pending( ssl ) != 0 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    if( ssl->out_left != 0 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* Protocol must be DLTS, not TLS */
+    if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* Version must be 1.2 */
+    if( mbedtls_ssl_get_major_ver( ssl ) != MBEDTLS_SSL_MAJOR_VERSION_3 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    if( mbedtls_ssl_get_minor_ver( ssl ) != MBEDTLS_SSL_MINOR_VERSION_3 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* We must be using an AEAD ciphersuite */
+    if( mbedtls_ssl_transform_uses_aead( ssl->transform ) != 1 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    /* Renegotiation must not be enabled */
+    if( mbedtls_ssl_conf_is_renegotiation_enabled( ssl->conf ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    *olen = 0;
+    /*
+     * Version and format identifier
+     */
+    used += sizeof( ssl_serialized_context_header );
+
+    if( used <= buf_len )
+    {
+        memcpy( p, ssl_serialized_context_header,
+                sizeof( ssl_serialized_context_header ) );
+        p += sizeof( ssl_serialized_context_header );
+    }
+
+    /*
+     * Session (length + data)
+     */
+    ret = ssl_session_save( ssl->session, 1, NULL, 0, &session_len );
+    if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
+        return( ret );
+
+    used += 4 + session_len;
+    if( used <= buf_len )
+    {
+        *p++ = (unsigned char)( ( session_len >> 24 ) & 0xFF );
+        *p++ = (unsigned char)( ( session_len >> 16 ) & 0xFF );
+        *p++ = (unsigned char)( ( session_len >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( session_len       ) & 0xFF );
+
+        ret = ssl_session_save( ssl->session, 1,
+                                p, session_len, &session_len );
+        if( ret != 0 )
+            return( ret );
+
+        p += session_len;
+    }
+
+    /*
+     * Transform
+     */
+    used += sizeof( ssl->transform->randbytes );
+    if( used <= buf_len )
+    {
+        memcpy( p, ssl->transform->randbytes,
+           sizeof( ssl->transform->randbytes ) );
+        p += sizeof( ssl->transform->randbytes );
+    }
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    used += 2 + ssl->transform->in_cid_len + ssl->transform->out_cid_len;
+    if( used <= buf_len )
+    {
+        *p++ = ssl->transform->in_cid_len;
+        memcpy( p, ssl->transform->in_cid, ssl->transform->in_cid_len );
+        p += ssl->transform->in_cid_len;
+
+        *p++ = ssl->transform->out_cid_len;
+        memcpy( p, ssl->transform->out_cid, ssl->transform->out_cid_len );
+        p += ssl->transform->out_cid_len;
+    }
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+    /*
+     * Saved fields from top-level ssl_context structure
+     */
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+    used += 4;
+    if( used <= buf_len )
+    {
+        *p++ = (unsigned char)( ( ssl->badmac_seen >> 24 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->badmac_seen >> 16 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->badmac_seen >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->badmac_seen       ) & 0xFF );
+    }
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
+
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    used += 16;
+    if( used <= buf_len )
+    {
+        *p++ = (unsigned char)( ( ssl->in_window_top >> 56 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window_top >> 48 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window_top >> 40 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window_top >> 32 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window_top >> 24 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window_top >> 16 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window_top >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window_top       ) & 0xFF );
+
+        *p++ = (unsigned char)( ( ssl->in_window >> 56 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window >> 48 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window >> 40 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window >> 32 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window >> 24 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window >> 16 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->in_window       ) & 0xFF );
+    }
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    used += 1;
+    if( used <= buf_len )
+    {
+        *p++ = ssl->disable_datagram_packing;
+    }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+    used += 8;
+    if( used <= buf_len )
+    {
+        memcpy( p, ssl->cur_out_ctr, 8 );
+        p += 8;
+    }
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    used += 2;
+    if( used <= buf_len )
+    {
+        *p++ = (unsigned char)( ( ssl->mtu >>  8 ) & 0xFF );
+        *p++ = (unsigned char)( ( ssl->mtu       ) & 0xFF );
+    }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+#if defined(MBEDTLS_SSL_ALPN)
+    {
+        const uint8_t alpn_len = ssl->alpn_chosen
+                               ? (uint8_t) strlen( ssl->alpn_chosen )
+                               : 0;
+
+        used += 1 + alpn_len;
+        if( used <= buf_len )
+        {
+            *p++ = alpn_len;
+
+            if( ssl->alpn_chosen != NULL )
+            {
+                memcpy( p, ssl->alpn_chosen, alpn_len );
+                p += alpn_len;
+            }
+        }
+    }
+#endif /* MBEDTLS_SSL_ALPN */
+
+    /*
+     * Done
+     */
+    *olen = used;
+
+    if( used > buf_len )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "saved context", buf, used );
+
+    return( ssl_session_reset_int( ssl, 0 ) );
+}
+
+/*
+ * Helper to get TLS 1.2 PRF from ciphersuite
+ * (Duplicates bits of logic from ssl_set_handshake_prfs().)
+ */
+typedef int (*tls_prf_fn)( const unsigned char *secret, size_t slen,
+                           const char *label,
+                           const unsigned char *random, size_t rlen,
+                           unsigned char *dstbuf, size_t dlen );
+static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
+{
+    mbedtls_ssl_ciphersuite_handle_t const info =
+        mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
+    const mbedtls_md_type_t hash = mbedtls_ssl_suite_get_mac( info );
+
+#if defined(MBEDTLS_SHA512_C)
+    if( hash == MBEDTLS_MD_SHA384 )
+        return( tls_prf_sha384 );
+#else
+    (void) hash;
+#endif
+    return( tls_prf_sha256 );
+}
+
+/*
+ * Deserialize context, see mbedtls_ssl_context_save() for format.
+ *
+ * This internal version is wrapped by a public function that cleans up in
+ * case of error.
+ */
+static int ssl_context_load( mbedtls_ssl_context *ssl,
+                             const unsigned char *buf,
+                             size_t len )
+{
+    const unsigned char *p = buf;
+    const unsigned char * const end = buf + len;
+    size_t session_len;
+    int ret;
+
+    /*
+     * The context should have been freshly setup or reset.
+     * Give the user an error in case of obvious misuse.
+     * (Checking session is useful because it won't be NULL if we're
+     * renegotiating, or if the user mistakenly loaded a session first.)
+     */
+    if( ssl->state != MBEDTLS_SSL_HELLO_REQUEST ||
+        ssl->session != NULL )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    /*
+     * We can't check that the config matches the initial one, but we can at
+     * least check it matches the requirements for serializing.
+     */
+    if( MBEDTLS_SSL_TRANSPORT_IS_TLS( ssl->conf->transport ) ||
+        mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) <
+            MBEDTLS_SSL_MAJOR_VERSION_3 ||
+        mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) >
+            MBEDTLS_SSL_MAJOR_VERSION_3 ||
+        mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) <
+            MBEDTLS_SSL_MINOR_VERSION_3 ||
+        mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) >
+            MBEDTLS_SSL_MINOR_VERSION_3 ||
+        mbedtls_ssl_conf_is_renegotiation_enabled( ssl->conf ) )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "context to load", buf, len );
+
+    /*
+     * Check version identifier
+     */
+    if( (size_t)( end - p ) < sizeof( ssl_serialized_context_header ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    if( memcmp( p, ssl_serialized_context_header,
+                sizeof( ssl_serialized_context_header ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+    }
+    p += sizeof( ssl_serialized_context_header );
+
+    /*
+     * Session
+     */
+    if( (size_t)( end - p ) < 4 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    session_len = ( (size_t) p[0] << 24 ) |
+                  ( (size_t) p[1] << 16 ) |
+                  ( (size_t) p[2] <<  8 ) |
+                  ( (size_t) p[3]       );
+    p += 4;
+
+    /* This has been allocated by ssl_handshake_init(), called by
+     * by either ssl_session_reset_int() or mbedtls_ssl_setup(). */
+    ssl->session = ssl->session_negotiate;
+    ssl->session_in = ssl->session;
+    ssl->session_out = ssl->session;
+    ssl->session_negotiate = NULL;
+
+    if( (size_t)( end - p ) < session_len )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ret = ssl_session_load( ssl->session, 1, p, session_len );
+    if( ret != 0 )
+    {
+        mbedtls_ssl_session_free( ssl->session );
+        return( ret );
+    }
+
+    p += session_len;
+
+    /*
+     * Transform
+     */
+
+    /* This has been allocated by ssl_handshake_init(), called by
+     * by either ssl_session_reset_int() or mbedtls_ssl_setup(). */
+    ssl->transform = ssl->transform_negotiate;
+    ssl->transform_in = ssl->transform;
+    ssl->transform_out = ssl->transform;
+    ssl->transform_negotiate = NULL;
+
+    /* Read random bytes and populate structure */
+    if( (size_t)( end - p ) < sizeof( ssl->transform->randbytes ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ret = ssl_populate_transform( ssl->transform,
+                  mbedtls_ssl_session_get_ciphersuite( ssl->session ),
+                  ssl->session->master,
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+                  ssl->session->encrypt_then_mac,
+#endif
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+                  ssl->session->trunc_hmac,
+#endif
+#endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+                  ssl->session->compression,
+#endif
+                  ssl_tls12prf_from_cs(
+                      mbedtls_ssl_session_get_ciphersuite( ssl->session) ),
+                  p, /* currently pointing to randbytes */
+                  MBEDTLS_SSL_MINOR_VERSION_3, /* (D)TLS 1.2 is forced */
+                  mbedtls_ssl_conf_get_endpoint( ssl->conf ),
+                  ssl );
+    if( ret != 0 )
+        return( ret );
+
+    p += sizeof( ssl->transform->randbytes );
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    /* Read connection IDs and store them */
+    if( (size_t)( end - p ) < 1 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ssl->transform->in_cid_len = *p++;
+
+    if( (size_t)( end - p ) < ssl->transform->in_cid_len + 1u )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( ssl->transform->in_cid, p, ssl->transform->in_cid_len );
+    p += ssl->transform->in_cid_len;
+
+    ssl->transform->out_cid_len = *p++;
+
+    if( (size_t)( end - p ) < ssl->transform->out_cid_len )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( ssl->transform->out_cid, p, ssl->transform->out_cid_len );
+    p += ssl->transform->out_cid_len;
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+    /*
+     * Saved fields from top-level ssl_context structure
+     */
+#if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
+    if( (size_t)( end - p ) < 4 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ssl->badmac_seen = ( (uint32_t) p[0] << 24 ) |
+                       ( (uint32_t) p[1] << 16 ) |
+                       ( (uint32_t) p[2] <<  8 ) |
+                       ( (uint32_t) p[3]       );
+    p += 4;
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
+
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    if( (size_t)( end - p ) < 16 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ssl->in_window_top = ( (uint64_t) p[0] << 56 ) |
+                         ( (uint64_t) p[1] << 48 ) |
+                         ( (uint64_t) p[2] << 40 ) |
+                         ( (uint64_t) p[3] << 32 ) |
+                         ( (uint64_t) p[4] << 24 ) |
+                         ( (uint64_t) p[5] << 16 ) |
+                         ( (uint64_t) p[6] <<  8 ) |
+                         ( (uint64_t) p[7]       );
+    p += 8;
+
+    ssl->in_window = ( (uint64_t) p[0] << 56 ) |
+                     ( (uint64_t) p[1] << 48 ) |
+                     ( (uint64_t) p[2] << 40 ) |
+                     ( (uint64_t) p[3] << 32 ) |
+                     ( (uint64_t) p[4] << 24 ) |
+                     ( (uint64_t) p[5] << 16 ) |
+                     ( (uint64_t) p[6] <<  8 ) |
+                     ( (uint64_t) p[7]       );
+    p += 8;
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( (size_t)( end - p ) < 1 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ssl->disable_datagram_packing = *p++;
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+    if( (size_t)( end - p ) < 8 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    memcpy( ssl->cur_out_ctr, p, 8 );
+    p += 8;
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( (size_t)( end - p ) < 2 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ssl->mtu = ( p[0] << 8 ) | p[1];
+    p += 2;
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+#if defined(MBEDTLS_SSL_ALPN)
+    {
+        uint8_t alpn_len;
+        const char **cur;
+
+        if( (size_t)( end - p ) < 1 )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+        alpn_len = *p++;
+
+        if( alpn_len != 0 && ssl->conf->alpn_list != NULL )
+        {
+            /* alpn_chosen should point to an item in the configured list */
+            for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
+            {
+                if( strlen( *cur ) == alpn_len &&
+                    memcmp( p, cur, alpn_len ) == 0 )
+                {
+                    ssl->alpn_chosen = *cur;
+                    break;
+                }
+            }
+        }
+
+        /* can only happen on conf mismatch */
+        if( alpn_len != 0 && ssl->alpn_chosen == NULL )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+        p += alpn_len;
+    }
+#endif /* MBEDTLS_SSL_ALPN */
+
+    /*
+     * Forced fields from top-level ssl_context structure
+     *
+     * Most of them already set to the correct value by mbedtls_ssl_init() and
+     * mbedtls_ssl_reset(), so we only need to set the remaining ones.
+     */
+    ssl->state = MBEDTLS_SSL_HANDSHAKE_OVER;
+
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
+    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
+    ssl->minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+#endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    ssl->in_epoch = 1;
+#endif
+
+    /* mbedtls_ssl_reset() leaves the handshake sub-structure allocated,
+     * which we don't want - otherwise we'd end up freeing the wrong transform
+     * by calling ssl_handshake_wrapup_free_hs_transform() inappropriately. */
+    if( ssl->handshake != NULL )
+    {
+        mbedtls_ssl_handshake_free( ssl );
+        mbedtls_free( ssl->handshake );
+        ssl->handshake = NULL;
+    }
+
+    /*
+     * Done - should have consumed entire buffer
+     */
+    if( p != end )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     return( 0 );
 }
 
 /*
- * Deserialize a full SSL context
+ * Deserialize context: public wrapper for error cleaning
  */
-int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_context_load( mbedtls_ssl_context *context,
                               const unsigned char *buf,
                               size_t len )
 {
-    /* Unimplemented */
-    (void) ssl;
-    (void) buf;
-    (void) len;
+    int ret = ssl_context_load( context, buf, len );
 
-    return( 0 );
+    if( ret != 0 )
+        mbedtls_ssl_free( context );
+
+    return( ret );
 }
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
 /*
  * Free an SSL context

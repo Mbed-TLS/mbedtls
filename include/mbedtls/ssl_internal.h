@@ -728,6 +728,12 @@ struct mbedtls_ssl_transform
     z_stream ctx_deflate;               /*!<  compression context     */
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    /* We need the Hello random bytes in order to re-derive keys from the
+     * Master Secret and other session info, see ssl_populate_transform() */
+    unsigned char randbytes[64]; /*!< ServerHello.random+ClientHello.random */
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 };
 
 static inline int mbedtls_ssl_transform_get_minor_ver( mbedtls_ssl_transform const *transform )
@@ -737,6 +743,21 @@ static inline int mbedtls_ssl_transform_get_minor_ver( mbedtls_ssl_transform con
 #else
     ((void) transform);
     return( MBEDTLS_SSL_CONF_FIXED_MINOR_VER );
+#endif
+}
+
+/*
+ * Return 1 if the transform uses an AEAD cipher, 0 otherwise.
+ * Equivalently, return 0 if a separate MAC is used, 1 otherwise.
+ */
+static inline int mbedtls_ssl_transform_uses_aead(
+        const mbedtls_ssl_transform *transform )
+{
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+    return( transform->maclen == 0 && transform->taglen != 0 );
+#else
+    (void) transform;
+    return( 1 );
 #endif
 }
 
@@ -1222,6 +1243,17 @@ static inline int mbedtls_ssl_get_renego_status(
 #endif
 }
 
+static inline int mbedtls_ssl_conf_is_renegotiation_enabled(
+        const mbedtls_ssl_config *conf )
+{
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    return( conf->disable_renegotiation ==
+            MBEDTLS_SSL_RENEGOTIATION_ENABLED );
+#else
+    (void) conf;
+    return( 0 );
+#endif
+}
 
 /*
  * Getter functions for fields in mbedtls_ssl_config which may

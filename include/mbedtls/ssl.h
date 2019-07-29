@@ -3903,6 +3903,7 @@ int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl );
  */
 void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
 /**
  * \brief          Save an active connection as serialized data in a buffer.
  *                 This allows the freeing or re-using of the SSL context
@@ -3918,10 +3919,10 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  * \note           When this function succeeds, it calls
  *                 mbedtls_ssl_session_reset() on \p ssl which as a result is
  *                 no longer associated with the connection that has been
- *                 serialized. This avoids creating copies of the session
+ *                 serialized. This avoids creating copies of the connection
  *                 state. You're then free to either re-use the context
  *                 structure for a different connection, or call
- *                 mbedtls_ssl_session_free() on it. See the documentation of
+ *                 mbedtls_ssl_free() on it. See the documentation of
  *                 mbedtls_ssl_session_reset() for more details.
  *
  * \param ssl      The SSL context to save. On success, it is no longer
@@ -3936,19 +3937,26 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  * \note           \p olen is updated to the correct value regardless of
  *                 whether \p buf_len was large enough. This makes it possible
  *                 to determine the necessary size by calling this function
- *                 with \p buf set to \c NULL and \p buf_len to \c 0.
+ *                 with \p buf set to \c NULL and \p buf_len to \c 0. However,
+ *                 the value of \p olen is only guaranteed to be correct when
+ *                 the function returns #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL or
+ *                 \c 0. If the return value is different, then the value of
+ *                 \p olen is undefined.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if \p buf is too small.
+ * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed
+ *                 while reseting the context.
  * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if a handshake is in
  *                 progress, or there is pending data for reading or sending,
- *                 or the connection does not use DTLS 1.2 with and AEAD
+ *                 or the connection does not use DTLS 1.2 with an AEAD
  *                 ciphersuite, or renegotiation is enabled.
  */
 int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
                               unsigned char *buf,
                               size_t buf_len,
                               size_t *olen );
+
 /**
  * \brief          Load serialized connection data to an SSL context.
  *
@@ -3982,15 +3990,12 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  *                 (unless they were already set before calling
  *                 mbedtls_ssl_session_reset() and the values are suitable for
  *                 the present connection). Specifically, you want to call
- *                 at least mbedtls_ssl_set_bio(). If you're using a read
- *                 timeout (that is, you called
- *                 mbedtls_ssl_conf_read_timeout() with a non-zero timeout)
- *                 and non-blocking I/O, you also need to set timer callbacks
- *                 by calling mbedtls_ssl_set_timer_cb(). All other SSL setter
- *                 functions are not necessary to call, either because they're
- *                 only used in handshakes, or because the setting is already
- *                 saved. You might choose to call them anyway, for example in
- *                 order to share code between the cases of establishing a new
+ *                 at least mbedtls_ssl_set_bio() and
+ *                 mbedtls_ssl_set_timer_cb(). All other SSL setter functions
+ *                 are not necessary to call, either because they're only used
+ *                 in handshakes, or because the setting is already saved. You
+ *                 might choose to call them anyway, for example in order to
+ *                 share code between the cases of establishing a new
  *                 connection and the case of loading an already-established
  *                 connection.
  *
@@ -4000,6 +4005,11 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  *                 newly-configured value with the value that was active when
  *                 the context was saved.
  *
+ * \note           When this function returns an error code, it calls
+ *                 mbedtls_ssl_free() on \p ssl. In this case, you need to
+ *                 prepare the context with the usual sequence starting with a
+ *                 call to mbedtls_ssl_init() if you want to use it again.
+ *
  * \param ssl      The SSL context structure to be populated. It must have
  *                 been prepared as described in the note above.
  * \param buf      The buffer holding the serialized connection data. It must
@@ -4008,11 +4018,14 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed.
+ * \return         #MBEDTLS_ERR_SSL_VERSION_MISMATCH if the serialized data
+ *                 comes from a different Mbed TLS version or build.
  * \return         #MBEDTLS_ERR_SSL_BAD_INPUT_DATA if input data is invalid.
  */
 int mbedtls_ssl_context_load( mbedtls_ssl_context *ssl,
                               const unsigned char *buf,
                               size_t len );
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
 /**
  * \brief          Initialize an SSL configuration context

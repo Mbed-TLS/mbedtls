@@ -1443,6 +1443,10 @@ int main( int argc, char *argv[] )
     size_t cid_len = 0;
     size_t cid_renego_len = 0;
 #endif
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    unsigned char *context_buf = NULL;
+    size_t context_buf_len;
+#endif
 
     int i;
     char *p, *q;
@@ -3508,16 +3512,11 @@ data_exchange:
     if( opt.serialize != 0 )
     {
         size_t buf_len;
-        unsigned char *context_buf = NULL;
 
-        opt.serialize = 0;
-        mbedtls_printf( " Serializing live connection..." );
+        mbedtls_printf( "  . Serializing live connection..." );
 
         ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &buf_len );
-
-        /* Allow stub implementation returning 0 for now */
-        if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL &&
-            ret != 0 )
+        if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
                             "-0x%x\n\n", -ret );
@@ -3532,18 +3531,44 @@ data_exchange:
 
             goto exit;
         }
+        context_buf_len = buf_len;
 
         if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf,
                                               buf_len, &buf_len ) ) != 0 )
         {
-            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_save returned "
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
                             "-0x%x\n\n", -ret );
 
             goto exit;
         }
 
+        mbedtls_printf( " ok\n" );
+
+        /*
+         * This simulates a workflow where you have a long-lived server
+         * instance, potentially with a pool of ssl_context objects, and you
+         * just want to re-use one while the connection is inactive: in that
+         * case you can just reset() it, and then it's ready to receive
+         * serialized data from another connection (or the same here).
+         */
+        if( opt.serialize == 1 )
+        {
+            /* nothing to do here, done by context_save() already */
+            mbedtls_printf( "  . Context has been reset... ok" );
+        }
+
+        /*
+         * This simulates a workflow where you have one server instance per
+         * connection, and want to release it entire when the connection is
+         * inactive, and spawn it again when needed again - this would happen
+         * between ssl_free() and ssl_init() below, together with any other
+         * teardown/startup code needed - for example, preparing the
+         * ssl_config again (see section 3 "setup stuff" in this file).
+         */
         if( opt.serialize == 2 )
         {
+            mbedtls_printf( "  . Freeing and reinitializing context..." );
+
             mbedtls_ssl_free( &ssl );
 
             mbedtls_ssl_init( &ssl );
@@ -3555,6 +3580,12 @@ data_exchange:
                 goto exit;
             }
 
+            /*
+             * This illustrates the minimum amount of things you need to set
+             * up, however you could set up much more if desired, for example
+             * if you want to share your set up code between the case of
+             * establishing a new connection and this case.
+             */
             if( opt.nbio == 2 )
                 mbedtls_ssl_set_bio( &ssl, &client_fd, my_send, my_recv,
                                      NULL );
@@ -3564,21 +3595,20 @@ data_exchange:
                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
 
 #if defined(MBEDTLS_TIMING_C)
-            if( opt.nbio != 0 && opt.read_timeout != 0 )
-            {
 #if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
     !defined(MBEDTLS_SSL_CONF_GET_TIMER)
-                mbedtls_ssl_set_timer_cb( &ssl, &timer,
-                                          mbedtls_timing_set_delay,
-                                          mbedtls_timing_get_delay );
+            mbedtls_ssl_set_timer_cb( &ssl, &timer,
+                                      mbedtls_timing_set_delay,
+                                      mbedtls_timing_get_delay );
 #else
-                mbedtls_ssl_set_timer_cb_ctx( &ssl, &timer );
+            mbedtls_ssl_set_timer_cb_ctx( &ssl, &timer );
 #endif
-            }
 #endif /* MBEDTLS_TIMING_C */
+
+            mbedtls_printf( " ok\n" );
         }
 
-        mbedtls_printf( " Deserializing connection..." );
+        mbedtls_printf( "  . Deserializing connection..." );
 
         if( ( ret = mbedtls_ssl_context_load( &ssl, context_buf,
                                               buf_len ) ) != 0 )
@@ -3588,6 +3618,12 @@ data_exchange:
 
             goto exit;
         }
+
+        mbedtls_free( context_buf );
+        context_buf = NULL;
+        context_buf_len = 0;
+
+        mbedtls_printf( " ok\n" );
     }
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
@@ -3678,6 +3714,12 @@ exit:
 #endif
 
     mbedtls_free( buf );
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( context_buf != NULL )
+        mbedtls_platform_zeroize( context_buf, context_buf_len );
+    mbedtls_free( context_buf );
+#endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #if defined(MBEDTLS_MEMORY_DEBUG)

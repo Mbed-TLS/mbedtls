@@ -75,7 +75,13 @@ baremetal_build_gcc()
     echo "Create 32-bit library-only baremetal build (GCC, config: $BAREMETAL_CONFIG)"
     gcc_ver=$($GCC_CC --version | head -n 1 | sed -n 's/^.*\([0-9]\.[0-9]\.[0-9]\).*$/\1/p')
 
-    CFLAGS_BAREMETAL="-Os -mthumb -mcpu=cortex-m0plus --std=c99"
+    if [ $debug -eq 0 ]; then
+        OPTIM_CFLAGS_GCC="-Os"
+    else
+        OPTIM_CFLAGS_GCC="-g"
+    fi
+
+    CFLAGS_BAREMETAL="$OPTIM_CFLAGS_GCC -mthumb -mcpu=cortex-m0plus --std=c99"
     if [ $check -ne 0 ]; then
         CFLAGS_BAREMETAL="$CFLAGS_BAREMETAL -Werror"
     fi
@@ -114,7 +120,13 @@ baremetal_build_armc5()
     echo "Create 32-bit library-only baremetal build (ARMC5, Config: $BAREMETAL_CONFIG)"
     armc5_ver=$($ARMC5_CC | sed -n 's/.*ARM Compiler \([^ ]*\)$/\1/p')
 
-    CFLAGS_BAREMETAL="-Ospace --thumb --cpu Cortex-m0plus"
+    if [ $debug -eq 0 ]; then
+        OPTIM_CFLAGS_ARMC5="-Ospace"
+    else
+        OPTIM_CFLAGS_ARMC5="-g"
+    fi
+
+    CFLAGS_BAREMETAL="$OPTIM_CFLAGS_ARMC5 --thumb --cpu Cortex-m0plus"
     CFLAGS="$CFLAGS_BAREMETAL $CFLAGS_CONFIG"
     WARNING_CFLAGS="--strict --c99"
 
@@ -155,7 +167,13 @@ baremetal_build_armc6()
     echo "Create 32-bit library-only baremetal build (ARMC6, Config: $BAREMETAL_CONFIG)"
     armc6_ver=$($ARMC6_CC --version | sed -n 's/.*ARM Compiler \([^ ]*\)$/\1/p')
 
-    CFLAGS_BAREMETAL="-Oz --target=arm-arm-none-eabi -mthumb -mcpu=cortex-m0plus -xc --std=c99"
+    if [ $debug -eq 0 ]; then
+        OPTIM_CFLAGS_ARMC6="-Oz"
+    else
+        OPTIM_CFLAGS_ARMC6="-g"
+    fi
+
+    CFLAGS_BAREMETAL="$OPTIM_CFLAGS_ARMC6 --target=arm-arm-none-eabi -mthumb -mcpu=cortex-m0plus -xc --std=c99"
     if [ $check -ne 0 ]; then
         CFLAGS_BAREMETAL="$CFLAGS_BAREMETAL -Werror"
     fi
@@ -335,6 +353,8 @@ measure_stack=0
 
 check=0
 
+debug=0
+
 while [ $# -gt 0 ]; do
     case "$1" in
         --gcc)   build_gcc=1;;
@@ -345,6 +365,7 @@ while [ $# -gt 0 ]; do
         --heap)  measure_heap=1;;
         --stack) measure_stack=1;;
         --check) check=1;;
+        --debug) debug=1;;
         -*)
             echo >&2 "Unknown option: $1"
             show_usage

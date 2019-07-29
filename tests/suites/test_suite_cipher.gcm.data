@@ -1,10 +1,10 @@
 CAMELLIA GCM Decrypt empty buffer
 depends_on:MBEDTLS_CAMELLIA_C:MBEDTLS_GCM_C
-dec_empty_buf:MBEDTLS_CIPHER_CAMELLIA_128_GCM
+dec_empty_buf:MBEDTLS_CIPHER_CAMELLIA_128_GCM:0:0
 
 Aria GCM Decrypt empty buffer
 depends_on:MBEDTLS_ARIA_C:MBEDTLS_GCM_C
-dec_empty_buf:MBEDTLS_CIPHER_ARIA_128_GCM
+dec_empty_buf:MBEDTLS_CIPHER_ARIA_128_GCM:0:0
 
 AES 128 GCM Encrypt and decrypt 0 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C

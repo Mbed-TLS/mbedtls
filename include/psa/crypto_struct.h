@@ -309,10 +309,17 @@ static inline struct psa_key_policy_s psa_key_policy_init( void )
     return( v );
 }
 
+/* The type used internally for key sizes.
+ * Public interfaces use size_t, but internally we use a smaller type. */
+typedef uint16_t psa_key_bits_t;
+/* The maximum value of the type used to represent bit-sizes.
+ * This is used to mark an invalid key size. */
+#define PSA_KEY_BITS_TOO_LARGE ( (psa_key_bits_t) ( -1 ) )
 /* The maximum size of a key in bits.
- * This is a whole number of bytes, to facilitate some calculations
- * such as the maximum size of key data in storage.
- */
+ * Currently defined as the maximum that can be represented, rounded down
+ * to a whole number of bytes.
+ * This is an uncast value so that it can be used in preprocessor
+ * conditionals. */
 #define PSA_MAX_KEY_BITS 0xfff8
 
 typedef struct
@@ -321,10 +328,11 @@ typedef struct
     psa_key_lifetime_t lifetime;
     psa_key_id_t id;
     psa_key_policy_t policy;
-    size_t bits;
+    psa_key_bits_t bits;
+    uint16_t flags;
 } psa_core_key_attributes_t;
 
-#define PSA_CORE_KEY_ATTRIBUTES_INIT {0, 0, 0, {0, 0, 0}, 0}
+#define PSA_CORE_KEY_ATTRIBUTES_INIT {0, 0, 0, {0, 0, 0}, 0, 0}
 
 struct psa_key_attributes_s
 {
@@ -426,7 +434,10 @@ static inline psa_key_type_t psa_get_key_type(
 static inline void psa_set_key_bits(psa_key_attributes_t *attributes,
                                     size_t bits)
 {
-    attributes->core.bits = bits;
+    if( bits > PSA_MAX_KEY_BITS )
+        attributes->core.bits = PSA_KEY_BITS_TOO_LARGE;
+    else
+        attributes->core.bits = (psa_key_bits_t) bits;
 }
 
 static inline size_t psa_get_key_bits(

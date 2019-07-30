@@ -710,7 +710,7 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
         /* Ensure that the bytes-to-bit conversion doesn't overflow. */
         if( data_length > SIZE_MAX / 8 )
             return( PSA_ERROR_NOT_SUPPORTED );
-        /* Ensure that the key is not overly large. */
+        /* Ensure that the bit size fits in its representation type. */
         if( bit_size > PSA_MAX_KEY_BITS )
             return( PSA_ERROR_NOT_SUPPORTED );
         status = prepare_raw_data_slot( slot->type, bit_size,

@@ -3271,7 +3271,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         /* Generate ECDH private key. */
         status = psa_generate_key( handshake->ecdh_psa_privkey,
-                          PSA_KEY_TYPE_ECC_KEYPAIR( handshake->ecdh_psa_curve ),
+                          PSA_KEY_TYPE_ECC_KEY_PAIR( handshake->ecdh_psa_curve ),
                           MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE( handshake->ecdh_psa_curve ),
                           NULL, 0 );
         if( status != PSA_SUCCESS )

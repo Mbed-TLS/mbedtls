@@ -309,18 +309,25 @@ static inline struct psa_key_policy_s psa_key_policy_init( void )
     return( v );
 }
 
+typedef struct
+{
+    psa_key_type_t type;
+    psa_key_lifetime_t lifetime;
+    psa_key_id_t id;
+    psa_key_policy_t policy;
+    size_t bits;
+} psa_core_key_attributes_t;
+
+#define PSA_CORE_KEY_ATTRIBUTES_INIT {0, 0, 0, {0, 0, 0}, 0}
+
 struct psa_key_attributes_s
 {
-    psa_key_id_t id;
-    psa_key_lifetime_t lifetime;
-    psa_key_policy_t policy;
-    psa_key_type_t type;
-    size_t bits;
+    psa_core_key_attributes_t core;
     void *domain_parameters;
     size_t domain_parameters_size;
 };
 
-#define PSA_KEY_ATTRIBUTES_INIT {0, 0, {0, 0, 0}, 0, 0, NULL, 0}
+#define PSA_KEY_ATTRIBUTES_INIT {PSA_CORE_KEY_ATTRIBUTES_INIT, NULL, 0}
 static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 {
     const struct psa_key_attributes_s v = PSA_KEY_ATTRIBUTES_INIT;
@@ -330,53 +337,53 @@ static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 static inline void psa_set_key_id(psa_key_attributes_t *attributes,
                                   psa_key_id_t id)
 {
-    attributes->id = id;
-    if( attributes->lifetime == PSA_KEY_LIFETIME_VOLATILE )
-        attributes->lifetime = PSA_KEY_LIFETIME_PERSISTENT;
+    attributes->core.id = id;
+    if( attributes->core.lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        attributes->core.lifetime = PSA_KEY_LIFETIME_PERSISTENT;
 }
 
 static inline psa_key_id_t psa_get_key_id(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->id );
+    return( attributes->core.id );
 }
 
 static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
                                         psa_key_lifetime_t lifetime)
 {
-    attributes->lifetime = lifetime;
+    attributes->core.lifetime = lifetime;
     if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
-        attributes->id = 0;
+        attributes->core.id = 0;
 }
 
 static inline psa_key_lifetime_t psa_get_key_lifetime(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->lifetime );
+    return( attributes->core.lifetime );
 }
 
 static inline void psa_set_key_usage_flags(psa_key_attributes_t *attributes,
                                            psa_key_usage_t usage_flags)
 {
-    attributes->policy.usage = usage_flags;
+    attributes->core.policy.usage = usage_flags;
 }
 
 static inline psa_key_usage_t psa_get_key_usage_flags(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->policy.usage );
+    return( attributes->core.policy.usage );
 }
 
 static inline void psa_set_key_algorithm(psa_key_attributes_t *attributes,
                                          psa_algorithm_t alg)
 {
-    attributes->policy.alg = alg;
+    attributes->core.policy.alg = alg;
 }
 
 static inline psa_algorithm_t psa_get_key_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->policy.alg );
+    return( attributes->core.policy.alg );
 }
 
 /* This function is declared in crypto_extra.h, which comes after this
@@ -392,7 +399,7 @@ static inline void psa_set_key_type(psa_key_attributes_t *attributes,
     if( attributes->domain_parameters == NULL )
     {
         /* Common case: quick path */
-        attributes->type = type;
+        attributes->core.type = type;
     }
     else
     {
@@ -407,19 +414,19 @@ static inline void psa_set_key_type(psa_key_attributes_t *attributes,
 static inline psa_key_type_t psa_get_key_type(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->type );
+    return( attributes->core.type );
 }
 
 static inline void psa_set_key_bits(psa_key_attributes_t *attributes,
                                     size_t bits)
 {
-    attributes->bits = bits;
+    attributes->core.bits = bits;
 }
 
 static inline size_t psa_get_key_bits(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->bits );
+    return( attributes->core.bits );
 }
 
 #endif /* PSA_CRYPTO_STRUCT_H */

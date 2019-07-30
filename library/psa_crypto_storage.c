@@ -328,11 +328,11 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
         memcpy( *key_data, storage_format->key_data, *key_data_length );
     }
 
-    GET_UINT32_LE( attributes->lifetime, storage_format->lifetime, 0 );
-    GET_UINT32_LE( attributes->type, storage_format->type, 0 );
-    GET_UINT32_LE( attributes->policy.usage, storage_format->policy, 0 );
-    GET_UINT32_LE( attributes->policy.alg, storage_format->policy, sizeof( uint32_t ) );
-    GET_UINT32_LE( attributes->policy.alg2, storage_format->policy, 2 * sizeof( uint32_t ) );
+    GET_UINT32_LE( attributes->core.lifetime, storage_format->lifetime, 0 );
+    GET_UINT32_LE( attributes->core.type, storage_format->type, 0 );
+    GET_UINT32_LE( attributes->core.policy.usage, storage_format->policy, 0 );
+    GET_UINT32_LE( attributes->core.policy.alg, storage_format->policy, sizeof( uint32_t ) );
+    GET_UINT32_LE( attributes->core.policy.alg2, storage_format->policy, 2 * sizeof( uint32_t ) );
 
     return( PSA_SUCCESS );
 }

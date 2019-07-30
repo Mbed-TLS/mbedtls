@@ -133,7 +133,7 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *p_slot )
         goto exit;
     p_slot->lifetime = psa_get_key_lifetime( &attributes );
     p_slot->type = psa_get_key_type( &attributes );
-    p_slot->policy = attributes.policy;
+    p_slot->policy = attributes.core.policy;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( psa_key_lifetime_is_external( p_slot->lifetime ) )

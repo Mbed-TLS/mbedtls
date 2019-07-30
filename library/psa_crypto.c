@@ -1086,7 +1086,7 @@ psa_status_t psa_set_key_domain_parameters( psa_key_attributes_t *attributes,
 
     attributes->domain_parameters = copy;
     attributes->domain_parameters_size = data_length;
-    attributes->type = type;
+    attributes->core.type = type;
     return( PSA_SUCCESS );
 }
 
@@ -1153,11 +1153,11 @@ exit:
 static void psa_get_key_slot_attributes( psa_key_slot_t *slot,
                                          psa_key_attributes_t *attributes )
 {
-    attributes->id = slot->persistent_storage_id;
-    attributes->lifetime = slot->lifetime;
-    attributes->policy = slot->policy;
-    attributes->type = slot->type;
-    attributes->bits = psa_get_key_slot_bits( slot );
+    attributes->core.id = slot->persistent_storage_id;
+    attributes->core.lifetime = slot->lifetime;
+    attributes->core.policy = slot->policy;
+    attributes->core.type = slot->type;
+    attributes->core.bits = psa_get_key_slot_bits( slot );
 }
 
 /** Retrieve all the publicly-accessible attributes of a key.
@@ -1454,21 +1454,21 @@ static psa_status_t psa_start_key_creation(
         return( status );
     slot = *p_slot;
 
-    status = psa_set_key_policy_internal( slot, &attributes->policy );
+    status = psa_set_key_policy_internal( slot, &attributes->core.policy );
     if( status != PSA_SUCCESS )
         return( status );
-    slot->lifetime = attributes->lifetime;
+    slot->lifetime = attributes->core.lifetime;
 
-    if( attributes->lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( attributes->core.lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        status = psa_validate_persistent_key_parameters( attributes->lifetime,
-                                                         attributes->id,
+        status = psa_validate_persistent_key_parameters( attributes->core.lifetime,
+                                                         attributes->core.id,
                                                          p_drv, 1 );
         if( status != PSA_SUCCESS )
             return( status );
-        slot->persistent_storage_id = attributes->id;
+        slot->persistent_storage_id = attributes->core.id;
     }
-    slot->type = attributes->type;
+    slot->type = attributes->core.type;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things:
@@ -1628,9 +1628,9 @@ static psa_status_t psa_check_key_slot_attributes(
     const psa_key_slot_t *slot,
     const psa_key_attributes_t *attributes )
 {
-    if( attributes->type != 0 )
+    if( attributes->core.type != 0 )
     {
-        if( attributes->type != slot->type )
+        if( attributes->core.type != slot->type )
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
@@ -1667,9 +1667,9 @@ static psa_status_t psa_check_key_slot_attributes(
         }
     }
 
-    if( attributes->bits != 0 )
+    if( attributes->core.bits != 0 )
     {
-        if( attributes->bits != psa_get_key_slot_bits( slot ) )
+        if( attributes->core.bits != psa_get_key_slot_bits( slot ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
@@ -1772,7 +1772,7 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_restrict_key_policy( &actual_attributes.policy,
+    status = psa_restrict_key_policy( &actual_attributes.core.policy,
                                       &source_slot->policy );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -4706,7 +4706,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     if( status == PSA_SUCCESS )
     {
         status = psa_generate_derived_key_internal( slot,
-                                                    attributes->bits,
+                                                    attributes->core.bits,
                                                     operation );
     }
     if( status == PSA_SUCCESS )
@@ -5744,7 +5744,7 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     if( status == PSA_SUCCESS )
     {
         status = psa_generate_key_internal(
-            slot, attributes->bits,
+            slot, attributes->core.bits,
             attributes->domain_parameters, attributes->domain_parameters_size );
     }
     if( status == PSA_SUCCESS )

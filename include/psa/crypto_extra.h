@@ -89,7 +89,7 @@ static inline void psa_set_key_enrollment_algorithm(
     psa_key_attributes_t *attributes,
     psa_algorithm_t alg2)
 {
-    attributes->policy.alg2 = alg2;
+    attributes->core.policy.alg2 = alg2;
 }
 
 /** Retrieve the enrollment algorithm policy from key attributes.
@@ -101,7 +101,7 @@ static inline void psa_set_key_enrollment_algorithm(
 static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
     const psa_key_attributes_t *attributes)
 {
-    return( attributes->policy.alg2 );
+    return( attributes->core.policy.alg2 );
 }
 
 /**@}*/

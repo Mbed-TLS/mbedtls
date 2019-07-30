@@ -1225,7 +1225,7 @@ void import( data_t *data, int type_arg,
     PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
     TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
     if( attr_bits != 0 )
-        TEST_EQUAL( attr_bits, got_attributes.bits );
+        TEST_EQUAL( attr_bits, psa_get_key_bits( &got_attributes ) );
 
     PSA_ASSERT( psa_destroy_key( handle ) );
     test_operations_on_invalid_handle( handle );

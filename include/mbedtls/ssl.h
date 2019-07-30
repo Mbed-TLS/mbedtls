@@ -1898,6 +1898,54 @@ void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout );
 #endif /* !MBEDTLS_SSL_CONF_READ_TIMEOUT */
 
+#if defined(MBEDTLS_SSL_RECORD_CHECKING)
+/**
+ * \brief          Check whether a buffer contains a valid, fresh
+ *                 and authentic record (DTLS only).
+ *
+ *                 This function does not change the user-visible state
+ *                 of the SSL context. Its sole purpose is to provide
+ *                 an indication of the legitimacy of an incoming record.
+ *
+ *                 This can be useful e.g. in distributed server environments
+ *                 using the DTLS Connection ID feature, in which connections
+ *                 might need to be passed between service instances on a change
+ *                 of peer address, but where such disruptive operations should
+ *                 only happen after the validity of incoming records has been
+ *                 confirmed.
+ *
+ * \param ssl      The SSL context to use.
+ * \param buf      The address of the buffer holding the record to be checked.
+ *                 This must be an R/W buffer of length \p buflen Bytes.
+ * \param buflen   The length of \p buf in Bytes.
+ *
+ * \note           This routine only checks whether the provided buffer begins
+ *                 with a valid, fresh and authentic record, but does not check
+ *                 potential data following the initial record. In particular,
+ *                 it is possible to pass DTLS datagrams containing multiple
+ *                 records, in which case only the first record is checked.
+ *
+ * \note           This function modifies the input buffer \p buf. If you need
+ *                 to preserve the original record, you have to maintain a copy.
+ *
+ * \return         \c 0 if the record is valid, fresh and authentic.
+ * \return         MBEDTLS_ERR_SSL_INVALID_MAC if the check completed
+ *                 successfully but the record was found to be not authentic.
+ * \return         MBEDTLS_ERR_SSL_INVALID_RECORD if the check completed
+ *                 successfully but the record was found to be invalid for
+ *                 a reason different from authenticity checking.
+ * \return         MBEDTLS_ERR_SSL_UNEXPECTED_RECORD if the check completed
+ *                 successfully but the record was found to be unexpected
+ *                 in the state of the SSL context, including replayed records.
+ * \return         Another negative error code on different kinds of failure.
+ *                 In this case, the SSL context becomes unusable and needs
+ *                 to be freed or reset before reuse.
+ */
+int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
+                              unsigned char *buf,
+                              size_t buflen );
+#endif /* MBEDTLS_SSL_RECORD_CHECKING */
+
 #if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
     !defined(MBEDTLS_SSL_CONF_GET_TIMER)
 /**

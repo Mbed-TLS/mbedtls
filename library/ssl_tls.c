@@ -122,6 +122,18 @@ static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
                                      mbedtls_ssl_transform *transform );
 static void ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
+#if defined(MBEDTLS_SSL_RECORD_CHECKING)
+int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
+                              unsigned char *buf,
+                              size_t buflen )
+{
+    ((void) ssl);
+    ((void) buf);
+    ((void) buflen);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+#endif /* MBEDTLS_SSL_RECORD_CHECKING */
+
 #define SSL_DONT_FORCE_FLUSH 0
 #define SSL_FORCE_FLUSH      1
 

@@ -40,6 +40,7 @@
  * stored keys. */
 #include "psa_crypto_storage.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "mbedtls/platform.h"
@@ -695,6 +696,40 @@ exit:
 }
 #endif /* defined(MBEDTLS_ECP_C) */
 
+
+/** Return the size of the key in the given slot, in bits.
+ *
+ * \param[in] slot      A key slot.
+ *
+ * \return The key size in bits, read from the metadata in the slot.
+ */
+static inline size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
+{
+    return( slot->attr.bits );
+}
+
+/** Calculate the size of the key in the given slot, in bits.
+ *
+ * \param[in] slot      A key slot containing a transparent key.
+ *
+ * \return The key size in bits, calculated from the key data.
+ */
+static size_t psa_calculate_key_bits( const psa_key_slot_t *slot )
+{
+    if( key_type_is_raw_bytes( slot->attr.type ) )
+        return( slot->data.raw.bytes * 8 );
+#if defined(MBEDTLS_RSA_C)
+    if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
+        return( PSA_BYTES_TO_BITS( mbedtls_rsa_get_len( slot->data.rsa ) ) );
+#endif /* defined(MBEDTLS_RSA_C) */
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+        return( slot->data.ecp->grp.pbits );
+#endif /* defined(MBEDTLS_ECP_C) */
+    /* Shouldn't happen except on an empty slot. */
+    return( 0 );
+}
+
 /** Import key data into a slot. `slot->attr.type` must have been set
  * previously. This function assumes that the slot does not contain
  * any key material yet. On failure, the slot content is unchanged. */
@@ -748,6 +783,14 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 #endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    if( status == PSA_SUCCESS )
+    {
+        /* Write the actual key size to the slot.
+         * psa_start_key_creation() wrote the size declared by the
+         * caller, which may be 0 (meaning unspecified) or wrong. */
+        slot->attr.bits = psa_calculate_key_bits( slot );
     }
     return( status );
 }
@@ -1035,28 +1078,6 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
     return( storage_status );
 }
 
-/* Return the size of the key in the given slot, in bits. */
-static size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
-{
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_get_se_driver( slot->attr.lifetime, NULL, NULL ) )
-        return( slot->data.se.bits );
-#endif /* defined(MBEDTLS_PSA_CRYPTO_SE_C) */
-
-    if( key_type_is_raw_bytes( slot->attr.type ) )
-        return( slot->data.raw.bytes * 8 );
-#if defined(MBEDTLS_RSA_C)
-    if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
-        return( PSA_BYTES_TO_BITS( mbedtls_rsa_get_len( slot->data.rsa ) ) );
-#endif /* defined(MBEDTLS_RSA_C) */
-#if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
-        return( slot->data.ecp->grp.pbits );
-#endif /* defined(MBEDTLS_ECP_C) */
-    /* Shouldn't happen except on an empty slot. */
-    return( 0 );
-}
-
 void psa_reset_key_attributes( psa_key_attributes_t *attributes )
 {
     mbedtls_free( attributes->domain_parameters );
@@ -1160,7 +1181,7 @@ static void psa_get_key_slot_attributes( psa_key_slot_t *slot,
     attributes->core.lifetime = slot->attr.lifetime;
     attributes->core.policy = slot->attr.policy;
     attributes->core.type = slot->attr.type;
-    attributes->core.bits = psa_get_key_slot_bits( slot );
+    attributes->core.bits = slot->attr.bits;
 }
 
 /** Retrieve all the publicly-accessible attributes of a key.
@@ -1270,7 +1291,7 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
     {
         psa_status_t status;
 
-        size_t bytes = PSA_BITS_TO_BYTES( psa_get_key_slot_bits( slot ) );
+        size_t bytes = PSA_BITS_TO_BYTES( slot->attr.bits );
         if( bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
         status = mbedtls_to_psa_error(
@@ -1479,6 +1500,12 @@ static psa_status_t psa_start_key_creation(
      * psa_import_key() needs its own checks. */
     if( psa_get_key_bits( attributes ) > PSA_MAX_KEY_BITS )
         return( PSA_ERROR_NOT_SUPPORTED );
+    /* Store the declared bit-size of the key. It's up to each creation
+     * mechanism to verify that this information is correct. It's
+     * automatically correct for mechanisms that use the bit-size as
+     * an input (generate, device) but not for those where the bit-size
+     * is optional (import, copy). */
+    slot->attr.bits = psa_get_key_bits( attributes );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things:
@@ -1510,10 +1537,6 @@ static psa_status_t psa_start_key_creation(
             (void) psa_crypto_stop_transaction( );
             return( status );
         }
-
-        /* TOnogrepDO: validate bits. How to do this depends on the key
-         * creation method, so setting bits might not belong here. */
-        slot->data.se.bits = psa_get_key_bits( attributes );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
@@ -1554,9 +1577,21 @@ static psa_status_t psa_finish_key_creation(
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         if( driver != NULL )
         {
+            psa_se_key_data_storage_t data;
+#if defined(static_assert)
+            static_assert( sizeof( slot->data.se.slot_number ) ==
+                           sizeof( data.slot_number ),
+                           "Slot number size does not match psa_se_key_data_storage_t" );
+            static_assert( sizeof( slot->attr.bits ) == sizeof( data.bits ),
+                           "Bit-size size does not match psa_se_key_data_storage_t" );
+#endif
+            memcpy( &data.slot_number, &slot->data.se.slot_number,
+                    sizeof( slot->data.se.slot_number ) );
+            memcpy( &data.bits, &slot->attr.bits,
+                    sizeof( slot->attr.bits ) );
             status = psa_save_persistent_key( &attributes.core,
-                                              (uint8_t*) &slot->data.se,
-                                              sizeof( slot->data.se ) );
+                                              (uint8_t*) &data,
+                                              sizeof( data ) );
         }
         else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -1680,7 +1715,7 @@ static psa_status_t psa_check_key_slot_attributes(
 
     if( attributes->core.bits != 0 )
     {
-        if( attributes->core.bits != psa_get_key_slot_bits( slot ) )
+        if( attributes->core.bits != slot->attr.bits )
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
@@ -1704,6 +1739,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     if( driver != NULL )
     {
         const psa_drv_se_t *drv = psa_get_se_driver_methods( driver );
+        size_t bits;
         if( drv->key_management == NULL ||
             drv->key_management->p_import == NULL )
         {
@@ -1716,7 +1752,15 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
             slot->attr.lifetime, slot->attr.type,
             slot->attr.policy.alg, slot->attr.policy.usage,
             data, data_length,
-            &slot->data.se.bits );
+            &bits );
+        if( status != PSA_SUCCESS )
+            goto exit;
+        if( bits > PSA_MAX_KEY_BITS )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+        slot->attr.bits = (psa_key_bits_t) bits;
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */

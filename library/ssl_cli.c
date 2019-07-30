@@ -3229,7 +3229,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
     {
         psa_status_t status;
-        psa_key_policy_t policy;
+        psa_key_attributes_t attributes;
 
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
@@ -3262,19 +3262,18 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          * yet support the provisioning of salt + label to the KDF.
          * For the time being, we therefore need to split the computation
          * of the ECDH secret and the application of the TLS 1.2 PRF. */
-        policy = psa_key_policy_init();
-        psa_key_policy_set_usage( &policy,
-                                  PSA_KEY_USAGE_DERIVE,
-                                  PSA_ALG_ECDH( PSA_ALG_SELECT_RAW ) );
-        status = psa_set_key_policy( handshake->ecdh_psa_privkey, &policy );
-        if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        attributes = psa_key_attributes_init();
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+        psa_set_key_algorithm( &attributes,
+                               PSA_ALG_ECDH( PSA_ALG_SELECT_RAW ) );
+        psa_set_key_type( &attributes,
+                          PSA_KEY_TYPE_ECC_KEY_PAIR( handshake->ecdh_psa_curve )
+                        );
+        psa_set_key_bits( &key_attributes,
+                          PSA_ECC_CURVE_BITS( handshake->ecdh_psa_curve ) );
 
         /* Generate ECDH private key. */
-        status = psa_generate_key( handshake->ecdh_psa_privkey,
-                          PSA_KEY_TYPE_ECC_KEY_PAIR( handshake->ecdh_psa_curve ),
-                          MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE( handshake->ecdh_psa_curve ),
-                          NULL, 0 );
+        status = psa_generate_key( &attributes, handshake->ecdh_psa_privkey );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 

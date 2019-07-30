@@ -96,16 +96,13 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void save_large_persistent_key( int data_too_large, int expected_status )
+void save_large_persistent_key( int data_length_arg, int expected_status )
 {
     psa_key_id_t key_id = 42;
     psa_key_handle_t handle = 0;
     uint8_t *data = NULL;
-    size_t data_length = PSA_CRYPTO_MAX_STORAGE_SIZE;
+    size_t data_length = data_length_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-
-    if( data_too_large )
-        data_length += 1;
 
     ASSERT_ALLOC( data, data_length );
 

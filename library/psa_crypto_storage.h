@@ -35,9 +35,14 @@ extern "C" {
 #include <stdint.h>
 #include <string.h>
 
-/* Limit the maximum key size to 30kB (just in case someone tries to
- * inadvertently store an obscene amount of data) */
-#define PSA_CRYPTO_MAX_STORAGE_SIZE ( 30 * 1024 )
+/* Limit the maximum key size in storage. This should have no effect
+ * since the key size is limited in memory. */
+#define PSA_CRYPTO_MAX_STORAGE_SIZE ( PSA_BITS_TO_BYTES( PSA_MAX_KEY_BITS ) )
+/* Sanity check: a file size must fit in 32 bits. Allow a generous
+ * 64kB of metadata. */
+#if PSA_CRYPTO_MAX_STORAGE_SIZE > 0xffff0000
+#error PSA_CRYPTO_MAX_STORAGE_SIZE > 0xffff0000
+#endif
 
 /** The maximum permitted persistent slot number.
  *

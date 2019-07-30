@@ -309,6 +309,12 @@ static inline struct psa_key_policy_s psa_key_policy_init( void )
     return( v );
 }
 
+/* The maximum size of a key in bits.
+ * This is a whole number of bytes, to facilitate some calculations
+ * such as the maximum size of key data in storage.
+ */
+#define PSA_MAX_KEY_BITS 0xfff8
+
 typedef struct
 {
     psa_key_type_t type;

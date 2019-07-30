@@ -706,11 +706,14 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 
     if( key_type_is_raw_bytes( slot->type ) )
     {
-        /* Ensure that a bytes-to-bit conversion won't overflow. */
+        size_t bit_size = PSA_BYTES_TO_BITS( data_length );
+        /* Ensure that the bytes-to-bit conversion doesn't overflow. */
         if( data_length > SIZE_MAX / 8 )
             return( PSA_ERROR_NOT_SUPPORTED );
-        status = prepare_raw_data_slot( slot->type,
-                                        PSA_BYTES_TO_BITS( data_length ),
+        /* Ensure that the key is not overly large. */
+        if( bit_size > PSA_MAX_KEY_BITS )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        status = prepare_raw_data_slot( slot->type, bit_size,
                                         &slot->data.raw );
         if( status != PSA_SUCCESS )
             return( status );
@@ -1469,6 +1472,13 @@ static psa_status_t psa_start_key_creation(
         slot->persistent_storage_id = attributes->core.id;
     }
     slot->type = attributes->core.type;
+
+    /* Refuse to create overly large keys.
+     * Note that this doesn't trigger on import if the attributes don't
+     * explicitly specify a size (so psa_get_key_bits returns 0), so
+     * psa_import_key() needs its own checks. */
+    if( psa_get_key_bits( attributes ) > PSA_MAX_KEY_BITS )
+        return( PSA_ERROR_NOT_SUPPORTED );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things:

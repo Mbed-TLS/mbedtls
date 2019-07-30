@@ -3315,9 +3315,9 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         ssl->handshake->pmslen =
             MBEDTLS_PSA_ECC_KEY_BYTES_OF_CURVE( handshake->ecdh_psa_curve );
 
-        status = psa_generator_read( &generator,
-                                     ssl->handshake->premaster,
-                                     ssl->handshake->pmslen );
+        status = psa_key_derivation_output_bytes( &generator,
+                                                  ssl->handshake->premaster,
+                                                  ssl->handshake->pmslen );
         if( status != PSA_SUCCESS )
         {
             psa_generator_abort( &generator );

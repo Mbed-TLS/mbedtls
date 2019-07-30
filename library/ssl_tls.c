@@ -668,7 +668,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
 
-    status = psa_generator_read( &generator, dstbuf, dlen );
+    status = psa_key_derivation_output_bytes( &generator, dstbuf, dlen );
     if( status != PSA_SUCCESS )
     {
         psa_generator_abort( &generator );
@@ -1135,8 +1135,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
             }
 
-            status = psa_generator_read( &generator, session->master,
-                                         master_secret_len );
+            status = psa_key_derivation_output_bytes( &generator,
+                                                      session->master,
+                                                      master_secret_len );
             if( status != PSA_SUCCESS )
             {
                 psa_generator_abort( &generator );

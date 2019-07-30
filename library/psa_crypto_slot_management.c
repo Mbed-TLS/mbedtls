@@ -120,37 +120,31 @@ psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle,
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *p_slot )
+static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = PSA_SUCCESS;
     uint8_t *key_data = NULL;
     size_t key_data_length = 0;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    psa_set_key_id( &attributes, p_slot->attr.id );
-    status = psa_load_persistent_key( &attributes.core,
+    status = psa_load_persistent_key( &slot->attr,
                                       &key_data, &key_data_length );
     if( status != PSA_SUCCESS )
         goto exit;
-    p_slot->attr.lifetime = psa_get_key_lifetime( &attributes );
-    p_slot->attr.type = psa_get_key_type( &attributes );
-    p_slot->attr.policy = attributes.core.policy;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_key_lifetime_is_external( p_slot->attr.lifetime ) )
+    if( psa_key_lifetime_is_external( slot->attr.lifetime ) )
     {
-        if( key_data_length != sizeof( p_slot->data.se ) )
+        if( key_data_length != sizeof( slot->data.se ) )
         {
             status = PSA_ERROR_STORAGE_FAILURE;
             goto exit;
         }
-        memcpy( &p_slot->data.se, key_data, sizeof( p_slot->data.se ) );
+        memcpy( &slot->data.se, key_data, sizeof( slot->data.se ) );
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     {
-        status = psa_import_key_into_slot( p_slot,
-                                           key_data, key_data_length );
+        status = psa_import_key_into_slot( slot, key_data, key_data_length );
     }
 
 exit:

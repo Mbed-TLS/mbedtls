@@ -1554,7 +1554,7 @@ static psa_status_t psa_finish_key_creation(
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         if( driver != NULL )
         {
-            status = psa_save_persistent_key( &attributes,
+            status = psa_save_persistent_key( &attributes.core,
                                               (uint8_t*) &slot->data.se,
                                               sizeof( slot->data.se ) );
         }
@@ -1572,7 +1572,8 @@ static psa_status_t psa_finish_key_creation(
                                               buffer, buffer_size, &length,
                                               0 );
             if( status == PSA_SUCCESS )
-                status = psa_save_persistent_key( &attributes, buffer, length );
+                status = psa_save_persistent_key( &attributes.core,
+                                                  buffer, length );
 
             if( buffer_size != 0 )
                 mbedtls_platform_zeroize( buffer, buffer_size );

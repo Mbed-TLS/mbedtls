@@ -128,7 +128,7 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *p_slot )
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     psa_set_key_id( &attributes, p_slot->attr.id );
-    status = psa_load_persistent_key( &attributes,
+    status = psa_load_persistent_key( &attributes.core,
                                       &key_data, &key_data_length );
     if( status != PSA_SUCCESS )
         goto exit;

@@ -3238,7 +3238,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         unsigned char *own_pubkey_ecpoint;
         size_t own_pubkey_ecpoint_len;
 
-        psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+        psa_key_derivation_operation_t generator =
+            PSA_KEY_DERIVATION_OPERATION_INIT;
 
         header_len = 4;
 

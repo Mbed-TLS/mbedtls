@@ -632,7 +632,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     psa_algorithm_t alg;
     psa_key_policy_t policy;
     psa_key_handle_t master_slot;
-    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_crypto_generator_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
 
     if( ( status = psa_allocate_key( &master_slot ) ) != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
@@ -1108,7 +1108,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             /* Perform PSK-to-MS expansion in a single step. */
             psa_status_t status;
             psa_algorithm_t alg;
-            psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+            psa_crypto_generator_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
             psa_key_handle_t psk;
 
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "perform PSA-based PSK-to-MS expansion" ) );

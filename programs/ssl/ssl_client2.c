@@ -524,9 +524,6 @@ static int delayed_send( void *ctx, const unsigned char *buf, size_t len )
         first_try = 1; /* Next call will be a new operation */
     return( ret );
 }
-#endif /* MBEDTLS_SSL_CONF_RECV &&
-          MBEDTLS_SSL_CONF_SEND &&
-          MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
 typedef struct
 {
@@ -658,6 +655,9 @@ static int send_cb( void *ctx, unsigned char const *buf, size_t len )
 
     return( mbedtls_net_send( io_ctx->net, buf, len ) );
 }
+#endif /* !MBEDTLS_SSL_CONF_RECV &&
+          !MBEDTLS_SSL_CONF_SEND &&
+          !MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static unsigned char peer_crt_info[1024];
@@ -893,7 +893,11 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, len, tail_len, i, written, frags, retry_left;
     mbedtls_net_context server_fd;
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
     io_ctx_t io_ctx;
+#endif
 
     unsigned char buf[MAX_REQUEST_SIZE + 1];
 

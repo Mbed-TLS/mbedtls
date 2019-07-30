@@ -2972,10 +2972,10 @@ check_signature:
 #if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
             if( !mbedtls_x509_time_is_past( &parent->valid_to ) &&
                 !mbedtls_x509_time_is_future( &parent->valid_from ) )
+#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
             {
                 parent_valid = 1;
             }
-#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
 
             /* basic parenting skills (name, CA bit, key usage) */
             if( x509_crt_check_parent( child_sig, parent, top ) == 0 )

@@ -663,7 +663,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
                                  dlen );
     if( status != PSA_SUCCESS )
     {
-        psa_generator_abort( &generator );
+        psa_key_derivation_abort( &generator );
         psa_destroy_key( master_slot );
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
@@ -671,12 +671,12 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     status = psa_key_derivation_output_bytes( &generator, dstbuf, dlen );
     if( status != PSA_SUCCESS )
     {
-        psa_generator_abort( &generator );
+        psa_key_derivation_abort( &generator );
         psa_destroy_key( master_slot );
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
 
-    status = psa_generator_abort( &generator );
+    status = psa_key_derivation_abort( &generator );
     if( status != PSA_SUCCESS )
     {
         psa_destroy_key( master_slot );
@@ -1131,7 +1131,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                          master_secret_len );
             if( status != PSA_SUCCESS )
             {
-                psa_generator_abort( &generator );
+                psa_key_derivation_abort( &generator );
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
             }
 
@@ -1140,11 +1140,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                                       master_secret_len );
             if( status != PSA_SUCCESS )
             {
-                psa_generator_abort( &generator );
+                psa_key_derivation_abort( &generator );
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
             }
 
-            status = psa_generator_abort( &generator );
+            status = psa_key_derivation_abort( &generator );
             if( status != PSA_SUCCESS )
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }

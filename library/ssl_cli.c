@@ -3320,11 +3320,11 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
                                                   ssl->handshake->pmslen );
         if( status != PSA_SUCCESS )
         {
-            psa_generator_abort( &generator );
+            psa_key_derivation_abort( &generator );
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
 
-        status = psa_generator_abort( &generator );
+        status = psa_key_derivation_abort( &generator );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 

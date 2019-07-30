@@ -743,11 +743,8 @@ static int x509_skip_dates( unsigned char **p,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         return( MBEDTLS_ERR_X509_INVALID_DATE + ret );
 
-    end = *p + len;
-
-    if( *p != end )
-        return( MBEDTLS_ERR_X509_INVALID_DATE +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+    /* skip contents of the sequence */
+    *p += len;
 
     return( 0 );
 }

@@ -114,9 +114,9 @@ $(BINARIES): %$(EXEXT): %.c $(DEP)
 
 clean:
 ifndef WINDOWS
-	rm -rf $(BINARIES) *.c *.datax TESTS
+	rm -rf $(BINARIES) *.c *.su *.datax TESTS
 else
-	del /Q /F *.c *.exe *.datax
+	del /Q /F *.c *.su *.exe *.datax
 ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
 endif

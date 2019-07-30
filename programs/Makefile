@@ -298,8 +298,9 @@ ifndef WINDOWS
 	rm -f $(APPS)
 	-rm -f ssl/ssl_pthread_server$(EXEXT)
 	-rm -f test/cpp_dummy_build$(EXEXT)
+	-rm -f *.su
 else
-	del /S /Q /F *.o *.exe
+	del /S /Q /F *.o *.su *.exe
 endif
 
 list:

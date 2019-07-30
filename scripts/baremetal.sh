@@ -214,6 +214,9 @@ baremetal_ram_build() {
     make clean
 
     CFLAGS="$BASE_CFLAGS $CFLAGS_CONFIG $CFLAGS_USER_CONFIG"
+    if [ "$build_only" -eq 1 ]; then
+        CFLAGS="$CFLAGS -Werror"
+    fi
 
     echo "Modifications: $BAREMETAL_USER_CONFIG"
     cat $BAREMETAL_USER_CONFIG | grep "^#define" | awk '{print "* " $0 }'
@@ -352,7 +355,7 @@ measure_heap=0
 measure_stack=0
 
 check=0
-
+build_only=0
 debug=0
 
 while [ $# -gt 0 ]; do

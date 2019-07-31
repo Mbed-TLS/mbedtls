@@ -2,8 +2,8 @@
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 
 CFLAGS	?= -O2
-WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement
-WARNING_CXXFLAGS ?= -Wall -W
+WARNING_CFLAGS ?= -Wall -Wextra
+WARNING_CXXFLAGS ?= -Wall -Wextra
 LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
@@ -244,6 +244,7 @@ psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
 clean:
 ifndef WINDOWS
 	rm -f $(APPS) $(EXTRA_GENERATED)
+	-rm -f test/cpp_dummy_build$(EXEXT)
 else
 	if exist *.o del /S /Q /F *.o
 	if exist *.exe del /S /Q /F *.exe

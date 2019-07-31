@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-static const char *features[] = {
+static const char * const features[] = {
 #if defined(MBEDTLS_VERSION_FEATURES)
 #if defined(MBEDTLS_HAVE_ASM)
     "MBEDTLS_HAVE_ASM",
@@ -90,6 +90,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CHECK_PARAMS)
     "MBEDTLS_CHECK_PARAMS",
 #endif /* MBEDTLS_CHECK_PARAMS */
+#if defined(MBEDTLS_CHECK_PARAMS_ASSERT)
+    "MBEDTLS_CHECK_PARAMS_ASSERT",
+#endif /* MBEDTLS_CHECK_PARAMS_ASSERT */
 #if defined(MBEDTLS_TIMING_ALT)
     "MBEDTLS_TIMING_ALT",
 #endif /* MBEDTLS_TIMING_ALT */
@@ -594,7 +597,7 @@ static const char *features[] = {
 
 int mbedtls_version_check_feature( const char *feature )
 {
-    const char **idx = features;
+    const char * const *idx = features;
 
     if( *idx == NULL )
         return( -2 );

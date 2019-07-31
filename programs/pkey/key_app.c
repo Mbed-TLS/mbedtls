@@ -64,7 +64,6 @@
     "    password_file=%%s    default: \"\"\n"          \
     "\n"
 
-
 #if !defined(MBEDTLS_BIGNUM_C) ||                                  \
     !defined(MBEDTLS_PK_PARSE_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
@@ -75,17 +74,6 @@ int main( void )
 }
 #else
 
-#if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
-void mbedtls_param_failed( const char *failure_condition,
-                           const char *file,
-                           int line )
-{
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
-                    file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-}
-#endif
 
 /*
  * global options

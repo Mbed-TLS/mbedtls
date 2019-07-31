@@ -9849,8 +9849,7 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
  *  opaque session_struct[n];       // n = sizeof(mbedtls_ssl_session)
  *  select (MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) {
  *      case enabled:  opaque peer_cert<0..2^24-1>; // length 0 means no cert
- *      case disabled: uint8_t peer_cert_digest_type;
- *                     opaque peer_cert_digest<0..2^8-1>;
+ *      case disabled: opaque peer_cert_digest<0..2^8-1>;
  *  }
  *  opaque ticket<0..2^24-1>;       // 0 means no ticket
  *
@@ -9910,7 +9909,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
         }
     }
 #else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    if( session->peer_cert_digest != NULL )
+    if( session->peer_cert_digest == NULL )
         cert_digest_len = 0;
     else
         cert_digest_len = session->peer_cert_digest_len;

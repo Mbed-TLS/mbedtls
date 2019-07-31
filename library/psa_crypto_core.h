@@ -64,9 +64,19 @@ typedef struct
     } data;
 } psa_key_slot_t;
 
-/** Flag for psa_key_slot_t::attr::core::flags indicating that the
- * slot is in use. */
-#define PSA_KEY_SLOT_FLAG_ALLOCATED ( (uint16_t) 0x0001 )
+/** Test whether a key slot is occupied.
+ *
+ * A key slot is occupied iff the key type is nonzero. This works because
+ * no valid key can have 0 as its key type.
+ *
+ * \param[in] slot      The key slot to test.
+ *
+ * \return 1 if the slot is occupied, 0 otherwise.
+ */
+static inline int psa_is_key_slot_occupied( const psa_key_slot_t *slot )
+{
+    return( slot->attr.type != 0 );
+}
 
 /** Retrieve flags from psa_key_slot_t::attr::core::flags.
  *

@@ -74,8 +74,8 @@ psa_status_t psa_get_key_slot( psa_key_handle_t handle,
         return( PSA_ERROR_INVALID_HANDLE );
     slot = &global_data.key_slots[handle - 1];
 
-    /* If the slot hasn't been allocated, the handle is invalid. */
-    if( ! psa_key_slot_get_flags( slot, PSA_KEY_SLOT_FLAG_ALLOCATED ) )
+    /* If the slot isn't occupied, the handle is invalid. */
+    if( ! psa_is_key_slot_occupied( slot ) )
         return( PSA_ERROR_INVALID_HANDLE );
 
     *p_slot = slot;
@@ -111,12 +111,8 @@ psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle,
     for( *handle = PSA_KEY_SLOT_COUNT; *handle != 0; --( *handle ) )
     {
         *p_slot = &global_data.key_slots[*handle - 1];
-        if( ! psa_key_slot_get_flags( *p_slot, PSA_KEY_SLOT_FLAG_ALLOCATED ) )
-        {
-            psa_key_slot_set_bits_in_flags( *p_slot,
-                                            PSA_KEY_SLOT_FLAG_ALLOCATED );
+        if( ! psa_is_key_slot_occupied( *p_slot ) )
             return( PSA_SUCCESS );
-        }
     }
     *p_slot = NULL;
     return( PSA_ERROR_INSUFFICIENT_MEMORY );
@@ -272,13 +268,10 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
     memset( stats, 0, sizeof( *stats ) );
     for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
     {
-        psa_key_slot_t *slot = &global_data.key_slots[key - 1];
-        if( slot->attr.type == PSA_KEY_TYPE_NONE )
+        const psa_key_slot_t *slot = &global_data.key_slots[key - 1];
+        if( ! psa_is_key_slot_occupied( slot ) )
         {
-            if( psa_key_slot_get_flags( slot, PSA_KEY_SLOT_FLAG_ALLOCATED ) )
-                ++stats->half_filled_slots;
-            else
-                ++stats->empty_slots;
+            ++stats->empty_slots;
             continue;
         }
         if( slot->attr.lifetime == PSA_KEY_LIFETIME_VOLATILE )

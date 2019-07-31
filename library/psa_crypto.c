@@ -897,8 +897,6 @@ static psa_status_t psa_get_key_from_slot( psa_key_handle_t handle,
     status = psa_get_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
-    if( slot->attr.type == PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_DOES_NOT_EXIST );
 
     /* Enforce that usage policy for the key slot contains all the flags
      * required by the usage parameter. There is one exception: public
@@ -1488,9 +1486,6 @@ static psa_status_t psa_start_key_creation(
      * is optional (import, copy). */
 
     slot->attr = attributes->core;
-    /* This is awkward... Copying the attributes has overwritten the
-     * flag that marks this slot as used. Restore it. */
-    psa_key_slot_set_bits_in_flags( slot, PSA_KEY_SLOT_FLAG_ALLOCATED );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things:

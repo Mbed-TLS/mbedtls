@@ -826,7 +826,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # slow and makes ASan mostly ineffective
     scripts/config.pl set MBEDTLS_ECP_RESTARTABLE  # not using PSA, so enable restartable ECC
-    scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C

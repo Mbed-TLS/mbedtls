@@ -33,13 +33,13 @@
 #define MBEDTLS_ECDSA_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "ecp.h"
-#include "md.h"
+#include "mbedtls/ecp.h"
+#include "mbedtls/md.h"
 
 /**
  * \brief           Maximum ECDSA signature size for a given curve bit size

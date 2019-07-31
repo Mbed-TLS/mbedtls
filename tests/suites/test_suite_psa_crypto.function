@@ -712,9 +712,9 @@ exit:
     return( ok );
 }
 
-static int asn1_skip_integer( unsigned char **p, const unsigned char *end,
-                              size_t min_bits, size_t max_bits,
-                              int must_be_odd )
+int asn1_skip_integer( unsigned char **p, const unsigned char *end,
+                       size_t min_bits, size_t max_bits,
+                       int must_be_odd )
 {
     size_t len;
     size_t actual_bits;
@@ -839,10 +839,10 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
     {
         uint8_t *p = exported;
         uint8_t *end = exported + exported_length;
-        size_t len;
 #if defined(MBEDTLS_RSA_C)
         if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
         {
+            size_t len;
             /*   RSAPublicKey ::= SEQUENCE {
              *      modulus            INTEGER,    -- n
              *      publicExponent     INTEGER  }  -- e

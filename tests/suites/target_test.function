@@ -13,11 +13,11 @@
  */
 #define INCR_ASSERT(p, start, len, step) do                     \
 {                                                               \
-    assert( ( p ) >= ( start ) );                               \
-    assert( sizeof( *( p ) ) == sizeof( *( start ) ) );         \
+    TEST_HELPER_ASSERT( ( p ) >= ( start ) );                               \
+    TEST_HELPER_ASSERT( sizeof( *( p ) ) == sizeof( *( start ) ) );         \
     /* <= is checked to support use inside a loop where         \
        pointer is incremented after reading data.       */      \
-    assert( (uint32_t)( ( ( p ) - ( start ) ) + ( step ) ) <= ( len ) );\
+    TEST_HELPER_ASSERT( (uint32_t)( ( ( p ) - ( start ) ) + ( step ) ) <= ( len ) );\
     ( p ) += ( step );                                          \
 }                                                               \
 while( 0 )
@@ -59,10 +59,29 @@ int verify_dependencies( uint8_t count, uint8_t * dep_p )
     return( DEPENDENCY_SUPPORTED );
 }
 
+/**
+ * \brief       Receives hex string on serial interface, and converts to a byte.
+ *
+ * \param none
+ *
+ * \return      unsigned int8
+ */
+uint8_t receive_byte()
+{
+    uint8_t byte;
+    uint8_t c[3];
+    char *endptr;
+    c[0] = greentea_getc();
+    c[1] = greentea_getc();
+    c[2] = '\0';
+
+    assert( unhexify( &byte, c ) != 2 );
+    return( byte );
+}
 
 /**
  * \brief       Receives unsigned integer on serial interface.
- *              Integers are encoded in network order.
+ *              Integers are encoded in network order, and sent as hex ascii string.
  *
  * \param none
  *
@@ -71,10 +90,17 @@ int verify_dependencies( uint8_t count, uint8_t * dep_p )
 uint32_t receive_uint32()
 {
     uint32_t value;
-    value =  (uint8_t)greentea_getc() << 24;
-    value |= (uint8_t)greentea_getc() << 16;
-    value |= (uint8_t)greentea_getc() << 8;
-    value |= (uint8_t)greentea_getc();
+    const uint8_t c[9] = { greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           greentea_getc(),
+                           '\0'
+                         };
+    assert( unhexify( &value, c ) != 8 );
     return( (uint32_t)value );
 }
 
@@ -127,12 +153,12 @@ uint8_t * receive_data( uint32_t * data_len )
     /* Read data length */
     *data_len = receive_uint32();
     data = (uint8_t *)malloc( *data_len );
-    assert( data != NULL );
+    TEST_HELPER_ASSERT( data != NULL );
 
     greentea_getc(); // read ';' received after key i.e. *data_len
 
     for( i = 0; i < *data_len; i++ )
-        data[i] = greentea_getc();
+        data[i] = receive_byte();
 
     /* Read closing braces */
     for( i = 0; i < 2; i++ )
@@ -221,7 +247,7 @@ void ** parse_parameters( uint8_t count, uint8_t * data, uint32_t data_len,
     hex_count = find_hex_count(count, data, data_len);
 
     params = (void **)malloc( sizeof( void *) * ( count + hex_count ) );
-    assert( params != NULL );
+    TEST_HELPER_ASSERT( params != NULL );
     cur = params;
 
     p = data;
@@ -360,7 +386,7 @@ int execute_tests( int args, const char ** argv )
         {
             /* Read dependency count */
             count = *p;
-            assert( count < data_len );
+            TEST_HELPER_ASSERT( count < data_len );
             INCR_ASSERT( p, data, data_len, sizeof( uint8_t ) );
             ret = verify_dependencies( count, p );
             if ( ret != DEPENDENCY_SUPPORTED )

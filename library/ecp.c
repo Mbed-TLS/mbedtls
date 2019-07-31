@@ -2004,8 +2004,10 @@ static unsigned char ecp_pick_window_size( const mbedtls_ecp_group *grp,
      * Make sure w is within bounds.
      * (The last test is useful only for very small curves in the test suite.)
      */
+#if( MBEDTLS_ECP_WINDOW_SIZE < 6 )
     if( w > MBEDTLS_ECP_WINDOW_SIZE )
         w = MBEDTLS_ECP_WINDOW_SIZE;
+#endif
     if( w >= grp->nbits )
         w = 2;
 

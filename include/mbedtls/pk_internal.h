@@ -26,12 +26,12 @@
 #define MBEDTLS_PK_WRAP_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "pk.h"
+#include "mbedtls/pk.h"
 
 struct mbedtls_pk_info_t
 {

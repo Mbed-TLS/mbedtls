@@ -2,6 +2,13 @@ set(libs
     mbedcrypto
 )
 
+# Set the project root directory if it's not already defined, as may happen if
+# the tests folder is included directly by a parent project, without including
+# the top level CMakeLists.txt.
+if(NOT DEFINED MBEDTLS_DIR)
+    set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
+endif()
+
 find_package(Perl)
 if(NOT PERL_FOUND)
     message(FATAL_ERROR "Cannot build test suites without Perl")
@@ -43,9 +50,9 @@ function(add_test_suite suite_name)
     add_executable(${exe_name} test_suite_${data_name}.c)
     target_link_libraries(${exe_name} ${libs})
     target_include_directories(${exe_name}
-        PUBLIC ${CMAKE_SOURCE_DIR}/include/
-        PUBLIC ${CMAKE_SOURCE_DIR}/crypto/include/
-        PRIVATE ${CMAKE_SOURCE_DIR}/crypto/library/)
+        PUBLIC ${MBEDTLS_DIR}/include/
+        PUBLIC ${MBEDTLS_DIR}/crypto/include/
+        PUBLIC ${MBEDTLS_DIR}/crypto/library/)
 
     if(${data_name} MATCHES ${SKIP_TEST_SUITES_REGEX})
         message(STATUS "The test suite ${data_name} will not be executed.")

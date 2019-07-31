@@ -34,13 +34,13 @@
 #define MBEDTLS_PLATFORM_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
-#include "platform_time.h"
+#include "mbedtls/platform_time.h"
 #endif
 
 #define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED     -0x0070 /**< Hardware accelerator failed */
@@ -256,6 +256,7 @@ int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
  *   the destination buffer is too short.
  */
 #if defined(MBEDTLS_PLATFORM_HAS_NON_CONFORMING_VSNPRINTF)
+#include <stdarg.h>
 /* For Older Windows (inc. MSYS2), we provide our own fixed implementation */
 int mbedtls_platform_win32_vsnprintf( char *s, size_t n, const char *fmt, va_list arg );
 #endif

@@ -1469,10 +1469,6 @@ static psa_status_t psa_start_key_creation(
             return( status );
     }
 
-    status = psa_check_key_slot_policy( slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
     /* Refuse to create overly large keys.
      * Note that this doesn't trigger on import if the attributes don't
      * explicitly specify a size (so psa_get_key_bits returns 0), so
@@ -1486,6 +1482,10 @@ static psa_status_t psa_start_key_creation(
      * is optional (import, copy). */
 
     slot->attr = attributes->core;
+
+    status = psa_check_key_slot_policy( slot );
+    if( status != PSA_SUCCESS )
+        return( status );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things:

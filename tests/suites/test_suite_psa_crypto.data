@@ -52,6 +52,9 @@ invalid_handle:1
 PSA invalid handle (largest plausible handle)
 invalid_handle:-1
 
+PSA import: bad usage flag
+import_with_policy:PSA_KEY_TYPE_RAW_DATA:0x40000000:0:PSA_ERROR_INVALID_ARGUMENT
+
 PSA import: invalid type (0)
 import_with_policy:PSA_KEY_TYPE_NONE:0:0:PSA_ERROR_NOT_SUPPORTED
 

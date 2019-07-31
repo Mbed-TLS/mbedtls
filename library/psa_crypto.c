@@ -1169,21 +1169,6 @@ exit:
 }
 #endif /* MBEDTLS_RSA_C */
 
-/** Retrieve the generic attributes of a key in a slot.
- *
- * This function does not retrieve domain parameters, which require
- * additional memory management.
- */
-static void psa_get_key_slot_attributes( psa_key_slot_t *slot,
-                                         psa_key_attributes_t *attributes )
-{
-    attributes->core.id = slot->attr.id;
-    attributes->core.lifetime = slot->attr.lifetime;
-    attributes->core.policy = slot->attr.policy;
-    attributes->core.type = slot->attr.type;
-    attributes->core.bits = slot->attr.bits;
-}
-
 /** Retrieve all the publicly-accessible attributes of a key.
  */
 psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
@@ -1198,7 +1183,7 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
     if( status != PSA_SUCCESS )
         return( status );
 
-    psa_get_key_slot_attributes( slot, attributes );
+    attributes->core = slot->attr;
 
     switch( slot->attr.type )
     {
@@ -1420,10 +1405,10 @@ psa_status_t psa_export_public_key( psa_key_handle_t handle,
                                      data_length, 1 ) );
 }
 
-static psa_status_t psa_set_key_policy_internal(
-    psa_key_slot_t *slot,
-    const psa_key_policy_t *policy )
+static psa_status_t psa_check_key_slot_policy(
+    const psa_key_slot_t *slot )
 {
+    const psa_key_policy_t *policy = &slot->attr.policy;
     if( ( policy->usage & ~( PSA_KEY_USAGE_EXPORT |
                              PSA_KEY_USAGE_COPY |
                              PSA_KEY_USAGE_ENCRYPT |
@@ -1433,7 +1418,6 @@ static psa_status_t psa_set_key_policy_internal(
                              PSA_KEY_USAGE_DERIVE ) ) != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    slot->attr.policy = *policy;
     return( PSA_SUCCESS );
 }
 
@@ -1478,11 +1462,6 @@ static psa_status_t psa_start_key_creation(
         return( status );
     slot = *p_slot;
 
-    status = psa_set_key_policy_internal( slot, &attributes->core.policy );
-    if( status != PSA_SUCCESS )
-        return( status );
-    slot->attr.lifetime = attributes->core.lifetime;
-
     if( attributes->core.lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
         status = psa_validate_persistent_key_parameters( attributes->core.lifetime,
@@ -1490,9 +1469,11 @@ static psa_status_t psa_start_key_creation(
                                                          p_drv, 1 );
         if( status != PSA_SUCCESS )
             return( status );
-        slot->attr.id = attributes->core.id;
     }
-    slot->attr.type = attributes->core.type;
+
+    status = psa_check_key_slot_policy( slot );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     /* Refuse to create overly large keys.
      * Note that this doesn't trigger on import if the attributes don't
@@ -1500,12 +1481,16 @@ static psa_status_t psa_start_key_creation(
      * psa_import_key() needs its own checks. */
     if( psa_get_key_bits( attributes ) > PSA_MAX_KEY_BITS )
         return( PSA_ERROR_NOT_SUPPORTED );
-    /* Store the declared bit-size of the key. It's up to each creation
-     * mechanism to verify that this information is correct. It's
-     * automatically correct for mechanisms that use the bit-size as
+    /* We're storing the declared bit-size of the key. It's up to each
+     * creation mechanism to verify that this information is correct.
+     * It's automatically correct for mechanisms that use the bit-size as
      * an input (generate, device) but not for those where the bit-size
      * is optional (import, copy). */
-    slot->attr.bits = psa_get_key_bits( attributes );
+
+    slot->attr = attributes->core;
+    /* This is awkward... Copying the attributes has overwritten the
+     * flag that marks this slot as used. Restore it. */
+    psa_key_slot_set_bits_in_flags( slot, PSA_KEY_SLOT_FLAG_ALLOCATED );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things:
@@ -1571,9 +1556,6 @@ static psa_status_t psa_finish_key_creation(
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->attr.lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-        psa_get_key_slot_attributes( slot, &attributes );
-
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         if( driver != NULL )
         {
@@ -1589,7 +1571,7 @@ static psa_status_t psa_finish_key_creation(
                     sizeof( slot->data.se.slot_number ) );
             memcpy( &data.bits, &slot->attr.bits,
                     sizeof( slot->attr.bits ) );
-            status = psa_save_persistent_key( &attributes.core,
+            status = psa_save_persistent_key( &slot->attr,
                                               (uint8_t*) &data,
                                               sizeof( data ) );
         }
@@ -1598,7 +1580,7 @@ static psa_status_t psa_finish_key_creation(
         {
             size_t buffer_size =
                 PSA_KEY_EXPORT_MAX_SIZE( slot->attr.type,
-                                         psa_get_key_bits( &attributes ) );
+                                         slot->attr.bits );
             uint8_t *buffer = mbedtls_calloc( 1, buffer_size );
             size_t length = 0;
             if( buffer == NULL && buffer_size != 0 )
@@ -1607,7 +1589,7 @@ static psa_status_t psa_finish_key_creation(
                                               buffer, buffer_size, &length,
                                               0 );
             if( status == PSA_SUCCESS )
-                status = psa_save_persistent_key( &attributes.core,
+                status = psa_save_persistent_key( &slot->attr,
                                                   buffer, length );
 
             if( buffer_size != 0 )

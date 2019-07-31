@@ -437,9 +437,16 @@ psa_status_t psa_crypto_save_transaction( void )
 
 psa_status_t psa_crypto_load_transaction( void )
 {
-    return( psa_its_get( PSA_CRYPTO_ITS_TRANSACTION_UID, 0,
-                         sizeof( psa_crypto_transaction ),
-                         &psa_crypto_transaction ) );
+    psa_status_t status;
+    size_t length;
+    status = psa_its_get( PSA_CRYPTO_ITS_TRANSACTION_UID, 0,
+                          sizeof( psa_crypto_transaction ),
+                          &psa_crypto_transaction, &length );
+    if( status != PSA_SUCCESS )
+        return( status );
+    if( length != sizeof( psa_crypto_transaction ) )
+        return( PSA_ERROR_STORAGE_FAILURE );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_crypto_stop_transaction( void )

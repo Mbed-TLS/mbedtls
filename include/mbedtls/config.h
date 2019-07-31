@@ -2536,6 +2536,15 @@
  * BSD, and can be found at https://github.com/intel/tinycrypt - this option
  * only enables the ECC modules from TinyCrypt.
  *
+ * Requires: MBEDTLS_SSL_CONF_RNG
+ *           MBEDTLS_SSL_CONF_SINGLE_EC
+ *           MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID == 23
+ *           MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID == MBEDTLS_ECP_DP_SECP256R1
+ *
+ * \see MBEDTLS_SSL_CONF_RNG
+ *
+ * \see MBEDTLS_SSL_CONF_SINGLE_EC
+ *
  * Module:  tinycrypt/ecc.c
  *          tinycrypt/ecc_dh.c
  *          tinycrypt/ecc_dsa.c

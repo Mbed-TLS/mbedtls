@@ -1403,10 +1403,14 @@ psa_status_t psa_export_public_key( psa_key_handle_t handle,
                                      data_length, 1 ) );
 }
 
-static psa_status_t psa_check_key_slot_policy(
-    const psa_key_slot_t *slot )
+/** Validate that a key policy is internally well-formed.
+ *
+ * This function only rejects invalid policies. It does not validate the
+ * consistency of the policy with respect to other attributes of the key
+ * such as the key type.
+ */
+static psa_status_t psa_validate_key_policy( const psa_key_policy_t *policy )
 {
-    const psa_key_policy_t *policy = &slot->attr.policy;
     if( ( policy->usage & ~( PSA_KEY_USAGE_EXPORT |
                              PSA_KEY_USAGE_COPY |
                              PSA_KEY_USAGE_ENCRYPT |
@@ -1415,6 +1419,48 @@ static psa_status_t psa_check_key_slot_policy(
                              PSA_KEY_USAGE_VERIFY |
                              PSA_KEY_USAGE_DERIVE ) ) != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
+
+    return( PSA_SUCCESS );
+}
+
+/** Validate the internal consistency of key attributes.
+ *
+ * This function only rejects invalid attribute values. If does not
+ * validate the consistency of the attributes with any key data that may
+ * be involved in the creation of the key.
+ *
+ * Call this function early in the key creation process.
+ *
+ * \param[in] attributes    Key attributes for the new key.
+ * \param[out] p_drv        On any return, the driver for the key, if any.
+ *                          NULL for a transparent key.
+ *
+ */
+static psa_status_t psa_validate_key_attributes(
+    const psa_key_attributes_t *attributes,
+    psa_se_drv_table_entry_t **p_drv )
+{
+    psa_status_t status;
+
+    if( attributes->core.lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    {
+        status = psa_validate_persistent_key_parameters(
+            attributes->core.lifetime, attributes->core.id,
+            p_drv, 1 );
+        if( status != PSA_SUCCESS )
+            return( status );
+    }
+
+    status = psa_validate_key_policy( &attributes->core.policy );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    /* Refuse to create overly large keys.
+     * Note that this doesn't trigger on import if the attributes don't
+     * explicitly specify a size (so psa_get_key_bits returns 0), so
+     * psa_import_key() needs its own checks. */
+    if( psa_get_key_bits( attributes ) > PSA_MAX_KEY_BITS )
+        return( PSA_ERROR_NOT_SUPPORTED );
 
     return( PSA_SUCCESS );
 }
@@ -1455,26 +1501,15 @@ static psa_status_t psa_start_key_creation(
 
     *p_drv = NULL;
 
+    status = psa_validate_key_attributes( attributes, p_drv );
+    if( status != PSA_SUCCESS )
+        return( status );
+
     status = psa_internal_allocate_key_slot( handle, p_slot );
     if( status != PSA_SUCCESS )
         return( status );
     slot = *p_slot;
 
-    if( attributes->core.lifetime != PSA_KEY_LIFETIME_VOLATILE )
-    {
-        status = psa_validate_persistent_key_parameters( attributes->core.lifetime,
-                                                         attributes->core.id,
-                                                         p_drv, 1 );
-        if( status != PSA_SUCCESS )
-            return( status );
-    }
-
-    /* Refuse to create overly large keys.
-     * Note that this doesn't trigger on import if the attributes don't
-     * explicitly specify a size (so psa_get_key_bits returns 0), so
-     * psa_import_key() needs its own checks. */
-    if( psa_get_key_bits( attributes ) > PSA_MAX_KEY_BITS )
-        return( PSA_ERROR_NOT_SUPPORTED );
     /* We're storing the declared bit-size of the key. It's up to each
      * creation mechanism to verify that this information is correct.
      * It's automatically correct for mechanisms that use the bit-size as
@@ -1482,10 +1517,6 @@ static psa_status_t psa_start_key_creation(
      * is optional (import, copy). */
 
     slot->attr = attributes->core;
-
-    status = psa_check_key_slot_policy( slot );
-    if( status != PSA_SUCCESS )
-        return( status );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things:
@@ -1647,7 +1678,16 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
     psa_wipe_key_slot( slot );
 }
 
-static psa_status_t psa_check_key_slot_attributes(
+/** Validate optional attributes during key creation.
+ *
+ * Some key attributes are optional during key creation. If they are
+ * specified in the attributes structure, check that they are consistent
+ * with the data in the slot.
+ *
+ * This function should be called near the end of key creation, after
+ * the slot in memory is fully populated but before saving persistent data.
+ */
+static psa_status_t psa_validate_optional_attributes(
     const psa_key_slot_t *slot,
     const psa_key_attributes_t *attributes )
 {
@@ -1746,7 +1786,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         if( status != PSA_SUCCESS )
             goto exit;
     }
-    status = psa_check_key_slot_attributes( slot, attributes );
+    status = psa_validate_optional_attributes( slot, attributes );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -1801,7 +1841,8 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_check_key_slot_attributes( source_slot, specified_attributes );
+    status = psa_validate_optional_attributes( source_slot,
+                                               specified_attributes );
     if( status != PSA_SUCCESS )
         goto exit;
 

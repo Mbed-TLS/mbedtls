@@ -714,20 +714,24 @@ static inline size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
  *
  * \return The key size in bits, calculated from the key data.
  */
-static size_t psa_calculate_key_bits( const psa_key_slot_t *slot )
+static psa_key_bits_t psa_calculate_key_bits( const psa_key_slot_t *slot )
 {
+    size_t bits = 0; /* return 0 on an empty slot */
+
     if( key_type_is_raw_bytes( slot->attr.type ) )
-        return( slot->data.raw.bytes * 8 );
+        bits = PSA_BYTES_TO_BITS( slot->data.raw.bytes );
 #if defined(MBEDTLS_RSA_C)
-    if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
-        return( PSA_BYTES_TO_BITS( mbedtls_rsa_get_len( slot->data.rsa ) ) );
+    else if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
+        bits = PSA_BYTES_TO_BITS( mbedtls_rsa_get_len( slot->data.rsa ) );
 #endif /* defined(MBEDTLS_RSA_C) */
 #if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
-        return( slot->data.ecp->grp.pbits );
+    else if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+        bits = slot->data.ecp->grp.pbits;
 #endif /* defined(MBEDTLS_ECP_C) */
-    /* Shouldn't happen except on an empty slot. */
-    return( 0 );
+
+    /* We know that the size fits in psa_key_bits_t thanks to checks
+     * when the key was created. */
+    return( (psa_key_bits_t) bits );
 }
 
 /** Import key data into a slot. `slot->attr.type` must have been set

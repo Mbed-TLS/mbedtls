@@ -4620,14 +4620,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void derive_large_key( int alg_arg,
-                       data_t *key_data, data_t *input1, data_t *input2,
-                       int bits_arg,
-                       int expected_status_arg )
+void derive_key( int alg_arg,
+                 data_t *key_data, data_t *input1, data_t *input2,
+                 int type_arg, int bits_arg,
+                 int expected_status_arg )
 {
     psa_key_handle_t base_handle = 0;
     psa_key_handle_t derived_handle = 0;
     psa_algorithm_t alg = alg_arg;
+    psa_key_type_t type = type_arg;
     size_t bits = bits_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
@@ -4649,7 +4650,7 @@ void derive_large_key( int alg_arg,
 
     psa_set_key_usage_flags( &derived_attributes, PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &derived_attributes, 0 );
-    psa_set_key_type( &derived_attributes, PSA_KEY_TYPE_RAW_DATA );
+    psa_set_key_type( &derived_attributes, type );
     psa_set_key_bits( &derived_attributes, bits );
     TEST_EQUAL( psa_key_derivation_output_key( &derived_attributes, &operation,
                                                &derived_handle ),

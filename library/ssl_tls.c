@@ -1743,7 +1743,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
         == MBEDTLS_KEY_EXCHANGE_RSA )
     {
         ((void) ret);
-        /* The premaster secret has already been by
+        /* The premaster secret has already been set by
          * ssl_rsa_generate_partial_pms(). Only the
          * PMS length needs to be set. */
         ssl->handshake->pmslen = 48;

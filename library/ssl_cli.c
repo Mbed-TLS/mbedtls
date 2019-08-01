@@ -3330,7 +3330,7 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
 static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl );
 
 /* Preparation
- * - For ECDH: Generate client params and derive premater secret
+ * - For ECDH: Generate client params and derive premaster secret
  * - For RSA-suites: Encrypt PMS
  * - For ECJPAKE: Do Round 2
  */

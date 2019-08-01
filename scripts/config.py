@@ -338,6 +338,7 @@ if __name__ == '__main__':
                             Default: {}.
                             """.format(ConfigFile.default_path))
         parser.add_argument('--force', '-o',
+                            action='store_true',
                             help="""For the set command, if SYMBOL is not
                             present, add a definition for it.""")
         parser.add_argument('--write', '-w',

@@ -1714,7 +1714,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_ciphersuite_uses_psk( ciphersuite_info ) )
     {
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
+            mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );

@@ -53,12 +53,10 @@ class Config:
     if there is a #define for it whether commented out or not.
 
     This class supports the following protocols:
-    * `name in config` is True if the symbol `name` is set in the
-      configuration, False otherwise (whether `name` is known but commented
-      out or not known at all).
-    * `config[name]` is the value of the macro `name`. If `name` is not
-      set, raise `KeyError` (even if a definition for `name` is present
-      but commented out).
+    * `name in config` is `True` if the symbol `name` is active, `False`
+      otherwise (whether `name` is inactive or not known).
+    * `config[name]` is the value of the macro `name`. If `name` is inactive,
+      raise `KeyError` (even if `name` is known).
     * `config[name] = value` sets the value associated to `name`. `name`
       must be known, but does not need to be set. This does not cause
       name to become set.
@@ -156,7 +154,7 @@ def is_full_section(section):
     return section.endswith('support') or section.endswith('modules')
 
 def realfull_adapter(_name, active, section):
-    """Uncomment everything in the system and feature sections."""
+    """Activate all symbols found in the system and feature sections."""
     if not is_full_section(section):
         return active
     return True
@@ -300,7 +298,8 @@ class ConfigFile(Config):
     def _format_template(self, name, indent, middle):
         """Build a line for config.h for the given setting.
 
-        The line has the form "<indent>#define <name><middle> <value>".
+        The line has the form "<indent>#define <name> <value>"
+        where <middle> is "#define <name> ".
         """
         setting = self.settings[name]
         return ''.join([indent,
@@ -341,7 +340,7 @@ if __name__ == '__main__':
                             action='store_true',
                             help="""For the set command, if SYMBOL is not
                             present, add a definition for it.""")
-        parser.add_argument('--write', '-w',
+        parser.add_argument('--write', '-w', metavar='FILE',
                             help="""File to write to instead of the input file.""")
         subparsers = parser.add_subparsers(dest='command',
                                            title='Commands')

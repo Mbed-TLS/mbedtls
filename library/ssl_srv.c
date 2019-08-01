@@ -1098,10 +1098,15 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MAJOR_VER)
     ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+#endif
+
+#if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     ssl->minor_ver =
         ( buf[4] <= mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
         ? buf[4]  : mbedtls_ssl_conf_get_max_minor_ver( ssl->conf );
+#endif
 
     if( mbedtls_ssl_get_minor_ver( ssl ) < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) )
     {

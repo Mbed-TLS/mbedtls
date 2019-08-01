@@ -654,9 +654,6 @@ static int delayed_send( void *ctx, const unsigned char *buf, size_t len )
         first_try = 1; /* Next call will be a new operation */
     return( ret );
 }
-#endif /* MBEDTLS_SSL_CONF_RECV &&
-          MBEDTLS_SSL_CONF_SEND &&
-          MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
 typedef struct
 {
@@ -790,8 +787,11 @@ static int send_cb( void *ctx, unsigned char const *buf, size_t len )
 
     return( mbedtls_net_send( io_ctx->net, buf, len ) );
 }
+#endif /* !MBEDTLS_SSL_CONF_RECV &&
+          !MBEDTLS_SSL_CONF_SEND &&
+          !MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
-#if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
+#if defined(SNI_OPTION) || !defined(MBEDTLS_SSL_CONF_AUTHMODE)
 /*
  * Return authmode from string, or -1 on error
  */
@@ -806,7 +806,7 @@ static int get_auth_mode( const char *s )
 
     return( -1 );
 }
-#endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
+#endif /* SNI_OPTION || !MBEDTLS_SSL_CONF_AUTHMODE */
 
 /*
  * Used by sni_parse and psk_parse to handle coma-separated lists
@@ -1509,7 +1509,11 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
     int version_suites[4][2];
+#if !defined(MBEDTLS_SSL_CONF_RECV) && \
+    !defined(MBEDTLS_SSL_CONF_SEND) && \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
     io_ctx_t io_ctx;
+#endif
     unsigned char* buf = 0;
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
@@ -3714,12 +3718,19 @@ data_exchange:
 
             /*
              * This illustrates the minimum amount of things you need to set
-             * up, however you could set up much more if desired, for example
-             * if you want to share your set up code between the case of
-             * establishing a new connection and this case.
+             * up: I/O and timer callbacks/contexts; however you could set up
+             * much more if desired, for example if you want to share your set
+             * up code between the case of establishing a new connection and
+             * this case.
              */
+#if !defined(MBEDTLS_SSL_CONF_RECV) &&          \
+    !defined(MBEDTLS_SSL_CONF_SEND) &&          \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
             mbedtls_ssl_set_bio( &ssl, &io_ctx, send_cb, recv_cb,
                                  opt.nbio == 0 ? recv_timeout_cb : NULL );
+#else
+            mbedtls_ssl_set_bio_ctx( &ssl, &client_fd );
+#endif
 
 #if defined(MBEDTLS_TIMING_C)
 #if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \

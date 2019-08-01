@@ -305,8 +305,15 @@ reset:
         goto exit;
     }
 
+#if !defined(MBEDTLS_SSL_CONF_RECV) &&          \
+    !defined(MBEDTLS_SSL_CONF_SEND) &&          \
+    !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
     mbedtls_ssl_set_bio( &ssl, &client_fd,
-                         mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout );
+                         mbedtls_net_send, mbedtls_net_recv,
+                         mbedtls_net_recv_timeout );
+#else
+    mbedtls_ssl_set_bio_ctx( &ssl, &client_fd );
+#endif
 
     printf( " ok\n" );
 

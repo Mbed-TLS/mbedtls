@@ -743,11 +743,8 @@ static int x509_skip_dates( unsigned char **p,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         return( MBEDTLS_ERR_X509_INVALID_DATE + ret );
 
-    end = *p + len;
-
-    if( *p != end )
-        return( MBEDTLS_ERR_X509_INVALID_DATE +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+    /* skip contents of the sequence */
+    *p += len;
 
     return( 0 );
 }
@@ -2975,10 +2972,10 @@ check_signature:
 #if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
             if( !mbedtls_x509_time_is_past( &parent->valid_to ) &&
                 !mbedtls_x509_time_is_future( &parent->valid_from ) )
+#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
             {
                 parent_valid = 1;
             }
-#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
 
             /* basic parenting skills (name, CA bit, key usage) */
             if( x509_crt_check_parent( child_sig, parent, top ) == 0 )

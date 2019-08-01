@@ -391,8 +391,8 @@ if __name__ == '__main__':
         elif args.command == 'set':
             if not args.force and args.symbol not in config.settings:
                 sys.stderr.write("A #define for the symbol {} "
-                                 "was not found in {}"
-                                 .format(args.symbol, args.file))
+                                 "was not found in {}\n"
+                                 .format(args.symbol, config.filename))
                 return 1
             config.set(args.symbol, value=args.value)
         elif args.command == 'unset':

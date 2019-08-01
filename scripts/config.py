@@ -361,7 +361,8 @@ if __name__ == '__main__':
                                            found, unless --force is passed.
                                            """)
         parser_set.add_argument('symbol', metavar='SYMBOL')
-        parser_set.add_argument('value', metavar='VALUE', nargs='?')
+        parser_set.add_argument('value', metavar='VALUE', nargs='?',
+                                default='')
         parser_unset = subparsers.add_parser('unset',
                                              help="""Comment out the #define
                                              for SYMBOL. Do nothing if none

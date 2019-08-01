@@ -131,9 +131,10 @@ class Config:
     def unset(self, name):
         """Make name unset (inactive).
 
-        name remains known.
+        name remains known if it was known before.
         """
-        self.set(name)
+        if name not in self.settings:
+            return
         self.settings[name].active = False
 
     def adapt(self, adapter):

@@ -5038,7 +5038,9 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 
-        rec->cid_len = rec_hdr_cid_len;
+        /* configured CID len is guaranteed at most 255, see
+         * MBEDTLS_SSL_CID_OUT_LEN_MAX in check_config.h */
+        rec->cid_len = (uint8_t) rec_hdr_cid_len;
         memcpy( rec->cid, buf + rec_hdr_cid_offset, rec_hdr_cid_len );
     }
     else

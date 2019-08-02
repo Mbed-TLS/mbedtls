@@ -2755,7 +2755,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_handle_t handle,
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
         if( output_size < mbedtls_rsa_get_len( rsa ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
 #if defined(MBEDTLS_PKCS1_V15)
         if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
         {

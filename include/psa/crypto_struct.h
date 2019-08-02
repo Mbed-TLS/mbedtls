@@ -331,11 +331,13 @@ typedef uint16_t psa_key_bits_t;
  */
 typedef uint16_t psa_key_attributes_flag_t;
 
-#define MBEDLTS_PSA_KA_FLAG_SLOT_NUMBER ( (psa_key_attributes_flag_t) 0x0001 )
+#define MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER     \
+    ( (psa_key_attributes_flag_t) 0x0001 )
 
 /* A mask of key attribute flags used externally only.
  * Only meant for internal checks inside the library. */
 #define MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY (      \
+        MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER |    \
         0 )
 
 /* A mask of key attribute flags used both internally and externally.
@@ -358,11 +360,19 @@ typedef struct
 struct psa_key_attributes_s
 {
     psa_core_key_attributes_t core;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    psa_key_slot_number_t slot_number;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     void *domain_parameters;
     size_t domain_parameters_size;
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#define PSA_KEY_ATTRIBUTES_INIT {PSA_CORE_KEY_ATTRIBUTES_INIT, 0, NULL, 0}
+#else
 #define PSA_KEY_ATTRIBUTES_INIT {PSA_CORE_KEY_ATTRIBUTES_INIT, NULL, 0}
+#endif
+
 static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 {
     const struct psa_key_attributes_s v = PSA_KEY_ATTRIBUTES_INIT;

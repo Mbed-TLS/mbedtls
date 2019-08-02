@@ -104,6 +104,67 @@ static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
     return( attributes->core.policy.alg2 );
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+
+/** Retrieve the slot number where a key is stored.
+ *
+ * A slot number is only defined for keys that are stored in a secure
+ * element.
+ *
+ * This information is only useful if the secure element is not entirely
+ * managed through the PSA Cryptography API. It is up to the secure
+ * element driver to decide how PSA slot numbers map to any other interface
+ * that the secure element may have.
+ *
+ * \param[in] attributes        The key attribute structure to query.
+ * \param[out] slot_number      On success, the slot number containing the key.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key is located in a secure element, and \p *slot_number
+ *         indicates the slot number that contains it.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The caller is not permitted to query the slot number.
+ *         Mbed Crypto currently does not return this error.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key is not located in a secure element.
+ */
+psa_status_t psa_get_key_slot_number(
+    const psa_key_attributes_t *attributes,
+    psa_key_slot_number_t *slot_number );
+
+/** Choose the slot number where a key is stored.
+ *
+ * This function declares a slot number in the specified attribute
+ * structure.
+ *
+ * A slot number is only meaningful for keys that are stored in a secure
+ * element. It is up to the secure element driver to decide how PSA slot
+ * numbers map to any other interface that the secure element may have.
+ *
+ * \note Setting a slot number in key attributes for a key creation can
+ *       cause the following errors when creating the key:
+ *       - #PSA_ERROR_NOT_SUPPORTED if the selected secure element does
+ *         not support choosing a specific slot number.
+ *       - #PSA_ERROR_NOT_PERMITTED if the caller is not permitted to
+ *         choose slot numbers in general or to choose this specific slot.
+ *       - #PSA_ERROR_INVALID_ARGUMENT if the chosen slot number is not
+ *         valid in general or not valid for this specific key.
+ *       - #PSA_ERROR_ALREADY_EXISTS if there is already a key in the
+ *         selected slot.
+ *
+ * \param[out] attributes       The attribute structure to write to.
+ * \param slot_number           The slot number to set.
+ */
+static inline void psa_set_key_slot_number(
+    psa_key_attributes_t *attributes,
+    psa_key_slot_number_t slot_number )
+{
+    attributes->core.flags |= MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+    attributes->slot_number = slot_number;
+}
+
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
 /**@}*/
 
 /**

@@ -1187,6 +1187,13 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
         return( status );
 
     attributes->core = slot->attr;
+    attributes->core.flags &= ( MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
+                                MBEDTLS_PSA_KA_MASK_DUAL_USE );
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_key_slot_is_external( slot ) )
+        psa_set_key_slot_number( attributes, slot->data.se.slot_number );
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     switch( slot->attr.type )
     {
@@ -1196,7 +1203,7 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
             /* TOnogrepDO: reporting the public exponent for opaque keys
              * is not yet implemented. */
-            if( psa_get_se_driver( slot->attr.lifetime, NULL, NULL ) )
+            if( psa_key_slot_is_external( slot ) )
                 break;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
             status = psa_get_rsa_public_exponent( slot->data.rsa, attributes );
@@ -1211,6 +1218,21 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
         psa_reset_key_attributes( attributes );
     return( status );
 }
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+psa_status_t psa_get_key_slot_number(
+    const psa_key_attributes_t *attributes,
+    psa_key_slot_number_t *slot_number )
+{
+    if( attributes->core.flags & MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER )
+    {
+        *slot_number = attributes->slot_number;
+        return( PSA_SUCCESS );
+    }
+    else
+        return( PSA_ERROR_INVALID_ARGUMENT );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C)
 static int pk_write_pubkey_simple( mbedtls_pk_context *key,
@@ -1557,6 +1579,10 @@ static psa_status_t psa_start_key_creation(
      * we can roll back to a state where the key doesn't exist. */
     if( *p_drv != NULL )
     {
+        /* Choosing a slot number is not supported yet. */
+        if( attributes->core.flags & MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER )
+            return( PSA_ERROR_NOT_SUPPORTED );
+
         status = psa_find_se_slot_for_key( attributes, *p_drv,
                                            &slot->data.se.slot_number );
         if( status != PSA_SUCCESS )

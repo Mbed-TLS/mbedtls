@@ -1333,6 +1333,43 @@ component_build_baremetal_raw_armcc () {
     scripts/baremetal.sh --rom --gcc --armc5 --armc6 --check
 }
 
+component_test_default_tinycrypt () {
+    msg "test default config with tinycrypt enabled"
+
+    scripts/config.pl set MBEDTLS_USE_TINYCRYPT
+    scripts/config.pl set MBEDTLS_SSL_CONF_RNG rng_wrap
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID 23
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID MBEDTLS_ECP_DP_SECP256R1
+
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: default config with tinycrypt enabled"
+    make test
+    if_build_succeeded tests/ssl-opt.sh -f "^Default, DTLS$"
+    if_build_succeeded tests/compat.sh -m 'dtls1_2' -f 'ECDHE-ECDSA\|ECDH-ECDSA\|ECDHE-PSK'
+}
+
+component_test_default_tinycrypt_without_legacy_ecdh () {
+    msg "test default config with tinycrypt enabled and ecdh_c disabled"
+
+    scripts/config.pl set MBEDTLS_USE_TINYCRYPT
+    scripts/config.pl set MBEDTLS_SSL_CONF_RNG rng_wrap
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID 23
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID MBEDTLS_ECP_DP_SECP256R1
+    scripts/config.pl unset MBEDTLS_ECDH_C
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: default config with tinycrypt enabled and ecdh_c disabled"
+    make test
+    if_build_succeeded tests/ssl-opt.sh -f "^Default, DTLS$"
+    if_build_succeeded tests/compat.sh -m 'dtls1_2' -f 'TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA\|+ECDHE-ECDSA:+AES-256-CBC:+SHA1\|ECDHE-ECDSA-AES256-SHA' -e 'SHA384'
+}
+
 component_test_baremetal () {
     msg "build: lib+test+programs for baremetal.h + baremetal_test.h"
     record_status scripts/baremetal.sh --ram --build-only

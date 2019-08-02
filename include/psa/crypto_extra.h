@@ -163,6 +163,18 @@ static inline void psa_set_key_slot_number(
     attributes->slot_number = slot_number;
 }
 
+/** Remove the slot number attribute from a key attribute structure.
+ *
+ * This function undoes the action of psa_set_key_slot_number().
+ *
+ * \param[out] attributes       The attribute structure to write to.
+ */
+static inline void psa_clear_key_slot_number(
+    psa_key_attributes_t *attributes )
+{
+    attributes->core.flags &= ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 /**@}*/

@@ -212,6 +212,31 @@ static int check_key_attributes(
                     psa_get_key_bits( reference_attributes ) );
     }
 
+    {
+        psa_key_slot_number_t actual_slot_number = 0xdeadbeef;
+        psa_key_slot_number_t desired_slot_number = 0xb90cc011;
+        psa_key_lifetime_t lifetime =
+            psa_get_key_lifetime( &actual_attributes );
+        psa_status_t status = psa_get_key_slot_number( &actual_attributes,
+                                                       &actual_slot_number );
+        if( lifetime < MIN_DRIVER_LIFETIME )
+        {
+            /* The key is not in a secure element. */
+            TEST_EQUAL( status, PSA_ERROR_INVALID_ARGUMENT );
+        }
+        else
+        {
+            /* The key is in a secure element. If it had been created
+             * in a specific slot, check that it is reported there. */
+            PSA_ASSERT( status );
+            status = psa_get_key_slot_number( reference_attributes,
+                                              &desired_slot_number );
+            if( status == PSA_SUCCESS )
+            {
+                TEST_EQUAL( desired_slot_number, actual_slot_number );
+            }
+        }
+    }
     ok = 1;
 
 exit:
@@ -485,11 +510,14 @@ void key_creation_import_export( int min_slot, int restart )
     /* Test that the key was created in the expected slot. */
     TEST_ASSERT( ram_slots[min_slot].type == PSA_KEY_TYPE_RAW_DATA );
 
-    /* Test the key attributes and the key data. */
+    /* Test the key attributes, including the reported slot number. */
     psa_set_key_bits( &attributes,
                       PSA_BYTES_TO_BITS( sizeof( key_material ) ) );
+    psa_set_key_slot_number( &attributes, min_slot );
     if( ! check_key_attributes( handle, &attributes ) )
         goto exit;
+
+    /* Test the key data. */
     PSA_ASSERT( psa_export_key( handle,
                                 exported, sizeof( exported ),
                                 &exported_length ) );

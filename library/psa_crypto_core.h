@@ -64,6 +64,11 @@ typedef struct
     } data;
 } psa_key_slot_t;
 
+/* A mask of key attribute flags used only internally.
+ * Currently there aren't any. */
+#define MBEDTLS_PSA_KA_MASK_INTERNAL_ONLY (     \
+        0 )
+
 /** Test whether a key slot is occupied.
  *
  * A key slot is occupied iff the key type is nonzero. This works because

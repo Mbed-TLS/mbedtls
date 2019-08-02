@@ -1408,6 +1408,15 @@ psa_status_t psa_export_public_key( psa_key_handle_t handle,
                                      data_length, 1 ) );
 }
 
+#if defined(static_assert)
+static_assert( ( MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE ) == 0,
+               "One or more key attribute flag is listed as both external-only and dual-use" );
+static_assert( ( MBEDTLS_PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE ) == 0,
+               "One or more key attribute flag is listed as both external-only and dual-use" );
+static_assert( ( MBEDTLS_PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY ) == 0,
+               "One or more key attribute flag is listed as both internal-only and external-only" );
+#endif
+
 /** Validate that a key policy is internally well-formed.
  *
  * This function only rejects invalid policies. It does not validate the
@@ -1467,6 +1476,11 @@ static psa_status_t psa_validate_key_attributes(
     if( psa_get_key_bits( attributes ) > PSA_MAX_KEY_BITS )
         return( PSA_ERROR_NOT_SUPPORTED );
 
+    /* Reject invalid flags. These should not be reachable through the API. */
+    if( attributes->core.flags & ~ ( MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
+                                     MBEDTLS_PSA_KA_MASK_DUAL_USE ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     return( PSA_SUCCESS );
 }
 
@@ -1522,6 +1536,10 @@ static psa_status_t psa_start_key_creation(
      * is optional (import, copy). */
 
     slot->attr = attributes->core;
+
+    /* Erase external-only flags from the internal copy. To access
+     * external-only flags, query `attributes`. */
+    slot->attr.flags |= ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things:

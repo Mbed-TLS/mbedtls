@@ -322,6 +322,27 @@ typedef uint16_t psa_key_bits_t;
  * conditionals. */
 #define PSA_MAX_KEY_BITS 0xfff8
 
+/** A mask of flags that can be stored in key attributes.
+ *
+ * This type is also used internally to store flags in slots. Internal
+ * flags are defined in library/psa_crypto_core.h. Internal flags may have
+ * the same value as external flags if they are properly handled during
+ * key creation and in psa_get_key_attributes.
+ */
+typedef uint16_t psa_key_attributes_flag_t;
+
+#define MBEDLTS_PSA_KA_FLAG_SLOT_NUMBER ( (psa_key_attributes_flag_t) 0x0001 )
+
+/* A mask of key attribute flags used externally only.
+ * Only meant for internal checks inside the library. */
+#define MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY (      \
+        0 )
+
+/* A mask of key attribute flags used both internally and externally.
+ * Currently there aren't any. */
+#define MBEDTLS_PSA_KA_MASK_DUAL_USE (          \
+        0 )
+
 typedef struct
 {
     psa_key_type_t type;
@@ -329,7 +350,7 @@ typedef struct
     psa_key_id_t id;
     psa_key_policy_t policy;
     psa_key_bits_t bits;
-    uint16_t flags;
+    psa_key_attributes_flag_t flags;
 } psa_core_key_attributes_t;
 
 #define PSA_CORE_KEY_ATTRIBUTES_INIT {0, 0, 0, {0, 0, 0}, 0, 0}

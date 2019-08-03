@@ -1,6 +1,6 @@
 X509 Certificate information #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/server1.crt":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2011-02-12 14\:44\:06\nexpires on        \: 2021-02-12 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/server1.crt":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information #1 (DER)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
@@ -8,15 +8,15 @@ x509_cert_info:"data_files/server1.crt.der":"cert. version     \: 3\nserial numb
 
 X509 Certificate information #2
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/server2.crt":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2011-02-12 14\:44\:06\nexpires on        \: 2021-02-12 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/server2.crt":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information #2 (DER)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/server2.crt.der":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2011-02-12 14\:44\:06\nexpires on        \: 2021-02-12 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/server2.crt.der":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information #3
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/test-ca.crt":"cert. version     \: 3\nserial number     \: 03\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2011-02-12 14\:44\:00\nexpires on        \: 2021-02-12 14\:44\:00\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\n"
+x509_cert_info:"data_files/test-ca.crt":"cert. version     \: 3\nserial number     \: 03\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nissued  on        \: 2019-02-10 14\:44\:00\nexpires on        \: 2029-02-10 14\:44\:00\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=true\n"
 
 X509 Certificate information #3 (DER)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
@@ -32,27 +32,27 @@ x509_cert_info:"data_files/cert_md4.crt":"cert. version     \: 3\nserial number 
 
 X509 Certificate information MD5 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_MD5_C
-x509_cert_info:"data_files/cert_md5.crt":"cert. version     \: 3\nserial number     \: 06\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on        \: 2000-01-01 12\:12\:12\nexpires on        \: 2030-01-01 12\:12\:12\nsigned using      \: RSA with MD5\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/cert_md5.crt":"cert. version     \: 3\nserial number     \: 06\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert MD5\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with MD5\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information SHA1 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/cert_sha1.crt":"cert. version     \: 3\nserial number     \: 07\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA1\nissued  on        \: 2011-02-12 14\:44\:07\nexpires on        \: 2021-02-12 14\:44\:07\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/cert_sha1.crt":"cert. version     \: 3\nserial number     \: 07\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA1\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information SHA224 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
-x509_cert_info:"data_files/cert_sha224.crt":"cert. version     \: 3\nserial number     \: 08\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA224\nissued  on        \: 2011-02-12 14\:44\:07\nexpires on        \: 2021-02-12 14\:44\:07\nsigned using      \: RSA with SHA-224\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/cert_sha224.crt":"cert. version     \: 3\nserial number     \: 08\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA224\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA-224\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information SHA256 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
-x509_cert_info:"data_files/cert_sha256.crt":"cert. version     \: 3\nserial number     \: 09\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA256\nissued  on        \: 2011-02-12 14\:44\:07\nexpires on        \: 2021-02-12 14\:44\:07\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/cert_sha256.crt":"cert. version     \: 3\nserial number     \: 09\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA256\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA-256\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information SHA384 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA512_C
-x509_cert_info:"data_files/cert_sha384.crt":"cert. version     \: 3\nserial number     \: 0A\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA384\nissued  on        \: 2011-02-12 14\:44\:07\nexpires on        \: 2021-02-12 14\:44\:07\nsigned using      \: RSA with SHA-384\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/cert_sha384.crt":"cert. version     \: 3\nserial number     \: 0A\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA384\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA-384\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information SHA512 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA512_C
-x509_cert_info:"data_files/cert_sha512.crt":"cert. version     \: 3\nserial number     \: 0B\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA512\nissued  on        \: 2011-02-12 14\:44\:07\nexpires on        \: 2021-02-12 14\:44\:07\nsigned using      \: RSA with SHA-512\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+x509_cert_info:"data_files/cert_sha512.crt":"cert. version     \: 3\nserial number     \: 0B\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA512\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA-512\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 Certificate information RSA-PSS, SHA1 Digest
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA1_C
@@ -96,19 +96,19 @@ x509_cert_info:"data_files/server5-sha512.crt":"cert. version     \: 3\nserial n
 
 X509 Certificate information, NS Cert Type
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/server1.cert_type.crt":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2011-02-12 14\:44\:06\nexpires on        \: 2021-02-12 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\ncert. type        \: SSL Server\n"
+x509_cert_info:"data_files/server1.cert_type.crt":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\ncert. type        \: SSL Server\n"
 
 X509 Certificate information, Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/server1.key_usage.crt":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2011-02-12 14\:44\:06\nexpires on        \: 2021-02-12 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
+x509_cert_info:"data_files/server1.key_usage.crt":"cert. version     \: 3\nserial number     \: 01\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Server 1\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
 
 X509 Certificate information, Key Usage with decipherOnly
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_cert_info:"data_files/keyUsage.decipherOnly.crt":"cert. version     \: 3\nserial number     \: 9B\:13\:CE\:4C\:A5\:6F\:DE\:52\nissuer name       \: C=GB, L=Cambridge, O=Default Company Ltd\nsubject name      \: C=GB, L=Cambridge, O=Default Company Ltd\nissued  on        \: 2015-05-12 10\:36\:55\nexpires on        \: 2018-05-11 10\:36\:55\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment, Decipher Only\n"
 
 X509 Certificate information, Subject Alt Name
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
-x509_cert_info:"data_files/cert_example_multi.crt":"cert. version     \: 3\nserial number     \: 11\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=www.example.com\nissued  on        \: 2012-05-10 13\:23\:41\nexpires on        \: 2022-05-11 13\:23\:41\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \: example.com, example.net, *.example.org\n"
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+x509_cert_info:"data_files/cert_example_multi.crt":"cert. version     \: 3\nserial number     \: 11\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=www.example.com\nissued  on        \: 2019-07-10 11\:27\:52\nexpires on        \: 2029-07-10 11\:27\:52\nsigned using      \: RSA with SHA-256\nRSA key size      \: 1024 bits\nsubject alt name  \: example.com, example.net, *.example.org\n"
 
 X509 Certificate information, Subject Alt Name + Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
@@ -536,31 +536,31 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
 X509 Certificate verification #24 (domain matching CN of multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
 X509 Certificate verification #25 (domain matching multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.net":0:0:"compat":"NULL"
 
 X509 Certificate verification #26 (domain not matching multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
 X509 Certificate verification #27 (domain not matching multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"xample.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
 X509 Certificate verification #27 (domain not matching multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"bexample.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
 X509 Certificate verification #28 (domain not matching wildcard in multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.org":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
 X509 Certificate verification #29 (domain matching wildcard in multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.example.org":0:0:"compat":"NULL"
 
 X509 Certificate verification #30 (domain matching multi certificate without CN)

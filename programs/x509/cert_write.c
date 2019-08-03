@@ -357,8 +357,12 @@ int main( int argc, char *argv[] )
         {
             if( strcmp( q, "SHA1" ) == 0 )
                 opt.md = MBEDTLS_MD_SHA1;
+            else if( strcmp( q, "SHA224" ) == 0 )
+                opt.md = MBEDTLS_MD_SHA224;
             else if( strcmp( q, "SHA256" ) == 0 )
                 opt.md = MBEDTLS_MD_SHA256;
+            else if( strcmp( q, "SHA384" ) == 0 )
+                opt.md = MBEDTLS_MD_SHA384;
             else if( strcmp( q, "SHA512" ) == 0 )
                 opt.md = MBEDTLS_MD_SHA512;
             else if( strcmp( q, "MD2" ) == 0 )

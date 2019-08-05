@@ -37,6 +37,28 @@
 /* Miscellaneous driver methods */
 /****************************************************************/
 
+typedef struct
+{
+    psa_key_slot_number_t slot_number;
+    psa_key_creation_method_t method;
+    psa_status_t status;
+} validate_slot_number_directions_t;
+static validate_slot_number_directions_t validate_slot_number_directions;
+
+/* Validate a choice of slot number as directed. */
+static psa_status_t validate_slot_number_as_directed(
+    psa_drv_se_context_t *context,
+    const psa_key_attributes_t *attributes,
+    psa_key_creation_method_t method,
+    psa_key_slot_number_t slot_number )
+{
+    (void) context;
+    (void) attributes;
+    DRIVER_ASSERT( slot_number == validate_slot_number_directions.slot_number );
+    DRIVER_ASSERT( method == validate_slot_number_directions.method );
+    return( validate_slot_number_directions.status );
+}
+
 /* Allocate slot numbers with a monotonic counter. */
 static psa_status_t counter_allocate( psa_drv_se_context_t *context,
                                       void *persistent_data,
@@ -718,11 +740,14 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void register_key_smoke_test( int lifetime_arg, int expected_status_arg )
+void register_key_smoke_test( int lifetime_arg,
+                              int validate,
+                              int expected_status_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_drv_se_t driver;
+    psa_drv_se_key_management_t key_management;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_id_t id = 1;
     size_t bit_size = 48;
@@ -732,6 +757,16 @@ void register_key_smoke_test( int lifetime_arg, int expected_status_arg )
 
     memset( &driver, 0, sizeof( driver ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;
+    if( validate >= 0 )
+    {
+        memset( &key_management, 0, sizeof( key_management ) );
+        driver.key_management = &key_management;
+        key_management.p_validate_slot_number = validate_slot_number_as_directed;
+        validate_slot_number_directions.slot_number = wanted_slot;
+        validate_slot_number_directions.method = PSA_KEY_CREATION_REGISTER;
+        validate_slot_number_directions.status =
+            ( validate > 0 ? PSA_SUCCESS : PSA_ERROR_NOT_PERMITTED );
+    }
 
     PSA_ASSERT( psa_register_se_driver( MIN_DRIVER_LIFETIME, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
@@ -770,5 +805,7 @@ exit:
     psa_destroy_key( handle );
     PSA_DONE( );
     psa_purge_storage( );
+    memset( &validate_slot_number_directions, 0,
+            sizeof( validate_slot_number_directions ) );
 }
 /* END_CASE */

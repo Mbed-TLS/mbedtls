@@ -13,6 +13,9 @@ Bugfix
    * Enable Suite B with subset of ECP curves. Make sure the code compiles even
      if some curves are not defined. Fixes #1591 reported by dbedev.
    * Fix misuse of signed arithmetic in the HAVEGE module. #2598
+   * Fix the build on ARMv5TE in ARM mode to not use assembly instructions
+     that are only available in Thumb mode. Fix contributed by Aurelien Jarno
+     in #2169.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

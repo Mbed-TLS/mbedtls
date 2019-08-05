@@ -110,3 +110,15 @@ key_creation_smoke:PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP256R1 ):PSA_ALG_
 
 Generate key: not supported
 generate_key_not_supported:PSA_KEY_TYPE_AES:128
+
+Key registration: smoke test
+register_key_smoke_test:MIN_DRIVER_LIFETIME:PSA_SUCCESS
+
+Key registration: invalid lifetime (volatile)
+register_key_smoke_test:PSA_KEY_LIFETIME_VOLATILE:PSA_ERROR_INVALID_ARGUMENT
+
+Key registration: invalid lifetime (internal storage)
+register_key_smoke_test:PSA_KEY_LIFETIME_PERSISTENT:PSA_ERROR_INVALID_ARGUMENT
+
+Key registration: invalid lifetime (no registered driver)
+register_key_smoke_test:MIN_DRIVER_LIFETIME + 1:PSA_ERROR_INVALID_ARGUMENT

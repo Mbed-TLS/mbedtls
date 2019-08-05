@@ -716,3 +716,59 @@ exit:
     psa_purge_storage( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void register_key_smoke_test( int lifetime_arg, int expected_status_arg )
+{
+    psa_key_lifetime_t lifetime = lifetime_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_drv_se_t driver;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_id_t id = 1;
+    size_t bit_size = 48;
+    psa_key_slot_number_t wanted_slot = 0x123456789;
+    psa_key_handle_t handle = 0;
+    psa_status_t status;
+
+    memset( &driver, 0, sizeof( driver ) );
+    driver.hal_version = PSA_DRV_SE_HAL_VERSION;
+
+    PSA_ASSERT( psa_register_se_driver( MIN_DRIVER_LIFETIME, &driver ) );
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_id( &attributes, id );
+    psa_set_key_lifetime( &attributes, lifetime );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+    psa_set_key_bits( &attributes, bit_size );
+    psa_set_key_slot_number( &attributes, wanted_slot );
+
+    status = mbedtls_psa_register_se_key( &attributes );
+    TEST_EQUAL( status, expected_status );
+
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    /* Test that the key exists and has the expected attributes. */
+    PSA_ASSERT( psa_open_key( id, &handle ) );
+    if( ! check_key_attributes( handle, &attributes ) )
+        goto exit;
+    PSA_ASSERT( psa_close_key( handle ) );
+
+    /* Restart and try again. */
+    PSA_DONE( );
+    PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+    PSA_ASSERT( psa_crypto_init( ) );
+    PSA_ASSERT( psa_open_key( id, &handle ) );
+    if( ! check_key_attributes( handle, &attributes ) )
+        goto exit;
+    /* This time, destroy the key. */
+    PSA_ASSERT( psa_destroy_key( handle ) );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    psa_destroy_key( handle );
+    PSA_DONE( );
+    psa_purge_storage( );
+}
+/* END_CASE */

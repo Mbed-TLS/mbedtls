@@ -818,6 +818,7 @@ typedef enum
     PSA_KEY_CREATION_GENERATE, /**< During psa_generate_key() */
     PSA_KEY_CREATION_DERIVE, /**< During psa_key_derivation_output_key() */
     PSA_KEY_CREATION_COPY, /**< During psa_copy_key() */
+    PSA_KEY_CREATION_REGISTER, /*TEMPORARY*/
 } psa_key_creation_method_t;
 
 /** \brief A function that allocates a slot for a key.

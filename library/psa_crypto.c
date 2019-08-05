@@ -1902,6 +1902,21 @@ psa_status_t mbedtls_psa_register_se_key(
         goto exit;
     }
 
+    /* If the driver has a slot number validation method, call it.
+     * If it doesn't, it means the secure element is unable to validate
+     * anything and so we have to trust the application. */
+    if( drv->key_management != NULL &&
+        drv->key_management->p_validate_slot_number != NULL )
+    {
+        status = drv->key_management->p_validate_slot_number(
+            psa_get_se_driver_context( driver ),
+            attributes,
+            PSA_KEY_CREATION_REGISTER,
+            slot->data.se.slot_number );
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
+
     status = psa_finish_key_creation( slot, driver );
 
 exit:

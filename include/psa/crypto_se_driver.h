@@ -818,7 +818,27 @@ typedef enum
     PSA_KEY_CREATION_GENERATE, /**< During psa_generate_key() */
     PSA_KEY_CREATION_DERIVE, /**< During psa_key_derivation_output_key() */
     PSA_KEY_CREATION_COPY, /**< During psa_copy_key() */
-    PSA_KEY_CREATION_REGISTER, /*TEMPORARY*/
+
+#ifndef __DOXYGEN_ONLY__
+    /** A key is being registered with mbedtls_psa_register_se_key().
+     *
+     * The core only passes this value to
+     * psa_drv_se_key_management_t::p_validate_slot_number, not to
+     * psa_drv_se_key_management_t::p_allocate. The call to
+     * `p_validate_slot_number` is not followed by any other call to the
+     * driver: the key is considered successfully registered if the call to
+     * `p_validate_slot_number` succeeds, or if `p_validate_slot_number` is
+     * null.
+     *
+     * With this creation method, the driver must return #PSA_SUCCESS if
+     * the given attributes are compatible with the existing key in the slot,
+     * and #PSA_ERROR_DOES_NOT_EXIST if the driver can determine that there
+     * is no key with the specified slot number.
+     *
+     * This is an Mbed Crypto extension.
+     */
+    PSA_KEY_CREATION_REGISTER,
+#endif
 } psa_key_creation_method_t;
 
 /** \brief A function that allocates a slot for a key.

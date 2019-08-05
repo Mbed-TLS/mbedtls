@@ -1433,9 +1433,9 @@ psa_status_t psa_export_public_key( psa_key_handle_t handle,
 #if defined(static_assert)
 static_assert( ( MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE ) == 0,
                "One or more key attribute flag is listed as both external-only and dual-use" );
-static_assert( ( MBEDTLS_PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE ) == 0,
+static_assert( ( PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE ) == 0,
                "One or more key attribute flag is listed as both external-only and dual-use" );
-static_assert( ( MBEDTLS_PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY ) == 0,
+static_assert( ( PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY ) == 0,
                "One or more key attribute flag is listed as both internal-only and external-only" );
 #endif
 

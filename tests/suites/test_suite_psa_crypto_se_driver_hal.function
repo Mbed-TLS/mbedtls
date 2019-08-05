@@ -550,6 +550,7 @@ exit:
 
 /* BEGIN_CASE */
 void key_creation_in_chosen_slot( int slot_arg,
+                                  int restart,
                                   int expected_status_arg )
 {
     psa_key_slot_number_t wanted_slot = slot_arg;
@@ -587,17 +588,26 @@ void key_creation_in_chosen_slot( int slot_arg,
                              &handle );
     TEST_EQUAL( status, expected_status );
 
-    if( status == PSA_SUCCESS )
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    /* Maybe restart, to check that the information is saved correctly. */
+    if( restart )
     {
-        /* Test that the key was created in the expected slot. */
-        TEST_EQUAL( ram_slots[wanted_slot].type, PSA_KEY_TYPE_RAW_DATA );
-
-        /* Test that the key is reported with the correct attributes,
-         * including the expected slot. */
-        PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
-
-        PSA_ASSERT( psa_destroy_key( handle ) );
+        mbedtls_psa_crypto_free( );
+        PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
+        PSA_ASSERT( psa_crypto_init( ) );
+        PSA_ASSERT( psa_open_key( id, &handle ) );
     }
+
+    /* Test that the key was created in the expected slot. */
+    TEST_EQUAL( ram_slots[wanted_slot].type, PSA_KEY_TYPE_RAW_DATA );
+
+    /* Test that the key is reported with the correct attributes,
+     * including the expected slot. */
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+
+    PSA_ASSERT( psa_destroy_key( handle ) );
 
 exit:
     PSA_DONE( );

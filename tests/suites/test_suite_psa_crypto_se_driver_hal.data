@@ -40,13 +40,19 @@ SE key import-export, check after restart (slot 3)
 key_creation_import_export:3:1
 
 Key creation in a specific slot (0)
-key_creation_in_chosen_slot:0:PSA_SUCCESS
+key_creation_in_chosen_slot:0:0:PSA_SUCCESS
 
 Key creation in a specific slot (max)
-key_creation_in_chosen_slot:ARRAY_LENGTH( ram_slots ) - 1:PSA_SUCCESS
+key_creation_in_chosen_slot:ARRAY_LENGTH( ram_slots ) - 1:0:PSA_SUCCESS
+
+Key creation in a specific slot (0, restart)
+key_creation_in_chosen_slot:0:1:PSA_SUCCESS
+
+Key creation in a specific slot (max, restart)
+key_creation_in_chosen_slot:ARRAY_LENGTH( ram_slots ) - 1:1:PSA_SUCCESS
 
 Key creation in a specific slot (too large)
-key_creation_in_chosen_slot:ARRAY_LENGTH( ram_slots ):PSA_ERROR_INVALID_ARGUMENT
+key_creation_in_chosen_slot:ARRAY_LENGTH( ram_slots ):0:PSA_ERROR_INVALID_ARGUMENT
 
 Key creation smoke test: AES-CTR
 key_creation_smoke:PSA_KEY_TYPE_AES:PSA_ALG_CTR:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"

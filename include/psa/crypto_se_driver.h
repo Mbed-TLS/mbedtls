@@ -977,7 +977,21 @@ typedef psa_status_t (*psa_drv_se_generate_key_t)(psa_drv_se_context_t *drv_cont
  * If one of the functions is not implemented, it should be set to NULL.
  */
 typedef struct {
-    /** Function that allocates a slot. */
+    /** Function that allocates a slot for a key.
+     *
+     * The core calls this function to determine a slot number, then
+     * calls the actual creation function (such as
+     * psa_drv_se_key_management_t::p_import or
+     * psa_drv_se_key_management_t::p_generate).
+     *
+     * If this function succeeds, the next call that the core makes to the
+     * driver is either the creation function or
+     * psa_drv_se_key_management_t::p_destroy. Note that
+     * if the platform is reset after this function returns, the core
+     * may either subsequently call
+     * psa_drv_se_key_management_t::p_destroy or may behave as if the
+     * last call to this function had not taken place.
+     */
     psa_drv_se_allocate_key_t   p_allocate;
     /** Function that performs a key import operation */
     psa_drv_se_import_key_t     p_import;

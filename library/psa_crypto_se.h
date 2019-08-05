@@ -135,6 +135,7 @@ psa_drv_se_context_t *psa_get_se_driver_context(
  */
 psa_status_t psa_find_se_slot_for_key(
     const psa_key_attributes_t *attributes,
+    psa_key_creation_method_t method,
     psa_se_drv_table_entry_t *driver,
     psa_key_slot_number_t *slot_number );
 

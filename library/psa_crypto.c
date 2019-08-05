@@ -1506,16 +1506,6 @@ static psa_status_t psa_validate_key_attributes(
     return( PSA_SUCCESS );
 }
 
-/** An enumeration indicating how a key is created.
- */
-typedef enum
-{
-    PSA_KEY_CREATION_IMPORT,
-    PSA_KEY_CREATION_GENERATE,
-    PSA_KEY_CREATION_DERIVE,
-    PSA_KEY_CREATION_COPY,
-} psa_key_creation_method_t;
-
 /** Prepare a key slot to receive key material.
  *
  * This function allocates a key slot and sets its metadata.
@@ -1595,7 +1585,7 @@ static psa_status_t psa_start_key_creation(
      * we can roll back to a state where the key doesn't exist. */
     if( *p_drv != NULL )
     {
-        status = psa_find_se_slot_for_key( attributes, *p_drv,
+        status = psa_find_se_slot_for_key( attributes, method, *p_drv,
                                            &slot->data.se.slot_number );
         if( status != PSA_SUCCESS )
             return( status );

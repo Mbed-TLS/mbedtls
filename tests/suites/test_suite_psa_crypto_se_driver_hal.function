@@ -41,10 +41,12 @@
 static psa_status_t counter_allocate( psa_drv_se_context_t *context,
                                       void *persistent_data,
                                       const psa_key_attributes_t *attributes,
+                                      psa_key_creation_method_t method,
                                       psa_key_slot_number_t *slot_number )
 {
     psa_key_slot_number_t *p_counter = persistent_data;
     (void) attributes;
+    (void) method;
     if( context->persistent_data_size != sizeof( psa_key_slot_number_t ) )
         return( PSA_ERROR_DETECTED_BY_DRIVER );
     ++*p_counter;
@@ -162,10 +164,12 @@ static psa_status_t ram_destroy( psa_drv_se_context_t *context,
 static psa_status_t ram_allocate( psa_drv_se_context_t *context,
                                   void *persistent_data,
                                   const psa_key_attributes_t *attributes,
+                                  psa_key_creation_method_t method,
                                   psa_key_slot_number_t *slot_number )
 {
     ram_slot_usage_t *slot_usage = persistent_data;
     (void) attributes;
+    (void) method;
     DRIVER_ASSERT( context->persistent_data_size == sizeof( ram_slot_usage_t ) );
     for( *slot_number = ram_min_slot;
          *slot_number < ARRAY_LENGTH( ram_slots );
@@ -180,10 +184,12 @@ static psa_status_t ram_allocate( psa_drv_se_context_t *context,
 static psa_status_t ram_validate_slot_number(
     psa_drv_se_context_t *context,
     const psa_key_attributes_t *attributes,
+    psa_key_creation_method_t method,
     psa_key_slot_number_t slot_number )
 {
     (void) context;
     (void) attributes;
+    (void) method;
     if( slot_number >= ARRAY_LENGTH( ram_slots ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
     return( PSA_SUCCESS );

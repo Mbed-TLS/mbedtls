@@ -1088,6 +1088,12 @@ component_build_arm_none_eabi_gcc () {
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
 }
 
+component_build_arm_none_eabi_gcc_armel () {
+    msg "build: arm-none-eabi-gcc, make" # ~ 10s
+    scripts/config.pl baremetal
+    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar CFLAGS='-Werror -Wall -Wextra -march=armv5te' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
+}
+
 component_build_arm_none_eabi_gcc_no_udbl_division () {
     msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
     scripts/config.pl baremetal

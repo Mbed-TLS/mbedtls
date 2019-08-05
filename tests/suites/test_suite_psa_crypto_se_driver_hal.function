@@ -62,7 +62,8 @@ static psa_status_t null_import( psa_drv_se_context_t *context,
                                  psa_algorithm_t algorithm,
                                  psa_key_usage_t usage,
                                  const uint8_t *p_data,
-                                 size_t data_length )
+                                 size_t data_length,
+                                 size_t *bits )
 {
     (void) context;
     (void) slot_number;
@@ -71,7 +72,9 @@ static psa_status_t null_import( psa_drv_se_context_t *context,
     (void) algorithm;
     (void) usage;
     (void) p_data;
-    (void) data_length;
+    /* We're supposed to return a key size. Return one that's correct for
+     * plain data keys. */
+    *bits = PSA_BYTES_TO_BITS( data_length );
     return( PSA_SUCCESS );
 }
 
@@ -110,7 +113,8 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
                                 psa_algorithm_t algorithm,
                                 psa_key_usage_t usage,
                                 const uint8_t *p_data,
-                                size_t data_length )
+                                size_t data_length,
+                                size_t *bits )
 {
     (void) context;
     DRIVER_ASSERT( slot_number < ARRAY_LENGTH( ram_slots ) );
@@ -119,6 +123,7 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
     ram_slots[slot_number].lifetime = lifetime;
     ram_slots[slot_number].type = type;
     ram_slots[slot_number].bits = PSA_BYTES_TO_BITS( data_length );
+    *bits = PSA_BYTES_TO_BITS( data_length );
     (void) algorithm;
     (void) usage;
     memcpy( ram_slots[slot_number].content, p_data, data_length );
@@ -177,6 +182,41 @@ static psa_status_t ram_allocate( psa_drv_se_context_t *context,
 /****************************************************************/
 /* Other test helper functions */
 /****************************************************************/
+
+/* Check that the attributes of a key reported by psa_get_key_attributes()
+ * are consistent with the attributes used when creating the key. */
+static int check_key_attributes(
+    psa_key_handle_t handle,
+    const psa_key_attributes_t *reference_attributes )
+{
+    int ok = 0;
+    psa_key_attributes_t actual_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT( psa_get_key_attributes( handle, &actual_attributes ) );
+
+    TEST_EQUAL( psa_get_key_id( &actual_attributes ),
+                psa_get_key_id( reference_attributes ) );
+    TEST_EQUAL( psa_get_key_lifetime( &actual_attributes ),
+                psa_get_key_lifetime( reference_attributes ) );
+    TEST_EQUAL( psa_get_key_type( &actual_attributes ),
+                psa_get_key_type( reference_attributes ) );
+    TEST_EQUAL( psa_get_key_usage_flags( &actual_attributes ),
+                psa_get_key_usage_flags( reference_attributes ) );
+    TEST_EQUAL( psa_get_key_algorithm( &actual_attributes ),
+                psa_get_key_algorithm( reference_attributes ) );
+    TEST_EQUAL( psa_get_key_enrollment_algorithm( &actual_attributes ),
+                psa_get_key_enrollment_algorithm( reference_attributes ) );
+    if( psa_get_key_bits( reference_attributes ) != 0 )
+    {
+        TEST_EQUAL( psa_get_key_bits( &actual_attributes ),
+                    psa_get_key_bits( reference_attributes ) );
+    }
+
+    ok = 1;
+
+exit:
+    return( ok );
+}
 
 /* Check that a function's return status is "smoke-free", i.e. that
  * it's an acceptable error code when calling an API function that operates
@@ -445,6 +485,11 @@ void key_creation_import_export( int min_slot, int restart )
     /* Test that the key was created in the expected slot. */
     TEST_ASSERT( ram_slots[min_slot].type == PSA_KEY_TYPE_RAW_DATA );
 
+    /* Test the key attributes and the key data. */
+    psa_set_key_bits( &attributes,
+                      PSA_BYTES_TO_BITS( sizeof( key_material ) ) );
+    if( ! check_key_attributes( handle, &attributes ) )
+        goto exit;
     PSA_ASSERT( psa_export_key( handle,
                                 exported, sizeof( exported ),
                                 &exported_length ) );

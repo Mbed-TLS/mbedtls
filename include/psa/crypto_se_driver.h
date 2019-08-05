@@ -833,14 +833,18 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
  *
  * \param[in,out] drv_context   The driver context structure.
  * \param[in] key_slot          Slot where the key will be stored
- *                              This must be a valid slot for a key of the chosen
- *                              type. It must be unoccupied.
+ *                              This must be a valid slot for a key of the
+ *                              chosen type. It must be unoccupied.
  * \param[in] lifetime          The required lifetime of the key storage
  * \param[in] type              Key type (a \c PSA_KEY_TYPE_XXX value)
  * \param[in] algorithm         Key algorithm (a \c PSA_ALG_XXX value)
  * \param[in] usage             The allowed uses of the key
  * \param[in] p_data            Buffer containing the key data
  * \param[in] data_length       Size of the `data` buffer in bytes
+ * \param[out] bits             On success, the key size in bits. The driver
+ *                              must determine this value after parsing the
+ *                              key according to the key type.
+ *                              This value is not used if the function fails.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -852,7 +856,8 @@ typedef psa_status_t (*psa_drv_se_import_key_t)(psa_drv_se_context_t *drv_contex
                                                 psa_algorithm_t algorithm,
                                                 psa_key_usage_t usage,
                                                 const uint8_t *p_data,
-                                                size_t data_length);
+                                                size_t data_length,
+                                                size_t *bits);
 
 /**
  * \brief A function that destroys a secure element key and restore the slot to

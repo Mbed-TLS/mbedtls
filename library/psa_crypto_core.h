@@ -64,6 +64,7 @@ typedef struct
         struct se
         {
             psa_key_slot_number_t slot_number;
+            size_t bits;
         } se;
     } data;
 } psa_key_slot_t;

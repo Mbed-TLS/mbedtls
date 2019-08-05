@@ -1035,6 +1035,11 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
 /* Return the size of the key in the given slot, in bits. */
 static size_t psa_get_key_slot_bits( const psa_key_slot_t *slot )
 {
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_get_se_driver( slot->lifetime, NULL, NULL ) )
+        return( slot->data.se.bits );
+#endif /* defined(MBEDTLS_PSA_CRYPTO_SE_C) */
+
     if( key_type_is_raw_bytes( slot->type ) )
         return( slot->data.raw.bytes * 8 );
 #if defined(MBEDTLS_RSA_C)
@@ -1140,10 +1145,10 @@ exit:
 }
 #endif /* MBEDTLS_RSA_C */
 
-/** Retrieve the readily-accessible attributes of a key in a slot.
+/** Retrieve the generic attributes of a key in a slot.
  *
- * This function does not compute attributes that are not directly
- * stored in the slot, such as the bit size of a transparent key.
+ * This function does not retrieve domain parameters, which require
+ * additional memory management.
  */
 static void psa_get_key_slot_attributes( psa_key_slot_t *slot,
                                          psa_key_attributes_t *attributes )
@@ -1152,6 +1157,7 @@ static void psa_get_key_slot_attributes( psa_key_slot_t *slot,
     attributes->lifetime = slot->lifetime;
     attributes->policy = slot->policy;
     attributes->type = slot->type;
+    attributes->bits = psa_get_key_slot_bits( slot );
 }
 
 /** Retrieve all the publicly-accessible attributes of a key.
@@ -1164,21 +1170,26 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
 
     psa_reset_key_attributes( attributes );
 
-    status = psa_get_transparent_key( handle, &slot, 0, 0 );
+    status = psa_get_key_from_slot( handle, &slot, 0, 0 );
     if( status != PSA_SUCCESS )
         return( status );
 
     psa_get_key_slot_attributes( slot, attributes );
-    attributes->bits = psa_get_key_slot_bits( slot );
 
     switch( slot->type )
     {
 #if defined(MBEDTLS_RSA_C)
         case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+            /* TOnogrepDO: reporting the public exponent for opaque keys
+             * is not yet implemented. */
+            if( psa_get_se_driver( slot->lifetime, NULL, NULL ) )
+                break;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
             status = psa_get_rsa_public_exponent( slot->data.rsa, attributes );
             break;
-#endif
+#endif /* MBEDTLS_RSA_C */
         default:
             /* Nothing else to do. */
             break;
@@ -1489,6 +1500,10 @@ static psa_status_t psa_start_key_creation(
             (void) psa_crypto_stop_transaction( );
             return( status );
         }
+
+        /* TOnogrepDO: validate bits. How to do this depends on the key
+         * creation method, so setting bits might not belong here. */
+        slot->data.se.bits = psa_get_key_bits( attributes );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
@@ -1523,40 +1538,32 @@ static psa_status_t psa_finish_key_creation(
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        uint8_t *buffer = NULL;
-        size_t buffer_size = 0;
-        size_t length = 0;
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+        psa_get_key_slot_attributes( slot, &attributes );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         if( driver != NULL )
         {
-            buffer = (uint8_t*) &slot->data.se.slot_number;
-            length = sizeof( slot->data.se.slot_number );
+            status = psa_save_persistent_key( &attributes,
+                                              (uint8_t*) &slot->data.se,
+                                              sizeof( slot->data.se ) );
         }
         else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
         {
-            buffer_size = PSA_KEY_EXPORT_MAX_SIZE( slot->type,
-                                                   psa_get_key_slot_bits( slot ) );
-            buffer = mbedtls_calloc( 1, buffer_size );
+            size_t buffer_size =
+                PSA_KEY_EXPORT_MAX_SIZE( slot->type,
+                                         psa_get_key_bits( &attributes ) );
+            uint8_t *buffer = mbedtls_calloc( 1, buffer_size );
+            size_t length = 0;
             if( buffer == NULL && buffer_size != 0 )
                 return( PSA_ERROR_INSUFFICIENT_MEMORY );
             status = psa_internal_export_key( slot,
                                               buffer, buffer_size, &length,
                                               0 );
-        }
+            if( status == PSA_SUCCESS )
+                status = psa_save_persistent_key( &attributes, buffer, length );
 
-        if( status == PSA_SUCCESS )
-        {
-            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-            psa_get_key_slot_attributes( slot, &attributes );
-            status = psa_save_persistent_key( &attributes, buffer, length );
-        }
-
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-        if( driver == NULL )
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-        {
             if( buffer_size != 0 )
                 mbedtls_platform_zeroize( buffer, buffer_size );
             mbedtls_free( buffer );
@@ -1696,8 +1703,8 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
             psa_get_se_driver_context( driver ),
             slot->data.se.slot_number,
             slot->lifetime, slot->type, slot->policy.alg, slot->policy.usage,
-            data, data_length );
-        /* TOnogrepDO: psa_check_key_slot_attributes? */
+            data, data_length,
+            &slot->data.se.bits );
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -1705,10 +1712,10 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         status = psa_import_key_into_slot( slot, data, data_length );
         if( status != PSA_SUCCESS )
             goto exit;
-        status = psa_check_key_slot_attributes( slot, attributes );
-        if( status != PSA_SUCCESS )
-            goto exit;
     }
+    status = psa_check_key_slot_attributes( slot, attributes );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
     status = psa_finish_key_creation( slot, driver );
 exit:

@@ -138,13 +138,12 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *p_slot )
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( psa_key_lifetime_is_external( p_slot->lifetime ) )
     {
-        if( key_data_length != sizeof( p_slot->data.se.slot_number ) )
+        if( key_data_length != sizeof( p_slot->data.se ) )
         {
             status = PSA_ERROR_STORAGE_FAILURE;
             goto exit;
         }
-        memcpy( &p_slot->data.se.slot_number, key_data,
-                sizeof( p_slot->data.se.slot_number ) );
+        memcpy( &p_slot->data.se, key_data, sizeof( p_slot->data.se ) );
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */

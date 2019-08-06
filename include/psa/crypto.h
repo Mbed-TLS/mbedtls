@@ -328,6 +328,8 @@ static size_t psa_get_key_bits(const psa_key_attributes_t *attributes);
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  */
 psa_status_t psa_get_key_attributes(psa_key_handle_t handle,
                                     psa_key_attributes_t *attributes);

@@ -81,21 +81,15 @@ static psa_status_t counter_allocate( psa_drv_se_context_t *context,
 /* Null import: do nothing, but pretend it worked. */
 static psa_status_t null_import( psa_drv_se_context_t *context,
                                  psa_key_slot_number_t slot_number,
-                                 psa_key_lifetime_t lifetime,
-                                 psa_key_type_t type,
-                                 psa_algorithm_t algorithm,
-                                 psa_key_usage_t usage,
-                                 const uint8_t *p_data,
+                                 const psa_key_attributes_t *attributes,
+                                 const uint8_t *data,
                                  size_t data_length,
                                  size_t *bits )
 {
     (void) context;
     (void) slot_number;
-    (void) lifetime;
-    (void) type;
-    (void) algorithm;
-    (void) usage;
-    (void) p_data;
+    (void) attributes;
+    (void) data;
     /* We're supposed to return a key size. Return one that's correct for
      * plain data keys. */
     *bits = PSA_BYTES_TO_BITS( data_length );
@@ -132,11 +126,8 @@ static void ram_slots_reset( void )
 
 static psa_status_t ram_import( psa_drv_se_context_t *context,
                                 psa_key_slot_number_t slot_number,
-                                psa_key_lifetime_t lifetime,
-                                psa_key_type_t type,
-                                psa_algorithm_t algorithm,
-                                psa_key_usage_t usage,
-                                const uint8_t *p_data,
+                                const psa_key_attributes_t *attributes,
+                                const uint8_t *data,
                                 size_t data_length,
                                 size_t *bits )
 {
@@ -144,13 +135,11 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
     DRIVER_ASSERT( slot_number < ARRAY_LENGTH( ram_slots ) );
     if( data_length > sizeof( ram_slots[slot_number].content ) )
         return( PSA_ERROR_INSUFFICIENT_STORAGE );
-    ram_slots[slot_number].lifetime = lifetime;
-    ram_slots[slot_number].type = type;
+    ram_slots[slot_number].lifetime = psa_get_key_lifetime( attributes );
+    ram_slots[slot_number].type = psa_get_key_type( attributes );
     ram_slots[slot_number].bits = PSA_BYTES_TO_BITS( data_length );
     *bits = PSA_BYTES_TO_BITS( data_length );
-    (void) algorithm;
-    (void) usage;
-    memcpy( ram_slots[slot_number].content, p_data, data_length );
+    memcpy( ram_slots[slot_number].content, data, data_length );
     return( PSA_SUCCESS );
 }
 

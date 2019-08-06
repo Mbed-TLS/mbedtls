@@ -1827,10 +1827,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         }
         status = drv->key_management->p_import(
             psa_get_se_driver_context( driver ),
-            slot->data.se.slot_number,
-            slot->attr.lifetime, slot->attr.type,
-            slot->attr.policy.alg, slot->attr.policy.usage,
-            data, data_length,
+            slot->data.se.slot_number, attributes, data, data_length,
             &bits );
         if( status != PSA_SUCCESS )
             goto exit;

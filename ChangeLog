@@ -13,6 +13,8 @@ Bugfix
    * Enable Suite B with subset of ECP curves. Make sure the code compiles even
      if some curves are not defined. Fixes #1591 reported by dbedev.
    * Fix misuse of signed arithmetic in the HAVEGE module. #2598
+   * Update test certificates that were about to expire. Reported by
+     Bernhard M. Wiedemann in #2357.
 
 Changes
    * Make `make clean` clean all programs always. Fixes #1862.

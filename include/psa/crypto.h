@@ -674,7 +674,6 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The key is neither a public key nor a key pair.
  * \retval #PSA_ERROR_NOT_SUPPORTED

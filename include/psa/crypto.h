@@ -807,6 +807,8 @@ psa_status_t psa_copy_key(psa_key_handle_t source_handle,
  *         Success.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a hash algorithm.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         \p hash_size is too small
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE

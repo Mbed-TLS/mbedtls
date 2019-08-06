@@ -604,7 +604,6 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The key does not have the #PSA_KEY_USAGE_EXPORT flag.
  * \retval #PSA_ERROR_NOT_SUPPORTED

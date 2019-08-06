@@ -775,6 +775,7 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
 psa_status_t psa_copy_key(psa_key_handle_t source_handle,

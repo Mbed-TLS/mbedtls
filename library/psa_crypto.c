@@ -1560,8 +1560,11 @@ static psa_status_t psa_start_key_creation(
     slot->attr = attributes->core;
 
     /* Erase external-only flags from the internal copy. To access
-     * external-only flags, query `attributes`. */
-    slot->attr.flags |= ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
+     * external-only flags, query `attributes`. Thanks to the check
+     * in psa_validate_key_attributes(), this leaves the dual-use
+     * flags and any internal flag that psa_internal_allocate_key_slot()
+     * may have set. */
+    slot->attr.flags &= ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things:

@@ -187,6 +187,21 @@ typedef enum
     }                                                                   \
     while( 0 )
 
+/**
+ * \brief   This macro tests the expression passed to it and skips the
+ *          running test if it doesn't evaluate to 'true'.
+ *
+ * \param   TEST    The test expression to be tested.
+ */
+#define TEST_ASSUME( TEST )                         \
+    do {                                            \
+        if( ! (TEST) )                              \
+        {                                           \
+            test_skip( #TEST, __LINE__, __FILE__ ); \
+            goto exit;                              \
+        }                                           \
+    } while( 0 )
+
 #if defined(MBEDTLS_CHECK_PARAMS) && !defined(MBEDTLS_PARAM_FAILED_ALT)
 /**
  * \brief   This macro tests the statement passed to it as a test step or
@@ -372,10 +387,17 @@ typedef enum
 /*----------------------------------------------------------------------------*/
 /* Global variables */
 
+typedef enum
+{
+    TEST_RESULT_SUCCESS = 0,
+    TEST_RESULT_FAILED,
+    TEST_RESULT_SKIPPED
+} test_result_t;
+
 static struct
 {
     paramfail_test_state_t paramfail_test_state;
-    int failed;
+    test_result_t result;
     const char *test;
     const char *filename;
     int line_no;
@@ -411,7 +433,15 @@ jmp_buf jmp_tmp;
 
 void test_fail( const char *test, int line_no, const char* filename )
 {
-    test_info.failed = 1;
+    test_info.result = TEST_RESULT_FAILED;
+    test_info.test = test;
+    test_info.line_no = line_no;
+    test_info.filename = filename;
+}
+
+void test_skip( const char *test, int line_no, const char* filename )
+{
+    test_info.result = TEST_RESULT_SKIPPED;
     test_info.test = test;
     test_info.line_no = line_no;
     test_info.filename = filename;
@@ -450,7 +480,7 @@ void mbedtls_param_failed( const char *failure_condition,
         /* Record the location of the failure, but not as a failure yet, in case
          * it was part of the test */
         test_fail( failure_condition, line, file );
-        test_info.failed = 0;
+        test_info.result = TEST_RESULT_SUCCESS;
 
         longjmp( param_fail_jmp, 1 );
     }

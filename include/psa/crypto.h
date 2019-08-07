@@ -1178,6 +1178,8 @@ psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
  *         \p handle is not compatible with \p alg.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         \p mac_size is too small
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE

@@ -5718,10 +5718,7 @@ static psa_status_t psa_generate_key_internal(
         status = psa_generate_random( slot->data.raw.data,
                                       slot->data.raw.bytes );
         if( status != PSA_SUCCESS )
-        {
-            mbedtls_free( slot->data.raw.data );
             return( status );
-        }
 #if defined(MBEDTLS_DES_C)
         if( type == PSA_KEY_TYPE_DES )
             psa_des_set_key_parity( slot->data.raw.data,

@@ -3331,10 +3331,14 @@ psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
 {
     psa_key_slot_t *slot;
     psa_status_t status;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     *signature_length = signature_size;
 
-    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
+    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
     if( status != PSA_SUCCESS )
         goto exit;
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
@@ -3343,6 +3347,24 @@ psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
         goto exit;
     }
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
+    {
+        if( drv->asymmetric == NULL ||
+            drv->asymmetric->p_sign == NULL )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+        status = drv->asymmetric->p_sign( drv_context,
+                                          slot->data.se.slot_number,
+                                          alg,
+                                          hash, hash_length,
+                                          signature, signature_size,
+                                          signature_length );
+    }
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 #if defined(MBEDTLS_RSA_C)
     if( slot->attr.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
@@ -3406,11 +3428,29 @@ psa_status_t psa_asymmetric_verify( psa_key_handle_t handle,
 {
     psa_key_slot_t *slot;
     psa_status_t status;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_VERIFY, alg );
+    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_VERIFY, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
+    {
+        if( drv->asymmetric == NULL ||
+            drv->asymmetric->p_verify == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        return( drv->asymmetric->p_verify( drv_context,
+                                           slot->data.se.slot_number,
+                                           alg,
+                                           hash, hash_length,
+                                           signature, signature_length ) );
+    }
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 #if defined(MBEDTLS_RSA_C)
     if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
     {

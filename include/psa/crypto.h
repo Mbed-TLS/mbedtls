@@ -1332,6 +1332,8 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         The key could not be retrieved from storage. 
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (already set up and not
  *         subsequently completed).

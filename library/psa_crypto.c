@@ -5650,6 +5650,17 @@ psa_status_t psa_generate_random( uint8_t *output,
     int ret;
     GUARD_MODULE_INITIALIZED;
 
+    while( output_size > MBEDTLS_CTR_DRBG_MAX_REQUEST )
+    {
+        ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg,
+                                       output,
+                                       MBEDTLS_CTR_DRBG_MAX_REQUEST );
+        if( ret != 0 )
+            return( mbedtls_to_psa_error( ret ) );
+        output += MBEDTLS_CTR_DRBG_MAX_REQUEST;
+        output_size -= MBEDTLS_CTR_DRBG_MAX_REQUEST;
+    }
+
     ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg, output, output_size );
     return( mbedtls_to_psa_error( ret ) );
 }

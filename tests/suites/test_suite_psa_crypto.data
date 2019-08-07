@@ -2209,6 +2209,15 @@ generate_random:19
 PSA generate random: 260 bytes
 generate_random:260
 
+PSA generate random: MBEDTLS_CTR_DRBG_MAX_REQUEST bytes
+generate_random:MBEDTLS_CTR_DRBG_MAX_REQUEST
+
+PSA generate random: MBEDTLS_CTR_DRBG_MAX_REQUEST+1 bytes
+generate_random:MBEDTLS_CTR_DRBG_MAX_REQUEST + 1
+
+PSA generate random: 2*MBEDTLS_CTR_DRBG_MAX_REQUEST+1 bytes
+generate_random:2 * MBEDTLS_CTR_DRBG_MAX_REQUEST + 1
+
 PSA generate key: bad type (0)
 generate_key:PSA_KEY_TYPE_NONE:128:PSA_KEY_USAGE_EXPORT:0:PSA_ERROR_NOT_SUPPORTED
 
@@ -2226,6 +2235,12 @@ generate_key:PSA_KEY_TYPE_RAW_DATA:7:PSA_KEY_USAGE_EXPORT:0:PSA_ERROR_INVALID_AR
 
 PSA generate key: raw data, 8 bits
 generate_key:PSA_KEY_TYPE_RAW_DATA:8:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS
+
+PSA generate key: raw data, (MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8 bits
+generate_key:PSA_KEY_TYPE_RAW_DATA:(MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS
+
+PSA generate key: raw data, (2 * MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8 bits
+generate_key:PSA_KEY_TYPE_RAW_DATA:(2 * MBEDTLS_CTR_DRBG_MAX_REQUEST + 1) * 8:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS
 
 PSA generate key: raw data, 65528 bits (ok)
 depends_on:HAVE_RAM_AVAILABLE_128K

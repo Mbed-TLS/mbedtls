@@ -5,6 +5,10 @@
 #include "mbedtls/asn1write.h"
 #include "mbedtls/oid.h"
 
+/* For MBEDTLS_CTR_DRBG_MAX_REQUEST, knowing that psa_generate_random()
+ * uses mbedtls_ctr_drbg internally. */
+#include "mbedtls/ctr_drbg.h"
+
 #include "psa_crypto_helpers.h"
 
 /* Tests that require more than 128kB of RAM plus change have this symbol
@@ -13,6 +17,8 @@
  * so that tests that require a lot of memory are skipped on constrained
  * platforms. */
 #define HAVE_RAM_AVAILABLE_128K
+
+#include "psa/crypto.h"
 
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;

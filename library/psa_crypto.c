@@ -1546,7 +1546,7 @@ static psa_status_t psa_start_key_creation(
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_internal_allocate_key_slot( handle, p_slot );
+    status = psa_get_empty_key_slot( handle, p_slot );
     if( status != PSA_SUCCESS )
         return( status );
     slot = *p_slot;
@@ -1562,7 +1562,7 @@ static psa_status_t psa_start_key_creation(
     /* Erase external-only flags from the internal copy. To access
      * external-only flags, query `attributes`. Thanks to the check
      * in psa_validate_key_attributes(), this leaves the dual-use
-     * flags and any internal flag that psa_internal_allocate_key_slot()
+     * flags and any internal flag that psa_get_empty_key_slot()
      * may have set. */
     slot->attr.flags &= ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
 

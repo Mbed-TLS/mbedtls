@@ -1384,7 +1384,6 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c key is not compatible with \c alg.
@@ -1740,7 +1739,6 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p handle is not compatible with \p alg.
@@ -1802,7 +1800,6 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p handle is not compatible with \p alg.
@@ -2053,7 +2050,6 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p handle is not compatible with \p alg.
@@ -2109,7 +2105,6 @@ psa_status_t psa_aead_encrypt(psa_key_handle_t handle,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_INVALID_SIGNATURE
  *         The ciphertext is not authentic.
  * \retval #PSA_ERROR_NOT_PERMITTED
@@ -3158,7 +3153,6 @@ psa_status_t psa_key_derivation_input_bytes(
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c step is not compatible with the operation's algorithm.
@@ -3220,7 +3214,6 @@ psa_status_t psa_key_derivation_input_key(
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_DOES_NOT_EXIST
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c private_key is not compatible with \c alg,

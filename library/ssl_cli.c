@@ -3238,9 +3238,6 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         unsigned char *own_pubkey_ecpoint;
         size_t own_pubkey_ecpoint_len;
 
-        psa_key_derivation_operation_t generator =
-            PSA_KEY_DERIVATION_OPERATION_INIT;
-
         header_len = 4;
 
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
@@ -3258,8 +3255,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          * of the ECDH secret and the application of the TLS 1.2 PRF. */
         key_attributes = psa_key_attributes_init();
         psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
-        psa_set_key_algorithm( &key_attributes,
-                               PSA_ALG_ECDH( PSA_ALG_SELECT_RAW ) );
+        psa_set_key_algorithm( &key_attributes, PSA_ALG_ECDH );
         psa_set_key_type( &key_attributes,
                           PSA_KEY_TYPE_ECC_KEY_PAIR( handshake->ecdh_psa_curve )
                         );
@@ -3268,7 +3264,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         /* Generate ECDH private key. */
         status = psa_generate_key( &key_attributes,
-                                   handshake->ecdh_psa_privkey );
+                                   &handshake->ecdh_psa_privkey );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
@@ -3294,31 +3290,16 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
                 own_pubkey_ecpoint, own_pubkey_ecpoint_len );
         content_len = own_pubkey_ecpoint_len + 1;
 
-        /* Compute ECDH shared secret. */
-        status = psa_key_derivation_key_agreement(
-                &generator,
-                handshake->ecdh_psa_privkey,
-                handshake->ecdh_psa_peerkey,
-                handshake->ecdh_psa_peerkey_len,
-                PSA_ALG_ECDH( PSA_ALG_SELECT_RAW ) );
-        if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-
         /* The ECDH secret is the premaster secret used for key derivation. */
 
-        ssl->handshake->pmslen =
-            MBEDTLS_PSA_ECC_KEY_BYTES_OF_CURVE( handshake->ecdh_psa_curve );
-
-        status = psa_key_derivation_output_bytes( &generator,
-                                                  ssl->handshake->premaster,
-                                                  ssl->handshake->pmslen );
-        if( status != PSA_SUCCESS )
-        {
-            psa_key_derivation_abort( &generator );
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-
-        status = psa_key_derivation_abort( &generator );
+        /* Compute ECDH shared secret. */
+        status = psa_raw_key_agreement( PSA_ALG_ECDH,
+                                        handshake->ecdh_psa_privkey,
+                                        handshake->ecdh_psa_peerkey,
+                                        handshake->ecdh_psa_peerkey_len,
+                                        ssl->handshake->premaster,
+                                        sizeof( ssl->handshake->premaster ),
+                                        &ssl->handshake->pmslen );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 

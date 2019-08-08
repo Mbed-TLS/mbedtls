@@ -3488,12 +3488,15 @@ psa_status_t psa_key_derivation_abort(
  *         \p private_key is not compatible with \p alg,
  *         or \p peer_key is not valid for \p alg or not compatible with
  *         \p private_key.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         \p output_size is too small
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not a supported key agreement algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize

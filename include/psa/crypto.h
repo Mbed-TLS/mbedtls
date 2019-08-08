@@ -1162,6 +1162,8 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is either not initialized or has already been setup.
  * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is either not initialized or has already been setup.
+ * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.

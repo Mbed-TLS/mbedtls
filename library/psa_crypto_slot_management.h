@@ -71,8 +71,8 @@ void psa_wipe_all_key_slots( void );
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_BAD_STATE
  */
-psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle,
-                                             psa_key_slot_t **p_slot );
+psa_status_t psa_get_empty_key_slot( psa_key_handle_t *handle,
+                                     psa_key_slot_t **p_slot );
 
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *

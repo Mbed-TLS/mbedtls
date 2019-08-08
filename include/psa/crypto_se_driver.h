@@ -134,10 +134,17 @@ typedef psa_status_t (*psa_drv_se_init_t)(psa_drv_se_context_t *drv_context,
                                           void *persistent_data,
                                           psa_key_lifetime_t lifetime);
 
+#if defined(__DOXYGEN_ONLY__) || !defined(MBEDTLS_PSA_CRYPTO_SE_C)
+/* Mbed Crypto with secure element support enabled defines this type in
+ * crypto_types.h because it is also visible to applications through an
+ * implementation-specific extension.
+ * For the PSA Cryptography specification, this type is only visible
+ * via crypto_se_driver.h. */
 /** An internal designation of a key slot between the core part of the
  * PSA Crypto implementation and the driver. The meaning of this value
  * is driver-dependent. */
 typedef uint64_t psa_key_slot_number_t;
+#endif /* __DOXYGEN_ONLY__ || !MBEDTLS_PSA_CRYPTO_SE_C */
 
 /**@}*/
 

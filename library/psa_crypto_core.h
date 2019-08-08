@@ -56,13 +56,20 @@ typedef struct
         /* EC public key or key pair */
         mbedtls_ecp_keypair *ecp;
 #endif /* MBEDTLS_ECP_C */
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
         /* Any key type in a secure element */
         struct se
         {
             psa_key_slot_number_t slot_number;
         } se;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     } data;
 } psa_key_slot_t;
+
+/* A mask of key attribute flags used only internally.
+ * Currently there aren't any. */
+#define PSA_KA_MASK_INTERNAL_ONLY (     \
+        0 )
 
 /** Test whether a key slot is occupied.
  *

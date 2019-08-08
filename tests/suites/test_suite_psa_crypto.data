@@ -19,6 +19,9 @@ persistence_attributes:0x1234:3:-1:0x1234:3
 PSA key attributes: lifetime then id
 persistence_attributes:0x1234:3:0x1235:0x1235:3
 
+PSA key attributes: slot number
+slot_number_attribute:
+
 PSA import/export raw: 0 bytes
 import_export:"":PSA_KEY_TYPE_RAW_DATA:PSA_KEY_USAGE_EXPORT:0:0:0:PSA_SUCCESS:1
 

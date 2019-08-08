@@ -1,10 +1,10 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
 
-#include "psa/crypto.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
+#include "psa_crypto_helpers.h"
 #if defined(MBEDTLS_PSA_ITS_FILE_C)
 #include <stdio.h>
 #else
@@ -77,7 +77,7 @@ void validate_entropy_seed_injection( int seed_length_a,
 exit:
     mbedtls_free( seed );
     remove_seed_file( );
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -105,12 +105,12 @@ void run_entropy_inject_with_crypto_init( )
     PSA_ASSERT( status );
     status = psa_crypto_init( );
     PSA_ASSERT( status );
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
     /* The seed is written by nv_seed callback functions therefore the injection will fail */
     status = mbedtls_psa_inject_entropy( seed, sizeof( seed ) );
     TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
 exit:
     remove_seed_file( );
-    mbedtls_psa_crypto_free( );
+    PSA_DONE( );
 }
 /* END_CASE */

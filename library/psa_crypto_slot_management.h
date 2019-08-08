@@ -22,6 +22,9 @@
 #ifndef PSA_CRYPTO_SLOT_MANAGEMENT_H
 #define PSA_CRYPTO_SLOT_MANAGEMENT_H
 
+#include "psa/crypto.h"
+#include "psa_crypto_se.h"
+
 /* Number of key slots (plus one because 0 is not used).
  * The value is a compile-time constant for now, for simplicity. */
 #define PSA_KEY_SLOT_COUNT 32
@@ -54,5 +57,73 @@ psa_status_t psa_initialize_key_slots( void );
  *
  * This does not affect persistent storage. */
 void psa_wipe_all_key_slots( void );
+
+/** Find a free key slot.
+ *
+ * This function returns a key slot that is available for use and is in its
+ * ground state (all-bits-zero).
+ *
+ * \param[out] handle   On success, a slot number that can be used as a
+ *                      handle to the slot.
+ * \param[out] p_slot   On success, a pointer to the slot.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_BAD_STATE
+ */
+psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle,
+                                             psa_key_slot_t **p_slot );
+
+/** Test whether a lifetime designates a key in an external cryptoprocessor.
+ *
+ * \param lifetime      The lifetime to test.
+ *
+ * \retval 1
+ *         The lifetime designates an external key. There should be a
+ *         registered driver for this lifetime, otherwise the key cannot
+ *         be created or manipulated.
+ * \retval 0
+ *         The lifetime designates a key that is volatile or in internal
+ *         storage.
+ */
+static inline int psa_key_lifetime_is_external( psa_key_lifetime_t lifetime )
+{
+    return( lifetime != PSA_KEY_LIFETIME_VOLATILE &&
+            lifetime != PSA_KEY_LIFETIME_PERSISTENT );
+}
+
+/** Test whether the given parameters are acceptable for a persistent key.
+ *
+ * This function does not access the storage in any way. It only tests
+ * whether the parameters are meaningful and permitted by general policy.
+ * It does not test whether the a file by the given id exists or could be
+ * created.
+ *
+ * If the key is in external storage, this function returns the corresponding
+ * driver.
+ *
+ * \param lifetime      The lifetime to test.
+ * \param id            The key id to test.
+ * \param[out] p_drv    On output, if \p lifetime designates a key
+ *                      in an external processor, \c *p_drv is a pointer
+ *                      to the driver table entry fot this lifetime.
+ *                      If \p lifetime designates a transparent key,
+ *                      \c *p_drv is \c NULL.
+ * \param creating      0 if attempting to open an existing key.
+ *                      Nonzero if attempting to create a key.
+ *
+ * \retval PSA_SUCCESS
+ *         The given parameters are valid.
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \p lifetime is volatile or is invalid.
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \p id is invalid.
+ */
+psa_status_t psa_validate_persistent_key_parameters(
+    psa_key_lifetime_t lifetime,
+    psa_key_file_id_t id,
+    psa_se_drv_table_entry_t **p_drv,
+    int creating );
+
 
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

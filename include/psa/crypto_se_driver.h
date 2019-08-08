@@ -8,11 +8,11 @@
  * space in which the PSA Crypto implementation runs, typically secure
  * elements (SEs).
  *
- * This file is part of the PSA Crypto Driver Model, containing functions for
- * driver developers to implement to enable hardware to be called in a
- * standardized way by a PSA Cryptographic API implementation. The functions
- * comprising the driver model, which driver authors implement, are not
- * intended to be called by application developers.
+ * This file is part of the PSA Crypto Driver HAL (hardware abstraction layer),
+ * containing functions for driver developers to implement to enable hardware
+ * to be called in a standardized way by a PSA Cryptography API
+ * implementation. The functions comprising the driver HAL, which driver
+ * authors implement, are not intended to be called by application developers.
  */
 
 /*
@@ -40,10 +40,106 @@
 extern "C" {
 #endif
 
+/** \defgroup se_init Secure element driver initialization
+ */
+/**@{*/
+
+/** \brief Driver context structure
+ *
+ * Driver functions receive a pointer to this structure.
+ * Each registered driver has one instance of this structure.
+ *
+ * Implementations must include the fields specified here and
+ * may include other fields.
+ */
+typedef struct {
+    /** A read-only pointer to the driver's persistent data.
+     *
+     * Drivers typically use this persistent data to keep track of
+     * which slot numbers are available. This is only a guideline:
+     * drivers may use the persistent data for any purpose, keeping
+     * in mind the restrictions on when the persistent data is saved
+     * to storage: the persistent data is only saved after calling
+     * certain functions that receive a writable pointer to the
+     * persistent data.
+     *
+     * The core allocates a memory buffer for the persistent data.
+     * The pointer is guaranteed to be suitably aligned for any data type,
+     * like a pointer returned by `malloc` (but the core can use any
+     * method to allocate the buffer, not necessarily `malloc`).
+     *
+     * The size of this buffer is in the \c persistent_data_size field of
+     * this structure.
+     *
+     * Before the driver is initialized for the first time, the content of
+     * the persistent data is all-bits-zero. After a driver upgrade, if the
+     * size of the persistent data has increased, the original data is padded
+     * on the right with zeros; if the size has decreased, the original data
+     * is truncated to the new size.
+     *
+     * This pointer is to read-only data. Only a few driver functions are
+     * allowed to modify the persistent data. These functions receive a
+     * writable pointer. These functions are:
+     * - psa_drv_se_t::p_init
+     * - psa_drv_se_key_management_t::p_allocate
+     * - psa_drv_se_key_management_t::p_destroy
+     *
+     * The PSA Cryptography core saves the persistent data from one
+     * session to the next. It does this before returning from API functions
+     * that call a driver method that is allowed to modify the persistent
+     * data, specifically:
+     * - psa_crypto_init() causes a call to psa_drv_se_t::p_init, and may call
+     *   psa_drv_se_key_management_t::p_destroy to complete an action
+     *   that was interrupted by a power failure.
+     * - Key creation functions cause a call to
+     *   psa_drv_se_key_management_t::p_allocate, and may cause a call to
+     *   psa_drv_se_key_management_t::p_destroy in case an error occurs.
+     * - psa_destroy_key() causes a call to
+     *   psa_drv_se_key_management_t::p_destroy.
+     */
+    const void *const persistent_data;
+
+    /** The size of \c persistent_data in bytes.
+     *
+     * This is always equal to the value of the `persistent_data_size` field
+     * of the ::psa_drv_se_t structure when the driver is registered.
+     */
+    const size_t persistent_data_size;
+
+    /** Driver transient data.
+     *
+     * The core initializes this value to 0 and does not read or modify it
+     * afterwards. The driver may store whatever it wants in this field.
+     */
+    uintptr_t transient_data;
+} psa_drv_se_context_t;
+
+/** \brief A driver initialization function.
+ *
+ * \param[in,out] drv_context       The driver context structure.
+ * \param[in,out] persistent_data   A pointer to the persistent data
+ *                                  that allows writing.
+ * \param lifetime                  The lifetime value for which this driver
+ *                                  is registered.
+ *
+ * \retval #PSA_SUCCESS
+ *         The driver is operational.
+ *         The core will update the persistent data in storage.
+ * \return
+ *         Any other return value prevents the driver from being used in
+ *         this session.
+ *         The core will NOT update the persistent data in storage.
+ */
+typedef psa_status_t (*psa_drv_se_init_t)(psa_drv_se_context_t *drv_context,
+                                          void *persistent_data,
+                                          psa_key_lifetime_t lifetime);
+
 /** An internal designation of a key slot between the core part of the
  * PSA Crypto implementation and the driver. The meaning of this value
  * is driver-dependent. */
-typedef uint32_t psa_key_slot_number_t; // Change this to psa_key_slot_t after psa_key_slot_t is removed from Mbed crypto
+typedef uint64_t psa_key_slot_number_t;
+
+/**@}*/
 
 /** \defgroup se_mac Secure Element Message Authentication Codes
  * Generation and authentication of Message Authentication Codes (MACs) using
@@ -65,7 +161,8 @@ typedef uint32_t psa_key_slot_number_t; // Change this to psa_key_slot_t after p
 /** \brief A function that starts a secure element  MAC operation for a PSA
  * Crypto Driver implementation
  *
- * \param[in,out] p_context     A structure that will contain the
+ * \param[in,out] drv_context   The driver context structure.
+ * \param[in,out] op_context    A structure that will contain the
  *                              hardware-specific MAC context
  * \param[in] key_slot          The slot of the key to be used for the
  *                              operation
@@ -75,28 +172,29 @@ typedef uint32_t psa_key_slot_number_t; // Change this to psa_key_slot_t after p
  * \retval  PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*psa_drv_se_mac_setup_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_mac_setup_t)(psa_drv_se_context_t *drv_context,
+                                               void *op_context,
                                                psa_key_slot_number_t key_slot,
                                                psa_algorithm_t algorithm);
 
 /** \brief A function that continues a previously started secure element MAC
  * operation
  *
- * \param[in,out] p_context     A hardware-specific structure for the
+ * \param[in,out] op_context    A hardware-specific structure for the
  *                              previously-established MAC operation to be
  *                              updated
  * \param[in] p_input           A buffer containing the message to be appended
  *                              to the MAC operation
- * \param[in] input_length  The size in bytes of the input message buffer
+ * \param[in] input_length      The size in bytes of the input message buffer
  */
-typedef psa_status_t (*psa_drv_se_mac_update_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_mac_update_t)(void *op_context,
                                                 const uint8_t *p_input,
                                                 size_t input_length);
 
 /** \brief a function that completes a previously started secure element MAC
  * operation by returning the resulting MAC.
  *
- * \param[in,out] p_context     A hardware-specific structure for the
+ * \param[in,out] op_context    A hardware-specific structure for the
  *                              previously started MAC operation to be
  *                              finished
  * \param[out] p_mac            A buffer where the generated MAC will be
@@ -109,7 +207,7 @@ typedef psa_status_t (*psa_drv_se_mac_update_t)(void *p_context,
  * \retval PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*psa_drv_se_mac_finish_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_mac_finish_t)(void *op_context,
                                                 uint8_t *p_mac,
                                                 size_t mac_size,
                                                 size_t *p_mac_length);
@@ -117,11 +215,11 @@ typedef psa_status_t (*psa_drv_se_mac_finish_t)(void *p_context,
 /** \brief A function that completes a previously started secure element MAC
  * operation by comparing the resulting MAC against a provided value
  *
- * \param[in,out] p_context A hardware-specific structure for the previously
- *                          started MAC operation to be fiinished
- * \param[in] p_mac         The MAC value against which the resulting MAC will
- *                          be compared against
- * \param[in] mac_length    The size in bytes of the value stored in `p_mac`
+ * \param[in,out] op_context    A hardware-specific structure for the previously
+ *                              started MAC operation to be fiinished
+ * \param[in] p_mac             The MAC value against which the resulting MAC
+ *                              will be compared against
+ * \param[in] mac_length        The size in bytes of the value stored in `p_mac`
  *
  * \retval PSA_SUCCESS
  *         The operation completed successfully and the MACs matched each
@@ -130,21 +228,22 @@ typedef psa_status_t (*psa_drv_se_mac_finish_t)(void *p_context,
  *         The operation completed successfully, but the calculated MAC did
  *         not match the provided MAC
  */
-typedef psa_status_t (*psa_drv_se_mac_finish_verify_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_mac_finish_verify_t)(void *op_context,
                                                        const uint8_t *p_mac,
                                                        size_t mac_length);
 
 /** \brief A function that aborts a previous started secure element MAC
  * operation
  *
- * \param[in,out] p_context A hardware-specific structure for the previously
- *                          started MAC operation to be aborted
+ * \param[in,out] op_context    A hardware-specific structure for the previously
+ *                              started MAC operation to be aborted
  */
-typedef psa_status_t (*psa_drv_se_mac_abort_t)(void *p_context);
+typedef psa_status_t (*psa_drv_se_mac_abort_t)(void *op_context);
 
 /** \brief A function that performs a secure element MAC operation in one
  * command and returns the calculated MAC
  *
+ * \param[in,out] drv_context   The driver context structure.
  * \param[in] p_input           A buffer containing the message to be MACed
  * \param[in] input_length      The size in bytes of `p_input`
  * \param[in] key_slot          The slot of the key to be used
@@ -159,7 +258,8 @@ typedef psa_status_t (*psa_drv_se_mac_abort_t)(void *p_context);
  * \retval PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_drv_se_mac_generate_t)(const uint8_t *p_input,
+typedef psa_status_t (*psa_drv_se_mac_generate_t)(psa_drv_se_context_t *drv_context,
+                                                  const uint8_t *p_input,
                                                   size_t input_length,
                                                   psa_key_slot_number_t key_slot,
                                                   psa_algorithm_t alg,
@@ -170,6 +270,7 @@ typedef psa_status_t (*psa_drv_se_mac_generate_t)(const uint8_t *p_input,
 /** \brief A function that performs a secure element MAC operation in one
  * command and compares the resulting MAC against a provided value
  *
+ * \param[in,out] drv_context       The driver context structure.
  * \param[in] p_input       A buffer containing the message to be MACed
  * \param[in] input_length  The size in bytes of `input`
  * \param[in] key_slot      The slot of the key to be used
@@ -186,7 +287,8 @@ typedef psa_status_t (*psa_drv_se_mac_generate_t)(const uint8_t *p_input,
  *         The operation completed successfully, but the calculated MAC did
  *         not match the provided MAC
  */
-typedef psa_status_t (*psa_drv_se_mac_verify_t)(const uint8_t *p_input,
+typedef psa_status_t (*psa_drv_se_mac_verify_t)(psa_drv_se_context_t *drv_context,
+                                                const uint8_t *p_input,
                                                 size_t input_length,
                                                 psa_key_slot_number_t key_slot,
                                                 psa_algorithm_t alg,
@@ -263,7 +365,8 @@ typedef struct {
 /** \brief A function that provides the cipher setup function for a
  * secure element driver
  *
- * \param[in,out] p_context     A structure that will contain the
+ * \param[in,out] drv_context   The driver context structure.
+ * \param[in,out] op_context    A structure that will contain the
  *                              hardware-specific cipher context.
  * \param[in] key_slot          The slot of the key to be used for the
  *                              operation
@@ -275,7 +378,8 @@ typedef struct {
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_NOT_SUPPORTED
  */
-typedef psa_status_t (*psa_drv_se_cipher_setup_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_cipher_setup_t)(psa_drv_se_context_t *drv_context,
+                                                  void *op_context,
                                                   psa_key_slot_number_t key_slot,
                                                   psa_algorithm_t algorithm,
                                                   psa_encrypt_or_decrypt_t direction);
@@ -288,21 +392,21 @@ typedef psa_status_t (*psa_drv_se_cipher_setup_t)(void *p_context,
  * generate function is not necessary for the drivers to implement as the PSA
  * Crypto implementation can do the generation using its RNG features.
  *
- * \param[in,out] p_context     A structure that contains the previously set up
+ * \param[in,out] op_context    A structure that contains the previously set up
  *                              hardware-specific cipher context
  * \param[in] p_iv              A buffer containing the initialization vector
  * \param[in] iv_length         The size (in bytes) of the `p_iv` buffer
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_cipher_set_iv_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_cipher_set_iv_t)(void *op_context,
                                                    const uint8_t *p_iv,
                                                    size_t iv_length);
 
 /** \brief A function that continues a previously started secure element cipher
  * operation
  *
- * \param[in,out] p_context         A hardware-specific structure for the
+ * \param[in,out] op_context        A hardware-specific structure for the
  *                                  previously started cipher operation
  * \param[in] p_input               A buffer containing the data to be
  *                                  encrypted/decrypted
@@ -317,7 +421,7 @@ typedef psa_status_t (*psa_drv_se_cipher_set_iv_t)(void *p_context,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_cipher_update_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_cipher_update_t)(void *op_context,
                                                    const uint8_t *p_input,
                                                    size_t input_size,
                                                    uint8_t *p_output,
@@ -327,7 +431,7 @@ typedef psa_status_t (*psa_drv_se_cipher_update_t)(void *p_context,
 /** \brief A function that completes a previously started secure element cipher
  * operation
  *
- * \param[in,out] p_context     A hardware-specific structure for the
+ * \param[in,out] op_context    A hardware-specific structure for the
  *                              previously started cipher operation
  * \param[out] p_output         The caller-allocated buffer where the output
  *                              will be placed
@@ -338,7 +442,7 @@ typedef psa_status_t (*psa_drv_se_cipher_update_t)(void *p_context,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_cipher_finish_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_cipher_finish_t)(void *op_context,
                                                    uint8_t *p_output,
                                                    size_t output_size,
                                                    size_t *p_output_length);
@@ -346,10 +450,10 @@ typedef psa_status_t (*psa_drv_se_cipher_finish_t)(void *p_context,
 /** \brief A function that aborts a previously started secure element cipher
  * operation
  *
- * \param[in,out] p_context     A hardware-specific structure for the
+ * \param[in,out] op_context    A hardware-specific structure for the
  *                              previously started cipher operation
  */
-typedef psa_status_t (*psa_drv_se_cipher_abort_t)(void *p_context);
+typedef psa_status_t (*psa_drv_se_cipher_abort_t)(void *op_context);
 
 /** \brief A function that performs the ECB block mode for secure element
  * cipher operations
@@ -357,23 +461,25 @@ typedef psa_status_t (*psa_drv_se_cipher_abort_t)(void *p_context);
  * Note: this function should only be used with implementations that do not
  * provide a needed higher-level operation.
  *
- * \param[in] key_slot      The slot of the key to be used for the operation
- * \param[in] algorithm     The algorithm to be used in the cipher operation
- * \param[in] direction     Indicates whether the operation is an encrypt or
- *                          decrypt
- * \param[in] p_input       A buffer containing the data to be
- *                          encrypted/decrypted
- * \param[in] input_size    The size in bytes of the buffer pointed to by
- *                          `p_input`
- * \param[out] p_output     The caller-allocated buffer where the output will
- *                          be placed
- * \param[in] output_size   The allocated size in bytes of the `p_output`
- *                          buffer
+ * \param[in,out] drv_context   The driver context structure.
+ * \param[in] key_slot          The slot of the key to be used for the operation
+ * \param[in] algorithm         The algorithm to be used in the cipher operation
+ * \param[in] direction         Indicates whether the operation is an encrypt or
+ *                              decrypt
+ * \param[in] p_input           A buffer containing the data to be
+ *                              encrypted/decrypted
+ * \param[in] input_size        The size in bytes of the buffer pointed to by
+ *                              `p_input`
+ * \param[out] p_output         The caller-allocated buffer where the output
+ *                              will be placed
+ * \param[in] output_size       The allocated size in bytes of the `p_output`
+ *                              buffer
  *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_NOT_SUPPORTED
  */
-typedef psa_status_t (*psa_drv_se_cipher_ecb_t)(psa_key_slot_number_t key_slot,
+typedef psa_status_t (*psa_drv_se_cipher_ecb_t)(psa_drv_se_context_t *drv_context,
+                                                psa_key_slot_number_t key_slot,
                                                 psa_algorithm_t algorithm,
                                                 psa_encrypt_or_decrypt_t direction,
                                                 const uint8_t *p_input,
@@ -427,6 +533,7 @@ typedef struct {
  * \brief A function that signs a hash or short message with a private key in
  * a secure element
  *
+ * \param[in,out] drv_context       The driver context structure.
  * \param[in] key_slot              Key slot of an asymmetric key pair
  * \param[in] alg                   A signature algorithm that is compatible
  *                                  with the type of `key`
@@ -439,7 +546,8 @@ typedef struct {
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_asymmetric_sign_t)(psa_key_slot_number_t key_slot,
+typedef psa_status_t (*psa_drv_se_asymmetric_sign_t)(psa_drv_se_context_t *drv_context,
+                                                     psa_key_slot_number_t key_slot,
                                                      psa_algorithm_t alg,
                                                      const uint8_t *p_hash,
                                                      size_t hash_length,
@@ -451,6 +559,7 @@ typedef psa_status_t (*psa_drv_se_asymmetric_sign_t)(psa_key_slot_number_t key_s
  * \brief A function that verifies the signature a hash or short message using
  * an asymmetric public key in a secure element
  *
+ * \param[in,out] drv_context   The driver context structure.
  * \param[in] key_slot          Key slot of a public key or an asymmetric key
  *                              pair
  * \param[in] alg               A signature algorithm that is compatible with
@@ -463,7 +572,8 @@ typedef psa_status_t (*psa_drv_se_asymmetric_sign_t)(psa_key_slot_number_t key_s
  * \retval PSA_SUCCESS
  *         The signature is valid.
  */
-typedef psa_status_t (*psa_drv_se_asymmetric_verify_t)(psa_key_slot_number_t key_slot,
+typedef psa_status_t (*psa_drv_se_asymmetric_verify_t)(psa_drv_se_context_t *drv_context,
+                                                       psa_key_slot_number_t key_slot,
                                                        psa_algorithm_t alg,
                                                        const uint8_t *p_hash,
                                                        size_t hash_length,
@@ -474,6 +584,7 @@ typedef psa_status_t (*psa_drv_se_asymmetric_verify_t)(psa_key_slot_number_t key
  * \brief A function that encrypts a short message with an asymmetric public
  * key in a secure element
  *
+ * \param[in,out] drv_context   The driver context structure.
  * \param[in] key_slot          Key slot of a public key or an asymmetric key
  *                              pair
  * \param[in] alg               An asymmetric encryption algorithm that is
@@ -499,7 +610,8 @@ typedef psa_status_t (*psa_drv_se_asymmetric_verify_t)(psa_key_slot_number_t key
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_asymmetric_encrypt_t)(psa_key_slot_number_t key_slot,
+typedef psa_status_t (*psa_drv_se_asymmetric_encrypt_t)(psa_drv_se_context_t *drv_context,
+                                                        psa_key_slot_number_t key_slot,
                                                         psa_algorithm_t alg,
                                                         const uint8_t *p_input,
                                                         size_t input_length,
@@ -513,6 +625,7 @@ typedef psa_status_t (*psa_drv_se_asymmetric_encrypt_t)(psa_key_slot_number_t ke
  * \brief A function that decrypts a short message with an asymmetric private
  * key in a secure element.
  *
+ * \param[in,out] drv_context   The driver context structure.
  * \param[in] key_slot          Key slot of an asymmetric key pair
  * \param[in] alg               An asymmetric encryption algorithm that is
  *                              compatible with the type of `key`
@@ -537,7 +650,8 @@ typedef psa_status_t (*psa_drv_se_asymmetric_encrypt_t)(psa_key_slot_number_t ke
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_asymmetric_decrypt_t)(psa_key_slot_number_t key_slot,
+typedef psa_status_t (*psa_drv_se_asymmetric_decrypt_t)(psa_drv_se_context_t *drv_context,
+                                                        psa_key_slot_number_t key_slot,
                                                         psa_algorithm_t alg,
                                                         const uint8_t *p_input,
                                                         size_t input_length,
@@ -581,6 +695,7 @@ typedef struct {
 /** \brief A function that performs a secure element authenticated encryption
  * operation
  *
+ * \param[in,out] drv_context           The driver context structure.
  * \param[in] key_slot                  Slot containing the key to use.
  * \param[in] algorithm                 The AEAD algorithm to compute
  *                                      (\c PSA_ALG_XXX value such that
@@ -608,7 +723,8 @@ typedef struct {
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_drv_se_aead_encrypt_t)(psa_key_slot_number_t key_slot,
+typedef psa_status_t (*psa_drv_se_aead_encrypt_t)(psa_drv_se_context_t *drv_context,
+                                                  psa_key_slot_number_t key_slot,
                                                   psa_algorithm_t algorithm,
                                                   const uint8_t *p_nonce,
                                                   size_t nonce_length,
@@ -622,6 +738,7 @@ typedef psa_status_t (*psa_drv_se_aead_encrypt_t)(psa_key_slot_number_t key_slot
 
 /** A function that peforms a secure element authenticated decryption operation
  *
+ * \param[in,out] drv_context           The driver context structure.
  * \param[in] key_slot                  Slot containing the key to use
  * \param[in] algorithm                 The AEAD algorithm to compute
  *                                      (\c PSA_ALG_XXX value such that
@@ -648,7 +765,8 @@ typedef psa_status_t (*psa_drv_se_aead_encrypt_t)(psa_key_slot_number_t key_slot
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_drv_se_aead_decrypt_t)(psa_key_slot_number_t key_slot,
+typedef psa_status_t (*psa_drv_se_aead_decrypt_t)(psa_drv_se_context_t *drv_context,
+                                                  psa_key_slot_number_t key_slot,
                                                   psa_algorithm_t algorithm,
                                                   const uint8_t *p_nonce,
                                                   size_t nonce_length,
@@ -685,31 +803,61 @@ typedef struct {
  */
 /**@{*/
 
+/** \brief A function that allocates a slot for a key.
+ *
+ * \param[in,out] drv_context       The driver context structure.
+ * \param[in,out] persistent_data   A pointer to the persistent data
+ *                                  that allows writing.
+ * \param[in] attributes            Attributes of the key.
+ * \param[out] key_slot             Slot where the key will be stored.
+ *                                  This must be a valid slot for a key of the
+ *                                  chosen type. It must be unoccupied.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ *         The core will record \c *key_slot as the key slot where the key
+ *         is stored and will update the persistent data in storage.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ */
+typedef psa_status_t (*psa_drv_se_allocate_key_t)(
+    psa_drv_se_context_t *drv_context,
+    void *persistent_data,
+    const psa_key_attributes_t *attributes,
+    psa_key_slot_number_t *key_slot);
+
 /** \brief A function that imports a key into a secure element in binary format
  *
  * This function can support any output from psa_export_key(). Refer to the
  * documentation of psa_export_key() for the format for each key type.
  *
- * \param[in] key_slot      Slot where the key will be stored
- *                          This must be a valid slot for a key of the chosen
- *                          type. It must be unoccupied.
- * \param[in] lifetime      The required lifetime of the key storage
- * \param[in] type          Key type (a \c PSA_KEY_TYPE_XXX value)
- * \param[in] algorithm     Key algorithm (a \c PSA_ALG_XXX value)
- * \param[in] usage         The allowed uses of the key
- * \param[in] p_data        Buffer containing the key data
- * \param[in] data_length   Size of the `data` buffer in bytes
+ * \param[in,out] drv_context   The driver context structure.
+ * \param[in] key_slot          Slot where the key will be stored
+ *                              This must be a valid slot for a key of the
+ *                              chosen type. It must be unoccupied.
+ * \param[in] lifetime          The required lifetime of the key storage
+ * \param[in] type              Key type (a \c PSA_KEY_TYPE_XXX value)
+ * \param[in] algorithm         Key algorithm (a \c PSA_ALG_XXX value)
+ * \param[in] usage             The allowed uses of the key
+ * \param[in] p_data            Buffer containing the key data
+ * \param[in] data_length       Size of the `data` buffer in bytes
+ * \param[out] bits             On success, the key size in bits. The driver
+ *                              must determine this value after parsing the
+ *                              key according to the key type.
+ *                              This value is not used if the function fails.
  *
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_drv_se_import_key_t)(psa_key_slot_number_t key_slot,
+typedef psa_status_t (*psa_drv_se_import_key_t)(psa_drv_se_context_t *drv_context,
+                                                psa_key_slot_number_t key_slot,
                                                 psa_key_lifetime_t lifetime,
                                                 psa_key_type_t type,
                                                 psa_algorithm_t algorithm,
                                                 psa_key_usage_t usage,
                                                 const uint8_t *p_data,
-                                                size_t data_length);
+                                                size_t data_length,
+                                                size_t *bits);
 
 /**
  * \brief A function that destroys a secure element key and restore the slot to
@@ -721,12 +869,18 @@ typedef psa_status_t (*psa_drv_se_import_key_t)(psa_key_slot_number_t key_slot,
  *
  * This function returns the specified slot to its default state.
  *
- * \param[in] key_slot        The key slot to erase.
+ * \param[in,out] drv_context       The driver context structure.
+ * \param[in,out] persistent_data   A pointer to the persistent data
+ *                                  that allows writing.
+ * \param key_slot                  The key slot to erase.
  *
  * \retval #PSA_SUCCESS
  *         The slot's content, if any, has been erased.
  */
-typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_number_t key);
+typedef psa_status_t (*psa_drv_se_destroy_key_t)(
+    psa_drv_se_context_t *drv_context,
+    void *persistent_data,
+    psa_key_slot_number_t key_slot);
 
 /**
  * \brief A function that exports a secure element key in binary format
@@ -743,6 +897,7 @@ typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_number_t key);
  * `psa_export_key()` does. Refer to the
  * documentation of `psa_export_key()` for the format for each key type.
  *
+ * \param[in,out] drv_context   The driver context structure.
  * \param[in] key               Slot whose content is to be exported. This must
  *                              be an occupied key slot.
  * \param[out] p_data           Buffer where the key data is to be written.
@@ -756,9 +911,10 @@ typedef psa_status_t (*psa_drv_se_destroy_key_t)(psa_key_slot_number_t key);
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
+typedef psa_status_t (*psa_drv_se_export_key_t)(psa_drv_se_context_t *drv_context,
+                                                psa_key_slot_number_t key,
                                                 uint8_t *p_data,
                                                 size_t data_size,
                                                 size_t *p_data_length);
@@ -767,31 +923,34 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_key_slot_number_t key,
  * \brief A function that generates a symmetric or asymmetric key on a secure
  * element
  *
- * If \p type is asymmetric (`#PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) == 1`),
+ * If \p type is asymmetric (#PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) = 1),
  * the public component of the generated key will be placed in `p_pubkey_out`.
  * The format of the public key information will match the format specified for
  * the psa_export_key() function for the key type.
  *
- * \param[in] key_slot      Slot where the generated key will be placed
- * \param[in] type          The type of the key to be generated
- * \param[in] usage         The prescribed usage of the generated key
- *                          Note: Not all Secure Elements support the same
- *                          restrictions that PSA Crypto does (and vice versa).
- *                          Driver developers should endeavor to match the
- *                          usages as close as possible.
- * \param[in] bits          The size in bits of the key to be generated.
- * \param[in] extra         Extra parameters for key generation. The
- *                          interpretation of this parameter should match the
- *                          interpretation in the `extra` parameter is the
- *                          `psa_generate_key` function
- * \param[in] extra_size    The size in bytes of the \p extra buffer
- * \param[out] p_pubkey_out The buffer where the public key information will
- *                          be placed
+ * \param[in,out] drv_context   The driver context structure.
+ * \param[in] key_slot          Slot where the generated key will be placed
+ * \param[in] type              The type of the key to be generated
+ * \param[in] usage             The prescribed usage of the generated key
+ *                              Note: Not all Secure Elements support the same
+ *                              restrictions that PSA Crypto does (and vice
+ *                              versa).
+ *                              Driver developers should endeavor to match the
+ *                              usages as close as possible.
+ * \param[in] bits              The size in bits of the key to be generated.
+ * \param[in] extra             Extra parameters for key generation. The
+ *                              interpretation of this parameter should match
+ *                              the interpretation in the `extra` parameter is
+ *                              the `psa_generate_key` function
+ * \param[in] extra_size        The size in bytes of the \p extra buffer
+ * \param[out] p_pubkey_out     The buffer where the public key information will
+ *                              be placed
  * \param[in] pubkey_out_size   The size in bytes of the `p_pubkey_out` buffer
  * \param[out] p_pubkey_length  Upon successful completion, will contain the
  *                              size of the data placed in `p_pubkey_out`.
  */
-typedef psa_status_t (*psa_drv_se_generate_key_t)(psa_key_slot_number_t key_slot,
+typedef psa_status_t (*psa_drv_se_generate_key_t)(psa_drv_se_context_t *drv_context,
+                                                  psa_key_slot_number_t key_slot,
                                                   psa_key_type_t type,
                                                   psa_key_usage_t usage,
                                                   size_t bits,
@@ -811,6 +970,8 @@ typedef psa_status_t (*psa_drv_se_generate_key_t)(psa_key_slot_number_t key_slot
  * If one of the functions is not implemented, it should be set to NULL.
  */
 typedef struct {
+    /** Function that allocates a slot. */
+    psa_drv_se_allocate_key_t   p_allocate;
     /** Function that performs a key import operation */
     psa_drv_se_import_key_t     p_import;
     /** Function that performs a generation */
@@ -819,6 +980,8 @@ typedef struct {
     psa_drv_se_destroy_key_t    p_destroy;
     /** Function that performs a key export operation */
     psa_drv_se_export_key_t     p_export;
+    /** Function that performs a public key export operation */
+    psa_drv_se_export_key_t     p_export_public;
 } psa_drv_se_key_management_t;
 
 /**@}*/
@@ -875,15 +1038,17 @@ typedef struct {
 /** \brief A function that Sets up a secure element key derivation operation by
  * specifying the algorithm and the source key sot
  *
- * \param[in,out] p_context A hardware-specific structure containing any
- *                          context information for the implementation
- * \param[in] kdf_alg       The algorithm to be used for the key derivation
- * \param[in] souce_key     The key to be used as the source material for the
- *                          key derivation
+ * \param[in,out] drv_context   The driver context structure.
+ * \param[in,out] op_context    A hardware-specific structure containing any
+ *                              context information for the implementation
+ * \param[in] kdf_alg           The algorithm to be used for the key derivation
+ * \param[in] source_key        The key to be used as the source material for
+ *                              the key derivation
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(psa_drv_se_context_t *drv_context,
+                                                          void *op_context,
                                                           psa_algorithm_t kdf_alg,
                                                           psa_key_slot_number_t source_key);
 
@@ -894,7 +1059,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(void *p_context,
  * expeced that this function may be called multiple times for the same
  * operation, each with a different algorithm-specific `collateral_id`
  *
- * \param[in,out] p_context     A hardware-specific structure containing any
+ * \param[in,out] op_context    A hardware-specific structure containing any
  *                              context information for the implementation
  * \param[in] collateral_id     An ID for the collateral being provided
  * \param[in] p_collateral      A buffer containing the collateral data
@@ -902,7 +1067,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_setup_t)(void *p_context,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(void *op_context,
                                                                uint32_t collateral_id,
                                                                const uint8_t *p_collateral,
                                                                size_t collateral_size);
@@ -910,14 +1075,14 @@ typedef psa_status_t (*psa_drv_se_key_derivation_collateral_t)(void *p_context,
 /** \brief A function that performs the final secure element key derivation
  * step and place the generated key material in a slot
  *
- * \param[in,out] p_context     A hardware-specific structure containing any
+ * \param[in,out] op_context    A hardware-specific structure containing any
  *                              context information for the implementation
  * \param[in] dest_key          The slot where the generated key material
  *                              should be placed
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(void *op_context,
                                                           psa_key_slot_number_t dest_key);
 
 /** \brief A function that performs the final step of a secure element key
@@ -931,7 +1096,7 @@ typedef psa_status_t (*psa_drv_se_key_derivation_derive_t)(void *p_context,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*psa_drv_se_key_derivation_export_t)(void *p_context,
+typedef psa_status_t (*psa_drv_se_key_derivation_export_t)(void *op_context,
                                                            uint8_t *p_output,
                                                            size_t output_size,
                                                            size_t *p_output_length);
@@ -958,6 +1123,113 @@ typedef struct {
      * exports the key */
     psa_drv_se_key_derivation_export_t     p_export;
 } psa_drv_se_key_derivation_t;
+
+/**@}*/
+
+/** \defgroup se_registration Secure element driver registration
+ */
+/**@{*/
+
+/** A structure containing pointers to all the entry points of a
+ * secure element driver.
+ *
+ * Future versions of this specification may add extra substructures at
+ * the end of this structure.
+ */
+typedef struct {
+    /** The version of the driver HAL that this driver implements.
+     * This is a protection against loading driver binaries built against
+     * a different version of this specification.
+     * Use #PSA_DRV_SE_HAL_VERSION.
+     */
+    uint32_t hal_version;
+
+    /** The size of the driver's persistent data in bytes.
+     *
+     * This can be 0 if the driver does not need persistent data.
+     *
+     * See the documentation of psa_drv_se_context_t::persistent_data
+     * for more information about why and how a driver can use
+     * persistent data.
+     */
+    size_t persistent_data_size;
+
+    /** The driver initialization function.
+     *
+     * This function is called once during the initialization of the
+     * PSA Cryptography subsystem, before any other function of the
+     * driver is called. If this function returns a failure status,
+     * the driver will be unusable, at least until the next system reset.
+     *
+     * If this field is \c NULL, it is equivalent to a function that does
+     * nothing and returns #PSA_SUCCESS.
+     */
+    psa_drv_se_init_t p_init;
+
+    const psa_drv_se_key_management_t *key_management;
+    const psa_drv_se_mac_t *mac;
+    const psa_drv_se_cipher_t *cipher;
+    const psa_drv_se_aead_t *aead;
+    const psa_drv_se_asymmetric_t *asymmetric;
+    const psa_drv_se_key_derivation_t *derivation;
+} psa_drv_se_t;
+
+/** The current version of the secure element driver HAL.
+ */
+/* 0.0.0 patchlevel 5 */
+#define PSA_DRV_SE_HAL_VERSION 0x00000005
+
+/** Register an external cryptoprocessor (secure element) driver.
+ *
+ * This function is only intended to be used by driver code, not by
+ * application code. In implementations with separation between the
+ * PSA cryptography module and applications, this function should
+ * only be available to callers that run in the same memory space as
+ * the cryptography module, and should not be exposed to applications
+ * running in a different memory space.
+ *
+ * This function may be called before psa_crypto_init(). It is
+ * implementation-defined whether this function may be called
+ * after psa_crypto_init().
+ *
+ * \note Implementations store metadata about keys including the lifetime
+ *       value. Therefore, from one instantiation of the PSA Cryptography
+ *       library to the next one, if there is a key in storage with a certain
+ *       lifetime value, you must always register the same driver (or an
+ *       updated version that communicates with the same secure element)
+ *       with the same lifetime value.
+ *
+ * \param lifetime      The lifetime value through which this driver will
+ *                      be exposed to applications.
+ *                      The values #PSA_KEY_LIFETIME_VOLATILE and
+ *                      #PSA_KEY_LIFETIME_PERSISTENT are reserved and
+ *                      may not be used for drivers. Implementations
+ *                      may reserve other values.
+ * \param[in] methods   The method table of the driver. This structure must
+ *                      remain valid for as long as the cryptography
+ *                      module keeps running. It is typically a global
+ *                      constant.
+ *
+ * \return PSA_SUCCESS
+ *         The driver was successfully registered. Applications can now
+ *         use \p lifetime to access keys through the methods passed to
+ *         this function.
+ * \return PSA_ERROR_BAD_STATE
+ *         This function was called after the initialization of the
+ *         cryptography module, and this implementation does not support
+ *         driver registration at this stage.
+ * \return PSA_ERROR_ALREADY_EXISTS
+ *         There is already a registered driver for this value of \p lifetime.
+ * \return PSA_ERROR_INVALID_ARGUMENT
+ *         \p lifetime is a reserved value.
+ * \return PSA_ERROR_NOT_SUPPORTED
+ *         `methods->hal_version` is not supported by this implementation.
+ * \return PSA_ERROR_INSUFFICIENT_MEMORY
+ * \return PSA_ERROR_NOT_PERMITTED
+ */
+psa_status_t psa_register_se_driver(
+    psa_key_lifetime_t lifetime,
+    const psa_drv_se_t *methods);
 
 /**@}*/
 

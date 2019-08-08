@@ -124,14 +124,13 @@ typedef enum
     MBEDTLS_CIPHER_PSA_KEY_UNSET = 0,
     MBEDTLS_CIPHER_PSA_KEY_OWNED, /* Used for PSA-based cipher contexts which */
                                   /* use raw key material internally imported */
-                                  /* into a allocated key slot, and which     */
-                                  /* hence need to destroy that key slot      */
-                                  /* when they are no longer needed.          */
+                                  /* as a volatile key, and which hence need  */
+                                  /* to destroy that key when the context is  */
+                                  /* freed.                                   */
     MBEDTLS_CIPHER_PSA_KEY_NOT_OWNED, /* Used for PSA-based cipher contexts   */
-                                      /* which use a key from a key slot      */
-                                      /* provided by the user, and which      */
-                                      /* hence should not be destroyed when   */
-                                      /* the context is no longer needed.     */
+                                      /* which use a key provided by the      */
+                                      /* user, and which hence will not be    */
+                                      /* destroyed when the context is freed. */
 } mbedtls_cipher_psa_key_ownership;
 
 typedef struct

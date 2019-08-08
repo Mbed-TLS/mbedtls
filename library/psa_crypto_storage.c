@@ -102,12 +102,15 @@ static psa_status_t psa_crypto_storage_load( const psa_key_file_id_t key,
     psa_status_t status;
     psa_storage_uid_t data_identifier = psa_its_identifier_of_slot( key );
     struct psa_storage_info_t data_identifier_info;
+    size_t data_length = 0;
 
     status = psa_its_get_info( data_identifier, &data_identifier_info );
     if( status  != PSA_SUCCESS )
         return( status );
 
-    status = psa_its_get( data_identifier, 0, (uint32_t) data_size, data );
+    status = psa_its_get( data_identifier, 0, (uint32_t) data_size, data, &data_length );
+    if( data_size  != data_length )
+        return( PSA_ERROR_STORAGE_FAILURE );
 
     return( status );
 }
@@ -433,9 +436,16 @@ psa_status_t psa_crypto_save_transaction( void )
 
 psa_status_t psa_crypto_load_transaction( void )
 {
-    return( psa_its_get( PSA_CRYPTO_ITS_TRANSACTION_UID, 0,
-                         sizeof( psa_crypto_transaction ),
-                         &psa_crypto_transaction ) );
+    psa_status_t status;
+    size_t length;
+    status = psa_its_get( PSA_CRYPTO_ITS_TRANSACTION_UID, 0,
+                          sizeof( psa_crypto_transaction ),
+                          &psa_crypto_transaction, &length );
+    if( status != PSA_SUCCESS )
+        return( status );
+    if( length != sizeof( psa_crypto_transaction ) )
+        return( PSA_ERROR_STORAGE_FAILURE );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_crypto_stop_transaction( void )

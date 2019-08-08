@@ -1,6 +1,6 @@
 Decrypt empty buffer
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-dec_empty_buf:
+dec_empty_buf:MBEDTLS_CIPHER_AES_128_CBC
 
 AES-128 CBC - Encrypt and decrypt 0 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7

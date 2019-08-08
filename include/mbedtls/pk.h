@@ -26,23 +26,23 @@
 #define MBEDTLS_PK_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "md.h"
+#include "mbedtls/md.h"
 
 #if defined(MBEDTLS_RSA_C)
-#include "rsa.h"
+#include "mbedtls/rsa.h"
 #endif
 
 #if defined(MBEDTLS_ECP_C)
-#include "ecp.h"
+#include "mbedtls/ecp.h"
 #endif
 
 #if defined(MBEDTLS_ECDSA_C)
-#include "ecdsa.h"
+#include "mbedtls/ecdsa.h"
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

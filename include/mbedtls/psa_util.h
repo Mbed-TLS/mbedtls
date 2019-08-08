@@ -29,7 +29,7 @@
 #define MBEDTLS_PSA_UTIL_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
@@ -38,10 +38,10 @@
 
 #include "psa/crypto.h"
 
-#include "ecp.h"
-#include "md.h"
-#include "pk.h"
-#include "oid.h"
+#include "mbedtls/ecp.h"
+#include "mbedtls/md.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/oid.h"
 
 #include <string.h>
 

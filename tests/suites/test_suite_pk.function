@@ -13,6 +13,13 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
 #include "psa_crypto_helpers.h"
+#define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
+#else
+/* Define empty macros so that we can use them in the preamble and teardown
+ * of every test function that uses PSA conditionally based on
+ * MBEDTLS_USE_PSA_CRYPTO. */
+#define PSA_INIT( ) ( (void) 0 )
+#define PSA_DONE( ) ( (void) 0 )
 #endif
 
 static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
@@ -117,7 +124,7 @@ void pk_psa_utils(  )
     size_t len;
     mbedtls_pk_debug_item dbg;
 
-    TEST_ASSERT( psa_crypto_init() == 0 );
+    PSA_ASSERT( psa_crypto_init( ) );
 
     mbedtls_pk_init( &pk );
     mbedtls_pk_init( &pk2 );
@@ -173,6 +180,7 @@ void pk_psa_utils(  )
 exit:
     mbedtls_pk_free( &pk ); /* redundant except upon error */
     mbedtls_pk_free( &pk2 );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -763,7 +771,7 @@ void pk_ec_test_vec( int type, int id, data_t * key, data_t * hash,
     mbedtls_ecp_keypair *eckey;
 
     mbedtls_pk_init( &pk );
-
+    PSA_INIT( );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
 
@@ -780,6 +788,7 @@ void pk_ec_test_vec( int type, int id, data_t * key, data_t * hash,
 
 exit:
     mbedtls_pk_free( &pk );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -904,6 +913,7 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
 #endif
 
     mbedtls_pk_init( &pk );
+    PSA_INIT( );
 
     memset( hash, 0x2a, sizeof hash );
     memset( sig, 0, sizeof sig );
@@ -955,6 +965,7 @@ exit:
     mbedtls_pk_restart_free( rs_ctx );
 #endif
     mbedtls_pk_free( &pk );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -1210,6 +1221,8 @@ void pk_psa_sign(  )
      * - parse it to a PK context and verify the signature this way
      */
 
+    PSA_ASSERT( psa_crypto_init( ) );
+
     /* Create legacy EC public/private key in PK context. */
     mbedtls_pk_init( &pk );
     TEST_ASSERT( mbedtls_pk_setup( &pk,
@@ -1259,5 +1272,6 @@ void pk_psa_sign(  )
 
 exit:
     mbedtls_pk_free( &pk );
+    PSA_DONE( );
 }
 /* END_CASE */

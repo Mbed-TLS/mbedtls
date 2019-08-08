@@ -148,17 +148,23 @@ psa_status_t psa_load_se_persistent_data(
 {
     psa_status_t status;
     psa_storage_uid_t uid;
+    size_t length;
 
     status = psa_get_se_driver_its_file_uid( driver, &uid );
     if( status != PSA_SUCCESS )
         return( status );
 
+    /* Read the amount of persistent data that the driver requests.
+     * If the data in storage is larger, it is truncated. If the data
+     * in storage is smaller, silently keep what is already at the end
+     * of the output buffer. */
     /* psa_get_se_driver_its_file_uid ensures that the size_t
      * persistent_data_size is in range, but compilers don't know that,
      * so cast to reassure them. */
     return( psa_its_get( uid, 0,
                          (uint32_t) driver->internal.persistent_data_size,
-                         driver->internal.persistent_data ) );
+                         driver->internal.persistent_data,
+                         &length ) );
 }
 
 psa_status_t psa_save_se_persistent_data(

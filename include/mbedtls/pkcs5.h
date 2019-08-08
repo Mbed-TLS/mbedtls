@@ -27,13 +27,13 @@
 #define MBEDTLS_PKCS5_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "asn1.h"
-#include "md.h"
+#include "mbedtls/asn1.h"
+#include "mbedtls/md.h"
 
 #include <stddef.h>
 #include <stdint.h>

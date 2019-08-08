@@ -31,7 +31,7 @@
 #define MBEDTLS_ARIA_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
@@ -39,7 +39,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "platform_util.h"
+#include "mbedtls/platform_util.h"
 
 #define MBEDTLS_ARIA_ENCRYPT     1 /**< ARIA encryption. */
 #define MBEDTLS_ARIA_DECRYPT     0 /**< ARIA decryption. */

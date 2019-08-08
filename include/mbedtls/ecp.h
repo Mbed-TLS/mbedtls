@@ -37,12 +37,12 @@
 #define MBEDTLS_ECP_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "bignum.h"
+#include "mbedtls/bignum.h"
 
 /*
  * ECP error codes

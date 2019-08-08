@@ -902,7 +902,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_handle_t slot = 0;
     psa_algorithm_t alg = 0;
-    psa_key_policy_t policy;
+    psa_key_attributes_t key_attributes;
     psa_status_t status;
 #endif
 
@@ -2068,25 +2068,12 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.psk_opaque != 0 )
     {
-        /* The algorithm has already been determined earlier. */
-        status = psa_allocate_key( &slot );
-        if( status != PSA_SUCCESS )
-        {
-            ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
-            goto exit;
-        }
+        key_attributes = psa_key_attributes_init();
+        psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+        psa_set_key_algorithm( &key_attributes, alg );
+        psa_set_key_type( &key_attributes, PSA_KEY_TYPE_DERIVE );
 
-        policy = psa_key_policy_init();
-        psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-
-        status = psa_set_key_policy( slot, &policy );
-        if( status != PSA_SUCCESS )
-        {
-            ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
-            goto exit;
-        }
-
-        status = psa_import_key( slot, PSA_KEY_TYPE_DERIVE, psk, psk_len );
+        status = psa_import_key( &key_attributes, psk, psk_len, &slot );
         if( status != PSA_SUCCESS )
         {
             ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;

@@ -3550,6 +3550,8 @@ psa_status_t psa_generate_random(uint8_t *output,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize

@@ -5,7 +5,20 @@
 #include "mbedtls/asn1write.h"
 #include "mbedtls/oid.h"
 
+/* For MBEDTLS_CTR_DRBG_MAX_REQUEST, knowing that psa_generate_random()
+ * uses mbedtls_ctr_drbg internally. */
+#include "mbedtls/ctr_drbg.h"
+
 #include "psa_crypto_helpers.h"
+
+/* Tests that require more than 128kB of RAM plus change have this symbol
+ * as a dependency. Currently we always define this symbol, so the tests
+ * are always executed. In the future we should make this conditional
+ * so that tests that require a lot of memory are skipped on constrained
+ * platforms. */
+#define HAVE_RAM_AVAILABLE_128K
+
+#include "psa/crypto.h"
 
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
@@ -556,7 +569,8 @@ static int setup_key_derivation_wrap( psa_key_derivation_operation_t* operation,
         TEST_ASSERT( ! "Key derivation algorithm not supported" );
     }
 
-    PSA_ASSERT( psa_key_derivation_set_capacity( operation, capacity ) );
+    if( capacity != SIZE_MAX )
+        PSA_ASSERT( psa_key_derivation_set_capacity( operation, capacity ) );
 
     return( 1 );
 
@@ -1201,9 +1215,52 @@ void persistence_attributes( int id1_arg, int lifetime_arg, int id2_arg,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void import( data_t *data, int type_arg,
-             int attr_bits_arg,
-             int expected_status_arg )
+void import_with_policy( int type_arg,
+                         int usage_arg, int alg_arg,
+                         int expected_status_arg )
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_handle_t handle = 0;
+    psa_key_type_t type = type_arg;
+    psa_key_usage_t usage = usage_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
+    const uint8_t key_material[16] = {0};
+    psa_status_t status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_type( &attributes, type );
+    psa_set_key_usage_flags( &attributes, usage );
+    psa_set_key_algorithm( &attributes, alg );
+
+    status = psa_import_key( &attributes,
+                             key_material, sizeof( key_material ),
+                             &handle );
+    TEST_EQUAL( status, expected_status );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
+    TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
+    TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ), usage );
+    TEST_EQUAL( psa_get_key_algorithm( &got_attributes ), alg );
+
+    PSA_ASSERT( psa_destroy_key( handle ) );
+    test_operations_on_invalid_handle( handle );
+
+exit:
+    psa_destroy_key( handle );
+    psa_reset_key_attributes( &got_attributes );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void import_with_data( data_t *data, int type_arg,
+                       int attr_bits_arg,
+                       int expected_status_arg )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -1217,6 +1274,7 @@ void import( data_t *data, int type_arg,
 
     psa_set_key_type( &attributes, type );
     psa_set_key_bits( &attributes, attr_bits );
+
     status = psa_import_key( &attributes, data->x, data->len, &handle );
     TEST_EQUAL( status, expected_status );
     if( status != PSA_SUCCESS )
@@ -1225,7 +1283,7 @@ void import( data_t *data, int type_arg,
     PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
     TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
     if( attr_bits != 0 )
-        TEST_EQUAL( attr_bits, got_attributes.bits );
+        TEST_EQUAL( attr_bits, psa_get_key_bits( &got_attributes ) );
 
     PSA_ASSERT( psa_destroy_key( handle ) );
     test_operations_on_invalid_handle( handle );
@@ -1234,6 +1292,54 @@ exit:
     psa_destroy_key( handle );
     psa_reset_key_attributes( &got_attributes );
     PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void import_large_key( int type_arg, int byte_size_arg,
+                       int expected_status_arg )
+{
+    psa_key_type_t type = type_arg;
+    size_t byte_size = byte_size_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_handle_t handle = 0;
+    psa_status_t status;
+    uint8_t *buffer = NULL;
+    size_t buffer_size = byte_size + 1;
+    size_t n;
+
+    /* It would be better to skip the test than fail it if the allocation
+     * fails, but the test framework doesn't support this yet. */
+    ASSERT_ALLOC( buffer, buffer_size );
+    memset( buffer, 'K', byte_size );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Try importing the key */
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
+    psa_set_key_type( &attributes, type );
+    status = psa_import_key( &attributes, buffer, byte_size, &handle );
+    TEST_EQUAL( status, expected_status );
+
+    if( status == PSA_SUCCESS )
+    {
+        PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+        TEST_EQUAL( psa_get_key_type( &attributes ), type );
+        TEST_EQUAL( psa_get_key_bits( &attributes ),
+                    PSA_BYTES_TO_BITS( byte_size ) );
+        memset( buffer, 0, byte_size + 1 );
+        PSA_ASSERT( psa_export_key( handle, buffer, byte_size, &n ) );
+        for( n = 0; n < byte_size; n++ )
+            TEST_EQUAL( buffer[n], 'K' );
+        for( n = byte_size; n < buffer_size; n++ )
+            TEST_EQUAL( buffer[n], 0 );
+    }
+
+exit:
+    psa_destroy_key( handle );
+    PSA_DONE( );
+    mbedtls_free( buffer );
 }
 /* END_CASE */
 
@@ -4556,6 +4662,51 @@ void derive_key_export( int alg_arg,
 exit:
     mbedtls_free( output_buffer );
     mbedtls_free( export_buffer );
+    psa_key_derivation_abort( &operation );
+    psa_destroy_key( base_handle );
+    psa_destroy_key( derived_handle );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void derive_key( int alg_arg,
+                 data_t *key_data, data_t *input1, data_t *input2,
+                 int type_arg, int bits_arg,
+                 int expected_status_arg )
+{
+    psa_key_handle_t base_handle = 0;
+    psa_key_handle_t derived_handle = 0;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_type_t type = type_arg;
+    size_t bits = bits_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    psa_key_attributes_t base_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t derived_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &base_attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &base_attributes, alg );
+    psa_set_key_type( &base_attributes, PSA_KEY_TYPE_DERIVE );
+    PSA_ASSERT( psa_import_key( &base_attributes, key_data->x, key_data->len,
+                                &base_handle ) );
+
+    if( !setup_key_derivation_wrap( &operation, base_handle, alg,
+                                    input1->x, input1->len,
+                                    input2->x, input2->len, SIZE_MAX ) )
+        goto exit;
+
+    psa_set_key_usage_flags( &derived_attributes, PSA_KEY_USAGE_EXPORT );
+    psa_set_key_algorithm( &derived_attributes, 0 );
+    psa_set_key_type( &derived_attributes, type );
+    psa_set_key_bits( &derived_attributes, bits );
+    TEST_EQUAL( psa_key_derivation_output_key( &derived_attributes, &operation,
+                                               &derived_handle ),
+                expected_status );
+
+exit:
     psa_key_derivation_abort( &operation );
     psa_destroy_key( base_handle );
     psa_destroy_key( derived_handle );

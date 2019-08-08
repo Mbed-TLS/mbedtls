@@ -198,7 +198,7 @@ psa_status_t psa_find_se_slot_for_key(
     psa_drv_se_allocate_key_t p_allocate = NULL;
 
     /* If the lifetime is wrong, it's a bug in the library. */
-    if( driver->lifetime != attributes->lifetime )
+    if( driver->lifetime != psa_get_key_lifetime( attributes ) )
         return( PSA_ERROR_CORRUPTION_DETECTED );
 
     /* If the driver doesn't support key creation in any way, give up now. */

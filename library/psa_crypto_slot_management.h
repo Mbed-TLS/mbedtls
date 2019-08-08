@@ -58,13 +58,13 @@ psa_status_t psa_initialize_key_slots( void );
  * This does not affect persistent storage. */
 void psa_wipe_all_key_slots( void );
 
-/** Find a free key slot and mark it as in use.
+/** Find a free key slot.
+ *
+ * This function returns a key slot that is available for use and is in its
+ * ground state (all-bits-zero).
  *
  * \param[out] handle   On success, a slot number that can be used as a
- *                      handle to the slot. The selected slot was not
- *                      in use before. This function marks it as in use
- *                      and otherwise leaves it in a freshly-initialized
- *                      state.
+ *                      handle to the slot.
  * \param[out] p_slot   On success, a pointer to the slot.
  *
  * \retval #PSA_SUCCESS

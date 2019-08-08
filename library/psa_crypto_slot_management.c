@@ -33,6 +33,9 @@
 #include "psa_crypto_core.h"
 #include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#include "psa_crypto_se.h"
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -71,8 +74,8 @@ psa_status_t psa_get_key_slot( psa_key_handle_t handle,
         return( PSA_ERROR_INVALID_HANDLE );
     slot = &global_data.key_slots[handle - 1];
 
-    /* If the slot hasn't been allocated, the handle is invalid. */
-    if( ! slot->allocated )
+    /* If the slot isn't occupied, the handle is invalid. */
+    if( ! psa_is_key_slot_occupied( slot ) )
         return( PSA_ERROR_INVALID_HANDLE );
 
     *p_slot = slot;
@@ -108,48 +111,44 @@ psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle,
     for( *handle = PSA_KEY_SLOT_COUNT; *handle != 0; --( *handle ) )
     {
         *p_slot = &global_data.key_slots[*handle - 1];
-        if( ! ( *p_slot )->allocated )
-        {
-            ( *p_slot )->allocated = 1;
+        if( ! psa_is_key_slot_occupied( *p_slot ) )
             return( PSA_SUCCESS );
-        }
     }
     *p_slot = NULL;
     return( PSA_ERROR_INSUFFICIENT_MEMORY );
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *p_slot )
+static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = PSA_SUCCESS;
     uint8_t *key_data = NULL;
     size_t key_data_length = 0;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    psa_set_key_id( &attributes, p_slot->persistent_storage_id );
-    status = psa_load_persistent_key( &attributes,
+    status = psa_load_persistent_key( &slot->attr,
                                       &key_data, &key_data_length );
     if( status != PSA_SUCCESS )
         goto exit;
-    p_slot->lifetime = psa_get_key_lifetime( &attributes );
-    p_slot->type = psa_get_key_type( &attributes );
-    p_slot->policy = attributes.policy;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_key_lifetime_is_external( p_slot->lifetime ) )
+    if( psa_key_lifetime_is_external( slot->attr.lifetime ) )
     {
-        if( key_data_length != sizeof( p_slot->data.se ) )
+        psa_se_key_data_storage_t *data;
+        if( key_data_length != sizeof( *data ) )
         {
             status = PSA_ERROR_STORAGE_FAILURE;
             goto exit;
         }
-        memcpy( &p_slot->data.se, key_data, sizeof( p_slot->data.se ) );
+        data = (psa_se_key_data_storage_t *) key_data;
+        memcpy( &slot->data.se.slot_number, &data->slot_number,
+                sizeof( slot->data.se.slot_number ) );
+        memcpy( &slot->attr.bits, &data->bits,
+                sizeof( slot->attr.bits ) );
     }
     else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     {
-        status = psa_import_key_into_slot( p_slot,
-                                           key_data, key_data_length );
+        status = psa_import_key_into_slot( slot, key_data, key_data_length );
     }
 
 exit:
@@ -233,8 +232,8 @@ psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
     if( status != PSA_SUCCESS )
         return( status );
 
-    slot->lifetime = PSA_KEY_LIFETIME_PERSISTENT;
-    slot->persistent_storage_id = id;
+    slot->attr.lifetime = PSA_KEY_LIFETIME_PERSISTENT;
+    slot->attr.id = id;
 
     status = psa_load_persistent_key_into_slot( slot );
     if( status != PSA_SUCCESS )
@@ -269,28 +268,25 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
     memset( stats, 0, sizeof( *stats ) );
     for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
     {
-        psa_key_slot_t *slot = &global_data.key_slots[key - 1];
-        if( slot->type == PSA_KEY_TYPE_NONE )
+        const psa_key_slot_t *slot = &global_data.key_slots[key - 1];
+        if( ! psa_is_key_slot_occupied( slot ) )
         {
-            if( slot->allocated )
-                ++stats->half_filled_slots;
-            else
-                ++stats->empty_slots;
+            ++stats->empty_slots;
             continue;
         }
-        if( slot->lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        if( slot->attr.lifetime == PSA_KEY_LIFETIME_VOLATILE )
             ++stats->volatile_slots;
-        else if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+        else if( slot->attr.lifetime == PSA_KEY_LIFETIME_PERSISTENT )
         {
             ++stats->persistent_slots;
-            if( slot->persistent_storage_id > stats->max_open_internal_key_id )
-                stats->max_open_internal_key_id = slot->persistent_storage_id;
+            if( slot->attr.id > stats->max_open_internal_key_id )
+                stats->max_open_internal_key_id = slot->attr.id;
         }
         else
         {
             ++stats->external_slots;
-            if( slot->persistent_storage_id > stats->max_open_external_key_id )
-                stats->max_open_external_key_id = slot->persistent_storage_id;
+            if( slot->attr.id > stats->max_open_external_key_id )
+                stats->max_open_external_key_id = slot->attr.id;
         }
     }
 }

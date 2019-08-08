@@ -3229,7 +3229,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
     {
         psa_status_t status;
-        psa_key_attributes_t attributes;
+        psa_key_attributes_t key_attributes;
 
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
@@ -3262,18 +3262,19 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          * yet support the provisioning of salt + label to the KDF.
          * For the time being, we therefore need to split the computation
          * of the ECDH secret and the application of the TLS 1.2 PRF. */
-        attributes = psa_key_attributes_init();
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
-        psa_set_key_algorithm( &attributes,
+        key_attributes = psa_key_attributes_init();
+        psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+        psa_set_key_algorithm( &key_attributes,
                                PSA_ALG_ECDH( PSA_ALG_SELECT_RAW ) );
-        psa_set_key_type( &attributes,
+        psa_set_key_type( &key_attributes,
                           PSA_KEY_TYPE_ECC_KEY_PAIR( handshake->ecdh_psa_curve )
                         );
         psa_set_key_bits( &key_attributes,
                           PSA_ECC_CURVE_BITS( handshake->ecdh_psa_curve ) );
 
         /* Generate ECDH private key. */
-        status = psa_generate_key( &attributes, handshake->ecdh_psa_privkey );
+        status = psa_generate_key( &key_attributes,
+                                   handshake->ecdh_psa_privkey );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 

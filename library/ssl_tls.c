@@ -630,7 +630,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 {
     psa_status_t status;
     psa_algorithm_t alg;
-    psa_key_attributes_t attributes;
+    psa_key_attributes_t key_attributes;
     psa_key_handle_t master_slot;
     psa_key_derivation_operation_t generator =
         PSA_KEY_DERIVATION_OPERATION_INIT;
@@ -643,12 +643,12 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     else
         alg = PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256);
 
-    attributes = psa_key_attributes_init();
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
-    psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
+    key_attributes = psa_key_attributes_init();
+    psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &key_attributes, alg );
+    psa_set_key_type( &key_attributes, PSA_KEY_TYPE_DERIVE );
 
-    status = psa_import_key( &attributes, secret, slen, &master_slot );
+    status = psa_import_key( &key_attributes, secret, slen, &master_slot );
     if( status != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 

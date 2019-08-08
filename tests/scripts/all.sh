@@ -1081,9 +1081,9 @@ component_build_arm_none_eabi_gcc () {
 }
 
 component_build_arm_none_eabi_gcc_armel () {
-    msg "build: arm-none-eabi-gcc, make" # ~ 10s
+    msg "build: arm-none-eabi-gcc -march=arm5vte, make" # ~ 10s
     scripts/config.pl baremetal
-    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar CFLAGS='-Werror -Wall -Wextra -march=armv5te' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
+    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {

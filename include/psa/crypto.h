@@ -3531,6 +3531,7 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED

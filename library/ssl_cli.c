@@ -3249,12 +3249,6 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          * Generate EC private key for ECDHE exchange.
          */
 
-        /* Allocate a new key slot for the private key. */
-
-        status = psa_allocate_key( &handshake->ecdh_psa_privkey );
-        if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-
         /* The master secret is obtained from the shared ECDH secret by
          * applying the TLS 1.2 PRF with a specific salt and label. While
          * the PSA Crypto API encourages combining key agreement schemes

@@ -444,6 +444,13 @@ exit:
 /* Other test helper functions */
 /****************************************************************/
 
+typedef enum
+{
+    SIGN_IN_SOFTWARE_AND_PARALLEL_CREATION,
+    SIGN_IN_DRIVER_AND_PARALLEL_CREATION,
+    SIGN_IN_DRIVER_THEN_EXPORT_PUBLIC,
+} sign_verify_method_t;
+
 /* Check that the attributes of a key reported by psa_get_key_attributes()
  * are consistent with the attributes used when creating the key. */
 static int check_key_attributes(
@@ -1017,7 +1024,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void sign_verify( int sign_in_driver,
+void sign_verify( int flow,
                   int type_arg, int alg_arg,
                   int bits_arg, data_t *key_material,
                   data_t *input )
@@ -1036,16 +1043,17 @@ void sign_verify( int sign_in_driver,
     psa_key_id_t id = 1;
     psa_key_handle_t drv_handle = 0; /* key managed by the driver */
     psa_key_handle_t sw_handle = 0; /* transparent key */
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t sw_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t drv_attributes;
     uint8_t signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE];
     size_t signature_length;
 
     memset( &driver, 0, sizeof( driver ) );
     memset( &key_management, 0, sizeof( key_management ) );
+    memset( &asymmetric, 0, sizeof( asymmetric ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;
     driver.key_management = &key_management;
     driver.asymmetric = &asymmetric;
-    driver.persistent_data_size = sizeof( psa_key_slot_number_t );
     driver.persistent_data_size = sizeof( ram_slot_usage_t );
     key_management.p_allocate = ram_allocate;
     key_management.p_destroy = ram_destroy;
@@ -1053,58 +1061,103 @@ void sign_verify( int sign_in_driver,
         key_management.p_generate = ram_fake_generate;
     else
         key_management.p_import = ram_import;
-    if( sign_in_driver )
-        asymmetric.p_sign = ram_sign;
+    switch( flow )
+    {
+        case SIGN_IN_SOFTWARE_AND_PARALLEL_CREATION:
+            break;
+        case SIGN_IN_DRIVER_AND_PARALLEL_CREATION:
+            asymmetric.p_sign = ram_sign;
+            break;
+        case SIGN_IN_DRIVER_THEN_EXPORT_PUBLIC:
+            asymmetric.p_sign = ram_sign;
+            key_management.p_export_public = ram_export_public;
+            break;
+        default:
+            TEST_ASSERT( ! "unsupported flow (should be SIGN_IN_xxx)" );
+            break;
+    }
     asymmetric.p_verify = ram_verify;
 
     PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
-    /* Create two keys with the same key material: a transparent key,
-     * and one that goes through the driver. */
-    psa_set_key_usage_flags( &attributes,
+    /* Prepare to create two keys with the same key material: a transparent
+     * key, and one that goes through the driver. */
+    psa_set_key_usage_flags( &sw_attributes,
                              PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY );
-    psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, type );
-    PSA_ASSERT( psa_import_key( &attributes,
-                                key_material->x, key_material->len,
-                                &sw_handle ) );
-    psa_set_key_id( &attributes, id );
-    psa_set_key_lifetime( &attributes, lifetime );
+    psa_set_key_algorithm( &sw_attributes, alg );
+    psa_set_key_type( &sw_attributes, type );
+    drv_attributes = sw_attributes;
+    psa_set_key_id( &drv_attributes, id );
+    psa_set_key_lifetime( &drv_attributes, lifetime );
+
+    /* Create the key in the driver. */
     if( generating )
     {
-        psa_set_key_bits( &attributes, bits );
-        PSA_ASSERT( psa_generate_key( &attributes, &drv_handle ) );
+        psa_set_key_bits( &drv_attributes, bits );
+        PSA_ASSERT( psa_generate_key( &drv_attributes, &drv_handle ) );
         /* Since we called a generate method that does not actually
          * generate material, store the desired result of generation in
          * the mock secure element storage. */
-        PSA_ASSERT( psa_get_key_attributes( drv_handle, &attributes ) );
+        PSA_ASSERT( psa_get_key_attributes( drv_handle, &drv_attributes ) );
         TEST_ASSERT( key_material->len == PSA_BITS_TO_BYTES( bits ) );
         memcpy( ram_slots[ram_min_slot].content, key_material->x,
                 key_material->len );
     }
     else
     {
-        PSA_ASSERT( psa_import_key( &attributes,
+        PSA_ASSERT( psa_import_key( &drv_attributes,
                                     key_material->x, key_material->len,
                                     &drv_handle ) );
     }
 
+    /* Either import the same key in software, or export the driver's
+     * public key and import that. */
+    switch( flow )
+    {
+        case SIGN_IN_SOFTWARE_AND_PARALLEL_CREATION:
+        case SIGN_IN_DRIVER_AND_PARALLEL_CREATION:
+            PSA_ASSERT( psa_import_key( &sw_attributes,
+                                        key_material->x, key_material->len,
+                                        &sw_handle ) );
+            break;
+        case SIGN_IN_DRIVER_THEN_EXPORT_PUBLIC:
+        {
+            uint8_t public_key[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE( PSA_VENDOR_ECC_MAX_CURVE_BITS )];
+            size_t public_key_length;
+            PSA_ASSERT( psa_export_public_key( drv_handle,
+                                               public_key, sizeof( public_key ),
+                                               &public_key_length ) );
+            psa_set_key_type( &sw_attributes,
+                              PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR( type ) );
+            PSA_ASSERT( psa_import_key( &sw_attributes,
+                                        public_key, public_key_length,
+                                        &sw_handle ) );
+            break;
+        }
+    }
+
     /* Sign with the chosen key. */
-    if( sign_in_driver )
-        PSA_ASSERT_VIA_DRIVER(
-            psa_asymmetric_sign( drv_handle,
-                                 alg,
-                                 input->x, input->len,
-                                 signature, sizeof( signature ),
-                                 &signature_length ),
-            PSA_SUCCESS );
-    else
-        PSA_ASSERT( psa_asymmetric_sign( sw_handle,
-                                         alg,
-                                         input->x, input->len,
-                                         signature, sizeof( signature ),
-                                         &signature_length ) );
+    switch( flow )
+    {
+        case SIGN_IN_DRIVER_AND_PARALLEL_CREATION:
+        case SIGN_IN_DRIVER_THEN_EXPORT_PUBLIC:
+            PSA_ASSERT_VIA_DRIVER(
+                psa_asymmetric_sign( drv_handle,
+                                     alg,
+                                     input->x, input->len,
+                                     signature, sizeof( signature ),
+                                     &signature_length ),
+                PSA_SUCCESS );
+            break;
+        case SIGN_IN_SOFTWARE_AND_PARALLEL_CREATION:
+            PSA_ASSERT( psa_asymmetric_sign( sw_handle,
+                                             alg,
+                                             input->x, input->len,
+                                             signature, sizeof( signature ),
+                                             &signature_length ) );
+            break;
+    }
 
     /* Verify with both keys. */
     PSA_ASSERT( psa_asymmetric_verify( sw_handle, alg,

@@ -21,6 +21,10 @@
 
 set -u
 
+# Limit the size of each log to 10 GiB, in case of failures with this script
+# where it may output seemingly unlimited length error logs.
+ulimit -f 20971520
+
 if cd $( dirname $0 ); then :; else
     echo "cd $( dirname $0 ) failed" >&2
     exit 1

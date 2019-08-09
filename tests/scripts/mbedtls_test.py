@@ -79,7 +79,7 @@ class TestDataParser(object):
         split_colon_fn = lambda x: re.sub(r'\\' + split_char, split_char, x)
         if len(split_char) > 1:
             raise ValueError('Expected split character. Found string!')
-        out = map(split_colon_fn, re.split(r'(?<!\\)' + split_char, inp_str))
+        out = list(map(split_colon_fn, re.split(r'(?<!\\)' + split_char, inp_str)))
         out = [x for x in out if x]
         return out
 
@@ -99,11 +99,11 @@ class TestDataParser(object):
 
             # Check dependencies
             dependencies = []
-            line = data_f.next().strip()
+            line = next(data_f).strip()
             match = re.search('depends_on:(.*)', line)
             if match:
                 dependencies = [int(x) for x in match.group(1).split(':')]
-                line = data_f.next().strip()
+                line = next(data_f).strip()
 
             # Read test vectors
             line = line.replace('\\n', '\n')
@@ -115,7 +115,7 @@ class TestDataParser(object):
                 err_str_fmt = "Number of test arguments({}) should be even: {}"
                 raise TestDataParserError(err_str_fmt.format(args_count, line))
             grouped_args = [(args[i * 2], args[(i * 2) + 1])
-                            for i in range(len(args)/2)]
+                            for i in range(int(len(args)/2))]
             self.tests.append((name, function_name, dependencies,
                                grouped_args))
 
@@ -261,21 +261,21 @@ class MbedTlsTest(BaseHostTest):
         data_bytes += bytearray([function_id, len(parameters)])
         for typ, param in parameters:
             if typ == 'int' or typ == 'exp':
-                i = int(param)
-                data_bytes += 'I' if typ == 'int' else 'E'
+                i = int(param, 0)
+                data_bytes += b'I' if typ == 'int' else b'E'
                 self.align_32bit(data_bytes)
                 data_bytes += self.int32_to_big_endian_bytes(i)
             elif typ == 'char*':
                 param = param.strip('"')
                 i = len(param) + 1  # + 1 for null termination
-                data_bytes += 'S'
+                data_bytes += b'S'
                 self.align_32bit(data_bytes)
                 data_bytes += self.int32_to_big_endian_bytes(i)
-                data_bytes += bytearray(list(param))
-                data_bytes += '\0'   # Null terminate
+                data_bytes += bytearray(param, encoding='ascii')
+                data_bytes += b'\0'   # Null terminate
             elif typ == 'hex':
                 binary_data = self.hex_str_bytes(param)
-                data_bytes += 'H'
+                data_bytes += b'H'
                 self.align_32bit(data_bytes)
                 i = len(binary_data)
                 data_bytes += self.int32_to_big_endian_bytes(i)
@@ -310,7 +310,7 @@ class MbedTlsTest(BaseHostTest):
 
         param_bytes, length = self.test_vector_to_bytes(function_id,
                                                         dependencies, args)
-        self.send_kv(length, param_bytes)
+        self.send_kv(''.join('{:02x}'.format(x) for x in length), ''.join('{:02x}'.format(x) for x in param_bytes))
 
     @staticmethod
     def get_result(value):

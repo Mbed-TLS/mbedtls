@@ -1582,10 +1582,6 @@ static psa_status_t psa_start_key_creation(
      * we can roll back to a state where the key doesn't exist. */
     if( *p_drv != NULL )
     {
-        /* Choosing a slot number is not supported yet. */
-        if( attributes->core.flags & MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER )
-            return( PSA_ERROR_NOT_SUPPORTED );
-
         status = psa_find_se_slot_for_key( attributes, *p_drv,
                                            &slot->data.se.slot_number );
         if( status != PSA_SUCCESS )

@@ -812,6 +812,42 @@ typedef struct {
 
 /** \brief A function that allocates a slot for a key.
  *
+ * To create a key in a specific slot in a secure element, the core
+ * first calls this function to determine a valid slot number,
+ * then calls a function to create the key material in that slot.
+ * For example, in nominal conditions (that is, if no error occurs),
+ * the effect of a call to psa_import_key() with a lifetime that places
+ * the key in a secure element is the following:
+ * -# The core calls psa_drv_se_key_management_t::p_allocate
+ *    (or in some implementations
+ *    psa_drv_se_key_management_t::p_validate_slot_number). The driver
+ *    selects (or validates) a suitable slot number given the key attributes
+ *    and the state of the secure element.
+ * -# The core calls psa_drv_se_key_management_t::p_import to import
+ *    the key material in the selected slot.
+ *
+ * Other key creation methods lead to similar sequences. For example, the
+ * sequence for psa_generate_key() is the same except that the second step
+ * is a call to psa_drv_se_key_management_t::p_generate.
+ *
+ * In case of errors, other behaviors are possible.
+ * - If the PSA Cryptography subsystem dies after the first step,
+ *   for example because the device has lost power abruptly,
+ *   the second step may never happen, or may happen after a reset
+ *   and re-initialization. Alternatively, after a reset and
+ *   re-initialization, the core may call
+ *   psa_drv_se_key_management_t::p_destroy on the slot number that
+ *   was allocated (or validated) instead of calling a key creation function.
+ * - If an error occurs, the core may call
+ *   psa_drv_se_key_management_t::p_destroy on the slot number that
+ *   was allocated (or validated) instead of calling a key creation function.
+ *
+ * Errors and system resets also have an impact on the driver's persistent
+ * data. If a reset happens before the overall key creation process is
+ * completed (before or after the second step above), it is unspecified
+ * whether the persistent data after the reset is identical to what it
+ * was before or after the call to `p_allocate` (or `p_validate_slot_number`).
+ *
  * \param[in,out] drv_context       The driver context structure.
  * \param[in,out] persistent_data   A pointer to the persistent data
  *                                  that allows writing.
@@ -832,6 +868,42 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
     void *persistent_data,
     const psa_key_attributes_t *attributes,
     psa_key_slot_number_t *key_slot);
+
+/** \brief A function that determines whether a slot number is valid
+ * for a key.
+ *
+ * To create a key in a specific slot in a secure element, the core
+ * first calls this function to validate the choice of slot number,
+ * then calls a function to create the key material in that slot.
+ * See the documentation of #psa_drv_se_allocate_key_t for more details.
+ *
+ * As of the PSA Cryptography API specification version 1.0, there is no way
+ * for applications to trigger a call to this function. However some
+ * implementations offer the capability to create or declare a key in
+ * a specific slot via implementation-specific means, generally for the
+ * sake of initial device provisioning or onboarding. Such a mechanism may
+ * be added to a future version of the PSA Cryptography API specification.
+ *
+ * \param[in,out] drv_context       The driver context structure.
+ * \param[in] attributes    Attributes of the key.
+ * \param[in] key_slot      Slot where the key is to be stored.
+ *
+ * \retval #PSA_SUCCESS
+ *         The given slot number is valid for a key with the given
+ *         attributes.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The given slot number is not valid for a key with the
+ *         given attributes. This includes the case where the slot
+ *         number is not valid at all.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         There is already a key with the specified slot number.
+ *         Drivers may choose to return this error from the key
+ *         creation function instead.
+ */
+typedef psa_status_t (*psa_drv_se_validate_slot_number_t)(
+    psa_drv_se_context_t *drv_context,
+    const psa_key_attributes_t *attributes,
+    psa_key_slot_number_t key_slot);
 
 /** \brief A function that imports a key into a secure element in binary format
  *
@@ -977,8 +1049,10 @@ typedef psa_status_t (*psa_drv_se_generate_key_t)(psa_drv_se_context_t *drv_cont
  * If one of the functions is not implemented, it should be set to NULL.
  */
 typedef struct {
-    /** Function that allocates a slot. */
+    /** Function that allocates a slot for a key. */
     psa_drv_se_allocate_key_t   p_allocate;
+    /** Function that checks the validity of a slot for a key. */
+    psa_drv_se_validate_slot_number_t p_validate_slot_number;
     /** Function that performs a key import operation */
     psa_drv_se_import_key_t     p_import;
     /** Function that performs a generation */

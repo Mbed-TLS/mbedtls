@@ -45,7 +45,7 @@ static int test_helper_is_psa_pristine( int line, const char *file )
     /* If the test has already failed, don't overwrite the failure
      * information. Do keep the stats lookup above, because it can be
      * convenient to break on it when debugging a failure. */
-    if( msg != NULL && test_info.failed == 0 )
+    if( msg != NULL && test_info.result == TEST_RESULT_SUCCESS )
         test_fail( msg, line, file );
 
     return( msg == NULL );

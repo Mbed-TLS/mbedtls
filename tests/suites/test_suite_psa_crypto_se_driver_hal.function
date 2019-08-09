@@ -190,6 +190,35 @@ static void ram_slots_reset( void )
     ram_min_slot = 0;
 }
 
+/* Common parts of key creation.
+ *
+ * In case of error, zero out ram_slots[slot_number]. But don't
+ * do that if the error is PSA_ERROR_DETECTED_BY_DRIVER: in this case
+ * you don't need to clean up (ram_slot_reset() will take care of it
+ * in the test case function's cleanup code) and it might be wrong
+ * (if slot_number is invalid).
+ */
+static psa_status_t ram_create_common( psa_drv_se_context_t *context,
+                                       psa_key_slot_number_t slot_number,
+                                       const psa_key_attributes_t *attributes,
+                                       size_t required_storage )
+{
+    (void) context;
+    DRIVER_ASSERT_RETURN( slot_number < ARRAY_LENGTH( ram_slots ) );
+
+    ram_slots[slot_number].lifetime = psa_get_key_lifetime( attributes );
+    ram_slots[slot_number].type = psa_get_key_type( attributes );
+    ram_slots[slot_number].bits = psa_get_key_bits( attributes );
+
+    if( required_storage > sizeof( ram_slots[slot_number].content ) )
+    {
+        memset( &ram_slots[slot_number], 0, sizeof( ram_slots[slot_number] ) );
+        return( PSA_ERROR_INSUFFICIENT_STORAGE );
+    }
+
+    return( PSA_SUCCESS );
+}
+
 /* This function does everything except actually generating key material.
  * After calling it, you must copy the desired key material to
  * ram_slots[slot_number].content. */
@@ -200,7 +229,10 @@ static psa_status_t ram_fake_generate( psa_drv_se_context_t *context,
                                        size_t pubkey_size,
                                        size_t *pubkey_length )
 {
-    (void) context;
+    psa_status_t status;
+    size_t required_storage =
+        PSA_KEY_EXPORT_MAX_SIZE( psa_get_key_type( attributes ),
+                                 psa_get_key_bits( attributes ) );
 
     DRIVER_ASSERT_RETURN( *pubkey_length == 0 );
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( psa_get_key_type( attributes ) ) )
@@ -209,21 +241,9 @@ static psa_status_t ram_fake_generate( psa_drv_se_context_t *context,
         DRIVER_ASSERT_RETURN( pubkey_size == 0 );
     }
 
-    {
-        /* Check that the key can be stored in the memory slot.
-         * This check only works for key in a "raw" representation:
-         * symmetric keys or ECC are ok, but not RSA or FFDH. */
-        size_t required_storage =
-            PSA_BITS_TO_BYTES( psa_get_key_bits( attributes ) );
-        size_t available_storage = sizeof( ram_slots[slot_number].content );
-        if( required_storage > available_storage )
-            return( PSA_ERROR_INSUFFICIENT_STORAGE );
-    }
-
-    ram_slots[slot_number].lifetime = psa_get_key_lifetime( attributes );
-    ram_slots[slot_number].type = psa_get_key_type( attributes );
-    ram_slots[slot_number].bits = psa_get_key_bits( attributes );
-    return( PSA_SUCCESS );
+    status = ram_create_common( context, slot_number, attributes,
+                                required_storage );
+    return( status );
 }
 
 static psa_status_t ram_import( psa_drv_se_context_t *context,
@@ -233,23 +253,36 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
                                 size_t data_length,
                                 size_t *bits )
 {
-    (void) context;
-    DRIVER_ASSERT_RETURN( slot_number < ARRAY_LENGTH( ram_slots ) );
-    if( data_length > sizeof( ram_slots[slot_number].content ) )
-        return( PSA_ERROR_INSUFFICIENT_STORAGE );
-    ram_slots[slot_number].lifetime = psa_get_key_lifetime( attributes );
-    ram_slots[slot_number].type = psa_get_key_type( attributes );
-    ram_slots[slot_number].bits = PSA_BYTES_TO_BITS( data_length );
-    *bits = PSA_BYTES_TO_BITS( data_length );
+    psa_key_type_t type = psa_get_key_type( attributes );
+    psa_status_t status = ram_create_common( context, slot_number, attributes,
+                                             data_length );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    /* The RAM driver only works for certain key types: raw keys,
+     * and ECC key pairs. This is true in particular of the bit-size
+     * calculation here. */
+    if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) )
+        *bits = PSA_BYTES_TO_BITS( data_length );
+    else if ( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( type ) )
+        *bits = PSA_ECC_CURVE_BITS( PSA_KEY_TYPE_GET_CURVE( type ) );
+    else
+    {
+        memset( &ram_slots[slot_number], 0, sizeof( ram_slots[slot_number] ) );
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    ram_slots[slot_number].bits = *bits;
     memcpy( ram_slots[slot_number].content, data, data_length );
+
     return( PSA_SUCCESS );
 }
 
 static psa_status_t ram_export( psa_drv_se_context_t *context,
                                 psa_key_slot_number_t slot_number,
-                                uint8_t *p_data,
+                                uint8_t *data,
                                 size_t data_size,
-                                size_t *p_data_length )
+                                size_t *data_length )
 {
     size_t actual_size;
     (void) context;

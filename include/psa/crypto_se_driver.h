@@ -810,25 +810,66 @@ typedef struct {
  */
 /**@{*/
 
+/** An enumeration indicating how a key is created.
+ */
+typedef enum
+{
+    PSA_KEY_CREATION_IMPORT, /**< During psa_import_key() */
+    PSA_KEY_CREATION_GENERATE, /**< During psa_generate_key() */
+    PSA_KEY_CREATION_DERIVE, /**< During psa_key_derivation_output_key() */
+    PSA_KEY_CREATION_COPY, /**< During psa_copy_key() */
+
+#ifndef __DOXYGEN_ONLY__
+    /** A key is being registered with mbedtls_psa_register_se_key().
+     *
+     * The core only passes this value to
+     * psa_drv_se_key_management_t::p_validate_slot_number, not to
+     * psa_drv_se_key_management_t::p_allocate. The call to
+     * `p_validate_slot_number` is not followed by any other call to the
+     * driver: the key is considered successfully registered if the call to
+     * `p_validate_slot_number` succeeds, or if `p_validate_slot_number` is
+     * null.
+     *
+     * With this creation method, the driver must return #PSA_SUCCESS if
+     * the given attributes are compatible with the existing key in the slot,
+     * and #PSA_ERROR_DOES_NOT_EXIST if the driver can determine that there
+     * is no key with the specified slot number.
+     *
+     * This is an Mbed Crypto extension.
+     */
+    PSA_KEY_CREATION_REGISTER,
+#endif
+} psa_key_creation_method_t;
+
 /** \brief A function that allocates a slot for a key.
  *
  * To create a key in a specific slot in a secure element, the core
  * first calls this function to determine a valid slot number,
  * then calls a function to create the key material in that slot.
- * For example, in nominal conditions (that is, if no error occurs),
- * the effect of a call to psa_import_key() with a lifetime that places
- * the key in a secure element is the following:
+ * In nominal conditions (that is, if no error occurs),
+ * the effect of a call to a key creation function in the PSA Cryptography
+ * API with a lifetime that places the key in a secure element is the
+ * following:
  * -# The core calls psa_drv_se_key_management_t::p_allocate
  *    (or in some implementations
  *    psa_drv_se_key_management_t::p_validate_slot_number). The driver
  *    selects (or validates) a suitable slot number given the key attributes
  *    and the state of the secure element.
- * -# The core calls psa_drv_se_key_management_t::p_import to import
- *    the key material in the selected slot.
+ * -# The core calls a key creation function in the driver.
  *
- * Other key creation methods lead to similar sequences. For example, the
- * sequence for psa_generate_key() is the same except that the second step
- * is a call to psa_drv_se_key_management_t::p_generate.
+ * The key creation functions in the PSA Cryptography API are:
+ * - psa_import_key(), which causes
+ *   a call to `p_allocate` with \p method = #PSA_KEY_CREATION_IMPORT
+ *   then a call to psa_drv_se_key_management_t::p_import.
+ * - psa_generate_key(), which causes
+ *   a call to `p_allocate` with \p method = #PSA_KEY_CREATION_GENERATE
+ *   then a call to psa_drv_se_key_management_t::p_import.
+ * - psa_key_derivation_output_key(), which causes
+ *   a call to `p_allocate` with \p method = #PSA_KEY_CREATION_DERIVE
+ *   then a call to psa_drv_se_key_derivation_t::p_derive.
+ * - psa_copy_key(), which causes
+ *   a call to `p_allocate` with \p method = #PSA_KEY_CREATION_COPY
+ *   then a call to psa_drv_se_key_management_t::p_export.
  *
  * In case of errors, other behaviors are possible.
  * - If the PSA Cryptography subsystem dies after the first step,
@@ -852,6 +893,7 @@ typedef struct {
  * \param[in,out] persistent_data   A pointer to the persistent data
  *                                  that allows writing.
  * \param[in] attributes            Attributes of the key.
+ * \param method                    The way in which the key is being created.
  * \param[out] key_slot             Slot where the key will be stored.
  *                                  This must be a valid slot for a key of the
  *                                  chosen type. It must be unoccupied.
@@ -867,6 +909,7 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
     psa_drv_se_context_t *drv_context,
     void *persistent_data,
     const psa_key_attributes_t *attributes,
+    psa_key_creation_method_t method,
     psa_key_slot_number_t *key_slot);
 
 /** \brief A function that determines whether a slot number is valid
@@ -884,9 +927,10 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
  * sake of initial device provisioning or onboarding. Such a mechanism may
  * be added to a future version of the PSA Cryptography API specification.
  *
- * \param[in,out] drv_context       The driver context structure.
- * \param[in] attributes    Attributes of the key.
- * \param[in] key_slot      Slot where the key is to be stored.
+ * \param[in,out] drv_context   The driver context structure.
+ * \param[in] attributes        Attributes of the key.
+ * \param method                The way in which the key is being created.
+ * \param[in] key_slot          Slot where the key is to be stored.
  *
  * \retval #PSA_SUCCESS
  *         The given slot number is valid for a key with the given
@@ -903,6 +947,7 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
 typedef psa_status_t (*psa_drv_se_validate_slot_number_t)(
     psa_drv_se_context_t *drv_context,
     const psa_key_attributes_t *attributes,
+    psa_key_creation_method_t method,
     psa_key_slot_number_t key_slot);
 
 /** \brief A function that imports a key into a secure element in binary format

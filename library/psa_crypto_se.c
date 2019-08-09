@@ -197,6 +197,7 @@ psa_status_t psa_destroy_se_persistent_data( psa_key_lifetime_t lifetime )
 
 psa_status_t psa_find_se_slot_for_key(
     const psa_key_attributes_t *attributes,
+    psa_key_creation_method_t method,
     psa_se_drv_table_entry_t *driver,
     psa_key_slot_number_t *slot_number )
 {
@@ -220,7 +221,8 @@ psa_status_t psa_find_se_slot_for_key(
             driver->methods->key_management->p_validate_slot_number;
         if( p_validate_slot_number == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
-        status = p_validate_slot_number( &driver->context, attributes,
+        status = p_validate_slot_number( &driver->context,
+                                         attributes, method,
                                          *slot_number );
     }
     else
@@ -233,7 +235,7 @@ psa_status_t psa_find_se_slot_for_key(
             return( PSA_ERROR_NOT_SUPPORTED );
         status = p_allocate( &driver->context,
                              driver->internal.persistent_data,
-                             attributes,
+                             attributes, method,
                              slot_number );
     }
     return( status );

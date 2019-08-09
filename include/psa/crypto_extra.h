@@ -175,6 +175,44 @@ static inline void psa_clear_key_slot_number(
     attributes->core.flags &= ~MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER;
 }
 
+/** Register a key that is already present in a secure element.
+ *
+ * The key must be located in a secure element designated by the
+ * lifetime field in \p attributes, in the slot set with
+ * psa_set_key_slot_number() in the attribute structure.
+ * This function makes the key available through the key identifier
+ * specified in \p attributes.
+ *
+ * \param[in] attributes        The attributes of the existing key.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key was successfully registered.
+ *         Note that depending on the design of the driver, this may or may
+ *         not guarantee that a key actually exists in the designated slot
+ *         and is compatible with the specified attributes.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         There is already a key with the identifier specified in
+ *         \p attributes.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p attributes specifies a lifetime which is not located
+ *         in a secure element.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         No slot number is specified in \p attributes,
+ *         or the specified slot number is not valid.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The caller is not authorized to register the specified key slot.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t mbedtls_psa_register_se_key(
+    const psa_key_attributes_t *attributes);
+
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 /**@}*/

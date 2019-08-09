@@ -1520,6 +1520,7 @@ static psa_status_t psa_validate_key_attributes(
  * In case of failure at any step, stop the sequence and call
  * psa_fail_key_creation().
  *
+ * \param method            An identification of the calling function.
  * \param[in] attributes    Key attributes for the new key.
  * \param[out] handle       On success, a handle for the allocated slot.
  * \param[out] p_slot       On success, a pointer to the prepared slot.
@@ -1532,6 +1533,7 @@ static psa_status_t psa_validate_key_attributes(
  *         You must call psa_fail_key_creation() to wipe and free the slot.
  */
 static psa_status_t psa_start_key_creation(
+    psa_key_creation_method_t method,
     const psa_key_attributes_t *attributes,
     psa_key_handle_t *handle,
     psa_key_slot_t **p_slot,
@@ -1540,6 +1542,7 @@ static psa_status_t psa_start_key_creation(
     psa_status_t status;
     psa_key_slot_t *slot;
 
+    (void) method;
     *p_drv = NULL;
 
     status = psa_validate_key_attributes( attributes, p_drv );
@@ -1567,7 +1570,8 @@ static psa_status_t psa_start_key_creation(
     slot->attr.flags &= ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    /* For a key in a secure element, we need to do three things:
+    /* For a key in a secure element, we need to do three things
+     * when creating a key (but not when registering an existing key):
      * create the key file in internal storage, create the
      * key inside the secure element, and update the driver's
      * persistent data. Start a transaction that will encompass these
@@ -1580,9 +1584,9 @@ static psa_status_t psa_start_key_creation(
      * secure element driver updates its persistent state, but we do not yet
      * save the driver's persistent state, so that if the power fails,
      * we can roll back to a state where the key doesn't exist. */
-    if( *p_drv != NULL )
+    if( *p_drv != NULL && method != PSA_KEY_CREATION_REGISTER )
     {
-        status = psa_find_se_slot_for_key( attributes, *p_drv,
+        status = psa_find_se_slot_for_key( attributes, method, *p_drv,
                                            &slot->data.se.slot_number );
         if( status != PSA_SUCCESS )
             return( status );
@@ -1674,7 +1678,13 @@ static psa_status_t psa_finish_key_creation(
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( driver != NULL )
+    /* Finish the transaction for a key creation. This does not
+     * happen when registering an existing key. Detect this case
+     * by checking whether a transaction is in progress (actual
+     * creation of a key in a secure element requires a transaction,
+     * but registration doesn't use one). */
+    if( driver != NULL &&
+        psa_crypto_transaction.unknown.type == PSA_CRYPTO_TRANSACTION_CREATE_KEY )
     {
         status = psa_save_se_persistent_data( driver );
         if( status != PSA_SUCCESS )
@@ -1717,9 +1727,12 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
      * to internal storage), we need to destroy the key in the secure
      * element. */
 
-    /* Abort the ongoing transaction if any. We already did what it
-     * takes to undo any partial creation. All that's left is to update
-     * the transaction data itself. */
+    /* Abort the ongoing transaction if any (there may not be one if
+     * the creation process failed before starting one, or if the
+     * key creation is a registration of a key in a secure element).
+     * Earlier functions must already have done what it takes to undo any
+     * partial creation. All that's left is to update the transaction data
+     * itself. */
     (void) psa_crypto_stop_transaction( );
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
@@ -1796,7 +1809,8 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
 
-    status = psa_start_key_creation( attributes, handle, &slot, &driver );
+    status = psa_start_key_creation( PSA_KEY_CREATION_IMPORT, attributes,
+                                     handle, &slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -1847,6 +1861,74 @@ exit:
     }
     return( status );
 }
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+psa_status_t mbedtls_psa_register_se_key(
+    const psa_key_attributes_t *attributes )
+{
+    psa_status_t status;
+    psa_key_slot_t *slot = NULL;
+    psa_se_drv_table_entry_t *driver = NULL;
+    const psa_drv_se_t *drv;
+    psa_key_handle_t handle = 0;
+
+    /* Leaving attributes unspecified is not currently supported.
+     * It could make sense to query the key type and size from the
+     * secure element, but not all secure elements support this
+     * and the driver HAL doesn't currently support it. */
+    if( psa_get_key_type( attributes ) == PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    if( psa_get_key_bits( attributes ) == 0 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    status = psa_start_key_creation( PSA_KEY_CREATION_REGISTER, attributes,
+                                     &handle, &slot, &driver );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( driver == NULL )
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+    drv = psa_get_se_driver_methods( driver );
+
+    if ( psa_get_key_slot_number( attributes,
+                                  &slot->data.se.slot_number ) != PSA_SUCCESS )
+    {
+        /* The application didn't specify a slot number. This doesn't
+         * make sense when registering a slot. */
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    /* If the driver has a slot number validation method, call it.
+     * If it doesn't, it means the secure element is unable to validate
+     * anything and so we have to trust the application. */
+    if( drv->key_management != NULL &&
+        drv->key_management->p_validate_slot_number != NULL )
+    {
+        status = drv->key_management->p_validate_slot_number(
+            psa_get_se_driver_context( driver ),
+            attributes,
+            PSA_KEY_CREATION_REGISTER,
+            slot->data.se.slot_number );
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
+
+    status = psa_finish_key_creation( slot, driver );
+
+exit:
+    if( status != PSA_SUCCESS )
+    {
+        psa_fail_key_creation( slot, driver );
+    }
+    /* Registration doesn't keep the key in RAM. */
+    psa_close_key( handle );
+    return( status );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
                                            psa_key_slot_t *target )
@@ -1899,7 +1981,8 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_start_key_creation( &actual_attributes,
+    status = psa_start_key_creation( PSA_KEY_CREATION_COPY,
+                                     &actual_attributes,
                                      target_handle, &target_slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -4817,7 +4900,8 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
-    status = psa_start_key_creation( attributes, handle, &slot, &driver );
+    status = psa_start_key_creation( PSA_KEY_CREATION_DERIVE,
+                                     attributes, handle, &slot, &driver );
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {
@@ -5863,7 +5947,8 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
-    status = psa_start_key_creation( attributes, handle, &slot, &driver );
+    status = psa_start_key_creation( PSA_KEY_CREATION_GENERATE,
+                                     attributes, handle, &slot, &driver );
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {

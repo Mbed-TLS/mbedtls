@@ -290,8 +290,35 @@ static psa_status_t ram_export( psa_drv_se_context_t *context,
     actual_size = PSA_BITS_TO_BYTES( ram_slots[slot_number].bits );
     if( actual_size > data_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
-    *p_data_length = actual_size;
-    memcpy( p_data, ram_slots[slot_number].content, actual_size );
+    *data_length = actual_size;
+    memcpy( data, ram_slots[slot_number].content, actual_size );
+    return( PSA_SUCCESS );
+}
+
+static psa_status_t ram_export_public( psa_drv_se_context_t *context,
+                                       psa_key_slot_number_t slot_number,
+                                       uint8_t *data,
+                                       size_t data_size,
+                                       size_t *data_length )
+{
+    psa_status_t status;
+    psa_key_handle_t handle;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    (void) context;
+    DRIVER_ASSERT_RETURN( slot_number < ARRAY_LENGTH( ram_slots ) );
+    DRIVER_ASSERT_RETURN(
+        PSA_KEY_TYPE_IS_KEY_PAIR( ram_slots[slot_number].type ) );
+
+    psa_set_key_type( &attributes, ram_slots[slot_number].type );
+    status = psa_import_key( &attributes,
+                             ram_slots[slot_number].content,
+                             PSA_BITS_TO_BYTES( ram_slots[slot_number].bits ),
+                             &handle );
+    if( status != PSA_SUCCESS )
+        return( status );
+    status = psa_export_public_key( handle, data, data_size, data_length );
+    psa_destroy_key( handle );
     return( PSA_SUCCESS );
 }
 

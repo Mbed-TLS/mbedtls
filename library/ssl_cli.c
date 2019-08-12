@@ -2334,6 +2334,9 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                           \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
 
+/* This function assumes that `out` points to a writable buffer
+ * of size 48 Bytes if `add_length_tag == 0` and size 50 Bytes
+ * if `add_length_tag != 0`. */
 static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
                                          unsigned char* out,
                                          unsigned add_length_tag )

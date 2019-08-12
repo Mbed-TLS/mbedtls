@@ -388,7 +388,7 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 #if defined(MBEDTLS_ECDH_C)   ||                        \
     defined(MBEDTLS_ECDSA_C)  ||                        \
-    defined(MBEDTLS_USE_TINYCRYPT) ||                        \
+    defined(MBEDTLS_USE_TINYCRYPT) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     uint16_t curve_tls_id;                      /*!< TLS ID of EC for ECDHE. */
 #endif

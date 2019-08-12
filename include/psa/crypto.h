@@ -398,6 +398,7 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  *         define any way to create such a key, but it may be possible
  *         through implementation-specific means.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
@@ -1146,6 +1147,7 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is either not initialized or has already been setup.
  * \retval #PSA_ERROR_BAD_STATE
@@ -1439,6 +1441,7 @@ psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize

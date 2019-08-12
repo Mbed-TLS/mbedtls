@@ -3347,13 +3347,11 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client key exchange" ) );
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-    if( ssl->handshake->ecrs_enabled )
-    {
-        if( ssl->handshake->ecrs_state == ssl_ecrs_cke_ecdh_calc_secret )
-            goto cli_key_exchange_postprocess;
+    if( ssl->handshake->ecrs_state == ssl_ecrs_cke_ecdh_calc_secret )
+        goto cli_key_exchange_postprocess;
 
+    if( ssl->handshake->ecrs_enabled )
         mbedtls_ecdh_enable_restart( &ssl->handshake->ecdh_ctx );
-    }
 #endif
 
     MBEDTLS_SSL_CHK( ssl_client_key_exchange_prepare( ssl ) );
@@ -3368,9 +3366,18 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
 
     /* Calculate secrets and update state */
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_enabled )
+        ssl->handshake->ecrs_state = ssl_ecrs_cke_ecdh_calc_secret;
+
 cli_key_exchange_postprocess:
 #endif
-    MBEDTLS_SSL_CHK( ssl_client_key_exchange_postprocess( ssl ) );
+
+    ret = ssl_client_key_exchange_postprocess( ssl );
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+#endif /* MBEDTLS_SSL__ECP_RESTARTABLE */
+    MBEDTLS_SSL_CHK( ret );
 
     /* Dispatch message */
 
@@ -3710,15 +3717,6 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
     if( ( ret = mbedtls_ssl_build_pms( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_build_pms", ret );
-
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-        if( ssl->handshake->ecrs_enabled &&
-            ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-        {
-            ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
-            ssl->handshake->ecrs_state = ssl_ecrs_cke_ecdh_calc_secret;
-        }
-#endif /* MBEDTLS_SSL__ECP_RESTARTABLE */
         return( ret );
     }
 

@@ -4051,19 +4051,19 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
  */
 
 /* Main entry point; orchestrates the other functions. */
-static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl );
+static int ssl_process_in_client_key_exchange( mbedtls_ssl_context *ssl );
 
-static int ssl_client_key_exchange_parse( mbedtls_ssl_context *ssl,
-                                          unsigned char *buf,
-                                          size_t buflen );
+static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
+                                             unsigned char *buf,
+                                             size_t buflen );
 /* Update the handshake state */
-static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl );
+static int ssl_in_client_key_exchange_postprocess( mbedtls_ssl_context *ssl );
 
 /*
  * Implementation
  */
 
-static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
+static int ssl_process_in_client_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client key exchange" ) );
@@ -4088,11 +4088,11 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
         goto cleanup;
     }
 
-    MBEDTLS_SSL_CHK( ssl_client_key_exchange_parse( ssl, ssl->in_msg,
-                                                 ssl->in_hslen ) );
+    MBEDTLS_SSL_CHK( ssl_in_client_key_exchange_parse( ssl, ssl->in_msg,
+                                                       ssl->in_hslen ) );
 
     /* Update state */
-    MBEDTLS_SSL_CHK( ssl_client_key_exchange_postprocess( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_in_client_key_exchange_postprocess( ssl ) );
 
 cleanup:
 
@@ -4105,7 +4105,7 @@ cleanup:
     return( ret );
 }
 
-static int ssl_client_key_exchange_parse( mbedtls_ssl_context *ssl,
+static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen )
 {
@@ -4292,7 +4292,7 @@ static int ssl_client_key_exchange_parse( mbedtls_ssl_context *ssl,
 }
 
 /* Update the handshake state */
-static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
+static int ssl_in_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -4684,7 +4684,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:
-            ret = ssl_process_client_key_exchange( ssl );
+            ret = ssl_process_in_client_key_exchange( ssl );
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_VERIFY:

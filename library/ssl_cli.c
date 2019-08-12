@@ -2605,7 +2605,7 @@ cleanup:
  */
 
 /* Main entry point; orchestrates the other functions. */
-static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl );
+static int ssl_process_in_server_key_exchange( mbedtls_ssl_context *ssl );
 
 /* Coordination:
  * Check if a ServerKeyExchange message is expected, and skip if not.
@@ -2616,23 +2616,23 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl );
  */
 #define SSL_SRV_KEY_EXCHANGE_SKIP      0
 #define SSL_SRV_KEY_EXCHANGE_EXPECTED  1
-static int ssl_server_key_exchange_coordinate( mbedtls_ssl_context *ssl );
+static int ssl_in_server_key_exchange_coordinate( mbedtls_ssl_context *ssl );
 /* Preparation
  * If applicable, prepare DH parameters from Server certificate. */
-static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl );
+static int ssl_in_server_key_exchange_prepare( mbedtls_ssl_context *ssl );
 /* Parse SrvKeyExchange message and store contents
  * (PSK or DH parameters) in handshake structure. */
-static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
+static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen );
 /* Update the handshake state */
-static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl );
+static int ssl_in_server_key_exchange_postprocess( mbedtls_ssl_context *ssl );
 
 /*
  * Implementation
  */
 
-static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
+static int ssl_process_in_server_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
@@ -2643,11 +2643,11 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
      * Consider: Why don't we do this as post-processing after
      *           the server certificate has been read?
      */
-    MBEDTLS_SSL_CHK( ssl_server_key_exchange_prepare( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_prepare( ssl ) );
 
     /* Coordination:
      * Check if we expect a ServerKeyExchange */
-    MBEDTLS_SSL_CHK( ssl_server_key_exchange_coordinate( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_coordinate( ssl ) );
 
     if( ret == SSL_SRV_KEY_EXCHANGE_EXPECTED )
     {
@@ -2669,7 +2669,7 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
         }
         else
         {
-            MBEDTLS_SSL_CHK( ssl_server_key_exchange_parse( ssl, ssl->in_msg,
+            MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_parse( ssl, ssl->in_msg,
                                                          ssl->in_hslen ) );
         }
     }
@@ -2679,7 +2679,7 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
     }
 
     /* Update state */
-    MBEDTLS_SSL_CHK( ssl_server_key_exchange_postprocess( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_postprocess( ssl ) );
 
 cleanup:
 
@@ -2692,7 +2692,7 @@ cleanup:
     return( ret );
 }
 
-static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
+static int ssl_in_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
@@ -2723,7 +2723,7 @@ static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-static int ssl_server_key_exchange_coordinate( mbedtls_ssl_context *ssl )
+static int ssl_in_server_key_exchange_coordinate( mbedtls_ssl_context *ssl )
 {
     int ret;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
@@ -2786,7 +2786,7 @@ static int ssl_server_key_exchange_coordinate( mbedtls_ssl_context *ssl )
     return( SSL_SRV_KEY_EXCHANGE_EXPECTED );
 }
 
-static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
+static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen )
 {
@@ -3087,7 +3087,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
+static int ssl_in_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
     return( 0 );
@@ -3326,25 +3326,25 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
  */
 
 /* Main entry point; orchestrates the other functions */
-static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl );
+static int ssl_process_out_client_key_exchange( mbedtls_ssl_context *ssl );
 
 /* Preparation
  * - For ECDH: Generate client params and derive premaster secret
  * - For RSA-suites: Encrypt PMS
  * - For ECJPAKE: Do Round 2
  */
-static int ssl_client_key_exchange_prepare( mbedtls_ssl_context *ssl );
-static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
+static int ssl_out_client_key_exchange_prepare( mbedtls_ssl_context *ssl );
+static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen,
                                           size_t *olen );
-static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl );
+static int ssl_out_client_key_exchange_postprocess( mbedtls_ssl_context *ssl );
 
 /*
  * Implementation
  */
 
-static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
+static int ssl_process_out_client_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client key exchange" ) );
@@ -3357,10 +3357,10 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
         mbedtls_ecdh_enable_restart( &ssl->handshake->ecdh_ctx );
 #endif
 
-    MBEDTLS_SSL_CHK( ssl_client_key_exchange_prepare( ssl ) );
+    MBEDTLS_SSL_CHK( ssl_out_client_key_exchange_prepare( ssl ) );
 
      /* Prepare CertificateVerify message in output buffer. */
-    MBEDTLS_SSL_CHK( ssl_client_key_exchange_write( ssl, ssl->out_msg,
+    MBEDTLS_SSL_CHK( ssl_out_client_key_exchange_write( ssl, ssl->out_msg,
                                                  MBEDTLS_SSL_MAX_CONTENT_LEN,
                                                  &ssl->out_msglen ) );
 
@@ -3375,7 +3375,7 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
 cli_key_exchange_postprocess:
 #endif
 
-    ret = ssl_client_key_exchange_postprocess( ssl );
+    ret = ssl_out_client_key_exchange_postprocess( ssl );
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
         ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
@@ -3403,7 +3403,7 @@ cleanup:
 
 
 
-static int ssl_client_key_exchange_prepare( mbedtls_ssl_context *ssl )
+static int ssl_out_client_key_exchange_prepare( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
@@ -3460,7 +3460,7 @@ static int ssl_client_key_exchange_prepare( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
+static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen,
                                           size_t *olen )
@@ -3479,7 +3479,7 @@ static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
      * It is therefore not suitable to be registered as a callback
      * for retransmission, if such get introduced at some point.
      *
-     * Also see the documentation of ssl_client_key_exchange_prepare().
+     * Also see the documentation of ssl_out_client_key_exchange_prepare().
      */
 
     p   = buf + 4;
@@ -3712,7 +3712,7 @@ static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
+static int ssl_out_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -4104,7 +4104,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_SERVER_KEY_EXCHANGE:
-           ret = ssl_process_server_key_exchange( ssl );
+           ret = ssl_process_in_server_key_exchange( ssl );
            break;
 
        case MBEDTLS_SSL_CERTIFICATE_REQUEST:
@@ -4127,7 +4127,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:
-           ret = ssl_process_client_key_exchange( ssl );
+           ret = ssl_process_out_client_key_exchange( ssl );
            break;
 
        case MBEDTLS_SSL_CERTIFICATE_VERIFY:

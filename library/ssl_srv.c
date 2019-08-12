@@ -4105,6 +4105,11 @@ cleanup:
     return( ret );
 }
 
+/* Warning: Despite accepting a length argument, this function is currently
+ * still lacking some bounds checks and assumes that `buf` has length
+ * `MBEDTLS_SSL_IN_CONTENT_LEN`. Eventually, it should be rewritten to work
+ * with any buffer + length pair, returning MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL
+ * on insufficient parsing space. */
 static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen )

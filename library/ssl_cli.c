@@ -3460,6 +3460,11 @@ static int ssl_out_client_key_exchange_prepare( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+/* Warning: Despite accepting a length argument, this function is currently
+ * still lacking some bounds checks and assumes that `buf` has length
+ * `MBEDTLS_SSL_OUT_CONTENT_LEN`. Eventually, it should be rewritten to work
+ * with any buffer + length pair, returning MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL
+ * on insufficient writing space. */
 static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen,

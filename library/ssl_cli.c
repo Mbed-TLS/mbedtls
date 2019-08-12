@@ -3443,7 +3443,7 @@ static int ssl_client_key_exchange_prepare( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_RSA )
     {
-        /* For RSA-PSK, the premaster secret is composed of
+        /* For RSA, the premaster secret is composed of
          * - 2 bytes indicating the TLS version
          * - 46 randomly chosen bytes
          * which the following call generates. */

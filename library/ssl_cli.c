@@ -2371,8 +2371,8 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
 }
 
 /*
- * Encrypt the Premaster Secret it with the server's RSA key and
- * write it to the provided buffer.
+ * Encrypt the randomly chosen part of the Premaster Secret with the
+ * server's RSA key and write it to the provided buffer.
  */
 static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
                                         unsigned char const *ppms,
@@ -2418,7 +2418,7 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
     }
 
     /*
-     * Encrypt the part of the premaster secret and write it out.
+     * Encrypt the partial premaster secret and write it out.
      */
     if( ! mbedtls_pk_can_do( peer_pk, MBEDTLS_PK_RSA ) )
     {

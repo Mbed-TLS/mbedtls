@@ -3591,7 +3591,6 @@ static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
         {
             ((void) ret);
             ((void) end);
-            n = 0;
         }
         else
 #endif

@@ -2274,10 +2274,6 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
                                   (const unsigned char **) p, end ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_read_params" ), ret );
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-            ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
-#endif
         return( ret );
     }
 

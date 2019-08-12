@@ -2632,66 +2632,6 @@ static int ssl_in_server_key_exchange_postprocess( mbedtls_ssl_context *ssl );
  * Implementation
  */
 
-static int ssl_process_in_server_key_exchange( mbedtls_ssl_context *ssl )
-{
-    int ret;
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
-
-    /* Preparation:
-     * Potentially extract DH parameters from Server's certificate.
-     *
-     * Consider: Why don't we do this as post-processing after
-     *           the server certificate has been read?
-     */
-    MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_prepare( ssl ) );
-
-    /* Coordination:
-     * Check if we expect a ServerKeyExchange */
-    MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_coordinate( ssl ) );
-
-    if( ret == SSL_SRV_KEY_EXCHANGE_EXPECTED )
-    {
-        /* Reading step */
-        if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-            return( ret );
-        }
-
-        if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
-            ssl->in_msg[0]  != MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            mbedtls_ssl_pend_fatal_alert( ssl,
-                                     MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
-            ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
-            goto cleanup;
-        }
-        else
-        {
-            MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_parse( ssl, ssl->in_msg,
-                                                         ssl->in_hslen ) );
-        }
-    }
-    else if( ret == SSL_SRV_KEY_EXCHANGE_SKIP )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
-    }
-
-    /* Update state */
-    MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_postprocess( ssl ) );
-
-cleanup:
-
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-    if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
-        ssl->keep_current_message = 1;
-#endif
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server key exchange" ) );
-    return( ret );
-}
-
 static int ssl_in_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
@@ -3091,6 +3031,66 @@ static int ssl_in_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
     return( 0 );
+}
+
+static int ssl_process_in_server_key_exchange( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
+
+    /* Preparation:
+     * Potentially extract DH parameters from Server's certificate.
+     *
+     * Consider: Why don't we do this as post-processing after
+     *           the server certificate has been read?
+     */
+    MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_prepare( ssl ) );
+
+    /* Coordination:
+     * Check if we expect a ServerKeyExchange */
+    MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_coordinate( ssl ) );
+
+    if( ret == SSL_SRV_KEY_EXCHANGE_EXPECTED )
+    {
+        /* Reading step */
+        if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+            return( ret );
+        }
+
+        if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
+            ssl->in_msg[0]  != MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            mbedtls_ssl_pend_fatal_alert( ssl,
+                                     MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
+            ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+            goto cleanup;
+        }
+        else
+        {
+            MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_parse( ssl, ssl->in_msg,
+                                                         ssl->in_hslen ) );
+        }
+    }
+    else if( ret == SSL_SRV_KEY_EXCHANGE_SKIP )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
+    }
+
+    /* Update state */
+    MBEDTLS_SSL_CHK( ssl_in_server_key_exchange_postprocess( ssl ) );
+
+cleanup:
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
+        ssl->keep_current_message = 1;
+#endif
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server key exchange" ) );
+    return( ret );
 }
 
 #if ! defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)

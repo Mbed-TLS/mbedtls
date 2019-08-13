@@ -1052,8 +1052,11 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->attr.lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        storage_status =
-            psa_destroy_persistent_key( slot->attr.id );
+        storage_status = psa_destroy_persistent_key( slot->attr.id );
+        /* TODO: other slots may have a copy of the same key. We should
+         * invalidate them.
+         * https://github.com/ARMmbed/mbed-crypto/issues/214
+         */
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 

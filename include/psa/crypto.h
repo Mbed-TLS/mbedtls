@@ -859,6 +859,8 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
  *         differs from the expected hash.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \p alg is not supported or is not a hash algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p input_length or \p hash_length do not match the hash size for \p alg
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE

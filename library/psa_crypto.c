@@ -996,7 +996,7 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
 
 static void psa_abort_operations_using_key( psa_key_slot_t *slot )
 {
-    /*FIXME how to implement this?*/
+    /*TODO how to implement this?*/
     (void) slot;
 }
 
@@ -1043,7 +1043,7 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
         if( status != PSA_SUCCESS )
         {
             (void) psa_crypto_stop_transaction( );
-            /* TOnogrepDO: destroy what can be destroyed anyway */
+            /* TODO: destroy what can be destroyed anyway */
             return( status );
         }
 
@@ -1069,7 +1069,7 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
             status = status2;
         if( status != PSA_SUCCESS )
         {
-            /* TOnogrepDO: destroy what can be destroyed anyway */
+            /* TODO: destroy what can be destroyed anyway */
             return( status );
         }
     }
@@ -1194,7 +1194,7 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
         case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-            /* TOnogrepDO: reporting the public exponent for opaque keys
+            /* TODO: reporting the public exponent for opaque keys
              * is not yet implemented. */
             if( psa_get_se_driver( slot->attr.lifetime, NULL, NULL ) )
                 break;
@@ -1669,7 +1669,7 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
         return;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    /* TOnogrepDO: If the key has already been created in the secure
+    /* TODO: If the key has already been created in the secure
      * element, and the failure happened later (when saving metadata
      * to internal storage), we need to destroy the key in the secure
      * element. */
@@ -5894,7 +5894,7 @@ static psa_status_t psa_crypto_recover_transaction(
     {
         case PSA_CRYPTO_TRANSACTION_CREATE_KEY:
         case PSA_CRYPTO_TRANSACTION_DESTROY_KEY:
-            /* TOnogrepDO - fall through to the failure case until this
+            /* TODO - fall through to the failure case until this
              * is implemented */
         default:
             /* We found an unsupported transaction in the storage.

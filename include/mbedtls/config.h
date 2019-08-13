@@ -3670,6 +3670,9 @@
  * int f_rng(void *, unsigned char *, size_t),
  * which ignores its first parameter (the stack will always
  * pass NULL to this function).
+ * NB: The reason not to drop the context parameter entirely
+ * is for compatibility with the Crypto and X.509 libraries
+ * which use RNG callbacks including context parameters.
  */
 //#define MBEDTLS_SSL_CONF_RNG rng_wrap
 

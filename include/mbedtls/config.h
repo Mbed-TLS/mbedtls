@@ -3666,7 +3666,7 @@
 //#define MBEDTLS_SSL_CONF_RECV_TIMEOUT mbedtls_net_recv_timeout
 
 /* The PRNG to use by the SSL module. If defined, this must
- * evaluate to the name on externally defined function with signature
+ * evaluate to the name of an externally defined function with signature
  * int f_rng(void *, unsigned char *, size_t),
  * which ignores its first parameter (the stack will always
  * pass NULL to this function).

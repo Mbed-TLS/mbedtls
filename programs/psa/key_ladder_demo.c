@@ -68,14 +68,13 @@
 /* If the build options we need are not enabled, compile a placeholder. */
 #if !defined(MBEDTLS_SHA256_C) || !defined(MBEDTLS_MD_C) ||     \
     !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CCM_C) ||       \
-    !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_FS_IO) ||\
-    defined(PSA_PRE_1_0_KEY_DERIVATION)
+    !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
     printf("MBEDTLS_SHA256_C and/or MBEDTLS_MD_C and/or "
            "MBEDTLS_AES_C and/or MBEDTLS_CCM_C and/or "
-           "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_FS_IO and/or "
-           "not defined and/or PSA_PRE_1_0_KEY_DERIVATION defined.\n");
+           "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_FS_IO "
+           "not defined.\n");
     return( 0 );
 }
 #else

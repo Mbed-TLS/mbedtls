@@ -1214,8 +1214,10 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
         case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-            /* TOnogrepDO: reporting the public exponent for opaque keys
-             * is not yet implemented. */
+            /* TODO: reporting the public exponent for opaque keys
+             * is not yet implemented.
+             * https://github.com/ARMmbed/mbed-crypto/issues/216
+             */
             if( psa_key_slot_is_external( slot ) )
                 break;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -1735,10 +1737,12 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
         return;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    /* TOnogrepDO: If the key has already been created in the secure
+    /* TODO: If the key has already been created in the secure
      * element, and the failure happened later (when saving metadata
      * to internal storage), we need to destroy the key in the secure
-     * element. */
+     * element.
+     * https://github.com/ARMmbed/mbed-crypto/issues/217
+     */
 
     /* Abort the ongoing transaction if any (there may not be one if
      * the creation process failed before starting one, or if the
@@ -6088,8 +6092,10 @@ static psa_status_t psa_crypto_recover_transaction(
     {
         case PSA_CRYPTO_TRANSACTION_CREATE_KEY:
         case PSA_CRYPTO_TRANSACTION_DESTROY_KEY:
-            /* TOnogrepDO - fall through to the failure case until this
-             * is implemented */
+            /* TODO - fall through to the failure case until this
+             * is implemented.
+             * https://github.com/ARMmbed/mbed-crypto/issues/218
+             */
         default:
             /* We found an unsupported transaction in the storage.
              * We don't know what state the storage is in. Give up. */

@@ -793,6 +793,9 @@ void key_creation_import_export( int min_slot, int restart )
                     exported, exported_length );
 
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
     /* Test that the key has been erased from the designated slot. */
     TEST_ASSERT( ram_slots[min_slot].type == 0 );
@@ -864,6 +867,9 @@ void key_creation_in_chosen_slot( int slot_arg,
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
 
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     PSA_DONE( );
@@ -923,6 +929,9 @@ void import_key_smoke( int type_arg, int alg_arg,
 
     /* We're done. */
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     PSA_DONE( );
@@ -1016,6 +1025,9 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
 
     /* We're done. */
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     PSA_DONE( );
@@ -1250,6 +1262,9 @@ void register_key_smoke_test( int lifetime_arg,
         goto exit;
     /* This time, destroy the key. */
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     psa_reset_key_attributes( &attributes );

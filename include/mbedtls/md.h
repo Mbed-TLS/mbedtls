@@ -80,6 +80,8 @@ typedef enum {
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         64
 #endif
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
+
 /**
  * Opaque struct defined in md.c.
  */
@@ -88,6 +90,14 @@ typedef struct mbedtls_md_info_t mbedtls_md_info_t;
 
 typedef struct mbedtls_md_info_t const * mbedtls_md_handle_t;
 #define MBEDTLS_MD_INVALID_HANDLE ( (mbedtls_md_handle_t) NULL )
+
+#else /* !MBEDTLS_MD_SINGLE_HASH */
+
+typedef int mbedtls_md_handle_t;
+#define MBEDTLS_MD_INVALID_HANDLE       ( (mbedtls_md_handle_t) 0 )
+#define MBEDTLS_MD_UNIQUE_VALID_HANDLE  ( (mbedtls_md_handle_t) 1 )
+
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 /**
  * The generic message-digest context.

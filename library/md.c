@@ -148,6 +148,7 @@ typedef void mbedtls_md_clone_func_t( void *st, const void *src );
 typedef int mbedtls_md_process_func_t( void *ctx,
                                           const unsigned char *input );
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 struct mbedtls_md_info_t
 {
     /** Digest identifier */
@@ -204,6 +205,8 @@ struct mbedtls_md_info_t
       MBEDTLS_MD_INFO_FREE_FUNC( MD ),         \
       MBEDTLS_MD_INFO_CLONE_FUNC( MD ),        \
       MBEDTLS_MD_INFO_PROCESS_FUNC( MD ) }
+
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 /*
  *
@@ -262,6 +265,7 @@ static int md2_process_wrap( void *ctx, const unsigned char *data )
     return( mbedtls_internal_md2_process( (mbedtls_md2_context *) ctx ) );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 const mbedtls_md_info_t mbedtls_md2_info = {
     MBEDTLS_MD_MD2,
     "MD2",
@@ -276,6 +280,7 @@ const mbedtls_md_info_t mbedtls_md2_info = {
     md2_clone_wrap,
     md2_process_wrap,
 };
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 #endif /* MBEDTLS_MD2_C */
 
@@ -328,6 +333,7 @@ static int md4_process_wrap( void *ctx, const unsigned char *data )
     return( mbedtls_internal_md4_process( (mbedtls_md4_context *) ctx, data ) );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 const mbedtls_md_info_t mbedtls_md4_info = {
     MBEDTLS_MD_MD4,
     "MD4",
@@ -342,6 +348,7 @@ const mbedtls_md_info_t mbedtls_md4_info = {
     md4_clone_wrap,
     md4_process_wrap,
 };
+#endif /* MBEDTLS_MD_SINGLE_HASH */
 
 #endif /* MBEDTLS_MD4_C */
 
@@ -394,6 +401,7 @@ static int md5_process_wrap( void *ctx, const unsigned char *data )
     return( mbedtls_internal_md5_process( (mbedtls_md5_context *) ctx, data ) );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 const mbedtls_md_info_t mbedtls_md5_info = {
     MBEDTLS_MD_MD5,
     "MD5",
@@ -408,6 +416,7 @@ const mbedtls_md_info_t mbedtls_md5_info = {
     md5_clone_wrap,
     md5_process_wrap,
 };
+#endif /* MBEDTLS_MD_SINGLE_HASH */
 
 #endif /* MBEDTLS_MD5_C */
 
@@ -463,6 +472,7 @@ static int ripemd160_process_wrap( void *ctx, const unsigned char *data )
                                 (mbedtls_ripemd160_context *) ctx, data ) );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 const mbedtls_md_info_t mbedtls_ripemd160_info = {
     MBEDTLS_MD_RIPEMD160,
     "RIPEMD160",
@@ -477,6 +487,7 @@ const mbedtls_md_info_t mbedtls_ripemd160_info = {
     ripemd160_clone_wrap,
     ripemd160_process_wrap,
 };
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 #endif /* MBEDTLS_RIPEMD160_C */
 
@@ -531,6 +542,7 @@ static int sha1_process_wrap( void *ctx, const unsigned char *data )
                                            data ) );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 const mbedtls_md_info_t mbedtls_sha1_info = {
     MBEDTLS_MD_SHA1,
     "SHA1",
@@ -545,6 +557,7 @@ const mbedtls_md_info_t mbedtls_sha1_info = {
     sha1_clone_wrap,
     sha1_process_wrap,
 };
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 #endif /* MBEDTLS_SHA1_C */
 
@@ -610,6 +623,7 @@ static int sha224_process_wrap( void *ctx, const unsigned char *data )
                                              data ) );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 #if !defined(MBEDTLS_SHA256_NO_SHA224)
 const mbedtls_md_info_t mbedtls_sha224_info = {
     MBEDTLS_MD_SHA224,
@@ -626,6 +640,7 @@ const mbedtls_md_info_t mbedtls_sha224_info = {
     sha224_process_wrap,
 };
 #endif /* !MBEDTLS_SHA256_NO_SHA224 */
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 static int sha256_starts_wrap( void *ctx )
 {
@@ -638,8 +653,10 @@ static int sha256_wrap( const unsigned char *input, size_t ilen,
     return( mbedtls_sha256_ret( input, ilen, output, 0 ) );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 const mbedtls_md_info_t mbedtls_sha256_info =
     MBEDTLS_MD_INFO( MBEDTLS_MD_INFO_SHA256 );
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 #endif /* MBEDTLS_SHA256_C */
 
@@ -701,6 +718,7 @@ static int sha384_process_wrap( void *ctx, const unsigned char *data )
                                              data ) );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 const mbedtls_md_info_t mbedtls_sha384_info = {
     MBEDTLS_MD_SHA384,
     "SHA384",
@@ -715,6 +733,7 @@ const mbedtls_md_info_t mbedtls_sha384_info = {
     sha384_clone_wrap,
     sha384_process_wrap,
 };
+#endif /* MBEDTLS_MD_SINGLE_HASH */
 
 static int sha512_starts_wrap( void *ctx )
 {
@@ -727,6 +746,7 @@ static int sha512_wrap( const unsigned char *input, size_t ilen,
     return( mbedtls_sha512_ret( input, ilen, output, 0 ) );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 const mbedtls_md_info_t mbedtls_sha512_info = {
     MBEDTLS_MD_SHA512,
     "SHA512",
@@ -741,12 +761,15 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
     sha384_clone_wrap,
     sha384_process_wrap,
 };
+#endif /* MBEDTLS_MD_SINGLE_HASH */
 
 #endif /* MBEDTLS_SHA512_C */
 
 /*
  * Getter functions for MD info structure.
  */
+
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 
 static inline mbedtls_md_type_t mbedtls_md_info_type(
     mbedtls_md_handle_t info )
@@ -819,6 +842,96 @@ static inline mbedtls_md_process_func_t *mbedtls_md_info_process_func(
 {
     return( info->process_func );
 }
+
+#else /* !MBEDTLS_MD_SINGLE_HASH */
+
+static inline mbedtls_md_type_t mbedtls_md_info_type(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_TYPE( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline const char * mbedtls_md_info_name(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_NAME( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline int mbedtls_md_info_size(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_SIZE( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline int mbedtls_md_info_block_size(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_BLOCKSIZE( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline mbedtls_md_starts_func_t *mbedtls_md_info_starts_func(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_STARTS_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline mbedtls_md_update_func_t *mbedtls_md_info_update_func(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_UPDATE_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline mbedtls_md_finish_func_t *mbedtls_md_info_finish_func(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_FINISH_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline mbedtls_md_digest_func_t *mbedtls_md_info_digest_func(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_DIGEST_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline mbedtls_md_ctx_alloc_func_t *mbedtls_md_info_ctx_alloc_func(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_ALLOC_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline mbedtls_md_ctx_free_func_t *mbedtls_md_info_ctx_free_func(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_FREE_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline mbedtls_md_clone_func_t *mbedtls_md_info_clone_func(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_CLONE_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+static inline mbedtls_md_process_func_t *mbedtls_md_info_process_func(
+    mbedtls_md_handle_t info )
+{
+    ((void) info);
+    return( MBEDTLS_MD_INFO_PROCESS_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
+}
+
+#endif /* MBEDTLS_MD_SINGLE_HASH */
+
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 
 /*
  * Reminder: update profiles in x509_crt.c when adding a new hash!
@@ -950,6 +1063,41 @@ mbedtls_md_handle_t mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
             return( NULL );
     }
 }
+
+#else /* MBEDTLS_MD_SINGLE_HASH */
+
+const int *mbedtls_md_list( void )
+{
+    static int single_hash[2] =
+        { MBEDTLS_MD_INFO_TYPE( MBEDTLS_MD_SINGLE_HASH ),
+          MBEDTLS_MD_INVALID_HANDLE };
+
+    return( single_hash );
+}
+
+mbedtls_md_handle_t mbedtls_md_info_from_string( const char *md_name )
+{
+    static const char * const hash_name =
+        MBEDTLS_MD_INFO_NAME( MBEDTLS_MD_SINGLE_HASH );
+
+    if( md_name != NULL && strcmp( hash_name, md_name ) == 0 )
+        return( MBEDTLS_MD_UNIQUE_VALID_HANDLE );
+
+    return( MBEDTLS_MD_INVALID_HANDLE );
+}
+
+mbedtls_md_handle_t mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
+{
+    static const mbedtls_md_type_t hash_type =
+        MBEDTLS_MD_INFO_TYPE( MBEDTLS_MD_SINGLE_HASH );
+
+    if( hash_type == md_type )
+        return( MBEDTLS_MD_UNIQUE_VALID_HANDLE );
+
+    return( MBEDTLS_MD_INVALID_HANDLE );
+}
+
+#endif /* MBEDTLS_MD_SINGLE_HASH */
 
 void mbedtls_md_init( mbedtls_md_context_t *ctx )
 {

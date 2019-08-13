@@ -2906,6 +2906,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID */
 
+#if defined(MBEDTLS_MD_SINGLE_HASH)
+    if( strcmp( "MBEDTLS_MD_SINGLE_HASH", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_MD_SINGLE_HASH );
+        return( 0 );
+    }
+#endif /* MBEDTLS_MD_SINGLE_HASH */
+
     /* If the symbol is not found, return an error */
     return( 1 );
 }

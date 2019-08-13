@@ -1014,8 +1014,8 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 psa_status_t psa_destroy_key( psa_key_handle_t handle )
 {
     psa_key_slot_t *slot;
-    psa_status_t status = PSA_SUCCESS;
-    psa_status_t storage_status = PSA_SUCCESS;
+    psa_status_t status; /* status of the last operation */
+    psa_status_t overall_status = PSA_SUCCESS;
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     psa_se_drv_table_entry_t *driver;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -1041,18 +1041,30 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
         if( status != PSA_SUCCESS )
         {
             (void) psa_crypto_stop_transaction( );
-            /* TOnogrepDO: destroy what can be destroyed anyway */
-            return( status );
+            /* We should still try to destroy the key in the secure
+             * element and the key metadata in storage. This is especially
+             * important if the error is that the storage is full.
+             * But how to do it exactly without risking an inconsistent
+             * state after a reset?
+             * https://github.com/ARMmbed/mbed-crypto/issues/215
+             */
+            overall_status = status;
+            goto exit;
         }
 
         status = psa_destroy_se_key( driver, slot->data.se.slot_number );
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->attr.lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        storage_status = psa_destroy_persistent_key( slot->attr.id );
+        status = psa_destroy_persistent_key( slot->attr.id );
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
+
         /* TODO: other slots may have a copy of the same key. We should
          * invalidate them.
          * https://github.com/ARMmbed/mbed-crypto/issues/214
@@ -1063,23 +1075,23 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {
-        psa_status_t status2;
         status = psa_save_se_persistent_data( driver );
-        status2 = psa_crypto_stop_transaction( );
-        if( status == PSA_SUCCESS )
-            status = status2;
-        if( status != PSA_SUCCESS )
-        {
-            /* TOnogrepDO: destroy what can be destroyed anyway */
-            return( status );
-        }
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
+        status = psa_crypto_stop_transaction( );
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+exit:
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     status = psa_wipe_key_slot( slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-    return( storage_status );
+    /* Prioritize CORRUPTION_DETECTED from wiping over a storage error */
+    if( overall_status == PSA_SUCCESS )
+        overall_status = status;
+    return( overall_status );
 }
 
 void psa_reset_key_attributes( psa_key_attributes_t *attributes )

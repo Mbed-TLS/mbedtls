@@ -224,65 +224,6 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats );
 psa_status_t mbedtls_psa_inject_entropy(uint8_t *seed,
                                         size_t seed_size);
 
-#if defined(PSA_PRE_1_0_KEY_DERIVATION)
-/** Set up a key derivation operation.
- *
- * FIMXE This function is no longer part of the official API. Its prototype
- * is only kept around for the sake of tests that haven't been updated yet.
- *
- * A key derivation algorithm takes three inputs: a secret input \p handle and
- * two non-secret inputs \p label and p salt.
- * The result of this function is a byte generator which can
- * be used to produce keys and other cryptographic material.
- *
- * The role of \p label and \p salt is as follows:
- * - For HKDF (#PSA_ALG_HKDF), \p salt is the salt used in the "extract" step
- *   and \p label is the info string used in the "expand" step.
- *
- * \param[in,out] operation       The key derivation object to set up. It must
- *                                have been initialized as per the documentation
- *                                for #psa_key_derivation_operation_t and not
- *                                yet be in use.
- * \param handle                  Handle to the secret key.
- * \param alg                     The key derivation algorithm to compute
- *                                (\c PSA_ALG_XXX value such that
- *                                #PSA_ALG_IS_KEY_DERIVATION(\p alg) is true).
- * \param[in] salt                Salt to use.
- * \param salt_length             Size of the \p salt buffer in bytes.
- * \param[in] label               Label to use.
- * \param label_length            Size of the \p label buffer in bytes.
- * \param capacity                The maximum number of bytes that the
- *                                operation will be able to provide.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
- * \retval #PSA_ERROR_NOT_PERMITTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \c key is not compatible with \c alg,
- *         or \p capacity is too large for the specified algorithm and key.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \c alg is not supported or is not a key derivation algorithm.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_key_derivation(psa_key_derivation_operation_t *operation,
-                                psa_key_handle_t handle,
-                                psa_algorithm_t alg,
-                                const uint8_t *salt,
-                                size_t salt_length,
-                                const uint8_t *label,
-                                size_t label_length,
-                                size_t capacity);
-#endif /* PSA_PRE_1_0_KEY_DERIVATION */
-
 /** \addtogroup crypto_types
  * @{
  */

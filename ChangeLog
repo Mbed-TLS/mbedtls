@@ -20,6 +20,9 @@ Bugfix
      in #2169.
    * Fix undefined memset(NULL) call in test_suite_nist_kw.
    * Make NV seed test support MBEDTLS_ENTROPY_FORCE_SHA256.
+   * Fix propagation of restart contexts in restartable EC operations.
+     This could previously lead to segmentation faults in builds using an
+     address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

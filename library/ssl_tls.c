@@ -9479,6 +9479,12 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 #define SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT 0
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+#define SSL_SERIALIZED_SESSION_CONFIG_COMPRESSION 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_COMPRESSION 0
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
 #define SSL_SERIALIZED_SESSION_CONFIG_TIME_BIT          0
 #define SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT           1
 #define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT 2
@@ -9487,6 +9493,7 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 #define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           5
 #define SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        6
 #define SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT_BIT      7
+#define SSL_SERIALIZED_SESSION_CONFIG_COMPRESSION_BIT   8
 
 #define SSL_SERIALIZED_SESSION_CONFIG_BITFLAG                           \
     ( (uint16_t) (                                                      \
@@ -9497,6 +9504,7 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
         ( SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC    << SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_ETM           << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_TICKET        << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        ) | \
+        ( SSL_SERIALIZED_SESSION_CONFIG_COMPRESSION   << SSL_SERIALIZED_SESSION_CONFIG_COMPRESSION_BIT   ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT      << SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT_BIT      ) ) )
 
 static unsigned char ssl_serialized_session_header[] = {
@@ -9602,12 +9610,28 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
     /*
      * Basic mandatory fields
      */
-    used += 2   /* ciphersuite */
-          + 1   /* compression */
-          + 1   /* id_len */
-          + sizeof( session->id )
-          + sizeof( session->master )
-          + 4;  /* verify_result */
+    {
+        size_t const ciphersuite_len = 2;
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+        size_t const compression_len = 1;
+#else
+        size_t const compression_len = 0;
+#endif
+        size_t const id_len_len = 1;
+        size_t const id_len = 32;
+        size_t const master_len = 48;
+        size_t const verif_result_len = 4;
+
+        size_t const basic_len =
+            ciphersuite_len +
+            compression_len +
+            id_len_len      +
+            id_len          +
+            master_len      +
+            verif_result_len;
+
+        used += basic_len;
+    }
 
     if( used <= buf_len )
     {
@@ -9616,7 +9640,10 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
         *p++ = (unsigned char)( ( ciphersuite >> 8 ) & 0xFF );
         *p++ = (unsigned char)( ( ciphersuite      ) & 0xFF );
 
-        *p++ = (unsigned char)( session->compression & 0xFF );
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+        *p++ = (unsigned char)(
+            mbedtls_ssl_session_get_compression( session ) );
+#endif
 
         *p++ = (unsigned char)( session->id_len & 0xFF );
         memcpy( p, session->id, 32 );
@@ -9814,9 +9841,29 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     /*
      * Basic mandatory fields
      */
+    {
+        size_t const ciphersuite_len = 2;
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+        size_t const compression_len = 1;
+#else
+        size_t const compression_len = 0;
+#endif
+        size_t const id_len_len = 1;
+        size_t const id_len = 32;
+        size_t const master_len = 48;
+        size_t const verif_result_len = 4;
 
-    if( 2 + 1 + 1 + 32 + 48 + 4 > (size_t)( end - p ) )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        size_t const basic_len =
+            ciphersuite_len +
+            compression_len +
+            id_len_len      +
+            id_len          +
+            master_len      +
+            verif_result_len;
+
+        if( basic_len > (size_t)( end - p ) )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
 
     ciphersuite = ( p[0] << 8 ) | p[1];
     p += 2;
@@ -9831,7 +9878,9 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     }
 #endif
 
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     session->compression = *p++;
+#endif
 
     session->id_len = *p++;
     memcpy( session->id, p, 32 );

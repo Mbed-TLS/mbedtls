@@ -1807,8 +1807,8 @@ read_record_header:
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, compression",
                       buf + comp_offset + 1, comp_len );
 
-    ssl->session_negotiate->compression = MBEDTLS_SSL_COMPRESS_NULL;
 #if defined(MBEDTLS_ZLIB_SUPPORT)
+    ssl->session_negotiate->compression = MBEDTLS_SSL_COMPRESS_NULL;
     for( i = 0; i < comp_len; ++i )
     {
         if( buf[comp_offset + 1 + i] == MBEDTLS_SSL_COMPRESS_DEFLATE )
@@ -1817,13 +1817,13 @@ read_record_header:
             break;
         }
     }
-#endif
 
     /* See comments in ssl_write_client_hello() */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
         ssl->session_negotiate->compression = MBEDTLS_SSL_COMPRESS_NULL;
 #endif
+#endif /* MBEDTLS_ZLIB_SUPPORT */
 
     /* Do not parse the extensions if the protocol is SSLv3 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
@@ -2886,12 +2886,13 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     ciphersuite = mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate );
     *p++ = (unsigned char)( ciphersuite >> 8 );
     *p++ = (unsigned char)( ciphersuite      );
-    *p++ = (unsigned char)( ssl->session_negotiate->compression      );
+    *p++ = (unsigned char)(
+        mbedtls_ssl_session_get_compression( ssl->session_negotiate ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %s",
            mbedtls_ssl_get_ciphersuite_name( ciphersuite ) ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
-                   ssl->session_negotiate->compression ) );
+              mbedtls_ssl_session_get_compression( ssl->session_negotiate ) ) );
 
     /* Do not write the extensions if the protocol is SSLv3 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)

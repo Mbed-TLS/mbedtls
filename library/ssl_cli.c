@@ -1837,7 +1837,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     if( n == 0 ||
         mbedtls_ssl_get_renego_status( ssl ) != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
         mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ) != i ||
-        ssl->session_negotiate->compression != comp ||
+        mbedtls_ssl_session_get_compression( ssl->session_negotiate ) != comp ||
         ssl->session_negotiate->id_len != n ||
         memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
     {
@@ -1868,7 +1868,9 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
         ssl->session_negotiate->ciphersuite = i;
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
+#if defined(MBEDTLS_ZLIB_SUPPORT)
         ssl->session_negotiate->compression = comp;
+#endif
         ssl->session_negotiate->id_len = n;
         memcpy( ssl->session_negotiate->id, buf + 35, n );
     }
@@ -1932,7 +1934,9 @@ server_picked_valid_suite:
                                       MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
+#if defined(MBEDTLS_ZLIB_SUPPORT)
     ssl->session_negotiate->compression = comp;
+#endif
 
     ext = buf + 40 + n;
 

@@ -93,6 +93,9 @@ Bugfix
    * Fix the build on ARMv5TE in ARM mode to not use assembly instructions
      that are only available in Thumb mode. Fix contributed by Aurelien Jarno
      in #2169.
+   * Fix propagation of restart contexts in restartable EC operations.
+     This could previously lead to segmentation faults in builds using an
+     address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

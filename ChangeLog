@@ -15,6 +15,7 @@ Bugfix
    * Fix misuse of signed arithmetic in the HAVEGE module. #2598
    * Update test certificates that were about to expire. Reported by
      Bernhard M. Wiedemann in #2357.
+   * Make NV seed test support MBEDTLS_ENTROPY_FORCE_SHA256.
 
 Changes
    * Make `make clean` clean all programs always. Fixes #1862.

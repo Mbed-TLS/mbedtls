@@ -1758,8 +1758,8 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 
 #if defined(MBEDTLS_SSL_RECORD_CHECKING)
 /**
- * \brief          Check whether a buffer contains a valid, fresh
- *                 and authentic record (DTLS only).
+ * \brief          Check whether a buffer contains a valid and authentic record
+ *                 that has not been seen before. (DTLS only).
  *
  *                 This function does not change the user-visible state
  *                 of the SSL context. Its sole purpose is to provide
@@ -1774,19 +1774,21 @@ void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
  *
  * \param ssl      The SSL context to use.
  * \param buf      The address of the buffer holding the record to be checked.
- *                 This must be an R/W buffer of length \p buflen Bytes.
+ *                 This must be a read/write buffer of length \p buflen Bytes.
  * \param buflen   The length of \p buf in Bytes.
  *
  * \note           This routine only checks whether the provided buffer begins
- *                 with a valid, fresh and authentic record, but does not check
- *                 potential data following the initial record. In particular,
- *                 it is possible to pass DTLS datagrams containing multiple
- *                 records, in which case only the first record is checked.
+ *                 with a valid and authentic record that has not been seen
+ *                 before, but does not check potential data following the
+ *                 initial record. In particular, it is possible to pass DTLS
+ *                 datagrams containing multiple records, in which case only
+ *                 the first record is checked.
  *
  * \note           This function modifies the input buffer \p buf. If you need
  *                 to preserve the original record, you have to maintain a copy.
  *
- * \return         \c 0 if the record is valid, fresh and authentic.
+ * \return         \c 0 if the record is valid and authentic and has not been
+ *                 seen before.
  * \return         MBEDTLS_ERR_SSL_INVALID_MAC if the check completed
  *                 successfully but the record was found to be not authentic.
  * \return         MBEDTLS_ERR_SSL_INVALID_RECORD if the check completed

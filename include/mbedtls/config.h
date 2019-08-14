@@ -1353,9 +1353,10 @@
 /**
  * \def MBEDTLS_SSL_RECORD_CHECKING
  *
- * Enable the API mbedtls_ssl_check_record() which allows to check the
- * validity, freshness and authenticity of an incoming record without
- * modifying the externally visible state of the SSL context.
+ * Enable the function mbedtls_ssl_check_record() which can be used to check
+ * the validity and authenticity of an incoming record, to verify that it has
+ * not been seen before. These checks are performed without modifying the
+ * externally visible state of the SSL context.
  *
  * See mbedtls_ssl_check_record() for more information.
  *

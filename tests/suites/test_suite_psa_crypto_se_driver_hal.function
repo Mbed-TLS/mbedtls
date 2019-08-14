@@ -162,6 +162,17 @@ static psa_status_t null_generate( psa_drv_se_context_t *context,
     return( PSA_SUCCESS );
 }
 
+/* Null destroy: do nothing, but pretend it worked. */
+static psa_status_t null_destroy( psa_drv_se_context_t *context,
+                                  void *persistent_data,
+                                  psa_key_slot_number_t slot_number )
+{
+    (void) context;
+    (void) persistent_data;
+    (void) slot_number;
+    return( PSA_SUCCESS );
+}
+
 
 
 /****************************************************************/
@@ -793,6 +804,9 @@ void key_creation_import_export( int min_slot, int restart )
                     exported, exported_length );
 
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
     /* Test that the key has been erased from the designated slot. */
     TEST_ASSERT( ram_slots[min_slot].type == 0 );
@@ -864,6 +878,9 @@ void key_creation_in_chosen_slot( int slot_arg,
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
 
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     PSA_DONE( );
@@ -892,6 +909,7 @@ void import_key_smoke( int type_arg, int alg_arg,
     driver.persistent_data_size = sizeof( psa_key_slot_number_t );
     key_management.p_allocate = counter_allocate;
     key_management.p_import = null_import;
+    key_management.p_destroy = null_destroy;
 
     PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
@@ -923,6 +941,9 @@ void import_key_smoke( int type_arg, int alg_arg,
 
     /* We're done. */
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     PSA_DONE( );
@@ -986,6 +1007,7 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     driver.persistent_data_size = sizeof( psa_key_slot_number_t );
     key_management.p_allocate = counter_allocate;
     key_management.p_generate = null_generate;
+    key_management.p_destroy = null_destroy;
 
     PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
@@ -1016,6 +1038,9 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
 
     /* We're done. */
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     PSA_DONE( );
@@ -1208,10 +1233,11 @@ void register_key_smoke_test( int lifetime_arg,
 
     memset( &driver, 0, sizeof( driver ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;
+    memset( &key_management, 0, sizeof( key_management ) );
+    driver.key_management = &key_management;
+    key_management.p_destroy = null_destroy;
     if( validate >= 0 )
     {
-        memset( &key_management, 0, sizeof( key_management ) );
-        driver.key_management = &key_management;
         key_management.p_validate_slot_number = validate_slot_number_as_directed;
         validate_slot_number_directions.slot_number = wanted_slot;
         validate_slot_number_directions.method = PSA_KEY_CREATION_REGISTER;
@@ -1250,6 +1276,9 @@ void register_key_smoke_test( int lifetime_arg,
         goto exit;
     /* This time, destroy the key. */
     PSA_ASSERT( psa_destroy_key( handle ) );
+    handle = 0;
+    TEST_EQUAL( psa_open_key( id, &handle ),
+                PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     psa_reset_key_attributes( &attributes );

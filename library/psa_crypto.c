@@ -994,18 +994,16 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
     return( PSA_SUCCESS );
 }
 
-static void psa_abort_operations_using_key( psa_key_slot_t *slot )
-{
-    /*FIXME how to implement this?*/
-    (void) slot;
-}
-
 /** Completely wipe a slot in memory, including its policy.
  * Persistent storage is not affected. */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = psa_remove_key_data_from_memory( slot );
-    psa_abort_operations_using_key( slot );
+    /* Multipart operations may still be using the key. This is safe
+     * because all multipart operation objects are independent from
+     * the key slot: if they need to access the key after the setup
+     * phase, they have a copy of the key. Note that this means that
+     * key material can linger until all operations are completed. */
     /* At this point, key material and other type-specific content has
      * been wiped. Clear remaining metadata. We can call memset and not
      * zeroize because the metadata is not particularly sensitive. */
@@ -1016,8 +1014,8 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 psa_status_t psa_destroy_key( psa_key_handle_t handle )
 {
     psa_key_slot_t *slot;
-    psa_status_t status = PSA_SUCCESS;
-    psa_status_t storage_status = PSA_SUCCESS;
+    psa_status_t status; /* status of the last operation */
+    psa_status_t overall_status = PSA_SUCCESS;
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     psa_se_drv_table_entry_t *driver;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -1043,42 +1041,57 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
         if( status != PSA_SUCCESS )
         {
             (void) psa_crypto_stop_transaction( );
-            /* TOnogrepDO: destroy what can be destroyed anyway */
-            return( status );
+            /* We should still try to destroy the key in the secure
+             * element and the key metadata in storage. This is especially
+             * important if the error is that the storage is full.
+             * But how to do it exactly without risking an inconsistent
+             * state after a reset?
+             * https://github.com/ARMmbed/mbed-crypto/issues/215
+             */
+            overall_status = status;
+            goto exit;
         }
 
         status = psa_destroy_se_key( driver, slot->data.se.slot_number );
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( slot->attr.lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+    if( slot->attr.lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        storage_status =
-            psa_destroy_persistent_key( slot->attr.id );
+        status = psa_destroy_persistent_key( slot->attr.id );
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
+
+        /* TODO: other slots may have a copy of the same key. We should
+         * invalidate them.
+         * https://github.com/ARMmbed/mbed-crypto/issues/214
+         */
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {
-        psa_status_t status2;
         status = psa_save_se_persistent_data( driver );
-        status2 = psa_crypto_stop_transaction( );
-        if( status == PSA_SUCCESS )
-            status = status2;
-        if( status != PSA_SUCCESS )
-        {
-            /* TOnogrepDO: destroy what can be destroyed anyway */
-            return( status );
-        }
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
+        status = psa_crypto_stop_transaction( );
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+exit:
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     status = psa_wipe_key_slot( slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-    return( storage_status );
+    /* Prioritize CORRUPTION_DETECTED from wiping over a storage error */
+    if( overall_status == PSA_SUCCESS )
+        overall_status = status;
+    return( overall_status );
 }
 
 void psa_reset_key_attributes( psa_key_attributes_t *attributes )
@@ -1201,8 +1214,10 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
         case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-            /* TOnogrepDO: reporting the public exponent for opaque keys
-             * is not yet implemented. */
+            /* TODO: reporting the public exponent for opaque keys
+             * is not yet implemented.
+             * https://github.com/ARMmbed/mbed-crypto/issues/216
+             */
             if( psa_key_slot_is_external( slot ) )
                 break;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -1722,10 +1737,12 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
         return;
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    /* TOnogrepDO: If the key has already been created in the secure
+    /* TODO: If the key has already been created in the secure
      * element, and the failure happened later (when saving metadata
      * to internal storage), we need to destroy the key in the secure
-     * element. */
+     * element.
+     * https://github.com/ARMmbed/mbed-crypto/issues/217
+     */
 
     /* Abort the ongoing transaction if any (there may not be one if
      * the creation process failed before starting one, or if the
@@ -6075,8 +6092,10 @@ static psa_status_t psa_crypto_recover_transaction(
     {
         case PSA_CRYPTO_TRANSACTION_CREATE_KEY:
         case PSA_CRYPTO_TRANSACTION_DESTROY_KEY:
-            /* TOnogrepDO - fall through to the failure case until this
-             * is implemented */
+            /* TODO - fall through to the failure case until this
+             * is implemented.
+             * https://github.com/ARMmbed/mbed-crypto/issues/218
+             */
         default:
             /* We found an unsupported transaction in the storage.
              * We don't know what state the storage is in. Give up. */

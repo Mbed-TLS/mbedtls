@@ -12,6 +12,26 @@
  * In implementations with isolation between the application and the
  * cryptography module, it is expected that the front-end and the back-end
  * would have different versions of this file.
+ *
+ * <h3>Design notes about multipart operation structures</h3>
+ *
+ * Each multipart operation structure contains a `psa_algorithm_t alg`
+ * field which indicates which specific algorithm the structure is for.
+ * When the structure is not in use, `alg` is 0. Most of the structure
+ * consists of a union which is discriminated by `alg`.
+ *
+ * Note that when `alg` is 0, the content of other fields is undefined.
+ * In particular, it is not guaranteed that a freshly-initialized structure
+ * is all-zero: we initialize structures to something like `{0, 0}`, which
+ * is only guaranteed to initializes the first member of the union;
+ * GCC and Clang initialize the whole structure to 0 (at the time of writing),
+ * but MSVC and CompCert don't.
+ *
+ * In Mbed Crypto, multipart operation structures live independently from
+ * the key. This allows Mbed Crypto to free the key objects when destroying
+ * a key slot. If a multipart operation needs to remember the key after
+ * the setup function returns, the operation structure needs to contain a
+ * copy of the key.
  */
 /*
  *  Copyright (C) 2018, ARM Limited, All Rights Reserved

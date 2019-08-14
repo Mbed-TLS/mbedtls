@@ -11,6 +11,11 @@ Security
      blinding value was generated. This reduced the effectiveness of the
      countermeasure and leaked information about the private key through side
      channels. Reported by Jack Lloyd.
+   * When writing a private EC key, use a constant size for the private
+     value, as specified in RFC 5915. Previously, the value was written
+     as an ASN.1 INTEGER, which caused the size of the key to leak
+     about 1 bit of information on average and could cause the value to be
+     1 byte too large for the output buffer.
 
 API Changes
    * The new function mbedtls_ecdsa_sign_det_ext() is similar to

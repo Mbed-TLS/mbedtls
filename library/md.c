@@ -771,73 +771,73 @@ const mbedtls_md_info_t mbedtls_sha512_info = {
 
 #if !defined(MBEDTLS_MD_SINGLE_HASH)
 
-static inline mbedtls_md_type_t mbedtls_md_info_type(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_type_t mbedtls_md_info_type(
     mbedtls_md_handle_t info )
 {
     return( info->type );
 }
 
-static inline const char * mbedtls_md_info_name(
+MBEDTLS_ALWAYS_INLINE static inline const char * mbedtls_md_info_name(
     mbedtls_md_handle_t info )
 {
     return( info->name );
 }
 
-static inline int mbedtls_md_info_size(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_size(
     mbedtls_md_handle_t info )
 {
     return( info->size );
 }
 
-static inline int mbedtls_md_info_block_size(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_block_size(
     mbedtls_md_handle_t info )
 {
     return( info->block_size );
 }
 
-static inline mbedtls_md_starts_func_t *mbedtls_md_info_starts_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_starts_func_t *mbedtls_md_info_starts_func(
     mbedtls_md_handle_t info )
 {
     return( info->starts_func );
 }
 
-static inline mbedtls_md_update_func_t *mbedtls_md_info_update_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_update_func_t *mbedtls_md_info_update_func(
     mbedtls_md_handle_t info )
 {
     return( info->update_func );
 }
 
-static inline mbedtls_md_finish_func_t *mbedtls_md_info_finish_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_finish_func_t *mbedtls_md_info_finish_func(
     mbedtls_md_handle_t info )
 {
     return( info->finish_func );
 }
 
-static inline mbedtls_md_digest_func_t *mbedtls_md_info_digest_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_digest_func_t *mbedtls_md_info_digest_func(
     mbedtls_md_handle_t info )
 {
     return( info->digest_func );
 }
 
-static inline mbedtls_md_ctx_alloc_func_t *mbedtls_md_info_ctx_alloc_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_ctx_alloc_func_t *mbedtls_md_info_ctx_alloc_func(
     mbedtls_md_handle_t info )
 {
     return( info->ctx_alloc_func );
 }
 
-static inline mbedtls_md_ctx_free_func_t *mbedtls_md_info_ctx_free_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_ctx_free_func_t *mbedtls_md_info_ctx_free_func(
     mbedtls_md_handle_t info )
 {
     return( info->ctx_free_func );
 }
 
-static inline mbedtls_md_clone_func_t *mbedtls_md_info_clone_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_clone_func_t *mbedtls_md_info_clone_func(
     mbedtls_md_handle_t info )
 {
     return( info->clone_func );
 }
 
-static inline mbedtls_md_process_func_t *mbedtls_md_info_process_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_process_func_t *mbedtls_md_info_process_func(
     mbedtls_md_handle_t info )
 {
     return( info->process_func );
@@ -845,84 +845,84 @@ static inline mbedtls_md_process_func_t *mbedtls_md_info_process_func(
 
 #else /* !MBEDTLS_MD_SINGLE_HASH */
 
-static inline mbedtls_md_type_t mbedtls_md_info_type(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_type_t mbedtls_md_info_type(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_TYPE( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline const char * mbedtls_md_info_name(
+MBEDTLS_ALWAYS_INLINE static inline const char * mbedtls_md_info_name(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_NAME( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline int mbedtls_md_info_size(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_size(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_SIZE( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline int mbedtls_md_info_block_size(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_block_size(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_BLOCKSIZE( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline mbedtls_md_starts_func_t *mbedtls_md_info_starts_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_starts_func_t *mbedtls_md_info_starts_func(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_STARTS_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline mbedtls_md_update_func_t *mbedtls_md_info_update_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_update_func_t *mbedtls_md_info_update_func(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_UPDATE_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline mbedtls_md_finish_func_t *mbedtls_md_info_finish_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_finish_func_t *mbedtls_md_info_finish_func(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_FINISH_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline mbedtls_md_digest_func_t *mbedtls_md_info_digest_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_digest_func_t *mbedtls_md_info_digest_func(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_DIGEST_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline mbedtls_md_ctx_alloc_func_t *mbedtls_md_info_ctx_alloc_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_ctx_alloc_func_t *mbedtls_md_info_ctx_alloc_func(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_ALLOC_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline mbedtls_md_ctx_free_func_t *mbedtls_md_info_ctx_free_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_ctx_free_func_t *mbedtls_md_info_ctx_free_func(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_FREE_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline mbedtls_md_clone_func_t *mbedtls_md_info_clone_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_clone_func_t *mbedtls_md_info_clone_func(
     mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_CLONE_FUNC( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-static inline mbedtls_md_process_func_t *mbedtls_md_info_process_func(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_md_process_func_t *mbedtls_md_info_process_func(
     mbedtls_md_handle_t info )
 {
     ((void) info);

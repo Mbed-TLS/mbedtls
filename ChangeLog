@@ -18,6 +18,8 @@ Bugfix
    * Fix the build on ARMv5TE in ARM mode to not use assembly instructions
      that are only available in Thumb mode. Fix contributed by Aurelien Jarno
      in #2169.
+   * Fix undefined memset(NULL) call in test_suite_nist_kw.
+   * Make NV seed test support MBEDTLS_ENTROPY_FORCE_SHA256.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

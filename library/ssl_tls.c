@@ -55,6 +55,47 @@
 #include "mbedtls/oid.h"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
+{
+    int ret;
+    ret = mbedtls_ssl_conf_rng_func( NULL, dest, size );
+    if( ret == 0 )
+        return( (int) size );
+
+    return( 0 );
+}
+
+int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
+                                   unsigned char **p, unsigned char *end )
+{
+    size_t const secp256r1_uncompressed_point_length =
+        1 /* length */ + 1 /* length */ + 2 * NUM_ECC_BYTES /* data */;
+
+    if( (size_t)( end - *p ) < secp256r1_uncompressed_point_length )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Bad ECDH peer pubkey (too short)" ) );
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
+
+    if( (*p)[0] != 2 * NUM_ECC_BYTES + 1 ||
+        (*p)[1] != 0x04 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Unexpected ECDH peer pubkey header - expected { %#02x, %#02x }, got { %#02x, %#02x }",
+                               2 * NUM_ECC_BYTES + 1,
+                               0x04,
+                               (unsigned) (*p)[0],
+                               (unsigned) (*p)[1] ) );
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
+
+    memcpy( ssl->handshake->ecdh_peerkey, *p + 2, 2 * NUM_ECC_BYTES );
+
+    *p += secp256r1_uncompressed_point_length;
+    return( 0 );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 
@@ -1660,6 +1701,27 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
+    {
+        const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+        ((void) ret);
+
+        if( !uECC_shared_secret( ssl->handshake->ecdh_peerkey,
+                                 ssl->handshake->ecdh_privkey,
+                                 ssl->handshake->premaster,
+                                 uecc_curve ) )
+        {
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+
+        ssl->handshake->pmslen = NUM_ECC_BYTES;
+    }
+    else
+#endif
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_DHE_RSA )
@@ -1679,10 +1741,11 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#if defined(MBEDTLS_ECDH_C) &&                                          \
+    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                       ||
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
@@ -8233,6 +8296,10 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     int ret;
 
     ssl->conf = conf;
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    uECC_set_rng( &uecc_rng_wrapper );
+#endif
 
     /*
      * Prepare base structures

@@ -53,6 +53,11 @@
 #include "ecjpake.h"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc.h"
+#include "tinycrypt/ecc_dh.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -381,7 +386,9 @@ struct mbedtls_ssl_handshake_params
     size_t ecjpake_cache_len;                   /*!< Length of cached data */
 #endif
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_ECDH_C)   ||                        \
+    defined(MBEDTLS_ECDSA_C)  ||                        \
+    defined(MBEDTLS_USE_TINYCRYPT) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     uint16_t curve_tls_id;                      /*!< TLS ID of EC for ECDHE. */
 #endif
@@ -542,6 +549,11 @@ struct mbedtls_ssl_handshake_params
      * The library does not use it internally. */
     void *user_async_ctx;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    uint8_t ecdh_privkey[NUM_ECC_BYTES];
+    uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
+#endif /* MBEDTLS_USE_TINYCRYPT */
 };
 
 /*
@@ -1832,5 +1844,10 @@ static inline int mbedtls_ssl_session_get_compression(
 }
 
 #define MBEDTLS_SSL_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
+                                   unsigned char **p, unsigned char *end );
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #endif /* ssl_internal.h */

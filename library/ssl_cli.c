@@ -250,7 +250,9 @@ static void ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_ECDH_C)   ||                           \
+    defined(MBEDTLS_ECDSA_C)  ||                           \
+    defined(MBEDTLS_USE_TINYCRYPT) ||                           \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static size_t ssl_get_ec_curve_list_length( mbedtls_ssl_context *ssl )
 {
@@ -332,7 +334,7 @@ static void ssl_write_supported_point_formats_ext( mbedtls_ssl_context *ssl,
 
     *olen = 6;
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -1073,7 +1075,9 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_ECDH_C)   ||                \
+    defined(MBEDTLS_ECDSA_C)  ||                \
+    defined(MBEDTLS_USE_TINYCRYPT) ||                \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( uses_ec )
     {
@@ -1374,8 +1378,10 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_ECDH_C)  ||                      \
+    defined(MBEDTLS_ECDSA_C) ||                      \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) || \
+    defined(MBEDTLS_USE_TINYCRYPT)
 static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
                                                   const unsigned char *buf,
                                                   size_t len )
@@ -1398,7 +1404,7 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
         if( p[0] == MBEDTLS_ECP_PF_UNCOMPRESSED ||
             p[0] == MBEDTLS_ECP_PF_COMPRESSED )
         {
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDH_C)
             ssl->handshake->ecdh_ctx.point_format = p[0];
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -1417,7 +1423,7 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
                                   MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
     return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -2214,11 +2220,12 @@ static int ssl_parse_server_dh_params( mbedtls_ssl_context *ssl, unsigned char *
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#if defined(MBEDTLS_ECDH_C) &&                                          \
+    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) )
 static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
 {
     const mbedtls_ecp_curve_info *curve_info;
@@ -2251,15 +2258,17 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#endif /* MBEDTLS_ECDH_C &&
+         ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   ||
+           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+           MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED   ||
+           MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    ||
+           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED  ) */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(MBEDTLS_ECDH_C) &&                                          \
+    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED))
 static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
                                          unsigned char **p,
                                          unsigned char *end )
@@ -2289,9 +2298,10 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
 
     return( ret );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* MBEDTLS_ECDH_C &&
+          ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED    ) */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
@@ -2796,9 +2806,42 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
+    {
+        static const unsigned char ecdh_group[] = {
+            MBEDTLS_ECP_TLS_NAMED_CURVE,
+            0  /* high bits of secp256r1 TLS ID  */,
+            23 /* low bits of secp256r1 TLS ID   */,
+        };
+
+        /* Check for fixed ECDH parameter preamble. */
+        if( (size_t)( end - p ) < sizeof( ecdh_group ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad server key exchange (too short)" ) );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+
+        if( memcmp( p, ecdh_group, sizeof( ecdh_group ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad server key exchange (unexpected header)" ) );
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+        p += sizeof( ecdh_group );
+
+        /* Read server's key share. */
+        if( mbedtls_ssl_ecdh_read_peerkey( ssl, &p, end ) != 0 )
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    }
+    else
+#endif /* MBEDTLS_USE_TINYCRYPT */
+#if defined(MBEDTLS_ECDH_C) &&                                          \
+    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)   ||              \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ) )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                         ||
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
@@ -2815,9 +2858,10 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         }
     }
     else
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+#endif /* MBEDTLS_ECDH_C &&
+          ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ) */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
@@ -3525,10 +3569,36 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
+    {
+        const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+        ((void) n);
+        ((void) ret);
+
+        if( (size_t)( end - p ) < 2 * NUM_ECC_BYTES + 2 )
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+        *p++ = 2 * NUM_ECC_BYTES + 1;
+        *p++ = 0x04; /* uncompressed point presentation */
+
+        if( !uECC_make_key( p, ssl->handshake->ecdh_privkey,
+                            uecc_curve ) )
+        {
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+        p += 2 * NUM_ECC_BYTES;
+    }
+    else
+#endif /* MBEDTLS_USE_TINYCRYPT */
+#if defined(MBEDTLS_ECDH_C) &&                                          \
+        ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   ||          \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||          \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    ||          \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
@@ -3566,10 +3636,11 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         p += n;
     }
     else
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#endif /* MBEDTLS_ECDH_C && (
+          ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    ||
+            MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED  ) */
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_psk( ciphersuite_info ) )
     {

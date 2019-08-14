@@ -103,6 +103,18 @@
 #error "MBEDTLS_USE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT) &&                                   \
+    !( defined(MBEDTLS_SSL_CONF_SINGLE_EC)     &&                       \
+       MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID == 23 &&                       \
+       MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID == MBEDTLS_ECP_DP_SECP256R1 )
+#error "MBEDTLS_USE_TINYCRYPT requires the use of MBEDTLS_SSL_CONF_SINGLE_EC to hardcode the choice of Secp256r1"
+#endif
+
+#if defined(MBEDTLS_USE_TINYCRYPT) && \
+    !defined(MBEDTLS_SSL_CONF_RNG)
+#error "MBEDTLS_USE_TINYCRYPT defined, but not all prerequesites"
+#endif
+
 #if defined(MBEDTLS_NIST_KW_C) && \
     ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CIPHER_C) )
 #error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"
@@ -260,14 +272,17 @@
 #error "MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_RSA_C) ||          \
-      !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_PKCS1_V15) )
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) &&                  \
+    ( !( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_USE_TINYCRYPT) ) || \
+      !defined(MBEDTLS_RSA_C)                                        || \
+      !defined(MBEDTLS_X509_CRT_PARSE_C)                             || \
+      !defined(MBEDTLS_PKCS1_V15) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_ECDSA_C) ||          \
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                \
+    ( !( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_USE_TINYCRYPT) ) || \
+      !defined(MBEDTLS_ECDSA_C) ||                                      \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif

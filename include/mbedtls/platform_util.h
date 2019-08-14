@@ -113,6 +113,12 @@ void mbedtls_param_failed( const char *failure_condition,
 
 #endif /* MBEDTLS_CHECK_PARAMS */
 
+#if defined(__GNUC__) || defined(__arm__)
+#define MBEDTLS_ALWAYS_INLINE __attribute__((always_inline))
+#else
+#define MBEDTLS_ALWAYS_INLINE
+#endif
+
 /* Internal helper macros for deprecating API constants. */
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)

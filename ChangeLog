@@ -15,6 +15,9 @@ Bugfix
    * Fix misuse of signed arithmetic in the HAVEGE module. #2598
    * Update test certificates that were about to expire. Reported by
      Bernhard M. Wiedemann in #2357.
+   * Fix the build on ARMv5TE in ARM mode to not use assembly instructions
+     that are only available in Thumb mode. Fix contributed by Aurelien Jarno
+     in #2169.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

@@ -95,6 +95,14 @@ Bugfix
      This previously limited the maximum size of DER encoded certificates
      in mbedtls_x509write_crt_der() to 2Kb. Reported by soccerGB in #2631.
    * Fix partial zeroing in x509_get_other_name. Found and fixed by ekse, #2716.
+   * Update test certificates that were about to expire. Reported by
+     Bernhard M. Wiedemann in #2357.
+   * Fix the build on ARMv5TE in ARM mode to not use assembly instructions
+     that are only available in Thumb mode. Fix contributed by Aurelien Jarno
+     in #2169.
+   * Fix propagation of restart contexts in restartable EC operations.
+     This could previously lead to segmentation faults in builds using an
+     address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
 
 Changes
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

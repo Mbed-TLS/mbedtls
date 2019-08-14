@@ -172,11 +172,11 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
-#define ECDSA_RS_ECP    &rs_ctx->ecp
+#define ECDSA_RS_ECP    ( rs_ctx == NULL ? NULL : &rs_ctx->ecp )
 
 /* Utility macro for checking and updating ops budget */
 #define ECDSA_BUDGET( ops )   \
-    MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, &rs_ctx->ecp, ops ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, ECDSA_RS_ECP, ops ) );
 
 /* Call this when entering a function that needs its own sub-context */
 #define ECDSA_RS_ENTER( SUB )   do {                                 \

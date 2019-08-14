@@ -6,6 +6,16 @@ Security
    * Fix a missing error detection in ECJPAKE. This could have caused a
      predictable shared secret if a hardware accelerator failed and the other
      side of the key exchange had a similar bug.
+   * The deterministic ECDSA calculation reused the scheme's HMAC-DRBG to
+     implement blinding. Because of this for the same key and message the same
+     blinding value was generated. This reduced the effectiveness of the
+     countermeasure and leaked information about the private key through side
+     channels. Reported by Jack Lloyd.
+
+API Changes
+   * The new function mbedtls_ecdsa_sign_det_ext() is similar to
+     mbedtls_ecdsa_sign_det() but allows passing an external RNG for the
+     purpose of blinding.
 
 Bugfix
    * Fix to allow building test suites with any warning that detects unused

@@ -404,12 +404,10 @@ struct mbedtls_ssl_handshake_params
     enum { /* this complements ssl->state with info on intra-state operations */
         ssl_ecrs_none = 0,              /*!< nothing going on (yet)         */
         ssl_ecrs_crt_verify,            /*!< Certificate: crt_verify()      */
-        ssl_ecrs_ske_start_processing,  /*!< ServerKeyExchange: pk_verify() */
         ssl_ecrs_cke_ecdh_calc_secret,  /*!< ClientKeyExchange: ECDH step 2 */
         ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
     } ecrs_state;                       /*!< current (or last) operation    */
     mbedtls_x509_crt *ecrs_peer_cert;   /*!< The peer's CRT chain.          */
-    size_t ecrs_n;                      /*!< place for saving a length      */
 #endif
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -988,6 +986,8 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
                             mbedtls_ssl_ciphersuite_handle_t ciphersuite_info );
 
+int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl );
+
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex );
 #endif
@@ -1565,8 +1565,12 @@ static inline mbedtls_frng_t* mbedtls_ssl_conf_get_frng(
 {
     return( conf->f_rng );
 }
-#else /* !MBEDTLS_SSL_CONF_RNG */
 
+static inline void* mbedtls_ssl_conf_get_prng( mbedtls_ssl_config const *conf )
+{
+    return( conf->p_rng );
+}
+#else /* !MBEDTLS_SSL_CONF_RNG */
 #define mbedtls_ssl_conf_rng_func MBEDTLS_SSL_CONF_RNG
 extern int mbedtls_ssl_conf_rng_func( void*, unsigned char*, size_t );
 
@@ -1575,6 +1579,12 @@ static inline mbedtls_frng_t* mbedtls_ssl_conf_get_frng(
 {
     ((void) conf);
     return ((mbedtls_frng_t*) mbedtls_ssl_conf_rng_func);
+}
+
+static inline void* mbedtls_ssl_conf_get_prng( mbedtls_ssl_config const *conf )
+{
+    ((void) conf);
+    return( NULL );
 }
 #endif /* MBEDTLS_SSL_CONF_RNG */
 
@@ -1820,5 +1830,7 @@ static inline int mbedtls_ssl_session_get_compression(
     return( MBEDTLS_SSL_COMPRESS_NULL );
 #endif
 }
+
+#define MBEDTLS_SSL_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
 
 #endif /* ssl_internal.h */

@@ -1002,8 +1002,8 @@ struct mbedtls_ssl_config
 #if !defined(MBEDTLS_SSL_CONF_RNG)
     /** Callback for getting (pseudo-)random numbers                        */
     int  (*f_rng)(void *, unsigned char *, size_t);
-#endif /* !MBEDTLS_SSL_CONF_RNG */
     void *p_rng;                    /*!< context for the RNG function       */
+#endif /* !MBEDTLS_SSL_CONF_RNG */
 
 #if defined(MBEDTLS_SSL_SRV_C) && !defined(MBEDTLS_SSL_NO_SESSION_CACHE)
     /** Callback to retrieve a session from the cache                       */
@@ -1603,15 +1603,6 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng );
-#else /* !MBEDTLS_SSL_CONF_RNG */
-/**
- * \brief          Set the random number generator callback context.
- *
- * \param conf     SSL configuration
- * \param p_rng    RNG parameter
- */
-void mbedtls_ssl_conf_rng_ctx( mbedtls_ssl_config *conf,
-                               void *p_rng );
 #endif /* MBEDTLS_SSL_CONF_RNG */
 
 #if defined(MBEDTLS_DEBUG_C)

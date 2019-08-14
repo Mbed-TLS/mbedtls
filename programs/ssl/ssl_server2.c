@@ -1505,6 +1505,20 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
+#if defined(MBEDTLS_SSL_CONF_RNG)
+int rng_wrap( void *ctx, unsigned char *dst, size_t len );
+
+mbedtls_ctr_drbg_context *rng_ctx_global = NULL;
+int rng_wrap( void *ctx, unsigned char *dst, size_t len )
+{
+    /* We expect the NULL parameter here. */
+    if( ctx != NULL )
+        return( -1 );
+
+    return( mbedtls_ctr_drbg_random( rng_ctx_global, dst, len ) );
+}
+#endif /* MBEDTLS_SSL_CONF_RNG */
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
@@ -2754,7 +2768,7 @@ int main( int argc, char *argv[] )
 #if !defined(MBEDTLS_SSL_CONF_RNG)
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 #else
-    mbedtls_ssl_conf_rng_ctx( &conf, &ctr_drbg );
+    rng_ctx_global = &ctr_drbg;
 #endif
 
 #if defined(MBEDTLS_DEBUG_C)

@@ -7384,24 +7384,6 @@ void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 }
 
-void mbedtls_ssl_update_checksum( mbedtls_ssl_context *ssl,
-                                  const unsigned char *buf, size_t len )
-{
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
-     mbedtls_md5_update_ret( &ssl->handshake->fin_md5 , buf, len );
-    mbedtls_sha1_update_ret( &ssl->handshake->fin_sha1, buf, len );
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_SHA256_C)
-    mbedtls_sha256_update_ret( &ssl->handshake->fin_sha256, buf, len );
-#endif
-#if defined(MBEDTLS_SHA512_C)
-    mbedtls_sha512_update_ret( &ssl->handshake->fin_sha512, buf, len );
-#endif
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-}
-
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
 static void ssl_calc_finished_ssl(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )

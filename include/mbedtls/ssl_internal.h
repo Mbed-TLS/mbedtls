@@ -499,8 +499,6 @@ struct mbedtls_ssl_handshake_params
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-    void (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
-
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
 #endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
@@ -1006,7 +1004,6 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
 unsigned char mbedtls_ssl_hash_from_md_alg( int md );
-int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md );
 
 #if defined(MBEDTLS_ECP_C)
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
@@ -1855,6 +1852,12 @@ MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_update_checksum(
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 }
+
+int mbedtls_ssl_calc_verify( int minor_ver,
+                             mbedtls_md_type_t hash,
+                             mbedtls_ssl_context const *ssl,
+                             unsigned char *dst,
+                             size_t *hlen );
 
 #define MBEDTLS_SSL_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
 

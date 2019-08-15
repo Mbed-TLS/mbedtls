@@ -1359,19 +1359,11 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     return( 0 );
 }
 
-/*
- * Set appropriate PRF function and other SSL / TLS 1.0/1.1 / TLS1.2 functions
- *
- * Inputs:
- * - SSL/TLS minor version
- * - hash associated with the ciphersuite (only used by TLS 1.2)
- *
- * Outputs:
- * - the tls_prf, calc_verify and calc_finished members of handshake structure
- */
-static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
-                                   int minor_ver,
-                                   mbedtls_md_type_t hash )
+int mbedtls_ssl_calc_verify( int minor_ver,
+                             mbedtls_md_type_t hash,
+                             mbedtls_ssl_context const *ssl,
+                             unsigned char *dst,
+                             size_t *hlen )
 {
 #if !defined(MBEDTLS_SSL_PROTO_TLS1_2) || !defined(MBEDTLS_SHA512_C)
     (void) hash;
@@ -1379,16 +1371,12 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
     if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-    {
-        handshake->calc_verify = ssl_calc_verify_ssl;
-    }
+        ssl_calc_verify_ssl( ssl, dst, hlen );
     else
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
     if( minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        handshake->calc_verify = ssl_calc_verify_tls;
-    }
+        ssl_calc_verify_tls( ssl, dst, hlen );
     else
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -1396,14 +1384,14 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
         hash == MBEDTLS_MD_SHA384 )
     {
-        handshake->calc_verify = ssl_calc_verify_tls_sha384;
+        ssl_calc_verify_tls_sha384( ssl, dst, hlen );
     }
     else
 #endif
 #if defined(MBEDTLS_SHA256_C)
     if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        handshake->calc_verify = ssl_calc_verify_tls_sha256;
+        ssl_calc_verify_tls_sha256( ssl, dst, hlen );
     }
     else
 #endif
@@ -1457,7 +1445,10 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         unsigned char session_hash[48];
         size_t hash_len;
 
-        handshake->calc_verify( ssl, session_hash, &hash_len );
+        mbedtls_ssl_calc_verify(
+            mbedtls_ssl_get_minor_ver( ssl ),
+            mbedtls_ssl_suite_get_mac( ciphersuite ),
+            ssl, session_hash, &hash_len );
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "session hash for extended master secret",
                                   session_hash, hash_len );
@@ -1494,20 +1485,8 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
     int ret;
-    mbedtls_ssl_ciphersuite_handle_t const ciphersuite_info =
-        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
-
-    /* Set PRF, calc_verify and calc_finished function pointers */
-    ret = ssl_set_handshake_prfs( ssl->handshake,
-                            mbedtls_ssl_get_minor_ver( ssl ),
-                            mbedtls_ssl_suite_get_mac( ciphersuite_info ) );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_set_handshake_prfs", ret );
-        return( ret );
-    }
 
     /* Compute master secret if needed */
     ret = ssl_compute_master( ssl->handshake,
@@ -12368,30 +12347,6 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
     return( ret );
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
-{
-    switch( md )
-    {
-#if defined(MBEDTLS_SHA512_C)
-        case MBEDTLS_SSL_HASH_SHA384:
-            ssl->handshake->calc_verify = ssl_calc_verify_tls_sha384;
-            break;
-#endif
-#if defined(MBEDTLS_SHA256_C)
-        case MBEDTLS_SSL_HASH_SHA256:
-            ssl->handshake->calc_verify = ssl_calc_verify_tls_sha256;
-            break;
-#endif
-
-        default:
-            return( MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH );
-    }
-
-    return( 0 );
-}
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)

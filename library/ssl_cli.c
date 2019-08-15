@@ -3889,7 +3889,10 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 sign:
 #endif
 
-    ssl->handshake->calc_verify( ssl, hash, &hashlen );
+    mbedtls_ssl_calc_verify(
+            mbedtls_ssl_get_minor_ver( ssl ),
+            mbedtls_ssl_suite_get_mac( ciphersuite_info ),
+            ssl, hash, &hashlen );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)

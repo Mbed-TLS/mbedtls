@@ -4524,7 +4524,14 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
          */
         md_alg = mbedtls_ssl_md_alg_from_hash( ssl->in_msg[i] );
 
-        if( md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md( ssl, ssl->in_msg[i] ) )
+        if(
+#if defined(MBEDTLS_SHA512_C)
+            md_alg != MBEDTLS_MD_SHA384 &&
+#endif
+#if defined(MBEDTLS_SHA256_C)
+            md_alg != MBEDTLS_MD_SHA256 &&
+#endif
+            1 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
                                 " for verify message" ) );
@@ -4593,7 +4600,9 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     /* Calculate hash and verify signature */
     {
         size_t dummy_hlen;
-        ssl->handshake->calc_verify( ssl, hash, &dummy_hlen );
+        mbedtls_ssl_calc_verify(
+            mbedtls_ssl_get_minor_ver( ssl ),
+            md_alg, ssl, hash, &dummy_hlen );
     }
 
     if( ( ret = mbedtls_pk_verify( peer_pk,

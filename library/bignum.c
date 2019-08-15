@@ -64,8 +64,15 @@ static void mbedtls_mpi_zeroize( mbedtls_mpi_uint *v, size_t n ) {
 }
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+static void mbedtls_zeroize( void *v, size_t n )
+{
+    if( n > 0 )
+    {
+        volatile unsigned char *p = (unsigned char*)v;
+
+        while( n-- )
+            *p++ = 0;
+    }
 }
 
 #define ciL    (sizeof(mbedtls_mpi_uint))         /* chars in limb  */

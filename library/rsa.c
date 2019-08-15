@@ -71,8 +71,15 @@
 #if !defined(MBEDTLS_RSA_ALT)
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
+static void mbedtls_zeroize( void *v, size_t n )
+{
+    if( n > 0 )
+    {
+        volatile unsigned char *p = (unsigned char*)v;
+
+        while( n-- )
+            *p++ = 0;
+    }
 }
 
 #if defined(MBEDTLS_PKCS1_V15)

@@ -32,8 +32,15 @@
 #if defined(MBEDTLS_ENTROPY_NV_SEED) && \
     !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS) && defined(MBEDTLS_FS_IO)
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
+static void mbedtls_zeroize( void *v, size_t n )
+{
+    if( n > 0 )
+    {
+        volatile unsigned char *p = (unsigned char*)v;
+
+        while( n-- )
+            *p++ = 0;
+    }
 }
 #endif
 

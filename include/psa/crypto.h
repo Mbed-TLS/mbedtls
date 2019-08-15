@@ -956,7 +956,9 @@ static psa_hash_operation_t psa_hash_operation_init(void);
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p alg is not supported or is not a hash algorithm.
+ *         \p alg is not a supported hash algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p alg is not a hash algorithm.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (already set up and not
  *         subsequently completed).

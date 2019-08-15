@@ -1823,7 +1823,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
                                       MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
-    mbedtls_ssl_optimize_checksum( ssl, server_suite_info );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 35, n );

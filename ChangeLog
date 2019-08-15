@@ -23,6 +23,8 @@ Bugfix
    * Fix propagation of restart contexts in restartable EC operations.
      This could previously lead to segmentation faults in builds using an
      address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
+   * Zero length buffer check for undefined behavior in
+     mbedtls_platform_zeroize(). Fixes ARMmbed/mbed-crypto#49.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

@@ -172,7 +172,7 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
-#define ECDSA_RS_ECP   ( rs_ctx == NULL ? NULL :  &rs_ctx->ecp )
+#define ECDSA_RS_ECP    ( rs_ctx == NULL ? NULL : &rs_ctx->ecp )
 
 /* Utility macro for checking and updating ops budget */
 #define ECDSA_BUDGET( ops )   \

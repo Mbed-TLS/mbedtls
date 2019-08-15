@@ -16,6 +16,7 @@ Bugfix
    * Update test certificates that were about to expire. Reported by
      Bernhard M. Wiedemann in #2357.
    * Make NV seed test support MBEDTLS_ENTROPY_FORCE_SHA256.
+   * Fix `mbedtls_zeroize()` to check for zero length.
 
 Changes
    * Make `make clean` clean all programs always. Fixes #1862.

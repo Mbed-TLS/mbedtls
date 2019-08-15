@@ -912,6 +912,47 @@ static inline int ssl_prf( int minor_ver,
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
+MBEDTLS_ALWAYS_INLINE
+static inline int ssl_calc_finished( int minor_ver,
+                                     mbedtls_md_type_t hash,
+                                     mbedtls_ssl_context *ssl,
+                                     unsigned char *buf,
+                                     int from )
+{
+#if !defined(MBEDTLS_SSL_PROTO_TLS1_2) || !defined(MBEDTLS_SHA512_C)
+    (void) hash;
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        ssl_calc_finished_ssl( ssl, buf, from );
+    else
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
+    if( minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
+        ssl_calc_finished_tls( ssl, buf, from );
+    else
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA512_C)
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        hash == MBEDTLS_MD_SHA384 )
+    {
+        ssl_calc_finished_tls_sha384( ssl, buf, from );
+    }
+    else
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        ssl_calc_finished_tls_sha256( ssl, buf, from );
+    else
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    return( 0 );
+}
+
 /*
  * Populate a transform structure with session keys and all the other
  * necessary information.
@@ -1349,7 +1390,6 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
     {
         handshake->calc_verify = ssl_calc_verify_ssl;
-        handshake->calc_finished = ssl_calc_finished_ssl;
     }
     else
 #endif
@@ -1357,7 +1397,6 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     if( minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         handshake->calc_verify = ssl_calc_verify_tls;
-        handshake->calc_finished = ssl_calc_finished_tls;
     }
     else
 #endif
@@ -1367,7 +1406,6 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
         hash == MBEDTLS_MD_SHA384 )
     {
         handshake->calc_verify = ssl_calc_verify_tls_sha384;
-        handshake->calc_finished = ssl_calc_finished_tls_sha384;
     }
     else
 #endif
@@ -1375,7 +1413,6 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         handshake->calc_verify = ssl_calc_verify_tls_sha256;
-        handshake->calc_finished = ssl_calc_finished_tls_sha256;
     }
     else
 #endif
@@ -7784,8 +7821,13 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 
     ssl_update_out_pointers( ssl, ssl->transform_negotiate );
 
-    ssl->handshake->calc_finished( ssl, ssl->out_msg + 4,
-                                   mbedtls_ssl_conf_get_endpoint( ssl->conf ) );
+    ssl_calc_finished( mbedtls_ssl_get_minor_ver( ssl ),
+                       mbedtls_ssl_suite_get_mac(
+                           mbedtls_ssl_ciphersuite_from_id(
+                               mbedtls_ssl_session_get_ciphersuite(
+                                   ssl->session_negotiate ) ) ),
+                       ssl, ssl->out_msg + 4,
+                       mbedtls_ssl_conf_get_endpoint( ssl->conf ) );
 
     /*
      * RFC 5246 7.4.9 (Page 63) says 12 is the default length and ciphersuites
@@ -7921,8 +7963,13 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
 
-    ssl->handshake->calc_finished( ssl, buf,
-                             mbedtls_ssl_conf_get_endpoint( ssl->conf ) ^ 1 );
+    ssl_calc_finished( mbedtls_ssl_get_minor_ver( ssl ),
+                       mbedtls_ssl_suite_get_mac(
+                           mbedtls_ssl_ciphersuite_from_id(
+                               mbedtls_ssl_session_get_ciphersuite(
+                                   ssl->session_negotiate ) ) ),
+                       ssl, buf,
+                       mbedtls_ssl_conf_get_endpoint( ssl->conf ) ^ 1 );
 
     if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
     {

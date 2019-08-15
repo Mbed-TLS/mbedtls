@@ -501,7 +501,6 @@ struct mbedtls_ssl_handshake_params
 
     void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
-    void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;

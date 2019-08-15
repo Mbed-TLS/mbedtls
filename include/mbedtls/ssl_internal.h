@@ -499,7 +499,6 @@ struct mbedtls_ssl_handshake_params
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-    void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
     void (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
@@ -1837,6 +1836,9 @@ static inline int mbedtls_ssl_session_get_compression(
     return( MBEDTLS_SSL_COMPRESS_NULL );
 #endif
 }
+
+void mbedtls_ssl_update_checksum( mbedtls_ssl_context *,
+                                  const unsigned char *, size_t );
 
 #define MBEDTLS_SSL_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
 

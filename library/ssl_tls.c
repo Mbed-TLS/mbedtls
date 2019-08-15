@@ -834,9 +834,6 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-static void ssl_update_checksum( mbedtls_ssl_context *,
-                                 const unsigned char *, size_t );
-
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
 static void ssl_calc_verify_ssl( const mbedtls_ssl_context *, unsigned char *, size_t * );
 static void ssl_calc_finished_ssl( mbedtls_ssl_context *, unsigned char *, int );
@@ -4158,7 +4155,7 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 
         /* Update running hashes of handshake messages seen */
         if( hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
-            ssl->handshake->update_checksum( ssl, ssl->out_msg, ssl->out_msglen );
+            mbedtls_ssl_update_checksum( ssl, ssl->out_msg, ssl->out_msglen );
     }
 
     /* Either send now, or just save to be sent (and resent) later */
@@ -4615,9 +4612,7 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
 
     if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER && hs != NULL )
-    {
-        ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
-    }
+        mbedtls_ssl_update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
 
     /* Handshake message is complete, increment counter */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -7389,8 +7384,8 @@ void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 }
 
-static void ssl_update_checksum( mbedtls_ssl_context *ssl,
-                                 const unsigned char *buf, size_t len )
+void mbedtls_ssl_update_checksum( mbedtls_ssl_context *ssl,
+                                  const unsigned char *buf, size_t len )
 {
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
@@ -8000,8 +7995,6 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
     mbedtls_sha512_starts_ret( &handshake->fin_sha512, 1 );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-
-    handshake->update_checksum = ssl_update_checksum;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)

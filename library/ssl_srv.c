@@ -1138,7 +1138,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    ssl->handshake->update_checksum( ssl, buf + 2, n );
+    mbedtls_ssl_update_checksum( ssl, buf + 2, n );
 
     buf = ssl->in_msg;
     n = ssl->in_left - 5;
@@ -1523,7 +1523,7 @@ read_record_header:
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "record contents", buf, msg_len );
 
-    ssl->handshake->update_checksum( ssl, buf, msg_len );
+    mbedtls_ssl_update_checksum( ssl, buf, msg_len );
 
     /*
      * Handshake layer:

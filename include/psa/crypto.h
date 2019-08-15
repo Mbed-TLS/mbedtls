@@ -2230,7 +2230,7 @@ static psa_aead_operation_t psa_aead_operation_init(void);
  *    of the non-encrypted additional authenticated data each time.
  * -# Call psa_aead_update() zero, one or more times, passing a fragment
  *    of the message to encrypt each time.
- * -# Call psa_aead_finish(psa_aead_encrypt).
+ * -# Call psa_aead_finish().
  *
  * The application may call psa_aead_abort() at any time after the operation
  * has been initialized.

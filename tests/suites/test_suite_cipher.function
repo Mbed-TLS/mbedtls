@@ -4,6 +4,11 @@
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
 #endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa_crypto_helpers.h"
+#endif
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -982,7 +987,7 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
 #else
     if( use_psa == 1 )
     {
-        TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+        PSA_ASSERT( psa_crypto_init( ) );
 
         /* PSA requires that the tag immediately follows the ciphertext. */
         tmp_cipher = mbedtls_calloc( 1, cipher->len + tag->len );
@@ -1066,14 +1071,15 @@ void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
 
 exit:
 
+    mbedtls_cipher_free( &ctx );
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( use_psa == 1 )
     {
         mbedtls_free( tmp_cipher );
+        PSA_DONE( );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-    mbedtls_cipher_free( &ctx );
 }
 /* END_CASE */
 
@@ -1143,7 +1149,7 @@ void test_vec_crypt( int cipher_id, int operation, char *hex_key,
 #else
     if( use_psa == 1 )
     {
-        TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+        PSA_ASSERT( psa_crypto_init( ) );
         TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
                               mbedtls_cipher_info_from_type( cipher_id ), 0 ) );
     }
@@ -1172,6 +1178,9 @@ void test_vec_crypt( int cipher_id, int operation, char *hex_key,
 
 exit:
     mbedtls_cipher_free( &ctx );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    PSA_DONE( );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 /* END_CASE */
 

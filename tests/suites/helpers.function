@@ -126,14 +126,6 @@ typedef enum
 #define TEST_EQUAL( expr1, expr2 )              \
     TEST_ASSERT( ( expr1 ) == ( expr2 ) )
 
-/** Evaluate an expression and fail the test case if it returns an error.
- *
- * \param expr      The expression to evaluate. This is typically a call
- *                  to a \c psa_xxx function that returns a value of type
- *                  #psa_status_t.
- */
-#define PSA_ASSERT( expr ) TEST_EQUAL( ( expr ), PSA_SUCCESS )
-
 /** Allocate memory dynamically and fail the test case if this fails.
  *
  * You must set \p pointer to \c NULL before calling this macro and

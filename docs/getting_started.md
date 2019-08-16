@@ -73,7 +73,7 @@ Importing a key and checking key information:
 1. Test the information stored in this slot:
 ```C
     int key_slot = 1;
-    uint8_t *data = "KEYPAIR_KEY_DATA";
+    uint8_t *data = "KEY_PAIR_KEY_DATA";
     size_t data_size;
     psa_key_type_t type = PSA_KEY_TYPE_RSA_PUBLIC_KEY;
     size_t got_bits;
@@ -127,7 +127,7 @@ This allows the key in the key slot to be used for RSA signing.
                              PSA_ALG_RSA_PKCS1V15_SIGN_RAW);
     status = psa_set_key_policy(key_slot, &policy);
 
-    status = psa_import_key(key_slot, PSA_KEY_TYPE_RSA_KEYPAIR,
+    status = psa_import_key(key_slot, PSA_KEY_TYPE_RSA_KEY_PAIR,
                             key, sizeof(key));
 
     /* Sing message using the key */
@@ -335,7 +335,7 @@ Deriving a new AES-CTR 128-bit encryption key into a given key slot using HKDF w
 1. Set up the generator using the `psa_key_derivation` function providing a key slot containing a key that can be used for key derivation and a salt and label (Note: salt and label are optional).
 1. Initiate a key policy to for the derived key by calling `psa_key_policy_set_usage()` with `PSA_KEY_USAGE_ENCRYPT` parameter and the algorithm `PSA_ALG_CTR`.
 1. Set the key policy to the derived key slot.
-1. Import a key from generator into the desired key slot using (`psa_generator_import_key`).
+1. Import a key from generator into the desired key slot using (`psa_key_derivation_output_key`).
 1. Clean up generator.
 
 At this point the derived key slot holds a new 128-bit AES-CTR encryption key derived from the key, salt and label provided:
@@ -358,7 +358,7 @@ At this point the derived key slot holds a new 128-bit AES-CTR encryption key de
 
     psa_algorithm_t alg = PSA_ALG_HKDF(PSA_ALG_SHA_256);
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
-    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_key_derivation_operation_t generator = PSA_KEY_DERIVATION_OPERATION_INIT;
     size_t derived_bits = 128;
     size_t capacity = PSA_BITS_TO_BYTES(derived_bits);
 
@@ -378,10 +378,10 @@ At this point the derived key slot holds a new 128-bit AES-CTR encryption key de
 
     psa_set_key_policy(derived_key, &policy);
 
-    psa_generator_import_key(derived_key, PSA_KEY_TYPE_AES, derived_bits, &generator);
+    psa_key_derivation_output_key(derived_key, PSA_KEY_TYPE_AES, derived_bits, &generator);
 
     /* Clean up generator and key */
-    psa_generator_abort(&generator);
+    psa_key_derivation_abort(&generator);
     /* as part of clean up you may want to clean up the keys used by calling:
      * psa_destroy_key( base_key ); or psa_destroy_key( derived_key ); */
     mbedtls_psa_crypto_free();
@@ -510,7 +510,7 @@ Generate a piece of random 128-bit AES data:
     psa_set_key_policy(slot, &policy);
 
     /* Generate a key */
-    psa_generate_key(slot, PSA_KEY_TYPE_AES, bits, NULL, 0);
+    psa_generate_key(slot, PSA_KEY_TYPE_AES, bits);
 
     psa_export_key(slot, exported, exported_size, &exported_length)
 

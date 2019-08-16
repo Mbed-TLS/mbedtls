@@ -10,6 +10,18 @@
 #include <limits.h>
 #include <stdint.h>
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/psa_util.h"
+#include "psa_crypto_helpers.h"
+#define PSA_INIT( ) PSA_ASSERT( psa_crypto_init( ) )
+#else
+/* Define empty macros so that we can use them in the preamble and teardown
+ * of every test function that uses PSA conditionally based on
+ * MBEDTLS_USE_PSA_CRYPTO. */
+#define PSA_INIT( ) ( (void) 0 )
+#define PSA_DONE( ) ( (void) 0 )
+#endif
+
 static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
 
 #define RSA_KEY_SIZE 512
@@ -67,39 +79,26 @@ size_t mbedtls_rsa_key_len_func( void *ctx )
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
-#include "mbedtls/psa_util.h"
-
-#define PK_PSA_INVALID_SLOT 0 /* guaranteed invalid */
-
 /*
- * Generate a key in a free key slot and return this key slot,
- * or PK_PSA_INVALID_SLOT if no slot was available.
+ * Generate a key using PSA and return a handle to that key,
+ * or 0 if the key generation failed.
  * The key uses NIST P-256 and is usable for signing with SHA-256.
  */
 psa_key_handle_t pk_psa_genkey( void )
 {
     psa_key_handle_t key;
-
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const int curve = PSA_ECC_CURVE_SECP256R1;
-    const psa_key_type_t type = PSA_KEY_TYPE_ECC_KEYPAIR(curve);
+    const psa_key_type_t type = PSA_KEY_TYPE_ECC_KEY_PAIR(curve);
     const size_t bits = 256;
-    psa_key_policy_t policy;
 
-    /* Allocate a key slot */
-    if( PSA_SUCCESS != psa_allocate_key( &key ) )
-        return( PK_PSA_INVALID_SLOT );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN );
+    psa_set_key_algorithm( &attributes, PSA_ALG_ECDSA(PSA_ALG_SHA_256) );
+    psa_set_key_type( &attributes, type );
+    psa_set_key_bits( &attributes, bits );
+    PSA_ASSERT( psa_generate_key( &attributes, &key ) );
 
-    /* set up policy on key slot */
-    policy = psa_key_policy_init();
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN,
-                                      PSA_ALG_ECDSA(PSA_ALG_SHA_256) );
-    if( PSA_SUCCESS != psa_set_key_policy( key, &policy ) )
-        return( PK_PSA_INVALID_SLOT );
-
-    /* generate key */
-    if( PSA_SUCCESS != psa_generate_key( key, type, bits, NULL, 0 ) )
-        return( PK_PSA_INVALID_SLOT );
-
+exit:
     return( key );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -115,6 +114,7 @@ void pk_psa_utils(  )
 {
     mbedtls_pk_context pk, pk2;
     psa_key_handle_t key;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     const char * const name = "Opaque";
     const size_t bitlen = 256; /* harcoded in genkey() */
@@ -123,6 +123,8 @@ void pk_psa_utils(  )
     unsigned char b1[1], b2[1];
     size_t len;
     mbedtls_pk_debug_item dbg;
+
+    PSA_ASSERT( psa_crypto_init( ) );
 
     mbedtls_pk_init( &pk );
     mbedtls_pk_init( &pk2 );
@@ -136,7 +138,8 @@ void pk_psa_utils(  )
     mbedtls_pk_init( &pk );
 
     key = pk_psa_genkey();
-    TEST_ASSERT( key != 0 );
+    if( key == 0 )
+        goto exit;
 
     TEST_ASSERT( mbedtls_pk_setup_opaque( &pk, key ) == 0 );
 
@@ -173,12 +176,13 @@ void pk_psa_utils(  )
 
     /* test that freeing the context does not destroy the key */
     mbedtls_pk_free( &pk );
-    TEST_ASSERT( PSA_SUCCESS == psa_get_key_information( key, NULL, NULL ) );
+    TEST_ASSERT( PSA_SUCCESS == psa_get_key_attributes( key, &attributes ) );
     TEST_ASSERT( PSA_SUCCESS == psa_destroy_key( key ) );
 
 exit:
     mbedtls_pk_free( &pk ); /* redundant except upon error */
     mbedtls_pk_free( &pk2 );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -769,7 +773,7 @@ void pk_ec_test_vec( int type, int id, data_t * key, data_t * hash,
     mbedtls_ecp_keypair *eckey;
 
     mbedtls_pk_init( &pk );
-
+    PSA_INIT( );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
 
@@ -786,6 +790,7 @@ void pk_ec_test_vec( int type, int id, data_t * key, data_t * hash,
 
 exit:
     mbedtls_pk_free( &pk );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -910,6 +915,7 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
 #endif
 
     mbedtls_pk_init( &pk );
+    PSA_INIT( );
 
     memset( hash, 0x2a, sizeof hash );
     memset( sig, 0, sizeof sig );
@@ -961,6 +967,7 @@ exit:
     mbedtls_pk_restart_free( rs_ctx );
 #endif
     mbedtls_pk_free( &pk );
+    PSA_DONE( );
 }
 /* END_CASE */
 
@@ -1216,6 +1223,8 @@ void pk_psa_sign(  )
      * - parse it to a PK context and verify the signature this way
      */
 
+    PSA_ASSERT( psa_crypto_init( ) );
+
     /* Create legacy EC public/private key in PK context. */
     mbedtls_pk_init( &pk );
     TEST_ASSERT( mbedtls_pk_setup( &pk,
@@ -1233,7 +1242,6 @@ void pk_psa_sign(  )
     pkey_legacy_start = pkey_legacy + sizeof( pkey_legacy ) - klen_legacy;
 
     /* Turn PK context into an opaque one. */
-    TEST_ASSERT( psa_allocate_key( &handle ) == PSA_SUCCESS );
     TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &pk, &handle,
                                             PSA_ALG_SHA_256 ) == 0 );
 
@@ -1266,5 +1274,6 @@ void pk_psa_sign(  )
 
 exit:
     mbedtls_pk_free( &pk );
+    PSA_DONE( );
 }
 /* END_CASE */

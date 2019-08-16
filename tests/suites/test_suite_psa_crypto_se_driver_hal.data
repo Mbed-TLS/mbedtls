@@ -1,0 +1,97 @@
+Register SE driver: good
+register_one:2:PSA_DRV_SE_HAL_VERSION:PSA_SUCCESS
+
+# Run this test case a second time to verify that the library deinit
+# unregistered the first driver.
+Register SE driver: good, again
+register_one:2:PSA_DRV_SE_HAL_VERSION:PSA_SUCCESS
+
+Register SE driver: invalid lifetime (0)
+register_one:0:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
+
+Register SE driver: invalid lifetime (VOLATILE)
+register_one:PSA_KEY_LIFETIME_VOLATILE:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
+
+Register SE driver: invalid lifetime (PERSISTENT)
+register_one:PSA_KEY_LIFETIME_PERSISTENT:PSA_DRV_SE_HAL_VERSION:PSA_ERROR_INVALID_ARGUMENT
+
+Register SE driver: invalid version (ancient)
+register_one:2:0x00000003:PSA_ERROR_NOT_SUPPORTED
+
+Register SE driver: invalid version (future)
+register_one:2:PSA_DRV_SE_HAL_VERSION + 1:PSA_ERROR_NOT_SUPPORTED
+
+Register SE driver: already registered
+register_twice:3
+
+Register SE driver: maximum number of drivers
+register_max:
+
+SE key import-export (p_allocate allows all slots)
+key_creation_import_export:0:0
+
+SE key import-export (p_allocate allows 1 slot)
+key_creation_import_export:ARRAY_LENGTH( ram_slots ) - 1:0
+
+SE key import-export, check after restart (slot 0)
+key_creation_import_export:0:1
+
+SE key import-export, check after restart (slot 3)
+key_creation_import_export:3:1
+
+Key creation smoke test: AES-CTR
+key_creation_smoke:PSA_KEY_TYPE_AES:PSA_ALG_CTR:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: AES-CBC
+key_creation_smoke:PSA_KEY_TYPE_AES:PSA_ALG_CBC_NO_PADDING:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: AES-CMAC
+key_creation_smoke:PSA_KEY_TYPE_AES:PSA_ALG_CMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: AES-CCM
+key_creation_smoke:PSA_KEY_TYPE_AES:PSA_ALG_CCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: AES-GCM
+key_creation_smoke:PSA_KEY_TYPE_AES:PSA_ALG_GCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: CAMELLIA-CTR
+key_creation_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_CTR:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: CAMELLIA-CBC
+key_creation_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_CBC_NO_PADDING:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: CAMELLIA-CMAC
+key_creation_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_CMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: CAMELLIA-CCM
+key_creation_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_GCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: CAMELLIA-CCM
+key_creation_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_GCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: HMAC-SHA-256
+key_creation_smoke:PSA_KEY_TYPE_HMAC:PSA_ALG_HMAC( PSA_ALG_SHA_256 ):"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: HKDF-SHA-256
+key_creation_smoke:PSA_KEY_TYPE_DERIVE:PSA_ALG_HKDF( PSA_ALG_SHA_256 ):"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key creation smoke test: RSA PKCS#1v1.5 signature
+key_creation_smoke:PSA_KEY_TYPE_RSA_KEY_PAIR:PSA_ALG_RSA_PKCS1V15_SIGN_RAW:"30818902818100af057d396ee84fb75fdbb5c2b13c7fe5a654aa8aa2470b541ee1feb0b12d25c79711531249e1129628042dbbb6c120d1443524ef4c0e6e1d8956eeb2077af12349ddeee54483bc06c2c61948cd02b202e796aebd94d3a7cbf859c2c1819c324cb82b9cd34ede263a2abffe4733f077869e8660f7d6834da53d690ef7985f6bc30203010001"
+
+Key creation smoke test: RSA PKCS#1v1.5 encryption
+key_creation_smoke:PSA_KEY_TYPE_RSA_KEY_PAIR:PSA_ALG_RSA_PKCS1V15_CRYPT:"30818902818100af057d396ee84fb75fdbb5c2b13c7fe5a654aa8aa2470b541ee1feb0b12d25c79711531249e1129628042dbbb6c120d1443524ef4c0e6e1d8956eeb2077af12349ddeee54483bc06c2c61948cd02b202e796aebd94d3a7cbf859c2c1819c324cb82b9cd34ede263a2abffe4733f077869e8660f7d6834da53d690ef7985f6bc30203010001"
+
+Key creation smoke test: RSA OAEP encryption
+key_creation_smoke:PSA_KEY_TYPE_RSA_KEY_PAIR:PSA_ALG_RSA_OAEP( PSA_ALG_SHA_256 ):"30818902818100af057d396ee84fb75fdbb5c2b13c7fe5a654aa8aa2470b541ee1feb0b12d25c79711531249e1129628042dbbb6c120d1443524ef4c0e6e1d8956eeb2077af12349ddeee54483bc06c2c61948cd02b202e796aebd94d3a7cbf859c2c1819c324cb82b9cd34ede263a2abffe4733f077869e8660f7d6834da53d690ef7985f6bc30203010001"
+
+Key creation smoke test: ECDSA secp256r1
+key_creation_smoke:PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP256R1 ):PSA_ALG_ECDSA_ANY:"49c9a8c18c4b885638c431cf1df1c994131609b580d4fd43a0cab17db2f13eee"
+
+Key creation smoke test: ECDH secp256r1
+key_creation_smoke:PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP256R1 ):PSA_ALG_ECDH:"49c9a8c18c4b885638c431cf1df1c994131609b580d4fd43a0cab17db2f13eee"
+
+Key creation smoke test: ECDH secp256r1 with HKDF
+key_creation_smoke:PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_CURVE_SECP256R1 ):PSA_ALG_KEY_AGREEMENT( PSA_ALG_ECDH, PSA_ALG_HKDF( PSA_ALG_SHA_256 ) ):"49c9a8c18c4b885638c431cf1df1c994131609b580d4fd43a0cab17db2f13eee"
+
+Generate key: not supported
+generate_key_not_supported:PSA_KEY_TYPE_AES:128

@@ -158,17 +158,20 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
 int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_handle_t key )
 {
     const mbedtls_pk_info_t * const info = &mbedtls_pk_opaque_info;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t *pk_ctx;
     psa_key_type_t type;
 
     if( ctx == NULL || ctx->pk_info != NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    if( PSA_SUCCESS != psa_get_key_information( key, &type, NULL ) )
+    if( PSA_SUCCESS != psa_get_key_attributes( key, &attributes ) )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    type = psa_get_key_type( &attributes );
+    psa_reset_key_attributes( &attributes );
 
     /* Current implementation of can_do() relies on this. */
-    if( ! PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) )
+    if( ! PSA_KEY_TYPE_IS_ECC_KEY_PAIR( type ) )
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE) ;
 
     if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
@@ -589,19 +592,18 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
  * Currently only works for EC private keys.
  */
 int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
-                               psa_key_handle_t *slot,
+                               psa_key_handle_t *handle,
                                psa_algorithm_t hash_alg )
 {
 #if !defined(MBEDTLS_ECP_C)
     return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 #else
-    psa_key_handle_t key;
     const mbedtls_ecp_keypair *ec;
     unsigned char d[MBEDTLS_ECP_MAX_BYTES];
     size_t d_len;
     psa_ecc_curve_t curve_id;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t key_type;
-    psa_key_policy_t policy;
     int ret;
 
     /* export the private key material in the format PSA wants */
@@ -614,32 +616,23 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         return( ret );
 
     curve_id = mbedtls_ecp_curve_info_from_grp_id( ec->grp.id )->tls_id;
-    key_type = PSA_KEY_TYPE_ECC_KEYPAIR(
+    key_type = PSA_KEY_TYPE_ECC_KEY_PAIR(
                                  mbedtls_psa_parse_tls_ecc_group ( curve_id ) );
 
-    /* allocate a key slot */
-    if( PSA_SUCCESS != psa_allocate_key( &key ) )
-        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+    /* prepare the key attributes */
+    psa_set_key_type( &attributes, key_type );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN );
+    psa_set_key_algorithm( &attributes, PSA_ALG_ECDSA(hash_alg) );
 
-    /* set policy */
-    policy = psa_key_policy_init();
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN,
-                                       PSA_ALG_ECDSA(hash_alg) );
-    if( PSA_SUCCESS != psa_set_key_policy( key, &policy ) )
+    /* import private key into PSA */
+    if( PSA_SUCCESS != psa_import_key( &attributes, d, d_len, handle ) )
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
-
-    /* import private key in slot */
-    if( PSA_SUCCESS != psa_import_key( key, key_type, d, d_len ) )
-        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
-
-    /* remember slot number to be destroyed later by caller */
-    *slot = key;
 
     /* make PK context wrap the key slot */
     mbedtls_pk_free( pk );
     mbedtls_pk_init( pk );
 
-    return( mbedtls_pk_setup_opaque( pk, key ) );
+    return( mbedtls_pk_setup_opaque( pk, *handle ) );
 #endif /* MBEDTLS_ECP_C */
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

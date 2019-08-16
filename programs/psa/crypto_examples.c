@@ -39,20 +39,6 @@ int main( void )
 }
 #else
 
-static psa_status_t set_key_policy( psa_key_handle_t key_handle,
-                                    psa_key_usage_t key_usage,
-                                    psa_algorithm_t alg )
-{
-    psa_status_t status;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
-
-    psa_key_policy_set_usage( &policy, key_usage, alg );
-    status = psa_set_key_policy( key_handle, &policy );
-    ASSERT_STATUS( status, PSA_SUCCESS );
-exit:
-    return( status );
-}
-
 static psa_status_t cipher_operation( psa_cipher_operation_t *operation,
                                       const uint8_t * input,
                                       size_t input_size,
@@ -161,6 +147,7 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
     const psa_algorithm_t alg = PSA_ALG_CBC_NO_PADDING;
 
     psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t key_handle = 0;
     size_t output_len = 0;
     uint8_t iv[block_size];
@@ -171,16 +158,13 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
     status = psa_generate_random( input, sizeof( input ) );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_allocate_key( &key_handle );
-    ASSERT_STATUS( status, PSA_SUCCESS );
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
+    psa_set_key_bits( &attributes, key_bits );
 
-    status = set_key_policy( key_handle,
-                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT,
-                             alg );
-    ASSERT_STATUS( status, PSA_SUCCESS );
-
-    status = psa_generate_key( key_handle, PSA_KEY_TYPE_AES, key_bits,
-                               NULL, 0 );
+    status = psa_generate_key( &attributes, &key_handle );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
     status = cipher_encrypt( key_handle, alg, iv, sizeof( iv ),
@@ -213,6 +197,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
     const psa_algorithm_t alg = PSA_ALG_CBC_PKCS7;
 
     psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t key_handle = 0;
     size_t output_len = 0;
     uint8_t iv[block_size], input[input_size],
@@ -221,16 +206,13 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
     status = psa_generate_random( input, sizeof( input ) );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_allocate_key( &key_handle );
-    ASSERT_STATUS( status, PSA_SUCCESS );
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
+    psa_set_key_bits( &attributes, key_bits );
 
-    status = set_key_policy( key_handle,
-                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT,
-                             alg );
-    ASSERT_STATUS( status, PSA_SUCCESS );
-
-    status = psa_generate_key( key_handle, PSA_KEY_TYPE_AES, key_bits,
-                               NULL, 0 );
+    status = psa_generate_key( &attributes, &key_handle );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
     status = cipher_encrypt( key_handle, alg, iv, sizeof( iv ),
@@ -262,6 +244,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
     const psa_algorithm_t alg = PSA_ALG_CTR;
 
     psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t key_handle = 0;
     size_t output_len = 0;
     uint8_t iv[block_size], input[input_size], encrypt[input_size],
@@ -270,15 +253,13 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
     status = psa_generate_random( input, sizeof( input ) );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_allocate_key( &key_handle );
-    ASSERT_STATUS( status, PSA_SUCCESS );
-    status = set_key_policy( key_handle,
-                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT,
-                             alg );
-    ASSERT_STATUS( status, PSA_SUCCESS );
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
+    psa_set_key_bits( &attributes, key_bits );
 
-    status = psa_generate_key( key_handle, PSA_KEY_TYPE_AES, key_bits,
-                               NULL, 0 );
+    status = psa_generate_key( &attributes, &key_handle );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
     status = cipher_encrypt( key_handle, alg, iv, sizeof( iv ),

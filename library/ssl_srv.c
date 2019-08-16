@@ -4539,11 +4539,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
             goto exit;
         }
 
-#if !defined(MBEDTLS_MD_SHA1)
-        if( MBEDTLS_MD_SHA1 == md_alg )
-            hash_start += 16;
-#endif
-
         /* Info from md_alg will be used instead */
         hashlen = 0;
 

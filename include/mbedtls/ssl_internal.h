@@ -58,6 +58,12 @@
 #include "tinycrypt/ecc_dh.h"
 #endif
 
+#if defined(__GNUC__) || defined(__arm__)
+#define MBEDTLS_ALWAYS_INLINE __attribute__((always_inline))
+#else
+#define MBEDTLS_ALWAYS_INLINE
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -1177,9 +1183,8 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
  * 1.0 <-> 3.2      (DTLS 1.0 is based on TLS 1.1)
  * 1.x <-> 3.x+1    for x != 0 (DTLS 1.2 based on TLS 1.2)
  */
-static inline void mbedtls_ssl_write_version( int major, int minor,
-                                              int transport,
-                                              unsigned char ver[2] )
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_write_version(
+    int major, int minor, int transport, unsigned char ver[2] )
 {
 #if !defined(MBEDTLS_SSL_TRANSPORT__BOTH)
     ((void) transport);
@@ -1204,9 +1209,8 @@ static inline void mbedtls_ssl_write_version( int major, int minor,
 #endif
 }
 
-static inline void mbedtls_ssl_read_version( int *major, int *minor,
-                                             int transport,
-                                             const unsigned char ver[2] )
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_read_version(
+    int *major, int *minor, int transport, const unsigned char ver[2] )
 {
 #if !defined(MBEDTLS_SSL_TRANSPORT__BOTH)
     ((void) transport);
@@ -1794,12 +1798,6 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
     }
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
-
-#if defined(__GNUC__) || defined(__arm__)
-#define MBEDTLS_ALWAYS_INLINE __attribute__((always_inline))
-#else
-#define MBEDTLS_ALWAYS_INLINE
-#endif
 
 /* This internal function can be used to pend a fatal alert for
  * later delivery.

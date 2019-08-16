@@ -1,11 +1,17 @@
 SE key importing mock test
-mock_import:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS
+mock_import:PSA_SUCCESS:PSA_SUCCESS:0:PSA_SUCCESS
+
+SE key importing mock test: max key bits
+mock_import:PSA_SUCCESS:PSA_SUCCESS:PSA_MAX_KEY_BITS:PSA_SUCCESS
+
+SE key importing mock test: more than max key bits
+mock_import:PSA_SUCCESS:PSA_ERROR_NOT_SUPPORTED:PSA_MAX_KEY_BITS+1:PSA_ERROR_NOT_SUPPORTED
 
 SE key importing mock test: alloc failed
-mock_import:PSA_ERROR_HARDWARE_FAILURE:PSA_SUCCESS:PSA_ERROR_HARDWARE_FAILURE
+mock_import:PSA_ERROR_HARDWARE_FAILURE:PSA_SUCCESS:0:PSA_ERROR_HARDWARE_FAILURE
 
 SE key importing mock test: import failed
-mock_import:PSA_SUCCESS:PSA_ERROR_HARDWARE_FAILURE:PSA_ERROR_HARDWARE_FAILURE
+mock_import:PSA_SUCCESS:PSA_ERROR_HARDWARE_FAILURE:0:PSA_ERROR_HARDWARE_FAILURE
 
 SE key exporting mock test
 mock_export:PSA_SUCCESS:PSA_SUCCESS

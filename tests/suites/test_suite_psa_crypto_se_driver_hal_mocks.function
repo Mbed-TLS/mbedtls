@@ -19,6 +19,7 @@ static struct
     uint16_t called;
     psa_key_slot_number_t key_slot;
     psa_key_attributes_t attributes;
+    size_t bits;
     size_t data_length;
     psa_status_t return_value;
 } mock_import_data;
@@ -130,7 +131,8 @@ static psa_status_t mock_import( psa_drv_se_context_t *drv_context,
 {
     (void) drv_context;
     (void) data;
-    (void) bits;
+
+    *bits = mock_import_data.bits;
 
     mock_import_data.called++;
     mock_import_data.key_slot = key_slot;
@@ -259,6 +261,7 @@ psa_status_t mock_destroy( psa_drv_se_context_t *context,
 /* BEGIN_CASE */
 void mock_import( int mock_alloc_return_value,
                   int mock_import_return_value,
+                  int bits,
                   int expected_result )
 {
     psa_drv_se_t driver;
@@ -271,6 +274,7 @@ void mock_import( int mock_alloc_return_value,
 
     mock_allocate_data.return_value = mock_alloc_return_value;
     mock_import_data.return_value = mock_import_return_value;
+    mock_import_data.bits = bits;
     memset( &driver, 0, sizeof( driver ) );
     memset( &key_management, 0, sizeof( key_management ) );
     driver.hal_version = PSA_DRV_SE_HAL_VERSION;

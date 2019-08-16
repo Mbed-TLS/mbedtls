@@ -81,7 +81,7 @@ done
 
 printf "Likely typos: "
 sort -u actual-macros enum-consts > _caps
-HEADERS=$( ls include/mbedtls/*.h | egrep -v 'compat-1\.3\.h' )
+HEADERS=$( ls include/mbedtls/*.h crypto/include/mbedtls/*.h | egrep -v 'compat-1\.3\.h' )
 NL='
 '
 sed -n 's/MBED..._[A-Z0-9_]*/\'"$NL"'&\'"$NL"/gp \

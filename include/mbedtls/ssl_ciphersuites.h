@@ -25,14 +25,14 @@
 #define MBEDTLS_SSL_CIPHERSUITES_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "pk.h"
-#include "cipher.h"
-#include "md.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/cipher.h"
+#include "mbedtls/md.h"
 
 #ifdef __cplusplus
 extern "C" {

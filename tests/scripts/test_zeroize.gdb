@@ -43,7 +43,13 @@
 set confirm off
 
 file ./programs/test/zeroize
-break zeroize.c:100
+
+# Set breakpoint at the one line after the call to mbedtls_platform_zeroize()
+shell echo set \$zeroize_line = $(grep -n "mbedtls_platform_zeroize( buf, sizeof( buf ) )" ./programs/test/zeroize.c | cut -d: -f1) > zeroize_line.tmp
+source zeroize_line.tmp
+set $break_line = $zeroize_line + 1
+break zeroize.c:$break_line
+shell rm zeroize_line.tmp
 
 set args ./programs/test/zeroize.c
 run

@@ -1200,7 +1200,15 @@ static inline int ssl_calc_finished( int minor_ver,
  *        - MBEDTLS_SSL_EXPORT_KEYS: ssl->conf->{f,p}_export_keys
  *        - MBEDTLS_DEBUG_C: ssl->conf->{f,p}_dbg
  */
-static int ssl_populate_transform( mbedtls_ssl_transform *transform,
+/* Force compilers to inline this function if it's used only
+ * from one place, because at least ARMC5 doesn't do that
+ * automatically. */
+#if !defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+MBEDTLS_ALWAYS_INLINE static inline
+#else
+static
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                    int ciphersuite,
                                    const unsigned char master[48],
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)

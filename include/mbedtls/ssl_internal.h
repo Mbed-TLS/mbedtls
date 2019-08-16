@@ -60,8 +60,10 @@
 
 #if defined(__GNUC__) || defined(__arm__)
 #define MBEDTLS_ALWAYS_INLINE __attribute__((always_inline))
+#define MBEDTLS_NO_INLINE __attribute__((noinline))
 #else
 #define MBEDTLS_ALWAYS_INLINE
+#define MBEDTLS_NO_INLINE
 #endif
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \

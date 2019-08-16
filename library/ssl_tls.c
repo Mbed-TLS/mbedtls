@@ -589,7 +589,7 @@ int (*mbedtls_ssl_hw_record_finish)( mbedtls_ssl_context *ssl ) = NULL;
  * Key material generation
  */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-static int ssl3_prf( const unsigned char *secret, size_t slen,
+MBEDTLS_NO_INLINE static int ssl3_prf( const unsigned char *secret, size_t slen,
                      const char *label,
                      const unsigned char *random, size_t rlen,
                      unsigned char *dstbuf, size_t dlen )
@@ -650,7 +650,7 @@ exit:
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-static int tls1_prf( const unsigned char *secret, size_t slen,
+MBEDTLS_NO_INLINE static int tls1_prf( const unsigned char *secret, size_t slen,
                      const char *label,
                      const unsigned char *random, size_t rlen,
                      unsigned char *dstbuf, size_t dlen )
@@ -812,7 +812,8 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 }
 
 #if defined(MBEDTLS_SHA256_C)
-static int tls_prf_sha256( const unsigned char *secret, size_t slen,
+MBEDTLS_NO_INLINE static int tls_prf_sha256(
+                           const unsigned char *secret, size_t slen,
                            const char *label,
                            const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen )
@@ -823,7 +824,8 @@ static int tls_prf_sha256( const unsigned char *secret, size_t slen,
 #endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA512_C)
-static int tls_prf_sha384( const unsigned char *secret, size_t slen,
+MBEDTLS_NO_INLINE static int tls_prf_sha384(
+                           const unsigned char *secret, size_t slen,
                            const char *label,
                            const unsigned char *random, size_t rlen,
                            unsigned char *dstbuf, size_t dlen )
@@ -837,8 +839,7 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 /*
  * Call the appropriate PRF function
  */
-MBEDTLS_ALWAYS_INLINE
-static inline int ssl_prf( int minor_ver,
+MBEDTLS_ALWAYS_INLINE static inline int ssl_prf( int minor_ver,
                     mbedtls_md_type_t hash,
                     const unsigned char *secret, size_t slen,
                     const char *label,
@@ -882,7 +883,7 @@ static inline int ssl_prf( int minor_ver,
 }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-static void ssl_calc_finished_ssl(
+MBEDTLS_NO_INLINE static void ssl_calc_finished_ssl(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     const char *sender;
@@ -967,7 +968,7 @@ static void ssl_calc_finished_ssl(
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-static void ssl_calc_finished_tls(
+MBEDTLS_NO_INLINE static void ssl_calc_finished_tls(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
@@ -1031,7 +1032,7 @@ static void ssl_calc_finished_tls(
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
-static void ssl_calc_finished_tls_sha256(
+MBEDTLS_NO_INLINE static void ssl_calc_finished_tls_sha256(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
@@ -1084,7 +1085,7 @@ static void ssl_calc_finished_tls_sha256(
 #endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA512_C)
-static void ssl_calc_finished_tls_sha384(
+MBEDTLS_NO_INLINE static void ssl_calc_finished_tls_sha384(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
 {
     int len = 12;
@@ -1137,8 +1138,8 @@ static void ssl_calc_finished_tls_sha384(
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-MBEDTLS_ALWAYS_INLINE
-static inline int ssl_calc_finished( int minor_ver,
+MBEDTLS_ALWAYS_INLINE static inline int ssl_calc_finished(
+                                     int minor_ver,
                                      mbedtls_md_type_t hash,
                                      mbedtls_ssl_context *ssl,
                                      unsigned char *buf,

@@ -25,15 +25,15 @@
 #define MBEDTLS_DEBUG_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "ssl.h"
+#include "mbedtls/ssl.h"
 
 #if defined(MBEDTLS_ECP_C)
-#include "ecp.h"
+#include "mbedtls/ecp.h"
 #endif
 
 #if defined(MBEDTLS_DEBUG_C)

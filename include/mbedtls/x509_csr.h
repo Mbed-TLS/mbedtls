@@ -25,12 +25,12 @@
 #define MBEDTLS_X509_CSR_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
+#include "mbedtls/config.h"
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "x509.h"
+#include "mbedtls/x509.h"
 
 #ifdef __cplusplus
 extern "C" {

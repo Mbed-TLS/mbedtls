@@ -214,6 +214,8 @@ typedef struct mbedtls_x509write_cert
 mbedtls_x509write_cert;
 #endif /* MBEDTLS_X509_CRT_WRITE_C */
 
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+
 /**
  * Item in a verification chain: cert and flags for it
  */
@@ -235,6 +237,16 @@ typedef struct
     mbedtls_x509_crt_verify_chain_item items[MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE];
     unsigned len;
 } mbedtls_x509_crt_verify_chain;
+
+#else /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+
+typedef struct
+{
+    unsigned len;
+    uint32_t flags;
+} mbedtls_x509_crt_verify_chain;
+
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 

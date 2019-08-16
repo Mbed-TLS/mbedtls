@@ -3185,6 +3185,8 @@ static int x509_crt_check_ee_locally_trusted(
     return( -1 );
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+
 /*
  * Reset (init or clear) a verify_chain
  */
@@ -3260,6 +3262,62 @@ static unsigned x509_crt_verify_chain_len(
 {
     return( chain->len );
 }
+
+#else
+
+/*
+ * Reset (init or clear) a verify_chain
+ */
+static void x509_crt_verify_chain_reset(
+    mbedtls_x509_crt_verify_chain *ver_chain )
+{
+    ver_chain->len   = 0;
+    ver_chain->flags = 0;
+}
+
+/*
+ * Merge the flags for all certs in the chain, after calling callback
+ */
+static int x509_crt_verify_chain_get_flags(
+           const mbedtls_x509_crt_verify_chain *ver_chain,
+           uint32_t *flags,
+           int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+           void *p_vrfy )
+{
+    ((void) f_vrfy);
+    ((void) p_vrfy);
+    *flags = ver_chain->flags;
+    return( 0 );
+}
+
+static void x509_crt_verify_chain_add_ee_flags(
+    mbedtls_x509_crt_verify_chain *chain,
+    uint32_t ee_flags )
+{
+    chain->flags |= ee_flags;
+}
+
+static void x509_crt_verify_chain_add_crt(
+    mbedtls_x509_crt_verify_chain *chain,
+    mbedtls_x509_crt *crt )
+{
+    ((void) crt);
+    chain->len++;
+}
+
+static uint32_t* x509_crt_verify_chain_get_cur_flags(
+    mbedtls_x509_crt_verify_chain *chain )
+{
+    return( &chain->flags );
+}
+
+static unsigned x509_crt_verify_chain_len(
+    mbedtls_x509_crt_verify_chain const *chain )
+{
+    return( chain->len );
+}
+
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 /*
  * Build and verify a certificate chain

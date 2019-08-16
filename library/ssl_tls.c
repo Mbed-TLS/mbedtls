@@ -748,7 +748,12 @@ MBEDTLS_NO_INLINE static int tls1_prf( const unsigned char *secret, size_t slen,
 #endif /* MBEDTLS_SSL_PROTO_TLS1) || MBEDTLS_SSL_PROTO_TLS1_1 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-static int tls_prf_generic( mbedtls_md_type_t md_type,
+#if !( defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_SHA512_C) )
+MBEDTLS_ALWAYS_INLINE static inline
+#else
+static
+#endif
+int tls_prf_generic( mbedtls_md_type_t md_type,
                             const unsigned char *secret, size_t slen,
                             const char *label,
                             const unsigned char *random, size_t rlen,

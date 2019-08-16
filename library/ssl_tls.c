@@ -835,23 +835,19 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
-static void ssl_calc_verify_ssl( const mbedtls_ssl_context *, unsigned char *, size_t * );
 static void ssl_calc_finished_ssl( mbedtls_ssl_context *, unsigned char *, int );
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-static void ssl_calc_verify_tls( const mbedtls_ssl_context *, unsigned char *, size_t * );
 static void ssl_calc_finished_tls( mbedtls_ssl_context *, unsigned char *, int );
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
-static void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *,unsigned char *, size_t * );
 static void ssl_calc_finished_tls_sha256( mbedtls_ssl_context *,unsigned char *, int );
 #endif
 
 #if defined(MBEDTLS_SHA512_C)
-static void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *, unsigned char *, size_t * );
 static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *, int );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -1359,6 +1355,142 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+static inline void ssl_calc_verify_ssl( const mbedtls_ssl_context *ssl,
+                                        unsigned char hash[36],
+                                        size_t *hlen )
+{
+    mbedtls_md5_context md5;
+    mbedtls_sha1_context sha1;
+    unsigned char pad_1[48];
+    unsigned char pad_2[48];
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify ssl" ) );
+
+    mbedtls_md5_init( &md5 );
+    mbedtls_sha1_init( &sha1 );
+
+    mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
+    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
+
+    memset( pad_1, 0x36, 48 );
+    memset( pad_2, 0x5C, 48 );
+
+    mbedtls_md5_update_ret( &md5, ssl->session_negotiate->master, 48 );
+    mbedtls_md5_update_ret( &md5, pad_1, 48 );
+    mbedtls_md5_finish_ret( &md5, hash );
+
+    mbedtls_md5_starts_ret( &md5 );
+    mbedtls_md5_update_ret( &md5, ssl->session_negotiate->master, 48 );
+    mbedtls_md5_update_ret( &md5, pad_2, 48 );
+    mbedtls_md5_update_ret( &md5, hash,  16 );
+    mbedtls_md5_finish_ret( &md5, hash );
+
+    mbedtls_sha1_update_ret( &sha1, ssl->session_negotiate->master, 48 );
+    mbedtls_sha1_update_ret( &sha1, pad_1, 40 );
+    mbedtls_sha1_finish_ret( &sha1, hash + 16 );
+
+    mbedtls_sha1_starts_ret( &sha1 );
+    mbedtls_sha1_update_ret( &sha1, ssl->session_negotiate->master, 48 );
+    mbedtls_sha1_update_ret( &sha1, pad_2, 40 );
+    mbedtls_sha1_update_ret( &sha1, hash + 16, 20 );
+    mbedtls_sha1_finish_ret( &sha1, hash + 16 );
+
+    *hlen = 36;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+
+    mbedtls_md5_free(  &md5  );
+    mbedtls_sha1_free( &sha1 );
+
+    return;
+}
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
+static inline void ssl_calc_verify_tls( const mbedtls_ssl_context *ssl,
+                                        unsigned char hash[36],
+                                        size_t *hlen )
+{
+    mbedtls_md5_context md5;
+    mbedtls_sha1_context sha1;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify tls" ) );
+
+    mbedtls_md5_init( &md5 );
+    mbedtls_sha1_init( &sha1 );
+
+    mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
+    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
+
+     mbedtls_md5_finish_ret( &md5,  hash );
+    mbedtls_sha1_finish_ret( &sha1, hash + 16 );
+
+    *hlen = 36;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+
+    mbedtls_md5_free(  &md5  );
+    mbedtls_sha1_free( &sha1 );
+
+    return;
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+static inline void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *ssl,
+                                               unsigned char hash[32],
+                                               size_t *hlen )
+{
+    mbedtls_sha256_context sha256;
+
+    mbedtls_sha256_init( &sha256 );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha256" ) );
+
+    mbedtls_sha256_clone( &sha256, &ssl->handshake->fin_sha256 );
+    mbedtls_sha256_finish_ret( &sha256, hash );
+
+    *hlen = 32;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+
+    mbedtls_sha256_free( &sha256 );
+
+    return;
+}
+#endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA512_C)
+static inline void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
+                                               unsigned char hash[48],
+                                               size_t *hlen )
+{
+    mbedtls_sha512_context sha512;
+
+    mbedtls_sha512_init( &sha512 );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
+
+    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
+    mbedtls_sha512_finish_ret( &sha512, hash );
+
+    *hlen = 48;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+
+    mbedtls_sha512_free( &sha512 );
+
+    return;
+}
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
 int mbedtls_ssl_calc_verify( int minor_ver,
                              mbedtls_md_type_t hash,
                              mbedtls_ssl_context const *ssl,
@@ -1558,142 +1690,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-void ssl_calc_verify_ssl( const mbedtls_ssl_context *ssl,
-                          unsigned char hash[36],
-                          size_t *hlen )
-{
-    mbedtls_md5_context md5;
-    mbedtls_sha1_context sha1;
-    unsigned char pad_1[48];
-    unsigned char pad_2[48];
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify ssl" ) );
-
-    mbedtls_md5_init( &md5 );
-    mbedtls_sha1_init( &sha1 );
-
-    mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
-    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
-
-    memset( pad_1, 0x36, 48 );
-    memset( pad_2, 0x5C, 48 );
-
-    mbedtls_md5_update_ret( &md5, ssl->session_negotiate->master, 48 );
-    mbedtls_md5_update_ret( &md5, pad_1, 48 );
-    mbedtls_md5_finish_ret( &md5, hash );
-
-    mbedtls_md5_starts_ret( &md5 );
-    mbedtls_md5_update_ret( &md5, ssl->session_negotiate->master, 48 );
-    mbedtls_md5_update_ret( &md5, pad_2, 48 );
-    mbedtls_md5_update_ret( &md5, hash,  16 );
-    mbedtls_md5_finish_ret( &md5, hash );
-
-    mbedtls_sha1_update_ret( &sha1, ssl->session_negotiate->master, 48 );
-    mbedtls_sha1_update_ret( &sha1, pad_1, 40 );
-    mbedtls_sha1_finish_ret( &sha1, hash + 16 );
-
-    mbedtls_sha1_starts_ret( &sha1 );
-    mbedtls_sha1_update_ret( &sha1, ssl->session_negotiate->master, 48 );
-    mbedtls_sha1_update_ret( &sha1, pad_2, 40 );
-    mbedtls_sha1_update_ret( &sha1, hash + 16, 20 );
-    mbedtls_sha1_finish_ret( &sha1, hash + 16 );
-
-    *hlen = 36;
-
-    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
-
-    mbedtls_md5_free(  &md5  );
-    mbedtls_sha1_free( &sha1 );
-
-    return;
-}
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1)
-void ssl_calc_verify_tls( const mbedtls_ssl_context *ssl,
-                          unsigned char hash[36],
-                          size_t *hlen )
-{
-    mbedtls_md5_context md5;
-    mbedtls_sha1_context sha1;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify tls" ) );
-
-    mbedtls_md5_init( &md5 );
-    mbedtls_sha1_init( &sha1 );
-
-    mbedtls_md5_clone( &md5, &ssl->handshake->fin_md5 );
-    mbedtls_sha1_clone( &sha1, &ssl->handshake->fin_sha1 );
-
-     mbedtls_md5_finish_ret( &md5,  hash );
-    mbedtls_sha1_finish_ret( &sha1, hash + 16 );
-
-    *hlen = 36;
-
-    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
-
-    mbedtls_md5_free(  &md5  );
-    mbedtls_sha1_free( &sha1 );
-
-    return;
-}
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_SHA256_C)
-void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *ssl,
-                                 unsigned char hash[32],
-                                 size_t *hlen )
-{
-    mbedtls_sha256_context sha256;
-
-    mbedtls_sha256_init( &sha256 );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha256" ) );
-
-    mbedtls_sha256_clone( &sha256, &ssl->handshake->fin_sha256 );
-    mbedtls_sha256_finish_ret( &sha256, hash );
-
-    *hlen = 32;
-
-    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
-
-    mbedtls_sha256_free( &sha256 );
-
-    return;
-}
-#endif /* MBEDTLS_SHA256_C */
-
-#if defined(MBEDTLS_SHA512_C)
-void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
-                                 unsigned char hash[48],
-                                 size_t *hlen )
-{
-    mbedtls_sha512_context sha512;
-
-    mbedtls_sha512_init( &sha512 );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
-
-    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
-    mbedtls_sha512_finish_ret( &sha512, hash );
-
-    *hlen = 48;
-
-    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
-
-    mbedtls_sha512_free( &sha512 );
-
-    return;
-}
-#endif /* MBEDTLS_SHA512_C */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
 {

@@ -1353,7 +1353,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     unsigned char w, m_is_odd, p_eq_g, pre_len, i;
     size_t d;
     unsigned char k[COMB_MAX_D + 1];

@@ -250,7 +250,7 @@ int main( void )
         goto exit;
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     if( mbedtls_ssl_set_hostname( &ssl, HOSTNAME ) != 0 )
     {
         ret = hostname_failed;

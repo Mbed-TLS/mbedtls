@@ -222,12 +222,13 @@ int main( int argc, char *argv[] )
         mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned %d\n\n", ret );
         goto exit;
     }
-
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     if( ( ret = mbedtls_ssl_set_hostname( &ssl, SERVER_NAME ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
         goto exit;
     }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 #if !defined(MBEDTLS_SSL_CONF_RECV) && \
     !defined(MBEDTLS_SSL_CONF_SEND) && \

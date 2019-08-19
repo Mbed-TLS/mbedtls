@@ -402,7 +402,7 @@ void ssl_dtls_replay( data_t * prevs, data_t * new, int ret )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 void ssl_set_hostname_twice( char *hostname0, char *hostname1 )
 {
     mbedtls_ssl_context ssl;

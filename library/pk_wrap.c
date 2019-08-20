@@ -34,8 +34,8 @@
 #include <string.h>
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-#include "mbedtls/ecc.h"
-#include "mbedtls/ecc_dsa.h"
+#include "tinycrypt/ecc.h"
+#include "tinycrypt/ecc_dsa.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
 #else

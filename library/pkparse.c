@@ -53,7 +53,7 @@
 #include "mbedtls/pkcs12.h"
 #endif
 #if defined(MBEDTLS_USE_TINYCRYPT)
-#include "mbedtls/ecc.h"
+#include "tinycrypt/ecc.h"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)

@@ -46,7 +46,7 @@
 #endif
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-#include "ecc.h"
+#include "tinycrypt/ecc.h"
 #endif
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \

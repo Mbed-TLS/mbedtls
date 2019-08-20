@@ -548,6 +548,7 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     uint8_t signature[2*NUM_ECC_BYTES];
     unsigned char *p;
     const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
 
     ((void) md_alg);
     p = (unsigned char*) sig;
@@ -556,12 +557,12 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( ret != 0 )
         return( ret );
 
-    ret = uECC_verify( (uint8_t *) ctx, hash,
+    ret = uECC_verify( keypair->public_key, hash,
                        (unsigned) hash_len, signature, uecc_curve );
-    if( ret != 0 )
-        return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+    if( ret == 0 )
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
-    return( ret );
+    return( 0 );
 }
 
 /*

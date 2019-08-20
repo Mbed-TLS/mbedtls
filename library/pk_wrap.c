@@ -531,7 +531,7 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
 static size_t uecc_eckey_get_bitlen( const void *ctx )
 {
     (void) ctx;
-    return( (size_t) 2 * NUM_ECC_BYTES );
+    return( (size_t) ( NUM_ECC_BYTES * 8 ) );
 }
 
 static int uecc_eckey_can_do( mbedtls_pk_type_t type )

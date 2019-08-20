@@ -48,7 +48,8 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT) || \
+    defined(MBEDTLS_USE_TINYCRYPT)
 #include "mbedtls/platform_util.h"
 #endif
 
@@ -684,20 +685,16 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
 static void *uecc_eckey_alloc_wrap( void )
 {
-    /*void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecdsa_context ) );
-
-    if( ctx != NULL )
-        mbedtls_ecdsa_init( (mbedtls_ecdsa_context *) ctx );
-
-    return( ctx );*/
-    return NULL;
+    return( mbedtls_calloc( 1, sizeof( mbedtls_uecc_keypair ) ) );
 }
 
 static void uecc_eckey_free_wrap( void *ctx )
 {
-    (void) ctx;
-    /*mbedtls_ecdsa_free( (mbedtls_ecdsa_context *) ctx );
-    mbedtls_free( ctx );*/
+    if( ctx == NULL )
+        return;
+
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_uecc_keypair ) );
+    mbedtls_free( ctx );
 }
 
 const mbedtls_pk_info_t mbedtls_uecc_eckey_info = {

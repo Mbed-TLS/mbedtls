@@ -585,7 +585,7 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
 
     /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
      * Neither r nor s should be 0, but as a failsafe measure, still detect
-     * that rather than overflowing the buffer in case of a PSA error. */
+     * that rather than overflowing the buffer in case of an error. */
     while( len > 0 && **p == 0x00 )
     {
         ++(*p);
@@ -622,8 +622,8 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
  * [in/out] sig_len: signature length pre- and post-transcoding
  * [int] buf_len: the available size the in/out buffer
  */
-static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
-                                       size_t buf_len )
+static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
+                                        size_t buf_len )
 {
     int ret;
     size_t len = 0;
@@ -658,7 +658,7 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     (void) p_rng;
     (void) md_alg;
 
-    return( pk_ecdsa_sig_asn1_from_psa( sig, sig_len, 2*NUM_ECC_BYTES ) );
+    return( pk_ecdsa_sig_asn1_from_uecc( sig, sig_len, 2*NUM_ECC_BYTES ) );
 }
 
 static void *uecc_eckey_alloc_wrap( void )

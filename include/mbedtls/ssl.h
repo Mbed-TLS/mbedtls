@@ -3904,8 +3904,8 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  * \param ssl      The SSL context to save. On success, it is no longer
  *                 associated with the connection that has been serialized.
  * \param buf      The buffer to write the serialized data to. It must be a
- *                 writeable buffer of at least \p len bytes, or may be \c
- *                 NULL if \p len is \c 0.
+ *                 writeable buffer of at least \p buf_len bytes, or may be \c
+ *                 NULL if \p buf_len is \c 0.
  * \param buf_len  The number of bytes available for writing in \p buf.
  * \param olen     The size in bytes of the data that has been or would have
  *                 been written. It must point to a valid \c size_t.

@@ -120,6 +120,7 @@ typedef uint32_t psa_key_lifetime_t;
  * psa_key_id_t in crypto_platform.h instead of here. */
 #if !defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
 typedef uint32_t psa_key_id_t;
+#define PSA_KEY_ID_INIT 0
 #endif
 
 /**@}*/

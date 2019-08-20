@@ -28,6 +28,10 @@
 #include <setjmp.h>
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc.h"
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT8 uint8_t;
@@ -544,6 +548,18 @@ static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len )
 
     return( 0 );
 }
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
+{
+    int ret;
+    ret = rnd_std_rand( NULL, dest, size );
+    if( ret == 0 )
+        return( (int) size );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 /**
  * This function only returns zeros

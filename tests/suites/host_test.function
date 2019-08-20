@@ -410,6 +410,10 @@ int execute_tests( int argc , const char ** argv )
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof( alloc_buf ) );
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    uECC_set_rng( &uecc_rng_wrapper );
+#endif
+
     /*
      * The C standard doesn't guarantee that all-bits-0 is the representation
      * of a NULL pointer. We do however use that in our code for initializing

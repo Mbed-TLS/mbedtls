@@ -379,7 +379,7 @@ typedef struct
     psa_key_attributes_flag_t flags;
 } psa_core_key_attributes_t;
 
-#define PSA_CORE_KEY_ATTRIBUTES_INIT {0, 0, 0, {0, 0, 0}, 0, 0}
+#define PSA_CORE_KEY_ATTRIBUTES_INIT {0, 0, 0, PSA_KEY_POLICY_INIT, 0, 0}
 
 struct psa_key_attributes_s
 {

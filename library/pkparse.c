@@ -716,7 +716,7 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
         return( ret );
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-    if( pk_alg == MBEDTLS_PK_ECDSA )
+    if( pk_alg == MBEDTLS_PK_ECKEY )
     {
         ret = pk_get_ueccpubkey( p, end, (uint8_t*) pk->pk_ctx );
     } else
@@ -1204,7 +1204,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     } else
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_USE_TINYCRYPT)
-    if( pk_alg == MBEDTLS_PK_ECDSA)
+    if( pk_alg == MBEDTLS_PK_ECKEY )
     {
         if( ( ret = pk_use_ecparams( &params ) ) != 0 ||
             ( ret = pk_parse_key_sec1_der( mbedtls_uecc_pk( *pk ), p, len ) ) != 0)

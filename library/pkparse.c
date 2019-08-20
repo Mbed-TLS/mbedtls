@@ -547,8 +547,8 @@ static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
 /*
  * Import a point from unsigned binary data (SEC1 2.3.4)
  */
-static int uecc_public_key_read_binary( uint8_t *pt,
-                                   const unsigned char *buf, size_t ilen )
+static int uecc_public_key_read_binary( mbedtls_uecc_keypair *uecc_keypair,
+                                        const unsigned char *buf, size_t ilen )
 {
     if( ilen != 2 * NUM_ECC_BYTES + 1 )
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
@@ -558,7 +558,7 @@ static int uecc_public_key_read_binary( uint8_t *pt,
     if( buf[0] != 0x04 )
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
-    memcpy( pt, buf + 1, ilen - 1);
+    memcpy( uecc_keypair->public_key, buf + 1, 2 * NUM_ECC_BYTES );
 
     return( 0 );
 }
@@ -567,10 +567,11 @@ static int pk_get_ueccpubkey( unsigned char **p,
                            const unsigned char *end,
                            uint8_t *pk_context)
 {
+    mbedtls_uecc_keypair *uecc_keypair = (mbedtls_uecc_keypair *) pk_context;
     int ret;
 
-    ret = uecc_public_key_read_binary( pk_context,
-                    (const unsigned char *) *p, end - *p );
+    ret = uecc_public_key_read_binary( uecc_keypair,
+                                       (const unsigned char *) *p, end - *p );
 
     /*
      * We know uecc_public_key_read_binary consumed all bytes or failed
@@ -956,7 +957,7 @@ static int pk_parse_key_sec1_der( mbedtls_uecc_keypair *keypair,
                 return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT +
                         MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
-            if( ( ret = uecc_public_key_read_binary( keypair->public_key,
+            if( ( ret = uecc_public_key_read_binary( keypair,
                             (const unsigned char *) p, end2 - p ) ) == 0 )
             {
                 pubkey_done = 1;

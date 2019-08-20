@@ -554,7 +554,7 @@ static int uecc_public_key_read_binary( uint8_t *pt,
     if( ilen < 1 )
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
 
-    //We are not handling the infinity point right now
+    /* We are not handling the point at infinity. */
 
     if( buf[0] != 0x04 )
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
@@ -917,7 +917,7 @@ static int pk_parse_key_sec1_der( mbedtls_uecc_keypair *keypair,
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
 
-    memcpy(keypair->private_key, p, len);
+    memcpy( keypair->private_key, p, len );
 
     p += len;
 
@@ -960,9 +960,11 @@ static int pk_parse_key_sec1_der( mbedtls_uecc_keypair *keypair,
                 return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT +
                         MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
-            if( ( ret = uecc_public_key_read_binary( keypair->public_key, 
+            if( ( ret = uecc_public_key_read_binary( keypair->public_key,
                             (const unsigned char *) p, end2 - p ) ) == 0 )
+            {
                 pubkey_done = 1;
+            }
             else
             {
                 /*

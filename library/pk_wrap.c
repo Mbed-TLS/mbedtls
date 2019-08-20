@@ -475,6 +475,11 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
+
+/*
+ * An ASN.1 encoded signature is a sequence of two ASN.1 integers. Parse one of
+ * those integers and convert it to the fixed-length encoding.
+ */
 static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end,
                                   unsigned char *to, size_t to_len )
 {

@@ -251,9 +251,9 @@ typedef struct mbedtls_psa_stats_s
     /** Number of slots that are not used for anything. */
     size_t empty_slots;
     /** Largest key id value among open keys in internal persistent storage. */
-    psa_key_id_t max_open_internal_key_id;
+    psa_app_key_id_t max_open_internal_key_id;
     /** Largest key id value among open keys in secure elements. */
-    psa_key_id_t max_open_external_key_id;
+    psa_app_key_id_t max_open_external_key_id;
 } mbedtls_psa_stats_t;
 
 /** \brief Get statistics about

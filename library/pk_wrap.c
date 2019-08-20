@@ -653,15 +653,32 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 {
     const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
     const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
-    
-    uECC_sign(keypair->private_key, hash, hash_len, sig, uecc_curve);
+
+    /*
+     * RFC-4492 page 20:
+     *
+     *     Ecdsa-Sig-Value ::= SEQUENCE {
+     *         r       INTEGER,
+     *         s       INTEGER
+     *     }
+     *
+     * Size is at most
+     *    1 (tag) + 1 (len) + 1 (initial 0) + NUM_ECC_BYTES for each of r and s,
+     *    twice that + 1 (tag) + 2 (len) for the sequence
+     * (assuming NUM_ECC_BYTES is less than 126 for r and s,
+     * and less than 124 (total len <= 255) for the sequence)
+     */
+    const size_t max_secp256r1_ecdsa_sig_len = 3 + 2 * ( 3 + NUM_ECC_BYTES );
+
+    uECC_sign( keypair->private_key, hash, hash_len, sig, uecc_curve );
+    *sig_len = 2 * NUM_ECC_BYTES;
 
     /* uECC owns its rng function pointer */
     (void) f_rng;
     (void) p_rng;
     (void) md_alg;
 
-    return( pk_ecdsa_sig_asn1_from_uecc( sig, sig_len, 2*NUM_ECC_BYTES ) );
+    return( pk_ecdsa_sig_asn1_from_uecc( sig, sig_len, max_secp256r1_ecdsa_sig_len ) );
 }
 
 static void *uecc_eckey_alloc_wrap( void )

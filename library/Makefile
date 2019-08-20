@@ -80,9 +80,11 @@ OBJS_TLS=	debug.o		net_sockets.o		\
 		ssl_srv.o	ssl_ticket.o		\
 		ssl_tls.o
 
-include ../3rdparty/Makefile.inc
-LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
-OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
+INCLUDING_FROM_MBEDTLS:=1
+include ../crypto/3rdparty/Makefile.inc
+LOCAL_CFLAGS += $(patsubst -I../3rdparty/%, -I../crypto/3rdparty/%, $(THIRDPARTY_INCLUDES))
+OBJS_CRYPTO  += $(patsubst ../3rdparty/%, ../crypto/3rdparty/%, $(THIRDPARTY_CRYPTO_OBJECTS))
+
 
 .SILENT:
 

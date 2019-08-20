@@ -550,17 +550,13 @@ static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
 static int uecc_public_key_read_binary( uint8_t *pt,
                                    const unsigned char *buf, size_t ilen )
 {
-
-    if( ilen < 1 )
+    if( ilen != 2 * NUM_ECC_BYTES + 1 )
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
 
     /* We are not handling the point at infinity. */
 
     if( buf[0] != 0x04 )
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-
-    if( ilen != 2 * NUM_ECC_BYTES + 1 )
-        return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
 
     memcpy( pt, buf + 1, ilen - 1);
 

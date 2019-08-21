@@ -535,6 +535,23 @@ static size_t uecc_eckey_get_bitlen( const void *ctx )
     return( (size_t) ( NUM_ECC_BYTES * 8 ) );
 }
 
+static int uecc_eckey_check_pair( const void *pub, const void *prv )
+{
+    const mbedtls_uecc_keypair *uecc_pub =
+        (const mbedtls_uecc_keypair *) pub;
+    const mbedtls_uecc_keypair *uecc_prv =
+        (const mbedtls_uecc_keypair *) prv;
+
+    if( memcmp( uecc_pub->public_key,
+                uecc_prv->public_key,
+                2 * NUM_ECC_BYTES ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+}
+
 static int uecc_eckey_can_do( mbedtls_pk_type_t type )
 {
     return( type == MBEDTLS_PK_ECDSA ||
@@ -706,7 +723,7 @@ const mbedtls_pk_info_t mbedtls_uecc_eckey_info = {
     uecc_eckey_sign_wrap,
     NULL,
     NULL,
-    NULL,
+    uecc_eckey_check_pair,
     uecc_eckey_alloc_wrap,
     uecc_eckey_free_wrap,
     NULL,

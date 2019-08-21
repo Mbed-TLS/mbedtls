@@ -162,6 +162,7 @@ class Inputs:
     # PSA_ALG_ECDH and PSA_ALG_FFDH are excluded for now as the script
     # currently doesn't support them. Deprecated errors are also excluded.
     _excluded_names = set(['PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH',
+                           'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE',
                            'PSA_ALG_FULL_LENGTH_MAC',
                            'PSA_ALG_ECDH',
                            'PSA_ALG_FFDH',

@@ -1015,15 +1015,15 @@
  * \return              The corresponding AEAD algorithm with the default
  *                      tag length for that algorithm.
  */
-#define PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(aead_alg)                  \
-    (                                                                   \
-        PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(aead_alg, PSA_ALG_CCM) \
-        PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(aead_alg, PSA_ALG_GCM) \
-        PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(aead_alg, PSA_ALG_CHACHA20_POLY1305) \
+#define PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(aead_alg)                   \
+    (                                                                    \
+        PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE(aead_alg, PSA_ALG_CCM) \
+        PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE(aead_alg, PSA_ALG_GCM) \
+        PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE(aead_alg, PSA_ALG_CHACHA20_POLY1305) \
         0)
-#define PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(aead_alg, ref)      \
-    PSA_ALG_AEAD_WITH_TAG_LENGTH(aead_alg, 0) ==                        \
-    PSA_ALG_AEAD_WITH_TAG_LENGTH(ref, 0) ?  \
+#define PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE(aead_alg, ref)         \
+    PSA_ALG_AEAD_WITH_TAG_LENGTH(aead_alg, 0) ==                         \
+    PSA_ALG_AEAD_WITH_TAG_LENGTH(ref, 0) ?                               \
     ref :
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x10020000)

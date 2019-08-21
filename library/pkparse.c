@@ -197,7 +197,7 @@ static int pk_use_ecparams( const mbedtls_asn1_buf *params )
 
     return( 0 );
 }
-#endif
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_ECP_C) || \
     defined(MBEDTLS_USE_TINYCRYPT)
@@ -244,7 +244,7 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
 
     return( 0 );
 }
-#endif
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
@@ -985,7 +985,7 @@ static int pk_parse_key_sec1_der( mbedtls_uecc_keypair *keypair,
 
     return( 0 );
 }
-#else
+#else /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_ECP_C)
 /*
@@ -1208,7 +1208,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
             return( ret );
         }
     }
-#else
+#else /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ECP_C)
     if( pk_alg == MBEDTLS_PK_ECKEY || pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
@@ -1220,7 +1220,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
         }
     } else
 #endif /* MBEDTLS_ECP_C */
-#endif
+#endif /* MBEDTLS_USE_TINYCRYPT */
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
     return( 0 );
@@ -1554,7 +1554,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     {
         return( 0 );
     }
-#else
+#else /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ECP_C)
     pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
     if( mbedtls_pk_setup( pk, pk_info ) == 0 &&
@@ -1565,7 +1565,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     }
     mbedtls_pk_free( pk );
 #endif /* MBEDTLS_ECP_C */
-#endif
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
     /* If MBEDTLS_RSA_C is defined but MBEDTLS_ECP_C isn't,
      * it is ok to leave the PK context initialized but not

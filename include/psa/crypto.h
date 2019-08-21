@@ -366,6 +366,11 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * psa_close_key(), the implementation should perform the equivalent of a
  * call to psa_close_key().
  *
+ * Some implementations permit an application to open the same key multiple
+ * times. Applications that rely on this behavior will not be portable to
+ * implementations that only permit a single key handle to be opened. See
+ * also :ref:\`key-handles\`.
+ *
  * \param id            The persistent identifier of the key.
  * \param[out] handle   On success, a handle to the key.
  *
@@ -373,9 +378,14 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  *         Success. The application can now use the value of `*handle`
  *         to access the key.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         The implementation does not have sufficient resources to open the
+ *         key. This can be due to reaching an implementation limit on the
+ *         number of open keys, the number of open key handles, or available
+ *         memory.
  * \retval #PSA_ERROR_DOES_NOT_EXIST
+ *         There is no persistent key with key identifier \p id.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p id is invalid.
+ *         \p id is not a valid persistent key identifier.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The specified key exists, but the application does not have the
  *         permission to access it. Note that this specification does not

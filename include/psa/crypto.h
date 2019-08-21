@@ -400,15 +400,19 @@ psa_status_t psa_open_key(psa_key_id_t id,
 
 /** Close a key handle.
  *
- * If the handle designates a volatile key, destroy the key material and
- * free all associated resources, just like psa_destroy_key().
+ * If the handle designates a volatile key, this will destroy the key material
+ * and free all associated resources, just like psa_destroy_key().
  *
- * If the handle designates a persistent key, free all resources associated
- * with the key in volatile memory. The key in persistent storage is
- * not affected and can be opened again later with psa_open_key().
+ * If this is the last open handle to a persistent key, then closing the handle
+ * will free all resources associated with the key in volatile memory. The key
+ * data in persistent storage is not affected and can be opened again later
+ * with a call to psa_open_key().
  *
- * If the key is currently in use in a multipart operation,
- * the multipart operation is aborted.
+ * Closing the key handle makes the handle invalid, and the key handle
+ * must not be used again by the application..
+ *
+ * If the key is currently in use in a multipart operation, then closing the
+ * last handle to the key will abort the multipart operation.
  *
  * \param handle        The key handle to close.
  *

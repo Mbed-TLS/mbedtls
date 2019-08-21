@@ -718,18 +718,18 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
     if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 )
         return( ret );
 
-#if defined(MBEDTLS_USE_TINYCRYPT)
-    if( pk_alg == MBEDTLS_PK_ECKEY )
-    {
-        ret = pk_get_ueccpubkey( p, end, (uint8_t*) pk->pk_ctx );
-    } else
-#endif /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_RSA_C)
     if( pk_alg == MBEDTLS_PK_RSA )
     {
         ret = pk_get_rsapubkey( p, end, mbedtls_pk_rsa( *pk ) );
     } else
 #endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( pk_alg == MBEDTLS_PK_ECKEY )
+    {
+        ret = pk_get_ueccpubkey( p, end, (uint8_t*) pk->pk_ctx );
+    } else
+#else /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ECP_C)
     if( pk_alg == MBEDTLS_PK_ECKEY_DH || pk_alg == MBEDTLS_PK_ECKEY )
     {
@@ -738,6 +738,7 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
             ret = pk_get_ecpubkey( p, end, mbedtls_pk_ec( *pk ) );
     } else
 #endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_USE_TINYCRYPT */
         ret = MBEDTLS_ERR_PK_UNKNOWN_PK_ALG;
 
     if( ret == 0 && *p != end )

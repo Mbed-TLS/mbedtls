@@ -506,6 +506,11 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  * This function also erases any metadata such as policies and frees all
  * resources associated with the key.
  *
+ * Destroying a key will invalidate all existing handles to the key.
+ *
+ * If the key is currently in use in a multipart operation, then destroying the
+ * key will abort the multipart operation.
+ *
  * \param handle        Handle to the key to erase.
  *
  * \retval #PSA_SUCCESS

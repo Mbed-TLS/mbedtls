@@ -7177,9 +7177,12 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
      * Secondary checks: always done, but change 'ret' only if it was 0
      */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     {
         int ret;
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        ret = mbedtls_ssl_check_curve( ssl, MBEDTLS_UECC_DP_SECP256R1 );
+#else /* MBEDTLS_USE_TINYCRYPT */
         mbedtls_pk_context *pk;
         ret = mbedtls_x509_crt_pk_acquire( chain, &pk );
         if( ret != 0 )
@@ -7190,9 +7193,12 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
 
         /* If certificate uses an EC key, make sure the curve is OK */
         if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) )
+        {
             ret = mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id );
+        }
 
         mbedtls_x509_crt_pk_release( chain );
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
         if( ret != 0 )
         {
@@ -7203,7 +7209,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
                 verify_ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
         }
     }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_C || MEDTLS_USE_TINYCRYPT */
 
     if( mbedtls_ssl_check_cert_usage( chain,
                                       ciphersuite_info,

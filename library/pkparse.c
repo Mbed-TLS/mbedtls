@@ -246,6 +246,8 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
 }
 #endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
 
+#if !defined(MBEDTLS_USE_TINYCRYPT)
+
 #if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
 /*
@@ -542,6 +544,7 @@ static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
     return( ret );
 }
 #endif /* MBEDTLS_ECP_C */
+#endif /* !MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
 /*

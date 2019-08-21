@@ -725,17 +725,26 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
 /*
  * Return 0 if the given key uses one of the acceptable curves, -1 otherwise
  */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
 static int ssl_check_key_curve( mbedtls_pk_context *pk,
                                 unsigned char const *acceptable_ec_tls_ids,
                                 size_t ec_tls_ids_len )
 {
+    uint16_t tls_id;
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    ((void) pk);
+    tls_id = 23; /* TLS ID for Secp256r1. */
+#else
     mbedtls_ecp_curve_info const *info;
     mbedtls_ecp_group_id grp_id = mbedtls_pk_ec( *pk )->grp.id;
 
     info = mbedtls_ecp_curve_info_from_grp_id( grp_id );
     if( info == NULL )
         return( -1 );
+
+    tls_id = info->tls_id;
+#endif /* MBEDTLS_USE_TINYCRYPT  */
 
     if( acceptable_ec_tls_ids == NULL )
         return( -1 );
@@ -745,7 +754,7 @@ static int ssl_check_key_curve( mbedtls_pk_context *pk,
         uint16_t const cur_tls_id =
             ( acceptable_ec_tls_ids[0] << 8 ) | acceptable_ec_tls_ids[1];
 
-        if( cur_tls_id == info->tls_id )
+        if( cur_tls_id == tls_id )
             return( 0 );
 
         acceptable_ec_tls_ids += 2;
@@ -825,7 +834,7 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
             match = 0;
         }
 
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
         if( pk_alg == MBEDTLS_PK_ECDSA &&
             ssl_check_key_curve( pk,
                                  acceptable_ec_tls_ids,

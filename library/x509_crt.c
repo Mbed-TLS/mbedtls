@@ -597,6 +597,16 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
     }
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( pk_alg == MBEDTLS_PK_ECKEY )
+    {
+        if( ( profile->allowed_curves & MBEDTLS_UECC_DP_SECP256R1 ) != 0 )
+            return( 0 );
+
+        return( -1 );
+    }
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #if defined(MBEDTLS_ECP_C)
     if( pk_alg == MBEDTLS_PK_ECDSA ||
         pk_alg == MBEDTLS_PK_ECKEY ||

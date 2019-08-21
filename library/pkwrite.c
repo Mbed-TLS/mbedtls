@@ -103,6 +103,56 @@ end_of_export:
 }
 #endif /* MBEDTLS_RSA_C */
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
+                               mbedtls_pk_context const *key )
+{
+    size_t const len = 1 + 2 * NUM_ECC_BYTES;
+    mbedtls_uecc_keypair const * const uecc = mbedtls_pk_uecc( *key );
+
+    if( *p < start || (size_t)( *p - start ) < len )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    *p -= len;
+    (*p)[0] = 0x04;
+    memcpy( *p + 1, uecc->public_key, 2 * NUM_ECC_BYTES );
+
+    return( (int) len );
+}
+
+static int pk_write_ec_privkey( unsigned char **p, unsigned char *start,
+                                mbedtls_pk_context const *key )
+{
+    mbedtls_uecc_keypair const * const uecc = mbedtls_pk_uecc( *key );
+    return( mbedtls_asn1_write_octet_string(
+                p, start,
+                uecc->private_key,
+                NUM_ECC_BYTES ) );
+}
+
+/*
+ * ECParameters ::= CHOICE {
+ *   namedCurve         OBJECT IDENTIFIER
+ * }
+ */
+static int pk_write_ec_param( unsigned char **p, unsigned char *start,
+                              mbedtls_pk_context const *key )
+{
+    int ret;
+    size_t len = 0;
+    const char *oid;
+    size_t oid_len;
+    ((void) key);
+
+    if( ( ret = mbedtls_oid_get_oid_by_ec_grp( MBEDTLS_UECC_DP_SECP256R1,
+                                               &oid, &oid_len ) ) != 0 )
+        return( ret );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );
+
+    return( (int) len );
+}
+#else /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ECP_C)
 /*
  * EC public key is an EC point
@@ -160,6 +210,7 @@ static int pk_write_ec_param( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 #endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
                              const mbedtls_pk_context *key )

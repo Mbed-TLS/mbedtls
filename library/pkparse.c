@@ -1211,7 +1211,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     if( pk_alg == MBEDTLS_PK_ECKEY )
     {
         if( ( ret = pk_use_ecparams( &params ) ) != 0 ||
-            ( ret = pk_parse_key_sec1_der( mbedtls_uecc_pk( *pk ), p, len ) ) != 0)
+            ( ret = pk_parse_key_sec1_der( mbedtls_pk_uecc( *pk ), p, len ) ) != 0)
         {
             return( ret );
         }
@@ -1433,7 +1433,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
         if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
-            ( ret = pk_parse_key_sec1_der( mbedtls_uecc_pk( *pk ),
+            ( ret = pk_parse_key_sec1_der( mbedtls_pk_uecc( *pk ),
                                            pem.buf, pem.buflen ) ) != 0 )
 #else /* MBEDTLS_USE_TINYCRYPT */
         if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
@@ -1563,7 +1563,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
 #if defined(MBEDTLS_USE_TINYCRYPT)
     pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
     if( mbedtls_pk_setup( pk, pk_info ) == 0 &&
-        pk_parse_key_sec1_der( mbedtls_uecc_pk( *pk),
+        pk_parse_key_sec1_der( mbedtls_pk_uecc( *pk),
                                key, keylen) == 0)
     {
         return( 0 );

@@ -173,7 +173,7 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-static inline mbedtls_uecc_keypair *mbedtls_uecc_pk( const mbedtls_pk_context pk )
+static inline mbedtls_uecc_keypair *mbedtls_pk_uecc( const mbedtls_pk_context pk )
 {
     return( (mbedtls_uecc_keypair *) (pk).pk_ctx );
 }

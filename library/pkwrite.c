@@ -108,11 +108,12 @@ end_of_export:
  * EC public key is an EC point
  */
 static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
-                               mbedtls_ecp_keypair *ec )
+                               mbedtls_pk_context const *key )
 {
     int ret;
     size_t len = 0;
     unsigned char buf[MBEDTLS_ECP_MAX_PT_LEN];
+    mbedtls_ecp_keypair const * const ec = mbedtls_pk_ec( *key );
 
     if( ( ret = mbedtls_ecp_point_write_binary( &ec->grp, &ec->Q,
                                         MBEDTLS_ECP_PF_UNCOMPRESSED,
@@ -130,18 +131,26 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 
+static int pk_write_ec_privkey( unsigned char **p, unsigned char *start,
+                                mbedtls_pk_context const *key )
+{
+    mbedtls_ecp_keypair const * const ec = mbedtls_pk_ec( *key );
+    return( mbedtls_asn1_write_mpi( p, start, &ec->d ) );
+}
+
 /*
  * ECParameters ::= CHOICE {
  *   namedCurve         OBJECT IDENTIFIER
  * }
  */
 static int pk_write_ec_param( unsigned char **p, unsigned char *start,
-                              mbedtls_ecp_keypair *ec )
+                              mbedtls_pk_context const *key )
 {
     int ret;
     size_t len = 0;
     const char *oid;
     size_t oid_len;
+    mbedtls_ecp_keypair const * const ec = mbedtls_pk_ec( *key );
 
     if( ( ret = mbedtls_oid_get_oid_by_ec_grp( ec->grp.id, &oid, &oid_len ) ) != 0 )
         return( ret );
@@ -170,7 +179,7 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
 #endif
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
-        MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_pubkey( p, start, mbedtls_pk_ec( *key ) ) );
+        MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_pubkey( p, start, key ) );
     else
 #endif
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
@@ -217,7 +226,7 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
     {
-        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, mbedtls_pk_ec( *key ) ) );
+        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, key ) );
     }
 #endif
 
@@ -326,7 +335,6 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
     {
-        mbedtls_ecp_keypair *ec = mbedtls_pk_ec( *key );
         size_t pub_len = 0, par_len = 0;
 
         /*
@@ -341,7 +349,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
          */
 
         /* publicKey */
-        MBEDTLS_ASN1_CHK_ADD( pub_len, pk_write_ec_pubkey( &c, buf, ec ) );
+        MBEDTLS_ASN1_CHK_ADD( pub_len, pk_write_ec_pubkey( &c, buf, key ) );
 
         if( c - buf < 1 )
             return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
@@ -357,7 +365,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
         len += pub_len;
 
         /* parameters */
-        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, ec ) );
+        MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, key ) );
 
         MBEDTLS_ASN1_CHK_ADD( par_len, mbedtls_asn1_write_len( &c, buf, par_len ) );
         MBEDTLS_ASN1_CHK_ADD( par_len, mbedtls_asn1_write_tag( &c, buf,
@@ -365,7 +373,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
         len += par_len;
 
         /* privateKey: write as MPI then fix tag */
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &c, buf, &ec->d ) );
+        MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_privkey( &c, buf, key ) );
         *c = MBEDTLS_ASN1_OCTET_STRING;
 
         /* version */

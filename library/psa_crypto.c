@@ -994,18 +994,16 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
     return( PSA_SUCCESS );
 }
 
-static void psa_abort_operations_using_key( psa_key_slot_t *slot )
-{
-    /*TODO how to implement this?*/
-    (void) slot;
-}
-
 /** Completely wipe a slot in memory, including its policy.
  * Persistent storage is not affected. */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = psa_remove_key_data_from_memory( slot );
-    psa_abort_operations_using_key( slot );
+    /* Multipart operations may still be using the key. This is safe
+     * because all multipart operation objects are independent from
+     * the key slot: if they need to access the key after the setup
+     * phase, they have a copy of the key. Note that this means that
+     * key material can linger until all operations are completed. */
     /* At this point, key material and other type-specific content has
      * been wiped. Clear remaining metadata. We can call memset and not
      * zeroize because the metadata is not particularly sensitive. */
@@ -1016,8 +1014,8 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 psa_status_t psa_destroy_key( psa_key_handle_t handle )
 {
     psa_key_slot_t *slot;
-    psa_status_t status = PSA_SUCCESS;
-    psa_status_t storage_status = PSA_SUCCESS;
+    psa_status_t status; /* status of the last operation */
+    psa_status_t overall_status = PSA_SUCCESS;
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     psa_se_drv_table_entry_t *driver;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -1043,42 +1041,57 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
         if( status != PSA_SUCCESS )
         {
             (void) psa_crypto_stop_transaction( );
-            /* TODO: destroy what can be destroyed anyway */
-            return( status );
+            /* We should still try to destroy the key in the secure
+             * element and the key metadata in storage. This is especially
+             * important if the error is that the storage is full.
+             * But how to do it exactly without risking an inconsistent
+             * state after a reset?
+             * https://github.com/ARMmbed/mbed-crypto/issues/215
+             */
+            overall_status = status;
+            goto exit;
         }
 
         status = psa_destroy_se_key( driver, slot->data.se.slot_number );
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( slot->attr.lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+    if( slot->attr.lifetime != PSA_KEY_LIFETIME_VOLATILE )
     {
-        storage_status =
-            psa_destroy_persistent_key( slot->attr.id );
+        status = psa_destroy_persistent_key( slot->attr.id );
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
+
+        /* TODO: other slots may have a copy of the same key. We should
+         * invalidate them.
+         * https://github.com/ARMmbed/mbed-crypto/issues/214
+         */
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {
-        psa_status_t status2;
         status = psa_save_se_persistent_data( driver );
-        status2 = psa_crypto_stop_transaction( );
-        if( status == PSA_SUCCESS )
-            status = status2;
-        if( status != PSA_SUCCESS )
-        {
-            /* TODO: destroy what can be destroyed anyway */
-            return( status );
-        }
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
+        status = psa_crypto_stop_transaction( );
+        if( overall_status == PSA_SUCCESS )
+            overall_status = status;
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+exit:
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     status = psa_wipe_key_slot( slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-    return( storage_status );
+    /* Prioritize CORRUPTION_DETECTED from wiping over a storage error */
+    if( overall_status == PSA_SUCCESS )
+        overall_status = status;
+    return( overall_status );
 }
 
 void psa_reset_key_attributes( psa_key_attributes_t *attributes )
@@ -1187,6 +1200,13 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
         return( status );
 
     attributes->core = slot->attr;
+    attributes->core.flags &= ( MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
+                                MBEDTLS_PSA_KA_MASK_DUAL_USE );
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_key_slot_is_external( slot ) )
+        psa_set_key_slot_number( attributes, slot->data.se.slot_number );
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     switch( slot->attr.type )
     {
@@ -1195,8 +1215,10 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
             /* TODO: reporting the public exponent for opaque keys
-             * is not yet implemented. */
-            if( psa_get_se_driver( slot->attr.lifetime, NULL, NULL ) )
+             * is not yet implemented.
+             * https://github.com/ARMmbed/mbed-crypto/issues/216
+             */
+            if( psa_key_slot_is_external( slot ) )
                 break;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
             status = psa_get_rsa_public_exponent( slot->data.rsa, attributes );
@@ -1211,6 +1233,21 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
         psa_reset_key_attributes( attributes );
     return( status );
 }
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+psa_status_t psa_get_key_slot_number(
+    const psa_key_attributes_t *attributes,
+    psa_key_slot_number_t *slot_number )
+{
+    if( attributes->core.flags & MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER )
+    {
+        *slot_number = attributes->slot_number;
+        return( PSA_SUCCESS );
+    }
+    else
+        return( PSA_ERROR_INVALID_ARGUMENT );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C)
 static int pk_write_pubkey_simple( mbedtls_pk_context *key,
@@ -1408,6 +1445,15 @@ psa_status_t psa_export_public_key( psa_key_handle_t handle,
                                      data_length, 1 ) );
 }
 
+#if defined(static_assert)
+static_assert( ( MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE ) == 0,
+               "One or more key attribute flag is listed as both external-only and dual-use" );
+static_assert( ( PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_DUAL_USE ) == 0,
+               "One or more key attribute flag is listed as both internal-only and dual-use" );
+static_assert( ( PSA_KA_MASK_INTERNAL_ONLY & MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY ) == 0,
+               "One or more key attribute flag is listed as both internal-only and external-only" );
+#endif
+
 /** Validate that a key policy is internally well-formed.
  *
  * This function only rejects invalid policies. It does not validate the
@@ -1467,6 +1513,11 @@ static psa_status_t psa_validate_key_attributes(
     if( psa_get_key_bits( attributes ) > PSA_MAX_KEY_BITS )
         return( PSA_ERROR_NOT_SUPPORTED );
 
+    /* Reject invalid flags. These should not be reachable through the API. */
+    if( attributes->core.flags & ~ ( MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
+                                     MBEDTLS_PSA_KA_MASK_DUAL_USE ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     return( PSA_SUCCESS );
 }
 
@@ -1484,6 +1535,7 @@ static psa_status_t psa_validate_key_attributes(
  * In case of failure at any step, stop the sequence and call
  * psa_fail_key_creation().
  *
+ * \param method            An identification of the calling function.
  * \param[in] attributes    Key attributes for the new key.
  * \param[out] handle       On success, a handle for the allocated slot.
  * \param[out] p_slot       On success, a pointer to the prepared slot.
@@ -1496,6 +1548,7 @@ static psa_status_t psa_validate_key_attributes(
  *         You must call psa_fail_key_creation() to wipe and free the slot.
  */
 static psa_status_t psa_start_key_creation(
+    psa_key_creation_method_t method,
     const psa_key_attributes_t *attributes,
     psa_key_handle_t *handle,
     psa_key_slot_t **p_slot,
@@ -1504,13 +1557,14 @@ static psa_status_t psa_start_key_creation(
     psa_status_t status;
     psa_key_slot_t *slot;
 
+    (void) method;
     *p_drv = NULL;
 
     status = psa_validate_key_attributes( attributes, p_drv );
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_internal_allocate_key_slot( handle, p_slot );
+    status = psa_get_empty_key_slot( handle, p_slot );
     if( status != PSA_SUCCESS )
         return( status );
     slot = *p_slot;
@@ -1523,8 +1577,16 @@ static psa_status_t psa_start_key_creation(
 
     slot->attr = attributes->core;
 
+    /* Erase external-only flags from the internal copy. To access
+     * external-only flags, query `attributes`. Thanks to the check
+     * in psa_validate_key_attributes(), this leaves the dual-use
+     * flags and any internal flag that psa_get_empty_key_slot()
+     * may have set. */
+    slot->attr.flags &= ~MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY;
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    /* For a key in a secure element, we need to do three things:
+    /* For a key in a secure element, we need to do three things
+     * when creating a key (but not when registering an existing key):
      * create the key file in internal storage, create the
      * key inside the secure element, and update the driver's
      * persistent data. Start a transaction that will encompass these
@@ -1537,9 +1599,9 @@ static psa_status_t psa_start_key_creation(
      * secure element driver updates its persistent state, but we do not yet
      * save the driver's persistent state, so that if the power fails,
      * we can roll back to a state where the key doesn't exist. */
-    if( *p_drv != NULL )
+    if( *p_drv != NULL && method != PSA_KEY_CREATION_REGISTER )
     {
-        status = psa_find_se_slot_for_key( attributes, *p_drv,
+        status = psa_find_se_slot_for_key( attributes, method, *p_drv,
                                            &slot->data.se.slot_number );
         if( status != PSA_SUCCESS )
             return( status );
@@ -1631,7 +1693,13 @@ static psa_status_t psa_finish_key_creation(
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( driver != NULL )
+    /* Finish the transaction for a key creation. This does not
+     * happen when registering an existing key. Detect this case
+     * by checking whether a transaction is in progress (actual
+     * creation of a key in a secure element requires a transaction,
+     * but registration doesn't use one). */
+    if( driver != NULL &&
+        psa_crypto_transaction.unknown.type == PSA_CRYPTO_TRANSACTION_CREATE_KEY )
     {
         status = psa_save_se_persistent_data( driver );
         if( status != PSA_SUCCESS )
@@ -1672,11 +1740,16 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
     /* TODO: If the key has already been created in the secure
      * element, and the failure happened later (when saving metadata
      * to internal storage), we need to destroy the key in the secure
-     * element. */
+     * element.
+     * https://github.com/ARMmbed/mbed-crypto/issues/217
+     */
 
-    /* Abort the ongoing transaction if any. We already did what it
-     * takes to undo any partial creation. All that's left is to update
-     * the transaction data itself. */
+    /* Abort the ongoing transaction if any (there may not be one if
+     * the creation process failed before starting one, or if the
+     * key creation is a registration of a key in a secure element).
+     * Earlier functions must already have done what it takes to undo any
+     * partial creation. All that's left is to update the transaction data
+     * itself. */
     (void) psa_crypto_stop_transaction( );
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
@@ -1753,7 +1826,8 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
 
-    status = psa_start_key_creation( attributes, handle, &slot, &driver );
+    status = psa_start_key_creation( PSA_KEY_CREATION_IMPORT, attributes,
+                                     handle, &slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -1770,10 +1844,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         }
         status = drv->key_management->p_import(
             psa_get_se_driver_context( driver ),
-            slot->data.se.slot_number,
-            slot->attr.lifetime, slot->attr.type,
-            slot->attr.policy.alg, slot->attr.policy.usage,
-            data, data_length,
+            slot->data.se.slot_number, attributes, data, data_length,
             &bits );
         if( status != PSA_SUCCESS )
             goto exit;
@@ -1804,6 +1875,74 @@ exit:
     }
     return( status );
 }
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+psa_status_t mbedtls_psa_register_se_key(
+    const psa_key_attributes_t *attributes )
+{
+    psa_status_t status;
+    psa_key_slot_t *slot = NULL;
+    psa_se_drv_table_entry_t *driver = NULL;
+    const psa_drv_se_t *drv;
+    psa_key_handle_t handle = 0;
+
+    /* Leaving attributes unspecified is not currently supported.
+     * It could make sense to query the key type and size from the
+     * secure element, but not all secure elements support this
+     * and the driver HAL doesn't currently support it. */
+    if( psa_get_key_type( attributes ) == PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    if( psa_get_key_bits( attributes ) == 0 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    status = psa_start_key_creation( PSA_KEY_CREATION_REGISTER, attributes,
+                                     &handle, &slot, &driver );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( driver == NULL )
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+    drv = psa_get_se_driver_methods( driver );
+
+    if ( psa_get_key_slot_number( attributes,
+                                  &slot->data.se.slot_number ) != PSA_SUCCESS )
+    {
+        /* The application didn't specify a slot number. This doesn't
+         * make sense when registering a slot. */
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    /* If the driver has a slot number validation method, call it.
+     * If it doesn't, it means the secure element is unable to validate
+     * anything and so we have to trust the application. */
+    if( drv->key_management != NULL &&
+        drv->key_management->p_validate_slot_number != NULL )
+    {
+        status = drv->key_management->p_validate_slot_number(
+            psa_get_se_driver_context( driver ),
+            attributes,
+            PSA_KEY_CREATION_REGISTER,
+            slot->data.se.slot_number );
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
+
+    status = psa_finish_key_creation( slot, driver );
+
+exit:
+    if( status != PSA_SUCCESS )
+    {
+        psa_fail_key_creation( slot, driver );
+    }
+    /* Registration doesn't keep the key in RAM. */
+    psa_close_key( handle );
+    return( status );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
                                            psa_key_slot_t *target )
@@ -1856,7 +1995,8 @@ psa_status_t psa_copy_key( psa_key_handle_t source_handle,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_start_key_creation( &actual_attributes,
+    status = psa_start_key_creation( PSA_KEY_CREATION_COPY,
+                                     &actual_attributes,
                                      target_handle, &target_slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -3208,10 +3348,14 @@ psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
 {
     psa_key_slot_t *slot;
     psa_status_t status;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     *signature_length = signature_size;
 
-    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
+    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
     if( status != PSA_SUCCESS )
         goto exit;
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
@@ -3220,6 +3364,24 @@ psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
         goto exit;
     }
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
+    {
+        if( drv->asymmetric == NULL ||
+            drv->asymmetric->p_sign == NULL )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+        status = drv->asymmetric->p_sign( drv_context,
+                                          slot->data.se.slot_number,
+                                          alg,
+                                          hash, hash_length,
+                                          signature, signature_size,
+                                          signature_length );
+    }
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 #if defined(MBEDTLS_RSA_C)
     if( slot->attr.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
@@ -3283,11 +3445,29 @@ psa_status_t psa_asymmetric_verify( psa_key_handle_t handle,
 {
     psa_key_slot_t *slot;
     psa_status_t status;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    status = psa_get_transparent_key( handle, &slot, PSA_KEY_USAGE_VERIFY, alg );
+    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_VERIFY, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
+    {
+        if( drv->asymmetric == NULL ||
+            drv->asymmetric->p_verify == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        return( drv->asymmetric->p_verify( drv_context,
+                                           slot->data.se.slot_number,
+                                           alg,
+                                           hash, hash_length,
+                                           signature, signature_length ) );
+    }
+    else
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 #if defined(MBEDTLS_RSA_C)
     if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
     {
@@ -4774,7 +4954,8 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
-    status = psa_start_key_creation( attributes, handle, &slot, &driver );
+    status = psa_start_key_creation( PSA_KEY_CREATION_DERIVE,
+                                     attributes, handle, &slot, &driver );
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {
@@ -5820,20 +6001,37 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
-    status = psa_start_key_creation( attributes, handle, &slot, &driver );
+
+    status = psa_start_key_creation( PSA_KEY_CREATION_GENERATE,
+                                     attributes, handle, &slot, &driver );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( driver != NULL )
     {
-        /* Generating a key in a secure element is not implemented yet. */
-        status = PSA_ERROR_NOT_SUPPORTED;
+        const psa_drv_se_t *drv = psa_get_se_driver_methods( driver );
+        size_t pubkey_length = 0; /* We don't support this feature yet */
+        if( drv->key_management == NULL ||
+            drv->key_management->p_generate == NULL )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+        status = drv->key_management->p_generate(
+            psa_get_se_driver_context( driver ),
+            slot->data.se.slot_number, attributes,
+            NULL, 0, &pubkey_length );
     }
+    else
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-    if( status == PSA_SUCCESS )
     {
         status = psa_generate_key_internal(
             slot, attributes->core.bits,
             attributes->domain_parameters, attributes->domain_parameters_size );
     }
+
+exit:
     if( status == PSA_SUCCESS )
         status = psa_finish_key_creation( slot, driver );
     if( status != PSA_SUCCESS )
@@ -5895,7 +6093,9 @@ static psa_status_t psa_crypto_recover_transaction(
         case PSA_CRYPTO_TRANSACTION_CREATE_KEY:
         case PSA_CRYPTO_TRANSACTION_DESTROY_KEY:
             /* TODO - fall through to the failure case until this
-             * is implemented */
+             * is implemented.
+             * https://github.com/ARMmbed/mbed-crypto/issues/218
+             */
         default:
             /* We found an unsupported transaction in the storage.
              * We don't know what state the storage is in. Give up. */

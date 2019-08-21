@@ -12,6 +12,26 @@
  * In implementations with isolation between the application and the
  * cryptography module, it is expected that the front-end and the back-end
  * would have different versions of this file.
+ *
+ * <h3>Design notes about multipart operation structures</h3>
+ *
+ * Each multipart operation structure contains a `psa_algorithm_t alg`
+ * field which indicates which specific algorithm the structure is for.
+ * When the structure is not in use, `alg` is 0. Most of the structure
+ * consists of a union which is discriminated by `alg`.
+ *
+ * Note that when `alg` is 0, the content of other fields is undefined.
+ * In particular, it is not guaranteed that a freshly-initialized structure
+ * is all-zero: we initialize structures to something like `{0, 0}`, which
+ * is only guaranteed to initializes the first member of the union;
+ * GCC and Clang initialize the whole structure to 0 (at the time of writing),
+ * but MSVC and CompCert don't.
+ *
+ * In Mbed Crypto, multipart operation structures live independently from
+ * the key. This allows Mbed Crypto to free the key objects when destroying
+ * a key slot. If a multipart operation needs to remember the key after
+ * the setup function returns, the operation structure needs to contain a
+ * copy of the key.
  */
 /*
  *  Copyright (C) 2018, ARM Limited, All Rights Reserved
@@ -322,6 +342,29 @@ typedef uint16_t psa_key_bits_t;
  * conditionals. */
 #define PSA_MAX_KEY_BITS 0xfff8
 
+/** A mask of flags that can be stored in key attributes.
+ *
+ * This type is also used internally to store flags in slots. Internal
+ * flags are defined in library/psa_crypto_core.h. Internal flags may have
+ * the same value as external flags if they are properly handled during
+ * key creation and in psa_get_key_attributes.
+ */
+typedef uint16_t psa_key_attributes_flag_t;
+
+#define MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER     \
+    ( (psa_key_attributes_flag_t) 0x0001 )
+
+/* A mask of key attribute flags used externally only.
+ * Only meant for internal checks inside the library. */
+#define MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY (      \
+        MBEDTLS_PSA_KA_FLAG_HAS_SLOT_NUMBER |    \
+        0 )
+
+/* A mask of key attribute flags used both internally and externally.
+ * Currently there aren't any. */
+#define MBEDTLS_PSA_KA_MASK_DUAL_USE (          \
+        0 )
+
 typedef struct
 {
     psa_key_type_t type;
@@ -329,7 +372,7 @@ typedef struct
     psa_key_id_t id;
     psa_key_policy_t policy;
     psa_key_bits_t bits;
-    uint16_t flags;
+    psa_key_attributes_flag_t flags;
 } psa_core_key_attributes_t;
 
 #define PSA_CORE_KEY_ATTRIBUTES_INIT {0, 0, 0, {0, 0, 0}, 0, 0}
@@ -337,11 +380,19 @@ typedef struct
 struct psa_key_attributes_s
 {
     psa_core_key_attributes_t core;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    psa_key_slot_number_t slot_number;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     void *domain_parameters;
     size_t domain_parameters_size;
 };
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#define PSA_KEY_ATTRIBUTES_INIT {PSA_CORE_KEY_ATTRIBUTES_INIT, 0, NULL, 0}
+#else
 #define PSA_KEY_ATTRIBUTES_INIT {PSA_CORE_KEY_ATTRIBUTES_INIT, NULL, 0}
+#endif
+
 static inline struct psa_key_attributes_s psa_key_attributes_init( void )
 {
     const struct psa_key_attributes_s v = PSA_KEY_ATTRIBUTES_INIT;

@@ -244,6 +244,17 @@ typedef uint32_t psa_key_usage_t;
  */
 typedef struct psa_key_attributes_s psa_key_attributes_t;
 
+
+#ifndef __DOXYGEN_ONLY__
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+/* Mbed Crypto defines this type in crypto_types.h because it is also
+ * visible to applications through an implementation-specific extension.
+ * For the PSA Cryptography specification, this type is only visible
+ * via crypto_se_driver.h. */
+typedef uint64_t psa_key_slot_number_t;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+#endif /* !__DOXYGEN_ONLY__ */
+
 /**@}*/
 
 /** \defgroup derivation Key derivation

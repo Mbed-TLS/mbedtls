@@ -134,10 +134,17 @@ typedef psa_status_t (*psa_drv_se_init_t)(psa_drv_se_context_t *drv_context,
                                           void *persistent_data,
                                           psa_key_lifetime_t lifetime);
 
+#if defined(__DOXYGEN_ONLY__) || !defined(MBEDTLS_PSA_CRYPTO_SE_C)
+/* Mbed Crypto with secure element support enabled defines this type in
+ * crypto_types.h because it is also visible to applications through an
+ * implementation-specific extension.
+ * For the PSA Cryptography specification, this type is only visible
+ * via crypto_se_driver.h. */
 /** An internal designation of a key slot between the core part of the
  * PSA Crypto implementation and the driver. The meaning of this value
  * is driver-dependent. */
 typedef uint64_t psa_key_slot_number_t;
+#endif /* __DOXYGEN_ONLY__ || !MBEDTLS_PSA_CRYPTO_SE_C */
 
 /**@}*/
 
@@ -803,12 +810,90 @@ typedef struct {
  */
 /**@{*/
 
+/** An enumeration indicating how a key is created.
+ */
+typedef enum
+{
+    PSA_KEY_CREATION_IMPORT, /**< During psa_import_key() */
+    PSA_KEY_CREATION_GENERATE, /**< During psa_generate_key() */
+    PSA_KEY_CREATION_DERIVE, /**< During psa_key_derivation_output_key() */
+    PSA_KEY_CREATION_COPY, /**< During psa_copy_key() */
+
+#ifndef __DOXYGEN_ONLY__
+    /** A key is being registered with mbedtls_psa_register_se_key().
+     *
+     * The core only passes this value to
+     * psa_drv_se_key_management_t::p_validate_slot_number, not to
+     * psa_drv_se_key_management_t::p_allocate. The call to
+     * `p_validate_slot_number` is not followed by any other call to the
+     * driver: the key is considered successfully registered if the call to
+     * `p_validate_slot_number` succeeds, or if `p_validate_slot_number` is
+     * null.
+     *
+     * With this creation method, the driver must return #PSA_SUCCESS if
+     * the given attributes are compatible with the existing key in the slot,
+     * and #PSA_ERROR_DOES_NOT_EXIST if the driver can determine that there
+     * is no key with the specified slot number.
+     *
+     * This is an Mbed Crypto extension.
+     */
+    PSA_KEY_CREATION_REGISTER,
+#endif
+} psa_key_creation_method_t;
+
 /** \brief A function that allocates a slot for a key.
+ *
+ * To create a key in a specific slot in a secure element, the core
+ * first calls this function to determine a valid slot number,
+ * then calls a function to create the key material in that slot.
+ * In nominal conditions (that is, if no error occurs),
+ * the effect of a call to a key creation function in the PSA Cryptography
+ * API with a lifetime that places the key in a secure element is the
+ * following:
+ * -# The core calls psa_drv_se_key_management_t::p_allocate
+ *    (or in some implementations
+ *    psa_drv_se_key_management_t::p_validate_slot_number). The driver
+ *    selects (or validates) a suitable slot number given the key attributes
+ *    and the state of the secure element.
+ * -# The core calls a key creation function in the driver.
+ *
+ * The key creation functions in the PSA Cryptography API are:
+ * - psa_import_key(), which causes
+ *   a call to `p_allocate` with \p method = #PSA_KEY_CREATION_IMPORT
+ *   then a call to psa_drv_se_key_management_t::p_import.
+ * - psa_generate_key(), which causes
+ *   a call to `p_allocate` with \p method = #PSA_KEY_CREATION_GENERATE
+ *   then a call to psa_drv_se_key_management_t::p_import.
+ * - psa_key_derivation_output_key(), which causes
+ *   a call to `p_allocate` with \p method = #PSA_KEY_CREATION_DERIVE
+ *   then a call to psa_drv_se_key_derivation_t::p_derive.
+ * - psa_copy_key(), which causes
+ *   a call to `p_allocate` with \p method = #PSA_KEY_CREATION_COPY
+ *   then a call to psa_drv_se_key_management_t::p_export.
+ *
+ * In case of errors, other behaviors are possible.
+ * - If the PSA Cryptography subsystem dies after the first step,
+ *   for example because the device has lost power abruptly,
+ *   the second step may never happen, or may happen after a reset
+ *   and re-initialization. Alternatively, after a reset and
+ *   re-initialization, the core may call
+ *   psa_drv_se_key_management_t::p_destroy on the slot number that
+ *   was allocated (or validated) instead of calling a key creation function.
+ * - If an error occurs, the core may call
+ *   psa_drv_se_key_management_t::p_destroy on the slot number that
+ *   was allocated (or validated) instead of calling a key creation function.
+ *
+ * Errors and system resets also have an impact on the driver's persistent
+ * data. If a reset happens before the overall key creation process is
+ * completed (before or after the second step above), it is unspecified
+ * whether the persistent data after the reset is identical to what it
+ * was before or after the call to `p_allocate` (or `p_validate_slot_number`).
  *
  * \param[in,out] drv_context       The driver context structure.
  * \param[in,out] persistent_data   A pointer to the persistent data
  *                                  that allows writing.
  * \param[in] attributes            Attributes of the key.
+ * \param method                    The way in which the key is being created.
  * \param[out] key_slot             Slot where the key will be stored.
  *                                  This must be a valid slot for a key of the
  *                                  chosen type. It must be unoccupied.
@@ -824,7 +909,46 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
     psa_drv_se_context_t *drv_context,
     void *persistent_data,
     const psa_key_attributes_t *attributes,
+    psa_key_creation_method_t method,
     psa_key_slot_number_t *key_slot);
+
+/** \brief A function that determines whether a slot number is valid
+ * for a key.
+ *
+ * To create a key in a specific slot in a secure element, the core
+ * first calls this function to validate the choice of slot number,
+ * then calls a function to create the key material in that slot.
+ * See the documentation of #psa_drv_se_allocate_key_t for more details.
+ *
+ * As of the PSA Cryptography API specification version 1.0, there is no way
+ * for applications to trigger a call to this function. However some
+ * implementations offer the capability to create or declare a key in
+ * a specific slot via implementation-specific means, generally for the
+ * sake of initial device provisioning or onboarding. Such a mechanism may
+ * be added to a future version of the PSA Cryptography API specification.
+ *
+ * \param[in,out] drv_context   The driver context structure.
+ * \param[in] attributes        Attributes of the key.
+ * \param method                The way in which the key is being created.
+ * \param[in] key_slot          Slot where the key is to be stored.
+ *
+ * \retval #PSA_SUCCESS
+ *         The given slot number is valid for a key with the given
+ *         attributes.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The given slot number is not valid for a key with the
+ *         given attributes. This includes the case where the slot
+ *         number is not valid at all.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         There is already a key with the specified slot number.
+ *         Drivers may choose to return this error from the key
+ *         creation function instead.
+ */
+typedef psa_status_t (*psa_drv_se_validate_slot_number_t)(
+    psa_drv_se_context_t *drv_context,
+    const psa_key_attributes_t *attributes,
+    psa_key_creation_method_t method,
+    psa_key_slot_number_t key_slot);
 
 /** \brief A function that imports a key into a secure element in binary format
  *
@@ -832,15 +956,21 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
  * documentation of psa_export_key() for the format for each key type.
  *
  * \param[in,out] drv_context   The driver context structure.
- * \param[in] key_slot          Slot where the key will be stored
+ * \param key_slot              Slot where the key will be stored.
  *                              This must be a valid slot for a key of the
  *                              chosen type. It must be unoccupied.
- * \param[in] lifetime          The required lifetime of the key storage
- * \param[in] type              Key type (a \c PSA_KEY_TYPE_XXX value)
- * \param[in] algorithm         Key algorithm (a \c PSA_ALG_XXX value)
- * \param[in] usage             The allowed uses of the key
- * \param[in] p_data            Buffer containing the key data
- * \param[in] data_length       Size of the `data` buffer in bytes
+ * \param[in] attributes        The key attributes, including the lifetime,
+ *                              the key type and the usage policy.
+ *                              Drivers should not access the key size stored
+ *                              in the attributes: it may not match the
+ *                              data passed in \p data.
+ *                              Drivers can call psa_get_key_lifetime(),
+ *                              psa_get_key_type(),
+ *                              psa_get_key_usage_flags() and
+ *                              psa_get_key_algorithm() to access this
+ *                              information.
+ * \param[in] data              Buffer containing the key data.
+ * \param[in] data_length       Size of the \p data buffer in bytes.
  * \param[out] bits             On success, the key size in bits. The driver
  *                              must determine this value after parsing the
  *                              key according to the key type.
@@ -849,15 +979,13 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_drv_se_import_key_t)(psa_drv_se_context_t *drv_context,
-                                                psa_key_slot_number_t key_slot,
-                                                psa_key_lifetime_t lifetime,
-                                                psa_key_type_t type,
-                                                psa_algorithm_t algorithm,
-                                                psa_key_usage_t usage,
-                                                const uint8_t *p_data,
-                                                size_t data_length,
-                                                size_t *bits);
+typedef psa_status_t (*psa_drv_se_import_key_t)(
+    psa_drv_se_context_t *drv_context,
+    psa_key_slot_number_t key_slot,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *data,
+    size_t data_length,
+    size_t *bits);
 
 /**
  * \brief A function that destroys a secure element key and restore the slot to
@@ -924,41 +1052,51 @@ typedef psa_status_t (*psa_drv_se_export_key_t)(psa_drv_se_context_t *drv_contex
  * element
  *
  * If \p type is asymmetric (#PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) = 1),
- * the public component of the generated key will be placed in `p_pubkey_out`.
- * The format of the public key information will match the format specified for
- * the psa_export_key() function for the key type.
+ * the driver may export the public key at the time of generation,
+ * in the format documented for psa_export_public_key() by writing it
+ * to the \p pubkey buffer.
+ * This is optional, intended for secure elements that output the
+ * public key at generation time and that cannot export the public key
+ * later. Drivers that do not need this feature should leave
+ * \p *pubkey_length set to 0 and should
+ * implement the psa_drv_key_management_t::p_export_public function.
+ * Some implementations do not support this feature, in which case
+ * \p pubkey is \c NULL and \p pubkey_size is 0.
  *
  * \param[in,out] drv_context   The driver context structure.
- * \param[in] key_slot          Slot where the generated key will be placed
- * \param[in] type              The type of the key to be generated
- * \param[in] usage             The prescribed usage of the generated key
- *                              Note: Not all Secure Elements support the same
- *                              restrictions that PSA Crypto does (and vice
- *                              versa).
- *                              Driver developers should endeavor to match the
- *                              usages as close as possible.
- * \param[in] bits              The size in bits of the key to be generated.
- * \param[in] extra             Extra parameters for key generation. The
- *                              interpretation of this parameter should match
- *                              the interpretation in the `extra` parameter is
- *                              the `psa_generate_key` function
- * \param[in] extra_size        The size in bytes of the \p extra buffer
- * \param[out] p_pubkey_out     The buffer where the public key information will
- *                              be placed
- * \param[in] pubkey_out_size   The size in bytes of the `p_pubkey_out` buffer
- * \param[out] p_pubkey_length  Upon successful completion, will contain the
- *                              size of the data placed in `p_pubkey_out`.
+ * \param key_slot              Slot where the key will be stored.
+ *                              This must be a valid slot for a key of the
+ *                              chosen type. It must be unoccupied.
+ * \param[in] attributes        The key attributes, including the lifetime,
+ *                              the key type and size, and the usage policy.
+ *                              Drivers can call psa_get_key_lifetime(),
+ *                              psa_get_key_type(), psa_get_key_bits(),
+ *                              psa_get_key_usage_flags() and
+ *                              psa_get_key_algorithm() to access this
+ *                              information.
+ * \param[out] pubkey           A buffer where the driver can write the
+ *                              public key, when generating an asymmetric
+ *                              key pair.
+ *                              This is \c NULL when generating a symmetric
+ *                              key or if the core does not support
+ *                              exporting the public key at generation time.
+ * \param pubkey_size           The size of the `pubkey` buffer in bytes.
+ *                              This is 0 when generating a symmetric
+ *                              key or if the core does not support
+ *                              exporting the public key at generation time.
+ * \param[out] pubkey_length    On entry, this is always 0.
+ *                              On success, the number of bytes written to
+ *                              \p pubkey. If this is 0 or unchanged on return,
+ *                              the core will not read the \p pubkey buffer,
+ *                              and will instead call the driver's
+ *                              psa_drv_key_management_t::p_export_public
+ *                              function to export the public key when needed.
  */
-typedef psa_status_t (*psa_drv_se_generate_key_t)(psa_drv_se_context_t *drv_context,
-                                                  psa_key_slot_number_t key_slot,
-                                                  psa_key_type_t type,
-                                                  psa_key_usage_t usage,
-                                                  size_t bits,
-                                                  const void *extra,
-                                                  size_t extra_size,
-                                                  uint8_t *p_pubkey_out,
-                                                  size_t pubkey_out_size,
-                                                  size_t *p_pubkey_length);
+typedef psa_status_t (*psa_drv_se_generate_key_t)(
+    psa_drv_se_context_t *drv_context,
+    psa_key_slot_number_t key_slot,
+    const psa_key_attributes_t *attributes,
+    uint8_t *pubkey, size_t pubkey_size, size_t *pubkey_length);
 
 /**
  * \brief A struct containing all of the function pointers needed to for secure
@@ -970,8 +1108,10 @@ typedef psa_status_t (*psa_drv_se_generate_key_t)(psa_drv_se_context_t *drv_cont
  * If one of the functions is not implemented, it should be set to NULL.
  */
 typedef struct {
-    /** Function that allocates a slot. */
+    /** Function that allocates a slot for a key. */
     psa_drv_se_allocate_key_t   p_allocate;
+    /** Function that checks the validity of a slot for a key. */
+    psa_drv_se_validate_slot_number_t p_validate_slot_number;
     /** Function that performs a key import operation */
     psa_drv_se_import_key_t     p_import;
     /** Function that performs a generation */

@@ -338,6 +338,11 @@ void x509_verify_restart( char *crt_file, char *ca_file,
     } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
 
     TEST_ASSERT( ret == result );
+    if( flags != (uint32_t) flags_result )
+    {
+        fprintf( stderr, "Expected %#04x, got %#04x\n",
+                 (unsigned) flags_result, (unsigned) flags );
+    }
     TEST_ASSERT( flags == (uint32_t) flags_result );
 
     TEST_ASSERT( cnt_restart >= min_restart );
@@ -421,6 +426,12 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
                                                 &flags, f_vrfy, NULL );
 
     TEST_ASSERT( res == ( result ) );
+    if( flags != (uint32_t) flags_result )
+    {
+        fprintf( stderr, "Expected %#04x, got %#04x\n",
+                 (unsigned) flags_result, (unsigned) flags );
+    }
+
     TEST_ASSERT( flags == (uint32_t)( flags_result ) );
 
 exit:

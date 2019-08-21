@@ -37,18 +37,6 @@
 /* Debug output */
 #define MBEDTLS_DEBUG_C
 
-/* We don't have DER-encoded test CRTs yet. */
-#define MBEDTLS_PEM_PARSE_C
-#define MBEDTLS_BASE64_C
-/* We don't have Secp256r1 test CRTs at the moment. */
-#define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-
-/* Correct ECP configuration values */
-#undef MBEDTLS_ECP_MAX_BITS
-#undef MBEDTLS_MPI_MAX_SIZE
-#define MBEDTLS_ECP_MAX_BITS 384
-#define MBEDTLS_MPI_MAX_SIZE 48
-
 /* ssl_client2 and ssl_server2 use CTR-DRBG so far. */
 #define MBEDTLS_CTR_DRBG_C
 

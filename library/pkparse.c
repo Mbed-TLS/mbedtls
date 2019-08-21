@@ -1414,7 +1414,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         return( ret );
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
     if( key[keylen - 1] != '\0' )
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
@@ -1427,9 +1427,15 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     {
         pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
+            ( ret = pk_parse_key_sec1_der( mbedtls_uecc_pk( *pk ),
+                                           pem.buf, pem.buflen ) ) != 0 )
+#else /* MBEDTLS_USE_TINYCRYPT */
         if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ),
                                            pem.buf, pem.buflen ) ) != 0 )
+#endif /* MBEDTLS_USE_TINYCRYPT */
         {
             mbedtls_pk_free( pk );
         }
@@ -1443,7 +1449,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         return( MBEDTLS_ERR_PK_PASSWORD_REQUIRED );
     else if( ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
         return( ret );
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
 
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
     if( key[keylen - 1] != '\0' )

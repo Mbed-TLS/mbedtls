@@ -197,11 +197,11 @@ psa_status_t psa_destroy_se_persistent_data( psa_key_lifetime_t lifetime )
 
 psa_status_t psa_find_se_slot_for_key(
     const psa_key_attributes_t *attributes,
+    psa_key_creation_method_t method,
     psa_se_drv_table_entry_t *driver,
     psa_key_slot_number_t *slot_number )
 {
     psa_status_t status;
-    psa_drv_se_allocate_key_t p_allocate = NULL;
 
     /* If the lifetime is wrong, it's a bug in the library. */
     if( driver->lifetime != psa_get_key_lifetime( attributes ) )
@@ -210,17 +210,34 @@ psa_status_t psa_find_se_slot_for_key(
     /* If the driver doesn't support key creation in any way, give up now. */
     if( driver->methods->key_management == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
-    p_allocate = driver->methods->key_management->p_allocate;
 
-    /* If the driver doesn't tell us how to allocate a slot, that's
-     * not supported for the time being. */
-    if( p_allocate == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-    status = p_allocate( &driver->context,
-                         driver->internal.persistent_data,
-                         attributes,
-                         slot_number );
+    if( psa_get_key_slot_number( attributes, slot_number ) == PSA_SUCCESS )
+    {
+        /* The application wants to use a specific slot. Allow it if
+         * the driver supports it. On a system with isolation,
+         * the crypto service must check that the application is
+         * permitted to request this slot. */
+        psa_drv_se_validate_slot_number_t p_validate_slot_number =
+            driver->methods->key_management->p_validate_slot_number;
+        if( p_validate_slot_number == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        status = p_validate_slot_number( &driver->context,
+                                         attributes, method,
+                                         *slot_number );
+    }
+    else
+    {
+        /* The application didn't tell us which slot to use. Let the driver
+         * choose. This is the normal case. */
+        psa_drv_se_allocate_key_t p_allocate =
+            driver->methods->key_management->p_allocate;
+        if( p_allocate == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        status = p_allocate( &driver->context,
+                             driver->internal.persistent_data,
+                             attributes, method,
+                             slot_number );
+    }
     return( status );
 }
 

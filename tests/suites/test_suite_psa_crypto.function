@@ -1113,6 +1113,23 @@ exit:
     return( ok );
 }
 
+/* Assert that a key isn't reported as having a slot number. */
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#define ASSERT_NO_SLOT_NUMBER( attributes )                             \
+    do                                                                  \
+    {                                                                   \
+        psa_key_slot_number_t ASSERT_NO_SLOT_NUMBER_slot_number;        \
+        TEST_EQUAL( psa_get_key_slot_number(                            \
+                        attributes,                                     \
+                        &ASSERT_NO_SLOT_NUMBER_slot_number ),           \
+                    PSA_ERROR_INVALID_ARGUMENT );                       \
+    }                                                                   \
+    while( 0 )
+#else /* MBEDTLS_PSA_CRYPTO_SE_C */
+#define ASSERT_NO_SLOT_NUMBER( attributes )     \
+    ( (void) 0 )
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
 /* An overapproximation of the amount of storage needed for a key of the
  * given type and with the given content. The API doesn't make it easy
  * to find a good value for the size. The current implementation doesn't
@@ -1214,6 +1231,46 @@ void persistence_attributes( int id1_arg, int lifetime_arg, int id2_arg,
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_SE_C */
+void slot_number_attribute( )
+{
+    psa_key_slot_number_t slot_number = 0xdeadbeef;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    /* Initially, there is no slot number. */
+    TEST_EQUAL( psa_get_key_slot_number( &attributes, &slot_number ),
+                PSA_ERROR_INVALID_ARGUMENT );
+
+    /* Test setting a slot number. */
+    psa_set_key_slot_number( &attributes, 0 );
+    PSA_ASSERT( psa_get_key_slot_number( &attributes, &slot_number ) );
+    TEST_EQUAL( slot_number, 0 );
+
+    /* Test changing the slot number. */
+    psa_set_key_slot_number( &attributes, 42 );
+    PSA_ASSERT( psa_get_key_slot_number( &attributes, &slot_number ) );
+    TEST_EQUAL( slot_number, 42 );
+
+    /* Test clearing the slot number. */
+    psa_clear_key_slot_number( &attributes );
+    TEST_EQUAL( psa_get_key_slot_number( &attributes, &slot_number ),
+                PSA_ERROR_INVALID_ARGUMENT );
+
+    /* Clearing again should have no effect. */
+    psa_clear_key_slot_number( &attributes );
+    TEST_EQUAL( psa_get_key_slot_number( &attributes, &slot_number ),
+                PSA_ERROR_INVALID_ARGUMENT );
+
+    /* Test that reset clears the slot number. */
+    psa_set_key_slot_number( &attributes, 42 );
+    PSA_ASSERT( psa_get_key_slot_number( &attributes, &slot_number ) );
+    TEST_EQUAL( slot_number, 42 );
+    psa_reset_key_attributes( &attributes );
+    TEST_EQUAL( psa_get_key_slot_number( &attributes, &slot_number ),
+                PSA_ERROR_INVALID_ARGUMENT );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void import_with_policy( int type_arg,
                          int usage_arg, int alg_arg,
@@ -1246,6 +1303,7 @@ void import_with_policy( int type_arg,
     TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
     TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ), usage );
     TEST_EQUAL( psa_get_key_algorithm( &got_attributes ), alg );
+    ASSERT_NO_SLOT_NUMBER( &got_attributes );
 
     PSA_ASSERT( psa_destroy_key( handle ) );
     test_operations_on_invalid_handle( handle );
@@ -1284,6 +1342,7 @@ void import_with_data( data_t *data, int type_arg,
     TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
     if( attr_bits != 0 )
         TEST_EQUAL( attr_bits, psa_get_key_bits( &got_attributes ) );
+    ASSERT_NO_SLOT_NUMBER( &got_attributes );
 
     PSA_ASSERT( psa_destroy_key( handle ) );
     test_operations_on_invalid_handle( handle );
@@ -1328,6 +1387,7 @@ void import_large_key( int type_arg, int byte_size_arg,
         TEST_EQUAL( psa_get_key_type( &attributes ), type );
         TEST_EQUAL( psa_get_key_bits( &attributes ),
                     PSA_BYTES_TO_BITS( byte_size ) );
+        ASSERT_NO_SLOT_NUMBER( &attributes );
         memset( buffer, 0, byte_size + 1 );
         PSA_ASSERT( psa_export_key( handle, buffer, byte_size, &n ) );
         for( n = 0; n < byte_size; n++ )
@@ -1420,6 +1480,7 @@ void import_export( data_t *data,
     PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
     TEST_EQUAL( psa_get_key_type( &got_attributes ), type );
     TEST_EQUAL( psa_get_key_bits( &got_attributes ), (size_t) expected_bits );
+    ASSERT_NO_SLOT_NUMBER( &got_attributes );
 
     /* Export the key */
     status = psa_export_key( handle,

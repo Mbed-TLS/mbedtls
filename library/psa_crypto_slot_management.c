@@ -102,7 +102,7 @@ void psa_wipe_all_key_slots( void )
     global_data.key_slots_initialized = 0;
 }
 
-psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle,
+psa_status_t psa_get_empty_key_slot( psa_key_handle_t *handle,
                                              psa_key_slot_t **p_slot )
 {
     if( ! global_data.key_slots_initialized )
@@ -228,7 +228,7 @@ psa_status_t psa_open_key( psa_key_file_id_t id, psa_key_handle_t *handle )
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_internal_allocate_key_slot( handle, &slot );
+    status = psa_get_empty_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
 

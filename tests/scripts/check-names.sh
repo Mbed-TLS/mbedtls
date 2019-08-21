@@ -57,11 +57,14 @@ for THING in actual-macros enum-consts; do
     printf "Names of $THING: "
     test -r $THING
     BAD=$( grep -E -v '^(MBEDTLS|PSA)_[0-9A-Z_]*[0-9A-Z]$' $THING || true )
-    if [ "x$BAD" = "x" ]; then
+    UNDERSCORES=$( grep -E '.*__.*' $THING || true )
+
+    if [ "x$BAD" = "x" ] && [ "x$UNDERSCORES" = "x" ]; then
         echo "PASS"
     else
         echo "FAIL"
         echo "$BAD"
+        echo "$UNDERSCORES"
         FAIL=1
     fi
 done

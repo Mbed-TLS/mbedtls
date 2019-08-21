@@ -42,6 +42,29 @@
  *
  */
 
+/* Use CRTs with Secp256r1 curve if enabled.
+ * Otherwise, fall back to previous EC test
+ * certificates. */
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+
+/* This is taken from tests/data_files/test-ca3.crt.pem */
+/* BEGIN FILE string macro TEST_CA_CRT_EC_PEM tests/data_files/test-ca3.crt.pem */
+/* END FILE */
+
+/* This is generated from tests/data_files/test-ca3.crt.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CA_CRT_EC_DER tests/data_files/test-ca3.crt.der */
+/* END FILE */
+
+/* This is taken from tests/data_files/test-ca3.key.pem */
+/* BEGIN FILE string macro TEST_CA_KEY_EC_PEM tests/data_files/test-ca3.key.pem */
+/* END FILE */
+
+/* This is generated from tests/data_files/test-ca3.key.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CA_KEY_EC_DER tests/data_files/test-ca3.key.der */
+/* END FILE */
+
+#else /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
 /* This is taken from tests/data_files/test-ca2.crt */
 /* BEGIN FILE string macro TEST_CA_CRT_EC_PEM tests/data_files/test-ca2.crt */
 #define TEST_CA_CRT_EC_PEM                                                 \
@@ -153,6 +176,10 @@
     0x69, 0x9a, 0x53, 0x3b, 0x20, 0xb4, 0x66, 0x16, 0x60, 0x33, 0x1e         \
 }
 /* END FILE */
+
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
+#define TEST_CA_PWD_EC_PEM "PolarSSLTest"
 
 /* This is taken from tests/data_files/test-ca-sha256.crt. */
 /* BEGIN FILE string macro TEST_CA_CRT_RSA_SHA256_PEM tests/data_files/test-ca-sha256.crt */
@@ -513,6 +540,29 @@
  * - multiple EC curve types
  */
 
+/* Use CRTs with Secp256r1 curve if enabled.
+ * Otherwise, fall back to previous EC test
+ * certificates. */
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+
+/* This is taken from tests/data_files/server11.crt.pem. */
+/* BEGIN FILE string macro TEST_SRV_CRT_EC_PEM tests/data_files/server11.crt.pem */
+/* END FILE */
+
+/* This is generated from tests/data_files/server11.crt.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_SRV_CRT_EC_DER tests/data_files/server11.crt.der */
+/* END FILE */
+
+/* This is taken from tests/data_files/server11.key.pem. */
+/* BEGIN FILE string macro TEST_SRV_KEY_EC_PEM tests/data_files/server11.key.pem */
+/* END FILE */
+
+/* This is generated from tests/data_files/server11.key.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_SRV_KEY_EC_DER tests/data_files/server11.key.der */
+/* END FILE */
+
+#else /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
 /* This is taken from tests/data_files/server5.crt. */
 /* BEGIN FILE string macro TEST_SRV_CRT_EC_PEM tests/data_files/server5.crt */
 #define TEST_SRV_CRT_EC_PEM                                                \
@@ -610,6 +660,8 @@
     0xff                                                                     \
 }
 /* END FILE */
+
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 
 /* This is taken from tests/data_files/server2-sha256.crt. */
 /* BEGIN FILE string macro TEST_SRV_CRT_RSA_SHA256_PEM tests/data_files/server2-sha256.crt */
@@ -962,6 +1014,29 @@
  * - multiple EC curve types
  */
 
+/* Use CRTs with Secp256r1 curve if enabled.
+ * Otherwise, fall back to previous EC test
+ * certificates. */
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+
+/* This is taken from tests/data_files/cli3.crt. */
+/* BEGIN FILE string macro TEST_CLI_CRT_EC_PEM tests/data_files/cli3.crt.pem */
+/* END FILE */
+
+/* This is generated from tests/data_files/cli3.crt.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CLI_CRT_EC_DER tests/data_files/cli3.crt.der */
+/* END FILE */
+
+/* This is taken from tests/data_files/cli3.key.pem. */
+/* BEGIN FILE string macro TEST_CLI_KEY_EC_PEM tests/data_files/cli3.key.pem */
+/* END FILE */
+
+/* This is generated from tests/data_files/cli3.key.der using `xxd -i`. */
+/* BEGIN FILE binary macro TEST_CLI_KEY_EC_DER tests/data_files/cli3.key.der */
+/* END FILE */
+
+#else /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
 /* This is taken from tests/data_files/cli2.crt. */
 /* BEGIN FILE string macro TEST_CLI_CRT_EC_PEM tests/data_files/cli2.crt */
 #define TEST_CLI_CRT_EC_PEM                                                \
@@ -1060,6 +1135,8 @@
     0xc7                                                                     \
 }
 /* END FILE */
+
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 
 /* This is taken from tests/data_files/cli-rsa-sha256.crt. */
 /* BEGIN FILE string macro TEST_CLI_CRT_RSA_PEM tests/data_files/cli-rsa-sha256.crt */

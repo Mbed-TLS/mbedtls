@@ -358,17 +358,13 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * with a lifetime other than #PSA_KEY_LIFETIME_VOLATILE. A persistent key
  * always has a nonzero key identifier, set with psa_set_key_id() when
  * creating the key. Implementations may provide additional pre-provisioned
- * keys with identifiers in the range
- * #PSA_KEY_ID_VENDOR_MIN&ndash;#PSA_KEY_ID_VENDOR_MAX.
+ * keys that can be opened with psa_open_key(). Such keys have a key identifier
+ * in the vendor range, as documented in the description of #psa_key_id_t.
  *
  * The application must eventually close the handle with psa_close_key()
  * to release associated resources. If the application dies without calling
  * psa_close_key(), the implementation should perform the equivalent of a
  * call to psa_close_key().
- *
- * Implementations may provide additional keys that can be opened with
- * psa_open_key(). Such keys have a key identifier in the vendor range,
- * as documented in the description of #psa_key_id_t.
  *
  * \param id            The persistent identifier of the key.
  * \param[out] handle   On success, a handle to the key.

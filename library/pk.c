@@ -115,18 +115,20 @@ const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
             return( &mbedtls_rsa_info );
 #endif
 #if defined(MBEDTLS_ECP_C)
-        case MBEDTLS_PK_ECKEY:
-            return( &mbedtls_eckey_info );
         case MBEDTLS_PK_ECKEY_DH:
             return( &mbedtls_eckeydh_info );
 #endif
-#if defined(MBEDTLS_USE_TINYCRYPT)
-        case MBEDTLS_PK_ECDSA:
-            return( &mbedtls_uecc_ecdsa_info );
-#else
 #if defined(MBEDTLS_ECDSA_C)
         case MBEDTLS_PK_ECDSA:
             return( &mbedtls_ecdsa_info );
+#endif
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        case MBEDTLS_PK_ECKEY:
+            return( &mbedtls_uecc_eckey_info );
+#else /* MBEDTLS_USE_TINYCRYPT */
+#if defined(MBEDTLS_ECP_C)
+        case MBEDTLS_PK_ECKEY:
+            return( &mbedtls_eckey_info );
 #endif
 #endif /* MBEDTLS_USE_TINYCRYPT */
         /* MBEDTLS_PK_RSA_ALT omitted on purpose */

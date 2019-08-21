@@ -528,18 +528,19 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
-static size_t uecc_ecdsa_get_bitlen( const void *ctx )
+static size_t uecc_eckey_get_bitlen( const void *ctx )
 {
     (void) ctx;
     return( (size_t) 2 * NUM_ECC_BYTES );
 }
 
-static int uecc_ecdsa_can_do( mbedtls_pk_type_t type )
+static int uecc_eckey_can_do( mbedtls_pk_type_t type )
 {
-    return( type == MBEDTLS_PK_ECDSA );
+    return( type == MBEDTLS_PK_ECDSA ||
+            type == MBEDTLS_PK_ECKEY );
 }
 
-static int uecc_ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
@@ -642,7 +643,7 @@ static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
     return( 0 );
 }
 
-static int uecc_ecdsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    unsigned char *sig, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
@@ -660,7 +661,7 @@ static int uecc_ecdsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     return( pk_ecdsa_sig_asn1_from_psa( sig, sig_len, 2*NUM_ECC_BYTES ) );
 }
 
-static void *uecc_ecdsa_alloc_wrap( void )
+static void *uecc_eckey_alloc_wrap( void )
 {
     /*void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecdsa_context ) );
 
@@ -671,25 +672,25 @@ static void *uecc_ecdsa_alloc_wrap( void )
     return NULL;
 }
 
-static void uecc_ecdsa_free_wrap( void *ctx )
+static void uecc_eckey_free_wrap( void *ctx )
 {
     (void) ctx;
     /*mbedtls_ecdsa_free( (mbedtls_ecdsa_context *) ctx );
     mbedtls_free( ctx );*/
 }
 
-const mbedtls_pk_info_t mbedtls_uecc_ecdsa_info = {
-    MBEDTLS_PK_ECDSA,
-    "ECDSA",
-    uecc_ecdsa_get_bitlen,
-    uecc_ecdsa_can_do,
-    uecc_ecdsa_verify_wrap,
-    uecc_ecdsa_sign_wrap,
+const mbedtls_pk_info_t mbedtls_uecc_eckey_info = {
+    MBEDTLS_PK_ECKEY,
+    "EC",
+    uecc_eckey_get_bitlen,
+    uecc_eckey_can_do,
+    uecc_eckey_verify_wrap,
+    uecc_eckey_sign_wrap,
     NULL,
     NULL,
     NULL,
-    uecc_ecdsa_alloc_wrap,
-    uecc_ecdsa_free_wrap,
+    uecc_eckey_alloc_wrap,
+    uecc_eckey_free_wrap,
     NULL,
 };
 #else

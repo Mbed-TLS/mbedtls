@@ -1545,7 +1545,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-    pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECDSA );
+    pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
     if( mbedtls_pk_setup( pk, pk_info ) == 0 &&
         pk_parse_key_sec1_der( mbedtls_uecc_pk( *pk),
                                key, keylen) == 0)

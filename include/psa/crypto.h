@@ -409,10 +409,10 @@ psa_status_t psa_open_key(psa_key_id_t id,
  * with a call to psa_open_key().
  *
  * Closing the key handle makes the handle invalid, and the key handle
- * must not be used again by the application..
+ * must not be used again by the application.
  *
  * If the key is currently in use in a multipart operation, then closing the
- * last handle to the key will abort the multipart operation.
+ * last remaining handle to the key will abort the multipart operation.
  *
  * \param handle        The key handle to close.
  *

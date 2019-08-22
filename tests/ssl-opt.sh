@@ -8005,8 +8005,10 @@ run_test    "DTLS proxy: reference" \
             0 \
             -C "replayed record" \
             -S "replayed record" \
-            -C "record from another epoch" \
-            -S "record from another epoch" \
+            -C "Buffer record from epoch" \
+            -S "Buffer record from epoch" \
+            -C "ssl_buffer_message" \
+            -S "ssl_buffer_message" \
             -C "discarding invalid record" \
             -S "discarding invalid record" \
             -S "resend" \

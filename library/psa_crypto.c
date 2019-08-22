@@ -1835,7 +1835,9 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     if( driver != NULL )
     {
         const psa_drv_se_t *drv = psa_get_se_driver_methods( driver );
-        size_t bits;
+        /* The driver should set the number of key bits, however in
+         * case it doesn't, we initialize bits to an invalid value. */
+        size_t bits = PSA_MAX_KEY_BITS + 1;
         if( drv->key_management == NULL ||
             drv->key_management->p_import == NULL )
         {

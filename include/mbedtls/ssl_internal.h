@@ -672,18 +672,29 @@ struct mbedtls_ssl_transform
 
 typedef struct
 {
-    uint8_t ctr[8];         /* Record sequence number        */
-    uint8_t type;           /* Record type                   */
-    uint8_t ver[2];         /* SSL/TLS version               */
+    uint8_t ctr[8];         /* In TLS:  The implicit record sequence number.
+                             * In DTLS: The 2-byte epoch followed by
+                             *          the 6-byte sequence number.
+                             * This is stored as a raw big endian byte array
+                             * as opposed to a uint64_t because we rarely
+                             * need to perform arithmetic on this, but do
+                             * need it as a Byte array for the purpose of
+                             * MAC computations.                             */
+    uint8_t type;           /* The record content type.                      */
+    uint8_t ver[2];         /* SSL/TLS version as present on the wire.
+                             * Convert to internal presentation of versions
+                             * using mbedtls_ssl_read_version() and
+                             * mbedtls_ssl_write_version().
+                             * Keep wire-format for MAC computations.        */
 
-    unsigned char *buf;     /* Memory buffer enclosing the record content */
-    size_t buf_len;         /* Buffer length */
-    size_t data_offset;     /* Offset of record content */
-    size_t data_len;        /* Length of record content */
+    unsigned char *buf;     /* Memory buffer enclosing the record content    */
+    size_t buf_len;         /* Buffer length                                 */
+    size_t data_offset;     /* Offset of record content                      */
+    size_t data_len;        /* Length of record content                      */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    uint8_t cid_len;        /* Length of the CID (0 if not present) */
-    unsigned char cid[ MBEDTLS_SSL_CID_LEN_MAX ]; /* The CID        */
+    uint8_t cid_len;        /* Length of the CID (0 if not present)          */
+    unsigned char cid[ MBEDTLS_SSL_CID_LEN_MAX ]; /* The CID                 */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 } mbedtls_record;
 
@@ -930,7 +941,20 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
 
 static inline size_t mbedtls_ssl_in_hdr_len( const mbedtls_ssl_context *ssl )
 {
-    return( (size_t) ( ssl->in_iv - ssl->in_hdr ) );
+#if !defined(MBEDTLS_SSL_PROTO_DTLS)
+    ((void) ssl);
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        return( 13 );
+    }
+    else
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+    {
+        return( 5 );
+    }
 }
 
 static inline size_t mbedtls_ssl_out_hdr_len( const mbedtls_ssl_context *ssl )
@@ -958,7 +982,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl );
 
 /* Visible for testing purposes only */
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context const *ssl );
 void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
 
@@ -1013,7 +1037,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                              mbedtls_record *rec,
                              int (*f_rng)(void *, unsigned char *, size_t),
                              void *p_rng );
-int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                              mbedtls_ssl_transform *transform,
                              mbedtls_record *rec );
 

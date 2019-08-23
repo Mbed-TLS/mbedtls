@@ -7181,7 +7181,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
     {
         int ret;
 #if defined(MBEDTLS_USE_TINYCRYPT)
-        ret = mbedtls_ssl_check_curve( ssl, MBEDTLS_UECC_DP_SECP256R1 );
+        ret = mbedtls_ssl_check_curve_uecc( ssl, MBEDTLS_UECC_DP_SECP256R1 );
 #else /* MBEDTLS_USE_TINYCRYPT */
         mbedtls_pk_context *pk;
         ret = mbedtls_x509_crt_pk_acquire( chain, &pk );
@@ -12227,12 +12227,30 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
     }
 }
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+/*
+ * Check if a curve proposed by the peer is in our list.
+ * Return 0 if we're willing to use it, -1 otherwise.
+ */
+int mbedtls_ssl_check_curve_uecc( const mbedtls_ssl_context *ssl,
+                                  mbedtls_uecc_group_id grp_id )
+{
+    MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_UECC_GRP_ID( own_ec_id )
+    if( own_ec_id == grp_id )
+        return( 0 );
+    MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_UECC_GRP_ID
+
+    return( -1 );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #if defined(MBEDTLS_ECP_C)
 /*
  * Check if a curve proposed by the peer is in our list.
  * Return 0 if we're willing to use it, -1 otherwise.
  */
-int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
+int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl,
+                             mbedtls_ecp_group_id grp_id )
 {
     MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( own_ec_id )
     if( own_ec_id == grp_id )

@@ -480,7 +480,7 @@ typedef enum
 
 int mbedtls_oid_get_ec_grp( const mbedtls_asn1_buf *oid, mbedtls_uecc_group_id *grp_id );
 
-int mbedtls_oid_get_oid_by_ec_grp( mbedtls_uecc_group_id grp_id, 
+int mbedtls_oid_get_oid_by_ec_grp( mbedtls_uecc_group_id grp_id,
                             const char **oid, size_t *olen);
 #else
 #if defined(MBEDTLS_ECP_C)

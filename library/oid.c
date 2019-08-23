@@ -385,7 +385,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
     },
 #endif /* MBEDTLS_SHA1_C */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
 #if defined(MBEDTLS_SHA1_C)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_ECDSA_SHA1,       "ecdsa-with-SHA1",      "ECDSA with SHA1" ),
@@ -412,7 +412,7 @@ static const oid_sig_alg_t oid_sig_alg[] =
         MBEDTLS_MD_SHA512,   MBEDTLS_PK_ECDSA,
     },
 #endif /* MBEDTLS_SHA512_C */
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_RSA_C)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_RSASSA_PSS,        "RSASSA-PSS",           "RSASSA-PSS" ),

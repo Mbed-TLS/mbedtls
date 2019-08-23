@@ -815,7 +815,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     unsigned char *buf;
     unsigned char *p, *q;
     unsigned char offer_compress;
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_USE_TINYCRYPT) ||                           \
+    defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) ||      \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     int uses_ec = 0;
 #endif
@@ -979,7 +980,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %04x",
                               mbedtls_ssl_suite_get_id( ciphersuite_info ) ) );
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_USE_TINYCRYPT) || \
+    defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) ||      \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
         uses_ec |= mbedtls_ssl_ciphersuite_uses_ec( ciphersuite_info );
 #endif
@@ -1076,7 +1078,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(MBEDTLS_ECDH_C)   ||                \
+#if defined(MBEDTLS_USE_TINYCRYPT) ||           \
+    defined(MBEDTLS_ECDH_C)   ||                \
     defined(MBEDTLS_ECDSA_C)  ||                \
     defined(MBEDTLS_USE_TINYCRYPT) ||                \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -2058,7 +2061,8 @@ server_picked_valid_suite:
             break;
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_USE_TINYCRYPT) ||                           \
+    defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) ||      \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
         case MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found supported_point_formats extension" ) );

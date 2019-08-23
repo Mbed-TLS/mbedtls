@@ -45,7 +45,7 @@
 /* Use CRTs with Secp256r1-only if Secp384r1 is disabled.
  * Otherwise, fall back to previous test CRTs using both
  * Secp256r1 and Secp384r1. */
-#if !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(MBEDTLS_USE_TINYCRYPT)
 
 /* This is taken from tests/data_files/test-ca3.crt.pem */
 /* BEGIN FILE string macro TEST_CA_CRT_EC_PEM tests/data_files/test-ca3.crt.pem */
@@ -135,7 +135,7 @@
 }
 /* END FILE */
 
-#else /* !MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#else /* !MBEDTLS_ECP_DP_SECP384R1_ENABLED || MBEDTLS_USE_TINYCRYPT */
 
 /* This is taken from tests/data_files/test-ca2.crt */
 /* BEGIN FILE string macro TEST_CA_CRT_EC_PEM tests/data_files/test-ca2.crt */
@@ -241,7 +241,7 @@
 }
 /* END FILE */
 
-#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED || MBEDTLS_USE_TINYCRYPT */
 
 #define TEST_CA_PWD_EC_PEM "PolarSSLTest"
 
@@ -607,7 +607,7 @@
 /* Use CRTs with Secp256r1-only if Secp384r1 is disabled.
  * Otherwise, fall back to previous test CRTs using both
  * Secp256r1 and Secp384r1. */
-#if !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(MBEDTLS_USE_TINYCRYPT)
 
 /* This is taken from tests/data_files/server11.crt.pem. */
 /* BEGIN FILE string macro TEST_SRV_CRT_EC_PEM tests/data_files/server11.crt.pem */
@@ -696,7 +696,7 @@
 }
 /* END FILE */
 
-#else /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#else /* MBEDTLS_ECP_DP_SECP384R1_ENABLED || MBEDTLS_USE_TINYCRYPT */
 
 /* This is taken from tests/data_files/server5.crt. */
 /* BEGIN FILE string macro TEST_SRV_CRT_EC_PEM tests/data_files/server5.crt */
@@ -796,7 +796,7 @@
 }
 /* END FILE */
 
-#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED || MBEDTLS_USE_TINYCRYPT */
 
 /* This is taken from tests/data_files/server2-sha256.crt. */
 /* BEGIN FILE string macro TEST_SRV_CRT_RSA_SHA256_PEM tests/data_files/server2-sha256.crt */
@@ -1152,7 +1152,7 @@
 /* Use CRTs with Secp256r1-only if Secp384r1 is disabled.
  * Otherwise, fall back to previous test CRTs using both
  * Secp256r1 and Secp384r1. */
-#if !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#if !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || defined(MBEDTLS_USE_TINYCRYPT)
 
 /* This is taken from tests/data_files/cli3.crt. */
 /* BEGIN FILE string macro TEST_CLI_CRT_EC_PEM tests/data_files/cli3.crt.pem */
@@ -1242,7 +1242,7 @@
 }
 /* END FILE */
 
-#else /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#else /* MBEDTLS_ECP_DP_SECP384R1_ENABLED || MBEDTLS_USE_TINYCRYPT */
 
 /* This is taken from tests/data_files/cli2.crt. */
 /* BEGIN FILE string macro TEST_CLI_CRT_EC_PEM tests/data_files/cli2.crt */
@@ -1336,7 +1336,7 @@
 }
 /* END FILE */
 
-#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED || MBEDTLS_USE_TINYCRYPT */
 
 /* This is taken from tests/data_files/cli-rsa-sha256.crt. */
 /* BEGIN FILE string macro TEST_CLI_CRT_RSA_PEM tests/data_files/cli-rsa-sha256.crt */
@@ -1975,9 +1975,9 @@ const char * mbedtls_test_cas[] = {
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C)
     mbedtls_test_ca_crt_rsa_sha256,
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     mbedtls_test_ca_crt_ec,
-#endif
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     NULL
 };
 const size_t mbedtls_test_cas_len[] = {
@@ -1987,9 +1987,9 @@ const size_t mbedtls_test_cas_len[] = {
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C)
     sizeof( mbedtls_test_ca_crt_rsa_sha256 ),
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     sizeof( mbedtls_test_ca_crt_ec ),
-#endif
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     0
 };
 
@@ -2003,9 +2003,9 @@ const unsigned char * mbedtls_test_cas_der[] = {
     mbedtls_test_ca_crt_rsa_sha1_der,
 #endif /* MBEDTLS_SHA1_C */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     mbedtls_test_ca_crt_ec_der,
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     NULL
 };
 
@@ -2018,9 +2018,9 @@ const size_t mbedtls_test_cas_der_len[] = {
     sizeof( mbedtls_test_ca_crt_rsa_sha1_der ),
 #endif /* MBEDTLS_SHA1_C */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     sizeof( mbedtls_test_ca_crt_ec_der ),
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     0
 };
 
@@ -2035,9 +2035,9 @@ const char mbedtls_test_cas_pem[] =
     TEST_CA_CRT_RSA_SHA1_PEM
 #endif /* MBEDTLS_SHA1_C */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     TEST_CA_CRT_EC_PEM
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     "";
 const size_t mbedtls_test_cas_pem_len = sizeof( mbedtls_test_cas_pem );
 #endif /* MBEDTLS_PEM_PARSE_C */

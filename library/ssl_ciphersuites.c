@@ -2307,14 +2307,17 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg(
 }
 #endif /* MBEDTLS_PK_C */
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+#if defined(MBEDTLS_USE_TINYCRYPT) || \
+    defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) ||      \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 int mbedtls_ssl_ciphersuite_uses_ec(
     mbedtls_ssl_ciphersuite_handle_t info )
 {
     return( mbedtls_ssl_ciphersuite_uses_ec_internal( info ) );
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+#endif /* MBEDTLS_USE_TINYCRYPT ||
+          MBEDTLS_ECDH_C        ||
+          MBEDTLS_ECDSA_C       ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)

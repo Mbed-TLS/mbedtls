@@ -228,11 +228,11 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
         MBEDTLS_ASN1_CHK_ADD( len, pk_write_rsa_pubkey( p, start, mbedtls_pk_rsa( *key ) ) );
     else
 #endif
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
         MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_pubkey( p, start, key ) );
     else
-#endif
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
     return( (int) len );
@@ -274,12 +274,12 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
         return( ret );
     }
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
     {
         MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, key ) );
     }
-#endif
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_algorithm_identifier( &c, buf, oid, oid_len,
                                                         par_len ) );
@@ -383,7 +383,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
     }
     else
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
     {
         size_t pub_len = 0, par_len = 0;
@@ -435,7 +435,7 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
                                                     MBEDTLS_ASN1_SEQUENCE ) );
     }
     else
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
     return( (int) len );
@@ -579,15 +579,15 @@ int mbedtls_pk_write_key_pem( mbedtls_pk_context *key, unsigned char *buf, size_
         end = PEM_END_PRIVATE_KEY_RSA;
     }
     else
-#endif
-#if defined(MBEDTLS_ECP_C)
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
     {
         begin = PEM_BEGIN_PRIVATE_KEY_EC;
         end = PEM_END_PRIVATE_KEY_EC;
     }
     else
-#endif
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
     if( ( ret = mbedtls_pem_write_buffer( begin, end,

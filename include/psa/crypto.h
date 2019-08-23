@@ -358,17 +358,18 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * with a lifetime other than #PSA_KEY_LIFETIME_VOLATILE. A persistent key
  * always has a nonzero key identifier, set with psa_set_key_id() when
  * creating the key. Implementations may provide additional pre-provisioned
- * keys with identifiers in the range
- * #PSA_KEY_ID_VENDOR_MIN&ndash;#PSA_KEY_ID_VENDOR_MAX.
+ * keys that can be opened with psa_open_key(). Such keys have a key identifier
+ * in the vendor range, as documented in the description of #psa_key_id_t.
  *
  * The application must eventually close the handle with psa_close_key()
  * to release associated resources. If the application dies without calling
  * psa_close_key(), the implementation should perform the equivalent of a
  * call to psa_close_key().
  *
- * Implementations may provide additional keys that can be opened with
- * psa_open_key(). Such keys have a key identifier in the vendor range,
- * as documented in the description of #psa_key_id_t.
+ * Some implementations permit an application to open the same key multiple
+ * times. Applications that rely on this behavior will not be portable to
+ * implementations that only permit a single key handle to be opened. See
+ * also :ref:\`key-handles\`.
  *
  * \param id            The persistent identifier of the key.
  * \param[out] handle   On success, a handle to the key.
@@ -377,9 +378,14 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  *         Success. The application can now use the value of `*handle`
  *         to access the key.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         The implementation does not have sufficient resources to open the
+ *         key. This can be due to reaching an implementation limit on the
+ *         number of open keys, the number of open key handles, or available
+ *         memory.
  * \retval #PSA_ERROR_DOES_NOT_EXIST
+ *         There is no persistent key with key identifier \p id.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p id is invalid.
+ *         \p id is not a valid persistent key identifier.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The specified key exists, but the application does not have the
  *         permission to access it. Note that this specification does not
@@ -394,15 +400,19 @@ psa_status_t psa_open_key(psa_key_id_t id,
 
 /** Close a key handle.
  *
- * If the handle designates a volatile key, destroy the key material and
- * free all associated resources, just like psa_destroy_key().
+ * If the handle designates a volatile key, this will destroy the key material
+ * and free all associated resources, just like psa_destroy_key().
  *
- * If the handle designates a persistent key, free all resources associated
- * with the key in volatile memory. The key in persistent storage is
- * not affected and can be opened again later with psa_open_key().
+ * If this is the last open handle to a persistent key, then closing the handle
+ * will free all resources associated with the key in volatile memory. The key
+ * data in persistent storage is not affected and can be opened again later
+ * with a call to psa_open_key().
  *
- * If the key is currently in use in a multipart operation,
- * the multipart operation is aborted.
+ * Closing the key handle makes the handle invalid, and the key handle
+ * must not be used again by the application.
+ *
+ * If the key is currently in use in a multipart operation, then closing the
+ * last remaining handle to the key will abort the multipart operation.
  *
  * \param handle        The key handle to close.
  *
@@ -495,6 +505,11 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  *
  * This function also erases any metadata such as policies and frees all
  * resources associated with the key.
+ *
+ * Destroying a key will invalidate all existing handles to the key.
+ *
+ * If the key is currently in use in a multipart operation, then destroying the
+ * key will abort the multipart operation.
  *
  * \param handle        Handle to the key to erase.
  *

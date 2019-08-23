@@ -35,6 +35,11 @@ Features
      mbedtls_ssl_session_load() to allow serializing a session, for example to
      store it in non-volatile storage, and later using it for TLS session
      resumption.
+   * Add a new API function mbedtls_ssl_check_record() to allow checking that
+     an incoming record is valid, authentic and has not been seen before. This
+     feature can be used alongside Connection ID and SSL context serialisation.
+     The feature is enabled at compile-time by MBEDTLS_SSL_RECORD_CHECKING
+     option.
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

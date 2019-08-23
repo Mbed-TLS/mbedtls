@@ -31,6 +31,10 @@ Features
      changed its IP or port. The feature is enabled at compile-time by setting
      MBEDTLS_SSL_DTLS_CONNECTION_ID (disabled by default), and at run-time
      through the new APIs mbedtls_ssl_conf_cid() and mbedtls_ssl_set_cid().
+   * Add mbedtls_net_close(), enabling the building of forking servers where
+     the parent process closes the client socket and continue accepting, and
+     the child process closes the listening socket and handles the client
+     socket. Contributed by Robert Larsen in #2803.
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

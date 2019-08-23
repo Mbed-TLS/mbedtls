@@ -46,6 +46,10 @@
 #include "ecdh.h"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc.h"
+#endif
+
 #if defined(MBEDTLS_ZLIB_SUPPORT)
 
 #if defined(MBEDTLS_DEPRECATED_WARNING)
@@ -510,7 +514,12 @@ union mbedtls_ssl_premaster_secret
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)  || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)     || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#if defined(MBEDTLS_ECDH_C)
     unsigned char _pms_ecdh[MBEDTLS_ECP_MAX_BYTES];    /* RFC 4492 5.10 */
+#endif
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    unsigned char _pms_ecdh_uecc[ NUM_ECC_BYTES ];
+#endif
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     unsigned char _pms_psk[4 + 2 * MBEDTLS_PSK_MAX_LEN];       /* RFC 4279 2 */

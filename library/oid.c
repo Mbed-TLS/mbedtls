@@ -488,11 +488,11 @@ typedef struct {
 static const oid_ecp_grp_t oid_ecp_grp[] =
 {
     {
-        { ADD_LEN( MBEDTLS_OID_EC_GRP_SECP256R1 ), "secp256r1",    "secp256r1" },
+        OID_DESCRIPTOR( MBEDTLS_OID_EC_GRP_SECP256R1 , "secp256r1", "secp256r1" ),
         MBEDTLS_UECC_DP_SECP256R1,
     },
     {
-        { NULL, 0, NULL, NULL },
+        NULL_OID_DESCRIPTOR,
         MBEDTLS_UECC_DP_NONE,
     },
 };

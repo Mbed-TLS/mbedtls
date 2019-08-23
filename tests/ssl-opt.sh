@@ -1139,14 +1139,14 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 run_test    "CertificateRequest with empty CA list, TLS 1.1 (GnuTLS server)" \
             "$G_SRV"\
-            "$P_CLI force_version=tls1_1" \
+            "$P_CLI force_version=tls1_1 ca_file=data_files/test-ca2.crt" \
             0
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1
 run_test    "CertificateRequest with empty CA list, TLS 1.0 (GnuTLS server)" \
             "$G_SRV"\
-            "$P_CLI force_version=tls1" \
+            "$P_CLI force_version=tls1 ca_file=data_files/test-ca2.crt" \
             0
 
 # Tests for SHA-1 support
@@ -2187,7 +2187,7 @@ run_test    "Fallback SCSV: enabled, max version" \
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: default, openssl server" \
             "$O_SRV" \
-            "$P_CLI debug_level=3 force_version=tls1_1 fallback=0" \
+            "$P_CLI debug_level=3 force_version=tls1_1 fallback=0 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "adding FALLBACK_SCSV" \
             -C "is a fatal alert message (msg 86)"
@@ -2195,7 +2195,7 @@ run_test    "Fallback SCSV: default, openssl server" \
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: enabled, openssl server" \
             "$O_SRV" \
-            "$P_CLI debug_level=3 force_version=tls1_1 fallback=1" \
+            "$P_CLI debug_level=3 force_version=tls1_1 fallback=1 ca_file=data_files/test-ca2.crt" \
             1 \
             -c "adding FALLBACK_SCSV" \
             -c "is a fatal alert message (msg 86)"
@@ -2426,7 +2426,7 @@ requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets: openssl server" \
             "$O_SRV" \
-            "$P_CLI debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI debug_level=3 tickets=1 reconnect=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "client hello, adding session ticket extension" \
             -c "found session_ticket extension" \
@@ -2517,7 +2517,7 @@ requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
 requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "Session resume using tickets, DTLS: openssl server" \
             "$O_SRV -dtls1" \
-            "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "client hello, adding session ticket extension" \
             -c "found session_ticket extension" \
@@ -2658,7 +2658,7 @@ requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
 requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache: openssl server" \
             "$O_SRV" \
-            "$P_CLI debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI debug_level=3 tickets=0 reconnect=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "found session_ticket extension" \
             -C "parse new session ticket" \
@@ -2784,7 +2784,7 @@ requires_config_disabled MBEDTLS_SSL_NO_SESSION_RESUMPTION
 requires_config_disabled MBEDTLS_SSL_NO_SESSION_CACHE
 run_test    "Session resume using cache, DTLS: openssl server" \
             "$O_SRV -dtls1" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "found session_ticket extension" \
             -C "parse new session ticket" \
@@ -2893,7 +2893,7 @@ requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 requires_gnutls
 run_test    "Max fragment length: gnutls server" \
             "$G_SRV" \
-            "$P_CLI debug_level=3 max_frag_len=4096" \
+            "$P_CLI debug_level=3 max_frag_len=4096 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "Maximum fragment length is 4096" \
             -c "client hello, adding max_fragment_length extension" \
@@ -3235,7 +3235,7 @@ run_test    "Renegotiation: nbio, server-initiated" \
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: openssl server, client-initiated" \
             "$O_SRV -www" \
-            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
@@ -3248,7 +3248,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: gnutls server strict, client-initiated" \
             "$G_SRV --priority=NORMAL:%SAFE_RENEGOTIATION" \
-            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
@@ -3261,7 +3261,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: gnutls server unsafe, client-initiated default" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
-            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 ca_file=data_files/test-ca2.crt" \
             1 \
             -c "client hello, adding renegotiation extension" \
             -C "found renegotiation extension" \
@@ -3274,7 +3274,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: gnutls server unsafe, client-inititated no legacy" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
-            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 ca_file=data_files/test-ca2.crt \
              allow_legacy=0" \
             1 \
             -c "client hello, adding renegotiation extension" \
@@ -3288,7 +3288,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: gnutls server unsafe, client-inititated legacy" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
-            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 \
+            "$P_CLI debug_level=3 exchanges=1 renegotiation=1 renegotiate=1 ca_file=data_files/test-ca2.crt \
              allow_legacy=1" \
             0 \
             -c "client hello, adding renegotiation extension" \
@@ -3345,7 +3345,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
             "$G_SRV -u --mtu 4096" \
-            "$P_CLI debug_level=3 dtls=1 exchanges=1 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 dtls=1 exchanges=1 renegotiation=1 renegotiate=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "client hello, adding renegotiation extension" \
             -c "found renegotiation extension" \
@@ -3359,7 +3359,7 @@ run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
 requires_gnutls
 run_test    "Renego ext: gnutls server strict, client default" \
             "$G_SRV --priority=NORMAL:%SAFE_RENEGOTIATION" \
-            "$P_CLI debug_level=3" \
+            "$P_CLI debug_level=3 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "found renegotiation extension" \
             -C "error" \
@@ -3368,7 +3368,7 @@ run_test    "Renego ext: gnutls server strict, client default" \
 requires_gnutls
 run_test    "Renego ext: gnutls server unsafe, client default" \
             "$G_SRV --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
-            "$P_CLI debug_level=3" \
+            "$P_CLI debug_level=3 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "found renegotiation extension" \
             -C "error" \
@@ -3385,7 +3385,7 @@ run_test    "Renego ext: gnutls server unsafe, client break legacy" \
 
 requires_gnutls
 run_test    "Renego ext: gnutls client strict, server default" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
             "$G_CLI --priority=NORMAL:%SAFE_RENEGOTIATION localhost" \
             0 \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
@@ -3393,7 +3393,7 @@ run_test    "Renego ext: gnutls client strict, server default" \
 
 requires_gnutls
 run_test    "Renego ext: gnutls client unsafe, server default" \
-            "$P_SRV debug_level=3" \
+            "$P_SRV debug_level=3 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
             "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
@@ -3401,7 +3401,7 @@ run_test    "Renego ext: gnutls client unsafe, server default" \
 
 requires_gnutls
 run_test    "Renego ext: gnutls client unsafe, server break legacy" \
-            "$P_SRV debug_level=3 allow_legacy=-1" \
+            "$P_SRV debug_level=3 allow_legacy=-1 crt_file=data_files/server5.crt key_file=data_files/server5.key" \
             "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION localhost" \
             1 \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
@@ -3550,7 +3550,7 @@ run_test    "Authentication: server badcert, client none" \
             -C "X509 - Certificate verification failed"
 
 run_test    "Authentication: client SHA256, server required" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt" \
             "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
@@ -3558,7 +3558,7 @@ run_test    "Authentication: client SHA256, server required" \
             -c "Supported Signature Algorithm found: 5,"
 
 run_test    "Authentication: client SHA384, server required" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt" \
             "$P_CLI debug_level=3 crt_file=data_files/server6.crt \
              key_file=data_files/server6.key \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
@@ -3692,7 +3692,7 @@ run_test    "Authentication: client no cert, server optional" \
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Authentication: openssl client no cert, server optional" \
-            "$P_SRV debug_level=3 auth_mode=optional" \
+            "$P_SRV debug_level=3 auth_mode=optional ca_file=data_files/test-ca2.crt" \
             "$O_CLI" \
             0 \
             -S "skip write certificate request" \
@@ -3703,7 +3703,7 @@ run_test    "Authentication: openssl client no cert, server optional" \
 
 run_test    "Authentication: client no cert, openssl server optional" \
             "$O_SRV -verify 10" \
-            "$P_CLI debug_level=3 crt_file=none key_file=none" \
+            "$P_CLI debug_level=3 crt_file=none key_file=none ca_file=data_files/test-ca2.crt" \
             0 \
             -C "skip parse certificate request" \
             -c "got a certificate request" \
@@ -3713,7 +3713,7 @@ run_test    "Authentication: client no cert, openssl server optional" \
 
 run_test    "Authentication: client no cert, openssl server required" \
             "$O_SRV -Verify 10" \
-            "$P_CLI debug_level=3 crt_file=none key_file=none" \
+            "$P_CLI debug_level=3 crt_file=none key_file=none ca_file=data_files/test-ca2.crt" \
             1 \
             -C "skip parse certificate request" \
             -c "got a certificate request" \
@@ -3827,14 +3827,14 @@ run_test    "Authentication: client max_int chain, server required" \
 # Tests for CA list in CertificateRequest messages
 
 run_test    "Authentication: send CA list in CertificateRequest  (default)" \
-            "$P_SRV debug_level=3 auth_mode=required" \
+            "$P_SRV debug_level=3 auth_mode=required ca_file=data_files/test-ca2.crt" \
             "$P_CLI crt_file=data_files/server6.crt \
              key_file=data_files/server6.key" \
             0 \
             -s "requested DN"
 
 run_test    "Authentication: do not send CA list in CertificateRequest" \
-            "$P_SRV debug_level=3 auth_mode=required cert_req_ca_list=0" \
+            "$P_SRV debug_level=3 auth_mode=required cert_req_ca_list=0 ca_file=data_files/test-ca2.crt" \
             "$P_CLI crt_file=data_files/server6.crt \
              key_file=data_files/server6.key" \
             0 \
@@ -3861,7 +3861,7 @@ run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
                     key_file=data_files/server5.key \
                     crt_file2=data_files/server5-sha1.crt \
                     key_file2=data_files/server5.key" \
-            "$P_CLI force_version=tls1_2" \
+            "$P_CLI force_version=tls1_2 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "signed using.*ECDSA with SHA256" \
             -C "signed using.*ECDSA with SHA1"
@@ -3872,7 +3872,7 @@ run_test    "Certificate hash: client TLS 1.1 -> SHA-1" \
                     key_file=data_files/server5.key \
                     crt_file2=data_files/server5-sha1.crt \
                     key_file2=data_files/server5.key" \
-            "$P_CLI force_version=tls1_1" \
+            "$P_CLI force_version=tls1_1 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "signed using.*ECDSA with SHA256" \
             -c "signed using.*ECDSA with SHA1"
@@ -3883,7 +3883,7 @@ run_test    "Certificate hash: client TLS 1.0 -> SHA-1" \
                     key_file=data_files/server5.key \
                     crt_file2=data_files/server5-sha1.crt \
                     key_file2=data_files/server5.key" \
-            "$P_CLI force_version=tls1" \
+            "$P_CLI force_version=tls1 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "signed using.*ECDSA with SHA256" \
             -c "signed using.*ECDSA with SHA1"
@@ -3894,7 +3894,7 @@ run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 1)" \
                     key_file=data_files/server5.key \
                     crt_file2=data_files/server6.crt \
                     key_file2=data_files/server6.key" \
-            "$P_CLI force_version=tls1_1" \
+            "$P_CLI force_version=tls1_1 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "serial number.*09" \
             -c "signed using.*ECDSA with SHA256" \
@@ -3906,7 +3906,7 @@ run_test    "Certificate hash: client TLS 1.1, no SHA-1 -> SHA-2 (order 2)" \
                     key_file=data_files/server6.key \
                     crt_file2=data_files/server5.crt \
                     key_file2=data_files/server5.key" \
-            "$P_CLI force_version=tls1_1" \
+            "$P_CLI force_version=tls1_1 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "serial number.*0A" \
             -c "signed using.*ECDSA with SHA256" \
@@ -3918,7 +3918,7 @@ requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SNI: no SNI callback" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$P_CLI server_name=localhost" \
+            "$P_CLI server_name=localhost ca_file=data_files/test-ca2.crt" \
             0 \
             -S "parse ServerName extension" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=Polarssl Test EC CA" \
@@ -3929,7 +3929,7 @@ run_test    "SNI: matching cert 1" \
             "$P_SRV debug_level=3 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
-            "$P_CLI server_name=localhost" \
+            "$P_CLI server_name=localhost ca_file=data_files/test-ca.crt" \
             0 \
             -s "parse ServerName extension" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
@@ -4060,7 +4060,7 @@ requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "SNI: DTLS, no SNI callback" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key" \
-            "$P_CLI server_name=localhost dtls=1" \
+            "$P_CLI server_name=localhost dtls=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -S "parse ServerName extension" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=Polarssl Test EC CA" \
@@ -4071,7 +4071,7 @@ run_test    "SNI: DTLS, matching cert 1" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
-            "$P_CLI server_name=localhost dtls=1" \
+            "$P_CLI server_name=localhost dtls=1 ca_file=data_files/test-ca.crt" \
             0 \
             -s "parse ServerName extension" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
@@ -4082,7 +4082,7 @@ run_test    "SNI: DTLS, matching cert 2" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
-            "$P_CLI server_name=polarssl.example dtls=1" \
+            "$P_CLI server_name=polarssl.example dtls=1 ca_file=data_files/test-ca.crt" \
             0 \
             -s "parse ServerName extension" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
@@ -4552,7 +4552,7 @@ run_test    "keyUsage srv: RSA, keyAgreement -> fail" \
 run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ds.crt" \
-            "$P_CLI" \
+            "$P_CLI ca_file=data_files/test-ca2.crt" \
             0 \
             -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
 
@@ -4560,14 +4560,14 @@ run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA" \
 run_test    "keyUsage srv: ECDSA, keyAgreement -> ECDH-" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ka.crt" \
-            "$P_CLI" \
+            "$P_CLI ca_file=data_files/test-ca2.crt" \
             0 \
             -c "Ciphersuite is TLS-ECDH-"
 
 run_test    "keyUsage srv: ECDSA, keyEncipherment -> fail" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.ku-ke.crt" \
-            "$P_CLI" \
+            "$P_CLI ca_file=data_files/test-ca2.crt" \
             1 \
             -C "Ciphersuite is "
 
@@ -4706,25 +4706,25 @@ run_test    "keyUsage cli-auth: ECDSA, KeyAgreement: fail (soft)" \
 run_test    "extKeyUsage srv: serverAuth -> OK" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.eku-srv.crt" \
-            "$P_CLI" \
+            "$P_CLI ca_file=data_files/test-ca2.crt" \
             0
 
 run_test    "extKeyUsage srv: serverAuth,clientAuth -> OK" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.eku-srv.crt" \
-            "$P_CLI" \
+            "$P_CLI ca_file=data_files/test-ca2.crt" \
             0
 
 run_test    "extKeyUsage srv: codeSign,anyEKU -> OK" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.eku-cs_any.crt" \
-            "$P_CLI" \
+            "$P_CLI ca_file=data_files/test-ca2.crt" \
             0
 
 run_test    "extKeyUsage srv: codeSign -> fail" \
             "$P_SRV key_file=data_files/server5.key \
              crt_file=data_files/server5.eku-cli.crt" \
-            "$P_CLI" \
+            "$P_CLI ca_file=data_files/test-ca2.crt" \
             1
 
 # Tests for extendedKeyUsage, part 2: client-side checking of server cert
@@ -4732,7 +4732,7 @@ run_test    "extKeyUsage srv: codeSign -> fail" \
 run_test    "extKeyUsage cli: serverAuth -> OK" \
             "$O_SRV -key data_files/server5.key \
              -cert data_files/server5.eku-srv.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
@@ -4741,7 +4741,7 @@ run_test    "extKeyUsage cli: serverAuth -> OK" \
 run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
             "$O_SRV -key data_files/server5.key \
              -cert data_files/server5.eku-srv_cli.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
@@ -4750,7 +4750,7 @@ run_test    "extKeyUsage cli: serverAuth,clientAuth -> OK" \
 run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
             "$O_SRV -key data_files/server5.key \
              -cert data_files/server5.eku-cs_any.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "bad certificate (usage extensions)" \
             -C "Processing of the Certificate handshake message failed" \
@@ -4759,7 +4759,7 @@ run_test    "extKeyUsage cli: codeSign,anyEKU -> OK" \
 run_test    "extKeyUsage cli: codeSign -> fail" \
             "$O_SRV -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
-            "$P_CLI debug_level=1" \
+            "$P_CLI debug_level=1 ca_file=data_files/test-ca2.crt" \
             1 \
             -c "bad certificate (usage extensions)" \
             -c "Processing of the Certificate handshake message failed" \
@@ -4800,7 +4800,7 @@ run_test    "extKeyUsage cli-auth: codeSign -> fail (soft)" \
             -S "Processing of the Certificate handshake message failed"
 
 run_test    "extKeyUsage cli-auth: codeSign -> fail (hard)" \
-            "$P_SRV debug_level=1 auth_mode=required" \
+            "$P_SRV debug_level=1 auth_mode=required ca_file=data_files/test-ca2.crt" \
             "$O_CLI -key data_files/server5.key \
              -cert data_files/server5.eku-cs.crt" \
             1 \
@@ -6166,7 +6166,7 @@ run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, default" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1" \
@@ -6178,7 +6178,7 @@ run_test    "EC restart: TLS, default" \
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=0" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=0" \
@@ -6190,7 +6190,7 @@ run_test    "EC restart: TLS, max_ops=0" \
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=65535" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=65535" \
@@ -6202,7 +6202,7 @@ run_test    "EC restart: TLS, max_ops=65535" \
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=1000" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=1000" \
@@ -6215,11 +6215,11 @@ run_test    "EC restart: TLS, max_ops=1000" \
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "EC restart: TLS, max_ops=1000, badsign" \
-            "$P_SRV auth_mode=required \
+            "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt \
              crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
-             key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt ca_file=data_files/test-ca2.crt  \
              debug_level=1 ec_max_ops=1000" \
             1 \
             -c "x509_verify_cert.*4b00" \
@@ -6233,11 +6233,12 @@ run_test    "EC restart: TLS, max_ops=1000, badsign" \
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign" \
-            "$P_SRV auth_mode=required \
+            "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt \
              crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
+             ca_file=data_files/test-ca2.crt \
              debug_level=1 ec_max_ops=1000 auth_mode=optional" \
             0 \
             -c "x509_verify_cert.*4b00" \
@@ -6251,10 +6252,11 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=optional badsign" \
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign" \
-            "$P_SRV auth_mode=required \
+            "$P_SRV auth_mode=required ca_file=data_files/test-ca2.crt \
              crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             ca_file=data_files/test-ca2.crt \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              debug_level=1 ec_max_ops=1000 auth_mode=none" \
             0 \
@@ -6268,7 +6270,7 @@ run_test    "EC restart: TLS, max_ops=1000, auth_mode=none badsign" \
 
 requires_config_enabled MBEDTLS_ECP_RESTARTABLE
 run_test    "EC restart: DTLS, max_ops=1000" \
-            "$P_SRV auth_mode=required dtls=1" \
+            "$P_SRV auth_mode=required dtls=1 ca_file=data_files/test-ca2.crt" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt  \
              dtls=1 debug_level=1 ec_max_ops=1000" \
@@ -6433,7 +6435,7 @@ run_test    "SSL async private: slot 0 used with key1" \
              async_operations=s async_private_delay1=1 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt \
              key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
-            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256 ca_file=data_files/test-ca2.crt" \
             0 \
             -s "Async sign callback: using key slot 0," \
             -s "Async resume (slot 0): call 0 more times." \
@@ -6836,7 +6838,7 @@ run_test    "DTLS wrong PSK: badmac alert" \
 requires_gnutls
 run_test    "DTLS reassembly: no fragmentation (gnutls server)" \
             "$G_SRV -u --mtu 2048 -a" \
-            "$P_CLI dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "found fragmented DTLS handshake message" \
             -C "error"
@@ -6844,7 +6846,7 @@ run_test    "DTLS reassembly: no fragmentation (gnutls server)" \
 requires_gnutls
 run_test    "DTLS reassembly: some fragmentation (gnutls server)" \
             "$G_SRV -u --mtu 512" \
-            "$P_CLI dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -6852,7 +6854,7 @@ run_test    "DTLS reassembly: some fragmentation (gnutls server)" \
 requires_gnutls
 run_test    "DTLS reassembly: more fragmentation (gnutls server)" \
             "$G_SRV -u --mtu 128" \
-            "$P_CLI dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -6860,7 +6862,7 @@ run_test    "DTLS reassembly: more fragmentation (gnutls server)" \
 requires_gnutls
 run_test    "DTLS reassembly: more fragmentation, nbio (gnutls server)" \
             "$G_SRV -u --mtu 128" \
-            "$P_CLI dtls=1 nbio=2 debug_level=2" \
+            "$P_CLI dtls=1 nbio=2 debug_level=2 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -6869,7 +6871,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS reassembly: fragmentation, renego (gnutls server)" \
             "$G_SRV -u --mtu 256" \
-            "$P_CLI debug_level=3 dtls=1 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 dtls=1 renegotiation=1 renegotiate=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -c "client hello, adding renegotiation extension" \
@@ -6883,7 +6885,7 @@ requires_gnutls
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
             "$G_SRV -u --mtu 256" \
-            "$P_CLI debug_level=3 nbio=2 dtls=1 renegotiation=1 renegotiate=1" \
+            "$P_CLI debug_level=3 nbio=2 dtls=1 renegotiation=1 renegotiate=1 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -c "client hello, adding renegotiation extension" \
@@ -6895,28 +6897,28 @@ run_test    "DTLS reassembly: fragmentation, nbio, renego (gnutls server)" \
 
 run_test    "DTLS reassembly: no fragmentation (openssl server)" \
             "$O_SRV -dtls1 -mtu 2048" \
-            "$P_CLI dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2 ca_file=data_files/test-ca2.crt" \
             0 \
             -C "found fragmented DTLS handshake message" \
             -C "error"
 
 run_test    "DTLS reassembly: some fragmentation (openssl server)" \
             "$O_SRV -dtls1 -mtu 768" \
-            "$P_CLI dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
 run_test    "DTLS reassembly: more fragmentation (openssl server)" \
             "$O_SRV -dtls1 -mtu 256" \
-            "$P_CLI dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
 run_test    "DTLS reassembly: fragmentation, nbio (openssl server)" \
             "$O_SRV -dtls1 -mtu 256" \
-            "$P_CLI dtls=1 nbio=2 debug_level=2" \
+            "$P_CLI dtls=1 nbio=2 debug_level=2 ca_file=data_files/test-ca2.crt" \
             0 \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -6941,11 +6943,13 @@ run_test    "DTLS fragmenting: none (for reference)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              max_frag_len=4096" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              max_frag_len=4096" \
             0 \
@@ -6961,11 +6965,13 @@ run_test    "DTLS fragmenting: server only (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              max_frag_len=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              max_frag_len=2048" \
             0 \
@@ -6985,11 +6991,13 @@ run_test    "DTLS fragmenting: server only (more) (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              max_frag_len=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              max_frag_len=4096" \
             0 \
@@ -7005,11 +7013,13 @@ run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=none \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              max_frag_len=2048" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              max_frag_len=1024" \
              0 \
@@ -7033,11 +7043,13 @@ run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len), pro
             "$P_SRV dtls=1 debug_level=2 auth_mode=none \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              max_frag_len=2048" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              max_frag_len=1024" \
             0 \
@@ -7053,11 +7065,13 @@ run_test    "DTLS fragmenting: client-initiated, both (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              max_frag_len=2048" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              max_frag_len=1024" \
             0 \
@@ -7081,11 +7095,13 @@ run_test    "DTLS fragmenting: client-initiated, both (max_frag_len), proxy MTU"
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              max_frag_len=2048" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              max_frag_len=1024" \
             0 \
@@ -7100,11 +7116,13 @@ run_test    "DTLS fragmenting: none (for reference) (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              mtu=4096" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              mtu=4096" \
             0 \
@@ -7119,11 +7137,13 @@ run_test    "DTLS fragmenting: client (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=3500-60000 \
              mtu=4096" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=3500-60000 \
              mtu=1024" \
             0 \
@@ -7138,11 +7158,13 @@ run_test    "DTLS fragmenting: server (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              mtu=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              mtu=2048" \
             0 \
@@ -7158,11 +7180,13 @@ run_test    "DTLS fragmenting: both (MTU=1024)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              mtu=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=2500-60000 \
              mtu=1024" \
             0 \
@@ -7183,11 +7207,13 @@ run_test    "DTLS fragmenting: both (MTU=512)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=2500-60000 \
              mtu=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=2500-60000 \
              mtu=512" \
@@ -7214,10 +7240,12 @@ run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=400-3200" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=400-3200" \
             0 \
@@ -7238,10 +7266,12 @@ run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=250-10000" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=250-10000" \
             0 \
@@ -7261,11 +7291,13 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=1024)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=10000-60000 \
              mtu=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
@@ -7290,11 +7322,13 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=512)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=10000-60000 \
              mtu=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=10000-60000 \
              mtu=512" \
@@ -7313,11 +7347,13 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=1024)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=10000-60000 \
              mtu=1024 nbio=2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=10000-60000 \
              mtu=1024 nbio=2" \
             0 \
@@ -7339,11 +7375,13 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=512)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=10000-60000 \
              mtu=512 nbio=2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=10000-60000 \
              mtu=512 nbio=2" \
@@ -7375,11 +7413,13 @@ run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=10000-60000 \
              mtu=1450" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=10000-60000 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              mtu=1450 reconnect=1 reco_delay=1" \
@@ -7404,12 +7444,14 @@ run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              exchanges=2 renegotiation=1 \
              hs_timeout=10000-60000 \
              mtu=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              exchanges=2 renegotiation=1 renegotiate=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=10000-60000 \
@@ -7436,12 +7478,14 @@ run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              exchanges=2 renegotiation=1 \
              hs_timeout=10000-60000 \
              mtu=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              exchanges=2 renegotiation=1 renegotiate=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=10000-60000 \
@@ -7468,6 +7512,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              exchanges=2 renegotiation=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8 \
              hs_timeout=10000-60000 \
@@ -7475,6 +7520,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              exchanges=2 renegotiation=1 renegotiate=1 \
              hs_timeout=10000-60000 \
              mtu=1024" \
@@ -7501,6 +7547,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              exchanges=2 renegotiation=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256 \
              hs_timeout=10000-60000 \
@@ -7508,6 +7555,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              exchanges=2 renegotiation=1 renegotiate=1 \
              hs_timeout=10000-60000 \
              mtu=1024" \
@@ -7533,6 +7581,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              exchanges=2 renegotiation=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256 etm=0 \
              hs_timeout=10000-60000 \
@@ -7540,6 +7589,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              exchanges=2 renegotiation=1 renegotiate=1 \
              hs_timeout=10000-60000 \
              mtu=1024" \
@@ -7562,10 +7612,12 @@ run_test    "DTLS fragmenting: proxy MTU + 3d" \
             "$P_SRV dgram_packing=0 dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=250-10000 mtu=512" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=250-10000 mtu=512" \
             0 \
@@ -7586,10 +7638,12 @@ run_test    "DTLS fragmenting: proxy MTU + 3d, nbio" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca.crt \
              hs_timeout=250-10000 mtu=512 nbio=2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=250-10000 mtu=512 nbio=2" \
             0 \
@@ -7611,6 +7665,7 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              mtu=512 force_version=dtls1_2" \
             0 \
             -c "fragmenting handshake message" \
@@ -7626,6 +7681,7 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.0" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              mtu=512 force_version=dtls1" \
             0 \
             -c "fragmenting handshake message" \
@@ -7648,6 +7704,7 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca2.crt \
              mtu=512 force_version=dtls1_2" \
             "$G_CLI -u --insecure 127.0.0.1" \
             0 \
@@ -7664,6 +7721,7 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.0" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca2.crt \
              mtu=512 force_version=dtls1" \
             "$G_CLI -u --insecure 127.0.0.1" \
             0 \
@@ -7678,6 +7736,7 @@ run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              mtu=512 force_version=dtls1_2" \
             0 \
             -c "fragmenting handshake message" \
@@ -7692,6 +7751,7 @@ run_test    "DTLS fragmenting: openssl server, DTLS 1.0" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              mtu=512 force_version=dtls1" \
             0 \
             -c "fragmenting handshake message" \
@@ -7705,6 +7765,7 @@ run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca2.crt \
              mtu=512 force_version=dtls1_2" \
             "$O_CLI -dtls1_2" \
             0 \
@@ -7718,6 +7779,7 @@ run_test    "DTLS fragmenting: openssl client, DTLS 1.0" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca2.crt \
              mtu=512 force_version=dtls1" \
             "$O_CLI -dtls1" \
             0 \
@@ -7739,6 +7801,7 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
             0 \
             -c "fragmenting handshake message" \
@@ -7756,6 +7819,7 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
             0 \
             -c "fragmenting handshake message" \
@@ -7772,6 +7836,7 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
            "$G_NEXT_CLI -u --insecure 127.0.0.1" \
             0 \
@@ -7788,6 +7853,7 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
            "$G_NEXT_CLI -u --insecure 127.0.0.1" \
             0 \
@@ -7810,6 +7876,7 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
             0 \
             -c "fragmenting handshake message" \
@@ -7827,6 +7894,7 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
             0 \
             -c "fragmenting handshake message" \
@@ -7843,6 +7911,7 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
             "$O_CLI -dtls1_2" \
             0 \
@@ -7861,6 +7930,7 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
             "$P_SRV dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             ca_file=data_files/test-ca2.crt \
              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
             "$O_CLI -nbio -dtls1" \
             0 \
@@ -8364,7 +8434,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 2048 -a" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 ca_file=data_files/test-ca2.crt" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"
@@ -8375,7 +8445,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_NEXT_SRV -u --mtu 512" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 ca_file=data_files/test-ca2.crt" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"
@@ -8386,7 +8456,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_NEXT_SRV -u --mtu 512" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2 ca_file=data_files/test-ca2.crt" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"

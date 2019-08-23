@@ -331,7 +331,7 @@ static void ssl_write_supported_point_formats_ext( mbedtls_ssl_context *ssl,
     *p++ = 2;
 
     *p++ = 1;
-    *p++ = MBEDTLS_ECP_PF_UNCOMPRESSED;
+    *p++ = MBEDTLS_SSL_EC_PF_UNCOMPRESSED;
 
     *olen = 6;
 }
@@ -1405,8 +1405,8 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
     p = buf + 1;
     while( list_size > 0 )
     {
-        if( p[0] == MBEDTLS_ECP_PF_UNCOMPRESSED ||
-            p[0] == MBEDTLS_ECP_PF_COMPRESSED )
+        if( p[0] == MBEDTLS_SSL_EC_PF_UNCOMPRESSED ||
+            p[0] == MBEDTLS_SSL_EC_PF_COMPRESSED )
         {
 #if defined(MBEDTLS_ECDH_C)
             ssl->handshake->ecdh_ctx.point_format = p[0];
@@ -2817,7 +2817,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
     {
         static const unsigned char ecdh_group[] = {
-            MBEDTLS_ECP_TLS_NAMED_CURVE,
+            MBEDTLS_SSL_EC_TLS_NAMED_CURVE,
             0  /* high bits of secp256r1 TLS ID  */,
             23 /* low bits of secp256r1 TLS ID   */,
         };

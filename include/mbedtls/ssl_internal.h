@@ -1885,4 +1885,16 @@ int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
                                    unsigned char **p, unsigned char *end );
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
+
+/*
+ * Point formats, from RFC 4492's enum ECPointFormat
+ */
+#define MBEDTLS_SSL_EC_PF_UNCOMPRESSED    0   /**< Uncompressed point format. */
+#define MBEDTLS_SSL_EC_PF_COMPRESSED      1   /**< Compressed point format. */
+
+/*
+ * Some other constants from RFC 4492
+ */
+#define MBEDTLS_SSL_EC_TLS_NAMED_CURVE    3   /**< The named_curve of ECCurveType. */
+
 #endif /* ssl_internal.h */

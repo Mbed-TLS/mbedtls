@@ -554,7 +554,7 @@ static int uecc_eckey_check_pair( const void *pub, const void *prv )
         return( 0 );
     }
 
-    return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 }
 
 static int uecc_eckey_can_do( mbedtls_pk_type_t type )

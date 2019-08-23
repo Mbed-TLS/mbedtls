@@ -75,7 +75,7 @@ int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
     if( (size_t)( end - *p ) < secp256r1_uncompressed_point_length )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Bad ECDH peer pubkey (too short)" ) );
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     if( (*p)[0] != 2 * NUM_ECC_BYTES + 1 ||
@@ -86,7 +86,7 @@ int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
                                0x04,
                                (unsigned) (*p)[0],
                                (unsigned) (*p)[1] ) );
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     memcpy( ssl->handshake->ecdh_peerkey, *p + 2, 2 * NUM_ECC_BYTES );

@@ -510,7 +510,9 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next =
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
     0xFFFFFFF, /* Any PK alg    */
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_UECC_DP_SECP256R1 ),
+#elif defined(MBEDTLS_ECP_C)
     /* Curves at or above 128-bit security level */
     MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256R1 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP384R1 ) |
@@ -536,7 +538,9 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
     /* Only ECDSA */
     MBEDTLS_X509_ID_FLAG( MBEDTLS_PK_ECDSA ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_PK_ECKEY ),
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    MBEDTLS_X509_ID_FLAG( MBEDTLS_UECC_DP_SECP256R1 ),
+#elif defined(MBEDTLS_ECP_C)
     /* Only NIST P-256 and P-384 */
     MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP256R1 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_ECP_DP_SECP384R1 ),

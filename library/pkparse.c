@@ -182,7 +182,7 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
 #if defined(MBEDTLS_USE_TINYCRYPT)
 static int pk_use_ecparams( const mbedtls_asn1_buf *params )
 {
-    uint32_t grp_id;
+    mbedtls_uecc_group_id grp_id;
 
     if( params->tag == MBEDTLS_ASN1_OID )
     {

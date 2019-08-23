@@ -785,9 +785,10 @@
 #error "MBEDTLS_VERSION_FEATURES defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_X509_USE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
-    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||      \
-    !defined(MBEDTLS_PK_PARSE_C) )
+#if defined(MBEDTLS_X509_USE_C) &&              \
+    ( !defined(MBEDTLS_OID_C)        ||         \
+      !defined(MBEDTLS_ASN1_PARSE_C) ||         \
+      !defined(MBEDTLS_PK_PARSE_C) )
 #error "MBEDTLS_X509_USE_C defined, but not all prerequisites"
 #endif
 

@@ -31,7 +31,6 @@
 #endif
 
 #include "bignum.h"
-#include "ecp.h"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #include "x509_crt.h"
@@ -43,6 +42,7 @@
 #endif
 
 #if defined(MBEDTLS_ECDH_C)
+#include "ecp.h"
 #include "ecdh.h"
 #endif
 

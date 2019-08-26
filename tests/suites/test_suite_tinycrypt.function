@@ -4,6 +4,16 @@
 #include "tinycrypt/ecc_dh.h"
 #include "tinycrypt/ecc_dsa.h"
 
+static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
+{
+    int ret;
+    ret = rnd_std_rand( NULL, dest, size );
+    if( ret == 0 )
+        return( (int) size );
+
+    return( 0 );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -23,7 +33,10 @@ void test_ecdh()
 
     const struct uECC_Curve_t * curve = uECC_secp256r1();
 
+    uECC_set_rng( &uecc_rng_wrapper );
+
     TEST_ASSERT( uECC_make_key( public1, private1, curve ) != 0 );
+
     TEST_ASSERT( uECC_make_key( public2, private2, curve ) != 0 );
 
     TEST_ASSERT( uECC_shared_secret( public2, private1, secret1, curve ) != 0 );
@@ -44,6 +57,8 @@ void test_ecdsa()
     unsigned int hash_words[NUM_ECC_WORDS] = {0};
 
     const struct uECC_Curve_t * curve = uECC_secp256r1();
+
+    uECC_set_rng( &uecc_rng_wrapper );
 
     uECC_generate_random_int( hash_words, curve->n,
                               BITS_TO_WORDS( curve->num_n_bits ) );

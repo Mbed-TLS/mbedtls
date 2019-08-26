@@ -33,3 +33,27 @@ void test_ecdh()
     TEST_ASSERT( memcmp( secret1, secret2, sizeof( secret1 ) ) == 0 );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_USE_TINYCRYPT */
+void test_ecdsa()
+{
+    uint8_t private[NUM_ECC_BYTES] = {0};
+    uint8_t public[2*NUM_ECC_BYTES] = {0};
+    uint8_t hash[NUM_ECC_BYTES] = {0};
+    uint8_t sig[2*NUM_ECC_BYTES] = {0};
+    unsigned int hash_words[NUM_ECC_WORDS] = {0};
+
+    const struct uECC_Curve_t * curve = uECC_secp256r1();
+
+    uECC_generate_random_int( hash_words, curve->n,
+                              BITS_TO_WORDS( curve->num_n_bits ) );
+
+    uECC_vli_nativeToBytes( hash, NUM_ECC_BYTES, hash_words );
+
+    TEST_ASSERT( uECC_make_key( public, private, curve ) != 0 );
+
+    TEST_ASSERT( uECC_sign( private, hash, sizeof( hash ), sig, curve ) != 0 );
+
+    TEST_ASSERT( uECC_verify( public, hash, sizeof( hash ), sig, curve ) != 0 );
+}
+/* END_CASE */

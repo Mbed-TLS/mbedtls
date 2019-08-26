@@ -1,2 +1,5 @@
 Tinycrypt ECDH
 test_ecdh:
+
+Tinycrypt ECDSA
+test_ecdsa:

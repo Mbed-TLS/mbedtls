@@ -1,0 +1,35 @@
+/* BEGIN_HEADER */
+
+#include "tinycrypt/ecc.h"
+#include "tinycrypt/ecc_dh.h"
+#include "tinycrypt/ecc_dsa.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_USE_TINYCRYPT
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE depends_on:MBEDTLS_USE_TINYCRYPT */
+void test_ecdh()
+{
+    uint8_t private1[NUM_ECC_BYTES] = {0};
+    uint8_t private2[NUM_ECC_BYTES] = {0};
+    uint8_t public1[2*NUM_ECC_BYTES] = {0};
+    uint8_t public2[2*NUM_ECC_BYTES] = {0};
+    uint8_t secret1[NUM_ECC_BYTES] = {0};
+    uint8_t secret2[NUM_ECC_BYTES] = {0};
+
+    const struct uECC_Curve_t * curve = uECC_secp256r1();
+
+    TEST_ASSERT( uECC_make_key( public1, private1, curve ) != 0 );
+    TEST_ASSERT( uECC_make_key( public2, private2, curve ) != 0 );
+
+    TEST_ASSERT( uECC_shared_secret( public2, private1, secret1, curve ) != 0 );
+
+    TEST_ASSERT( uECC_shared_secret( public1, private2, secret2, curve ) != 0 );
+
+    TEST_ASSERT( memcmp( secret1, secret2, sizeof( secret1 ) ) == 0 );
+}
+/* END_CASE */

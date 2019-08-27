@@ -743,7 +743,7 @@ component_test_small_ssl_dtls_max_buffering () {
 
 component_test_small_mbedtls_ssl_dtls_max_buffering () {
     msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1"
-    scripts/config.pl set MBEDTLS_SSL_DTLS_MAX_BUFFERING 240
+    scripts/config.pl set MBEDTLS_SSL_DTLS_MAX_BUFFERING 190
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 

@@ -58,6 +58,18 @@ ssl_dtls_replay:"abcd12340000abcd12340100":"abcd123400ff":0
 SSL SET_HOSTNAME memory leak: call ssl_set_hostname twice
 ssl_set_hostname_twice:"server0":"server1"
 
+SSL session serialization: Wrong major version
+ssl_session_serialize_version_check:1:0:0:0
+
+SSL session serialization: Wrong minor version
+ssl_session_serialize_version_check:0:1:0:0
+
+SSL session serialization: Wrong patch version
+ssl_session_serialize_version_check:0:0:1:0
+
+SSL session serialization: Wrong config
+ssl_session_serialize_version_check:0:0:0:1
+
 Record crypt, AES-128-CBC, 1.2, SHA-384
 depends_on:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_AES_C:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SHA512_C
 ssl_crypt_record:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_MD_SHA384:0:0:MBEDTLS_SSL_MINOR_VERSION_3:0:0
@@ -8752,3 +8764,95 @@ ssl_tls_prf:MBEDTLS_SSL_TLS_PRF_SHA384:"1234567890abcdef1234567890abcdef12345678
 SSL TLS_PRF MBEDTLS_SSL_TLS_PRF_SHA256 SHA-256 not enabled
 depends_on:!MBEDTLS_SHA256_C
 ssl_tls_prf:MBEDTLS_SSL_TLS_PRF_SHA256:"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef":"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef":"test tls_prf label":"7f9998393198a02c8d731ccc2ef90b2c":MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
+
+Session serialization, save-load: no ticket, no cert
+ssl_serialize_session_save_load:0:""
+
+Session serialization, save-load: small ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialize_session_save_load:42:""
+
+Session serialization, save-load: large ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialize_session_save_load:1023:""
+
+Session serialization, save-load: no ticket, cert
+depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_save_load:0:"data_files/server5.crt"
+
+Session serialization, save-load: small ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_save_load:42:"data_files/server5.crt"
+
+Session serialization, save-load: large ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_save_load:1023:"data_files/server5.crt"
+
+Session serialization, load-save: no ticket, no cert
+ssl_serialize_session_load_save:0:""
+
+Session serialization, load-save: small ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialize_session_load_save:42:""
+
+Session serialization, load-save: large ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialize_session_load_save:1023:""
+
+Session serialization, load-save: no ticket, cert
+depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_load_save:0:"data_files/server5.crt"
+
+Session serialization, load-save: small ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_load_save:42:"data_files/server5.crt"
+
+Session serialization, load-save: large ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_load_save:1023:"data_files/server5.crt"
+
+Session serialization, save buffer size: no ticket, no cert
+ssl_serialize_session_save_buf_size:0:""
+
+Session serialization, save buffer size: small ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialize_session_save_buf_size:42:""
+
+Session serialization, save buffer size: large ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialize_session_save_buf_size:1023:""
+
+Session serialization, save buffer size: no ticket, cert
+depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_save_buf_size:0:"data_files/server5.crt"
+
+Session serialization, save buffer size: small ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_save_buf_size:42:"data_files/server5.crt"
+
+Session serialization, save buffer size: large ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_save_buf_size:1023:"data_files/server5.crt"
+
+Session serialization, load buffer size: no ticket, no cert
+ssl_serialize_session_load_buf_size:0:""
+
+Session serialization, load buffer size: small ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialize_session_load_buf_size:42:""
+
+Session serialization, load buffer size: large ticket, no cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+ssl_serialize_session_load_buf_size:1023:""
+
+Session serialization, load buffer size: no ticket, cert
+depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_load_buf_size:0:"data_files/server5.crt"
+
+Session serialization, load buffer size: small ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_load_buf_size:42:"data_files/server5.crt"
+
+Session serialization, load buffer size: large ticket, cert
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+ssl_serialize_session_load_buf_size:1023:"data_files/server5.crt"

@@ -267,6 +267,93 @@ cleanup:
     return( ret );
 }
 
+/*
+ * Populate a session structure for serialization tests.
+ * Choose dummy values, mostly non-0 to distinguish from the init default.
+ */
+static int ssl_populate_session( mbedtls_ssl_session *session,
+                                 int ticket_len,
+                                 const char *crt_file )
+{
+#if defined(MBEDTLS_HAVE_TIME)
+    session->start = mbedtls_time( NULL ) - 42;
+#endif
+    session->ciphersuite = 0xabcd;
+    session->compression = 1;
+    session->id_len = sizeof( session->id );
+    memset( session->id, 66, session->id_len );
+    memset( session->master, 17, sizeof( session->master ) );
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_FS_IO)
+    if( strlen( crt_file ) != 0 )
+    {
+        mbedtls_x509_crt tmp_crt;
+        int ret;
+
+        mbedtls_x509_crt_init( &tmp_crt );
+        ret = mbedtls_x509_crt_parse_file( &tmp_crt, crt_file );
+        if( ret != 0 )
+            return( ret );
+
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+        /* Move temporary CRT. */
+        session->peer_cert = mbedtls_calloc( 1, sizeof( *session->peer_cert ) );
+        if( session->peer_cert == NULL )
+            return( -1 );
+        *session->peer_cert = tmp_crt;
+        memset( &tmp_crt, 0, sizeof( tmp_crt ) );
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+        /* Calculate digest of temporary CRT. */
+        session->peer_cert_digest =
+            mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
+        if( session->peer_cert_digest == NULL )
+            return( -1 );
+        ret = mbedtls_md( mbedtls_md_info_from_type(
+                              MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE ),
+                          tmp_crt.raw.p, tmp_crt.raw.len,
+                          session->peer_cert_digest );
+        if( ret != 0 )
+            return( ret );
+        session->peer_cert_digest_type =
+            MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE;
+        session->peer_cert_digest_len =
+            MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
+        mbedtls_x509_crt_free( &tmp_crt );
+    }
+#else /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_FS_IO */
+    (void) crt_file;
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_FS_IO */
+    session->verify_result = 0xdeadbeef;
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    if( ticket_len != 0 )
+    {
+        session->ticket = mbedtls_calloc( 1, ticket_len );
+        if( session->ticket == NULL )
+            return( -1 );
+        memset( session->ticket, 33, ticket_len );
+    }
+    session->ticket_len = ticket_len;
+    session->ticket_lifetime = 86401;
+#else
+    (void) ticket_len;
+#endif
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    session->mfl_code = 1;
+#endif
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+    session->trunc_hmac = 1;
+#endif
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    session->encrypt_then_mac = 1;
+#endif
+
+    return( 0 );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -603,5 +690,297 @@ void ssl_tls_prf( int type, data_t * secret, data_t * random,
 exit:
 
     mbedtls_free( output );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
+{
+    mbedtls_ssl_session original, restored;
+    unsigned char *buf = NULL;
+    size_t len;
+
+    /*
+     * Test that a save-load pair is the identity
+     */
+
+    mbedtls_ssl_session_init( &original );
+    mbedtls_ssl_session_init( &restored );
+
+    /* Prepare a dummy session to work on */
+    TEST_ASSERT( ssl_populate_session( &original, ticket_len, crt_file ) == 0 );
+
+    /* Serialize it */
+    TEST_ASSERT( mbedtls_ssl_session_save( &original, NULL, 0, &len )
+                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    TEST_ASSERT( ( buf = mbedtls_calloc( 1, len ) ) != NULL );
+    TEST_ASSERT( mbedtls_ssl_session_save( &original, buf, len, &len )
+                 == 0 );
+
+    /* Restore session from serialized data */
+    TEST_ASSERT( mbedtls_ssl_session_load( &restored, buf, len) == 0 );
+
+    /*
+     * Make sure both session structures are identical
+     */
+#if defined(MBEDTLS_HAVE_TIME)
+    TEST_ASSERT( original.start == restored.start );
+#endif
+    TEST_ASSERT( original.ciphersuite == restored.ciphersuite );
+    TEST_ASSERT( original.compression == restored.compression );
+    TEST_ASSERT( original.id_len == restored.id_len );
+    TEST_ASSERT( memcmp( original.id,
+                         restored.id, sizeof( original.id ) ) == 0 );
+    TEST_ASSERT( memcmp( original.master,
+                         restored.master, sizeof( original.master ) ) == 0 );
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    TEST_ASSERT( ( original.peer_cert == NULL ) ==
+                 ( restored.peer_cert == NULL ) );
+    if( original.peer_cert != NULL )
+    {
+        TEST_ASSERT( original.peer_cert->raw.len ==
+                     restored.peer_cert->raw.len );
+        TEST_ASSERT( memcmp( original.peer_cert->raw.p,
+                             restored.peer_cert->raw.p,
+                             original.peer_cert->raw.len ) == 0 );
+    }
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    TEST_ASSERT( original.peer_cert_digest_type ==
+                 restored.peer_cert_digest_type );
+    TEST_ASSERT( original.peer_cert_digest_len ==
+                 restored.peer_cert_digest_len );
+    TEST_ASSERT( ( original.peer_cert_digest == NULL ) ==
+                 ( restored.peer_cert_digest == NULL ) );
+    if( original.peer_cert_digest != NULL )
+    {
+        TEST_ASSERT( memcmp( original.peer_cert_digest,
+                             restored.peer_cert_digest,
+                             original.peer_cert_digest_len ) == 0 );
+    }
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+    TEST_ASSERT( original.verify_result == restored.verify_result );
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    TEST_ASSERT( original.ticket_len == restored.ticket_len );
+    if( original.ticket_len != 0 )
+    {
+        TEST_ASSERT( original.ticket != NULL );
+        TEST_ASSERT( restored.ticket != NULL );
+        TEST_ASSERT( memcmp( original.ticket,
+                             restored.ticket, original.ticket_len ) == 0 );
+    }
+    TEST_ASSERT( original.ticket_lifetime == restored.ticket_lifetime );
+#endif
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    TEST_ASSERT( original.mfl_code == restored.mfl_code );
+#endif
+
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+    TEST_ASSERT( original.trunc_hmac == restored.trunc_hmac );
+#endif
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    TEST_ASSERT( original.encrypt_then_mac == restored.encrypt_then_mac );
+#endif
+
+exit:
+    mbedtls_ssl_session_free( &original );
+    mbedtls_ssl_session_free( &restored );
+    mbedtls_free( buf );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_serialize_session_load_save( int ticket_len, char *crt_file )
+{
+    mbedtls_ssl_session session;
+    unsigned char *buf1 = NULL, *buf2 = NULL;
+    size_t len0, len1, len2;
+
+    /*
+     * Test that a load-save pair is the identity
+     */
+
+    mbedtls_ssl_session_init( &session );
+
+    /* Prepare a dummy session to work on */
+    TEST_ASSERT( ssl_populate_session( &session, ticket_len, crt_file ) == 0 );
+
+    /* Get desired buffer size for serializing */
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &len0 )
+                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    /* Allocate first buffer */
+    buf1 = mbedtls_calloc( 1, len0 );
+    TEST_ASSERT( buf1 != NULL );
+
+    /* Serialize to buffer and free live session */
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, buf1, len0, &len1 )
+                 == 0 );
+    TEST_ASSERT( len0 == len1 );
+    mbedtls_ssl_session_free( &session );
+
+    /* Restore session from serialized data */
+    TEST_ASSERT( mbedtls_ssl_session_load( &session, buf1, len1 ) == 0 );
+
+    /* Allocate second buffer and serialize to it */
+    buf2 = mbedtls_calloc( 1, len0 );
+    TEST_ASSERT( buf2 != NULL );
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, buf2, len0, &len2 )
+                 == 0 );
+
+    /* Make sure both serialized versions are identical */
+    TEST_ASSERT( len1 == len2 );
+    TEST_ASSERT( memcmp( buf1, buf2, len1 ) == 0 );
+
+exit:
+    mbedtls_ssl_session_free( &session );
+    mbedtls_free( buf1 );
+    mbedtls_free( buf2 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_serialize_session_save_buf_size( int ticket_len, char *crt_file )
+{
+    mbedtls_ssl_session session;
+    unsigned char *buf = NULL;
+    size_t good_len, bad_len, test_len;
+
+    /*
+     * Test that session_save() fails cleanly on small buffers
+     */
+
+    mbedtls_ssl_session_init( &session );
+
+    /* Prepare dummy session and get serialized size */
+    TEST_ASSERT( ssl_populate_session( &session, ticket_len, crt_file ) == 0 );
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &good_len )
+                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    /* Try all possible bad lengths */
+    for( bad_len = 1; bad_len < good_len; bad_len++ )
+    {
+        /* Allocate exact size so that asan/valgrind can detect any overwrite */
+        mbedtls_free( buf );
+        TEST_ASSERT( ( buf = mbedtls_calloc( 1, bad_len ) ) != NULL );
+        TEST_ASSERT( mbedtls_ssl_session_save( &session, buf, bad_len,
+                                               &test_len )
+                     == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        TEST_ASSERT( test_len == good_len );
+    }
+
+exit:
+    mbedtls_ssl_session_free( &session );
+    mbedtls_free( buf );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_serialize_session_load_buf_size( int ticket_len, char *crt_file )
+{
+    mbedtls_ssl_session session;
+    unsigned char *good_buf = NULL, *bad_buf = NULL;
+    size_t good_len, bad_len;
+
+    /*
+     * Test that session_load() fails cleanly on small buffers
+     */
+
+    mbedtls_ssl_session_init( &session );
+
+    /* Prepare serialized session data */
+    TEST_ASSERT( ssl_populate_session( &session, ticket_len, crt_file ) == 0 );
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &good_len )
+                 == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    TEST_ASSERT( ( good_buf = mbedtls_calloc( 1, good_len ) ) != NULL );
+    TEST_ASSERT( mbedtls_ssl_session_save( &session, good_buf, good_len,
+                                           &good_len ) == 0 );
+    mbedtls_ssl_session_free( &session );
+
+    /* Try all possible bad lengths */
+    for( bad_len = 0; bad_len < good_len; bad_len++ )
+    {
+        /* Allocate exact size so that asan/valgrind can detect any overread */
+        mbedtls_free( bad_buf );
+        bad_buf = mbedtls_calloc( 1, bad_len ? bad_len : 1 );
+        TEST_ASSERT( bad_buf != NULL );
+        memcpy( bad_buf, good_buf, bad_len );
+
+        TEST_ASSERT( mbedtls_ssl_session_load( &session, bad_buf, bad_len )
+                     == MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+exit:
+    mbedtls_ssl_session_free( &session );
+    mbedtls_free( good_buf );
+    mbedtls_free( bad_buf );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_session_serialize_version_check( int corrupt_major,
+                                          int corrupt_minor,
+                                          int corrupt_patch,
+                                          int corrupt_config )
+{
+    unsigned char serialized_session[ 2048 ];
+    size_t serialized_session_len;
+    unsigned cur_byte;
+    mbedtls_ssl_session session;
+    uint8_t should_corrupt_byte[] = { corrupt_major  == 1,
+                                      corrupt_minor  == 1,
+                                      corrupt_patch  == 1,
+                                      corrupt_config == 1,
+                                      corrupt_config == 1 };
+
+    mbedtls_ssl_session_init( &session );
+
+    /* Infer length of serialized session. */
+    TEST_ASSERT( mbedtls_ssl_session_save( &session,
+                                           serialized_session,
+                                           sizeof( serialized_session ),
+                                           &serialized_session_len ) == 0 );
+
+    mbedtls_ssl_session_free( &session );
+
+    /* Without any modification, we should be able to successfully
+     * de-serialize the session - double-check that. */
+    TEST_ASSERT( mbedtls_ssl_session_load( &session,
+                                           serialized_session,
+                                           serialized_session_len ) == 0 );
+    mbedtls_ssl_session_free( &session );
+
+    /* Go through the bytes in the serialized session header and
+     * corrupt them bit-by-bit. */
+    for( cur_byte = 0; cur_byte < sizeof( should_corrupt_byte ); cur_byte++ )
+    {
+        int cur_bit;
+        unsigned char * const byte = &serialized_session[ cur_byte ];
+
+        if( should_corrupt_byte[ cur_byte ] == 0 )
+            continue;
+
+        for( cur_bit = 0; cur_bit < CHAR_BIT; cur_bit++ )
+        {
+            unsigned char const corrupted_bit = 0x1u << cur_bit;
+            /* Modify a single bit in the serialized session. */
+            *byte ^= corrupted_bit;
+
+            /* Attempt to deserialize */
+            TEST_ASSERT( mbedtls_ssl_session_load( &session,
+                                                   serialized_session,
+                                                   serialized_session_len ) ==
+                         MBEDTLS_ERR_SSL_VERSION_MISMATCH );
+
+            /* Undo the change */
+            *byte ^= corrupted_bit;
+        }
+    }
+
 }
 /* END_CASE */

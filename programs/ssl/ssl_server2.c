@@ -171,6 +171,8 @@ int main( void )
 #define DFL_DGRAM_PACKING        1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_SERIALIZE           0
+#define DFL_EXTENDED_MS_ENFORCE -1
 #define DFL_CA_CALLBACK         0
 #define DFL_EAP_TLS             0
 #define DFL_REPRODUCIBLE        0
@@ -435,6 +437,15 @@ int main( void )
 #define USAGE_CURVES ""
 #endif
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+#define USAGE_SERIALIZATION \
+    "    serialize=%%d        default: 0 (do not serialize/deserialize)\n" \
+    "                        options: 1 (serialize)\n"                    \
+    "                                 2 (serialize with re-initialization)\n"
+#else
+#define USAGE_SERIALIZATION ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -499,6 +510,7 @@ int main( void )
     "                                configuration macro is defined and 1\n"  \
     "                                otherwise. The expansion of the macro\n" \
     "                                is printed if it is defined\n"     \
+    USAGE_SERIALIZATION                                     \
     " acceptable ciphersuite names:\n"
 
 #define ALPN_LIST_SIZE  10
@@ -590,6 +602,7 @@ struct options
     int cid_enabled_renego;     /* whether to use the CID extension or not
                                  * during renegotiation                     */
     const char *cid_val;        /* the CID to use for incoming messages     */
+    int serialize;              /* serialize/deserialize connection         */
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
@@ -1714,6 +1727,10 @@ int main( int argc, char *argv[] )
     size_t cid_len = 0;
     size_t cid_renego_len = 0;
 #endif
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    unsigned char *context_buf = NULL;
+    size_t context_buf_len;
+#endif
 
     int i;
     char *p, *q;
@@ -1872,6 +1889,7 @@ int main( int argc, char *argv[] )
     opt.badmac_limit        = DFL_BADMAC_LIMIT;
     opt.extended_ms         = DFL_EXTENDED_MS;
     opt.etm                 = DFL_ETM;
+    opt.serialize           = DFL_SERIALIZE;
     opt.eap_tls             = DFL_EAP_TLS;
     opt.reproducible        = DFL_REPRODUCIBLE;
 
@@ -2285,6 +2303,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "query_config" ) == 0 )
         {
             return query_config( q );
+        }
+        else if( strcmp( p, "serialize") == 0 )
+        {
+            opt.serialize = atoi( q );
+            if( opt.serialize < 0 || opt.serialize > 2)
+                goto usage;
         }
         else if( strcmp( p, "eap_tls" ) == 0 )
         {
@@ -3907,7 +3931,124 @@ data_exchange:
     ret = 0;
 
     /*
-     * 7b. Continue doing data exchanges?
+     * 7b. Simulate serialize/deserialize and go back to data exchange
+     */
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( opt.serialize != 0 )
+    {
+        size_t buf_len;
+
+        mbedtls_printf( "  . Serializing live connection..." );
+
+        ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &buf_len );
+        if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
+                            "-0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        if( ( context_buf = mbedtls_calloc( 1, buf_len ) ) == NULL )
+        {
+            mbedtls_printf( " failed\n  ! Couldn't allocate buffer for "
+                            "serialized context" );
+
+            goto exit;
+        }
+        context_buf_len = buf_len;
+
+        if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf,
+                                              buf_len, &buf_len ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
+                            "-0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        mbedtls_printf( " ok\n" );
+
+        /*
+         * This simulates a workflow where you have a long-lived server
+         * instance, potentially with a pool of ssl_context objects, and you
+         * just want to re-use one while the connection is inactive: in that
+         * case you can just reset() it, and then it's ready to receive
+         * serialized data from another connection (or the same here).
+         */
+        if( opt.serialize == 1 )
+        {
+            /* nothing to do here, done by context_save() already */
+            mbedtls_printf( "  . Context has been reset... ok" );
+        }
+
+        /*
+         * This simulates a workflow where you have one server instance per
+         * connection, and want to release it entire when the connection is
+         * inactive, and spawn it again when needed again - this would happen
+         * between ssl_free() and ssl_init() below, together with any other
+         * teardown/startup code needed - for example, preparing the
+         * ssl_config again (see section 3 "setup stuff" in this file).
+         */
+        if( opt.serialize == 2 )
+        {
+            mbedtls_printf( "  . Freeing and reinitializing context..." );
+
+            mbedtls_ssl_free( &ssl );
+
+            mbedtls_ssl_init( &ssl );
+
+            if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned "
+                                "-0x%x\n\n", -ret );
+                goto exit;
+            }
+
+            /*
+             * This illustrates the minimum amount of things you need to set
+             * up, however you could set up much more if desired, for example
+             * if you want to share your set up code between the case of
+             * establishing a new connection and this case.
+             */
+            if( opt.nbio == 2 )
+                mbedtls_ssl_set_bio( &ssl, &client_fd, delayed_send,
+                                     delayed_recv, NULL );
+            else
+                mbedtls_ssl_set_bio( &ssl, &client_fd, mbedtls_net_send,
+                            mbedtls_net_recv,
+                            opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+
+#if defined(MBEDTLS_TIMING_C)
+                mbedtls_ssl_set_timer_cb( &ssl, &timer,
+                                          mbedtls_timing_set_delay,
+                                          mbedtls_timing_get_delay );
+#endif /* MBEDTLS_TIMING_C */
+
+            mbedtls_printf( " ok\n" );
+        }
+
+        mbedtls_printf( "  . Deserializing connection..." );
+
+        if( ( ret = mbedtls_ssl_context_load( &ssl, context_buf,
+                                              buf_len ) ) != 0 )
+        {
+            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned "
+                            "-0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        mbedtls_free( context_buf );
+        context_buf = NULL;
+        context_buf_len = 0;
+
+        mbedtls_printf( " ok\n" );
+    }
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
+    /*
+     * 7c. Continue doing data exchanges?
      */
     if( --exchanges_left > 0 )
         goto data_exchange;
@@ -4012,6 +4153,12 @@ exit:
 #endif
 
     mbedtls_free( buf );
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( context_buf != NULL )
+        mbedtls_platform_zeroize( context_buf, context_buf_len );
+    mbedtls_free( context_buf );
+#endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #if defined(MBEDTLS_MEMORY_DEBUG)

@@ -113,6 +113,7 @@ int main( void )
 #define DFL_DHMLEN              -1
 #define DFL_RECONNECT           0
 #define DFL_RECO_DELAY          0
+#define DFL_RECO_MODE           1
 #define DFL_CID_ENABLED         0
 #define DFL_CID_VALUE           ""
 #define DFL_CID_ENABLED_RENEGO  -1
@@ -129,6 +130,8 @@ int main( void )
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_SERIALIZE           0
+#define DFL_EXTENDED_MS_ENFORCE -1
 #define DFL_CA_CALLBACK         0
 #define DFL_EAP_TLS             0
 #define DFL_REPRODUCIBLE        0
@@ -339,6 +342,15 @@ int main( void )
 #define USAGE_ECRESTART ""
 #endif
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+#define USAGE_SERIALIZATION \
+    "    serialize=%%d        default: 0 (do not serialize/deserialize)\n" \
+    "                        options: 1 (serialize)\n"                    \
+    "                                 2 (serialize with re-initialization)\n"
+#else
+#define USAGE_SERIALIZATION ""
+#endif
+
 #define USAGE \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
@@ -376,8 +388,11 @@ int main( void )
     "    allow_legacy=%%d     default: (library default: no)\n"   \
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
-    "    reconnect=%%d        default: 0 (disabled)\n"      \
+    "    reconnect=%%d        number of reconnections using session resumption\n" \
+    "                        default: 0 (disabled)\n"      \
     "    reco_delay=%%d       default: 0 seconds\n"         \
+    "    reco_mode=%%d        0: copy session, 1: serialize session\n" \
+    "                        default: 1\n"      \
     "    reconnect_hard=%%d   default: 0 (disabled)\n"      \
     USAGE_TICKETS                                           \
     USAGE_EAP_TLS                                           \
@@ -405,6 +420,7 @@ int main( void )
     "                                configuration macro is defined and 1\n"  \
     "                                otherwise. The expansion of the macro\n" \
     "                                is printed if it is defined\n"     \
+    USAGE_SERIALIZATION                                     \
     " acceptable ciphersuite names:\n"
 
 #define ALPN_LIST_SIZE  10
@@ -458,6 +474,7 @@ struct options
     int dhmlen;                 /* minimum DHM params len in bits           */
     int reconnect;              /* attempt to resume session                */
     int reco_delay;             /* delay in seconds before resuming session */
+    int reco_mode;              /* how to keep the session around           */
     int reconnect_hard;         /* unexpectedly reconnect from the same port */
     int tickets;                /* enable / disable session tickets         */
     const char *curves;         /* list of supported elliptic curves        */
@@ -476,6 +493,7 @@ struct options
     int cid_enabled_renego;     /* whether to use the CID extension or not
                                  * during renegotiation                     */
     const char *cid_val;        /* the CID to use for incoming messages     */
+    int serialize;              /* serialize/deserialize connection         */
     const char *cid_val_renego; /* the CID to use for incoming messages
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
@@ -1047,6 +1065,8 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_ssl_session saved_session;
+    unsigned char *session_data = NULL;
+    size_t session_data_len = 0;
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_timing_delay_context timer;
 #endif
@@ -1061,6 +1081,10 @@ int main( int argc, char *argv[] )
 #endif
     char *p, *q;
     const int *list;
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    unsigned char *context_buf = NULL;
+    size_t context_buf_len;
+#endif
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     unsigned char eap_tls_keymaterial[16];
     unsigned char eap_tls_iv[8];
@@ -1164,6 +1188,7 @@ int main( int argc, char *argv[] )
     opt.dhmlen              = DFL_DHMLEN;
     opt.reconnect           = DFL_RECONNECT;
     opt.reco_delay          = DFL_RECO_DELAY;
+    opt.reco_mode           = DFL_RECO_MODE;
     opt.reconnect_hard      = DFL_RECONNECT_HARD;
     opt.tickets             = DFL_TICKETS;
     opt.alpn_string         = DFL_ALPN_STRING;
@@ -1176,6 +1201,7 @@ int main( int argc, char *argv[] )
     opt.extended_ms         = DFL_EXTENDED_MS;
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
+    opt.serialize           = DFL_SERIALIZE;
     opt.eap_tls             = DFL_EAP_TLS;
     opt.reproducible        = DFL_REPRODUCIBLE;
 
@@ -1348,6 +1374,12 @@ int main( int argc, char *argv[] )
         {
             opt.reco_delay = atoi( q );
             if( opt.reco_delay < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "reco_mode" ) == 0 )
+        {
+            opt.reco_mode = atoi( q );
+            if( opt.reco_mode < 0 )
                 goto usage;
         }
         else if( strcmp( p, "reconnect_hard" ) == 0 )
@@ -1557,6 +1589,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "query_config" ) == 0 )
         {
             return query_config( q );
+        }
+        else if( strcmp( p, "serialize") == 0 )
+        {
+            opt.serialize = atoi( q );
+            if( opt.serialize < 0 || opt.serialize > 2)
+                goto usage;
         }
         else if( strcmp( p, "eap_tls" ) == 0 )
         {
@@ -2440,14 +2478,55 @@ int main( int argc, char *argv[] )
         mbedtls_printf("  . Saving session for reuse..." );
         fflush( stdout );
 
-        if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session ) ) != 0 )
+        if( opt.reco_mode == 1 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_get_session returned -0x%x\n\n",
-                            -ret );
-            goto exit;
+            /* free any previously saved data */
+            if( session_data != NULL )
+            {
+                mbedtls_platform_zeroize( session_data, session_data_len );
+                mbedtls_free( session_data );
+                session_data = NULL;
+            }
+
+            /* get size of the buffer needed */
+            mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
+                                      NULL, 0, &session_data_len );
+            session_data = mbedtls_calloc( 1, session_data_len );
+            if( session_data == NULL )
+            {
+                mbedtls_printf( " failed\n  ! alloc %u bytes for session data\n",
+                                (unsigned) session_data_len );
+                ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+                goto exit;
+            }
+
+            /* actually save session data */
+            if( ( ret = mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
+                                                  session_data, session_data_len,
+                                                  &session_data_len ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_session_saved returned -0x%04x\n\n",
+                                -ret );
+                goto exit;
+            }
+        }
+        else
+        {
+            if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_get_session returned -0x%x\n\n",
+                                -ret );
+                goto exit;
+            }
         }
 
         mbedtls_printf( " ok\n" );
+
+        if( opt.reco_mode == 1 )
+        {
+            mbedtls_printf( "    [ Saved %u bytes of session data]\n",
+                            (unsigned) session_data_len );
+        }
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -2839,7 +2918,103 @@ send_request:
     }
 
     /*
-     * 7c. Continue doing data exchanges?
+     * 7c. Simulate serialize/deserialize and go back to data exchange
+     */
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( opt.serialize != 0 )
+    {
+        size_t buf_len;
+
+        mbedtls_printf( "  . Serializing live connection..." );
+
+        ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &buf_len );
+        if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
+                            "-0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        if( ( context_buf = mbedtls_calloc( 1, buf_len ) ) == NULL )
+        {
+            mbedtls_printf( " failed\n  ! Couldn't allocate buffer for "
+                            "serialized context" );
+
+            goto exit;
+        }
+        context_buf_len = buf_len;
+
+        if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf,
+                                              buf_len, &buf_len ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
+                            "-0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        mbedtls_printf( " ok\n" );
+
+        if( opt.serialize == 1 )
+        {
+            /* nothing to do here, done by context_save() already */
+            mbedtls_printf( "  . Context has been reset... ok" );
+        }
+
+        if( opt.serialize == 2 )
+        {
+            mbedtls_printf( "  . Freeing and reinitializing context..." );
+
+            mbedtls_ssl_free( &ssl );
+
+            mbedtls_ssl_init( &ssl );
+
+            if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned "
+                                "-0x%x\n\n", -ret );
+                goto exit;
+            }
+
+            if( opt.nbio == 2 )
+                mbedtls_ssl_set_bio( &ssl, &server_fd, delayed_send,
+                                     delayed_recv, NULL );
+            else
+                mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send,
+                            mbedtls_net_recv,
+                            opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+
+#if defined(MBEDTLS_TIMING_C)
+                mbedtls_ssl_set_timer_cb( &ssl, &timer,
+                                          mbedtls_timing_set_delay,
+                                          mbedtls_timing_get_delay );
+#endif /* MBEDTLS_TIMING_C */
+
+            mbedtls_printf( " ok\n" );
+        }
+
+        mbedtls_printf( "  . Deserializing connection..." );
+
+        if( ( ret = mbedtls_ssl_context_load( &ssl, context_buf,
+                                              buf_len ) ) != 0 )
+        {
+            mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned "
+                            "-0x%x\n\n", -ret );
+
+            goto exit;
+        }
+
+        mbedtls_free( context_buf );
+        context_buf = NULL;
+        context_buf_len = 0;
+
+        mbedtls_printf( " ok\n" );
+    }
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
+    /*
+     * 7d. Continue doing data exchanges?
      */
     if( --opt.exchanges > 0 )
         goto send_request;
@@ -2886,10 +3061,22 @@ reconnect:
             goto exit;
         }
 
+        if( opt.reco_mode == 1 )
+        {
+            if( ( ret = mbedtls_ssl_session_load( &saved_session,
+                                                  session_data,
+                                                  session_data_len ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_session_load returned -0x%x\n\n",
+                                -ret );
+                goto exit;
+            }
+        }
+
         if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session returned %d\n\n",
-                            ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
 
@@ -2959,6 +3146,14 @@ exit:
     mbedtls_ssl_config_free( &conf );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
+    if( session_data != NULL )
+        mbedtls_platform_zeroize( session_data, session_data_len );
+    mbedtls_free( session_data );
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( context_buf != NULL )
+        mbedtls_platform_zeroize( context_buf, context_buf_len );
+    mbedtls_free( context_buf );
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)

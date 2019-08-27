@@ -148,6 +148,11 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
     return( 0 );
 }
 
+/*
+ * Internal function used both for seeding and reseeding the DRBG.
+ * Comments starting with arabic numbers refer to section 10.1.2.4
+ * of SP800-90A, while roman numbers refer to section 9.2.
+ */
 static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
                                   const unsigned char *additional, size_t len,
                                   int use_nonce )
@@ -182,8 +187,8 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
     }
     seedlen += ctx->entropy_len;
 
-    /* IV'. For initial seeding, allow adding of nonce generated
-     *      from the entropy source. See Sect 8.6.7 in SP800-90A. */
+    /* For initial seeding, allow adding of nonce generated
+     * from the entropy source. See Sect 8.6.7 in SP800-90A. */
     if( use_nonce )
     {
         /* Note: We don't merge the two calls to f_entropy() in order
@@ -225,7 +230,7 @@ exit:
 }
 
 /*
- * HMAC_DRBG reseeding: 10.1.2.4 (arabic) + 9.2 (Roman)
+ * HMAC_DRBG reseeding: 10.1.2.4 + 9.2
  */
 int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
                       const unsigned char *additional, size_t len )
@@ -236,6 +241,9 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
 
 /*
  * HMAC_DRBG initialisation (10.1.2.3 + 9.1)
+ *
+ * The nonce is not passed as a separate parameter but extracted
+ * from the entropy source as suggested in 8.6.7.
  */
 int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
                     const mbedtls_md_info_t * md_info,

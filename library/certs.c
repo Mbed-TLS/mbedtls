@@ -42,10 +42,10 @@
  *
  */
 
-/* Use CRTs with Secp256r1 curve if enabled.
- * Otherwise, fall back to previous EC test
- * certificates. */
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+/* Use CRTs with Secp256r1-only if Secp384r1 is disabled.
+ * Otherwise, fall back to previous test CRTs using both
+ * Secp256r1 and Secp384r1. */
+#if !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
 
 /* This is taken from tests/data_files/test-ca3.crt.pem */
 /* BEGIN FILE string macro TEST_CA_CRT_EC_PEM tests/data_files/test-ca3.crt.pem */
@@ -135,7 +135,7 @@
 }
 /* END FILE */
 
-#else /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#else /* !MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
 /* This is taken from tests/data_files/test-ca2.crt */
 /* BEGIN FILE string macro TEST_CA_CRT_EC_PEM tests/data_files/test-ca2.crt */
@@ -249,7 +249,7 @@
 }
 /* END FILE */
 
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
 #define TEST_CA_PWD_EC_PEM "PolarSSLTest"
 
@@ -612,10 +612,10 @@
  * - multiple EC curve types
  */
 
-/* Use CRTs with Secp256r1 curve if enabled.
- * Otherwise, fall back to previous EC test
- * certificates. */
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+/* Use CRTs with Secp256r1-only if Secp384r1 is disabled.
+ * Otherwise, fall back to previous test CRTs using both
+ * Secp256r1 and Secp384r1. */
+#if !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
 
 /* This is taken from tests/data_files/server11.crt.pem. */
 /* BEGIN FILE string macro TEST_SRV_CRT_EC_PEM tests/data_files/server11.crt.pem */
@@ -704,7 +704,7 @@
 }
 /* END FILE */
 
-#else /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#else /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
 /* This is taken from tests/data_files/server5.crt. */
 /* BEGIN FILE string macro TEST_SRV_CRT_EC_PEM tests/data_files/server5.crt */
@@ -804,7 +804,7 @@
 }
 /* END FILE */
 
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
 /* This is taken from tests/data_files/server2-sha256.crt. */
 /* BEGIN FILE string macro TEST_SRV_CRT_RSA_SHA256_PEM tests/data_files/server2-sha256.crt */
@@ -1157,10 +1157,10 @@
  * - multiple EC curve types
  */
 
-/* Use CRTs with Secp256r1 curve if enabled.
- * Otherwise, fall back to previous EC test
- * certificates. */
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+/* Use CRTs with Secp256r1-only if Secp384r1 is disabled.
+ * Otherwise, fall back to previous test CRTs using both
+ * Secp256r1 and Secp384r1. */
+#if !defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
 
 /* This is taken from tests/data_files/cli3.crt. */
 /* BEGIN FILE string macro TEST_CLI_CRT_EC_PEM tests/data_files/cli3.crt.pem */
@@ -1250,7 +1250,7 @@
 }
 /* END FILE */
 
-#else /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#else /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
 /* This is taken from tests/data_files/cli2.crt. */
 /* BEGIN FILE string macro TEST_CLI_CRT_EC_PEM tests/data_files/cli2.crt */
@@ -1351,7 +1351,7 @@
 }
 /* END FILE */
 
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
 /* This is taken from tests/data_files/cli-rsa-sha256.crt. */
 /* BEGIN FILE string macro TEST_CLI_CRT_RSA_PEM tests/data_files/cli-rsa-sha256.crt */

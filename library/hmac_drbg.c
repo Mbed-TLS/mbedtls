@@ -148,9 +148,9 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
     return( 0 );
 }
 
-static int hmac_drbg_reseed_internal( mbedtls_hmac_drbg_context *ctx,
-                                      const unsigned char *additional, size_t len,
-                                      int use_nonce )
+static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
+                                  const unsigned char *additional, size_t len,
+                                  int use_nonce )
 {
     unsigned char seed[MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT];
     size_t seedlen = 0;
@@ -230,7 +230,8 @@ exit:
 int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
                       const unsigned char *additional, size_t len )
 {
-    return( hmac_drbg_reseed_internal( ctx, additional, len, 0 ) );
+    return( hmac_drbg_reseed_core( ctx, additional, len,
+                                   0 /* no nonce */ ) );
 }
 
 /*
@@ -276,8 +277,8 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
                        md_size <= 28 ? 24 : /* 224-bits hash -> 192 bits */
                        32;  /* better (256+) -> 256 bits */
 
-    if( ( ret = hmac_drbg_reseed_internal( ctx, custom, len,
-                                           1 /* add nonce */ ) ) != 0 )
+    if( ( ret = hmac_drbg_reseed_core( ctx, custom, len,
+                                       1 /* add nonce */ ) ) != 0 )
     {
         return( ret );
     }

@@ -458,7 +458,7 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
-    void (*calc_verify)(mbedtls_ssl_context *, unsigned char *);
+    void (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
     void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
     mbedtls_ssl_tls_prf_cb *tls_prf;
 
@@ -642,7 +642,28 @@ struct mbedtls_ssl_transform
     z_stream ctx_deflate;               /*!<  compression context     */
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    /* We need the Hello random bytes in order to re-derive keys from the
+     * Master Secret and other session info, see ssl_populate_transform() */
+    unsigned char randbytes[64]; /*!< ServerHello.random+ClientHello.random */
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 };
+
+/*
+ * Return 1 if the transform uses an AEAD cipher, 0 otherwise.
+ * Equivalently, return 0 if a separate MAC is used, 1 otherwise.
+ */
+static inline int mbedtls_ssl_transform_uses_aead(
+        const mbedtls_ssl_transform *transform )
+{
+#if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC)
+    return( transform->maclen == 0 && transform->taglen != 0 );
+#else
+    (void) transform;
+    return( 1 );
+#endif
+}
 
 /*
  * Internal representation of record frames

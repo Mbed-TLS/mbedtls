@@ -1280,6 +1280,56 @@ run_test    "Truncated HMAC, DTLS: client enabled, server enabled" \
             -S "dumping 'expected mac' (20 bytes)" \
             -s "dumping 'expected mac' (10 bytes)"
 
+# Tests for Context serialization
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, client serializes" \
+            "$P_SRV dtls=1 serialize=0 exchanges=2" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2" \
+            0 \
+            -c "Deserializing connection..." \
+            -S "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, server serializes" \
+            "$P_SRV dtls=1 serialize=1 exchanges=2" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2" \
+            0 \
+            -C "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, both serialize" \
+            "$P_SRV dtls=1 serialize=1 exchanges=2" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2" \
+            0 \
+            -c "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, re-init, client serializes" \
+            "$P_SRV dtls=1 serialize=0 exchanges=2" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2" \
+            0 \
+            -c "Deserializing connection..." \
+            -S "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, re-init, server serializes" \
+            "$P_SRV dtls=1 serialize=2 exchanges=2" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2" \
+            0 \
+            -C "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, re-init, both serialize" \
+            "$P_SRV dtls=1 serialize=2 exchanges=2" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2" \
+            0 \
+            -c "Deserializing connection..." \
+            -s "Deserializing connection..."
+
 # Tests for DTLS Connection ID extension
 
 # So far, the CID API isn't implemented, so we can't
@@ -1939,8 +1989,8 @@ run_test    "Extended Master Secret: default" \
             -s "found extended master secret extension" \
             -s "server hello, adding extended master secret extension" \
             -c "found extended_master_secret extension" \
-            -c "using extended master secret" \
-            -s "using extended master secret"
+            -c "session hash for extended master secret" \
+            -s "session hash for extended master secret"
 
 run_test    "Extended Master Secret: client enabled, server disabled" \
             "$P_SRV debug_level=3 extended_ms=0" \
@@ -1950,8 +2000,8 @@ run_test    "Extended Master Secret: client enabled, server disabled" \
             -s "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash for extended master secret" \
+            -S "session hash for extended master secret"
 
 run_test    "Extended Master Secret: client disabled, server enabled" \
             "$P_SRV debug_level=3 extended_ms=1" \
@@ -1961,8 +2011,8 @@ run_test    "Extended Master Secret: client disabled, server enabled" \
             -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash for extended master secret" \
+            -S "session hash for extended master secret"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client SSLv3, server enabled" \
@@ -1973,8 +2023,8 @@ run_test    "Extended Master Secret: client SSLv3, server enabled" \
             -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash for extended master secret" \
+            -S "session hash for extended master secret"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Extended Master Secret: client enabled, server SSLv3" \
@@ -1985,8 +2035,8 @@ run_test    "Extended Master Secret: client enabled, server SSLv3" \
             -S "found extended master secret extension" \
             -S "server hello, adding extended master secret extension" \
             -C "found extended_master_secret extension" \
-            -C "using extended master secret" \
-            -S "using extended master secret"
+            -C "session hash for extended master secret" \
+            -S "session hash for extended master secret"
 
 # Tests for FALLBACK_SCSV
 
@@ -2239,6 +2289,20 @@ run_test    "Session resume using tickets: timeout" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
 
+run_test    "Session resume using tickets: session copy" \
+            "$P_SRV debug_level=3 tickets=1 cache_max=0" \
+            "$P_CLI debug_level=3 tickets=1 reconnect=1 reco_mode=0" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
 run_test    "Session resume using tickets: openssl server" \
             "$O_SRV" \
             "$P_CLI debug_level=3 tickets=1 reconnect=1" \
@@ -2303,6 +2367,20 @@ run_test    "Session resume using tickets, DTLS: timeout" \
             -S "session successfully restored from ticket" \
             -S "a session has been resumed" \
             -C "a session has been resumed"
+
+run_test    "Session resume using tickets, DTLS: session copy" \
+            "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 reco_mode=0" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
 
 run_test    "Session resume using tickets, DTLS: openssl server" \
             "$O_SRV -dtls1" \
@@ -2400,6 +2478,15 @@ run_test    "Session resume using cache: no timeout" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+run_test    "Session resume using cache: session copy" \
+            "$P_SRV debug_level=3 tickets=0" \
+            "$P_CLI debug_level=3 tickets=0 reconnect=1 reco_mode=0" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
 run_test    "Session resume using cache: openssl client" \
             "$P_SRV debug_level=3 tickets=0" \
             "( $O_CLI -sess_out $SESSION; \
@@ -2489,6 +2576,15 @@ run_test    "Session resume using cache, DTLS: timeout < delay" \
 run_test    "Session resume using cache, DTLS: no timeout" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_timeout=0" \
             "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache, DTLS: session copy" \
+            "$P_SRV dtls=1 debug_level=3 tickets=0" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_mode=0" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -4782,8 +4878,8 @@ run_test    "PSK callback: opaque psk on client, no callback" \
             0 \
             -c "skip PMS generation for opaque PSK"\
             -S "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4796,8 +4892,8 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384" \
             0 \
             -c "skip PMS generation for opaque PSK"\
             -S "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4810,8 +4906,8 @@ run_test    "PSK callback: opaque psk on client, no callback, EMS" \
             0 \
             -c "skip PMS generation for opaque PSK"\
             -S "skip PMS generation for opaque PSK"\
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash for extended master secret"\
+            -s "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4824,8 +4920,8 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
             0 \
             -c "skip PMS generation for opaque PSK"\
             -S "skip PMS generation for opaque PSK"\
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash for extended master secret"\
+            -s "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4838,8 +4934,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4852,8 +4948,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4865,8 +4961,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123 extended_ms=1" \
             0 \
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash for extended master secret"\
+            -s "session hash for extended master secret"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
             -S "SSL - None of the common ciphersuites is usable" \
@@ -4880,8 +4976,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
             "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=foo psk=abc123 extended_ms=1" \
             0 \
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash for extended master secret"\
+            -s "session hash for extended master secret"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
             -S "SSL - None of the common ciphersuites is usable" \
@@ -4896,8 +4992,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4910,8 +5006,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4923,8 +5019,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=abc psk=dead extended_ms=1" \
             0 \
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash for extended master secret"\
+            -s "session hash for extended master secret"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
             -S "SSL - None of the common ciphersuites is usable" \
@@ -4938,8 +5034,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
             "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=abc psk=dead extended_ms=1" \
             0 \
-            -c "using extended master secret"\
-            -s "using extended master secret"\
+            -c "session hash for extended master secret"\
+            -s "session hash for extended master secret"\
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
             -S "SSL - None of the common ciphersuites is usable" \
@@ -4954,8 +5050,8 @@ run_test    "PSK callback: raw psk on client, mismatching static raw PSK on serv
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4968,8 +5064,8 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
             0 \
             -C "skip PMS generation for opaque PSK"\
             -s "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4981,8 +5077,8 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -4994,8 +5090,8 @@ run_test    "PSK callback: raw psk on client, id-matching but wrong raw PSK on s
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
-            -C "using extended master secret"\
-            -S "using extended master secret"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - Unknown identity received" \
             -S "SSL - Verification of the message MAC failed"
@@ -8272,11 +8368,11 @@ run_test    "DTLS reordering: Buffer encrypted Finished message" \
 #   without fragmentation or be reassembled within the bounds of
 #   MBEDTLS_SSL_DTLS_MAX_BUFFERING. Achieve this by testing with a PSK-based
 #   handshake, omitting CRTs.
-requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 240
-requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 280
+requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 190
+requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 230
 run_test    "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket" \
             -p "$P_PXY delay_srv=NewSessionTicket delay_srv=NewSessionTicket delay_ccs=1" \
-            "$P_SRV mtu=190 dgram_packing=0 psk=abc123 psk_identity=foo cookies=0 dtls=1 debug_level=2" \
+            "$P_SRV mtu=140 response_size=90 dgram_packing=0 psk=abc123 psk_identity=foo cookies=0 dtls=1 debug_level=2" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 psk=abc123 psk_identity=foo" \
             0 \
             -s "Buffer record from epoch 1" \

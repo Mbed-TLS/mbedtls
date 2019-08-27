@@ -1266,6 +1266,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( strcmp( "MBEDTLS_SSL_CONTEXT_SERIALIZATION", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONTEXT_SERIALIZATION );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
     if( strcmp( "MBEDTLS_SSL_DEBUG_ALL", config ) == 0 )
     {

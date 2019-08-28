@@ -51,7 +51,7 @@
 #include "mbedtls/platform_util.h"
 #endif
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
 static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
                                     unsigned char *buf,
                                     size_t *olen )
@@ -119,7 +119,7 @@ static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 
     *olen = hostname_len + 9;
 }
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION && !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 static void ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
@@ -1057,7 +1057,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
     // First write extensions, then the total length
     //
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     ssl_write_hostname_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif

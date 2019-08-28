@@ -102,8 +102,10 @@ static int x509_crt_subject_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_name *subject );
 static int x509_crt_issuer_from_frame( mbedtls_x509_crt_frame const *frame,
                                        mbedtls_x509_name *issuer );
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
 static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_sequence *subject_alt );
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_sequence *ext_key_usage );
 
@@ -333,6 +335,7 @@ static void x509_crt_cache_free( mbedtls_x509_crt_cache *cache )
     memset( cache, 0, sizeof( *cache ) );
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
 int mbedtls_x509_crt_get_subject_alt_names( mbedtls_x509_crt const *crt,
                                             mbedtls_x509_sequence **subj_alt )
 {
@@ -355,6 +358,7 @@ int mbedtls_x509_crt_get_subject_alt_names( mbedtls_x509_crt const *crt,
     *subj_alt = seq;
     return( ret );
 }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 int mbedtls_x509_crt_get_ext_key_usage( mbedtls_x509_crt const *crt,
                                         mbedtls_x509_sequence **ext_key_usage )
@@ -613,6 +617,7 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
     return( -1 );
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
 /*
  * Return 0 if name matches wildcard, -1 otherwise
  */
@@ -648,6 +653,7 @@ static int x509_check_wildcard( char const *cn,
 
     return( -1 );
 }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 /*
  * Reset (init or clear) a verify_chain
@@ -934,6 +940,7 @@ static int x509_get_ext_key_usage( unsigned char **p,
                                                (void *) &ext_key_usage ) );
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
 /*
  * SubjectAltName ::= GeneralNames
  *
@@ -972,6 +979,7 @@ static int x509_get_subject_alt_name( unsigned char *p,
                                                asn1_build_sequence_cb,
                                                (void *) &subject_alt_name ) );
 }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 /*
  * X.509 v3 extensions
@@ -1077,10 +1085,10 @@ static int x509_crt_get_ext_cb( void *ctx,
             break;
 
         case MBEDTLS_X509_EXT_SUBJECT_ALT_NAME:
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
             /* Copy reference to raw subject alt name data. */
             frame->subject_alt_raw.p   = p;
             frame->subject_alt_raw.len = end_ext_octet - p;
-
             ret = mbedtls_asn1_traverse_sequence_of( &p, end_ext_octet,
                                       MBEDTLS_ASN1_TAG_CLASS_MASK,
                                       MBEDTLS_ASN1_CONTEXT_SPECIFIC,
@@ -1089,6 +1097,7 @@ static int x509_crt_get_ext_cb( void *ctx,
                                       NULL, NULL );
             if( ret != 0 )
                 goto err;
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
             break;
 
         case MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE:
@@ -1470,6 +1479,7 @@ static int x509_crt_issuer_from_frame( mbedtls_x509_crt_frame const *frame,
                                    issuer ) );
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
 static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame const *frame,
                                             mbedtls_x509_sequence *subject_alt )
 {
@@ -1487,6 +1497,7 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame const *frame,
         ret += MBEDTLS_ERR_X509_INVALID_EXTENSIONS;
     return( ret );
 }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_sequence *ext_key_usage )
@@ -1663,9 +1674,11 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     if( ret != 0 )
         goto exit;
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     ret = x509_crt_subject_alt_from_frame( frame, &crt->subject_alt_names );
     if( ret != 0 )
         goto exit;
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
     ret = x509_crt_ext_key_usage_from_frame( frame, &crt->ext_key_usage );
     if( ret != 0 )
@@ -2104,6 +2117,7 @@ static int x509_crt_get_sig_info( mbedtls_x509_crt_frame const *frame,
 }
 
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
 static int x509_info_subject_alt_name( char **buf, size_t *size,
                                        const mbedtls_x509_sequence *subject_alt_name )
 {
@@ -2141,6 +2155,7 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
 
     return( 0 );
 }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 #define PRINT_ITEM(i)                           \
     {                                           \
@@ -2249,7 +2264,11 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     mbedtls_pk_context pk;
 
     mbedtls_x509_name *issuer = NULL, *subject = NULL;
-    mbedtls_x509_sequence *ext_key_usage = NULL, *subject_alt_names = NULL;
+    mbedtls_x509_sequence *ext_key_usage = NULL;
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
+    mbedtls_x509_sequence *subject_alt_names = NULL;
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+
     mbedtls_x509_crt_sig_info sig_info;
 
     p = buf;
@@ -2287,12 +2306,14 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
         goto cleanup;
     }
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     ret = mbedtls_x509_crt_get_subject_alt_names( crt, &subject_alt_names );
     if( ret != 0 )
     {
         ret = MBEDTLS_ERR_X509_FATAL_ERROR;
         goto cleanup;
     }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
     ret = mbedtls_x509_crt_get_ext_key_usage( crt, &ext_key_usage );
     if( ret != 0 )
@@ -2391,6 +2412,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
         }
     }
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     if( frame.ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
         ret = mbedtls_snprintf( p, n, "\n%ssubject alt name  : ", prefix );
@@ -2400,6 +2422,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
                                             subject_alt_names ) ) != 0 )
             return( ret );
     }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
     if( frame.ext_types & MBEDTLS_X509_EXT_NS_CERT_TYPE )
     {
@@ -2441,7 +2464,9 @@ cleanup:
     mbedtls_x509_name_free( issuer );
     mbedtls_x509_name_free( subject );
     mbedtls_x509_sequence_free( ext_key_usage );
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     mbedtls_x509_sequence_free( subject_alt_names );
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
     return( ret );
 }
@@ -3399,6 +3424,7 @@ find_parent:
     }
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
 /*
  * Check for CN match
  */
@@ -3510,6 +3536,7 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
     *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
     return( ret );
 }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 /*
  * Merge the flags for all certs in the chain, after calling callback
@@ -3546,12 +3573,19 @@ static int x509_crt_merge_flags_with_cb(
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
-                     const char *cn, uint32_t *flags,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
+                     const char *cn,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+                     uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
     return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
-                &mbedtls_x509_crt_profile_default, cn, flags,
+                &mbedtls_x509_crt_profile_default,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
+                cn,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+                flags,
                 f_vrfy, p_vrfy, NULL ) );
 }
 
@@ -3562,12 +3596,19 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
                      const mbedtls_x509_crt_profile *profile,
-                     const char *cn, uint32_t *flags,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
+                     const char *cn,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+                     uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
 {
     return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
-                profile, cn, flags, f_vrfy, p_vrfy, NULL ) );
+                profile,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
+                cn,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+                flags, f_vrfy, p_vrfy, NULL ) );
 }
 
 /*
@@ -3584,7 +3625,10 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
                      const mbedtls_x509_crt_profile *profile,
-                     const char *cn, uint32_t *flags,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
+                     const char *cn,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+                     uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy,
                      mbedtls_x509_crt_restart_ctx *rs_ctx )
@@ -3603,6 +3647,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
         goto exit;
     }
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     /* check name if requested */
     if( cn != NULL )
     {
@@ -3610,6 +3655,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
         if( ret != 0 )
             return( ret );
     }
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
     {
         mbedtls_pk_context *pk;
@@ -3703,7 +3749,10 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         mbedtls_x509_name_free( cert_cur->issuer.next );
         mbedtls_x509_name_free( cert_cur->subject.next );
         mbedtls_x509_sequence_free( cert_cur->ext_key_usage.next );
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
         mbedtls_x509_sequence_free( cert_cur->subject_alt_names.next );
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 
         if( cert_cur->raw.p != NULL && cert_cur->own_buffer )

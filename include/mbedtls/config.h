@@ -1979,6 +1979,44 @@
 //#define MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID
 
 /**
+ * \def MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+ *
+ * Remove hostname verification from APIs related to X.509 certificate validation.
+ *
+ * \warning Uncommenting this affects parsing and verification of
+ * X.509 certificate by leaving Common Name and Subject Alternative Name fields out
+ * of parsing and verification.
+ *
+ * Affected API's:
+ *  - mbedtls_ssl_set_hostname() not available.
+ *  - mbedtls_x509_crt_get_subject_alt_names() not available.
+ *  - mbedtls_x509_crt_parse_der(): Subject Alternative Name field
+ *    is not parsed.
+ *  - mbedtls_x509_crt_parse_der_nocopy(): Subject Alternative Name field
+ *    is not parsed.
+ *  - mbedtls_x509_crt_parse(): Subject Alternative Name field
+ *    is not parsed.
+ *  - mbedtls_x509_crt_parse_file(): Subject Alternative Name field
+ *    is not parsed.
+ *  - mbedtls_x509_crt_parse_path(): Subject Alternative Name field
+ *    is not parsed.
+ *  - mbedtls_x509_crt_info(): Subject Alternative Name field
+ *    is not parsed.
+ *  - mbedtls_x509_crt_verify(): param \c cn is omitted from the API.
+ *  - mbedtls_x509_crt_verify_with_profile(): param \c cn is omitted from the API.
+ *  - mbedtls_x509_crt_verify_restartable(): param \c cn is omitted from the API.
+ *  -
+ *
+ *  Affected structs
+ *   - ::mbedtls_x509_crt_frame: subject_alt_raw is defined out.
+ *   - ::mbedtls_x509_crt: subject_alt_names is defined out.
+ *
+ * Uncomment this to save some code and RAM on constrained systems which
+ * don't need hostname verification.
+ */
+//#define MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+
+/**
  * \def MBEDTLS_X509_RSASSA_PSS_SUPPORT
  *
  * Enable parsing and verification of X.509 certificates, CRLs and CSRS

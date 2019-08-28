@@ -96,9 +96,10 @@ typedef struct mbedtls_x509_crt_frame
     mbedtls_x509_buf_raw v3_ext;            /**< The raw data for the extension list in the certificate.
                                              *   Might be useful for manual inspection of extensions that
                                              *   Mbed TLS doesn't yet support.                                  */
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     mbedtls_x509_buf_raw subject_alt_raw;   /**< The raw data for the SubjectAlternativeNames extension.        */
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
     mbedtls_x509_buf_raw ext_key_usage_raw; /**< The raw data for the ExtendedKeyUsage extension.               */
-
 } mbedtls_x509_crt_frame;
 
 /**
@@ -140,7 +141,9 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
 #endif /* !MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID */
     mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
     mbedtls_x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only dNSName supported). */
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
     int ext_types;              /**< Bit string containing detected and parsed extensions */
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
@@ -499,7 +502,10 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
-                     const char *cn, uint32_t *flags,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION) || defined(DOXYGEN_ONLY)
+                     const char *cn,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION || defined(DOXYGEN_ONLY) */
+                     uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
 
@@ -534,7 +540,10 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
                      const mbedtls_x509_crt_profile *profile,
-                     const char *cn, uint32_t *flags,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION) || defined(DOXYGEN_ONLY)
+                     const char *cn,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION || defined(DOXYGEN_ONLY) */
+                     uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
 
@@ -564,7 +573,10 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,
                      mbedtls_x509_crl *ca_crl,
                      const mbedtls_x509_crt_profile *profile,
-                     const char *cn, uint32_t *flags,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION) || defined(DOXYGEN_ONLY)
+                     const char *cn,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION || defined(DOXYGEN_ONLY) */
+                     uint32_t *flags,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy,
                      mbedtls_x509_crt_restart_ctx *rs_ctx );
@@ -747,6 +759,7 @@ int mbedtls_x509_crt_get_subject( mbedtls_x509_crt const *crt,
 int mbedtls_x509_crt_get_issuer( mbedtls_x509_crt const *crt,
                                  mbedtls_x509_name **issuer );
 
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
 /**
  * \brief           Request the subject alternative name of a CRT, presented
  *                  as a dynamically allocated linked list.
@@ -771,6 +784,7 @@ int mbedtls_x509_crt_get_issuer( mbedtls_x509_crt const *crt,
  */
 int mbedtls_x509_crt_get_subject_alt_names( mbedtls_x509_crt const *crt,
                                             mbedtls_x509_sequence **subj_alt );
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 /**
  * \brief           Request the ExtendedKeyUsage extension of a CRT,

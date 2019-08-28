@@ -1570,6 +1570,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID */
 
+#if defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
+    if( strcmp( "MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( strcmp( "MBEDTLS_X509_RSASSA_PSS_SUPPORT", config ) == 0 )
     {

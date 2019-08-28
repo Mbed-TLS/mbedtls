@@ -107,12 +107,20 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_cert_info:"data_files/keyUsage.decipherOnly.crt":"cert. version     \: 3\nserial number     \: 9B\:13\:CE\:4C\:A5\:6F\:DE\:52\nissuer name       \: C=GB, L=Cambridge, O=Default Company Ltd\nsubject name      \: C=GB, L=Cambridge, O=Default Company Ltd\nissued  on        \: 2015-05-12 10\:36\:55\nexpires on        \: 2018-05-11 10\:36\:55\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment, Decipher Only\n"
 
 X509 CRT information, Subject Alt Name
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_cert_info:"data_files/cert_example_multi.crt":"cert. version     \: 3\nserial number     \: 11\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=www.example.com\nissued  on        \: 2012-05-10 13\:23\:41\nexpires on        \: 2022-05-11 13\:23\:41\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \: example.com, example.net, *.example.org\n"
 
+X509 CRT information, Subject Alt Name, not expected Subject alt name
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_cert_info:"data_files/cert_example_multi.crt":"cert. version     \: 3\nserial number     \: 11\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=www.example.com\nissued  on        \: 2012-05-10 13\:23\:41\nexpires on        \: 2022-05-11 13\:23\:41\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
+
 X509 CRT information, Subject Alt Name + Key Usage
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_cert_info:"data_files/cert_example_multi_nocn.crt":"cert. version     \: 3\nserial number     \: F7\:C6\:7F\:F8\:E9\:A9\:63\:F9\nissuer name       \: C=NL\nsubject name      \: C=NL\nissued  on        \: 2014-01-22 10\:04\:33\nexpires on        \: 2024-01-22 10\:04\:33\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nsubject alt name  \: www.shotokan-braunschweig.de, www.massimo-abate.eu\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
+
+X509 CRT information, Subject Alt Name + Key Usage, not expected Subject alt name
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_cert_info:"data_files/cert_example_multi_nocn.crt":"cert. version     \: 3\nserial number     \: F7\:C6\:7F\:F8\:E9\:A9\:63\:F9\nissuer name       \: C=NL\nsubject name      \: C=NL\nissued  on        \: 2014-01-22 10\:04\:33\nexpires on        \: 2024-01-22 10\:04\:33\nsigned using      \: RSA with SHA1\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\nkey usage         \: Digital Signature, Non Repudiation, Key Encipherment\n"
 
 X509 CRT information, Key Usage + Extended Key Usage
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
@@ -127,8 +135,12 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED:
 x509_cert_info:"data_files/server3.crt":"cert. version     \: 3\nserial number     \: 0D\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-08-09 09\:17\:03\nexpires on        \: 2023-08-07 09\:17\:03\nsigned using      \: RSA with SHA1\nEC key size       \: 192 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information Bitstring in subject name
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_cert_info:"data_files/bitstring-in-dn.pem":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: CN=Test CA 01, ST=Ecnivorp, C=XX, emailAddress=tca@example.com, O=Test CA Authority\nsubject name      \: C=XX, O=tca, ST=Ecnivorp, OU=TCA, CN=Client, emailAddress=client@example.com, serialNumber=7101012255, uniqueIdentifier=?7101012255\nissued  on        \: 2015-03-11 12\:06\:51\nexpires on        \: 2025-03-08 12\:06\:51\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\nsubject alt name  \: \next key usage     \: TLS Web Client Authentication\n"
+
+X509 CRT information Bitstring in subject name, not expected Subject alt name
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_cert_info:"data_files/bitstring-in-dn.pem":"cert. version     \: 3\nserial number     \: 02\nissuer name       \: CN=Test CA 01, ST=Ecnivorp, C=XX, emailAddress=tca@example.com, O=Test CA Authority\nsubject name      \: C=XX, O=tca, ST=Ecnivorp, OU=TCA, CN=Client, emailAddress=client@example.com, serialNumber=7101012255, uniqueIdentifier=?7101012255\nissued  on        \: 2015-03-11 12\:06\:51\nexpires on        \: 2025-03-08 12\:06\:51\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\next key usage     \: TLS Web Client Authentication\n"
 
 X509 certificate v1 with extension
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3:MBEDTLS_SHA1_C
@@ -400,12 +412,20 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_S
 x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"localhost":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_X509_BADCRL_FUTURE:"compat":"NULL"
 
 X509 CRT verification #3 (Revoked Cert, Future CRL, CN Mismatch)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_HAVE_TIME_DATE
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_HAVE_TIME_DATE:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Wrong CN":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_X509_BADCRL_EXPIRED | MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
-X509 CRT verification #3a (Revoked Cert, Expired CRL, CN Mismatch)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C:MBEDTLS_HAVE_TIME_DATE
+X509 CRT verification #3a (Revoked Cert, Future CRL, CN Discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl_expired.pem":"PolarSSL Wrong CN":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_X509_BADCRL_EXPIRED:"compat":"NULL"
+
+X509 CRT verification #3b (Revoked Cert, Expired CRL, CN Mismatch)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C:MBEDTLS_HAVE_TIME_DATE:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"Wrong CN":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_X509_BADCRL_FUTURE | MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
+X509 CRT verification #3c (Revoked Cert, Expired CRL, CN Discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/server6.crt":"data_files/test-ca2.crt":"data_files/crl-future.pem":"Wrong CN":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_X509_BADCRL_FUTURE:"compat":"NULL"
 
 X509 CRT verification #4 (Valid Cert, Expired CRL)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_HAVE_TIME_DATE
@@ -436,8 +456,12 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MB
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"PolarSSL Server 1":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED:"compat":"NULL"
 
 X509 CRT verification #7 (Revoked Cert, CN Mismatch)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_HAVE_TIME_DATE
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_HAVE_TIME_DATE:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"PolarSSL Wrong CN":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED | MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
+X509 CRT verification #7a (Revoked Cert, CN Discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/server1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"PolarSSL Wrong CN":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_REVOKED:"compat":"NULL"
 
 X509 CRT verification #8 (Valid Cert)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SHA1_C
@@ -532,36 +556,64 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.ExAmPlE.com":0:0:"compat":"NULL"
 
 X509 CRT verification #22 (domain not matching wildcard certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.example.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
+X509 CRT verification #22a (domain not matching discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"mail.example.net":0:0:"compat":"NULL"
+
 X509 CRT verification #23 (domain not matching wildcard certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
+X509 CRT verification #23a (domain not matching discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/cert_example_wildcard.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.com":0:0:"compat":"NULL"
+
 X509 CRT verification #24 (domain matching CN of multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.com":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
+X509 CRT verification #24a (domain matching discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.com":0:0:"compat":"NULL"
 
 X509 CRT verification #25 (domain matching multi certificate)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.net":0:0:"compat":"NULL"
 
 X509 CRT verification #26 (domain not matching multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
+X509 CRT verification #26a (domain not matching discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":0:0:"compat":"NULL"
+
 X509 CRT verification #27 (domain not matching multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"xample.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
-X509 CRT verification #27 (domain not matching multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+X509 CRT verification #27a (domain not matching discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"xample.net":0:0:"compat":"NULL"
+
+X509 CRT verification #27c (domain not matching multi certificate)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"bexample.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
+X509 CRT verification #27d (domain not matching discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"bexample.net":0:0:"compat":"NULL"
+
 X509 CRT verification #28 (domain not matching wildcard in multi certificate)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.org":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
+
+X509 CRT verification #28a (domain not matching discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"example.org":0:0:"compat":"NULL"
 
 X509 CRT verification #29 (domain matching wildcard in multi certificate)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -572,8 +624,12 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi_nocn.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.shotokan-braunschweig.de":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
 
 X509 CRT verification #31 (domain not matching multi certificate without CN)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify:"data_files/cert_example_multi_nocn.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH + MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
+
+X509 CRT verification #31a (domain not matching discard)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify:"data_files/cert_example_multi_nocn.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:"compat":"NULL"
 
 X509 CRT verification #32 (Valid, EC cert, RSA CA)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C
@@ -848,8 +904,12 @@ depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:
 x509_verify:"data_files/cert_sha256.crt":"data_files/test-ca.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"next":"NULL"
 
 X509 CRT verification callback: bad name
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509_verify_callback:"data_files/server5.crt":"data_files/test-ca2.crt":"globalhost":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:"depth 1 - serial C1\:43\:E2\:7E\:62\:43\:CC\:E8 - subject C=NL, O=PolarSSL, CN=Polarssl Test EC CA - flags 0x00000000\ndepth 0 - serial 09 - subject C=NL, O=PolarSSL, CN=localhost - flags 0x00000004\n"
+
+X509 CRT verification callback: bad name discard
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509_verify_callback:"data_files/server5.crt":"data_files/test-ca2.crt":"globalhost":0:"depth 1 - serial C1\:43\:E2\:7E\:62\:43\:CC\:E8 - subject C=NL, O=PolarSSL, CN=Polarssl Test EC CA - flags 0x00000000\ndepth 0 - serial 09 - subject C=NL, O=PolarSSL, CN=localhost - flags 0x00000000\n"
 
 X509 CRT verification callback: trusted EE cert
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
@@ -1698,8 +1758,12 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 x509parse_crt:"3081b93081a3a0030201018204deadbeef300d06092a864886f70d01010b0500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa321301f301d0603551d11041630148208666f6f2e7465737482086261722e74657374300d06092a864886f70d01010b0500030200ff":"":MBEDTLS_ERR_X509_INVALID_FORMAT + MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
 
 X509 CRT ASN1 (TBS, valid SubjectID, valid IssuerID, inv v3Ext, SubjectAltName repeated outside Extensions, inv SubjectAltNames tag)
-depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:!MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 x509parse_crt:"308203723082025aa003020102020111300d06092a864886f70d0101050500303b310b3009060355040613024e4c3111300f060355040a1308506f6c617253534c3119301706035504031310506f6c617253534c2054657374204341301e170d3132303531303133323334315a170d3232303531313133323334315a303a310b3009060355040613024e4c3111300f060355040a1308506f6c617253534c311830160603550403130f7777772e6578616d706c652e636f6d30820122300d06092a864886f70d01010105000382010f003082010a0282010100b93c4ac5c8a38e9017a49e52aa7175266180e7c7b56d8cffaab64126b7be11ad5c73160c64114804ffd6e13b05db89bbb39709d51c14dd688739b03d71cbe276d01ad8182d801b54f6e5449af1cbaf612edf490d9d09b7edb1fd3cfd3cfa24cf5dbf7ce453e725b5ea4422e926d3ea20949ee66167ba2e07670b032fa209edf0338f0bce10ef67a4c608dac1edc23fd74add153df95e1c8160463eb5b33d2fa6de471cbc92aeebdf276b1656b7dcecd15557a56eec7525f5b77bdfabd23a5a91987d97170b130aa76b4a8bc14730fb3af84104d5c1dfb81dbf7b01a565a2e01e36b7a65ccc305af8cd6fcdf1196225ca01e3357ffa20f5dcfd69b26a007d17f70203010001a38181307f30090603551d1304023000301d0603551d0e041604147de49c6be6f9717d46d2123dad6b1dfdc2aa784c301f0603551d23041830168014b45ae4a5b3ded252f6b9d5a6950feb3ebcc7fdff30320603551d11042b3029c20b6578616d706c652e636f6d820b6578616d706c652e6e6574820d2a2e6578616d706c652e6f7267300d06092a864886f70d010105050003820101004f09cb7ad5eef5ef620ddc7ba285d68cca95b46bda115b92007513b9ca0bceeafbc31fe23f7f217479e2e6bcda06e52f6ff655c67339cf48bc0d2f0cd27a06c34a4cd9485da0d07389e4d4851d969a0e5799c66f1d21271f8d0529e840ae823968c39707cf3c934c1adf2fa6a455487f7c8c1ac922da24cd9239c68aecb08df5698267cb04eede534196c127dc2ffe33fad30eb8d432a9842853a5f0d189d5a298e71691bb9cc0418e8c58acffe3dd2e7aabb0b97176ad0f2733f7a929d3c076c0bf06407c0ed5a47c8ae2326e16aeda641fb0557cdbddf1a4ba447cb39958d2346e00ea976c143af2101e0aa249107601f4f2c818fdcc6346128b091bf194e6":"":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+X509 CRT ASN1 (TBS, valid SubjectID, valid IssuerID, inv v3Ext, SubjectAltName repeated outside Extensions, inv SubjectAltNames discarded)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C:MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+x509parse_crt:"308203723082025aa003020102020111300d06092a864886f70d0101050500303b310b3009060355040613024e4c3111300f060355040a1308506f6c617253534c3119301706035504031310506f6c617253534c2054657374204341301e170d3132303531303133323334315a170d3232303531313133323334315a303a310b3009060355040613024e4c3111300f060355040a1308506f6c617253534c311830160603550403130f7777772e6578616d706c652e636f6d30820122300d06092a864886f70d01010105000382010f003082010a0282010100b93c4ac5c8a38e9017a49e52aa7175266180e7c7b56d8cffaab64126b7be11ad5c73160c64114804ffd6e13b05db89bbb39709d51c14dd688739b03d71cbe276d01ad8182d801b54f6e5449af1cbaf612edf490d9d09b7edb1fd3cfd3cfa24cf5dbf7ce453e725b5ea4422e926d3ea20949ee66167ba2e07670b032fa209edf0338f0bce10ef67a4c608dac1edc23fd74add153df95e1c8160463eb5b33d2fa6de471cbc92aeebdf276b1656b7dcecd15557a56eec7525f5b77bdfabd23a5a91987d97170b130aa76b4a8bc14730fb3af84104d5c1dfb81dbf7b01a565a2e01e36b7a65ccc305af8cd6fcdf1196225ca01e3357ffa20f5dcfd69b26a007d17f70203010001a38181307f30090603551d1304023000301d0603551d0e041604147de49c6be6f9717d46d2123dad6b1dfdc2aa784c301f0603551d23041830168014b45ae4a5b3ded252f6b9d5a6950feb3ebcc7fdff30320603551d11042b3029c20b6578616d706c652e636f6d820b6578616d706c652e6e6574820d2a2e6578616d706c652e6f7267300d06092a864886f70d010105050003820101004f09cb7ad5eef5ef620ddc7ba285d68cca95b46bda115b92007513b9ca0bceeafbc31fe23f7f217479e2e6bcda06e52f6ff655c67339cf48bc0d2f0cd27a06c34a4cd9485da0d07389e4d4851d969a0e5799c66f1d21271f8d0529e840ae823968c39707cf3c934c1adf2fa6a455487f7c8c1ac922da24cd9239c68aecb08df5698267cb04eede534196c127dc2ffe33fad30eb8d432a9842853a5f0d189d5a298e71691bb9cc0418e8c58acffe3dd2e7aabb0b97176ad0f2733f7a929d3c076c0bf06407c0ed5a47c8ae2326e16aeda641fb0557cdbddf1a4ba447cb39958d2346e00ea976c143af2101e0aa249107601f4f2c818fdcc6346128b091bf194e6":"cert. version     \: 3\nserial number     \: 11\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=www.example.com\nissued  on        \: 2012-05-10 13\:23\:41\nexpires on        \: 2022-05-11 13\:23\:41\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n":0
 
 X509 CRT ASN1 (SignatureAlgorithm missing)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C

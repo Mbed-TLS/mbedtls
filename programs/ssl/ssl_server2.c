@@ -1137,6 +1137,9 @@ void term_handler( int sig )
 }
 #endif
 
+#if ( defined(MBEDTLS_X509_CRT_PARSE_C) &&        \
+      !defined(MBEDTLS_SSL_CONF_SINGLE_HASH) ) || \
+    !defined(MBEDTLS_CTR_DRBG_C)
 static int available_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
@@ -1152,6 +1155,8 @@ static int available_hashes[] = {
 #endif
     MBEDTLS_MD_NONE
 };
+#endif /* ( MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_SSL_CONF_SINGLE_HASH ) ||
+          !MBEDTLS_CTR_DRBG_C */
 
 /** Return true if \p ret is a status code indicating that there is an
  * operation in progress on an SSL connection, and false if it indicates

@@ -707,6 +707,9 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+#if ( defined(MBEDTLS_X509_CRT_PARSE_C) &&        \
+      !defined(MBEDTLS_SSL_CONF_SINGLE_HASH) ) || \
+    !defined(MBEDTLS_CTR_DRBG_C)
 static int available_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
@@ -722,6 +725,8 @@ static int available_hashes[] = {
 #endif
     MBEDTLS_MD_NONE
 };
+#endif /* ( MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_SSL_CONF_SINGLE_HASH ) ||
+          !MBEDTLS_CTR_DRBG_C */
 
 /*
  * Wait for an event from the underlying transport or the timer

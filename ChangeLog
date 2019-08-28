@@ -21,6 +21,8 @@ Bugfix
    * Enable Suite B with subset of ECP curves. Make sure the code compiles even
      if some curves are not defined. Fixes #1591 reported by dbedev.
    * Fix misuse of signed arithmetic in the HAVEGE module. #2598
+   * Fix incompatibility of HMAC DRBG with Mbed TLS' own entropy module that
+     lead to HMAC DRBG seeding failure in configurations disabling SHA-512.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

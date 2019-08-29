@@ -69,13 +69,21 @@ mbedtls_x509_crl_entry;
  */
 typedef struct mbedtls_x509_crl
 {
+    mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
+    mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+
+    int version;            /**< CRL version (1=v1, 2=v2) */
+    void *sig_opts;             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
+
+    struct mbedtls_x509_crl *next;
+
+    mbedtls_x509_buf_raw issuer_raw;           /**< The raw issuer data (DER). */
+
     mbedtls_x509_buf raw;           /**< The raw certificate data (DER). */
     mbedtls_x509_buf tbs;           /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;            /**< CRL version (1=v1, 2=v2) */
-    mbedtls_x509_buf sig_oid;       /**< CRL signature type identifier */
 
-    mbedtls_x509_buf_raw issuer_raw;           /**< The raw issuer data (DER). */
+    mbedtls_x509_buf sig_oid;       /**< CRL signature type identifier */
 
     mbedtls_x509_name issuer;       /**< The parsed issuer data (named information object). */
 
@@ -88,11 +96,6 @@ typedef struct mbedtls_x509_crl
 
     mbedtls_x509_buf sig_oid2;
     mbedtls_x509_buf sig;
-    mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
-    mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
-    void *sig_opts;             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
-
-    struct mbedtls_x509_crl *next;
 }
 mbedtls_x509_crl;
 

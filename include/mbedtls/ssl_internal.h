@@ -376,16 +376,32 @@ struct mbedtls_ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    unsigned char verify_cookie_len;    /*!<  Cli: cookie length
+                                              Srv: flag for sending a cookie */
+    unsigned char retransmit_state;     /*!<  Retransmission state           */
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    /* The state of CID configuration in this handshake. */
+
+    uint8_t cid_in_use; /*!< This indicates whether the use of the CID extension
+                         *   has been negotiated. Possible values are
+                         *   #MBEDTLS_SSL_CID_ENABLED and
+                         *   #MBEDTLS_SSL_CID_DISABLED. */
+    uint8_t peer_cid_len;                                  /*!< The length of
+                                                            *   \c peer_cid.  */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+    uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
+
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+
+
+
+
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
-#endif
-#if defined(MBEDTLS_DHM_C)
-    mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
-#endif
-#if defined(MBEDTLS_ECDH_C)
-    mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
@@ -400,12 +416,25 @@ struct mbedtls_ssl_handshake_params
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     uint16_t curve_tls_id;                      /*!< TLS ID of EC for ECDHE. */
 #endif
+
+    size_t pmslen;                      /*!<  premaster length        */
+
+    int cli_exts;                       /*!< client extension presence*/
+
+
+
+
+
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
 #endif
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_ssl_key_cert *key_cert;     /*!< chosen key/cert pair (server)  */
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    mbedtls_pk_context peer_pubkey;     /*!< The public key from the peer.  */
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     int sni_authmode;                   /*!< authmode from SNI callback     */
     mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
@@ -424,21 +453,13 @@ struct mbedtls_ssl_handshake_params
     } ecrs_state;                       /*!< current (or last) operation    */
     mbedtls_x509_crt *ecrs_peer_cert;   /*!< The peer's CRT chain.          */
 #endif
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    mbedtls_pk_context peer_pubkey;     /*!< The public key from the peer.  */
-#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
     unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
 
     unsigned char *verify_cookie;       /*!<  Cli: HelloVerifyRequest cookie
                                               Srv: unused                    */
-    unsigned char verify_cookie_len;    /*!<  Cli: cookie length
-                                              Srv: flag for sending a cookie */
-
     uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
-    unsigned char retransmit_state;     /*!<  Retransmission state           */
     mbedtls_ssl_flight_item *flight;    /*!<  Current outgoing flight        */
     mbedtls_ssl_flight_item *cur_msg;   /*!<  Current message in flight      */
     unsigned char *cur_msg_p;           /*!<  Position in current message    */
@@ -451,23 +472,26 @@ struct mbedtls_ssl_handshake_params
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* The state of CID configuration in this handshake. */
-
-    uint8_t cid_in_use; /*!< This indicates whether the use of the CID extension
-                         *   has been negotiated. Possible values are
-                         *   #MBEDTLS_SSL_CID_ENABLED and
-                         *   #MBEDTLS_SSL_CID_DISABLED. */
     unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ]; /*! The peer's CID */
-    uint8_t peer_cid_len;                                  /*!< The length of
-                                                            *   \c peer_cid.  */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
+    unsigned char randbytes[64];        /*!<  random bytes            */
+    unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
+                                        /*!<  premaster secret        */
     struct
     {
+        uint8_t seen_ccs;               /*!< Indicates if a CCS message has
+                                         *   been seen in the current flight. */
+
         size_t total_bytes_buffered; /*!< Cumulative size of heap allocated
                                       *   buffers used for message buffering. */
 
-        uint8_t seen_ccs;               /*!< Indicates if a CCS message has
-                                         *   been seen in the current flight. */
+        struct
+        {
+            unsigned char *data;
+            size_t len;
+            unsigned epoch;
+        } future_record;
 
         struct mbedtls_ssl_hs_buffer
         {
@@ -477,45 +501,14 @@ struct mbedtls_ssl_handshake_params
             unsigned char *data;
             size_t data_len;
         } hs[MBEDTLS_SSL_MAX_BUFFERED_HS];
-
-        struct
-        {
-            unsigned char *data;
-            size_t len;
-            unsigned epoch;
-        } future_record;
-
     } buffering;
 
-    uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    /*
-     * Checksum contexts
-     */
-#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_1)
-       mbedtls_md5_context fin_md5;
-      mbedtls_sha1_context fin_sha1;
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_SHA256_C)
-    mbedtls_sha256_context fin_sha256;
-#endif
-#if defined(MBEDTLS_SHA512_C)
-    mbedtls_sha512_context fin_sha512;
-#endif
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
 #endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
-
-    size_t pmslen;                      /*!<  premaster length        */
-
-    unsigned char randbytes[64];        /*!<  random bytes            */
-    unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
-                                        /*!<  premaster secret        */
 
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     int resume;                         /*!<  session resume indicator*/
@@ -528,7 +521,6 @@ struct mbedtls_ssl_handshake_params
     int max_minor_ver;                  /*!< max. minor version client*/
 #endif /* MBEDTLS_SSL_SRV_C && ( MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ||
                                  MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ) */
-    int cli_exts;                       /*!< client extension presence*/
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     int new_session_ticket;             /*!< use NewSessionTicket?    */
@@ -555,6 +547,30 @@ struct mbedtls_ssl_handshake_params
     uint8_t ecdh_privkey[NUM_ECC_BYTES];
     uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
 #endif /* MBEDTLS_USE_TINYCRYPT */
+
+/*
+     * Checksum contexts
+     */
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+       mbedtls_md5_context fin_md5;
+      mbedtls_sha1_context fin_sha1;
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+    mbedtls_sha256_context fin_sha256;
+#endif
+#if defined(MBEDTLS_SHA512_C)
+    mbedtls_sha512_context fin_sha512;
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_DHM_C)
+    mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
+#endif
+#if defined(MBEDTLS_ECDH_C)
+    mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
+#endif
 };
 
 /*

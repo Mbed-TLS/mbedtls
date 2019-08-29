@@ -1235,10 +1235,26 @@ struct mbedtls_ssl_config
 
 struct mbedtls_ssl_context
 {
-    const mbedtls_ssl_config *conf; /*!< configuration information          */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint8_t disable_datagram_packing;  /*!< Disable packing multiple records
+                                        *   within a single datagram.  */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    /* CID configuration to use in subsequent handshakes. */
+    uint8_t own_cid_len;   /*!< The length of \c own_cid. */
+    uint8_t negotiate_cid; /*!< This indicates whether the CID extension should
+                            *   be negotiated in the next handshake or not.
+                            *   Possible values are #MBEDTLS_SSL_CID_ENABLED
+                            *   and #MBEDTLS_SSL_CID_DISABLED. */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     unsigned char pending_fatal_alert_msg; /*!< Type of a fatal alert
                                             *   pending to be delivered.    */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint16_t in_epoch;          /*!< DTLS epoch for incoming records  */
+    uint16_t mtu;               /*!< path mtu, used to fragment outgoing messages */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+    const mbedtls_ssl_config *conf; /*!< configuration information          */
 
     /*
      * Miscellaneous
@@ -1326,14 +1342,9 @@ struct mbedtls_ssl_context
     size_t in_msglen;           /*!< record header: message length    */
     size_t in_left;             /*!< amount of data read so far       */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    uint16_t in_epoch;          /*!< DTLS epoch for incoming records  */
     size_t next_record_offset;  /*!< offset of the next record in datagram
                                      (equal to in_left if none)       */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-    uint64_t in_window_top;     /*!< last validated record seq_num    */
-    uint64_t in_window;         /*!< bitmask for replay detection     */
-#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
     size_t in_hslen;            /*!< current handshake message length,
                                      including the handshake header   */
@@ -1341,11 +1352,6 @@ struct mbedtls_ssl_context
 
     int keep_current_message;   /*!< drop or reuse current message
                                      on next call to record layer? */
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    uint8_t disable_datagram_packing;  /*!< Disable packing multiple records
-                                        *   within a single datagram.  */
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
      * Record layer (outgoing data)
@@ -1364,12 +1370,6 @@ struct mbedtls_ssl_context
     int out_msgtype;            /*!< record header: message type      */
     size_t out_msglen;          /*!< record header: message length    */
     size_t out_left;            /*!< amount of data not yet written   */
-
-    unsigned char cur_out_ctr[8]; /*!<  Outgoing record sequence  number. */
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    uint16_t mtu;               /*!< path mtu, used to fragment outgoing messages */
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     unsigned char *compress_buf;        /*!<  zlib data buffer        */
@@ -1415,6 +1415,13 @@ struct mbedtls_ssl_context
     char peer_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
+    unsigned char cur_out_ctr[8]; /*!<  Outgoing record sequence  number. */
+
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    uint64_t in_window_top;     /*!< last validated record seq_num    */
+    uint64_t in_window;         /*!< bitmask for replay detection     */
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* CID configuration to use in subsequent handshakes. */
 
@@ -1423,11 +1430,6 @@ struct mbedtls_ssl_context
      *  CID currently used in case the user has re-configured the CID
      *  after an initial handshake. */
     unsigned char own_cid[ MBEDTLS_SSL_CID_IN_LEN_MAX ];
-    uint8_t own_cid_len;   /*!< The length of \c own_cid. */
-    uint8_t negotiate_cid; /*!< This indicates whether the CID extension should
-                            *   be negotiated in the next handshake or not.
-                            *   Possible values are #MBEDTLS_SSL_CID_ENABLED
-                            *   and #MBEDTLS_SSL_CID_DISABLED. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 };
 

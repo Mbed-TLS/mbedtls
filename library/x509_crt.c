@@ -3263,7 +3263,7 @@ static unsigned x509_crt_verify_chain_len(
     return( chain->len );
 }
 
-#else
+#else /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 /*
  * Reset (init or clear) a verify_chain

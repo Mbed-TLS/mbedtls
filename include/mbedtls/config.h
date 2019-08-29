@@ -2027,7 +2027,7 @@
  * certificate verification callbacks in mbedtls_x509_crt_verify() and
  * related verification API.
  */
-#define MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
+//#define MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 
 /**
  * \def MBEDTLS_X509_RSASSA_PSS_SUPPORT

@@ -55,6 +55,10 @@
 #ifndef PSA_CRYPTO_STRUCT_H
 #define PSA_CRYPTO_STRUCT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Include the Mbed TLS configuration file, the way Mbed TLS does it
  * in each of its header files. */
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -332,7 +336,7 @@ typedef struct
     psa_key_attributes_flag_t flags;
 } psa_core_key_attributes_t;
 
-#define PSA_CORE_KEY_ATTRIBUTES_INIT {0, 0, 0, {0, 0, 0}, 0, 0}
+#define PSA_CORE_KEY_ATTRIBUTES_INIT {0, 0, PSA_KEY_ID_INIT, PSA_KEY_POLICY_INIT, 0, 0}
 
 struct psa_key_attributes_s
 {
@@ -375,7 +379,14 @@ static inline void psa_set_key_lifetime(psa_key_attributes_t *attributes,
 {
     attributes->core.lifetime = lifetime;
     if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
+    {
+#ifdef MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+        attributes->core.id.key_id = 0;
+        attributes->core.id.owner = 0;
+#else
         attributes->core.id = 0;
+#endif
+    }
 }
 
 static inline psa_key_lifetime_t psa_get_key_lifetime(
@@ -453,5 +464,9 @@ static inline size_t psa_get_key_bits(
 {
     return( attributes->core.bits );
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PSA_CRYPTO_STRUCT_H */

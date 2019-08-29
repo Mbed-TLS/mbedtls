@@ -89,6 +89,7 @@ typedef struct
  * `psa_key_file_id_t` argument. As a workaround, make `psa_key_id_t` an
  * alias for `psa_key_file_id_t` when building for a multi-client service. */
 typedef psa_key_file_id_t psa_key_id_t;
+#define PSA_KEY_ID_INIT {0, 0}
 
 #else /* !MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
 

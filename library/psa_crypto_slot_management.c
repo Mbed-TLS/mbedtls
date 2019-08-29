@@ -278,15 +278,17 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
             ++stats->volatile_slots;
         else if( slot->attr.lifetime == PSA_KEY_LIFETIME_PERSISTENT )
         {
+            psa_app_key_id_t id = PSA_KEY_FILE_GET_KEY_ID(slot->attr.id);
             ++stats->persistent_slots;
-            if( slot->attr.id > stats->max_open_internal_key_id )
-                stats->max_open_internal_key_id = slot->attr.id;
+            if( id > stats->max_open_internal_key_id )
+                stats->max_open_internal_key_id = id;
         }
         else
         {
+            psa_app_key_id_t id = PSA_KEY_FILE_GET_KEY_ID(slot->attr.id);
             ++stats->external_slots;
-            if( slot->attr.id > stats->max_open_external_key_id )
-                stats->max_open_external_key_id = slot->attr.id;
+            if( id > stats->max_open_external_key_id )
+                stats->max_open_external_key_id = id;
         }
     }
 }

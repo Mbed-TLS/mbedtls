@@ -1423,7 +1423,7 @@ component_test_default_tinycrypt_without_legacy_ecdh () {
     scripts/config.pl set MBEDTLS_SSL_CONF_RNG rng_wrap
     scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC
     scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID 23
-    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID MBEDTLS_ECP_DP_SECP256R1
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID MBEDTLS_UECC_DP_SECP256R1
     scripts/config.pl unset MBEDTLS_ECDH_C
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED

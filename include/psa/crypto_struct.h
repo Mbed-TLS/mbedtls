@@ -211,49 +211,7 @@ typedef struct
 } psa_hkdf_key_derivation_t;
 #endif /* MBEDTLS_MD_C */
 
-/*
- * If this option is not turned on, then the function `psa_key_derivation()`
- * is removed. And the new psa_tls12_prf_key_derivation_t context is used along
- * with the corresponding new API.
- *
- * The sole purpose of this option is to make the transition to the new API
- * smoother. Once the transition is complete it can and should be removed
- * along with the old API and its implementation.
- */
-#define PSA_PRE_1_0_KEY_DERIVATION
-
 #if defined(MBEDTLS_MD_C)
-#if defined(PSA_PRE_1_0_KEY_DERIVATION)
-typedef struct psa_tls12_prf_key_derivation_s
-{
-    /* The TLS 1.2 PRF uses the key for each HMAC iteration,
-     * hence we must store it for the lifetime of the operation.
-     * This is different from HKDF, where the key is only used
-     * in the extraction phase, but not during expansion. */
-    uint8_t *key;
-    size_t key_len;
-
-    /* `A(i) + seed` in the notation of RFC 5246, Sect. 5 */
-    uint8_t *Ai_with_seed;
-    size_t Ai_with_seed_len;
-
-    /* `HMAC_hash( prk, A(i) + seed )` in the notation of RFC 5246, Sect. 5. */
-    uint8_t output_block[PSA_HASH_MAX_SIZE];
-
-#if PSA_HASH_MAX_SIZE > 0xff
-#error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
-#endif
-
-    /* Indicates how many bytes in the current HMAC block have
-     * already been read by the user. */
-    uint8_t offset_in_block;
-
-    /* The 1-based number of the block. */
-    uint8_t block_number;
-
-} psa_tls12_prf_key_derivation_t;
-#else
-
 typedef enum
 {
     TLS12_PRF_STATE_INIT,       /* no input provided */
@@ -288,7 +246,6 @@ typedef struct psa_tls12_prf_key_derivation_s
     /* `HMAC_hash( prk, A(i) + seed )` in the notation of RFC 5246, Sect. 5. */
     uint8_t output_block[PSA_HASH_MAX_SIZE];
 } psa_tls12_prf_key_derivation_t;
-#endif /* PSA_PRE_1_0_KEY_DERIVATION */
 #endif /* MBEDTLS_MD_C */
 
 struct psa_key_derivation_s

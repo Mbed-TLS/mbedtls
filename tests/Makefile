@@ -10,6 +10,9 @@ LOCAL_CFLAGS = $(WARNING_CFLAGS) $(CRYPTO_INCLUDES) -I../library -D_FILE_OFFSET_
 LOCAL_LDFLAGS = -L../library			\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
+include ../3rdparty/Makefile.inc
+LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
+
 # Enable definition of various functions used throughout the testsuite
 # (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
 # on non-POSIX platforms.

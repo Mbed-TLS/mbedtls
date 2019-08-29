@@ -9,6 +9,9 @@ use open qw(:std utf8);
 -d 'include/mbedtls' or die "$0: must be run from root\n";
 
 @ARGV = grep { ! /compat-1\.3\.h/ } <include/mbedtls/*.h>;
+push @ARGV, "3rdparty/everest/include/everest/everest.h";
+push @ARGV, "3rdparty/everest/include/everest/x25519.h";
+
 
 my @consts;
 my $state = 'out';
@@ -22,7 +25,7 @@ while (<>)
         $state = 'in';
     } elsif( $state eq 'in' and /}/ ) {
         $state = 'out';
-    } elsif( $state eq 'in' ) {
+    } elsif( $state eq 'in' and not /^#/) {
         s/=.*//; s!/\*.*!!; s/,.*//; s/\s+//g; chomp;
         push @consts, $_ if $_;
     }

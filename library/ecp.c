@@ -366,7 +366,7 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
 /*
  * List of supported curves:
  *  - internal ID
- *  - TLS NamedCurve ID (RFC 4492 sec. 5.1.1, RFC 7071 sec. 2)
+ *  - TLS NamedCurve ID (RFC 4492 sec. 5.1.1, RFC 7071 sec. 2, RFC 8446 sec. 4.2.7)
  *  - size in bits
  *  - readable name
  *
@@ -409,6 +409,9 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
     { MBEDTLS_ECP_DP_SECP192K1,    18,     192,    "secp192k1"         },
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) && defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+    { MBEDTLS_ECP_DP_CURVE25519,   29,     256,    "x25519"            },
 #endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };

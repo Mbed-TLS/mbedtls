@@ -94,6 +94,8 @@ set(src_crypto
 )
 endif()
 
+list(APPEND src_crypto ${thirdparty_src})
+
 if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes")
 endif(CMAKE_COMPILER_IS_GNUCC)

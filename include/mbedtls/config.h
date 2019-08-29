@@ -2078,6 +2078,15 @@
  */
 //#define MBEDTLS_PLATFORM_GMTIME_R_ALT
 
+/**
+ * Enable the verified implementations of ECDH primitives from Project Everest
+ * (currently only Curve25519). This feature changes the layout of ECDH
+ * contexts and therefore is a compatibility break for applications that access
+ * fields of a mbedtls_ecdh_context structure directly. See also
+ * MBEDTLS_ECDH_LEGACY_CONTEXT in include/mbedtls/ecdh.h.
+ */
+//#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+
 /* \} name SECTION: Customisation configuration options */
 
 /* Target and application specific configurations

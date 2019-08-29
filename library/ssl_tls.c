@@ -689,6 +689,52 @@ exit:
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* derivation,
+                                              psa_key_handle_t slot,
+                                              psa_algorithm_t alg,
+                                              const unsigned char* seed, size_t seed_length,
+                                              const unsigned char* label, size_t label_length,
+                                              size_t capacity )
+{
+    psa_status_t status;
+
+    status = psa_key_derivation_setup( derivation, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    if( PSA_ALG_IS_TLS12_PRF( alg ) || PSA_ALG_IS_TLS12_PSK_TO_MS( alg ) )
+    {
+        status = psa_key_derivation_input_bytes( derivation,
+                                                 PSA_KEY_DERIVATION_INPUT_SEED,
+                                                 seed, seed_length );
+        if( status != PSA_SUCCESS )
+            return( status );
+
+        status = psa_key_derivation_input_key( derivation,
+                                               PSA_KEY_DERIVATION_INPUT_SECRET,
+                                               slot );
+        if( status != PSA_SUCCESS )
+            return( status );
+
+        status = psa_key_derivation_input_bytes( derivation,
+                                                 PSA_KEY_DERIVATION_INPUT_LABEL,
+                                                 label, label_length );
+        if( status != PSA_SUCCESS )
+            return( status );
+    }
+    else
+    {
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    status = psa_key_derivation_set_capacity( derivation, capacity );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    return( PSA_SUCCESS );
+}
+
 static int tls_prf_generic( mbedtls_md_type_t md_type,
                             const unsigned char *secret, size_t slen,
                             const char *label,
@@ -716,12 +762,12 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     if( status != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
-    status = psa_key_derivation( &derivation,
-                                 master_slot, alg,
-                                 random, rlen,
-                                 (unsigned char const *) label,
-                                 (size_t) strlen( label ),
-                                 dlen );
+    status = setup_psa_key_derivation( &derivation,
+                                       master_slot, alg,
+                                       random, rlen,
+                                       (unsigned char const *) label,
+                                       (size_t) strlen( label ),
+                                       dlen );
     if( status != PSA_SUCCESS )
     {
         psa_key_derivation_abort( &derivation );
@@ -1695,11 +1741,11 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         else
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
 
-        status = psa_key_derivation( &derivation, psk, alg,
-                                     salt, salt_len,
-                                     (unsigned char const *) lbl,
-                                     (size_t) strlen( lbl ),
-                                     master_secret_len );
+        status = setup_psa_key_derivation( &derivation, psk, alg,
+                                           salt, salt_len,
+                                           (unsigned char const *) lbl,
+                                           (size_t) strlen( lbl ),
+                                           master_secret_len );
         if( status != PSA_SUCCESS )
         {
             psa_key_derivation_abort( &derivation );

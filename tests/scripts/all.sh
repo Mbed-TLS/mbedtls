@@ -1263,6 +1263,16 @@ component_test_aes_rom_tables () {
     make test
 }
 
+component_test_aes_only_128_bit_keys () {
+    msg "build: default config with AES_ONLY_128_BIT_KEY_LENGTH enabled"
+    scripts/config.pl set MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
+    scripts/config.pl set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: AES_ONLY_128_BIT_KEY_LENGTH"
+    make test
+}
+
 component_test_aes_fewer_tables_and_rom_tables () {
     msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
     scripts/config.pl set MBEDTLS_AES_FEWER_TABLES

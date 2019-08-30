@@ -11669,6 +11669,10 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     ssl->minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
 #endif /* !MBEDTLS_SSL_CONF_FIXED_MINOR_VER */
 
+    /* Adjust pointers for header fields of outgoing records to
+     * the given transform, accounting for explicit IV and CID. */
+    ssl_update_out_pointers( ssl, ssl->transform );
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->in_epoch = 1;
 #endif

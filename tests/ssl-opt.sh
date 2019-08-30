@@ -1327,9 +1327,25 @@ run_test    "Truncated HMAC, DTLS: client enabled, server enabled" \
 # Tests for Context serialization
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "Context serialization, client serializes" \
+run_test    "Context serialization, client serializes, CCM" \
             "$P_SRV dtls=1 serialize=0 exchanges=2" \
-            "$P_CLI dtls=1 serialize=1 exchanges=2" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -c "Deserializing connection..." \
+            -S "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, client serializes, ChaChaPoly" \
+            "$P_SRV dtls=1 serialize=0 exchanges=2" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
+            0 \
+            -c "Deserializing connection..." \
+            -S "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, client serializes, GCM" \
+            "$P_SRV dtls=1 serialize=0 exchanges=2" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
@@ -1344,9 +1360,25 @@ run_test    "Context serialization, client serializes, with CID" \
             -S "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "Context serialization, server serializes" \
+run_test    "Context serialization, server serializes, CCM" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \
-            "$P_CLI dtls=1 serialize=0 exchanges=2" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -C "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, server serializes, ChaChaPoly" \
+            "$P_SRV dtls=1 serialize=1 exchanges=2" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
+            0 \
+            -C "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, server serializes, GCM" \
+            "$P_SRV dtls=1 serialize=1 exchanges=2" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
@@ -1361,9 +1393,25 @@ run_test    "Context serialization, server serializes, with CID" \
             -s "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "Context serialization, both serialize" \
+run_test    "Context serialization, both serialize, CCM" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \
-            "$P_CLI dtls=1 serialize=1 exchanges=2" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -c "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, both serialize, ChaChaPoly" \
+            "$P_SRV dtls=1 serialize=1 exchanges=2" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
+            0 \
+            -c "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, both serialize, GCM" \
+            "$P_SRV dtls=1 serialize=1 exchanges=2" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."
@@ -1378,9 +1426,25 @@ run_test    "Context serialization, both serialize, with CID" \
             -s "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "Context serialization, re-init, client serializes" \
+run_test    "Context serialization, re-init, client serializes, CCM" \
             "$P_SRV dtls=1 serialize=0 exchanges=2" \
-            "$P_CLI dtls=1 serialize=2 exchanges=2" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -c "Deserializing connection..." \
+            -S "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, re-init, client serializes, ChaChaPoly" \
+            "$P_SRV dtls=1 serialize=0 exchanges=2" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
+            0 \
+            -c "Deserializing connection..." \
+            -S "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, re-init, client serializes, GCM" \
+            "$P_SRV dtls=1 serialize=0 exchanges=2" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256" \
             0 \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
@@ -1395,9 +1459,25 @@ run_test    "Context serialization, re-init, client serializes, with CID" \
             -S "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "Context serialization, re-init, server serializes" \
+run_test    "Context serialization, re-init, server serializes, CCM" \
             "$P_SRV dtls=1 serialize=2 exchanges=2" \
-            "$P_CLI dtls=1 serialize=0 exchanges=2" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -C "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, re-init, server serializes, ChaChaPoly" \
+            "$P_SRV dtls=1 serialize=2 exchanges=2" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
+            0 \
+            -C "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, re-init, server serializes, GCM" \
+            "$P_SRV dtls=1 serialize=2 exchanges=2" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
             0 \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
@@ -1412,9 +1492,25 @@ run_test    "Context serialization, re-init, server serializes, with CID" \
             -s "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
-run_test    "Context serialization, re-init, both serialize" \
+run_test    "Context serialization, re-init, both serialize, CCM" \
             "$P_SRV dtls=1 serialize=2 exchanges=2" \
-            "$P_CLI dtls=1 serialize=2 exchanges=2" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -c "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, re-init, both serialize, ChaChaPoly" \
+            "$P_SRV dtls=1 serialize=2 exchanges=2" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
+            0 \
+            -c "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Context serialization, re-init, both serialize, GCM" \
+            "$P_SRV dtls=1 serialize=2 exchanges=2" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
             0 \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."

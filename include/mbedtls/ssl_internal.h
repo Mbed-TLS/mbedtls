@@ -394,11 +394,6 @@ struct mbedtls_ssl_handshake_params
 
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-
-
-
-
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
@@ -418,12 +413,7 @@ struct mbedtls_ssl_handshake_params
 #endif
 
     size_t pmslen;                      /*!<  premaster length        */
-
     int cli_exts;                       /*!< client extension presence*/
-
-
-
-
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char *psk;                 /*!<  PSK from the callback         */
@@ -469,22 +459,13 @@ struct mbedtls_ssl_handshake_params
                                               resending messages             */
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
-
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    /* The state of CID configuration in this handshake. */
-    unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ]; /*! The peer's CID */
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
-    unsigned char randbytes[64];        /*!<  random bytes            */
-    unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
-                                        /*!<  premaster secret        */
     struct
     {
         uint8_t seen_ccs;               /*!< Indicates if a CCS message has
                                          *   been seen in the current flight. */
 
-        size_t total_bytes_buffered; /*!< Cumulative size of heap allocated
-                                      *   buffers used for message buffering. */
+        size_t total_bytes_buffered;    /*!< Cumulative size of heap allocated
+                                         *   buffers used for message buffering. */
 
         struct
         {
@@ -502,9 +483,14 @@ struct mbedtls_ssl_handshake_params
             size_t data_len;
         } hs[MBEDTLS_SSL_MAX_BUFFERED_HS];
     } buffering;
-
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    /* The state of CID configuration in this handshake. */
+    unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ]; /*! The peer's CID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-
+    unsigned char randbytes[64];        /*!<  random bytes            */
+    unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
+                                        /*!<  premaster secret        */
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
@@ -548,7 +534,7 @@ struct mbedtls_ssl_handshake_params
     uint8_t ecdh_peerkey[2*NUM_ECC_BYTES];
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
-/*
+    /*
      * Checksum contexts
      */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \

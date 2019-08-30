@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.19.0 branch released xxxx-xx-xx
 
 Features
    * Add new API functions mbedtls_ssl_session_save() and

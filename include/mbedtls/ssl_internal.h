@@ -817,14 +817,9 @@ static inline int mbedtls_ssl_transform_uses_aead(
 
 typedef struct
 {
-    uint8_t ctr[8];         /* In TLS:  The implicit record sequence number.
-                             * In DTLS: The 2-byte epoch followed by
-                             *          the 6-byte sequence number.
-                             * This is stored as a raw big endian byte array
-                             * as opposed to a uint64_t because we rarely
-                             * need to perform arithmetic on this, but do
-                             * need it as a Byte array for the purpose of
-                             * MAC computations.                             */
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    uint8_t cid_len;        /* Length of the CID (0 if not present)          */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     uint8_t type;           /* The record content type.                      */
     uint8_t ver[2];         /* SSL/TLS version as present on the wire.
                              * Convert to internal presentation of versions
@@ -836,9 +831,15 @@ typedef struct
     size_t buf_len;         /* Buffer length                                 */
     size_t data_offset;     /* Offset of record content                      */
     size_t data_len;        /* Length of record content                      */
-
+    uint8_t ctr[8];         /* In TLS:  The implicit record sequence number.
+                             * In DTLS: The 2-byte epoch followed by
+                             *          the 6-byte sequence number.
+                             * This is stored as a raw big endian byte array
+                             * as opposed to a uint64_t because we rarely
+                             * need to perform arithmetic on this, but do
+                             * need it as a Byte array for the purpose of
+                             * MAC computations.                             */
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    uint8_t cid_len;        /* Length of the CID (0 if not present)          */
     unsigned char cid[ MBEDTLS_SSL_CID_LEN_MAX ]; /* The CID                 */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 } mbedtls_record;

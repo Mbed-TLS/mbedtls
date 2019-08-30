@@ -19,12 +19,23 @@ Features
      feature can be used alongside Connection ID and SSL context serialisation.
      The feature is enabled at compile-time by MBEDTLS_SSL_RECORD_CHECKING
      option.
+   * New implementation of X25519 (ECDH using Curve25519) from Project Everest
+     (https://project-everest.github.io/). It can be enabled at compile time
+     with MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED. This implementation is formally
+     verified and significantly faster, but is only supported on x86 platforms
+     (32-bit and 64-bit) using GCC, Clang or Visual Studio. Contributed by
+     Christoph Wintersteiger from Microsoft Research.
 
 API Changes
    * Add DER-encoded test CRTs to library/certs.c, allowing
      the example programs ssl_server2 and ssl_client2 to be run
      if MBEDTLS_FS_IO and MBEDTLS_PEM_PARSE_C are unset. Fixes #2254.
    * The HAVEGE state type now uses uint32_t elements instead of int.
+   * The functions mbedtls_ecp_curve_list() and mbedtls_ecp_grp_id_list() now
+     list all curves for which at least one of ECDH or ECDSA is supported, not
+     just curves for which both are supported. Call mbedtls_ecdsa_can_do() or
+     mbedtls_ecdh_can_do() on each result to check whether each algorithm is
+     supported.
 
 Bugfix
    * Fix missing bounds checks in X.509 parsing functions that could
@@ -125,6 +136,7 @@ Features
      changed its IP or port. The feature is enabled at compile-time by setting
      MBEDTLS_SSL_DTLS_CONNECTION_ID (disabled by default), and at run-time
      through the new APIs mbedtls_ssl_conf_cid() and mbedtls_ssl_set_cid().
+
 
 API Changes
    * Extend the MBEDTLS_SSL_EXPORT_KEYS to export the handshake randbytes,

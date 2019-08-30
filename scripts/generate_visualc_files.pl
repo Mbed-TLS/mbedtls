@@ -38,7 +38,7 @@ EOT
 
 if ($include_crypto) {
   $include_directories = <<EOT;
-../../include;../../crypto/include\r
+../../include;../../crypto/include;../../crypto/3rdparty/everest/include/;../../crypto/3rdparty/everest/include/everest;../../crypto/3rdparty/everest/include/everest/vs2010;../../crypto/3rdparty/everest/include/everest/kremlib\r
 EOT
 }
 

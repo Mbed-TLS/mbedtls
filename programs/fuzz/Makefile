@@ -8,6 +8,7 @@ LOCAL_LDFLAGS = -L../../library			\
 LOCAL_LDFLAGS += -L../../crypto/library
 LOCAL_CFLAGS += -I../../crypto/include
 CRYPTO := ../../crypto/library/
+LOCAL_CFLAGS += $(patsubst -I../3rdparty/%, -I../../crypto/3rdparty/%, $(THIRDPARTY_INCLUDES))
 
 ifndef SHARED
 DEP=$(CRYPTO)libmbedcrypto.a ../../library/libmbedx509.a ../../library/libmbedtls.a
@@ -68,5 +69,6 @@ clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.o
 else
-	del /Q /F *.o *.exe
+	if exist *.o del /Q /F *.o
+	if exist *.exe del /Q /F *.exe
 endif

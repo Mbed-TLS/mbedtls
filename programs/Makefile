@@ -317,7 +317,8 @@ ifndef WINDOWS
 	-rm -f ssl/ssl_pthread_server$(EXEXT)
 	-rm -f test/cpp_dummy_build$(EXEXT)
 else
-	del /S /Q /F *.o *.exe
+	if exist *.o del /Q /F *.o
+	if exist *.exe del /Q /F *.exe
 endif
 	$(MAKE) -C fuzz clean
 

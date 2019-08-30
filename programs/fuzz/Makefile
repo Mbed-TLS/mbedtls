@@ -69,5 +69,6 @@ clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.o
 else
-	del /Q /F *.o *.exe
+	if exist *.o del /Q /F *.o
+	if exist *.exe del /Q /F *.exe
 endif

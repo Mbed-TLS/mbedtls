@@ -165,5 +165,7 @@ clean:
 ifndef WINDOWS
 	rm -f *.o libmbed* $(OBJS_CRYPTO)
 else
-	del /Q /F *.o libmbed* $(OBJS_CRYPTO)
+	if exist *.o del /Q /F *.o
+	if exist libmbed* del /Q /F libmbed*
+	if exist $(OBJS_CRYPTO) del /Q /F $(OBJS_CRYPTO)
 endif

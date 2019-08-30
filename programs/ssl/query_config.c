@@ -2930,6 +2930,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
 
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+    if( strcmp( "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH );
+        return( 0 );
+    }
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+
     /* If the symbol is not found, return an error */
     return( 1 );
 }

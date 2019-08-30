@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.19.0 branch released xxxx-xx-xx
 
 Security
    * When writing a private EC key, use a constant size for the private

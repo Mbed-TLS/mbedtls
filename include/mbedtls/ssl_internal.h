@@ -705,6 +705,10 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  */
 struct mbedtls_ssl_transform
 {
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    uint8_t in_cid_len;
+    uint8_t out_cid_len;
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     /*
      * Session specific crypto layer
      */
@@ -733,16 +737,11 @@ struct mbedtls_ssl_transform
 
 #endif /* MBEDTLS_SSL_SOME_MODES_USE_MAC */
 
-    mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
-    mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
-
 #if !defined(MBEDTLS_SSL_CONF_FIXED_MINOR_VER)
     int minor_ver;
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    uint8_t in_cid_len;
-    uint8_t out_cid_len;
     unsigned char in_cid [ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
     unsigned char out_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ];
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -754,6 +753,9 @@ struct mbedtls_ssl_transform
     z_stream ctx_deflate;               /*!<  compression context     */
     z_stream ctx_inflate;               /*!<  decompression context   */
 #endif
+
+    mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
+    mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     /* We need the Hello random bytes in order to re-derive keys from the

@@ -1335,9 +1335,27 @@ run_test    "Context serialization, client serializes" \
             -S "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+run_test    "Context serialization, client serializes, with CID" \
+            "$P_SRV dtls=1 serialize=0 exchanges=2 cid=1 cid_val=dead" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2 cid=1 cid_val=beef" \
+            0 \
+            -c "Deserializing connection..." \
+            -S "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, server serializes" \
             "$P_SRV dtls=1 serialize=1 exchanges=2" \
             "$P_CLI dtls=1 serialize=0 exchanges=2" \
+            0 \
+            -C "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+run_test    "Context serialization, server serializes, with CID" \
+            "$P_SRV dtls=1 serialize=1 exchanges=2 cid=1 cid_val=dead" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2 cid=1 cid_val=beef" \
             0 \
             -C "Deserializing connection..." \
             -s "Deserializing connection..."
@@ -1351,9 +1369,27 @@ run_test    "Context serialization, both serialize" \
             -s "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+run_test    "Context serialization, both serialize, with CID" \
+            "$P_SRV dtls=1 serialize=1 exchanges=2 cid=1 cid_val=dead" \
+            "$P_CLI dtls=1 serialize=1 exchanges=2 cid=1 cid_val=beef" \
+            0 \
+            -c "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, client serializes" \
             "$P_SRV dtls=1 serialize=0 exchanges=2" \
             "$P_CLI dtls=1 serialize=2 exchanges=2" \
+            0 \
+            -c "Deserializing connection..." \
+            -S "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+run_test    "Context serialization, re-init, client serializes, with CID" \
+            "$P_SRV dtls=1 serialize=0 exchanges=2 cid=1 cid_val=dead" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2 cid=1 cid_val=beef" \
             0 \
             -c "Deserializing connection..." \
             -S "Deserializing connection..."
@@ -1367,9 +1403,27 @@ run_test    "Context serialization, re-init, server serializes" \
             -s "Deserializing connection..."
 
 requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+run_test    "Context serialization, re-init, server serializes, with CID" \
+            "$P_SRV dtls=1 serialize=2 exchanges=2 cid=1 cid_val=dead" \
+            "$P_CLI dtls=1 serialize=0 exchanges=2 cid=1 cid_val=beef" \
+            0 \
+            -C "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
 run_test    "Context serialization, re-init, both serialize" \
             "$P_SRV dtls=1 serialize=2 exchanges=2" \
             "$P_CLI dtls=1 serialize=2 exchanges=2" \
+            0 \
+            -c "Deserializing connection..." \
+            -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+run_test    "Context serialization, re-init, both serialize, with CID" \
+            "$P_SRV dtls=1 serialize=2 exchanges=2 cid=1 cid_val=dead" \
+            "$P_CLI dtls=1 serialize=2 exchanges=2 cid=1 cid_val=beef" \
             0 \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."

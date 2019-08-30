@@ -16,6 +16,10 @@ LOCAL_LDFLAGS += -L../crypto/library
 LOCAL_CFLAGS += -I../crypto/include
 CRYPTO := ../crypto/library/
 
+INCLUDING_FROM_MBEDTLS:=1
+include ../crypto/3rdparty/Makefile.inc
+LOCAL_CFLAGS += $(patsubst -I../3rdparty/%, -I../crypto/3rdparty/%, $(THIRDPARTY_INCLUDES))
+
 # Enable definition of various functions used throughout the testsuite
 # (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
 # on non-POSIX platforms.
@@ -156,7 +160,9 @@ clean:
 ifndef WINDOWS
 	rm -rf $(BINARIES) *.c *.datax TESTS
 else
-	del /Q /F *.c *.exe *.datax
+	if exist *.c del /Q /F *.c
+	if exist *.exe del /Q /F *.exe
+	if exist *.datax del /Q /F *.datax
 ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
 endif
@@ -185,4 +191,3 @@ $(EMBEDDED_TESTS): embedded_%: suites/$$(firstword $$(subst ., ,$$*)).function s
 		-o ./TESTS/mbedtls/$*
 
 generate-target-tests: $(EMBEDDED_TESTS)
-

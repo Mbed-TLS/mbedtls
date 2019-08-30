@@ -18,6 +18,11 @@ LOCAL_LDFLAGS += -L../crypto/library
 LOCAL_CFLAGS += -I../crypto/include
 LOCAL_CXXFLAGS += -I../crypto/include
 
+INCLUDING_FROM_MBEDTLS:=1
+include ../crypto/3rdparty/Makefile.inc
+LOCAL_CFLAGS += $(patsubst -I../3rdparty/%, -I../crypto/3rdparty/%, $(THIRDPARTY_INCLUDES))
+LOCAL_CFLAGS += $(patsubst -I../3rdparty/%, -I../crypto/3rdparty/%, $(THIRDPARTY_INCLUDES))
+
 ifndef SHARED
 DEP=../crypto/library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else
@@ -101,7 +106,7 @@ all: fuzz
 endif
 
 fuzz:
-	$(MAKE) -C fuzz
+	$(MAKE) -C fuzz THIRDPARTY_INCLUDES=$(THIRDPARTY_INCLUDES)
 
 $(DEP):
 	$(MAKE) -C ../library
@@ -312,7 +317,8 @@ ifndef WINDOWS
 	-rm -f ssl/ssl_pthread_server$(EXEXT)
 	-rm -f test/cpp_dummy_build$(EXEXT)
 else
-	del /S /Q /F *.o *.exe
+	if exist *.o del /Q /F *.o
+	if exist *.exe del /Q /F *.exe
 endif
 	$(MAKE) -C fuzz clean
 

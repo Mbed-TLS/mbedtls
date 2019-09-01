@@ -3415,10 +3415,6 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
          */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-        if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-            == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
-            mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-            == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
         {
             static const unsigned char ecdh_param_hdr[] = {
                 MBEDTLS_SSL_EC_TLS_NAMED_CURVE,
@@ -3445,13 +3441,6 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
             }
 
             ssl->out_msglen += 2*NUM_ECC_BYTES;
-        }
-        else
-#endif /* MBEDTLS_TINYCRYPT_C */
-#if !defined(MBEDTLS_ECDH_C)
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 #else
         {

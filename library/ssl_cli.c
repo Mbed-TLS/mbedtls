@@ -2830,9 +2830,11 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 #if defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                         ||
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK                         ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
     {
         static const unsigned char ecdh_group[] = {
             MBEDTLS_SSL_EC_TLS_NAMED_CURVE,

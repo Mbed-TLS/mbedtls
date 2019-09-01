@@ -4219,9 +4219,13 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 #if defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA                    ||
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_RSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
         ((void) ret);
         if( mbedtls_ssl_ecdh_read_peerkey( ssl, &p, end ) != 0 )

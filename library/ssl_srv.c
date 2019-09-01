@@ -3426,7 +3426,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
             ssl->out_msglen += 2*NUM_ECC_BYTES;
         }
         else
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_TINYCRYPT_C */
 #if !defined(MBEDTLS_ECDH_C)
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );

@@ -3442,7 +3442,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
 
             ssl->out_msglen += 2*NUM_ECC_BYTES;
         }
-#else
+#else /* MBEDTLS_USE_TINYCRYPT */
         {
             const mbedtls_ecp_curve_info *curve =
                 mbedtls_ecp_curve_info_from_tls_id( ssl->handshake->curve_tls_id );
@@ -3483,7 +3483,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
                                     MBEDTLS_DEBUG_ECDH_Q );
         }
-#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_USE_TINYCRYPT */
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED */
 

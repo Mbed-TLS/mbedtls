@@ -3198,6 +3198,26 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
+{
+    mbedtls_uecc_keypair *own_key =
+        mbedtls_pk_uecc( *mbedtls_ssl_own_key( ssl ) );
+
+    if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_ECKEY ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key not ECDH capable" ) );
+        return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
+    }
+
+    memcpy( ssl->handshake->ecdh_privkey,
+            own_key->private_key,
+            sizeof( ssl->handshake->ecdh_privkey ) );
+
+    return( 0 );
+}
+#else /* MBEDTLS_USE_TINYCRYPT */
 static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -3218,6 +3238,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
+#endif /* MBEDTLS_USE_TINYCRYPT */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 

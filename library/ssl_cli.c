@@ -2551,8 +2551,12 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
 static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 {
     int ret;
-    const mbedtls_ecp_keypair *peer_key;
     mbedtls_pk_context * peer_pk;
+
+    /* Acquire peer's PK context: In case we store peer's entire
+     * certificate, we extract the context from it. Otherwise,
+     * we can use a temporary copy we've made for the purpose of
+     * signature verification. */
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     peer_pk = &ssl->handshake->peer_pubkey;
@@ -2580,20 +2584,34 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         goto cleanup;
     }
 
-    peer_key = mbedtls_pk_ec( *peer_pk );
+    /* Extract ECDH parameters from peer's PK context. */
 
-    if( ( ret = mbedtls_ecdh_get_params( &ssl->handshake->ecdh_ctx, peer_key,
-                                 MBEDTLS_ECDH_THEIRS ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_get_params" ), ret );
-        goto cleanup;
-    }
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        mbedtls_uecc_keypair *peer_key =
+            mbedtls_pk_uecc( *peer_pk );
 
-    if( ssl_check_server_ecdh_params( ssl ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server certificate (ECDH curve)" ) );
-        ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
-        goto cleanup;
+        memcpy( ssl->handshake->ecdh_peerkey,
+                peer_key->public_key,
+                sizeof( ssl->handshake->ecdh_peerkey ) );
+#else /* MBEDTLS_USE_TINYCRYPT */
+        const mbedtls_ecp_keypair *peer_key;
+        peer_key = mbedtls_pk_ec( *peer_pk );
+
+        if( ( ret = mbedtls_ecdh_get_params( &ssl->handshake->ecdh_ctx, peer_key,
+                                             MBEDTLS_ECDH_THEIRS ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_get_params" ), ret );
+            goto cleanup;
+        }
+
+        if( ssl_check_server_ecdh_params( ssl ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server certificate (ECDH curve)" ) );
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
+            goto cleanup;
+        }
+#endif /* MBEDTLS_USE_TINYCRYPT */
     }
 
 cleanup:

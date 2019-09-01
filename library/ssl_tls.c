@@ -1952,9 +1952,13 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                       ||
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA                     ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_RSA                        ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
         const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
         ((void) ret);

@@ -1435,7 +1435,7 @@ component_test_default_tinycrypt_without_legacy_ecc () {
     export CLI_ECDSA_CRT=data_files/cli3.crt.pem
     export CLI_ECDSA_KEY=data_files/cli3.key.pem
     export CA_FILE=data_files/test-ca3.crt.pem
-    if_build_succeeded tests/compat.sh -f 'TLS-ECDHE-ECDSA'
+    if_build_succeeded tests/compat.sh -f 'ECDHE-ECDSA\|ECDHE-PSK\|ECDH-ECDSA'
 }
 
 component_test_baremetal () {

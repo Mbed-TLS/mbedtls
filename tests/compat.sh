@@ -32,6 +32,16 @@ SRVMEM=0
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 
+: ${SRV_ECDSA_CRT:="data_files/server5.crt"}
+: ${SRV_ECDSA_KEY:="data_files/server5.key"}
+: ${CLI_ECDSA_CRT:="data_files/server6.crt"}
+: ${CLI_ECDSA_KEY:="data_files/server6.key"}
+: ${SRV_RSA_CRT:="data_files/server2.crt"}
+: ${SRV_RSA_KEY:="data_files/server2.key"}
+: ${CLI_RSA_CRT:="data_files/server1.crt"}
+: ${CLI_RSA_KEY:="data_files/server1.key"}
+: ${CA_FILE:="data_files/test-ca_cat12.crt"}
+
 # do we have a recent enough GnuTLS?
 if ( which $GNUTLS_CLI && which $GNUTLS_SERV ) >/dev/null 2>&1; then
     G_VER="$( $GNUTLS_CLI --version | head -n1 )"
@@ -912,13 +922,13 @@ setup_arguments()
 
     if [ "X$VERIFY" = "XYES" ];
     then
-        M_SERVER_ARGS="$M_SERVER_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
-        O_SERVER_ARGS="$O_SERVER_ARGS -CAfile data_files/test-ca_cat12.crt -Verify 10"
-        G_SERVER_ARGS="$G_SERVER_ARGS --x509cafile data_files/test-ca_cat12.crt --require-client-cert"
+        M_SERVER_ARGS="$M_SERVER_ARGS ca_file=$CA_FILE auth_mode=required"
+        O_SERVER_ARGS="$O_SERVER_ARGS -CAfile $CA_FILE -Verify 10"
+        G_SERVER_ARGS="$G_SERVER_ARGS --x509cafile $CA_FILE --require-client-cert"
 
-        M_CLIENT_ARGS="$M_CLIENT_ARGS ca_file=data_files/test-ca_cat12.crt auth_mode=required"
-        O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile data_files/test-ca_cat12.crt -verify 10"
-        G_CLIENT_ARGS="$G_CLIENT_ARGS --x509cafile data_files/test-ca_cat12.crt"
+        M_CLIENT_ARGS="$M_CLIENT_ARGS ca_file=$CA_FILE auth_mode=required"
+        O_CLIENT_ARGS="$O_CLIENT_ARGS -CAfile $CA_FILE -verify 10"
+        G_CLIENT_ARGS="$G_CLIENT_ARGS --x509cafile $CA_FILE"
     else
         # don't request a client cert at all
         M_SERVER_ARGS="$M_SERVER_ARGS ca_file=none auth_mode=none"
@@ -931,28 +941,28 @@ setup_arguments()
 
     case $TYPE in
         "ECDSA")
-            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=data_files/server5.crt key_file=data_files/server5.key"
-            O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server5.crt -key data_files/server5.key"
-            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
+            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=$SRV_ECDSA_CRT key_file=$SRV_ECDSA_KEY"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cert $SRV_ECDSA_CRT -key $SRV_ECDSA_KEY"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile $SRV_ECDSA_CRT --x509keyfile $SRV_ECDSA_KEY"
 
             if [ "X$VERIFY" = "XYES" ]; then
-                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=data_files/server6.crt key_file=data_files/server6.key"
-                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server6.crt -key data_files/server6.key"
-                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile data_files/server6.crt --x509keyfile data_files/server6.key"
+                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=$CLI_ECDSA_CRT key_file=$CLI_ECDSA_KEY"
+                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert $CLI_ECDSA_CRT -key $CLI_ECDSA_KEY"
+                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile $CLI_ECDSA_CRT --x509keyfile $CLI_ECDSA_KEY"
             else
                 M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=none key_file=none"
             fi
             ;;
 
         "RSA")
-            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=data_files/server2.crt key_file=data_files/server2.key"
-            O_SERVER_ARGS="$O_SERVER_ARGS -cert data_files/server2.crt -key data_files/server2.key"
-            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile data_files/server2.crt --x509keyfile data_files/server2.key"
+            M_SERVER_ARGS="$M_SERVER_ARGS crt_file=$SRV_RSA_CRT key_file=$SRV_RSA_KEY"
+            O_SERVER_ARGS="$O_SERVER_ARGS -cert $SRV_RSA_CRT -key $SRV_RSA_KEY"
+            G_SERVER_ARGS="$G_SERVER_ARGS --x509certfile $SRV_RSA_CRT --x509keyfile $SRV_RSA_KEY"
 
             if [ "X$VERIFY" = "XYES" ]; then
-                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=data_files/server1.crt key_file=data_files/server1.key"
-                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert data_files/server1.crt -key data_files/server1.key"
-                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile data_files/server1.crt --x509keyfile data_files/server1.key"
+                M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=$CLI_RSA_CRT key_file=$CLI_RSA_KEY"
+                O_CLIENT_ARGS="$O_CLIENT_ARGS -cert $CLI_RSA_CRT -key $CLI_RSA_KEY"
+                G_CLIENT_ARGS="$G_CLIENT_ARGS --x509certfile $CLI_RSA_CRT --x509keyfile $CLI_RSA_KEY"
             else
                 M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=none key_file=none"
             fi

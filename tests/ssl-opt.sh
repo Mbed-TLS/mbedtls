@@ -426,9 +426,9 @@ has_mem_err() {
     fi
 }
 
-# Wait for process $2 to be listening on port $1
+# Wait for process $2 named $3 to be listening on port $1. Print error to $4.
 if type lsof >/dev/null 2>/dev/null; then
-    wait_server_start() {
+    wait_app_start() {
         START_TIME=$(date +%s)
         if [ "$DTLS" -eq 1 ]; then
             proto=UDP
@@ -438,8 +438,8 @@ if type lsof >/dev/null 2>/dev/null; then
         # Make a tight loop, server normally takes less than 1s to start.
         while ! lsof -a -n -b -i "$proto:$1" -p "$2" >/dev/null 2>/dev/null; do
               if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
-                  echo "SERVERSTART TIMEOUT"
-                  echo "SERVERSTART TIMEOUT" >> $SRV_OUT
+                  echo "$3 START TIMEOUT"
+                  echo "$3 START TIMEOUT" >> $4
                   break
               fi
               # Linux and *BSD support decimal arguments to sleep. On other
@@ -448,11 +448,21 @@ if type lsof >/dev/null 2>/dev/null; then
         done
     }
 else
-    echo "Warning: lsof not available, wait_server_start = sleep"
-    wait_server_start() {
+    echo "Warning: lsof not available, wait_app_start = sleep"
+    wait_app_start() {
         sleep "$START_DELAY"
     }
 fi
+
+# Wait for server process $2 to be listening on port $1.
+wait_server_start() {
+    wait_app_start $1 $2 "SERVER" $SRV_OUT
+}
+
+# Wait for proxy process $2 to be listening on port $1.
+wait_proxy_start() {
+    wait_app_start $1 $2 "PROXY" $PXY_OUT
+}
 
 # Given the client or server debug output, parse the unix timestamp that is
 # included in the first 4 bytes of the random bytes and check that it's within
@@ -610,7 +620,7 @@ run_test() {
             echo "$PXY_CMD" > $PXY_OUT
             $PXY_CMD >> $PXY_OUT 2>&1 &
             PXY_PID=$!
-            # assume proxy starts faster than server
+            wait_proxy_start "$PXY_PORT" "$PXY_PID"
         fi
 
         check_osrv_dtls

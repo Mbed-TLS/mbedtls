@@ -72,3 +72,60 @@ void test_ecdsa()
     TEST_ASSERT( uECC_verify( public, hash, sizeof( hash ), sig, curve ) != 0 );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_USE_TINYCRYPT */
+void ecdh_primitive_testvec( data_t * private1, data_t * xA_str,
+                             data_t * yA_str, data_t * private2,
+                             data_t * xB_str, data_t * yB_str, data_t * z_str )
+{
+    const struct uECC_Curve_t * curve = uECC_secp256r1();
+    uint8_t public1[2*NUM_ECC_BYTES] = {0};
+    uint8_t public2[2*NUM_ECC_BYTES] = {0};
+    uint8_t secret1[NUM_ECC_BYTES] = {0};
+    uint8_t secret2[NUM_ECC_BYTES] = {0};
+
+    memcpy( public1, xA_str->x, xA_str->len );
+    memcpy( public1 + NUM_ECC_BYTES, yA_str->x, yA_str->len );
+    memcpy( public2, xB_str->x, xB_str->len );
+    memcpy( public2 + NUM_ECC_BYTES, yB_str->x, yB_str->len );
+
+    // Compute shared secrets and compare to test vector secret
+    TEST_ASSERT( uECC_shared_secret( public2, private1->x, secret1, curve ) != 0 );
+
+    TEST_ASSERT( uECC_shared_secret( public1, private2->x, secret2, curve ) != 0 );
+
+    TEST_ASSERT( memcmp( secret1, secret2, sizeof( secret1 ) ) == 0 );
+    TEST_ASSERT( memcmp( secret1, z_str->x, sizeof( secret1 ) ) == 0 );
+    TEST_ASSERT( memcmp( secret2, z_str->x, sizeof( secret2 ) ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_USE_TINYCRYPT */
+void ecdsa_primitive_testvec( data_t * xQ_str, data_t * yQ_str,
+                              data_t * hash, data_t * r_str, data_t * s_str,
+                              int result )
+{
+    const struct uECC_Curve_t * curve = uECC_secp256r1();
+    uint8_t pub_bytes[2*NUM_ECC_BYTES] = {0};
+    uint8_t sig_bytes[2*NUM_ECC_BYTES] = {0};
+
+    memcpy( pub_bytes, xQ_str->x, xQ_str->len );
+    memcpy( pub_bytes + NUM_ECC_BYTES, yQ_str->x, yQ_str->len );
+    memcpy( sig_bytes, r_str->x, r_str->len );
+    memcpy( sig_bytes + NUM_ECC_BYTES, s_str->x, r_str->len );
+
+    TEST_ASSERT( uECC_verify( pub_bytes, hash->x, hash->len,
+                              sig_bytes, curve ) == result );
+
+    // Alter the signature and check the verification fails
+    for( int i = 0; i < 2*NUM_ECC_BYTES; i++ )
+    {
+        uint8_t temp = sig_bytes[i];
+        sig_bytes[i] = ( sig_bytes[i] + 1 ) % 256;
+        TEST_ASSERT( uECC_verify( pub_bytes, hash->x, hash->len,
+                                  sig_bytes, curve ) == 0 );
+        sig_bytes[i] = temp;
+    }
+
+}
+/* END_CASE */

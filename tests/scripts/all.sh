@@ -1413,6 +1413,17 @@ component_test_default_tinycrypt_without_legacy_ecc () {
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP192R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP224R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP256R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP384R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP521R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_BP256R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_BP384R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_BP512R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP192K1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP224K1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP256K1_ENABLED
     make CC=gcc CFLAGS='-Werror -Wall -Wextra'
 
     msg "test: default config with tinycrypt enabled and legacy ECC disabled"

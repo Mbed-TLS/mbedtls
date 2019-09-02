@@ -87,9 +87,12 @@
 #error "MBEDTLS_CMAC_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_CONF_SINGLE_EC) &&           \
-    ( !defined(MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID) || \
-      !defined(MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID) )
+#if defined(MBEDTLS_SSL_CONF_SINGLE_EC) &&                 \
+    ( !defined(MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID)       || \
+      ( defined(MBEDTLS_USE_TINYCRYPT) &&                  \
+        !defined(MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID) ) || \
+      ( defined(MBEDTLS_ECP_C) &&                          \
+        !defined(MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID) ) )
 #error "MBEDTLS_SSL_CONF_SINGLE_EC defined, but not all prerequesites"
 #endif
 
@@ -103,11 +106,11 @@
 #error "MBEDTLS_USE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
 #endif
 
-#if defined(MBEDTLS_USE_TINYCRYPT) &&                                   \
-    !( defined(MBEDTLS_SSL_CONF_SINGLE_EC)     &&                       \
-       MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID == 23 &&                       \
-       MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID == MBEDTLS_ECP_DP_SECP256R1 )
-#error "MBEDTLS_USE_TINYCRYPT requires the use of MBEDTLS_SSL_CONF_SINGLE_EC to hardcode the choice of Secp256r1"
+#if defined(MBEDTLS_USE_TINYCRYPT) &&                                    \
+    !( defined(MBEDTLS_SSL_CONF_SINGLE_EC)       &&                      \
+       MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID   == 23 &&                      \
+       MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID == MBEDTLS_UECC_DP_SECP256R1 )
+#error "MBEDTLS_USE_TINYCRYPT requires the use of MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID to hardcode the choice of Secp256r1"
 #endif
 
 #if defined(MBEDTLS_USE_TINYCRYPT) && \

@@ -11,6 +11,8 @@ There are two main CAs for use as trusted roots:
 - test-ca2*.crt aka "C=NL, O=PolarSSL, CN=Polarssl Test EC CA"
   uses an EC key with NIST P-384 (aka secp384r1)
   variants used to test the keyUsage extension
+- test-ca3.crt aka "CN=TestCASecp256r1, O=MbedTLS, C=UK"
+  uses an EC key with NIST P-256 (aka secp256r1)
 The files test-ca_cat12 and test-ca_cat21 contain them concatenated both ways.
 
 Two intermediate CAs are signed by them:
@@ -40,6 +42,7 @@ Short information fields:
 - name or pattern
 - issuing CA:   1   -> test-ca.crt
                 2   -> test-ca2.crt
+                3   -> test-ca3.crt
                 I1  -> test-int-ca.crt
                 I2  -> test-int-ca2.crt
                 I3  -> test-int-ca3.crt
@@ -57,6 +60,7 @@ List of certificates:
 - cert_md*.crt, cert_sha*.crt: 1 R: signature hash
 - cert_v1_with_ext.crt: 1 R: v1 with extensions (illegal)
 - cli2.crt: 2 E: basic
+- cli3.crt: 3 E, secp256r1 curve
 - cli-rsa.key, cli-rsa-*.crt: RSA key used for test clients, signed by
   the RSA test CA.
 - enco-cert-utf8str.pem: see enco-ca-prstr.pem above
@@ -102,6 +106,7 @@ List of certificates:
     _int3_int-ca2.crt: S10 + I3 + I2
     _int3_int-ca2_ca.crt: S10 + I3 + I2 + 1
     _int3_spurious_int-ca2.crt: S10 + I3 + I1(spurious) + I2
+ - server11.crt: 3 E, secp256r1 curve
 
 Certificate revocation lists
 ----------------------------

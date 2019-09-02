@@ -1418,6 +1418,12 @@ component_test_default_tinycrypt_without_legacy_ecc () {
     msg "test: default config with tinycrypt enabled and legacy ECC disabled"
     make test
     if_build_succeeded tests/ssl-opt.sh -f "^Default, DTLS$"
+
+    export SRV_ECDSA_CRT=data_files/server11.crt.pem
+    export SRV_ECDSA_KEY=data_files/server11.key.pem
+    export CLI_ECDSA_CRT=data_files/cli3.crt.pem
+    export CLI_ECDSA_KEY=data_files/cli3.key.pem
+    export CA_FILE=data_files/test-ca3.crt.pem
     if_build_succeeded tests/compat.sh -m 'dtls1_2' -f 'TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA\|+ECDHE-ECDSA:+AES-256-CBC:+SHA1\|ECDHE-ECDSA-AES256-SHA' -e 'SHA384'
 }
 

@@ -536,8 +536,10 @@ union mbedtls_ssl_premaster_secret
     unsigned char _pms_ecdhe_psk_uecc[4 + NUM_ECC_BYTES +
                                       + MBEDTLS_PSK_MAX_LEN];     /* RFC 5489 2 */
 #endif /* MBEDTLS_USE_TINYCRYPT */
+#if defined(MBEDTLS_ECP_C)
     unsigned char _pms_ecdhe_psk[4 + MBEDTLS_ECP_MAX_BYTES
                                    + MBEDTLS_PSK_MAX_LEN];     /* RFC 5489 2 */
+#endif
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     unsigned char _pms_ecjpake[32];     /* Thread spec: SHA-256 output */

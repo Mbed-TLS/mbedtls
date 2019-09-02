@@ -113,6 +113,10 @@
 #error "MBEDTLS_USE_TINYCRYPT requires the use of MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID to hardcode the choice of Secp256r1"
 #endif
 
+#if defined(MBEDTLS_USE_TINYCRYPT) && defined(MBEDTLS_ECP_C)
+#error "MBEDTLS_USE_TINYCRYPT and MBEDTLS_ECP_C cannot be used simultaneously"
+#endif
+
 #if defined(MBEDTLS_USE_TINYCRYPT) && \
     !defined(MBEDTLS_SSL_CONF_RNG)
 #error "MBEDTLS_USE_TINYCRYPT defined, but not all prerequesites"

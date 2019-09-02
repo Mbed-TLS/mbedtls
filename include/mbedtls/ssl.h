@@ -519,7 +519,7 @@ union mbedtls_ssl_premaster_secret
 #endif
 #if defined(MBEDTLS_USE_TINYCRYPT)
     unsigned char _pms_ecdh_uecc[ NUM_ECC_BYTES ];
-#endif
+#endif /* MBEDTLS_USE_TINYCRYPT */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     unsigned char _pms_psk[4 + 2 * MBEDTLS_PSK_MAX_LEN];       /* RFC 4279 2 */
@@ -532,6 +532,10 @@ union mbedtls_ssl_premaster_secret
     unsigned char _pms_rsa_psk[52 + MBEDTLS_PSK_MAX_LEN];      /* RFC 4279 4 */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    unsigned char _pms_ecdhe_psk_uecc[4 + NUM_ECC_BYTES +
+                                      + MBEDTLS_PSK_MAX_LEN];     /* RFC 5489 2 */
+#endif /* MBEDTLS_USE_TINYCRYPT */
     unsigned char _pms_ecdhe_psk[4 + MBEDTLS_ECP_MAX_BYTES
                                    + MBEDTLS_PSK_MAX_LEN];     /* RFC 5489 2 */
 #endif

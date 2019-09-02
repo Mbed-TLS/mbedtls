@@ -3758,6 +3758,24 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
             == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
         {
+#if defined(MBEDTLS_USE_TINYCRYPT)
+            const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+            ((void) n);
+            ((void) ret);
+
+            if( (size_t)( end - p ) < 2 * NUM_ECC_BYTES + 2 )
+                return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+            *p++ = 2 * NUM_ECC_BYTES + 1;
+            *p++ = 0x04; /* uncompressed point presentation */
+
+            if( !uECC_make_key( p, ssl->handshake->ecdh_privkey,
+                                uecc_curve ) )
+            {
+                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+            }
+            p += 2 * NUM_ECC_BYTES;
+#else /* MBEDTLS_USE_TINYCRYPT */
             /*
              * ClientECDiffieHellmanPublic public;
              */
@@ -3773,6 +3791,7 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Q", &ssl->handshake->ecdh_ctx.Q );
 
             p += n;
+#endif /* MBEDTLS_USE_TINYCRYPT */
         }
         else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */

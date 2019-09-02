@@ -38,7 +38,8 @@
 #include "tinycrypt/ecc_dsa.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
-#else
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #if defined(MBEDTLS_ECP_C)
 #include "mbedtls/ecp.h"
 #endif
@@ -46,7 +47,6 @@
 #if defined(MBEDTLS_ECDSA_C)
 #include "mbedtls/ecdsa.h"
 #endif
-#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 #include "mbedtls/platform_util.h"
@@ -714,7 +714,8 @@ const mbedtls_pk_info_t mbedtls_uecc_eckey_info = {
     uecc_eckey_free_wrap,
     NULL,
 };
-#else
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #if defined(MBEDTLS_ECDSA_C)
 static int ecdsa_can_do( mbedtls_pk_type_t type )
 {
@@ -837,7 +838,6 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     eckey_debug,        /* Compatible key structures */
 };
 #endif /* MBEDTLS_ECDSA_C */
-#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*

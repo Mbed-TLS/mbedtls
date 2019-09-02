@@ -4345,6 +4345,10 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
             return( ret );
         }
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        if( mbedtls_ssl_ecdh_read_peerkey( ssl, &p, end ) != 0 )
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+#else /* MBEDTLS_USE_TINYCRYPT */
         if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx,
                                        p, end - p ) ) != 0 )
         {
@@ -4353,6 +4357,7 @@ static int ssl_in_client_key_exchange_parse( mbedtls_ssl_context *ssl,
         }
 
         MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
+#endif /* MBEDTLS_USE_TINYCRYPT */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */

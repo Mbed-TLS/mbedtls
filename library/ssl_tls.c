@@ -2158,6 +2158,20 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         int ret;
         size_t zlen;
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+        ((void) ret);
+
+        if( !uECC_shared_secret( ssl->handshake->ecdh_peerkey,
+                                 ssl->handshake->ecdh_privkey,
+                                 p + 2,
+                                 uecc_curve ) )
+        {
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+
+        zlen = NUM_ECC_BYTES;
+#else /* MBEDTLS_USE_TINYCRYPT */
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
                                        p + 2, end - ( p + 2 ),
                                        mbedtls_ssl_conf_get_frng( ssl->conf ),
@@ -2167,12 +2181,14 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
             return( ret );
         }
 
+        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
+                                MBEDTLS_DEBUG_ECDH_Z );
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
         *(p++) = (unsigned char)( zlen >> 8 );
         *(p++) = (unsigned char)( zlen      );
         p += zlen;
 
-        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
-                                MBEDTLS_DEBUG_ECDH_Z );
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */

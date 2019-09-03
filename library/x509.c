@@ -1250,19 +1250,15 @@ int mbedtls_x509_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "passed\n  X.509 signature verify: ");
 
+    ret = mbedtls_x509_crt_verify( &clicert, &cacert, NULL,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
+                                   NULL,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+                                   &flags
 #if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
-    ret = mbedtls_x509_crt_verify( &clicert, &cacert, NULL,
-#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
-    NULL,
-#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
-    &flags, NULL, NULL );
-#else
-    ret = mbedtls_x509_crt_verify( &clicert, &cacert, NULL,
-#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
-    NULL,
-#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
-    &flags );
+                                   , NULL, NULL
 #endif
+                                   );
 
     if( ret != 0 )
     {

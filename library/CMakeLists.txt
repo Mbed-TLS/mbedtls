@@ -70,12 +70,6 @@ set(src_x509
     certs.c
     pkcs11.c
     x509.c
-    x509_create.c
-    x509_crl.c
-    x509_crt.c
-    x509_csr.c
-    x509write_crt.c
-    x509write_csr.c
 )
 
 set(src_tls

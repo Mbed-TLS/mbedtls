@@ -42,6 +42,13 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/oid.h"
 
+#include "x509_crl.c"
+#include "x509_crt.c"
+#include "x509_csr.c"
+#include "x509_create.c"
+#include "x509write_crt.c"
+#include "x509write_csr.c"
+
 #include <stdio.h>
 #include <string.h>
 

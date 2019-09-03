@@ -67,7 +67,7 @@ To use a key for cryptography operations in Mbed Crypto, you need to first
 import it. After you import the key, you'll be given a handle that refers to the key for use
 with other function calls.
 
-**Prerequisites for importing keys:**
+**Prerequisites to importing keys:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
 
 This example shows how to import a key:
@@ -188,10 +188,10 @@ Mbed Crypto supports encrypting and decrypting messages using various symmetric 
 1. Allocate an operation (`psa_cipher_operation_t`) structure to pass to the cipher functions.
 1. Call `psa_cipher_encrypt_setup()` to initialize the operation structure and specify the algorithm and the key to be used.
 1. Call either `psa_cipher_generate_iv()` or `psa_cipher_set_iv()` to generate or set the initialization vector (IV). We recommended calling `psa_cipher_generate_iv()`, unless you require a specific IV value.
-1. Call `psa_cipher_update()` one or more times, passing the whole message or only a fragment of the message each time.
+1. Call `psa_cipher_update()` one or more times, passing the whole message or a fragment of the message on each call.
 1. Call `psa_cipher_finish()` to end the operation and output the encrypted message.
 
-This example shows how to encrypt data using an Advanced Encryption Standard (AES) key in cipher block chain (CBC) mode with no padding (assuming all prerequisites have been fulfilled):
+This example shows how to encrypt data using an Advanced Encryption Standard (AES) key in Cipher Block Chaining (CBC) mode with no padding (assuming all prerequisites have been fulfilled):
 ```c
     enum {
         block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES),
@@ -269,7 +269,7 @@ This example shows how to encrypt data using an Advanced Encryption Standard (AE
 1. Allocate an operation (`psa_cipher_operation_t`) structure to pass to the cipher functions.
 1. Call `psa_cipher_decrypt_setup()` to initialize the operation structure and to specify the algorithm and the key to be used.
 1. Call `psa_cipher_set_iv()` with the IV for the decryption.
-1. Call `psa_cipher_update()` one or more times, passing the whole message or only a fragment of the message each time.
+1. Call `psa_cipher_update()` one or more times, passing the whole message or a fragment of the message on each call.
 1. Call `psa_cipher_finish()` to end the operation and output the decrypted message.
 
 This example shows how to decrypt encrypted data using an AES key in CBC mode with no padding
@@ -373,7 +373,7 @@ algorithms.
 **To calculate a hash:**
 1. Allocate an operation structure (`psa_hash_operation_t`) to pass to the hash functions.
 1. Call `psa_hash_setup()` to initialize the operation structure and specify the hash algorithm.
-1. Call `psa_hash_update()` one or more times, passing the whole message or only a fragment of the message each time.
+1. Call `psa_hash_update()` one or more times, passing the whole message or a fragment of the message on each call.
 1. Call `psa_hash_finish()` to calculate the hash, or `psa_hash_verify()` to compare the computed hash with an expected hash value.
 
 This example shows how to calculate the `SHA-256` hash of a message:
@@ -490,10 +490,12 @@ Making multiple sequential calls to `psa_hash_abort()` on an operation that has 
 
 Mbed Crypto can generate random data.
 
-**Prerequisites to random generation:**
+**Prerequisites to generating random data:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
 
-This example shows how to generate a random, ten-byte piece of data by calling `psa_generate_random()`:
+<span class="notes">**Note:** To generate a random key, use `psa_generate_key()` instead of `psa_generate_random()`.</span>
+
+This example shows how to generate ten bytes of random data by calling `psa_generate_random()`:
 ```C
     psa_status_t status;
     uint8_t random[10] = { 0 };
@@ -519,7 +521,6 @@ This example shows how to generate a random, ten-byte piece of data by calling `
     /* Clean up */
     mbedtls_psa_crypto_free();
 ```
-To generate a random key, use `psa_generate_key()` instead of `psa_generate_random()`.
 
 ### Deriving a new key from an existing key
 
@@ -548,8 +549,8 @@ with a given key, salt and information:**
 1. Set up the key derivation context using the `psa_key_derivation_setup()`
 function, specifying the derivation algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
 1. Provide an optional salt with `psa_key_derivation_input_bytes()`.
-1. Provide information with `psa_key_derivation_input_bytes()`.
-1. Provide a secret with `psa_key_derivation_input_key()`, referencing a key that
+1. Provide `info` with `psa_key_derivation_input_bytes()`.
+1. Provide `secret` with `psa_key_derivation_input_key()`, referencing a key that
    can be used for key derivation.
 1. Set the key attributes desired for the new derived key. We'll set
    the `PSA_KEY_USAGE_ENCRYPT` parameter and the `PSA_ALG_CTR` algorithm for this
@@ -824,7 +825,7 @@ Mbed Crypto provides a simple way to generate a key or key pair.
 1. Set the desired key attributes for key generation by calling
    `psa_set_key_algorithm()` with the chosen ECDSA algorithm (such as
    `PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256)`). Do not set
-   `PSA_KEY_USAGE_EXPORT` because we only want to export the public key, not the key
+   `PSA_KEY_USAGE_EXPORT`; we only want to export the public key, not the key
    pair (or private key).
 1. Generate a key by calling `psa_generate_key()`.
 1. Export the generated public key by calling `psa_export_public_key()`:
@@ -877,6 +878,6 @@ Mbed Crypto provides a simple way to generate a key or key pair.
     mbedtls_psa_crypto_free();
 ```
 
-### More about the Mbed Crypto
+### More about the Mbed Crypto API
 
 For more information about PSA Crypto, download the *PSA Cryptography API* PDF under [PSA APIs](https://developer.arm.com/architectures/security-architectures/platform-security-architecture#implement).

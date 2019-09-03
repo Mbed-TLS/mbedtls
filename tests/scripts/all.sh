@@ -867,7 +867,6 @@ component_test_check_params_without_platform () {
     msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
     scripts/config.pl full # includes CHECK_PARAMS
     # Keep MBEDTLS_PARAM_FAILED as assert.
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
@@ -1052,9 +1051,7 @@ component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
     make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32 -fsanitize=address'
 
     msg "test: i386, make, gcc -O1 (ASan build)"

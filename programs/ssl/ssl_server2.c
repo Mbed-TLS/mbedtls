@@ -2869,7 +2869,7 @@ int main( int argc, char *argv[] )
 #else
                                           mbedtls_hmac_drbg_random, &hmac_drbg
 #endif /* MBEDTLS_CTR_DRBG_C */
-                      ) ) != 0 )
+                                          ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_cookie_setup returned %d\n\n", ret );
                 goto exit;

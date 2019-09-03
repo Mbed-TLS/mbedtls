@@ -16,6 +16,8 @@ Bugfix
    * Update test certificates that were about to expire. Reported by
      Bernhard M. Wiedemann in #2357.
    * Make NV seed test support MBEDTLS_ENTROPY_FORCE_SHA256.
+   * Fix memory leak in in mpi_miller_rabin(). Contributed by
+     Jens Wiklander <jens.wiklander@linaro.org> in #2363.
 
 Changes
    * Make `make clean` clean all programs always. Fixes #1862.

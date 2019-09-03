@@ -25,6 +25,10 @@ Features
      verified and significantly faster, but is only supported on x86 platforms
      (32-bit and 64-bit) using GCC, Clang or Visual Studio. Contributed by
      Christoph Wintersteiger from Microsoft Research.
+   * Add mbedtls_net_close(), enabling the building of forking servers where
+     the parent process closes the client socket and continue accepting, and
+     the child process closes the listening socket and handles the client
+     socket. Contributed by Robert Larsen in #2803.
 
 API Changes
    * Add DER-encoded test CRTs to library/certs.c, allowing
@@ -67,6 +71,11 @@ Bugfix
    * Fix propagation of restart contexts in restartable EC operations.
      This could previously lead to segmentation faults in builds using an
      address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
+   * Fix memory leak in in mpi_miller_rabin(). Contributed by
+     Jens Wiklander <jens.wiklander@linaro.org> in #2363
+   * Improve code clarity in x509_crt module, removing false-positive
+     uninitialized variable warnings on some recent toolchains (GCC8, etc).
+     Discovered and fixed by Andy Gross (Linaro), #2392.
 
 Changes
    * Replace multiple uses of MD2 by SHA-256 in X.509 test suite. Fixes #821.

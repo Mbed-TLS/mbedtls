@@ -54,6 +54,14 @@
 #include "ecjpake.h"
 #endif
 
+#if defined(MBEDTLS_ECP_C)
+#include "ecp.h"
+#endif
+
+#if defined(MBEDTLS_ECDH_C)
+#include "ecdh.h"
+#endif
+
 #if defined(MBEDTLS_USE_TINYCRYPT)
 #include "tinycrypt/ecc.h"
 #include "tinycrypt/ecc_dh.h"

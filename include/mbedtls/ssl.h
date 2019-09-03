@@ -41,9 +41,8 @@
 #include "dhm.h"
 #endif
 
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_ECP_C)
 #include "ecp.h"
-#include "ecdh.h"
 #endif
 
 #if defined(MBEDTLS_USE_TINYCRYPT)

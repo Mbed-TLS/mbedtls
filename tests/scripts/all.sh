@@ -904,6 +904,34 @@ component_test_hardcoded_elliptic_curve_cmake_clang() {
     if_build_succeeded tests/ssl-opt.sh -f '^Default$\|^Default, DTLS$'
 }
 
+component_test_hardcoded_hash_cmake_clang() {
+    msg "build: cmake, full config + MBEDTLS_MD_SINGLE_HASH, clang" # ~ 50s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl unset MBEDTLS_SHA1_C
+    scripts/config.pl unset MBEDTLS_SHA512_C
+    scripts/config.pl set   MBEDTLS_SHA256_NO_SHA224
+    scripts/config.pl unset MBEDTLS_MD2_C
+    scripts/config.pl unset MBEDTLS_MD4_C
+    scripts/config.pl unset MBEDTLS_MD5_C
+    scripts/config.pl unset MBEDTLS_RIPEMD160_C
+    scripts/config.pl unset MBEDTLS_SSL_PROTO_SSL3
+    scripts/config.pl unset MBEDTLS_SSL_PROTO_TLS1
+    scripts/config.pl unset MBEDTLS_SSL_PROTO_TLS1_1
+    scripts/config.pl unset MBEDTLS_SSL_CBC_RECORD_SPLITTING
+    scripts/config.pl set MBEDTLS_MD_SINGLE_HASH MBEDTLS_MD_INFO_SHA256
+
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
+    make
+
+    msg "test: main suites (full config + MBEDTLS_MD_SINGLE_HASH)" # ~ 5s
+    make test
+
+    msg "test: ssl-opt.sh default (full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f '^Default$\|^Default, DTLS$'
+}
+
 component_build_deprecated () {
     msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
     scripts/config.pl full

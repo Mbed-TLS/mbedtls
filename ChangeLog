@@ -18,6 +18,10 @@ Features
      verified and significantly faster, but is only supported on x86 platforms
      (32-bit and 64-bit) using GCC, Clang or Visual Studio. Contributed by
      Christoph Wintersteiger from Microsoft Research.
+   * Add mbedtls_net_close(), enabling the building of forking servers where
+     the parent process closes the client socket and continue accepting, and
+     the child process closes the listening socket and handles the client
+     socket. Contributed by Robert Larsen in #2803.
 
 API Changes
    * Add DER-encoded test CRTs to library/certs.c, allowing

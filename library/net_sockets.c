@@ -652,6 +652,19 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len )
 }
 
 /*
+ * Close the connection
+ */
+void mbedtls_net_close( mbedtls_net_context *ctx )
+{
+    if( ctx->fd == -1 )
+        return;
+
+    close( ctx->fd );
+
+    ctx->fd = -1;
+}
+
+/*
  * Gracefully close the connection
  */
 void mbedtls_net_free( mbedtls_net_context *ctx )

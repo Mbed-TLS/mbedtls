@@ -1167,7 +1167,9 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, mbedtls_md_handle_t md_info, in
         }
     }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
     ctx->md_info = md_info;
+#endif
 
     return( 0 );
 }

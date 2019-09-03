@@ -23,6 +23,8 @@ Bugfix
    * Fix propagation of restart contexts in restartable EC operations.
      This could previously lead to segmentation faults in builds using an
      address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
+   * Fix memory leak in in mpi_miller_rabin(). Contributed by
+     Jens Wiklander <jens.wiklander@linaro.org> in #2363
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

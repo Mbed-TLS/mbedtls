@@ -104,6 +104,12 @@ typedef struct mbedtls_md_context_t
     void *hmac_ctx;
 } mbedtls_md_context_t;
 
+static inline mbedtls_md_handle_t mbedtls_md_get_handle(
+    struct mbedtls_md_context_t const *ctx )
+{
+    return( ctx->md_info );
+}
+
 /**
  * \brief           This function returns the list of digests supported by the
  *                  generic digest module.

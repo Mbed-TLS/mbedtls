@@ -1076,7 +1076,7 @@ static int mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
     memset( mask, 0, MBEDTLS_MD_MAX_SIZE );
     memset( counter, 0, 4 );
 
-    hlen = mbedtls_md_get_size( md_ctx->md_info );
+    hlen = mbedtls_md_get_size( mbedtls_md_get_handle( md_ctx ) );
 
     /* Generate and apply dbMask */
     p = dst;

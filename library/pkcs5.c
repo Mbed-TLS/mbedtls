@@ -226,7 +226,7 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *p
     unsigned int i;
     unsigned char md1[MBEDTLS_MD_MAX_SIZE];
     unsigned char work[MBEDTLS_MD_MAX_SIZE];
-    unsigned char md_size = mbedtls_md_get_size( ctx->md_info );
+    unsigned char md_size = mbedtls_md_get_size( mbedtls_md_get_handle( ctx ) );
     size_t use_len;
     unsigned char *out_p = output;
     unsigned char counter[4];

@@ -109,7 +109,7 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame const *frame,
 static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_sequence *ext_key_usage );
 
-int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
+static int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
 {
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
@@ -145,7 +145,7 @@ int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
     return( 0 );
 }
 
-int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt )
+static int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt )
 {
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
@@ -188,7 +188,7 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt )
 
 static int x509_crt_frame_parse_ext( mbedtls_x509_crt_frame *frame );
 
-int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
+static int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
 {
     mbedtls_x509_crt_cache *cache = crt->cache;
     mbedtls_x509_crt_frame *frame;
@@ -255,7 +255,7 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 }
 
-int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
+static int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
 {
     mbedtls_x509_crt_cache *cache = crt->cache;
     mbedtls_pk_context *pk;

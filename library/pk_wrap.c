@@ -596,11 +596,13 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
  * p: pointer to the end of the output buffer
  * start: start of the output buffer, and also of the mpi to write at the end
  * n_len: length of the mpi to read from start
+ *
+ * Warning:
+ * The total length of the output buffer must be smaller than 128 Bytes.
  */
 static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
                               size_t n_len )
 {
-    int ret;
     size_t len = 0;
 
     if( (size_t)( *p - start ) < n_len )
@@ -634,9 +636,11 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
         len += 1;
     }
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
-                                                MBEDTLS_ASN1_INTEGER ) );
+    /* The ASN.1 length encoding is just a single Byte containing the length,
+     * as we assume that the total buffer length is smaller than 128 Bytes. */
+    *--(*p) = len;
+    *--(*p) = MBEDTLS_ASN1_INTEGER;
+    len += 2;
 
     return( (int) len );
 }
@@ -648,6 +652,8 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
  * [in/out] sig: the signature pre- and post-transcoding
  * [in/out] sig_len: signature length pre- and post-transcoding
  * [int] buf_len: the available size the in/out buffer
+ *
+ * Warning: buf_len must be smaller than 128 Bytes.
  */
 static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
                                         size_t buf_len )
@@ -660,9 +666,11 @@ static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
     MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig + rs_len, rs_len ) );
     MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig, rs_len ) );
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, sig, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, sig,
-                          MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+    /* The ASN.1 length encoding is just a single Byte containing the length,
+     * as we assume that the total buffer length is smaller than 128 Bytes. */
+    *--p = len;
+    *--p = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE;
+    len += 2;
 
     memmove( sig, p, len );
     *sig_len = len;
@@ -689,10 +697,11 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
      * Size is at most
      *    1 (tag) + 1 (len) + 1 (initial 0) + NUM_ECC_BYTES for each of r and s,
      *    twice that + 1 (tag) + 2 (len) for the sequence
-     * (assuming NUM_ECC_BYTES is less than 126 for r and s,
-     * and less than 124 (total len <= 255) for the sequence)
+     *
+     * (The ASN.1 length encodings are all 1-Byte encodings because
+     *  the total size is smaller than 128 Bytes).
      */
-    const size_t max_secp256r1_ecdsa_sig_len = 3 + 2 * ( 3 + NUM_ECC_BYTES );
+     #define MAX_SECP256R1_ECDSA_SIG_LEN ( 3 + 2 * ( 3 + NUM_ECC_BYTES ) )
 
     uECC_sign( keypair->private_key, hash, hash_len, sig, uecc_curve );
     *sig_len = 2 * NUM_ECC_BYTES;
@@ -702,7 +711,10 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     (void) p_rng;
     (void) md_alg;
 
-    return( pk_ecdsa_sig_asn1_from_uecc( sig, sig_len, max_secp256r1_ecdsa_sig_len ) );
+    return( pk_ecdsa_sig_asn1_from_uecc( sig, sig_len,
+                                         MAX_SECP256R1_ECDSA_SIG_LEN ) );
+
+    #undef MAX_SECP256R1_ECDSA_SIG_LEN
 }
 
 static void *uecc_eckey_alloc_wrap( void )

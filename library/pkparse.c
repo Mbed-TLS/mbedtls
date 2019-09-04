@@ -969,7 +969,8 @@ static int pk_parse_key_sec1_der( mbedtls_uecc_keypair *keypair,
             else
             {
                 /*
-                 * The only acceptable failure mode of pk_get_ecpubkey() above
+                 * The only acceptable failure mode of
+                 * uecc_public_key_read_binary() above
                  * is if the point format is not recognized.
                  */
                 if( ret != MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE )

@@ -464,21 +464,14 @@ int mbedtls_md_starts( mbedtls_md_context_t *ctx )
 {
     return( mbedtls_md_starts_internal( ctx ) );
 }
-#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
-int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, size_t ilen )
+int mbedtls_md_update( mbedtls_md_context_t *ctx,
+                       const unsigned char *input,
+                       size_t ilen )
 {
-    mbedtls_md_handle_t md_info;
-    if( ctx == NULL )
-        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-
-    md_info = mbedtls_md_get_handle( ctx );
-    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
-        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-
-    return( mbedtls_md_info_update( md_info, ctx->md_ctx,
-                                    input, ilen ) );
+    return( mbedtls_md_update_internal( ctx, input, ilen ) );
 }
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output )
 {

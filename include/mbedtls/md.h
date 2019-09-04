@@ -330,7 +330,9 @@ MBEDTLS_MD_INLINABLE_API int mbedtls_md_starts( mbedtls_md_context_t *ctx );
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
-int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, size_t ilen );
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_update( mbedtls_md_context_t *ctx,
+                                                const unsigned char *input,
+                                                size_t ilen );
 
 /**
  * \brief           This function finishes the digest operation,
@@ -524,11 +526,36 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_starts_internal(
     return( mbedtls_md_info_starts( md_info, ctx->md_ctx ) );
 }
 
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_update_internal(
+    mbedtls_md_context_t *ctx,
+    const unsigned char *input,
+    size_t ilen )
+{
+    mbedtls_md_handle_t md_info;
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+    md_info = mbedtls_md_get_handle( ctx );
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+    return( mbedtls_md_info_update( md_info, ctx->md_ctx,
+                                    input, ilen ) );
+}
+
 #if defined(MBEDTLS_MD_SINGLE_HASH)
 MBEDTLS_MD_INLINABLE_API int mbedtls_md_starts(
     mbedtls_md_context_t *ctx )
 {
     return( mbedtls_md_starts_internal( ctx ) );
+}
+
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_update(
+    mbedtls_md_context_t *ctx,
+    const unsigned char *input,
+    size_t ilen )
+{
+    return( mbedtls_md_update_internal( ctx, input, ilen ) );
 }
 #endif /* MBEDTLS_MD_SINGLE_HASH */
 

@@ -51,9 +51,9 @@ set(CTR_DRBG_128_BIT_KEY_WARNING "${WARNING_BORDER}"
                          "${CTR_DRBG_128_BIT_KEY_WARN_L3}"
                          "${WARNING_BORDER}")
 
-find_package(PythonInterp)
-find_package(Perl)
-if(PYTHON_FOUND)
+# Python 3 is only needed here to check for configuration warnings.
+find_package(PythonInterp 3)
+if(PYTHONINTERP_FOUND)
 
     # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
     execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY

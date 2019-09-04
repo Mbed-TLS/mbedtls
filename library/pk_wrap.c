@@ -685,6 +685,7 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 {
     const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
     const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+    int ret;
 
     /*
      * RFC-4492 page 20:
@@ -703,7 +704,11 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
      */
      #define MAX_SECP256R1_ECDSA_SIG_LEN ( 3 + 2 * ( 3 + NUM_ECC_BYTES ) )
 
-    uECC_sign( keypair->private_key, hash, hash_len, sig, uecc_curve );
+    ret = uECC_sign( keypair->private_key, hash, hash_len, sig, uecc_curve );
+    /* TinyCrypt uses 0 to signal errors. */
+    if( ret == 0 )
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+
     *sig_len = 2 * NUM_ECC_BYTES;
 
     /* uECC owns its rng function pointer */

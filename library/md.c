@@ -59,7 +59,7 @@
  * MD-2
  */
 #if defined(MBEDTLS_MD2_C)
-const mbedtls_md_info_t mbedtls_md2_info = {
+static const mbedtls_md_info_t mbedtls_md2_info = {
     MBEDTLS_MD_MD2,
     "MD2",
     16,
@@ -80,7 +80,7 @@ const mbedtls_md_info_t mbedtls_md2_info = {
  */
 
 #if defined(MBEDTLS_MD4_C)
-const mbedtls_md_info_t mbedtls_md4_info = {
+static const mbedtls_md_info_t mbedtls_md4_info = {
     MBEDTLS_MD_MD4,
     "MD4",
     16,
@@ -101,7 +101,7 @@ const mbedtls_md_info_t mbedtls_md4_info = {
  */
 
 #if defined(MBEDTLS_MD5_C)
-const mbedtls_md_info_t mbedtls_md5_info = {
+static const mbedtls_md_info_t mbedtls_md5_info = {
     MBEDTLS_MD_MD5,
     "MD5",
     16,
@@ -122,7 +122,7 @@ const mbedtls_md_info_t mbedtls_md5_info = {
  */
 
 #if defined(MBEDTLS_RIPEMD160_C)
-const mbedtls_md_info_t mbedtls_ripemd160_info = {
+static const mbedtls_md_info_t mbedtls_ripemd160_info = {
     MBEDTLS_MD_RIPEMD160,
     "RIPEMD160",
     20,
@@ -143,7 +143,7 @@ const mbedtls_md_info_t mbedtls_ripemd160_info = {
  */
 
 #if defined(MBEDTLS_SHA1_C)
-const mbedtls_md_info_t mbedtls_sha1_info = {
+static const mbedtls_md_info_t mbedtls_sha1_info = {
     MBEDTLS_MD_SHA1,
     "SHA1",
     20,
@@ -165,7 +165,7 @@ const mbedtls_md_info_t mbedtls_sha1_info = {
 
 #if defined(MBEDTLS_SHA256_C)
 #if !defined(MBEDTLS_SHA256_NO_SHA224)
-const mbedtls_md_info_t mbedtls_sha224_info = {
+static const mbedtls_md_info_t mbedtls_sha224_info = {
     MBEDTLS_MD_SHA224,
     "SHA224",
     28,
@@ -180,7 +180,7 @@ const mbedtls_md_info_t mbedtls_sha224_info = {
     mbedtls_sha224_process_wrap,
 };
 #endif /* !MBEDTLS_SHA256_NO_SHA224 */
-const mbedtls_md_info_t mbedtls_sha256_info =
+static const mbedtls_md_info_t mbedtls_sha256_info =
     MBEDTLS_MD_INFO( MBEDTLS_MD_INFO_SHA256 );
 #endif /* MBEDTLS_SHA256_C */
 
@@ -189,7 +189,7 @@ const mbedtls_md_info_t mbedtls_sha256_info =
  */
 
 #if defined(MBEDTLS_SHA512_C)
-const mbedtls_md_info_t mbedtls_sha384_info = {
+static const mbedtls_md_info_t mbedtls_sha384_info = {
     MBEDTLS_MD_SHA384,
     "SHA384",
     48,
@@ -203,7 +203,7 @@ const mbedtls_md_info_t mbedtls_sha384_info = {
     mbedtls_sha384_clone_wrap,
     mbedtls_sha384_process_wrap,
 };
-const mbedtls_md_info_t mbedtls_sha512_info = {
+static const mbedtls_md_info_t mbedtls_sha512_info = {
     MBEDTLS_MD_SHA512,
     "SHA512",
     64,

@@ -545,7 +545,7 @@ information about which inputs to pass when, and when you can obtain which outpu
     * Usage flags set for key derivation (`PSA_KEY_USAGE_DERIVE`)
     * Key type set to `PSA_KEY_TYPE_DERIVE`.
     * Algorithm set to a key derivation algorithm
-      (`PSA_ALG_HKDF(PSA_ALG_SHA_256)`).
+      (for example `PSA_ALG_HKDF(PSA_ALG_SHA_256)`).
 
 **To derive a new AES-CTR 128-bit encryption key into a given key slot using HKDF
 with a given key, salt and information:**

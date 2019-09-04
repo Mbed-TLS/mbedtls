@@ -302,10 +302,22 @@ class ConfigFile(Config):
         where <middle> is "#define <name> ".
         """
         setting = self.settings[name]
+        value = setting.value
+        if value is None:
+            value = ''
+        # Normally the whitespace to separte the symbol name from the
+        # value is part of middle, and there's no whitespace for a symbol
+        # with no value. But if a symbol has been changed from having a
+        # value to not having one, the whitespace is wrong, so fix it.
+        if value:
+            if middle[-1] not in '\t ':
+                middle += ' '
+        else:
+            middle = middle.rstrip()
         return ''.join([indent,
                         '' if setting.active else '//',
                         middle,
-                        setting.value]).rstrip()
+                        value]).rstrip()
 
     def write_to_stream(self, output):
         """Write the whole configuration to output."""

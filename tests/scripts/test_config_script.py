@@ -129,6 +129,7 @@ def run_one(options, args):
 TEST_SYMBOLS = [
     'CUSTOM_OPTION',
     'MBEDTLS_AES_C',
+    'MBEDTLS_MPI_MAX_SIZE',
     'MBEDTLS_NO_UDBL_DIVISION',
     'MBEDTLS_PLATFORM_ZEROIZE_ALT',
 ]
@@ -136,6 +137,7 @@ TEST_SYMBOLS = [
 ### A list of symbols to test with set with a value.
 TEST_SYMBOLS_WITH_VALUE = [
     'CUSTOM_VALUE',
+    'MBEDTLS_AES_C',
     'MBEDTLS_MPI_MAX_SIZE',
 ]
 
@@ -151,6 +153,7 @@ def run_all(options):
     for symbol in TEST_SYMBOLS_WITH_VALUE:
         run_one(options, ['set', symbol, 'value'])
         run_one(options, ['--force', 'set', symbol, 'value'])
+        run_one(options, ['unset', symbol])
 
 def main():
     """Command line entry point."""

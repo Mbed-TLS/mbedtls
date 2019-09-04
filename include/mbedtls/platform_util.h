@@ -189,6 +189,84 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
                                       struct tm *tm_buf );
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
+/**
+ * \brief      Convert 32-bit number to big endian format.
+ *
+ *             This function converts 32-bit number to big endian format and
+ *             writes it to given buffer.
+ *
+ * \param buf  Address where converted number is written.
+ * \param num  Number that needs to be converted to big endian.
+ *
+ * \return     Address to end of buffer where number is written.
+  */
+unsigned char * mbedtls_platform_put_uint32_be( unsigned char *buf,
+                                                unsigned long num );
+
+/**
+ * \brief      Convert 24-bit number to big endian format.
+ *
+ *             This function converts 24-bit number to big endian format and
+ *             writes it to given buffer.
+ *
+ * \param buf  Address where converted number is written.
+ * \param num  Number that needs to be converted to big endian.
+ *
+ * \return     Address to end of buffer where number is written.
+  */
+unsigned char * mbedtls_platform_put_uint24_be( unsigned char *buf,
+                                                unsigned long num );
+
+/**
+ * \brief      Convert 16-bit number to big endian format.
+ *
+ *             This function converts 16-bit number to big endian format and
+ *             writes it to given buffer.
+ *
+ * \param buf  Address where converted number is written.
+ * \param num  Number that needs to be converted to big endian.
+ *
+ * \return     Address to end of buffer where number is written.
+  */
+unsigned char * mbedtls_platform_put_uint16_be( unsigned char *buf,
+                                                unsigned long num );
+
+/**
+ * \brief      Convert 32-bit number from big endian format.
+ *
+ *             The function reads 32-bit number form Big Endian format and
+ *             returns it to the caller.
+ *
+ * \param buf  Buffer where 32-bit number locates.
+ *
+ * \return     Converted number.
+ */
+unsigned int mbedtls_platform_get_uint32_be( const unsigned char *buf );
+
+/**
+ * \brief      Convert 24-bit number from big endian format.
+ *
+ *             The function reads 24-bit number form Big Endian format and
+ *             returns it to the caller.
+ *
+ * \param buf  Buffer where 24-bit number locates.
+ *
+ * \return     Converted number.
+ */
+unsigned int mbedtls_platform_get_uint24_be( const unsigned char *buf );
+
+/**
+ * \brief      Convert 16-bit number from big endian format.
+ *
+ *             The function reads 16-bit number form Big Endian format and
+ *             returns it to the caller.
+ *
+ * \param buf  Buffer where 16-bit number locates.
+ *
+ * \return     Converted number.
+ */
+unsigned short mbedtls_platform_get_uint16_be( const unsigned char *b );
+
 #ifdef __cplusplus
 }
 #endif

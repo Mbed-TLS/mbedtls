@@ -114,8 +114,8 @@
 /* Wrapper around MBEDTLS_MD_INFO_XXX_T() which makes sure that
  * the argument is macro-expanded before concatenated with the
  * field name. This allows to call these macros as
- *    MBEDTLS_MD_INFO_XXX( MBEDTLS_SSL_CONF_SINGLE_HASH ).
- * where MBEDTLS_SSL_CONF_SINGLE_HASH expands to MBEDTLS_MD_INFO_XXX. */
+ *    MBEDTLS_MD_INFO_XXX( MBEDTLS_MD_SINGLE_HASH ).
+ * where MBEDTLS_MD_SINGLE_HASH expands to MBEDTLS_MD_INFO_XXX. */
 #define MBEDTLS_MD_INFO_TYPE( MD )         MBEDTLS_MD_INFO_TYPE_T( MD )
 #define MBEDTLS_MD_INFO_NAME( MD )         MBEDTLS_MD_INFO_NAME_T( MD )
 #define MBEDTLS_MD_INFO_SIZE( MD )         MBEDTLS_MD_INFO_SIZE_T( MD )

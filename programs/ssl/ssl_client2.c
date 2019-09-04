@@ -43,13 +43,16 @@
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
-    !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C)
+    !defined(MBEDTLS_SSL_TLS_C) || \
+    !defined(MBEDTLS_SSL_CLI_C) || \
+    !defined(MBEDTLS_NET_C)     || \
+    !( defined(MBEDTLS_CTR_DRBG_C) || defined(MBEDTLS_HMAC_DRBG_C) )
 int main( void )
 {
     mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
            "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
-           "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined.\n");
+           "MBEDTLS_NET_C not defined, or "
+           "neither MBEDTLS_CTR_DRBG_C nor MBEDTLS_HMAC_DRBG_C defined.\n");
     return( 0 );
 }
 #else
@@ -59,6 +62,7 @@ int main( void )
 #include "mbedtls/ssl_ciphersuites.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
+#include "mbedtls/hmac_drbg.h"
 #include "mbedtls/certs.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/error.h"
@@ -701,8 +705,12 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
     return( 0 );
 }
 
-#if !defined(MBEDTLS_SSL_CONF_SINGLE_HASH)
-static int ssl_sig_hashes_for_test[] = {
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if ( defined(MBEDTLS_X509_CRT_PARSE_C) &&        \
+      !defined(MBEDTLS_SSL_CONF_SINGLE_HASH) ) || \
+    !defined(MBEDTLS_CTR_DRBG_C)
+static int available_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
     MBEDTLS_MD_SHA384,
@@ -717,8 +725,8 @@ static int ssl_sig_hashes_for_test[] = {
 #endif
     MBEDTLS_MD_NONE
 };
-#endif /* !MBEDTLS_SSL_CONF_SINGLE_HASH */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* ( MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_SSL_CONF_SINGLE_HASH ) ||
+          !MBEDTLS_CTR_DRBG_C */
 
 /*
  * Wait for an event from the underlying transport or the timer
@@ -892,14 +900,23 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_CONF_RNG)
 int rng_wrap( void *ctx, unsigned char *dst, size_t len );
 
+#if defined(MBEDTLS_CTR_DRBG_C)
 mbedtls_ctr_drbg_context *rng_ctx_global = NULL;
+#else
+mbedtls_hmac_drbg_context *rng_ctx_global = NULL;
+#endif /* MBEDTLS_CTR_DRBG_C */
+
 int rng_wrap( void *ctx, unsigned char *dst, size_t len )
 {
     /* We expect the NULL parameter here. */
     if( ctx != NULL )
         return( -1 );
 
+#if defined(MBEDTLS_CTR_DRBG_C)
     return( mbedtls_ctr_drbg_random( rng_ctx_global, dst, len ) );
+#else
+    return( mbedtls_hmac_drbg_random( rng_ctx_global, dst, len ) );
+#endif
 }
 #endif /* MBEDTLS_SSL_CONF_RNG */
 
@@ -941,7 +958,11 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
     mbedtls_entropy_context entropy;
+#if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_context ctr_drbg;
+#else
+    mbedtls_hmac_drbg_context hmac_drbg;
+#endif
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
     mbedtls_ssl_session saved_session;
@@ -970,7 +991,11 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
+#if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_init( &ctr_drbg );
+#else
+    mbedtls_hmac_drbg_init( &hmac_drbg );
+#endif /* MBEDTLS_CTR_DRBG_C */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crt_init( &clicert );
@@ -1664,6 +1689,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     mbedtls_entropy_init( &entropy );
+#if defined(MBEDTLS_CTR_DRBG_C)
     if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
                                        &entropy, (const unsigned char *) pers,
                                        strlen( pers ) ) ) != 0 )
@@ -1672,6 +1698,19 @@ int main( int argc, char *argv[] )
                         -ret );
         goto exit;
     }
+#else /* MBEDTLS_CTR_DRBG_C */
+    if( ( ret = mbedtls_hmac_drbg_seed( &hmac_drbg,
+                                        mbedtls_md_info_from_type(
+                                            available_hashes[0] ),
+                                        mbedtls_entropy_func,
+                                        &entropy, (const unsigned char *) pers,
+                                        strlen( pers ) ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
+                        -ret );
+        goto exit;
+    }
+#endif /* MBEDTLS_CTR_DRBG */
 
     mbedtls_printf( " ok\n" );
 
@@ -1851,7 +1890,7 @@ int main( int argc, char *argv[] )
         crt_profile_for_test.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 );
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_HASH)
-        mbedtls_ssl_conf_sig_hashes( &conf, ssl_sig_hashes_for_test );
+        mbedtls_ssl_conf_sig_hashes( &conf, available_hashes );
 #endif
     }
 
@@ -1953,11 +1992,19 @@ int main( int argc, char *argv[] )
         }
 #endif
 
+#if defined(MBEDTLS_CTR_DRBG_C)
 #if !defined(MBEDTLS_SSL_CONF_RNG)
     mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 #else
     rng_ctx_global = &ctr_drbg;
 #endif
+#else /* MBEDTLS_CTR_DRBG_C */
+#if !defined(MBEDTLS_SSL_CONF_RNG)
+    mbedtls_ssl_conf_rng( &conf, mbedtls_hmac_drbg_random, &hmac_drbg );
+#else
+    rng_ctx_global = &hmac_drbg;
+#endif
+#endif /* MBEDTLS_CTR_DRBG_C */
 
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
@@ -2871,7 +2918,11 @@ exit:
     mbedtls_ssl_session_free( &saved_session );
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
+#if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_free( &ctr_drbg );
+#else
+    mbedtls_hmac_drbg_free( &hmac_drbg );
+#endif
     mbedtls_entropy_free( &entropy );
     if( session_data != NULL )
         mbedtls_platform_zeroize( session_data, session_data_len );
@@ -2895,4 +2946,4 @@ exit:
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&
-          MBEDTLS_CTR_DRBG_C MBEDTLS_TIMING_C */
+          ( MBEDTLS_CTR_DRBG_C || MBEDTLS_HMAC_DRBG_C ) && MBEDTLS_TIMING_C */

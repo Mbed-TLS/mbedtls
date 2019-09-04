@@ -37,9 +37,6 @@
 /* Debug output */
 #define MBEDTLS_DEBUG_C
 
-/* ssl_client2 and ssl_server2 use CTR-DRBG so far. */
-#define MBEDTLS_CTR_DRBG_C
-
 /* The ticket implementation hardcodes AES-GCM */
 #define MBEDTLS_GCM_C
 

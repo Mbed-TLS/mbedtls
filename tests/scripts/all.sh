@@ -682,6 +682,27 @@ component_test_rsa_no_crt () {
     if_build_succeeded tests/compat.sh -t RSA
 }
 
+component_test_no_ctr_drbg () {
+    msg "build: Default + !MBEDTLS_CTR_DRBG_C"
+    scripts/config.pl unset MBEDTLS_CTR_DRBG_C
+    CC=gcc cmake .
+    make
+
+    msg "test: !MBEDTLS_CTR_DRBG_C - ssl-opt.sh" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh --filter "Default"
+}
+
+component_test_no_ctr_drbg_no_sha512 () {
+    msg "build: Default + !MBEDTLS_CTR_DRBG_C + !MBEDTLS_SHA512_C"
+    scripts/config.pl unset MBEDTLS_CTR_DRBG_C
+    scripts/config.pl unset MBEDTLS_SHA512_C
+    CC=gcc cmake .
+    make
+
+    msg "test: !MBEDTLS_CTR_DRBG_C + !MBEDTLS_SHA512_C - ssl-opt.sh" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh --filter "Default"
+}
+
 component_test_no_resumption () {
     msg "build: Default + MBEDTLS_SSL_NO_SESSION_RESUMPTION (ASan build)" # ~ 6 min
     scripts/config.pl unset MBEDTLS_SSL_SESSION_TICKETS

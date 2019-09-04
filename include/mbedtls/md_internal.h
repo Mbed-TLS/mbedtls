@@ -69,6 +69,8 @@
 extern "C" {
 #endif
 
+#define MBEDTLS_MD_WRAPPER MBEDTLS_ALWAYS_INLINE static inline
+
 /*
  * Message-digest information macro definition
  */
@@ -216,23 +218,23 @@ struct mbedtls_md_info_t
 
 #if defined(MBEDTLS_MD2_C)
 
-static int mbedtls_md2_starts_wrap( void *ctx )
+MBEDTLS_MD_WRAPPER int mbedtls_md2_starts_wrap( void *ctx )
 {
     return( mbedtls_md2_starts_ret( (mbedtls_md2_context *) ctx ) );
 }
 
-static int mbedtls_md2_update_wrap( void *ctx, const unsigned char *input,
+MBEDTLS_MD_WRAPPER int mbedtls_md2_update_wrap( void *ctx, const unsigned char *input,
                              size_t ilen )
 {
     return( mbedtls_md2_update_ret( (mbedtls_md2_context *) ctx, input, ilen ) );
 }
 
-static int mbedtls_md2_finish_wrap( void *ctx, unsigned char *output )
+MBEDTLS_MD_WRAPPER int mbedtls_md2_finish_wrap( void *ctx, unsigned char *output )
 {
     return( mbedtls_md2_finish_ret( (mbedtls_md2_context *) ctx, output ) );
 }
 
-static void* mbedtls_md2_ctx_alloc( void )
+MBEDTLS_MD_WRAPPER void* mbedtls_md2_ctx_alloc( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_md2_context ) );
 
@@ -242,19 +244,19 @@ static void* mbedtls_md2_ctx_alloc( void )
     return( ctx );
 }
 
-static void mbedtls_md2_ctx_free( void *ctx )
+MBEDTLS_MD_WRAPPER void mbedtls_md2_ctx_free( void *ctx )
 {
     mbedtls_md2_free( (mbedtls_md2_context *) ctx );
     mbedtls_free( ctx );
 }
 
-static void mbedtls_md2_clone_wrap( void *dst, const void *src )
+MBEDTLS_MD_WRAPPER void mbedtls_md2_clone_wrap( void *dst, const void *src )
 {
     mbedtls_md2_clone( (mbedtls_md2_context *) dst,
                  (const mbedtls_md2_context *) src );
 }
 
-static int mbedtls_md2_process_wrap( void *ctx, const unsigned char *data )
+MBEDTLS_MD_WRAPPER int mbedtls_md2_process_wrap( void *ctx, const unsigned char *data )
 {
     ((void) data);
 
@@ -269,23 +271,23 @@ static int mbedtls_md2_process_wrap( void *ctx, const unsigned char *data )
 
 #if defined(MBEDTLS_MD4_C)
 
-static int mbedtls_md4_starts_wrap( void *ctx )
+MBEDTLS_MD_WRAPPER int mbedtls_md4_starts_wrap( void *ctx )
 {
     return( mbedtls_md4_starts_ret( (mbedtls_md4_context *) ctx ) );
 }
 
-static int mbedtls_md4_update_wrap( void *ctx, const unsigned char *input,
+MBEDTLS_MD_WRAPPER int mbedtls_md4_update_wrap( void *ctx, const unsigned char *input,
                              size_t ilen )
 {
     return( mbedtls_md4_update_ret( (mbedtls_md4_context *) ctx, input, ilen ) );
 }
 
-static int mbedtls_md4_finish_wrap( void *ctx, unsigned char *output )
+MBEDTLS_MD_WRAPPER int mbedtls_md4_finish_wrap( void *ctx, unsigned char *output )
 {
     return( mbedtls_md4_finish_ret( (mbedtls_md4_context *) ctx, output ) );
 }
 
-static void* mbedtls_md4_ctx_alloc( void )
+MBEDTLS_MD_WRAPPER void* mbedtls_md4_ctx_alloc( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_md4_context ) );
 
@@ -295,19 +297,19 @@ static void* mbedtls_md4_ctx_alloc( void )
     return( ctx );
 }
 
-static void mbedtls_md4_ctx_free( void *ctx )
+MBEDTLS_MD_WRAPPER void mbedtls_md4_ctx_free( void *ctx )
 {
     mbedtls_md4_free( (mbedtls_md4_context *) ctx );
     mbedtls_free( ctx );
 }
 
-static void mbedtls_md4_clone_wrap( void *dst, const void *src )
+MBEDTLS_MD_WRAPPER void mbedtls_md4_clone_wrap( void *dst, const void *src )
 {
     mbedtls_md4_clone( (mbedtls_md4_context *) dst,
                        (const mbedtls_md4_context *) src );
 }
 
-static int mbedtls_md4_process_wrap( void *ctx, const unsigned char *data )
+MBEDTLS_MD_WRAPPER int mbedtls_md4_process_wrap( void *ctx, const unsigned char *data )
 {
     return( mbedtls_internal_md4_process( (mbedtls_md4_context *) ctx, data ) );
 }
@@ -320,23 +322,23 @@ static int mbedtls_md4_process_wrap( void *ctx, const unsigned char *data )
 
 #if defined(MBEDTLS_MD5_C)
 
-static int mbedtls_md5_starts_wrap( void *ctx )
+MBEDTLS_MD_WRAPPER int mbedtls_md5_starts_wrap( void *ctx )
 {
     return( mbedtls_md5_starts_ret( (mbedtls_md5_context *) ctx ) );
 }
 
-static int mbedtls_md5_update_wrap( void *ctx, const unsigned char *input,
+MBEDTLS_MD_WRAPPER int mbedtls_md5_update_wrap( void *ctx, const unsigned char *input,
                              size_t ilen )
 {
     return( mbedtls_md5_update_ret( (mbedtls_md5_context *) ctx, input, ilen ) );
 }
 
-static int mbedtls_md5_finish_wrap( void *ctx, unsigned char *output )
+MBEDTLS_MD_WRAPPER int mbedtls_md5_finish_wrap( void *ctx, unsigned char *output )
 {
     return( mbedtls_md5_finish_ret( (mbedtls_md5_context *) ctx, output ) );
 }
 
-static void* mbedtls_md5_ctx_alloc( void )
+MBEDTLS_MD_WRAPPER void* mbedtls_md5_ctx_alloc( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_md5_context ) );
 
@@ -346,19 +348,19 @@ static void* mbedtls_md5_ctx_alloc( void )
     return( ctx );
 }
 
-static void mbedtls_md5_ctx_free( void *ctx )
+MBEDTLS_MD_WRAPPER void mbedtls_md5_ctx_free( void *ctx )
 {
     mbedtls_md5_free( (mbedtls_md5_context *) ctx );
     mbedtls_free( ctx );
 }
 
-static void mbedtls_md5_clone_wrap( void *dst, const void *src )
+MBEDTLS_MD_WRAPPER void mbedtls_md5_clone_wrap( void *dst, const void *src )
 {
     mbedtls_md5_clone( (mbedtls_md5_context *) dst,
                        (const mbedtls_md5_context *) src );
 }
 
-static int mbedtls_md5_process_wrap( void *ctx, const unsigned char *data )
+MBEDTLS_MD_WRAPPER int mbedtls_md5_process_wrap( void *ctx, const unsigned char *data )
 {
     return( mbedtls_internal_md5_process( (mbedtls_md5_context *) ctx, data ) );
 }
@@ -371,25 +373,25 @@ static int mbedtls_md5_process_wrap( void *ctx, const unsigned char *data )
 
 #if defined(MBEDTLS_RIPEMD160_C)
 
-static int mbedtls_ripemd160_starts_wrap( void *ctx )
+MBEDTLS_MD_WRAPPER int mbedtls_ripemd160_starts_wrap( void *ctx )
 {
     return( mbedtls_ripemd160_starts_ret( (mbedtls_ripemd160_context *) ctx ) );
 }
 
-static int mbedtls_ripemd160_update_wrap( void *ctx, const unsigned char *input,
+MBEDTLS_MD_WRAPPER int mbedtls_ripemd160_update_wrap( void *ctx, const unsigned char *input,
                                    size_t ilen )
 {
     return( mbedtls_ripemd160_update_ret( (mbedtls_ripemd160_context *) ctx,
                                           input, ilen ) );
 }
 
-static int mbedtls_ripemd160_finish_wrap( void *ctx, unsigned char *output )
+MBEDTLS_MD_WRAPPER int mbedtls_ripemd160_finish_wrap( void *ctx, unsigned char *output )
 {
     return( mbedtls_ripemd160_finish_ret( (mbedtls_ripemd160_context *) ctx,
                                           output ) );
 }
 
-static void* mbedtls_ripemd160_ctx_alloc( void )
+MBEDTLS_MD_WRAPPER void* mbedtls_ripemd160_ctx_alloc( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ripemd160_context ) );
 
@@ -399,19 +401,19 @@ static void* mbedtls_ripemd160_ctx_alloc( void )
     return( ctx );
 }
 
-static void mbedtls_ripemd160_ctx_free( void *ctx )
+MBEDTLS_MD_WRAPPER void mbedtls_ripemd160_ctx_free( void *ctx )
 {
     mbedtls_ripemd160_free( (mbedtls_ripemd160_context *) ctx );
     mbedtls_free( ctx );
 }
 
-static void mbedtls_ripemd160_clone_wrap( void *dst, const void *src )
+MBEDTLS_MD_WRAPPER void mbedtls_ripemd160_clone_wrap( void *dst, const void *src )
 {
     mbedtls_ripemd160_clone( (mbedtls_ripemd160_context *) dst,
                        (const mbedtls_ripemd160_context *) src );
 }
 
-static int mbedtls_ripemd160_process_wrap( void *ctx, const unsigned char *data )
+MBEDTLS_MD_WRAPPER int mbedtls_ripemd160_process_wrap( void *ctx, const unsigned char *data )
 {
     return( mbedtls_internal_ripemd160_process(
                                 (mbedtls_ripemd160_context *) ctx, data ) );
@@ -425,24 +427,24 @@ static int mbedtls_ripemd160_process_wrap( void *ctx, const unsigned char *data 
 
 #if defined(MBEDTLS_SHA1_C)
 
-static int mbedtls_sha1_starts_wrap( void *ctx )
+MBEDTLS_MD_WRAPPER int mbedtls_sha1_starts_wrap( void *ctx )
 {
     return( mbedtls_sha1_starts_ret( (mbedtls_sha1_context *) ctx ) );
 }
 
-static int mbedtls_sha1_update_wrap( void *ctx, const unsigned char *input,
+MBEDTLS_MD_WRAPPER int mbedtls_sha1_update_wrap( void *ctx, const unsigned char *input,
                               size_t ilen )
 {
     return( mbedtls_sha1_update_ret( (mbedtls_sha1_context *) ctx,
                                      input, ilen ) );
 }
 
-static int mbedtls_sha1_finish_wrap( void *ctx, unsigned char *output )
+MBEDTLS_MD_WRAPPER int mbedtls_sha1_finish_wrap( void *ctx, unsigned char *output )
 {
     return( mbedtls_sha1_finish_ret( (mbedtls_sha1_context *) ctx, output ) );
 }
 
-static void* mbedtls_sha1_ctx_alloc( void )
+MBEDTLS_MD_WRAPPER void* mbedtls_sha1_ctx_alloc( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha1_context ) );
 
@@ -452,19 +454,19 @@ static void* mbedtls_sha1_ctx_alloc( void )
     return( ctx );
 }
 
-static void mbedtls_sha1_clone_wrap( void *dst, const void *src )
+MBEDTLS_MD_WRAPPER void mbedtls_sha1_clone_wrap( void *dst, const void *src )
 {
     mbedtls_sha1_clone( (mbedtls_sha1_context *) dst,
                   (const mbedtls_sha1_context *) src );
 }
 
-static void mbedtls_sha1_ctx_free( void *ctx )
+MBEDTLS_MD_WRAPPER void mbedtls_sha1_ctx_free( void *ctx )
 {
     mbedtls_sha1_free( (mbedtls_sha1_context *) ctx );
     mbedtls_free( ctx );
 }
 
-static int mbedtls_sha1_process_wrap( void *ctx, const unsigned char *data )
+MBEDTLS_MD_WRAPPER int mbedtls_sha1_process_wrap( void *ctx, const unsigned char *data )
 {
     return( mbedtls_internal_sha1_process( (mbedtls_sha1_context *) ctx,
                                            data ) );
@@ -479,34 +481,34 @@ static int mbedtls_sha1_process_wrap( void *ctx, const unsigned char *data )
 #if defined(MBEDTLS_SHA256_C)
 
 #if !defined(MBEDTLS_SHA256_NO_SHA224)
-static int mbedtls_sha224_starts_wrap( void *ctx )
+MBEDTLS_MD_WRAPPER int mbedtls_sha224_starts_wrap( void *ctx )
 {
     return( mbedtls_sha256_starts_ret( (mbedtls_sha256_context *) ctx, 1 ) );
 }
 #endif /* !MBEDTLS_SHA256_NO_SHA224 */
 
-static int mbedtls_sha224_update_wrap( void *ctx, const unsigned char *input,
+MBEDTLS_MD_WRAPPER int mbedtls_sha224_update_wrap( void *ctx, const unsigned char *input,
                                 size_t ilen )
 {
     return( mbedtls_sha256_update_ret( (mbedtls_sha256_context *) ctx,
                                        input, ilen ) );
 }
 
-static int mbedtls_sha224_finish_wrap( void *ctx, unsigned char *output )
+MBEDTLS_MD_WRAPPER int mbedtls_sha224_finish_wrap( void *ctx, unsigned char *output )
 {
     return( mbedtls_sha256_finish_ret( (mbedtls_sha256_context *) ctx,
                                        output ) );
 }
 
 #if !defined(MBEDTLS_SHA256_NO_SHA224)
-static int mbedtls_sha224_wrap( const unsigned char *input, size_t ilen,
+MBEDTLS_MD_WRAPPER int mbedtls_sha224_wrap( const unsigned char *input, size_t ilen,
                         unsigned char *output )
 {
     return( mbedtls_sha256_ret( input, ilen, output, 1 ) );
 }
 #endif /* !MBEDTLS_SHA256_NO_SHA224 */
 
-static void* mbedtls_sha224_ctx_alloc( void )
+MBEDTLS_MD_WRAPPER void* mbedtls_sha224_ctx_alloc( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha256_context ) );
 
@@ -516,30 +518,30 @@ static void* mbedtls_sha224_ctx_alloc( void )
     return( ctx );
 }
 
-static void mbedtls_sha224_ctx_free( void *ctx )
+MBEDTLS_MD_WRAPPER void mbedtls_sha224_ctx_free( void *ctx )
 {
     mbedtls_sha256_free( (mbedtls_sha256_context *) ctx );
     mbedtls_free( ctx );
 }
 
-static void mbedtls_sha224_clone_wrap( void *dst, const void *src )
+MBEDTLS_MD_WRAPPER void mbedtls_sha224_clone_wrap( void *dst, const void *src )
 {
     mbedtls_sha256_clone( (mbedtls_sha256_context *) dst,
                     (const mbedtls_sha256_context *) src );
 }
 
-static int mbedtls_sha224_process_wrap( void *ctx, const unsigned char *data )
+MBEDTLS_MD_WRAPPER int mbedtls_sha224_process_wrap( void *ctx, const unsigned char *data )
 {
     return( mbedtls_internal_sha256_process( (mbedtls_sha256_context *) ctx,
                                              data ) );
 }
 
-static int mbedtls_sha256_starts_wrap( void *ctx )
+MBEDTLS_MD_WRAPPER int mbedtls_sha256_starts_wrap( void *ctx )
 {
     return( mbedtls_sha256_starts_ret( (mbedtls_sha256_context *) ctx, 0 ) );
 }
 
-static int mbedtls_sha256_wrap( const unsigned char *input, size_t ilen,
+MBEDTLS_MD_WRAPPER int mbedtls_sha256_wrap( const unsigned char *input, size_t ilen,
                         unsigned char *output )
 {
     return( mbedtls_sha256_ret( input, ilen, output, 0 ) );
@@ -553,31 +555,31 @@ static int mbedtls_sha256_wrap( const unsigned char *input, size_t ilen,
 
 #if defined(MBEDTLS_SHA512_C)
 
-static int mbedtls_sha384_starts_wrap( void *ctx )
+MBEDTLS_MD_WRAPPER int mbedtls_sha384_starts_wrap( void *ctx )
 {
     return( mbedtls_sha512_starts_ret( (mbedtls_sha512_context *) ctx, 1 ) );
 }
 
-static int mbedtls_sha384_update_wrap( void *ctx, const unsigned char *input,
+MBEDTLS_MD_WRAPPER int mbedtls_sha384_update_wrap( void *ctx, const unsigned char *input,
                                size_t ilen )
 {
     return( mbedtls_sha512_update_ret( (mbedtls_sha512_context *) ctx,
                                        input, ilen ) );
 }
 
-static int mbedtls_sha384_finish_wrap( void *ctx, unsigned char *output )
+MBEDTLS_MD_WRAPPER int mbedtls_sha384_finish_wrap( void *ctx, unsigned char *output )
 {
     return( mbedtls_sha512_finish_ret( (mbedtls_sha512_context *) ctx,
                                        output ) );
 }
 
-static int mbedtls_sha384_wrap( const unsigned char *input, size_t ilen,
+MBEDTLS_MD_WRAPPER int mbedtls_sha384_wrap( const unsigned char *input, size_t ilen,
                         unsigned char *output )
 {
     return( mbedtls_sha512_ret( input, ilen, output, 1 ) );
 }
 
-static void* mbedtls_sha384_ctx_alloc( void )
+MBEDTLS_MD_WRAPPER void* mbedtls_sha384_ctx_alloc( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_sha512_context ) );
 
@@ -587,30 +589,30 @@ static void* mbedtls_sha384_ctx_alloc( void )
     return( ctx );
 }
 
-static void mbedtls_sha384_ctx_free( void *ctx )
+MBEDTLS_MD_WRAPPER void mbedtls_sha384_ctx_free( void *ctx )
 {
     mbedtls_sha512_free( (mbedtls_sha512_context *) ctx );
     mbedtls_free( ctx );
 }
 
-static void mbedtls_sha384_clone_wrap( void *dst, const void *src )
+MBEDTLS_MD_WRAPPER void mbedtls_sha384_clone_wrap( void *dst, const void *src )
 {
     mbedtls_sha512_clone( (mbedtls_sha512_context *) dst,
                     (const mbedtls_sha512_context *) src );
 }
 
-static int mbedtls_sha384_process_wrap( void *ctx, const unsigned char *data )
+MBEDTLS_MD_WRAPPER int mbedtls_sha384_process_wrap( void *ctx, const unsigned char *data )
 {
     return( mbedtls_internal_sha512_process( (mbedtls_sha512_context *) ctx,
                                              data ) );
 }
 
-static int mbedtls_sha512_starts_wrap( void *ctx )
+MBEDTLS_MD_WRAPPER int mbedtls_sha512_starts_wrap( void *ctx )
 {
     return( mbedtls_sha512_starts_ret( (mbedtls_sha512_context *) ctx, 0 ) );
 }
 
-static int mbedtls_sha512_wrap( const unsigned char *input, size_t ilen,
+MBEDTLS_MD_WRAPPER int mbedtls_sha512_wrap( const unsigned char *input, size_t ilen,
                         unsigned char *output )
 {
     return( mbedtls_sha512_ret( input, ilen, output, 0 ) );

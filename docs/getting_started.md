@@ -191,10 +191,10 @@ Mbed Crypto supports encrypting and decrypting messages using various symmetric 
 1. Initialize the operation structure to zero or to `PSA_CIPHER_OPERATION_INIT`.
 1. Call `psa_cipher_encrypt_setup()` to specify the algorithm and the key to be used.
 1. Call either `psa_cipher_generate_iv()` or `psa_cipher_set_iv()` to generate or set the initialization vector (IV). We recommend calling `psa_cipher_generate_iv()`, unless you require a specific IV value.
-1. Call `psa_cipher_update()` one or more times, passing the whole message or a fragment of the message on each call.
+1. Call `psa_cipher_update()` with the message to encrypt. You may call this function multiple times, passing successive fragments of the message on successive calls.
 1. Call `psa_cipher_finish()` to end the operation and output the encrypted message.
 
-This example shows how to encrypt data using an AES (Advanced Encryption Standard) key in CBC (Cipher Block Chaining)) mode with no padding (assuming all prerequisites have been fulfilled):
+This example shows how to encrypt data using an AES (Advanced Encryption Standard) key in CBC (Cipher Block Chaining) mode with no padding (assuming all prerequisites have been fulfilled):
 ```c
     enum {
         block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES),
@@ -270,9 +270,10 @@ This example shows how to encrypt data using an AES (Advanced Encryption Standar
 
 **To decrypt a message with a symmetric cipher:**
 1. Allocate an operation (`psa_cipher_operation_t`) structure to pass to the cipher functions.
-1. Call `psa_cipher_decrypt_setup()` to initialize the operation structure and to specify the algorithm and the key to be used.
+1. Initialize the operation structure to zero or to `PSA_CIPHER_OPERATION_INIT`.
+1. Call `psa_cipher_decrypt_setup()` to specify the algorithm and the key to be used.
 1. Call `psa_cipher_set_iv()` with the IV for the decryption.
-1. Call `psa_cipher_update()` one or more times, passing the whole message or a fragment of the message on each call.
+1. Call `psa_cipher_update()` with the message to encrypt. You may call this function multiple times, passing successive fragments of the message on successive calls.
 1. Call `psa_cipher_finish()` to end the operation and output the decrypted message.
 
 This example shows how to decrypt encrypted data using an AES key in CBC mode with no padding
@@ -377,10 +378,10 @@ algorithms.
 1. Allocate an operation structure (`psa_hash_operation_t`) to pass to the hash functions.
 1. Initialize the operation structure to zero or to `PSA_HASH_OPERATION_INIT`.
 1. Call `psa_hash_setup()` to specify the hash algorithm.
-1. Call `psa_hash_update()` one or more times, passing the whole message or a fragment of the message on each call.
+1. Call `psa_hash_update()` with the message to encrypt. You may call this function multiple times, passing successive fragments of the message on successive calls.
 1. Call `psa_hash_finish()` to calculate the hash, or `psa_hash_verify()` to compare the computed hash with an expected hash value.
 
-This example shows how to calculate the `SHA-256` hash of a message:
+This example shows how to calculate the SHA-256 hash of a message:
 ```c
     psa_status_t status;
     psa_algorithm_t alg = PSA_ALG_SHA_256;
@@ -425,7 +426,7 @@ This example shows how to calculate the `SHA-256` hash of a message:
     mbedtls_psa_crypto_free();
 ```
 
-This example shows how to verify the `SHA-256` hash of a message:
+This example shows how to verify the SHA-256 hash of a message:
 ```c
     psa_status_t status;
     psa_algorithm_t alg = PSA_ALG_SHA_256;
@@ -477,7 +478,7 @@ The API provides the macro `PSA_HASH_SIZE`, which returns the expected hash leng
 
 #### Handling hash operation contexts
 
-After a successful call to `psa_hash_setup()` initializes the operation structure, you can terminate the operation at any time by calling `psa_hash_abort()`. The call to `psa_hash_abort()` frees any resources associated with the operation, except for the operation structure itself.
+After a successful call to `psa_hash_setup()`, you can terminate the operation at any time by calling `psa_hash_abort()`. The call to `psa_hash_abort()` frees any resources associated with the operation, except for the operation structure itself.
 
 Mbed Crypto implicitly calls `psa_hash_abort()` when:
 1. A call to `psa_hash_update()` fails (returning any status other than `PSA_SUCCESS`).
@@ -545,10 +546,10 @@ information about which inputs to pass when, and when you can obtain which outpu
     * Usage flags set for key derivation (`PSA_KEY_USAGE_DERIVE`)
     * Key type set to `PSA_KEY_TYPE_DERIVE`.
     * Algorithm set to a key derivation algorithm
-      (for example `PSA_ALG_HKDF(PSA_ALG_SHA_256)`).
+      (for example, `PSA_ALG_HKDF(PSA_ALG_SHA_256)`).
 
 **To derive a new AES-CTR 128-bit encryption key into a given key slot using HKDF
-with a given key, salt and `info`:**
+with a given key, salt and info:**
 
 1. Set up the key derivation context using the `psa_key_derivation_setup()`
 function, specifying the derivation algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
@@ -880,6 +881,6 @@ Mbed Crypto provides a simple way to generate a key or key pair.
     mbedtls_psa_crypto_free();
 ```
 
-### More about the Mbed Crypto API
+### More about the PSA Crypto API
 
 For more information about the PSA Crypto API, please see the [PSA Cryptography API Specification](https://armmbed.github.io/mbed-crypto/html/index.html).

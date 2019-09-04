@@ -190,11 +190,11 @@ Mbed Crypto supports encrypting and decrypting messages using various symmetric 
 1. Allocate an operation (`psa_cipher_operation_t`) structure to pass to the cipher functions.
 1. Initialize the operation structure to zero or to `PSA_CIPHER_OPERATION_INIT`.
 1. Call `psa_cipher_encrypt_setup()` to specify the algorithm and the key to be used.
-1. Call either `psa_cipher_generate_iv()` or `psa_cipher_set_iv()` to generate or set the initialization vector (IV). We recommended calling `psa_cipher_generate_iv()`, unless you require a specific IV value.
+1. Call either `psa_cipher_generate_iv()` or `psa_cipher_set_iv()` to generate or set the initialization vector (IV). We recommend calling `psa_cipher_generate_iv()`, unless you require a specific IV value.
 1. Call `psa_cipher_update()` one or more times, passing the whole message or a fragment of the message on each call.
 1. Call `psa_cipher_finish()` to end the operation and output the encrypted message.
 
-This example shows how to encrypt data using an Advanced Encryption Standard (AES) key in Cipher Block Chaining (CBC) mode with no padding (assuming all prerequisites have been fulfilled):
+This example shows how to encrypt data using an AES (Advanced Encryption Standard) key in CBC (Cipher Block Chaining)) mode with no padding (assuming all prerequisites have been fulfilled):
 ```c
     enum {
         block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES),
@@ -548,7 +548,7 @@ information about which inputs to pass when, and when you can obtain which outpu
       (for example `PSA_ALG_HKDF(PSA_ALG_SHA_256)`).
 
 **To derive a new AES-CTR 128-bit encryption key into a given key slot using HKDF
-with a given key, salt and information:**
+with a given key, salt and `info`:**
 
 1. Set up the key derivation context using the `psa_key_derivation_setup()`
 function, specifying the derivation algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
@@ -563,7 +563,7 @@ function, specifying the derivation algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
 1. Clean up the key derivation context.
 
 At this point, the derived key slot holds a new 128-bit AES-CTR encryption key
-derived from the key, salt and information provided:
+derived from the key, salt and `info` provided:
 ```C
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -828,9 +828,7 @@ Mbed Crypto provides a simple way to generate a key or key pair.
 **To generate an ECDSA key:**
 1. Set the desired key attributes for key generation by calling
    `psa_set_key_algorithm()` with the chosen ECDSA algorithm (such as
-   `PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256)`). Do not set
-   `PSA_KEY_USAGE_EXPORT`; we only want to export the public key, not the key
-   pair (or private key).
+   `PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256)`). You only want to export the public key, not the key pair (or private key); therefore, do not set `PSA_KEY_USAGE_EXPORT`.
 1. Generate a key by calling `psa_generate_key()`.
 1. Export the generated public key by calling `psa_export_public_key()`:
 ```C
@@ -884,4 +882,4 @@ Mbed Crypto provides a simple way to generate a key or key pair.
 
 ### More about the Mbed Crypto API
 
-For more information about PSA Crypto, download the *PSA Cryptography API* PDF under [PSA APIs](https://developer.arm.com/architectures/security-architectures/platform-security-architecture#implement).
+For more information about the PSA Crypto API, please see the [PSA Cryptography API Specification](https://armmbed.github.io/mbed-crypto/html/index.html).

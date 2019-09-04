@@ -73,6 +73,9 @@ extern "C" {
  * Message-digest information macro definition
  */
 
+/* Dummy definition to keep check-names.sh happy - don't uncomment */
+//#define MBEDTLS_MD_INFO_SHA256
+
 /* SHA-256 */
 #define MBEDTLS_MD_INFO_SHA256_TYPE         MBEDTLS_MD_SHA256
 #define MBEDTLS_MD_INFO_SHA256_NAME         "SHA256"

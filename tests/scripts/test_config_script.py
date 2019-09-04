@@ -128,7 +128,6 @@ def run_one(options, args):
 ### A list of symbols to test with set and unset.
 TEST_SYMBOLS = [
     'CUSTOM_OPTION',
-    'DOES_NOT_EXIST',
     'MBEDTLS_AES_C',
     'MBEDTLS_NO_UDBL_DIVISION',
     'MBEDTLS_PLATFORM_ZEROIZE_ALT',

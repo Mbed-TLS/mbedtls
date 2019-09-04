@@ -58,6 +58,14 @@
 #include "tinycrypt/ecc_dh.h"
 #endif
 
+#if defined(__GNUC__) || defined(__arm__)
+#define MBEDTLS_ALWAYS_INLINE __attribute__((always_inline))
+#define MBEDTLS_NO_INLINE __attribute__((noinline))
+#else
+#define MBEDTLS_ALWAYS_INLINE
+#define MBEDTLS_NO_INLINE
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -498,13 +506,6 @@ struct mbedtls_ssl_handshake_params
     mbedtls_sha512_context fin_sha512;
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-
-    void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
-    void (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
-    void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
-    int  (*tls_prf)(const unsigned char *, size_t, const char *,
-                    const unsigned char *, size_t,
-                    unsigned char *, size_t);
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
@@ -1011,7 +1012,6 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
 unsigned char mbedtls_ssl_hash_from_md_alg( int md );
-int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md );
 
 #if defined(MBEDTLS_ECP_C)
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
@@ -1185,9 +1185,8 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
  * 1.0 <-> 3.2      (DTLS 1.0 is based on TLS 1.1)
  * 1.x <-> 3.x+1    for x != 0 (DTLS 1.2 based on TLS 1.2)
  */
-static inline void mbedtls_ssl_write_version( int major, int minor,
-                                              int transport,
-                                              unsigned char ver[2] )
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_write_version(
+    int major, int minor, int transport, unsigned char ver[2] )
 {
 #if !defined(MBEDTLS_SSL_TRANSPORT__BOTH)
     ((void) transport);
@@ -1212,9 +1211,8 @@ static inline void mbedtls_ssl_write_version( int major, int minor,
 #endif
 }
 
-static inline void mbedtls_ssl_read_version( int *major, int *minor,
-                                             int transport,
-                                             const unsigned char ver[2] )
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_read_version(
+    int *major, int *minor, int transport, const unsigned char ver[2] )
 {
 #if !defined(MBEDTLS_SSL_TRANSPORT__BOTH)
     ((void) transport);
@@ -1803,12 +1801,6 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH */
 
-#if defined(__GNUC__) || defined(__arm__)
-#define MBEDTLS_ALWAYS_INLINE __attribute__((always_inline))
-#else
-#define MBEDTLS_ALWAYS_INLINE
-#endif
-
 /* This internal function can be used to pend a fatal alert for
  * later delivery.
  *
@@ -1841,6 +1833,31 @@ static inline int mbedtls_ssl_session_get_compression(
     return( MBEDTLS_SSL_COMPRESS_NULL );
 #endif
 }
+
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_ssl_update_checksum(
+    mbedtls_ssl_context *ssl,
+    const unsigned char *buf, size_t len )
+{
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+     mbedtls_md5_update_ret( &ssl->handshake->fin_md5 , buf, len );
+    mbedtls_sha1_update_ret( &ssl->handshake->fin_sha1, buf, len );
+#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA256_C)
+    mbedtls_sha256_update_ret( &ssl->handshake->fin_sha256, buf, len );
+#endif
+#if defined(MBEDTLS_SHA512_C)
+    mbedtls_sha512_update_ret( &ssl->handshake->fin_sha512, buf, len );
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+}
+
+int mbedtls_ssl_calc_verify( int minor_ver,
+                             mbedtls_md_type_t hash,
+                             mbedtls_ssl_context const *ssl,
+                             unsigned char *dst,
+                             size_t *hlen );
 
 #define MBEDTLS_SSL_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
 

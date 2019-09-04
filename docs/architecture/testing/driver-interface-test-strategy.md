@@ -89,7 +89,7 @@ We must have at least one driver that is close to real-world conditions:
 * Run the full driver validation test suite (which does not yet exist).
 * Run at least one test application (e.g. the Mbed OS TLS example).
 
-This requirement shall be fulfilled by the [Microchip ATECC508A driver](https://github.com/ARMmbed/mbed-cryptoauthlib).
+This requirement shall be fulfilled by the [Microchip ATECC508A driver](https://github.com/ARMmbed/mbed-os-atecc608a/).
 
 #### Complete driver
 

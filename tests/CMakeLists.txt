@@ -9,9 +9,9 @@ if(NOT DEFINED MBEDTLS_DIR)
     set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
 endif()
 
-find_package(Perl)
-if(NOT PERL_FOUND)
-    message(FATAL_ERROR "Cannot build test suites without Perl")
+find_package(PythonInterp)
+if(NOT PYTHONINTERP_FOUND)
+    message(FATAL_ERROR "Cannot build test suites without Python 2 or 3")
 endif()
 
 # Enable definition of various functions used throughout the testsuite

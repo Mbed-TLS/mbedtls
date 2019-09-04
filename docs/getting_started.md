@@ -47,7 +47,7 @@ Mbed Crypto releases are available in the [public GitHub repository](https://git
 * Python 2 or Python 3 (either works) to generate the test code.
 * Perl to run the tests.
 
-If you have a C compiler, such as GCC or Clang, just run `make` in the top-level directory to build the library, a set of unit tests and some sample programs.
+If you have a C compiler such as GCC or Clang, just run `make` in the top-level directory to build the library, a set of unit tests and some sample programs.
 
 To select a different compiler, set the `CC` variable to the name or path of the compiler and linker (default: `cc`) and set `AR` to a compatible archiver (default: `ar`); for example:
 ```
@@ -64,7 +64,7 @@ To use the Mbed Crypto APIs, call `psa_crypto_init()` before calling any other A
 ### Importing a key
 
 To use a key for cryptography operations in Mbed Crypto, you need to first
-import it. After you import the key, you'll be given a handle that refers to the key for use
+import it. Importing the key creates a handle that refers to the key for use
 with other function calls.
 
 **Prerequisites to importing keys:**
@@ -121,12 +121,15 @@ Mbed Crypto supports encrypting, decrypting, signing and verifying messages usin
     * Usage flag `PSA_KEY_USAGE_VERIFY` to allow signature verification.
     * Algorithm set to the desired signature algorithm.
 
-This example shows how to sign a given hash using RSA, call `psa_asymmetric_sign()` and get the output buffer that contains the signature:
+This example shows how to sign a hash that has already been calculated:
 ```C
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t key[] = RSA_KEY;
-    uint8_t hash[] = "INPUT_FOR_SIGN";
+    uint8_t hash[32] = {0x50, 0xd8, 0x58, 0xe0, 0x98, 0x5e, 0xcc, 0x7f,
+                    0x60, 0x41, 0x8a, 0xaf, 0x0c, 0xc5, 0xab, 0x58,
+                    0x7f, 0x42, 0xc2, 0x57, 0x0a, 0x88, 0x40, 0x95,
+                    0xa9, 0xe8, 0xcc, 0xac, 0xd0, 0xf6, 0x54, 0x5c};
     uint8_t signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length;
     psa_key_handle_t handle;
@@ -181,8 +184,7 @@ Mbed Crypto supports encrypting and decrypting messages using various symmetric 
 
 **Prerequisites to working with the symmetric cipher API:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
-* Configure the key policy accordingly (set `PSA_KEY_USAGE_ENCRYPT` to allow encryption or `PSA_KEY_USAGE_DECRYPT` to allow decryption).
-* Have a valid key in the key slot.
+* Have a handle to a symmetric key. This key's usage flags must include `PSA_KEY_USAGE_ENCRYPT` to allow encryption or `PSA_KEY_USAGE_DECRYPT` to allow decryption.
 
 **To encrypt a message with a symmetric cipher:**
 1. Allocate an operation (`psa_cipher_operation_t`) structure to pass to the cipher functions.

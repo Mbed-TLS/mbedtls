@@ -508,7 +508,8 @@ int mbedtls_md_hmac( mbedtls_md_handle_t md_info, const unsigned char *key, size
                 unsigned char *output );
 
 /* Internal use */
-int mbedtls_md_process( mbedtls_md_context_t *ctx, const unsigned char *data );
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_process( mbedtls_md_context_t *ctx,
+                                                 const unsigned char *data );
 
 /*
  * Internal wrapper functions for those MD API functions which should be
@@ -575,6 +576,20 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_internal(
                                     ilen, output) );
 }
 
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_process_internal(
+    mbedtls_md_context_t *ctx, const unsigned char *data )
+{
+    mbedtls_md_handle_t md_info;
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+    md_info = mbedtls_md_get_handle( ctx );
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+    return( mbedtls_md_info_process( md_info, ctx->md_ctx, data ) );
+}
+
 #if defined(MBEDTLS_MD_SINGLE_HASH)
 MBEDTLS_MD_INLINABLE_API int mbedtls_md_starts(
     mbedtls_md_context_t *ctx )
@@ -603,6 +618,12 @@ MBEDTLS_MD_INLINABLE_API int mbedtls_md(
     unsigned char *output )
 {
     return( mbedtls_md_internal( md_info, input, ilen, output ) );
+}
+
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_process(
+    mbedtls_md_context_t *ctx, const unsigned char *data )
+{
+    return( mbedtls_md_process_internal( ctx, data ) );
 }
 
 #endif /* MBEDTLS_MD_SINGLE_HASH */

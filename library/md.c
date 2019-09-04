@@ -711,18 +711,12 @@ cleanup:
     return( ret );
 }
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 int mbedtls_md_process( mbedtls_md_context_t *ctx, const unsigned char *data )
 {
-    mbedtls_md_handle_t md_info;
-    if( ctx == NULL )
-        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-
-    md_info = mbedtls_md_get_handle( ctx );
-    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
-        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-
-    return( mbedtls_md_info_process( md_info, ctx->md_ctx, data ) );
+    return( mbedtls_md_process_internal( ctx, data ) );
 }
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 unsigned char mbedtls_md_get_size( mbedtls_md_handle_t md_info )
 {

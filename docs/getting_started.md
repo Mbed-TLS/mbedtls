@@ -375,7 +375,8 @@ algorithms.
 
 **To calculate a hash:**
 1. Allocate an operation structure (`psa_hash_operation_t`) to pass to the hash functions.
-1. Call `psa_hash_setup()` to initialize the operation structure and specify the hash algorithm.
+1. Initialize the operation structure to zero or to `PSA_HASH_OPERATION_INIT`.
+1. Call `psa_hash_setup()` to specify the hash algorithm.
 1. Call `psa_hash_update()` one or more times, passing the whole message or a fragment of the message on each call.
 1. Call `psa_hash_finish()` to calculate the hash, or `psa_hash_verify()` to compare the computed hash with an expected hash value.
 

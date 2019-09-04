@@ -188,7 +188,8 @@ Mbed Crypto supports encrypting and decrypting messages using various symmetric 
 
 **To encrypt a message with a symmetric cipher:**
 1. Allocate an operation (`psa_cipher_operation_t`) structure to pass to the cipher functions.
-1. Call `psa_cipher_encrypt_setup()` to initialize the operation structure and specify the algorithm and the key to be used.
+1. Initialize the operation structure to zero or to `PSA_CIPHER_OPERATION_INIT`.
+1. Call `psa_cipher_encrypt_setup()` to specify the algorithm and the key to be used.
 1. Call either `psa_cipher_generate_iv()` or `psa_cipher_set_iv()` to generate or set the initialization vector (IV). We recommended calling `psa_cipher_generate_iv()`, unless you require a specific IV value.
 1. Call `psa_cipher_update()` one or more times, passing the whole message or a fragment of the message on each call.
 1. Call `psa_cipher_finish()` to end the operation and output the encrypted message.

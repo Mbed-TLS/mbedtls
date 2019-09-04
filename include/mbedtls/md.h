@@ -131,6 +131,8 @@ static inline mbedtls_md_handle_t mbedtls_md_get_handle(
 }
 #endif /* !MBEDTLS_MD_SINGLE_HASH */
 
+#include "md_internal.h"
+
 /**
  * \brief           This function returns the list of digests supported by the
  *                  generic digest module.

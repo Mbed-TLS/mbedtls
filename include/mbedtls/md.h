@@ -82,6 +82,8 @@ typedef enum {
 
 #if !defined(MBEDTLS_MD_SINGLE_HASH)
 
+#define MBEDTLS_MD_INLINABLE_API
+
 /**
  * Opaque struct defined in md.c.
  */
@@ -92,6 +94,8 @@ typedef struct mbedtls_md_info_t const * mbedtls_md_handle_t;
 #define MBEDTLS_MD_INVALID_HANDLE ( (mbedtls_md_handle_t) NULL )
 
 #else /* !MBEDTLS_MD_SINGLE_HASH */
+
+#define MBEDTLS_MD_INLINABLE_API MBEDTLS_ALWAYS_INLINE static inline
 
 typedef int mbedtls_md_handle_t;
 #define MBEDTLS_MD_INVALID_HANDLE       ( (mbedtls_md_handle_t) 0 )
@@ -308,7 +312,7 @@ const char *mbedtls_md_get_name( mbedtls_md_handle_t md_info );
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
-int mbedtls_md_starts( mbedtls_md_context_t *ctx );
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_starts( mbedtls_md_context_t *ctx );
 
 /**
  * \brief           This function feeds an input buffer into an ongoing
@@ -499,6 +503,34 @@ int mbedtls_md_hmac( mbedtls_md_handle_t md_info, const unsigned char *key, size
 
 /* Internal use */
 int mbedtls_md_process( mbedtls_md_context_t *ctx, const unsigned char *data );
+
+/*
+ * Internal wrapper functions for those MD API functions which should be
+ * inlined in some but not all configurations. The actual MD API will be
+ * implemented either here or in md.c, and forward to the wrappers.
+ */
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_starts_internal(
+    mbedtls_md_context_t *ctx )
+{
+    mbedtls_md_handle_t md_info;
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+    md_info = mbedtls_md_get_handle( ctx );
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+    return( mbedtls_md_info_starts( md_info, ctx->md_ctx ) );
+}
+
+#if defined(MBEDTLS_MD_SINGLE_HASH)
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_starts(
+    mbedtls_md_context_t *ctx )
+{
+    return( mbedtls_md_starts_internal( ctx ) );
+}
+#endif /* MBEDTLS_MD_SINGLE_HASH */
 
 #ifdef __cplusplus
 }

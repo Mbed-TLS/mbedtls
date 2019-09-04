@@ -795,56 +795,64 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_block_size(
     return( info->block_size );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_starts( mbedtls_md_handle_t info,
-                                          void *ctx )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_starts(
+    mbedtls_md_handle_t info,
+    void *ctx )
 {
     return( info->starts_func( ctx ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_update( mbedtls_md_handle_t info,
-                                          void *ctx,
-                                          const unsigned char *input,
-                                          size_t ilen )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_update(
+    mbedtls_md_handle_t info,
+    void *ctx,
+    const unsigned char *input,
+    size_t ilen )
 {
     return( info->update_func( ctx, input, ilen ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_finish( mbedtls_md_handle_t info,
-                                          void *ctx,
-                                          unsigned char *output )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_finish(
+    mbedtls_md_handle_t info,
+    void *ctx,
+    unsigned char *output )
 {
     return( info->finish_func( ctx, output ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_digest( mbedtls_md_handle_t info,
-                                          const unsigned char *input,
-                                          size_t ilen,
-                                          unsigned char *output )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_digest(
+    mbedtls_md_handle_t info,
+    const unsigned char *input,
+    size_t ilen,
+    unsigned char *output )
 {
     return( info->digest_func( input, ilen, output ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void* mbedtls_md_info_ctx_alloc( mbedtls_md_handle_t info )
+MBEDTLS_ALWAYS_INLINE static inline void* mbedtls_md_info_ctx_alloc(
+    mbedtls_md_handle_t info )
 {
     return( info->ctx_alloc_func() );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void mbedtls_md_info_ctx_free( mbedtls_md_handle_t info,
-                                             void *ctx )
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_md_info_ctx_free(
+    mbedtls_md_handle_t info,
+    void *ctx )
 {
     info->ctx_free_func( ctx );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void mbedtls_md_info_clone( mbedtls_md_handle_t info,
-                                          void *dst,
-                                          const void *src )
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_md_info_clone(
+    mbedtls_md_handle_t info,
+    void *dst,
+    const void *src )
 {
     info->clone_func( dst, src );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_process( mbedtls_md_handle_t info,
-                                           void *ctx,
-                                           const unsigned char *input )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_process(
+    mbedtls_md_handle_t info,
+    void *ctx,
+    const unsigned char *input )
 {
     return( info->process_func( ctx, input ) );
 }
@@ -879,66 +887,74 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_block_size(
     return( MBEDTLS_MD_INFO_BLOCKSIZE( MBEDTLS_MD_SINGLE_HASH ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_starts( mbedtls_md_handle_t info,
-                                          void *ctx )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_starts(
+    mbedtls_md_handle_t info,
+    void *ctx )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_STARTS_FUNC( MBEDTLS_MD_SINGLE_HASH )( ctx ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_update( mbedtls_md_handle_t info,
-                                          void *ctx,
-                                          const unsigned char *input,
-                                          size_t ilen )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_update(
+    mbedtls_md_handle_t info,
+    void *ctx,
+    const unsigned char *input,
+    size_t ilen )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_UPDATE_FUNC( MBEDTLS_MD_SINGLE_HASH )
             ( ctx, input, ilen ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_finish( mbedtls_md_handle_t info,
-                                          void *ctx,
-                                          unsigned char *output )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_finish(
+    mbedtls_md_handle_t info,
+    void *ctx,
+    unsigned char *output )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_FINISH_FUNC( MBEDTLS_MD_SINGLE_HASH )
             ( ctx, output ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_digest( mbedtls_md_handle_t info,
-                                          const unsigned char *input,
-                                          size_t ilen,
-                                          unsigned char *output )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_digest(
+    mbedtls_md_handle_t info,
+    const unsigned char *input,
+    size_t ilen,
+    unsigned char *output )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_DIGEST_FUNC( MBEDTLS_MD_SINGLE_HASH )
             ( input, ilen, output ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void* mbedtls_md_info_ctx_alloc( mbedtls_md_handle_t info )
+MBEDTLS_ALWAYS_INLINE static inline void* mbedtls_md_info_ctx_alloc(
+    mbedtls_md_handle_t info )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_ALLOC_FUNC( MBEDTLS_MD_SINGLE_HASH )() );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void mbedtls_md_info_ctx_free( mbedtls_md_handle_t info,
-                                             void *ctx )
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_md_info_ctx_free(
+    mbedtls_md_handle_t info,
+    void *ctx )
 {
     ((void) info);
     MBEDTLS_MD_INFO_FREE_FUNC( MBEDTLS_MD_SINGLE_HASH )( ctx );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void mbedtls_md_info_clone( mbedtls_md_handle_t info,
-                                          void *dst,
-                                          const void *src )
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_md_info_clone(
+    mbedtls_md_handle_t info,
+    void *dst,
+    const void *src )
 {
     ((void) info);
     MBEDTLS_MD_INFO_CLONE_FUNC( MBEDTLS_MD_SINGLE_HASH )( dst, src );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_process( mbedtls_md_handle_t info,
-                                           void *ctx,
-                                           const unsigned char *input )
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_process(
+    mbedtls_md_handle_t info,
+    void *ctx,
+    const unsigned char *input )
 {
     ((void) info);
     return( MBEDTLS_MD_INFO_PROCESS_FUNC( MBEDTLS_MD_SINGLE_HASH )

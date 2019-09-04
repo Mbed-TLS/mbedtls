@@ -471,31 +471,18 @@ int mbedtls_md_update( mbedtls_md_context_t *ctx,
 {
     return( mbedtls_md_update_internal( ctx, input, ilen ) );
 }
-#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output )
 {
-    mbedtls_md_handle_t md_info;
-    if( ctx == NULL )
-        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-
-    md_info = mbedtls_md_get_handle( ctx );
-    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
-        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-
-    return( mbedtls_md_info_finish( md_info, ctx->md_ctx,
-                                    output ) );
+    return( mbedtls_md_finish_internal( ctx, output ) );
 }
 
 int mbedtls_md( mbedtls_md_handle_t md_info, const unsigned char *input, size_t ilen,
             unsigned char *output )
 {
-    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
-        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-
-    return( mbedtls_md_info_digest( md_info, input,
-                                    ilen, output) );
+    return( mbedtls_md_internal( md_info, input, ilen, output ) );
 }
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
 #if defined(MBEDTLS_FS_IO)
 int mbedtls_md_file( mbedtls_md_handle_t md_info, const char *path, unsigned char *output )

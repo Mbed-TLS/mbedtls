@@ -352,7 +352,8 @@ MBEDTLS_MD_INLINABLE_API int mbedtls_md_update( mbedtls_md_context_t *ctx,
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
-int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output );
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_finish( mbedtls_md_context_t *ctx,
+                                                unsigned char *output );
 
 /**
  * \brief          This function calculates the message-digest of a buffer,
@@ -372,8 +373,11 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output );
  * \return         #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                 failure.
  */
-int mbedtls_md( mbedtls_md_handle_t md_info, const unsigned char *input, size_t ilen,
-        unsigned char *output );
+MBEDTLS_MD_INLINABLE_API int mbedtls_md(
+    mbedtls_md_handle_t md_info,
+    const unsigned char *input,
+    size_t ilen,
+    unsigned char *output );
 
 #if defined(MBEDTLS_FS_IO)
 /**
@@ -543,6 +547,34 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_update_internal(
                                     input, ilen ) );
 }
 
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_finish_internal(
+    mbedtls_md_context_t *ctx, unsigned char *output )
+{
+    mbedtls_md_handle_t md_info;
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+    md_info = mbedtls_md_get_handle( ctx );
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+    return( mbedtls_md_info_finish( md_info, ctx->md_ctx,
+                                    output ) );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_internal(
+    mbedtls_md_handle_t md_info,
+    const unsigned char *input,
+    size_t ilen,
+    unsigned char *output )
+{
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+    return( mbedtls_md_info_digest( md_info, input,
+                                    ilen, output) );
+}
+
 #if defined(MBEDTLS_MD_SINGLE_HASH)
 MBEDTLS_MD_INLINABLE_API int mbedtls_md_starts(
     mbedtls_md_context_t *ctx )
@@ -557,6 +589,22 @@ MBEDTLS_MD_INLINABLE_API int mbedtls_md_update(
 {
     return( mbedtls_md_update_internal( ctx, input, ilen ) );
 }
+
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_finish(
+    mbedtls_md_context_t *ctx, unsigned char *output )
+{
+    return( mbedtls_md_finish_internal( ctx, output ) );
+}
+
+MBEDTLS_MD_INLINABLE_API int mbedtls_md(
+    mbedtls_md_handle_t md_info,
+    const unsigned char *input,
+    size_t ilen,
+    unsigned char *output )
+{
+    return( mbedtls_md_internal( md_info, input, ilen, output ) );
+}
+
 #endif /* MBEDTLS_MD_SINGLE_HASH */
 
 #ifdef __cplusplus

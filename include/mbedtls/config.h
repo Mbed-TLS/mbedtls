@@ -1271,9 +1271,11 @@
  *
  * The default implementation is meant to be a reasonnable compromise between
  * performance and size. This version optimizes more aggressively for size at
- * the expense of performance. Eg on Cortex-M4 it reduces the size of
- * mbedtls_sha256_process() from ~2KB to ~0.5KB for a performance hit of about
- * 30%.
+ * the expense of performance.
+ *
+ * For example, on a Cortex-M0 core it reduces the size of the module by about
+ * 2KiB for a performance cost of about 45%; on a Cortex-M4 core the size
+ * benefit is about 1.5 KiB for a performance cost of of about 30%.
  *
  * Uncomment to enable the smaller implementation of SHA256.
  */

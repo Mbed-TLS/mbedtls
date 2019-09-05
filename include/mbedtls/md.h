@@ -256,7 +256,9 @@ int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, mbedtls_md_handle_t md_info 
  *                  failure.
  * \return          #MBEDTLS_ERR_MD_ALLOC_FAILED on memory-allocation failure.
  */
-int mbedtls_md_setup( mbedtls_md_context_t *ctx, mbedtls_md_handle_t md_info, int hmac );
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_setup( mbedtls_md_context_t *ctx,
+                                               mbedtls_md_handle_t md_info,
+                                               int hmac );
 
 /**
  * \brief           This function clones the state of an message-digest
@@ -531,6 +533,36 @@ MBEDTLS_MD_INLINABLE_API int mbedtls_md_process( mbedtls_md_context_t *ctx,
  * implemented either here or in md.c, and forward to the wrappers.
  */
 
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_setup_internal(
+    mbedtls_md_context_t *ctx, mbedtls_md_handle_t md_info, int hmac )
+{
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE || ctx == NULL )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
+    ctx->md_ctx = mbedtls_md_info_ctx_alloc( md_info );
+    if( ctx->md_ctx == NULL )
+        return( MBEDTLS_ERR_MD_ALLOC_FAILED );
+
+    if( hmac != 0 )
+    {
+        ctx->hmac_ctx = mbedtls_calloc( 2,
+                           mbedtls_md_info_block_size( md_info ) );
+        if( ctx->hmac_ctx == NULL )
+        {
+            mbedtls_md_info_ctx_free( md_info, ctx->md_ctx);
+            return( MBEDTLS_ERR_MD_ALLOC_FAILED );
+        }
+    }
+
+    ctx->md_info = md_info;
+#else
+    ((void) hmac);
+#endif /* MBEDTLS_MD_SINGLE_HASH */
+
+    return( 0 );
+}
+
 MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_starts_internal(
     mbedtls_md_context_t *ctx )
 {
@@ -605,6 +637,13 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_process_internal(
 }
 
 #if defined(MBEDTLS_MD_SINGLE_HASH)
+
+MBEDTLS_MD_INLINABLE_API int mbedtls_md_setup(
+    mbedtls_md_context_t *ctx, mbedtls_md_handle_t md_info, int hmac )
+{
+    return( mbedtls_md_setup_internal( ctx, md_info, hmac ) );
+}
+
 MBEDTLS_MD_INLINABLE_API int mbedtls_md_starts(
     mbedtls_md_context_t *ctx )
 {

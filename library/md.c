@@ -439,36 +439,12 @@ int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, mbedtls_md_handle_t md_info 
 }
 #endif
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
 int mbedtls_md_setup( mbedtls_md_context_t *ctx, mbedtls_md_handle_t md_info, int hmac )
 {
-    if( md_info == MBEDTLS_MD_INVALID_HANDLE || ctx == NULL )
-        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-
-#if !defined(MBEDTLS_MD_SINGLE_HASH)
-    ctx->md_ctx = mbedtls_md_info_ctx_alloc( md_info );
-    if( ctx->md_ctx == NULL )
-        return( MBEDTLS_ERR_MD_ALLOC_FAILED );
-
-    if( hmac != 0 )
-    {
-        ctx->hmac_ctx = mbedtls_calloc( 2,
-                           mbedtls_md_info_block_size( md_info ) );
-        if( ctx->hmac_ctx == NULL )
-        {
-            mbedtls_md_info_ctx_free( md_info, ctx->md_ctx );
-            return( MBEDTLS_ERR_MD_ALLOC_FAILED );
-        }
-    }
-
-    ctx->md_info = md_info;
-#else
-    ((void) hmac);
-#endif
-
-    return( 0 );
+    return( mbedtls_md_setup_internal( ctx, md_info, hmac ) );
 }
 
-#if !defined(MBEDTLS_MD_SINGLE_HASH)
 int mbedtls_md_starts( mbedtls_md_context_t *ctx )
 {
     return( mbedtls_md_starts_internal( ctx ) );

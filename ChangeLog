@@ -76,6 +76,9 @@ Bugfix
    * Improve code clarity in x509_crt module, removing false-positive
      uninitialized variable warnings on some recent toolchains (GCC8, etc).
      Discovered and fixed by Andy Gross (Linaro), #2392.
+   * Fix bug in endianness conversion in bignum module. This lead to
+     functionally incorrect code on bigendian systems which don't have
+     __BYTE_ORDER__ defined. Reported by Brendan Shanks. Fixes #2622.
 
 Changes
    * Replace multiple uses of MD2 by SHA-256 in X.509 test suite. Fixes #821.

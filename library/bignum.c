@@ -1071,6 +1071,96 @@ int mbedtls_mpi_cmp_mpi( const mbedtls_mpi *X, const mbedtls_mpi *Y )
     return( 0 );
 }
 
+static int ct_lt_mpi_uint( const mbedtls_mpi_uint x, const mbedtls_mpi_uint y )
+{
+    mbedtls_mpi_uint ret;
+    mbedtls_mpi_uint cond;
+
+    /*
+     * Check if the most significant bits (MSB) of the operands are different.
+     */
+    cond = ( x ^ y );
+    /*
+     * If the MSB are the same then the difference x-y will be negative (and
+     * have its MSB set to 1 during conversion to unsigned) if and only if x<y.
+     */
+    ret = ( x - y ) & ~cond;
+    /*
+     * If the MSB are different, then the operand with the MSB of 1 is the
+     * bigger. (That is if y has MSB of 1, then x<y is true and it is false if
+     * the MSB of y is 0.)
+     */
+    ret |= y & cond;
+
+
+    ret = ret >> ( sizeof( mbedtls_mpi_uint ) * 8 - 1 );
+
+    return ret;
+}
+
+/*
+ * Compare signed values in constant time
+ */
+int mbedtls_mpi_cmp_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
+        int *ret )
+{
+    size_t i;
+    unsigned int cond, done;
+
+    MPI_VALIDATE_RET( X != NULL );
+    MPI_VALIDATE_RET( Y != NULL );
+    MPI_VALIDATE_RET( ret != NULL );
+
+    if( X->n != Y->n )
+        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+
+    /*
+     * if( X->s > 0 && Y->s < 0 )
+     * {
+     *     *ret = 1;
+     *     done = 1;
+     * }
+     * else if( Y->s > 0 && X->s < 0 )
+     * {
+     *     *ret = -1;
+     *     done = 1;
+     * }
+     */
+    unsigned int sign_X = X->s;
+    unsigned int sign_Y = Y->s;
+    cond = ( ( sign_X ^ sign_Y ) >> ( sizeof( unsigned int ) * 8 - 1 ) );
+    *ret = cond * X->s;
+    done = cond;
+
+    for( i = X->n; i > 0; i-- )
+    {
+        /*
+         * if( ( X->p[i - 1] > Y->p[i - 1] ) && !done )
+         * {
+         *     done = 1;
+         *     *ret = X->s;
+         * }
+         */
+        cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] );
+        *ret |= ( cond * ( 1 - done ) ) * X->s;
+        done |= cond * ( 1 - done );
+
+        /*
+         * if( ( X->p[i - 1] < Y->p[i - 1] ) && !done )
+         * {
+         *     done = 1;
+         *     *ret = -X->s;
+         * }
+         */
+        cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] );
+        *ret |= ( cond * ( 1 - done ) ) * -X->s;
+        done |= cond * ( 1 - done );
+
+    }
+
+    return( 0 );
+}
+
 /*
  * Compare signed values
  */

@@ -529,8 +529,13 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
 
     mbedtls_md_handle_t md_info;
 
-    if( ctx == NULL || ctx->hmac_ctx == NULL )
+    if( ctx == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
+    if( ctx->hmac_ctx == NULL )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
     md_info = mbedtls_md_get_handle( ctx );
     if( md_info == MBEDTLS_MD_INVALID_HANDLE )
@@ -587,8 +592,13 @@ int mbedtls_md_hmac_update( mbedtls_md_context_t *ctx,
 {
     mbedtls_md_handle_t md_info;
 
-    if( ctx == NULL || ctx->hmac_ctx == NULL )
+    if( ctx == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
+    if( ctx->hmac_ctx == NULL )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
     md_info = mbedtls_md_get_handle( ctx );
     if( md_info == MBEDTLS_MD_INVALID_HANDLE )
@@ -607,8 +617,13 @@ int mbedtls_md_hmac_finish( mbedtls_md_context_t *ctx, unsigned char *output )
 
     mbedtls_md_handle_t md_info;
 
-    if( ctx == NULL || ctx->hmac_ctx == NULL )
+    if( ctx == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
+    if( ctx->hmac_ctx == NULL )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
     md_info = mbedtls_md_get_handle( ctx );
     if( md_info == MBEDTLS_MD_INVALID_HANDLE )
@@ -648,8 +663,13 @@ int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx )
 
     mbedtls_md_handle_t md_info;
 
-    if( ctx == NULL || ctx->hmac_ctx == NULL )
+    if( ctx == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
+    if( ctx->hmac_ctx == NULL )
+        return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+#endif /* !MBEDTLS_MD_SINGLE_HASH */
 
     md_info = mbedtls_md_get_handle( ctx );
     if( md_info == MBEDTLS_MD_INVALID_HANDLE )

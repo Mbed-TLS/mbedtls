@@ -108,6 +108,8 @@ typedef int mbedtls_md_handle_t;
 
 #endif /* !MBEDTLS_MD_SINGLE_HASH */
 
+#include "md_internal.h"
+
 /**
  * The generic message-digest context.
  */
@@ -118,11 +120,20 @@ typedef struct mbedtls_md_context_t
     mbedtls_md_handle_t md_info;
 #endif
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
     /** The digest-specific context. */
     void *md_ctx;
 
     /** The HMAC part of the context. */
     void *hmac_ctx;
+#else
+    unsigned char md_ctx[ sizeof( MBEDTLS_MD_INFO_CTX_TYPE(
+                                      MBEDTLS_MD_SINGLE_HASH ) ) ];
+
+    unsigned char hmac_ctx[ 2 * MBEDTLS_MD_INFO_BLOCKSIZE(
+                                      MBEDTLS_MD_SINGLE_HASH ) ];
+
+#endif /* MBEDTLS_MD_SINGLE_HASH */
 } mbedtls_md_context_t;
 
 #if !defined(MBEDTLS_MD_SINGLE_HASH)
@@ -139,8 +150,6 @@ static inline mbedtls_md_handle_t mbedtls_md_get_handle(
     return( MBEDTLS_MD_UNIQUE_VALID_HANDLE );
 }
 #endif /* !MBEDTLS_MD_SINGLE_HASH */
-
-#include "md_internal.h"
 
 /**
  * \brief           This function returns the list of digests supported by the

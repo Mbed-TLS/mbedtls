@@ -388,6 +388,11 @@ mbedtls_md_handle_t mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
 void mbedtls_md_init( mbedtls_md_context_t *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_md_context_t ) );
+
+#if defined(MBEDTLS_MD_SINGLE_HASH)
+    mbedtls_md_info_init( mbedtls_md_get_handle( ctx ),
+                          ctx->md_ctx );
+#endif
 }
 
 void mbedtls_md_free( mbedtls_md_context_t *ctx )
@@ -395,6 +400,7 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx )
     if( ctx == NULL || mbedtls_md_get_handle( ctx ) == MBEDTLS_MD_INVALID_HANDLE )
         return;
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
     if( ctx->md_ctx != NULL )
     {
         mbedtls_md_info_ctx_free( mbedtls_md_get_handle( ctx ), ctx->md_ctx );
@@ -406,6 +412,7 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx )
             2 * mbedtls_md_info_block_size( mbedtls_md_get_handle( ctx ) ) );
         mbedtls_free( ctx->hmac_ctx );
     }
+#endif /* MBEDTLS_MD_SINGLE_HASH */
 
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_md_context_t ) );
 }
@@ -437,6 +444,7 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, mbedtls_md_handle_t md_info, in
     if( md_info == MBEDTLS_MD_INVALID_HANDLE || ctx == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
+#if !defined(MBEDTLS_MD_SINGLE_HASH)
     ctx->md_ctx = mbedtls_md_info_ctx_alloc( md_info );
     if( ctx->md_ctx == NULL )
         return( MBEDTLS_ERR_MD_ALLOC_FAILED );
@@ -452,8 +460,9 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, mbedtls_md_handle_t md_info, in
         }
     }
 
-#if !defined(MBEDTLS_MD_SINGLE_HASH)
     ctx->md_info = md_info;
+#else
+    ((void) hmac);
 #endif
 
     return( 0 );

@@ -3271,9 +3271,11 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
         psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
         const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
         mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
-        MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ecp->grp, &r, &s, &ecp->d,
-                                                 hash, hash_length,
-                                                 md_alg ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det_ext( &ecp->grp, &r, &s,
+                                                     &ecp->d, hash,
+                                                     hash_length, md_alg,
+                                                     mbedtls_ctr_drbg_random,
+                                                     &global_data.ctr_drbg ) );
     }
     else
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */

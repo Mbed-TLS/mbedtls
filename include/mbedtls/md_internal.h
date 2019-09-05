@@ -81,6 +81,7 @@ extern "C" {
 /* SHA-256 */
 #define MBEDTLS_MD_INFO_SHA256_TYPE         MBEDTLS_MD_SHA256
 #define MBEDTLS_MD_INFO_SHA256_CTX_TYPE     mbedtls_sha256_context
+#define MBEDTLS_MD_INFO_SHA256_INIT_FUNC    mbedtls_sha256_init
 #define MBEDTLS_MD_INFO_SHA256_NAME         "SHA256"
 #define MBEDTLS_MD_INFO_SHA256_SIZE         32
 #define MBEDTLS_MD_INFO_SHA256_BLOCKSIZE    64
@@ -98,6 +99,7 @@ extern "C" {
  */
 
 #define MBEDTLS_MD_INFO_CTX_TYPE_T( MD )     MD ## _CTX_TYPE
+#define MBEDTLS_MD_INFO_INIT_FUNC_T( MD )    MD ## _INIT_FUNC
 #define MBEDTLS_MD_INFO_TYPE_T( MD )         MD ## _TYPE
 #define MBEDTLS_MD_INFO_NAME_T( MD )         MD ## _NAME
 #define MBEDTLS_MD_INFO_SIZE_T( MD )         MD ## _SIZE
@@ -117,6 +119,7 @@ extern "C" {
  *    MBEDTLS_MD_INFO_XXX( MBEDTLS_MD_SINGLE_HASH ).
  * where MBEDTLS_MD_SINGLE_HASH expands to MBEDTLS_MD_INFO_XXX. */
 #define MBEDTLS_MD_INFO_CTX_TYPE( MD )     MBEDTLS_MD_INFO_CTX_TYPE_T( MD )
+#define MBEDTLS_MD_INFO_INIT_FUNC( MD )    MBEDTLS_MD_INFO_INIT_FUNC_T( MD )
 #define MBEDTLS_MD_INFO_TYPE( MD )         MBEDTLS_MD_INFO_TYPE_T( MD )
 #define MBEDTLS_MD_INFO_NAME( MD )         MBEDTLS_MD_INFO_NAME_T( MD )
 #define MBEDTLS_MD_INFO_SIZE( MD )         MBEDTLS_MD_INFO_SIZE_T( MD )
@@ -762,6 +765,14 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_update(
     ((void) info);
     return( MBEDTLS_MD_INFO_UPDATE_FUNC( MBEDTLS_MD_SINGLE_HASH )
             ( ctx, input, ilen ) );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_md_info_init(
+    mbedtls_md_handle_t info,
+    void *ctx )
+{
+    ((void) info);
+    MBEDTLS_MD_INFO_INIT_FUNC( MBEDTLS_MD_SINGLE_HASH )( ctx );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int mbedtls_md_info_finish(

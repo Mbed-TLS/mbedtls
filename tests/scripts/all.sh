@@ -915,10 +915,21 @@ component_build_no_sockets () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' lib
 }
 
-component_test_memory_buffer_allocator () {
-    msg "build: default config with memory buffer allocator enabled"
+component_test_memory_buffer_allocator_backtrace () {
+    msg "build: default config with memory buffer allocator and backtrace enabled"
     scripts/config.pl set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
     scripts/config.pl set MBEDTLS_MEMORY_BACKTRACE
+    CC=gcc cmake .
+    make
+
+    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
+    make test
+}
+
+component_test_memory_buffer_allocator () {
+    msg "build: default config with memory buffer allocator"
+    scripts/config.pl set MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
     CC=gcc cmake .
     make

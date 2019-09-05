@@ -80,6 +80,7 @@ extern "C" {
 
 /* SHA-256 */
 #define MBEDTLS_MD_INFO_SHA256_TYPE         MBEDTLS_MD_SHA256
+#define MBEDTLS_MD_INFO_SHA256_CTX_TYPE     mbedtls_sha256_context
 #define MBEDTLS_MD_INFO_SHA256_NAME         "SHA256"
 #define MBEDTLS_MD_INFO_SHA256_SIZE         32
 #define MBEDTLS_MD_INFO_SHA256_BLOCKSIZE    64
@@ -96,6 +97,7 @@ extern "C" {
  * Helper macros to extract fields from ciphersuites.
  */
 
+#define MBEDTLS_MD_INFO_CTX_TYPE_T( MD )     MD ## _CTX_TYPE
 #define MBEDTLS_MD_INFO_TYPE_T( MD )         MD ## _TYPE
 #define MBEDTLS_MD_INFO_NAME_T( MD )         MD ## _NAME
 #define MBEDTLS_MD_INFO_SIZE_T( MD )         MD ## _SIZE
@@ -114,6 +116,7 @@ extern "C" {
  * field name. This allows to call these macros as
  *    MBEDTLS_MD_INFO_XXX( MBEDTLS_MD_SINGLE_HASH ).
  * where MBEDTLS_MD_SINGLE_HASH expands to MBEDTLS_MD_INFO_XXX. */
+#define MBEDTLS_MD_INFO_CTX_TYPE( MD )     MBEDTLS_MD_INFO_CTX_TYPE_T( MD )
 #define MBEDTLS_MD_INFO_TYPE( MD )         MBEDTLS_MD_INFO_TYPE_T( MD )
 #define MBEDTLS_MD_INFO_NAME( MD )         MBEDTLS_MD_INFO_NAME_T( MD )
 #define MBEDTLS_MD_INFO_SIZE( MD )         MBEDTLS_MD_INFO_SIZE_T( MD )

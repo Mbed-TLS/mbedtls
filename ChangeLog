@@ -48,6 +48,11 @@ Bugfix
    * Improve code clarity in x509_crt module, removing false-positive
      uninitialized variable warnings on some recent toolchains (GCC8, etc).
      Discovered and fixed by Andy Gross (Linaro), #2392.
+   * Zero length buffer check for undefined behavior in
+     mbedtls_platform_zeroize(). Fixes ARMmbed/mbed-crypto#49.
+   * Fix bug in endianness conversion in bignum module. This lead to
+     functionally incorrect code on bigendian systems which don't have
+     __BYTE_ORDER__ defined. Reported by Brendan Shanks. Fixes #2622.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h

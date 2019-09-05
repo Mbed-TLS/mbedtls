@@ -149,6 +149,8 @@
 /* Server-side only */
 #define MBEDTLS_SSL_SRV_C
 
+#define MBEDTLS_DEPRECATED_REMOVED
+
 #if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
 #endif

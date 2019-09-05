@@ -55,25 +55,30 @@ void ecdsa_invalid_param( )
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                       mbedtls_ecdsa_sign_det( NULL, &m, &m, &m,
-                                                buf, sizeof( buf ),
-                                                valid_md ) );
+                       mbedtls_ecdsa_sign_det_ext( NULL, &m, &m, &m,
+                                                   buf, sizeof( buf ),
+                                                   valid_md,
+                                                   rnd_std_rand, NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                       mbedtls_ecdsa_sign_det( &grp, NULL, &m, &m,
-                                                buf, sizeof( buf ),
-                                                valid_md ) );
+                       mbedtls_ecdsa_sign_det_ext( &grp, NULL, &m, &m,
+                                                   buf, sizeof( buf ),
+                                                   valid_md,
+                                                   rnd_std_rand, NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                       mbedtls_ecdsa_sign_det( &grp, &m, NULL, &m,
-                                                buf, sizeof( buf ),
-                                                valid_md ) );
+                       mbedtls_ecdsa_sign_det_ext( &grp, &m, NULL, &m,
+                                                   buf, sizeof( buf ),
+                                                   valid_md,
+                                                   rnd_std_rand, NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                       mbedtls_ecdsa_sign_det( &grp, &m, &m, NULL,
-                                                buf, sizeof( buf ),
-                                                valid_md ) );
+                       mbedtls_ecdsa_sign_det_ext( &grp, &m, &m, NULL,
+                                                   buf, sizeof( buf ),
+                                                   valid_md,
+                                                   rnd_std_rand, NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                       mbedtls_ecdsa_sign_det( &grp, &m, &m, &m,
-                                                NULL, sizeof( buf ),
-                                                valid_md ) );
+                       mbedtls_ecdsa_sign_det_ext( &grp, &m, &m, &m,
+                                                   NULL, sizeof( buf ),
+                                                   valid_md,
+                                                   rnd_std_rand, NULL ) );
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
@@ -325,7 +330,10 @@ void ecdsa_det_test_vectors( int id, char * d_str, int md_alg, char * msg,
     TEST_ASSERT( mbedtls_md( md_info, (const unsigned char *) msg,
                  strlen( msg ), hash ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecdsa_sign_det( &grp, &r, &s, &d, hash, hlen, md_alg ) == 0 );
+    TEST_ASSERT(
+                mbedtls_ecdsa_sign_det_ext( &grp, &r, &s, &d, hash, hlen,
+                                            md_alg, rnd_std_rand, NULL )
+                == 0 );
 
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &r, &r_check ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &s, &s_check ) == 0 );

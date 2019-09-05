@@ -49,6 +49,11 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 #define SHA256_VALIDATE_RET(cond)                           \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
 #define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )

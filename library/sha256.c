@@ -56,7 +56,7 @@
 #if !defined(MBEDTLS_SHA256_ALT)
 
 /*
- * 32-bit integer manipulation macros (big endian)
+ * 32-bit integer manipulation (big endian)
  */
 #ifndef GET_UINT32_BE
 #define GET_UINT32_BE(n,b,i)                            \
@@ -68,24 +68,15 @@ do {                                                    \
 } while( 0 )
 #endif
 
-#ifndef PUT_UINT32_BE
-#define PUT_UINT32_BE(n,b,i)                            \
-do {                                                    \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n)       );       \
-} while( 0 )
-#endif
-
-#if defined(MBEDTLS_SHA256_SMALLER)
-static void sha256_put_uint32_be( uint32_t n, unsigned char *b, uint8_t i )
+static inline void sha256_put_uint32_be( uint32_t n,
+                                         unsigned char *b,
+                                         uint8_t i )
 {
-    PUT_UINT32_BE(n, b, i);
+    b[i    ] = (unsigned char) ( n >> 24 );
+    b[i + 1] = (unsigned char) ( n >> 16 );
+    b[i + 2] = (unsigned char) ( n >>  8 );
+    b[i + 3] = (unsigned char) ( n       );
 }
-#else
-#define sha256_put_uint32_be PUT_UINT32_BE
-#endif
 
 void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {

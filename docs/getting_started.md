@@ -553,9 +553,9 @@ with a given key, salt and info:**
 
 1. Set up the key derivation context using the `psa_key_derivation_setup()`
 function, specifying the derivation algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
-1. Provide `salt` (optional) with `psa_key_derivation_input_bytes()`.
-1. Provide `info` with `psa_key_derivation_input_bytes()`.
-1. Provide `secret` with `psa_key_derivation_input_key()`, referencing a key that
+1. Provide an optional salt with `psa_key_derivation_input_bytes()`.
+1. Provide info with `psa_key_derivation_input_bytes()`.
+1. Provide a secret with `psa_key_derivation_input_key()`, referencing a key that
    can be used for key derivation.
 1. Set the key attributes desired for the new derived key. We'll set
    the `PSA_KEY_USAGE_ENCRYPT` usage flag and the `PSA_ALG_CTR` algorithm for this

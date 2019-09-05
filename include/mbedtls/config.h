@@ -277,27 +277,51 @@
  * For example, when a function accepts as input a pointer to a buffer that may
  * contain untrusted data, and its documentation mentions that this pointer
  * must not be NULL:
- * - the pointer is checked to be non-NULL only if this option is enabled
- * - the content of the buffer is always validated
+ * - The pointer is checked to be non-NULL only if this option is enabled.
+ * - The content of the buffer is always validated.
  *
  * When this flag is defined, if a library function receives a parameter that
- * is invalid, it will:
- * - invoke the macro MBEDTLS_PARAM_FAILED() which by default expands to a
- *   call to the function mbedtls_param_failed()
- * - immediately return (with a specific error code unless the function
- *   returns void and can't communicate an error).
+ * is invalid:
+ * 1. The function will invoke the macro MBEDTLS_PARAM_FAILED().
+ * 2. If MBEDTLS_PARAM_FAILED() did not terminate the program, the function
+ *   will immediately return. If the function returns an Mbed TLS error code,
+ *   the error code in this case is MBEDTLS_ERR_xxx_BAD_INPUT_DATA.
  *
- * When defining this flag, you also need to:
- * - either provide a definition of the function mbedtls_param_failed() in
- *   your application (see platform_util.h for its prototype) as the library
- *   calls that function, but does not provide a default definition for it,
- * - or provide a different definition of the macro MBEDTLS_PARAM_FAILED()
- *   below if the above mechanism is not flexible enough to suit your needs.
- *   See the documentation of this macro later in this file.
+ * When defining this flag, you also need to arrange a definition for
+ * MBEDTLS_PARAM_FAILED(). You can do this by any of the following methods:
+ * - By default, the library defines MBEDTLS_PARAM_FAILED() to call a
+ *   function mbedtls_param_failed(), but the library does not define this
+ *   function. If you do not make any other arrangements, you must provide
+ *   the function mbedtls_param_failed() in your application.
+ *   See `platform_util.h` for its prototype.
+ * - If you enable the macro #MBEDTLS_CHECK_PARAMS_ASSERT, then the
+ *   library defines MBEDTLS_PARAM_FAILED(\c cond) to be `assert(cond)`.
+ *   You can still supply an alternative definition of
+ *   MBEDTLS_PARAM_FAILED(), which may call `assert`.
+ * - If you define a macro MBEDTLS_PARAM_FAILED() before including `config.h`
+ *   or you uncomment the definition of MBEDTLS_PARAM_FAILED() in `config.h`,
+ *   the library will call the macro that you defined and will not supply
+ *   its own version. Note that if MBEDTLS_PARAM_FAILED() calls `assert`,
+ *   you need to enable #MBEDTLS_CHECK_PARAMS_ASSERT so that library source
+ *   files include `<assert.h>`.
  *
  * Uncomment to enable validation of application-controlled parameters.
  */
 //#define MBEDTLS_CHECK_PARAMS
+
+/**
+ * \def MBEDTLS_CHECK_PARAMS_ASSERT
+ *
+ * Allow MBEDTLS_PARAM_FAILED() to call `assert`, and make it default to
+ * `assert`. This macro is only used if #MBEDTLS_CHECK_PARAMS is defined.
+ *
+ * If this macro is not defined, then MBEDTLS_PARAM_FAILED() defaults to
+ * calling a function mbedtls_param_failed(). See the documentation of
+ * #MBEDTLS_CHECK_PARAMS for details.
+ *
+ * Uncomment to allow MBEDTLS_PARAM_FAILED() to call `assert`.
+ */
+//#define MBEDTLS_CHECK_PARAMS_ASSERT
 
 /* \} name SECTION: System support */
 
@@ -983,6 +1007,16 @@
 //#define MBEDTLS_SHA256_SMALLER
 
 /**
+ * \def MBEDTLS_SHA512_SMALLER
+ *
+ * Enable an implementation of SHA-512 that has lower ROM footprint but also
+ * lower performance.
+ *
+ * Uncomment to enable the smaller implementation of SHA512.
+ */
+//#define MBEDTLS_SHA512_SMALLER
+
+/**
  * \def MBEDTLS_THREADING_ALT
  *
  * Provide your own alternate threading implementation.
@@ -1007,18 +1041,27 @@
 /**
  * \def MBEDTLS_USE_PSA_CRYPTO
  *
- * Make the X.509 and TLS library use PSA for cryptographic operations, see
- * #MBEDTLS_PSA_CRYPTO_C.
+ * Make the X.509 and TLS library use PSA for cryptographic operations, and
+ * enable new APIs for using keys handled by PSA Crypto.
  *
- * Note: this option is still in progress, the full X.509 and TLS modules are
- * not covered yet, but parts that are not ported to PSA yet will still work
- * as usual, so enabling this option should not break backwards compatibility.
+ * \note Development of this option is currently in progress, and parts of Mbed
+ * TLS's X.509 and TLS modules are not ported to PSA yet. However, these parts
+ * will still continue to work as usual, so enabling this option should not
+ * break backwards compatibility.
  *
- * \warning  Support for PSA is still an experimental feature.
- *           Any public API that depends on this option may change
- *           at any time until this warning is removed.
+ * \warning Support for PSA is still an experimental feature.
+ *          Any public API that depends on this option may change
+ *          at any time until this warning is removed.
+ *
+ * \warning This option enables new Mbed TLS APIs that are dependent on the
+ * PSA Crypto API, so can't come with the same stability guarantees as the
+ * rest of the Mbed TLS APIs. You're welcome to experiment with them, but for
+ * now, access to these APIs is opt-in (via enabling the present option), in
+ * order to clearly differentiate them from the stable Mbed TLS APIs.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C.
+ *
+ * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
  */
 //#define MBEDTLS_USE_PSA_CRYPTO
 
@@ -1702,12 +1745,32 @@
  *
  * Enable the Platform Security Architecture cryptography API.
  *
+ * \warning The PSA Crypto API is still beta status. While you're welcome to
+ * experiment using it, incompatible API changes are still possible, and some
+ * parts may not have reached the same quality as the rest of Mbed TLS yet.
+ *
  * Module:  library/psa_crypto.c
  *
  * Requires: MBEDTLS_CTR_DRBG_C, MBEDTLS_ENTROPY_C
  *
  */
 #define MBEDTLS_PSA_CRYPTO_C
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_SE_C
+ *
+ * Enable secure element support in the Platform Security Architecture
+ * cryptography API.
+ *
+ * \warning This feature is not yet suitable for production. It is provided
+ *          for API evaluation and testing purposes only.
+ *
+ * Module:  library/psa_crypto_se.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_C
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_SE_C
 
 /**
  * \def MBEDTLS_PSA_CRYPTO_STORAGE_C
@@ -1951,6 +2014,42 @@
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
 
 /**
+ * \brief       This macro is invoked by the library when an invalid parameter
+ *              is detected that is only checked with #MBEDTLS_CHECK_PARAMS
+ *              (see the documentation of that option for context).
+ *
+ *              When you leave this undefined here, the library provides
+ *              a default definition. If the macro #MBEDTLS_CHECK_PARAMS_ASSERT
+ *              is defined, the default definition is `assert(cond)`,
+ *              otherwise the default definition calls a function
+ *              mbedtls_param_failed(). This function is declared in
+ *              `platform_util.h` for the benefit of the library, but
+ *              you need to define in your application.
+ *
+ *              When you define this here, this replaces the default
+ *              definition in platform_util.h (which no longer declares the
+ *              function mbedtls_param_failed()) and it is your responsibility
+ *              to make sure this macro expands to something suitable (in
+ *              particular, that all the necessary declarations are visible
+ *              from within the library - you can ensure that by providing
+ *              them in this file next to the macro definition).
+ *              If you define this macro to call `assert`, also define
+ *              #MBEDTLS_CHECK_PARAMS_ASSERT so that library source files
+ *              include `<assert.h>`.
+ *
+ *              Note that you may define this macro to expand to nothing, in
+ *              which case you don't have to worry about declarations or
+ *              definitions. However, you will then be notified about invalid
+ *              parameters only in non-void functions, and void function will
+ *              just silently return early on invalid parameters, which
+ *              partially negates the benefits of enabling
+ *              #MBEDTLS_CHECK_PARAMS in the first place, so is discouraged.
+ *
+ * \param cond  The expression that should evaluate to true, but doesn't.
+ */
+//#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
+
+/**
  * Uncomment the macro to let mbed TLS use your alternate implementation of
  * mbedtls_platform_zeroize(). This replaces the default implementation in
  * platform_util.c.
@@ -1988,6 +2087,15 @@
  * supplied at compile time.
  */
 //#define MBEDTLS_PLATFORM_GMTIME_R_ALT
+
+/**
+ * Enable the verified implementations of ECDH primitives from Project Everest
+ * (currently only Curve25519). This feature changes the layout of ECDH
+ * contexts and therefore is a compatibility break for applications that access
+ * fields of a mbedtls_ecdh_context structure directly. See also
+ * MBEDTLS_ECDH_LEGACY_CONTEXT in include/mbedtls/ecdh.h.
+ */
+//#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
 /* \} name SECTION: Customisation configuration options */
 

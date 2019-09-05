@@ -2139,13 +2139,13 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
 {
     int ret;
     size_t lz, lzt;
-    mbedtls_mpi TG, TA, TB;
+    mbedtls_mpi TA, TB;
 
     MPI_VALIDATE_RET( G != NULL );
     MPI_VALIDATE_RET( A != NULL );
     MPI_VALIDATE_RET( B != NULL );
 
-    mbedtls_mpi_init( &TG ); mbedtls_mpi_init( &TA ); mbedtls_mpi_init( &TB );
+    mbedtls_mpi_init( &TA ); mbedtls_mpi_init( &TB );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TA, A ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TB, B ) );
@@ -2183,7 +2183,7 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
 
 cleanup:
 
-    mbedtls_mpi_free( &TG ); mbedtls_mpi_free( &TA ); mbedtls_mpi_free( &TB );
+    mbedtls_mpi_free( &TA ); mbedtls_mpi_free( &TB );
 
     return( ret );
 }
@@ -2410,8 +2410,6 @@ static int mpi_miller_rabin( const mbedtls_mpi *X, size_t rounds,
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &R, &W ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &R, s ) );
 
-    i = mbedtls_mpi_bitlen( X );
-
     for( i = 0; i < rounds; i++ )
     {
         /*
@@ -2428,7 +2426,8 @@ static int mpi_miller_rabin( const mbedtls_mpi *X, size_t rounds,
             }
 
             if (count++ > 30) {
-                return MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+                ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+                goto cleanup;
             }
 
         } while ( mbedtls_mpi_cmp_mpi( &A, &W ) >= 0 ||

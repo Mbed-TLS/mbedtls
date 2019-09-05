@@ -2,13 +2,16 @@
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 
 CFLAGS	?= -O2
-WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wno-unused-function -Wno-unused-value
+WARNING_CFLAGS ?= -Wall -Wextra
 LDFLAGS ?=
 
 CRYPTO_INCLUDES ?= -I../include
 LOCAL_CFLAGS = $(WARNING_CFLAGS) $(CRYPTO_INCLUDES) -I../library -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library			\
 		-lmbedcrypto$(SHARED_SUFFIX)
+
+include ../3rdparty/Makefile.inc
+LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
 # Enable definition of various functions used throughout the testsuite
 # (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
@@ -104,6 +107,11 @@ $(BINARIES): %$(EXEXT): %.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+# Some test suites require additional header files.
+$(filter test_suite_psa_crypto%, $(BINARIES)): psa_crypto_helpers.h
+$(addprefix embedded_,$(filter test_suite_psa_crypto%, $(APPS))): embedded_%: TESTS/mbedtls/%/psa_crypto_helpers.h
+$(filter test_suite_psa_%, $(BINARIES)): psa_helpers.h
+$(addprefix embedded_,$(filter test_suite_psa_%, $(APPS))): embedded_%: TESTS/mbedtls/%/psa_helpers.h
 
 clean:
 ifndef WINDOWS
@@ -141,3 +149,17 @@ $(EMBEDDED_TESTS): embedded_%: suites/$$(firstword $$(subst ., ,$$*)).function s
 
 generate-target-tests: $(EMBEDDED_TESTS)
 
+define copy_header_to_target
+TESTS/mbedtls/$(1)/$(2): $(2)
+	echo "  Copy ./$$@"
+ifndef WINDOWS
+	mkdir -p $$(@D)
+	cp $$< $$@
+else
+	mkdir $$(@D)
+	copy $$< $$@
+endif
+
+endef
+$(foreach app, $(APPS), $(foreach file, $(wildcard *.h), \
+	$(eval $(call copy_header_to_target,$(app),$(file)))))

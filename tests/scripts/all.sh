@@ -223,6 +223,11 @@ cleanup()
     rm -f programs/test/cmake_subproject/Makefile
     rm -f programs/test/cmake_subproject/cmake_subproject
 
+    # Remove any artifacts from the component_test_cmake_as_subdirectory test.
+    rm -rf programs/test/cmake_subproject/build
+    rm -f programs/test/cmake_subproject/Makefile
+    rm -f programs/test/cmake_subproject/cmake_subproject
+
     if [ -f "$CONFIG_BAK" ]; then
         mv "$CONFIG_BAK" "$CONFIG_H"
     fi
@@ -541,7 +546,7 @@ component_check_files () {
 
 component_check_names () {
     msg "test/build: declared and exported names" # < 3s
-    record_status tests/scripts/check-names.sh
+    record_status tests/scripts/check-names.sh -v
 }
 
 component_check_doxygen_warnings () {
@@ -580,6 +585,19 @@ component_test_ref_configs () {
     record_status tests/scripts/test-ref-configs.pl
 }
 
+component_test_no_pem_no_fs () {
+    msg "build: Default + !MBEDTLS_PEM_PARSE_C + !MBEDTLS_FS_IO (ASan build)"
+    scripts/config.pl unset MBEDTLS_PEM_PARSE_C
+    scripts/config.pl unset MBEDTLS_FS_IO
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C # requires a filesystem
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA ITS
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+}
+
 component_test_rsa_no_crt () {
     msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
     scripts/config.pl set MBEDTLS_RSA_NO_CRT
@@ -597,6 +615,17 @@ component_test_new_ecdh_context () {
     make
 
     msg "test: new ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+}
+
+component_test_everest () {
+    msg "build: Everest ECDH context (ASan build)" # ~ 6 min
+    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.pl set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
 }
 
@@ -642,7 +671,6 @@ component_build_deprecated () {
     make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
 }
 
-
 component_test_depends_curves () {
     msg "test/build: curves.pl (gcc)" # ~ 4 min
     record_status tests/scripts/curves.pl
@@ -669,24 +697,38 @@ component_build_default_make_gcc_and_cxx () {
     make TEST_CPP=1
 }
 
-component_test_use_psa_crypto_full_cmake_asan() {
-    # MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
+component_test_no_use_psa_crypto_full_cmake_asan() {
+    # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
     msg "build: cmake, full config + MBEDTLS_USE_PSA_CRYPTO, ASan"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl unset MBEDTLS_ECP_RESTARTABLE  # restartable ECC not supported through PSA
+    scripts/config.pl set MBEDTLS_ECP_RESTARTABLE  # not using PSA, so enable restartable ECC
     scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.pl set MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: main suites (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO)"
     make test
+}
+
+component_test_check_params_functionality () {
+    msg "build+test: MBEDTLS_CHECK_PARAMS functionality"
+    scripts/config.pl full # includes CHECK_PARAMS
+    # Make MBEDTLS_PARAM_FAILED call mbedtls_param_failed().
+    scripts/config.pl unset MBEDTLS_CHECK_PARAMS_ASSERT
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    # Only build and run tests. Do not build sample programs, because
+    # they don't have a mbedtls_param_failed() function.
+    make CC=gcc CFLAGS='-Werror -O1' lib test
 }
 
 component_test_check_params_without_platform () {
     msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
     scripts/config.pl full # includes CHECK_PARAMS
+    # Keep MBEDTLS_PARAM_FAILED as assert.
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
@@ -704,6 +746,7 @@ component_test_check_params_silent () {
     msg "build+test: MBEDTLS_CHECK_PARAMS with alternative MBEDTLS_PARAM_FAILED()"
     scripts/config.pl full # includes CHECK_PARAMS
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    # Set MBEDTLS_PARAM_FAILED to nothing.
     sed -i 's/.*\(#define MBEDTLS_PARAM_FAILED( cond )\).*/\1/' "$CONFIG_H"
     make CC=gcc CFLAGS='-Werror -O1' all test
 }
@@ -724,9 +767,9 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_FS_IO
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
@@ -797,16 +840,54 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make test
 }
 
+component_test_se_default () {
+    msg "build: default config + MBEDTLS_PSA_CRYPTO_SE_C"
+    scripts/config.pl set MBEDTLS_PSA_CRYPTO_SE_C
+    make CC=clang CFLAGS='-Werror -Wall -Wextra -Wno-unused-function -Os -fsanitize=address' LDFLAGS='-fsanitize=address'
+
+    msg "test: default config + MBEDTLS_PSA_CRYPTO_SE_C"
+    make test
+}
+
+component_test_se_full () {
+    msg "build: full config + MBEDTLS_PSA_CRYPTO_SE_C"
+    scripts/config.pl set MBEDTLS_PSA_CRYPTO_SE_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O2 -fsanitize=address' LDFLAGS='-fsanitize=address'
+
+    msg "test: full config + MBEDTLS_PSA_CRYPTO_SE_C"
+    make test
+}
+
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
-    make SHARED=1 all check
+    make SHARED=1 all check -j1
+    ldd programs/util/strerror | grep libmbedcrypto
+}
+
+component_test_cmake_shared () {
+    msg "build/test: cmake shared" # ~ 2min
+    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
+    make
+    ldd programs/util/strerror | grep libmbedcrypto
+    make test
+}
+
+component_build_mbedtls_config_file () {
+    msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
+    # Use the full config so as to catch a maximum of places where
+    # the check of MBEDTLS_CONFIG_FILE might be missing.
+    scripts/config.pl full
+    sed 's!"check_config.h"!"mbedtls/check_config.h"!' <"$CONFIG_H" >full_config.h
+    echo '#error "MBEDTLS_CONFIG_FILE is not working"' >"$CONFIG_H"
+    make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"'"
+    rm -f full_config.h
 }
 
 component_test_m32_o0 () {
     # Build once with -O0, to compile out the i386 specific inline assembly
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.pl full
-    make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
+    make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32 -fsanitize=address'
 
     msg "test: i386, make, gcc -O0 (ASan build)"
     make test
@@ -825,7 +906,7 @@ component_test_m32_o1 () {
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
-    make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
+    make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32 -fsanitize=address'
 
     msg "test: i386, make, gcc -O1 (ASan build)"
     make test
@@ -834,10 +915,23 @@ support_test_m32_o1 () {
     support_test_m32_o0 "$@"
 }
 
+component_test_m32_everest () {
+    msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
+    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.pl set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -m32 -fsanitize=address'
+
+    msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+}
+support_test_m32_everest () {
+    support_test_m32_o0 "$@"
+}
+
 component_test_mx32 () {
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
     scripts/config.pl full
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32' LDFLAGS='-mx32'
 
     msg "test: 64-bit ILP32, make, gcc"
     make test
@@ -905,39 +999,24 @@ component_test_no_64bit_multiplication () {
 
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_TIMING_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-    # following things are not in the default config
-    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-    scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    scripts/config.pl baremetal
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
+}
+
+component_build_arm_none_eabi_gcc_arm5vte () {
+    msg "build: arm-none-eabi-gcc -march=arm5vte, make" # ~ 10s
+    scripts/config.pl baremetal
+    # Build for a target platform that's close to what Debian uses
+    # for its "armel" distribution (https://wiki.debian.org/ArmEabiPort).
+    # See https://github.com/ARMmbed/mbedtls/pull/2169 and comments.
+    # It would be better to build with arm-linux-gnueabi-gcc but
+    # we don't have that on our CI at this time.
+    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {
     msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_TIMING_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-    # following things are not in the default config
-    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-    scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
@@ -946,20 +1025,7 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
 
 component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     msg "build: arm-none-eabi-gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_TIMING_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-    # following things are not in the default config
-    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-    scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
     echo "Checking that software 64-bit multiplication is not required"
@@ -968,24 +1034,7 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
 
 component_build_armcc () {
     msg "build: ARM Compiler 5, make"
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_TIMING_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl unset MBEDTLS_HAVE_TIME
-    scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
-    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-    # following things are not in the default config
-    scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
-    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-    scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-    scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
+    scripts/config.pl baremetal
 
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
     make clean
@@ -1008,15 +1057,15 @@ component_build_armcc () {
 
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs -j1
 
     # note Make tests only builds the tests, but doesn't run them
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests -j1
     make WINDOWS_BUILD=1 clean
 
     msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs -j1
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests -j1
     make WINDOWS_BUILD=1 clean
 }
 support_build_mingw() {

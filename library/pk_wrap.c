@@ -546,9 +546,9 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *sig, size_t sig_len )
 {
     int ret;
-    psa_key_handle_t key_slot;
-    psa_key_policy_t policy;
-    psa_key_type_t psa_type;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_handle_t key_handle = 0;
+    psa_status_t status;
     mbedtls_pk_context key;
     int key_len;
     /* see ECP_PUB_DER_MAX_BYTES in pkwrite.c */
@@ -576,23 +576,17 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( psa_md == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
     psa_sig_md = PSA_ALG_ECDSA( psa_md );
-    psa_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
 
-    if( ( ret = psa_allocate_key( &key_slot ) ) != PSA_SUCCESS )
-          return( mbedtls_psa_err_translate_pk( ret ) );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve ) );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY );
+    psa_set_key_algorithm( &attributes, psa_sig_md );
 
-    policy = psa_key_policy_init();
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, psa_sig_md );
-    if( ( ret = psa_set_key_policy( key_slot, &policy ) ) != PSA_SUCCESS )
+    status = psa_import_key( &attributes,
+                             buf + sizeof( buf ) - key_len, key_len,
+                             &key_handle );
+    if( status != PSA_SUCCESS )
     {
-        ret = mbedtls_psa_err_translate_pk( ret );
-        goto cleanup;
-    }
-
-    if( psa_import_key( key_slot, psa_type, buf + sizeof( buf ) - key_len, key_len )
-         != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        ret = mbedtls_psa_err_translate_pk( status );
         goto cleanup;
     }
 
@@ -611,7 +605,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
-    if( psa_asymmetric_verify( key_slot, psa_sig_md,
+    if( psa_asymmetric_verify( key_handle, psa_sig_md,
                                hash, hash_len,
                                buf, 2 * signature_part_size )
          != PSA_SUCCESS )
@@ -628,7 +622,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     ret = 0;
 
 cleanup:
-    psa_destroy_key( key_slot );
+    psa_destroy_key( key_handle );
     return( ret );
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
@@ -898,10 +892,13 @@ static size_t pk_opaque_get_bitlen( const void *ctx )
 {
     const psa_key_handle_t *key = (const psa_key_handle_t *) ctx;
     size_t bits;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
-    if( PSA_SUCCESS != psa_get_key_information( *key, NULL, &bits ) )
+    if( PSA_SUCCESS != psa_get_key_attributes( *key, &attributes ) )
         return( 0 );
 
+    bits = psa_get_key_bits( &attributes );
+    psa_reset_key_attributes( &attributes );
     return( bits );
 }
 
@@ -1002,8 +999,9 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     const psa_key_handle_t *key = (const psa_key_handle_t *) ctx;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
-    size_t bits, buf_len;
+    size_t buf_len;
     psa_status_t status;
 
     /* PSA has its own RNG */
@@ -1014,11 +1012,11 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
      * that information. Assume that the buffer is large enough for a
      * maximal-length signature with that key (otherwise the application is
      * buggy anyway). */
-    status = psa_get_key_information( *key, NULL, &bits );
+    status = psa_get_key_attributes( *key, &attributes );
     if( status != PSA_SUCCESS )
         return( mbedtls_psa_err_translate_pk( status ) );
-
-    buf_len = MBEDTLS_ECDSA_MAX_SIG_LEN( bits );
+    buf_len = MBEDTLS_ECDSA_MAX_SIG_LEN( psa_get_key_bits( &attributes ) );
+    psa_reset_key_attributes( &attributes );
 
     /* make the signature */
     status = psa_asymmetric_sign( *key, alg, hash, hash_len,

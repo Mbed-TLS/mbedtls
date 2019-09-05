@@ -61,6 +61,7 @@ set(src_crypto
     platform_util.c
     poly1305.c
     psa_crypto.c
+    psa_crypto_se.c
     psa_crypto_slot_management.c
     psa_crypto_storage.c
     psa_its_file.c
@@ -92,6 +93,8 @@ set(src_crypto
     error.c
 )
 endif()
+
+list(APPEND src_crypto ${thirdparty_src})
 
 if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes")

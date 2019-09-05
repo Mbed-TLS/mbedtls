@@ -59,9 +59,7 @@ class AbiChecker(object):
 
     @staticmethod
     def check_repo_path():
-        current_dir = os.path.realpath('.')
-        root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        if current_dir != root_dir:
+        if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
             raise Exception("Must be run from Mbed TLS root")
 
     def _setup_logger(self):
@@ -108,6 +106,12 @@ class AbiChecker(object):
             stderr=subprocess.STDOUT
         )
         self.log.debug(worktree_output.decode("utf-8"))
+        version.commit = subprocess.check_output(
+            [self.git_command, "rev-parse", "HEAD"],
+            cwd=git_worktree_path,
+            stderr=subprocess.STDOUT
+        ).decode("ascii").rstrip()
+        self.log.debug("Commit is {}".format(version.commit))
         return git_worktree_path
 
     def _update_git_submodules(self, git_worktree_path, version):
@@ -163,6 +167,13 @@ class AbiChecker(object):
                     os.path.join(root, file)
                 )
 
+    @staticmethod
+    def _pretty_revision(version):
+        if version.revision == version.commit:
+            return version.revision
+        else:
+            return "{} ({})".format(version.revision, version.commit)
+
     def _get_abi_dumps_from_shared_libraries(self, version):
         """Generate the ABI dumps for the specified git revision.
         The shared libraries must have been built and the module paths
@@ -177,7 +188,7 @@ class AbiChecker(object):
                 "abi-dumper",
                 module_path,
                 "-o", output_path,
-                "-lver", version.revision
+                "-lver", self._pretty_revision(version),
             ]
             abi_dump_output = subprocess.check_output(
                 abi_dump_command,
@@ -214,7 +225,7 @@ class AbiChecker(object):
 
     def _remove_extra_detail_from_report(self, report_root):
         for tag in ['test_info', 'test_results', 'problem_summary',
-                    'added_symbols', 'removed_symbols', 'affected']:
+                    'added_symbols', 'affected']:
             self._remove_children_with_tag(report_root, tag)
 
         for report in report_root:
@@ -222,69 +233,84 @@ class AbiChecker(object):
                 if not problems.getchildren():
                     report.remove(problems)
 
+    def _abi_compliance_command(self, mbed_module, output_path):
+        """Build the command to run to analyze the library mbed_module.
+        The report will be placed in output_path."""
+        abi_compliance_command = [
+            "abi-compliance-checker",
+            "-l", mbed_module,
+            "-old", self.old_version.abi_dumps[mbed_module],
+            "-new", self.new_version.abi_dumps[mbed_module],
+            "-strict",
+            "-report-path", output_path,
+        ]
+        if self.skip_file:
+            abi_compliance_command += ["-skip-symbols", self.skip_file,
+                                       "-skip-types", self.skip_file]
+        if self.brief:
+            abi_compliance_command += ["-report-format", "xml",
+                                       "-stdout"]
+        return abi_compliance_command
+
+    def _is_library_compatible(self, mbed_module, compatibility_report):
+        """Test if the library mbed_module has remained compatible.
+        Append a message regarding compatibility to compatibility_report."""
+        output_path = os.path.join(
+            self.report_dir, "{}-{}-{}.html".format(
+                mbed_module, self.old_version.revision,
+                self.new_version.revision
+            )
+        )
+        try:
+            subprocess.check_output(
+                self._abi_compliance_command(mbed_module, output_path),
+                stderr=subprocess.STDOUT
+            )
+        except subprocess.CalledProcessError as err:
+            if err.returncode != 1:
+                raise err
+            if self.brief:
+                self.log.info(
+                    "Compatibility issues found for {}".format(mbed_module)
+                )
+                report_root = ET.fromstring(err.output.decode("utf-8"))
+                self._remove_extra_detail_from_report(report_root)
+                self.log.info(ET.tostring(report_root).decode("utf-8"))
+            else:
+                self.can_remove_report_dir = False
+                compatibility_report.append(
+                    "Compatibility issues found for {}, "
+                    "for details see {}".format(mbed_module, output_path)
+                )
+            return False
+        compatibility_report.append(
+            "No compatibility issues for {}".format(mbed_module)
+        )
+        if not (self.keep_all_reports or self.brief):
+            os.remove(output_path)
+        return True
+
     def get_abi_compatibility_report(self):
         """Generate a report of the differences between the reference ABI
         and the new ABI. ABI dumps from self.old_version and self.new_version
         must be available."""
-        compatibility_report = ""
+        compatibility_report = ["Checking evolution from {} to {}".format(
+            self._pretty_revision(self.old_version),
+            self._pretty_revision(self.new_version)
+        )]
         compliance_return_code = 0
         shared_modules = list(set(self.old_version.modules.keys()) &
                               set(self.new_version.modules.keys()))
         for mbed_module in shared_modules:
-            output_path = os.path.join(
-                self.report_dir, "{}-{}-{}.html".format(
-                    mbed_module, self.old_version.revision,
-                    self.new_version.revision
-                )
-            )
-            abi_compliance_command = [
-                "abi-compliance-checker",
-                "-l", mbed_module,
-                "-old", self.old_version.abi_dumps[mbed_module],
-                "-new", self.new_version.abi_dumps[mbed_module],
-                "-strict",
-                "-report-path", output_path,
-            ]
-            if self.skip_file:
-                abi_compliance_command += ["-skip-symbols", self.skip_file,
-                                           "-skip-types", self.skip_file]
-            if self.brief:
-                abi_compliance_command += ["-report-format", "xml",
-                                           "-stdout"]
-            try:
-                subprocess.check_output(
-                    abi_compliance_command,
-                    stderr=subprocess.STDOUT
-                )
-            except subprocess.CalledProcessError as err:
-                if err.returncode == 1:
-                    compliance_return_code = 1
-                    if self.brief:
-                        self.log.info(
-                            "Compatibility issues found for {}".format(mbed_module)
-                        )
-                        report_root = ET.fromstring(err.output.decode("utf-8"))
-                        self._remove_extra_detail_from_report(report_root)
-                        self.log.info(ET.tostring(report_root).decode("utf-8"))
-                    else:
-                        self.can_remove_report_dir = False
-                        compatibility_report += (
-                            "Compatibility issues found for {}, "
-                            "for details see {}\n".format(mbed_module, output_path)
-                        )
-                else:
-                    raise err
-            else:
-                compatibility_report += (
-                    "No compatibility issues for {}\n".format(mbed_module)
-                )
-                if not (self.keep_all_reports or self.brief):
-                    os.remove(output_path)
-            os.remove(self.old_version.abi_dumps[mbed_module])
-            os.remove(self.new_version.abi_dumps[mbed_module])
+            if not self._is_library_compatible(mbed_module,
+                                               compatibility_report):
+                compliance_return_code = 1
+        for version in [self.old_version, self.new_version]:
+            for mbed_module, mbed_module_dump in version.abi_dumps.items():
+                os.remove(mbed_module_dump)
         if self.can_remove_report_dir:
             os.rmdir(self.report_dir)
-        self.log.info(compatibility_report)
+        self.log.info("\n".join(compatibility_report))
         return compliance_return_code
 
     def check_for_abi_changes(self):
@@ -356,7 +382,9 @@ def run_main():
         )
         parser.add_argument(
             "-s", "--skip-file", type=str,
-            help="path to file containing symbols and types to skip"
+            help=("path to file containing symbols and types to skip "
+                  "(typically \"-s identifiers\" after running "
+                  "\"tests/scripts/list-identifiers.sh --internal\")")
         )
         parser.add_argument(
             "-b", "--brief", action="store_true",
@@ -370,6 +398,7 @@ def run_main():
             version="old",
             repository=abi_args.old_repo,
             revision=abi_args.old_rev,
+            commit=None,
             crypto_repository=abi_args.old_crypto_repo,
             crypto_revision=abi_args.old_crypto_rev,
             abi_dumps={},
@@ -379,6 +408,7 @@ def run_main():
             version="new",
             repository=abi_args.new_repo,
             revision=abi_args.new_rev,
+            commit=None,
             crypto_repository=abi_args.new_crypto_repo,
             crypto_revision=abi_args.new_crypto_rev,
             abi_dumps={},

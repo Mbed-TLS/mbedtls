@@ -246,17 +246,16 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( pk_type == MBEDTLS_PK_OPAQUE )
     {
-        psa_status_t status;
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_key_type_t key_type;
         psa_key_handle_t handle;
         psa_ecc_curve_t curve;
 
         handle = *((psa_key_handle_t*) key->pk_ctx );
-
-        status = psa_get_key_information( handle, &key_type,
-                                          NULL /* bitsize not needed */ );
-        if( status != PSA_SUCCESS )
+        if( PSA_SUCCESS != psa_get_key_attributes( handle, &attributes ) )
             return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+        key_type = psa_get_key_type( &attributes );
+        psa_reset_key_attributes( &attributes );
 
         curve = PSA_KEY_TYPE_GET_CURVE( key_type );
         if( curve == 0 )

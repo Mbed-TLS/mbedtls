@@ -124,7 +124,10 @@ if(CMAKE_COMPILER_IS_GNU)
     # note: starting with CMake 2.8 we could use CMAKE_C_COMPILER_VERSION
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                     OUTPUT_VARIABLE GCC_VERSION)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings")
+    if (GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wvla")
+    endif()
     if (GCC_VERSION VERSION_GREATER 4.5 OR GCC_VERSION VERSION_EQUAL 4.5)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wlogical-op")
     endif()
@@ -141,7 +144,7 @@ if(CMAKE_COMPILER_IS_GNU)
 endif(CMAKE_COMPILER_IS_GNU)
 
 if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -W -Wdeclaration-after-statement -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wwrite-strings -Wpointer-arith -Wimplicit-fallthrough -Wshadow -Wvla")
     set(CMAKE_C_FLAGS_RELEASE     "-O2")
     set(CMAKE_C_FLAGS_DEBUG       "-O0 -g3")
     set(CMAKE_C_FLAGS_COVERAGE    "-O0 -g3 --coverage")
@@ -176,8 +179,14 @@ endif()
 include_directories(include/)
 include_directories(library/)
 
-add_subdirectory(library)
 add_subdirectory(include)
+
+add_subdirectory(3rdparty)
+include_directories(${thirdparty_inc})
+list(APPEND libs ${thirdparty_lib})
+add_definitions(${thirdparty_def})
+
+add_subdirectory(library)
 
 if(ENABLE_PROGRAMS)
     add_subdirectory(programs)
@@ -219,13 +228,13 @@ if(ENABLE_TESTING)
             COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
         )
     endif(UNIX)
-endif()
 
-# Make scripts needed for testing available in an out-of-source build.
-if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-    link_to_source(scripts)
-    # Copy (don't link) DartConfiguration.tcl, needed for memcheck, to
-    # keep things simple with the sed commands in the memcheck target.
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
-                   ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
+    # Make scripts needed for testing available in an out-of-source build.
+    if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+        link_to_source(scripts)
+        # Copy (don't link) DartConfiguration.tcl, needed for memcheck, to
+        # keep things simple with the sed commands in the memcheck target.
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
+                    ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
+    endif()
 endif()

@@ -172,11 +172,11 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
-#define ECDSA_RS_ECP    &rs_ctx->ecp
+#define ECDSA_RS_ECP    ( rs_ctx == NULL ? NULL : &rs_ctx->ecp )
 
 /* Utility macro for checking and updating ops budget */
 #define ECDSA_BUDGET( ops )   \
-    MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, &rs_ctx->ecp, ops ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, ECDSA_RS_ECP, ops ) );
 
 /* Call this when entering a function that needs its own sub-context */
 #define ECDSA_RS_ENTER( SUB )   do {                                 \
@@ -263,7 +263,7 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
     mbedtls_mpi *pk = &k, *pr = r;
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
-    if( grp->N.p == NULL )
+    if( ! mbedtls_ecdsa_can_do( grp->id ) || grp->N.p == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /* Make sure d is in range 1..n-1 */
@@ -376,6 +376,20 @@ cleanup:
     ECDSA_RS_LEAVE( sig );
 
     return( ret );
+}
+
+int mbedtls_ecdsa_can_do( mbedtls_ecp_group_id gid )
+{
+    switch( gid )
+    {
+#ifdef MBEDTLS_ECP_DP_CURVE25519_ENABLED
+        case MBEDTLS_ECP_DP_CURVE25519: return 0;
+#endif
+#ifdef MBEDTLS_ECP_DP_CURVE448_ENABLED
+        case MBEDTLS_ECP_DP_CURVE448: return 0;
+#endif
+    default: return 1;
+    }
 }
 
 /*
@@ -502,7 +516,7 @@ static int ecdsa_verify_restartable( mbedtls_ecp_group *grp,
     mbedtls_mpi_init( &u1 ); mbedtls_mpi_init( &u2 );
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
-    if( grp->N.p == NULL )
+    if( ! mbedtls_ecdsa_can_do( grp->id ) || grp->N.p == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     ECDSA_RS_ENTER( ver );

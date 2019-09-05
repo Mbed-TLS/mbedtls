@@ -2,26 +2,42 @@
 #
 # This file is part of mbed TLS (https://tls.mbed.org)
 #
-# Copyright (c) 2015-2016, ARM Limited, All Rights Reserved
-#
-# Purpose
-#
-# This script confirms that the naming of all symbols and identifiers in mbed
-# TLS are consistent with the house style and are also self-consistent.
-#
+# Copyright (c) 2015-2019, ARM Limited, All Rights Reserved
+
 set -eu
+
+if [ $# -ne 0 ] && [ "$1" = "--help" ]; then
+    cat <<EOF
+$0 [-v]
+This script confirms that the naming of all symbols and identifiers in mbed
+TLS are consistent with the house style and are also self-consistent.
+
+  -v    If the script fails unexpectedly, print a command trace.
+EOF
+    exit
+fi
 
 if grep --version|head -n1|grep GNU >/dev/null; then :; else
     echo "This script requires GNU grep.">&2
     exit 1
 fi
 
+trace=
+if [ $# -ne 0 ] && [ "$1" = "-v" ]; then
+  shift
+  trace='-x'
+  exec 2>check-names.err
+  trap 'echo "FAILED UNEXPECTEDLY, status=$?";
+        cat check-names.err' EXIT
+  set -x
+fi
+
 printf "Analysing source code...\n"
 
-tests/scripts/list-macros.sh
+sh $trace tests/scripts/list-macros.sh
 tests/scripts/list-enum-consts.pl
-tests/scripts/list-identifiers.sh
-tests/scripts/list-symbols.sh
+sh $trace tests/scripts/list-identifiers.sh
+sh $trace tests/scripts/list-symbols.sh
 
 FAIL=0
 
@@ -41,11 +57,14 @@ for THING in actual-macros enum-consts; do
     printf "Names of $THING: "
     test -r $THING
     BAD=$( grep -E -v '^(MBEDTLS|PSA)_[0-9A-Z_]*[0-9A-Z]$' $THING || true )
-    if [ "x$BAD" = "x" ]; then
+    UNDERSCORES=$( grep -E '.*__.*' $THING || true )
+
+    if [ "x$BAD" = "x" ] && [ "x$UNDERSCORES" = "x" ]; then
         echo "PASS"
     else
         echo "FAIL"
         echo "$BAD"
+        echo "$UNDERSCORES"
         FAIL=1
     fi
 done
@@ -66,10 +85,12 @@ done
 printf "Likely typos: "
 sort -u actual-macros enum-consts > _caps
 HEADERS=$( ls include/mbedtls/*.h include/psa/*.h | egrep -v 'compat-1\.3\.h' )
+HEADERS="$HEADERS 3rdparty/everest/include/everest/everest.h 3rdparty/everest/include/everest/x25519.h"
+LIBRARY="$( ls library/*.c ) 3rdparty/everest/library/everest.c 3rdparty/everest/library/x25519.c"
 NL='
 '
 sed -n 's/MBED..._[A-Z0-9_]*/\'"$NL"'&\'"$NL"/gp \
-    $HEADERS library/*.c \
+    $HEADERS $LIBRARY \
     | grep MBEDTLS | sort -u > _MBEDTLS_XXX
 TYPOS=$( diff _caps _MBEDTLS_XXX | sed -n 's/^> //p' \
             | egrep -v 'XXX|__|_$|^MBEDTLS_.*CONFIG_FILE$' || true )
@@ -80,6 +101,12 @@ else
     echo "FAIL"
     echo "$TYPOS"
     FAIL=1
+fi
+
+if [ -n "$trace" ]; then
+  set +x
+  trap - EXIT
+  rm check-names.err
 fi
 
 printf "\nOverall: "

@@ -1,6 +1,8 @@
 /* BEGIN_HEADER */
 #include "../library/psa_crypto_its.h"
 
+#include "psa_helpers.h"
+
 /* Internal definitions of the implementation, copied for the sake of
  * some of the tests and of the cleanup code. */
 #define PSA_ITS_STORAGE_PREFIX ""

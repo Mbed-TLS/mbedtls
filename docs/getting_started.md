@@ -63,35 +63,50 @@ To use the Mbed Crypto APIs, call `psa_crypto_init()` before calling any other A
 
 ### Importing a key
 
-To use a key for cryptography operations in Mbed Crypto, you need to first import it into a key slot. Each slot can store only one key at a time. The slot where the key is stored must be unoccupied, and valid for a key of the chosen type.
+To use a key for cryptography operations in Mbed Crypto, you need to first
+import it. Upon importing, you'll be given a handle to refer to the key for use
+with other function calls.
 
-Prerequisites to importing keys:
+Prerequisites for importing keys:
 * Initialize the library with a successful call to `psa_crypto_init`.
 
-Importing a key and checking key information:
-1. Import a key pair into key slot `1`.
-1. Test the information stored in this slot:
+Importing a key:
 ```C
-    int key_slot = 1;
-    uint8_t *data = "KEYPAIR_KEY_DATA";
-    size_t data_size;
-    psa_key_type_t type = PSA_KEY_TYPE_RSA_PUBLIC_KEY;
-    size_t got_bits;
-    psa_key_type_t got_type;
-    size_t expected_bits = data_size;
-    psa_key_type_t type = PSA_KEY_TYPE_RAW_DATA;
-    size_t export_size = data_size;
+    psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t data[] = AES_KEY;
+    psa_key_handle_t handle;
 
-    psa_crypto_init();
+    printf("Import an AES key...\t");
+    fflush(stdout);
+
+    /* Initialize PSA Crypto */
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
+
+    /* Set key attributes */
+    psa_set_key_usage_flags(&attributes, 0);
+    psa_set_key_algorithm(&attributes, 0);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_bits(&attributes, 128);
 
     /* Import the key */
-    status = psa_import_key(key_slot, type, data, data_size);
+    status = psa_import_key(&attributes, data, sizeof(data), &handle);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to import key\n");
+        return;
+    }
+    printf("Imported a key\n");
 
-    /* Test the key information */
-    status = psa_get_key_information(slot, &got_type, &got_bits);
+    /* Free the attributes */
+    psa_reset_key_attributes(&attributes);
 
     /* Destroy the key */
-    psa_destroy_key(key_slot);
+    psa_destroy_key(handle);
+
     mbedtls_psa_crypto_free();
 ```
 
@@ -99,48 +114,70 @@ Importing a key and checking key information:
 
 Mbed Crypto provides support for encrypting, decrypting, signing and verifying messages using public key signature algorithms (such as RSA or ECDSA).
 
-Prerequisites to working with the asymmetric cipher API:
+Prerequisites for performing asymmetric signature operations:
 * Initialize the library with a successful call to `psa_crypto_init`.
-* Configure the key policy accordingly:
-    * `PSA_KEY_USAGE_SIGN` to allow signing.
-    * `PSA_KEY_USAGE_VERIFY` to allow signature verification.
-* Have a valid key in the key slot.
+* Have a valid key with appropriate attributes set:
+    * Usage flag `PSA_KEY_USAGE_SIGN` to allow signing.
+    * Usage flag `PSA_KEY_USAGE_VERIFY` to allow signature verification.
+    * Algorithm set to desired signature algorithm.
 
-To sign a given message `payload` using RSA:
-1. Set the key policy of the chosen key slot by calling `psa_key_policy_set_usage()` with the `PSA_KEY_USAGE_SIGN` parameter and the algorithm `PSA_ALG_RSA_PKCS1V15_SIGN_RAW`.
-This allows the key in the key slot to be used for RSA signing.
-1. Import the key into the key slot by calling `psa_import_key()`. You can use an already imported key instead of importing a new one.
-1. Call `psa_asymmetric_sign()` and get the output buffer that contains the signature:
+To sign a given `hash` using RSA:
+1. Call `psa_asymmetric_sign()` and get the output buffer that contains the
+   signature:
 ```C
     psa_status_t status;
-    int key_slot = 1;
-    unsigned char key[] = "RSA_KEY";
-    unsigned char payload[] = "ASYMMETRIC_INPUT_FOR_SIGN";
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
-    unsigned char signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t key[] = RSA_KEY;
+    uint8_t hash[] = "INPUT_FOR_SIGN";
+    uint8_t signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length;
+    psa_key_handle_t handle;
 
+    printf("Sign a message...\t");
+    fflush(stdout);
+
+    /* Initialize PSA Crypto */
     status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
+
+    /* Set key attributes */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN);
+    psa_set_key_algorithm(&attributes, PSA_ALG_RSA_PKCS1V15_SIGN_RAW);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
+    psa_set_key_bits(&attributes, 1024);
 
     /* Import the key */
-    psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_SIGN,
-                             PSA_ALG_RSA_PKCS1V15_SIGN_RAW);
-    status = psa_set_key_policy(key_slot, &policy);
+    status = psa_import_key(&attributes, key, sizeof(key), &handle);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to import key\n");
+        return;
+    }
 
-    status = psa_import_key(key_slot, PSA_KEY_TYPE_RSA_KEYPAIR,
-                            key, sizeof(key));
-
-    /* Sing message using the key */
-    status = psa_asymmetric_sign(key_slot, PSA_ALG_RSA_PKCS1V15_SIGN_RAW,
-                                 payload, sizeof(payload),
+    /* Sign message using the key */
+    status = psa_asymmetric_sign(handle, PSA_ALG_RSA_PKCS1V15_SIGN_RAW,
+                                 hash, sizeof(hash),
                                  signature, sizeof(signature),
                                  &signature_length);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to sign\n");
+        return;
+    }
+
+    printf("Signed a message\n");
+
+    /* Free the attributes */
+    psa_reset_key_attributes(&attributes);
+
     /* Destroy the key */
-    psa_destroy_key(key_slot);
+    psa_destroy_key(handle);
+
     mbedtls_psa_crypto_free();
 ```
 
-### Encrypting or decrypting using symmetric ciphers
+### Using symmetric ciphers
 
 Mbed Crypto provides support for encrypting and decrypting messages using various symmetric cipher algorithms (both block and stream ciphers).
 
@@ -156,32 +193,78 @@ Encrypting a message with a symmetric cipher:
 1. Call `psa_cipher_update` one or more times, passing either the whole or only a fragment of the message each time.
 1. Call `psa_cipher_finish` to end the operation and output the encrypted message.
 
-Encrypting random data using an AES key in cipher block chain (CBC) mode with no padding (assuming all prerequisites have been fulfilled):
+Encrypting data using an AES key in cipher block chain (CBC) mode with no padding (assuming all prerequisites have been fulfilled):
 ```c
-    psa_key_slot_t key_slot = 1;
+    enum {
+        block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES),
+    };
+    psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg = PSA_ALG_CBC_NO_PADDING;
-    psa_cipher_operation_t operation;
-    size_t block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES);
-    unsigned char input[block_size];
-    unsigned char iv[block_size];
+    uint8_t plaintext[block_size] = SOME_PLAINTEXT;
+    uint8_t iv[block_size];
     size_t iv_len;
-    unsigned char output[block_size];
+    uint8_t key[] = AES_KEY;
+    uint8_t output[block_size];
     size_t output_len;
+    psa_key_handle_t handle;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
 
-    /* generate some random data to be encrypted */
-    psa_generate_random(input, sizeof(input));
+    printf("Encrypt with cipher...\t");
+    fflush(stdout);
 
-    /* encrypt the key */
-    psa_cipher_encrypt_setup(&operation, key_slot, alg);
-    psa_cipher_generate_iv(&operation, iv, sizeof(iv), &iv_len);
-    psa_cipher_update(&operation, input, sizeof(input),
-    output, sizeof(output),
-    &output_len);
-    psa_cipher_finish(&operation,
-    output + output_len, sizeof(output) - output_len,
-    &output_len);
+    /* Initialize PSA Crypto */
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS)
+    {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
+
+    /* Import a key */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_bits(&attributes, 128);
+    status = psa_import_key(&attributes, key, sizeof(key), &handle);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to import a key\n");
+        return;
+    }
+    psa_reset_key_attributes(&attributes);
+
+    /* Encrypt the plaintext */
+    status = psa_cipher_encrypt_setup(&operation, handle, alg);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to begin cipher operation\n");
+        return;
+    }
+    status = psa_cipher_generate_iv(&operation, iv, sizeof(iv), &iv_len);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to generate IV\n");
+        return;
+    }
+    status = psa_cipher_update(&operation, plaintext, sizeof(plaintext),
+                               output, sizeof(output), &output_len);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to update cipher operation\n");
+        return;
+    }
+    status = psa_cipher_finish(&operation, output + output_len,
+                               sizeof(output) - output_len, &output_len);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to finish cipher operation\n");
+        return;
+    }
+    printf("Encrypted plaintext\n");
+
     /* Clean up cipher operation context */
     psa_cipher_abort(&operation);
+
+    /* Destroy the key */
+    psa_destroy_key(handle);
+
+    mbedtls_psa_crypto_free();
 ```
 
 Decrypting a message with a symmetric cipher:
@@ -194,31 +277,75 @@ Decrypting a message with a symmetric cipher:
 Decrypting encrypted data using an AES key in CBC mode with no padding
 (assuming all prerequisites have been fulfilled):
 ```c
-    psa_key_slot_t key_slot = 1;
+    enum {
+        block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES),
+    };
+    psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg = PSA_ALG_CBC_NO_PADDING;
-    psa_cipher_operation_t operation;
-    size_t block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES);
-    unsigned char input[block_size];
-    unsigned char iv[block_size];
-    size_t iv_len;
-    unsigned char output[block_size];
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    uint8_t ciphertext[block_size] = SOME_CIPHERTEXT;
+    uint8_t iv[block_size] = ENCRYPTED_WITH_IV;
+    uint8_t key[] = AES_KEY;
+    uint8_t output[block_size];
     size_t output_len;
+    psa_key_handle_t handle;
 
-    /* setup input data */
-    fetch_iv(iv, sizeof(iv));     /* fetch the IV used when the data was encrypted */
-    fetch_input(input, sizeof(input));      /* fetch the data to be decrypted */
+    printf("Decrypt with cipher...\t");
+    fflush(stdout);
 
-    /* encrypt the encrypted data */
-    psa_cipher_decrypt_setup(&operation, key_slot, alg);
-    psa_cipher_set_iv(&operation, iv, sizeof(iv));
-    psa_cipher_update(&operation, input, sizeof(input),
-    output, sizeof(output),
-    &output_len);
-    psa_cipher_finish(&operation,
-    output + output_len, sizeof(output) - output_len,
-    &output_len);
+    /* Initialize PSA Crypto */
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS)
+    {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
+
+    /* Import a key */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DECRYPT);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_bits(&attributes, 128);
+    status = psa_import_key(&attributes, key, sizeof(key), &handle);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to import a key\n");
+        return;
+    }
+    psa_reset_key_attributes(&attributes);
+
+    /* Decrypt the ciphertext */
+    status = psa_cipher_decrypt_setup(&operation, handle, alg);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to begin cipher operation\n");
+        return;
+    }
+    status = psa_cipher_set_iv(&operation, iv, sizeof(iv));
+    if (status != PSA_SUCCESS) {
+        printf("Failed to set IV\n");
+        return;
+    }
+    status = psa_cipher_update(&operation, ciphertext, sizeof(ciphertext),
+                               output, sizeof(output), &output_len);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to update cipher operation\n");
+        return;
+    }
+    status = psa_cipher_finish(&operation, output + output_len,
+                               sizeof(output) - output_len, &output_len);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to finish cipher operation\n");
+        return;
+    }
+    printf("Decrypted ciphertext\n");
+
     /* Clean up cipher operation context */
     psa_cipher_abort(&operation);
+
+    /* Destroy the key */
+    psa_destroy_key(handle);
+
+    mbedtls_psa_crypto_free();
 ```
 
 #### Handling cipher operation contexts
@@ -237,9 +364,8 @@ Multiple sequential calls to `psa_cipher_abort` on an operation that has already
 
 ### Hashing a message
 
-Mbed Crypto lets you compute and verify hashes using various hashing algorithms.
-
-The current implementation supports the following hash algorithms: `MD2`, `MD4`, `MD5`, `RIPEMD160`, `SHA-1`, `SHA-224`, `SHA-256`, `SHA-384`, and `SHA-512`.
+Mbed Crypto lets you compute and verify hashes using various hashing
+algorithms.
 
 Prerequisites to working with the hash APIs:
 * Initialize the library with a successful call to `psa_crypto_init`.
@@ -252,25 +378,54 @@ To calculate a hash:
 
 Calculate the `SHA-256` hash of a message:
 ```c
+    psa_status_t status;
     psa_algorithm_t alg = PSA_ALG_SHA_256;
-    psa_hash_operation_t operation;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     unsigned char input[] = { 'a', 'b', 'c' };
     unsigned char actual_hash[PSA_HASH_MAX_SIZE];
     size_t actual_hash_len;
 
+    printf("Hash a message...\t");
+    fflush(stdout);
+
+    /* Initialize PSA Crypto */
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
+
     /* Compute hash of message  */
-    psa_hash_setup(&operation, alg);
-    psa_hash_update(&operation, input, sizeof(input));
-    psa_hash_finish(&operation, actual_hash, sizeof(actual_hash), &actual_hash_len);
+    status = psa_hash_setup(&operation, alg);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to begin hash operation\n");
+        return;
+    }
+    status = psa_hash_update(&operation, input, sizeof(input));
+    if (status != PSA_SUCCESS) {
+        printf("Failed to update hash operation\n");
+        return;
+    }
+    status = psa_hash_finish(&operation, actual_hash, sizeof(actual_hash),
+                             &actual_hash_len);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to finish hash operation\n");
+        return;
+    }
+
+    printf("Hashed a message\n");
 
     /* Clean up hash operation context */
     psa_hash_abort(&operation);
+
+    mbedtls_psa_crypto_free();
 ```
 
 Verify the `SHA-256` hash of a message:
 ```c
+    psa_status_t status;
     psa_algorithm_t alg = PSA_ALG_SHA_256;
-    psa_hash_operation_t operation;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     unsigned char input[] = { 'a', 'b', 'c' };
     unsigned char expected_hash[] = {
         0xba, 0x78, 0x16, 0xbf, 0x8f, 0x01, 0xcf, 0xea, 0x41, 0x41, 0x40, 0xde,
@@ -279,10 +434,39 @@ Verify the `SHA-256` hash of a message:
     };
     size_t expected_hash_len = PSA_HASH_SIZE(alg);
 
+    printf("Verify a hash...\t");
+    fflush(stdout);
+
+    /* Initialize PSA Crypto */
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
+
     /* Verify message hash */
-    psa_hash_setup(&operation, alg);
-    psa_hash_update(&operation, input, sizeof(input));
-    psa_hash_verify(&operation, expected_hash, expected_hash_len);
+    status = psa_hash_setup(&operation, alg);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to begin hash operation\n");
+        return;
+    }
+    status = psa_hash_update(&operation, input, sizeof(input));
+    if (status != PSA_SUCCESS) {
+        printf("Failed to update hash operation\n");
+        return;
+    }
+    status = psa_hash_verify(&operation, expected_hash, expected_hash_len);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to verify hash\n");
+        return;
+    }
+
+    printf("Verified a hash\n");
+
+    /* Clean up hash operation context */
+    psa_hash_abort(&operation);
+
+    mbedtls_psa_crypto_free();
 ```
 
 The API provides the macro `PSA_HASH_SIZE`, which returns the expected hash length (in bytes) for the specified algorithm.
@@ -304,86 +488,172 @@ Multiple sequential calls to `psa_hash_abort` on an operation that has already b
 
 ### Generating a random value
 
-Mbed Crypto can generate random data.
+Mbed Crypto can generate random data. To generate a random key, use
+`psa_generate_key()` instead of `psa_generate_random()`
 
 Prerequisites to random generation:
-* Initialize the library with a successful call to `psa_crypto_init`.
+* Initialize the library with a successful call to `psa_crypto_init()`.
 
 Generate a random, ten-byte piece of data:
 1. Generate random bytes by calling `psa_generate_random()`:
 ```C
     psa_status_t status;
     uint8_t random[10] = { 0 };
-    psa_crypto_init();
-    status = psa_generate_random(random, sizeof(random));
 
+    printf("Generate random...\t");
+    fflush(stdout);
+
+    /* Initialize PSA Crypto */
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
+
+    status = psa_generate_random(random, sizeof(random));
+    if (status != PSA_SUCCESS) {
+        printf("Failed to generate a random value\n");
+        return;
+    }
+
+    printf("Generated random data\n");
+
+    /* Clean up */
     mbedtls_psa_crypto_free();
 ```
 
 ### Deriving a new key from an existing key
 
-Mbed Crypto provides a key derivation API that lets you derive new keys from existing ones. Key derivation is based upon the generator abstraction. A generator must first be initialized and set up (provided with a key and optionally other data) and then derived data can be read from it either to a buffer or directly imported into a key slot.
+Mbed Crypto provides a key derivation API that lets you derive new keys from
+existing ones. The key derivation API has functions to take inputs, including
+other keys and data, and functions to generate outputs, such as new keys or
+other data. A key derivation context must first be initialized and set up,
+provided with a key and optionally other data, and then derived data can be
+read from it either to a buffer or directly sent to a key slot. Refer to the
+documentation for the particular algorithm (such as HKDF or the TLS1.2 PRF) for
+information on which inputs to pass when and when you can obtain which outputs.
 
 Prerequisites to working with the key derivation APIs:
 * Initialize the library with a successful call to `psa_crypto_init`.
-* Configure the key policy for the key used for derivation (`PSA_KEY_USAGE_DERIVE`)
-* The key type must be `PSA_KEY_TYPE_DERIVE`.
+* Use a key with the appropriate attributes set:
+    * Usage flags set for key derivation (`PSA_KEY_USAGE_DERIVE`)
+    * Key type set to `PSA_KEY_TYPE_DERIVE`.
+    * Algorithm set to a key derivation algorithm
+      (`PSA_ALG_HKDF(PSA_ALG_SHA_256)`).
 
-Deriving a new AES-CTR 128-bit encryption key into a given key slot using HKDF with a given key, salt and label:
-1. Set the key policy for key derivation by calling `psa_key_policy_set_usage()` with `PSA_KEY_USAGE_DERIVE` parameter, and the algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
-1. Import the key into the key slot by calling `psa_import_key()`. You can skip this step and the previous one if the key has already been imported into a known key slot.
-1. Set up the generator using the `psa_key_derivation` function providing a key slot containing a key that can be used for key derivation and a salt and label (Note: salt and label are optional).
-1. Initiate a key policy to for the derived key by calling `psa_key_policy_set_usage()` with `PSA_KEY_USAGE_ENCRYPT` parameter and the algorithm `PSA_ALG_CTR`.
-1. Set the key policy to the derived key slot.
-1. Import a key from generator into the desired key slot using (`psa_generator_import_key`).
-1. Clean up generator.
+Deriving a new AES-CTR 128-bit encryption key into a given key slot using HKDF
+with a given key, salt and info:
+1. Set up the key derivation context using the `psa_key_derivation_setup`
+function, specifying the derivation algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
+1. Provide an optional salt with `psa_key_derivation_input_bytes`.
+1. Provide info with `psa_key_derivation_input_bytes`.
+1. Provide secret with `psa_key_derivation_input_key`, referencing a key that
+   can be used for key derivation.
+1. Set the key attributes desired for the new derived key. We'll set
+   `PSA_KEY_USAGE_ENCRYPT` parameter and the algorithm `PSA_ALG_CTR` for this
+   example.
+1. Derive the key by calling `psa_key_derivation_output_key()`.
+1. Clean up the key derivation context.
 
-At this point the derived key slot holds a new 128-bit AES-CTR encryption key derived from the key, salt and label provided:
+At this point the derived key slot holds a new 128-bit AES-CTR encryption key
+derived from the key, salt and info provided:
 ```C
-    psa_key_slot_t base_key = 1;
-    psa_key_slot_t derived_key = 2;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
-
-    unsigned char key[] = {
+    psa_status_t status;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    static const unsigned char key[] = {
         0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
         0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
         0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
         0x0b };
-
-    unsigned char salt[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-                             0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c };
-
-    unsigned char label[] = { 0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6,
-                              0xf7, 0xf8, 0xf9 };
-
+    static const unsigned char salt[] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+        0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c };
+    static const unsigned char info[] = {
+        0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6,
+        0xf7, 0xf8, 0xf9 };
     psa_algorithm_t alg = PSA_ALG_HKDF(PSA_ALG_SHA_256);
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
-    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_key_derivation_operation_t operation =
+        PSA_KEY_DERIVATION_OPERATION_INIT;
     size_t derived_bits = 128;
     size_t capacity = PSA_BITS_TO_BYTES(derived_bits);
+    psa_key_handle_t base_key;
+    psa_key_handle_t derived_key;
 
+    printf("Derive a key (HKDF)...\t");
+    fflush(stdout);
+
+    /* Initialize PSA Crypto */
     status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
 
-    /* Import a key for use in key derivation, if such a key has already been imported you can skip this part */
-    psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_DERIVE, alg);
-    status = psa_set_key_policy(base_key, &policy);
+    /* Import a key for use in key derivation. If such a key has already been
+     * generated or imported, you can skip this part. */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DERIVE);
+    psa_set_key_algorithm(&attributes, alg);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_DERIVE);
+    status = psa_import_key(&attributes, key, sizeof(key), &base_key);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to import a key\n");
+        return;
+    }
+    psa_reset_key_attributes(&attributes);
 
-    status = psa_import_key(base_key, PSA_KEY_TYPE_DERIVE, key, sizeof(key));
+    /* Derive a key */
+    status = psa_key_derivation_setup(&operation, alg);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to begin key derivation\n");
+        return;
+    }
+    status = psa_key_derivation_set_capacity(&operation, capacity);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to set capacity\n");
+        return;
+    }
+    status = psa_key_derivation_input_bytes(&operation,
+                                            PSA_KEY_DERIVATION_INPUT_SALT,
+                                            salt, sizeof(salt));
+    if (status != PSA_SUCCESS) {
+        printf("Failed to input salt (extract)\n");
+        return;
+    }
+    status = psa_key_derivation_input_key(&operation,
+                                          PSA_KEY_DERIVATION_INPUT_SECRET,
+                                          base_key);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to input key (extract)\n");
+        return;
+    }
+    status = psa_key_derivation_input_bytes(&operation,
+                                            PSA_KEY_DERIVATION_INPUT_INFO,
+                                            info, sizeof(info));
+    if (status != PSA_SUCCESS) {
+        printf("Failed to input info (expand)\n");
+        return;
+    }
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT);
+    psa_set_key_algorithm(&attributes, PSA_ALG_CTR);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_bits(&attributes, 128);
+    status = psa_key_derivation_output_key(&attributes, &operation,
+                                           &derived_key);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to derive key\n");
+        return;
+    }
+    psa_reset_key_attributes(&attributes);
 
-    /* Derive a key into a key slot*/
-    status = psa_key_derivation(&generator, base_key, alg, salt, sizeof(salt),
-                                label, sizeof(label), capacity);
+    printf("Derived key\n");
 
-    psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_ENCRYPT, PSA_ALG_CTR);
+    /* Clean up key derivation operation */
+    psa_key_derivation_abort(&operation);
 
-    psa_set_key_policy(derived_key, &policy);
+    /* Destroy the keys */
+    psa_destroy_key(derived_key);
+    psa_destroy_key(base_key);
 
-    psa_generator_import_key(derived_key, PSA_KEY_TYPE_AES, derived_bits, &generator);
-
-    /* Clean up generator and key */
-    psa_generator_abort(&generator);
-    /* as part of clean up you may want to clean up the keys used by calling:
-     * psa_destroy_key( base_key ); or psa_destroy_key( derived_key ); */
     mbedtls_psa_crypto_free();
 ```
 
@@ -393,95 +663,152 @@ Mbed Crypto provides a simple way for authenticate and encrypt with associated d
 
 Prerequisites to working with the AEAD ciphers APIs:
 * Initialize the library with a successful call to `psa_crypto_init`.
-* The key policy for the key used for derivation must be configured accordingly (`PSA_KEY_USAGE_ENCRYPT` or `PSA_KEY_USAGE_DECRYPT`).
+* The key attributes for the key used for derivation must have usage flags
+  `PSA_KEY_USAGE_ENCRYPT` or `PSA_KEY_USAGE_DECRYPT`.
 
 To authenticate and encrypt a message:
 ```C
-    int slot = 1;
     psa_status_t status;
-    unsigned char key[] = { 0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,
-                            0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF };
-
-    unsigned char nonce[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-                              0x08, 0x09, 0x0A, 0x0B };
-
-    unsigned char additional_data[] = { 0xEC, 0x46, 0xBB, 0x63, 0xB0, 0x25, 0x20,
-                                        0xC3, 0x3C, 0x49, 0xFD, 0x70 };
-
-    unsigned char input_data[] = { 0xB9, 0x6B, 0x49, 0xE2, 0x1D, 0x62, 0x17, 0x41,
-                                   0x63, 0x28, 0x75, 0xDB, 0x7F, 0x6C, 0x92, 0x43,
-                                   0xD2, 0xD7, 0xC2 };
-    unsigned char *output_data = NULL;
+    static const uint8_t key[] = {
+        0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,
+        0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF };
+    static const uint8_t nonce[] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0A, 0x0B };
+    static const uint8_t additional_data[] = {
+        0xEC, 0x46, 0xBB, 0x63, 0xB0, 0x25,
+        0x20, 0xC3, 0x3C, 0x49, 0xFD, 0x70 };
+    static const uint8_t input_data[] = {
+        0xB9, 0x6B, 0x49, 0xE2, 0x1D, 0x62, 0x17, 0x41,
+        0x63, 0x28, 0x75, 0xDB, 0x7F, 0x6C, 0x92, 0x43,
+        0xD2, 0xD7, 0xC2 };
+    uint8_t *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
     size_t tag_length = 16;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_handle_t handle;
+
+    printf("Authenticate encrypt...\t");
+    fflush(stdout);
+
+    /* Initialize PSA Crypto */
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
 
     output_size = sizeof(input_data) + tag_length;
-    output_data = malloc(output_size);
-    status = psa_crypto_init();
+    output_data = (uint8_t *)malloc(output_size);
+    if (!output_data) {
+        printf("Out of memory\n");
+        return;
+    }
 
-    psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_ENCRYPT, PSA_ALG_CCM);
-    status = psa_set_key_policy(slot, &policy);
+    /* Import a key */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT);
+    psa_set_key_algorithm(&attributes, PSA_ALG_CCM);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_bits(&attributes, 128);
+    status = psa_import_key(&attributes, key, sizeof(key), &handle);
+    psa_reset_key_attributes(&attributes);
 
-    status = psa_import_key(slot, PSA_KEY_TYPE_AES, key, sizeof(key));
-
-    status = psa_aead_encrypt(slot, PSA_ALG_CCM,
+    /* Authenticate and encrypt */
+    status = psa_aead_encrypt(handle, PSA_ALG_CCM,
                               nonce, sizeof(nonce),
                               additional_data, sizeof(additional_data),
                               input_data, sizeof(input_data),
                               output_data, output_size,
                               &output_length);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to authenticate and encrypt\n");
+        return;
+    }
 
-    psa_destroy_key(slot);
-    mbedtls_free(output_data);
+    printf("Authenticated and encrypted\n");
+
+    /* Clean up */
+    free(output_data);
+
+    /* Destroy the key */
+    psa_destroy_key(handle);
+
     mbedtls_psa_crypto_free();
 ```
 
 To authenticate and decrypt a message:
 
 ```C
-    int slot = 1;
     psa_status_t status;
-    unsigned char key[] = {
+    static const uint8_t key[] = {
         0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,
-        0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF
-    };
-
-    unsigned char nonce[] = { 0xEC, 0x46, 0xBB, 0x63, 0xB0, 0x25, 0x20, 0xC3,
-                              0x3C, 0x49, 0xFD, 0x70
-                            };
-
-    unsigned char additional_data[] = { 0xEC, 0x46, 0xBB, 0x63, 0xB0, 0x25, 0x20,
-                                        0xC3, 0x3C, 0x49, 0xFD, 0x70
-                                      };
-    unsigned char input_data[] = { 0xB9, 0x6B, 0x49, 0xE2, 0x1D, 0x62, 0x17, 0x41,
-                                   0x63, 0x28, 0x75, 0xDB, 0x7F, 0x6C, 0x92, 0x43,
-                                   0xD2, 0xD7, 0xC2
-                                 };
-    unsigned char *output_data = NULL;
+        0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF };
+    static const uint8_t nonce[] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0A, 0x0B };
+    static const uint8_t additional_data[] = {
+        0xEC, 0x46, 0xBB, 0x63, 0xB0, 0x25,
+        0x20, 0xC3, 0x3C, 0x49, 0xFD, 0x70 };
+    static const uint8_t input_data[] = {
+        0x20, 0x30, 0xE0, 0x36, 0xED, 0x09, 0xA0, 0x45, 0xAF, 0x3C, 0xBA, 0xEE,
+        0x0F, 0xC8, 0x48, 0xAF, 0xCD, 0x89, 0x54, 0xF4, 0xF6, 0x3F, 0x28, 0x9A,
+        0xA1, 0xDD, 0xB2, 0xB8, 0x09, 0xCD, 0x7C, 0xE1, 0x46, 0xE9, 0x98 };
+    uint8_t *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_handle_t handle;
+
+    printf("Authenticate decrypt...\t");
+    fflush(stdout);
+
+    /* Initialize PSA Crypto */
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
 
     output_size = sizeof(input_data);
-    output_data = malloc(output_size);
-    status = psa_crypto_init();
+    output_data = (uint8_t *)malloc(output_size);
+    if (!output_data) {
+        printf("Out of memory\n");
+        return;
+    }
 
-    psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_DECRYPT, PSA_ALG_CCM);
-    status = psa_set_key_policy(slot, &policy);
+    /* Import a key */
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DECRYPT);
+    psa_set_key_algorithm(&attributes, PSA_ALG_CCM);
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_bits(&attributes, 128);
+    status = psa_import_key(&attributes, key, sizeof(key), &handle);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to import a key\n");
+        return;
+    }
+    psa_reset_key_attributes(&attributes);
 
-    status = psa_import_key(slot, PSA_KEY_TYPE_AES, key, sizeof(key));
-
-    status = psa_aead_decrypt(slot, PSA_ALG_CCM,
+    /* Authenticate and decrypt */
+    status = psa_aead_decrypt(handle, PSA_ALG_CCM,
                               nonce, sizeof(nonce),
                               additional_data, sizeof(additional_data),
                               input_data, sizeof(input_data),
                               output_data, output_size,
                               &output_length);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to authenticate and decrypt %ld\n", status);
+        return;
+    }
 
-    psa_destroy_key(slot);
-    mbedtls_free(output_data);
+    printf("Authenticated and decrypted\n");
+
+    /* Clean up */
+    free(output_data);
+
+    /* Destroy the key */
+    psa_destroy_key(handle);
+
     mbedtls_psa_crypto_free();
 ```
 
@@ -492,29 +819,61 @@ Mbed Crypto provides a simple way to generate a key or key pair.
 Prerequisites to using key generation and export APIs:
 * Initialize the library with a successful call to `psa_crypto_init`.
 
-Generate a piece of random 128-bit AES data:
-1. Set the key policy for key generation by calling `psa_key_policy_set_usage()` with the `PSA_KEY_USAGE_EXPORT` parameter and the algorithm `PSA_ALG_GCM`.
-1. Generate a random AES key by calling `psa_generate_key()`.
-1. Export the generated key by calling `psa_export_key()`:
+Generate an ECDSA key:
+1. Set the desired key attributes for key generation by calling
+   `psa_set_key_algorithm()` with the chosen ECDSA algorithm (such as
+   `PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256)`). We don't set
+   `PSA_KEY_USAGE_EXPORT` as we only want to export the public key, not the key
+   pair (or private key).
+1. Generate a key by calling `psa_generate_key()`.
+1. Export the generated public key by calling `psa_export_public_key()`
+:
 ```C
-    int slot = 1;
-    size_t bits = 128;
-    size_t exported_size = bits;
+    enum {
+        key_bits = 256,
+    };
+    psa_status_t status;
     size_t exported_length = 0;
-    uint8_t *exported = malloc(exported_size);
-    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+    static uint8_t exported[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(key_bits)];
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_handle_t handle;
 
-    psa_crypto_init();
+    printf("Generate a key pair...\t");
+    fflush(stdout);
 
-    psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_EXPORT, PSA_ALG_GCM);
-    psa_set_key_policy(slot, &policy);
+    /* Initialize PSA Crypto */
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        printf("Failed to initialize PSA Crypto\n");
+        return;
+    }
 
     /* Generate a key */
-    psa_generate_key(slot, PSA_KEY_TYPE_AES, bits, NULL, 0);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN);
+    psa_set_key_algorithm(&attributes,
+                          PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
+    psa_set_key_type(&attributes,
+                     PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP256R1));
+    psa_set_key_bits(&attributes, key_bits);
+    status = psa_generate_key(&attributes, &handle);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to generate key\n");
+        return;
+    }
+    psa_reset_key_attributes(&attributes);
 
-    psa_export_key(slot, exported, exported_size, &exported_length)
+    status = psa_export_public_key(handle, exported, sizeof(exported),
+                                   &exported_length);
+    if (status != PSA_SUCCESS) {
+        printf("Failed to export public key %ld\n", status);
+        return;
+    }
 
-    psa_destroy_key(slot);
+    printf("Exported a public key\n");
+
+    /* Destroy the key */
+    psa_destroy_key(handle);
+
     mbedtls_psa_crypto_free();
 ```
 

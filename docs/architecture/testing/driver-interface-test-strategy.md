@@ -41,6 +41,7 @@ For each API function that can lead to a driver call (more precisely, for each d
 
 * Wherever the specification guarantees parameters that satisfy certain preconditions, check these preconditions whenever practical.
 * If the API function can take parameters that are invalid and must not reach the driver, call the API function with such parameters and verify that the driver method is not called.
+* Check that the expected inputs reach the driver. This may be implicit in a test that checks the outputs if the only realistic way to obtain the correct outputs is to start from the expected inputs (as is often the case for cryptographic material, but not for metadata).
 
 #### SE driver outputs
 

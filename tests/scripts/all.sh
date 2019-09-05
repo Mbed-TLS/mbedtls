@@ -648,7 +648,7 @@ component_test_dtls_only () {
     msg "test: DTLS only - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
 
-    msg "build: DTLS only - ssl-opt.sh (ASan build)" # ~ 6 min
+    msg "test: DTLS only - ssl-opt.sh (ASan build)" # ~ 6 min
     if_build_succeeded tests/ssl-opt.sh
 }
 

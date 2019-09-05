@@ -539,10 +539,12 @@ check_cmdline_param_compat() {
     fi
 }
 
-check_cmdline_check_tls() {
+check_cmdline_check_tls_dtls() {
     detect_dtls "$CMD"
     if [ "$DTLS" = "0" ]; then
         requires_config_disabled MBEDTLS_SSL_PROTO_NO_TLS
+    elif [ "$DTLS" = "1" ]; then
+        requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
     fi
 }
 
@@ -676,8 +678,8 @@ check_cmdline_compat() {
     check_cmdline_param_compat "badmac_limit" \
                                "MBEDTLS_SSL_CONF_BADMAC_LIMIT"
 
-    # Skip tests that use TLS in configs disabling TLS
-    check_cmdline_check_tls
+    # Skip tests relying on TLS/DTLS in configs that disable it.
+    check_cmdline_check_tls_dtls
 
     # Authentication mode
     check_cmdline_authmode_compat

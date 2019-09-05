@@ -147,7 +147,6 @@
 #define MBEDTLS_SSL_MAX_CONTENT_LEN             2048
 
 /* Server-side only */
-#define MBEDTLS_SSL_TICKET_C
 #define MBEDTLS_SSL_SRV_C
 
 #if defined(MBEDTLS_USER_CONFIG_FILE)

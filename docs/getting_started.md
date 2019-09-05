@@ -553,7 +553,7 @@ with a given key, salt and info:**
 
 1. Set up the key derivation context using the `psa_key_derivation_setup()`
 function, specifying the derivation algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
-1. Provide an optional salt with `psa_key_derivation_input_bytes()`.
+1. Provide `salt` (optional) with `psa_key_derivation_input_bytes()`.
 1. Provide `info` with `psa_key_derivation_input_bytes()`.
 1. Provide `secret` with `psa_key_derivation_input_key()`, referencing a key that
    can be used for key derivation.
@@ -564,7 +564,7 @@ function, specifying the derivation algorithm `PSA_ALG_HKDF(PSA_ALG_SHA_256)`.
 1. Clean up the key derivation context.
 
 At this point, the derived key slot holds a new 128-bit AES-CTR encryption key
-derived from the key, salt and `info` provided:
+derived from the key, salt and info provided:
 ```C
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;

@@ -34,6 +34,9 @@ env:
     - SEED=1
     - secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="
 
+before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
 addons:
   apt:
     packages:

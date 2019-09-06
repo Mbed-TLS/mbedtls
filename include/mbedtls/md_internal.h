@@ -1,5 +1,5 @@
  /**
- * \file md.h
+ * \file md_internal.h
  *
  * \brief This file contains the generic message-digest wrapper.
  *

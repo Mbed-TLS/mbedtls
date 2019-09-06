@@ -786,7 +786,7 @@
 #define MBEDTLS_THREADING_IMPL
 #endif
 
-/* Ensurethat precisely one hash is enabled. */
+/* Ensure that precisely one hash is enabled. */
 #if defined(MBEDTLS_MD_SINGLE_HASH)
 
 #if defined(MBEDTLS_SHA256_C)

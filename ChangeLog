@@ -1,8 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.19.0 branch released xxxx-xx-xx
+= mbed TLS 2.19.0 branch released 2019-09-06
 
 Security
+   * Fix a missing error detection in ECJPAKE. This could have caused a
+     predictable shared secret if a hardware accelerator failed and the other
+     side of the key exchange had a similar bug.
    * When writing a private EC key, use a constant size for the private
      value, as specified in RFC 5915. Previously, the value was written
      as an ASN.1 INTEGER, which caused the size of the key to leak
@@ -45,10 +48,9 @@ API Changes
      just curves for which both are supported. Call mbedtls_ecdsa_can_do() or
      mbedtls_ecdh_can_do() on each result to check whether each algorithm is
      supported.
-   * The following function in the ECDSA module has been deprecated and replaced
-     as shown below. The new function can take an RNG function as an argument
-     which is necessary for adequate blinding.
-     mbedtls_ecdsa_sign_det() -> mbedtls_ecdsa_sign_det_ext()
+   * The new function mbedtls_ecdsa_sign_det_ext() is similar to
+     mbedtls_ecdsa_sign_det() but allows passing an external RNG for the
+     purpose of blinding.
 
 New deprecations
    * Deprecate mbedtls_ecdsa_sign_det() in favor of a functions that can take an
@@ -103,22 +105,10 @@ Changes
    * Add a Dockerfile and helper scripts (all-in-docker.sh, basic-in-docker.sh,
      docker-env.sh) to simplify running test suites on a Linux host. Contributed
      by Peter Kolbus (Garmin).
-   * Enable building of Mbed TLS as a CMake subproject. Suggested and fixed by
-     Ashley Duncan in #2609.
    * Add `reproducible` option to `ssl_client2` and `ssl_server2` to enable
      test runs without variability. Contributed by Philippe Antoine (Catena
      cyber) in #2681.
    * Extended .gitignore to ignore Visual Studio artifacts. Fixed by ConfusedSushi.
-   * Enable building of Mbed TLS as a CMake subproject. Suggested and fixed by
-     Ashley Duncan in #2609.
-   * Add `reproducible` option to `ssl_client2` and `ssl_server2` to enable
-     test runs without variability. Contributed by Philippe Antoine (Catena
-     cyber) in #2681.
-   * Enable building of Mbed TLS as a CMake subproject. Suggested and fixed by
-     Ashley Duncan in #2609.
-   * Add `reproducible` option to `ssl_client2` and `ssl_server2` to enable
-     test runs without variability. Contributed by Philippe Antoine (Catena
-     cyber) in #2681.
    * Adds fuzz targets, especially for continuous fuzzing with OSS-Fuzz.
      Contributed by Philippe Antoine (Catena cyber).
 

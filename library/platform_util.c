@@ -135,8 +135,8 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 }
 #endif /* MBEDTLS_HAVE_TIME_DATE && MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
-unsigned char * mbedtls_platform_put_uint32_be( unsigned char *buf,
-                                                unsigned long num)
+unsigned char* mbedtls_platform_put_uint32_be( unsigned char *buf,
+                                               uint32_t num )
 {
     *buf++ = (unsigned char) ( num >> 24 );
     *buf++ = (unsigned char) ( num >> 16 );
@@ -146,8 +146,8 @@ unsigned char * mbedtls_platform_put_uint32_be( unsigned char *buf,
     return buf;
 }
 
-unsigned char * mbedtls_platform_put_uint24_be( unsigned char *buf,
-                                                unsigned long num )
+unsigned char* mbedtls_platform_put_uint24_be( unsigned char *buf,
+                                               uint32_t num )
 {
     *buf++ = (unsigned char) ( num >> 16 );
     *buf++ = (unsigned char) ( num >> 8  );
@@ -156,8 +156,8 @@ unsigned char * mbedtls_platform_put_uint24_be( unsigned char *buf,
     return buf;
 }
 
-unsigned char * mbedtls_platform_put_uint16_be( unsigned char *buf,
-                                                unsigned long num )
+unsigned char* mbedtls_platform_put_uint16_be( unsigned char *buf,
+                                               uint32_t num )
 {
     *buf++ = (unsigned char) ( num >> 8 );
     *buf++ = (unsigned char) ( num      );
@@ -165,7 +165,7 @@ unsigned char * mbedtls_platform_put_uint16_be( unsigned char *buf,
     return buf;
 }
 
-unsigned int mbedtls_platform_get_uint32_be( const unsigned char *buf )
+uint32_t mbedtls_platform_get_uint32_be( const unsigned char *buf )
 {
     return ( ( (unsigned int) buf[0] << 24 ) |
              ( (unsigned int) buf[1] << 16 ) |
@@ -173,14 +173,14 @@ unsigned int mbedtls_platform_get_uint32_be( const unsigned char *buf )
              ( (unsigned int) buf[3]       ) );
 }
 
-unsigned int mbedtls_platform_get_uint24_be( const unsigned char *buf )
+uint32_t mbedtls_platform_get_uint24_be( const unsigned char *buf )
 {
     return ( ( buf[0] << 16 ) |
              ( buf[1] <<  8)  |
              ( buf[2]      ) );
 }
 
-unsigned short mbedtls_platform_get_uint16_be( const unsigned char *buf )
+uint16_t mbedtls_platform_get_uint16_be( const unsigned char *buf )
 {
     return ( ( buf[0] << 8 )  |
              ( buf[1]      ) );

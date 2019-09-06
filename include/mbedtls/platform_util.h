@@ -30,7 +30,7 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
-
+#include <stdint.h>
 #include <stddef.h>
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 #include "platform_time.h"
@@ -193,43 +193,43 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
  * \brief      Convert 32-bit number to big endian format.
  *
  *             This function converts 32-bit number to big endian format and
- *             writes it to given buffer.
+ *             writes it to the given buffer.
  *
  * \param buf  Address where converted number is written.
  * \param num  Number that needs to be converted to big endian.
  *
  * \return     Address to end of buffer where number is written.
   */
-unsigned char * mbedtls_platform_put_uint32_be( unsigned char *buf,
-                                                unsigned long num );
+unsigned char* mbedtls_platform_put_uint32_be( unsigned char *buf,
+                                               uint32_t num );
 
 /**
  * \brief      Convert 24-bit number to big endian format.
  *
  *             This function converts 24-bit number to big endian format and
- *             writes it to given buffer.
+ *             writes it to the given buffer.
  *
  * \param buf  Address where converted number is written.
  * \param num  Number that needs to be converted to big endian.
  *
  * \return     Address to end of buffer where number is written.
   */
-unsigned char * mbedtls_platform_put_uint24_be( unsigned char *buf,
-                                                unsigned long num );
+unsigned char* mbedtls_platform_put_uint24_be( unsigned char *buf,
+                                               uint32_t num );
 
 /**
  * \brief      Convert 16-bit number to big endian format.
  *
  *             This function converts 16-bit number to big endian format and
- *             writes it to given buffer.
+ *             writes it to the given buffer.
  *
  * \param buf  Address where converted number is written.
  * \param num  Number that needs to be converted to big endian.
  *
  * \return     Address to end of buffer where number is written.
   */
-unsigned char * mbedtls_platform_put_uint16_be( unsigned char *buf,
-                                                unsigned long num );
+unsigned char* mbedtls_platform_put_uint16_be( unsigned char *buf,
+                                               uint32_t num );
 
 /**
  * \brief      Convert 32-bit number from big endian format.
@@ -241,7 +241,7 @@ unsigned char * mbedtls_platform_put_uint16_be( unsigned char *buf,
  *
  * \return     Converted number.
  */
-unsigned int mbedtls_platform_get_uint32_be( const unsigned char *buf );
+uint32_t mbedtls_platform_get_uint32_be( const unsigned char *buf );
 
 /**
  * \brief      Convert 24-bit number from big endian format.
@@ -253,7 +253,7 @@ unsigned int mbedtls_platform_get_uint32_be( const unsigned char *buf );
  *
  * \return     Converted number.
  */
-unsigned int mbedtls_platform_get_uint24_be( const unsigned char *buf );
+uint32_t mbedtls_platform_get_uint24_be( const unsigned char *buf );
 
 /**
  * \brief      Convert 16-bit number from big endian format.
@@ -265,7 +265,7 @@ unsigned int mbedtls_platform_get_uint24_be( const unsigned char *buf );
  *
  * \return     Converted number.
  */
-unsigned short mbedtls_platform_get_uint16_be( const unsigned char *b );
+uint16_t mbedtls_platform_get_uint16_be( const unsigned char *buf );
 
 #ifdef __cplusplus
 }

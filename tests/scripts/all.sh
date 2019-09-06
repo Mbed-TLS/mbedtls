@@ -928,7 +928,7 @@ component_test_hardcoded_hash_cmake_clang() {
     msg "test: main suites (full config + MBEDTLS_MD_SINGLE_HASH)" # ~ 5s
     make test
 
-    msg "test: ssl-opt.sh default (full config + MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)" # ~ 5s
+    msg "test: ssl-opt.sh default (full config + MBEDTLS_MD_SINGLE_HASH)" # ~ 5s
     if_build_succeeded tests/ssl-opt.sh -f '^Default$\|^Default, DTLS$'
 }
 

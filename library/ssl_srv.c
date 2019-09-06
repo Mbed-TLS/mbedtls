@@ -2774,7 +2774,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_HAVE_TIME)
     t = mbedtls_time( NULL );
-    p = mbedtls_platform_put_uint32_be( p, t );
+    p = mbedtls_platform_put_uint32_be( p, (uint32_t) t );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", t ) );
 #else

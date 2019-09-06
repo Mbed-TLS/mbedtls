@@ -2236,7 +2236,7 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
         padlen = 40;
 
     memcpy( header, ctr, 8 );
-    header[ 8] = (unsigned char)  type;
+    header[8] = (unsigned char) type;
     mbedtls_platform_put_uint16_be( &header[9], len );
 
     memset( padding, 0x36, padlen );
@@ -4624,12 +4624,12 @@ static int ssl_hs_is_proper_fragment( mbedtls_ssl_context *ssl )
 
 static uint32_t ssl_get_hs_frag_len( mbedtls_ssl_context const *ssl )
 {
-    return mbedtls_platform_get_uint24_be( &ssl->in_msg[9] );
+    return ( mbedtls_platform_get_uint24_be( &ssl->in_msg[9] ) );
 }
 
 static uint32_t ssl_get_hs_frag_off( mbedtls_ssl_context const *ssl )
 {
-    return mbedtls_platform_get_uint24_be( &ssl->in_msg[6] );
+    return ( mbedtls_platform_get_uint24_be( &ssl->in_msg[6] ) );
 }
 
 static int ssl_check_hs_header( mbedtls_ssl_context const *ssl )
@@ -4732,7 +4732,7 @@ static size_t ssl_get_reassembly_buffer_size( size_t msg_len,
 
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl )
 {
-    return mbedtls_platform_get_uint24_be( &ssl->in_msg[1] );
+    return ( mbedtls_platform_get_uint24_be( &ssl->in_msg[1] ) );
 }
 
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )

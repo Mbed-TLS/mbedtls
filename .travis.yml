@@ -32,7 +32,10 @@ after_failure:
 env:
   global:
     - SEED=1
-    - secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="
+    - secure: "HbZs1dLQi+zgPQfJuvGEFGlrrMhiiX1w4uPXnNtmpGu9AB3mBvDBrlJChFLkXfQw0DNinkSlLYXnP+g4auvo8jVJKrxwMp6ebz7tclLZsb9+oMlf8dOEZYb8GNcjkpjSZ1IaibdapaI4ZUmtqhxPsMTM5diRZfOGPvpypeR17tw="
+
+before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 addons:
   apt:
@@ -42,7 +45,7 @@ addons:
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"
-    notification_email: simon.butcher@arm.com
+    notification_email: vikas.katariya@arm.com
     build_command_prepend:
     build_command: make
-    branch_pattern: coverity_scan
+    branch_pattern: dev/jainvikas8/travis-coverity

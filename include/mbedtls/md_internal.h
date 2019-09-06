@@ -86,14 +86,14 @@ static inline void mbedtls_md_sha256_init_free_dummy( void* ctx )
 }
 #define MBEDTLS_MD_INFO_SHA256_TYPE         MBEDTLS_MD_SHA256
 #define MBEDTLS_MD_INFO_SHA256_CTX_TYPE     mbedtls_sha256_context
-#if defined(MBEDTLS_MD_SINGLE_HASH)
+#if defined(MBEDTLS_MD_SINGLE_HASH) && !defined(MBEDTLS_SHA256_ALT)
 /* mbedtls_md_sha256_init() only zeroizes, which is redundant
  * because mbedtls_md_context is zeroized in mbedtls_md_init(),
  * and the mbedtls_sha256_context is embedded in mbedtls_md_context_t. */
 #define MBEDTLS_MD_INFO_SHA256_INIT_FUNC    mbedtls_md_sha256_init_free_dummy
 #else
 #define MBEDTLS_MD_INFO_SHA256_INIT_FUNC    mbedtls_sha256_init
-#endif /* MBEDTLS_MD_SINGLE_HASH */
+#endif /* MBEDTLS_MD_SINGLE_HASH && !MBEDTLS_SHA256_ALT */
 #define MBEDTLS_MD_INFO_SHA256_NAME         "SHA256"
 #define MBEDTLS_MD_INFO_SHA256_SIZE         32
 #define MBEDTLS_MD_INFO_SHA256_BLOCKSIZE    64
@@ -102,14 +102,14 @@ static inline void mbedtls_md_sha256_init_free_dummy( void* ctx )
 #define MBEDTLS_MD_INFO_SHA256_FINISH_FUNC  mbedtls_sha224_finish_wrap
 #define MBEDTLS_MD_INFO_SHA256_DIGEST_FUNC  mbedtls_sha256_wrap
 #define MBEDTLS_MD_INFO_SHA256_ALLOC_FUNC   mbedtls_sha224_ctx_alloc
-#if defined(MBEDTLS_MD_SINGLE_HASH)
+#if defined(MBEDTLS_MD_SINGLE_HASH) && !defined(MBEDTLS_SHA256_ALT)
 /* mbedtls_md_sha256_free() only zeroizes, which is redundant
  * because mbedtls_md_context is zeroized in mbedtls_md_init(),
  * and the mbedtls_sha256_context is embedded in mbedtls_md_context_t. */
 #define MBEDTLS_MD_INFO_SHA256_FREE_FUNC    mbedtls_md_sha256_init_free_dummy
 #else
 #define MBEDTLS_MD_INFO_SHA256_FREE_FUNC    mbedtls_sha224_ctx_free
-#endif /* MBEDTLS_MD_SINGLE_HASH */
+#endif /* MBEDTLS_MD_SINGLE_HASH && !MBEDTLS_SHA256_ALT */
 #define MBEDTLS_MD_INFO_SHA256_CLONE_FUNC   mbedtls_sha224_clone_wrap
 #define MBEDTLS_MD_INFO_SHA256_PROCESS_FUNC mbedtls_sha224_process_wrap
 

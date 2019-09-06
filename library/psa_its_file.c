@@ -214,9 +214,12 @@ psa_status_t psa_its_set( psa_storage_uid_t uid,
     n = fwrite( &header, 1, sizeof( header ), stream );
     if( n != sizeof( header ) )
         goto exit;
-    n = fwrite( p_data, 1, data_length, stream );
-    if( n != data_length )
-        goto exit;
+    if( data_length != 0 )
+    {
+        n = fwrite( p_data, 1, data_length, stream );
+        if( n != data_length )
+            goto exit;
+    }
     status = PSA_SUCCESS;
 
 exit:

@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.16.3 branch released 2019-09-06
 
 Security
    * Fix a missing error detection in ECJPAKE. This could have caused a

@@ -132,11 +132,11 @@ static inline void mbedtls_md_sha256_init_free_dummy( void* ctx )
 #define MBEDTLS_MD_INFO_CLONE_FUNC_T( MD )   MD ## _CLONE_FUNC
 #define MBEDTLS_MD_INFO_PROCESS_FUNC_T( MD ) MD ## _PROCESS_FUNC
 
-/* Wrapper around MBEDTLS_MD_INFO_XXX_T() which makes sure that
+/* Wrapper around MBEDTLS_MD_INFO_{FIELD}_T() which makes sure that
  * the argument is macro-expanded before concatenated with the
  * field name. This allows to call these macros as
- *    MBEDTLS_MD_INFO_XXX( MBEDTLS_MD_SINGLE_HASH ).
- * where MBEDTLS_MD_SINGLE_HASH expands to MBEDTLS_MD_INFO_XXX. */
+ *    MBEDTLS_MD_INFO_{FIELD}( MBEDTLS_MD_SINGLE_HASH ).
+ * where MBEDTLS_MD_SINGLE_HASH expands to MBEDTLS_MD_INFO_{DIGEST}. */
 #define MBEDTLS_MD_INFO_CTX_TYPE( MD )     MBEDTLS_MD_INFO_CTX_TYPE_T( MD )
 #define MBEDTLS_MD_INFO_INIT_FUNC( MD )    MBEDTLS_MD_INFO_INIT_FUNC_T( MD )
 #define MBEDTLS_MD_INFO_TYPE( MD )         MBEDTLS_MD_INFO_TYPE_T( MD )

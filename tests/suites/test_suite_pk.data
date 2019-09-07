@@ -12,9 +12,13 @@ PK utils: RSA
 depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME
 pk_utils:MBEDTLS_PK_RSA:512:64:"RSA"
 
-PK utils: ECKEY
-depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+PK utils: ECKEY (legacy)
+depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED:!MBEDTLS_USE_TINYCRYPT
 pk_utils:MBEDTLS_PK_ECKEY:192:24:"EC"
+
+PK utils: ECKEY (TinyCrypt)
+depends_on:MBEDTLS_USE_TINYCRYPT
+pk_utils:MBEDTLS_PK_ECKEY:256:32:"EC"
 
 PK utils: ECKEY_DH
 depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
@@ -144,9 +148,13 @@ Check pair #1 (EC, OK)
 depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 mbedtls_pk_check_pair:"data_files/ec_256_pub.pem":"data_files/ec_256_prv.pem":0
 
-Check pair #2 (EC, bad)
-depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+Check pair #2 (EC, bad, legacy ECC)
+depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:!MBEDTLS_USE_TINYCRYPT
 mbedtls_pk_check_pair:"data_files/ec_256_pub.pem":"data_files/server5.key":MBEDTLS_ERR_ECP_BAD_INPUT_DATA
+
+Check pair #2 (EC, bad, TinyCrypt)
+depends_on:MBEDTLS_USE_TINYCRYPT
+mbedtls_pk_check_pair:"data_files/ec_256_pub.pem":"data_files/server5.key":MBEDTLS_ERR_PK_BAD_INPUT_DATA
 
 Check pair #3 (RSA, OK)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15

@@ -2610,7 +2610,7 @@ int main( int argc, char *argv[] )
         }
         key_cert_init = 2;
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
         if( ( ret = mbedtls_x509_crt_parse( &srvcert2,
                                     (const unsigned char *) mbedtls_test_srv_crt_ec,
                                     mbedtls_test_srv_crt_ec_len ) ) != 0 )
@@ -2628,7 +2628,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
         key_cert_init2 = 2;
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
 #endif /* MBEDTLS_CERTS_C */
     }
 
@@ -3070,7 +3070,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_curves( &conf, curve_list );
     }
 #endif /* !MBEDTLS_SSL_CONF_SINGLE_EC */
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_C*/
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( strlen( opt.psk ) != 0 && strlen( opt.psk_identity ) != 0 )

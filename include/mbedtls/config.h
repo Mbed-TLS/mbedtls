@@ -2577,7 +2577,7 @@
  * Requires: MBEDTLS_SSL_CONF_RNG
  *           MBEDTLS_SSL_CONF_SINGLE_EC
  *           MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID == 23
- *           MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID == MBEDTLS_ECP_DP_SECP256R1
+ *           MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID == MBEDTLS_UECC_DP_SECP256R1
  *
  * \see MBEDTLS_SSL_CONF_RNG
  *
@@ -3755,11 +3755,13 @@
  * curve operations during the handshake.
  *
  * If this is set, you must also define the following:
- * - MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID
+ * - MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID (if MBEDTLS_ECP_C is set)
  *   This must resolve to the Mbed TLS group ID for the elliptic
  *   curve to use (e.g. MBEDTLS_ECP_DP_SECP256R1); see
  *   ::mbedtls_ecp_group_id in mbedtls/ecp.h for a complete list
  *   of curve identifiers.
+ * - MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID (if MBEDTLS_USE_TINYCRYPT is set)
+ *   This must resolve to MBEDTLS_UECC_DP_SECP256R1.
  * - MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID
  *   This must resolve to the identifier for the elliptic curve
  *   to use according to the IANA NamedCurve registry:
@@ -3771,6 +3773,7 @@
 //#define MBEDTLS_SSL_CONF_SINGLE_EC
 //#define MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID 23
 //#define MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID MBEDTLS_ECP_DP_SECP256R1
+//#define MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID MBEDTLS_UECC_DP_SECP256R1
 
 /* Enable support a single signature hash algorithm
  * at compile-time, at the benefit of code-size.

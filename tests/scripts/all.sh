@@ -1399,41 +1399,43 @@ component_build_baremetal_raw_armcc () {
     scripts/baremetal.sh --rom --gcc --armc5 --armc6 --check
 }
 
-component_test_default_tinycrypt () {
-    msg "test default config with tinycrypt enabled"
+component_test_default_tinycrypt_without_legacy_ecc () {
+    msg "test default config with tinycrypt enabled and legacy ECC disabled"
 
     scripts/config.pl set MBEDTLS_USE_TINYCRYPT
     scripts/config.pl set MBEDTLS_SSL_CONF_RNG rng_wrap
     scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC
     scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID 23
-    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID MBEDTLS_ECP_DP_SECP256R1
-
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
-
-    msg "test: default config with tinycrypt enabled"
-    make test
-    if_build_succeeded tests/ssl-opt.sh -f "^Default, DTLS$"
-    if_build_succeeded tests/compat.sh -m 'dtls1_2' -f 'ECDHE-ECDSA\|ECDH-ECDSA\|ECDHE-PSK'
-}
-
-component_test_default_tinycrypt_without_legacy_ecdh () {
-    msg "test default config with tinycrypt enabled and ecdh_c disabled"
-
-    scripts/config.pl set MBEDTLS_USE_TINYCRYPT
-    scripts/config.pl set MBEDTLS_SSL_CONF_RNG rng_wrap
-    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC
-    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID 23
-    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID MBEDTLS_ECP_DP_SECP256R1
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID MBEDTLS_UECC_DP_SECP256R1
+    scripts/config.pl unset MBEDTLS_ECP_C
     scripts/config.pl unset MBEDTLS_ECDH_C
+    scripts/config.pl unset MBEDTLS_ECDSA_C
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
     scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP192R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP224R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP256R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP384R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP521R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_BP256R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_BP384R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_BP512R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP192K1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP224K1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP256K1_ENABLED
     make CC=gcc CFLAGS='-Werror -Wall -Wextra'
 
-    msg "test: default config with tinycrypt enabled and ecdh_c disabled"
+    msg "test: default config with tinycrypt enabled and legacy ECC disabled"
     make test
-    if_build_succeeded tests/ssl-opt.sh -f "^Default, DTLS$"
-    if_build_succeeded tests/compat.sh -m 'dtls1_2' -f 'TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA\|+ECDHE-ECDSA:+AES-256-CBC:+SHA1\|ECDHE-ECDSA-AES256-SHA' -e 'SHA384'
+    if_build_succeeded tests/ssl-opt.sh
+
+    export SRV_ECDSA_CRT=data_files/server11.crt.pem
+    export SRV_ECDSA_KEY=data_files/server11.key.pem
+    export CLI_ECDSA_CRT=data_files/cli3.crt.pem
+    export CLI_ECDSA_KEY=data_files/cli3.key.pem
+    export CA_FILE=data_files/test-ca3.crt.pem
+    if_build_succeeded tests/compat.sh -f 'ECDHE-ECDSA\|ECDHE-PSK\|ECDH-ECDSA'
 }
 
 component_test_baremetal () {

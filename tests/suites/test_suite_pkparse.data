@@ -964,8 +964,12 @@ Parse Public EC Key #3 (RFC 5480, secp224r1)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP224R1_ENABLED
 pk_parse_public_keyfile_ec:"data_files/ec_224_pub.pem":0
 
-Parse Public EC Key #4 (RFC 5480, secp256r1)
+Parse Public EC Key #4 (RFC 5480, secp256r1, legacy ECC)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+pk_parse_public_keyfile_ec:"data_files/ec_256_pub.pem":0
+
+Parse Public EC Key #4 (RFC 5480, secp256r1, TinyCrypt)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_USE_TINYCRYPT
 pk_parse_public_keyfile_ec:"data_files/ec_256_pub.pem":0
 
 Parse Public EC Key #5 (RFC 5480, secp384r1)
@@ -1004,12 +1008,20 @@ Parse EC Key #4 (PKCS8 DER)
 depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8.der":"NULL":0
 
-Parse EC Key #4a (PKCS8 DER, no public key)
+Parse EC Key #4a (PKCS8 DER, no public key, legacy ECC)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopub.der":"NULL":0
 
-Parse EC Key #4b (PKCS8 DER, no public key, with parameters)
+Parse EC Key #4a (PKCS8 DER, no public key, TinyCrypt)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_USE_TINYCRYPT
+pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopub.der":"NULL":0
+
+Parse EC Key #4b (PKCS8 DER, no public key, with parameters, legacy ECC)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopubparam.der":"NULL":0
+
+Parse EC Key #4b (PKCS8 DER, no public key, with parameters, TinyCrypt)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_USE_TINYCRYPT
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopubparam.der":"NULL":0
 
 Parse EC Key #4c (PKCS8 DER, with parameters)
@@ -1020,16 +1032,28 @@ Parse EC Key #5 (PKCS8 PEM)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8.pem":"NULL":0
 
-Parse EC Key #5a (PKCS8 PEM, no public key)
+Parse EC Key #5a (PKCS8 PEM, no public key, legacy ECC)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopub.pem":"NULL":0
 
-Parse EC Key #5b (PKCS8 PEM, no public key, with parameters)
+Parse EC Key #5a (PKCS8 PEM, no public key, TinyCrypt)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_USE_TINYCRYPT
+pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopub.pem":"NULL":0
+
+Parse EC Key #5b (PKCS8 PEM, no public key, with parameters, legacy ECC)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopubparam.pem":"NULL":0
 
-Parse EC Key #5c (PKCS8 PEM, with parameters)
+Parse EC Key #5b (PKCS8 PEM, no public key, with parameters, TinyCrypt)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_USE_TINYCRYPT
+pk_parse_keyfile_ec:"data_files/ec_prv.pk8nopubparam.pem":"NULL":0
+
+Parse EC Key #5c (PKCS8 PEM, with parameters, legacy ECC)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_prv.pk8param.pem":"NULL":0
+
+Parse EC Key #5c (PKCS8 PEM, with parameters, TinyCrypt)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_USE_TINYCRYPT
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8param.pem":"NULL":0
 
 Parse EC Key #6 (PKCS8 encrypted DER)
@@ -1044,8 +1068,12 @@ Parse EC Key #8 (SEC1 PEM, secp224r1)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP224R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_224_prv.pem":"NULL":0
 
-Parse EC Key #9 (SEC1 PEM, secp256r1)
+Parse EC Key #9 (SEC1 PEM, secp256r1, legacy ECC)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+pk_parse_keyfile_ec:"data_files/ec_256_prv.pem":"NULL":0
+
+Parse EC Key #9 (SEC1 PEM, secp256r1, TinyCrypt)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_USE_TINYCRYPT
 pk_parse_keyfile_ec:"data_files/ec_256_prv.pem":"NULL":0
 
 Parse EC Key #10 (SEC1 PEM, secp384r1)

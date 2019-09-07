@@ -75,7 +75,7 @@ int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
     if( (size_t)( end - *p ) < secp256r1_uncompressed_point_length )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Bad ECDH peer pubkey (too short)" ) );
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     if( (*p)[0] != 2 * NUM_ECC_BYTES + 1 ||
@@ -86,7 +86,7 @@ int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
                                0x04,
                                (unsigned) (*p)[0],
                                (unsigned) (*p)[1] ) );
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     memcpy( ssl->handshake->ecdh_peerkey, *p + 2, 2 * NUM_ECC_BYTES );
@@ -1952,9 +1952,13 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                       ||
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA                     ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_RSA                        ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
         const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
         ((void) ret);
@@ -2154,6 +2158,20 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         int ret;
         size_t zlen;
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+        ((void) ret);
+
+        if( !uECC_shared_secret( ssl->handshake->ecdh_peerkey,
+                                 ssl->handshake->ecdh_privkey,
+                                 p + 2,
+                                 uecc_curve ) )
+        {
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
+
+        zlen = NUM_ECC_BYTES;
+#else /* MBEDTLS_USE_TINYCRYPT */
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
                                        p + 2, end - ( p + 2 ),
                                        mbedtls_ssl_conf_get_frng( ssl->conf ),
@@ -2163,12 +2181,14 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
             return( ret );
         }
 
+        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
+                                MBEDTLS_DEBUG_ECDH_Z );
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
         *(p++) = (unsigned char)( zlen >> 8 );
         *(p++) = (unsigned char)( zlen      );
         p += zlen;
 
-        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
-                                MBEDTLS_DEBUG_ECDH_Z );
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
@@ -7177,9 +7197,12 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
      * Secondary checks: always done, but change 'ret' only if it was 0
      */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     {
         int ret;
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        ret = mbedtls_ssl_check_curve_uecc( ssl, MBEDTLS_UECC_DP_SECP256R1 );
+#else /* MBEDTLS_USE_TINYCRYPT */
         mbedtls_pk_context *pk;
         ret = mbedtls_x509_crt_pk_acquire( chain, &pk );
         if( ret != 0 )
@@ -7190,9 +7213,12 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
 
         /* If certificate uses an EC key, make sure the curve is OK */
         if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) )
+        {
             ret = mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id );
+        }
 
         mbedtls_x509_crt_pk_release( chain );
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
         if( ret != 0 )
         {
@@ -7203,7 +7229,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
                 verify_ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
         }
     }
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_C || MEDTLS_USE_TINYCRYPT */
 
     if( mbedtls_ssl_check_cert_usage( chain,
                                       ciphersuite_info,
@@ -12057,7 +12083,8 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 }
 
 #if defined(MBEDTLS_PK_C) && \
-    ( defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) )
+    ( defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) ) || \
+    ( defined(MBEDTLS_USE_TINYCRYPT) )
 /*
  * Convert between MBEDTLS_PK_XXX and SSL_SIG_XXX
  */
@@ -12067,7 +12094,7 @@ unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk )
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_RSA ) )
         return( MBEDTLS_SSL_SIG_RSA );
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECDSA ) )
         return( MBEDTLS_SSL_SIG_ECDSA );
 #endif
@@ -12095,7 +12122,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
         case MBEDTLS_SSL_SIG_RSA:
             return( MBEDTLS_PK_RSA );
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
         case MBEDTLS_SSL_SIG_ECDSA:
             return( MBEDTLS_PK_ECDSA );
 #endif
@@ -12220,12 +12247,30 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
     }
 }
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+/*
+ * Check if a curve proposed by the peer is in our list.
+ * Return 0 if we're willing to use it, -1 otherwise.
+ */
+int mbedtls_ssl_check_curve_uecc( const mbedtls_ssl_context *ssl,
+                                  mbedtls_uecc_group_id grp_id )
+{
+    MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_UECC_GRP_ID( own_ec_id )
+    if( own_ec_id == grp_id )
+        return( 0 );
+    MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_UECC_GRP_ID
+
+    return( -1 );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #if defined(MBEDTLS_ECP_C)
 /*
  * Check if a curve proposed by the peer is in our list.
  * Return 0 if we're willing to use it, -1 otherwise.
  */
-int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
+int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl,
+                             mbedtls_ecp_group_id grp_id )
 {
     MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( own_ec_id )
     if( own_ec_id == grp_id )

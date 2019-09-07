@@ -645,6 +645,25 @@ check_cmdline_force_version_compat() {
     fi
 }
 
+check_cmdline_crt_key_files_compat() {
+
+    # test-ca2.crt
+    if echo "$CMD" | grep -e "test-ca2" > /dev/null; then
+        requires_config_enabled MBEDTLS_ECP_DP_SECP384R1_ENABLED
+    fi
+
+    # Variants of server5.key and server5.crt
+    if echo "$CMD" | grep -e "server5" > /dev/null; then
+        requires_config_enabled MBEDTLS_ECP_DP_SECP384R1_ENABLED
+    fi
+
+    # Variants of server6.key and server6.crt
+    if echo "$CMD" | grep -e "server6" > /dev/null; then
+        requires_config_enabled MBEDTLS_ECP_DP_SECP384R1_ENABLED
+    fi
+
+}
+
 # Go through all options that can be hardcoded at compile-time and
 # detect whether the command line configures them in a conflicting
 # way. If so, skip the test. Otherwise, remove the corresponding
@@ -654,6 +673,10 @@ check_cmdline_force_version_compat() {
 # ENV I/O: SKIP_TEST set to 1 on mismatch.
 check_cmdline_compat() {
     CMD="$1"
+
+    # Check that if we're specifying particular certificate and/or
+    # ECC key files, the corresponding curve is enabled.
+    check_cmdline_crt_key_files_compat
 
     # ExtendedMasterSecret configuration
     check_cmdline_param_compat "extended_ms" \

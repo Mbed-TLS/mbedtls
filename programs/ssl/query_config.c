@@ -2866,6 +2866,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID */
 
+#if defined(MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID)
+    if( strcmp( "MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID */
+
 #if defined(MBEDTLS_SSL_CONF_SINGLE_SIG_HASH)
     if( strcmp( "MBEDTLS_SSL_CONF_SINGLE_SIG_HASH", config ) == 0 )
     {

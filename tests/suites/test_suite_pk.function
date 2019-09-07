@@ -7,6 +7,10 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/rsa.h"
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc_dh.h"
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
 #include <limits.h>
 #include <stdint.h>
 
@@ -21,8 +25,24 @@ static int pk_genkey( mbedtls_pk_context *pk )
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_RSA )
+    {
         return mbedtls_rsa_gen_key( mbedtls_pk_rsa( *pk ), rnd_std_rand, NULL, RSA_KEY_SIZE, 3 );
+    } else
 #endif
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_ECKEY )
+    {
+        int ret;
+
+        ret = uECC_make_key( mbedtls_pk_uecc( *pk )->public_key,
+                             mbedtls_pk_uecc( *pk )->private_key,
+                             uECC_secp256r1() );
+        if( ret == 0 )
+            return( -1 );
+
+        return( 0 );
+    } else
+#endif /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_ECKEY ||
         mbedtls_pk_get_type( pk ) == MBEDTLS_PK_ECKEY_DH ||
@@ -35,9 +55,9 @@ static int pk_genkey( mbedtls_pk_context *pk )
 
         return mbedtls_ecp_gen_keypair( &mbedtls_pk_ec( *pk )->grp, &mbedtls_pk_ec( *pk )->d,
                                 &mbedtls_pk_ec( *pk )->Q, rnd_std_rand, NULL );
-    }
+    } else
 #endif
-    return( -1 );
+        return( -1 );
 }
 
 #if defined(MBEDTLS_RSA_C)
@@ -649,7 +669,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C */
+/* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C:!MBEDTLS_USE_TINYCRYPT */
 void pk_ec_test_vec( int type, int id, data_t * key, data_t * hash,
                      data_t * sig, int ret )
 {

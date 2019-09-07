@@ -31,7 +31,6 @@
 #endif
 
 #include "bignum.h"
-#include "ecp.h"
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #include "x509_crt.h"
@@ -42,8 +41,12 @@
 #include "dhm.h"
 #endif
 
-#if defined(MBEDTLS_ECDH_C)
-#include "ecdh.h"
+#if defined(MBEDTLS_ECP_C)
+#include "ecp.h"
+#endif
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc.h"
 #endif
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
@@ -510,7 +513,12 @@ union mbedtls_ssl_premaster_secret
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)  || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)     || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#if defined(MBEDTLS_ECDH_C)
     unsigned char _pms_ecdh[MBEDTLS_ECP_MAX_BYTES];    /* RFC 4492 5.10 */
+#endif
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    unsigned char _pms_ecdh_uecc[ NUM_ECC_BYTES ];
+#endif /* MBEDTLS_USE_TINYCRYPT */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     unsigned char _pms_psk[4 + 2 * MBEDTLS_PSK_MAX_LEN];       /* RFC 4279 2 */
@@ -523,8 +531,14 @@ union mbedtls_ssl_premaster_secret
     unsigned char _pms_rsa_psk[52 + MBEDTLS_PSK_MAX_LEN];      /* RFC 4279 4 */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    unsigned char _pms_ecdhe_psk_uecc[4 + NUM_ECC_BYTES +
+                                      + MBEDTLS_PSK_MAX_LEN];     /* RFC 5489 2 */
+#endif /* MBEDTLS_USE_TINYCRYPT */
+#if defined(MBEDTLS_ECP_C)
     unsigned char _pms_ecdhe_psk[4 + MBEDTLS_ECP_MAX_BYTES
                                    + MBEDTLS_PSK_MAX_LEN];     /* RFC 5489 2 */
+#endif
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     unsigned char _pms_ecjpake[32];     /* Thread spec: SHA-256 output */

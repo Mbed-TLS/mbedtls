@@ -32,6 +32,7 @@
 
 #include "ssl.h"
 #include "cipher.h"
+#include "oid.h"
 
 #if defined(MBEDTLS_MD5_C)
 #include "md5.h"
@@ -51,6 +52,14 @@
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 #include "ecjpake.h"
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+#include "ecp.h"
+#endif
+
+#if defined(MBEDTLS_ECDH_C)
+#include "ecdh.h"
 #endif
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
@@ -1013,8 +1022,14 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
 unsigned char mbedtls_ssl_hash_from_md_alg( int md );
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+int mbedtls_ssl_check_curve_uecc( const mbedtls_ssl_context *ssl,
+                                  mbedtls_uecc_group_id grp_id );
+#endif
+
 #if defined(MBEDTLS_ECP_C)
-int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
+int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl,
+                             mbedtls_ecp_group_id grp_id );
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
@@ -1743,6 +1758,17 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 #define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_TLS_ID                    \
     }
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_UECC_GRP_ID( EC_ID_VAR )          \
+    {                                                                          \
+        mbedtls_uecc_group_id EC_ID_VAR = MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID; \
+        ((void) ssl);
+
+#define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_UECC_GRP_ID                    \
+    }
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
+#if defined(MBEDTLS_ECP_C)
 #define MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_GRP_ID( EC_ID_VAR )         \
     {                                                                       \
         mbedtls_ecp_group_id EC_ID_VAR = MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID; \
@@ -1750,6 +1776,7 @@ static inline unsigned int mbedtls_ssl_conf_get_ems_enforced(
 
 #define MBEDTLS_SSL_END_FOR_EACH_SUPPORTED_EC_GRP_ID                    \
     }
+#endif /* MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_SSL_CONF_SINGLE_EC */
 
@@ -1865,5 +1892,17 @@ int mbedtls_ssl_calc_verify( int minor_ver,
 int mbedtls_ssl_ecdh_read_peerkey( mbedtls_ssl_context *ssl,
                                    unsigned char **p, unsigned char *end );
 #endif /* MBEDTLS_USE_TINYCRYPT */
+
+
+/*
+ * Point formats, from RFC 4492's enum ECPointFormat
+ */
+#define MBEDTLS_SSL_EC_PF_UNCOMPRESSED    0   /**< Uncompressed point format. */
+#define MBEDTLS_SSL_EC_PF_COMPRESSED      1   /**< Compressed point format. */
+
+/*
+ * Some other constants from RFC 4492
+ */
+#define MBEDTLS_SSL_EC_TLS_NAMED_CURVE    3   /**< The named_curve of ECCurveType. */
 
 #endif /* ssl_internal.h */

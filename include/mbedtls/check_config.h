@@ -87,9 +87,12 @@
 #error "MBEDTLS_CMAC_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_CONF_SINGLE_EC) &&           \
-    ( !defined(MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID) || \
-      !defined(MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID) )
+#if defined(MBEDTLS_SSL_CONF_SINGLE_EC) &&                 \
+    ( !defined(MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID)       || \
+      ( defined(MBEDTLS_USE_TINYCRYPT) &&                  \
+        !defined(MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID) ) || \
+      ( defined(MBEDTLS_ECP_C) &&                          \
+        !defined(MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID) ) )
 #error "MBEDTLS_SSL_CONF_SINGLE_EC defined, but not all prerequesites"
 #endif
 
@@ -103,11 +106,15 @@
 #error "MBEDTLS_USE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
 #endif
 
-#if defined(MBEDTLS_USE_TINYCRYPT) &&                                   \
-    !( defined(MBEDTLS_SSL_CONF_SINGLE_EC)     &&                       \
-       MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID == 23 &&                       \
-       MBEDTLS_SSL_CONF_SINGLE_EC_GRP_ID == MBEDTLS_ECP_DP_SECP256R1 )
-#error "MBEDTLS_USE_TINYCRYPT requires the use of MBEDTLS_SSL_CONF_SINGLE_EC to hardcode the choice of Secp256r1"
+#if defined(MBEDTLS_USE_TINYCRYPT) &&                                    \
+    !( defined(MBEDTLS_SSL_CONF_SINGLE_EC)       &&                      \
+       MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID   == 23 &&                      \
+       MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID == MBEDTLS_UECC_DP_SECP256R1 )
+#error "MBEDTLS_USE_TINYCRYPT requires the use of MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID to hardcode the choice of Secp256r1"
+#endif
+
+#if defined(MBEDTLS_USE_TINYCRYPT) && defined(MBEDTLS_ECP_C)
+#error "MBEDTLS_USE_TINYCRYPT and MBEDTLS_ECP_C cannot be used simultaneously"
 #endif
 
 #if defined(MBEDTLS_USE_TINYCRYPT) && \
@@ -164,6 +171,21 @@
     !defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) ) )
 #error "MBEDTLS_ECP_C defined, but not all prerequisites"
+#endif
+
+#if ( defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) ||                  \
+      defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||                  \
+      defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||                  \
+      defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) ||                  \
+      defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) ||                  \
+      defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)   ||                  \
+      defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)   ||                  \
+      defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)   ||                  \
+      defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) ||                  \
+      defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) ||                  \
+      defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) ) &&                \
+    !defined(MBEDTLS_ECP_C)
+#error "At least one ECP curve enabled, but not all prerequesites"
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)
@@ -248,12 +270,14 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_X509_CRT_PARSE_C) )
+    ( !( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_USE_TINYCRYPT) ) || \
+      !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                 \
-    ( !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_X509_CRT_PARSE_C) )
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) &&                   \
+    ( !( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_USE_TINYCRYPT) ) || \
+      !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
@@ -262,7 +286,7 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) &&                     \
-    !defined(MBEDTLS_ECDH_C)
+    !(defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_USE_TINYCRYPT) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED defined, but not all prerequisites"
 #endif
 
@@ -280,9 +304,9 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                \
-    ( !( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_USE_TINYCRYPT) ) || \
-      !defined(MBEDTLS_ECDSA_C) ||                                      \
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) &&                 \
+    ( !( defined(MBEDTLS_ECDH_C)  || defined(MBEDTLS_USE_TINYCRYPT) ) || \
+      !( defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT) ) || \
       !defined(MBEDTLS_X509_CRT_PARSE_C) )
 #error "MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED defined, but not all prerequisites"
 #endif
@@ -330,8 +354,10 @@
 #error "MBEDTLS_PEM_WRITE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PK_C) && \
-    ( !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C) )
+#if defined(MBEDTLS_PK_C) &&                    \
+    ( !defined(MBEDTLS_RSA_C) &&                \
+      !defined(MBEDTLS_ECP_C) &&                \
+      !defined(MBEDTLS_USE_TINYCRYPT) )
 #error "MBEDTLS_PK_C defined, but not all prerequisites"
 #endif
 
@@ -776,9 +802,10 @@
 #error "MBEDTLS_VERSION_FEATURES defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_X509_USE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
-    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||      \
-    !defined(MBEDTLS_PK_PARSE_C) )
+#if defined(MBEDTLS_X509_USE_C) &&              \
+    ( !defined(MBEDTLS_OID_C)        ||         \
+      !defined(MBEDTLS_ASN1_PARSE_C) ||         \
+      !defined(MBEDTLS_PK_PARSE_C) )
 #error "MBEDTLS_X509_USE_C defined, but not all prerequisites"
 #endif
 

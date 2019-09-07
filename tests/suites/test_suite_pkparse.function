@@ -63,9 +63,13 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_ECP_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void pk_parse_public_keyfile_ec( char * key_file, int result )
 {
+#if !defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_USE_TINYCRYPT)
+    ((void) key_file);
+    ((void) result);
+#else
     mbedtls_pk_context ctx;
     int res;
 
@@ -77,20 +81,37 @@ void pk_parse_public_keyfile_ec( char * key_file, int result )
 
     if( res == 0 )
     {
+#if !defined(MBEDTLS_USE_TINYCRYPT)
         mbedtls_ecp_keypair *eckey;
+#else
+        mbedtls_uecc_keypair *uecckey;
+#endif
         TEST_ASSERT( mbedtls_pk_can_do( &ctx, MBEDTLS_PK_ECKEY ) );
+
+#if !defined(MBEDTLS_USE_TINYCRYPT)
         eckey = mbedtls_pk_ec( ctx );
         TEST_ASSERT( mbedtls_ecp_check_pubkey( &eckey->grp, &eckey->Q ) == 0 );
+#else
+        uecckey = mbedtls_pk_uecc( ctx );
+        TEST_ASSERT( uECC_valid_public_key( uecckey->public_key,
+                                            uECC_secp256r1() ) == 0 );
+#endif /* MBEDTLS_USE_TINYCRYPT */
     }
 
 exit:
     mbedtls_pk_free( &ctx );
+#endif /* !MBEDTLS_ECP_C && !MBEDTLS_USE_TINYCRYPT */
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_ECP_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void pk_parse_keyfile_ec( char * key_file, char * password, int result )
 {
+#if !defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_USE_TINYCRYPT)
+    ((void) key_file);
+    ((void) password);
+    ((void) result);
+#else
     mbedtls_pk_context ctx;
     int res;
 
@@ -102,14 +123,32 @@ void pk_parse_keyfile_ec( char * key_file, char * password, int result )
 
     if( res == 0 )
     {
+#if !defined(MBEDTLS_USE_TINYCRYPT)
         mbedtls_ecp_keypair *eckey;
+#else
+        mbedtls_uecc_keypair *uecckey;
+        unsigned char tmp_pubkey[ 2 * NUM_ECC_BYTES ];
+#endif
         TEST_ASSERT( mbedtls_pk_can_do( &ctx, MBEDTLS_PK_ECKEY ) );
+
+#if !defined(MBEDTLS_USE_TINYCRYPT)
         eckey = mbedtls_pk_ec( ctx );
         TEST_ASSERT( mbedtls_ecp_check_privkey( &eckey->grp, &eckey->d ) == 0 );
+#else
+        uecckey = mbedtls_pk_uecc( ctx );
+        TEST_ASSERT( uECC_valid_public_key( uecckey->public_key,
+                                            uECC_secp256r1() ) == 0 );
+        TEST_ASSERT( uECC_compute_public_key( uecckey->private_key,
+                                              tmp_pubkey,
+                                              uECC_secp256r1() ) != 0 );
+        TEST_ASSERT( memcmp( tmp_pubkey, uecckey->public_key,
+                            sizeof( tmp_pubkey ) ) == 0 );
+#endif /* MBEDTLS_USE_TINYCRYPT */
     }
 
 exit:
     mbedtls_pk_free( &ctx );
+#endif /* !MBEDTLS_ECP_C && !MBEDTLS_USE_TINYCRYPT */
 }
 /* END_CASE */
 

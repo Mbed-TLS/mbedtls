@@ -52,6 +52,9 @@
 #if defined(MBEDTLS_PKCS12_C)
 #include "mbedtls/pkcs12.h"
 #endif
+#if defined(MBEDTLS_USE_TINYCRYPT)
+#include "tinycrypt/ecc.h"
+#endif
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -176,7 +179,28 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
 }
 #endif /* MBEDTLS_FS_IO */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_USE_TINYCRYPT)
+static int pk_use_ecparams( const mbedtls_asn1_buf *params )
+{
+    mbedtls_uecc_group_id grp_id;
+
+    if( params->tag == MBEDTLS_ASN1_OID )
+    {
+        if( mbedtls_oid_get_ec_grp( params, &grp_id ) != 0 )
+            return( MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE );
+    }
+    else
+    {
+        // Only P-256 is supported
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
+#if defined(MBEDTLS_ECP_C) || \
+    defined(MBEDTLS_USE_TINYCRYPT)
 /* Minimally parse an ECParameters buffer to and mbedtls_asn1_buf
  *
  * ECParameters ::= CHOICE {
@@ -220,7 +244,11 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
 
     return( 0 );
 }
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
 
+#if !defined(MBEDTLS_USE_TINYCRYPT)
+
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_PK_PARSE_EC_EXTENDED)
 /*
  * Parse a SpecifiedECDomain (SEC 1 C.2) and (mostly) fill the group with it.
@@ -516,6 +544,46 @@ static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
     return( ret );
 }
 #endif /* MBEDTLS_ECP_C */
+#endif /* !MBEDTLS_USE_TINYCRYPT */
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
+/*
+ * Import a point from unsigned binary data (SEC1 2.3.4)
+ */
+static int uecc_public_key_read_binary( mbedtls_uecc_keypair *uecc_keypair,
+                                        const unsigned char *buf, size_t ilen )
+{
+    if( ilen != 2 * NUM_ECC_BYTES + 1 )
+        return( MBEDTLS_ERR_PK_INVALID_PUBKEY );
+
+    /* We are not handling the point at infinity. */
+
+    if( buf[0] != 0x04 )
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+
+    memcpy( uecc_keypair->public_key, buf + 1, 2 * NUM_ECC_BYTES );
+
+    return( 0 );
+}
+
+static int pk_get_ueccpubkey( unsigned char **p,
+                           const unsigned char *end,
+                           uint8_t *pk_context)
+{
+    mbedtls_uecc_keypair *uecc_keypair = (mbedtls_uecc_keypair *) pk_context;
+    int ret;
+
+    ret = uecc_public_key_read_binary( uecc_keypair,
+                                       (const unsigned char *) *p, end - *p );
+
+    /*
+     * We know uecc_public_key_read_binary consumed all bytes or failed
+     */
+    *p = (unsigned char *) end;
+
+    return( ret );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_RSA_C)
 /*
@@ -656,6 +724,12 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
         ret = pk_get_rsapubkey( p, end, mbedtls_pk_rsa( *pk ) );
     } else
 #endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( pk_alg == MBEDTLS_PK_ECKEY )
+    {
+        ret = pk_get_ueccpubkey( p, end, (uint8_t*) pk->pk_ctx );
+    } else
+#else /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ECP_C)
     if( pk_alg == MBEDTLS_PK_ECKEY_DH || pk_alg == MBEDTLS_PK_ECKEY )
     {
@@ -664,6 +738,7 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
             ret = pk_get_ecpubkey( p, end, mbedtls_pk_ec( *pk ) );
     } else
 #endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_USE_TINYCRYPT */
         ret = MBEDTLS_ERR_PK_UNKNOWN_PK_ALG;
 
     if( ret == 0 && *p != end )
@@ -803,6 +878,124 @@ cleanup:
 }
 #endif /* MBEDTLS_RSA_C */
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+static int pk_parse_key_sec1_der( mbedtls_uecc_keypair *keypair,
+                                  const unsigned char *key,
+                                  size_t keylen)
+{
+    int ret;
+    int version, pubkey_done;
+    size_t len;
+    mbedtls_asn1_buf params;
+    unsigned char *p = (unsigned char *) key;
+    unsigned char *end = p + keylen;
+    unsigned char *end2;
+
+    /*
+     * RFC 5915, or SEC1 Appendix C.4
+     *
+     * ECPrivateKey ::= SEQUENCE {
+     *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+     *      privateKey     OCTET STRING,
+     *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+     *      publicKey  [1] BIT STRING OPTIONAL
+     *    }
+     */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+    }
+
+    end = p + len;
+
+    if( ( ret = mbedtls_asn1_get_int( &p, end, &version ) ) != 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    if( version != 1 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_VERSION );
+
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    memcpy( keypair->private_key, p, len );
+
+    p += len;
+
+    pubkey_done = 0;
+    if( p != end )
+    {
+        /*
+         * Is 'parameters' present?
+         */
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 0 ) ) == 0 )
+        {
+            if( ( ret = pk_get_ecparams( &p, p + len, &params) ) != 0 ||
+                ( ret = pk_use_ecparams( &params )  ) != 0 )
+            {
+                return( ret );
+            }
+        }
+        else if( ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
+        {
+            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+        }
+    }
+
+    if( p != end )
+    {
+        /*
+         * Is 'publickey' present? If not, or if we can't read it (eg because it
+         * is compressed), create it from the private key.
+         */
+        if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                        MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 1 ) ) == 0 )
+        {
+            end2 = p + len;
+
+            if( ( ret = mbedtls_asn1_get_bitstring_null( &p, end2, &len ) ) != 0 )
+                return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+            if( p + len != end2 )
+                return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT +
+                        MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+            if( ( ret = uecc_public_key_read_binary( keypair,
+                            (const unsigned char *) p, end2 - p ) ) == 0 )
+            {
+                pubkey_done = 1;
+            }
+            else
+            {
+                /*
+                 * The only acceptable failure mode of
+                 * uecc_public_key_read_binary() above
+                 * is if the point format is not recognized.
+                 */
+                if( ret != MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE )
+                    return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+            }
+        }
+        else if( ret != MBEDTLS_ERR_ASN1_UNEXPECTED_TAG )
+        {
+            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT + ret );
+        }
+    }
+
+    if( !pubkey_done )
+    {
+        ret = uECC_compute_public_key( keypair->private_key,
+                                       keypair->public_key,
+                                       uECC_secp256r1() );
+        if( ret == 0 )
+            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+    }
+
+    return( 0 );
+}
+#else /* MBEDTLS_USE_TINYCRYPT */
+
 #if defined(MBEDTLS_ECP_C)
 /*
  * Parse a SEC1 encoded private EC key
@@ -931,6 +1124,7 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
     return( 0 );
 }
 #endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 /*
  * Parse an unencrypted PKCS#8 encoded private key
@@ -1014,6 +1208,16 @@ static int pk_parse_key_pkcs8_unencrypted_der(
         }
     } else
 #endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    if( pk_alg == MBEDTLS_PK_ECKEY )
+    {
+        if( ( ret = pk_use_ecparams( &params ) ) != 0 ||
+            ( ret = pk_parse_key_sec1_der( mbedtls_pk_uecc( *pk ), p, len ) ) != 0)
+        {
+            return( ret );
+        }
+    } else
+#else /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ECP_C)
     if( pk_alg == MBEDTLS_PK_ECKEY || pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
@@ -1025,6 +1229,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
         }
     } else
 #endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_USE_TINYCRYPT */
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
     return( 0 );
@@ -1214,7 +1419,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         return( ret );
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
     if( key[keylen - 1] != '\0' )
         ret = MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT;
@@ -1227,9 +1432,15 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     {
         pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+        if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
+            ( ret = pk_parse_key_sec1_der( mbedtls_pk_uecc( *pk ),
+                                           pem.buf, pem.buflen ) ) != 0 )
+#else /* MBEDTLS_USE_TINYCRYPT */
         if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 ||
             ( ret = pk_parse_key_sec1_der( mbedtls_pk_ec( *pk ),
                                            pem.buf, pem.buflen ) ) != 0 )
+#endif /* MBEDTLS_USE_TINYCRYPT */
         {
             mbedtls_pk_free( pk );
         }
@@ -1243,7 +1454,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         return( MBEDTLS_ERR_PK_PASSWORD_REQUIRED );
     else if( ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
         return( ret );
-#endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_ECP_C || MBEDTLS_USE_TINYCRYPT */
 
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
     if( key[keylen - 1] != '\0' )
@@ -1350,6 +1561,15 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     mbedtls_pk_init( pk );
 #endif /* MBEDTLS_RSA_C */
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+    pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
+    if( mbedtls_pk_setup( pk, pk_info ) == 0 &&
+        pk_parse_key_sec1_der( mbedtls_pk_uecc( *pk),
+                               key, keylen) == 0)
+    {
+        return( 0 );
+    }
+#else /* MBEDTLS_USE_TINYCRYPT */
 #if defined(MBEDTLS_ECP_C)
     pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
     if( mbedtls_pk_setup( pk, pk_info ) == 0 &&
@@ -1360,6 +1580,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     }
     mbedtls_pk_free( pk );
 #endif /* MBEDTLS_ECP_C */
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
     /* If MBEDTLS_RSA_C is defined but MBEDTLS_ECP_C isn't,
      * it is ok to leave the PK context initialized but not

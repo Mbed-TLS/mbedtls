@@ -1975,9 +1975,9 @@ const char * mbedtls_test_cas[] = {
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C)
     mbedtls_test_ca_crt_rsa_sha256,
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     mbedtls_test_ca_crt_ec,
-#endif
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     NULL
 };
 const size_t mbedtls_test_cas_len[] = {
@@ -1987,9 +1987,9 @@ const size_t mbedtls_test_cas_len[] = {
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C)
     sizeof( mbedtls_test_ca_crt_rsa_sha256 ),
 #endif
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     sizeof( mbedtls_test_ca_crt_ec ),
-#endif
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     0
 };
 
@@ -2003,9 +2003,9 @@ const unsigned char * mbedtls_test_cas_der[] = {
     mbedtls_test_ca_crt_rsa_sha1_der,
 #endif /* MBEDTLS_SHA1_C */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     mbedtls_test_ca_crt_ec_der,
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     NULL
 };
 
@@ -2018,9 +2018,9 @@ const size_t mbedtls_test_cas_der_len[] = {
     sizeof( mbedtls_test_ca_crt_rsa_sha1_der ),
 #endif /* MBEDTLS_SHA1_C */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     sizeof( mbedtls_test_ca_crt_ec_der ),
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     0
 };
 
@@ -2035,9 +2035,9 @@ const char mbedtls_test_cas_pem[] =
     TEST_CA_CRT_RSA_SHA1_PEM
 #endif /* MBEDTLS_SHA1_C */
 #endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C) || defined(MBEDTLS_USE_TINYCRYPT)
     TEST_CA_CRT_EC_PEM
-#endif /* MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDSA_C || MBEDTLS_USE_TINYCRYPT */
     "";
 const size_t mbedtls_test_cas_pem_len = sizeof( mbedtls_test_cas_pem );
 #endif /* MBEDTLS_PEM_PARSE_C */

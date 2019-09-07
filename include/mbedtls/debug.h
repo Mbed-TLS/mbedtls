@@ -36,6 +36,10 @@
 #include "ecp.h"
 #endif
 
+#if defined(MBEDTLS_ECDH_C)
+#include "ecdh.h"
+#endif
+
 #if defined(MBEDTLS_DEBUG_C)
 
 #define MBEDTLS_DEBUG_STRIP_PARENS( ... )   __VA_ARGS__

@@ -283,16 +283,16 @@ typedef struct mbedtls_cipher_info_t
  */
 typedef struct mbedtls_cipher_context_t
 {
+    /** Operation that the key of the context has been
+     * initialized for.
+     */
+    mbedtls_operation_t operation;
+
     /** Information about the associated cipher. */
     const mbedtls_cipher_info_t *cipher_info;
 
     /** Key length to use. */
     int key_bitlen;
-
-    /** Operation that the key of the context has been
-     * initialized for.
-     */
-    mbedtls_operation_t operation;
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     /** Padding functions to use, if relevant for
@@ -302,15 +302,8 @@ typedef struct mbedtls_cipher_context_t
     int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
 #endif
 
-    /** Buffer for input that has not been processed yet. */
-    unsigned char unprocessed_data[MBEDTLS_MAX_BLOCK_LENGTH];
-
     /** Number of Bytes that have not been processed yet. */
     size_t unprocessed_len;
-
-    /** Current IV or NONCE_COUNTER for CTR-mode, data unit (or sector) number
-     * for XTS-mode. */
-    unsigned char iv[MBEDTLS_MAX_IV_LENGTH];
 
     /** IV size in Bytes, for ciphers with variable-length IVs. */
     size_t iv_size;
@@ -322,6 +315,13 @@ typedef struct mbedtls_cipher_context_t
     /** CMAC-specific context. */
     mbedtls_cmac_context_t *cmac_ctx;
 #endif
+
+    /** Buffer for input that has not been processed yet. */
+    unsigned char unprocessed_data[MBEDTLS_MAX_BLOCK_LENGTH];
+
+    /** Current IV or NONCE_COUNTER for CTR-mode, data unit (or sector) number
+     * for XTS-mode. */
+    unsigned char iv[MBEDTLS_MAX_IV_LENGTH];
 } mbedtls_cipher_context_t;
 
 /**

@@ -2070,10 +2070,10 @@ typedef struct mbedtls_x509_crt_sig_info
     mbedtls_md_type_t sig_md;
     mbedtls_pk_type_t sig_pk;
     void *sig_opts;
-    uint8_t crt_hash[MBEDTLS_MD_MAX_SIZE];
     size_t crt_hash_len;
     mbedtls_x509_buf_raw sig;
     mbedtls_x509_buf_raw issuer_raw;
+    uint8_t crt_hash[MBEDTLS_MD_MAX_SIZE];
 } mbedtls_x509_crt_sig_info;
 
 static void x509_crt_free_sig_info( mbedtls_x509_crt_sig_info *info )

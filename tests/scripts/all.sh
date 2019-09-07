@@ -639,6 +639,19 @@ component_test_sslv3 () {
     if_build_succeeded tests/ssl-opt.sh
 }
 
+component_test_dtls_only () {
+    msg "build: Default + DTLS only (ASan build)" # ~ 6 min
+    scripts/config.pl set MBEDTLS_SSL_PROTO_NO_TLS
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: DTLS only - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: DTLS only - ssl-opt.sh (ASan build)" # ~ 6 min
+    if_build_succeeded tests/ssl-opt.sh
+}
+
 component_test_no_renegotiation () {
     msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
     scripts/config.pl unset MBEDTLS_SSL_RENEGOTIATION

@@ -968,8 +968,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding EMPTY_RENEGOTIATION_INFO_SCSV" ) );
-        *p++ = (unsigned char)( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
-        *p++ = (unsigned char)( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO      );
+        p = mbedtls_platform_put_uint16_be( p, MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO );
         n++;
     }
 
@@ -1725,8 +1724,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
     if( ssl->in_hslen > mbedtls_ssl_hs_hdr_len( ssl ) + 39 + n )
     {
-        ext_len = ( ( buf[38 + n] <<  8 )
-                  | ( buf[39 + n]       ) );
+        ext_len = mbedtls_platform_get_uint16_be( &buf[38 + n] );
 
         if( ( ext_len > 0 && ext_len < 4 ) ||
             ssl->in_hslen != mbedtls_ssl_hs_hdr_len( ssl ) + 40 + n + ext_len )
@@ -1914,10 +1912,10 @@ server_picked_valid_suite:
 
     while( ext_len )
     {
-        unsigned int ext_id   = ( ( ext[0] <<  8 )
-                                | ( ext[1]       ) );
-        unsigned int ext_size = ( ( ext[2] <<  8 )
-                                | ( ext[3]       ) );
+        unsigned int ext_id   = (unsigned int)
+            mbedtls_platform_get_uint16_be( ext );
+        unsigned int ext_size = (unsigned int)
+            mbedtls_platform_get_uint16_be( &ext[2] );
 
         if( ext_size + 4 > ext_len )
         {
@@ -2287,7 +2285,7 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
                                     "(psk_identity_hint length)" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
-    len = (*p)[0] << 8 | (*p)[1];
+    len = mbedtls_platform_get_uint16_be( *p );
     *p += 2;
 
     if( end - (*p) < (int) len )
@@ -3248,8 +3246,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( mbedtls_ssl_get_minor_ver( ssl ) == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        size_t sig_alg_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
-                             | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
+        size_t sig_alg_len = mbedtls_platform_get_uint16_be( &buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] );
 #if defined(MBEDTLS_DEBUG_C)
         unsigned char* sig_alg;
         size_t i;
@@ -3289,8 +3286,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     /* certificate_authorities */
-    dn_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
-             | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
+    dn_len = mbedtls_platform_get_uint16_be( &buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] );
 
     n += dn_len;
     if( ssl->in_hslen != mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n )

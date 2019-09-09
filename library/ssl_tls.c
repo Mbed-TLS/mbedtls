@@ -2185,9 +2185,6 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 
         p = mbedtls_platform_put_uint16_be( p, zlen );
         p += zlen;
-
-        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
-                                MBEDTLS_DEBUG_ECDH_Z );
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
@@ -5380,7 +5377,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
-        rec_epoch = ( rec->ctr[0] << 8 ) | rec->ctr[1];
+        rec_epoch = (uint32_t)mbedtls_platform_get_uint16_be( rec->ctr );
 
         /* Check that the datagram is large enough to contain a record
          * of the advertised length. */

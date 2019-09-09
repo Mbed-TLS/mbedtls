@@ -298,7 +298,7 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
     if( ( ret = ssl_ticket_update_keys( ctx ) ) != 0 )
         goto cleanup;
 
-    enc_len = ( enc_len_p[0] << 8 ) | enc_len_p[1];
+    enc_len = mbedtls_platform_get_uint16_be( enc_len_p );
     tag = ticket + enc_len;
 
     if( len != 4 + 12 + 2 + enc_len + 16 )

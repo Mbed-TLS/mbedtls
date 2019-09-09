@@ -40,11 +40,11 @@ Overview:
 The TinyCrypt Library provides an implementation for constrained devices of a 
 minimal set of standard cryptography primitives. 
 
-This is a modified form of the library based on version 0.2.8. included as part
-of Mbed TLS as a compilation option. It is not included in it's full form and
+This is a modified form of the library based on version 0.2.8 included as part
+of Mbed TLS as a compilation option. It is not included in its full form and
 those wishing to use TinyCrypt should use the original unmodified project.
 
-The original project, can be found here: https://github.com/intel/tinycrypt
+The original project can be found here: https://github.com/intel/tinycrypt
 
 Contributions should be made upstream to that project, and full documentation 
 can be found in the originating repository.

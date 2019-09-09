@@ -414,7 +414,7 @@ psa_status_t psa_open_key(psa_key_id_t id,
  * Closing the key handle makes the handle invalid, and the key handle
  * must not be used again by the application.
  *
- * \note If the key handle was used to setup an active
+ * \note If the key handle was used to set up an active
  * :ref:\`multipart operation <multipart-operations>\`, then closing the
  * key handle can cause the multipart operation to fail. Applications should
  * maintain the key handle until after the multipart operation has finished.

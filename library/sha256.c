@@ -199,7 +199,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
     for( i = 0; i < 64; i++ )
     {
         if( i < 16 )
-            W[i] = mbedtls_platform_get_uint32_be( &data[4 * i] );
+            W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
         else
             R( i );
 
@@ -210,7 +210,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
     }
 #else /* MBEDTLS_SHA256_SMALLER */
     for( i = 0; i < 16; i++ )
-        W[i] = mbedtls_platform_get_uint32_be( &data[4 * i] );
+        W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
 
     for( i = 0; i < 16; i += 8 )
     {

@@ -497,7 +497,7 @@ static unsigned int ssl_mfl_code_to_length( int mfl )
     switch( mfl )
     {
     case MBEDTLS_SSL_MAX_FRAG_LEN_NONE:
-        return ( MBEDTLS_TLS_EXT_ADV_CONTENT_LEN );
+        return( MBEDTLS_TLS_EXT_ADV_CONTENT_LEN );
     case MBEDTLS_SSL_MAX_FRAG_LEN_512:
         return 512;
     case MBEDTLS_SSL_MAX_FRAG_LEN_1024:
@@ -507,7 +507,7 @@ static unsigned int ssl_mfl_code_to_length( int mfl )
     case MBEDTLS_SSL_MAX_FRAG_LEN_4096:
         return 4096;
     default:
-        return ( MBEDTLS_TLS_EXT_ADV_CONTENT_LEN );
+        return( MBEDTLS_TLS_EXT_ADV_CONTENT_LEN );
     }
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
@@ -2186,6 +2186,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         p = mbedtls_platform_put_uint16_be( p, zlen );
         p += zlen;
 
+        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
+                                MBEDTLS_DEBUG_ECDH_Z );
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
@@ -4624,12 +4626,12 @@ static int ssl_hs_is_proper_fragment( mbedtls_ssl_context *ssl )
 
 static uint32_t ssl_get_hs_frag_len( mbedtls_ssl_context const *ssl )
 {
-    return ( mbedtls_platform_get_uint24_be( &ssl->in_msg[9] ) );
+    return( (uint32_t)mbedtls_platform_get_uint24_be( &ssl->in_msg[9] ) );
 }
 
 static uint32_t ssl_get_hs_frag_off( mbedtls_ssl_context const *ssl )
 {
-    return ( mbedtls_platform_get_uint24_be( &ssl->in_msg[6] ) );
+    return( (uint32_t)mbedtls_platform_get_uint24_be( &ssl->in_msg[6] ) );
 }
 
 static int ssl_check_hs_header( mbedtls_ssl_context const *ssl )
@@ -4732,7 +4734,7 @@ static size_t ssl_get_reassembly_buffer_size( size_t msg_len,
 
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl )
 {
-    return ( mbedtls_platform_get_uint24_be( &ssl->in_msg[1] ) );
+    return( (uint32_t)mbedtls_platform_get_uint24_be( &ssl->in_msg[1] ) );
 }
 
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
@@ -4754,7 +4756,8 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         int ret;
-        unsigned int recv_msg_seq = mbedtls_platform_get_uint16_be( &ssl->in_msg[4] );
+        unsigned int recv_msg_seq = (unsigned int)
+            mbedtls_platform_get_uint16_be( &ssl->in_msg[4] );
 
         if( ssl_check_hs_header( ssl ) != 0 )
         {
@@ -5427,7 +5430,8 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
 static int ssl_check_client_reconnect( mbedtls_ssl_context *ssl )
 {
-    unsigned int rec_epoch = mbedtls_platform_get_uint16_be( &ssl->in_ctr[0] );
+    unsigned int rec_epoch = (unsigned int)
+        mbedtls_platform_get_uint16_be( &ssl->in_ctr[0] );
 
     /*
      * Check for an epoch 0 ClientHello. We can't use in_msg here to
@@ -5774,7 +5778,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
     if( ( hs_buf->is_valid == 1 ) && ( hs_buf->is_complete == 1 ) )
     {
         /* Synthesize a record containing the buffered HS message. */
-        size_t msg_len = mbedtls_platform_get_uint24_be( &hs_buf->data[1] );
+        uint32_t msg_len = (uint32_t)mbedtls_platform_get_uint24_be( &hs_buf->data[1] );
 
         /* Double-check that we haven't accidentally buffered
          * a message that doesn't fit into the input buffer. */
@@ -5873,7 +5877,8 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
         case MBEDTLS_SSL_MSG_HANDSHAKE:
         {
             unsigned recv_msg_seq_offset;
-            unsigned recv_msg_seq = mbedtls_platform_get_uint16_be( &ssl->in_msg[4] );
+            unsigned recv_msg_seq = (unsigned)
+                mbedtls_platform_get_uint16_be( &ssl->in_msg[4] );
 
             mbedtls_ssl_hs_buffer *hs_buf;
             size_t msg_len = ssl->in_hslen - 12;
@@ -9446,7 +9451,7 @@ static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_conf_get_endpoint( ssl->conf ) == MBEDTLS_SSL_IS_CLIENT &&
         ( ssl->state == MBEDTLS_SSL_CLIENT_HELLO ||
           ssl->state == MBEDTLS_SSL_SERVER_HELLO ) )
-        return ( 0 );
+        return( 0 );
 
     if( ssl->handshake == NULL || ssl->handshake->mtu == 0 )
         return( ssl->mtu );
@@ -9974,7 +9979,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    ciphersuite = mbedtls_platform_get_uint16_be( p );
+    ciphersuite = (int)mbedtls_platform_get_uint16_be( p );
     p += 2;
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
@@ -9998,7 +10003,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     memcpy( session->master, p, 48 );
     p += 48;
 
-    session->verify_result = mbedtls_platform_get_uint32_be( p );
+    session->verify_result = (uint32_t)mbedtls_platform_get_uint32_be( p );
     p += 4;
 
     /* Immediately clear invalid pointer values that have been read, in case
@@ -10113,7 +10118,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
     if( 4 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    session->ticket_lifetime = mbedtls_platform_get_uint32_be( p );
+    session->ticket_lifetime = (uint32_t)mbedtls_platform_get_uint32_be( p );
     p += 4;
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
@@ -11500,7 +11505,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     if( (size_t)( end - p ) < 4 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    ssl->badmac_seen = mbedtls_platform_get_uint32_be( p );
+    ssl->badmac_seen = (unsigned)mbedtls_platform_get_uint32_be( p );
     p += 4;
 #endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
@@ -11545,8 +11550,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( (size_t)( end - p ) < 2 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    ssl->mtu = mbedtls_platform_get_uint16_be( p );
+    ssl->mtu = (uint16_t)mbedtls_platform_get_uint16_be( p );
     p += 2;
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 

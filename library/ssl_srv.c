@@ -756,7 +756,8 @@ static int ssl_check_key_curve( mbedtls_pk_context *pk,
 
     while( ec_tls_ids_len-- != 0 )
     {
-        uint16_t const cur_tls_id = mbedtls_platform_get_uint16_be( acceptable_ec_tls_ids );
+        uint16_t const cur_tls_id = (uint16_t)
+            mbedtls_platform_get_uint16_be( acceptable_ec_tls_ids );
 
         if( cur_tls_id == tls_id )
             return( 0 );
@@ -1166,9 +1167,9 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
      */
     MBEDTLS_SSL_DEBUG_BUF( 4, "record contents", buf, n );
 
-    ciph_len = mbedtls_platform_get_uint16_be( &buf[0] );
-    sess_len = mbedtls_platform_get_uint16_be( &buf[2] );
-    chal_len = mbedtls_platform_get_uint16_be( &buf[4] );
+    ciph_len = (unsigned int)mbedtls_platform_get_uint16_be( &buf[0] );
+    sess_len = (unsigned int)mbedtls_platform_get_uint16_be( &buf[2] );
+    chal_len = (unsigned int)mbedtls_platform_get_uint16_be( &buf[4] );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciph_len: %d, sess_len: %d, chal_len: %d",
                    ciph_len, sess_len, chal_len ) );
@@ -1582,7 +1583,8 @@ read_record_header:
         if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
         {
             /* This couldn't be done in ssl_prepare_handshake_record() */
-            unsigned int cli_msg_seq = mbedtls_platform_get_uint16_be( &ssl->in_msg[4] );
+            unsigned int cli_msg_seq = (unsigned int)
+                mbedtls_platform_get_uint16_be( &ssl->in_msg[4] );
 
             if( cli_msg_seq != ssl->handshake->in_msg_seq )
             {
@@ -1597,7 +1599,8 @@ read_record_header:
         else
 #endif
         {
-            unsigned int cli_msg_seq = mbedtls_platform_get_uint16_be( &ssl->in_msg[4] );
+            unsigned int cli_msg_seq = (unsigned int)
+                mbedtls_platform_get_uint16_be( &ssl->in_msg[4] );
 
             ssl->handshake->out_msg_seq = cli_msg_seq;
             ssl->handshake->in_msg_seq  = cli_msg_seq + 1;

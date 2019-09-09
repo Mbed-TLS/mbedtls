@@ -201,7 +201,7 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
  * \return     Address to end of buffer where number is written.
   */
 unsigned char* mbedtls_platform_put_uint32_be( unsigned char *buf,
-                                               uint32_t num );
+                                               size_t num );
 
 /**
  * \brief      Convert 24-bit number to big endian format.
@@ -215,7 +215,7 @@ unsigned char* mbedtls_platform_put_uint32_be( unsigned char *buf,
  * \return     Address to end of buffer where number is written.
   */
 unsigned char* mbedtls_platform_put_uint24_be( unsigned char *buf,
-                                               uint32_t num );
+                                               size_t num );
 
 /**
  * \brief      Convert 16-bit number to big endian format.
@@ -229,7 +229,7 @@ unsigned char* mbedtls_platform_put_uint24_be( unsigned char *buf,
  * \return     Address to end of buffer where number is written.
   */
 unsigned char* mbedtls_platform_put_uint16_be( unsigned char *buf,
-                                               uint32_t num );
+                                               size_t num );
 
 /**
  * \brief      Convert 32-bit number from big endian format.
@@ -241,7 +241,7 @@ unsigned char* mbedtls_platform_put_uint16_be( unsigned char *buf,
  *
  * \return     Converted number.
  */
-uint32_t mbedtls_platform_get_uint32_be( const unsigned char *buf );
+size_t mbedtls_platform_get_uint32_be( const unsigned char *buf );
 
 /**
  * \brief      Convert 24-bit number from big endian format.
@@ -253,7 +253,7 @@ uint32_t mbedtls_platform_get_uint32_be( const unsigned char *buf );
  *
  * \return     Converted number.
  */
-uint32_t mbedtls_platform_get_uint24_be( const unsigned char *buf );
+size_t mbedtls_platform_get_uint24_be( const unsigned char *buf );
 
 /**
  * \brief      Convert 16-bit number from big endian format.
@@ -265,7 +265,7 @@ uint32_t mbedtls_platform_get_uint24_be( const unsigned char *buf );
  *
  * \return     Converted number.
  */
-uint16_t mbedtls_platform_get_uint16_be( const unsigned char *buf );
+size_t mbedtls_platform_get_uint16_be( const unsigned char *buf );
 
 #ifdef __cplusplus
 }

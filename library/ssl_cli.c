@@ -1707,7 +1707,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", mbedtls_platform_get_uint32_be(&buf[2])) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", (unsigned long)mbedtls_platform_get_uint32_be(&buf[2])) );
 
     memcpy( ssl->handshake->randbytes + 32, buf + 2, 32 );
 
@@ -1750,7 +1750,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     }
 
     /* ciphersuite (used later) */
-    i = mbedtls_platform_get_uint16_be( &buf[ 35 + n ] );
+    i = (int)mbedtls_platform_get_uint16_be( &buf[ 35 + n ] );
 
     /*
      * Read and check compression
@@ -4056,7 +4056,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
 
     msg = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
 
-    lifetime = mbedtls_platform_get_uint32_be( msg );
+    lifetime = (uint32_t)mbedtls_platform_get_uint32_be( msg );
 
     ticket_len = mbedtls_platform_get_uint16_be( &msg[4] );
 

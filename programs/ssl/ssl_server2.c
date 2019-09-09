@@ -68,6 +68,8 @@ int main( void )
 #include "mbedtls/debug.h"
 #include "mbedtls/timing.h"
 
+#include "mbedtls/ssl_internal.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2232,14 +2234,18 @@ int main( int argc, char *argv[] )
             mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
 
         if( opt.max_version != -1 &&
-            mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ) > opt.max_version )
+            mbedtls_ssl_ver_gt(
+                mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ),
+                opt.max_version ) )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
         if( opt.min_version != -1 &&
-            mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ) < opt.min_version )
+            mbedtls_ssl_ver_lt(
+                mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ),
+                opt.min_version ) )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
@@ -2249,17 +2255,24 @@ int main( int argc, char *argv[] )
         /* If we select a version that's not supported by
          * this suite, then there will be no common ciphersuite... */
         if( opt.max_version == -1 ||
-            opt.max_version > mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ) )
+            mbedtls_ssl_ver_gt(
+                opt.max_version,
+                mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ) ) )
         {
             opt.max_version = mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info );
         }
-        if( opt.min_version < mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ) )
+        if( mbedtls_ssl_ver_lt(
+                opt.min_version,
+                mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ) ) )
         {
             opt.min_version = mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info );
             /* DTLS starts with TLS 1.1 */
             if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
+                mbedtls_ssl_ver_lt( opt.min_version,
+                                    MBEDTLS_SSL_MINOR_VERSION_2 ) )
+            {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
+            }
         }
 
         /* Enable RC4 if needed and not explicitly disabled */

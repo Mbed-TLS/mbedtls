@@ -773,8 +773,10 @@ static int ssl_validate_ciphersuite( mbedtls_ssl_ciphersuite_handle_t suite_info
     if( suite_info == MBEDTLS_SSL_CIPHERSUITE_INVALID_HANDLE )
         return( 1 );
 
-    if( mbedtls_ssl_suite_get_min_minor_ver( suite_info ) > max_minor_ver ||
-        mbedtls_ssl_suite_get_max_minor_ver( suite_info ) < min_minor_ver )
+    if( mbedtls_ssl_ver_gt( mbedtls_ssl_suite_get_min_minor_ver( suite_info ),
+                            max_minor_ver ) ||
+        mbedtls_ssl_ver_lt( mbedtls_ssl_suite_get_max_minor_ver( suite_info ),
+                            min_minor_ver ) )
     {
         return( 1 );
     }
@@ -1557,10 +1559,12 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
      * Since the RFC is not clear on this point, accept DTLS 1.0 (TLS 1.1)
      * even is lower than our min version.
      */
-    if( major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 ||
-        major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf )  ||
-        minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf )  )
+    if( mbedtls_ssl_ver_lt( major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 ) ||
+        mbedtls_ssl_ver_lt( minor_ver, MBEDTLS_SSL_MINOR_VERSION_2 ) ||
+        mbedtls_ssl_ver_gt( major_ver,
+                            mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) ) ||
+        mbedtls_ssl_ver_gt( minor_ver,
+                            mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server version" ) );
 
@@ -1715,10 +1719,14 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
                                   ssl->conf->transport,
                                   buf + 0 );
 
-        if( major_ver < mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ||
-            minor_ver < mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ||
-            major_ver > mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) ||
-            minor_ver > mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) )
+        if( mbedtls_ssl_ver_lt( major_ver,
+                                mbedtls_ssl_conf_get_min_major_ver( ssl->conf ) ) ||
+            mbedtls_ssl_ver_lt( minor_ver,
+                                mbedtls_ssl_conf_get_min_minor_ver( ssl->conf ) ) ||
+            mbedtls_ssl_ver_gt( major_ver,
+                                mbedtls_ssl_conf_get_max_major_ver( ssl->conf ) ) ||
+            mbedtls_ssl_ver_gt( minor_ver,
+                                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ) ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "server version out of bounds - "
                          " min: [%d:%d], server: [%d:%d], max: [%d:%d]",
@@ -2951,7 +2959,8 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-        if( mbedtls_ssl_get_minor_ver( ssl ) < MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( mbedtls_ssl_ver_lt( mbedtls_ssl_get_minor_ver( ssl ),
+                                MBEDTLS_SSL_MINOR_VERSION_3 ) )
         {
             pk_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
 

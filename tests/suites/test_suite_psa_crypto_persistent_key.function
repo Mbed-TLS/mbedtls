@@ -1,4 +1,12 @@
 /* BEGIN_HEADER */
+
+/* The tests in this module verify the contents of key store files. They
+ * access internal key storage functions directly. Some of the tests depend
+ * on the the storage format. On the other hand, these tests treat the storage
+ * subsystem as a black box, and in particular have no reliance on the
+ * internals of the ITS implementation.
+ */
+
 #include <stdint.h>
 
 #include "psa_crypto_helpers.h"
@@ -9,6 +17,10 @@
 #define PSA_KEY_STORAGE_MAGIC_HEADER "PSA\0KEY"
 #define PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH ( sizeof( PSA_KEY_STORAGE_MAGIC_HEADER ) )
 
+/* Enforce the storage format for keys. The storage format is not a public
+ * documented interface, but it must be preserved between versions so that
+ * upgrades work smoothly, so it's a stable interface nonetheless.
+ */
 typedef struct {
     uint8_t magic[PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH];
     uint8_t version[4];

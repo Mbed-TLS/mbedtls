@@ -1,4 +1,10 @@
 /* BEGIN_HEADER */
+
+/* This test file is specific to the ITS implementation in PSA Crypto
+ * on top of stdio. It expects to know what the stdio name of a file is
+ * based on its keystore name.
+ */
+
 #include "../library/psa_crypto_its.h"
 
 #include "psa_helpers.h"

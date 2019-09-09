@@ -281,8 +281,8 @@ static void ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
     }
 
     p = mbedtls_platform_put_uint16_be( p, MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES );
-    p = mbedtls_platform_put_uint16_be( p,  ( elliptic_curve_len + 2 ) );
-    p = mbedtls_platform_put_uint16_be( p,  ( elliptic_curve_len ) );
+    p = mbedtls_platform_put_uint16_be( p, elliptic_curve_len + 2 );
+    p = mbedtls_platform_put_uint16_be( p, elliptic_curve_len );
 
     MBEDTLS_SSL_BEGIN_FOR_EACH_SUPPORTED_EC_TLS_ID( tls_id )
     p = mbedtls_platform_put_uint16_be( p, tls_id );
@@ -1706,7 +1706,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif /* !MBEDTLS_SSL_CONF_FIXED_MAJOR_VER */
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", (unsigned long)mbedtls_platform_get_uint32_be(&buf[2])) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu",
+        (unsigned long)mbedtls_platform_get_uint32_be(&buf[2])) );
 
     memcpy( ssl->handshake->randbytes + 32, buf + 2, 32 );
 

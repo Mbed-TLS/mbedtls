@@ -320,7 +320,7 @@ void mbedtls_sha256_update( mbedtls_sha256_context *ctx,
 int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
                                unsigned char output[32] )
 {
-    int ret;
+    int ret, s_pos, o_pos;
     uint32_t used;
     uint32_t high, low;
 
@@ -367,7 +367,7 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
      * Output final state
      */
 
-    for ( int s_pos = 0, o_pos = 0; s_pos < 7; s_pos++, o_pos += 4 )
+    for( s_pos = 0, o_pos = 0; s_pos < 7; s_pos++, o_pos += 4 )
     {
         mbedtls_platform_put_uint32_be( &output[o_pos], ctx->state[s_pos] );
     }

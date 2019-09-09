@@ -1,10 +1,13 @@
 /* ecc_dh.h - TinyCrypt interface to EC-DSA implementation */
 
 /*
+ *  Copyright (c) 2019, Arm Limited (or its affiliates), All Rights Reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause
+ */
+
+/*
  * Copyright (c) 2014, Kenneth MacKay
  * All rights reserved.
- *
- * SPDX-License-Identifier: BSD-3-Clause
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:

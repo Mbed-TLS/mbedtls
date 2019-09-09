@@ -39,6 +39,8 @@
 #       - this could be enabled if the respective tests were adapted
 #   MBEDTLS_ZLIB_SUPPORT
 #   MBEDTLS_PKCS11_C
+#   MBEDTLS_NO_UDBL_DIVISION
+#   MBEDTLS_NO_64BIT_MULTIPLICATION
 #   and any symbol beginning _ALT
 #
 

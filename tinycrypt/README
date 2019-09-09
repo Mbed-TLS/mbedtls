@@ -2,6 +2,7 @@
 ================================================================================
 
                      TinyCrypt Cryptographic Library
+                    (integrated as  part of Mbed TLS)
 
 ================================================================================
 
@@ -35,6 +36,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
 
+Copyright (c) 2019 ARM Limited
+
+================================================================================
 Overview:
 
 The TinyCrypt Library provides an implementation for constrained devices of a 

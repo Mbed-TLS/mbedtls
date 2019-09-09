@@ -18,3 +18,6 @@ all: html pdf
 	$(PANDOC) -o $@ $<
 .md.pdf:
 	$(PANDOC) -o $@ $<
+
+clean:
+	rm -f *.html *.pdf

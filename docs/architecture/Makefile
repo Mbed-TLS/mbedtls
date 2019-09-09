@@ -4,6 +4,7 @@ default: all
 
 all_markdown = \
 	       mbed-crypto-storage-specification.md \
+	       testing/driver-interface-test-strategy.md \
 	       # This line is intentionally left blank
 
 html: $(all_markdown:.md=.html)

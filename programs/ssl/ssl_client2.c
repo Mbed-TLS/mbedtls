@@ -234,7 +234,8 @@ int main( void )
 #define USAGE_EAP_TLS                                       \
     "    eap_tls=%%d          default: 0 (disabled)\n"
 #define USAGE_NSS_KEYLOG                                    \
-    "    nss_keylog=%%d          default: 0 (disabled)\n"
+    "    nss_keylog=%%d          default: 0 (disabled)\n"               \
+    "                             This cannot be used with eap_tls=1\n"
 #define USAGE_NSS_KEYLOG_FILE                               \
     "    nss_keylog_file=%%s\n"
 #else
@@ -1705,6 +1706,12 @@ int main( int argc, char *argv[] )
         }
         else
             goto usage;
+    }
+
+    if( opt.nss_keylog != 0 && opt.eap_tls != 0 )
+    {
+        mbedtls_printf( "Error: eap_tls and nss_keylog options cannot be used together.\n" );
+        goto usage;
     }
 
     /* Event-driven IO is incompatible with the above custom

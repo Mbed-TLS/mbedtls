@@ -4,16 +4,6 @@
 #include "tinycrypt/ecc_dh.h"
 #include "tinycrypt/ecc_dsa.h"
 
-static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
-{
-    int ret;
-    ret = rnd_std_rand( NULL, dest, size );
-    if( ret == 0 )
-        return( (int) size );
-
-    return( 0 );
-}
-
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

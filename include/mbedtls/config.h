@@ -2029,6 +2029,17 @@
 //#define MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
 
 /**
+ * \def MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
+ *
+ * Remove support for X.509 certificate verification callbacks.
+ *
+ * Uncomment to save some bytes of code by removing support for X.509
+ * certificate verification callbacks in mbedtls_x509_crt_verify() and
+ * related verification API.
+ */
+//#define MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
+
+/**
  * \def MBEDTLS_X509_RSASSA_PSS_SUPPORT
  *
  * Enable parsing and verification of X.509 certificates, CRLs and CSRS

@@ -670,23 +670,6 @@ static int x509_check_wildcard( char const *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 /*
- * Reset (init or clear) a verify_chain
- */
-static void x509_crt_verify_chain_reset(
-    mbedtls_x509_crt_verify_chain *ver_chain )
-{
-    size_t i;
-
-    for( i = 0; i < MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE; i++ )
-    {
-        ver_chain->items[i].crt = NULL;
-        ver_chain->items[i].flags = (uint32_t) -1;
-    }
-
-    ver_chain->len = 0;
-}
-
-/*
  *  Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
  */
 static int x509_get_version( unsigned char **p,
@@ -3202,6 +3185,140 @@ static int x509_crt_check_ee_locally_trusted(
     return( -1 );
 }
 
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+
+/*
+ * Reset (init or clear) a verify_chain
+ */
+static void x509_crt_verify_chain_reset(
+    mbedtls_x509_crt_verify_chain *ver_chain )
+{
+    size_t i;
+
+    for( i = 0; i < MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE; i++ )
+    {
+        ver_chain->items[i].crt = NULL;
+        ver_chain->items[i].flags = (uint32_t) -1;
+    }
+
+    ver_chain->len = 0;
+}
+
+/*
+ * Merge the flags for all certs in the chain, after calling callback
+ */
+static int x509_crt_verify_chain_get_flags(
+           const mbedtls_x509_crt_verify_chain *ver_chain,
+           uint32_t *flags,
+           int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+           void *p_vrfy )
+{
+    int ret;
+    unsigned i;
+    uint32_t cur_flags;
+    const mbedtls_x509_crt_verify_chain_item *cur;
+
+    for( i = ver_chain->len; i != 0; --i )
+    {
+        cur = &ver_chain->items[i-1];
+        cur_flags = cur->flags;
+
+        if( NULL != f_vrfy )
+            if( ( ret = f_vrfy( p_vrfy, cur->crt, (int) i-1, &cur_flags ) ) != 0 )
+                return( ret );
+
+        *flags |= cur_flags;
+    }
+
+    return( 0 );
+}
+
+static void x509_crt_verify_chain_add_ee_flags(
+    mbedtls_x509_crt_verify_chain *chain,
+    uint32_t ee_flags )
+{
+    chain->items[0].flags |= ee_flags;
+}
+
+static void x509_crt_verify_chain_add_crt(
+    mbedtls_x509_crt_verify_chain *chain,
+    mbedtls_x509_crt *crt )
+{
+    mbedtls_x509_crt_verify_chain_item *cur;
+    cur = &chain->items[chain->len];
+    cur->crt = crt;
+    cur->flags = 0;
+    chain->len++;
+}
+
+static uint32_t* x509_crt_verify_chain_get_cur_flags(
+    mbedtls_x509_crt_verify_chain *chain )
+{
+    return( &chain->items[chain->len - 1].flags );
+}
+
+static unsigned x509_crt_verify_chain_len(
+    mbedtls_x509_crt_verify_chain const *chain )
+{
+    return( chain->len );
+}
+
+#else /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+
+/*
+ * Reset (init or clear) a verify_chain
+ */
+static void x509_crt_verify_chain_reset(
+    mbedtls_x509_crt_verify_chain *ver_chain )
+{
+    ver_chain->len   = 0;
+    ver_chain->flags = 0;
+}
+
+/*
+ * Merge the flags for all certs in the chain, after calling callback
+ */
+static int x509_crt_verify_chain_get_flags(
+           const mbedtls_x509_crt_verify_chain *ver_chain,
+           uint32_t *flags,
+           int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
+           void *p_vrfy )
+{
+    ((void) f_vrfy);
+    ((void) p_vrfy);
+    *flags = ver_chain->flags;
+    return( 0 );
+}
+
+static void x509_crt_verify_chain_add_ee_flags(
+    mbedtls_x509_crt_verify_chain *chain,
+    uint32_t ee_flags )
+{
+    chain->flags |= ee_flags;
+}
+
+static void x509_crt_verify_chain_add_crt(
+    mbedtls_x509_crt_verify_chain *chain,
+    mbedtls_x509_crt *crt )
+{
+    ((void) crt);
+    chain->len++;
+}
+
+static uint32_t* x509_crt_verify_chain_get_cur_flags(
+    mbedtls_x509_crt_verify_chain *chain )
+{
+    return( &chain->flags );
+}
+
+static unsigned x509_crt_verify_chain_len(
+    mbedtls_x509_crt_verify_chain const *chain )
+{
+    return( chain->len );
+}
+
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+
 /*
  * Build and verify a certificate chain
  *
@@ -3254,7 +3371,6 @@ static int x509_crt_verify_chain(
      * catch potential issues with jumping ahead when restarting */
     int ret;
     uint32_t *flags;
-    mbedtls_x509_crt_verify_chain_item *cur;
     mbedtls_x509_crt *child_crt;
     mbedtls_x509_crt *parent_crt;
     int parent_is_trusted;
@@ -3269,10 +3385,7 @@ static int x509_crt_verify_chain(
         /* restore saved state */
         *ver_chain = rs_ctx->ver_chain; /* struct copy */
         self_cnt = rs_ctx->self_cnt;
-
-        /* restore derived state */
-        cur = &ver_chain->items[ver_chain->len - 1];
-        child_crt = cur->crt;
+        child_crt = rs_ctx->cur_crt;
 
         child_is_trusted = 0;
         goto find_parent;
@@ -3291,16 +3404,13 @@ static int x509_crt_verify_chain(
         int self_issued;
 
         /* Add certificate to the verification chain */
-        cur = &ver_chain->items[ver_chain->len];
-        cur->crt = child_crt;
-        cur->flags = 0;
-        ver_chain->len++;
+        x509_crt_verify_chain_add_crt( ver_chain, child_crt );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 find_parent:
 #endif
 
-        flags = &cur->flags;
+        flags = x509_crt_verify_chain_get_cur_flags( ver_chain );
 
         {
             mbedtls_x509_crt_sig_info child_sig;
@@ -3342,7 +3452,7 @@ find_parent:
                     *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
                 /* Special case: EE certs that are locally trusted */
-                if( ver_chain->len == 1 && self_issued &&
+                if( x509_crt_verify_chain_len( ver_chain ) == 1 && self_issued &&
                     x509_crt_check_ee_locally_trusted( child, trust_ca ) == 0 )
                 {
                     mbedtls_x509_crt_frame_release( child_crt );
@@ -3364,7 +3474,8 @@ find_parent:
             ret = x509_crt_find_parent( &child_sig, child_crt->next,
                                         trust_ca, &parent_crt,
                                         &parent_is_trusted, &signature_is_good,
-                                        ver_chain->len - 1, self_cnt, rs_ctx );
+                                        x509_crt_verify_chain_len( ver_chain ) - 1,
+                                        self_cnt, rs_ctx );
 
             x509_crt_free_sig_info( &child_sig );
         }
@@ -3376,6 +3487,7 @@ find_parent:
             rs_ctx->in_progress = x509_crt_rs_find_parent;
             rs_ctx->self_cnt = self_cnt;
             rs_ctx->ver_chain = *ver_chain; /* struct copy */
+            rs_ctx->cur_crt = child_crt;
             return( ret );
         }
 #else
@@ -3392,13 +3504,14 @@ find_parent:
         /* Count intermediate self-issued (not necessarily self-signed) certs.
          * These can occur with some strategies for key rollover, see [SIRO],
          * and should be excluded from max_pathlen checks. */
-        if( ver_chain->len != 1 && self_issued )
+        if( x509_crt_verify_chain_len( ver_chain ) != 1 && self_issued )
             self_cnt++;
 
         /* path_cnt is 0 for the first intermediate CA,
          * and if parent is trusted it's not an intermediate CA */
         if( ! parent_is_trusted &&
-            ver_chain->len > MBEDTLS_X509_MAX_INTERMEDIATE_CA )
+            x509_crt_verify_chain_len( ver_chain ) >
+            MBEDTLS_X509_MAX_INTERMEDIATE_CA )
         {
             /* return immediately to avoid overflow the chain array */
             return( MBEDTLS_ERR_X509_FATAL_ERROR );
@@ -3553,35 +3666,6 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
 /*
- * Merge the flags for all certs in the chain, after calling callback
- */
-static int x509_crt_merge_flags_with_cb(
-           uint32_t *flags,
-           const mbedtls_x509_crt_verify_chain *ver_chain,
-           int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-           void *p_vrfy )
-{
-    int ret;
-    unsigned i;
-    uint32_t cur_flags;
-    const mbedtls_x509_crt_verify_chain_item *cur;
-
-    for( i = ver_chain->len; i != 0; --i )
-    {
-        cur = &ver_chain->items[i-1];
-        cur_flags = cur->flags;
-
-        if( NULL != f_vrfy )
-            if( ( ret = f_vrfy( p_vrfy, cur->crt, (int) i-1, &cur_flags ) ) != 0 )
-                return( ret );
-
-        *flags |= cur_flags;
-    }
-
-    return( 0 );
-}
-
-/*
  * Verify the certificate validity (default profile, not restartable)
  */
 int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
@@ -3590,9 +3674,12 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
                      const char *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
-                     uint32_t *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                     void *p_vrfy )
+                     uint32_t *flags
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                     , int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *)
+                     , void *p_vrfy
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+    )
 {
     return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
                 &mbedtls_x509_crt_profile_default,
@@ -3600,7 +3687,10 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
                 cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
                 flags,
-                f_vrfy, p_vrfy, NULL ) );
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                f_vrfy, p_vrfy,
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+                NULL ) );
 }
 
 /*
@@ -3613,16 +3703,23 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
                      const char *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
-                     uint32_t *flags,
-                     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-                     void *p_vrfy )
+                     uint32_t *flags
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                     , int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *)
+                     , void *p_vrfy
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+    )
 {
     return( mbedtls_x509_crt_verify_restartable( crt, trust_ca, ca_crl,
                 profile,
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
                 cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
-                flags, f_vrfy, p_vrfy, NULL ) );
+                flags,
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+                f_vrfy, p_vrfy,
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+                NULL ) );
 }
 
 /*
@@ -3643,8 +3740,10 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
                      const char *cn,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
                      uint32_t *flags,
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy,
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
                      mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
@@ -3699,10 +3798,14 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
         goto exit;
 
     /* Merge end-entity flags */
-    ver_chain.items[0].flags |= ee_flags;
+    x509_crt_verify_chain_add_ee_flags( &ver_chain, ee_flags );
 
     /* Build final flags, calling callback on the way if any */
-    ret = x509_crt_merge_flags_with_cb( flags, &ver_chain, f_vrfy, p_vrfy );
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+    ret = x509_crt_verify_chain_get_flags( &ver_chain, flags, f_vrfy, p_vrfy );
+#else
+    ret = x509_crt_verify_chain_get_flags( &ver_chain, flags, NULL, NULL );
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 exit:
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

@@ -7190,7 +7190,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         ssl->hostname,
 #endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
         &ssl->session_negotiate->verify_result,
-        ssl->conf->f_vrfy, ssl->conf->p_vrfy, rs_ctx );
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+        ssl->conf->f_vrfy, ssl->conf->p_vrfy,
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+        rs_ctx );
 
     if( verify_ret != 0 )
     {
@@ -8534,7 +8537,8 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode )
 #endif /* MBEDTLS_SSL_CONF_AUTHMODE */
 }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy )
@@ -8542,7 +8546,7 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
     conf->f_vrfy      = f_vrfy;
     conf->p_vrfy      = p_vrfy;
 }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 #if !defined(MBEDTLS_SSL_CONF_RNG)
 void mbedtls_ssl_conf_rng( mbedtls_ssl_config *conf,

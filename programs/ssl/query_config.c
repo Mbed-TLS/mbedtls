@@ -1586,6 +1586,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
+#if defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+    if( strcmp( "MBEDTLS_X509_REMOVE_VERIFY_CALLBACK", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_REMOVE_VERIFY_CALLBACK );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( strcmp( "MBEDTLS_X509_RSASSA_PSS_SUPPORT", config ) == 0 )
     {

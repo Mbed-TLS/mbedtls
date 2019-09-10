@@ -28,6 +28,10 @@ ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
 
+ifdef RECORD_PSA_STATUS_COVERAGE_LOG
+LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
+endif
+
 # if we're running on Windows, build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
@@ -163,3 +167,9 @@ endif
 endef
 $(foreach app, $(APPS), $(foreach file, $(wildcard *.h), \
 	$(eval $(call copy_header_to_target,$(app),$(file)))))
+
+ifdef RECORD_PSA_STATUS_COVERAGE_LOG
+$(BINARIES): instrument_record_status.h
+instrument_record_status.h: ../include/psa/crypto.h Makefile
+	sed <../include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
+endif

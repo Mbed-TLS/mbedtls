@@ -629,6 +629,16 @@ component_test_everest () {
     make test
 }
 
+component_test_psa_collect_statuses () {
+  msg "build+test: psa_collect_statuses" # ~30s
+  scripts/config.pl full
+  scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # slow and irrelevant
+  record_status tests/scripts/psa_collect_statuses.py
+  # Check that psa_crypto_init() succeeded at least once
+  record_status grep -q '^0:psa_crypto_init:' tests/statuses.log
+  rm -f tests/statuses.log
+}
+
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.pl full

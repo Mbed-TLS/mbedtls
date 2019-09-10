@@ -149,7 +149,7 @@
  *
  * \warning If a function returns this error, it is undetermined
  * whether the requested action has completed or not. Implementations
- * should return #PSA_SUCCESS on successful completion whenver
+ * should return #PSA_SUCCESS on successful completion whenever
  * possible, however functions may return #PSA_ERROR_COMMUNICATION_FAILURE
  * if the requested action was completed successfully in an external
  * cryptoprocessor but there was a breakdown of communication before

@@ -100,7 +100,9 @@ extern const mbedtls_md_info_t mbedtls_ripemd160_info;
 extern const mbedtls_md_info_t mbedtls_sha1_info;
 #endif
 #if defined(MBEDTLS_SHA256_C)
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
 extern const mbedtls_md_info_t mbedtls_sha224_info;
+#endif
 extern const mbedtls_md_info_t mbedtls_sha256_info;
 #endif
 #if defined(MBEDTLS_SHA512_C)

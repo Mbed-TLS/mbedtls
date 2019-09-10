@@ -60,8 +60,10 @@ typedef struct mbedtls_sha256_context
     uint32_t total[2];          /*!< The number of Bytes processed.  */
     uint32_t state[8];          /*!< The intermediate digest state.  */
     unsigned char buffer[64];   /*!< The data block being processed. */
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
     int is224;                  /*!< Determines which function to use:
                                      0: Use SHA-256, or 1: Use SHA-224. */
+#endif
 }
 mbedtls_sha256_context;
 
@@ -101,6 +103,7 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
  * \param ctx      The context to use. This must be initialized.
  * \param is224    This determines which function to use. This must be
  *                 either \c 0 for SHA-256, or \c 1 for SHA-224.
+ *                 If #MBEDTLS_SHA256_NO_SHA224 is defined, this must be \c 0.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -169,6 +172,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
  * \param ctx      The context to use. This must be initialized.
  * \param is224    Determines which function to use. This must be
  *                 either \c 0 for SHA-256, or \c 1 for SHA-224.
+ *                 If #MBEDTLS_SHA256_NO_SHA224 is defined, this must be \c 0.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha256_starts( mbedtls_sha256_context *ctx,
                                                int is224 );
@@ -237,6 +241,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha256_process( mbedtls_sha256_context *ctx,
  *                 be a writable buffer of length \c 32 Bytes.
  * \param is224    Determines which function to use. This must be
  *                 either \c 0 for SHA-256, or \c 1 for SHA-224.
+ *                 If #MBEDTLS_SHA256_NO_SHA224 is defined, this must be \c 0.
  */
 int mbedtls_sha256_ret( const unsigned char *input,
                         size_t ilen,
@@ -269,6 +274,7 @@ int mbedtls_sha256_ret( const unsigned char *input,
  *                 a writable buffer of length \c 32 Bytes.
  * \param is224    Determines which function to use. This must be either
  *                 \c 0 for SHA-256, or \c 1 for SHA-224.
+ *                 If #MBEDTLS_SHA256_NO_SHA224 is defined, this must be \c 0.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha256( const unsigned char *input,
                                         size_t ilen,

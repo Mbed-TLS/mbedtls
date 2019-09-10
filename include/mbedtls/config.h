@@ -1282,6 +1282,16 @@
 //#define MBEDTLS_SHA256_SMALLER
 
 /**
+ * \def MBEDTLS_SHA256_NO_SHA224
+ *
+ * Disable the SHA-224 option of the SHA-256 module. Use this to save some
+ * code size on devices that don't use SHA-224.
+ *
+ * Uncomment to disable SHA-224
+ */
+//#define MBEDTLS_SHA256_NO_SHA224
+
+/**
  * \def MBEDTLS_SSL_ALL_ALERT_MESSAGES
  *
  * Enable sending of alert messages in case of encountered errors as per RFC.

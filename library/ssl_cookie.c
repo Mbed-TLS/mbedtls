@@ -50,7 +50,7 @@
  * with max 32 bytes of cookie for DTLS 1.0
  */
 #if defined(MBEDTLS_SHA256_C)
-#define COOKIE_MD           MBEDTLS_MD_SHA224
+#define COOKIE_MD           MBEDTLS_MD_SHA256
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28
 #elif defined(MBEDTLS_SHA512_C)

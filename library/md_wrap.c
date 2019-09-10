@@ -391,10 +391,12 @@ const mbedtls_md_info_t mbedtls_sha1_info = {
  */
 #if defined(MBEDTLS_SHA256_C)
 
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
 static int sha224_starts_wrap( void *ctx )
 {
     return( mbedtls_sha256_starts_ret( (mbedtls_sha256_context *) ctx, 1 ) );
 }
+#endif /* !MBEDTLS_SHA256_NO_SHA224 */
 
 static int sha224_update_wrap( void *ctx, const unsigned char *input,
                                 size_t ilen )
@@ -409,11 +411,13 @@ static int sha224_finish_wrap( void *ctx, unsigned char *output )
                                        output ) );
 }
 
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
 static int sha224_wrap( const unsigned char *input, size_t ilen,
                         unsigned char *output )
 {
     return( mbedtls_sha256_ret( input, ilen, output, 1 ) );
 }
+#endif /* !MBEDTLS_SHA256_NO_SHA224 */
 
 static void *sha224_ctx_alloc( void )
 {
@@ -443,6 +447,7 @@ static int sha224_process_wrap( void *ctx, const unsigned char *data )
                                              data ) );
 }
 
+#if !defined(MBEDTLS_SHA256_NO_SHA224)
 const mbedtls_md_info_t mbedtls_sha224_info = {
     MBEDTLS_MD_SHA224,
     "SHA224",
@@ -457,6 +462,7 @@ const mbedtls_md_info_t mbedtls_sha224_info = {
     sha224_clone_wrap,
     sha224_process_wrap,
 };
+#endif /* !MBEDTLS_SHA256_NO_SHA224 */
 
 static int sha256_starts_wrap( void *ctx )
 {

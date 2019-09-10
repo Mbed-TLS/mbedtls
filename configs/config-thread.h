@@ -88,6 +88,9 @@
 #define MBEDTLS_ECP_MAX_BITS             256
 #define MBEDTLS_MPI_MAX_SIZE              32 // 256 bits is 32 bytes
 
+/* Save ROM by excluded SHA-2 variant that we don't need */
+#define MBEDTLS_SHA256_NO_SHA224
+
 /* Save ROM and a few bytes of RAM by specifying our own ciphersuite list */
 #define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECJPAKE_WITH_AES_128_CCM_8
 

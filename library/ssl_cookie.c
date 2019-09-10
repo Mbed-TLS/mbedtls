@@ -172,12 +172,7 @@ int mbedtls_ssl_cookie_write( void *p_ctx,
 #else
     t = ctx->serial++;
 #endif
-
-    (*p)[0] = (unsigned char)( t >> 24 );
-    (*p)[1] = (unsigned char)( t >> 16 );
-    (*p)[2] = (unsigned char)( t >>  8 );
-    (*p)[3] = (unsigned char)( t       );
-    *p += 4;
+    *p = mbedtls_platform_put_uint32_be( *p, t );
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -243,10 +238,7 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
     cur_time = ctx->serial;
 #endif
 
-    cookie_time = ( (unsigned long) cookie[0] << 24 ) |
-                  ( (unsigned long) cookie[1] << 16 ) |
-                  ( (unsigned long) cookie[2] <<  8 ) |
-                  ( (unsigned long) cookie[3]       );
+    cookie_time = (unsigned long)mbedtls_platform_get_uint32_be( cookie );
 
     if( ctx->timeout != 0 && cur_time - cookie_time > ctx->timeout )
         return( -1 );

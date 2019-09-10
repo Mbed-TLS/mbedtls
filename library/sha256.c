@@ -49,39 +49,11 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
-    !defined(inline) && !defined(__cplusplus)
-#define inline __inline
-#endif
-
 #define SHA256_VALIDATE_RET(cond)                           \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
 #define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
 
 #if !defined(MBEDTLS_SHA256_ALT)
-
-/*
- * 32-bit integer manipulation (big endian)
- */
-#ifndef GET_UINT32_BE
-#define GET_UINT32_BE(n,b,i)                            \
-do {                                                    \
-    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
-        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
-        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
-        | ( (uint32_t) (b)[(i) + 3]       );            \
-} while( 0 )
-#endif
-
-static inline void sha256_put_uint32_be( uint32_t n,
-                                         unsigned char *b,
-                                         uint8_t i )
-{
-    b[i    ] = (unsigned char) ( n >> 24 );
-    b[i + 1] = (unsigned char) ( n >> 16 );
-    b[i + 2] = (unsigned char) ( n >>  8 );
-    b[i + 3] = (unsigned char) ( n       );
-}
 
 void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
@@ -227,7 +199,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
     for( i = 0; i < 64; i++ )
     {
         if( i < 16 )
-            GET_UINT32_BE( W[i], data, 4 * i );
+            W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
         else
             R( i );
 
@@ -238,7 +210,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
     }
 #else /* MBEDTLS_SHA256_SMALLER */
     for( i = 0; i < 16; i++ )
-        GET_UINT32_BE( W[i], data, 4 * i );
+        W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
 
     for( i = 0; i < 16; i += 8 )
     {
@@ -348,7 +320,7 @@ void mbedtls_sha256_update( mbedtls_sha256_context *ctx,
 int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
                                unsigned char output[32] )
 {
-    int ret;
+    int ret, s_pos, o_pos;
     uint32_t used;
     uint32_t high, low;
 
@@ -385,8 +357,8 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
          | ( ctx->total[1] <<  3 );
     low  = ( ctx->total[0] <<  3 );
 
-    sha256_put_uint32_be( high, ctx->buffer, 56 );
-    sha256_put_uint32_be( low,  ctx->buffer, 60 );
+    (void)mbedtls_platform_put_uint32_be( ctx->buffer + 56, high );
+    (void)mbedtls_platform_put_uint32_be( ctx->buffer + 60, low );
 
     if( ( ret = mbedtls_internal_sha256_process( ctx, ctx->buffer ) ) != 0 )
         return( ret );
@@ -394,18 +366,17 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     /*
      * Output final state
      */
-    sha256_put_uint32_be( ctx->state[0], output,  0 );
-    sha256_put_uint32_be( ctx->state[1], output,  4 );
-    sha256_put_uint32_be( ctx->state[2], output,  8 );
-    sha256_put_uint32_be( ctx->state[3], output, 12 );
-    sha256_put_uint32_be( ctx->state[4], output, 16 );
-    sha256_put_uint32_be( ctx->state[5], output, 20 );
-    sha256_put_uint32_be( ctx->state[6], output, 24 );
+
+    for( s_pos = 0, o_pos = 0; s_pos < 7; s_pos++, o_pos += 4 )
+    {
+        (void)mbedtls_platform_put_uint32_be( &output[o_pos],
+                                              ctx->state[s_pos] );
+    }
 
 #if !defined(MBEDTLS_SHA256_NO_SHA224)
     if( ctx->is224 == 0 )
 #endif
-        sha256_put_uint32_be( ctx->state[7], output, 28 );
+        (void)mbedtls_platform_put_uint32_be( &output[28], ctx->state[7] );
 
     return( 0 );
 }

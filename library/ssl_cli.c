@@ -670,9 +670,9 @@ static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
     *olen = p - buf;
 
     /* List length = olen - 2 (ext_type) - 2 (ext_len) - 2 (list_len) */
-    mbedtls_platform_put_uint16_be( &buf[4], ( *olen - 6 ) );
+    (void)mbedtls_platform_put_uint16_be( &buf[4], ( *olen - 6 ) );
     /* Extension length = olen - 2 (ext_type) - 2 (ext_len) */
-    mbedtls_platform_put_uint16_be( &buf[2], ( *olen - 4 ) );
+    (void)mbedtls_platform_put_uint16_be( &buf[2], ( *olen - 4 ) );
 }
 #endif /* MBEDTLS_SSL_ALPN */
 
@@ -2421,7 +2421,7 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( len_bytes == 2 )
     {
-        mbedtls_platform_put_uint16_be( out, *olen );
+        (void)mbedtls_platform_put_uint16_be( out, *olen );
         *olen += 2;
     }
 #endif
@@ -3987,7 +3987,7 @@ sign:
         return( ret );
     }
 
-    mbedtls_platform_put_uint16_be( &ssl->out_msg[4 + offset], n );
+    (void)mbedtls_platform_put_uint16_be( &ssl->out_msg[4 + offset], n );
 
     ssl->out_msglen  = 6 + n + offset;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;

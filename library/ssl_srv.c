@@ -2641,11 +2641,11 @@ static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
      * 6 . 6    protocol name length
      * 7 . 7+n  protocol name
      */
-    mbedtls_platform_put_uint16_be( &buf[0], MBEDTLS_TLS_EXT_ALPN );
+    (void)mbedtls_platform_put_uint16_be( &buf[0], MBEDTLS_TLS_EXT_ALPN );
 
     *olen = 7 + strlen( ssl->alpn_chosen );
-    mbedtls_platform_put_uint16_be( &buf[2], ( *olen - 4 ) );
-    mbedtls_platform_put_uint16_be( &buf[4], ( *olen - 6 ) );
+    (void)mbedtls_platform_put_uint16_be( &buf[2], ( *olen - 4 ) );
+    (void)mbedtls_platform_put_uint16_be( &buf[4], ( *olen - 6 ) );
 
     buf[6] = (unsigned char)( ( ( *olen - 7 )      ) & 0xFF );
 
@@ -3100,7 +3100,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         }
         MBEDTLS_SSL_END_FOR_EACH_SIG_HASH_TLS
 
-        mbedtls_platform_put_uint16_be( p, sa_len );
+        (void)mbedtls_platform_put_uint16_be( p, sa_len );
         sa_len += 2;
         p += sa_len;
     }
@@ -3162,7 +3162,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     ssl->out_msglen  = p - buf;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_REQUEST;
-    mbedtls_platform_put_uint16_be( &ssl->out_msg[4 + ct_len + sa_len], total_dn_size );
+    (void)mbedtls_platform_put_uint16_be( &ssl->out_msg[4 + ct_len + sa_len],
+                                          total_dn_size );
 
     ret = mbedtls_ssl_write_handshake_msg( ssl );
 
@@ -3716,7 +3717,8 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
     if( signature_len != 0 )
     {
-        mbedtls_platform_put_uint16_be( &ssl->out_msg[ssl->out_msglen], signature_len );
+        (void)mbedtls_platform_put_uint16_be( &ssl->out_msg[ssl->out_msglen],
+                                              signature_len );
         ssl->out_msglen += 2;
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "my signature",
@@ -4658,9 +4660,9 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_ticket_write", ret );
         tlen = 0;
     }
-    mbedtls_platform_put_uint32_be( &ssl->out_msg[4], lifetime );
+    (void)mbedtls_platform_put_uint32_be( &ssl->out_msg[4], lifetime );
 
-    mbedtls_platform_put_uint16_be( &ssl->out_msg[8], tlen );
+    (void)mbedtls_platform_put_uint16_be( &ssl->out_msg[8], tlen );
     ssl->out_msglen = 10 + tlen;
 
     /*

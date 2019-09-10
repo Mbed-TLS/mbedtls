@@ -357,8 +357,8 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
          | ( ctx->total[1] <<  3 );
     low  = ( ctx->total[0] <<  3 );
 
-    mbedtls_platform_put_uint32_be( ctx->buffer + 56, high );
-    mbedtls_platform_put_uint32_be( ctx->buffer + 60, low );
+    (void)mbedtls_platform_put_uint32_be( ctx->buffer + 56, high );
+    (void)mbedtls_platform_put_uint32_be( ctx->buffer + 60, low );
 
     if( ( ret = mbedtls_internal_sha256_process( ctx, ctx->buffer ) ) != 0 )
         return( ret );
@@ -369,13 +369,14 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
 
     for( s_pos = 0, o_pos = 0; s_pos < 7; s_pos++, o_pos += 4 )
     {
-        mbedtls_platform_put_uint32_be( &output[o_pos], ctx->state[s_pos] );
+        (void)mbedtls_platform_put_uint32_be( &output[o_pos],
+                                              ctx->state[s_pos] );
     }
 
 #if !defined(MBEDTLS_SHA256_NO_SHA224)
     if( ctx->is224 == 0 )
 #endif
-        mbedtls_platform_put_uint32_be( &output[28], ctx->state[7] );
+        (void)mbedtls_platform_put_uint32_be( &output[28], ctx->state[7] );
 
     return( 0 );
 }

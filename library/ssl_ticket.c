@@ -222,7 +222,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
          goto cleanup;
     }
 
-    mbedtls_platform_put_uint16_be( state_len_bytes, clear_len );
+    (void)mbedtls_platform_put_uint16_be( state_len_bytes, clear_len );
 
     /* Encrypt and authenticate */
     tag = state + clear_len;

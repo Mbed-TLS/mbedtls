@@ -2236,7 +2236,7 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 
     memcpy( header, ctr, 8 );
     header[8] = (unsigned char) type;
-    mbedtls_platform_put_uint16_be( &header[9], len );
+    (void)mbedtls_platform_put_uint16_be( &header[9], len );
 
     memset( padding, 0x36, padlen );
     mbedtls_md_starts( md_ctx );
@@ -2388,13 +2388,14 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
     {
         memcpy( add_data + 11, rec->cid, rec->cid_len );
         add_data[11 + rec->cid_len + 0] = rec->cid_len;
-        mbedtls_platform_put_uint16_be( &add_data[11 + rec->cid_len + 1], rec->data_len );
+        (void)mbedtls_platform_put_uint16_be( &add_data[11 + rec->cid_len + 1],
+                                              rec->data_len );
         *add_data_len = 13 + 1 + rec->cid_len;
     }
     else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
     {
-        mbedtls_platform_put_uint16_be( &add_data[11], rec->data_len );
+        (void)mbedtls_platform_put_uint16_be( &add_data[11], rec->data_len );
         *add_data_len = 13;
     }
 }
@@ -4142,8 +4143,9 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
              * Handshake headers: type(1) len(3) seq(2) f_off(3) f_len(3) */
             memcpy( ssl->out_msg, cur->p, 6 );
 
-            mbedtls_platform_put_uint24_be( &ssl->out_msg[6], frag_off );
-            mbedtls_platform_put_uint24_be( &ssl->out_msg[9], cur_hs_frag_len );
+            (void)mbedtls_platform_put_uint24_be( &ssl->out_msg[6], frag_off );
+            (void)mbedtls_platform_put_uint24_be( &ssl->out_msg[9],
+                                                  cur_hs_frag_len );
 
             MBEDTLS_SSL_DEBUG_BUF( 3, "handshake header", ssl->out_msg, 12 );
 
@@ -4340,7 +4342,7 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
      */
     if( ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE )
     {
-        mbedtls_platform_put_uint24_be( &ssl->out_msg[1], hs_len );
+        (void)mbedtls_platform_put_uint24_be( &ssl->out_msg[1], hs_len );
 
         /*
          * DTLS has additional fields in the Handshake layer,
@@ -4368,7 +4370,8 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
             /* Write message_seq and update it, except for HelloRequest */
             if( hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
             {
-                mbedtls_platform_put_uint16_be( &ssl->out_msg[4], ssl->handshake->out_msg_seq );
+                (void)mbedtls_platform_put_uint16_be( &ssl->out_msg[4],
+                    ssl->handshake->out_msg_seq );
                 ++( ssl->handshake->out_msg_seq );
             }
             else
@@ -4479,7 +4482,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
                                    ssl->conf->transport, ssl->out_hdr + 1 );
 
         memcpy( ssl->out_ctr, ssl->cur_out_ctr, 8 );
-        mbedtls_platform_put_uint16_be( ssl->out_len, len );
+        (void)mbedtls_platform_put_uint16_be( ssl->out_len, len );
 
         if( ssl->transform_out != NULL )
         {
@@ -4522,7 +4525,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             memcpy( ssl->out_cid, rec.cid, rec.cid_len );
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
             ssl->out_msglen = len = rec.data_len;
-            mbedtls_platform_put_uint16_be( ssl->out_len, rec.data_len );
+            (void)mbedtls_platform_put_uint16_be( ssl->out_len, rec.data_len );
         }
 
         protected_record_size = len + mbedtls_ssl_out_hdr_len( ssl );
@@ -5081,12 +5084,12 @@ static int ssl_check_dtls_clihlo_cookie(
     /* Go back and fill length fields */
     obuf[27] = (unsigned char)( *olen - 28 );
 
-    mbedtls_platform_put_uint24_be( &obuf[14], ( *olen - 25 ) );
+    (void)mbedtls_platform_put_uint24_be( &obuf[14], ( *olen - 25 ) );
     obuf[22] = obuf[14];
     obuf[23] = obuf[15];
     obuf[24] = obuf[16];
 
-    mbedtls_platform_put_uint16_be( &obuf[11], ( *olen - 13 ) );
+    (void)mbedtls_platform_put_uint16_be( &obuf[11], ( *olen - 13 ) );
 
     return( MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED );
 }
@@ -6474,7 +6477,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
     ssl->in_hdr[0] = rec.type;
     ssl->in_msg    = rec.buf + rec.data_offset;
     ssl->in_msglen = rec.data_len;
-    mbedtls_platform_put_uint16_be( ssl->in_len, rec.data_len );
+    (void)mbedtls_platform_put_uint16_be( ssl->in_len, rec.data_len );
 
     return( 0 );
 }
@@ -6806,13 +6809,13 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
         }
 
-        mbedtls_platform_put_uint24_be( &ssl->out_msg[i], n );
+        (void)mbedtls_platform_put_uint24_be( &ssl->out_msg[i], n );
 
         i += 3; memcpy( ssl->out_msg + i, crt->raw.p, n );
         i += n; crt = crt->next;
     }
 
-    mbedtls_platform_put_uint24_be( &ssl->out_msg[4], ( i - 7 ) );
+    (void)mbedtls_platform_put_uint24_be( &ssl->out_msg[4], ( i - 7 ) );
 
     ssl->out_msglen  = i;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;

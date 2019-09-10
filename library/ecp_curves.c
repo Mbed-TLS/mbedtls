@@ -836,7 +836,7 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
 #endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
 
         default:
-            mbedtls_ecp_group_free( grp );
+            grp->id = MBEDTLS_ECP_DP_NONE;
             return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
     }
 }

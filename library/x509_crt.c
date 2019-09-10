@@ -3071,15 +3071,13 @@ check_signature:
             continue;
         }
 
+        *r_parent = parent_crt;
+        *r_signature_is_good = signature_is_good;
+
         break;
     }
 
-    if( parent_crt != NULL )
-    {
-        *r_parent = parent_crt;
-        *r_signature_is_good = signature_is_good;
-    }
-    else
+    if( parent_crt == NULL )
     {
 #if defined(MBEDTLS_HAVE_TIME_DATE)
         *r_parent = fallback_parent;

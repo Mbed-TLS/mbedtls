@@ -840,6 +840,14 @@ all_final += ec_prv.pk8param.pem
 
 # The use of 'Server 1' in the DN is intentional here, as the DN is hardcoded in the x509_write test suite.'
 
+###
+### A generic SECP521R1 private key
+###
+
+secp521r1_prv.der:
+	$(OPENSSL) ecparam -genkey -name secp521r1 -noout -out secp521r1_prv.der
+all_final += secp521r1_prv.der
+
 ################################################################
 ### Generate CSRs for X.509 write test suite
 ################################################################

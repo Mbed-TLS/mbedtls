@@ -2,6 +2,21 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix a missing error detection in ECJPAKE. This could have caused a
+     predictable shared secret if a hardware accelerator failed and the other
+     side of the key exchange had a similar bug.
+   * The deterministic ECDSA calculation reused the scheme's HMAC-DRBG to
+     implement blinding. Because of this for the same key and message the same
+     blinding value was generated. This reduced the effectiveness of the
+     countermeasure and leaked information about the private key through side
+     channels. Reported by Jack Lloyd.
+   * When writing a private EC key, use a constant size for the private
+     value, as specified in RFC 5915. Previously, the value was written
+     as an ASN.1 INTEGER, which caused the size of the key to leak
+     about 1 bit of information on average and could cause the value to be
+     1 byte too large for the output buffer.
+
 Features
    * Add new configuration option MBEDTLS_SSL_NO_SESSION_CACHE that enables
      code size savings in configurations where cache-based session resumption is
@@ -33,6 +48,16 @@ Bugfix
    * Fix propagation of restart contexts in restartable EC operations.
      This could previously lead to segmentation faults in builds using an
      address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
+   * Fix memory leak in in mpi_miller_rabin(). Contributed by
+     Jens Wiklander <jens.wiklander@linaro.org> in #2363
+   * Improve code clarity in x509_crt module, removing false-positive
+     uninitialized variable warnings on some recent toolchains (GCC8, etc).
+     Discovered and fixed by Andy Gross (Linaro), #2392.
+   * Zero length buffer check for undefined behavior in
+     mbedtls_platform_zeroize(). Fixes ARMmbed/mbed-crypto#49.
+   * Fix bug in endianness conversion in bignum module. This lead to
+     functionally incorrect code on bigendian systems which don't have
+     __BYTE_ORDER__ defined. Reported by Brendan Shanks. Fixes #2622.
 
 Changes
    * Make it easier to define MBEDTLS_PARAM_FAILED as assert (which config.h
@@ -47,6 +72,9 @@ API Changes
      fields of `mbedtls_x509_crt` are removed, but it keeps the
      X.509 function API. See the API changes section as well as
      the documentation in `config.h` for more information.
+   * The new function mbedtls_ecdsa_sign_det_ext() is similar to
+     mbedtls_ecdsa_sign_det() but allows passing an external RNG for the
+     purpose of blinding.
 
 = mbed TLS 2.16.2 branch released 2019-06-11
 

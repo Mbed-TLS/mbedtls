@@ -256,4 +256,101 @@ This is a very powerful approach, but it comes with limitations:
 
 ## Solutions
 
-TODO
+This section lists some strategies that are currently used for invasive testing, or planned to be used. This list is not intended to be exhaustive.
+
+### Memory management
+
+#### Zeroization testing
+
+Goal: test that `mbedtls_platform_zeroize` does wipe the memory buffer.
+
+Solution ([debugger](#debugger-based-testing)): implemented in `tests/scripts/test_zeroize.gdb`.
+
+Rationale: this cannot be tested by adding C code, because the danger is that the compiler optimizes the zeroization away, and any C code that observes the zeroization would cause the compiler not to optimize it away.
+
+#### Memory cleanup
+
+Goal: test the absence of memory leaks.
+
+Solution ([instrumentation](#runtime-instrumentation)): run tests with Asan. (We also use Valgrind, but it's slower than Asan, so we favor Asan.)
+
+Since we run many test jobs with a memory leak detector, each test function must clean up after itself. Use the cleanup code (after the `exit` label) to free any memory that the function may have allocated.
+
+#### Robustness against memory allocation failure
+
+Solution: TODO. We don't test this at all at this point.
+
+#### PSA key store memory cleanup
+
+Goal: test the absence of resource leaks in the PSA key store code, in particular that `psa_close_key` and `psa_destroy_key` work correctly.
+
+Solution ([internal interface](#internal-interfaces)): in some tests, close keys explicitly call `PSA_DONE` instead of `mbedtls_psa_crypto_free`. `PSA_DONE` fails the test if the key store is not empty.
+
+Note there must also be tests that call `mbedtls_psa_crypto_free` with keys still open, to verify that it does close all keys.
+
+`PSA_DONE` is a macro defined in `psa_crypto_helpers.h` which uses `mbedtls_psa_get_stats()`. This feature is mostly but not exclusively useful for testing, and may be moved under `MBEDTLS_TEST_HOOKS`.
+
+### PSA storage
+
+#### PSA storage cleanup on success
+
+Goal: test that no stray files are left over in the key store after a test that succeeded.
+
+Solution: TODO. Currently the various test suites do it differently.
+
+#### PSA storage cleanup on failure
+
+Goal: ensure that no stray files are left over in the key store even if a test has failed (as that could cause other tests to fail).
+
+Solution: TODO. Currently the various test suites do it differently.
+
+#### PSA storage resilience
+
+Goal: test the resilience of PSA storage against power failures.
+
+Solution: TODO.
+
+See the [secure element driver interface test strategy](driver-interface-test-strategy.html) for more information.
+
+#### Corrupted storage
+
+Goal: test the robustness against corrupted storage.
+
+Solution ([internal interface](#internal-interfaces)): call `psa_its` functions to modify the storage.
+
+#### Storage read failure
+
+Goal: test the robustness against read errors.
+
+Solution: TODO
+
+#### Storage write failure
+
+Goal: test the robustness against write errors (`STORAGE_FAILURE` or `INSUFFICIENT_STORAGE`).
+
+Solution: TODO
+
+#### Storage format stability
+
+Goal: test that the storage format does not change between versions (or if it does, an upgrade path must be provided).
+
+Solution ([internal interface](#internal-interfaces)): call internal functions to inspect the content of the file.
+
+Note that the storage format is defined not only by the general layout, but also by the numerical values of encodings for key types and other metadata. For numerical values, there is a risk that we would accidentally modify a single value or a few values, so the tests should be exhaustive. This probably requires some compile-time analysis (perhaps the automation for `psa_constant_names` can be used here). TODO
+
+### Other fault injection
+
+#### PSA crypto init failure
+
+Goal: test the failure of `psa_crypto_init`.
+
+Solution ([compile-time option](#compile-time-options)): replace entropy initialization functions by functions that can fail. This is the only failure point for `psa_crypto_init` that is present in all builds.
+
+When we implement the PSA entropy driver interface, this should be reworked to use the entropy driver interface.
+
+#### PSA crypto data corruption
+
+The PSA crypto subsystem has a few checks to detect corrupted data in memory. We currently don't have a way to exercise those checks.
+
+Solution: TODO. To corrupt a multipart operation structure, we can do it by looking inside the structure content, but only when running without isolation. To corrupt the key store, we would need to add a function to the library or to use a debugger.
+

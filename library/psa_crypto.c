@@ -2735,7 +2735,7 @@ static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
     status = psa_hash_update( &hmac->hash_ctx, ipad, block_size );
 
 cleanup:
-    mbedtls_platform_zeroize( ipad, key_length );
+    mbedtls_platform_zeroize( ipad, sizeof(ipad) );
 
     return( status );
 }

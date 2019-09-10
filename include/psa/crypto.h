@@ -367,15 +367,18 @@ void psa_reset_key_attributes(psa_key_attributes_t *attributes);
  * keys that can be opened with psa_open_key(). Such keys have a key identifier
  * in the vendor range, as documented in the description of #psa_key_id_t.
  *
- * The application must eventually close the handle with psa_close_key()
- * to release associated resources. If the application dies without calling
- * psa_close_key(), the implementation should perform the equivalent of a
- * call to psa_close_key().
+ * The application must eventually close the handle with psa_close_key() or
+ * psa_destroy_key() to release associated resources. If the application dies
+ * without calling one of these functions, the implementation should perform
+ * the equivalent of a call to psa_close_key().
  *
  * Some implementations permit an application to open the same key multiple
- * times. Applications that rely on this behavior will not be portable to
- * implementations that only permit a single key handle to be opened. See
- * also :ref:\`key-handles\`.
+ * times. If this is successful, each call to psa_open_key() will return a
+ * different key handle.
+ *
+ * \note Applications that rely on opening a key multiple times will not be
+ * portable to implementations that only permit a single key handle to be
+ * opened. See also :ref:\`key-handles\`.
  *
  * \param id            The persistent identifier of the key.
  * \param[out] handle   On success, a handle to the key.
@@ -422,8 +425,10 @@ psa_status_t psa_open_key(psa_key_id_t id,
  * Closing the key handle makes the handle invalid, and the key handle
  * must not be used again by the application.
  *
- * If the key is currently in use in a multipart operation, then closing the
- * last remaining handle to the key will abort the multipart operation.
+ * \note If the key handle was used to set up an active
+ * :ref:\`multipart operation <multipart-operations>\`, then closing the
+ * key handle can cause the multipart operation to fail. Applications should
+ * maintain the key handle until after the multipart operation has finished.
  *
  * \param handle        The key handle to close.
  *
@@ -521,13 +526,16 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
  * memory and, if applicable, non-volatile storage. Implementations shall
  * make a best effort to ensure that that the key material cannot be recovered.
  *
- * This function also erases any metadata such as policies and frees all
- * resources associated with the key.
+ * This function also erases any metadata such as policies and frees
+ * resources associated with the key. To free all resources associated with
+ * the key, all handles to the key must be closed or destroyed.
  *
- * Destroying a key will invalidate all existing handles to the key.
+ * Destroying the key makes the handle invalid, and the key handle
+ * must not be used again by the application. Using other open handles to the
+ * destroyed key in a cryptographic operation will result in an error.
  *
- * If the key is currently in use in a multipart operation, then destroying the
- * key will abort the multipart operation.
+ * If a key is currently in use in a multipart operation, then destroying the
+ * key will cause the multipart operation to fail.
  *
  * \param handle        Handle to the key to erase.
  *

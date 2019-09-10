@@ -45,7 +45,6 @@ set(src_crypto
     md2.c
     md4.c
     md5.c
-    md_wrap.c
     memory_buffer_alloc.c
     nist_kw.c
     oid.c

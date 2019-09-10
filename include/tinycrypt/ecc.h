@@ -1,5 +1,10 @@
 /* ecc.h - TinyCrypt interface to common ECC functions */
 
+/*
+ *  Copyright (c) 2019, Arm Limited (or its affiliates), All Rights Reserved.
+ *  SPDX-License-Identifier: BSD-3-Clause
+ */
+
 /* Copyright (c) 2014, Kenneth MacKay
  * All rights reserved.
  *

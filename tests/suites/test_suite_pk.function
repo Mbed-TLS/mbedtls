@@ -593,7 +593,7 @@ void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
     TEST_ASSERT( mbedtls_mpi_read_string( &rsa->E, radix_E, input_E ) == 0 );
 
 
-    if( mbedtls_md_info_from_type( digest ) != NULL )
+    if( mbedtls_md_info_from_type( digest ) != MBEDTLS_MD_INVALID_HANDLE )
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_verify( &pk, digest, hash_result, 0,
@@ -709,7 +709,7 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
     unsigned char sig_check[MBEDTLS_ECDSA_MAX_LEN];
     size_t hlen, slen, slen_check;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
 
     mbedtls_pk_restart_init( &rs_ctx );
     mbedtls_pk_init( &prv );
@@ -729,7 +729,7 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     slen_check = unhexify( sig_check, sig_str );
 
     md_info = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md_info != NULL );
+    TEST_ASSERT( md_info != MBEDTLS_MD_INVALID_HANDLE );
 
     hlen = mbedtls_md_get_size( md_info );
     mbedtls_md( md_info, (const unsigned char *) msg, strlen( msg ), hash );

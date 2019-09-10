@@ -138,7 +138,7 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *                      MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED.
  */
 int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
-                    const mbedtls_md_info_t * md_info,
+                    mbedtls_md_handle_t md_info,
                     int (*f_entropy)(void *, unsigned char *, size_t),
                     void *p_entropy,
                     const unsigned char *custom,
@@ -158,7 +158,7 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
  *                      MBEDTLS_ERR_MD_ALLOC_FAILED.
  */
 int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
-                        const mbedtls_md_info_t * md_info,
+                        mbedtls_md_handle_t  md_info,
                         const unsigned char *data, size_t data_len );
 
 /**

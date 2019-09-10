@@ -12,14 +12,14 @@ void pbkdf2_hmac( int hash, data_t * pw_str, data_t * salt_str,
                   int it_cnt, int key_len, data_t * result_key_string )
 {
     mbedtls_md_context_t ctx;
-    const mbedtls_md_info_t *info;
+    mbedtls_md_handle_t info;
 
     unsigned char key[100];
 
     mbedtls_md_init( &ctx );
 
     info = mbedtls_md_info_from_type( hash );
-    TEST_ASSERT( info != NULL );
+    TEST_ASSERT( info != MBEDTLS_MD_INVALID_HANDLE );
     TEST_ASSERT( mbedtls_md_setup( &ctx, info, 1 ) == 0 );
     TEST_ASSERT( mbedtls_pkcs5_pbkdf2_hmac( &ctx, pw_str->x, pw_str->len, salt_str->x, salt_str->len,
                                      it_cnt, key_len, key ) == 0 );

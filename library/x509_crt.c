@@ -2071,7 +2071,7 @@ static void x509_crt_free_sig_info( mbedtls_x509_crt_sig_info *info )
 static int x509_crt_get_sig_info( mbedtls_x509_crt_frame const *frame,
                                   mbedtls_x509_crt_sig_info *info )
 {
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
 
     md_info = mbedtls_md_info_from_type( frame->sig_md );
     if( mbedtls_md( md_info, frame->tbs.p, frame->tbs.len,
@@ -2688,7 +2688,7 @@ static int x509_crt_verifycrl( unsigned char *crt_serial,
     int ret;
     int flags = 0;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_x509_buf_raw ca_subject;
     mbedtls_pk_context *pk;
     int can_sign;

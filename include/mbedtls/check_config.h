@@ -786,6 +786,73 @@
 #define MBEDTLS_THREADING_IMPL
 #endif
 
+/* Ensure that precisely one hash is enabled. */
+#if defined(MBEDTLS_MD_SINGLE_HASH)
+
+#if defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_SHA256_ENABLED 1
+#else
+#define MBEDTLS_SHA256_ENABLED 0
+#endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA256_NO_SHA224)
+#define MBEDTLS_SHA224_ENABLED 1
+#else
+#define MBEDTLS_SHA224_ENABLED 0
+#endif /* MBEDTLS_SHA256_C && !MBEDTLS_SHA256_NO_SHA224 */
+
+#if defined(MBEDTLS_SHA512_C)
+#define MBEDTLS_SHA512_ENABLED 2
+#else
+#define MBEDTLS_SHA512_ENABLED 0
+#endif /* MBEDTLS_SHA512_C */
+
+#if defined(MBEDTLS_SHA1_C)
+#define MBEDTLS_SHA1_ENABLED 1
+#else
+#define MBEDTLS_SHA1_ENABLED 0
+#endif /* MBEDTLS_SHA1_C */
+
+#if defined(MBEDTLS_MD2_C)
+#define MBEDTLS_MD2_ENABLED 1
+#else
+#define MBEDTLS_MD2_ENABLED 0
+#endif /* MBEDTLS_MD2_C */
+
+#if defined(MBEDTLS_MD4_C)
+#define MBEDTLS_MD4_ENABLED 1
+#else
+#define MBEDTLS_MD4_ENABLED 0
+#endif /* MBEDTLS_MD4_C */
+
+#if defined(MBEDTLS_MD5_C)
+#define MBEDTLS_MD5_ENABLED 1
+#else
+#define MBEDTLS_MD5_ENABLED 0
+#endif /* MBEDTLS_MD5_C */
+
+#if defined(MBEDTLS_RIPEMD160_C)
+#define MBEDTLS_RIPEMD160_ENABLED 1
+#else
+#define MBEDTLS_RIPEMD160_ENABLED 0
+#endif /* MBEDTLS_RIPEMD160_C */
+
+#define MBEDTLS_HASHES_ENABLED             \
+     ( MBEDTLS_MD2_ENABLED       +         \
+       MBEDTLS_MD4_ENABLED       +         \
+       MBEDTLS_MD5_ENABLED       +         \
+       MBEDTLS_RIPEMD160_ENABLED +         \
+       MBEDTLS_SHA1_ENABLED      +         \
+       MBEDTLS_SHA256_ENABLED    +         \
+       MBEDTLS_SHA512_ENABLED )
+
+#if MBEDTLS_HASHES_ENABLED != 1
+#error "MBEDTLS_MD_SINGLE_HASH must be used with precisely one hash algorithm enabled."
+#endif
+
+#undef MBEDTLS_HASHES_ENABLED
+#endif /* MBEDTLS_MD_SINGLE_HASH */
+
 #if defined(MBEDTLS_THREADING_ALT)
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_ALT defined, but not all prerequisites"

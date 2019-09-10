@@ -497,8 +497,10 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
 
-    if( mbedtls_md_info_from_type( digest ) != NULL )
+    if( mbedtls_md_info_from_type( digest ) != MBEDTLS_MD_INVALID_HANDLE )
+    {
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
+    }
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, &rnd_pseudo_rand, &rnd_info,
                                          MBEDTLS_RSA_PRIVATE, digest, 0,
@@ -538,8 +540,10 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
-    if( mbedtls_md_info_from_type( digest ) != NULL )
+    if( mbedtls_md_info_from_type( digest ) != MBEDTLS_MD_INVALID_HANDLE )
+    {
         TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
+    }
 
     TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, NULL, NULL, MBEDTLS_RSA_PUBLIC, digest, 0, hash_result, result_str->x ) == result );
 

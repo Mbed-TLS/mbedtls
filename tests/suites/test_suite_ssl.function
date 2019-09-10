@@ -102,12 +102,12 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     if( cipher_info->mode == MBEDTLS_MODE_CBC ||
         cipher_info->mode == MBEDTLS_MODE_STREAM )
     {
-        mbedtls_md_info_t const *md_info;
+        mbedtls_md_handle_t md_info;
         unsigned char *md0, *md1;
 
         /* Pick hash */
         md_info = mbedtls_md_info_from_type( hash_id );
-        CHK( md_info != NULL );
+        CHK( md_info != MBEDTLS_MD_INVALID_HANDLE );
 
         /* Pick hash keys */
         maclen = mbedtls_md_get_size( md_info );

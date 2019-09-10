@@ -3826,6 +3826,20 @@
 //#define MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID
 //#define MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID
 
+/* Set this to MBEDTLS_MD_INFO_{DIGEST} support of a single message
+ * digest at compile-time, at the benefit of code-size.
+ *
+ * On highly constrained systems with large control over the configuration of
+ * the connection endpoints, this option can be used to hardcode support for
+ * a single hash algorithm.
+ *
+ * You need to make sure that the corresponding digest algorithm attributes
+ * are defined through macros in md.c. See the definitions
+ * MBEDTLS_MD_INFO_SHA256_XXX for example.
+ *
+ */
+//#define MBEDTLS_MD_SINGLE_HASH MBEDTLS_MD_INFO_SHA256
+
 /* \} SECTION: Compile-time SSL configuration */
 
 /* Target and application specific configurations

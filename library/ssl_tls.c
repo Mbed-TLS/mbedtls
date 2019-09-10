@@ -660,7 +660,7 @@ MBEDTLS_NO_INLINE static int tls1_prf( const unsigned char *secret, size_t slen,
     const unsigned char *S1, *S2;
     unsigned char tmp[128];
     unsigned char h_i[20];
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
     int ret;
 
@@ -681,8 +681,11 @@ MBEDTLS_NO_INLINE static int tls1_prf( const unsigned char *secret, size_t slen,
     /*
      * First compute P_md5(secret,label+random)[0..dlen]
      */
-    if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_MD5 ) ) == NULL )
+    if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_MD5 ) ) ==
+        MBEDTLS_MD_INVALID_HANDLE )
+    {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
@@ -712,8 +715,11 @@ MBEDTLS_NO_INLINE static int tls1_prf( const unsigned char *secret, size_t slen,
     /*
      * XOR out with P_sha1(secret,label+random)[0..dlen]
      */
-    if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) == NULL )
+    if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) ==
+        MBEDTLS_MD_INVALID_HANDLE )
+    {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
@@ -763,14 +769,17 @@ int tls_prf_generic( mbedtls_md_type_t md_type,
     size_t i, j, k, md_len;
     unsigned char tmp[128];
     unsigned char h_i[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
     int ret;
 
     mbedtls_md_init( &md_ctx );
 
-    if( ( md_info = mbedtls_md_info_from_type( md_type ) ) == NULL )
+    if( ( md_info = mbedtls_md_info_from_type( md_type ) ) ==
+        MBEDTLS_MD_INVALID_HANDLE )
+    {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
 
     md_len = mbedtls_md_get_size( md_info );
 
@@ -1244,7 +1253,7 @@ int ssl_populate_transform( mbedtls_ssl_transform *transform,
     unsigned keylen;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info;
     const mbedtls_cipher_info_t *cipher_info;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
 
 #if !defined(MBEDTLS_SSL_HW_RECORD_ACCEL) && \
     !defined(MBEDTLS_SSL_EXPORT_KEYS) && \
@@ -1293,7 +1302,7 @@ int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
     md_info = mbedtls_md_info_from_type(
         mbedtls_ssl_suite_get_mac( ciphersuite_info ) );
-    if( md_info == NULL )
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_md info for %d not found",
                        mbedtls_ssl_suite_get_mac( ciphersuite_info ) ) );
@@ -3376,7 +3385,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 
             memset( tmp, 0, sizeof( tmp ) );
 
-            switch( mbedtls_md_get_type( transform->md_ctx_dec.md_info ) )
+            switch( mbedtls_md_get_type(
+                        mbedtls_md_get_handle( &transform->md_ctx_dec ) ) )
             {
 #if defined(MBEDTLS_MD5_C) || defined(MBEDTLS_SHA1_C) || \
     defined(MBEDTLS_SHA256_C)
@@ -6899,13 +6909,16 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
         ssl->session->peer_cert_digest;
     mbedtls_md_type_t const peer_cert_digest_type =
         ssl->session->peer_cert_digest_type;
-    mbedtls_md_info_t const * const digest_info =
+    mbedtls_md_handle_t digest_info =
         mbedtls_md_info_from_type( peer_cert_digest_type );
     unsigned char tmp_digest[MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN];
     size_t digest_len;
 
-    if( peer_cert_digest == NULL || digest_info == NULL )
+    if( peer_cert_digest == NULL ||
+        digest_info == MBEDTLS_MD_INVALID_HANDLE )
+    {
         return( -1 );
+    }
 
     digest_len = mbedtls_md_get_size( digest_info );
     if( digest_len > MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN )
@@ -10133,9 +10146,9 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 
     if( session->peer_cert_digest_len != 0 )
     {
-        const mbedtls_md_info_t *md_info =
+        mbedtls_md_handle_t md_info =
             mbedtls_md_info_from_type( session->peer_cert_digest_type );
-        if( md_info == NULL )
+        if( md_info == MBEDTLS_MD_INVALID_HANDLE )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         if( session->peer_cert_digest_len != mbedtls_md_get_size( md_info ) )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -12515,7 +12528,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
 {
     int ret = 0;
     mbedtls_md_context_t ctx;
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
+    mbedtls_md_handle_t md_info = mbedtls_md_info_from_type( md_alg );
     *hashlen = mbedtls_md_get_size( md_info );
 
     mbedtls_md_init( &ctx );

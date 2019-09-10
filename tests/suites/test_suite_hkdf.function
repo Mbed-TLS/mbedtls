@@ -1,6 +1,5 @@
 /* BEGIN_HEADER */
 #include "mbedtls/hkdf.h"
-#include "mbedtls/md_internal.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -25,8 +24,8 @@ void test_hkdf( int md_alg, char *hex_ikm_string, char *hex_salt_string,
      */
     unsigned char okm_hex[257] = { '\0' };
 
-    const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md != NULL );
+    mbedtls_md_handle_t md = mbedtls_md_info_from_type( md_alg );
+    TEST_ASSERT( md != MBEDTLS_MD_INVALID_HANDLE );
 
     ikm_len = unhexify( ikm, hex_ikm_string );
     salt_len = unhexify( salt, hex_salt_string );
@@ -54,8 +53,8 @@ void test_hkdf_extract( int md_alg, char *hex_ikm_string,
     unsigned char *output_prk = NULL;
     size_t ikm_len, salt_len, prk_len, output_prk_len;
 
-    const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md != NULL );
+    mbedtls_md_handle_t md = mbedtls_md_info_from_type( md_alg );
+    TEST_ASSERT( md != MBEDTLS_MD_INVALID_HANDLE );
 
     output_prk_len = mbedtls_md_get_size( md );
     output_prk = mbedtls_calloc( 1, output_prk_len );
@@ -90,8 +89,8 @@ void test_hkdf_expand( int md_alg, char *hex_info_string,
     unsigned char *output_okm = NULL;
     size_t info_len, prk_len, okm_len;
 
-    const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md != NULL );
+    mbedtls_md_handle_t md = mbedtls_md_info_from_type( md_alg );
+    TEST_ASSERT( md != MBEDTLS_MD_INVALID_HANDLE );
 
     output_okm = mbedtls_calloc( OKM_LEN, 1 );
 
@@ -114,7 +113,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_MD_SINGLE_HASH */
 void test_hkdf_extract_ret( int hash_len, int ret )
 {
     int output_ret;
@@ -141,7 +140,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:!MBEDTLS_MD_SINGLE_HASH */
 void test_hkdf_expand_ret( int hash_len, int prk_len, int okm_len, int ret )
 {
     int output_ret;

@@ -205,13 +205,16 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
  */
 static inline int pk_hashlen_helper( mbedtls_md_type_t md_alg, size_t *hash_len )
 {
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
 
     if( *hash_len != 0 )
         return( 0 );
 
-    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) ==
+        MBEDTLS_MD_INVALID_HANDLE )
+    {
         return( -1 );
+    }
 
     *hash_len = mbedtls_md_get_size( md_info );
     return( 0 );

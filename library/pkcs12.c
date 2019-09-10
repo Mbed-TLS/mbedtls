@@ -261,7 +261,7 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
 
     size_t hlen, use_len, v, i;
 
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_md_context_t md_ctx;
 
     // This version only allows max of 64 bytes of password or salt
@@ -269,7 +269,7 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
         return( MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA );
 
     md_info = mbedtls_md_info_from_type( md_type );
-    if( md_info == NULL )
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
         return( MBEDTLS_ERR_PKCS12_FEATURE_UNAVAILABLE );
 
     mbedtls_md_init( &md_ctx );

@@ -831,6 +831,7 @@ component_test_memory_buffer_allocator_backtrace () {
     scripts/config.pl set MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
     scripts/config.pl set MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.pl set MBEDTLS_MEMORY_DEBUG
     CC=gcc cmake .
     make
 

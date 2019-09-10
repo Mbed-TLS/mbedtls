@@ -1707,7 +1707,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu",
-        (unsigned long)mbedtls_platform_get_uint32_be(&buf[2])) );
+        (unsigned long)mbedtls_platform_get_uint32_be( &buf[2] ) ) );
 
     memcpy( ssl->handshake->randbytes + 32, buf + 2, 32 );
 

@@ -5775,7 +5775,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
     if( ( hs_buf->is_valid == 1 ) && ( hs_buf->is_complete == 1 ) )
     {
         /* Synthesize a record containing the buffered HS message. */
-        uint32_t msg_len = (uint32_t)mbedtls_platform_get_uint24_be( &hs_buf->data[1] );
+        size_t msg_len = mbedtls_platform_get_uint24_be( &hs_buf->data[1] );
 
         /* Double-check that we haven't accidentally buffered
          * a message that doesn't fit into the input buffer. */

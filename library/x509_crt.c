@@ -4196,19 +4196,10 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
 
         mbedtls_x509_name_free( cert_cur->issuer.next );
         mbedtls_x509_name_free( cert_cur->subject.next );
+        mbedtls_x509_sequence_free( cert_cur->certificate_policies.next );
         mbedtls_x509_sequence_free( cert_cur->ext_key_usage.next );
         mbedtls_x509_sequence_free( cert_cur->subject_alt_names.next );
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
-
-        seq_cur = cert_cur->certificate_policies.next;
-        while( seq_cur != NULL )
-        {
-            seq_prv = seq_cur;
-            seq_cur = seq_cur->next;
-            mbedtls_platform_zeroize( seq_prv,
-                                      sizeof( mbedtls_x509_sequence ) );
-            mbedtls_free( seq_prv );
-        }
 
         if( cert_cur->raw.p != NULL && cert_cur->own_buffer )
         {

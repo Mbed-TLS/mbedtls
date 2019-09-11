@@ -176,6 +176,8 @@ int main( void )
 #define DFL_CA_CALLBACK         0
 #define DFL_EAP_TLS             0
 #define DFL_REPRODUCIBLE        0
+#define DFL_NSS_KEYLOG          0
+#define DFL_NSS_KEYLOG_FILE     NULL
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -308,8 +310,15 @@ int main( void )
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
 #define USAGE_EAP_TLS                                       \
     "    eap_tls=%%d          default: 0 (disabled)\n"
+#define USAGE_NSS_KEYLOG                                    \
+    "    nss_keylog=%%d          default: 0 (disabled)\n"   \
+    "                             This cannot be used with eap_tls=1\n"
+#define USAGE_NSS_KEYLOG_FILE                               \
+    "    nss_keylog_file=%%s\n"
 #else
 #define USAGE_EAP_TLS ""
+#define USAGE_NSS_KEYLOG ""
+#define USAGE_NSS_KEYLOG_FILE ""
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -487,6 +496,8 @@ int main( void )
     USAGE_TICKETS                                           \
     USAGE_EAP_TLS                                           \
     USAGE_REPRODUCIBLE                                      \
+    USAGE_NSS_KEYLOG                                        \
+    USAGE_NSS_KEYLOG_FILE                                   \
     USAGE_CACHE                                             \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_TRUNC_HMAC                                        \
@@ -598,6 +609,8 @@ struct options
     int dgram_packing;          /* allow/forbid datagram packing            */
     int badmac_limit;           /* Limit of records with bad MAC            */
     int eap_tls;                /* derive EAP-TLS keying material?          */
+    int nss_keylog;             /* export NSS key log material              */
+    const char *nss_keylog_file; /* NSS key log file                        */
     int cid_enabled;            /* whether to use the CID extension or not  */
     int cid_enabled_renego;     /* whether to use the CID extension or not
                                  * during renegotiation                     */
@@ -644,6 +657,82 @@ static int eap_tls_key_derivation ( void *p_expkey,
     }
     return( 0 );
 }
+
+static int nss_keylog_export( void *p_expkey,
+                              const unsigned char *ms,
+                              const unsigned char *kb,
+                              size_t maclen,
+                              size_t keylen,
+                              size_t ivlen,
+                              unsigned char client_random[32],
+                              unsigned char server_random[32],
+                              mbedtls_tls_prf_types tls_prf_type )
+{
+    char nss_keylog_line[ 200 ];
+    size_t const client_random_len = 32;
+    size_t const master_secret_len = 48;
+    size_t len = 0;
+    size_t j;
+    int ret = 0;
+
+    ((void) p_expkey);
+    ((void) kb);
+    ((void) maclen);
+    ((void) keylen);
+    ((void) ivlen);
+    ((void) server_random);
+    ((void) tls_prf_type);
+
+    len += sprintf( nss_keylog_line + len,
+                    "%s", "CLIENT_RANDOM " );
+
+    for( j = 0; j < client_random_len; j++ )
+    {
+        len += sprintf( nss_keylog_line + len,
+                        "%02x", client_random[j] );
+    }
+
+    len += sprintf( nss_keylog_line + len, " " );
+
+    for( j = 0; j < master_secret_len; j++ )
+    {
+        len += sprintf( nss_keylog_line + len,
+                        "%02x", ms[j] );
+    }
+
+    len += sprintf( nss_keylog_line + len, "\n" );
+    nss_keylog_line[ len ] = '\0';
+
+    mbedtls_printf( "\n" );
+    mbedtls_printf( "---------------- NSS KEYLOG -----------------\n" );
+    mbedtls_printf( "%s", nss_keylog_line );
+    mbedtls_printf( "---------------------------------------------\n" );
+
+    if( opt.nss_keylog_file != NULL )
+    {
+        FILE *f;
+
+        if( ( f = fopen( opt.nss_keylog_file, "a" ) ) == NULL )
+        {
+            ret = -1;
+            goto exit;
+        }
+
+        if( fwrite( nss_keylog_line, 1, len, f ) != len )
+        {
+            ret = -1;
+            goto exit;
+        }
+
+        fclose( f );
+    }
+
+exit:
+    mbedtls_platform_zeroize( nss_keylog_line,
+                              sizeof( nss_keylog_line ) );
+    return( ret );
+}
+
 #endif
 
 static void my_debug( void *ctx, int level,
@@ -1892,6 +1981,8 @@ int main( int argc, char *argv[] )
     opt.serialize           = DFL_SERIALIZE;
     opt.eap_tls             = DFL_EAP_TLS;
     opt.reproducible        = DFL_REPRODUCIBLE;
+    opt.nss_keylog          = DFL_NSS_KEYLOG;
+    opt.nss_keylog_file     = DFL_NSS_KEYLOG_FILE;
 
     for( i = 1; i < argc; i++ )
     {
@@ -2320,8 +2411,24 @@ int main( int argc, char *argv[] )
         {
             opt.reproducible = 1;
         }
+        else if( strcmp( p, "nss_keylog" ) == 0 )
+        {
+            opt.nss_keylog = atoi( q );
+            if( opt.nss_keylog < 0 || opt.nss_keylog > 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "nss_keylog_file" ) == 0 )
+        {
+            opt.nss_keylog_file = q;
+        }
         else
             goto usage;
+    }
+
+    if( opt.nss_keylog != 0 && opt.eap_tls != 0 )
+    {
+        mbedtls_printf( "Error: eap_tls and nss_keylog options cannot be used together.\n" );
+        goto usage;
     }
 
     /* Event-driven IO is incompatible with the above custom
@@ -2960,8 +3067,16 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( opt.eap_tls != 0 )
+    {
         mbedtls_ssl_conf_export_keys_ext_cb( &conf, eap_tls_key_derivation,
                                              &eap_tls_keying );
+    }
+    else if( opt.nss_keylog != 0 )
+    {
+        mbedtls_ssl_conf_export_keys_ext_cb( &conf,
+                                             nss_keylog_export,
+                                             NULL );
+    }
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)

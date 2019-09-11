@@ -946,7 +946,7 @@ static psa_hash_operation_t psa_hash_operation_init(void);
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
- *    documentation for #psa_hash_operation_t, e.g. PSA_HASH_OPERATION_INIT.
+ *    documentation for #psa_hash_operation_t, e.g. #PSA_HASH_OPERATION_INIT.
  * -# Call psa_hash_setup() to specify the algorithm.
  * -# Call psa_hash_update() zero, one or more times, passing a fragment
  *    of the message each time. The hash that is calculated is the hash
@@ -954,14 +954,16 @@ static psa_hash_operation_t psa_hash_operation_init(void);
  * -# To calculate the hash, call psa_hash_finish().
  *    To compare the hash with an expected value, call psa_hash_verify().
  *
- * The application may call psa_hash_abort() at any time after the operation
+ * If an error occurs at any step after a call to psa_hash_setup(), the
+ * operation will need to be reset by a call to psa_hash_abort(). The
+ * application may call psa_hash_abort() at any time after the operation
  * has been initialized.
  *
  * After a successful call to psa_hash_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
- * - A failed call to psa_hash_update().
- * - A call to psa_hash_finish(), psa_hash_verify() or psa_hash_abort().
+ * - A successful call to psa_hash_finish() or psa_hash_verify().
+ * - A call to psa_hash_abort().
  *
  * \param[in,out] operation The operation object to set up. It must have
  *                          been initialized as per the documentation for
@@ -976,8 +978,7 @@ static psa_hash_operation_t psa_hash_operation_init(void);
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p alg is not a hash algorithm.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (already set up and not
- *         subsequently completed).
+ *         The operation state is not valid (it must be inactive).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -994,7 +995,8 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
  *
  * The application must call psa_hash_setup() before calling this function.
  *
- * If this function returns an error status, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_hash_abort().
  *
  * \param[in,out] operation Active hash operation.
  * \param[in] input         Buffer containing the message fragment to hash.
@@ -1003,7 +1005,7 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, or already completed).
+ *         The operation state is not valid (it muct be active).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -1023,7 +1025,9 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  * This function calculates the hash of the message formed by concatenating
  * the inputs passed to preceding calls to psa_hash_update().
  *
- * When this function returns, the operation becomes inactive.
+ * When this function returns successfuly, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_hash_abort().
  *
  * \warning Applications should not call this function if they expect
  *          a specific value for the hash. Call psa_hash_verify() instead.
@@ -1044,7 +1048,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, or already completed).
+ *         The operation state is not valid (it must be active).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p hash buffer is too small. You can determine a
  *         sufficient buffer size by calling #PSA_HASH_SIZE(\c alg)
@@ -1072,7 +1076,9 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
  * compares the calculated hash with the expected hash passed as a
  * parameter to this function.
  *
- * When this function returns, the operation becomes inactive.
+ * When this function returns successfuly, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_hash_abort().
  *
  * \note Implementations shall make the best effort to ensure that the
  * comparison between the actual hash and the expected hash is performed
@@ -1088,7 +1094,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
  *         The hash of the message was calculated successfully, but it
  *         differs from the expected hash.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, or already completed).
+ *         The operation state is not valid (it must be active).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -1110,11 +1116,7 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
  * psa_hash_setup() again.
  *
  * You may call this function any time after the operation object has
- * been initialized by any of the following methods:
- * - A call to psa_hash_setup(), whether it succeeds or not.
- * - Initializing the \c struct to all-bits-zero.
- * - Initializing the \c struct to logical zeros, e.g.
- *   `psa_hash_operation_t operation = {0}`.
+ * been initialized by one of the methods described in #psa_hash_operation_t.
  *
  * In particular, calling psa_hash_abort() after the operation has been
  * terminated by a call to psa_hash_abort(), psa_hash_finish() or
@@ -1123,8 +1125,6 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
  * \param[in,out] operation     Initialized hash operation.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_BAD_STATE
- *         \p operation is not an active hash operation.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
@@ -1152,9 +1152,9 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BAD_STATE
- *         \p source_operation is not an active hash operation.
+ *         The \p source_operation state is not valid (it must be active).
  * \retval #PSA_ERROR_BAD_STATE
- *         \p target_operation is active.
+ *         The \p target_operation state is not valid (it must be inactive).
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED

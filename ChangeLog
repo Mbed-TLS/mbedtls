@@ -1,6 +1,66 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS "baremetal" branch
+
+Features
+   * Add new configuration option MBEDTLS_SSL_NO_SESSION_CACHE that enables
+     code size savings in configurations where cache-based session resumption is
+     not used.
+   * Add new configuration option MBEDTLS_SSL_NO_SESSION_RESUMPTION that
+     enables code size savings in configurations where no form of session
+     resumption is used.
+   * Add support for draft-05 of the Connection ID extension, as specified
+     in https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05.
+     The Connection ID extension allows to keep DTLS connections beyond the
+     lifetime of the underlying transport by adding a connection identifier
+     to the DTLS record header. This identifier can be used to associated an
+     incoming record with the correct connection data even after the peer has
+     changed its IP or port. The feature is enabled at compile-time by setting
+     MBEDTLS_SSL_DTLS_CONNECTION_ID (disabled by default), and at run-time
+     through the new APIs mbedtls_ssl_conf_cid() and mbedtls_ssl_set_cid().
+   * Add new API functions mbedtls_ssl_session_save() and
+     mbedtls_ssl_session_load() to allow serializing a session, for example to
+     store it in non-volatile storage, and later using it for TLS session
+     resumption.
+   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`
+     which allows copy-less parsing of DER encoded X.509 CRTs,
+     at the cost of additional lifetime constraints on the input
+     buffer, but at the benefit of reduced RAM consumption.
+   * Add new API function mbedtls_ssl_conf_extended_master_secret_enforce() to
+     allow enforcing the usage of ExtendedMasterSecret extension. If the
+     extension is used and this option is enabled, handshakes not leading to
+     the use of the extended master secret will be aborted. On the server,
+     fail the handshake if client doesn't advertise the ExtendedMasterSecret
+     extension. On the client, fail the handshake if the server doesn't
+     consent to the use of the ExtendedMasterSecret extension in its
+     ServerHello.
+   * Add new configuration option MBEDTLS_SSL_PROTO_NO_TLS that enables code
+     size savings in configurations where only DTLS is used.
+
+API Changes
+   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.
+     See the Features section for more information.
+   * Allow to opt in to the removal the API mbedtls_ssl_get_peer_cert()
+     for the benefit of saving RAM, by disabling the new compile-time
+     option MBEDTLS_SSL_KEEP_PEER_CERTIFICATE (enabled by default for
+     API stability). Disabling this option makes mbedtls_ssl_get_peer_cert()
+     always return NULL, and removes the peer_cert field from the
+     mbedtls_ssl_session structure which otherwise stores the peer's
+     certificate.
+   * Add a new compile-time option `MBEDTLS_X509_ON_DEMAND_PARSING`,
+     disabled by default, which allows to parse and cache X.509 CRTs
+     on demand only, at the benefit of lower RAM usage. Enabling
+     this option breaks the structure API of X.509 in that most
+     fields of `mbedtls_x509_crt` are removed, but it keeps the
+     X.509 function API. See the API changes section as well as
+     the documentation in `config.h` for more information.
+
+Changes
+   * Reduce RAM consumption during session renegotiation by not storing
+     the peer CRT chain and session ticket twice.
+
+
+= mbed TLS 2.16.3 branch released 2019-09-06
 
 Security
    * Fix a missing error detection in ECJPAKE. This could have caused a
@@ -17,13 +77,10 @@ Security
      about 1 bit of information on average and could cause the value to be
      1 byte too large for the output buffer.
 
-Features
-   * Add new configuration option MBEDTLS_SSL_NO_SESSION_CACHE that enables
-     code size savings in configurations where cache-based session resumption is
-     not used.
-   * Add new configuration option MBEDTLS_SSL_NO_SESSION_RESUMPTION that
-     enables code size savings in configurations where no form of session
-     resumption is used.
+API Changes
+   * The new function mbedtls_ecdsa_sign_det_ext() is similar to
+     mbedtls_ecdsa_sign_det() but allows passing an external RNG for the
+     purpose of blinding.
 
 Bugfix
    * Fix to allow building test suites with any warning that detects unused
@@ -64,18 +121,6 @@ Changes
      suggests). #2671
    * Make `make clean` clean all programs always. Fixes #1862.
 
-API Changes
-   * Add a new compile-time option `MBEDTLS_X509_ON_DEMAND_PARSING`,
-     disabled by default, which allows to parse and cache X.509 CRTs
-     on demand only, at the benefit of lower RAM usage. Enabling
-     this option breaks the structure API of X.509 in that most
-     fields of `mbedtls_x509_crt` are removed, but it keeps the
-     X.509 function API. See the API changes section as well as
-     the documentation in `config.h` for more information.
-   * The new function mbedtls_ecdsa_sign_det_ext() is similar to
-     mbedtls_ecdsa_sign_det() but allows passing an external RNG for the
-     purpose of blinding.
-
 = mbed TLS 2.16.2 branch released 2019-06-11
 
 Security
@@ -85,46 +130,6 @@ Security
      interpreted according to the second group, which could lead to either
      an error or a meaningless output from mbedtls_ecdh_get_params. In the
      latter case, this could expose at most 5 bits of the private key.
-
-Features
-   * Add support for draft-05 of the Connection ID extension, as specified
-     in https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05.
-     The Connection ID extension allows to keep DTLS connections beyond the
-     lifetime of the underlying transport by adding a connection identifier
-     to the DTLS record header. This identifier can be used to associated an
-     incoming record with the correct connection data even after the peer has
-     changed its IP or port. The feature is enabled at compile-time by setting
-     MBEDTLS_SSL_DTLS_CONNECTION_ID (disabled by default), and at run-time
-     through the new APIs mbedtls_ssl_conf_cid() and mbedtls_ssl_set_cid().
-   * Add new API functions mbedtls_ssl_session_save() and
-     mbedtls_ssl_session_load() to allow serializing a session, for example to
-     store it in non-volatile storage, and later using it for TLS session
-     resumption.
-   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`
-     which allows copy-less parsing of DER encoded X.509 CRTs,
-     at the cost of additional lifetime constraints on the input
-     buffer, but at the benefit of reduced RAM consumption.
-   * Add new API function mbedtls_ssl_conf_extended_master_secret_enforce() to
-     allow enforcing the usage of ExtendedMasterSecret extension. If the
-     extension is used and this option is enabled, handshakes not leading to
-     the use of the extended master secret will be aborted. On the server,
-     fail the handshake if client doesn't advertise the ExtendedMasterSecret
-     extension. On the client, fail the handshake if the server doesn't
-     consent to the use of the ExtendedMasterSecret extension in its
-     ServerHello.
-   * Add new configuration option MBEDTLS_SSL_PROTO_NO_TLS that enables code
-     size savings in configurations where only DTLS is used.
-
-API Changes
-   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.
-     See the Features section for more information.
-   * Allow to opt in to the removal the API mbedtls_ssl_get_peer_cert()
-     for the benefit of saving RAM, by disabling the new compile-time
-     option MBEDTLS_SSL_KEEP_PEER_CERTIFICATE (enabled by default for
-     API stability). Disabling this option makes mbedtls_ssl_get_peer_cert()
-     always return NULL, and removes the peer_cert field from the
-     mbedtls_ssl_session structure which otherwise stores the peer's
-     certificate.
 
 Bugfix
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default
@@ -213,8 +218,6 @@ Bugfix
      leading content octet. Fixes #1610.
 
 Changes
-   * Reduce RAM consumption during session renegotiation by not storing
-     the peer CRT chain and session ticket twice.
    * Include configuration file in all header files that use configuration,
      instead of relying on other header files that they include.
      Inserted as an enhancement for #1371

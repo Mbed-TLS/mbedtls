@@ -1318,7 +1318,7 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
- *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
+ *    documentation for #psa_mac_operation_t, e.g. #PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_sign_setup() to specify the algorithm and key.
  * -# Call psa_mac_update() zero, one or more times, passing a fragment
  *    of the message each time. The MAC that is calculated is the MAC
@@ -1326,13 +1326,15 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * -# At the end of the message, call psa_mac_sign_finish() to finish
  *    calculating the MAC value and retrieve it.
  *
- * The application may call psa_mac_abort() at any time after the operation
+ * If an error occurs at any step after a call to psa_mac_sign_setup(), the
+ * operation will need to be reset by a call to psa_mac_abort(). The
+ * application may call psa_mac_abort() at any time after the operation
  * has been initialized.
  *
  * After a successful call to psa_mac_sign_setup(), the application must
  * eventually terminate the operation through one of the following methods:
- * - A failed call to psa_mac_update().
- * - A call to psa_mac_sign_finish() or psa_mac_abort().
+ * - A successful call to psa_mac_sign_finish().
+ * - A call to psa_mac_abort().
  *
  * \param[in,out] operation The operation object to set up. It must have
  *                          been initialized as per the documentation for
@@ -1358,8 +1360,7 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * \retval #PSA_ERROR_STORAGE_FAILURE
  *         The key could not be retrieved from storage.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (already set up and not
- *         subsequently completed).
+ *         The operation state is not valid (it must be inactive).
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -1378,7 +1379,7 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
- *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
+ *    documentation for #psa_mac_operation_t, e.g. #PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_verify_setup() to specify the algorithm and key.
  * -# Call psa_mac_update() zero, one or more times, passing a fragment
  *    of the message each time. The MAC that is calculated is the MAC
@@ -1387,13 +1388,15 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  *    calculating the actual MAC of the message and verify it against
  *    the expected value.
  *
- * The application may call psa_mac_abort() at any time after the operation
+ * If an error occurs at any step after a call to psa_mac_verify_setup(), the
+ * operation will need to be reset by a call to psa_mac_abort(). The
+ * application may call psa_mac_abort() at any time after the operation
  * has been initialized.
  *
  * After a successful call to psa_mac_verify_setup(), the application must
  * eventually terminate the operation through one of the following methods:
- * - A failed call to psa_mac_update().
- * - A call to psa_mac_verify_finish() or psa_mac_abort().
+ * - A successful call to psa_mac_verify_finish().
+ * - A call to psa_mac_abort().
  *
  * \param[in,out] operation The operation object to set up. It must have
  *                          been initialized as per the documentation for
@@ -1419,8 +1422,7 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * \retval #PSA_ERROR_STORAGE_FAILURE
  *         The key could not be retrieved from storage
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (already set up and not
- *         subsequently completed).
+ *         The operation state is not valid (it must be inactive).
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -1435,7 +1437,8 @@ psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
  * The application must call psa_mac_sign_setup() or psa_mac_verify_setup()
  * before calling this function.
  *
- * If this function returns an error status, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_mac_abort().
  *
  * \param[in,out] operation Active MAC operation.
  * \param[in] input         Buffer containing the message fragment to add to
@@ -1445,7 +1448,7 @@ psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, or already completed).
+ *         The operation state is not valid (it must be active).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -1466,7 +1469,9 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
  * This function calculates the MAC of the message formed by concatenating
  * the inputs passed to preceding calls to psa_mac_update().
  *
- * When this function returns, the operation becomes inactive.
+ * When this function returns successfuly, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_mac_abort().
  *
  * \warning Applications should not call this function if they expect
  *          a specific value for the MAC. Call psa_mac_verify_finish() instead.
@@ -1489,7 +1494,8 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, or already completed).
+ *         The operation state is not valid (it must be an active mac sign
+ *         operation).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p mac buffer is too small. You can determine a
  *         sufficient buffer size by calling PSA_MAC_FINAL_SIZE().
@@ -1517,7 +1523,9 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
  * compares the calculated MAC with the expected MAC passed as a
  * parameter to this function.
  *
- * When this function returns, the operation becomes inactive.
+ * When this function returns successfuly, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_mac_abort().
  *
  * \note Implementations shall make the best effort to ensure that the
  * comparison between the actual MAC and the expected MAC is performed
@@ -1533,7 +1541,8 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
  *         The MAC of the message was calculated successfully, but it
  *         differs from the expected MAC.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, or already completed).
+ *         The operation state is not valid (it must be an active mac verify
+ *         operation).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -1556,12 +1565,7 @@ psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
  * psa_mac_sign_setup() or psa_mac_verify_setup() again.
  *
  * You may call this function any time after the operation object has
- * been initialized by any of the following methods:
- * - A call to psa_mac_sign_setup() or psa_mac_verify_setup(), whether
- *   it succeeds or not.
- * - Initializing the \c struct to all-bits-zero.
- * - Initializing the \c struct to logical zeros, e.g.
- *   `psa_mac_operation_t operation = {0}`.
+ * been initialized by one of the methods described in #psa_mac_operation_t.
  *
  * In particular, calling psa_mac_abort() after the operation has been
  * terminated by a call to psa_mac_abort(), psa_mac_sign_finish() or
@@ -1570,8 +1574,6 @@ psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
  * \param[in,out] operation Initialized MAC operation.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_BAD_STATE
- *         \p operation is not an active MAC operation.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED

@@ -248,6 +248,58 @@ int mbedtls_asn1_get_bitstring( unsigned char **p, const unsigned char *end,
 }
 
 /*
+ * Traverse an ASN.1 "SEQUENCE OF <tag>"
+ * and call a callback for each entry found.
+ */
+int mbedtls_asn1_traverse_sequence_of(
+    unsigned char **p,
+    const unsigned char *end,
+    uint8_t tag_must_mask, uint8_t tag_must_val,
+    uint8_t tag_may_mask, uint8_t tag_may_val,
+    int (*cb)( void *ctx, int tag,
+               unsigned char *start, size_t len ),
+    void *ctx )
+{
+    int ret;
+    size_t len;
+
+    /* Get main sequence tag */
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
+            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( *p + len != end )
+        return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    while( *p < end )
+    {
+        unsigned char const tag = *(*p)++;
+
+        if( ( tag & tag_must_mask ) != tag_must_val )
+            return( MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+
+        if( ( ret = mbedtls_asn1_get_len( p, end, &len ) ) != 0 )
+            return( ret );
+
+        if( ( tag & tag_may_mask ) == tag_may_val )
+        {
+            if( cb != NULL )
+            {
+                ret = cb( ctx, tag, *p, len );
+                if( ret != 0 )
+                    return( ret );
+            }
+        }
+
+        *p += len;
+    }
+
+    return( 0 );
+}
+
+/*
  * Get a bit string without unused bits
  */
 int mbedtls_asn1_get_bitstring_null( unsigned char **p, const unsigned char *end,

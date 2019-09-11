@@ -481,6 +481,60 @@ get_sequence_of:"1000":0x04:"":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 Not a SEQUENCE (not SEQUENCE)
 get_sequence_of:"3100":0x04:"":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 
+Traverse empty SEQUENCE
+traverse_sequence_of:"3000":0:0:0:0:"":0
+
+Traverse empty SEQUENCE plus trailing garbage
+traverse_sequence_of:"30007e":0:0:0:0:"":MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
+
+Traverse SEQUENCE of INTEGER: 1 INTEGER
+traverse_sequence_of:"30050203123456":0xff:0x02:0:0:"4,0x02,3":0
+
+Traverse SEQUENCE of INTEGER: 2 INTEGERs
+traverse_sequence_of:"30080203123456020178":0xff:0x02:0:0:"4,0x02,3,9,0x02,1":0
+
+Traverse SEQUENCE of INTEGER: INTEGER, NULL
+traverse_sequence_of:"300702031234560500":0xff:0x02:0:0:"4,0x02,3":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+Traverse SEQUENCE of INTEGER: NULL, INTEGER
+traverse_sequence_of:"300705000203123456":0xff:0x02:0:0:"":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+Traverse SEQUENCE of ANY: NULL, INTEGER
+traverse_sequence_of:"300705000203123456":0:0:0:0:"4,0x05,0,6,0x02,3":0
+
+Traverse SEQUENCE of ANY, skip non-INTEGER: INTEGER, NULL
+traverse_sequence_of:"300702031234560500":0:0:0xff:0x02:"4,0x02,3":0
+
+Traverse SEQUENCE of ANY, skip non-INTEGER: NULL, INTEGER
+traverse_sequence_of:"300705000203123456":0:0:0xff:0x02:"6,0x02,3":0
+
+Traverse SEQUENCE of INTEGER, skip everything
+traverse_sequence_of:"30080203123456020178":0xff:0x02:0:1:"":0
+
+Traverse SEQUENCE of {NULL, OCTET STRING}, skip NULL: OS, NULL
+traverse_sequence_of:"300704031234560500":0xfe:0x04:0xff:0x04:"4,0x04,3":0
+
+Traverse SEQUENCE of {NULL, OCTET STRING}, skip NULL: NULL, OS
+traverse_sequence_of:"300705000403123456":0xfe:0x04:0xff:0x04:"6,0x04,3":0
+
+Traverse SEQUENCE of {NULL, OCTET STRING}, skip everything
+traverse_sequence_of:"300705000403123456":0xfe:0x04:0:1:"":0
+
+Traverse SEQUENCE of INTEGER, stop at 0: NULL
+traverse_sequence_of:"30020500":0xff:0x02:0:0:"":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+Traverse SEQUENCE of INTEGER, stop at 0: INTEGER
+traverse_sequence_of:"30050203123456":0xff:0x02:0:0:"":RET_TRAVERSE_STOP
+
+Traverse SEQUENCE of INTEGER, stop at 0: INTEGER, NULL
+traverse_sequence_of:"300702031234560500":0xff:0x02:0:0:"":RET_TRAVERSE_STOP
+
+Traverse SEQUENCE of INTEGER, stop at 1: INTEGER, NULL
+traverse_sequence_of:"300702031234560500":0xff:0x02:0:0:"4,0x02,3":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+Traverse SEQUENCE of INTEGER, stop at 1: INTEGER, INTEGER
+traverse_sequence_of:"30080203123456020178":0xff:0x02:0:0:"4,0x02,3":RET_TRAVERSE_STOP
+
 AlgorithmIdentifier, no params
 get_alg:"300506034f4944":4:3:0:0:0:7:0
 

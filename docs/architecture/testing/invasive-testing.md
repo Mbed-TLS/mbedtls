@@ -24,7 +24,9 @@ Do not add test-specific interfaces if there's a practical way of doing it anoth
 
 ### Reliance on internal details
 
-In unit tests and in test programs, it's ok to include header files from `library/`. In contrast, sample programs must not include header files from `library/`.
+In unit tests and in test programs, it's ok to include header files from `library/`. Do not define non-public interfaces in public headers (`include/mbedtls` has `*_internal.h` headers for legacy reasons, but this approach is deprecated). In contrast, sample programs must not include header files from `library/`.
+
+Sometimes it makes sense to have unit tests on functions that aren't part of the public API. Declare such functions in `library/*.h` and include the corresponding header in the test code. If the function should be `static` for optimization but can't be `static` for testing, declare it as `MBEDTLS_STATIC_TESTABLE`, and make the tests that use it depend on `MBEDTLS_TEST_HOOKS` (see [“rules for compile-time options”](#rules-for-compile-time-options)).
 
 If test code or test data depends on internal details of the library and not just on its documented behavior, add a comment in the code that explains the dependency. For example:
 
@@ -57,7 +59,7 @@ The code calls a function `mbedtls_foo()`. Usually this a macro defined to be a 
 
 Sometimes the substitutable function is a `static inline` function that does nothing (not a macro, to avoid accidentally skipping side effects in its parameters), to provide a hook for test code; such functions should have a name that starts with the prefix `mbedtls_test_hook_`. In such cases, the function should generally not modify its parameters, so any pointer argument should be const. The function should return void.
 
-With `MBEDTLS_TEST_HOOKS` set, `mbedtls_foo` is a global variable of function pointer type. This global variable is initialized to the system function, or to a function that does nothing. The global variable is defined in a header in `library.h` such as `psa_crypto_invasive.h`.
+With `MBEDTLS_TEST_HOOKS` set, `mbedtls_foo` is a global variable of function pointer type. This global variable is initialized to the system function, or to a function that does nothing. The global variable is defined in a header in the `library` directory such as `psa_crypto_invasive.h`.
 
 In test code that needs to modify the internal behavior:
 

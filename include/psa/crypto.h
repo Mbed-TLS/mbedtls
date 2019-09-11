@@ -2239,7 +2239,7 @@ static psa_aead_operation_t psa_aead_operation_init(void);
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
  *    documentation for #psa_aead_operation_t, e.g.
- *    PSA_AEAD_OPERATION_INIT.
+ *    #PSA_AEAD_OPERATION_INIT.
  * -# Call psa_aead_encrypt_setup() to specify the algorithm and key.
  * -# If needed, call psa_aead_set_lengths() to specify the length of the
  *    inputs to the subsequent calls to psa_aead_update_ad() and
@@ -2255,14 +2255,16 @@ static psa_aead_operation_t psa_aead_operation_init(void);
  *    of the message to encrypt each time.
  * -# Call psa_aead_finish().
  *
- * The application may call psa_aead_abort() at any time after the operation
+ * If an error occurs at any step after a call to psa_aead_encrypt_setup(),
+ * the operation will need to be reset by a call to psa_aead_abort(). The
+ * application may call psa_aead_abort() at any time after the operation
  * has been initialized.
  *
  * After a successful call to psa_aead_encrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
- * - A failed call to any of the \c psa_aead_xxx functions.
- * - A call to psa_aead_finish(), psa_aead_verify() or psa_aead_abort().
+ * - A successful call to psa_aead_finish().
+ * - A call to psa_aead_abort().
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
@@ -2277,8 +2279,7 @@ static psa_aead_operation_t psa_aead_operation_init(void);
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (already set up and not
- *         subsequently completed).
+ *         The operation state is not valid (it must be inactive).
   * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -2307,7 +2308,7 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
  *    documentation for #psa_aead_operation_t, e.g.
- *    PSA_AEAD_OPERATION_INIT.
+ *    #PSA_AEAD_OPERATION_INIT.
  * -# Call psa_aead_decrypt_setup() to specify the algorithm and key.
  * -# If needed, call psa_aead_set_lengths() to specify the length of the
  *    inputs to the subsequent calls to psa_aead_update_ad() and
@@ -2320,14 +2321,16 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  *    of the ciphertext to decrypt each time.
  * -# Call psa_aead_verify().
  *
- * The application may call psa_aead_abort() at any time after the operation
+ * If an error occurs at any step after a call to psa_aead_decrypt_setup(),
+ * the operation will need to be reset by a call to psa_aead_abort(). The
+ * application may call psa_aead_abort() at any time after the operation
  * has been initialized.
  *
  * After a successful call to psa_aead_decrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
- * - A failed call to any of the \c psa_aead_xxx functions.
- * - A call to psa_aead_finish(), psa_aead_verify() or psa_aead_abort().
+ * - A successful call to psa_aead_verify().
+ * - A call to psa_aead_abort().
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
@@ -2342,8 +2345,7 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (already set up and not
- *         subsequently completed).
+ *         The operation state is not valid (it must be inactive).
   * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -2373,7 +2375,8 @@ psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
  * The application must call psa_aead_encrypt_setup() before
  * calling this function.
  *
- * If this function returns an error status, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[out] nonce            Buffer where the generated nonce is to be
@@ -2385,7 +2388,8 @@ psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, or nonce already set).
+ *         The operation state is not valid (it must be an active aead encrypt
+           operation, with no nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p nonce buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2408,10 +2412,11 @@ psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
  * This function sets the nonce for the authenticated
  * encryption or decryption operation.
  *
- * The application must call psa_aead_encrypt_setup() before
- * calling this function.
+ * The application must call psa_aead_encrypt_setup() or
+ * psa_aead_decrypt_setup() before calling this function.
  *
- * If this function returns an error status, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
  *
  * \note When encrypting, applications should use psa_aead_generate_nonce()
  * instead of this function, unless implementing a protocol that requires
@@ -2424,7 +2429,8 @@ psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, or nonce already set).
+ *         The operation state is not valid (it must be active, with no nonce
+ *         set).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The size of \p nonce is not acceptable for the chosen algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2457,6 +2463,9 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
  *   this function is not required.
  * - For vendor-defined algorithm, refer to the vendor documentation.
  *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
+ *
  * \param[in,out] operation     Active AEAD operation.
  * \param ad_length             Size of the non-encrypted additional
  *                              authenticated data in bytes.
@@ -2465,8 +2474,8 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, already completed,
- *         or psa_aead_update_ad() or psa_aead_update() already called).
+ *         The operation state is not valid (it must be active, but before
+ *         psa_aead_update_ad() or psa_aead_update() are called).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         At least one of the lengths is not acceptable for the chosen
  *         algorithm.
@@ -2495,7 +2504,8 @@ psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
  * 1. Call either psa_aead_encrypt_setup() or psa_aead_decrypt_setup().
  * 2. Set the nonce with psa_aead_generate_nonce() or psa_aead_set_nonce().
  *
- * If this function returns an error status, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
  *
  * \warning When decrypting, until psa_aead_verify() has returned #PSA_SUCCESS,
  *          there is no guarantee that the input is valid. Therefore, until
@@ -2511,8 +2521,8 @@ psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, nonce not set,
- *         psa_aead_update() already called, or operation already completed).
+ *         The operation state is not valid (it must be active and ready to
+ *         receive additional data).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total input length overflows the additional data length that
  *         was previously specified with psa_aead_set_lengths().
@@ -2539,7 +2549,8 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  * 2. Set the nonce with psa_aead_generate_nonce() or psa_aead_set_nonce().
  * 3. Call psa_aead_update_ad() to pass all the additional data.
  *
- * If this function returns an error status, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
  *
  * \warning When decrypting, until psa_aead_verify() has returned #PSA_SUCCESS,
  *          there is no guarantee that the input is valid. Therefore, until
@@ -2579,8 +2590,8 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, nonce not set
- *         or already completed).
+ *         The operation state is not valid (it must be active and ready to
+ *         recieve message data).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
  *         You can determine a sufficient buffer size by calling
@@ -2626,7 +2637,9 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  *   #PSA_AEAD_TAG_LENGTH(\c alg) where \c alg is the AEAD algorithm
  *   that the operation performs.
  *
- * When this function returns, the operation becomes inactive.
+ * When this function returns successfuly, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[out] ciphertext       Buffer where the last part of the ciphertext
@@ -2650,8 +2663,8 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, nonce not set,
- *         decryption, or already completed).
+ *         The operation state is not valid (it must be an active aead encrypt
+ *         operation, with all data provided).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p ciphertext or \p tag buffer is too small.
  *         You can determine a sufficient buffer size for \p ciphertext by
@@ -2694,7 +2707,9 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  * psa_aead_update_ad() with the ciphertext formed by concatenating the
  * inputs passed to preceding calls to psa_aead_update().
  *
- * When this function returns, the operation becomes inactive.
+ * When this function returns successfuly, the operation becomes inactive.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_aead_abort().
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[out] plaintext        Buffer where the last part of the plaintext
@@ -2715,8 +2730,8 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not set up, nonce not set,
- *         encryption, or already completed).
+ *         The operation state is not valid (it must be an active aead decrypt
+ *         operation, with all data provided).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p plaintext buffer is too small.
  *         You can determine a sufficient buffer size for \p plaintext by
@@ -2755,22 +2770,15 @@ psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
  * psa_aead_encrypt_setup() or psa_aead_decrypt_setup() again.
  *
  * You may call this function any time after the operation object has
- * been initialized by any of the following methods:
- * - A call to psa_aead_encrypt_setup() or psa_aead_decrypt_setup(),
- *   whether it succeeds or not.
- * - Initializing the \c struct to all-bits-zero.
- * - Initializing the \c struct to logical zeros, e.g.
- *   `psa_aead_operation_t operation = {0}`.
+ * been initialized as described in #psa_aead_operation_t.
  *
  * In particular, calling psa_aead_abort() after the operation has been
- * terminated by a call to psa_aead_abort() or psa_aead_finish()
- * is safe and has no effect.
+ * terminated by a call to psa_aead_abort(), psa_aead_finish() or
+ * psa_aead_verify() is safe and has no effect.
  *
  * \param[in,out] operation     Initialized AEAD operation.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_BAD_STATE
- *         \p operation is not an active AEAD operation.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED

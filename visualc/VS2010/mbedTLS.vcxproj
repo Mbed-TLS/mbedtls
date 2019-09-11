@@ -241,6 +241,7 @@
     <ClInclude Include="..\..\include\psa\crypto_struct.h" />
     <ClInclude Include="..\..\include\psa\crypto_types.h" />
     <ClInclude Include="..\..\include\psa\crypto_values.h" />
+    <ClInclude Include="..\..\library\common.h" />
     <ClInclude Include="..\..\library\psa_crypto_core.h" />
     <ClInclude Include="..\..\library\psa_crypto_invasive.h" />
     <ClInclude Include="..\..\library\psa_crypto_its.h" />

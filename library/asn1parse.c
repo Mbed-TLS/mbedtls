@@ -332,6 +332,41 @@ void mbedtls_asn1_sequence_free( mbedtls_asn1_sequence *seq )
     }
 }
 
+typedef struct
+{
+    int tag;
+    mbedtls_asn1_sequence *cur;
+} asn1_get_sequence_of_cb_ctx_t;
+
+static int asn1_get_sequence_of_cb( void *ctx,
+                                    int tag,
+                                    unsigned char *start,
+                                    size_t len )
+{
+    asn1_get_sequence_of_cb_ctx_t *cb_ctx =
+        (asn1_get_sequence_of_cb_ctx_t *) ctx;
+    mbedtls_asn1_sequence *cur =
+        cb_ctx->cur;
+
+    if( cur->buf.p != NULL )
+    {
+        cur->next =
+            mbedtls_calloc( 1, sizeof( mbedtls_asn1_sequence ) );
+
+        if( cur->next == NULL )
+            return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+
+        cur = cur->next;
+    }
+
+    cur->buf.p = start;
+    cur->buf.len = len;
+    cur->buf.tag = tag;
+
+    cb_ctx->cur = cur;
+    return( 0 );
+}
+
 /*
  *  Parses and splits an ASN.1 "SEQUENCE OF <tag>"
  */
@@ -340,49 +375,11 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
                           mbedtls_asn1_sequence *cur,
                           int tag)
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len;
-    mbedtls_asn1_buf *buf;
-
-    /* Get main sequence tag */
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
-            MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-        return( ret );
-
-    if( *p + len != end )
-        return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-
-    while( *p < end )
-    {
-        buf = &(cur->buf);
-        buf->tag = **p;
-
-        if( ( ret = mbedtls_asn1_get_tag( p, end, &buf->len, tag ) ) != 0 )
-            return( ret );
-
-        buf->p = *p;
-        *p += buf->len;
-
-        /* Allocate and assign next pointer */
-        if( *p < end )
-        {
-            cur->next = (mbedtls_asn1_sequence*)mbedtls_calloc( 1,
-                                            sizeof( mbedtls_asn1_sequence ) );
-
-            if( cur->next == NULL )
-                return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
-
-            cur = cur->next;
-        }
-    }
-
-    /* Set final sequence entry's next pointer to NULL */
-    cur->next = NULL;
-
-    if( *p != end )
-        return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-
-    return( 0 );
+    asn1_get_sequence_of_cb_ctx_t cb_ctx = { tag, cur };
+    memset( cur, 0, sizeof( mbedtls_asn1_sequence ) );
+    return( mbedtls_asn1_traverse_sequence_of(
+                p, end, 0xFF, tag, 0, 0,
+                asn1_get_sequence_of_cb, &cb_ctx ) );
 }
 
 int mbedtls_asn1_get_alg( unsigned char **p,

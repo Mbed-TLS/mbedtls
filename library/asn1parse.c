@@ -269,7 +269,16 @@ int mbedtls_asn1_get_bitstring_null( unsigned char **p, const unsigned char *end
     return( 0 );
 }
 
-
+void mbedtls_asn1_sequence_free( mbedtls_asn1_sequence *seq )
+{
+    while( seq != NULL )
+    {
+        mbedtls_asn1_sequence *next = seq->next;
+        mbedtls_platform_zeroize( seq, sizeof( *seq ) );
+        mbedtls_free( seq );
+        seq = next;
+    }
+}
 
 /*
  *  Parses and splits an ASN.1 "SEQUENCE OF <tag>"

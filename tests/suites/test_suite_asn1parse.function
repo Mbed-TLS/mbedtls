@@ -508,7 +508,7 @@ void get_sequence_of( const data_t *input, int tag,
                       int expected_result )
 {
     mbedtls_asn1_sequence head = { { 0, 0, NULL }, NULL };
-    mbedtls_asn1_sequence *cur, *next;
+    mbedtls_asn1_sequence *cur;
     unsigned char *p = input->x;
     const char *rest = description;
     unsigned long n;
@@ -549,13 +549,7 @@ void get_sequence_of( const data_t *input, int tag,
     }
 
 exit:
-    cur = head.next;
-    while( cur != NULL )
-    {
-        next = cur->next;
-        mbedtls_free( cur );
-        cur = next;
-    }
+    mbedtls_asn1_sequence_free( head.next );
 }
 /* END_CASE */
 

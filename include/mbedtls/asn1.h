@@ -343,6 +343,9 @@ int mbedtls_asn1_get_bitstring_null( unsigned char **p,
  * \brief       Parses and splits an ASN.1 "SEQUENCE OF <tag>".
  *              Updates the pointer to immediately behind the full sequence tag.
  *
+ * This function allocates memory for the sequence elements. You can free
+ * the allocated memory with mbedtls_asn1_sequence_free().
+ *
  * \note        On error, this function may return a partial list in \p cur.
  *              You must set `cur->next = NULL` before calling this function!
  *              Otherwise it is impossible to distinguish a previously non-null
@@ -384,6 +387,28 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
                                   const unsigned char *end,
                                   mbedtls_asn1_sequence *cur,
                                   int tag );
+/**
+ * \brief          Free a heap-allocated linked list presentation of
+ *                 an ASN.1 sequence, including the first element.
+ *
+ * There are two common ways to manage the memory used for the representation
+ * of a parsed ASN.1 sequence:
+ * - Allocate a head node `mbedtls_asn1_sequence *head` with mbedtls_calloc().
+ *   Pass this node as the `cur` argument to mbedtls_asn1_get_sequence_of().
+ *   When you have finished processing the sequence,
+ *   call mbedtls_asn1_sequence_free() on `head`.
+ * - Allocate a head node `mbedtls_asn1_sequence *head` in any manner,
+ *   for example on the stack. Make sure that `head->next == NULL`.
+ *   Pass `head` as the `cur` argument to mbedtls_asn1_get_sequence_of().
+ *   When you have finished processing the sequence,
+ *   call mbedtls_asn1_sequence_free() on `head->cur`,
+ *   then free `head` itself in the appropriate manner.
+ *
+ * \param seq      The address of the first sequence component. This may
+ *                 be \c NULL, in which case this functions returns
+ *                 immediately.
+ */
+void mbedtls_asn1_sequence_free( mbedtls_asn1_sequence *seq );
 
 #if defined(MBEDTLS_BIGNUM_C)
 /**

@@ -443,6 +443,140 @@ psa_status_t psa_open_key(psa_key_id_t id,
  */
 psa_status_t psa_close_key(psa_key_handle_t handle);
 
+/** Make a copy of a key.
+ *
+ * Copy key material from one location to another.
+ *
+ * This function is primarily useful to copy a key from one location
+ * to another, since it populates a key using the material from
+ * another key which may have a different lifetime.
+ *
+ * This function may be used to share a key with a different party,
+ * subject to implementation-defined restrictions on key sharing.
+ *
+ * The policy on the source key must have the usage flag
+ * #PSA_KEY_USAGE_COPY set.
+ * This flag is sufficient to permit the copy if the key has the lifetime
+ * #PSA_KEY_LIFETIME_VOLATILE or #PSA_KEY_LIFETIME_PERSISTENT.
+ * Some secure elements do not provide a way to copy a key without
+ * making it extractable from the secure element. If a key is located
+ * in such a secure element, then the key must have both usage flags
+ * #PSA_KEY_USAGE_COPY and #PSA_KEY_USAGE_EXPORT in order to make
+ * a copy of the key outside the secure element.
+ *
+ * The resulting key may only be used in a way that conforms to
+ * both the policy of the original key and the policy specified in
+ * the \p attributes parameter:
+ * - The usage flags on the resulting key are the bitwise-and of the
+ *   usage flags on the source policy and the usage flags in \p attributes.
+ * - If both allow the same algorithm or wildcard-based
+ *   algorithm policy, the resulting key has the same algorithm policy.
+ * - If either of the policies allows an algorithm and the other policy
+ *   allows a wildcard-based algorithm policy that includes this algorithm,
+ *   the resulting key allows the same algorithm.
+ * - If the policies do not allow any algorithm in common, this function
+ *   fails with the status #PSA_ERROR_INVALID_ARGUMENT.
+ *
+ * The effect of this function on implementation-defined attributes is
+ * implementation-defined.
+ *
+ * \param source_handle     The key to copy. It must be a valid key handle.
+ * \param[in] attributes    The attributes for the new key.
+ *                          They are used as follows:
+ *                          - The key type and size may be 0. If either is
+ *                            nonzero, it must match the corresponding
+ *                            attribute of the source key.
+ *                          - The key location (the lifetime and, for
+ *                            persistent keys, the key identifier) is
+ *                            used directly.
+ *                          - The policy constraints (usage flags and
+ *                            algorithm policy) are combined from
+ *                            the source key and \p attributes so that
+ *                            both sets of restrictions apply, as
+ *                            described in the documentation of this function.
+ * \param[out] target_handle On success, a handle to the newly created key.
+ *                          \c 0 on failure.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *         \p source_handle is invalid.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is
+ *         already a persistent key with the given identifier.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The lifetime or identifier in \p attributes are invalid.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The policy constraints on the source and specified in
+ *         \p attributes are incompatible.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p attributes specifies a key type or key size
+ *         which does not match the attributes of the source key.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The source key does not have the #PSA_KEY_USAGE_COPY usage flag.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The source key is not exportable and its lifetime does not
+ *         allow copying it to the target's lifetime.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_copy_key(psa_key_handle_t source_handle,
+                          const psa_key_attributes_t *attributes,
+                          psa_key_handle_t *target_handle);
+
+
+/**
+ * \brief Destroy a key.
+ *
+ * This function destroys a key from both volatile
+ * memory and, if applicable, non-volatile storage. Implementations shall
+ * make a best effort to ensure that that the key material cannot be recovered.
+ *
+ * This function also erases any metadata such as policies and frees
+ * resources associated with the key. To free all resources associated with
+ * the key, all handles to the key must be closed or destroyed.
+ *
+ * Destroying the key makes the handle invalid, and the key handle
+ * must not be used again by the application. Using other open handles to the
+ * destroyed key in a cryptographic operation will result in an error.
+ *
+ * If a key is currently in use in a multipart operation, then destroying the
+ * key will cause the multipart operation to fail.
+ *
+ * \param handle        Handle to the key to erase.
+ *
+ * \retval #PSA_SUCCESS
+ *         The key material has been erased.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key cannot be erased because it is
+ *         read-only, either due to a policy or due to physical restrictions.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ *         There was an failure in communication with the cryptoprocessor.
+ *         The key material may still be present in the cryptoprocessor.
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         The storage is corrupted. Implementations shall make a best effort
+ *         to erase key material even in this stage, however applications
+ *         should be aware that it may be impossible to guarantee that the
+ *         key material is not recoverable in such cases.
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ *         An unexpected condition which is not a storage corruption or
+ *         a communication failure occurred. The cryptoprocessor may have
+ *         been compromised.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_destroy_key(psa_key_handle_t handle);
+
 /**@}*/
 
 /** \defgroup import_export Key import and export
@@ -519,50 +653,7 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
                             size_t data_length,
                             psa_key_handle_t *handle);
 
-/**
- * \brief Destroy a key.
- *
- * This function destroys a key from both volatile
- * memory and, if applicable, non-volatile storage. Implementations shall
- * make a best effort to ensure that that the key material cannot be recovered.
- *
- * This function also erases any metadata such as policies and frees
- * resources associated with the key. To free all resources associated with
- * the key, all handles to the key must be closed or destroyed.
- *
- * Destroying the key makes the handle invalid, and the key handle
- * must not be used again by the application. Using other open handles to the
- * destroyed key in a cryptographic operation will result in an error.
- *
- * If a key is currently in use in a multipart operation, then destroying the
- * key will cause the multipart operation to fail.
- *
- * \param handle        Handle to the key to erase.
- *
- * \retval #PSA_SUCCESS
- *         The key material has been erased.
- * \retval #PSA_ERROR_NOT_PERMITTED
- *         The key cannot be erased because it is
- *         read-only, either due to a policy or due to physical restrictions.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- *         There was an failure in communication with the cryptoprocessor.
- *         The key material may still be present in the cryptoprocessor.
- * \retval #PSA_ERROR_STORAGE_FAILURE
- *         The storage is corrupted. Implementations shall make a best effort
- *         to erase key material even in this stage, however applications
- *         should be aware that it may be impossible to guarantee that the
- *         key material is not recoverable in such cases.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *         An unexpected condition which is not a storage corruption or
- *         a communication failure occurred. The cryptoprocessor may have
- *         been compromised.
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_destroy_key(psa_key_handle_t handle);
+
 
 /**
  * \brief Export a key in binary format.
@@ -722,93 +813,7 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
                                    size_t data_size,
                                    size_t *data_length);
 
-/** Make a copy of a key.
- *
- * Copy key material from one location to another.
- *
- * This function is primarily useful to copy a key from one location
- * to another, since it populates a key using the material from
- * another key which may have a different lifetime.
- *
- * This function may be used to share a key with a different party,
- * subject to implementation-defined restrictions on key sharing.
- *
- * The policy on the source key must have the usage flag
- * #PSA_KEY_USAGE_COPY set.
- * This flag is sufficient to permit the copy if the key has the lifetime
- * #PSA_KEY_LIFETIME_VOLATILE or #PSA_KEY_LIFETIME_PERSISTENT.
- * Some secure elements do not provide a way to copy a key without
- * making it extractable from the secure element. If a key is located
- * in such a secure element, then the key must have both usage flags
- * #PSA_KEY_USAGE_COPY and #PSA_KEY_USAGE_EXPORT in order to make
- * a copy of the key outside the secure element.
- *
- * The resulting key may only be used in a way that conforms to
- * both the policy of the original key and the policy specified in
- * the \p attributes parameter:
- * - The usage flags on the resulting key are the bitwise-and of the
- *   usage flags on the source policy and the usage flags in \p attributes.
- * - If both allow the same algorithm or wildcard-based
- *   algorithm policy, the resulting key has the same algorithm policy.
- * - If either of the policies allows an algorithm and the other policy
- *   allows a wildcard-based algorithm policy that includes this algorithm,
- *   the resulting key allows the same algorithm.
- * - If the policies do not allow any algorithm in common, this function
- *   fails with the status #PSA_ERROR_INVALID_ARGUMENT.
- *
- * The effect of this function on implementation-defined attributes is
- * implementation-defined.
- *
- * \param source_handle     The key to copy. It must be a valid key handle.
- * \param[in] attributes    The attributes for the new key.
- *                          They are used as follows:
- *                          - The key type and size may be 0. If either is
- *                            nonzero, it must match the corresponding
- *                            attribute of the source key.
- *                          - The key location (the lifetime and, for
- *                            persistent keys, the key identifier) is
- *                            used directly.
- *                          - The policy constraints (usage flags and
- *                            algorithm policy) are combined from
- *                            the source key and \p attributes so that
- *                            both sets of restrictions apply, as
- *                            described in the documentation of this function.
- * \param[out] target_handle On success, a handle to the newly created key.
- *                          \c 0 on failure.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_HANDLE
- *         \p source_handle is invalid.
- * \retval #PSA_ERROR_ALREADY_EXISTS
- *         This is an attempt to create a persistent key, and there is
- *         already a persistent key with the given identifier.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The lifetime or identifier in \p attributes are invalid.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The policy constraints on the source and specified in
- *         \p attributes are incompatible.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p attributes specifies a key type or key size
- *         which does not match the attributes of the source key.
- * \retval #PSA_ERROR_NOT_PERMITTED
- *         The source key does not have the #PSA_KEY_USAGE_COPY usage flag.
- * \retval #PSA_ERROR_NOT_PERMITTED
- *         The source key is not exportable and its lifetime does not
- *         allow copying it to the target's lifetime.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_copy_key(psa_key_handle_t source_handle,
-                          const psa_key_attributes_t *attributes,
-                          psa_key_handle_t *target_handle);
+
 
 /**@}*/
 

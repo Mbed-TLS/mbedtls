@@ -291,7 +291,8 @@ static void psa_set_key_type(psa_key_attributes_t *attributes,
  * \param[out] attributes       The attribute structure to write to.
  * \param bits                  The key size in bits.
  *                              If this is 0, the key size in \p attributes
- *                              becomes unspecified.
+ *                              becomes unspecified. Keys of size 0 are
+ *                              not supported.
  */
 static void psa_set_key_bits(psa_key_attributes_t *attributes,
                              size_t bits);
@@ -467,6 +468,13 @@ psa_status_t psa_close_key(psa_key_handle_t handle);
  * documentation of psa_export_public_key() for the format of public keys
  * and to the documentation of psa_export_key() for the format for
  * other key types.
+ *
+ * The key data determines the key size. The attributes may optionally
+ * specify a key size; in this case it must match the size determined
+ * from the key data. A key size of 0 in \p attributes indicates that
+ * the key size is solely determined by the key data.
+ *
+ * Implementations must reject an attempt to import a key of size 0.
  *
  * This specification supports a single format for each key type.
  * Implementations may support other formats as long as the standard
@@ -3092,6 +3100,8 @@ static psa_key_derivation_operation_t psa_key_derivation_operation_init(void);
  * - Clean up the key derivation operation object with
  *   psa_key_derivation_abort().
  *
+ * Implementations must reject an attempt to derive a key of size 0.
+ *
  * \param[in,out] operation       The key derivation operation object
  *                                to set up. It must
  *                                have been initialized but not set up yet.
@@ -3621,6 +3631,8 @@ psa_status_t psa_generate_random(uint8_t *output,
  *
  * The key is generated randomly.
  * Its location, usage policy, type and size are taken from \p attributes.
+ *
+ * Implementations must reject an attempt to generate a key of size 0.
  *
  * The following type-specific considerations apply:
  * - For RSA keys (#PSA_KEY_TYPE_RSA_KEY_PAIR),

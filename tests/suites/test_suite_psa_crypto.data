@@ -22,9 +22,6 @@ persistence_attributes:0x1234:3:0x1235:0x1235:3
 PSA key attributes: slot number
 slot_number_attribute:
 
-PSA import/export raw: 0 bytes
-import_export:"":PSA_KEY_TYPE_RAW_DATA:PSA_KEY_USAGE_EXPORT:0:0:0:PSA_SUCCESS:1
-
 PSA import/export raw: 1 bytes
 import_export:"2a":PSA_KEY_TYPE_RAW_DATA:PSA_KEY_USAGE_EXPORT:0:8:0:PSA_SUCCESS:1
 
@@ -568,8 +565,8 @@ PSA key policy algorithm2: ECDH, ECDSA
 depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECDH_C:MBEDTLS_ECDSA_C
 key_policy_alg2:PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP256R1):"49c9a8c18c4b885638c431cf1df1c994131609b580d4fd43a0cab17db2f13eee":PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY:PSA_ALG_ECDH:PSA_ALG_ECDSA_ANY
 
-Copy key: raw, 0 bytes
-copy_success:PSA_KEY_USAGE_COPY:0:0:PSA_KEY_TYPE_RAW_DATA:"":1:-1:-1:0:PSA_KEY_USAGE_COPY:0:0
+Copy key: raw, 1 byte
+copy_success:PSA_KEY_USAGE_COPY:0:0:PSA_KEY_TYPE_RAW_DATA:"2a":1:-1:-1:0:PSA_KEY_USAGE_COPY:0:0
 
 Copy key: AES, copy attributes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
@@ -2254,9 +2251,6 @@ generate_key:PSA_KEY_TYPE_CATEGORY_MASK:128:PSA_KEY_USAGE_EXPORT:0:PSA_ERROR_NOT
 PSA generate key: bad type (RSA public key)
 generate_key:PSA_KEY_TYPE_RSA_PUBLIC_KEY:512:PSA_KEY_USAGE_EXPORT:0:PSA_ERROR_NOT_SUPPORTED
 
-PSA generate key: raw data, 0 bits
-generate_key:PSA_KEY_TYPE_RAW_DATA:128:PSA_KEY_USAGE_EXPORT:0:PSA_SUCCESS
-
 PSA generate key: raw data, 7 bits: invalid argument
 generate_key:PSA_KEY_TYPE_RAW_DATA:7:PSA_KEY_USAGE_EXPORT:0:PSA_ERROR_INVALID_ARGUMENT
 
@@ -2358,9 +2352,9 @@ generate_key_rsa:512:"01":PSA_ERROR_INVALID_ARGUMENT
 PSA generate key: RSA, e=2
 generate_key_rsa:512:"01":PSA_ERROR_INVALID_ARGUMENT
 
-PSA import persistent key: raw data, 0 bits
+PSA import persistent key: raw data, 8 bits
 depends_on:MBEDTLS_PK_C:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PSA_CRYPTO_STORAGE_C
-persistent_key_load_key_from_storage:"":PSA_KEY_TYPE_RAW_DATA:0:PSA_KEY_USAGE_EXPORT:0:IMPORT_KEY
+persistent_key_load_key_from_storage:"2a":PSA_KEY_TYPE_RAW_DATA:8:PSA_KEY_USAGE_EXPORT:0:IMPORT_KEY
 
 PSA import persistent key: AES, 128 bits, exportable
 depends_on:MBEDTLS_PK_C:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PSA_CRYPTO_STORAGE_C

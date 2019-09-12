@@ -44,9 +44,6 @@ Persistent key import garbage data, should fail
 depends_on:MBEDTLS_PK_C:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C
 persistent_key_import:1:PSA_KEY_TYPE_RSA_KEY_PAIR:"11111111":0:PSA_ERROR_INVALID_ARGUMENT
 
-import/export persistent raw key: 0 byte
-import_export_persistent_key:"":PSA_KEY_TYPE_RAW_DATA:0:0:0
-
 import/export persistent raw key: 1 byte
 import_export_persistent_key:"2a":PSA_KEY_TYPE_RAW_DATA:8:0:0
 
@@ -72,9 +69,6 @@ import_export_persistent_key:"3082025e02010002818100af057d396ee84fb75fdbb5c2b13c
 PSA import/export-persistent symmetric key: 16 bytes
 depends_on:MBEDTLS_PK_C:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C
 import_export_persistent_key:"2b7e151628aed2a6abf7158809cf4f3c":PSA_KEY_TYPE_AES:128:0:0
-
-import/export persistent raw key with restart: 0 byte
-import_export_persistent_key:"":PSA_KEY_TYPE_RAW_DATA:0:1:0
 
 import/export persistent raw key with restart: 1 byte
 import_export_persistent_key:"2a":PSA_KEY_TYPE_RAW_DATA:8:1:0

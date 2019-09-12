@@ -1826,6 +1826,12 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
 
+    /* Reject zero-length symmetric keys (including raw data key objects).
+     * This also rejects any key which might be encoded as an empty string,
+     * which is never valid. */
+    if( data_length == 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     status = psa_start_key_creation( PSA_KEY_CREATION_IMPORT, attributes,
                                      handle, &slot, &driver );
     if( status != PSA_SUCCESS )
@@ -4778,6 +4784,12 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
+
+    /* Reject any attempt to create a zero-length key so that we don't
+     * risk tripping up later, e.g. on a malloc(0) that returns NULL. */
+    if( psa_get_key_bits( attributes ) == 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     status = psa_start_key_creation( PSA_KEY_CREATION_DERIVE,
                                      attributes, handle, &slot, &driver );
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -5511,6 +5523,11 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
+
+    /* Reject any attempt to create a zero-length key so that we don't
+     * risk tripping up later, e.g. on a malloc(0) that returns NULL. */
+    if( psa_get_key_bits( attributes ) == 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_start_key_creation( PSA_KEY_CREATION_GENERATE,
                                      attributes, handle, &slot, &driver );

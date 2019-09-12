@@ -3347,6 +3347,12 @@ psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     *signature_length = signature_size;
+    /* Immediately reject a zero-length signature buffer. This guarantees
+     * that signature must be a valid pointer. (On the other hand, the hash
+     * buffer can in principle be empty since it doesn't actually have
+     * to be a hash.) */
+    if( signature_size == 0 )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
     if( status != PSA_SUCCESS )
@@ -3422,7 +3428,7 @@ exit:
     if( status == PSA_SUCCESS )
         memset( signature + *signature_length, '!',
                 signature_size - *signature_length );
-    else if( signature_size != 0 )
+    else
         memset( signature, '!', signature_size );
     /* If signature_size is 0 then we have nothing to do. We must not call
      * memset because signature may be NULL in this case. */

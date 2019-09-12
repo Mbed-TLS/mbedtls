@@ -206,11 +206,12 @@ typedef uint32_t psa_key_usage_t;
  * values:
  *
  * - lifetime: #PSA_KEY_LIFETIME_VOLATILE.
- * - key identifier: unspecified.
- * - type: \c 0.
- * - key size: \c 0.
- * - usage flags: \c 0.
- * - algorithm: \c 0.
+ * - key identifier: 0 (which is not a valid key identifier).
+ * - type: \c 0 (meaning that the type is unspecified).
+ * - key size: \c 0 (meaning that the size is unspecified).
+ * - usage flags: \c 0 (which allows no usage except exporting a public key).
+ * - algorithm: \c 0 (which allows no cryptographic usage, but allows
+ *   exporting).
  *
  * A typical sequence to create a key is as follows:
  * -# Create and initialize an attribute structure.

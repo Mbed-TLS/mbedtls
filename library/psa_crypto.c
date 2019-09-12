@@ -451,13 +451,6 @@ static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
     switch( type )
     {
         case PSA_KEY_TYPE_RAW_DATA:
-            if( bits == 0 )
-            {
-                raw->bytes = 0;
-                raw->data = NULL;
-                return( PSA_SUCCESS );
-            }
-            break;
 #if defined(MBEDTLS_MD_C)
         case PSA_KEY_TYPE_HMAC:
 #endif
@@ -1281,6 +1274,12 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
     if( export_public_key && ! PSA_KEY_TYPE_IS_ASYMMETRIC( slot->attr.type ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+    /* Reject a zero-length output buffer now, since this can never be a
+     * valid key representation. This way we know that data must be a valid
+     * pointer and we can do things like memset(data, ..., data_size). */
+    if( data_size == 0 )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )
     {
@@ -1302,12 +1301,9 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
     {
         if( slot->data.raw.bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
-        if( data_size != 0 )
-        {
-            memcpy( data, slot->data.raw.data, slot->data.raw.bytes );
-            memset( data + slot->data.raw.bytes, 0,
-                    data_size - slot->data.raw.bytes );
-        }
+        memcpy( data, slot->data.raw.data, slot->data.raw.bytes );
+        memset( data + slot->data.raw.bytes, 0,
+                data_size - slot->data.raw.bytes );
         *data_length = slot->data.raw.bytes;
         return( PSA_SUCCESS );
     }
@@ -1366,10 +1362,7 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
             }
             if( ret < 0 )
             {
-                /* If data_size is 0 then data may be NULL and then the
-                 * call to memset would have undefined behavior. */
-                if( data_size != 0 )
-                    memset( data, 0, data_size );
+                memset( data, 0, data_size );
                 return( mbedtls_to_psa_error( ret ) );
             }
             /* The mbedtls_pk_xxx functions write to the end of the buffer.
@@ -1676,7 +1669,7 @@ static psa_status_t psa_finish_key_creation(
                                          slot->attr.bits );
             uint8_t *buffer = mbedtls_calloc( 1, buffer_size );
             size_t length = 0;
-            if( buffer == NULL && buffer_size != 0 )
+            if( buffer == NULL )
                 return( PSA_ERROR_INSUFFICIENT_MEMORY );
             status = psa_internal_export_key( slot,
                                               buffer, buffer_size, &length,
@@ -1685,8 +1678,7 @@ static psa_status_t psa_finish_key_creation(
                 status = psa_save_persistent_key( &slot->attr,
                                                   buffer, length );
 
-            if( buffer_size != 0 )
-                mbedtls_platform_zeroize( buffer, buffer_size );
+            mbedtls_platform_zeroize( buffer, buffer_size );
             mbedtls_free( buffer );
         }
     }
@@ -1963,7 +1955,7 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     buffer_size = PSA_KEY_EXPORT_MAX_SIZE( source->attr.type,
                                            psa_get_key_slot_bits( source ) );
     buffer = mbedtls_calloc( 1, buffer_size );
-    if( buffer == NULL && buffer_size != 0 )
+    if( buffer == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
     status = psa_internal_export_key( source, buffer, buffer_size, &length, 0 );
     if( status != PSA_SUCCESS )
@@ -1972,8 +1964,7 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     status = psa_import_key_into_slot( target, buffer, length );
 
 exit:
-    if( buffer_size != 0 )
-        mbedtls_platform_zeroize( buffer, buffer_size );
+    mbedtls_platform_zeroize( buffer, buffer_size );
     mbedtls_free( buffer );
     return( status );
 }

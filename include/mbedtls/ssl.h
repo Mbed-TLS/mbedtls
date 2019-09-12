@@ -970,7 +970,8 @@ struct mbedtls_ssl_config
      *  tls_prf and random bytes. Should replace f_export_keys    */
     int (*f_export_keys_ext)( void *, const unsigned char *,
                 const unsigned char *, size_t, size_t, size_t,
-                unsigned char[32], unsigned char[32], mbedtls_tls_prf_types );
+                const unsigned char[32], const unsigned char[32],
+                mbedtls_tls_prf_types );
     void *p_export_keys;            /*!< context for key export callback    */
 #endif
 
@@ -1925,8 +1926,8 @@ typedef int mbedtls_ssl_export_keys_ext_t( void *p_expkey,
                                            size_t maclen,
                                            size_t keylen,
                                            size_t ivlen,
-                                           unsigned char client_random[32],
-                                           unsigned char server_random[32],
+                                           const unsigned char client_random[32],
+                                           const unsigned char server_random[32],
                                            mbedtls_tls_prf_types tls_prf_type );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 

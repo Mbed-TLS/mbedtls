@@ -100,7 +100,7 @@ int main( int argc, char *argv[] )
     unsigned char diff;
 
     const mbedtls_cipher_info_t *cipher_info;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_cipher_context_t cipher_ctx;
     mbedtls_md_context_t md_ctx;
 #if defined(_WIN32_WCE)
@@ -192,7 +192,7 @@ int main( int argc, char *argv[] )
     }
 
     md_info = mbedtls_md_info_from_string( argv[5] );
-    if( md_info == NULL )
+    if( md_info == MBEDTLS_MD_INVALID_HANDLE )
     {
         mbedtls_fprintf( stderr, "Message Digest '%s' not found\n", argv[5] );
         goto exit;

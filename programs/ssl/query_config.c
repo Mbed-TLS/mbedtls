@@ -1202,6 +1202,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SHA256_SMALLER */
 
+#if defined(MBEDTLS_SHA256_NO_SHA224)
+    if( strcmp( "MBEDTLS_SHA256_NO_SHA224", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA256_NO_SHA224 );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SHA256_NO_SHA224 */
+
 #if defined(MBEDTLS_SSL_ALL_ALERT_MESSAGES)
     if( strcmp( "MBEDTLS_SSL_ALL_ALERT_MESSAGES", config ) == 0 )
     {
@@ -1577,6 +1585,14 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+
+#if defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+    if( strcmp( "MBEDTLS_X509_REMOVE_VERIFY_CALLBACK", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_REMOVE_VERIFY_CALLBACK );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( strcmp( "MBEDTLS_X509_RSASSA_PSS_SUPPORT", config ) == 0 )
@@ -2897,6 +2913,14 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID */
+
+#if defined(MBEDTLS_MD_SINGLE_HASH)
+    if( strcmp( "MBEDTLS_MD_SINGLE_HASH", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_MD_SINGLE_HASH );
+        return( 0 );
+    }
+#endif /* MBEDTLS_MD_SINGLE_HASH */
 
     /* If the symbol is not found, return an error */
     return( 1 );

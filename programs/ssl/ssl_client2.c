@@ -69,6 +69,8 @@ int main( void )
 #include "mbedtls/debug.h"
 #include "mbedtls/timing.h"
 
+#include "mbedtls/ssl_internal.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -664,6 +666,8 @@ static int send_cb( void *ctx, unsigned char const *buf, size_t len )
           !MBEDTLS_SSL_CONF_RECV_TIMEOUT */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
 static unsigned char peer_crt_info[1024];
 
 /*
@@ -704,6 +708,7 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
 
     return( 0 );
 }
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -1506,14 +1511,18 @@ int main( int argc, char *argv[] )
             mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
 
         if( opt.max_version != -1 &&
-            mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ) > opt.max_version )
+            mbedtls_ssl_ver_gt(
+                mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ),
+                opt.max_version ) )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
         if( opt.min_version != -1 &&
-            mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ) < opt.min_version )
+            mbedtls_ssl_ver_lt(
+                mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ),
+                opt.min_version ) )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
@@ -1523,17 +1532,24 @@ int main( int argc, char *argv[] )
         /* If the server selects a version that's not supported by
          * this suite, then there will be no common ciphersuite... */
         if( opt.max_version == -1 ||
-            opt.max_version > mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ) )
+            mbedtls_ssl_ver_gt(
+                opt.max_version,
+                mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info ) ) )
         {
             opt.max_version = mbedtls_ssl_suite_get_max_minor_ver( ciphersuite_info );
         }
-        if( opt.min_version < mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ) )
+        if( mbedtls_ssl_ver_lt(
+                opt.min_version,
+                mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info ) ) )
         {
             opt.min_version = mbedtls_ssl_suite_get_min_minor_ver( ciphersuite_info );
             /* DTLS starts with TLS 1.1 */
             if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
+                mbedtls_ssl_ver_lt( opt.min_version,
+                                    MBEDTLS_SSL_MINOR_VERSION_2 ) )
+            {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
+            }
         }
 
         /* Enable RC4 if needed and not explicitly disabled */
@@ -1894,8 +1910,10 @@ int main( int argc, char *argv[] )
 #endif
     }
 
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
     mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
@@ -2316,10 +2334,11 @@ int main( int argc, char *argv[] )
     else
         mbedtls_printf( " ok\n" );
 
-#if !defined(MBEDTLS_X509_REMOVE_INFO)
+#if !defined(MBEDTLS_X509_REMOVE_INFO) && \
+    !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
     mbedtls_printf( "  . Peer certificate information    ...\n" );
     mbedtls_printf( "%s\n", peer_crt_info );
-#endif /* !MBEDTLS_X509_REMOVE_INFO */
+#endif /* !MBEDTLS_X509_REMOVE_INFO && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -2648,9 +2667,10 @@ send_request:
         mbedtls_printf( "  . Restarting connection from same port..." );
         fflush( stdout );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
@@ -2825,9 +2845,10 @@ reconnect:
 
         mbedtls_printf( "  . Reconnecting with saved session..." );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {

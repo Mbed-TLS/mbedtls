@@ -78,6 +78,9 @@
 #define MBEDTLS_CERTS_C
 #define MBEDTLS_PEM_PARSE_C
 
+/* Save ROM by excluded SHA-2 variant that we don't need */
+#define MBEDTLS_SHA256_NO_SHA224
+
 /* Save RAM at the expense of ROM */
 #define MBEDTLS_AES_ROM_TABLES
 

@@ -39,7 +39,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_cert_info:"data_files/cert_sha1.crt":"cert. version     \: 3\nserial number     \: 07\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA1\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA1\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information SHA224 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C:!MBEDTLS_SHA256_NO_SHA224
 x509_cert_info:"data_files/cert_sha224.crt":"cert. version     \: 3\nserial number     \: 08\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=PolarSSL Cert SHA224\nissued  on        \: 2019-02-10 14\:44\:06\nexpires on        \: 2029-02-10 14\:44\:06\nsigned using      \: RSA with SHA-224\nRSA key size      \: 2048 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information SHA256 Digest
@@ -59,7 +59,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA1_C
 x509_cert_info:"data_files/server9.crt":"cert. version     \: 3\nserial number     \: 16\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2014-01-20 13\:38\:16\nexpires on        \: 2024-01-18 13\:38\:16\nsigned using      \: RSASSA-PSS (SHA1, MGF1-SHA1, 0xEA)\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information RSA-PSS, SHA224 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C:!MBEDTLS_SHA256_NO_SHA224
 x509_cert_info:"data_files/server9-sha224.crt":"cert. version     \: 3\nserial number     \: 17\nissuer name       \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2014-01-20 13\:57\:36\nexpires on        \: 2024-01-18 13\:57\:36\nsigned using      \: RSASSA-PSS (SHA224, MGF1-SHA224, 0xE2)\nRSA key size      \: 1024 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information RSA-PSS, SHA256 Digest
@@ -79,7 +79,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:
 x509_cert_info:"data_files/server5-sha1.crt":"cert. version     \: 3\nserial number     \: 12\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA1\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC, SHA224 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:!MBEDTLS_SHA256_NO_SHA224
 x509_cert_info:"data_files/server5-sha224.crt":"cert. version     \: 3\nserial number     \: 13\nissuer name       \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nsubject name      \: C=NL, O=PolarSSL, CN=localhost\nissued  on        \: 2013-09-24 16\:21\:27\nexpires on        \: 2023-09-22 16\:21\:27\nsigned using      \: ECDSA with SHA224\nEC key size       \: 256 bits\nbasic constraints \: CA=false\n"
 
 X509 CRT information EC, SHA256 Digest
@@ -167,7 +167,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE
 mbedtls_x509_crl_info:"data_files/crl_sha1.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA1\n"
 
 X509 CRL Information SHA224 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:!MBEDTLS_X509_REMOVE_INFO:!MBEDTLS_SHA256_NO_SHA224
 mbedtls_x509_crl_info:"data_files/crl_sha224.pem":"CRL version   \: 1\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2011-02-12 14\:44\:07\nnext update   \: 2011-04-13 14\:44\:07\nRevoked certificates\:\nserial number\: 01 revocation date\: 2011-02-12 14\:44\:07\nserial number\: 03 revocation date\: 2011-02-12 14\:44\:07\nsigned using  \: RSA with SHA-224\n"
 
 X509 CRL Information SHA256 Digest
@@ -187,7 +187,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA1_C:!M
 mbedtls_x509_crl_info:"data_files/crl-rsa-pss-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:46\:35\nnext update   \: 2024-01-18 13\:46\:35\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0xEA)\n"
 
 X509 CRL information RSA-PSS, SHA224 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C:!MBEDTLS_X509_REMOVE_INFO:!MBEDTLS_SHA256_NO_SHA224
 mbedtls_x509_crl_info:"data_files/crl-rsa-pss-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=PolarSSL Test CA\nthis update   \: 2014-01-20 13\:56\:06\nnext update   \: 2024-01-18 13\:56\:06\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nserial number\: 16 revocation date\: 2014-01-20 13\:43\:05\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0xE2)\n"
 
 X509 CRL information RSA-PSS, SHA256 Digest
@@ -207,7 +207,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_ECDSA_C:!MBEDTLS_X509_REMO
 mbedtls_x509_crl_info:"data_files/crl-ec-sha1.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA1\n"
 
 X509 CRL Information EC, SHA224 Digest
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:!MBEDTLS_X509_REMOVE_INFO:!MBEDTLS_SHA256_NO_SHA224
 mbedtls_x509_crl_info:"data_files/crl-ec-sha224.pem":"CRL version   \: 2\nissuer name   \: C=NL, O=PolarSSL, CN=Polarssl Test EC CA\nthis update   \: 2013-09-24 16\:31\:08\nnext update   \: 2023-09-22 16\:31\:08\nRevoked certificates\:\nserial number\: 0A revocation date\: 2013-09-24 16\:28\:38\nsigned using  \: ECDSA with SHA224\n"
 
 X509 CRL Information EC, SHA256 Digest
@@ -291,7 +291,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA1_C:!M
 mbedtls_x509_csr_info:"data_files/server9.req.sha1":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA1, MGF1-SHA1, 0x6A)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA224
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C:!MBEDTLS_X509_REMOVE_INFO
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C:!MBEDTLS_X509_REMOVE_INFO:!MBEDTLS_SHA256_NO_SHA224
 mbedtls_x509_csr_info:"data_files/server9.req.sha224":"CSR version   \: 1\nsubject name  \: C=NL, O=PolarSSL, CN=localhost\nsigned using  \: RSASSA-PSS (SHA224, MGF1-SHA224, 0x62)\nRSA key size  \: 1024 bits\n"
 
 X509 CSR Information RSA-PSS with SHA256
@@ -544,7 +544,7 @@ depends_on:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDT
 x509_verify:"data_files/cert_sha1.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCRL_BAD_MD | MBEDTLS_X509_BADCERT_BAD_MD:"":"NULL"
 
 X509 CRT verification #15 (Valid Cert SHA224 Digest)
-depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_SHA256_NO_SHA224
 x509_verify:"data_files/cert_sha224.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"compat":"NULL"
 
 X509 CRT verification #16 (Valid Cert SHA256 Digest)
@@ -560,11 +560,11 @@ depends_on:MBEDTLS_SHA512_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBE
 x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"compat":"NULL"
 
 X509 CRT verification #19 (Valid Cert, denying callback)
-depends_on:MBEDTLS_SHA512_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_SHA512_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:!MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 x509_verify:"data_files/cert_sha512.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_OTHER:"compat":"verify_none"
 
 X509 CRT verification #19 (Not trusted Cert, allowing callback)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C:!MBEDTLS_X509_REMOVE_VERIFY_CALLBACK:!MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 x509_verify:"data_files/server2.crt":"data_files/server1.crt":"data_files/crl_expired.pem":"NULL":0:0:"compat":"verify_all"
 
 X509 CRT verification #21 (domain matching wildcard certificate, case insensitive)
@@ -668,7 +668,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_S
 x509_verify:"data_files/server5-sha1.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"compat":"NULL"
 
 X509 CRT verification #37 (Valid, EC CA, SHA224 Digest)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_TINYCRYPT
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_SHA256_NO_SHA224:!MBEDTLS_USE_TINYCRYPT
 x509_verify:"data_files/server5-sha224.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"compat":"NULL"
 
 X509 CRT verification #38 (Valid, EC CA, SHA384 Digest)
@@ -768,7 +768,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA1_C:MB
 x509_verify:"data_files/server9.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":0:0:"compat":"NULL"
 
 X509 CRT verification #58 (Valid, RSASSA-PSS, SHA-224)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT:MBEDTLS_SHA256_C:MBEDTLS_SHA1_C:!MBEDTLS_SHA256_NO_SHA224
 x509_verify:"data_files/server9-sha224.crt":"data_files/test-ca.crt":"data_files/crl-rsa-pss-sha224.pem":"NULL":0:0:"compat":"NULL"
 
 X509 CRT verification #59 (Valid, RSASSA-PSS, SHA-256)
@@ -920,7 +920,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MB
 x509_verify:"data_files/server1.crt":"data_files/test-ca-alt-good.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"compat":"NULL"
 
 X509 CRT verification #92 (bad name, allowing callback)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_TINYCRYPT
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_TINYCRYPT:!MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"globalhost":0:0:"":"verify_all"
 
 X509 CRT verification #93 (Suite B invalid, EC cert, RSA CA)
@@ -936,7 +936,7 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_S
 x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"suite_b":"NULL"
 
 X509 CRT verification #96 (next profile Invalid Cert SHA224 Digest)
-depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C:!MBEDTLS_SHA256_NO_SHA224
 x509_verify:"data_files/cert_sha224.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD|MBEDTLS_X509_BADCRL_BAD_MD:"next":"NULL"
 
 X509 CRT verification #97 (next profile Valid Cert SHA256 Digest)

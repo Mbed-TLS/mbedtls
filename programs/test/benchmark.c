@@ -693,13 +693,16 @@ int main( int argc, char *argv[] )
     if( todo.hmac_drbg )
     {
         mbedtls_hmac_drbg_context hmac_drbg;
-        const mbedtls_md_info_t *md_info;
+        mbedtls_md_handle_t md_info;
 
         mbedtls_hmac_drbg_init( &hmac_drbg );
 
 #if defined(MBEDTLS_SHA1_C)
-        if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) == NULL )
+        if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) ==
+            MBEDTLS_MD_INVALID_HANDLE )
+        {
             mbedtls_exit(1);
+        }
 
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
@@ -715,8 +718,11 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SHA256_C)
-        if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ) ) == NULL )
+        if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ) ) ==
+            MBEDTLS_MD_INVALID_HANDLE )
+        {
             mbedtls_exit(1);
+        }
 
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);

@@ -129,6 +129,7 @@ static void my_debug( void *ctx, int level,
 }
 #endif /* MBEDTLS_DEBUG_C */
 
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
 static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags )
 {
     char buf[1024];
@@ -148,6 +149,7 @@ static int my_verify( void *data, mbedtls_x509_crt *crt, int depth, uint32_t *fl
 
     return( 0 );
 }
+#endif /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 #if defined(MBEDTLS_SSL_CONF_RNG)
 int rng_wrap( void *ctx, unsigned char *dst, size_t len );
@@ -363,11 +365,21 @@ int main( int argc, char *argv[] )
         {
             mbedtls_printf( "  . Verifying X.509 certificate..." );
 
-            if( ( ret = mbedtls_x509_crt_verify( &crt, &cacert, &cacrl,
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+            ret = mbedtls_x509_crt_verify( &crt, &cacert, &cacrl,
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
                                         NULL,
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
-                                        &flags, my_verify, NULL ) ) != 0 )
+                                        &flags,
+                                        my_verify, NULL );
+#else /* !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+            ret = mbedtls_x509_crt_verify( &crt, &cacert, &cacrl,
+#if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
+                                           NULL,
+#endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
+                                           &flags );
+#endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
+            if( ret != 0 )
             {
                 char vrfy_buf[512];
 
@@ -436,7 +448,10 @@ int main( int argc, char *argv[] )
         {
             mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
             mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
+
+#if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
             mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+#endif
         }
         else
             mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_NONE );

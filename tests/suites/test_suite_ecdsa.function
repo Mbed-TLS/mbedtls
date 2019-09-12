@@ -332,7 +332,7 @@ void ecdsa_det_test_vectors( int id, char * d_str, int md_alg, char * msg,
     mbedtls_mpi d, r, s, r_check, s_check;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     size_t hlen;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_mpi_init( &d ); mbedtls_mpi_init( &r ); mbedtls_mpi_init( &s );
@@ -345,7 +345,7 @@ void ecdsa_det_test_vectors( int id, char * d_str, int md_alg, char * msg,
     TEST_ASSERT( mbedtls_mpi_read_string( &s_check, 16, s_str ) == 0 );
 
     md_info = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md_info != NULL );
+    TEST_ASSERT( md_info != MBEDTLS_MD_INVALID_HANDLE );
     hlen = mbedtls_md_get_size( md_info );
     TEST_ASSERT( mbedtls_md( md_info, (const unsigned char *) msg,
                  strlen( msg ), hash ) == 0 );
@@ -511,7 +511,7 @@ void ecdsa_write_restart( int id, char *d_str, int md_alg,
     unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
     unsigned char sig_check[MBEDTLS_ECDSA_MAX_LEN];
     size_t hlen, slen, slen_check;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
 
     mbedtls_ecdsa_restart_init( &rs_ctx );
     mbedtls_ecdsa_init( &ctx );
@@ -524,7 +524,7 @@ void ecdsa_write_restart( int id, char *d_str, int md_alg,
     slen_check = unhexify( sig_check, sig_str );
 
     md_info = mbedtls_md_info_from_type( md_alg );
-    TEST_ASSERT( md_info != NULL );
+    TEST_ASSERT( md_info != MBEDTLS_MD_INVALID_HANDLE );
 
     hlen = mbedtls_md_get_size( md_info );
     mbedtls_md( md_info, (const unsigned char *) msg, strlen( msg ), hash );

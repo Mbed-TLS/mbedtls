@@ -142,11 +142,19 @@
 /*
  * Various constants
  */
+#if !defined(MBEDTLS_SSL_PROTO_NO_TLS)
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
 #define MBEDTLS_SSL_MINOR_VERSION_0             0   /*!< SSL v3.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_2             2   /*!< TLS v1.1 */
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
+#else /* MBEDTLS_SSL_PROTO_NO_TLS */
+#define MBEDTLS_SSL_MAJOR_VERSION_3             254
+#define MBEDTLS_SSL_MINOR_VERSION_0             257   /*!< unused    */
+#define MBEDTLS_SSL_MINOR_VERSION_1             256   /*!< unused    */
+#define MBEDTLS_SSL_MINOR_VERSION_2             255   /*!< DTLS v1.0 */
+#define MBEDTLS_SSL_MINOR_VERSION_3             253   /*!< DTLS v1.2 */
+#endif /* MBEDTLS_SSL_PROTO_NO_TLS */
 
 #define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
 #define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
@@ -1033,7 +1041,8 @@ struct mbedtls_ssl_config
     void *p_sni;                    /*!< context for SNI callback           */
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
     /** Callback to customize X.509 certificate chain verification          */
     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
     void *p_vrfy;                   /*!< context for X.509 verify calllback */
@@ -1165,18 +1174,18 @@ struct mbedtls_ssl_config
     unsigned int dhm_min_bitlen;    /*!< min. bit length of the DHM prime   */
 #endif
 
-#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
-    unsigned char max_major_ver;    /*!< max. major version used            */
-#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
-#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
-    unsigned char max_minor_ver;    /*!< max. minor version used            */
-#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
 #if !defined(MBEDTLS_SSL_CONF_MIN_MAJOR_VER)
     unsigned char min_major_ver;    /*!< min. major version used            */
 #endif /* !MBEDTLS_SSL_CONF_MIN_MAJOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
+    unsigned char max_major_ver;    /*!< max. major version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MAJOR_VER */
 #if !defined(MBEDTLS_SSL_CONF_MIN_MINOR_VER)
-    unsigned char min_minor_ver;    /*!< min. minor version used            */
+    uint16_t min_minor_ver;    /*!< min. minor version used            */
 #endif /* !MBEDTLS_SSL_CONF_MIN_MINOR_VER */
+#if !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER)
+    uint16_t max_minor_ver;    /*!< max. minor version used            */
+#endif /* !MBEDTLS_SSL_CONF_MAX_MINOR_VER */
 
     /*
      * Flags (bitfields)
@@ -1588,7 +1597,8 @@ void mbedtls_ssl_conf_transport( mbedtls_ssl_config *conf, int transport );
  */
 void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
 /**
  * \brief          Set the verification callback (Optional).
  *
@@ -1603,7 +1613,7 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 #if !defined(MBEDTLS_SSL_CONF_RNG)
 /**

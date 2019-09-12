@@ -1292,6 +1292,16 @@
 //#define MBEDTLS_SHA256_SMALLER
 
 /**
+ * \def MBEDTLS_SHA256_NO_SHA224
+ *
+ * Disable the SHA-224 option of the SHA-256 module. Use this to save some
+ * code size on devices that don't use SHA-224.
+ *
+ * Uncomment to disable SHA-224
+ */
+//#define MBEDTLS_SHA256_NO_SHA224
+
+/**
  * \def MBEDTLS_SSL_ALL_ALERT_MESSAGES
  *
  * Enable sending of alert messages in case of encountered errors as per RFC.
@@ -2027,6 +2037,17 @@
  * don't need hostname verification.
  */
 //#define MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION
+
+/**
+ * \def MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
+ *
+ * Remove support for X.509 certificate verification callbacks.
+ *
+ * Uncomment to save some bytes of code by removing support for X.509
+ * certificate verification callbacks in mbedtls_x509_crt_verify() and
+ * related verification API.
+ */
+//#define MBEDTLS_X509_REMOVE_VERIFY_CALLBACK
 
 /**
  * \def MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3814,6 +3835,20 @@
 //#define MBEDTLS_SSL_CONF_SINGLE_SIG_HASH
 //#define MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_MD_ID
 //#define MBEDTLS_SSL_CONF_SINGLE_SIG_HASH_TLS_ID
+
+/* Set this to MBEDTLS_MD_INFO_{DIGEST} support of a single message
+ * digest at compile-time, at the benefit of code-size.
+ *
+ * On highly constrained systems with large control over the configuration of
+ * the connection endpoints, this option can be used to hardcode support for
+ * a single hash algorithm.
+ *
+ * You need to make sure that the corresponding digest algorithm attributes
+ * are defined through macros in md.c. See the definitions
+ * MBEDTLS_MD_INFO_SHA256_XXX for example.
+ *
+ */
+//#define MBEDTLS_MD_SINGLE_HASH MBEDTLS_MD_INFO_SHA256
 
 /* \} SECTION: Compile-time SSL configuration */
 

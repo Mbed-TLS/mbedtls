@@ -183,8 +183,8 @@ int mbedtls_pkcs11_sign( mbedtls_pkcs11_context *ctx,
 
     if( md_alg != MBEDTLS_MD_NONE )
     {
-        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
-        if( md_info == NULL )
+        mbedtls_md_handle_t md_info = mbedtls_md_info_from_type( md_alg );
+        if( md_info == MBEDTLS_MD_INVALID_HANDLE )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
         if( mbedtls_oid_get_oid_by_md( md_alg, &oid, &oid_size ) != 0 )

@@ -77,7 +77,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		error.o		gcm.o		havege.o	\
 		hkdf.o						\
 		hmac_drbg.o	md.o		md2.o		\
-		md4.o		md5.o		md_wrap.o	\
+		md4.o		md5.o				\
 		memory_buffer_alloc.o		nist_kw.o	\
 		oid.o		padlock.o	pem.o		\
 		pk.o		pk_wrap.o	pkcs12.o	\

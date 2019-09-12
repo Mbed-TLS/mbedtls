@@ -420,11 +420,14 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
     mbedtls_hmac_drbg_context *p_rng = &rng_ctx;
     unsigned char data[2 * MBEDTLS_ECP_MAX_BYTES];
     size_t grp_len = ( grp->nbits + 7 ) / 8;
-    const mbedtls_md_info_t *md_info;
+    mbedtls_md_handle_t md_info;
     mbedtls_mpi h;
 
-    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
+    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) ==
+        MBEDTLS_MD_INVALID_HANDLE )
+    {
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
 
     mbedtls_mpi_init( &h );
     mbedtls_hmac_drbg_init( &rng_ctx );

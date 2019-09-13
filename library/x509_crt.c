@@ -1685,12 +1685,6 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
         return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
     }
 
-    if( p + len >= end )
-    {
-        mbedtls_platform_zeroize( other_name, sizeof( *other_name ) );
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-    }
     p += len;
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC ) ) != 0 )
@@ -1707,12 +1701,6 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
     other_name->value.hardware_module_name.oid.p = p;
     other_name->value.hardware_module_name.oid.len = len;
 
-    if( p + len >= end )
-    {
-        mbedtls_platform_zeroize( other_name, sizeof( *other_name ) );
-        return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
-    }
     p += len;
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
                                       MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
@@ -1724,8 +1712,6 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
     p += len;
     if( p != end )
     {
-        mbedtls_platform_zeroize( other_name,
-                                  sizeof( *other_name ) );
         return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
     }

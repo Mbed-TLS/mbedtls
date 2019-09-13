@@ -3071,23 +3071,29 @@ static psa_key_derivation_operation_t psa_key_derivation_operation_init(void);
  * cryptographic material.
  *
  * To derive a key:
- * - Start with an initialized object of type #psa_key_derivation_operation_t.
- * - Call psa_key_derivation_setup() to select the algorithm.
- * - Provide the inputs for the key derivation by calling
- *   psa_key_derivation_input_bytes() or psa_key_derivation_input_key()
- *   as appropriate. Which inputs are needed, in what order, and whether
- *   they may be keys and if so of what type depends on the algorithm.
- * - Optionally set the operation's maximum capacity with
- *   psa_key_derivation_set_capacity(). You may do this before, in the middle
- *   of or after providing inputs. For some algorithms, this step is mandatory
- *   because the output depends on the maximum capacity.
- * - To derive a key, call psa_key_derivation_output_key().
- *   To derive a byte string for a different purpose, call
- * - psa_key_derivation_output_bytes().
- *   Successive calls to these functions use successive output bytes
- *   calculated by the key derivation algorithm.
- * - Clean up the key derivation operation object with
- *   psa_key_derivation_abort().
+ * -# Start with an initialized object of type #psa_key_derivation_operation_t.
+ * -# Call psa_key_derivation_setup() to select the algorithm.
+ * -# Provide the inputs for the key derivation by calling
+ *    psa_key_derivation_input_bytes() or psa_key_derivation_input_key()
+ *    as appropriate. Which inputs are needed, in what order, and whether
+ *    they may be keys and if so of what type depends on the algorithm.
+ * -# Optionally set the operation's maximum capacity with
+ *    psa_key_derivation_set_capacity(). You may do this before, in the middle
+ *    of or after providing inputs. For some algorithms, this step is mandatory
+ *    because the output depends on the maximum capacity.
+ * -# To derive a key, call psa_key_derivation_output_key().
+ *    To derive a byte string for a different purpose, call
+ *    psa_key_derivation_output_bytes().
+ *    Successive calls to these functions use successive output bytes
+ *    calculated by the key derivation algorithm.
+ * -# Clean up the key derivation operation object with
+ *    psa_key_derivation_abort().
+ *
+ * If this function returns an error, the key derivation operation object is
+ * not changed.
+ *
+ * If an error occurs at any step after a call to psa_key_derivation_setup(),
+ * the operation will need to be reset by a call to psa_key_derivation_abort().
  *
  * \param[in,out] operation       The key derivation operation object
  *                                to set up. It must
@@ -3108,7 +3114,7 @@ static psa_key_derivation_operation_t psa_key_derivation_operation_init(void);
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is either not initialized or has already been setup.
+ *         The operation state is not valid (it must be inactive).
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -3130,7 +3136,7 @@ psa_status_t psa_key_derivation_setup(
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid.
+ *         The operation state is not valid (it must be active).
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
@@ -3158,7 +3164,7 @@ psa_status_t psa_key_derivation_get_capacity(
  *         In this case, the operation object remains valid and its capacity
  *         remains unchanged.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid.
+ *         The operation state is not valid (it must be active).
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
@@ -3190,6 +3196,9 @@ psa_status_t psa_key_derivation_set_capacity(
  * using psa_key_derivation_input_key() instead of this function. Refer to
  * the documentation of individual step types for information.
  *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
+ *
  * \param[in,out] operation       The key derivation operation object to use.
  *                                It must have been set up with
  *                                psa_key_derivation_setup() and must not
@@ -3210,7 +3219,7 @@ psa_status_t psa_key_derivation_set_capacity(
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
- *         The value of \p step is not valid given the state of \p operation.
+ *         The operation state is not valid for this input \p step.
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -3232,6 +3241,9 @@ psa_status_t psa_key_derivation_input_bytes(
  * of the appropriate type using this function, while others must be
  * passed as direct inputs using psa_key_derivation_input_bytes(). Refer to
  * the documentation of individual step types for information.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
  *
  * \param[in,out] operation       The key derivation operation object to use.
  *                                It must have been set up with
@@ -3256,7 +3268,7 @@ psa_status_t psa_key_derivation_input_bytes(
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
- *         The value of \p step is not valid given the state of \p operation.
+ *         The operation state is not valid for this input \p step.
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -3275,6 +3287,9 @@ psa_status_t psa_key_derivation_input_key(
  * The result of this function is passed as input to a key derivation.
  * The output of this key derivation can be extracted by reading from the
  * resulting operation to produce keys and other cryptographic material.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
  *
  * \param[in,out] operation       The key derivation operation object to use.
  *                                It must have been set up with
@@ -3307,8 +3322,7 @@ psa_status_t psa_key_derivation_input_key(
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The value of \p step is not valid for a key agreement given the
- *         state of \p operation.
+ *         The operation state is not valid for this key agreement \p step.
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -3343,7 +3357,10 @@ psa_status_t psa_key_derivation_key_agreement(
  * stream.
  * The operation's capacity decreases by the number of bytes read.
  *
- * \param[in,out] operation The key derivation operation object to read from.
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
+ *
+* \param[in,out] operation The key derivation operation object to read from.
  * \param[out] output       Buffer where the output will be written.
  * \param output_length     Number of bytes to output.
  *
@@ -3356,6 +3373,8 @@ psa_status_t psa_key_derivation_key_agreement(
  *                          subsequent calls to this function will not
  *                          succeed, even with a smaller output buffer.
  * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active and completed
+ *         all required input steps).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -3379,6 +3398,9 @@ psa_status_t psa_key_derivation_output_bytes(
  * function destructively reads as many bytes as required from the
  * stream.
  * The operation's capacity decreases by the number of bytes read.
+ *
+ * If this function returns an error status, the operation enters an error
+ * state and must be aborted by calling psa_key_derivation_abort().
  *
  * How much output is produced and consumed from the operation, and how
  * the key is derived, depends on the key type:
@@ -3477,6 +3499,8 @@ psa_status_t psa_key_derivation_output_bytes(
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The provided key attributes are not valid for the operation.
  * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (it must be active and completed
+ *         all required input steps).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -3496,21 +3520,19 @@ psa_status_t psa_key_derivation_output_key(
 /** Abort a key derivation operation.
  *
  * Once a key derivation operation has been aborted, its capacity is zero.
- * Aborting an operation frees all associated resources except for the
- * \c operation structure itself.
+ * Aborting an operation frees all associated resources except for the \c
+ * operation structure itself. Once aborted, the operation object can be reused
+ * for another operation by calling psa_key_derivation_setup() again.
  *
- * This function may be called at any time as long as the operation
- * object has been initialized to #PSA_KEY_DERIVATION_OPERATION_INIT, to
- * psa_key_derivation_operation_init() or a zero value. In particular,
- * it is valid to call psa_key_derivation_abort() twice, or to call
- * psa_key_derivation_abort() on an operation that has not been set up.
+ * This function may be called at any time after the operation
+ * object has been initialized as described in #psa_key_derivation_operation_t.
  *
- * Once aborted, the key derivation operation object may be called.
+ * In particular, it is valid to call psa_key_derivation_abort() twice, or to
+ * call psa_key_derivation_abort() on an operation that has not been set up.
  *
  * \param[in,out] operation    The operation to abort.
  *
  * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_BAD_STATE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED

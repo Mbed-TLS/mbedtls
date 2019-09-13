@@ -2196,16 +2196,6 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
     const unsigned char *end = p + subject_alt_name->len;
     mbedtls_x509_buf cur_oid;
 
-    if( ( subject_alt_name->tag &
-        ( MBEDTLS_ASN1_TAG_CLASS_MASK | MBEDTLS_ASN1_TAG_VALUE_MASK ) ) !=
-        ( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ) )
-    {
-        /*
-         * The given subject alternative name is not of type "othername".
-         */
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
-    }
-
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
                                       MBEDTLS_ASN1_OID ) ) != 0 )
         return( ret );

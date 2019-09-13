@@ -147,10 +147,12 @@ def run_all(options):
     for preset in presets:
         run_one(options, [preset])
     for symbol in TEST_SYMBOLS:
+        run_one(options, ['get', symbol])
         run_one(options, ['set', symbol])
         run_one(options, ['--force', 'set', symbol])
         run_one(options, ['unset', symbol])
     for symbol in TEST_SYMBOLS_WITH_VALUE:
+        run_one(options, ['get', symbol])
         run_one(options, ['set', symbol, 'value'])
         run_one(options, ['--force', 'set', symbol, 'value'])
         run_one(options, ['unset', symbol])

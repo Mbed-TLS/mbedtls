@@ -637,8 +637,8 @@ static int eap_tls_key_derivation ( void *p_expkey,
                                     size_t maclen,
                                     size_t keylen,
                                     size_t ivlen,
-                                    unsigned char client_random[32],
-                                    unsigned char server_random[32],
+                                    const unsigned char client_random[32],
+                                    const unsigned char server_random[32],
                                     mbedtls_tls_prf_types tls_prf_type )
 {
     eap_tls_keys *keys = (eap_tls_keys *)p_expkey;
@@ -664,8 +664,8 @@ static int nss_keylog_export( void *p_expkey,
                               size_t maclen,
                               size_t keylen,
                               size_t ivlen,
-                              unsigned char client_random[32],
-                              unsigned char server_random[32],
+                              const unsigned char client_random[32],
+                              const unsigned char server_random[32],
                               mbedtls_tls_prf_types tls_prf_type )
 {
     char nss_keylog_line[ 200 ];

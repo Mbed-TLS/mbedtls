@@ -1427,9 +1427,8 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                       master, keyblk,
                                       mac_key_len, keylen,
                                       iv_copy_len,
-                                      /* work around bug in exporter type */
-                                      (unsigned char *) randbytes + 32,
-                                      (unsigned char *) randbytes,
+                                      randbytes + 32,
+                                      randbytes,
                                       tls_prf_get_type( tls_prf ) );
     }
 #endif

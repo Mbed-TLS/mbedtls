@@ -6802,7 +6802,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
     if( peer_crt->raw.len != crt_buf_len )
         return( -1 );
 
-    return( memcmp( peer_crt->raw.p, crt_buf, crt_buf_len ) );
+    return( memcmp( peer_crt->raw.p, crt_buf, peer_crt->raw.len ) );
 }
 #else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,

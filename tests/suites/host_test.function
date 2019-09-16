@@ -387,7 +387,7 @@ int execute_tests( int argc , const char ** argv )
     const char **test_files = NULL;
     int testfile_count = 0;
     int option_verbose = 0;
-    int function_id = 0;
+    size_t function_id = 0;
 
     /* Other Local variables */
     int arg_index = 1;
@@ -564,7 +564,7 @@ int execute_tests( int argc , const char ** argv )
                 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
 
-                function_id = strtol( params[0], NULL, 10 );
+                function_id = strtoul( params[0], NULL, 10 );
                 if ( (ret = check_test( function_id )) == DISPATCH_TEST_SUCCESS )
                 {
                     ret = convert_params( cnt - 1, params + 1, int_params );

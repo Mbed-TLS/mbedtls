@@ -51,6 +51,7 @@ for my $curve (@curves) {
     print "\n******************************************\n";
     print "* Testing without curve: $curve\n";
     print "******************************************\n";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = "-$curve";
 
     system( "scripts/config.pl unset $curve" )
         and abort "Failed to disable $curve\n";

@@ -121,6 +121,9 @@ pre_initialize_variables () {
     FORCE=0
     KEEP_GOING=0
 
+    : ${MBEDTLS_TEST_PLATFORM="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
+    export MBEDTLS_TEST_PLATFORM
+
     # Default commands, can be overridden by the environment
     : ${OPENSSL:="openssl"}
     : ${OPENSSL_LEGACY:="$OPENSSL"}
@@ -1424,6 +1427,7 @@ run_component () {
     # The cleanup function will restore it.
     cp -p "$CONFIG_H" "$CONFIG_BAK"
     current_component="$1"
+    export MBEDTLS_TEST_CONFIGURATION="$current_component"
     "$@"
     cleanup
 }

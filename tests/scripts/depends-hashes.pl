@@ -57,6 +57,7 @@ for my $hash (@hashes) {
     print "\n******************************************\n";
     print "* Testing without hash: $hash\n";
     print "******************************************\n";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = "-$hash";
 
     system( "scripts/config.pl unset $hash" )
         and abort "Failed to disable $hash\n";

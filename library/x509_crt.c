@@ -379,6 +379,29 @@ int mbedtls_x509_crt_get_ext_key_usage( mbedtls_x509_crt const *crt,
     return( ret );
 }
 
+int mbedtls_x509_crt_get_certificate_policies( mbedtls_x509_crt const *crt,
+                                               mbedtls_x509_sequence **policies )
+{
+    int ret;
+    mbedtls_x509_crt_frame const *frame;
+    mbedtls_x509_sequence *seq;
+
+    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+    if( ret != 0 )
+        return( ret );
+
+    seq = mbedtls_calloc( 1, sizeof( mbedtls_x509_sequence ) );
+    if( seq == NULL )
+        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
+    else
+        ret = x509_crt_certificate_policies_from_frame( frame, seq );
+
+    mbedtls_x509_crt_frame_release( crt );
+
+    *policies = seq;
+    return( ret );
+}
+
 int mbedtls_x509_crt_get_subject( mbedtls_x509_crt const *crt,
                                   mbedtls_x509_name **subject )
 {

@@ -368,6 +368,118 @@ static int run_test_snprintf( void )
             test_snprintf( 5, "123",         3 ) != 0 );
 }
 
+/** \brief Write the description of the test case to the outcome CSV file.
+ *
+ * \param outcome_file  The file to write to.
+ *                      If this is \c NULL, this function does nothing.
+ * \param argv0         The test suite name.
+ * \param test_case     The test case description.
+ */
+static void write_outcome_entry( FILE *outcome_file,
+                                 const char *argv0,
+                                 const char *test_case )
+{
+    /* The non-varying fields are initialized on first use. */
+    static const char *platform = NULL;
+    static const char *configuration = NULL;
+    static const char *test_suite = NULL;
+
+    if( outcome_file == NULL )
+        return;
+
+    if( platform == NULL )
+    {
+        platform = getenv( "MBEDTLS_TEST_PLATFORM" );
+        if( platform == NULL )
+            platform = "unknown";
+    }
+    if( configuration == NULL )
+    {
+        configuration = getenv( "MBEDTLS_TEST_CONFIGURATION" );
+        if( configuration == NULL )
+            configuration = "unknown";
+    }
+    if( test_suite == NULL )
+    {
+        test_suite = strrchr( argv0, '/' );
+        if( test_suite != NULL )
+            test_suite += 1; // skip the '/'
+        else
+            test_suite = argv0;
+    }
+
+    /* Write the beginning of the outcome line.
+     * Ignore errors: writing the outcome file is on a best-effort basis. */
+    mbedtls_fprintf( outcome_file, "%s;%s;%s;%s;",
+                     platform, configuration, test_suite, test_case );
+}
+
+/** \brief Write the result of the test case to the outcome CSV file.
+ *
+ * \param outcome_file  The file to write to.
+ *                      If this is \c NULL, this function does nothing.
+ * \param unmet_dep_count       The number of unmet dependencies.
+ * \param unmet_dependencies    The array of unmet dependencies.
+ * \param ret           The test dispatch status (DISPATCH_xxx).
+ * \param test_info     A pointer to the test info structure.
+ */
+static void write_outcome_result( FILE *outcome_file,
+                                  size_t unmet_dep_count,
+                                  char *unmet_dependencies[],
+                                  int ret,
+                                  const test_info_t *info )
+{
+    if( outcome_file == NULL )
+        return;
+
+    /* Write the end of the outcome line.
+     * Ignore errors: writing the outcome file is on a best-effort basis. */
+    switch( ret )
+    {
+        case DISPATCH_TEST_SUCCESS:
+            if( unmet_dep_count > 0 )
+            {
+                size_t i;
+                mbedtls_fprintf( outcome_file, "SKIP" );
+                for( i = 0; i < unmet_dep_count; i++ )
+                {
+                    mbedtls_fprintf( outcome_file, "%c%s",
+                                     i == 0 ? ';' : ':',
+                                     unmet_dependencies[i] );
+                }
+                break;
+            }
+            switch( info->result )
+            {
+                case TEST_RESULT_SUCCESS:
+                    mbedtls_fprintf( outcome_file, "PASS;" );
+                    break;
+                case TEST_RESULT_SKIPPED:
+                    mbedtls_fprintf( outcome_file, "SKIP;Runtime skip" );
+                    break;
+                default:
+                    mbedtls_fprintf( outcome_file, "FAIL;%s:%d:%s",
+                                     info->filename, info->line_no,
+                                     info->test );
+                    break;
+            }
+            break;
+        case DISPATCH_TEST_FN_NOT_FOUND:
+            mbedtls_fprintf( outcome_file, "FAIL;Test function not found" );
+            break;
+        case DISPATCH_INVALID_TEST_DATA:
+            mbedtls_fprintf( outcome_file, "FAIL;Invalid test data" );
+            break;
+        case DISPATCH_UNSUPPORTED_SUITE:
+            mbedtls_fprintf( outcome_file, "SKIP;Unsupported suite" );
+            break;
+        default:
+            mbedtls_fprintf( outcome_file, "FAIL;Unknown cause" );
+            break;
+    }
+    mbedtls_fprintf( outcome_file, "\n" );
+    fflush( outcome_file );
+}
 
 /**
  * \brief       Desktop implementation of execute_tests().
@@ -404,12 +516,23 @@ int execute_tests( int argc , const char ** argv )
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
     int stdout_fd = -1;
 #endif /* __unix__ || __APPLE__ __MACH__ */
+    const char *outcome_file_name = getenv( "MBEDTLS_TEST_OUTCOME_FILE" );
+    FILE *outcome_file = NULL;
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
     unsigned char alloc_buf[1000000];
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof( alloc_buf ) );
 #endif
+
+    if( outcome_file_name != NULL )
+    {
+        outcome_file = fopen( outcome_file_name, "a" );
+        if( outcome_file == NULL )
+        {
+            mbedtls_fprintf( stderr, "Unable to open outcome file. Continuing anyway.\n" );
+        }
+    }
 
     /*
      * The C standard doesn't guarantee that all-bits-0 is the representation
@@ -506,6 +629,7 @@ int execute_tests( int argc , const char ** argv )
                 mbedtls_fprintf( stdout, "." );
             mbedtls_fprintf( stdout, " " );
             fflush( stdout );
+            write_outcome_entry( outcome_file, argv[0], buf );
 
             total_tests++;
 
@@ -585,6 +709,9 @@ int execute_tests( int argc , const char ** argv )
 
             }
 
+            write_outcome_result( outcome_file,
+                                  unmet_dep_count, unmet_dependencies,
+                                  ret, &test_info );
             if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )
             {
                 total_skipped++;
@@ -652,6 +779,9 @@ int execute_tests( int argc , const char ** argv )
         for( i = 0; i < unmet_dep_count; i++ )
             free( unmet_dependencies[i] );
     }
+
+    if( outcome_file != NULL )
+        fclose( outcome_file );
 
     mbedtls_fprintf( stdout, "\n----------------------------------------------------------------------------\n\n");
     if( total_errors == 0 )

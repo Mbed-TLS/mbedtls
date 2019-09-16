@@ -385,15 +385,16 @@ int execute_tests( int argc , const char ** argv )
     const char *default_filename = "DATA_FILE";
     const char *test_filename = NULL;
     const char **test_files = NULL;
-    int testfile_count = 0;
+    size_t testfile_count = 0;
     int option_verbose = 0;
     int function_id = 0;
 
     /* Other Local variables */
     int arg_index = 1;
     const char *next_arg;
-    int testfile_index, ret, i, cnt;
-    int total_errors = 0, total_tests = 0, total_skipped = 0;
+    size_t testfile_index, i, cnt;
+    int ret;
+    unsigned total_errors = 0, total_tests = 0, total_skipped = 0;
     FILE *file;
     char buf[5000];
     char *params[50];
@@ -473,7 +474,7 @@ int execute_tests( int argc , const char ** argv )
           testfile_index < testfile_count;
           testfile_index++ )
     {
-        int unmet_dep_count = 0;
+        size_t unmet_dep_count = 0;
         char *unmet_dependencies[20];
 
         test_filename = test_files[ testfile_index ];
@@ -658,8 +659,8 @@ int execute_tests( int argc , const char ** argv )
     else
         mbedtls_fprintf( stdout, "FAILED" );
 
-    mbedtls_fprintf( stdout, " (%d / %d tests (%d skipped))\n",
-             total_tests - total_errors, total_tests, total_skipped );
+    mbedtls_fprintf( stdout, " (%u / %u tests (%u skipped))\n",
+                     total_tests - total_errors, total_tests, total_skipped );
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)

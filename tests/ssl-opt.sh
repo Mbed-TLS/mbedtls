@@ -25,9 +25,9 @@ set -u
 # where it may output seemingly unlimited length error logs.
 ulimit -f 20971520
 
-if cd $( dirname $0 ); then :; else
-    echo "cd $( dirname $0 ) failed" >&2
-    exit 1
+ORIGINAL_PWD=$PWD
+if ! cd "$(dirname "$0")"; then
+    exit 125
 fi
 
 # default values, can be overridden by the environment
@@ -38,6 +38,17 @@ fi
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 : ${PERL:=perl}
+
+guess_config_name() {
+    if git diff --quiet ../include/mbedtls/config.h 2>/dev/null; then
+        echo "default"
+    else
+        echo "unknown"
+    fi
+}
+: ${MBEDTLS_TEST_OUTCOME_FILE=}
+: ${MBEDTLS_TEST_CONFIGURATION:="$(guess_config_name)"}
+: ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
 
 O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
@@ -97,9 +108,11 @@ print_usage() {
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
-    printf "     --port\tTCP/UDP port (default: randomish 1xxxx)\n"
+    printf "     --outcome-file\tFile where test outcomes are written\n"
+    printf "                \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+    printf "     --port     \tTCP/UDP port (default: randomish 1xxxx)\n"
     printf "     --proxy-port\tTCP/UDP proxy port (default: randomish 2xxxx)\n"
-    printf "     --seed\tInteger seed value to use for this test run\n"
+    printf "     --seed     \tInteger seed value to use for this test run\n"
 }
 
 get_options() {
@@ -145,6 +158,14 @@ get_options() {
         shift
     done
 }
+
+# Make the outcome file path relative to the original directory, not
+# to .../tests
+case "$MBEDTLS_TEST_OUTCOME_FILE" in
+    [!/]*)
+        MBEDTLS_TEST_OUTCOME_FILE="$ORIGINAL_PWD/$MBEDTLS_TEST_OUTCOME_FILE"
+        ;;
+esac
 
 # Skip next test; use this macro to skip tests which are legitimate
 # in theory and expected to be re-introduced at some point, but
@@ -359,9 +380,22 @@ print_name() {
 
 }
 
+# record_outcome <outcome> [<failure-reason>]
+# The test name must be in $NAME.
+record_outcome() {
+    echo "$1"
+    if [ -n "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
+        printf '%s;%s;%s;%s;%s;%s\n' \
+               "$MBEDTLS_TEST_PLATFORM" "$MBEDTLS_TEST_CONFIGURATION" \
+               "ssl-opt" "$NAME" \
+               "$1" "${2-}" \
+               >>"$MBEDTLS_TEST_OUTCOME_FILE"
+    fi
+}
+
 # fail <message>
 fail() {
-    echo "FAIL"
+    record_outcome "FAIL" "$1"
     echo "  ! $1"
 
     mv $SRV_OUT o-srv-${TESTS}.log
@@ -539,6 +573,7 @@ run_test() {
     if echo "$NAME" | grep "$FILTER" | grep -v "$EXCLUDE" >/dev/null; then :
     else
         SKIP_NEXT="NO"
+        # There was no request to run the test, so don't record its outcome.
         return
     fi
 
@@ -586,7 +621,7 @@ run_test() {
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
         SKIP_NEXT="NO"
-        echo "SKIP"
+        record_outcome "SKIP"
         SKIPS=$(( $SKIPS + 1 ))
         return
     fi
@@ -772,7 +807,7 @@ run_test() {
     fi
 
     # if we're here, everything is ok
-    echo "PASS"
+    record_outcome "PASS"
     if [ "$PRESERVE_LOGS" -gt 0 ]; then
         mv $SRV_OUT o-srv-${TESTS}.log
         mv $CLI_OUT o-cli-${TESTS}.log

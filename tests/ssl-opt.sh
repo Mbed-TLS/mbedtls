@@ -7027,7 +7027,7 @@ run_test    "SSL async private: sign, error in resume then fall back to transpar
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: client-initiated; sign" \
+run_test    "SSL async private: renegotiation: client-initiated, sign" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1" \
@@ -7038,7 +7038,7 @@ run_test    "SSL async private: renegotiation: client-initiated; sign" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: server-initiated; sign" \
+run_test    "SSL async private: renegotiation: server-initiated, sign" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1 renegotiate=1" \
@@ -7049,7 +7049,7 @@ run_test    "SSL async private: renegotiation: server-initiated; sign" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: client-initiated; decrypt" \
+run_test    "SSL async private: renegotiation: client-initiated, decrypt" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1" \
@@ -7061,7 +7061,7 @@ run_test    "SSL async private: renegotiation: client-initiated; decrypt" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: server-initiated; decrypt" \
+run_test    "SSL async private: renegotiation: server-initiated, decrypt" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1 renegotiate=1" \

@@ -611,11 +611,11 @@ X509 CRT verification #26 (domain not matching multi certificate)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"www.example.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
-X509 CRT verification #27 (domain not matching multi certificate)
+X509 CRT verification #27.1 (domain not matching multi certificate: suffix)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"xample.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
-X509 CRT verification #27 (domain not matching multi certificate)
+X509 CRT verification #27.2 (domain not matching multi certificate: head junk)
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_SHA1_C:MBEDTLS_SHA256_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_verify:"data_files/cert_example_multi.crt":"data_files/test-ca.crt":"data_files/crl.pem":"bexample.net":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_CN_MISMATCH:"compat":"NULL"
 
@@ -1287,10 +1287,6 @@ x509parse_crt:"307a3065a0030201028204deadbeef300d06092a864886f70d01010b0500300c3
 X509 CRT ASN1 (TBS, inv Validity, notBefore inv length encoding)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 x509parse_crt:"307b3066a0030201028204deadbeef300d06092a864886f70d01010b0500300c310a300806000c04546573743002178f300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d01010b0500030200ff":"":MBEDTLS_ERR_X509_INVALID_DATE + MBEDTLS_ERR_ASN1_INVALID_LENGTH
-
-X509 CRT ASN1 (TBS, inv Validity, notBefore length out of bounds)
-depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
-x509parse_crt:"307b3066a0030201028204deadbeef300d06092a864886f70d01010b0500300c310a300806000c045465737430021701300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffff300d06092a864886f70d01010b0500030200ff":"":MBEDTLS_ERR_X509_INVALID_DATE + MBEDTLS_ERR_ASN1_OUT_OF_DATA
 
 X509 CRT ASN1 (TBS, inv Validity, notBefore length out of bounds)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C

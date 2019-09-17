@@ -10,7 +10,7 @@
 
 
 #ifdef MBEDTLS_SSL_SRV_C
-const char *pers = "fuzz_server";
+const char *pers = "ssl_server2";
 static int initialized = 0;
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
 static mbedtls_x509_crt srvcert;
@@ -80,6 +80,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     mbedtls_ssl_ticket_init( &ticket_ctx );
 #endif
 
+    srand( 1 );
     if( mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy, &entropy,
                               (const unsigned char *) pers, strlen( pers ) ) != 0 )
         goto exit;
@@ -91,8 +92,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
                                     MBEDTLS_SSL_PRESET_DEFAULT ) != 0 )
         goto exit;
 
-    srand(1);
-    mbedtls_ssl_conf_rng( &conf, dummy_random, &ctr_drbg );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_ssl_conf_ca_chain( &conf, srvcert.next, NULL );
@@ -107,10 +107,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     }
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( options & 0x4 )
+    // on by default
+    if( (options & 0x4) == 0 )
     {
         if( mbedtls_ssl_ticket_setup( &ticket_ctx,
-                                     dummy_random, &ctr_drbg,
+                                     mbedtls_ctr_drbg_random, &ctr_drbg,
                                      MBEDTLS_CIPHER_AES_256_GCM,
                                      86400 ) != 0 )
             goto exit;

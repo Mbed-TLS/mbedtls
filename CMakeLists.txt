@@ -85,7 +85,7 @@ option: \n\
 endif()
 
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
+    CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg UbSan UbSanDbg Check CheckFull"
     FORCE)
 
 # Create a symbolic link from ${base_name} in the binary directory
@@ -157,6 +157,8 @@ if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS_ASANDBG     "-Werror -fsanitize=address -fno-common -fsanitize=undefined -fno-sanitize-recover=all -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls ")
     set(CMAKE_C_FLAGS_MEMSAN      "-Werror -fsanitize=memory -O3")
     set(CMAKE_C_FLAGS_MEMSANDBG   "-Werror -fsanitize=memory -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2")
+    set(CMAKE_C_FLAGS_UBSAN       "-Werror -fsanitize=undefined -O3")
+    set(CMAKE_C_FLAGS_UBSANDBG    "-Werror -fsanitize=undefined -O1 -g3 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2")
     set(CMAKE_C_FLAGS_CHECK       "-Werror -Os")
 endif(CMAKE_COMPILER_IS_CLANG)
 

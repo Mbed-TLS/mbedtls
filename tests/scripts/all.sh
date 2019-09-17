@@ -647,6 +647,7 @@ component_test_default_out_of_box () {
 
 component_test_default_cmake_gcc_asan () {
     msg "build: cmake, gcc, ASan" # ~ 1 min 50s
+    scripts/config.pl set MBEDTLS_PLATFORM_TIME_ALT # for reproducible results with fuzzers
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -655,6 +656,9 @@ component_test_default_cmake_gcc_asan () {
 
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
     if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: fuzz-corpus.sh (ASan build)" # ~ 1 min
+    if_build_succeeded tests/fuzz-corpus.sh
 
     msg "test: compat.sh (ASan build)" # ~ 6 min
     if_build_succeeded tests/compat.sh
@@ -1281,6 +1285,7 @@ support_build_mingw() {
 component_test_memsan () {
     msg "build: MSan (clang)" # ~ 1 min 20s
     scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    scripts/config.pl set MBEDTLS_PLATFORM_TIME_ALT # for reproducible results with fuzzers
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
 
@@ -1290,12 +1295,31 @@ component_test_memsan () {
     msg "test: ssl-opt.sh (MSan)" # ~ 1 min
     if_build_succeeded tests/ssl-opt.sh
 
+    msg "test: fuzz-corpus.sh (MSan)" # ~ 1 min
+    if_build_succeeded tests/fuzz-corpus.sh
+
     # Optional part(s)
 
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: compat.sh (MSan)" # ~ 6 min 20s
         if_build_succeeded tests/compat.sh
     fi
+}
+
+component_test_ubsan () {
+    msg "build: UbSan (clang)" # ~ 1 min 20s
+    scripts/config.pl set MBEDTLS_PLATFORM_TIME_ALT # for reproducible results with fuzzers
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=UbSan .
+    make
+
+    msg "test: main suites (UbSan)" # ~ 10s
+    make test
+
+    msg "test: ssl-opt.sh (UbSan)" # ~ 1 min
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: fuzz-corpus.sh (UbSan)" # ~ 1 min
+    if_build_succeeded tests/fuzz-corpus.sh
 }
 
 component_test_valgrind () {

@@ -24,7 +24,7 @@ const unsigned char psk[] = {
 const char psk_id[] = "Client_identity";
 #endif
 
-const char *pers = "fuzz_client";
+const char *pers = "ssl_client2";
 #endif //MBEDTLS_SSL_CLI_C
 
 
@@ -70,6 +70,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );
 
+    srand( 1 );
     if( mbedtls_ctr_drbg_seed( &ctr_drbg, dummy_entropy, &entropy,
                               (const unsigned char *) pers, strlen( pers ) ) != 0 )
         goto exit;
@@ -122,8 +123,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     //There may be other options to add :
     // mbedtls_ssl_conf_cert_profile, mbedtls_ssl_conf_sig_hashes
 
-    srand(1);
-    mbedtls_ssl_conf_rng( &conf, dummy_random, &ctr_drbg );
+    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
 
     if( mbedtls_ssl_setup( &ssl, &conf ) != 0 )
         goto exit;

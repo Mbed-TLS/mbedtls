@@ -903,22 +903,6 @@ static int asn1_build_sequence_cb( void *ctx,
 }
 
 /*
- * ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
- *
- * KeyPurposeId ::= OBJECT IDENTIFIER
- */
-static int x509_get_ext_key_usage( unsigned char **p,
-                               const unsigned char *end,
-                               mbedtls_x509_sequence *ext_key_usage)
-{
-    return( mbedtls_asn1_traverse_sequence_of( p, end,
-                                               0xFF, MBEDTLS_ASN1_OID,
-                                               0, 0,
-                                               asn1_build_sequence_cb,
-                                               (void*) &ext_key_usage ) );
-}
-
-/*
  * SubjectAltName ::= GeneralNames
  *
  * GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName
@@ -1661,7 +1645,11 @@ static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame const *fram
     if( ( frame->ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE ) == 0 )
         return( 0 );
 
-    ret = x509_get_ext_key_usage( &p, end, ext_key_usage );
+    ret = mbedtls_asn1_traverse_sequence_of( &p, end,
+                                             0xFF, MBEDTLS_ASN1_OID,
+                                             0, 0,
+                                             asn1_build_sequence_cb,
+                                             (void*) &ext_key_usage );
     if( ret != 0 )
     {
         ret += MBEDTLS_ERR_X509_INVALID_EXTENSIONS;

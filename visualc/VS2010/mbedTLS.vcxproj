@@ -222,7 +222,6 @@
     <ClCompile Include="..\..\crypto\library\md2.c" />
     <ClCompile Include="..\..\crypto\library\md4.c" />
     <ClCompile Include="..\..\crypto\library\md5.c" />
-    <ClCompile Include="..\..\crypto\library\md_wrap.c" />
     <ClCompile Include="..\..\crypto\library\memory_buffer_alloc.c" />
     <ClCompile Include="..\..\crypto\library\nist_kw.c" />
     <ClCompile Include="..\..\crypto\library\oid.c" />

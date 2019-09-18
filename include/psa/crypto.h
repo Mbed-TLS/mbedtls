@@ -1593,8 +1593,8 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
 /** Encrypt a message using a symmetric cipher.
  *
  * This function encrypts a message with a random IV (initialization
- * vector). Use the multipart #psa_cipher_operation_t object to provide
- * other foms of IV.
+ * vector). Use the multipart operation interface with a
+ * #psa_cipher_operation_t object to provide other forms of IV.
  *
  * \param handle                Handle to the key to use for the operation.
  *                              It must remain valid until the operation
@@ -2474,8 +2474,9 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, but before
- *         psa_aead_update_ad() or psa_aead_update() are called).
+ *         The operation state is not valid (it must be active, and
+ *         psa_aead_update_ad() and psa_aead_update() must not have been
+ *         called yet).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         At least one of the lengths is not acceptable for the chosen
  *         algorithm.
@@ -2521,8 +2522,9 @@ psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active and ready to
- *         receive additional data).
+ *         The operation state is not valid (it must be active, have a nonce
+ *         set, have lengths set if required by the algorithm, and
+ *         psa_aead_update() must not have been called yet).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The total input length overflows the additional data length that
  *         was previously specified with psa_aead_set_lengths().
@@ -2590,8 +2592,8 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active and ready to
- *         recieve message data).
+ *         The operation state is not valid (it must be active, have a nonce
+ *         set, and have lengths set if required by the algorithm).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
  *         You can determine a sufficient buffer size by calling
@@ -2663,8 +2665,8 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be an active aead encrypt
- *         operation, with all data provided).
+ *         The operation state is not valid (it must be an active encryption
+ *         operation with a nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p ciphertext or \p tag buffer is too small.
  *         You can determine a sufficient buffer size for \p ciphertext by
@@ -2730,8 +2732,8 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be an active aead decrypt
- *         operation, with all data provided).
+ *         The operation state is not valid (it must be an active decryption
+ *         operation with a nonce set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p plaintext buffer is too small.
  *         You can determine a sufficient buffer size for \p plaintext by

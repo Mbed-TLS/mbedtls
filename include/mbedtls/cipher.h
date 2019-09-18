@@ -225,6 +225,14 @@ enum {
 /** Maximum block size of any cipher, in Bytes. */
 #define MBEDTLS_MAX_BLOCK_LENGTH   16
 
+#if defined(MBEDTLS_CIPHER_MODE_CBC) ||         \
+    defined(MBEDTLS_CIPHER_MODE_CFB) ||         \
+    defined(MBEDTLS_CIPHER_MODE_CTR) ||         \
+    defined(MBEDTLS_CIPHER_MODE_OFB) ||         \
+    defined(MBEDTLS_CIPHER_MODE_XTS)
+#define MBEDTLS_CIPHER__NEED_ACCUMULATOR
+#endif
+
 /**
  * Base cipher information (opaque struct).
  */
@@ -302,8 +310,10 @@ typedef struct mbedtls_cipher_context_t
     int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
 #endif
 
+#if defined(MBEDTLS_CIPHER__NEED_ACCUMULATOR)
     /** Number of Bytes that have not been processed yet. */
     size_t unprocessed_len;
+#endif
 
     /** IV size in Bytes, for ciphers with variable-length IVs. */
     size_t iv_size;
@@ -316,8 +326,10 @@ typedef struct mbedtls_cipher_context_t
     mbedtls_cmac_context_t *cmac_ctx;
 #endif
 
+#if defined(MBEDTLS_CIPHER__NEED_ACCUMULATOR)
     /** Buffer for input that has not been processed yet. */
     unsigned char unprocessed_data[MBEDTLS_MAX_BLOCK_LENGTH];
+#endif
 
     /** Current IV or NONCE_COUNTER for CTR-mode, data unit (or sector) number
      * for XTS-mode. */

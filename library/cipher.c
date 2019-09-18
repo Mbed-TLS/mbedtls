@@ -299,7 +299,9 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx )
     if( ctx->cipher_info == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_CIPHER__NEED_ACCUMULATOR)
     ctx->unprocessed_len = 0;
+#endif
 
     return( 0 );
 }
@@ -401,10 +403,15 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
         return( MBEDTLS_ERR_CIPHER_INVALID_CONTEXT );
     }
 
-    if( input == output &&
-       ( ctx->unprocessed_len != 0 || ilen % block_size ) )
+    if( input == output )
     {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        if( ( ilen % block_size ) != 0 )
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_CIPHER__NEED_ACCUMULATOR)
+        if( ctx->unprocessed_len != 0 )
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+#endif
     }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -787,12 +794,7 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
     }
 
     if( MBEDTLS_MODE_ECB == ctx->cipher_info->mode )
-    {
-        if( ctx->unprocessed_len != 0 )
-            return( MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED );
-
         return( 0 );
-    }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( MBEDTLS_MODE_CBC == ctx->cipher_info->mode )

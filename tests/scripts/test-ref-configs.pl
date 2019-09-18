@@ -65,7 +65,7 @@ while( my ($conf, $data) = each %configs ) {
     print "\n******************************************\n";
     print "* Testing configuration: $conf\n";
     print "******************************************\n";
-    $ENV{MBEDTLS_TEST_CONFIGURATION} = "$conf";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = $conf;
 
     system( "cp configs/$conf $config_h" )
         and abort "Failed to activate $conf\n";

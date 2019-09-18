@@ -45,7 +45,7 @@ for my $kex (@kexes) {
     print "\n******************************************\n";
     print "* Testing with key exchange: $kex\n";
     print "******************************************\n";
-    $ENV{MBEDTLS_TEST_CONFIGURATION} = "-$kex";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = $kex;
 
     # full config with all key exchanges disabled except one
     system( "scripts/config.pl full" ) and abort "Failed config full\n";

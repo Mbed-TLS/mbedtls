@@ -3359,10 +3359,11 @@ psa_status_t psa_key_derivation_key_agreement(
  * stream.
  * The operation's capacity decreases by the number of bytes read.
  *
- * If this function returns an error status, the operation enters an error
+ * If this function returns an error status other than
+ * #PSA_ERROR_INSUFFICIENT_DATA, the operation enters an error
  * state and must be aborted by calling psa_key_derivation_abort().
  *
-* \param[in,out] operation The key derivation operation object to read from.
+ * \param[in,out] operation The key derivation operation object to read from.
  * \param[out] output       Buffer where the output will be written.
  * \param output_length     Number of bytes to output.
  *
@@ -3401,7 +3402,8 @@ psa_status_t psa_key_derivation_output_bytes(
  * stream.
  * The operation's capacity decreases by the number of bytes read.
  *
- * If this function returns an error status, the operation enters an error
+ * If this function returns an error status other than
+ * #PSA_ERROR_INSUFFICIENT_DATA, the operation enters an error
  * state and must be aborted by calling psa_key_derivation_abort().
  *
  * How much output is produced and consumed from the operation, and how
@@ -3521,7 +3523,6 @@ psa_status_t psa_key_derivation_output_key(
 
 /** Abort a key derivation operation.
  *
- * Once a key derivation operation has been aborted, its capacity is zero.
  * Aborting an operation frees all associated resources except for the \c
  * operation structure itself. Once aborted, the operation object can be reused
  * for another operation by calling psa_key_derivation_setup() again.

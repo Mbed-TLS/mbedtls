@@ -2695,12 +2695,24 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  *
  * The operation must have been set up with psa_aead_decrypt_setup().
  *
- * This function finishes the authentication of the additional data
- * formed by concatenating the inputs passed to preceding calls to
- * psa_aead_update_ad() with the ciphertext formed by concatenating the
- * inputs passed to preceding calls to psa_aead_update().
+ * This function finishes the authenticated decryption of the message
+ * components:
+ *
+ * -  The additional data consisting of the concatenation of the inputs
+ *    passed to preceding calls to psa_aead_update_ad().
+ * -  The ciphertext consisting of the concatenation of the inputs passed to
+ *    preceding calls to psa_aead_update().
+ * -  The tag passed to this function call.
+ *
+ * If the authentication tag is correct, this function outputs any remaining
+ * plaintext and reports success. If the authentication tag is not correct,
+ * this function returns #PSA_ERROR_INVALID_SIGNATURE.
  *
  * When this function returns, the operation becomes inactive.
+ *
+ * \note Implementations shall make the best effort to ensure that the
+ * comparison between the actual tag and the expected tag is performed
+ * in constant time.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[out] plaintext        Buffer where the last part of the plaintext
@@ -2720,6 +2732,9 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The calculations were successful, but the authentication tag is
+ *         not correct.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (not set up, nonce not set,
  *         encryption, or already completed).

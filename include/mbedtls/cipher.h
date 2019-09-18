@@ -233,6 +233,16 @@ enum {
 #define MBEDTLS_CIPHER__NEED_ACCUMULATOR
 #endif
 
+#if defined(MBEDTLS_CIPHER_MODE_CBC) ||         \
+    defined(MBEDTLS_CIPHER_MODE_CFB) ||         \
+    defined(MBEDTLS_CIPHER_MODE_CTR) ||         \
+    defined(MBEDTLS_CIPHER_MODE_OFB) ||         \
+    defined(MBEDTLS_CIPHER_MODE_XTS) ||         \
+    defined(MBEDTLS_GCM_C)           ||         \
+    defined(MBEDTLS_CHACHAPOLY_C)
+#define MBEDTLS_CIPHER__NEED_STORED_IV
+#endif
+
 /**
  * Base cipher information (opaque struct).
  */
@@ -315,8 +325,10 @@ typedef struct mbedtls_cipher_context_t
     size_t unprocessed_len;
 #endif
 
+#if defined(MBEDTLS_CIPHER__NEED_STORED_IV)
     /** IV size in Bytes, for ciphers with variable-length IVs. */
     size_t iv_size;
+#endif
 
     /** The cipher-specific context. */
     void *cipher_ctx;
@@ -326,14 +338,16 @@ typedef struct mbedtls_cipher_context_t
     mbedtls_cmac_context_t *cmac_ctx;
 #endif
 
-#if defined(MBEDTLS_CIPHER__NEED_ACCUMULATOR)
+#if defined(MBEDTLS_CIPHER__NEED_STORED_IV)
     /** Buffer for input that has not been processed yet. */
     unsigned char unprocessed_data[MBEDTLS_MAX_BLOCK_LENGTH];
 #endif
 
+#if defined(MBEDTLS_CIPHER__NEED_STORED_IV)
     /** Current IV or NONCE_COUNTER for CTR-mode, data unit (or sector) number
      * for XTS-mode. */
     unsigned char iv[MBEDTLS_MAX_IV_LENGTH];
+#endif
 } mbedtls_cipher_context_t;
 
 /**
@@ -465,6 +479,7 @@ static inline mbedtls_cipher_mode_t mbedtls_cipher_get_cipher_mode(
     return ctx->cipher_info->mode;
 }
 
+#if defined(MBEDTLS_CIPHER__NEED_STORED_IV)
 /**
  * \brief       This function returns the size of the IV or nonce
  *              of the cipher, in Bytes.
@@ -487,6 +502,7 @@ static inline int mbedtls_cipher_get_iv_size(
 
     return (int) ctx->cipher_info->iv_size;
 }
+#endif /* MBEDTLS_CIPHER__NEED_STORED_IV */
 
 /**
  * \brief               This function returns the type of the given cipher.

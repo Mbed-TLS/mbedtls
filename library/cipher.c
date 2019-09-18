@@ -284,11 +284,16 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
     }
 #endif
 
+#if defined(MBEDTLS_CIPHER__NEED_STORED_IV)
     if ( actual_iv_size != 0 )
     {
         memcpy( ctx->iv, iv, actual_iv_size );
         ctx->iv_size = actual_iv_size;
     }
+#else
+    ((void) iv);
+    ((void) iv_len);
+#endif /* MBEDTLS_CIPHER__NEED_STORED_IV */
 
     return( 0 );
 }

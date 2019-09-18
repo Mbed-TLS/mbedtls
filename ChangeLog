@@ -1,5 +1,16 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.19.1 branch released 2019-09-16
+
+Features
+   * Add nss_keylog to ssl_client2 and ssl_server2, enabling easier analysis of
+     TLS sessions with tools like Wireshark.
+
+API Changes
+   * Make client_random and server_random const in
+     mbedtls_ssl_export_keys_ext_t, so that the key exporter is discouraged
+     from modifying the client/server hello.
+
 = mbed TLS 2.19.0 branch released 2019-09-06
 
 Security

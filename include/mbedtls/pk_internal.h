@@ -33,8 +33,67 @@
 
 #include "pk.h"
 
+/*
+ * PK information macro definitions
+ */
+
+/*
+ * Each PK type that can be used with MBEDTLS_PK_SINGLE_TYPE needs to have
+ * the following MBEDTLS_PK_INFO_{FIELD} definitions, plus a dummy one for the
+ * base name. For now, only ECKEY with MBEDTLS_USE_TINYCRYPT is defined.
+ */
+
+#if defined(MBEDTLS_USE_TINYCRYPT)
 /* Dummy definition to keep check-names.sh happy - don't uncomment */
 //#define MBEDTLS_PK_INFO_ECKEY
+
+#define MBEDTLS_PK_INFO_ECKEY_TYPE              MBEDTLS_PK_ECKEY
+#define MBEDTLS_PK_INFO_ECKEY_NAME              "EC"
+#define MBEDTLS_PK_INFO_ECKEY_GET_BITLEN        uecc_eckey_get_bitlen
+#define MBEDTLS_PK_INFO_ECKEY_CAN_DO            uecc_eckey_can_do
+#define MBEDTLS_PK_INFO_ECKEY_VERIFY_FUNC       uecc_eckey_verify_wrap
+#define MBEDTLS_PK_INFO_ECKEY_SIGN_FUNC         uecc_eckey_sign_wrap
+#define MBEDTLS_PK_INFO_ECKEY_DECRYPT_FUNC      NULL
+#define MBEDTLS_PK_INFO_ECKEY_ENCRYPT_FUNC      NULL
+#define MBEDTLS_PK_INFO_ECKEY_CHECK_PAIR_FUNC   uecc_eckey_check_pair
+#define MBEDTLS_PK_INFO_ECKEY_CTX_ALLOC_FUNC    uecc_eckey_alloc_wrap
+#define MBEDTLS_PK_INFO_ECKEY_CTX_FREE_FUNC     uecc_eckey_free_wrap
+#define MBEDTLS_PK_INFO_ECKEY_DEBUG_FUNC        NULL
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
+/*
+ * Helper macros to extract fields from PK types
+ */
+#define MBEDTLS_PK_INFO_TYPE_T( PK )            PK ## _TYPE
+#define MBEDTLS_PK_INFO_NAME_T( PK )            PK ## _NAME
+#define MBEDTLS_PK_INFO_GET_BITLEN_T( PK )      PK ## _GET_BITLEN
+#define MBEDTLS_PK_INFO_CAN_DO_T( PK )          PK ## _CAN_DO
+#define MBEDTLS_PK_INFO_VERIFY_FUNC_T( PK )     PK ## _VERIFY_FUNC
+#define MBEDTLS_PK_INFO_SIGN_FUNC_T( PK )       PK ## _SIGN_FUNC
+#define MBEDTLS_PK_INFO_DECRYPT_FUNC_T( PK )    PK ## _DECRYPT_FUNC
+#define MBEDTLS_PK_INFO_ENCRYPT_FUNC_T( PK )    PK ## _ENCRYPT_FUNC
+#define MBEDTLS_PK_INFO_CHECK_PAIR_FUNC_T( PK ) PK ## _CHECK_PAIR_FUNC
+#define MBEDTLS_PK_INFO_CTX_ALLOC_FUNC_T( PK )  PK ## _CTX_ALLOC_FUNC
+#define MBEDTLS_PK_INFO_CTX_FREE_FUNC_T( PK )   PK ## _CTX_FREE_FUNC
+#define MBEDTLS_PK_INFO_DEBUG_FUNC_T( PK )      PK ## _DEBUG_FUNC
+
+/* Wrappers around MBEDTLS_PK_INFO_{FIELD}_T() which makes sure that
+ * the argument is macro-expanded before concatenated with the
+ * field name. This allows to call these macros as
+ *    MBEDTLS_PK_INFO_{FIELD}( MBEDTLS_PK_SINGLE_TYPE ).
+ * where MBEDTLS_PK_SINGLE_TYPE expands to MBEDTLS_PK_INFO_{TYPE}. */
+#define MBEDTLS_PK_INFO_TYPE( PK )            MBEDTLS_PK_INFO_TYPE_T( PK )
+#define MBEDTLS_PK_INFO_NAME( PK )            MBEDTLS_PK_INFO_NAME_T( PK )
+#define MBEDTLS_PK_INFO_GET_BITLEN( PK )      MBEDTLS_PK_INFO_GET_BITLEN_T( PK )
+#define MBEDTLS_PK_INFO_CAN_DO( PK )          MBEDTLS_PK_INFO_CAN_DO_T( PK )
+#define MBEDTLS_PK_INFO_VERIFY_FUNC( PK )     MBEDTLS_PK_INFO_VERIFY_FUNC_T( PK )
+#define MBEDTLS_PK_INFO_SIGN_FUNC( PK )       MBEDTLS_PK_INFO_SIGN_FUNC_T( PK )
+#define MBEDTLS_PK_INFO_DECRYPT_FUNC( PK )    MBEDTLS_PK_INFO_DECRYPT_FUNC_T( PK )
+#define MBEDTLS_PK_INFO_ENCRYPT_FUNC( PK )    MBEDTLS_PK_INFO_ENCRYPT_FUNC_T( PK )
+#define MBEDTLS_PK_INFO_CHECK_PAIR_FUNC( PK ) MBEDTLS_PK_INFO_CHECK_PAIR_FUNC_T( PK )
+#define MBEDTLS_PK_INFO_CTX_ALLOC_FUNC( PK )  MBEDTLS_PK_INFO_CTX_ALLOC_FUNC_T( PK )
+#define MBEDTLS_PK_INFO_CTX_FREE_FUNC( PK )   MBEDTLS_PK_INFO_CTX_FREE_FUNC_T( PK )
+#define MBEDTLS_PK_INFO_DEBUG_FUNC( PK )      MBEDTLS_PK_INFO_DEBUG_FUNC_T( PK )
 
 struct mbedtls_pk_info_t
 {
@@ -111,6 +170,49 @@ struct mbedtls_pk_info_t
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
 
 };
+
+/**
+ * \brief   This macro builds an instance of ::mbedtls_pk_info_t
+ *          from an \c MBEDTLS_PK_INFO_{TYPE} identifier.
+ */
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+#define MBEDTLS_PK_INFO( PK )                           \
+{                                                       \
+    MBEDTLS_PK_INFO_TYPE( PK ),              \
+    MBEDTLS_PK_INFO_NAME( PK ),              \
+    MBEDTLS_PK_INFO_GET_BITLEN( PK ),        \
+    MBEDTLS_PK_INFO_CAN_DO( PK ),            \
+    MBEDTLS_PK_INFO_VERIFY_FUNC( PK ),       \
+    MBEDTLS_PK_INFO_SIGN_FUNC( PK ),         \
+    NULL,                                               \
+    NULL,                                               \
+    MBEDTLS_PK_INFO_DECRYPT_FUNC( PK ),      \
+    MBEDTLS_PK_INFO_ENCRYPT_FUNC( PK ),      \
+    MBEDTLS_PK_INFO_CHECK_PAIR_FUNC( PK ),   \
+    MBEDTLS_PK_INFO_CTX_ALLOC_FUNC( PK ),    \
+    MBEDTLS_PK_INFO_CTX_FREE_FUNC( PK ),     \
+    NULL,                                               \
+    NULL,                                               \
+    MBEDTLS_PK_INFO_DEBUG_FUNC( PK ),        \
+}
+#else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+#define MBEDTLS_PK_INFO( PK )                           \
+{                                                       \
+    MBEDTLS_PK_INFO_TYPE( PK ),              \
+    MBEDTLS_PK_INFO_NAME( PK ),              \
+    MBEDTLS_PK_INFO_GET_BITLEN( PK ),        \
+    MBEDTLS_PK_INFO_CAN_DO( PK ),            \
+    MBEDTLS_PK_INFO_VERIFY_FUNC( PK ),       \
+    MBEDTLS_PK_INFO_SIGN_FUNC( PK ),         \
+    MBEDTLS_PK_INFO_DECRYPT_FUNC( PK ),      \
+    MBEDTLS_PK_INFO_ENCRYPT_FUNC( PK ),      \
+    MBEDTLS_PK_INFO_CHECK_PAIR_FUNC( PK ),   \
+    MBEDTLS_PK_INFO_CTX_ALLOC_FUNC( PK ),    \
+    MBEDTLS_PK_INFO_CTX_FREE_FUNC( PK ),     \
+    MBEDTLS_PK_INFO_DEBUG_FUNC( PK ),        \
+}
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /* Container for RSA-alt */
 typedef struct

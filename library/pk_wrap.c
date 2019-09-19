@@ -736,20 +736,8 @@ static void uecc_eckey_free_wrap( void *ctx )
     mbedtls_free( ctx );
 }
 
-const mbedtls_pk_info_t mbedtls_uecc_eckey_info = {
-    MBEDTLS_PK_ECKEY,
-    "EC",
-    uecc_eckey_get_bitlen,
-    uecc_eckey_can_do,
-    uecc_eckey_verify_wrap,
-    uecc_eckey_sign_wrap,
-    NULL,
-    NULL,
-    uecc_eckey_check_pair,
-    uecc_eckey_alloc_wrap,
-    uecc_eckey_free_wrap,
-    NULL,
-};
+const mbedtls_pk_info_t mbedtls_uecc_eckey_info =
+                        MBEDTLS_PK_INFO( MBEDTLS_PK_INFO_ECKEY );
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_ECDSA_C)

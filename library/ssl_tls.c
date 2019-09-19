@@ -7357,6 +7357,7 @@ static int ssl_remember_peer_pubkey( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+    ssl->handshake->got_peer_pubkey = 1;
     return( 0 );
 }
 #endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */

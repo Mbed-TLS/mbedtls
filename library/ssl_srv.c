@@ -4454,15 +4454,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     /* Skip if we haven't received a certificate from the client.
      * If MBEDTLS_SSL_KEEP_PEER_CERTIFICATE is set, this can be
      * inferred from the setting of mbedtls_ssl_session::peer_cert.
-     * If MBEDTLS_SSL_KEEP_PEER_CERTIFICATE is not set, it can
-     * be inferred from whether we've held back the peer CRT's
-     * public key in mbedtls_ssl_handshake_params::peer_pubkey. */
+     * If MBEDTLS_SSL_KEEP_PEER_CERTIFICATE is not set, it is tracked in a
+     * specific variable. */
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    /* Because the peer CRT pubkey is embedded into the handshake
-     * params currently, and there's no 'is_init' functions for PK
-     * contexts, we need to break the abstraction and peek into
-     * the PK context to see if it has been initialized. */
-    if( ssl->handshake->peer_pubkey.pk_info != MBEDTLS_PK_INVALID_HANDLE )
+    if( ssl->handshake->got_peer_pubkey )
         peer_pk = &ssl->handshake->peer_pubkey;
 #else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     if( ssl->session_negotiate->peer_cert != NULL )

@@ -2379,11 +2379,7 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
     }
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    /* Because the peer CRT pubkey is embedded into the handshake
-     * params currently, and there's no 'is_init' functions for PK
-     * contexts, we need to break the abstraction and peek into
-     * the PK context to see if it has been initialized. */
-    if( ssl->handshake->peer_pubkey.pk_info != MBEDTLS_PK_INVALID_HANDLE )
+    if( ssl->handshake->got_peer_pubkey )
         peer_pk = &ssl->handshake->peer_pubkey;
 #else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     if( ssl->session_negotiate->peer_cert != NULL )

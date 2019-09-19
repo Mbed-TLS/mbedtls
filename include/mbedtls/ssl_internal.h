@@ -382,9 +382,9 @@ struct mbedtls_ssl_sig_hash_set_t
  */
 struct mbedtls_ssl_handshake_params
 {
-    /*
-     * Handshake specific crypto variables
-     */
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    uint8_t got_peer_pubkey;            /*!< Did we store the peer's public key from its certificate? */
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned char verify_cookie_len;    /*!<  Cli: cookie length
                                               Srv: flag for sending a cookie */

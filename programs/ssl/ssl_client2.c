@@ -962,14 +962,14 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
-    mbedtls_entropy_context entropy;
+    mbedtls_entropy_context *entropy = NULL;
 #if defined(MBEDTLS_CTR_DRBG_C)
-    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_ctr_drbg_context *ctr_drbg = NULL;
 #else
-    mbedtls_hmac_drbg_context hmac_drbg;
+    mbedtls_hmac_drbg_context *hmac_drbg = NULL;
 #endif
-    mbedtls_ssl_context ssl;
-    mbedtls_ssl_config conf;
+    mbedtls_ssl_context *ssl;
+    mbedtls_ssl_config *conf;
     mbedtls_ssl_session saved_session;
     unsigned char *session_data = NULL;
     size_t session_data_len = 0;
@@ -978,9 +978,9 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     uint32_t flags;
-    mbedtls_x509_crt cacert;
-    mbedtls_x509_crt clicert;
-    mbedtls_pk_context pkey;
+    mbedtls_x509_crt *cacert = NULL;
+    mbedtls_x509_crt *clicert = NULL;
+    mbedtls_pk_context *pkey = NULL;
 #endif
     char *p, *q;
     const int *list;
@@ -989,22 +989,46 @@ int main( int argc, char *argv[] )
     size_t context_buf_len;
 #endif
 
+    ssl       = mbedtls_calloc( 1, sizeof( *ssl ) );
+    conf      = mbedtls_calloc( 1, sizeof( *conf ) );
+    entropy   = mbedtls_calloc( 1, sizeof( *entropy ) );
+#if defined(MBEDTLS_CTR_DRBG_C)
+    ctr_drbg  = mbedtls_calloc( 1, sizeof( *ctr_drbg ) );
+#else
+    hmac_drbg = mbedtls_calloc( 1, sizeof( *hmac_drbg ) );
+#endif
+    cacert    = mbedtls_calloc( 1, sizeof( *cacert ) );
+    clicert   = mbedtls_calloc( 1, sizeof( *clicert ) );
+    pkey      = mbedtls_calloc( 1, sizeof( *pkey ) );
+
+    if( ssl       == NULL || conf   == NULL ||
+        entropy   == NULL || cacert == NULL ||
+#if defined(MBEDTLS_CTR_DRBG_C)
+        ctr_drbg  == NULL ||
+#else
+        hmac_drbg == NULL ||
+#endif
+        clicert   == NULL || pkey   == NULL )
+    {
+        goto exit;
+    }
+
     /*
      * Make sure memory references are valid.
      */
     mbedtls_net_init( &server_fd );
-    mbedtls_ssl_init( &ssl );
-    mbedtls_ssl_config_init( &conf );
+    mbedtls_ssl_init( ssl );
+    mbedtls_ssl_config_init( conf );
     memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
 #if defined(MBEDTLS_CTR_DRBG_C)
-    mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_ctr_drbg_init( ctr_drbg );
 #else
-    mbedtls_hmac_drbg_init( &hmac_drbg );
+    mbedtls_hmac_drbg_init( hmac_drbg );
 #endif /* MBEDTLS_CTR_DRBG_C */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    mbedtls_x509_crt_init( &cacert );
-    mbedtls_x509_crt_init( &clicert );
-    mbedtls_pk_init( &pkey );
+    mbedtls_x509_crt_init( cacert );
+    mbedtls_x509_crt_init( clicert );
+    mbedtls_pk_init( pkey );
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
     memset( (void * ) alpn_list, 0, sizeof( alpn_list ) );
@@ -1704,10 +1728,10 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    mbedtls_entropy_init( &entropy );
+    mbedtls_entropy_init( entropy );
 #if defined(MBEDTLS_CTR_DRBG_C)
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                       &entropy, (const unsigned char *) pers,
+    if( ( ret = mbedtls_ctr_drbg_seed( ctr_drbg, mbedtls_entropy_func,
+                                       entropy, (const unsigned char *) pers,
                                        strlen( pers ) ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
@@ -1715,11 +1739,11 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 #else /* MBEDTLS_CTR_DRBG_C */
-    if( ( ret = mbedtls_hmac_drbg_seed( &hmac_drbg,
+    if( ( ret = mbedtls_hmac_drbg_seed( hmac_drbg,
                                         mbedtls_md_info_from_type(
                                             available_hashes[0] ),
                                         mbedtls_entropy_func,
-                                        &entropy, (const unsigned char *) pers,
+                                        entropy, (const unsigned char *) pers,
                                         strlen( pers ) ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
@@ -1745,9 +1769,9 @@ int main( int argc, char *argv[] )
     else
 #if defined(MBEDTLS_FS_IO)
     if( strlen( opt.ca_path ) )
-        ret = mbedtls_x509_crt_parse_path( &cacert, opt.ca_path );
+        ret = mbedtls_x509_crt_parse_path( cacert, opt.ca_path );
     else if( strlen( opt.ca_file ) )
-        ret = mbedtls_x509_crt_parse_file( &cacert, opt.ca_file );
+        ret = mbedtls_x509_crt_parse_file( cacert, opt.ca_file );
     else
 #endif
 #if defined(MBEDTLS_CERTS_C)
@@ -1755,7 +1779,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PEM_PARSE_C)
         for( i = 0; mbedtls_test_cas[i] != NULL; i++ )
         {
-            ret = mbedtls_x509_crt_parse( &cacert,
+            ret = mbedtls_x509_crt_parse( cacert,
                                   (const unsigned char *) mbedtls_test_cas[i],
                                   mbedtls_test_cas_len[i] );
             if( ret != 0 )
@@ -1765,7 +1789,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_PEM_PARSE_C */
         for( i = 0; mbedtls_test_cas_der[i] != NULL; i++ )
         {
-            ret = mbedtls_x509_crt_parse_der( &cacert,
+            ret = mbedtls_x509_crt_parse_der( cacert,
                          (const unsigned char *) mbedtls_test_cas_der[i],
                          mbedtls_test_cas_der_len[i] );
             if( ret != 0 )
@@ -1800,7 +1824,7 @@ int main( int argc, char *argv[] )
     else
 #if defined(MBEDTLS_FS_IO)
     if( strlen( opt.crt_file ) )
-        ret = mbedtls_x509_crt_parse_file( &clicert, opt.crt_file );
+        ret = mbedtls_x509_crt_parse_file( clicert, opt.crt_file );
     else
 #endif
 #if defined(MBEDTLS_CERTS_C)
@@ -1825,11 +1849,11 @@ int main( int argc, char *argv[] )
     else
 #if defined(MBEDTLS_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, "" );
+        ret = mbedtls_pk_parse_keyfile( pkey, opt.key_file, "" );
     else
 #endif
 #if defined(MBEDTLS_CERTS_C)
-        ret = mbedtls_pk_parse_key( &pkey,
+        ret = mbedtls_pk_parse_key( pkey,
                 (const unsigned char *) mbedtls_test_cli_key,
                 mbedtls_test_cli_key_len, NULL, 0 );
 #else
@@ -1888,7 +1912,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ssl_config_defaults( &conf,
+    if( ( ret = mbedtls_ssl_config_defaults( conf,
                     MBEDTLS_SSL_IS_CLIENT,
                     opt.transport,
                     MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
@@ -1904,14 +1928,14 @@ int main( int argc, char *argv[] )
     if( opt.allow_sha1 > 0 )
     {
         crt_profile_for_test.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA1 );
-        mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
+        mbedtls_ssl_conf_cert_profile( conf, &crt_profile_for_test );
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_HASH)
-        mbedtls_ssl_conf_sig_hashes( &conf, available_hashes );
+        mbedtls_ssl_conf_sig_hashes( conf, available_hashes );
 #endif
     }
 
 #if !defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
-    mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
+    mbedtls_ssl_conf_verify( conf, my_verify, NULL );
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
@@ -1930,10 +1954,10 @@ int main( int argc, char *argv[] )
         }
 
         if( opt.cid_enabled == 1 )
-            ret = mbedtls_ssl_conf_cid( &conf, cid_len,
+            ret = mbedtls_ssl_conf_cid( conf, cid_len,
                                         MBEDTLS_SSL_UNEXPECTED_CID_IGNORE );
         else
-            ret = mbedtls_ssl_conf_cid( &conf, cid_renego_len,
+            ret = mbedtls_ssl_conf_cid( conf, cid_renego_len,
                                         MBEDTLS_SSL_UNEXPECTED_CID_IGNORE );
 
         if( ret != 0 )
@@ -1948,19 +1972,19 @@ int main( int argc, char *argv[] )
           !MBEDTLS_SSL_CONF_IGNORE_UNEXPECTED_CID */
 
     if( opt.auth_mode != DFL_AUTH_MODE )
-        mbedtls_ssl_conf_authmode( &conf, opt.auth_mode );
+        mbedtls_ssl_conf_authmode( conf, opt.auth_mode );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
-        mbedtls_ssl_conf_handshake_timeout( &conf, opt.hs_to_min,
+        mbedtls_ssl_conf_handshake_timeout( conf, opt.hs_to_min,
                                             opt.hs_to_max );
 
     if( opt.dgram_packing != DFL_DGRAM_PACKING )
-        mbedtls_ssl_set_datagram_packing( &ssl, opt.dgram_packing );
+        mbedtls_ssl_set_datagram_packing( ssl, opt.dgram_packing );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    if( ( ret = mbedtls_ssl_conf_max_frag_len( &conf, opt.mfl_code ) ) != 0 )
+    if( ( ret = mbedtls_ssl_conf_max_frag_len( conf, opt.mfl_code ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_max_frag_len returned %d\n\n",
                         ret );
@@ -1970,39 +1994,39 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
-        mbedtls_ssl_conf_truncated_hmac( &conf, opt.trunc_hmac );
+        mbedtls_ssl_conf_truncated_hmac( conf, opt.trunc_hmac );
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) &&       \
     !defined(MBEDTLS_SSL_CONF_EXTENDED_MASTER_SECRET) && \
     !defined(MBEDTLS_SSL_CONF_ENFORCE_EXTENDED_MASTER_SECRET)
     if( opt.extended_ms != DFL_EXTENDED_MS )
-        mbedtls_ssl_conf_extended_master_secret( &conf, opt.extended_ms );
+        mbedtls_ssl_conf_extended_master_secret( conf, opt.extended_ms );
     if( opt.enforce_extended_master_secret != DFL_EXTENDED_MS_ENFORCE )
-        mbedtls_ssl_conf_extended_master_secret_enforce( &conf,
+        mbedtls_ssl_conf_extended_master_secret_enforce( conf,
             opt.enforce_extended_master_secret );
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     if( opt.etm != DFL_ETM )
-        mbedtls_ssl_conf_encrypt_then_mac( &conf, opt.etm );
+        mbedtls_ssl_conf_encrypt_then_mac( conf, opt.etm );
 #endif
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     if( opt.recsplit != DFL_RECSPLIT )
-        mbedtls_ssl_conf_cbc_record_splitting( &conf, opt.recsplit
+        mbedtls_ssl_conf_cbc_record_splitting( conf, opt.recsplit
                                   ? MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED
                                   : MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED );
 #endif
 
 #if defined(MBEDTLS_DHM_C)
     if( opt.dhmlen != DFL_DHMLEN )
-        mbedtls_ssl_conf_dhm_min_bitlen( &conf, opt.dhmlen );
+        mbedtls_ssl_conf_dhm_min_bitlen( conf, opt.dhmlen );
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
-        if( ( ret = mbedtls_ssl_conf_alpn_protocols( &conf, alpn_list ) ) != 0 )
+        if( ( ret = mbedtls_ssl_conf_alpn_protocols( conf, alpn_list ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_alpn_protocols returned %d\n\n",
                             ret );
@@ -2012,58 +2036,58 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_CTR_DRBG_C)
 #if !defined(MBEDTLS_SSL_CONF_RNG)
-    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_rng( conf, mbedtls_ctr_drbg_random, ctr_drbg );
 #else
-    rng_ctx_global = &ctr_drbg;
+    rng_ctx_global = ctr_drbg;
 #endif
 #else /* MBEDTLS_CTR_DRBG_C */
 #if !defined(MBEDTLS_SSL_CONF_RNG)
-    mbedtls_ssl_conf_rng( &conf, mbedtls_hmac_drbg_random, &hmac_drbg );
+    mbedtls_ssl_conf_rng( conf, mbedtls_hmac_drbg_random, hmac_drbg );
 #else
-    rng_ctx_global = &hmac_drbg;
+    rng_ctx_global = hmac_drbg;
 #endif
 #endif /* MBEDTLS_CTR_DRBG_C */
 
 #if defined(MBEDTLS_DEBUG_C)
-    mbedtls_ssl_conf_dbg( &conf, my_debug, stdout );
+    mbedtls_ssl_conf_dbg( conf, my_debug, stdout );
 #endif
 
 #if !defined(MBEDTLS_SSL_CONF_READ_TIMEOUT)
-    mbedtls_ssl_conf_read_timeout( &conf, opt.read_timeout );
+    mbedtls_ssl_conf_read_timeout( conf, opt.read_timeout );
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    mbedtls_ssl_conf_session_tickets( &conf, opt.tickets );
+    mbedtls_ssl_conf_session_tickets( conf, opt.tickets );
 #endif
 
 #if !defined(MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE)
     if( opt.force_ciphersuite[0] != DFL_FORCE_CIPHER )
-        mbedtls_ssl_conf_ciphersuites( &conf, opt.force_ciphersuite );
+        mbedtls_ssl_conf_ciphersuites( conf, opt.force_ciphersuite );
 #endif /* MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if defined(MBEDTLS_ARC4_C)
     if( opt.arc4 != DFL_ARC4 )
-        mbedtls_ssl_conf_arc4_support( &conf, opt.arc4 );
+        mbedtls_ssl_conf_arc4_support( conf, opt.arc4 );
 #endif
 
 #if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     if( opt.allow_legacy != DFL_ALLOW_LEGACY )
-        mbedtls_ssl_conf_legacy_renegotiation( &conf, opt.allow_legacy );
+        mbedtls_ssl_conf_legacy_renegotiation( conf, opt.allow_legacy );
 #endif /* !MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    mbedtls_ssl_conf_renegotiation( &conf, opt.renegotiation );
+    mbedtls_ssl_conf_renegotiation( conf, opt.renegotiation );
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( strcmp( opt.ca_path, "none" ) != 0 &&
         strcmp( opt.ca_file, "none" ) != 0 )
     {
-        mbedtls_ssl_conf_ca_chain( &conf, &cacert, NULL );
+        mbedtls_ssl_conf_ca_chain( conf, cacert, NULL );
     }
     if( strcmp( opt.crt_file, "none" ) != 0 &&
         strcmp( opt.key_file, "none" ) != 0 )
     {
-        if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )
+        if( ( ret = mbedtls_ssl_conf_own_cert( conf, clicert, pkey ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n",
                             ret );
@@ -2077,13 +2101,13 @@ int main( int argc, char *argv[] )
     if( opt.curves != NULL &&
         strcmp( opt.curves, "default" ) != 0 )
     {
-        mbedtls_ssl_conf_curves( &conf, curve_list );
+        mbedtls_ssl_conf_curves( conf, curve_list );
     }
 #endif /* !MBEDTLS_SSL_CONF_SINGLE_EC */
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    if( ( ret = mbedtls_ssl_conf_psk( &conf, psk, psk_len,
+    if( ( ret = mbedtls_ssl_conf_psk( conf, psk, psk_len,
                              (const unsigned char *) opt.psk_identity,
                              strlen( opt.psk_identity ) ) ) != 0 )
     {
@@ -2098,20 +2122,20 @@ int main( int argc, char *argv[] )
     !defined(MBEDTLS_SSL_CONF_MAX_MINOR_VER) || \
     !defined(MBEDTLS_SSL_CONF_MAX_MAJOR_VER)
     if( opt.min_version != DFL_MIN_VERSION )
-        mbedtls_ssl_conf_min_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+        mbedtls_ssl_conf_min_version( conf, MBEDTLS_SSL_MAJOR_VERSION_3,
                                       opt.min_version );
 
     if( opt.max_version != DFL_MAX_VERSION )
-        mbedtls_ssl_conf_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+        mbedtls_ssl_conf_max_version( conf, MBEDTLS_SSL_MAJOR_VERSION_3,
                                       opt.max_version );
 #endif
 
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
     if( opt.fallback != DFL_FALLBACK )
-        mbedtls_ssl_conf_fallback( &conf, opt.fallback );
+        mbedtls_ssl_conf_fallback( conf, opt.fallback );
 #endif
 
-    if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+    if( ( ret = mbedtls_ssl_setup( ssl, conf ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n",
                         -ret );
@@ -2119,7 +2143,7 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
-    if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
+    if( ( ret = mbedtls_ssl_set_hostname( ssl, opt.server_name ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n",
                         ret );
@@ -2130,7 +2154,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( opt.ecjpake_pw != DFL_ECJPAKE_PW )
     {
-        if( ( ret = mbedtls_ssl_set_hs_ecjpake_password( &ssl,
+        if( ( ret = mbedtls_ssl_set_hs_ecjpake_password( ssl,
                         (const unsigned char *) opt.ecjpake_pw,
                                         strlen( opt.ecjpake_pw ) ) ) != 0 )
         {
@@ -2144,18 +2168,18 @@ int main( int argc, char *argv[] )
 #if !defined(MBEDTLS_SSL_CONF_RECV) && \
     !defined(MBEDTLS_SSL_CONF_SEND) && \
     !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
-    io_ctx.ssl = &ssl;
+    io_ctx.ssl = ssl;
     io_ctx.net = &server_fd;
-    mbedtls_ssl_set_bio( &ssl, &io_ctx, send_cb, recv_cb,
+    mbedtls_ssl_set_bio( ssl, &io_ctx, send_cb, recv_cb,
                          opt.nbio == 0 ? recv_timeout_cb : NULL );
 #else
-     mbedtls_ssl_set_bio_ctx( &ssl, &server_fd );
+     mbedtls_ssl_set_bio_ctx( ssl, &server_fd );
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        if( ( ret = mbedtls_ssl_set_cid( &ssl, opt.cid_enabled,
+        if( ( ret = mbedtls_ssl_set_cid( ssl, opt.cid_enabled,
                                          cid, cid_len ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_cid returned %d\n\n",
@@ -2167,16 +2191,16 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( opt.dtls_mtu != DFL_DTLS_MTU )
-        mbedtls_ssl_set_mtu( &ssl, opt.dtls_mtu );
+        mbedtls_ssl_set_mtu( ssl, opt.dtls_mtu );
 #endif
 
 #if defined(MBEDTLS_TIMING_C)
 #if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
     !defined(MBEDTLS_SSL_CONF_GET_TIMER)
-    mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
+    mbedtls_ssl_set_timer_cb( ssl, &timer, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
 #else
-    mbedtls_ssl_set_timer_cb_ctx( &ssl, &timer );
+    mbedtls_ssl_set_timer_cb_ctx( ssl, &timer );
 #endif
 #endif
 
@@ -2193,7 +2217,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Performing the SSL/TLS handshake..." );
     fflush( stdout );
 
-    while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
+    while( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
     {
         if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
             ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
@@ -2232,23 +2256,23 @@ int main( int argc, char *argv[] )
     }
 
     mbedtls_printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
-                    mbedtls_ssl_get_version( &ssl ),
-                    mbedtls_ssl_get_ciphersuite( &ssl ) );
+                    mbedtls_ssl_get_version( ssl ),
+                    mbedtls_ssl_get_ciphersuite( ssl ) );
 
-    if( ( ret = mbedtls_ssl_get_record_expansion( &ssl ) ) >= 0 )
+    if( ( ret = mbedtls_ssl_get_record_expansion( ssl ) ) >= 0 )
         mbedtls_printf( "    [ Record expansion is %d ]\n", ret );
     else
         mbedtls_printf( "    [ Record expansion is unknown (compression) ]\n" );
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     mbedtls_printf( "    [ Maximum fragment length is %u ]\n",
-                    (unsigned int) mbedtls_ssl_get_max_frag_len( &ssl ) );
+                    (unsigned int) mbedtls_ssl_get_max_frag_len( ssl ) );
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
     {
-        const char *alp = mbedtls_ssl_get_alpn_protocol( &ssl );
+        const char *alp = mbedtls_ssl_get_alpn_protocol( ssl );
         mbedtls_printf( "    [ Application Layer Protocol is %s ]\n",
                 alp ? alp : "(none)" );
     }
@@ -2270,7 +2294,7 @@ int main( int argc, char *argv[] )
             }
 
             /* get size of the buffer needed */
-            mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
+            mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( ssl ),
                                       NULL, 0, &session_data_len );
             session_data = mbedtls_calloc( 1, session_data_len );
             if( session_data == NULL )
@@ -2282,7 +2306,7 @@ int main( int argc, char *argv[] )
             }
 
             /* actually save session data */
-            if( ( ret = mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( &ssl ),
+            if( ( ret = mbedtls_ssl_session_save( mbedtls_ssl_get_session_pointer( ssl ),
                                                   session_data, session_data_len,
                                                   &session_data_len ) ) != 0 )
             {
@@ -2293,7 +2317,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session ) ) != 0 )
+            if( ( ret = mbedtls_ssl_get_session( ssl, &saved_session ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_get_session returned -0x%x\n\n",
                                 -ret );
@@ -2316,7 +2340,7 @@ int main( int argc, char *argv[] )
      */
     mbedtls_printf( "  . Verifying peer X.509 certificate..." );
 
-    if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
+    if( ( flags = mbedtls_ssl_get_verify_result( ssl ) ) != 0 )
     {
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
         char vrfy_buf[512];
@@ -2342,13 +2366,13 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    ret = report_cid_usage( &ssl, "initial handshake" );
+    ret = report_cid_usage( ssl, "initial handshake" );
     if( ret != 0 )
         goto exit;
 
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        if( ( ret = mbedtls_ssl_set_cid( &ssl, opt.cid_enabled_renego,
+        if( ( ret = mbedtls_ssl_set_cid( ssl, opt.cid_enabled_renego,
                                          cid_renego,
                                          cid_renego_len ) ) != 0 )
         {
@@ -2368,7 +2392,7 @@ int main( int argc, char *argv[] )
          */
         mbedtls_printf( "  . Performing renegotiation..." );
         fflush( stdout );
-        while( ( ret = mbedtls_ssl_renegotiate( &ssl ) ) != 0 )
+        while( ( ret = mbedtls_ssl_renegotiate( ssl ) ) != 0 )
         {
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
@@ -2400,7 +2424,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    ret = report_cid_usage( &ssl, "after renegotiation" );
+    ret = report_cid_usage( ssl, "after renegotiation" );
     if( ret != 0 )
         goto exit;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -2446,7 +2470,7 @@ send_request:
 
         do
         {
-            while( ( ret = mbedtls_ssl_write( &ssl, buf + written,
+            while( ( ret = mbedtls_ssl_write( ssl, buf + written,
                                               len - written ) ) < 0 )
             {
                 if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
@@ -2478,7 +2502,7 @@ send_request:
     {
         while( 1 )
         {
-            ret = mbedtls_ssl_write( &ssl, buf, len );
+            ret = mbedtls_ssl_write( ssl, buf, len );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
             if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
@@ -2543,7 +2567,7 @@ send_request:
         {
             len = sizeof( buf ) - 1;
             memset( buf, 0, sizeof( buf ) );
-            ret = mbedtls_ssl_read( &ssl, buf, len );
+            ret = mbedtls_ssl_read( ssl, buf, len );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
             if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
@@ -2608,7 +2632,7 @@ send_request:
 
         while( 1 )
         {
-            ret = mbedtls_ssl_read( &ssl, buf, len );
+            ret = mbedtls_ssl_read( ssl, buf, len );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
             if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
@@ -2672,14 +2696,14 @@ send_request:
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
-        if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_session_reset( ssl ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
 
-        while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
+        while( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
         {
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
@@ -2716,7 +2740,7 @@ send_request:
 
         mbedtls_printf( "  . Serializing live connection..." );
 
-        ret = mbedtls_ssl_context_save( &ssl, NULL, 0, &buf_len );
+        ret = mbedtls_ssl_context_save( ssl, NULL, 0, &buf_len );
         if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
@@ -2734,7 +2758,7 @@ send_request:
         }
         context_buf_len = buf_len;
 
-        if( ( ret = mbedtls_ssl_context_save( &ssl, context_buf,
+        if( ( ret = mbedtls_ssl_context_save( ssl, context_buf,
                                               buf_len, &buf_len ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
@@ -2755,11 +2779,11 @@ send_request:
         {
             mbedtls_printf( "  . Freeing and reinitializing context..." );
 
-            mbedtls_ssl_free( &ssl );
+            mbedtls_ssl_free( ssl );
 
-            mbedtls_ssl_init( &ssl );
+            mbedtls_ssl_init( ssl );
 
-            if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
+            if( ( ret = mbedtls_ssl_setup( ssl, conf ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned "
                                 "-0x%x\n\n", -ret );
@@ -2769,20 +2793,20 @@ send_request:
 #if !defined(MBEDTLS_SSL_CONF_RECV) &&          \
     !defined(MBEDTLS_SSL_CONF_SEND) &&          \
     !defined(MBEDTLS_SSL_CONF_RECV_TIMEOUT)
-            mbedtls_ssl_set_bio( &ssl, &io_ctx, send_cb, recv_cb,
+            mbedtls_ssl_set_bio( ssl, &io_ctx, send_cb, recv_cb,
                                  opt.nbio == 0 ? recv_timeout_cb : NULL );
 #else
-            mbedtls_ssl_set_bio_ctx( &ssl, &server_fd );
+            mbedtls_ssl_set_bio_ctx( ssl, &server_fd );
 #endif
 
 #if defined(MBEDTLS_TIMING_C)
 #if !defined(MBEDTLS_SSL_CONF_SET_TIMER) && \
     !defined(MBEDTLS_SSL_CONF_GET_TIMER)
-            mbedtls_ssl_set_timer_cb( &ssl, &timer,
+            mbedtls_ssl_set_timer_cb( ssl, &timer,
                                       mbedtls_timing_set_delay,
                                       mbedtls_timing_get_delay );
 #else
-            mbedtls_ssl_set_timer_cb_ctx( &ssl, &timer );
+            mbedtls_ssl_set_timer_cb_ctx( ssl, &timer );
 #endif
 #endif /* MBEDTLS_TIMING_C */
 
@@ -2791,7 +2815,7 @@ send_request:
 
         mbedtls_printf( "  . Deserializing connection..." );
 
-        if( ( ret = mbedtls_ssl_context_load( &ssl, context_buf,
+        if( ( ret = mbedtls_ssl_context_load( ssl, context_buf,
                                               buf_len ) ) != 0 )
         {
             mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned "
@@ -2822,7 +2846,7 @@ close_notify:
     fflush( stdout );
 
     /* No error checking, the connection might be closed already */
-    do ret = mbedtls_ssl_close_notify( &ssl );
+    do ret = mbedtls_ssl_close_notify( ssl );
     while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
     ret = 0;
 
@@ -2850,7 +2874,7 @@ reconnect:
         memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
-        if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_session_reset( ssl ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",
                             -ret );
@@ -2870,7 +2894,7 @@ reconnect:
         }
 
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-        if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
+        if( ( ret = mbedtls_ssl_set_session( ssl, &saved_session ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session returned -0x%x\n\n",
                             -ret );
@@ -2899,7 +2923,7 @@ reconnect:
             goto exit;
         }
 
-        while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
+        while( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )
         {
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
@@ -2920,6 +2944,7 @@ reconnect:
      * Cleanup and exit
      */
 exit:
+
 #ifdef MBEDTLS_ERROR_C
     if( ret != 0 )
     {
@@ -2932,19 +2957,19 @@ exit:
     mbedtls_net_free( &server_fd );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    mbedtls_x509_crt_free( &clicert );
-    mbedtls_x509_crt_free( &cacert );
-    mbedtls_pk_free( &pkey );
+    mbedtls_x509_crt_free( clicert );
+    mbedtls_x509_crt_free( cacert );
+    mbedtls_pk_free( pkey );
 #endif
     mbedtls_ssl_session_free( &saved_session );
-    mbedtls_ssl_free( &ssl );
-    mbedtls_ssl_config_free( &conf );
+    mbedtls_ssl_free( ssl );
+    mbedtls_ssl_config_free( conf );
 #if defined(MBEDTLS_CTR_DRBG_C)
-    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_ctr_drbg_free( ctr_drbg );
 #else
-    mbedtls_hmac_drbg_free( &hmac_drbg );
+    mbedtls_hmac_drbg_free( hmac_drbg );
 #endif
-    mbedtls_entropy_free( &entropy );
+    mbedtls_entropy_free( entropy );
     if( session_data != NULL )
         mbedtls_platform_zeroize( session_data, session_data_len );
     mbedtls_free( session_data );
@@ -2953,6 +2978,18 @@ exit:
         mbedtls_platform_zeroize( context_buf, context_buf_len );
     mbedtls_free( context_buf );
 #endif
+
+    mbedtls_free( ssl );
+    mbedtls_free( conf );
+    mbedtls_free( entropy );
+#if defined(MBEDTLS_CTR_DRBG_C)
+    mbedtls_free( ctr_drbg );
+#else
+    mbedtls_free( hmac_drbg );
+#endif
+    mbedtls_free( cacert );
+    mbedtls_free( clicert );
+    mbedtls_free( pkey );
 
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );

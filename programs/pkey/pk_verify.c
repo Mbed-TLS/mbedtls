@@ -52,6 +52,7 @@ int main( void )
 #include "mbedtls/error.h"
 #include "mbedtls/md.h"
 #include "mbedtls/pk.h"
+#include "mbedtls/bignum.h"
 
 #include <stdio.h>
 #include <string.h>

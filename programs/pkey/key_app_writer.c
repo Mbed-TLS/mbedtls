@@ -39,6 +39,7 @@
 #if defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
+#include "mbedtls/bignum.h"
 #include "mbedtls/error.h"
 
 #include <stdio.h>

@@ -584,23 +584,24 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
     PK_VALIDATE_RET( pub != NULL );
     PK_VALIDATE_RET( prv != NULL );
 
-    if( pub->pk_info == NULL ||
-        prv->pk_info == NULL ||
-        prv->pk_info->check_pair_func == NULL )
-    {
+    if( pub->pk_info == NULL || prv->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-    }
 
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
     if( pk_info_type( prv->pk_info ) == MBEDTLS_PK_RSA_ALT )
     {
         if( pk_info_type( pub->pk_info ) != MBEDTLS_PK_RSA )
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
     else
+#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
     {
         if( pub->pk_info != prv->pk_info )
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
+
+    if( prv->pk_info->check_pair_func == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     return( pk_info_check_pair_func( prv->pk_info, pub->pk_ctx, prv->pk_ctx ) );
 }

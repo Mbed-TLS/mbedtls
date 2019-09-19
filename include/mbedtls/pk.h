@@ -142,7 +142,9 @@ typedef const mbedtls_pk_info_t *mbedtls_pk_handle_t;
  */
 typedef struct mbedtls_pk_context
 {
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
     mbedtls_pk_handle_t         pk_info; /**< Public key information         */
+#endif
     void *                      pk_ctx;  /**< Underlying public key context  */
 } mbedtls_pk_context;
 

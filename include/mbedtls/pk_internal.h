@@ -234,7 +234,11 @@ struct mbedtls_pk_info_t
 /*
  * Macros to access pk_info
  */
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+#define MBEDTLS_PK_CTX_INFO( ctx )      MBEDTLS_PK_UNIQUE_VALID_HANDLE
+#else
 #define MBEDTLS_PK_CTX_INFO( ctx )      ( (ctx)->pk_info )
+#endif
 #define MBEDTLS_PK_CTX_IS_VALID( ctx )  \
     ( MBEDTLS_PK_CTX_INFO( (ctx) ) != MBEDTLS_PK_INVALID_HANDLE )
 

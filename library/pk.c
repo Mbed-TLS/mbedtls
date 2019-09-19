@@ -1299,7 +1299,9 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx )
 {
     PK_VALIDATE( ctx != NULL );
 
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
     ctx->pk_info = MBEDTLS_PK_INVALID_HANDLE;
+#endif
     ctx->pk_ctx = NULL;
 }
 
@@ -1394,16 +1396,18 @@ mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
 int mbedtls_pk_setup( mbedtls_pk_context *ctx, mbedtls_pk_handle_t info )
 {
     PK_VALIDATE_RET( ctx != NULL );
-    if( info == MBEDTLS_PK_INVALID_HANDLE ||
-        MBEDTLS_PK_CTX_IS_VALID( ctx ) )
-    {
+    if( info == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-    }
+
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
+    if( ctx->pk_info != NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    ctx->pk_info = info;
+#endif
 
     if( ( ctx->pk_ctx = pk_info_ctx_alloc_func( info ) ) == NULL )
         return( MBEDTLS_ERR_PK_ALLOC_FAILED );
-
-    ctx->pk_info = info;
 
     return( 0 );
 }

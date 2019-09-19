@@ -231,6 +231,13 @@ struct mbedtls_pk_info_t
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
+/*
+ * Macros to access pk_info
+ */
+#define MBEDTLS_PK_CTX_INFO( ctx )      ( (ctx)->pk_info )
+#define MBEDTLS_PK_CTX_IS_VALID( ctx )  \
+    ( MBEDTLS_PK_CTX_INFO( (ctx) ) != MBEDTLS_PK_INVALID_HANDLE )
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /* Container for RSA-alt */
 typedef struct

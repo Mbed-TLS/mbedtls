@@ -630,6 +630,11 @@ component_check_names () {
     record_status tests/scripts/check-names.sh -v
 }
 
+component_check_test_cases () {
+    msg "Check: test case descriptions" # < 1s
+    record_status tests/scripts/check-test-cases.py
+}
+
 component_check_doxygen_warnings () {
     msg "Check: doxygen warnings (builds the documentation)" # ~ 3s
     record_status tests/scripts/doxygen.sh

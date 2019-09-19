@@ -731,6 +731,7 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     #undef MAX_SECP256R1_ECDSA_SIG_LEN
 }
 
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
 static void *uecc_eckey_alloc_wrap( void )
 {
     return( mbedtls_calloc( 1, sizeof( mbedtls_uecc_keypair ) ) );
@@ -744,6 +745,7 @@ static void uecc_eckey_free_wrap( void *ctx )
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_uecc_keypair ) );
     mbedtls_free( ctx );
 }
+#endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 #if !defined(MBEDTLS_PK_SINGLE_TYPE)
 const mbedtls_pk_info_t mbedtls_uecc_eckey_info =
@@ -1151,20 +1153,6 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
 #endif
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void *pk_info_ctx_alloc_func(
-    mbedtls_pk_handle_t info )
-{
-    (void) info;
-    return( MBEDTLS_PK_INFO_CTX_ALLOC_FUNC( MBEDTLS_PK_SINGLE_TYPE )( ) );
-}
-
-MBEDTLS_ALWAYS_INLINE static inline void pk_info_ctx_free_func(
-    mbedtls_pk_handle_t info, void *ctx )
-{
-    (void) info;
-    MBEDTLS_PK_INFO_CTX_FREE_FUNC( MBEDTLS_PK_SINGLE_TYPE )( ctx );
-}
-
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
     mbedtls_pk_handle_t info,
     const void *ctx, mbedtls_pk_debug_item *items )
@@ -1301,8 +1289,10 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx )
 
 #if !defined(MBEDTLS_PK_SINGLE_TYPE)
     ctx->pk_info = MBEDTLS_PK_INVALID_HANDLE;
-#endif
     ctx->pk_ctx = NULL;
+#else
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
+#endif
 }
 
 /*
@@ -1313,8 +1303,10 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx )
     if( ctx == NULL )
         return;
 
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
     if( MBEDTLS_PK_CTX_IS_VALID( ctx ) )
         pk_info_ctx_free_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx );
+#endif
 
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
 }
@@ -1404,10 +1396,12 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, mbedtls_pk_handle_t info )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     ctx->pk_info = info;
-#endif
 
     if( ( ctx->pk_ctx = pk_info_ctx_alloc_func( info ) ) == NULL )
         return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+#else
+    (void) ctx;
+#endif
 
     return( 0 );
 }

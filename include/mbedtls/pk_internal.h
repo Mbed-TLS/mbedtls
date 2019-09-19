@@ -50,6 +50,7 @@
 /* Dummy definition to keep check-names.sh happy - don't uncomment */
 //#define MBEDTLS_PK_INFO_ECKEY
 
+#define MBEDTLS_PK_INFO_ECKEY_CONTEXT           mbedtls_uecc_keypair
 #define MBEDTLS_PK_INFO_ECKEY_TYPE              MBEDTLS_PK_ECKEY
 #define MBEDTLS_PK_INFO_ECKEY_NAME              "EC"
 #define MBEDTLS_PK_INFO_ECKEY_GET_BITLEN        uecc_eckey_get_bitlen
@@ -70,6 +71,7 @@
 /*
  * Helper macros to extract fields from PK types
  */
+#define MBEDTLS_PK_INFO_CONTEXT_T( PK )         PK ## _CONTEXT
 #define MBEDTLS_PK_INFO_TYPE_T( PK )            PK ## _TYPE
 #define MBEDTLS_PK_INFO_NAME_T( PK )            PK ## _NAME
 #define MBEDTLS_PK_INFO_GET_BITLEN_T( PK )      PK ## _GET_BITLEN
@@ -94,6 +96,7 @@
  * field name. This allows to call these macros as
  *    MBEDTLS_PK_INFO_{FIELD}( MBEDTLS_PK_SINGLE_TYPE ).
  * where MBEDTLS_PK_SINGLE_TYPE expands to MBEDTLS_PK_INFO_{TYPE}. */
+#define MBEDTLS_PK_INFO_CONTEXT( PK )         MBEDTLS_PK_INFO_CONTEXT_T( PK )
 #define MBEDTLS_PK_INFO_TYPE( PK )            MBEDTLS_PK_INFO_TYPE_T( PK )
 #define MBEDTLS_PK_INFO_NAME( PK )            MBEDTLS_PK_INFO_NAME_T( PK )
 #define MBEDTLS_PK_INFO_GET_BITLEN( PK )      MBEDTLS_PK_INFO_GET_BITLEN_T( PK )
@@ -113,6 +116,7 @@
 #define MBEDTLS_PK_INFO_DEBUG_FUNC( PK )      MBEDTLS_PK_INFO_DEBUG_FUNC_T( PK )
 #define MBEDTLS_PK_INFO_DEBUG_OMIT( PK )      MBEDTLS_PK_INFO_DEBUG_OMIT_T( PK )
 
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
 struct mbedtls_pk_info_t
 {
     /** Public key type */
@@ -230,6 +234,7 @@ struct mbedtls_pk_info_t
     MBEDTLS_PK_INFO_DEBUG_FUNC( PK ),        \
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Macros to access pk_info

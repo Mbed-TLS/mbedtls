@@ -29,9 +29,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
 
-#include "mbedtls/platform_util.h"
-
-#if defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 #include "mbedtls/rsa.h"
 #endif
 #if defined(MBEDTLS_ECP_C)
@@ -40,25 +38,6 @@
 #if defined(MBEDTLS_ECDSA_C)
 #include "mbedtls/ecdsa.h"
 #endif
-
-#include <limits.h>
-#include <stdint.h>
-
-/* Parameter validation macros based on platform_util.h */
-#define PK_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_PK_BAD_INPUT_DATA )
-#define PK_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
-/* Raw contents of former pk_wrap.c file */
-#if defined(MBEDTLS_PK_C)
-#include "mbedtls/pk_internal.h"
-
-/* Even if RSA not activated, for the sake of RSA-alt */
-#include "mbedtls/rsa.h"
-
-#include <string.h>
-
 #if defined(MBEDTLS_USE_TINYCRYPT)
 #include "tinycrypt/ecc.h"
 #include "tinycrypt/ecc_dsa.h"
@@ -66,18 +45,7 @@
 #include "mbedtls/asn1write.h"
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
-#if defined(MBEDTLS_ECP_C)
-#include "mbedtls/ecp.h"
-#endif
-
-#if defined(MBEDTLS_ECDSA_C)
-#include "mbedtls/ecdsa.h"
-#endif
-
-#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT) || \
-    defined(MBEDTLS_USE_TINYCRYPT)
 #include "mbedtls/platform_util.h"
-#endif
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -87,9 +55,19 @@
 #define mbedtls_free       free
 #endif
 
+#include <string.h>
 #include <limits.h>
 #include <stdint.h>
 
+/* Parameter validation macros based on platform_util.h */
+#define PK_VALIDATE_RET( cond )    \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_PK_BAD_INPUT_DATA )
+#define PK_VALIDATE( cond )        \
+    MBEDTLS_INTERNAL_VALIDATE( cond )
+
+/*
+ * Internal wrappers around RSA functions
+ */
 #if defined(MBEDTLS_RSA_C)
 static int rsa_can_do( mbedtls_pk_type_t type )
 {
@@ -241,6 +219,9 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
 };
 #endif /* MBEDTLS_RSA_C */
 
+/*
+ * Internal wrappers around ECC functions - based on ECP module
+ */
 #if defined(MBEDTLS_ECP_C)
 /*
  * Generic EC key
@@ -500,8 +481,10 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 };
 #endif /* MBEDTLS_ECP_C */
 
+/*
+ * Internal wrappers around ECC functions - based on TinyCrypt
+ */
 #if defined(MBEDTLS_USE_TINYCRYPT)
-
 /*
  * An ASN.1 encoded signature is a sequence of two ASN.1 integers. Parse one of
  * those integers and convert it to the fixed-length encoding.
@@ -766,6 +749,9 @@ const mbedtls_pk_info_t mbedtls_uecc_eckey_info =
                         MBEDTLS_PK_INFO( MBEDTLS_PK_INFO_ECKEY );
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
+/*
+ * Internal wrappers around ECDSA functions
+ */
 #if defined(MBEDTLS_ECDSA_C)
 static int ecdsa_can_do( mbedtls_pk_type_t type )
 {
@@ -889,11 +875,10 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
 };
 #endif /* MBEDTLS_ECDSA_C */
 
-#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*
- * Support for alternative RSA-private implementations
+ * Internal wrappers for RSA-alt support
  */
-
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 static int rsa_alt_can_do( mbedtls_pk_type_t type )
 {
     return( type == MBEDTLS_PK_RSA );
@@ -1013,10 +998,8 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #endif
     NULL,
 };
-
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
-#endif /* MBEDTLS_PK_C */
 /*
  * Access to members of the pk_info structure. These are meant to be replaced
  * by zero-runtime-cost accessors when a single PK type is hardcoded.

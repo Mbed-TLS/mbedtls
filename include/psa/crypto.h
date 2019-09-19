@@ -57,7 +57,7 @@ extern "C" {
  * algorithms, key types, policies, etc. */
 #include "crypto_types.h"
 
-/** \defgroup API version 
+/** \defgroup API version
  * @{
  */
 

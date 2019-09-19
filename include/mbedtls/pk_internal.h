@@ -41,18 +41,19 @@ struct mbedtls_pk_info_t
     /** Type name */
     const char *name;
 
-    /** Get key size in bits */
+    /** Get key size in bits (must be valid)*/
     size_t (*get_bitlen)( const void * );
 
-    /** Tell if the context implements this type (e.g. ECKEY can do ECDSA) */
+    /** Tell if the context implements this type (e.g. ECKEY can do ECDSA)
+     * (must be valid) */
     int (*can_do)( mbedtls_pk_type_t type );
 
-    /** Verify signature */
+    /** Verify signature (may be NULL) */
     int (*verify_func)( void *ctx, mbedtls_md_type_t md_alg,
                         const unsigned char *hash, size_t hash_len,
                         const unsigned char *sig, size_t sig_len );
 
-    /** Make signature */
+    /** Make signature (may be NULL)*/
     int (*sign_func)( void *ctx, mbedtls_md_type_t md_alg,
                       const unsigned char *hash, size_t hash_len,
                       unsigned char *sig, size_t *sig_len,
@@ -60,13 +61,13 @@ struct mbedtls_pk_info_t
                       void *p_rng );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    /** Verify signature (restartable) */
+    /** Verify signature (restartable) (may be NULL) */
     int (*verify_rs_func)( void *ctx, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hash_len,
                            const unsigned char *sig, size_t sig_len,
                            void *rs_ctx );
 
-    /** Make signature (restartable) */
+    /** Make signature (restartable) (may be NULL) */
     int (*sign_rs_func)( void *ctx, mbedtls_md_type_t md_alg,
                          const unsigned char *hash, size_t hash_len,
                          unsigned char *sig, size_t *sig_len,
@@ -74,36 +75,36 @@ struct mbedtls_pk_info_t
                          void *p_rng, void *rs_ctx );
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-    /** Decrypt message */
+    /** Decrypt message (may be NULL) */
     int (*decrypt_func)( void *ctx, const unsigned char *input, size_t ilen,
                          unsigned char *output, size_t *olen, size_t osize,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng );
 
-    /** Encrypt message */
+    /** Encrypt message (may be NULL ) */
     int (*encrypt_func)( void *ctx, const unsigned char *input, size_t ilen,
                          unsigned char *output, size_t *olen, size_t osize,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng );
 
-    /** Check public-private key pair */
+    /** Check public-private key pair (may be NULL) */
     int (*check_pair_func)( const void *pub, const void *prv );
 
-    /** Allocate a new context */
+    /** Allocate a new context (must be valid) */
     void * (*ctx_alloc_func)( void );
 
-    /** Free the given context */
+    /** Free the given context (must be valid) */
     void (*ctx_free_func)( void *ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    /** Allocate the restart context */
+    /** Allocate the restart context (may be NULL)*/
     void * (*rs_alloc_func)( void );
 
-    /** Free the restart context */
+    /** Free the restart context (may be NULL) */
     void (*rs_free_func)( void *rs_ctx );
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-    /** Interface with the debug module */
+    /** Interface with the debug module (may be NULL) */
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
 
 };

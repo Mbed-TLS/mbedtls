@@ -92,6 +92,9 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
     const unsigned char *hash, size_t hash_len,
     const unsigned char *sig, size_t sig_len )
 {
+    if( info->verify_func == NULL )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+
     return( info->verify_func( ctx, md_alg, hash, hash_len, sig, sig_len ) );
 }
 
@@ -102,6 +105,9 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
     int (*f_rng)(void *, unsigned char *, size_t),
     void *p_rng )
 {
+    if( info->sign_func == NULL )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+
     return( info->sign_func( ctx, md_alg, hash, hash_len, sig, sig_len,
                              f_rng, p_rng ) );
 }
@@ -113,6 +119,9 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
     int (*f_rng)(void *, unsigned char *, size_t),
     void *p_rng )
 {
+    if( info->decrypt_func == NULL )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+
     return( info->decrypt_func( ctx, input, ilen, output, olen, osize,
                                 f_rng, p_rng ) );
 }
@@ -124,6 +133,9 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
     int (*f_rng)(void *, unsigned char *, size_t),
     void *p_rng )
 {
+    if( info->encrypt_func == NULL )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+
     return( info->encrypt_func( ctx, input, ilen, output, olen, osize,
                                 f_rng, p_rng ) );
 }
@@ -131,6 +143,9 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
     const mbedtls_pk_info_t *info, const void *pub, const void *prv )
 {
+    if( info->check_pair_func == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
     return( info->check_pair_func( pub, prv ) );
 }
 
@@ -146,11 +161,15 @@ MBEDTLS_ALWAYS_INLINE static inline void pk_info_ctx_free_func(
     info->ctx_free_func( ctx );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void pk_info_debug_func(
+MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
     const mbedtls_pk_info_t *info,
     const void *ctx, mbedtls_pk_debug_item *items )
 {
+    if( info->debug_func == NULL )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+
     info->debug_func( ctx, items );
+    return( 0 );
 }
 
 /*
@@ -388,9 +407,6 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
     (void) rs_ctx;
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-    if( ctx->pk_info->verify_func == NULL )
-        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-
     return( pk_info_verify_func( ctx->pk_info, ctx->pk_ctx, md_alg, hash, hash_len,
                                        sig, sig_len ) );
 }
@@ -511,9 +527,6 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
     (void) rs_ctx;
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-    if( ctx->pk_info->sign_func == NULL )
-        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-
     return( pk_info_sign_func( ctx->pk_info, ctx->pk_ctx, md_alg, hash, hash_len,
                                      sig, sig_len, f_rng, p_rng ) );
 }
@@ -546,9 +559,6 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    if( ctx->pk_info->decrypt_func == NULL )
-        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-
     return( pk_info_decrypt_func( ctx->pk_info, ctx->pk_ctx, input, ilen,
                 output, olen, osize, f_rng, p_rng ) );
 }
@@ -568,9 +578,6 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
 
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-
-    if( ctx->pk_info->encrypt_func == NULL )
-        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 
     return( pk_info_encrypt_func( ctx->pk_info, ctx->pk_ctx, input, ilen,
                 output, olen, osize, f_rng, p_rng ) );
@@ -600,9 +607,6 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
 
-    if( prv->pk_info->check_pair_func == NULL )
-        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-
     return( pk_info_check_pair_func( prv->pk_info, pub->pk_ctx, prv->pk_ctx ) );
 }
 
@@ -628,11 +632,7 @@ int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *item
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    if( ctx->pk_info->debug_func == NULL )
-        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-
-    pk_info_debug_func( ctx->pk_info, ctx->pk_ctx, items );
-    return( 0 );
+    return( pk_info_debug_func( ctx->pk_info, ctx->pk_ctx, items ) );
 }
 
 /*

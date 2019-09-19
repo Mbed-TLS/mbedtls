@@ -80,7 +80,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		md4.o		md5.o				\
 		memory_buffer_alloc.o		nist_kw.o	\
 		oid.o		padlock.o	pem.o		\
-		pk.o		pk_wrap.o	pkcs12.o	\
+		pk.o		pkcs12.o			\
 		pkcs5.o		pkparse.o	pkwrite.o	\
 		platform.o	platform_util.o	poly1305.o	\
 		ripemd160.o	rsa_internal.o	rsa.o  		\

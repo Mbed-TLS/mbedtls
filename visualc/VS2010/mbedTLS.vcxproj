@@ -271,7 +271,6 @@
     <ClCompile Include="..\..\library\padlock.c" />
     <ClCompile Include="..\..\library\pem.c" />
     <ClCompile Include="..\..\library\pk.c" />
-    <ClCompile Include="..\..\library\pk_wrap.c" />
     <ClCompile Include="..\..\library\pkcs11.c" />
     <ClCompile Include="..\..\library\pkcs12.c" />
     <ClCompile Include="..\..\library\pkcs5.c" />

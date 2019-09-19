@@ -96,21 +96,30 @@ def list_presets(options):
                                    stderr=subprocess.STDOUT).stdout
         return guess_presets_from_help(help_text.decode('ascii'))
 
-def run_one(options, args):
+def run_one(options, args, stem_prefix='', input_file=None):
     """Run the config script with the given arguments.
 
-    Write the following files:
+    Take the original content from input_file if specified, defaulting
+    to options.input_file if input_file is None.
+
+    Write the following files, where xxx contains stem_prefix followed by
+    a filename-friendly encoding of args:
     * config-xxx.h: modified file.
     * config-xxx.out: standard output.
     * config-xxx.err: standard output.
     * config-xxx.status: exit code.
+
+    Return ("xxx+", "path/to/config-xxx.h") which can be used as
+    stem_prefix and input_file to call this function again with new args.
     """
-    stem = '-'.join(args)
+    if input_file is None:
+        input_file = options.input_file
+    stem = stem_prefix + '-'.join(args)
     data_filename = output_file_name(options.output_directory, stem, 'h')
     stdout_filename = output_file_name(options.output_directory, stem, 'out')
     stderr_filename = output_file_name(options.output_directory, stem, 'err')
     status_filename = output_file_name(options.output_directory, stem, 'status')
-    shutil.copy(options.input_file, data_filename)
+    shutil.copy(input_file, data_filename)
     # Pass only the file basename, not the full path, to avoid getting the
     # directory name in error messages, which would make comparisons
     # between output directories more difficult.
@@ -124,6 +133,7 @@ def run_one(options, args):
                                      stdout=out, stderr=err)
     with open(status_filename, 'w') as status_file:
         status_file.write('{}\n'.format(status))
+    return stem + "+", data_filename
 
 ### A list of symbols to test with.
 ### This script currently tests what happens when you change a symbol from
@@ -145,9 +155,11 @@ def run_all(options):
         run_one(options, [preset])
     for symbol in TEST_SYMBOLS:
         run_one(options, ['get', symbol])
-        run_one(options, ['set', symbol])
+        (stem, filename) = run_one(options, ['set', symbol])
+        run_one(options, ['get', symbol], stem_prefix=stem, input_file=filename)
         run_one(options, ['--force', 'set', symbol])
-        run_one(options, ['set', symbol, 'value'])
+        (stem, filename) = run_one(options, ['set', symbol, 'value'])
+        run_one(options, ['get', symbol], stem_prefix=stem, input_file=filename)
         run_one(options, ['--force', 'set', symbol, 'value'])
         run_one(options, ['unset', symbol])
 

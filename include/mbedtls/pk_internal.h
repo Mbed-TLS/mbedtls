@@ -33,6 +33,9 @@
 
 #include "pk.h"
 
+/* Dummy definition to keep check-names.sh happy - don't uncomment */
+//#define MBEDTLS_PK_INFO_ECKEY
+
 struct mbedtls_pk_info_t
 {
     /** Public key type */

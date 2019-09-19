@@ -853,6 +853,18 @@
 #undef MBEDTLS_HASHES_ENABLED
 #endif /* MBEDTLS_MD_SINGLE_HASH */
 
+#if defined(MBEDTLS_PK_SINGLE_TYPE) && !defined(MBEDTLS_USE_TINYCRYPT)
+#error "MBEDTLS_PK_SINGLE_TYPE can only be used with MBEDTLS_USE_TINYCRYPT"
+#endif
+
+#if defined(MBEDTLS_PK_SINGLE_TYPE) && defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
+#error "MBEDTLS_PK_SINGLE_TYPE is not compatible with MBEDTLS_PK_RSA_ALT_SUPPORT"
+#endif
+
+#if defined(MBEDTLS_PK_SINGLE_TYPE) && defined(MBEDTLS_RSA_C)
+#error "MBEDTLS_PK_SINGLE_TYPE is not compatible with MBEDTLS_RSA_C"
+#endif
+
 #if defined(MBEDTLS_THREADING_ALT)
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_ALT defined, but not all prerequisites"

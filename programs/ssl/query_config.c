@@ -2922,6 +2922,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_MD_SINGLE_HASH */
 
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+    if( strcmp( "MBEDTLS_PK_SINGLE_TYPE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PK_SINGLE_TYPE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PK_SINGLE_TYPE */
+
     /* If the symbol is not found, return an error */
     return( 1 );
 }

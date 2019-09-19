@@ -127,13 +127,15 @@ typedef struct mbedtls_pk_debug_item
  * \brief           Public key information and operations
  */
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
+typedef const mbedtls_pk_info_t *mbedtls_pk_handle_t;
+#define MBEDTLS_PK_INVALID_HANDLE ( (mbedtls_pk_handle_t) NULL )
 
 /**
  * \brief           Public key container
  */
 typedef struct mbedtls_pk_context
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
+    mbedtls_pk_handle_t         pk_info; /**< Public key information         */
     void *                      pk_ctx;  /**< Underlying public key context  */
 } mbedtls_pk_context;
 
@@ -151,7 +153,7 @@ typedef struct
  */
 typedef struct
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
+    mbedtls_pk_handle_t         pk_info; /**< Public key information         */
     void *                      rs_ctx;  /**< Underlying restart context     */
 } mbedtls_pk_restart_ctx;
 #else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
@@ -213,7 +215,7 @@ typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
  *
  * \return          The PK info associated with the type or NULL if not found.
  */
-const mbedtls_pk_info_t *mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type );
+mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type );
 
 /**
  * \brief           Initialize a #mbedtls_pk_context (as NONE).
@@ -264,7 +266,7 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
  * \note            For contexts holding an RSA-alt key, use
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
  */
-int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
+int mbedtls_pk_setup( mbedtls_pk_context *ctx, mbedtls_pk_handle_t info );
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**

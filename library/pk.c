@@ -1016,35 +1016,35 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #if defined(MBEDTLS_PK_SINGLE_TYPE)
 
 MBEDTLS_ALWAYS_INLINE static inline mbedtls_pk_type_t pk_info_type(
-    const mbedtls_pk_info_t *info )
+    mbedtls_pk_handle_t info )
 {
     (void) info;
     return( MBEDTLS_PK_INFO_TYPE( MBEDTLS_PK_SINGLE_TYPE ) );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline const char * pk_info_name(
-    const mbedtls_pk_info_t *info )
+    mbedtls_pk_handle_t info )
 {
     (void) info;
     return( MBEDTLS_PK_INFO_NAME( MBEDTLS_PK_SINGLE_TYPE ) );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline size_t pk_info_get_bitlen(
-    const mbedtls_pk_info_t *info, const void *ctx )
+    mbedtls_pk_handle_t info, const void *ctx )
 {
     (void) info;
     return( MBEDTLS_PK_INFO_GET_BITLEN( MBEDTLS_PK_SINGLE_TYPE )( ctx ) );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_can_do(
-    const mbedtls_pk_info_t *info, mbedtls_pk_type_t type )
+    mbedtls_pk_handle_t info, mbedtls_pk_type_t type )
 {
     (void) info;
     return( MBEDTLS_PK_INFO_CAN_DO( MBEDTLS_PK_SINGLE_TYPE )( type ) );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
-    const mbedtls_pk_info_t *info, void *ctx, mbedtls_md_type_t md_alg,
+    mbedtls_pk_handle_t info, void *ctx, mbedtls_md_type_t md_alg,
     const unsigned char *hash, size_t hash_len,
     const unsigned char *sig, size_t sig_len )
 {
@@ -1064,7 +1064,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
-    const mbedtls_pk_info_t *info, void *ctx, mbedtls_md_type_t md_alg,
+    mbedtls_pk_handle_t info, void *ctx, mbedtls_md_type_t md_alg,
     const unsigned char *hash, size_t hash_len,
     unsigned char *sig, size_t *sig_len,
     int (*f_rng)(void *, unsigned char *, size_t),
@@ -1088,7 +1088,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
-    const mbedtls_pk_info_t *info, void *ctx,
+    mbedtls_pk_handle_t info, void *ctx,
     const unsigned char *input, size_t ilen,
     unsigned char *output, size_t *olen, size_t osize,
     int (*f_rng)(void *, unsigned char *, size_t),
@@ -1112,7 +1112,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
-    const mbedtls_pk_info_t *info, void *ctx,
+    mbedtls_pk_handle_t info, void *ctx,
     const unsigned char *input, size_t ilen,
     unsigned char *output, size_t *olen, size_t osize,
     int (*f_rng)(void *, unsigned char *, size_t),
@@ -1136,7 +1136,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
-    const mbedtls_pk_info_t *info, const void *pub, const void *prv )
+    mbedtls_pk_handle_t info, const void *pub, const void *prv )
 {
     (void) info;
 #if MBEDTLS_PK_INFO_CHECK_PAIR_OMIT( MBEDTLS_PK_SINGLE_TYPE )
@@ -1150,21 +1150,21 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline void *pk_info_ctx_alloc_func(
-    const mbedtls_pk_info_t *info )
+    mbedtls_pk_handle_t info )
 {
     (void) info;
     return( MBEDTLS_PK_INFO_CTX_ALLOC_FUNC( MBEDTLS_PK_SINGLE_TYPE )( ) );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline void pk_info_ctx_free_func(
-    const mbedtls_pk_info_t *info, void *ctx )
+    mbedtls_pk_handle_t info, void *ctx )
 {
     (void) info;
     MBEDTLS_PK_INFO_CTX_FREE_FUNC( MBEDTLS_PK_SINGLE_TYPE )( ctx );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
-    const mbedtls_pk_info_t *info,
+    mbedtls_pk_handle_t info,
     const void *ctx, mbedtls_pk_debug_item *items )
 {
     (void) info;
@@ -1180,31 +1180,31 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
 #else /* MBEDTLS_PK_SINGLE_TYPE */
 
 MBEDTLS_ALWAYS_INLINE static inline mbedtls_pk_type_t pk_info_type(
-    const mbedtls_pk_info_t *info )
+    mbedtls_pk_handle_t info )
 {
     return( info->type );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline const char * pk_info_name(
-    const mbedtls_pk_info_t *info )
+    mbedtls_pk_handle_t info )
 {
     return( info->name );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline size_t pk_info_get_bitlen(
-    const mbedtls_pk_info_t *info, const void *ctx )
+    mbedtls_pk_handle_t info, const void *ctx )
 {
     return( info->get_bitlen( ctx ) );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_can_do(
-    const mbedtls_pk_info_t *info, mbedtls_pk_type_t type )
+    mbedtls_pk_handle_t info, mbedtls_pk_type_t type )
 {
     return( info->can_do( type ) );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
-    const mbedtls_pk_info_t *info, void *ctx, mbedtls_md_type_t md_alg,
+    mbedtls_pk_handle_t info, void *ctx, mbedtls_md_type_t md_alg,
     const unsigned char *hash, size_t hash_len,
     const unsigned char *sig, size_t sig_len )
 {
@@ -1215,7 +1215,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
-    const mbedtls_pk_info_t *info, void *ctx, mbedtls_md_type_t md_alg,
+    mbedtls_pk_handle_t info, void *ctx, mbedtls_md_type_t md_alg,
     const unsigned char *hash, size_t hash_len,
     unsigned char *sig, size_t *sig_len,
     int (*f_rng)(void *, unsigned char *, size_t),
@@ -1229,7 +1229,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
-    const mbedtls_pk_info_t *info, void *ctx,
+    mbedtls_pk_handle_t info, void *ctx,
     const unsigned char *input, size_t ilen,
     unsigned char *output, size_t *olen, size_t osize,
     int (*f_rng)(void *, unsigned char *, size_t),
@@ -1243,7 +1243,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
-    const mbedtls_pk_info_t *info, void *ctx,
+    mbedtls_pk_handle_t info, void *ctx,
     const unsigned char *input, size_t ilen,
     unsigned char *output, size_t *olen, size_t osize,
     int (*f_rng)(void *, unsigned char *, size_t),
@@ -1257,7 +1257,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
-    const mbedtls_pk_info_t *info, const void *pub, const void *prv )
+    mbedtls_pk_handle_t info, const void *pub, const void *prv )
 {
     if( info->check_pair_func == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -1266,19 +1266,19 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
 }
 
 MBEDTLS_ALWAYS_INLINE static inline void *pk_info_ctx_alloc_func(
-    const mbedtls_pk_info_t *info )
+    mbedtls_pk_handle_t info )
 {
     return( info->ctx_alloc_func( ) );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline void pk_info_ctx_free_func(
-    const mbedtls_pk_info_t *info, void *ctx )
+    mbedtls_pk_handle_t info, void *ctx )
 {
     info->ctx_free_func( ctx );
 }
 
 MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
-    const mbedtls_pk_info_t *info,
+    mbedtls_pk_handle_t info,
     const void *ctx, mbedtls_pk_debug_item *items )
 {
     if( info->debug_func == NULL )
@@ -1297,7 +1297,7 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx )
 {
     PK_VALIDATE( ctx != NULL );
 
-    ctx->pk_info = NULL;
+    ctx->pk_info = MBEDTLS_PK_INVALID_HANDLE;
     ctx->pk_ctx = NULL;
 }
 
@@ -1309,7 +1309,7 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx )
     if( ctx == NULL )
         return;
 
-    if ( ctx->pk_info != NULL )
+    if ( ctx->pk_info != MBEDTLS_PK_INVALID_HANDLE )
         pk_info_ctx_free_func( ctx->pk_info, ctx->pk_ctx );
 
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
@@ -1331,7 +1331,7 @@ void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx )
  */
 void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx )
 {
-    if( ctx == NULL || ctx->pk_info == NULL ||
+    if( ctx == NULL || ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE ||
         ctx->pk_info->rs_free_func == NULL )
     {
         return;
@@ -1339,7 +1339,7 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx )
 
     ctx->pk_info->rs_free_func( ctx->rs_ctx );
 
-    ctx->pk_info = NULL;
+    ctx->pk_info = MBEDTLS_PK_INVALID_HANDLE;
     ctx->rs_ctx = NULL;
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
@@ -1347,7 +1347,7 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx )
 /*
  * Get pk_info structure from type
  */
-const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
+mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
 {
     switch( pk_type ) {
 #if defined(MBEDTLS_RSA_C)
@@ -1380,11 +1380,14 @@ const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
 /*
  * Initialise context
  */
-int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
+int mbedtls_pk_setup( mbedtls_pk_context *ctx, mbedtls_pk_handle_t info )
 {
     PK_VALIDATE_RET( ctx != NULL );
-    if( info == NULL || ctx->pk_info != NULL )
+    if( info == MBEDTLS_PK_INVALID_HANDLE ||
+        ctx->pk_info != MBEDTLS_PK_INVALID_HANDLE )
+    {
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    }
 
     if( ( ctx->pk_ctx = pk_info_ctx_alloc_func( info ) ) == NULL )
         return( MBEDTLS_ERR_PK_ALLOC_FAILED );
@@ -1404,10 +1407,10 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
                          mbedtls_pk_rsa_alt_key_len_func key_len_func )
 {
     mbedtls_rsa_alt_context *rsa_alt;
-    const mbedtls_pk_info_t *info = &mbedtls_rsa_alt_info;
+    mbedtls_pk_handle_t info = &mbedtls_rsa_alt_info;
 
     PK_VALIDATE_RET( ctx != NULL );
-    if( ctx->pk_info != NULL )
+    if( ctx->pk_info != MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
@@ -1434,7 +1437,7 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
     /* A context with null pk_info is not set up yet and can't do anything.
      * For backward compatibility, also accept NULL instead of a context
      * pointer. */
-    if( ctx == NULL || ctx->pk_info == NULL )
+    if( ctx == NULL || ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE )
         return( 0 );
 
     return( pk_info_can_do( ctx->pk_info, type ) );
@@ -1465,10 +1468,10 @@ static inline int pk_hashlen_helper( mbedtls_md_type_t md_alg, size_t *hash_len 
  * Helper to set up a restart context if needed
  */
 static int pk_restart_setup( mbedtls_pk_restart_ctx *ctx,
-                             const mbedtls_pk_info_t *info )
+                             mbedtls_pk_handle_t info )
 {
     /* Don't do anything if already set up or invalid */
-    if( ctx == NULL || ctx->pk_info != NULL )
+    if( ctx == NULL || ctx->pk_info != MBEDTLS_PK_INVALID_HANDLE )
         return( 0 );
 
     /* Should never happen when we're called */
@@ -1498,7 +1501,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
                      hash != NULL );
     PK_VALIDATE_RET( sig != NULL );
 
-    if( ctx->pk_info == NULL ||
+    if( ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -1553,7 +1556,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
                      hash != NULL );
     PK_VALIDATE_RET( sig != NULL );
 
-    if( ctx->pk_info == NULL )
+    if( ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     if( ! mbedtls_pk_can_do( ctx, type ) )
@@ -1618,7 +1621,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
                      hash != NULL );
     PK_VALIDATE_RET( sig != NULL );
 
-    if( ctx->pk_info == NULL ||
+    if( ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -1674,7 +1677,7 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
     PK_VALIDATE_RET( output != NULL || osize == 0 );
     PK_VALIDATE_RET( olen != NULL );
 
-    if( ctx->pk_info == NULL )
+    if( ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     return( pk_info_decrypt_func( ctx->pk_info, ctx->pk_ctx, input, ilen,
@@ -1694,7 +1697,7 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
     PK_VALIDATE_RET( output != NULL || osize == 0 );
     PK_VALIDATE_RET( olen != NULL );
 
-    if( ctx->pk_info == NULL )
+    if( ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     return( pk_info_encrypt_func( ctx->pk_info, ctx->pk_ctx, input, ilen,
@@ -1709,7 +1712,7 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
     PK_VALIDATE_RET( pub != NULL );
     PK_VALIDATE_RET( prv != NULL );
 
-    if( pub->pk_info == NULL || prv->pk_info == NULL )
+    if( pub->pk_info == MBEDTLS_PK_INVALID_HANDLE || prv->pk_info == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
@@ -1735,7 +1738,7 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
 {
     /* For backward compatibility, accept NULL or a context that
      * isn't set up yet, and return a fake value that should be safe. */
-    if( ctx == NULL || ctx->pk_info == NULL )
+    if( ctx == NULL || ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE )
         return( 0 );
 
     return( pk_info_get_bitlen( ctx->pk_info, ctx->pk_ctx ) );
@@ -1747,7 +1750,7 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
 int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items )
 {
     PK_VALIDATE_RET( ctx != NULL );
-    if( ctx->pk_info == NULL )
+    if( ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     return( pk_info_debug_func( ctx->pk_info, ctx->pk_ctx, items ) );
@@ -1758,7 +1761,7 @@ int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *item
  */
 const char *mbedtls_pk_get_name( const mbedtls_pk_context *ctx )
 {
-    if( ctx == NULL || ctx->pk_info == NULL )
+    if( ctx == NULL || ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE )
         return( "invalid PK" );
 
     return( pk_info_name( ctx->pk_info ) );
@@ -1769,7 +1772,7 @@ const char *mbedtls_pk_get_name( const mbedtls_pk_context *ctx )
  */
 mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
 {
-    if( ctx == NULL || ctx->pk_info == NULL )
+    if( ctx == NULL || ctx->pk_info == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_PK_NONE );
 
     return( pk_info_type( ctx->pk_info ) );

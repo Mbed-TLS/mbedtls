@@ -687,7 +687,7 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
     size_t len;
     mbedtls_asn1_buf alg_params;
     mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
-    const mbedtls_pk_info_t *pk_info;
+    mbedtls_pk_handle_t pk_info;
 
     PK_VALIDATE_RET( p != NULL );
     PK_VALIDATE_RET( *p != NULL );
@@ -712,7 +712,7 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
         return( MBEDTLS_ERR_PK_INVALID_PUBKEY +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
-    if( ( pk_info = mbedtls_pk_info_from_type( pk_alg ) ) == NULL )
+    if( ( pk_info = mbedtls_pk_info_from_type( pk_alg ) ) == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
     if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 )
@@ -1150,7 +1150,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
     mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
-    const mbedtls_pk_info_t *pk_info;
+    mbedtls_pk_handle_t pk_info;
 
     /*
      * This function parses the PrivateKeyInfo object (PKCS#8 v1.2 = RFC 5208)
@@ -1192,7 +1192,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT +
                 MBEDTLS_ERR_ASN1_OUT_OF_DATA );
 
-    if( ( pk_info = mbedtls_pk_info_from_type( pk_alg ) ) == NULL )
+    if( ( pk_info = mbedtls_pk_info_from_type( pk_alg ) ) == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
     if( ( ret = mbedtls_pk_setup( pk, pk_info ) ) != 0 )
@@ -1374,7 +1374,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     defined(MBEDTLS_PEM_PARSE_C)
     int ret;
 #endif
-    const mbedtls_pk_info_t *pk_info;
+    mbedtls_pk_handle_t pk_info;
 #if defined(MBEDTLS_PEM_PARSE_C)
     size_t len;
     mbedtls_pem_context pem;
@@ -1604,7 +1604,7 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     int ret;
     unsigned char *p;
 #if defined(MBEDTLS_RSA_C)
-    const mbedtls_pk_info_t *pk_info;
+    mbedtls_pk_handle_t pk_info;
 #endif
 #if defined(MBEDTLS_PEM_PARSE_C)
     size_t len;
@@ -1631,7 +1631,7 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     if( ret == 0 )
     {
         p = pem.buf;
-        if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
+        if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == MBEDTLS_PK_INVALID_HANDLE )
             return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
         if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 )
@@ -1679,7 +1679,7 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
 #endif /* MBEDTLS_PEM_PARSE_C */
 
 #if defined(MBEDTLS_RSA_C)
-    if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
+    if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
     if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 )

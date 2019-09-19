@@ -107,7 +107,7 @@ void valid_parameters( )
     TEST_VALID_PARAM( mbedtls_pk_restart_free( NULL ) );
 #endif
 
-    TEST_ASSERT( mbedtls_pk_setup( &pk, NULL ) ==
+    TEST_ASSERT( mbedtls_pk_setup( &pk, MBEDTLS_PK_INVALID_HANDLE ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     /* In informational functions, we accept NULL where a context pointer

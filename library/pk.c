@@ -1001,8 +1001,9 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 /*
- * Access to members of the pk_info structure. These are meant to be replaced
- * by zero-runtime-cost accessors when a single PK type is hardcoded.
+ * Access to members of the pk_info structure. When a single PK type is
+ * hardcoded, these should have zero runtime cost; otherwise, the usual
+ * dynamic dispatch based on pk_info is used.
  *
  * For function members, don't make a getter, but a function that directly
  * calls the method, so that we can entirely get rid of function pointers
@@ -1012,6 +1013,171 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
  * MBEDTLS_ECP_RESTARTABLE for now, as the main target for hardcoded is builds
  * with MBEDTLS_USE_TINYCRYPT, which don't have MBEDTLS_ECP_RESTARTABLE.
  */
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_pk_type_t pk_info_type(
+    const mbedtls_pk_info_t *info )
+{
+    (void) info;
+    return( MBEDTLS_PK_INFO_TYPE( MBEDTLS_PK_SINGLE_TYPE ) );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline const char * pk_info_name(
+    const mbedtls_pk_info_t *info )
+{
+    (void) info;
+    return( MBEDTLS_PK_INFO_NAME( MBEDTLS_PK_SINGLE_TYPE ) );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline size_t pk_info_get_bitlen(
+    const mbedtls_pk_info_t *info, const void *ctx )
+{
+    (void) info;
+    return( MBEDTLS_PK_INFO_GET_BITLEN( MBEDTLS_PK_SINGLE_TYPE )( ctx ) );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int pk_info_can_do(
+    const mbedtls_pk_info_t *info, mbedtls_pk_type_t type )
+{
+    (void) info;
+    return( MBEDTLS_PK_INFO_CAN_DO( MBEDTLS_PK_SINGLE_TYPE )( type ) );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
+    const mbedtls_pk_info_t *info, void *ctx, mbedtls_md_type_t md_alg,
+    const unsigned char *hash, size_t hash_len,
+    const unsigned char *sig, size_t sig_len )
+{
+    (void) info;
+#if MBEDTLS_PK_INFO_VERIFY_OMIT( MBEDTLS_PK_SINGLE_TYPE )
+    (void) ctx;
+    (void) md_alg;
+    (void) hash;
+    (void) hash_len;
+    (void) sig;
+    (void) sig_len;
+    return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+#else
+    return( MBEDTLS_PK_INFO_VERIFY_FUNC( MBEDTLS_PK_SINGLE_TYPE )(
+                ctx, md_alg, hash, hash_len, sig, sig_len ) );
+#endif
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
+    const mbedtls_pk_info_t *info, void *ctx, mbedtls_md_type_t md_alg,
+    const unsigned char *hash, size_t hash_len,
+    unsigned char *sig, size_t *sig_len,
+    int (*f_rng)(void *, unsigned char *, size_t),
+    void *p_rng )
+{
+    (void) info;
+#if MBEDTLS_PK_INFO_SIGN_OMIT( MBEDTLS_PK_SINGLE_TYPE )
+    (void) ctx;
+    (void) md_alg;
+    (void) hash;
+    (void) hash_len;
+    (void) sig;
+    (void) sig_len;
+    (void) f_rng;
+    (void) p_rng;
+    return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+#else
+    return( MBEDTLS_PK_INFO_SIGN_FUNC( MBEDTLS_PK_SINGLE_TYPE )(
+                ctx, md_alg, hash, hash_len, sig, sig_len, f_rng, p_rng ) );
+#endif
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
+    const mbedtls_pk_info_t *info, void *ctx,
+    const unsigned char *input, size_t ilen,
+    unsigned char *output, size_t *olen, size_t osize,
+    int (*f_rng)(void *, unsigned char *, size_t),
+    void *p_rng )
+{
+    (void) info;
+#if MBEDTLS_PK_INFO_DECRYPT_OMIT( MBEDTLS_PK_SINGLE_TYPE )
+    (void) ctx;
+    (void) input;
+    (void) ilen;
+    (void) output;
+    (void) olen;
+    (void) osize;
+    (void) f_rng;
+    (void) p_rng;
+    return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+#else
+    return( MBEDTLS_PK_INFO_DECRYPT_FUNC( MBEDTLS_PK_SINGLE_TYPE )(
+                ctx, input, ilen, output, olen, osize, f_rng, p_rng ) );
+#endif
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
+    const mbedtls_pk_info_t *info, void *ctx,
+    const unsigned char *input, size_t ilen,
+    unsigned char *output, size_t *olen, size_t osize,
+    int (*f_rng)(void *, unsigned char *, size_t),
+    void *p_rng )
+{
+    (void) info;
+#if MBEDTLS_PK_INFO_ENCRYPT_OMIT( MBEDTLS_PK_SINGLE_TYPE )
+    (void) ctx;
+    (void) input;
+    (void) ilen;
+    (void) output;
+    (void) olen;
+    (void) osize;
+    (void) f_rng;
+    (void) p_rng;
+    return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+#else
+    return( MBEDTLS_PK_INFO_ENCRYPT_FUNC( MBEDTLS_PK_SINGLE_TYPE )(
+                ctx, input, ilen, output, olen, osize, f_rng, p_rng ) );
+#endif
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
+    const mbedtls_pk_info_t *info, const void *pub, const void *prv )
+{
+    (void) info;
+#if MBEDTLS_PK_INFO_CHECK_PAIR_OMIT( MBEDTLS_PK_SINGLE_TYPE )
+    (void) pub;
+    (void) prv;
+    return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+#else
+    return( MBEDTLS_PK_INFO_CHECK_PAIR_FUNC( MBEDTLS_PK_SINGLE_TYPE )(
+                pub, prv ) );
+#endif
+}
+
+MBEDTLS_ALWAYS_INLINE static inline void *pk_info_ctx_alloc_func(
+    const mbedtls_pk_info_t *info )
+{
+    (void) info;
+    return( MBEDTLS_PK_INFO_CTX_ALLOC_FUNC( MBEDTLS_PK_SINGLE_TYPE )( ) );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline void pk_info_ctx_free_func(
+    const mbedtls_pk_info_t *info, void *ctx )
+{
+    (void) info;
+    MBEDTLS_PK_INFO_CTX_FREE_FUNC( MBEDTLS_PK_SINGLE_TYPE )( ctx );
+}
+
+MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
+    const mbedtls_pk_info_t *info,
+    const void *ctx, mbedtls_pk_debug_item *items )
+{
+    (void) info;
+#if MBEDTLS_PK_INFO_DEBUG_OMIT( MBEDTLS_PK_SINGLE_TYPE )
+    (void) ctx;
+    (void) items;
+    return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+#else
+    return( MBEDTLS_PK_INFO_DEBUG_FUNC( MBEDTLS_PK_SINGLE_TYPE )( ctx, items ) );
+#endif
+}
+
+#else /* MBEDTLS_PK_SINGLE_TYPE */
 
 MBEDTLS_ALWAYS_INLINE static inline mbedtls_pk_type_t pk_info_type(
     const mbedtls_pk_info_t *info )
@@ -1121,6 +1287,8 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
     info->debug_func( ctx, items );
     return( 0 );
 }
+
+#endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Initialise a mbedtls_pk_context

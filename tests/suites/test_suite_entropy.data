@@ -1,10 +1,10 @@
 Create NV seed_file
 nv_seed_file_create:
 
-Entropy write/update seed file
+Entropy write/update seed file [#1]
 entropy_seed_file:"data_files/entropy_seed":0
 
-Entropy write/update seed file
+Entropy write/update seed file [#2]
 entropy_seed_file:"no_such_dir/file":MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR
 
 Entropy too many sources

@@ -1789,7 +1789,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_PEM_PARSE_C */
         for( i = 0; mbedtls_test_cas_der[i] != NULL; i++ )
         {
-            ret = mbedtls_x509_crt_parse_der( cacert,
+            ret = mbedtls_x509_crt_parse_der_nocopy( cacert,
                          (const unsigned char *) mbedtls_test_cas_der[i],
                          mbedtls_test_cas_der_len[i] );
             if( ret != 0 )
@@ -1828,9 +1828,15 @@ int main( int argc, char *argv[] )
     else
 #endif
 #if defined(MBEDTLS_CERTS_C)
-        ret = mbedtls_x509_crt_parse( &clicert,
+#if defined(MBEDTLS_PEM_PARSE_C)
+        ret = mbedtls_x509_crt_parse( clicert,
                 (const unsigned char *) mbedtls_test_cli_crt,
                 mbedtls_test_cli_crt_len );
+#else
+        ret = mbedtls_x509_crt_parse_der_nocopy( clicert,
+                (const unsigned char *) mbedtls_test_cli_crt,
+                mbedtls_test_cli_crt_len );
+#endif
 #else
     {
         ret = 1;

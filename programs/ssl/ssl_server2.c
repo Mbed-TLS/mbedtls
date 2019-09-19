@@ -2545,7 +2545,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_PEM_PARSE_C */
         for( i = 0; mbedtls_test_cas_der[i] != NULL; i++ )
         {
-            ret = mbedtls_x509_crt_parse_der( cacert,
+            ret = mbedtls_x509_crt_parse_der_nocopy( cacert,
                          (const unsigned char *) mbedtls_test_cas_der[i],
                          mbedtls_test_cas_der_len[i] );
             if( ret != 0 )

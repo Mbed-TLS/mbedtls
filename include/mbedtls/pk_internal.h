@@ -242,6 +242,7 @@ typedef struct
 } mbedtls_rsa_alt_context;
 #endif
 
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
 #if defined(MBEDTLS_RSA_C)
 extern const mbedtls_pk_info_t mbedtls_rsa_info;
 #endif
@@ -262,5 +263,6 @@ extern const mbedtls_pk_info_t mbedtls_uecc_eckey_info;
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #endif
+#endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 #endif /* MBEDTLS_PK_WRAP_H */

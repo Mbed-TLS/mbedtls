@@ -126,9 +126,16 @@ typedef struct mbedtls_pk_debug_item
 /**
  * \brief           Public key information and operations
  */
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+typedef enum {
+    MBEDTLS_PK_INVALID_HANDLE,
+    MBEDTLS_PK_UNIQUE_VALID_HANDLE,
+} mbedtls_pk_handle_t;
+#else /* MBEDTLS_PK_SINGLE_TYPE */
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 typedef const mbedtls_pk_info_t *mbedtls_pk_handle_t;
 #define MBEDTLS_PK_INVALID_HANDLE ( (mbedtls_pk_handle_t) NULL )
+#endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 /**
  * \brief           Public key container

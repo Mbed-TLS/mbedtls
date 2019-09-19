@@ -125,20 +125,17 @@ def run_one(options, args):
     with open(status_filename, 'w') as status_file:
         status_file.write('{}\n'.format(status))
 
-### A list of symbols to test with set and unset.
+### A list of symbols to test with.
+### This script currently tests what happens when you change a symbol from
+### having a value to not having a value or vice versa. This is not
+### necessarily useful behavior, and we may not consider it a bug if
+### config.py stops handling that case correctly.
 TEST_SYMBOLS = [
-    'CUSTOM_OPTION',
-    'MBEDTLS_AES_C',
-    'MBEDTLS_MPI_MAX_SIZE',
-    'MBEDTLS_NO_UDBL_DIVISION',
-    'MBEDTLS_PLATFORM_ZEROIZE_ALT',
-]
-
-### A list of symbols to test with set with a value.
-TEST_SYMBOLS_WITH_VALUE = [
-    'CUSTOM_VALUE',
-    'MBEDTLS_AES_C',
-    'MBEDTLS_MPI_MAX_SIZE',
+    'CUSTOM_SYMBOL', # does not exist
+    'MBEDTLS_AES_C', # set, no value
+    'MBEDTLS_MPI_MAX_SIZE', # unset, has a value
+    'MBEDTLS_NO_UDBL_DIVISION', # unset, in "System support"
+    'MBEDTLS_PLATFORM_ZEROIZE_ALT', # unset, in "Customisation configuration options"
 ]
 
 def run_all(options):
@@ -150,9 +147,6 @@ def run_all(options):
         run_one(options, ['get', symbol])
         run_one(options, ['set', symbol])
         run_one(options, ['--force', 'set', symbol])
-        run_one(options, ['unset', symbol])
-    for symbol in TEST_SYMBOLS_WITH_VALUE:
-        run_one(options, ['get', symbol])
         run_one(options, ['set', symbol, 'value'])
         run_one(options, ['--force', 'set', symbol, 'value'])
         run_one(options, ['unset', symbol])

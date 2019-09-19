@@ -226,7 +226,14 @@ static psa_key_usage_t psa_get_key_usage_flags(
 /** Declare the permitted algorithm policy for a key.
  *
  * The permitted algorithm policy of a key encodes which algorithm or
- * algorithms are permitted to be used with this key.
+ * algorithms are permitted to be used with this key. The following
+ * algorithm policies are supported:
+ * - 0 does not allow any cryptographic operation with the key. The key
+ *   may be used for non-cryptographic actions such as exporting (if
+ *   permitted by the usage flags).
+ * - An algorithm value permits this particular algorithm.
+ * - An algorithm wildcard built from #PSA_ALG_ANY_HASH allows the specified
+ *   signature scheme with any hash algorithm.
  *
  * This function overwrites any algorithm policy
  * previously set in \p attributes.
@@ -266,6 +273,8 @@ static psa_algorithm_t psa_get_key_algorithm(
  *
  * \param[out] attributes       The attribute structure to write to.
  * \param type                  The key type to write.
+ *                              If this is 0, the key type in \p attributes
+ *                              becomes unspecified.
  */
 static void psa_set_key_type(psa_key_attributes_t *attributes,
                              psa_key_type_t type);
@@ -281,6 +290,9 @@ static void psa_set_key_type(psa_key_attributes_t *attributes,
  *
  * \param[out] attributes       The attribute structure to write to.
  * \param bits                  The key size in bits.
+ *                              If this is 0, the key size in \p attributes
+ *                              becomes unspecified. Keys of size 0 are
+ *                              not supported.
  */
 static void psa_set_key_bits(psa_key_attributes_t *attributes,
                              size_t bits);
@@ -591,6 +603,13 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  * and to the documentation of psa_export_key() for the format for
  * other key types.
  *
+ * The key data determines the key size. The attributes may optionally
+ * specify a key size; in this case it must match the size determined
+ * from the key data. A key size of 0 in \p attributes indicates that
+ * the key size is solely determined by the key data.
+ *
+ * Implementations must reject an attempt to import a key of size 0.
+ *
  * This specification supports a single format for each key type.
  * Implementations may support other formats as long as the standard
  * format is supported. Implementations that support other formats
@@ -598,7 +617,6 @@ psa_status_t psa_destroy_key(psa_key_handle_t handle);
  * minimize the risk that an invalid input is accidentally interpreted
  * according to a different format.
  *
-
  * \param[in] attributes    The attributes for the new key.
  *                          The key size is always determined from the
  *                          \p data buffer.
@@ -3102,6 +3120,8 @@ static psa_key_derivation_operation_t psa_key_derivation_operation_init(void);
  * - Clean up the key derivation operation object with
  *   psa_key_derivation_abort().
  *
+ * Implementations must reject an attempt to derive a key of size 0.
+ *
  * \param[in,out] operation       The key derivation operation object
  *                                to set up. It must
  *                                have been initialized but not set up yet.
@@ -3385,6 +3405,9 @@ psa_status_t psa_key_derivation_output_bytes(
  *
  * This function calculates output bytes from a key derivation algorithm
  * and uses those bytes to generate a key deterministically.
+ * The key's location, usage policy, type and size are taken from
+ * \p attributes.
+ *
  * If you view the key derivation's output as a stream of bytes, this
  * function destructively reads as many bytes as required from the
  * stream.
@@ -3627,7 +3650,9 @@ psa_status_t psa_generate_random(uint8_t *output,
  * \brief Generate a key or key pair.
  *
  * The key is generated randomly.
- * Its location, policy, type and size are taken from \p attributes.
+ * Its location, usage policy, type and size are taken from \p attributes.
+ *
+ * Implementations must reject an attempt to generate a key of size 0.
  *
  * The following type-specific considerations apply:
  * - For RSA keys (#PSA_KEY_TYPE_RSA_KEY_PAIR),

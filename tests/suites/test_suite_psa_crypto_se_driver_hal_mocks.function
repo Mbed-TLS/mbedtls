@@ -396,6 +396,7 @@ void mock_generate( int mock_alloc_return_value,
     psa_set_key_lifetime( &attributes, lifetime );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+    psa_set_key_bits( &attributes, 8 );
     TEST_ASSERT( psa_generate_key( &attributes, &handle ) == expected_result );
     TEST_ASSERT( mock_allocate_data.called == 1 );
     TEST_ASSERT( mock_generate_data.called ==
@@ -482,6 +483,8 @@ void mock_sign( int mock_sign_return_value, int expected_result )
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     psa_algorithm_t algorithm = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
+    const uint8_t hash[1] = {'H'};
+    uint8_t signature[1] = {'S'};
     size_t signature_length;
 
     mock_sign_data.return_value = mock_sign_return_value;
@@ -512,7 +515,9 @@ void mock_sign( int mock_sign_return_value, int expected_result )
                                 key_material, sizeof( key_material ),
                                 &handle ) );
 
-    TEST_ASSERT( psa_asymmetric_sign( handle, algorithm, NULL, 0, NULL, 0,
+    TEST_ASSERT( psa_asymmetric_sign( handle, algorithm,
+                                      hash, sizeof( hash ),
+                                      signature, sizeof( signature ),
                                       &signature_length)
                  == expected_result );
     TEST_ASSERT( mock_sign_data.called == 1 );
@@ -538,6 +543,8 @@ void mock_verify( int mock_verify_return_value, int expected_result )
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t key_material[3] = {0xfa, 0xca, 0xde};
     psa_algorithm_t algorithm = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
+    const uint8_t hash[1] = {'H'};
+    const uint8_t signature[1] = {'S'};
 
     mock_verify_data.return_value = mock_verify_return_value;
     memset( &driver, 0, sizeof( driver ) );
@@ -567,7 +574,9 @@ void mock_verify( int mock_verify_return_value, int expected_result )
                                 key_material, sizeof( key_material ),
                                 &handle ) );
 
-    TEST_ASSERT( psa_asymmetric_verify( handle, algorithm, NULL, 0, NULL, 0)
+    TEST_ASSERT( psa_asymmetric_verify( handle, algorithm,
+                                        hash, sizeof( hash ),
+                                        signature, sizeof( signature ) )
                  == expected_result );
     TEST_ASSERT( mock_verify_data.called == 1 );
 

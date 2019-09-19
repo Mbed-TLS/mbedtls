@@ -606,32 +606,32 @@ pre_check_tools () {
 # Indicative running times are given for reference.
 
 component_check_recursion () {
-    msg "test: recursion.pl" # < 1s
+    msg "Check: recursion.pl" # < 1s
     record_status tests/scripts/recursion.pl library/*.c
 }
 
 component_check_generated_files () {
-    msg "test: freshness of generated source files" # < 1s
+    msg "Check: freshness of generated source files" # < 1s
     record_status tests/scripts/check-generated-files.sh
 }
 
 component_check_doxy_blocks () {
-    msg "test: doxygen markup outside doxygen blocks" # < 1s
+    msg "Check: doxygen markup outside doxygen blocks" # < 1s
     record_status tests/scripts/check-doxy-blocks.pl
 }
 
 component_check_files () {
-    msg "test: check-files.py" # < 1s
+    msg "Check: file sanity checks (permissions, encodings)" # < 1s
     record_status tests/scripts/check-files.py
 }
 
 component_check_names () {
-    msg "test/build: declared and exported names" # < 3s
+    msg "Check: declared and exported names (builds the library)" # < 3s
     record_status tests/scripts/check-names.sh -v
 }
 
 component_check_doxygen_warnings () {
-    msg "test: doxygen warnings" # ~ 3s
+    msg "Check: doxygen warnings (builds the documentation)" # ~ 3s
     record_status tests/scripts/doxygen.sh
 }
 

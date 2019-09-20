@@ -60,10 +60,10 @@ def check_description(results, seen, file_name, line_number, description):
                       'Duplicate description (also line {})',
                       seen[description])
         return
-    if re.search(r'[\t;]', description):
+    if re.search(br'[\t;]', description):
         results.error(file_name, line_number,
                       'Forbidden character \'{}\' in description',
-                      re.search(r'[\t;]', description).group(0))
+                      re.search(br'[\t;]', description).group(0).decode('ascii'))
     if len(description) > 66:
         results.warning(file_name, line_number,
                         'Test description too long ({} > 66)',
@@ -73,15 +73,13 @@ def check_description(results, seen, file_name, line_number, description):
 def check_test_suite(results, data_file_name):
     in_paragraph = False
     descriptions = {}
-    line_number = 0
-    with open(data_file_name) as data_file:
-        for line in data_file:
-            line_number += 1
-            line = line.rstrip('\r\n')
+    with open(data_file_name, 'rb') as data_file:
+        for line_number, line in enumerate(data_file, 1):
+            line = line.rstrip(b'\r\n')
             if not line:
                 in_paragraph = False
                 continue
-            if line.startswith('#'):
+            if line.startswith(b'#'):
                 continue
             if not in_paragraph:
                 # This is a test case description line.
@@ -91,14 +89,12 @@ def check_test_suite(results, data_file_name):
 
 def check_ssl_opt_sh(results, file_name):
     descriptions = {}
-    line_number = 0
-    with open(file_name) as file_contents:
-        for line in file_contents:
-            line_number += 1
+    with open(file_name, 'rb') as file_contents:
+        for line_number, line in enumerate(file_contents, 1):
             # Assume that all run_test calls have the same simple form
             # with the test description entirely on the same line as the
             # function name.
-            m = re.match(r'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
+            m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
             if not m:
                 continue
             description = m.group(1)

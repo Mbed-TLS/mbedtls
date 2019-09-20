@@ -1520,7 +1520,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
                                     int make_copy )
 {
     int ret;
-    mbedtls_x509_crt_frame *frame;
+    mbedtls_x509_crt_frame frame;
     mbedtls_x509_crt_cache *cache;
 
     if( crt == NULL || buf == NULL )
@@ -1547,64 +1547,36 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         crt->own_buffer = 1;
     }
 
-    cache = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_cache ) );
-    if( cache == NULL )
-    {
-        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
-        goto exit;
-    }
-    crt->cache = cache;
-    x509_crt_cache_init( cache );
-
-#if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
-
-    ret = mbedtls_x509_crt_cache_provide_frame( crt );
+    ret = mbedtls_x509_crt_get_frame( crt, &frame );
     if( ret != 0 )
         goto exit;
 
-    frame = crt->cache->frame;
-
-#else /* MBEDTLS_X509_ON_DEMAND_PARSING */
-
-    frame = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_frame ) );
-    if( frame == NULL )
-    {
-        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
-        goto exit;
-    }
-    cache->frame = frame;
-
-    ret = x509_crt_parse_frame( crt->raw.p,
-                                crt->raw.p + crt->raw.len,
-                                frame );
-    if( ret != 0 )
-        goto exit;
-
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
     /* Copy frame to legacy CRT structure -- that's inefficient, but if
      * memory matters, the new CRT structure should be used anyway. */
-    x509_buf_raw_to_buf( &crt->tbs, &frame->tbs );
-    x509_buf_raw_to_buf( &crt->serial, &frame->serial );
-    x509_buf_raw_to_buf( &crt->issuer_raw, &frame->issuer_raw );
-    x509_buf_raw_to_buf( &crt->subject_raw, &frame->subject_raw );
+    x509_buf_raw_to_buf( &crt->tbs, &frame.tbs );
+    x509_buf_raw_to_buf( &crt->serial, &frame.serial );
+    x509_buf_raw_to_buf( &crt->issuer_raw, &frame.issuer_raw );
+    x509_buf_raw_to_buf( &crt->subject_raw, &frame.subject_raw );
 #if !defined(MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID)
-    x509_buf_raw_to_buf( &crt->issuer_id, &frame->issuer_id );
-    x509_buf_raw_to_buf( &crt->subject_id, &frame->subject_id );
+    x509_buf_raw_to_buf( &crt->issuer_id, &frame.issuer_id );
+    x509_buf_raw_to_buf( &crt->subject_id, &frame.subject_id );
 #endif /* !MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID */
-    x509_buf_raw_to_buf( &crt->pk_raw, &frame->pubkey_raw );
-    x509_buf_raw_to_buf( &crt->sig, &frame->sig );
-    x509_buf_raw_to_buf( &crt->v3_ext, &frame->v3_ext );
+    x509_buf_raw_to_buf( &crt->pk_raw, &frame.pubkey_raw );
+    x509_buf_raw_to_buf( &crt->sig, &frame.sig );
+    x509_buf_raw_to_buf( &crt->v3_ext, &frame.v3_ext );
 
 #if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
-    crt->valid_from = frame->valid_from;
-    crt->valid_to = frame->valid_to;
+    crt->valid_from = frame.valid_from;
+    crt->valid_to = frame.valid_to;
 #endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
 
-    crt->version      = frame->version;
-    crt->ca_istrue    = frame->ca_istrue;
-    crt->max_pathlen  = frame->max_pathlen;
-    crt->ext_types    = frame->ext_types;
-    crt->key_usage    = frame->key_usage;
-    crt->ns_cert_type = frame->ns_cert_type;
+    crt->version      = frame.version;
+    crt->ca_istrue    = frame.ca_istrue;
+    crt->max_pathlen  = frame.max_pathlen;
+    crt->ext_types    = frame.ext_types;
+    crt->key_usage    = frame.key_usage;
+    crt->ns_cert_type = frame.ns_cert_type;
 
     /*
      * Obtain the remaining fields from the frame.
@@ -1613,8 +1585,8 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     {
         /* sig_oid: Previously, needed for convenience in
          * mbedtls_x509_crt_info(), now pure legacy burden. */
-        unsigned char *tmp = frame->sig_alg.p;
-        unsigned char *end = tmp + frame->sig_alg.len;
+        unsigned char *tmp = frame.sig_alg.p;
+        unsigned char *end = tmp + frame.sig_alg.len;
         mbedtls_x509_buf sig_oid, sig_params;
 
         ret = mbedtls_x509_get_alg( &tmp, end,
@@ -1630,7 +1602,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         crt->sig_oid = sig_oid;
 
         /* Signature parameters */
-        tmp = frame->sig_alg.p;
+        tmp = frame.sig_alg.p;
         ret = mbedtls_x509_get_sig_alg_raw( &tmp, end,
                                             &crt->sig_md, &crt->sig_pk,
                                             &crt->sig_opts );
@@ -1642,25 +1614,25 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         }
     }
 
-    ret = x509_crt_pk_from_frame( frame, &crt->pk );
+    ret = x509_crt_pk_from_frame( &frame, &crt->pk );
     if( ret != 0 )
         goto exit;
 
-    ret = x509_crt_subject_from_frame( frame, &crt->subject );
+    ret = x509_crt_subject_from_frame( &frame, &crt->subject );
     if( ret != 0 )
         goto exit;
 
-    ret = x509_crt_issuer_from_frame( frame, &crt->issuer );
+    ret = x509_crt_issuer_from_frame( &frame, &crt->issuer );
     if( ret != 0 )
         goto exit;
 
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
-    ret = x509_crt_subject_alt_from_frame( frame, &crt->subject_alt_names );
+    ret = x509_crt_subject_alt_from_frame( &frame, &crt->subject_alt_names );
     if( ret != 0 )
         goto exit;
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
 
-    ret = x509_crt_ext_key_usage_from_frame( frame, &crt->ext_key_usage );
+    ret = x509_crt_ext_key_usage_from_frame( &frame, &crt->ext_key_usage );
     if( ret != 0 )
         goto exit;
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
@@ -1672,30 +1644,30 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
      * full size of the heap buffer allocated at `crt->raw.p` in case
      * of copy-mode, but this is not a problem: freeing the buffer doesn't
      * need the size, and the garbage data doesn't need zeroization. */
-    crt->raw.len = frame->raw.len;
+    crt->raw.len = frame.raw.len;
 
 #if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
-    crt->pk_raw = frame->pubkey_raw;
+    crt->pk_raw = frame.pubkey_raw;
 #endif
 
-    /* Free the frame before parsing the public key to
-     * keep peak RAM usage low. This is slightly inefficient
-     * because the frame will need to be parsed again on the
-     * first usage of the CRT, but that seems acceptable.
-     * As soon as the frame gets used multiple times, it
-     * will be cached by default. */
-    x509_crt_cache_clear_frame( crt->cache );
+    {
+        mbedtls_pk_context pk;
+        mbedtls_pk_init( &pk );
+        ret = mbedtls_x509_crt_get_pk( crt, &pk );
+        mbedtls_pk_free( &pk );
 
-    /* The cache just references the PK structure from the legacy
-     * implementation, so set up the latter first before setting up
-     * the cache.
-     *
-     * We're not actually using the parsed PK context here;
-     * we just parse it to check that it's well-formed. */
-    ret = mbedtls_x509_crt_cache_provide_pk( crt );
-    if( ret != 0 )
+        if( ret != 0 )
+            goto exit;
+    }
+
+    cache = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_cache ) );
+    if( cache == NULL )
+    {
+        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
         goto exit;
-    x509_crt_cache_clear_pk( crt->cache );
+    }
+    crt->cache = cache;
+    x509_crt_cache_init( cache );
 
 exit:
     if( ret != 0 )

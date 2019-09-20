@@ -962,6 +962,30 @@ component_test_cmake_shared () {
     make test
 }
 
+test_build_opt () {
+    info=$1 cc=$2; shift 2
+    for opt in "$@"; do
+          msg "build/test: $cc $opt, $info" # ~ 30s
+          make CC="$cc" CFLAGS="$opt -Wall -Wextra -Werror"
+          # We're confident enough in compilers to not run _all_ the tests,
+          # but at least run the unit tests. In particular, runs with
+          # optimizations use inline assembly whereas runs with -O0
+          # skip inline assembly.
+          make test # ~30s
+          make clean
+    done
+}
+
+component_test_clang_opt () {
+    scripts/config.pl full
+    test_build_opt 'full config' clang -O0 -Os -O2
+}
+
+component_test_gcc_opt () {
+    scripts/config.pl full
+    test_build_opt 'full config' gcc -O0 -Os -O2
+}
+
 component_build_mbedtls_config_file () {
     msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
     # Use the full config so as to catch a maximum of places where

@@ -64,6 +64,9 @@ def check_description(results, seen, file_name, line_number, description):
         results.error(file_name, line_number,
                       'Forbidden character \'{}\' in description',
                       re.search(br'[\t;]', description).group(0).decode('ascii'))
+    if re.search(br'[^ -~]', description):
+        results.error(file_name, line_number,
+                      'Non-ASCII character in description')
     if len(description) > 66:
         results.warning(file_name, line_number,
                         'Test description too long ({} > 66)',

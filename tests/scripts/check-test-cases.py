@@ -37,7 +37,7 @@ class Results:
 
     def warning(self, file_name, line_number, fmt, *args):
         sys.stderr.write(('{}:{}:Warning:' + fmt + '\n')
-                         .format(file_name, line_number, args))
+                         .format(file_name, line_number, *args))
         self.warnings += 1
 
 def collect_test_directories():

@@ -54,6 +54,22 @@ def collect_test_directories():
         directories.append(crypto_tests_dir)
     return directories
 
+def check_description(results, seen, file_name, line_number, description):
+    if description in seen:
+        results.error(file_name, line_number,
+                      'Duplicate description (also line {})',
+                      seen[description])
+        return
+    if re.search(r'[\t;]', description):
+        results.error(file_name, line_number,
+                      'Forbidden character \'{}\' in description',
+                      re.search(r'[\t;]', description).group(0))
+    if len(description) > 66:
+        results.warning(file_name, line_number,
+                        'Test description too long ({} > 66)',
+                        len(description))
+    seen[description] = line_number
+
 def check_test_suite(results, data_file_name):
     in_paragraph = False
     descriptions = {}
@@ -69,18 +85,8 @@ def check_test_suite(results, data_file_name):
                 continue
             if not in_paragraph:
                 # This is a test case description line.
-                if line in descriptions:
-                    results.error(data_file_name, line_number,
-                                  'Duplicate description (also line {}): {}',
-                                  descriptions[line], line)
-                else:
-                    if re.search(r'[\t;]', line):
-                        results.error(data_file_name, line_number,
-                                      'Forbidden character in description')
-                    if len(line) > 66:
-                        results.warning(data_file_name, line_number,
-                                        'Test description will be truncated')
-                    descriptions[line] = line_number
+                check_description(results, descriptions,
+                                  data_file_name, line_number, line)
             in_paragraph = True
 
 def check_ssl_opt_sh(results, file_name):
@@ -96,18 +102,8 @@ def check_ssl_opt_sh(results, file_name):
             if not m:
                 continue
             description = m.group(1)
-            if description in descriptions:
-                results.error(data_file_name, line_number,
-                              'Duplicate description (also line {}): {}',
-                              descriptions[line], line)
-            else:
-                if re.search(r'[\t;]', line):
-                    results.error(data_file_name, line_number,
-                                  'Forbidden character in description')
-                if len(line) > 66:
-                    results.warning(data_file_name, line_number,
-                                    'Test description will break visual alignment')
-                descriptions[line] = line_number
+            check_description(results, descriptions,
+                              file_name, line_number, description)
 
 def main():
     test_directories = collect_test_directories()

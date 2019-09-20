@@ -182,7 +182,7 @@ mbedtls_asn1_named_data;
  *              after the length, i.e. the first byte of the content.
  *              On error, the value of \c *p is undefined.
  * \param end   End of data.
- * \param len   On successful completion, \c *len contains the lengtth
+ * \param len   On successful completion, \c *len contains the length
  *              read from the ASN.1 input.
  *
  * \return      0 if successful.
@@ -204,7 +204,7 @@ int mbedtls_asn1_get_len( unsigned char **p,
  *              after the length, i.e. the first byte of the content.
  *              On error, the value of \c *p is undefined.
  * \param end   End of data.
- * \param len   On successful completion, \c *len contains the lengtth
+ * \param len   On successful completion, \c *len contains the length
  *              read from the ASN.1 input.
  * \param tag   The expected tag.
  *
@@ -304,8 +304,8 @@ int mbedtls_asn1_get_bitstring_null( unsigned char **p,
                                      size_t *len );
 
 /**
- * \brief       Parses and splits an ASN.1 "SEQUENCE OF <tag>"
- *              Updated the pointer to immediately behind the full sequence tag.
+ * \brief       Parses and splits an ASN.1 "SEQUENCE OF <tag>".
+ *              Updates the pointer to immediately behind the full sequence tag.
  *
  * \note        On error, this function may return a partial list in \p cur.
  *              You must set `cur->next = NULL` before calling this function!

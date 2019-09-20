@@ -109,7 +109,12 @@ typedef struct mbedtls_x509_crt
 {
     int own_buffer;                     /**< Indicates if \c raw is owned
                                          *   by the structure or not.         */
+#if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
     mbedtls_x509_buf raw;               /**< The raw certificate data (DER).  */
+#else
+    mbedtls_x509_buf_raw raw;           /**< The raw certificate data (DER).  */
+    mbedtls_x509_buf_raw pk_raw;        /**< The raw certificate data (DER).  */
+#endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
     mbedtls_x509_crt_cache *cache;      /**< Internal parsing cache.      */
 
     struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */

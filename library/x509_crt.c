@@ -282,7 +282,7 @@ int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
     return( 0 );
 #else
     {
-        mbedtls_x509_buf_raw pk_raw = cache->pk_raw;
+        mbedtls_x509_buf_raw pk_raw = crt->pk_raw;
         return( mbedtls_pk_parse_subpubkey( &pk_raw.p,
                                             pk_raw.p + pk_raw.len,
                                             pk ) );
@@ -446,7 +446,7 @@ int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
                              mbedtls_pk_context *dst )
 {
 #if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
-    mbedtls_x509_buf_raw pk_raw = crt->cache->pk_raw;
+    mbedtls_x509_buf pk_raw = crt->pk_raw;
     return( mbedtls_pk_parse_subpubkey( &pk_raw.p,
                                         pk_raw.p + pk_raw.len,
                                         dst ) );
@@ -1691,7 +1691,9 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
      * need the size, and the garbage data doesn't need zeroization. */
     crt->raw.len = frame->raw.len;
 
-    cache->pk_raw = frame->pubkey_raw;
+#if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+    crt->pk_raw = frame->pubkey_raw;
+#endif
 
     /* Free the frame before parsing the public key to
      * keep peak RAM usage low. This is slightly inefficient

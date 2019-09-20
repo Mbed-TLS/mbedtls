@@ -46,7 +46,6 @@ typedef struct mbedtls_x509_crt_cache
     mbedtls_threading_mutex_t frame_mutex;
     mbedtls_threading_mutex_t pk_mutex;
 #endif
-    mbedtls_x509_buf_raw pk_raw;
     struct mbedtls_x509_crt_frame *frame;
     struct mbedtls_pk_context *pk;
 } mbedtls_x509_crt_cache;

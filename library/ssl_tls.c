@@ -7470,8 +7470,8 @@ crt_verify:
         crt_len   = chain->raw.len;
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-        pk_start = chain->cache->pk_raw.p;
-        pk_len   = chain->cache->pk_raw.len;
+        pk_start = chain->pk_raw.p;
+        pk_len   = chain->pk_raw.len;
 
         /* Free the CRT structures before computing
          * digest and copying the peer's public key. */

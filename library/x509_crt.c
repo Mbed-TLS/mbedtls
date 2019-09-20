@@ -210,49 +210,7 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
     cache->frame = frame;
 
-#if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
-    /* This would work with !MBEDTLS_X509_ON_DEMAND_PARSING, too,
-     * but is inefficient compared to copying the respective fields
-     * from the legacy mbedtls_x509_crt. */
-    return( x509_crt_parse_frame( crt->raw.p,
-                                  crt->raw.p + crt->raw.len,
-                                  frame ) );
-#else /* MBEDTLS_X509_ON_DEMAND_PARSING */
-    /* Make sure all extension related fields are properly initialized. */
-    frame->ca_istrue = 0;
-    frame->max_pathlen = 0;
-    frame->ext_types = 0;
-    frame->version = crt->version;
-    frame->sig_md = crt->sig_md;
-    frame->sig_pk = crt->sig_pk;
-
-#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
-    frame->valid_from = crt->valid_from;
-    frame->valid_to = crt->valid_to;
-#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
-
-    x509_buf_to_buf_raw( &frame->raw, &crt->raw );
-    x509_buf_to_buf_raw( &frame->tbs, &crt->tbs );
-    x509_buf_to_buf_raw( &frame->serial, &crt->serial );
-    x509_buf_to_buf_raw( &frame->pubkey_raw, &crt->pk_raw );
-    x509_buf_to_buf_raw( &frame->issuer_raw, &crt->issuer_raw );
-    x509_buf_to_buf_raw( &frame->subject_raw, &crt->subject_raw );
-#if !defined(MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID)
-    x509_buf_to_buf_raw( &frame->subject_id, &crt->subject_id );
-    x509_buf_to_buf_raw( &frame->issuer_id, &crt->issuer_id );
-#endif /* !MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID */
-    x509_buf_to_buf_raw( &frame->sig, &crt->sig );
-    x509_buf_to_buf_raw( &frame->v3_ext, &crt->v3_ext );
-
-    /* The legacy CRT structure doesn't explicitly contain
-     * the `AlgorithmIdentifier` bounds; however, those can
-     * be inferred from the surrounding (mandatory) `SerialNumber`
-     * and `Issuer` fields. */
-    frame->sig_alg.p = crt->serial.p + crt->serial.len;
-    frame->sig_alg.len = crt->issuer_raw.p - frame->sig_alg.p;
-
-    return( x509_crt_frame_parse_ext( frame ) );
-#endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
+    return( mbedtls_x509_crt_get_frame( crt, frame ) );
 }
 
 int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
@@ -430,11 +388,52 @@ int mbedtls_x509_crt_get_issuer( mbedtls_x509_crt const *crt,
 }
 
 int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
-                                mbedtls_x509_crt_frame *dst )
+                                mbedtls_x509_crt_frame *frame )
 {
+
+#if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+    /* This would work with !MBEDTLS_X509_ON_DEMAND_PARSING, too,
+     * but is inefficient compared to copying the respective fields
+     * from the legacy mbedtls_x509_crt. */
     return( x509_crt_parse_frame( crt->raw.p,
                                   crt->raw.p + crt->raw.len,
-                                  dst ) );
+                                  frame ) );
+#else /* MBEDTLS_X509_ON_DEMAND_PARSING */
+    /* Make sure all extension related fields are properly initialized. */
+    frame->ca_istrue = 0;
+    frame->max_pathlen = 0;
+    frame->ext_types = 0;
+    frame->version = crt->version;
+    frame->sig_md = crt->sig_md;
+    frame->sig_pk = crt->sig_pk;
+
+#if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
+    frame->valid_from = crt->valid_from;
+    frame->valid_to = crt->valid_to;
+#endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
+
+    x509_buf_to_buf_raw( &frame->raw, &crt->raw );
+    x509_buf_to_buf_raw( &frame->tbs, &crt->tbs );
+    x509_buf_to_buf_raw( &frame->serial, &crt->serial );
+    x509_buf_to_buf_raw( &frame->pubkey_raw, &crt->pk_raw );
+    x509_buf_to_buf_raw( &frame->issuer_raw, &crt->issuer_raw );
+    x509_buf_to_buf_raw( &frame->subject_raw, &crt->subject_raw );
+#if !defined(MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID)
+    x509_buf_to_buf_raw( &frame->subject_id, &crt->subject_id );
+    x509_buf_to_buf_raw( &frame->issuer_id, &crt->issuer_id );
+#endif /* !MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID */
+    x509_buf_to_buf_raw( &frame->sig, &crt->sig );
+    x509_buf_to_buf_raw( &frame->v3_ext, &crt->v3_ext );
+
+    /* The legacy CRT structure doesn't explicitly contain
+     * the `AlgorithmIdentifier` bounds; however, those can
+     * be inferred from the surrounding (mandatory) `SerialNumber`
+     * and `Issuer` fields. */
+    frame->sig_alg.p = crt->serial.p + crt->serial.len;
+    frame->sig_alg.len = crt->issuer_raw.p - frame->sig_alg.p;
+
+    return( x509_crt_frame_parse_ext( frame ) );
+#endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 }
 
 int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
@@ -1547,7 +1546,9 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         crt->own_buffer = 1;
     }
 
-    ret = mbedtls_x509_crt_get_frame( crt, &frame );
+    ret = x509_crt_parse_frame( crt->raw.p,
+                                crt->raw.p + crt->raw.len,
+                                &frame );
     if( ret != 0 )
         goto exit;
 
@@ -1647,9 +1648,6 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     crt->raw.len = frame.raw.len;
 
 #if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
-    crt->pk_raw = frame.pubkey_raw;
-#endif
-
     {
         mbedtls_pk_context pk;
         mbedtls_pk_init( &pk );
@@ -1658,7 +1656,10 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
 
         if( ret != 0 )
             goto exit;
+
+        crt->pk_raw = frame.pubkey_raw;
     }
+#endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
 
     cache = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_cache ) );
     if( cache == NULL )

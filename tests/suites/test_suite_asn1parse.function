@@ -547,7 +547,7 @@ void free_named_data_list( int length )
     {
         mbedtls_asn1_named_data *new = NULL;
         ASSERT_ALLOC( new, sizeof( mbedtls_asn1_named_data ) );
-        head->next = new;
+        new->next = head;
         head = new;
     }
 

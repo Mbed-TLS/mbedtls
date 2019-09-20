@@ -432,7 +432,7 @@ Free named data list (empty)
 free_named_data_list:0
 
 Free named data list (1)
-free_named_data_list:0
+free_named_data_list:1
 
 Free named data list (2)
-free_named_data_list:0
+free_named_data_list:2

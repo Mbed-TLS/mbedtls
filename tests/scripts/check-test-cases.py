@@ -92,7 +92,7 @@ def check_ssl_opt_sh(results, file_name):
             # Assume that all run_test calls have the same simple form
             # with the test description entirely on the same line as the
             # function name.
-            m = re.match(r'\s+run_test\s+"([^"])"', line)
+            m = re.match(r'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
             if not m:
                 continue
             description = m.group(1)

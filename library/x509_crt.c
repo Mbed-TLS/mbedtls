@@ -432,14 +432,9 @@ int mbedtls_x509_crt_get_issuer( mbedtls_x509_crt const *crt,
 int mbedtls_x509_crt_get_frame( mbedtls_x509_crt const *crt,
                                 mbedtls_x509_crt_frame *dst )
 {
-    int ret;
-    mbedtls_x509_crt_frame const *frame;
-    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
-    if( ret != 0 )
-        return( ret );
-    *dst = *frame;
-    mbedtls_x509_crt_frame_release( crt );
-    return( 0 );
+    return( x509_crt_parse_frame( crt->raw.p,
+                                  crt->raw.p + crt->raw.len,
+                                  dst ) );
 }
 
 int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
@@ -447,25 +442,13 @@ int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
 {
 #if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
     mbedtls_x509_buf pk_raw = crt->pk_raw;
+#else
+    mbedtls_x509_buf_raw pk_raw = crt->pk_raw;
+#endif
+
     return( mbedtls_pk_parse_subpubkey( &pk_raw.p,
                                         pk_raw.p + pk_raw.len,
                                         dst ) );
-#else /* !MBEDTLS_X509_ON_DEMAND_PARSING */
-    int ret;
-    mbedtls_pk_context *pk;
-    ret = mbedtls_x509_crt_pk_acquire( crt, &pk );
-    if( ret != 0 )
-        return( ret );
-
-    /* Move PK from CRT cache to destination pointer
-     * to avoid a copy. */
-    *dst = *pk;
-    mbedtls_free( crt->cache->pk );
-    crt->cache->pk = NULL;
-
-    mbedtls_x509_crt_pk_release( crt );
-    return( 0 );
-#endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
 }
 
 /*

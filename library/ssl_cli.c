@@ -2370,7 +2370,11 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
     int ret;
     size_t len_bytes = mbedtls_ssl_get_minor_ver( ssl ) ==
         MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
-    mbedtls_pk_context *peer_pk = NULL;
+
+#if defined(MBEDTLS_X509_CRT_NO_CACHE)
+    mbedtls_pk_context peer_pk_tmp;
+#endif
+    mbedtls_pk_context * peer_pk = NULL;
 
     if( buflen < len_bytes )
     {
@@ -2384,8 +2388,14 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
 #else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     if( ssl->session_negotiate->peer_cert != NULL )
     {
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
         ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
                                            &peer_pk );
+#else
+        ret = mbedtls_x509_crt_get_pk( ssl->session_negotiate->peer_cert,
+                                       &peer_pk_tmp );
+        peer_pk = &peer_pk_tmp;
+#endif
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
@@ -2436,7 +2446,9 @@ cleanup:
     /* We don't need the peer's public key anymore. Free it. */
     mbedtls_pk_free( peer_pk );
 #else
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
     mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     return( ret );
@@ -2514,6 +2526,10 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 {
     int ret;
     mbedtls_pk_context * peer_pk;
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) && \
+    defined(MBEDTLS_X509_CRT_NO_CACHE)
+    mbedtls_pk_context peer_pk_tmp;
+#endif
 
     /* Acquire peer's PK context: In case we store peer's entire
      * certificate, we extract the context from it. Otherwise,
@@ -2530,8 +2546,14 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
     ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
                                        &peer_pk );
+#else
+    ret = mbedtls_x509_crt_get_pk( ssl->session_negotiate->peer_cert,
+                                   &peer_pk_tmp );
+    peer_pk = &peer_pk_tmp;
+#endif
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
@@ -2584,7 +2606,9 @@ cleanup:
      * operations like ECDHE. */
     mbedtls_pk_free( peer_pk );
 #else
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
     mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif /* MBEDTLS_X509_CRT_NO_CACHE */
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     return( ret );
@@ -2885,6 +2909,10 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         void *rs_ctx = NULL;
 
         mbedtls_pk_context * peer_pk;
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) && \
+    defined(MBEDTLS_X509_CRT_NO_CACHE)
+        mbedtls_pk_context peer_pk_tmp;
+#endif
 
         /*
          * Handle the digitally-signed structure
@@ -3000,8 +3028,14 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
         ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
                                            &peer_pk );
+#else
+        ret = mbedtls_x509_crt_get_pk( ssl->session_negotiate->peer_cert,
+                                       &peer_pk_tmp );
+        peer_pk = &peer_pk_tmp;
+#endif
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
@@ -3018,7 +3052,9 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
             mbedtls_ssl_pend_fatal_alert( ssl,
                                 MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
             mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
             return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
         }
@@ -3044,7 +3080,9 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
                 ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
 #endif
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
             mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
             return( ret );
         }
@@ -3055,7 +3093,9 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
          * operations like ECDHE. */
         mbedtls_pk_free( peer_pk );
 #else
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
         mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */

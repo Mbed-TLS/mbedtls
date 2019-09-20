@@ -7202,8 +7202,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_USE_TINYCRYPT)
         ret = mbedtls_ssl_check_curve_uecc( ssl, MBEDTLS_UECC_DP_SECP256R1 );
 #else /* MBEDTLS_USE_TINYCRYPT */
-        mbedtls_pk_context *pk;
-        ret = mbedtls_x509_crt_pk_acquire( chain, &pk );
+        MBEDTLS_X509_PK_NEED( chain, pk, ret );
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
@@ -7216,7 +7215,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
             ret = mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id );
         }
 
-        mbedtls_x509_crt_pk_release( chain );
+        MBEDTLS_X509_PK_DONE( chain, pk );
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
         if( ret != 0 )

@@ -143,15 +143,11 @@ int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint
     verify_print_context *ctx = (verify_print_context *) data;
     char *p = ctx->p;
     size_t n = ctx->buf + sizeof( ctx->buf ) - ctx->p;
-    mbedtls_x509_crt_frame const *frame;
     mbedtls_x509_name *subject;
+
     ((void) flags);
 
     ret = mbedtls_x509_crt_get_subject( crt, &subject );
-    if( ret != 0 )
-        return( ret );
-
-    ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
     if( ret != 0 )
         return( ret );
 
@@ -160,10 +156,16 @@ int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint
 
     {
         mbedtls_x509_buf serial;
+        MBEDTLS_X509_FRAME_NEED( crt, frame, ret );
+        if( ret != 0 )
+            return( ret );
+
         serial.p   = frame->serial.p;
         serial.len = frame->serial.len;
         ret = mbedtls_x509_serial_gets( p, n, &serial );
         MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
+
+        MBEDTLS_X509_FRAME_DONE( crt, frame );
     }
 
     ret = mbedtls_snprintf( p, n, " - subject " );
@@ -180,7 +182,8 @@ int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint
 cleanup:
 
     mbedtls_x509_name_free( subject );
-    mbedtls_x509_crt_frame_release( crt );
+
+    MBEDTLS_X509_FRAME_DONE( crt, frame );
 
     if( ret < 0 )
         return( ret );
@@ -653,7 +656,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_CRT_NO_CACHE */
 void x509_nested_acquire( data_t * buf )
 {
     /* This tests exercises the behavior of the library when

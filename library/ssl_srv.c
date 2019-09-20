@@ -806,6 +806,10 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
     {
         int match = 1;
         mbedtls_pk_context *pk;
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \
+    defined(MBEDTLS_X509_CRT_NO_CACHE)
+        mbedtls_pk_context pk_tmp;
+#endif
 
         /* WARNING: With the current X.509 caching architecture, this MUST
          * happen outside of the PK acquire/release block, because it moves
@@ -820,7 +824,12 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
          * of the key. */
         {
             int ret;
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
             ret = mbedtls_x509_crt_pk_acquire( cur->cert, &pk );
+#else
+            ret = mbedtls_x509_crt_get_pk( cur->cert, &pk_tmp );
+            pk = &pk_tmp;
+#endif
             if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
@@ -855,7 +864,9 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
         mbedtls_x509_crt_pk_release( cur->cert );
+#endif
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
          if( match == 0 )
@@ -890,15 +901,14 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
             mbedtls_md_type_t sig_md;
             {
                 int ret;
-                mbedtls_x509_crt_frame const *frame;
-                ret = mbedtls_x509_crt_frame_acquire( cur->cert, &frame );
+                MBEDTLS_X509_FRAME_NEED( cur->cert, frame, ret );
                 if( ret != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_frame_acquire", ret );
                     return( ret );
                 }
                 sig_md = frame->sig_md;
-                mbedtls_x509_crt_frame_release( cur->cert );
+                MBEDTLS_X509_FRAME_DONE( cur->cert, frame );
             }
 
             if( sig_md != MBEDTLS_MD_SHA1 )
@@ -3140,8 +3150,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
         while( crt != NULL && crt->raw.p != NULL )
         {
-            mbedtls_x509_crt_frame const *frame;
-            ret = mbedtls_x509_crt_frame_acquire( crt, &frame );
+            MBEDTLS_X509_FRAME_NEED( crt, frame, ret );
             if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_frame_acquire", ret );
@@ -3155,7 +3164,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
                 (size_t)( end - p ) < 2 + dn_size )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "skipping CAs: buffer too short" ) );
-                mbedtls_x509_crt_frame_release( crt );
+                MBEDTLS_X509_FRAME_DONE( crt, frame );
                 break;
             }
 
@@ -3167,8 +3176,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
             total_dn_size += 2 + dn_size;
 
-            mbedtls_x509_crt_frame_release( crt );
-
+            MBEDTLS_X509_FRAME_DONE( crt, frame );
             crt = crt->next;
         }
     }
@@ -4441,6 +4449,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     mbedtls_pk_context *peer_pk = NULL;
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) && \
+    defined(MBEDTLS_X509_CRT_NO_CACHE)
+    mbedtls_pk_context peer_pk_tmp;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
@@ -4462,8 +4474,14 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 #else /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     if( ssl->session_negotiate->peer_cert != NULL )
     {
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
         ret = mbedtls_x509_crt_pk_acquire( ssl->session_negotiate->peer_cert,
                                            &peer_pk );
+#else
+        ret = mbedtls_x509_crt_get_pk( ssl->session_negotiate->peer_cert,
+                                       &peer_pk_tmp );
+        peer_pk = &peer_pk_tmp;
+#endif
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_x509_crt_pk_acquire", ret );
@@ -4630,7 +4648,9 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 exit:
 
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
     mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
+#endif /* MBEDTLS_X509_CRT_NO_CACHE */
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
     return( ret );

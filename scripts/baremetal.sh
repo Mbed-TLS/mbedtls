@@ -67,6 +67,17 @@ fi
 
 date=$( date +%Y-%m-%d-%H-%M-%S )
 
+print_rom_report()
+{
+    echo "ROM statistics written to:"
+    echo "* $ROM_OUT_FILE"
+    echo "* $ROM_OUT_SYMS"
+
+    cat $ROM_OUT_FILE | grep "libmbedtls.a"    | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    cat $ROM_OUT_FILE | grep "libmbedcrypto.a" | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    cat $ROM_OUT_FILE | grep "libmbedx509.a"   | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+}
+
 baremetal_build_gcc()
 {
     echo "Cleanup..."
@@ -102,14 +113,7 @@ baremetal_build_gcc()
     echo "Generate symbol statistics..."
     ./scripts/extract_codesize_stats.sh --info "gcc_${gcc_ver}" --name $NAME --syms > $ROM_OUT_SYMS
 
-    echo "ROM statistics written to:"
-    echo "* $ROM_OUT_FILE"
-    echo "* $ROM_OUT_SYMS"
-
-    # Print summary
-    cat $ROM_OUT_FILE | grep "libmbedtls.a"    | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
-    cat $ROM_OUT_FILE | grep "libmbedcrypto.a" | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
-    cat $ROM_OUT_FILE | grep "libmbedx509.a"   | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    print_rom_report
 }
 
 baremetal_build_armc5()
@@ -149,14 +153,7 @@ baremetal_build_armc5()
     echo "Generate symbol statistics..."
     ./scripts/extract_codesize_stats.sh --info "armc5_${armc5_ver}" --name $NAME --syms > $ROM_OUT_SYMS
 
-    echo "ROM statistics written to:"
-    echo "* $ROM_OUT_FILE"
-    echo "* $ROM_OUT_SYMS"
-
-    # Print summary
-    cat $ROM_OUT_FILE | grep "libmbedtls.a"    | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
-    cat $ROM_OUT_FILE | grep "libmbedcrypto.a" | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
-    cat $ROM_OUT_FILE | grep "libmbedx509.a"   | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    print_rom_report
 }
 
 baremetal_build_armc6()
@@ -194,14 +191,7 @@ baremetal_build_armc6()
     echo "Generate symbol statistics..."
     ./scripts/extract_codesize_stats.sh --info "armc6_${armc6_ver}" --name $NAME --syms > $ROM_OUT_SYMS
 
-    echo "ROM statistics written to:"
-    echo "* $ROM_OUT_FILE"
-    echo "* $ROM_OUT_SYMS"
-
-    # Print summary
-    cat $ROM_OUT_FILE | grep "libmbedtls.a"    | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
-    cat $ROM_OUT_FILE | grep "libmbedcrypto.a" | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
-    cat $ROM_OUT_FILE | grep "libmbedx509.a"   | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    print_rom_report
 }
 
 # 32-bit host-build of library, tests and example programs,

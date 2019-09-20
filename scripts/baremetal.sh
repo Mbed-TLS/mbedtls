@@ -73,9 +73,10 @@ print_rom_report()
     echo "* $ROM_OUT_FILE"
     echo "* $ROM_OUT_SYMS"
 
-    cat $ROM_OUT_FILE | grep "libmbedtls.a"    | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
-    cat $ROM_OUT_FILE | grep "libmbedcrypto.a" | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
-    cat $ROM_OUT_FILE | grep "libmbedx509.a"   | awk  '{printf( "%15s: %s Bytes\n", $4, $5)}'
+    <$ROM_OUT_FILE awk '$4 ~ /libmbedcrypto/ {printf("%15s: %5s Bytes\n", $4, $5)}'
+    <$ROM_OUT_FILE awk '$4 ~ /libmbedx509/   {printf("%15s: %5s Bytes\n", $4, $5)}'
+    <$ROM_OUT_FILE awk '$4 ~ /libmbedtls/    {printf("%15s: %5s Bytes\n", $4, $5)}'
+    <$ROM_OUT_FILE awk '$4 ~ /libmbed/ {sum += $5} END {printf("%15s: %5d Bytes\n", "total", sum)}'
 }
 
 baremetal_build_gcc()

@@ -853,14 +853,33 @@
 #undef MBEDTLS_HASHES_ENABLED
 #endif /* MBEDTLS_MD_SINGLE_HASH */
 
+/*
+ * Note: the dependency on TinyCrypt is reflected in several ways in the code:
+ *
+ *  1. We only define the various MBEDTLS_PK_INFO_{TYPE}_{FIELD} macros for
+ *     TYPE == ECKEY, resolving to the TinyCrypt version.
+ *  2. In pk_init() and pk_free() we assume that zeroization is a proper way
+ *     to init/free the context, which is true of mbedtls_uecc_keypair, but
+ *     might not always hold otherwise (think hardware-accelerated ECP_ALT).
+ *  3. We rely on the fact that MBEDTLS_ECP_RESTARTABLE is disabled - code
+ *     paths (and pk_info fields) that are guarded by this are currently not
+ *     handled by the internal abstraction layers enabling PK_SINGLE_TYPE.
+ *
+ * If this dependency is ever removed, the above points need to be addressed
+ * in the code.
+ */
 #if defined(MBEDTLS_PK_SINGLE_TYPE) && !defined(MBEDTLS_USE_TINYCRYPT)
 #error "MBEDTLS_PK_SINGLE_TYPE can only be used with MBEDTLS_USE_TINYCRYPT"
 #endif
 
+/* Note: code paths that depend on MBEDTLS_PK_RSA_ALT_SUPPORT are not ported
+ * to the internal abstraction layers that enable PK_SINGLE_TYPE. */
 #if defined(MBEDTLS_PK_SINGLE_TYPE) && defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 #error "MBEDTLS_PK_SINGLE_TYPE is not compatible with MBEDTLS_PK_RSA_ALT_SUPPORT"
 #endif
 
+/* This is to avoid a situation where RSA is available, but not through the PK
+ * layer, which might surprise user code. */
 #if defined(MBEDTLS_PK_SINGLE_TYPE) && defined(MBEDTLS_RSA_C)
 #error "MBEDTLS_PK_SINGLE_TYPE is not compatible with MBEDTLS_RSA_C"
 #endif

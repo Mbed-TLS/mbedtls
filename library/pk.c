@@ -1014,7 +1014,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
  * when hardcoding a single PK - some compilers optimize better that way.
  *
  * Not implemented for members that are only present in builds with
- * MBEDTLS_ECP_RESTARTABLE for now, as the main target for hardcoded is builds
+ * MBEDTLS_ECP_RESTARTABLE for now, as the main target for this is builds
  * with MBEDTLS_USE_TINYCRYPT, which don't have MBEDTLS_ECP_RESTARTABLE.
  */
 #if defined(MBEDTLS_PK_SINGLE_TYPE)

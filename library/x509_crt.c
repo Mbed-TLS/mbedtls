@@ -645,10 +645,6 @@ static int x509_get_subject_alt_name( unsigned char **p,
         mbedtls_x509_subject_alternative_name dummy_san_buf;
         memset( &dummy_san_buf, 0, sizeof( dummy_san_buf ) );
 
-        if( ( end - *p ) < 1 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_OUT_OF_DATA );
-
         tag = **p;
         (*p)++;
         if( ( ret = mbedtls_asn1_get_len( p, end, &tag_len ) ) != 0 )
@@ -662,7 +658,7 @@ static int x509_get_subject_alt_name( unsigned char **p,
         }
 
         /*
-         * Check that the SAN are structured correct.
+         * Check that the SAN is structured correctly.
          */
         ret = mbedtls_x509_parse_subject_alt_name( &(cur->buf), &dummy_san_buf );
         /*

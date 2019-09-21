@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.19.2 branch released xxxx-xx-xx
+
+Bugfix
+   * Remove a spurious check in ssl_parse_client_psk_identity that triggered
+     a warning with some compilers. Fix contributed by irwir in #2856.
+
 = mbed TLS 2.19.1 branch released 2019-09-16
 
 Features

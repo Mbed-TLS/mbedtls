@@ -7264,7 +7264,7 @@ static int ssl_remember_peer_crt_digest( mbedtls_ssl_context *ssl,
     if( ssl->session_negotiate->peer_cert_digest == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
-                                    sizeof( MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN ) ) );
+                                    MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN ) );
         mbedtls_ssl_send_alert_message( ssl,
                                         MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );

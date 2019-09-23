@@ -26,7 +26,7 @@ And you can run any of the fuzz targets like `fuzz_client`.
 To run the fuzz targets without oss-fuzz, you first need to install one libFuzzingEngine (libFuzzer for instance).
 Then you need to compile the code with the compiler flags of the wished sanitizer.
 ```
-perl scripts/config.pl set MBEDTLS_PLATFORM_TIME_ALT
+perl scripts/config.py set MBEDTLS_PLATFORM_TIME_ALT
 mkdir build
 cd build
 cmake ..

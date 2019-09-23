@@ -3298,7 +3298,8 @@ psa_status_t psa_key_derivation_input_bytes(
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c step is not compatible with the operation's algorithm.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \c step does not allow key inputs.
+ *         \c step does not allow key inputs of the given type
+ *         or does not allow key inputs at all.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -3368,6 +3369,8 @@ psa_status_t psa_key_derivation_input_key(
  *         \c private_key.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \c alg is not supported or is not a key derivation algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step does not allow an input resulting from a key agreement.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE

@@ -5076,13 +5076,38 @@ static psa_status_t psa_tls12_prf_psk_to_ms_input(
 }
 #endif /* MBEDTLS_MD_C */
 
+static int psa_key_derivation_check_input_type(
+    psa_key_derivation_step_t step,
+    psa_key_type_t key_type )
+{
+    switch( step )
+    {
+        case PSA_KEY_DERIVATION_INPUT_SECRET:
+            if( key_type == PSA_KEY_TYPE_DERIVE || key_type == 0 )
+                return( PSA_SUCCESS );
+            break;
+        case PSA_KEY_DERIVATION_INPUT_LABEL:
+        case PSA_KEY_DERIVATION_INPUT_SALT:
+        case PSA_KEY_DERIVATION_INPUT_INFO:
+        case PSA_KEY_DERIVATION_INPUT_SEED:
+            if( key_type == PSA_KEY_TYPE_RAW_DATA || key_type == 0 )
+                return( PSA_SUCCESS );
+            break;
+    }
+    return( PSA_ERROR_INVALID_ARGUMENT );
+}
+
 static psa_status_t psa_key_derivation_input_internal(
     psa_key_derivation_operation_t *operation,
     psa_key_derivation_step_t step,
+    psa_key_type_t key_type,
     const uint8_t *data,
     size_t data_length )
 {
-    psa_status_t status;
+    psa_status_t status = psa_key_derivation_check_input_type( step, key_type );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
 
 #if defined(MBEDTLS_MD_C)
@@ -5111,6 +5136,7 @@ static psa_status_t psa_key_derivation_input_internal(
         return( PSA_ERROR_BAD_STATE );
     }
 
+exit:
     if( status != PSA_SUCCESS )
         psa_key_derivation_abort( operation );
     return( status );
@@ -5122,10 +5148,7 @@ psa_status_t psa_key_derivation_input_bytes(
     const uint8_t *data,
     size_t data_length )
 {
-    if( step == PSA_KEY_DERIVATION_INPUT_SECRET )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    return( psa_key_derivation_input_internal( operation, step,
+    return( psa_key_derivation_input_internal( operation, step, 0,
                                                data, data_length ) );
 }
 
@@ -5141,18 +5164,8 @@ psa_status_t psa_key_derivation_input_key(
                                       operation->alg );
     if( status != PSA_SUCCESS )
         return( status );
-    if( slot->attr.type != PSA_KEY_TYPE_DERIVE )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    /* Don't allow a key to be used as an input that is usually public.
-     * This is debatable. It's ok from a cryptographic perspective to
-     * use secret material as an input that is usually public. However
-     * the material should be dedicated to a particular input step,
-     * otherwise this may allow the key to be used in an unintended way
-     * and leak values derived from the key. So be conservative. */
-    if( step != PSA_KEY_DERIVATION_INPUT_SECRET )
-        return( PSA_ERROR_INVALID_ARGUMENT );
     return( psa_key_derivation_input_internal( operation,
-                                               step,
+                                               step, slot->attr.type,
                                                slot->data.raw.data,
                                                slot->data.raw.bytes ) );
 }
@@ -5265,8 +5278,10 @@ static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *
         goto exit;
 
     /* Step 2: set up the key derivation to generate key material from
-     * the shared secret. */
+     * the shared secret. A shared secret is permitted wherever a key
+     * of type DERIVE is permitted. */
     status = psa_key_derivation_input_internal( operation, step,
+                                                PSA_KEY_TYPE_DERIVE,
                                                 shared_secret,
                                                 shared_secret_length );
 

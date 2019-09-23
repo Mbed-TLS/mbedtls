@@ -711,9 +711,18 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
         if( status != PSA_SUCCESS )
             return( status );
 
-        status = psa_key_derivation_input_key( derivation,
-                                               PSA_KEY_DERIVATION_INPUT_SECRET,
-                                               slot );
+        if( slot == 0 )
+        {
+            status = psa_key_derivation_input_bytes(
+                derivation, PSA_KEY_DERIVATION_INPUT_SECRET,
+                NULL, 0 );
+        }
+        else
+        {
+            status = psa_key_derivation_input_key(
+                derivation, PSA_KEY_DERIVATION_INPUT_SECRET,
+                slot );
+        }
         if( status != PSA_SUCCESS )
             return( status );
 
@@ -743,8 +752,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 {
     psa_status_t status;
     psa_algorithm_t alg;
-    psa_key_attributes_t key_attributes;
-    psa_key_handle_t master_slot;
+    psa_key_handle_t master_slot = 0;
     psa_key_derivation_operation_t derivation =
         PSA_KEY_DERIVATION_OPERATION_INIT;
 
@@ -753,14 +761,24 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     else
         alg = PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256);
 
-    key_attributes = psa_key_attributes_init();
-    psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
-    psa_set_key_algorithm( &key_attributes, alg );
-    psa_set_key_type( &key_attributes, PSA_KEY_TYPE_DERIVE );
+    /* Normally a "secret" should be long enough to be impossible to
+     * find by brute force, and in particular should not be empty. But
+     * this PRF is also used to derive an IV, in particular in EAP-TLS,
+     * and for this use case it makes sense to have a 0-length "secret".
+     * Since the key API doesn't allow importing a key of length 0,
+     * keep master_slot=0, which setup_psa_key_derivation() understands
+     * to mean a 0-length "secret" input. */
+    if( slen != 0 )
+    {
+        psa_key_attributes_t key_attributes = psa_key_attributes_init();
+        psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+        psa_set_key_algorithm( &key_attributes, alg );
+        psa_set_key_type( &key_attributes, PSA_KEY_TYPE_DERIVE );
 
-    status = psa_import_key( &key_attributes, secret, slen, &master_slot );
-    if( status != PSA_SUCCESS )
-        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        status = psa_import_key( &key_attributes, secret, slen, &master_slot );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    }
 
     status = setup_psa_key_derivation( &derivation,
                                        master_slot, alg,
@@ -790,7 +808,8 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
 
-    status = psa_destroy_key( master_slot );
+    if( master_slot != 0 )
+        status = psa_destroy_key( master_slot );
     if( status != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 

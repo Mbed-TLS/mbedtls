@@ -5163,7 +5163,10 @@ psa_status_t psa_key_derivation_input_key(
                                       PSA_KEY_USAGE_DERIVE,
                                       operation->alg );
     if( status != PSA_SUCCESS )
+    {
+        psa_key_derivation_abort( operation );
         return( status );
+    }
     return( psa_key_derivation_input_internal( operation,
                                                step, slot->attr.type,
                                                slot->data.raw.data,

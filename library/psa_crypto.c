@@ -5104,11 +5104,12 @@ static psa_status_t psa_key_derivation_input_internal(
     const uint8_t *data,
     size_t data_length )
 {
-    psa_status_t status = psa_key_derivation_check_input_type( step, key_type );
+    psa_status_t status;
+    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
+
+    status = psa_key_derivation_check_input_type( step, key_type );
     if( status != PSA_SUCCESS )
         goto exit;
-
-    psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
 
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( kdf_alg ) )

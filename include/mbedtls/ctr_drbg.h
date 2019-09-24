@@ -15,7 +15,7 @@
  *  keys and operations that use random values generated to 128-bit security.
  */
 /*
- *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
+ *  Copyright (C) 2006-2019, Arm Limited (or its affiliates), All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -56,9 +56,19 @@
 #define MBEDTLS_CTR_DRBG_BLOCKSIZE          16 /**< The block size used by the cipher. */
 
 #if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
-#define MBEDTLS_CTR_DRBG_KEYSIZE            16 /**< The key size used by the cipher (compile-time choice: 128 bits). */
+#define MBEDTLS_CTR_DRBG_KEYSIZE            16
+/**< The key size in bytes used by the cipher.
+ *
+ * Compile-time choice: 16 bytes (128 bits)
+ * because #MBEDTLS_CTR_DRBG_USE_128_BIT_KEY is set.
+ */
 #else
-#define MBEDTLS_CTR_DRBG_KEYSIZE            32 /**< The key size used by the cipher (compile-time choice: 256 bits). */
+#define MBEDTLS_CTR_DRBG_KEYSIZE            32
+/**< The key size in bytes used by the cipher.
+ *
+ * Compile-time choice: 32 bytes (256 bits)
+ * because `MBEDTLS_CTR_DRBG_USE_128_BIT_KEY` is not set.
+ */
 #endif
 
 #define MBEDTLS_CTR_DRBG_KEYBITS            ( MBEDTLS_CTR_DRBG_KEYSIZE * 8 ) /**< The key size for the DRBG operation, in bits. */
@@ -75,17 +85,25 @@
 
 #if !defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN)
 #if defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_ENTROPY_FORCE_SHA256)
+/** The amount of entropy used per seed by default.
+ *
+ * This is 48 bytes because the entropy module uses SHA-512
+ * (`MBEDTLS_ENTROPY_FORCE_SHA256` is not set).
+ *
+ * \note See mbedtls_ctr_drbg_set_entropy_len() regarding what values are
+ *       acceptable.
+ */
 #define MBEDTLS_CTR_DRBG_ENTROPY_LEN        48
-/**< The amount of entropy used per seed by default:
- * <ul><li>48 with SHA-512.</li>
- * <li>32 with SHA-256.</li></ul>
- */
 #else
-#define MBEDTLS_CTR_DRBG_ENTROPY_LEN        32
-/**< Amount of entropy used per seed by default:
- * <ul><li>48 with SHA-512.</li>
- * <li>32 with SHA-256.</li></ul>
+/** The amount of entropy used per seed by default.
+ *
+ * This is 32 bytes because the entropy module uses SHA-256
+ * (the SHA-512 module is disabled or `MBEDTLS_ENTROPY_FORCE_SHA256` is set).
+ *
+ * \note See mbedtls_ctr_drbg_set_entropy_len() regarding what values are
+ *       acceptable.
  */
+#define MBEDTLS_CTR_DRBG_ENTROPY_LEN        32
 #endif
 #endif
 
@@ -106,7 +124,7 @@
 
 #if !defined(MBEDTLS_CTR_DRBG_MAX_SEED_INPUT)
 #define MBEDTLS_CTR_DRBG_MAX_SEED_INPUT     384
-/**< The maximum size of seed or reseed buffer. */
+/**< The maximum size of seed or reseed buffer in bytes. */
 #endif
 
 /* \} name SECTION: Module settings */
@@ -170,10 +188,12 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  * \param ctx           The CTR_DRBG context to seed.
  * \param f_entropy     The entropy callback, taking as arguments the
  *                      \p p_entropy context, the buffer to fill, and the
-                        length of the buffer.
+ *                      length of the buffer.
  * \param p_entropy     The entropy context.
  * \param custom        Personalization data, that is device-specific
-                        identifiers. Can be NULL.
+ *                      identifiers. This can be NULL, in which case the
+ *                      personalization data is empty regardless of the value
+ *                      of \p len.
  * \param len           The length of the personalization data.
  *
  * \return              \c 0 on success.
@@ -213,7 +233,7 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
  *                      #MBEDTLS_CTR_DRBG_ENTROPY_LEN.
  *
  * \param ctx           The CTR_DRBG context.
- * \param len           The amount of entropy to grab.
+ * \param len           The amount of entropy to grab, in bytes.
  */
 void mbedtls_ctr_drbg_set_entropy_len( mbedtls_ctr_drbg_context *ctx,
                                size_t len );
@@ -246,7 +266,8 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
  * \brief              This function updates the state of the CTR_DRBG context.
  *
  * \param ctx          The CTR_DRBG context.
- * \param additional   The data to update the state with.
+ * \param additional   The data to update the state with. This must not be
+ *                     null unless \p add_len is 0.
  * \param add_len      Length of \p additional in bytes. This must be at
  *                     most #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
  *
@@ -270,8 +291,11 @@ int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
  *                      #mbedtls_ctr_drbg_context structure.
  * \param output        The buffer to fill.
  * \param output_len    The length of the buffer.
- * \param additional    Additional data to update. Can be NULL.
- * \param add_len       The length of the additional data.
+ * \param additional    Additional data to update. Can be NULL, in which
+ *                      case the additional data is empty regardless of
+ *                      the value of \p add_len.
+ * \param add_len       The length of the additional data
+ *                      if \p additional is non-null.
  *
  * \return    \c 0 on success.
  * \return    #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or

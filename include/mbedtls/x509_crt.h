@@ -43,6 +43,47 @@
 extern "C" {
 #endif
 
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
+
+#define MBEDTLS_X509_FRAME_NEED( crt, frame, ret )                      \
+        mbedtls_x509_crt_frame const *frame;                            \
+        ret = mbedtls_x509_crt_frame_acquire( ( crt ), &( frame ) );
+
+#define MBEDTLS_X509_FRAME_DONE( crt, frame )                           \
+        mbedtls_x509_crt_frame_release( ( crt ) );
+
+#define MBEDTLS_X509_PK_NEED( crt, pk, ret )                            \
+        mbedtls_pk_context *pk;                                         \
+        ret = mbedtls_x509_crt_pk_acquire( ( crt ), &( pk ) );
+
+#define MBEDTLS_X509_PK_DONE( crt, pk )                           \
+        mbedtls_x509_crt_pk_release( ( crt ) );
+
+#else /* MBEDTLS_X509_CRT_NO_CACHE */
+
+#define MBEDTLS_X509_FRAME_NEED( crt, frame, ret )                      \
+        mbedtls_x509_crt_frame frame_tmp;                               \
+        mbedtls_x509_crt_frame * const frame = &frame_tmp;              \
+        ret = mbedtls_x509_crt_get_frame( ( crt ), &frame_tmp );
+
+#define MBEDTLS_X509_FRAME_DONE( crt, frame )                           \
+        do { } while( 0 )
+
+#define MBEDTLS_X509_PK_NEED( crt, pk, ret )                            \
+        mbedtls_pk_context pk_tmp;                                      \
+        mbedtls_pk_context * const pk = &pk_tmp;                        \
+        ret = mbedtls_x509_crt_get_pk( ( crt ), &pk_tmp );
+
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+#define MBEDTLS_X509_PK_DONE( crt, pk )                           \
+        do { } while( 0 )
+#else
+#define MBEDTLS_X509_PK_DONE( crt, pk )         \
+        do { mbedtls_pk_free( pk ); } while( 0 )
+#endif
+
+#endif /* MBEDTLS_X509_CRT_NO_CACHE */
+
 /**
  * \name Structures and functions for parsing and writing X.509 certificates
  * \{

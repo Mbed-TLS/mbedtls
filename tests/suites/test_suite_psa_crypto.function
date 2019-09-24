@@ -4274,10 +4274,10 @@ exit:
 /* BEGIN_CASE */
 void derive_input( int alg_arg,
                    int step_arg1, int key_type_arg1, data_t *input1,
-                   int step_arg2, int key_type_arg2, data_t *input2,
-                   int step_arg3, int key_type_arg3, data_t *input3,
                    int expected_status_arg1,
+                   int step_arg2, int key_type_arg2, data_t *input2,
                    int expected_status_arg2,
+                   int step_arg3, int key_type_arg3, data_t *input3,
                    int expected_status_arg3 )
 {
     psa_algorithm_t alg = alg_arg;

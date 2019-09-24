@@ -1059,7 +1059,8 @@ static int ssl_ciphersuite_is_match( mbedtls_ssl_context *ssl,
     return( 1 );
 }
 
-#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
+#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO) && \
+    defined(MBEDTLS_SSL_PROTO_TLS)
 static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 {
     int ret, got_common_suite;
@@ -1363,7 +1364,7 @@ have_ciphersuite_v2:
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
+#endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO && MBEDTLS_SSL_PROTO_TLS */
 
 /* This function doesn't alert on errors that happen early during
    ClientHello parsing because they might indicate that the client is

@@ -33,6 +33,8 @@
 struct mbedtls_x509_crt;
 struct mbedtls_pk_context;
 struct mbedtls_x509_crt_frame;
+
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
 #define MBEDTLS_X509_CACHE_PK_READERS_MAX    ((uint32_t) -1)
 #define MBEDTLS_X509_CACHE_FRAME_READERS_MAX ((uint32_t) -1)
 typedef struct mbedtls_x509_crt_cache
@@ -57,6 +59,7 @@ int mbedtls_x509_crt_flush_cache_pk( struct mbedtls_x509_crt const *crt );
 
 int mbedtls_x509_crt_cache_provide_frame( struct mbedtls_x509_crt const *crt );
 int mbedtls_x509_crt_cache_provide_pk( struct mbedtls_x509_crt const *crt );
+#endif /* !MBEDTLS_X509_CRT_NO_CACHE */
 
 /* Uncategorized internal X.509 functions */
 

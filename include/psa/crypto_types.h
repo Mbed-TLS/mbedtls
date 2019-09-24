@@ -65,10 +65,24 @@ typedef int32_t psa_status_t;
  */
 typedef uint32_t psa_key_type_t;
 
-/** The type of PSA elliptic curve identifiers. */
+/** The type of PSA elliptic curve identifiers.
+ *
+ * The encoding of curve identifiers is aligned with the
+ * TLS Supported Groups Registry (formerly known as the
+ * TLS EC Named Curve Registry)
+ * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+ * The values are defined by RFC 8422 and RFC 7027.
+ */
 typedef uint16_t psa_ecc_curve_t;
 
-/** The type of PSA Diffie-Hellman group identifiers. */
+/** The type of PSA Diffie-Hellman group identifiers.
+ *
+ * The encoding of group identifiers is aligned with the
+ * TLS Supported Groups Registry (formerly known as the
+ * TLS EC Named Curve Registry)
+ * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+ * The values are defined by RFC 7919.
+ */
 typedef uint16_t psa_dh_group_t;
 
 /** \brief Encoding of a cryptographic algorithm.

@@ -5076,6 +5076,15 @@ static psa_status_t psa_tls12_prf_psk_to_ms_input(
 }
 #endif /* MBEDTLS_MD_C */
 
+/** Check whether the given key type is acceptable for the given
+ * input step of a key derivation.
+ *
+ * Secret inputs must have the type #PSA_KEY_TYPE_DERIVE.
+ * Non-secret inputs must have the type #PSA_KEY_TYPE_RAW_DATA.
+ * Both secret and non-secret inputs can alternatively have the type
+ * #PSA_KEY_TYPE_NONE, which is never the type of a key object, meaning
+ * that the input was passed as a buffer rather than via a key object.
+ */
 static int psa_key_derivation_check_input_type(
     psa_key_derivation_step_t step,
     psa_key_type_t key_type )
@@ -5083,14 +5092,18 @@ static int psa_key_derivation_check_input_type(
     switch( step )
     {
         case PSA_KEY_DERIVATION_INPUT_SECRET:
-            if( key_type == PSA_KEY_TYPE_DERIVE || key_type == 0 )
+            if( key_type == PSA_KEY_TYPE_DERIVE )
+                return( PSA_SUCCESS );
+            if( key_type == PSA_KEY_TYPE_NONE )
                 return( PSA_SUCCESS );
             break;
         case PSA_KEY_DERIVATION_INPUT_LABEL:
         case PSA_KEY_DERIVATION_INPUT_SALT:
         case PSA_KEY_DERIVATION_INPUT_INFO:
         case PSA_KEY_DERIVATION_INPUT_SEED:
-            if( key_type == PSA_KEY_TYPE_RAW_DATA || key_type == 0 )
+            if( key_type == PSA_KEY_TYPE_RAW_DATA )
+                return( PSA_SUCCESS );
+            if( key_type == PSA_KEY_TYPE_NONE )
                 return( PSA_SUCCESS );
             break;
     }
@@ -5149,7 +5162,8 @@ psa_status_t psa_key_derivation_input_bytes(
     const uint8_t *data,
     size_t data_length )
 {
-    return( psa_key_derivation_input_internal( operation, step, 0,
+    return( psa_key_derivation_input_internal( operation, step,
+                                               PSA_KEY_TYPE_NONE,
                                                data, data_length ) );
 }
 

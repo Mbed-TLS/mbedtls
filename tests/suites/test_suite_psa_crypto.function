@@ -4301,7 +4301,7 @@ void derive_input( int alg_arg,
 
     for( i = 0; i < ARRAY_LENGTH( steps ); i++ )
     {
-        if( key_types[i] != 0 )
+        if( key_types[i] != PSA_KEY_TYPE_NONE )
         {
             psa_set_key_type( &attributes, key_types[i] );
             PSA_ASSERT( psa_import_key( &attributes,

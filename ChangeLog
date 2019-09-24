@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.16.x branch released xxxx-xx-xx
+
+Changes
+   * Clarify how the interface of the CTR_DRBG module relates to
+     NIST SP 800-90A.
+
 = mbed TLS 2.16.3 branch released 2019-09-06
 
 Security

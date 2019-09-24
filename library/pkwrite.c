@@ -543,8 +543,18 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 
 #else /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_USE_TINYCRYPT)
+
+/* see above, replacing ECP_MAX_BYTES with 32 (256-bit) */
+#define ECP_PUB_DER_MAX_BYTES   30 + 2 * 32
+#define ECP_PRV_DER_MAX_BYTES   29 + 3 * 32
+
+#else /* MBEDTLS_USE_TINYCRYPT */
+
 #define ECP_PUB_DER_MAX_BYTES   0
 #define ECP_PRV_DER_MAX_BYTES   0
+
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #endif /* MBEDTLS_ECP_C */
 

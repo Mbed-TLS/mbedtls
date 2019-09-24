@@ -1511,6 +1511,47 @@ component_test_default_tinycrypt_without_legacy_ecc () {
     if_build_succeeded tests/compat.sh -f 'ECDHE-ECDSA\|ECDHE-PSK\|ECDH-ECDSA'
 }
 
+component_test_hardcoded_pk_type () {
+    msg "build: default config + single PK type harcoded (tinycrypt)"
+    # need to enable tinycrypt first - copied from tinycrypt component
+    scripts/config.pl set MBEDTLS_USE_TINYCRYPT
+    scripts/config.pl set MBEDTLS_SSL_CONF_RNG rng_wrap
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID 23
+    scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID MBEDTLS_UECC_DP_SECP256R1
+    scripts/config.pl unset MBEDTLS_ECP_C
+    scripts/config.pl unset MBEDTLS_ECDH_C
+    scripts/config.pl unset MBEDTLS_ECDSA_C
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP192R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP224R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP256R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP384R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP521R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_BP256R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_BP384R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_BP512R1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP192K1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP224K1_ENABLED
+    scripts/config.pl unset MBEDTLS_ECP_DP_SECP256K1_ENABLED
+    # now single-PK specific configs
+    scripts/config.pl set MBEDTLS_PK_SINGLE_TYPE MBEDTLS_PK_INFO_ECKEY
+    scripts/config.pl unset MBEDTLS_PK_RSA_ALT_SUPPORT
+    scripts/config.pl unset MBEDTLS_RSA_C
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
+    scripts/config.pl unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+    scripts/config.pl unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    make CFLAGS='-Werror -O1'
+
+    msg "test: default config + single PK type harcoded (tinycrypt)"
+    make test
+    if_build_succeeded tests/ssl-opt.sh -f '^Default, DTLS$'
+}
+
 component_test_baremetal () {
     msg "build: lib+test+programs for baremetal.h + baremetal_test.h"
     record_status scripts/baremetal.sh --ram --build-only

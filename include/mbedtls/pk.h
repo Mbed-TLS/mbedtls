@@ -49,6 +49,10 @@
 #include "tinycrypt/ecc.h"
 #endif
 
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+#include "pk_internal.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -126,16 +130,16 @@ typedef struct mbedtls_pk_debug_item
 /**
  * \brief           Public key information and operations
  */
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+typedef enum {
+    MBEDTLS_PK_INVALID_HANDLE,
+    MBEDTLS_PK_UNIQUE_VALID_HANDLE,
+} mbedtls_pk_handle_t;
+#else /* MBEDTLS_PK_SINGLE_TYPE */
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
-
-/**
- * \brief           Public key container
- */
-typedef struct mbedtls_pk_context
-{
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
-    void *                      pk_ctx;  /**< Underlying public key context  */
-} mbedtls_pk_context;
+typedef const mbedtls_pk_info_t *mbedtls_pk_handle_t;
+#define MBEDTLS_PK_INVALID_HANDLE ( (mbedtls_pk_handle_t) NULL )
+#endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
 typedef struct
@@ -145,13 +149,29 @@ typedef struct
 } mbedtls_uecc_keypair;
 #endif
 
+/**
+ * \brief           Public key container
+ */
+typedef struct mbedtls_pk_context
+{
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+    /* This is an array to make access to it more uniform with the case where
+     * it's a pointer to void - either way it needs casting before use. */
+    unsigned char pk_ctx[sizeof(
+                         MBEDTLS_PK_INFO_CONTEXT( MBEDTLS_PK_SINGLE_TYPE ) )];
+#else
+    mbedtls_pk_handle_t         pk_info; /**< Public key information         */
+    void *                      pk_ctx;  /**< Underlying public key context  */
+#endif
+} mbedtls_pk_context;
+
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /**
  * \brief           Context for resuming operations
  */
 typedef struct
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
+    mbedtls_pk_handle_t         pk_info; /**< Public key information         */
     void *                      rs_ctx;  /**< Underlying restart context     */
 } mbedtls_pk_restart_ctx;
 #else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
@@ -173,11 +193,18 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
 static inline mbedtls_uecc_keypair *mbedtls_pk_uecc( const mbedtls_pk_context pk )
 {
     return( (mbedtls_uecc_keypair *) (pk).pk_ctx );
 }
+#else
+/* Go with a macro in order to avoid making a copy of the struct (the argument
+ * is not a pointer so it's passed by value) and then returning an address
+ * inside that copy, which would be undefined behaviour. */
+#define mbedtls_pk_uecc( pk )   ( (mbedtls_uecc_keypair *) (pk).pk_ctx )
 #endif
+#endif /* MBEDTLS_USE_TINYCRYPT */
 
 #if defined(MBEDTLS_ECP_C)
 /**
@@ -213,7 +240,7 @@ typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
  *
  * \return          The PK info associated with the type or NULL if not found.
  */
-const mbedtls_pk_info_t *mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type );
+mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type );
 
 /**
  * \brief           Initialize a #mbedtls_pk_context (as NONE).
@@ -264,7 +291,7 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
  * \note            For contexts holding an RSA-alt key, use
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
  */
-int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
+int mbedtls_pk_setup( mbedtls_pk_context *ctx, mbedtls_pk_handle_t info );
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**

@@ -3850,6 +3850,17 @@
  */
 //#define MBEDTLS_MD_SINGLE_HASH MBEDTLS_MD_INFO_SHA256
 
+/* Enable support for a single PK type in the PK layer.
+ *
+ * This is mainly intented to reduce code size on highly constrained system
+ * with large control over the set of algorithms they need to support. It will
+ * also reduce dynamic memory allocation.
+ *
+ * Currently this is only supported with EC keys in conjunction with the
+ * MBEDTLS_USE_TINYCRYPT option. Set this to MBEDTLS_PK_INFO_ECKEY to enable.
+ */
+//#define MBEDTLS_PK_SINGLE_TYPE    MBEDTLS_PK_INFO_ECKEY
+
 /* \} SECTION: Compile-time SSL configuration */
 
 /* Target and application specific configurations

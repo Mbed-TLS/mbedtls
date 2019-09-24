@@ -38,7 +38,9 @@
 #include "mbedtls/rsa.h"
 #endif
 #if defined(MBEDTLS_ECP_C)
+#include "mbedtls/bignum.h"
 #include "mbedtls/ecp.h"
+#include "mbedtls/platform_util.h"
 #endif
 #if defined(MBEDTLS_ECDSA_C)
 #include "mbedtls/ecdsa.h"
@@ -120,6 +122,9 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 
+/*
+ * privateKey  OCTET STRING -- always of length ceil(log2(n)/8)
+ */
 static int pk_write_ec_privkey( unsigned char **p, unsigned char *start,
                                 mbedtls_pk_context const *key )
 {
@@ -181,11 +186,25 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 
+/*
+ * privateKey  OCTET STRING -- always of length ceil(log2(n)/8)
+ */
 static int pk_write_ec_privkey( unsigned char **p, unsigned char *start,
                                 mbedtls_pk_context const *key )
 {
+    int ret;
     mbedtls_ecp_keypair const * const ec = mbedtls_pk_ec( *key );
-    return( mbedtls_asn1_write_mpi( p, start, &ec->d ) );
+    size_t byte_length = ( ec->grp.pbits + 7 ) / 8;
+    unsigned char tmp[MBEDTLS_ECP_MAX_BYTES];
+
+    ret = mbedtls_mpi_write_binary( &ec->d, tmp, byte_length );
+    if( ret != 0 )
+        goto exit;
+    ret = mbedtls_asn1_write_octet_string( p, start, tmp, byte_length );
+
+exit:
+    mbedtls_platform_zeroize( tmp, byte_length );
+    return( ret );
 }
 
 /*
@@ -209,6 +228,7 @@ static int pk_write_ec_param( unsigned char **p, unsigned char *start,
 
     return( (int) len );
 }
+
 #endif /* MBEDTLS_ECP_C */
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
@@ -423,9 +443,8 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
                             MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_ASN1_CONSTRUCTED | 0 ) );
         len += par_len;
 
-        /* privateKey: write as MPI then fix tag */
+        /* privateKey */
         MBEDTLS_ASN1_CHK_ADD( len, pk_write_ec_privkey( &c, buf, key ) );
-        *c = MBEDTLS_ASN1_OCTET_STRING;
 
         /* version */
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_int( &c, buf, 1 ) );

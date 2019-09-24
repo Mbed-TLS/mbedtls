@@ -229,7 +229,7 @@ static int ecjpake_hash( mbedtls_md_handle_t md_info,
     p += id_len;
 
     /* Compute hash */
-    mbedtls_md( md_info, buf, p - buf, hash );
+    MBEDTLS_MPI_CHK( mbedtls_md( md_info, buf, p - buf, hash ) );
 
     /* Turn it into an integer mod n */
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( h, hash,

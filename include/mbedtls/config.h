@@ -1908,6 +1908,31 @@
 #define MBEDTLS_X509_ALWAYS_FLUSH
 
 /**
+ * \def MBEDTLS_X509_CRT_NO_CACHE
+ *
+ * Remove X.509 CRT caches and the corresponding API functions
+ * - mbedtls_x509_crt_frame_acquire()
+ * - mbedtls_x509_crt_frame_release()
+ * - mbedtls_x509_crt_pk_acquire()
+ * - mbedtls_x509_crt_pk_release()
+ *
+ * When this option is set, fields from X.509 certificates must be
+ * accessed via mbedtls_x509_crt_get_pk() and mbedtls_x509_crt_get_frame()
+ * instead, which re-parse the certificate/PK context on every invocation.
+ *
+ * Enabling this option leads to reduced heap usage of X.509 APIs
+ * at the cost of increases stack usage and computational complexity
+ * due to the need for re-parsing. When used in conjunction with
+ * MBEDTLS_PK_SINGLE_TYPE and MBEDTLS_X509_ON_DEMAND_PARSING, the
+ * X.509 parsing and verification API does not use the heap at all.
+ *
+ * This option can be used independently of MBEDTLS_X509_ON_DEMAND_PARSING.
+ *
+ * Uncomment this to reduce heap usage of the X.509 CRT module.
+ */
+#define MBEDTLS_X509_CRT_NO_CACHE
+
+/**
  * \def MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
  *
  * If set, the X509 parser will not break-off when parsing an X509 certificate

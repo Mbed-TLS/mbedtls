@@ -1522,6 +1522,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_ALWAYS_FLUSH */
 
+#if defined(MBEDTLS_X509_CRT_NO_CACHE)
+    if( strcmp( "MBEDTLS_X509_CRT_NO_CACHE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_CRT_NO_CACHE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_CRT_NO_CACHE */
+
 #if defined(MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3)
     if( strcmp( "MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3", config ) == 0 )
     {

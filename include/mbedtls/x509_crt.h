@@ -156,7 +156,10 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_buf_raw raw;           /**< The raw certificate data (DER).  */
     mbedtls_x509_buf_raw pk_raw;        /**< The raw certificate data (DER).  */
 #endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
+
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
     mbedtls_x509_crt_cache *cache;      /**< Internal parsing cache.      */
+#endif /* !MBEDTLS_X509_CRT_NO_CACHE */
 
     struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */
 
@@ -882,6 +885,7 @@ int mbedtls_x509_crt_get_subject_alt_names( mbedtls_x509_crt const *crt,
 int mbedtls_x509_crt_get_ext_key_usage( mbedtls_x509_crt const *crt,
                                         mbedtls_x509_sequence **ext_key_usage );
 
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
 /**
  * \brief           Flush internal X.509 CRT parsing cache, if present.
  *
@@ -1096,6 +1100,7 @@ static inline int mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
 
     return( 0 );
 }
+#endif /* !MBEDTLS_X509_CRT_NO_CACHE */
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

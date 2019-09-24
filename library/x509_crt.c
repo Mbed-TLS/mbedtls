@@ -1511,6 +1511,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
 {
     int ret;
     mbedtls_x509_crt_frame frame;
+    mbedtls_pk_context pk;
 #if !defined(MBEDTLS_X509_CRT_NO_CACHE)
     mbedtls_x509_crt_cache *cache;
 #endif /* MBEDTLS_X509_CRT_NO_CACHE */
@@ -1545,9 +1546,45 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     if( ret != 0 )
         goto exit;
 
+    /* Currently, we accept DER encoded CRTs with trailing garbage
+     * and promise to not account for the garbage in the `raw` field.
+     *
+     * Note that this means that `crt->raw.len` is not necessarily the
+     * full size of the heap buffer allocated at `crt->raw.p` in case
+     * of copy-mode, but this is not a problem: freeing the buffer doesn't
+     * need the size, and the garbage data doesn't need zeroization. */
+    crt->raw.len = frame.raw.len;
+
+    /* Remember public key bounds. This must happen prior
+     * to the first call to mbedtls_x509_crt_get_pk(). */
+#if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
+    crt->pk_raw = frame.pubkey_raw;
+#else
+    x509_buf_raw_to_buf( &crt->pk_raw, &frame.pubkey_raw );
+#endif
+
+    /* Check that PK context is well-formed. */
+    mbedtls_pk_init( &pk );
+    ret = mbedtls_x509_crt_get_pk( crt, &pk );
+    mbedtls_pk_free( &pk );
+
+    if( ret != 0 )
+        goto exit;
+
+    /* Allocate CRT cache, if used. */
+#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
+    cache = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_cache ) );
+    if( cache == NULL )
+    {
+        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
+        goto exit;
+    }
+    crt->cache = cache;
+    x509_crt_cache_init( cache );
+#endif /* MBEDTLS_X509_CRT_NO_CACHE */
+
+    /* Build legacy CRT structure from the CRT frame, if used. */
 #if !defined(MBEDTLS_X509_ON_DEMAND_PARSING)
-    /* Copy frame to legacy CRT structure -- that's inefficient, but if
-     * memory matters, the new CRT structure should be used anyway. */
     x509_buf_raw_to_buf( &crt->tbs, &frame.tbs );
     x509_buf_raw_to_buf( &crt->serial, &frame.serial );
     x509_buf_raw_to_buf( &crt->issuer_raw, &frame.issuer_raw );
@@ -1556,7 +1593,6 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     x509_buf_raw_to_buf( &crt->issuer_id, &frame.issuer_id );
     x509_buf_raw_to_buf( &crt->subject_id, &frame.subject_id );
 #endif /* !MBEDTLS_X509_CRT_REMOVE_SUBJECT_ISSUER_ID */
-    x509_buf_raw_to_buf( &crt->pk_raw, &frame.pubkey_raw );
     x509_buf_raw_to_buf( &crt->sig, &frame.sig );
     x509_buf_raw_to_buf( &crt->v3_ext, &frame.v3_ext );
 
@@ -1629,41 +1665,8 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
     ret = x509_crt_ext_key_usage_from_frame( &frame, &crt->ext_key_usage );
     if( ret != 0 )
         goto exit;
+
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
-
-    /* Currently, we accept DER encoded CRTs with trailing garbage
-     * and promise to not account for the garbage in the `raw` field.
-     *
-     * Note that this means that `crt->raw.len` is not necessarily the
-     * full size of the heap buffer allocated at `crt->raw.p` in case
-     * of copy-mode, but this is not a problem: freeing the buffer doesn't
-     * need the size, and the garbage data doesn't need zeroization. */
-    crt->raw.len = frame.raw.len;
-
-#if defined(MBEDTLS_X509_ON_DEMAND_PARSING)
-    {
-        mbedtls_pk_context pk;
-        mbedtls_pk_init( &pk );
-        ret = mbedtls_x509_crt_get_pk( crt, &pk );
-        mbedtls_pk_free( &pk );
-
-        if( ret != 0 )
-            goto exit;
-
-        crt->pk_raw = frame.pubkey_raw;
-    }
-#endif /* MBEDTLS_X509_ON_DEMAND_PARSING */
-
-#if !defined(MBEDTLS_X509_CRT_NO_CACHE)
-    cache = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt_cache ) );
-    if( cache == NULL )
-    {
-        ret = MBEDTLS_ERR_X509_ALLOC_FAILED;
-        goto exit;
-    }
-    crt->cache = cache;
-    x509_crt_cache_init( cache );
-#endif /* MBEDTLS_X509_CRT_NO_CACHE */
 
 exit:
     if( ret != 0 )

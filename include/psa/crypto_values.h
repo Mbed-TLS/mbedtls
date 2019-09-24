@@ -284,7 +284,7 @@
  */
 #define PSA_KEY_TYPE_NONE                       ((psa_key_type_t)0x00000000)
 
-/** Vendor-defined flag
+/** Vendor-defined key type flag.
  *
  * Key types defined by this standard will never have the
  * #PSA_KEY_TYPE_VENDOR_FLAG bit set. Vendors who define additional key types
@@ -301,7 +301,10 @@
 
 #define PSA_KEY_TYPE_CATEGORY_FLAG_PAIR         ((psa_key_type_t)0x10000000)
 
-/** Whether a key type is vendor-defined. */
+/** Whether a key type is vendor-defined.
+ *
+ * See also #PSA_KEY_TYPE_VENDOR_FLAG.
+ */
 #define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
     (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
 
@@ -561,7 +564,15 @@
         (type) == PSA_KEY_TYPE_ARC4 ? 1 :            \
         0)
 
+/** Vendor-defined algorithm flag.
+ *
+ * Algorithms defined by this standard will never have the #PSA_ALG_VENDOR_FLAG
+ * bit set. Vendors who define additional algorithms must use an encoding with
+ * the #PSA_ALG_VENDOR_FLAG bit set and should respect the bitwise structure
+ * used by standard encodings whenever practical.
+ */
 #define PSA_ALG_VENDOR_FLAG                     ((psa_algorithm_t)0x80000000)
+
 #define PSA_ALG_CATEGORY_MASK                   ((psa_algorithm_t)0x7f000000)
 #define PSA_ALG_CATEGORY_HASH                   ((psa_algorithm_t)0x01000000)
 #define PSA_ALG_CATEGORY_MAC                    ((psa_algorithm_t)0x02000000)
@@ -572,6 +583,10 @@
 #define PSA_ALG_CATEGORY_KEY_DERIVATION         ((psa_algorithm_t)0x20000000)
 #define PSA_ALG_CATEGORY_KEY_AGREEMENT          ((psa_algorithm_t)0x30000000)
 
+/** Whether an algorithm is vendor-defined.
+ *
+ * See also #PSA_ALG_VENDOR_FLAG.
+ */
 #define PSA_ALG_IS_VENDOR_DEFINED(alg)                                  \
     (((alg) & PSA_ALG_VENDOR_FLAG) != 0)
 

@@ -71,8 +71,6 @@ TESTS=0
 FAILS=0
 SKIPS=0
 
-CONFIG_H='../include/mbedtls/config.h'
-
 MEMCHECK=0
 FILTER='.*'
 EXCLUDE='^$'
@@ -154,20 +152,6 @@ skip_next_test() {
     SKIP_NEXT="YES"
 }
 
-# skip next test if the flag is not enabled in config.h
-requires_config_enabled() {
-    if grep "^#define $1" $CONFIG_H > /dev/null; then :; else
-        SKIP_NEXT="YES"
-    fi
-}
-
-# skip next test if the flag is enabled in config.h
-requires_config_disabled() {
-    if grep "^#define $1" $CONFIG_H > /dev/null; then
-        SKIP_NEXT="YES"
-    fi
-}
-
 requires_ciphersuite_enabled() {
     if [ -z "$($P_CLI --help | grep "$1")" ]; then
         SKIP_NEXT="YES"
@@ -183,6 +167,19 @@ get_config_value_or_default() {
     # Note that if the configuration is not defined or is defined to nothing,
     # the output of this function will be an empty string.
     ${P_SRV} "query_config=${1}"
+}
+
+# skip next test if the flag is enabled in config.h
+requires_config_disabled() {
+    if get_config_value_or_default $1; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_config_enabled() {
+    if ! get_config_value_or_default $1; then
+        SKIP_NEXT="YES"
+    fi
 }
 
 requires_config_value_at_least() {
@@ -2980,7 +2977,7 @@ run_test    "Session resume using cache, DTLS: openssl server" \
 # Tests for Max Fragment Length extension
 
 if [ "$MAX_CONTENT_LEN" -lt "4096" ]; then
-    printf "${CONFIG_H} defines MBEDTLS_SSL_MAX_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n"
+    printf "The configuration defines MBEDTLS_SSL_MAX_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n"
     exit 1
 fi
 
@@ -3944,7 +3941,7 @@ MAX_IM_CA='8'
 MAX_IM_CA_CONFIG=$( ../scripts/config.pl get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
 
 if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
-    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
+    printf "The configuration file contains a value for the configuration of\n"
     printf "MBEDTLS_X509_MAX_INTERMEDIATE_CA that is different from the script’s\n"
     printf "test value of ${MAX_IM_CA}. \n"
     printf "\n"

@@ -255,6 +255,7 @@ typedef struct psa_tls12_prf_key_derivation_s
 struct psa_key_derivation_s
 {
     psa_algorithm_t alg;
+    unsigned int can_output_key : 1;
     size_t capacity;
     union
     {
@@ -268,7 +269,7 @@ struct psa_key_derivation_s
 };
 
 /* This only zeroes out the first byte in the union, the rest is unspecified. */
-#define PSA_KEY_DERIVATION_OPERATION_INIT {0, 0, {0}}
+#define PSA_KEY_DERIVATION_OPERATION_INIT {0, 0, 0, {0}}
 static inline struct psa_key_derivation_s psa_key_derivation_operation_init( void )
 {
     const struct psa_key_derivation_s v = PSA_KEY_DERIVATION_OPERATION_INIT;

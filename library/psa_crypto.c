@@ -4787,6 +4787,9 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     if( psa_get_key_bits( attributes ) == 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+    if( ! operation->can_output_key )
+        return( PSA_ERROR_NOT_PERMITTED );
+
     status = psa_start_key_creation( PSA_KEY_CREATION_DERIVE,
                                      attributes, handle, &slot, &driver );
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -5174,6 +5177,7 @@ psa_status_t psa_key_derivation_input_key(
 {
     psa_key_slot_t *slot;
     psa_status_t status;
+
     status = psa_get_transparent_key( handle, &slot,
                                       PSA_KEY_USAGE_DERIVE,
                                       operation->alg );
@@ -5182,6 +5186,12 @@ psa_status_t psa_key_derivation_input_key(
         psa_key_derivation_abort( operation );
         return( status );
     }
+
+    /* Passing a key object as a SECRET input unlocks the permission
+     * to output to a key object. */
+    if( step == PSA_KEY_DERIVATION_INPUT_SECRET )
+        operation->can_output_key = 1;
+
     return( psa_key_derivation_input_internal( operation,
                                                step, slot->attr.type,
                                                slot->data.raw.data,

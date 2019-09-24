@@ -3527,6 +3527,11 @@ psa_status_t psa_key_derivation_output_bytes(
  * In all cases, the data that is read is discarded from the operation.
  * The operation's capacity is decreased by the number of bytes read.
  *
+ * For algorithms that take an input step #PSA_KEY_DERIVATION_INPUT_SECRET,
+ * the input to that step must be provided with psa_key_derivation_input_key().
+ * Future versions of this specification may include additional restrictions
+ * on the derived key based on the attributes and strength of the secret key.
+ *
  * \param[in] attributes    The attributes for the new key.
  * \param[in,out] operation The key derivation operation object to read from.
  * \param[out] handle       On success, a handle to the newly created key.
@@ -3549,6 +3554,9 @@ psa_status_t psa_key_derivation_output_bytes(
  *         implementation in general or in this particular location.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The provided key attributes are not valid for the operation.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The #PSA_KEY_DERIVATION_INPUT_SECRET input was not provided through
+ *         a key.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active and completed
  *         all required input steps).

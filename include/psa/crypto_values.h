@@ -1622,7 +1622,11 @@
  * (passed to psa_key_derivation_input_key())
  * or the shared secret resulting from a key agreement
  * (obtained via psa_key_derivation_key_agreement()).
- * It can also be a direct input (passed to key_derivation_input_bytes()).
+ *
+ * The secret can also be a direct input (passed to
+ * key_derivation_input_bytes()). In this case, the derivation operation
+ * may not be used to derive keys: the operation will only allow
+ * psa_key_derivation_output_bytes(), not psa_key_derivation_output_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_SECRET     ((psa_key_derivation_step_t)0x0101)
 

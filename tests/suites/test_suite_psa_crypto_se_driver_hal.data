@@ -79,9 +79,9 @@ Key import smoke test: CAMELLIA-CMAC
 import_key_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_CMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 Key import smoke test: CAMELLIA-CCM
-import_key_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_GCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+import_key_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_CCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-Key import smoke test: CAMELLIA-CCM
+Key import smoke test: CAMELLIA-GCM
 import_key_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_GCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 Key import smoke test: HMAC-SHA-256

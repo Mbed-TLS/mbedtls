@@ -3229,9 +3229,12 @@ psa_status_t psa_key_derivation_set_capacity(
  * Refer to the documentation of each key derivation or key agreement
  * algorithm for information.
  *
- * This function passes direct inputs. Some inputs must be passed as keys
- * using psa_key_derivation_input_key() instead of this function. Refer to
- * the documentation of individual step types for information.
+ * This function passes direct inputs, which is usually correct for
+ * non-secret inputs. To pass a secret input, which should be in a key
+ * object, call psa_key_derivation_input_key() instead of this function.
+ * Refer to the documentation of individual step types
+ * (`PSA_KEY_DERIVATION_INPUT_xxx` values of type ::psa_key_derivation_step_t)
+ * for more information.
  *
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_key_derivation_abort().
@@ -3274,10 +3277,13 @@ psa_status_t psa_key_derivation_input_bytes(
  * Refer to the documentation of each key derivation or key agreement
  * algorithm for information.
  *
- * This function passes key inputs. Some inputs must be passed as keys
- * of the appropriate type using this function, while others must be
- * passed as direct inputs using psa_key_derivation_input_bytes(). Refer to
- * the documentation of individual step types for information.
+ * This function obtains input from a key object, which is usually correct for
+ * secret inputs or for non-secret personalization strings kept in the key
+ * store. To pass a non-secret parameter which is not in the key store,
+ * call psa_key_derivation_input_bytes() instead of this function.
+ * Refer to the documentation of individual step types
+ * (`PSA_KEY_DERIVATION_INPUT_xxx` values of type ::psa_key_derivation_step_t)
+ * for more information.
  *
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_key_derivation_abort().

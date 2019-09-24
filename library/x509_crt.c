@@ -435,6 +435,7 @@ int mbedtls_x509_crt_get_pk( mbedtls_x509_crt const *crt,
     mbedtls_x509_buf_raw pk_raw = crt->pk_raw;
 #endif
 
+    mbedtls_pk_init( dst );
     return( mbedtls_pk_parse_subpubkey( &pk_raw.p,
                                         pk_raw.p + pk_raw.len,
                                         dst ) );

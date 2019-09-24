@@ -195,6 +195,8 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *                      personalization data is empty regardless of the value
  *                      of \p len.
  * \param len           The length of the personalization data.
+ *                      This must be at most
+ *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT / 2.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on failure.
@@ -234,6 +236,7 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
  *
  * \param ctx           The CTR_DRBG context.
  * \param len           The amount of entropy to grab, in bytes.
+ *                      This must be at most #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
  */
 void mbedtls_ctr_drbg_set_entropy_len( mbedtls_ctr_drbg_context *ctx,
                                size_t len );
@@ -255,6 +258,10 @@ void mbedtls_ctr_drbg_set_reseed_interval( mbedtls_ctr_drbg_context *ctx,
  * \param ctx           The CTR_DRBG context.
  * \param additional    Additional data to add to the state. Can be NULL.
  * \param len           The length of the additional data.
+ *                      This must be less than
+ *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT - \c entropy_len
+ *                      where \c entropy_len is the entropy length
+ *                      configured for the context.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on failure.
@@ -296,6 +303,11 @@ int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
  *                      the value of \p add_len.
  * \param add_len       The length of the additional data
  *                      if \p additional is non-null.
+ *                      This must be less than #MBEDTLS_CTR_DRBG_MAX_INPUT
+ *                      and less than
+ *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT - \c entropy_len
+ *                      where \c entropy_len is the entropy length
+ *                      configured for the context.
  *
  * \return    \c 0 on success.
  * \return    #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or

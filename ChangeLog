@@ -73,6 +73,8 @@ Bugfix
 Changes
    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
      from the cipher abstraction layer. Fixes #2198.
+   * Clarify how the interface of the CTR_DRBG module relates to
+     NIST SP 800-90A.
 
 = mbed TLS 2.16.3 branch released 2019-09-06
 

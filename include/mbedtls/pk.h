@@ -286,10 +286,6 @@ void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx );
 void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-// Work in progress: further functions not inlinable so far
-#undef MBEDTLS_PK_INLINABLE_API
-#define MBEDTLS_PK_INLINABLE_API
-
 /**
  * \brief           Initialize a PK context with the information given
  *                  and allocates the type-specific PK subcontext.
@@ -329,6 +325,10 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
                          mbedtls_pk_rsa_alt_sign_func sign_func,
                          mbedtls_pk_rsa_alt_key_len_func key_len_func );
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+// Work in progress: further functions not inlinable so far
+#undef MBEDTLS_PK_INLINABLE_API
+#define MBEDTLS_PK_INLINABLE_API
 
 /**
  * \brief           Get the size in bits of the underlying key
@@ -639,6 +639,16 @@ static inline void mbedtls_pk_free( mbedtls_pk_context *ctx )
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
 }
 
+static inline int mbedtls_pk_setup( mbedtls_pk_context *ctx,
+                                    mbedtls_pk_handle_t info )
+{
+    (void) ctx;
+
+    if( info == MBEDTLS_PK_INVALID_HANDLE )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    return( 0 );
+}
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 #if defined(MBEDTLS_PK_PARSE_C)

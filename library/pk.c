@@ -1359,8 +1359,6 @@ mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
     }
 }
 
-#endif /* !MBEDTLS_PK_SINGLE_TYPE */
-
 /*
  * Initialise context
  */
@@ -1370,7 +1368,6 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, mbedtls_pk_handle_t info )
     if( info == MBEDTLS_PK_INVALID_HANDLE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-#if !defined(MBEDTLS_PK_SINGLE_TYPE)
     if( ctx->pk_info != NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -1378,9 +1375,6 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, mbedtls_pk_handle_t info )
 
     if( ( ctx->pk_ctx = pk_info_ctx_alloc_func( info ) ) == NULL )
         return( MBEDTLS_ERR_PK_ALLOC_FAILED );
-#else
-    (void) ctx;
-#endif
 
     return( 0 );
 }
@@ -1416,6 +1410,8 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
     return( 0 );
 }
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+#endif /* !MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Tell if a PK can do the operations of the given type

@@ -59,17 +59,17 @@
 #define MBEDTLS_PK_INFO_ECKEY_CONTEXT           mbedtls_uecc_keypair
 #define MBEDTLS_PK_INFO_ECKEY_TYPE              MBEDTLS_PK_ECKEY
 #define MBEDTLS_PK_INFO_ECKEY_NAME              "EC"
-#define MBEDTLS_PK_INFO_ECKEY_GET_BITLEN        uecc_eckey_get_bitlen
-#define MBEDTLS_PK_INFO_ECKEY_CAN_DO            uecc_eckey_can_do
-#define MBEDTLS_PK_INFO_ECKEY_VERIFY_FUNC       uecc_eckey_verify_wrap
-#define MBEDTLS_PK_INFO_ECKEY_SIGN_FUNC         uecc_eckey_sign_wrap
+#define MBEDTLS_PK_INFO_ECKEY_GET_BITLEN        mbedtls_uecc_eckey_get_bitlen
+#define MBEDTLS_PK_INFO_ECKEY_CAN_DO            mbedtls_uecc_eckey_can_do
+#define MBEDTLS_PK_INFO_ECKEY_VERIFY_FUNC       mbedtls_uecc_eckey_verify_wrap
+#define MBEDTLS_PK_INFO_ECKEY_SIGN_FUNC         mbedtls_uecc_eckey_sign_wrap
 #define MBEDTLS_PK_INFO_ECKEY_DECRYPT_FUNC      NULL
 #define MBEDTLS_PK_INFO_ECKEY_DECRYPT_OMIT      1
 #define MBEDTLS_PK_INFO_ECKEY_ENCRYPT_FUNC      NULL
 #define MBEDTLS_PK_INFO_ECKEY_ENCRYPT_OMIT      1
-#define MBEDTLS_PK_INFO_ECKEY_CHECK_PAIR_FUNC   uecc_eckey_check_pair
-#define MBEDTLS_PK_INFO_ECKEY_CTX_ALLOC_FUNC    uecc_eckey_alloc_wrap
-#define MBEDTLS_PK_INFO_ECKEY_CTX_FREE_FUNC     uecc_eckey_free_wrap
+#define MBEDTLS_PK_INFO_ECKEY_CHECK_PAIR_FUNC   mbedtls_uecc_eckey_check_pair
+#define MBEDTLS_PK_INFO_ECKEY_CTX_ALLOC_FUNC    mbedtls_uecc_eckey_alloc_wrap
+#define MBEDTLS_PK_INFO_ECKEY_CTX_FREE_FUNC     mbedtls_uecc_eckey_free_wrap
 #define MBEDTLS_PK_INFO_ECKEY_DEBUG_FUNC        NULL
 #define MBEDTLS_PK_INFO_ECKEY_DEBUG_OMIT        1
 #endif /* MBEDTLS_USE_TINYCRYPT */

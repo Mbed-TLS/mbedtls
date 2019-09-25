@@ -1283,8 +1283,6 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx )
     ctx->pk_ctx = NULL;
 }
 
-#endif /* MBEDTLS_PK_SINGLE_TYPE */
-
 /*
  * Free (the components of) a mbedtls_pk_context
  */
@@ -1293,10 +1291,8 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx )
     if( ctx == NULL )
         return;
 
-#if !defined(MBEDTLS_PK_SINGLE_TYPE)
     if( MBEDTLS_PK_CTX_IS_VALID( ctx ) )
         pk_info_ctx_free_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx );
-#endif
 
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
 }
@@ -1333,7 +1329,6 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx )
 /*
  * Get pk_info structure from type
  */
-#if !defined(MBEDTLS_PK_SINGLE_TYPE)
 mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
 {
     switch( pk_type ) {
@@ -1363,6 +1358,7 @@ mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
             return( NULL );
     }
 }
+
 #endif /* !MBEDTLS_PK_SINGLE_TYPE */
 
 /*

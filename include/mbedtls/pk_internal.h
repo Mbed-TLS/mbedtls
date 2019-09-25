@@ -619,4 +619,25 @@ extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #endif
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
 
+/*
+ * Helper for mbedtls_pk_sign and mbedtls_pk_verify
+ */
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_hashlen_helper(
+        mbedtls_md_type_t md_alg, size_t *hash_len )
+{
+    mbedtls_md_handle_t md_info;
+
+    if( *hash_len != 0 )
+        return( 0 );
+
+    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) ==
+        MBEDTLS_MD_INVALID_HANDLE )
+    {
+        return( -1 );
+    }
+
+    *hash_len = mbedtls_md_get_size( md_info );
+    return( 0 );
+}
+
 #endif /* MBEDTLS_PK_WRAP_H */

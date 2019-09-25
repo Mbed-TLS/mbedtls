@@ -1100,26 +1100,6 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
 
 #endif /* !MBEDTLS_PK_SINGLE_TYPE */
 
-/*
- * Helper for mbedtls_pk_sign and mbedtls_pk_verify
- */
-static inline int pk_hashlen_helper( mbedtls_md_type_t md_alg, size_t *hash_len )
-{
-    mbedtls_md_handle_t md_info;
-
-    if( *hash_len != 0 )
-        return( 0 );
-
-    if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) ==
-        MBEDTLS_MD_INVALID_HANDLE )
-    {
-        return( -1 );
-    }
-
-    *hash_len = mbedtls_md_get_size( md_info );
-    return( 0 );
-}
-
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /*
  * Helper to set up a restart context if needed
@@ -1159,7 +1139,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
     MBEDTLS_PK_VALIDATE_RET( sig != NULL );
 
     if( !MBEDTLS_PK_CTX_IS_VALID( ctx ) ||
-        pk_hashlen_helper( md_alg, &hash_len ) != 0 )
+        mbedtls_pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -1279,7 +1259,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
     MBEDTLS_PK_VALIDATE_RET( sig != NULL );
 
     if( !MBEDTLS_PK_CTX_IS_VALID( ctx ) ||
-        pk_hashlen_helper( md_alg, &hash_len ) != 0 )
+        mbedtls_pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

@@ -33,6 +33,12 @@
 
 #include "pk.h"
 
+/* Parameter validation macros based on platform_util.h */
+#define MBEDTLS_PK_VALIDATE_RET( cond )    \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_PK_BAD_INPUT_DATA )
+#define MBEDTLS_PK_VALIDATE( cond )        \
+    MBEDTLS_INTERNAL_VALIDATE( cond )
+
 /*
  * PK information macro definitions
  */

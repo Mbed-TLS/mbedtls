@@ -33,6 +33,8 @@
 
 #include "pk.h"
 
+#include "string.h"
+
 /* Parameter validation macros based on platform_util.h */
 #define MBEDTLS_PK_VALIDATE_RET( cond )    \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_PK_BAD_INPUT_DATA )
@@ -254,6 +256,73 @@ struct mbedtls_pk_info_t
     ( MBEDTLS_PK_CTX_INFO( (ctx) ) != MBEDTLS_PK_INVALID_HANDLE )
 
 /*
+ * Internal wrappers around ECC functions - based on TinyCrypt
+ */
+#if defined(MBEDTLS_USE_TINYCRYPT)
+/* These internal functions are defined in pk.c */
+int mbedtls_uecc_verify_asn1( const mbedtls_uecc_keypair *keypair,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len );
+int mbedtls_uecc_sign_asn1( const mbedtls_uecc_keypair *keypair,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len );
+
+static size_t mbedtls_uecc_eckey_get_bitlen( const void *ctx )
+{
+    (void) ctx;
+    return( (size_t) ( NUM_ECC_BYTES * 8 ) );
+}
+
+static int mbedtls_uecc_eckey_check_pair( const void *pub, const void *prv )
+{
+    const mbedtls_uecc_keypair *uecc_pub =
+        (const mbedtls_uecc_keypair *) pub;
+    const mbedtls_uecc_keypair *uecc_prv =
+        (const mbedtls_uecc_keypair *) prv;
+
+    if( memcmp( uecc_pub->public_key,
+                uecc_prv->public_key,
+                2 * NUM_ECC_BYTES ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+}
+
+static int mbedtls_uecc_eckey_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_ECDSA ||
+            type == MBEDTLS_PK_ECKEY );
+}
+
+static int mbedtls_uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len )
+{
+    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
+
+    ((void) md_alg);
+    return( mbedtls_uecc_verify_asn1( keypair, hash, hash_len, sig, sig_len ) );
+}
+
+static int mbedtls_uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
+
+    /* uECC owns its rng function pointer */
+    (void) f_rng;
+    (void) p_rng;
+    (void) md_alg;
+
+    return( mbedtls_uecc_sign_asn1( keypair, hash, hash_len, sig, sig_len ) );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
+/*
  * Access to members of the pk_info structure. When a single PK type is
  * hardcoded, these should have zero runtime cost; otherwise, the usual
  * dynamic dispatch based on pk_info is used.
@@ -267,18 +336,6 @@ struct mbedtls_pk_info_t
  * with MBEDTLS_USE_TINYCRYPT, which don't have MBEDTLS_ECP_RESTARTABLE.
  */
 #if defined(MBEDTLS_PK_SINGLE_TYPE)
-
-/* temporary: forward declarations */
-size_t mbedtls_uecc_eckey_get_bitlen( const void *ctx );
-int mbedtls_uecc_eckey_check_pair( const void *pub, const void *prv );
-int mbedtls_uecc_eckey_can_do( mbedtls_pk_type_t type );
-int mbedtls_uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
-                       const unsigned char *hash, size_t hash_len,
-                       const unsigned char *sig, size_t sig_len );
-int mbedtls_uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
-                   const unsigned char *hash, size_t hash_len,
-                   unsigned char *sig, size_t *sig_len,
-                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 MBEDTLS_ALWAYS_INLINE static inline mbedtls_pk_type_t mbedtls_pk_info_type(
     mbedtls_pk_handle_t info )

@@ -1386,17 +1386,13 @@ int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *item
 {
     return( mbedtls_pk_debug_internal( ctx, items ) );
 }
-#endif /* ! MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Access the PK type name
  */
 const char *mbedtls_pk_get_name( const mbedtls_pk_context *ctx )
 {
-    if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
-        return( "invalid PK" );
-
-    return( mbedtls_pk_info_name( MBEDTLS_PK_CTX_INFO( ctx ) ) );
+    return( mbedtls_pk_get_name_internal( ctx ) );
 }
 
 /*
@@ -1404,10 +1400,8 @@ const char *mbedtls_pk_get_name( const mbedtls_pk_context *ctx )
  */
 mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
 {
-    if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
-        return( MBEDTLS_PK_NONE );
-
-    return( mbedtls_pk_info_type( MBEDTLS_PK_CTX_INFO( ctx ) ) );
+    return( mbedtls_pk_get_type_internal( ctx ) );
 }
+#endif /* ! MBEDTLS_PK_SINGLE_TYPE */
 
 #endif /* MBEDTLS_PK_C */

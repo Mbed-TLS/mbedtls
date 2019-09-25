@@ -1378,19 +1378,15 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
 {
     return( mbedtls_pk_get_bitlen_internal( ctx ) );
 }
-#endif /* ! MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Export debug information
  */
 int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items )
 {
-    MBEDTLS_PK_VALIDATE_RET( ctx != NULL );
-    if( !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
-        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-
-    return( mbedtls_pk_info_debug_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx, items ) );
+    return( mbedtls_pk_debug_internal( ctx, items ) );
 }
+#endif /* ! MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Access the PK type name

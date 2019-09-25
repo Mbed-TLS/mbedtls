@@ -604,10 +604,6 @@ MBEDTLS_PK_INLINABLE_API int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
 MBEDTLS_PK_INLINABLE_API int mbedtls_pk_check_pair(
         const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
-// Work in progress: following functions not inlinable so far
-#undef MBEDTLS_PK_INLINABLE_API
-#define MBEDTLS_PK_INLINABLE_API
-
 /**
  * \brief           Export debug information
  *
@@ -618,6 +614,10 @@ MBEDTLS_PK_INLINABLE_API int mbedtls_pk_check_pair(
  */
 MBEDTLS_PK_INLINABLE_API int mbedtls_pk_debug(
         const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items );
+
+// Work in progress: following functions not inlinable so far
+#undef MBEDTLS_PK_INLINABLE_API
+#define MBEDTLS_PK_INLINABLE_API
 
 /**
  * \brief           Access the type name
@@ -696,6 +696,16 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_check_pair_internal(
                 pub->pk_ctx, prv->pk_ctx ) );
 }
 
+/* Export debug information */
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_debug_internal(
+        const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items )
+{
+    MBEDTLS_PK_VALIDATE_RET( ctx != NULL );
+    if( !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    return( mbedtls_pk_info_debug_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx, items ) );
+}
 /*
  * Definitions of inline API functions
  */
@@ -751,6 +761,11 @@ static inline int mbedtls_pk_check_pair( const mbedtls_pk_context *pub,
                                          const mbedtls_pk_context *prv )
 {
     return( mbedtls_pk_check_pair_internal( pub, prv ) );
+}
+
+static inline int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items )
+{
+    return( mbedtls_pk_debug_internal( ctx, items ) );
 }
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
 

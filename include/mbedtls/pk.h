@@ -74,6 +74,12 @@
 /* MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated and should not be used. */
 #define MBEDTLS_ERR_PK_HW_ACCEL_FAILED     -0x3880  /**< PK hardware accelerator failed. */
 
+/* Parameter validation macros based on platform_util.h */
+#define MBEDTLS_PK_VALIDATE_RET( cond )    \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_PK_BAD_INPUT_DATA )
+#define MBEDTLS_PK_VALIDATE( cond )        \
+    MBEDTLS_INTERNAL_VALIDATE( cond )
+
 /*
  * Make some API functions inline if only a single type is available.
  */
@@ -82,6 +88,17 @@
 #else
 #define MBEDTLS_PK_INLINABLE_API
 #endif
+
+/*
+ * Macros to access pk_info
+ */
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+#define MBEDTLS_PK_CTX_INFO( ctx )      MBEDTLS_PK_UNIQUE_VALID_HANDLE
+#else
+#define MBEDTLS_PK_CTX_INFO( ctx )      ( (ctx)->pk_info )
+#endif
+#define MBEDTLS_PK_CTX_IS_VALID( ctx )  \
+    ( MBEDTLS_PK_CTX_INFO( (ctx) ) != MBEDTLS_PK_INVALID_HANDLE )
 
 #ifdef __cplusplus
 extern "C" {
@@ -148,6 +165,20 @@ typedef const mbedtls_pk_info_t *mbedtls_pk_handle_t;
 #define MBEDTLS_PK_INVALID_HANDLE ( (mbedtls_pk_handle_t) NULL )
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
 
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
+/**
+ * \brief           Types for RSA-alt abstraction
+ */
+typedef int (*mbedtls_pk_rsa_alt_decrypt_func)( void *ctx, int mode, size_t *olen,
+                    const unsigned char *input, unsigned char *output,
+                    size_t output_max_len );
+typedef int (*mbedtls_pk_rsa_alt_sign_func)( void *ctx,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                    int mode, mbedtls_md_type_t md_alg, unsigned int hashlen,
+                    const unsigned char *hash, unsigned char *sig );
+typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
+#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
 #if defined(MBEDTLS_USE_TINYCRYPT)
 typedef struct
 {
@@ -156,11 +187,10 @@ typedef struct
 } mbedtls_uecc_keypair;
 #endif
 
-/* This needs to come after the declaration of mbedtls_uecc_keypair
+/* This needs to come after the declaration of all types
+ * (mbedtls_uecc_keypair, mbedtls_pk_rsa_alt_ types)
  * and before the first use of MBEDTLS_PK_INFO_CONTEXT(). */
-#if defined(MBEDTLS_PK_SINGLE_TYPE)
 #include "pk_internal.h"
-#endif
 
 /**
  * \brief           Public key container
@@ -231,20 +261,6 @@ static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
     return( (mbedtls_ecp_keypair *) (pk).pk_ctx );
 }
 #endif /* MBEDTLS_ECP_C */
-
-#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
-/**
- * \brief           Types for RSA-alt abstraction
- */
-typedef int (*mbedtls_pk_rsa_alt_decrypt_func)( void *ctx, int mode, size_t *olen,
-                    const unsigned char *input, unsigned char *output,
-                    size_t output_max_len );
-typedef int (*mbedtls_pk_rsa_alt_sign_func)( void *ctx,
-                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-                    int mode, mbedtls_md_type_t md_alg, unsigned int hashlen,
-                    const unsigned char *hash, unsigned char *sig );
-typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
-#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 /**
  * \brief           Return information associated with the given PK type
@@ -356,6 +372,12 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
     return( ( mbedtls_pk_get_bitlen( ctx ) + 7 ) / 8 );
 }
 
+// Work in progress: previous functions not inlinable so far
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+#undef MBEDTLS_PK_INLINABLE_API
+#define MBEDTLS_PK_INLINABLE_API MBEDTLS_ALWAYS_INLINE static inline
+#endif
+
 /**
  * \brief           Tell if a context can do the operation given by type
  *
@@ -370,6 +392,10 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
  */
 MBEDTLS_PK_INLINABLE_API int mbedtls_pk_can_do( const mbedtls_pk_context *ctx,
                                                 mbedtls_pk_type_t type );
+
+// Work in progress: further functions not inlinable so far
+#undef MBEDTLS_PK_INLINABLE_API
+#define MBEDTLS_PK_INLINABLE_API
 
 /**
  * \brief           Verify signature (including padding if relevant).
@@ -615,7 +641,27 @@ MBEDTLS_PK_INLINABLE_API mbedtls_pk_type_t mbedtls_pk_get_type(
         const mbedtls_pk_context *ctx );
 
 /*
- * Implementation of inline API functions
+ * Internal definitions - for inlining purposes - do no use directly!
+ */
+
+/*
+ * Tell if a PK can do the operations of the given type
+ */
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_can_do_internal(
+        const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
+{
+    /* A context with null pk_info is not set up yet and can't do anything.
+     * For backward compatibility, also accept NULL instead of a context
+     * pointer. */
+    if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
+        return( 0 );
+
+    return( mbedtls_pk_info_can_do( MBEDTLS_PK_CTX_INFO( ctx ), type ) );
+}
+
+
+/*
+ * Definitions of inline API functions
  */
 #if defined(MBEDTLS_PK_SINGLE_TYPE)
 
@@ -652,6 +698,12 @@ static inline int mbedtls_pk_setup( mbedtls_pk_context *ctx,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     return( 0 );
+}
+
+static inline int mbedtls_pk_can_do(
+        const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
+{
+    return( mbedtls_pk_can_do_internal( ctx, type ) );
 }
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
 

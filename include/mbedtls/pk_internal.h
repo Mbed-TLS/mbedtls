@@ -35,12 +35,6 @@
 
 #include "string.h"
 
-/* Parameter validation macros based on platform_util.h */
-#define MBEDTLS_PK_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_PK_BAD_INPUT_DATA )
-#define MBEDTLS_PK_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 /*
  * PK information macro definitions
  */
@@ -243,17 +237,6 @@ struct mbedtls_pk_info_t
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
-
-/*
- * Macros to access pk_info
- */
-#if defined(MBEDTLS_PK_SINGLE_TYPE)
-#define MBEDTLS_PK_CTX_INFO( ctx )      MBEDTLS_PK_UNIQUE_VALID_HANDLE
-#else
-#define MBEDTLS_PK_CTX_INFO( ctx )      ( (ctx)->pk_info )
-#endif
-#define MBEDTLS_PK_CTX_IS_VALID( ctx )  \
-    ( MBEDTLS_PK_CTX_INFO( (ctx) ) != MBEDTLS_PK_INVALID_HANDLE )
 
 #define MBEDTLS_PK_WRAPPER MBEDTLS_ALWAYS_INLINE static inline
 

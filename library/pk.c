@@ -27,7 +27,6 @@
 
 #if defined(MBEDTLS_PK_C)
 #include "mbedtls/pk.h"
-#include "mbedtls/pk_internal.h"
 
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 #include "mbedtls/rsa.h"
@@ -1091,21 +1090,15 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
 }
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
-#endif /* !MBEDTLS_PK_SINGLE_TYPE */
-
 /*
  * Tell if a PK can do the operations of the given type
  */
 int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
 {
-    /* A context with null pk_info is not set up yet and can't do anything.
-     * For backward compatibility, also accept NULL instead of a context
-     * pointer. */
-    if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
-        return( 0 );
-
-    return( mbedtls_pk_info_can_do( MBEDTLS_PK_CTX_INFO( ctx ), type ) );
+    return( mbedtls_pk_can_do_internal( ctx, type ) );
 }
+
+#endif /* !MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Helper for mbedtls_pk_sign and mbedtls_pk_verify

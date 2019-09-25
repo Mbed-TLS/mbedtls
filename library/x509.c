@@ -42,6 +42,18 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/oid.h"
 
+/* We include x509xxx.c files here so that x509.c is one compilation unit including
+ * all the x509 files. This is done because some of the internal functions are shared.
+ * For code size savings internal functions should be static so that compiler can do better job
+ * when optimizing. We don't wan't x509.c file to get too big so including .c files.
+ */
+#include "x509_crl.c"
+#include "x509_crt.c"
+#include "x509_csr.c"
+#include "x509_create.c"
+#include "x509write_crt.c"
+#include "x509write_csr.c"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -81,7 +93,7 @@
 /*
  *  CertificateSerialNumber  ::=  INTEGER
  */
-int mbedtls_x509_get_serial( unsigned char **p, const unsigned char *end,
+static int mbedtls_x509_get_serial( unsigned char **p, const unsigned char *end,
                      mbedtls_x509_buf *serial )
 {
     int ret;
@@ -106,13 +118,32 @@ int mbedtls_x509_get_serial( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
+#if defined(MBEDTLS_X509_CRL_PARSE_C) || defined(MBEDTLS_X509_CSR_PARSE_C) || \
+    ( !defined(MBEDTLS_X509_ON_DEMAND_PARSING) && defined(MBEDTLS_X509_CRT_PARSE_C) )
+/*
+ * Parse an algorithm identifier with (optional) parameters
+ */
+static int mbedtls_x509_get_alg( unsigned char **p, const unsigned char *end,
+                  mbedtls_x509_buf *alg, mbedtls_x509_buf *params )
+{
+    int ret;
+
+    if( ( ret = mbedtls_asn1_get_alg( p, end, alg, params ) ) != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_ALG + ret );
+
+    return( 0 );
+}
+#endif /* defined(MBEDTLS_X509_CRL_PARSE_C) || defined(MBEDTLS_X509_CSR_PARSE_C) ||
+         ( !defined(MBEDTLS_X509_ON_DEMAND_PARSING) && defined(MBEDTLS_X509_CRT_PARSE_C) ) */
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
 /* Get an algorithm identifier without parameters (eg for signatures)
  *
  *  AlgorithmIdentifier  ::=  SEQUENCE  {
  *       algorithm               OBJECT IDENTIFIER,
  *       parameters              ANY DEFINED BY algorithm OPTIONAL  }
  */
-int mbedtls_x509_get_alg_null( unsigned char **p, const unsigned char *end,
+static int mbedtls_x509_get_alg_null( unsigned char **p, const unsigned char *end,
                        mbedtls_x509_buf *alg )
 {
     int ret;
@@ -123,21 +154,6 @@ int mbedtls_x509_get_alg_null( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
-/*
- * Parse an algorithm identifier with (optional) parameters
- */
-int mbedtls_x509_get_alg( unsigned char **p, const unsigned char *end,
-                  mbedtls_x509_buf *alg, mbedtls_x509_buf *params )
-{
-    int ret;
-
-    if( ( ret = mbedtls_asn1_get_alg( p, end, alg, params ) ) != 0 )
-        return( MBEDTLS_ERR_X509_INVALID_ALG + ret );
-
-    return( 0 );
-}
-
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
 /*
  * HashAlgorithm ::= AlgorithmIdentifier
  *
@@ -206,7 +222,7 @@ static int x509_get_hash_alg( const mbedtls_x509_buf *alg, mbedtls_md_type_t *md
  * of trailerField MUST be 1, and PKCS#1 v2.2 doesn't even define any other
  * option. Enfore this at parsing time.
  */
-int mbedtls_x509_get_rsassa_pss_params( const mbedtls_x509_buf *params,
+static int mbedtls_x509_get_rsassa_pss_params( const mbedtls_x509_buf *params,
                                 mbedtls_md_type_t *md_alg, mbedtls_md_type_t *mgf_md,
                                 int *salt_len )
 {
@@ -459,7 +475,7 @@ exit:
 /*
  * Like memcmp, but case-insensitive and always returns -1 if different
  */
-int mbedtls_x509_memcasecmp( const void *s1, const void *s2,
+static int mbedtls_x509_memcasecmp( const void *s1, const void *s2,
                              size_t len1, size_t len2 )
 {
     size_t i;
@@ -540,7 +556,7 @@ static int x509_string_cmp( const mbedtls_x509_buf *a,
  * This function can be used to verify that a buffer contains a well-formed
  * ASN.1 encoded X.509 name by calling it with equal parameters.
  */
-int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
+static int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
                                mbedtls_x509_buf_raw const *b,
                                int (*abort_check)( void *ctx,
                                                    mbedtls_x509_buf *oid,
@@ -645,7 +661,7 @@ static int x509_get_name_cb( void *ctx,
     return( 0 );
 }
 
-int mbedtls_x509_get_name( unsigned char *p,
+static int mbedtls_x509_get_name( unsigned char *p,
                            size_t len,
                            mbedtls_x509_name *cur )
 {
@@ -656,6 +672,8 @@ int mbedtls_x509_get_name( unsigned char *p,
                                        &cur ) );
 }
 
+#if ( !defined(MBEDTLS_X509_CRT_REMOVE_TIME) && defined(MBEDTLS_X509_CRT_PARSE_C) ) || \
+    defined(MBEDTLS_X509_CRL_PARSE_C)
 static int x509_parse_int( unsigned char **p, size_t n, int *res )
 {
     *res = 0;
@@ -774,7 +792,7 @@ static int x509_parse_time( unsigned char **p, size_t len, size_t yearlen,
  *       utcTime        UTCTime,
  *       generalTime    GeneralizedTime }
  */
-int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
+static int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
                            mbedtls_x509_time *tm )
 {
     int ret;
@@ -803,8 +821,10 @@ int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
 
     return x509_parse_time( p, len, year_len, tm );
 }
+#endif /* ( !defined(MBEDTLS_X509_CRT_REMOVE_TIME) && defined(MBEDTLS_X509_CRT_PARSE_C) ) ||
+          defined(MBEDTLS_X509_CRL_PARSE_C) */
 
-int mbedtls_x509_get_sig( unsigned char **p, const unsigned char *end, mbedtls_x509_buf *sig )
+static int mbedtls_x509_get_sig( unsigned char **p, const unsigned char *end, mbedtls_x509_buf *sig )
 {
     int ret;
     size_t len;
@@ -828,7 +848,7 @@ int mbedtls_x509_get_sig( unsigned char **p, const unsigned char *end, mbedtls_x
     return( 0 );
 }
 
-int mbedtls_x509_get_sig_alg_raw( unsigned char **p, unsigned char const *end,
+static int mbedtls_x509_get_sig_alg_raw( unsigned char **p, unsigned char const *end,
                                   mbedtls_md_type_t *md_alg,
                                   mbedtls_pk_type_t *pk_alg,
                                   void **sig_opts )
@@ -846,7 +866,7 @@ int mbedtls_x509_get_sig_alg_raw( unsigned char **p, unsigned char const *end,
 /*
  * Get signature algorithm from alg OID and optional parameters
  */
-int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x509_buf *sig_params,
+static int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x509_buf *sig_params,
                       mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg,
                       void **sig_opts )
 {
@@ -894,11 +914,12 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
     return( 0 );
 }
 
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
 /*
  * X.509 Extensions (No parsing of extensions, pointer should
  * be either manually updated or extensions should be parsed!)
  */
-int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
+static int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
                           mbedtls_x509_buf *ext, int tag )
 {
     int ret;
@@ -929,7 +950,7 @@ int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
 
     return( 0 );
 }
-
+#endif /* defined(MBEDTLS_X509_CRL_PARSE_C) */
 /*
  * Store the name in printable form into buf; no more
  * than size characters will be written
@@ -1031,7 +1052,7 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
 /*
  * Helper for writing signature algorithms
  */
-int mbedtls_x509_sig_alg_gets( char *buf, size_t size, mbedtls_pk_type_t pk_alg,
+static int mbedtls_x509_sig_alg_gets( char *buf, size_t size, mbedtls_pk_type_t pk_alg,
                                mbedtls_md_type_t md_alg, const void *sig_opts )
 {
     int ret;
@@ -1086,12 +1107,11 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, mbedtls_pk_type_t pk_alg,
 
     return( (int)( size - n ) );
 }
-#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 /*
  * Helper for writing "RSA key size", "EC key size", etc
  */
-int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
+static int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
 {
     char *p = buf;
     size_t n = buf_size;
@@ -1102,6 +1122,7 @@ int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
 
     return( 0 );
 }
+#endif /* !MBEDTLS_X509_REMOVE_INFO */
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /*

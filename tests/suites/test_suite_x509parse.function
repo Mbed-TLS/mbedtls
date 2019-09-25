@@ -9,6 +9,10 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/base64.h"
 #include "string.h"
+/* We need to include x509.c because we are testing x509 internal
+ * functions from x509_internal.h which are static. With this include
+ * we get the tested functions defined. */
+#include "../library/x509.c"
 
 #if MBEDTLS_X509_MAX_INTERMEDIATE_CA > 19
 #error "The value of MBEDTLS_X509_MAX_INTERMEDIATE_C is larger \
@@ -1002,7 +1006,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C:!MBEDTLS_X509_CRT_REMOVE_TIME */
 void x509_get_time( int tag, char * time_str, int ret, int year, int mon,
                     int day, int hour, int min, int sec )
 {

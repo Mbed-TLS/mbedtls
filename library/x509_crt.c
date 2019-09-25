@@ -109,7 +109,7 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame const *frame,
 static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame const *frame,
                                         mbedtls_x509_sequence *ext_key_usage );
 
-int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
+static int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
 {
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
@@ -145,7 +145,7 @@ int mbedtls_x509_crt_flush_cache_pk( mbedtls_x509_crt const *crt )
     return( 0 );
 }
 
-int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt )
+static int mbedtls_x509_crt_flush_cache_frame( mbedtls_x509_crt const *crt )
 {
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
@@ -188,7 +188,7 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt )
 
 static int x509_crt_frame_parse_ext( mbedtls_x509_crt_frame *frame );
 
-int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
+static int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
 {
     mbedtls_x509_crt_cache *cache = crt->cache;
     mbedtls_x509_crt_frame *frame;
@@ -255,7 +255,7 @@ int mbedtls_x509_crt_cache_provide_frame( mbedtls_x509_crt const *crt )
 #endif /* !MBEDTLS_X509_ON_DEMAND_PARSING */
 }
 
-int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
+static int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
 {
     mbedtls_x509_crt_cache *cache = crt->cache;
     mbedtls_pk_context *pk;
@@ -2248,15 +2248,15 @@ static int x509_info_ext_key_usage( char **buf, size_t *size,
 /*
  * Return an informational string about the certificate.
  */
-#define BEFORE_COLON    18
-#define BC              "18"
+#define BEFORE_COLON_CRT    18
+#define BC_CRT              "18"
 int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
                            const mbedtls_x509_crt *crt )
 {
     int ret;
     size_t n;
     char *p;
-    char key_size_str[BEFORE_COLON];
+    char key_size_str[BEFORE_COLON_CRT];
     mbedtls_x509_crt_frame frame;
     mbedtls_pk_context pk;
 
@@ -2382,13 +2382,13 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
 
     /* Key size */
-    if( ( ret = mbedtls_x509_key_size_helper( key_size_str, BEFORE_COLON,
+    if( ( ret = mbedtls_x509_key_size_helper( key_size_str, BEFORE_COLON_CRT,
                                       mbedtls_pk_get_name( &pk ) ) ) != 0 )
     {
         return( ret );
     }
 
-    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
+    ret = mbedtls_snprintf( p, n, "\n%s%-" BC_CRT "s: %d bits", prefix, key_size_str,
                           (int) mbedtls_pk_get_bitlen( &pk ) );
     MBEDTLS_X509_SAFE_SNPRINTF_WITH_CLEANUP;
 
@@ -3927,4 +3927,129 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx )
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
+int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
+                                          mbedtls_x509_crt_frame const **dst )
+{
+    int ret = 0;
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
+    if( crt->cache->frame_readers == 0 )
+#endif
+        ret = mbedtls_x509_crt_cache_provide_frame( crt );
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
+    if( crt->cache->frame_readers == MBEDTLS_X509_CACHE_FRAME_READERS_MAX )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+    crt->cache->frame_readers++;
+#endif
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
+
+    *dst = crt->cache->frame;
+    return( ret );
+}
+
+int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
+{
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
+    if( crt->cache->frame_readers == 0 )
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+    crt->cache->frame_readers--;
+#endif
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock( &crt->cache->frame_mutex );
+#endif /* MBEDTLS_THREADING_C */
+
+#if defined(MBEDTLS_X509_ALWAYS_FLUSH)
+    (void) mbedtls_x509_crt_flush_cache_frame( crt );
+#endif /* MBEDTLS_X509_ALWAYS_FLUSH */
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) && \
+    !defined(MBEDTLS_THREADING_C)
+    ((void) crt);
+#endif
+
+    return( 0 );
+}
+
+int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
+                                               mbedtls_pk_context **dst )
+{
+    int ret = 0;
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
+    if( crt->cache->pk_readers == 0 )
+#endif
+        ret = mbedtls_x509_crt_cache_provide_pk( crt );
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
+    if( crt->cache->pk_readers == MBEDTLS_X509_CACHE_PK_READERS_MAX )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+
+    crt->cache->pk_readers++;
+#endif
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
+
+    *dst = crt->cache->pk;
+    return( ret );
+}
+
+int mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
+{
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
+        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+#endif /* MBEDTLS_THREADING_C */
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
+    defined(MBEDTLS_THREADING_C)
+    if( crt->cache->pk_readers == 0 )
+        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+
+    crt->cache->pk_readers--;
+#endif
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock( &crt->cache->pk_mutex );
+#endif /* MBEDTLS_THREADING_C */
+
+#if defined(MBEDTLS_X509_ALWAYS_FLUSH)
+    (void) mbedtls_x509_crt_flush_cache_pk( crt );
+#endif /* MBEDTLS_X509_ALWAYS_FLUSH */
+
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) && \
+    !defined(MBEDTLS_THREADING_C)
+    ((void) crt);
+#endif
+
+    return( 0 );
+}
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

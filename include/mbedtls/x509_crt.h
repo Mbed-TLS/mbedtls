@@ -32,7 +32,6 @@
 
 #include "x509.h"
 #include "x509_crl.h"
-#include "x509_internal.h"
 
 /**
  * \addtogroup x509_module
@@ -47,6 +46,22 @@ extern "C" {
  * \name Structures and functions for parsing and writing X.509 certificates
  * \{
  */
+
+typedef struct mbedtls_x509_crt_cache
+{
+#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) || \
+    defined(MBEDTLS_THREADING_C)
+    uint32_t frame_readers;
+    uint32_t pk_readers;
+#endif /* !MBEDTLS_X509_ALWAYS_FLUSH || MBEDTLS_THREADING_C */
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_threading_mutex_t frame_mutex;
+    mbedtls_threading_mutex_t pk_mutex;
+#endif
+    mbedtls_x509_buf_raw pk_raw;
+    struct mbedtls_x509_crt_frame *frame;
+    struct mbedtls_pk_context *pk;
+} mbedtls_x509_crt_cache;
 
 typedef struct mbedtls_x509_crt_frame
 {
@@ -879,37 +894,8 @@ int mbedtls_x509_crt_flush_cache( mbedtls_x509_crt const *crt );
  *               to hold the address of a frame for the given CRT.
  * \return       A negative error code on failure.
  */
-static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
-                                          mbedtls_x509_crt_frame const **dst )
-{
-    int ret = 0;
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C */
-
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
-    defined(MBEDTLS_THREADING_C)
-    if( crt->cache->frame_readers == 0 )
-#endif
-        ret = mbedtls_x509_crt_cache_provide_frame( crt );
-
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
-    defined(MBEDTLS_THREADING_C)
-    if( crt->cache->frame_readers == MBEDTLS_X509_CACHE_FRAME_READERS_MAX )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-
-    crt->cache->frame_readers++;
-#endif
-
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_unlock( &crt->cache->frame_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C */
-
-    *dst = crt->cache->frame;
-    return( ret );
-}
+int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
+                                          mbedtls_x509_crt_frame const **dst );
 
 /**
  * \brief        Release access to a certificate frame acquired
@@ -918,36 +904,7 @@ static inline int mbedtls_x509_crt_frame_acquire( mbedtls_x509_crt const *crt,
  * \param crt    The certificate for which a certificate frame has
  *               previously been acquired.
  */
-static inline int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
-{
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_lock( &crt->cache->frame_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C */
-
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
-    defined(MBEDTLS_THREADING_C)
-    if( crt->cache->frame_readers == 0 )
-        return( MBEDTLS_ERR_X509_FATAL_ERROR );
-
-    crt->cache->frame_readers--;
-#endif
-
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_unlock( &crt->cache->frame_mutex );
-#endif /* MBEDTLS_THREADING_C */
-
-#if defined(MBEDTLS_X509_ALWAYS_FLUSH)
-    (void) mbedtls_x509_crt_flush_cache_frame( crt );
-#endif /* MBEDTLS_X509_ALWAYS_FLUSH */
-
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) && \
-    !defined(MBEDTLS_THREADING_C)
-    ((void) crt);
-#endif
-
-    return( 0 );
-}
+int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt );
 
 /**
  * \brief        Request temporary access to a public key context
@@ -981,37 +938,8 @@ static inline int mbedtls_x509_crt_frame_release( mbedtls_x509_crt const *crt )
  *               certificate.
  * \return       A negative error code on failure.
  */
-static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
-                                               mbedtls_pk_context **dst )
-{
-    int ret = 0;
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C */
-
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
-    defined(MBEDTLS_THREADING_C)
-    if( crt->cache->pk_readers == 0 )
-#endif
-        ret = mbedtls_x509_crt_cache_provide_pk( crt );
-
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
-    defined(MBEDTLS_THREADING_C)
-    if( crt->cache->pk_readers == MBEDTLS_X509_CACHE_PK_READERS_MAX )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-
-    crt->cache->pk_readers++;
-#endif
-
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_unlock( &crt->cache->pk_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C */
-
-    *dst = crt->cache->pk;
-    return( ret );
-}
+int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
+                                               mbedtls_pk_context **dst );
 
 /**
  * \brief        Release access to a public key context acquired
@@ -1020,36 +948,7 @@ static inline int mbedtls_x509_crt_pk_acquire( mbedtls_x509_crt const *crt,
  * \param crt    The certificate for which a certificate frame has
  *               previously been acquired.
  */
-static inline int mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt )
-{
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_lock( &crt->cache->pk_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C */
-
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) ||      \
-    defined(MBEDTLS_THREADING_C)
-    if( crt->cache->pk_readers == 0 )
-        return( MBEDTLS_ERR_X509_FATAL_ERROR );
-
-    crt->cache->pk_readers--;
-#endif
-
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_unlock( &crt->cache->pk_mutex );
-#endif /* MBEDTLS_THREADING_C */
-
-#if defined(MBEDTLS_X509_ALWAYS_FLUSH)
-    (void) mbedtls_x509_crt_flush_cache_pk( crt );
-#endif /* MBEDTLS_X509_ALWAYS_FLUSH */
-
-#if !defined(MBEDTLS_X509_ALWAYS_FLUSH) && \
-    !defined(MBEDTLS_THREADING_C)
-    ((void) crt);
-#endif
-
-    return( 0 );
-}
+int mbedtls_x509_crt_pk_release( mbedtls_x509_crt const *crt );
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

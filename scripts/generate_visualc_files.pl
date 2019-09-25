@@ -195,12 +195,31 @@ sub main {
     my @app_list = get_app_list();
     my @headers = <$header_dir/*.h>;
     my @sources = <$source_dir/*.c>;
+
+    # exclude files from the sources
+    my @excluded_files = ("library/x509_create.c", "library/x509_crt.c", "library/x509_crl.c", "library/x509_csr.c", "library/x509write_crt.c", "library/x509write_csr.c");
+    my @tmp_sources;
+    my $add_to_array = 1;
+    for my $i ( @sources ) {
+        for my $x ( @excluded_files ) {
+            if( $i eq $x ) {
+                $add_to_array = 0;
+            }
+        }
+
+        if( $add_to_array == 1 ) {
+            push(@tmp_sources, $i);
+        }
+        $add_to_array = 1;
+    }
+
+
     map { s!/!\\!g } @headers;
-    map { s!/!\\!g } @sources;
+    map { s!/!\\!g } @tmp_sources;
 
     gen_app_files( @app_list );
 
-    gen_main_file( \@headers, \@sources,
+    gen_main_file( \@headers, \@tmp_sources,
                    $vsx_hdr_tpl, $vsx_src_tpl,
                    $vsx_main_tpl_file, $vsx_main_file );
 

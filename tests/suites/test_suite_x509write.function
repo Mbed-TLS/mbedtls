@@ -6,6 +6,10 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
+/* We need to include x509.c because we are testing x509 internal
+ * functions from x509_internal.h which are static. With this include
+ * we get the tested functions defined. */
+#include "../library/x509.c"
 
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func( void *ctx, int mode, size_t *olen,

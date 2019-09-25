@@ -1013,35 +1013,35 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
  */
 #if defined(MBEDTLS_PK_SINGLE_TYPE)
 
-MBEDTLS_ALWAYS_INLINE static inline mbedtls_pk_type_t pk_info_type(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_pk_type_t mbedtls_pk_info_type(
     mbedtls_pk_handle_t info )
 {
     (void) info;
     return( MBEDTLS_PK_INFO_TYPE( MBEDTLS_PK_SINGLE_TYPE ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline const char * pk_info_name(
+MBEDTLS_ALWAYS_INLINE static inline const char * mbedtls_pk_info_name(
     mbedtls_pk_handle_t info )
 {
     (void) info;
     return( MBEDTLS_PK_INFO_NAME( MBEDTLS_PK_SINGLE_TYPE ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline size_t pk_info_get_bitlen(
+MBEDTLS_ALWAYS_INLINE static inline size_t mbedtls_pk_info_get_bitlen(
     mbedtls_pk_handle_t info, const void *ctx )
 {
     (void) info;
     return( MBEDTLS_PK_INFO_GET_BITLEN( MBEDTLS_PK_SINGLE_TYPE )( ctx ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_can_do(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_can_do(
     mbedtls_pk_handle_t info, mbedtls_pk_type_t type )
 {
     (void) info;
     return( MBEDTLS_PK_INFO_CAN_DO( MBEDTLS_PK_SINGLE_TYPE )( type ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_verify_func(
     mbedtls_pk_handle_t info, void *ctx, mbedtls_md_type_t md_alg,
     const unsigned char *hash, size_t hash_len,
     const unsigned char *sig, size_t sig_len )
@@ -1061,7 +1061,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
 #endif
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_sign_func(
     mbedtls_pk_handle_t info, void *ctx, mbedtls_md_type_t md_alg,
     const unsigned char *hash, size_t hash_len,
     unsigned char *sig, size_t *sig_len,
@@ -1085,7 +1085,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
 #endif
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_decrypt_func(
     mbedtls_pk_handle_t info, void *ctx,
     const unsigned char *input, size_t ilen,
     unsigned char *output, size_t *olen, size_t osize,
@@ -1109,7 +1109,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
 #endif
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_encrypt_func(
     mbedtls_pk_handle_t info, void *ctx,
     const unsigned char *input, size_t ilen,
     unsigned char *output, size_t *olen, size_t osize,
@@ -1133,7 +1133,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
 #endif
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_check_pair_func(
     mbedtls_pk_handle_t info, const void *pub, const void *prv )
 {
     (void) info;
@@ -1147,7 +1147,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
 #endif
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_debug_func(
     mbedtls_pk_handle_t info,
     const void *ctx, mbedtls_pk_debug_item *items )
 {
@@ -1163,31 +1163,31 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
 
 #else /* MBEDTLS_PK_SINGLE_TYPE */
 
-MBEDTLS_ALWAYS_INLINE static inline mbedtls_pk_type_t pk_info_type(
+MBEDTLS_ALWAYS_INLINE static inline mbedtls_pk_type_t mbedtls_pk_info_type(
     mbedtls_pk_handle_t info )
 {
     return( info->type );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline const char * pk_info_name(
+MBEDTLS_ALWAYS_INLINE static inline const char * mbedtls_pk_info_name(
     mbedtls_pk_handle_t info )
 {
     return( info->name );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline size_t pk_info_get_bitlen(
+MBEDTLS_ALWAYS_INLINE static inline size_t mbedtls_pk_info_get_bitlen(
     mbedtls_pk_handle_t info, const void *ctx )
 {
     return( info->get_bitlen( ctx ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_can_do(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_can_do(
     mbedtls_pk_handle_t info, mbedtls_pk_type_t type )
 {
     return( info->can_do( type ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_verify_func(
     mbedtls_pk_handle_t info, void *ctx, mbedtls_md_type_t md_alg,
     const unsigned char *hash, size_t hash_len,
     const unsigned char *sig, size_t sig_len )
@@ -1198,7 +1198,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_verify_func(
     return( info->verify_func( ctx, md_alg, hash, hash_len, sig, sig_len ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_sign_func(
     mbedtls_pk_handle_t info, void *ctx, mbedtls_md_type_t md_alg,
     const unsigned char *hash, size_t hash_len,
     unsigned char *sig, size_t *sig_len,
@@ -1212,7 +1212,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_sign_func(
                              f_rng, p_rng ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_decrypt_func(
     mbedtls_pk_handle_t info, void *ctx,
     const unsigned char *input, size_t ilen,
     unsigned char *output, size_t *olen, size_t osize,
@@ -1226,7 +1226,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_decrypt_func(
                                 f_rng, p_rng ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_encrypt_func(
     mbedtls_pk_handle_t info, void *ctx,
     const unsigned char *input, size_t ilen,
     unsigned char *output, size_t *olen, size_t osize,
@@ -1240,7 +1240,7 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_encrypt_func(
                                 f_rng, p_rng ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_check_pair_func(
     mbedtls_pk_handle_t info, const void *pub, const void *prv )
 {
     if( info->check_pair_func == NULL )
@@ -1249,19 +1249,19 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_check_pair_func(
     return( info->check_pair_func( pub, prv ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void *pk_info_ctx_alloc_func(
+MBEDTLS_ALWAYS_INLINE static inline void *mbedtls_pk_info_ctx_alloc_func(
     mbedtls_pk_handle_t info )
 {
     return( info->ctx_alloc_func( ) );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline void pk_info_ctx_free_func(
+MBEDTLS_ALWAYS_INLINE static inline void mbedtls_pk_info_ctx_free_func(
     mbedtls_pk_handle_t info, void *ctx )
 {
     info->ctx_free_func( ctx );
 }
 
-MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_info_debug_func(
     mbedtls_pk_handle_t info,
     const void *ctx, mbedtls_pk_debug_item *items )
 {
@@ -1292,7 +1292,7 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx )
         return;
 
     if( MBEDTLS_PK_CTX_IS_VALID( ctx ) )
-        pk_info_ctx_free_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx );
+        mbedtls_pk_info_ctx_free_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx );
 
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
 }
@@ -1373,7 +1373,7 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, mbedtls_pk_handle_t info )
 
     ctx->pk_info = info;
 
-    if( ( ctx->pk_ctx = pk_info_ctx_alloc_func( info ) ) == NULL )
+    if( ( ctx->pk_ctx = mbedtls_pk_info_ctx_alloc_func( info ) ) == NULL )
         return( MBEDTLS_ERR_PK_ALLOC_FAILED );
 
     return( 0 );
@@ -1424,7 +1424,7 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
     if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
         return( 0 );
 
-    return( pk_info_can_do( MBEDTLS_PK_CTX_INFO( ctx ), type ) );
+    return( mbedtls_pk_info_can_do( MBEDTLS_PK_CTX_INFO( ctx ), type ) );
 }
 
 /*
@@ -1512,7 +1512,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
     (void) rs_ctx;
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-    return( pk_info_verify_func( MBEDTLS_PK_CTX_INFO( ctx ),
+    return( mbedtls_pk_info_verify_func( MBEDTLS_PK_CTX_INFO( ctx ),
                 ctx->pk_ctx, md_alg, hash, hash_len, sig, sig_len ) );
 }
 
@@ -1632,7 +1632,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
     (void) rs_ctx;
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-    return( pk_info_sign_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx,
+    return( mbedtls_pk_info_sign_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx,
                 md_alg, hash, hash_len, sig, sig_len, f_rng, p_rng ) );
 }
 
@@ -1664,7 +1664,7 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
     if( !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    return( pk_info_decrypt_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx,
+    return( mbedtls_pk_info_decrypt_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx,
                 input, ilen, output, olen, osize, f_rng, p_rng ) );
 }
 
@@ -1684,7 +1684,7 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
     if( !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    return( pk_info_encrypt_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx,
+    return( mbedtls_pk_info_encrypt_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx,
                 input, ilen, output, olen, osize, f_rng, p_rng ) );
 }
 
@@ -1700,9 +1700,9 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
-    if( pk_info_type( prv->pk_info ) == MBEDTLS_PK_RSA_ALT )
+    if( mbedtls_pk_info_type( prv->pk_info ) == MBEDTLS_PK_RSA_ALT )
     {
-        if( pk_info_type( pub->pk_info ) != MBEDTLS_PK_RSA )
+        if( mbedtls_pk_info_type( pub->pk_info ) != MBEDTLS_PK_RSA )
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
     else
@@ -1712,7 +1712,7 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
 
-    return( pk_info_check_pair_func( MBEDTLS_PK_CTX_INFO( prv ),
+    return( mbedtls_pk_info_check_pair_func( MBEDTLS_PK_CTX_INFO( prv ),
                 pub->pk_ctx, prv->pk_ctx ) );
 }
 
@@ -1726,7 +1726,7 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
     if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
         return( 0 );
 
-    return( pk_info_get_bitlen( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx ) );
+    return( mbedtls_pk_info_get_bitlen( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx ) );
 }
 
 /*
@@ -1738,7 +1738,7 @@ int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *item
     if( !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    return( pk_info_debug_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx, items ) );
+    return( mbedtls_pk_info_debug_func( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx, items ) );
 }
 
 /*
@@ -1749,7 +1749,7 @@ const char *mbedtls_pk_get_name( const mbedtls_pk_context *ctx )
     if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
         return( "invalid PK" );
 
-    return( pk_info_name( MBEDTLS_PK_CTX_INFO( ctx ) ) );
+    return( mbedtls_pk_info_name( MBEDTLS_PK_CTX_INFO( ctx ) ) );
 }
 
 /*
@@ -1760,7 +1760,7 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
     if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
         return( MBEDTLS_PK_NONE );
 
-    return( pk_info_type( MBEDTLS_PK_CTX_INFO( ctx ) ) );
+    return( mbedtls_pk_info_type( MBEDTLS_PK_CTX_INFO( ctx ) ) );
 }
 
 #endif /* MBEDTLS_PK_C */

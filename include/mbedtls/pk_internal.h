@@ -640,4 +640,28 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_hashlen_helper(
     return( 0 );
 }
 
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+/*
+ * Helper to set up a restart context if needed
+ */
+static inline int mbedtls_pk_restart_setup( mbedtls_pk_restart_ctx *ctx,
+                             mbedtls_pk_handle_t info )
+{
+    /* Don't do anything if already set up or invalid */
+    if( ctx == NULL || MBEDTLS_PK_CTX_IS_VALID( ctx ) )
+        return( 0 );
+
+    /* Should never happen when we're called */
+    if( info->rs_alloc_func == NULL || info->rs_free_func == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ( ctx->rs_ctx = info->rs_alloc_func() ) == NULL )
+        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+
+    ctx->pk_info = info;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
 #endif /* MBEDTLS_PK_WRAP_H */

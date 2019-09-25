@@ -187,8 +187,22 @@ typedef struct
 } mbedtls_uecc_keypair;
 #endif
 
-/* This needs to come after the declaration of all types
- * (mbedtls_uecc_keypair, mbedtls_pk_rsa_alt_ types)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+/**
+ * \brief           Context for resuming operations
+ */
+typedef struct
+{
+    mbedtls_pk_handle_t         pk_info; /**< Public key information         */
+    void *                      rs_ctx;  /**< Underlying restart context     */
+} mbedtls_pk_restart_ctx;
+#else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+/* Now we can declare functions that take a pointer to that */
+typedef void mbedtls_pk_restart_ctx;
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+
+/* This needs to come after the declaration of most types
+ * (mbedtls_uecc_keypair, mbedtls_pk_rsa_alt_xxx, mbedtls_pk_restart_ctx)
  * and before the first use of MBEDTLS_PK_INFO_CONTEXT(). */
 #include "pk_internal.h"
 
@@ -207,20 +221,6 @@ typedef struct mbedtls_pk_context
     void *                      pk_ctx;  /**< Underlying public key context  */
 #endif
 } mbedtls_pk_context;
-
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-/**
- * \brief           Context for resuming operations
- */
-typedef struct
-{
-    mbedtls_pk_handle_t         pk_info; /**< Public key information         */
-    void *                      rs_ctx;  /**< Underlying restart context     */
-} mbedtls_pk_restart_ctx;
-#else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
-/* Now we can declare functions that take a pointer to that */
-typedef void mbedtls_pk_restart_ctx;
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 #if defined(MBEDTLS_RSA_C)
 /**

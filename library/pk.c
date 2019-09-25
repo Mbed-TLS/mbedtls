@@ -1100,30 +1100,6 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
 
 #endif /* !MBEDTLS_PK_SINGLE_TYPE */
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-/*
- * Helper to set up a restart context if needed
- */
-static int pk_restart_setup( mbedtls_pk_restart_ctx *ctx,
-                             mbedtls_pk_handle_t info )
-{
-    /* Don't do anything if already set up or invalid */
-    if( ctx == NULL || MBEDTLS_PK_CTX_IS_VALID( ctx ) )
-        return( 0 );
-
-    /* Should never happen when we're called */
-    if( info->rs_alloc_func == NULL || info->rs_free_func == NULL )
-        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-
-    if( ( ctx->rs_ctx = info->rs_alloc_func() ) == NULL )
-        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
-
-    ctx->pk_info = info;
-
-    return( 0 );
-}
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
-
 /*
  * Verify a signature (restartable)
  */
@@ -1150,7 +1126,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
     {
         int ret;
 
-        if( ( ret = pk_restart_setup( rs_ctx, ctx->pk_info ) ) != 0 )
+        if( ( ret = mbedtls_pk_restart_setup( rs_ctx, ctx->pk_info ) ) != 0 )
             return( ret );
 
         ret = ctx->pk_info->verify_rs_func( ctx->pk_ctx,
@@ -1270,7 +1246,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
     {
         int ret;
 
-        if( ( ret = pk_restart_setup( rs_ctx, ctx->pk_info ) ) != 0 )
+        if( ( ret = mbedtls_pk_restart_setup( rs_ctx, ctx->pk_info ) ) != 0 )
             return( ret );
 
         ret = ctx->pk_info->sign_rs_func( ctx->pk_ctx, md_alg,

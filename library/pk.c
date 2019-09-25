@@ -1272,8 +1272,6 @@ MBEDTLS_ALWAYS_INLINE static inline int pk_info_debug_func(
     return( 0 );
 }
 
-#endif /* MBEDTLS_PK_SINGLE_TYPE */
-
 /*
  * Initialise a mbedtls_pk_context
  */
@@ -1281,13 +1279,11 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx )
 {
     MBEDTLS_PK_VALIDATE( ctx != NULL );
 
-#if !defined(MBEDTLS_PK_SINGLE_TYPE)
     ctx->pk_info = MBEDTLS_PK_INVALID_HANDLE;
     ctx->pk_ctx = NULL;
-#else
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
-#endif
 }
+
+#endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Free (the components of) a mbedtls_pk_context

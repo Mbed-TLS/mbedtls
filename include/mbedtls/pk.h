@@ -252,10 +252,6 @@ typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
 MBEDTLS_PK_INLINABLE_API mbedtls_pk_handle_t mbedtls_pk_info_from_type(
         mbedtls_pk_type_t pk_type );
 
-// Work in progress: further functions not inlinable so far
-#undef MBEDTLS_PK_INLINABLE_API
-#define MBEDTLS_PK_INLINABLE_API
-
 /**
  * \brief           Initialize a #mbedtls_pk_context (as NONE).
  *
@@ -263,6 +259,10 @@ MBEDTLS_PK_INLINABLE_API mbedtls_pk_handle_t mbedtls_pk_info_from_type(
  *                  This must not be \c NULL.
  */
 MBEDTLS_PK_INLINABLE_API void mbedtls_pk_init( mbedtls_pk_context *ctx );
+
+// Work in progress: further functions not inlinable so far
+#undef MBEDTLS_PK_INLINABLE_API
+#define MBEDTLS_PK_INLINABLE_API
 
 /**
  * \brief           Free the components of a #mbedtls_pk_context.
@@ -624,6 +624,12 @@ static inline mbedtls_pk_handle_t mbedtls_pk_info_from_type(
     return( MBEDTLS_PK_INVALID_HANDLE );
 }
 
+static inline void mbedtls_pk_init( mbedtls_pk_context *ctx )
+{
+    MBEDTLS_PK_VALIDATE( ctx != NULL );
+
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
+}
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 #if defined(MBEDTLS_PK_PARSE_C)

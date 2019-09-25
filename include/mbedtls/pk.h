@@ -49,9 +49,7 @@
 #include "tinycrypt/ecc.h"
 #endif
 
-#if defined(MBEDTLS_PK_SINGLE_TYPE)
-#include "pk_internal.h"
-#endif
+/* pk_internal included later as is depends on some types defined below */
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
@@ -156,6 +154,12 @@ typedef struct
     uint8_t private_key[NUM_ECC_BYTES];
     uint8_t public_key[2*NUM_ECC_BYTES];
 } mbedtls_uecc_keypair;
+#endif
+
+/* This needs to come after the declaration of mbedtls_uecc_keypair
+ * and before the first use of MBEDTLS_PK_INFO_CONTEXT(). */
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+#include "pk_internal.h"
 #endif
 
 /**

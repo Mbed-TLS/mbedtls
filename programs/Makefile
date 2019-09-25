@@ -7,17 +7,32 @@ WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement
 WARNING_CXXFLAGS ?= -Wall -W
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
-LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -D_FILE_OFFSET_BITS=64
-LOCAL_LDFLAGS = -L../library 			\
+# Check test environment. If ../library is available then Mbed TLS is used.
+# Otherwise Mbed OS environment is used.
+DIR_FOR_MBED_TLS_ENV=../library
+ifneq "$(wildcard $(DIR_FOR_MBED_TLS_ENV) )" ""
+	LIBRARY_DIR=../library
+	INCLUDE_DIR=-I../include
+else
+	LIBRARY_DIR=../src
+	INCLUDE_DIR=-I.. -I../inc
+endif
+
+LOCAL_CFLAGS = $(WARNING_CFLAGS) $(INCLUDE_DIR) -D_FILE_OFFSET_BITS=64
+ifdef MBEDTLS_CONFIG_FILE
+LOCAL_CFLAGS += "-DMBEDTLS_CONFIG_FILE=\"${MBEDTLS_CONFIG_FILE}\""
+endif
+
+LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) $(INCLUDE_DIR) -D_FILE_OFFSET_BITS=64
+LOCAL_LDFLAGS = -L$(LIBRARY_DIR)	\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
 ifndef SHARED
-DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
+DEP=$(LIBRARY_DIR)/libmbedcrypto.a $(LIBRARY_DIR)/libmbedx509.a $(LIBRARY_DIR)/libmbedtls.a
 else
-DEP=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
+DEP=$(LIBRARY_DIR)/libmbedcrypto.$(DLEXT) $(LIBRARY_DIR)/libmbedx509.$(DLEXT) $(LIBRARY_DIR)/libmbedtls.$(DLEXT)
 endif
 
 ifdef DEBUG
@@ -47,12 +62,12 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
-APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
-	hash/hello$(EXEXT)		hash/generic_sum$(EXEXT)	\
-					pkey/dh_client$(EXEXT)		\
+APPS =	aes/aescrypt2$(EXEXT)	aes/crypt_and_hash$(EXEXT)	\
+	hash/hello$(EXEXT)			hash/generic_sum$(EXEXT)	\
+	pkey/dh_client$(EXEXT)									\
 	pkey/dh_genprime$(EXEXT)	pkey/dh_server$(EXEXT)		\
-	pkey/ecdh_curve25519$(EXEXT)					\
-	pkey/ecdsa$(EXEXT)		pkey/gen_key$(EXEXT)		\
+	pkey/ecdh_curve25519$(EXEXT)							\
+	pkey/ecdsa$(EXEXT)			pkey/gen_key$(EXEXT)		\
 	pkey/key_app$(EXEXT)		pkey/key_app_writer$(EXEXT)	\
 	pkey/mpi_demo$(EXEXT)		pkey/pk_decrypt$(EXEXT)		\
 	pkey/pk_encrypt$(EXEXT)		pkey/pk_sign$(EXEXT)		\
@@ -65,12 +80,12 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	ssl/ssl_server$(EXEXT)		ssl/ssl_server2$(EXEXT)		\
 	ssl/ssl_fork_server$(EXEXT)	ssl/mini_client$(EXEXT)		\
 	ssl/ssl_mail_client$(EXEXT)	random/gen_entropy$(EXEXT)	\
-	random/gen_random_havege$(EXEXT)				\
-	random/gen_random_ctr_drbg$(EXEXT)				\
+	random/gen_random_havege$(EXEXT)						\
+	random/gen_random_ctr_drbg$(EXEXT)						\
 	test/benchmark$(EXEXT)                          		\
 	test/selftest$(EXEXT)		test/udp_proxy$(EXEXT)		\
-	test/zeroize$(EXEXT)						\
-	test/query_compile_time_config$(EXEXT)				\
+	test/zeroize$(EXEXT)									\
+	test/query_compile_time_config$(EXEXT)					\
 	util/pem2der$(EXEXT)		util/strerror$(EXEXT)		\
 	x509/cert_app$(EXEXT)		x509/crl_app$(EXEXT)		\
 	x509/cert_req$(EXEXT)		x509/cert_write$(EXEXT)		\

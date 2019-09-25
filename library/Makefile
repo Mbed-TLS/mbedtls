@@ -5,7 +5,20 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
+DIR_FOR_MBED_TLS_ENV=../library
+ifneq "$(wildcard $(DIR_FOR_MBED_TLS_ENV) )" ""
+    # Set include dirs for Mbed TLS test environment
+	INCLUDE_DIRS=-I../include
+else
+    # Set include dirs for Mbed OS test environment
+	INCLUDE_DIRS=-I.. -I../inc
+endif
+
+LOCAL_CFLAGS = $(WARNING_CFLAGS) $(INCLUDE_DIRS) -D_FILE_OFFSET_BITS=64
+ifdef MBEDTLS_CONFIG_FILE
+LOCAL_CFLAGS += "-DMBEDTLS_CONFIG_FILE=\"${MBEDTLS_CONFIG_FILE}\""
+endif
+
 LOCAL_LDFLAGS =
 
 ifdef DEBUG

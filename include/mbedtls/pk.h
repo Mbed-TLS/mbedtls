@@ -78,10 +78,9 @@
 
 /*
  * Make some API functions inline if only a single type is available.
- * WIP: currently no effect. */
+ */
 #if defined(MBEDTLS_PK_SINGLE_TYPE)
-//#define MBEDTLS_PK_INLINABLE_API MBEDTLS_ALWAYS_INLINE static inline
-#define MBEDTLS_PK_INLINABLE_API
+#define MBEDTLS_PK_INLINABLE_API MBEDTLS_ALWAYS_INLINE static inline
 #else
 #define MBEDTLS_PK_INLINABLE_API
 #endif
@@ -252,6 +251,10 @@ typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
  */
 MBEDTLS_PK_INLINABLE_API mbedtls_pk_handle_t mbedtls_pk_info_from_type(
         mbedtls_pk_type_t pk_type );
+
+// Work in progress: further functions not inlinable so far
+#undef MBEDTLS_PK_INLINABLE_API
+#define MBEDTLS_PK_INLINABLE_API
 
 /**
  * \brief           Initialize a #mbedtls_pk_context (as NONE).
@@ -606,6 +609,22 @@ MBEDTLS_PK_INLINABLE_API const char * mbedtls_pk_get_name(
  */
 MBEDTLS_PK_INLINABLE_API mbedtls_pk_type_t mbedtls_pk_get_type(
         const mbedtls_pk_context *ctx );
+
+/*
+ * Implementation of inline API functions
+ */
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+
+static inline mbedtls_pk_handle_t mbedtls_pk_info_from_type(
+        mbedtls_pk_type_t pk_type )
+{
+    if( pk_type == MBEDTLS_PK_INFO_TYPE( MBEDTLS_PK_SINGLE_TYPE ) )
+        return( MBEDTLS_PK_UNIQUE_VALID_HANDLE );
+
+    return( MBEDTLS_PK_INVALID_HANDLE );
+}
+
+#endif /* MBEDTLS_PK_SINGLE_TYPE */
 
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */

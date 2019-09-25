@@ -1343,16 +1343,9 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx )
 /*
  * Get pk_info structure from type
  */
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
 mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
 {
-#if defined(MBEDTLS_PK_SINGLE_TYPE)
-    if( pk_type == MBEDTLS_PK_INFO_TYPE( MBEDTLS_PK_SINGLE_TYPE ) )
-        return( MBEDTLS_PK_UNIQUE_VALID_HANDLE );
-
-    return( MBEDTLS_PK_INVALID_HANDLE );
-
-#else /* MBEDTLS_PK_SINGLE_TYPE */
-
     switch( pk_type ) {
 #if defined(MBEDTLS_RSA_C)
         case MBEDTLS_PK_RSA:
@@ -1379,8 +1372,8 @@ mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
         default:
             return( NULL );
     }
-#endif /* MBEDTLS_PK_SINGLE_TYPE */
 }
+#endif /* !MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Initialise context

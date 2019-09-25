@@ -421,10 +421,18 @@
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x60030000)
 #define PSA_KEY_TYPE_ECC_KEY_PAIR_BASE           ((psa_key_type_t)0x70030000)
 #define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
-/** Elliptic curve key pair. */
+/** Elliptic curve key pair.
+ *
+ * \param curve     A value of type ::psa_ecc_curve_t that identifies the
+ *                  ECC curve to be used.
+ */
 #define PSA_KEY_TYPE_ECC_KEY_PAIR(curve)         \
     (PSA_KEY_TYPE_ECC_KEY_PAIR_BASE | (curve))
-/** Elliptic curve public key. */
+/** Elliptic curve public key.
+ *
+ * \param curve     A value of type ::psa_ecc_curve_t that identifies the
+ *                  ECC curve to be used.
+ */
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve)              \
     (PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE | (curve))
 
@@ -511,10 +519,18 @@
 #define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE         ((psa_key_type_t)0x60040000)
 #define PSA_KEY_TYPE_DH_KEY_PAIR_BASE            ((psa_key_type_t)0x70040000)
 #define PSA_KEY_TYPE_DH_GROUP_MASK              ((psa_key_type_t)0x0000ffff)
-/** Diffie-Hellman key pair. */
+/** Diffie-Hellman key pair.
+ *
+ * \param group     A value of type ::psa_dh_group_t that identifies the
+ *                  Diffie-Hellman group to be used.
+ */
 #define PSA_KEY_TYPE_DH_KEY_PAIR(group)          \
     (PSA_KEY_TYPE_DH_KEY_PAIR_BASE | (group))
-/** Diffie-Hellman public key. */
+/** Diffie-Hellman public key.
+ *
+ * \param group     A value of type ::psa_dh_group_t that identifies the
+ *                  Diffie-Hellman group to be used.
+ */
 #define PSA_KEY_TYPE_DH_PUBLIC_KEY(group)               \
     (PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE | (group))
 

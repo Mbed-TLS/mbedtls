@@ -476,7 +476,8 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
 #endif /* MBEDTLS_ECP_C */
 
 /*
- * Internal wrappers around ECC functions - based on TinyCrypt
+ * Functions for verifying/making signature in ASN.1 format with TinyCrypt
+ * (whose native format is just two fixed-width integers).
  */
 #if defined(MBEDTLS_USE_TINYCRYPT)
 /*
@@ -537,36 +538,10 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
-size_t mbedtls_uecc_eckey_get_bitlen( const void *ctx )
-{
-    (void) ctx;
-    return( (size_t) ( NUM_ECC_BYTES * 8 ) );
-}
-
-int mbedtls_uecc_eckey_check_pair( const void *pub, const void *prv )
-{
-    const mbedtls_uecc_keypair *uecc_pub =
-        (const mbedtls_uecc_keypair *) pub;
-    const mbedtls_uecc_keypair *uecc_prv =
-        (const mbedtls_uecc_keypair *) prv;
-
-    if( memcmp( uecc_pub->public_key,
-                uecc_prv->public_key,
-                2 * NUM_ECC_BYTES ) == 0 )
-    {
-        return( 0 );
-    }
-
-    return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-}
-
-int mbedtls_uecc_eckey_can_do( mbedtls_pk_type_t type )
-{
-    return( type == MBEDTLS_PK_ECDSA ||
-            type == MBEDTLS_PK_ECKEY );
-}
-
-int mbedtls_uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+/*
+ * Verify a signature in ASN.1 format with TinyCrypt
+ */
+int mbedtls_uecc_verify_asn1( const mbedtls_uecc_keypair *keypair,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
@@ -574,9 +549,7 @@ int mbedtls_uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     uint8_t signature[2*NUM_ECC_BYTES];
     unsigned char *p;
     const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
-    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
 
-    ((void) md_alg);
     p = (unsigned char*) sig;
 
     ret = extract_ecdsa_sig( &p, sig + sig_len, signature, NUM_ECC_BYTES );
@@ -681,31 +654,17 @@ static int pk_ecdsa_sig_asn1_from_uecc( unsigned char *sig, size_t *sig_len,
     return( 0 );
 }
 
-int mbedtls_uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+/*
+ * Make a signature in ASN.1 format with TinyCrypt
+ */
+int mbedtls_uecc_sign_asn1( const mbedtls_uecc_keypair *keypair,
                    const unsigned char *hash, size_t hash_len,
-                   unsigned char *sig, size_t *sig_len,
-                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+                   unsigned char *sig, size_t *sig_len )
 {
-    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
-    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
     int ret;
-
-    /*
-     * RFC-4492 page 20:
-     *
-     *     Ecdsa-Sig-Value ::= SEQUENCE {
-     *         r       INTEGER,
-     *         s       INTEGER
-     *     }
-     *
-     * Size is at most
-     *    1 (tag) + 1 (len) + 1 (initial 0) + NUM_ECC_BYTES for each of r and s,
-     *    twice that + 1 (tag) + 2 (len) for the sequence
-     *
-     * (The ASN.1 length encodings are all 1-Byte encodings because
-     *  the total size is smaller than 128 Bytes).
-     */
-     #define MAX_SECP256R1_ECDSA_SIG_LEN ( 3 + 2 * ( 3 + NUM_ECC_BYTES ) )
+    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+    /* See MBEDTLS_ECDSA_MAX_LEN in ecdsa.h */
+    const size_t max_sig_len = 3 + 2 * ( 3 + NUM_ECC_BYTES );
 
     ret = uECC_sign( keypair->private_key, hash, hash_len, sig, uecc_curve );
     /* TinyCrypt uses 0 to signal errors. */
@@ -714,15 +673,66 @@ int mbedtls_uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     *sig_len = 2 * NUM_ECC_BYTES;
 
+    return( pk_ecdsa_sig_asn1_from_uecc( sig, sig_len, max_sig_len ) );
+}
+#endif /* MBEDTLS_USE_TINYCRYPT */
+
+/*
+ * Internal wrappers around ECC functions - based on TinyCrypt
+ */
+#if defined(MBEDTLS_USE_TINYCRYPT)
+size_t mbedtls_uecc_eckey_get_bitlen( const void *ctx )
+{
+    (void) ctx;
+    return( (size_t) ( NUM_ECC_BYTES * 8 ) );
+}
+
+int mbedtls_uecc_eckey_check_pair( const void *pub, const void *prv )
+{
+    const mbedtls_uecc_keypair *uecc_pub =
+        (const mbedtls_uecc_keypair *) pub;
+    const mbedtls_uecc_keypair *uecc_prv =
+        (const mbedtls_uecc_keypair *) prv;
+
+    if( memcmp( uecc_pub->public_key,
+                uecc_prv->public_key,
+                2 * NUM_ECC_BYTES ) == 0 )
+    {
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+}
+
+int mbedtls_uecc_eckey_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_ECDSA ||
+            type == MBEDTLS_PK_ECKEY );
+}
+
+int mbedtls_uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len )
+{
+    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
+
+    ((void) md_alg);
+    return( mbedtls_uecc_verify_asn1( keypair, hash, hash_len, sig, sig_len ) );
+}
+
+int mbedtls_uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
+
     /* uECC owns its rng function pointer */
     (void) f_rng;
     (void) p_rng;
     (void) md_alg;
 
-    return( pk_ecdsa_sig_asn1_from_uecc( sig, sig_len,
-                                         MAX_SECP256R1_ECDSA_SIG_LEN ) );
-
-    #undef MAX_SECP256R1_ECDSA_SIG_LEN
+    return( mbedtls_uecc_sign_asn1( keypair, hash, hash_len, sig, sig_len ) );
 }
 
 #if !defined(MBEDTLS_PK_SINGLE_TYPE)

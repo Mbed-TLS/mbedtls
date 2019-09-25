@@ -277,11 +277,30 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
  *                      #MBEDTLS_CTR_DRBG_ENTROPY_LEN.
  *
  * \note                For compliance with NIST SP 800-90A, the entropy length
- *                      must be at least 1.5 times security strength, since
- *                      the entropy source is used both as the entropy input
- *                      and to provide the initial nonce:
- *                      - 24 bytes if using AES-128;
- *                      - 48 bytes if using AES-256.
+ *                      (\p len bytes = \p len * 8 bits)
+ *                      must be at least the security strength.
+ *                      Furthermore, if the entropy input is used to provide
+ *                      the nonce, the entropy length must be 1.5 times
+ *                      the security strength.
+ *                      Per NIST SP 800-57A table 2, the achievable security
+ *                      strength is 128 bits if using AES-128 and
+ *                      256 bits if using AES-256.
+ *                      Therefore, to provide full security,
+ *                      the entropy input must be at least:
+ *                      - 24 bytes if using AES-128 and the \p custom
+ *                        argument to mbedtls_ctr_drbg_seed() may repeat
+ *                        (for example because it is empty, or more generally
+ *                        constant);
+ *                      - 48 bytes if using AES-256 and the \p custom
+ *                        argument to mbedtls_ctr_drbg_seed() may repeat
+ *                        (for example because it is empty, or more generally
+ *                        constant);
+ *                      - 16 bytes if using AES-128 and the \p custom
+ *                        argument to mbedtls_ctr_drbg_seed() includes
+ *                        a nonce;
+ *                      - 32 bytes if using AES-256 and the \p custom
+ *                        argument to mbedtls_ctr_drbg_seed() includes
+ *                        a nonce.
  *
  * \param ctx           The CTR_DRBG context.
  * \param len           The amount of entropy to grab, in bytes.

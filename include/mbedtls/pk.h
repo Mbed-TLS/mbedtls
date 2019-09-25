@@ -587,6 +587,12 @@ MBEDTLS_PK_INLINABLE_API int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
+// Work in progress: previous functions not inlinable so far
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+#undef MBEDTLS_PK_INLINABLE_API
+#define MBEDTLS_PK_INLINABLE_API MBEDTLS_ALWAYS_INLINE static inline
+#endif
+
 /**
  * \brief           Check if a public-private pair of keys matches.
  *
@@ -597,6 +603,10 @@ MBEDTLS_PK_INLINABLE_API int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  */
 MBEDTLS_PK_INLINABLE_API int mbedtls_pk_check_pair(
         const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
+
+// Work in progress: following functions not inlinable so far
+#undef MBEDTLS_PK_INLINABLE_API
+#define MBEDTLS_PK_INLINABLE_API
 
 /**
  * \brief           Export debug information
@@ -659,6 +669,33 @@ MBEDTLS_ALWAYS_INLINE static inline size_t mbedtls_pk_get_bitlen_internal(
     return( mbedtls_pk_info_get_bitlen( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx ) );
 }
 
+/* Check public-private key pair */
+MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_check_pair_internal(
+        const mbedtls_pk_context *pub, const mbedtls_pk_context *prv )
+{
+    MBEDTLS_PK_VALIDATE_RET( pub != NULL );
+    MBEDTLS_PK_VALIDATE_RET( prv != NULL );
+
+    if( !MBEDTLS_PK_CTX_IS_VALID( pub ) || !MBEDTLS_PK_CTX_IS_VALID( prv ) )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
+    if( mbedtls_pk_info_type( prv->pk_info ) == MBEDTLS_PK_RSA_ALT )
+    {
+        if( mbedtls_pk_info_type( pub->pk_info ) != MBEDTLS_PK_RSA )
+            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    }
+    else
+#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+    {
+        if( MBEDTLS_PK_CTX_INFO( pub ) != MBEDTLS_PK_CTX_INFO( prv ) )
+            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    }
+
+    return( mbedtls_pk_info_check_pair_func( MBEDTLS_PK_CTX_INFO( prv ),
+                pub->pk_ctx, prv->pk_ctx ) );
+}
+
 /*
  * Definitions of inline API functions
  */
@@ -708,6 +745,12 @@ static inline int mbedtls_pk_can_do(
 static inline size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
 {
     return( mbedtls_pk_get_bitlen_internal( ctx ) );
+}
+
+static inline int mbedtls_pk_check_pair( const mbedtls_pk_context *pub,
+                                         const mbedtls_pk_context *prv )
+{
+    return( mbedtls_pk_check_pair_internal( pub, prv ) );
 }
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
 

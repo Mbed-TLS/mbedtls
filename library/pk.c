@@ -1361,35 +1361,16 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
                 input, ilen, output, olen, osize, f_rng, p_rng ) );
 }
 
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
 /*
  * Check public-private key pair
  */
-int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv )
+int mbedtls_pk_check_pair( const mbedtls_pk_context *pub,
+                           const mbedtls_pk_context *prv )
 {
-    MBEDTLS_PK_VALIDATE_RET( pub != NULL );
-    MBEDTLS_PK_VALIDATE_RET( prv != NULL );
-
-    if( !MBEDTLS_PK_CTX_IS_VALID( pub ) || !MBEDTLS_PK_CTX_IS_VALID( prv ) )
-        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-
-#if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
-    if( mbedtls_pk_info_type( prv->pk_info ) == MBEDTLS_PK_RSA_ALT )
-    {
-        if( mbedtls_pk_info_type( pub->pk_info ) != MBEDTLS_PK_RSA )
-            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-    }
-    else
-#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
-    {
-        if( MBEDTLS_PK_CTX_INFO( pub ) != MBEDTLS_PK_CTX_INFO( prv ) )
-            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-    }
-
-    return( mbedtls_pk_info_check_pair_func( MBEDTLS_PK_CTX_INFO( prv ),
-                pub->pk_ctx, prv->pk_ctx ) );
+    return( mbedtls_pk_check_pair_internal( pub, prv ) );
 }
 
-#if !defined(MBEDTLS_PK_SINGLE_TYPE)
 /*
  * Get key size in bits
  */

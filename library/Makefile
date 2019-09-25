@@ -5,6 +5,8 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
 
+# Check test environment. If ../library is available then Mbed TLS is used.
+# Otherwise Mbed OS environment is used.
 DIR_FOR_MBED_TLS_ENV=../library
 ifneq "$(wildcard $(DIR_FOR_MBED_TLS_ENV) )" ""
     # Set include dirs for Mbed TLS test environment

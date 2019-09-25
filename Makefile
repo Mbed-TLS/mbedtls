@@ -5,6 +5,8 @@ PREFIX=mbedtls_
 PROGRAMS_DIR=./programs
 TESTS_DIR=./tests
 
+# Check test environment. If ../library is available then Mbed TLS is used.
+# Otherwise Mbed OS environment is used.
 DIR_FOR_MBED_TLS_ENV=./library
 ifneq "$(wildcard $(DIR_FOR_MBED_TLS_ENV) )" ""
 	LIBRARY_DIR=./library

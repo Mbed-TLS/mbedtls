@@ -495,6 +495,19 @@
  */
 #define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x001e)
 
+/** Minimum value for a vendor-defined ECC curve identifier
+ *
+ * The range for vendor-defined curve identifiers is a subset of the IANA
+ * registry private use range, `0xfe00` - `0xfeff`.
+ */
+#define PSA_ECC_CURVE_VENDOR_MIN        ((psa_ecc_curve_t) 0xfe00)
+/** Maximum value for a vendor-defined ECC curve identifier
+ *
+ * The range for vendor-defined curve identifiers is a subset of the IANA
+ * registry private use range, `0xfe00` - `0xfeff`.
+ */
+#define PSA_ECC_CURVE_VENDOR_MAX        ((psa_ecc_curve_t) 0xfe7f)
+
 #define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE         ((psa_key_type_t)0x60040000)
 #define PSA_KEY_TYPE_DH_KEY_PAIR_BASE            ((psa_key_type_t)0x70040000)
 #define PSA_KEY_TYPE_DH_GROUP_MASK              ((psa_key_type_t)0x0000ffff)
@@ -534,6 +547,19 @@
 #define PSA_DH_GROUP_FFDHE4096          ((psa_dh_group_t) 0x0102)
 #define PSA_DH_GROUP_FFDHE6144          ((psa_dh_group_t) 0x0103)
 #define PSA_DH_GROUP_FFDHE8192          ((psa_dh_group_t) 0x0104)
+
+/** Minimum value for a vendor-defined Diffie Hellman group identifier
+ *
+ * The range for vendor-defined group identifiers is a subset of the IANA
+ * registry private use range, `0x01fc` - `0x01ff`.
+ */
+#define PSA_DH_GROUP_VENDOR_MIN         ((psa_dh_group_t) 0x01fc)
+/** Maximum value for a vendor-defined Diffie Hellman group identifier
+ *
+ * The range for vendor-defined group identifiers is a subset of the IANA
+ * registry private use range, `0x01fc` - `0x01ff`.
+ */
+#define PSA_DH_GROUP_VENDOR_MAX         ((psa_dh_group_t) 0x01fd)
 
 /** The block size of a block cipher.
  *

@@ -76,6 +76,15 @@ typedef uint32_t psa_key_type_t;
  * This specification defines identifiers for some of the curves in the IANA
  * registry. Implementations that support other curves that are in the IANA
  * registry should use the IANA value and a implementation-specific identifier.
+ * Implemenations that support non-IANA curves should use one of the following
+ * approaches for allocating a key type:
+ *
+ * 1. Select a ::psa_ecc_curve_t value in the range #PSA_ECC_CURVE_VENDOR_MIN to
+ *    #PSA_ECC_CURVE_VENDOR_MAX, which is a subset of the IANA private use
+ *    range.
+ * 2. Use a ::psa_key_type_t value that is vendor-defined.
+ *
+ * The first option is recommended.
  */
 typedef uint16_t psa_ecc_curve_t;
 
@@ -90,6 +99,15 @@ typedef uint16_t psa_ecc_curve_t;
  * This specification defines identifiers for some of the groups in the IANA
  * registry. Implementations that support other groups that are in the IANA
  * registry should use the IANA value and a implementation-specific identifier.
+ * Implemenations that support non-IANA groups should use one of the following
+ * approaches for allocating a key type:
+ *
+ * 1. Select a ::psa_dh_group_t value in the range #PSA_DH_GROUP_VENDOR_MIN to
+ *    #PSA_DH_GROUP_VENDOR_MAX, which is a subset of the IANA private use
+ *    range.
+ * 2. Use a ::psa_key_type_t value that is vendor-defined.
+ *
+ * The first option is recommended.
  */
 typedef uint16_t psa_dh_group_t;
 

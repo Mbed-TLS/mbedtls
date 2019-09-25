@@ -15,6 +15,8 @@
  *   (`MBEDTLS_CTR_DRBG_USE_128_BIT_KEY` not set) and
  *   with #MBEDTLS_CTR_DRBG_ENTROPY_LEN set to 48 or more.
  * - 256 bits if AES-256 is used, #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set
+ *   to 32 or more, and the DRBG is initialized with an explicit
+ *   nonce in the \c custom parameter to see mbedtls_ctr_drbg_seed().
  * - 128 bits if AES-256 is used but #MBEDTLS_CTR_DRBG_ENTROPY_LEN is
  *   between 24 and 47 and the DRBG is not initialized with an explicit
  *   nonce (see mbedtls_ctr_drbg_seed()).

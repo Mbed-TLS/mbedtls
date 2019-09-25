@@ -1389,18 +1389,15 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
                 pub->pk_ctx, prv->pk_ctx ) );
 }
 
+#if !defined(MBEDTLS_PK_SINGLE_TYPE)
 /*
  * Get key size in bits
  */
 size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
 {
-    /* For backward compatibility, accept NULL or a context that
-     * isn't set up yet, and return a fake value that should be safe. */
-    if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
-        return( 0 );
-
-    return( mbedtls_pk_info_get_bitlen( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx ) );
+    return( mbedtls_pk_get_bitlen_internal( ctx ) );
 }
+#endif /* ! MBEDTLS_PK_SINGLE_TYPE */
 
 /*
  * Export debug information

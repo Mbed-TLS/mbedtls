@@ -346,10 +346,6 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
                          mbedtls_pk_rsa_alt_key_len_func key_len_func );
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
-// Work in progress: further functions not inlinable so far
-#undef MBEDTLS_PK_INLINABLE_API
-#define MBEDTLS_PK_INLINABLE_API
-
 /**
  * \brief           Get the size in bits of the underlying key
  *
@@ -371,12 +367,6 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
 {
     return( ( mbedtls_pk_get_bitlen( ctx ) + 7 ) / 8 );
 }
-
-// Work in progress: previous functions not inlinable so far
-#if defined(MBEDTLS_PK_SINGLE_TYPE)
-#undef MBEDTLS_PK_INLINABLE_API
-#define MBEDTLS_PK_INLINABLE_API MBEDTLS_ALWAYS_INLINE static inline
-#endif
 
 /**
  * \brief           Tell if a context can do the operation given by type
@@ -644,9 +634,7 @@ MBEDTLS_PK_INLINABLE_API mbedtls_pk_type_t mbedtls_pk_get_type(
  * Internal definitions - for inlining purposes - do no use directly!
  */
 
-/*
- * Tell if a PK can do the operations of the given type
- */
+/* Tell if a PK can do the operations of the given type */
 MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_can_do_internal(
         const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
 {
@@ -659,6 +647,17 @@ MBEDTLS_ALWAYS_INLINE static inline int mbedtls_pk_can_do_internal(
     return( mbedtls_pk_info_can_do( MBEDTLS_PK_CTX_INFO( ctx ), type ) );
 }
 
+/* Get key size in bits */
+MBEDTLS_ALWAYS_INLINE static inline size_t mbedtls_pk_get_bitlen_internal(
+        const mbedtls_pk_context *ctx )
+{
+    /* For backward compatibility, accept NULL or a context that
+     * isn't set up yet, and return a fake value that should be safe. */
+    if( ctx == NULL || !MBEDTLS_PK_CTX_IS_VALID( ctx ) )
+        return( 0 );
+
+    return( mbedtls_pk_info_get_bitlen( MBEDTLS_PK_CTX_INFO( ctx ), ctx->pk_ctx ) );
+}
 
 /*
  * Definitions of inline API functions
@@ -704,6 +703,11 @@ static inline int mbedtls_pk_can_do(
         const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
 {
     return( mbedtls_pk_can_do_internal( ctx, type ) );
+}
+
+static inline size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
+{
+    return( mbedtls_pk_get_bitlen_internal( ctx ) );
 }
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
 

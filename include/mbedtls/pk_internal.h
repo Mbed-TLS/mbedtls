@@ -255,6 +255,8 @@ struct mbedtls_pk_info_t
 #define MBEDTLS_PK_CTX_IS_VALID( ctx )  \
     ( MBEDTLS_PK_CTX_INFO( (ctx) ) != MBEDTLS_PK_INVALID_HANDLE )
 
+#define MBEDTLS_PK_WRAPPER MBEDTLS_ALWAYS_INLINE static inline
+
 /*
  * Internal wrappers around ECC functions - based on TinyCrypt
  */
@@ -267,13 +269,14 @@ int mbedtls_uecc_sign_asn1( const mbedtls_uecc_keypair *keypair,
                    const unsigned char *hash, size_t hash_len,
                    unsigned char *sig, size_t *sig_len );
 
-static size_t mbedtls_uecc_eckey_get_bitlen( const void *ctx )
+MBEDTLS_PK_WRAPPER size_t mbedtls_uecc_eckey_get_bitlen( const void *ctx )
 {
     (void) ctx;
     return( (size_t) ( NUM_ECC_BYTES * 8 ) );
 }
 
-static int mbedtls_uecc_eckey_check_pair( const void *pub, const void *prv )
+MBEDTLS_PK_WRAPPER int mbedtls_uecc_eckey_check_pair( const void *pub,
+                                                      const void *prv )
 {
     const mbedtls_uecc_keypair *uecc_pub =
         (const mbedtls_uecc_keypair *) pub;
@@ -290,13 +293,14 @@ static int mbedtls_uecc_eckey_check_pair( const void *pub, const void *prv )
     return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 }
 
-static int mbedtls_uecc_eckey_can_do( mbedtls_pk_type_t type )
+MBEDTLS_PK_WRAPPER int mbedtls_uecc_eckey_can_do( mbedtls_pk_type_t type )
 {
     return( type == MBEDTLS_PK_ECDSA ||
             type == MBEDTLS_PK_ECKEY );
 }
 
-static int mbedtls_uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+MBEDTLS_PK_WRAPPER int mbedtls_uecc_eckey_verify_wrap( void *ctx,
+                       mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
@@ -306,7 +310,8 @@ static int mbedtls_uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     return( mbedtls_uecc_verify_asn1( keypair, hash, hash_len, sig, sig_len ) );
 }
 
-static int mbedtls_uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+MBEDTLS_PK_WRAPPER int mbedtls_uecc_eckey_sign_wrap( void *ctx,
+                   mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    unsigned char *sig, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )

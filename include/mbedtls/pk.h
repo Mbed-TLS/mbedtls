@@ -76,6 +76,16 @@
 /* MBEDTLS_ERR_PK_HW_ACCEL_FAILED is deprecated and should not be used. */
 #define MBEDTLS_ERR_PK_HW_ACCEL_FAILED     -0x3880  /**< PK hardware accelerator failed. */
 
+/*
+ * Make some API functions inline if only a single type is available.
+ * WIP: currently no effect. */
+#if defined(MBEDTLS_PK_SINGLE_TYPE)
+//#define MBEDTLS_PK_INLINABLE_API MBEDTLS_ALWAYS_INLINE static inline
+#define MBEDTLS_PK_INLINABLE_API
+#else
+#define MBEDTLS_PK_INLINABLE_API
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -240,7 +250,8 @@ typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
  *
  * \return          The PK info associated with the type or NULL if not found.
  */
-mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type );
+MBEDTLS_PK_INLINABLE_API mbedtls_pk_handle_t mbedtls_pk_info_from_type(
+        mbedtls_pk_type_t pk_type );
 
 /**
  * \brief           Initialize a #mbedtls_pk_context (as NONE).
@@ -248,7 +259,7 @@ mbedtls_pk_handle_t mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type );
  * \param ctx       The context to initialize.
  *                  This must not be \c NULL.
  */
-void mbedtls_pk_init( mbedtls_pk_context *ctx );
+MBEDTLS_PK_INLINABLE_API void mbedtls_pk_init( mbedtls_pk_context *ctx );
 
 /**
  * \brief           Free the components of a #mbedtls_pk_context.
@@ -256,7 +267,7 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx );
  * \param ctx       The context to clear. It must have been initialized.
  *                  If this is \c NULL, this function does nothing.
  */
-void mbedtls_pk_free( mbedtls_pk_context *ctx );
+MBEDTLS_PK_INLINABLE_API void mbedtls_pk_free( mbedtls_pk_context *ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /**
@@ -291,7 +302,8 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
  * \note            For contexts holding an RSA-alt key, use
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
  */
-int mbedtls_pk_setup( mbedtls_pk_context *ctx, mbedtls_pk_handle_t info );
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_setup( mbedtls_pk_context *ctx,
+                                               mbedtls_pk_handle_t info );
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
@@ -322,7 +334,8 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
  *
  * \return          Key size in bits, or 0 on error
  */
-size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx );
+MBEDTLS_PK_INLINABLE_API size_t mbedtls_pk_get_bitlen(
+        const mbedtls_pk_context *ctx );
 
 /**
  * \brief           Get the length in bytes of the underlying key
@@ -348,7 +361,8 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
  *                  been initialized but not set up, or that has been
  *                  cleared with mbedtls_pk_free().
  */
-int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_can_do( const mbedtls_pk_context *ctx,
+                                                mbedtls_pk_type_t type );
 
 /**
  * \brief           Verify signature (including padding if relevant).
@@ -374,9 +388,9 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
  *
  * \note            md_alg may be MBEDTLS_MD_NONE, only if hash_len != 0
  */
-int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
-               const unsigned char *hash, size_t hash_len,
-               const unsigned char *sig, size_t sig_len );
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_verify( mbedtls_pk_context *ctx,
+        mbedtls_md_type_t md_alg, const unsigned char *hash, size_t hash_len,
+        const unsigned char *sig, size_t sig_len );
 
 /**
  * \brief           Restartable version of \c mbedtls_pk_verify()
@@ -398,11 +412,11 @@ int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
-int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
-               mbedtls_md_type_t md_alg,
-               const unsigned char *hash, size_t hash_len,
-               const unsigned char *sig, size_t sig_len,
-               mbedtls_pk_restart_ctx *rs_ctx );
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_verify_restartable(
+        mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+        const unsigned char *hash, size_t hash_len,
+        const unsigned char *sig, size_t sig_len,
+        mbedtls_pk_restart_ctx *rs_ctx );
 
 /**
  * \brief           Verify signature, with options.
@@ -433,10 +447,11 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
  *                  to a mbedtls_pk_rsassa_pss_options structure,
  *                  otherwise it must be NULL.
  */
-int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
-                   mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
-                   const unsigned char *hash, size_t hash_len,
-                   const unsigned char *sig, size_t sig_len );
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_verify_ext(
+        mbedtls_pk_type_t type, const void *options,
+        mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+        const unsigned char *hash, size_t hash_len,
+        const unsigned char *sig, size_t sig_len );
 
 /**
  * \brief           Make signature, including padding if relevant.
@@ -467,10 +482,10 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  *                  \p sig buffer size must be of at least
  *                  `max(MBEDTLS_ECDSA_MAX_LEN, MBEDTLS_MPI_MAX_SIZE)` bytes.
  */
-int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
-             const unsigned char *hash, size_t hash_len,
-             unsigned char *sig, size_t *sig_len,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_sign( mbedtls_pk_context *ctx,
+        mbedtls_md_type_t md_alg, const unsigned char *hash, size_t hash_len,
+        unsigned char *sig, size_t *sig_len,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
  * \brief           Restartable version of \c mbedtls_pk_sign()
@@ -499,12 +514,12 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
-int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
-             mbedtls_md_type_t md_alg,
-             const unsigned char *hash, size_t hash_len,
-             unsigned char *sig, size_t *sig_len,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
-             mbedtls_pk_restart_ctx *rs_ctx );
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_sign_restartable(
+        mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+        const unsigned char *hash, size_t hash_len,
+        unsigned char *sig, size_t *sig_len,
+        int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+        mbedtls_pk_restart_ctx *rs_ctx );
 
 /**
  * \brief           Decrypt message (including padding if relevant).
@@ -523,7 +538,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
  *
  * \return          0 on success, or a specific error code.
  */
-int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
@@ -544,7 +559,7 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
  *
  * \return          0 on success, or a specific error code.
  */
-int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
@@ -557,7 +572,8 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  *
  * \return          0 on success or MBEDTLS_ERR_PK_BAD_INPUT_DATA
  */
-int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_check_pair(
+        const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
 /**
  * \brief           Export debug information
@@ -567,7 +583,8 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
  *
  * \return          0 on success or MBEDTLS_ERR_PK_BAD_INPUT_DATA
  */
-int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items );
+MBEDTLS_PK_INLINABLE_API int mbedtls_pk_debug(
+        const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items );
 
 /**
  * \brief           Access the type name
@@ -576,7 +593,8 @@ int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *item
  *
  * \return          Type name on success, or "invalid PK"
  */
-const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
+MBEDTLS_PK_INLINABLE_API const char * mbedtls_pk_get_name(
+        const mbedtls_pk_context *ctx );
 
 /**
  * \brief           Get the key type
@@ -586,7 +604,8 @@ const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
  * \return          Type on success.
  * \return          #MBEDTLS_PK_NONE for a context that has not been set up.
  */
-mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
+MBEDTLS_PK_INLINABLE_API mbedtls_pk_type_t mbedtls_pk_get_type(
+        const mbedtls_pk_context *ctx );
 
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */

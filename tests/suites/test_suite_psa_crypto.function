@@ -4273,17 +4273,17 @@ exit:
 
 /* BEGIN_CASE */
 void derive_input( int alg_arg,
-                   int key_type_arg,
-                   int step1_arg, data_t *input1,
-                   int step2_arg, data_t *input2,
-                   int step3_arg, data_t *input3,
+                   int step_arg1, int key_type_arg1, data_t *input1,
                    int expected_status_arg1,
+                   int step_arg2, int key_type_arg2, data_t *input2,
                    int expected_status_arg2,
-                   int expected_status_arg3 )
+                   int step_arg3, int key_type_arg3, data_t *input3,
+                   int expected_status_arg3,
+                   int output_key_type_arg, int expected_output_status_arg )
 {
     psa_algorithm_t alg = alg_arg;
-    size_t key_type = key_type_arg;
-    psa_key_derivation_step_t steps[] = {step1_arg, step2_arg, step3_arg};
+    psa_key_derivation_step_t steps[] = {step_arg1, step_arg2, step_arg3};
+    psa_key_type_t key_types[] = {key_type_arg1, key_type_arg2, key_type_arg3};
     psa_status_t expected_statuses[] = {expected_status_arg1,
                                         expected_status_arg2,
                                         expected_status_arg3};
@@ -4292,40 +4292,62 @@ void derive_input( int alg_arg,
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     size_t i;
+    psa_key_type_t output_key_type = output_key_type_arg;
+    psa_key_handle_t output_handle = 0;
+    psa_status_t expected_output_status = expected_output_status_arg;
+    psa_status_t actual_output_status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
     psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, key_type );
 
     PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
 
     for( i = 0; i < ARRAY_LENGTH( steps ); i++ )
     {
-        switch( steps[i] )
+        if( key_types[i] != PSA_KEY_TYPE_NONE )
         {
-            case PSA_KEY_DERIVATION_INPUT_SECRET:
-                PSA_ASSERT( psa_import_key( &attributes,
-                                            inputs[i]->x, inputs[i]->len,
-                                            &handles[i] ) );
-                TEST_EQUAL( psa_key_derivation_input_key( &operation, steps[i],
-                                                          handles[i] ),
-                            expected_statuses[i] );
-                break;
-            default:
-                TEST_EQUAL( psa_key_derivation_input_bytes(
-                                    &operation, steps[i],
-                                    inputs[i]->x, inputs[i]->len ),
-                            expected_statuses[i] );
-                break;
+            psa_set_key_type( &attributes, key_types[i] );
+            PSA_ASSERT( psa_import_key( &attributes,
+                                        inputs[i]->x, inputs[i]->len,
+                                        &handles[i] ) );
+            TEST_EQUAL( psa_key_derivation_input_key( &operation, steps[i],
+                                                      handles[i] ),
+                        expected_statuses[i] );
+        }
+        else
+        {
+            TEST_EQUAL( psa_key_derivation_input_bytes(
+                            &operation, steps[i],
+                            inputs[i]->x, inputs[i]->len ),
+                        expected_statuses[i] );
         }
     }
+
+    if( output_key_type != PSA_KEY_TYPE_NONE )
+    {
+        psa_reset_key_attributes( &attributes );
+        psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+        psa_set_key_bits( &attributes, 8 );
+        actual_output_status =
+            psa_key_derivation_output_key( &attributes, &operation,
+                                           &output_handle );
+    }
+    else
+    {
+        uint8_t buffer[1];
+        actual_output_status =
+            psa_key_derivation_output_bytes( &operation,
+                                             buffer, sizeof( buffer ) );
+    }
+    TEST_EQUAL( actual_output_status, expected_output_status );
 
 exit:
     psa_key_derivation_abort( &operation );
     for( i = 0; i < ARRAY_LENGTH( handles ); i++ )
         psa_destroy_key( handles[i] );
+    psa_destroy_key( output_handle );
     PSA_DONE( );
 }
 /* END_CASE */

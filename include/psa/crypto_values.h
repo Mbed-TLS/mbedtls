@@ -1618,31 +1618,43 @@
 
 /** A secret input for key derivation.
  *
- * This must be a key of type #PSA_KEY_TYPE_DERIVE.
+ * This should be a key of type #PSA_KEY_TYPE_DERIVE
+ * (passed to psa_key_derivation_input_key())
+ * or the shared secret resulting from a key agreement
+ * (obtained via psa_key_derivation_key_agreement()).
+ *
+ * The secret can also be a direct input (passed to
+ * key_derivation_input_bytes()). In this case, the derivation operation
+ * may not be used to derive keys: the operation will only allow
+ * psa_key_derivation_output_bytes(), not psa_key_derivation_output_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_SECRET     ((psa_key_derivation_step_t)0x0101)
 
 /** A label for key derivation.
  *
- * This must be a direct input.
+ * This should be a direct input.
+ * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA.
  */
 #define PSA_KEY_DERIVATION_INPUT_LABEL      ((psa_key_derivation_step_t)0x0201)
 
 /** A salt for key derivation.
  *
- * This must be a direct input.
+ * This should be a direct input.
+ * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA.
  */
 #define PSA_KEY_DERIVATION_INPUT_SALT       ((psa_key_derivation_step_t)0x0202)
 
 /** An information string for key derivation.
  *
- * This must be a direct input.
+ * This should be a direct input.
+ * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA.
  */
 #define PSA_KEY_DERIVATION_INPUT_INFO       ((psa_key_derivation_step_t)0x0203)
 
 /** A seed for key derivation.
  *
- * This must be a direct input.
+ * This should be a direct input.
+ * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA.
  */
 #define PSA_KEY_DERIVATION_INPUT_SEED       ((psa_key_derivation_step_t)0x0204)
 

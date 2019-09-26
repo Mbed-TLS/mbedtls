@@ -1480,6 +1480,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    if( strcmp( "MBEDTLS_SSL_DTLS_SRTP", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_DTLS_SRTP );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
+
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE)
     if( strcmp( "MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE", config ) == 0 )
     {

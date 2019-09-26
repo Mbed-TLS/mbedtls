@@ -11,9 +11,11 @@ DIR_FOR_MBED_TLS_ENV=./library
 ifneq "$(wildcard $(DIR_FOR_MBED_TLS_ENV) )" ""
 	LIBRARY_DIR=./library
 	INCLUDE_DIR=./include
+	CONFIG_FILE=./include/mbedtls/config.h
 else
 	LIBRARY_DIR=./src
 	INCLUDE_DIR=./inc
+	CONFIG_FILE=./inc/mbedtls/test_config.h
 endif
 
 .SILENT:
@@ -87,11 +89,11 @@ post_build:
 ifndef WINDOWS
 
 	# If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-	-scripts/config.pl get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY && ([ $$? -eq 0 ]) && \
+	-scripts/config.pl -f $(CONFIG_FILE) get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY && ([ $$? -eq 0 ]) && \
 	    echo '$(CTR_DRBG_128_BIT_KEY_WARNING)'
 
 	# If NULL Entropy is configured, display an appropriate warning
-	-scripts/config.pl get MBEDTLS_TEST_NULL_ENTROPY && ([ $$? -eq 0 ]) && \
+	-scripts/config.pl -f $(CONFIG_FILE) get MBEDTLS_TEST_NULL_ENTROPY && ([ $$? -eq 0 ]) && \
 	    echo '$(NULL_ENTROPY_WARNING)'
 endif
 

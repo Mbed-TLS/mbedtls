@@ -14,13 +14,11 @@ ifneq "$(wildcard $(DIR_FOR_MBED_TLS_ENV) )" ""
 	INCLUDE_DIR=-I../include
 else
 	LIBRARY_DIR=../src
-	INCLUDE_DIR=-I.. -I../inc
+	INCLUDE_DIR=-I../inc
+	CFLAGS += "-DMBEDTLS_CONFIG_FILE=\"mbedtls/test_config.h\""
 endif
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) $(INCLUDE_DIR) -D_FILE_OFFSET_BITS=64
-ifdef MBEDTLS_CONFIG_FILE
-LOCAL_CFLAGS += "-DMBEDTLS_CONFIG_FILE=\"${MBEDTLS_CONFIG_FILE}\""
-endif
 
 LOCAL_LDFLAGS = -L$(LIBRARY_DIR)		\
 		-lmbedtls$(SHARED_SUFFIX)	\

@@ -9,17 +9,15 @@ LDFLAGS ?=
 # Otherwise Mbed OS environment is used.
 DIR_FOR_MBED_TLS_ENV=../library
 ifneq "$(wildcard $(DIR_FOR_MBED_TLS_ENV) )" ""
-    # Set include dirs for Mbed TLS test environment
+	# Set include dirs for Mbed TLS test environment
 	INCLUDE_DIRS=-I../include
 else
-    # Set include dirs for Mbed OS test environment
-	INCLUDE_DIRS=-I.. -I../inc
+	# Set include dirs for Mbed OS test environment
+	INCLUDE_DIRS=-I../inc
+	CFLAGS += "-DMBEDTLS_CONFIG_FILE=\"mbedtls/test_config.h\""
 endif
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) $(INCLUDE_DIRS) -D_FILE_OFFSET_BITS=64
-ifdef MBEDTLS_CONFIG_FILE
-LOCAL_CFLAGS += "-DMBEDTLS_CONFIG_FILE=\"${MBEDTLS_CONFIG_FILE}\""
-endif
 
 LOCAL_LDFLAGS =
 

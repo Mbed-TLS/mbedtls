@@ -53,28 +53,7 @@
 use warnings;
 use strict;
 
-my $config_file;
-my $include_dir;
-my $library_dir;
-my $mbedtls_config_file = $ENV{"MBEDTLS_CONFIG_FILE"};
-
-if ( ( -d "../library") || ( -d "./library") )  {
-    # library directory is present, we are using Mbed TLS namespace
-    $config_file = "include/mbedtls/config.h";
-    $include_dir = "include";
-    $library_dir = "library";
-} else {
-    # library directory is not present, we are using Mbed OS namespace
-    $config_file = "inc/mbedtls/config.h";
-    $include_dir = "inc";
-    $library_dir = "src";
-}
-
-if ( length $mbedtls_config_file ) {
-    $mbedtls_config_file = substr $mbedtls_config_file, 1, -1;
-    $config_file = $include_dir . "/" . $mbedtls_config_file;
-}
-
+my $config_file = "include/mbedtls/config.h";
 my $usage = <<EOU;
 $0 [-f <file> | --file <file>] [-o | --force]
                    [set <symbol> <value> | unset <symbol> | get <symbol> |
@@ -226,7 +205,7 @@ if (! -f $config_file)  {
     chdir '..' or die;
 
     # Confirm this is the project root directory and try again
-    if ( !(-d 'scripts' && -d $include_dir && -d $library_dir && -f $config_file) ) {
+    if ( !(-d 'scripts' && -d 'include' && -d 'library' && -f $config_file) ) {
         die "If no file specified, must be run from the project root or scripts directory.\n";
     }
 }

@@ -6568,16 +6568,9 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl )
 {
-    int ret;
-
-    if( ( ret = mbedtls_ssl_send_alert_message( ssl,
-                    MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                    MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    return( 0 );
+    return( mbedtls_ssl_send_alert_message( ssl,
+                  MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                  MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE ) );
 }
 
 int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,

@@ -120,7 +120,6 @@ int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
                               size_t buflen )
 {
     int ret = 0;
-    mbedtls_record rec;
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "=> mbedtls_ssl_check_record" ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "record buffer", buf, buflen );
 
@@ -137,6 +136,8 @@ int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     else
     {
+        mbedtls_record rec;
+
         ret = ssl_parse_record_header( ssl, buf, buflen, &rec );
         if( ret != 0 )
         {

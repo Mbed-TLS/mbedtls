@@ -6414,7 +6414,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ssl->in_len = ssl->in_cid + rec.cid_len;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-    ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+    ssl->in_iv  = ssl->in_len + 2;
 
     /* The record content type may change during decryption,
      * so re-read it. */

@@ -21,18 +21,6 @@
 
 set -u
 
-# Detect used test environment: Mbed TLS or Mbed OS 
-if [ -f "../include/mbedtls/config.h" ]
-then
-    CONFIG_FILE=../include/mbedtls/config.h
-elif [ -f "../inc/mbedtls/test_config.h" ]
-then
-    CONFIG_FILE=../inc/mbedtls/test_config.h
-else
-    echo "Can't locate config file, must be run from mbed TLS root" >&2
-    exit 1
-fi
-
 # Limit the size of each log to 10 GiB, in case of failures with this script
 # where it may output seemingly unlimited length error logs.
 ulimit -f 20971520
@@ -309,9 +297,20 @@ requires_not_i686() {
 }
 
 # Calculate the input & output maximum content lengths set in the config
-MAX_CONTENT_LEN=$( ../scripts/config.pl -f $CONFIG_FILE get MBEDTLS_SSL_MAX_CONTENT_LEN || echo "16384")
-MAX_IN_LEN=$( ../scripts/config.pl -f $CONFIG_FILE get MBEDTLS_SSL_IN_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
-MAX_OUT_LEN=$( ../scripts/config.pl -f $CONFIG_FILE get MBEDTLS_SSL_OUT_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
+MAX_CONTENT_LEN="$( get_config_value_or_default MBEDTLS_SSL_MAX_CONTENT_LEN )"
+if [ -z "$MAX_CONTENT_LEN" ]; then
+    MAX_CONTENT_LEN=16384
+fi
+
+MAX_IN_LEN="$( get_config_value_or_default MBEDTLS_SSL_IN_CONTENT_LEN )"
+if [ -z "$MAX_IN_LEN" ]; then
+    MAX_IN_LEN=$MAX_CONTENT_LEN
+fi
+
+MAX_OUT_LEN="$( get_config_value_or_default MBEDTLS_SSL_OUT_CONTENT_LEN )"
+if [ -z "$MAX_OUT_LEN" ]; then
+    MAX_OUT_LEN=$MAX_CONTENT_LEN
+fi
 
 if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
     MAX_CONTENT_LEN="$MAX_IN_LEN"
@@ -3960,7 +3959,7 @@ run_test    "Authentication: client no cert, ssl3" \
 # default value (8)
 
 MAX_IM_CA='8'
-MAX_IM_CA_CONFIG=$( ../scripts/config.pl get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
+MAX_IM_CA_CONFIG="$( get_config_value_or_default MBEDTLS_X509_MAX_INTERMEDIATE_CA )"
 
 if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
     printf "The configuration file contains a value for the configuration of\n"

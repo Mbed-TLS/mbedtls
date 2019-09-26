@@ -24,10 +24,6 @@
  *   and #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set to 24 or more (which is
  *   always the case unless it is explicitly set to a different value
  *   in `config.h`).
- *
- *  \warning Using 128-bit keys for CTR_DRBG or using SHA-256 as the entropy
- *  compression function limits the security of generated
- *  keys and operations that use random values generated to 128-bit security.
  */
 /*
  *  Copyright (C) 2006-2019, Arm Limited (or its affiliates), All Rights Reserved

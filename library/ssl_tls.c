@@ -871,31 +871,6 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
     (void) ssl;
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-    /* check if we have a chosen srtp protection profile */
-    if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE )
-    {
-        /* derive key material for srtp session RFC5764 section 4.2
-         * master key and master salt are respectively 128 bits and 112 bits
-         * for all currently available modes:
-         * SRTP_AES128_CM_HMAC_SHA1_80, SRTP_AES128_CM_HMAC_SHA1_32
-         * SRTP_NULL_HMAC_SHA1_80, SRTP_NULL_HMAC_SHA1_32
-         * So we must export 2*(128 + 112) = 480 bits
-         */
-	ssl->dtls_srtp_info.dtls_srtp_keys_len = MBEDTLS_DTLS_SRTP_MAX_KEY_MATERIAL_LENGTH;
-
-        ret = tls_prf( master, 48, "EXTRACTOR-dtls_srtp",
-                       randbytes, 64, ssl->dtls_srtp_info.dtls_srtp_keys,
-                       ssl->dtls_srtp_info.dtls_srtp_keys_len );
-
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "dtls srtp prf", ret );
-            return( ret );
-        }
-    }
-#endif /* MBEDTLS_SSL_DTLS_SRTP */
-
     /*
      * Some data just needs copying into the structure
      */
@@ -4837,25 +4812,6 @@ mbedtls_ssl_srtp_profile
 {
     return( ssl->dtls_srtp_info.chosen_dtls_srtp_profile );
 }
-
-int mbedtls_ssl_get_dtls_srtp_key_material( const mbedtls_ssl_context *ssl,
-                                            unsigned char *key,
-                                            size_t key_buffer_len,
-                                            size_t *olen )
-{
-
-    /* check output buffer size */
-    if( key_buffer_len < ssl->dtls_srtp_info.dtls_srtp_keys_len )
-    {
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-    }
-
-    memcpy( key, ssl->dtls_srtp_info.dtls_srtp_keys,
-            ssl->dtls_srtp_info.dtls_srtp_keys_len );
-    *olen = ssl->dtls_srtp_info.dtls_srtp_keys_len;
-
-    return( 0 );
-}
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor )
@@ -6954,11 +6910,6 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     mbedtls_free( ssl->cli_id );
 #endif
-
-#if defined (MBEDTLS_SSL_DTLS_SRTP)
-    mbedtls_platform_zeroize( ssl->dtls_srtp_info.dtls_srtp_keys,
-                              ssl->dtls_srtp_info.dtls_srtp_keys_len );
-#endif /* MBEDTLS_SSL_DTLS_SRTP */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= free" ) );
 

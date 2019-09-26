@@ -893,12 +893,6 @@ typedef struct mbedtls_dtls_srtp_info_t
 {
     /*! The SRTP profile that was negotiated*/
     mbedtls_ssl_srtp_profile chosen_dtls_srtp_profile;
-    /*! master keys and master salt for SRTP generated during handshake */
-    unsigned char dtls_srtp_keys[MBEDTLS_DTLS_SRTP_MAX_KEY_MATERIAL_LENGTH];
-    /*! length in bytes of master keys and master salt for
-     * SRTP generated during handshake
-     */
-    size_t dtls_srtp_keys_len;
     /*! The mki_value used, with max size of 256 bytes */
     unsigned char mki_value[MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH];
     /*! The length of mki_value */
@@ -3248,25 +3242,6 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
  */
 mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile
                                              ( const mbedtls_ssl_context *ssl );
-
-/**
- * \brief                  Get the generated DTLS-SRTP key material.
- *                         This function should be called after the handshake is
- *                         completed. It shall returns 60 bytes of key material
- *                         generated according to RFC 5764
- *
- * \param ssl              SSL context tobe used.
- * \param key              Buffer to hold the generated key material.
- * \param key_buffer_len   Key buffer size.
- * \param olen             the actual number of bytes written to key.
- *
- * \return                 0 on success, #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if
- *                         the key buffer is too small to hold the generated key.
- */
-int mbedtls_ssl_get_dtls_srtp_key_material( const mbedtls_ssl_context *ssl,
-                                            unsigned char *key,
-                                            size_t key_buffer_len,
-                                            size_t *olen );
 
 /**
  * \brief                  Utility function to get information on DTLS-SRTP profile.

@@ -328,10 +328,24 @@ int main( void )
     "                             This cannot be used with eap_tls=1\n"
 #define USAGE_NSS_KEYLOG_FILE                               \
     "    nss_keylog_file=%%s\n"
-#else
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+#define USAGE_SRTP \
+    "    use_srtp=%%d         default: 0 (disabled)\n" \
+    "    srtp_force_profile=%%d  default: all enabled\n"   \
+    "                        available profiles:\n"       \
+    "                        1 - SRTP_AES128_CM_HMAC_SHA1_80\n"  \
+    "                        2 - SRTP_AES128_CM_HMAC_SHA1_32\n"  \
+    "                        3 - SRTP_NULL_HMAC_SHA1_80\n"       \
+    "                        4 - SRTP_NULL_HMAC_SHA1_32\n"       \
+    "    support_mki=%%d     default: 0 (not supported)\n"
+#else /* MBEDTLS_SSL_DTLS_SRTP */
+#define USAGE_SRTP ""
+#endif
+#else /* MBEDTLS_SSL_EXPORT_KEYS */
 #define USAGE_EAP_TLS ""
 #define USAGE_NSS_KEYLOG ""
 #define USAGE_NSS_KEYLOG_FILE ""
+#define USAGE_SRTP ""
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_CACHE_C)
@@ -412,20 +426,6 @@ int main( void )
     "                        records within a single datgram.\n"
 #else
 #define USAGE_DTLS ""
-#endif
-
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-#define USAGE_SRTP \
-    "    use_srtp=%%d         default: 0 (disabled)\n" \
-    "    srtp_force_profile=%%d  default: all enabled\n"   \
-    "                        available profiles:\n"       \
-    "                        1 - SRTP_AES128_CM_HMAC_SHA1_80\n"  \
-    "                        2 - SRTP_AES128_CM_HMAC_SHA1_32\n"  \
-    "                        3 - SRTP_NULL_HMAC_SHA1_80\n"       \
-    "                        4 - SRTP_NULL_HMAC_SHA1_32\n"       \
-    "    support_mki=%%d     default: 0 (not supported)\n"
-#else
-#define USAGE_SRTP ""
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
@@ -781,7 +781,43 @@ exit:
     return( ret );
 }
 
-#endif
+#if defined( MBEDTLS_SSL_DTLS_SRTP )
+typedef struct dtls_srtp_keys
+{
+    unsigned char master_secret[48];
+    unsigned char randbytes[64];
+    mbedtls_tls_prf_types tls_prf_type;
+} dtls_srtp_keys;
+
+static int dtls_srtp_key_derivation( void *p_expkey,
+                                     const unsigned char *ms,
+                                     const unsigned char *kb,
+                                     size_t maclen,
+                                     size_t keylen,
+                                     size_t ivlen,
+                                     const unsigned char client_random[32],
+                                     const unsigned char server_random[32],
+                                     mbedtls_tls_prf_types tls_prf_type )
+{
+    dtls_srtp_keys *keys = (dtls_srtp_keys *)p_expkey;
+
+    ( ( void ) kb );
+    memcpy( keys->master_secret, ms, sizeof( keys->master_secret ) );
+    memcpy( keys->randbytes, client_random, 32 );
+    memcpy( keys->randbytes + 32, server_random, 32 );
+    keys->tls_prf_type = tls_prf_type;
+
+    if( opt.debug_level > 2 )
+    {
+        mbedtls_printf("exported maclen is %u\n", (unsigned)maclen);
+        mbedtls_printf("exported keylen is %u\n", (unsigned)keylen);
+        mbedtls_printf("exported ivlen is %u\n", (unsigned)ivlen);
+    }
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
+
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 static void my_debug( void *ctx, int level,
                       const char *file, int line,
@@ -1824,10 +1860,6 @@ int main( int argc, char *argv[] )
     size_t context_buf_len = 0;
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-    unsigned char mki[MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH];
-    size_t mki_len = 0;
-#endif
     int i;
     char *p, *q;
     const int *list;
@@ -1839,7 +1871,13 @@ int main( int argc, char *argv[] )
     unsigned char eap_tls_iv[8];
     const char* eap_tls_label = "client EAP encryption";
     eap_tls_keys eap_tls_keying;
-#endif
+#if defined( MBEDTLS_SSL_DTLS_SRTP )
+    /*! master keys and master salt for SRTP generated during handshake */
+     unsigned char dtls_srtp_key_material[MBEDTLS_DTLS_SRTP_MAX_KEY_MATERIAL_LENGTH];
+     const char* dtls_srtp_label = "EXTRACTOR-dtls_srtp";
+     dtls_srtp_keys dtls_srtp_keying;
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
@@ -3164,7 +3202,14 @@ int main( int argc, char *argv[] )
                                              nss_keylog_export,
                                              NULL );
     }
-#endif
+#if defined( MBEDTLS_SSL_DTLS_SRTP )
+    else if( opt.use_srtp != 0 )
+    {
+        mbedtls_ssl_conf_export_keys_ext_cb( &conf, dtls_srtp_key_derivation,
+                                             &dtls_srtp_keying );
+    }
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_ALPN)
     if( opt.alpn_string != NULL )
@@ -3810,7 +3855,39 @@ handshake:
         }
         mbedtls_printf("\n");
     }
-#endif
+
+#if defined( MBEDTLS_SSL_DTLS_SRTP )
+    else if( opt.use_srtp != 0  )
+    {
+        size_t j = 0;
+
+        if( ( ret = mbedtls_ssl_tls_prf( dtls_srtp_keying.tls_prf_type,
+                                         dtls_srtp_keying.master_secret,
+                                         sizeof( dtls_srtp_keying.master_secret ),
+                                         dtls_srtp_label,
+                                         dtls_srtp_keying.randbytes,
+                                         sizeof( dtls_srtp_keying.randbytes ),
+                                         dtls_srtp_key_material,
+                                         sizeof( dtls_srtp_key_material ) ) )
+                                         != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
+                            -ret );
+            goto exit;
+        }
+
+        mbedtls_printf( "    DTLS-SRTP key material is:" );
+        for( j = 0; j < sizeof( dtls_srtp_key_material ); j++ )
+        {
+            if( j % 8 == 0 )
+                mbedtls_printf("\n    ");
+            mbedtls_printf("%02x ", dtls_srtp_key_material[j] );
+        }
+
+        mbedtls_printf("\n");
+    }
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
+#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ret = report_cid_usage( &ssl, "initial handshake" );

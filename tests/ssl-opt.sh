@@ -204,6 +204,17 @@ requires_config_value_at_most() {
     fi
 }
 
+requires_config_value_exactly() {
+    VAL=$( get_config_value_or_default "$1" )
+    if [ -z "$VAL" ]; then
+        # Should never happen
+        echo "Mbed TLS configuration $1 is not defined"
+        exit 1
+    elif [ "$VAL" -eq "$2" ]; then
+       SKIP_NEXT="YES"
+    fi
+}
+
 # skip next test if OpenSSL doesn't support FALLBACK_SCSV
 requires_openssl_with_fallback_scsv() {
     if [ -z "${OPENSSL_HAS_FBSCSV:-}" ]; then
@@ -3966,7 +3977,7 @@ MAX_IM_CA='8'
 MAX_IM_CA_CONFIG="$( get_config_value_or_default MBEDTLS_X509_MAX_INTERMEDIATE_CA )"
 
 requires_full_size_output_buffer
-requires_config_value_at_least "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
+requires_config_value_exactly "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
 run_test    "Authentication: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \

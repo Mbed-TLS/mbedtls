@@ -7,6 +7,8 @@ Security
      during certificate extensions parsing. In case of receiving malformed
      input (extensions length field equal to 0), an illegal read of one byte
      beyond the input buffer is made. Found and analyzed by Nathan Crandall.
+   * Fix a potentially remotely exploitable buffer overread in a
+     DTLS client when parsing the Hello Verify Request message.
 
 Bugfix
    * Fix a potential memory leak in mbedtls_ssl_setup() function. An allocation

@@ -1605,8 +1605,6 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
     }
 
     cookie_len = *p++;
-    MBEDTLS_SSL_DEBUG_BUF( 3, "cookie", p, cookie_len );
-
     if( ( ssl->in_msg + ssl->in_msglen ) - p < cookie_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
@@ -1615,6 +1613,7 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
                                     MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
+    MBEDTLS_SSL_DEBUG_BUF( 3, "cookie", p, cookie_len );
 
     mbedtls_free( ssl->handshake->verify_cookie );
 

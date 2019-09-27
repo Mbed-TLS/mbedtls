@@ -79,6 +79,71 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
 
+void mbedtls_platform_memset( void *ptr, int value, size_t num )
+{
+    /* Randomize start offset. */
+    size_t startOffset = mbedtls_random_in_range( num );
+    /* Randomize data */
+    size_t data = mbedtls_random_in_range( 0xff );
+
+    /* Perform a pair of memset operations from random locations with
+     * random data */
+    memset( ( void * ) ( ptr + startOffset ), value, ( num - startOffset ) );
+    memset( ( void * ) ptr, data, startOffset );
+
+    /* Perform the original memset */
+    memset( ptr, value, num );
+}
+
+void mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
+{
+    /* Randomize start offset. */
+    size_t startOffset = mbedtls_random_in_range( num );
+    /* Randomize initial data to prevent leakage while copying */
+    size_t data = mbedtls_random_in_range( 0xff );
+
+    memset( ( void * ) dst, data, num );
+    memcpy( ( void * ) ( ( unsigned char * ) dst + startOffset ),
+            ( void * ) ( ( unsigned char * ) src + startOffset ),
+            ( num - startOffset ) );
+    memcpy( ( void * ) dst, ( void * ) src, startOffset );
+}
+
+int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
+{
+    volatile unsigned int equal = 0;
+
+    size_t i = num;
+
+    size_t startOffset = mbedtls_random_in_range( num );
+
+    for( i = startOffset; i < num; i++ )
+    {
+        equal += ( ( ( unsigned char * ) buf1 )[i] ==
+                   ( ( unsigned char * ) buf2 )[i] );
+    }
+
+    for( i = 0; i < startOffset; i++ )
+    {
+        equal += ( ( ( unsigned char * ) buf1 )[i] ==
+                   ( ( unsigned char * ) buf2 )[i] );
+    }
+
+    if ( equal == num )
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+//TODO: This is a stub implementation of the global RNG function.
+size_t mbedtls_random_in_range( size_t num )
+{
+    (void) num;
+    return 0;
+}
+
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>
 #if !defined(_WIN32) && (defined(unix) || \

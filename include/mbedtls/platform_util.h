@@ -164,6 +164,14 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  */
 void mbedtls_platform_zeroize( void *buf, size_t len );
 
+void mbedtls_platform_memset( void *ptr, int value, size_t num );
+
+void mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
+
+int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
+
+size_t mbedtls_random_in_range( size_t num );
+
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
  * \brief      Platform-specific implementation of gmtime_r()

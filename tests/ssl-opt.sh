@@ -210,7 +210,7 @@ requires_config_value_exactly() {
         # Should never happen
         echo "Mbed TLS configuration $1 is not defined"
         exit 1
-    elif [ "$VAL" -eq "$2" ]; then
+    elif [ "$VAL" -ne "$2" ]; then
        SKIP_NEXT="YES"
     fi
 }

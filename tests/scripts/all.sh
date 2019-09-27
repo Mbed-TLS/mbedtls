@@ -667,6 +667,7 @@ component_test_default_out_of_box () {
     msg "build: make, default config (out-of-box)" # ~1min
     make
     # Disable fancy stuff
+    SAVE_MBEDTLS_TEST_OUTCOME_FILE="$MBEDTLS_TEST_OUTCOME_FILE"
     unset MBEDTLS_TEST_OUTCOME_FILE
 
     msg "test: main suites make, default config (out-of-box)" # ~10s
@@ -674,6 +675,9 @@ component_test_default_out_of_box () {
 
     msg "selftest: make, default config (out-of-box)" # ~10s
     programs/test/selftest
+
+    export MBEDTLS_TEST_OUTCOME_FILE="$SAVE_MBEDTLS_TEST_OUTCOME_FILE"
+    unset SAVE_MBEDTLS_TEST_OUTCOME_FILE
 }
 
 component_test_default_cmake_gcc_asan () {

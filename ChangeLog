@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.xx.x branch released xxxx-xx-xx
+
+Security
+   * Fix a potentially remotely exploitable buffer overread in a
+     DTLS client when parsing the Hello Verify Request message.
+
 = mbed TLS 2.19.0 branch released 2019-09-06
 
 Security

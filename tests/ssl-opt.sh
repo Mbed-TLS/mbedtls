@@ -3986,7 +3986,7 @@ run_test    "Authentication: server max_int chain, client default" \
             -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
-requires_config_value_at_least "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
+requires_config_value_exactly "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
 run_test    "Authentication: server max_int+1 chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -3995,7 +3995,7 @@ run_test    "Authentication: server max_int+1 chain, client default" \
             -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
-requires_config_value_at_least "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
+requires_config_value_exactly "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
 run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -4005,7 +4005,7 @@ run_test    "Authentication: server max_int+1 chain, client optional" \
             -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
-requires_config_value_at_least "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
+requires_config_value_exactly "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
 run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \

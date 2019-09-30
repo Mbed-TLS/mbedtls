@@ -2,6 +2,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.7.x branch released xxxx-xx-xx
 
+Bugfix
+   * Fix some false-positive uninitialized variable warnings. Fix
+     contributed by apple-ihack-geek in #2663.
+
 Changes
    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
      from the cipher abstraction layer. Fixes #2198.

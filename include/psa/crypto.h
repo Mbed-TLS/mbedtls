@@ -57,6 +57,22 @@ extern "C" {
  * algorithms, key types, policies, etc. */
 #include "crypto_types.h"
 
+/** \defgroup API version
+ * @{
+ */
+
+/**
+ * The major version of this implementation of the PSA Crypto API
+ */
+#define PSA_CRYPTO_API_VERSION_MAJOR 1
+
+/**
+ * The minor version of this implementation of the PSA Crypto API
+ */
+#define PSA_CRYPTO_API_VERSION_MINOR 0
+
+/**@}*/
+
 /* The file "crypto_values.h" declares macros to build and analyze values
  * of integral types defined in "crypto_types.h". */
 #include "crypto_values.h"

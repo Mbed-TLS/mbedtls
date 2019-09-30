@@ -258,7 +258,9 @@ int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
  */
 static int entropy_gather_internal( mbedtls_entropy_context *ctx )
 {
-    int ret = 0, i, have_one_strong = 0;
+    int ret = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
+    int i;
+    int have_one_strong = 0;
     unsigned char buf[MBEDTLS_ENTROPY_MAX_GATHER];
     size_t olen;
 

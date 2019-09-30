@@ -243,13 +243,12 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
         return( MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA );
 #endif
 
+    if( ( ret = mbedtls_md_hmac_starts( ctx, password, plen ) ) != 0 )
+        return( ret );
     while( key_length )
     {
         // U1 ends up in work
         //
-        if( ( ret = mbedtls_md_hmac_starts( ctx, password, plen ) ) != 0 )
-            return( ret );
-
         if( ( ret = mbedtls_md_hmac_update( ctx, salt, slen ) ) != 0 )
             return( ret );
 
@@ -259,19 +258,22 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
         if( ( ret = mbedtls_md_hmac_finish( ctx, work ) ) != 0 )
             return( ret );
 
+        if( ( ret = mbedtls_md_hmac_reset( ctx ) ) != 0 )
+           return( ret );
+
         memcpy( md1, work, md_size );
 
         for( i = 1; i < iteration_count; i++ )
         {
             // U2 ends up in md1
             //
-            if( ( ret = mbedtls_md_hmac_starts( ctx, password, plen ) ) != 0 )
-                return( ret );
-
             if( ( ret = mbedtls_md_hmac_update( ctx, md1, md_size ) ) != 0 )
                 return( ret );
 
             if( ( ret = mbedtls_md_hmac_finish( ctx, md1 ) ) != 0 )
+                return( ret );
+
+            if( ( ret = mbedtls_md_hmac_reset( ctx ) ) != 0 )
                 return( ret );
 
             // U1 xor U2

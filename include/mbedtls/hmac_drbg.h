@@ -122,6 +122,32 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *
  * Set the initial seed and set up the entropy source for future reseeds.
  *
+ * A typical choice for the \p f_entropy and \p p_entropy parameters is
+ * to use the entropy module:
+ * - \p f_entropy is mbedtls_entropy_func();
+ * - \p p_entropy is an instance of ::mbedtls_entropy_context initialized
+ *   with mbedtls_entropy_init() (which registers the platform's default
+ *   entropy sources).
+ *
+ * \note                By default, the security strength as defined by NIST is:
+ *                      - 128 bits if \p md_info is SHA-1;
+ *                      - 192 bits if \p md_info is SHA-224;
+ *                      - 256 bits if \p md_info is SHA-256, SHA-384 or SHA-512.
+ *                      Note that SHA-256 is just as efficient as SHA-224.
+ *                      The security strength can be reduced if a smaller
+ *                      entropy length is set with
+ *                      mbedtls_hmac_drbg_set_entropy_len().
+ *
+ * \note                The default entropy length is the security strength
+ *                      (converted from bits to bytes). You can override
+ *                      it mbedtls_hmac_drbg_set_entropy_len().
+ *                      \p f_entropy is always called with a length that is
+ *                      less than or equal to the entropy length.
+ *
+ * \note                During the initial seeding, this function calls
+ *                      the entropy source to obtain a nonce
+ *                      whose length is half the entropy length.
+ *
  * \param ctx           HMAC_DRBG context to be seeded.
  * \param md_info       MD algorithm to use for HMAC_DRBG.
  * \param f_entropy     The entropy callback, taking as arguments the
@@ -137,13 +163,7 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *                      and also at most
  *                      #MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT - \p entropy_len * 3 / 2
  *                      where \p entropy_len is the entropy length
- *                      (see mbedtls_hmac_drbg_set_entropy_len()).
- *
- * \note                The "security strength" as defined by NIST is set to:
- *                      128 bits if \p md_info is SHA-1,
- *                      192 bits if \p md_info is SHA-224,
- *                      256 bits if \p md_info is SHA-256, SHA-384 or SHA-512.
- *                      Note that SHA-256 is just as efficient as SHA-224.
+ *                      described above.
  *
  * \return              0 if successful.
  * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA if \p md_info is
@@ -203,7 +223,7 @@ void mbedtls_hmac_drbg_set_prediction_resistance( mbedtls_hmac_drbg_context *ctx
  *                      seed or reseed.
  *
  * The default value is given by the security strength, which depends on the
- * hash used. See mbedtls_hmac_drbg_init().
+ * hash used. See the documentation of mbedtls_hmac_drbg_seed() for details.
  *
  * \param ctx           The HMAC_DRBG context.
  * \param len           The amount of entropy to grab, in bytes.

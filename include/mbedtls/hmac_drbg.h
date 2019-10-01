@@ -129,6 +129,9 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *   with mbedtls_entropy_init() (which registers the platform's default
  *   entropy sources).
  *
+ * You can provide a personalization string in addition to the
+ * entropy source, to make this instantiation as unique as possible.
+ *
  * \note                By default, the security strength as defined by NIST is:
  *                      - 128 bits if \p md_info is SHA-1;
  *                      - 192 bits if \p md_info is SHA-224;
@@ -154,11 +157,10 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *                      \p p_entropy context, the buffer to fill, and the
  *                      length of the buffer.
  * \param p_entropy     The entropy context to pass to \p f_entropy.
- * \param custom        Personalization data, that is device-specific
- *                      identifiers. This can be \c NULL, in which case the
- *                      personalization data is empty regardless of the value
- *                      of \p len.
- * \param len           The length of the personalization data.
+ * \param custom        The personalization string.
+ *                      This can be \c NULL, in which case the personalization
+ *                      string is empty regardless of the value of \p len.
+ * \param len           The length of the personalization string.
  *                      This must be at most #MBEDTLS_HMAC_DRBG_MAX_INPUT
  *                      and also at most
  *                      #MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT - \p entropy_len * 3 / 2

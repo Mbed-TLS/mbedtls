@@ -5,6 +5,13 @@
 #include "psa_crypto_se.h"
 #include "psa_crypto_storage.h"
 
+/* Invasive peeking: check the persistent data */
+#if defined(MBEDTLS_PSA_ITS_FILE_C)
+#include "psa_crypto_its.h"
+#else /* Native ITS implementation */
+#include "psa/error.h"
+#include "psa/internal_trusted_storage.h"
+#endif
 
 
 /****************************************************************/
@@ -106,6 +113,11 @@ static psa_status_t validate_slot_number_as_directed(
 }
 
 /* Allocate slot numbers with a monotonic counter. */
+static psa_key_slot_number_t shadow_counter;
+static void counter_reset( void )
+{
+    shadow_counter = 0;
+}
 static psa_status_t counter_allocate( psa_drv_se_context_t *context,
                                       void *persistent_data,
                                       const psa_key_attributes_t *attributes,
@@ -120,6 +132,7 @@ static psa_status_t counter_allocate( psa_drv_se_context_t *context,
     ++*p_counter;
     if( *p_counter == 0 )
         return( PSA_ERROR_INSUFFICIENT_STORAGE );
+    shadow_counter = *p_counter;
     *slot_number = *p_counter;
     return( PSA_SUCCESS );
 }
@@ -195,12 +208,15 @@ static ram_slot_t ram_slots[16];
  * bit vector indicating which slots are in use. */
 typedef uint16_t ram_slot_usage_t;
 
+static ram_slot_usage_t ram_shadow_slot_usage;
+
 static uint8_t ram_min_slot = 0;
 
 static void ram_slots_reset( void )
 {
     memset( ram_slots, 0, sizeof( ram_slots ) );
     ram_min_slot = 0;
+    ram_shadow_slot_usage = 0;
 }
 
 /* Common parts of key creation.
@@ -344,6 +360,7 @@ static psa_status_t ram_destroy( psa_drv_se_context_t *context,
     DRIVER_ASSERT_RETURN( slot_number < ARRAY_LENGTH( ram_slots ) );
     memset( &ram_slots[slot_number], 0, sizeof( ram_slots[slot_number] ) );
     *slot_usage &= ~(ram_slot_usage_t)( 1 << slot_number );
+    ram_shadow_slot_usage = *slot_usage;
     return( PSA_SUCCESS );
 }
 
@@ -362,7 +379,10 @@ static psa_status_t ram_allocate( psa_drv_se_context_t *context,
          ++( *slot_number ) )
     {
         if( ! ( *slot_usage & 1 << *slot_number ) )
+        {
+            ram_shadow_slot_usage = *slot_usage;
             return( PSA_SUCCESS );
+        }
     }
     return( PSA_ERROR_INSUFFICIENT_STORAGE );
 }
@@ -524,6 +544,37 @@ static int check_key_attributes(
 
 exit:
     return( ok );
+}
+
+/* Get the file UID corresponding to the specified lifetime.
+ * If this changes, the storage format version must change.
+ * See psa_get_se_driver_its_file_uid() in psa_crypto_se.c.
+ */
+psa_storage_uid_t file_uid_for_lifetime( psa_key_lifetime_t lifetime )
+{
+    if( lifetime > PSA_MAX_SE_LIFETIME )
+        return( 0 );
+    return( 0xfffffe00 + lifetime );
+}
+
+/* Check that the persistent data of a driver has its expected content. */
+static int check_persistent_data( psa_key_lifetime_t lifetime,
+                                  const void *expected_data,
+                                  size_t size )
+{
+    psa_storage_uid_t uid = file_uid_for_lifetime( lifetime );
+    struct psa_storage_info_t info;
+    uint8_t *loaded = NULL;
+
+    PSA_ASSERT( psa_its_get_info( uid, &info ) );
+    ASSERT_ALLOC( loaded, info.size );
+    PSA_ASSERT( psa_its_get( uid, 0, info.size, loaded, NULL ) );
+    ASSERT_COMPARE( expected_data, size, loaded, info.size );
+    return( 1 );
+
+exit:
+    mbedtls_free( loaded );
+    return( 0 );
 }
 
 /* Check that a function's return status is "smoke-free", i.e. that
@@ -780,6 +831,10 @@ void key_creation_import_export( int min_slot, int restart )
     PSA_ASSERT( psa_import_key( &attributes,
                                 key_material, sizeof( key_material ),
                                 &handle ) );
+    if( ! check_persistent_data( lifetime,
+                                 &ram_shadow_slot_usage,
+                                 sizeof( ram_shadow_slot_usage ) ) )
+        goto exit;
 
     /* Maybe restart, to check that the information is saved correctly. */
     if( restart )
@@ -787,6 +842,10 @@ void key_creation_import_export( int min_slot, int restart )
         mbedtls_psa_crypto_free( );
         PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
         PSA_ASSERT( psa_crypto_init( ) );
+        if( ! check_persistent_data( lifetime,
+                                     &ram_shadow_slot_usage,
+                                     sizeof( ram_shadow_slot_usage ) ) )
+            goto exit;
         PSA_ASSERT( psa_open_key( id, &handle ) );
     }
 
@@ -809,6 +868,10 @@ void key_creation_import_export( int min_slot, int restart )
 
     PSA_ASSERT( psa_destroy_key( handle ) );
     handle = 0;
+    if( ! check_persistent_data( lifetime,
+                                 &ram_shadow_slot_usage,
+                                 sizeof( ram_shadow_slot_usage ) ) )
+        goto exit;
     TEST_EQUAL( psa_open_key( id, &handle ),
                 PSA_ERROR_DOES_NOT_EXIST );
 
@@ -864,6 +927,10 @@ void key_creation_in_chosen_slot( int slot_arg,
 
     if( status != PSA_SUCCESS )
         goto exit;
+    if( ! check_persistent_data( lifetime,
+                                 &ram_shadow_slot_usage,
+                                 sizeof( ram_shadow_slot_usage ) ) )
+        goto exit;
 
     /* Maybe restart, to check that the information is saved correctly. */
     if( restart )
@@ -871,6 +938,10 @@ void key_creation_in_chosen_slot( int slot_arg,
         mbedtls_psa_crypto_free( );
         PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
         PSA_ASSERT( psa_crypto_init( ) );
+        if( ! check_persistent_data( lifetime,
+                                     &ram_shadow_slot_usage,
+                                     sizeof( ram_shadow_slot_usage ) ) )
+            goto exit;
         PSA_ASSERT( psa_open_key( id, &handle ) );
     }
 
@@ -883,6 +954,10 @@ void key_creation_in_chosen_slot( int slot_arg,
 
     PSA_ASSERT( psa_destroy_key( handle ) );
     handle = 0;
+    if( ! check_persistent_data( lifetime,
+                                 &ram_shadow_slot_usage,
+                                 sizeof( ram_shadow_slot_usage ) ) )
+        goto exit;
     TEST_EQUAL( psa_open_key( id, &handle ),
                 PSA_ERROR_DOES_NOT_EXIST );
 
@@ -930,6 +1005,9 @@ void import_key_smoke( int type_arg, int alg_arg,
     PSA_ASSERT( psa_import_key( &attributes,
                                 key_material->x, key_material->len,
                                 &handle ) );
+    if( ! check_persistent_data( lifetime,
+                                 &shadow_counter, sizeof( shadow_counter ) ) )
+        goto exit;
 
     /* Do stuff with the key. */
     if( ! smoke_test_key( handle ) )
@@ -939,6 +1017,9 @@ void import_key_smoke( int type_arg, int alg_arg,
     mbedtls_psa_crypto_free( );
     PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
+    if( ! check_persistent_data( lifetime,
+                                 &shadow_counter, sizeof( shadow_counter ) ) )
+        goto exit;
     PSA_ASSERT( psa_open_key( id, &handle ) );
     if( ! smoke_test_key( handle ) )
         goto exit;
@@ -946,11 +1027,15 @@ void import_key_smoke( int type_arg, int alg_arg,
     /* We're done. */
     PSA_ASSERT( psa_destroy_key( handle ) );
     handle = 0;
+    if( ! check_persistent_data( lifetime,
+                                 &shadow_counter, sizeof( shadow_counter ) ) )
+        goto exit;
     TEST_EQUAL( psa_open_key( id, &handle ),
                 PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     PSA_DONE( );
+    counter_reset( );
     psa_purge_storage( );
 }
 /* END_CASE */
@@ -987,6 +1072,7 @@ void generate_key_not_supported( int type_arg, int bits_arg )
 
 exit:
     PSA_DONE( );
+    counter_reset( );
     psa_purge_storage( );
 }
 /* END_CASE */
@@ -1027,6 +1113,9 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     psa_set_key_type( &attributes, type );
     psa_set_key_bits( &attributes, bits );
     PSA_ASSERT( psa_generate_key( &attributes, &handle ) );
+    if( ! check_persistent_data( lifetime,
+                                 &shadow_counter, sizeof( shadow_counter ) ) )
+        goto exit;
 
     /* Do stuff with the key. */
     if( ! smoke_test_key( handle ) )
@@ -1036,6 +1125,9 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     mbedtls_psa_crypto_free( );
     PSA_ASSERT( psa_register_se_driver( lifetime, &driver ) );
     PSA_ASSERT( psa_crypto_init( ) );
+    if( ! check_persistent_data( lifetime,
+                                 &shadow_counter, sizeof( shadow_counter ) ) )
+        goto exit;
     PSA_ASSERT( psa_open_key( id, &handle ) );
     if( ! smoke_test_key( handle ) )
         goto exit;
@@ -1043,11 +1135,15 @@ void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
     /* We're done. */
     PSA_ASSERT( psa_destroy_key( handle ) );
     handle = 0;
+    if( ! check_persistent_data( lifetime,
+                                 &shadow_counter, sizeof( shadow_counter ) ) )
+        goto exit;
     TEST_EQUAL( psa_open_key( id, &handle ),
                 PSA_ERROR_DOES_NOT_EXIST );
 
 exit:
     PSA_DONE( );
+    counter_reset( );
     psa_purge_storage( );
 }
 /* END_CASE */

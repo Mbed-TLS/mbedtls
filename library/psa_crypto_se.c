@@ -289,6 +289,9 @@ psa_status_t psa_init_all_se_drivers( void )
                 driver->lifetime );
             if( status != PSA_SUCCESS )
                 return( status );
+            status = psa_save_se_persistent_data( driver );
+            if( status != PSA_SUCCESS )
+                return( status );
         }
     }
     return( PSA_SUCCESS );

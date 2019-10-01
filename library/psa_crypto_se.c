@@ -341,6 +341,8 @@ psa_status_t psa_register_se_driver(
 
     driver_table[i].lifetime = lifetime;
     driver_table[i].methods = methods;
+    driver_table[i].internal.persistent_data_size =
+        methods->persistent_data_size;
 
     if( methods->persistent_data_size != 0 )
     {
@@ -358,8 +360,6 @@ psa_status_t psa_register_se_driver(
         if( status != PSA_SUCCESS && status != PSA_ERROR_DOES_NOT_EXIST )
             goto error;
     }
-    driver_table[i].internal.persistent_data_size =
-        methods->persistent_data_size;
 
     return( PSA_SUCCESS );
 

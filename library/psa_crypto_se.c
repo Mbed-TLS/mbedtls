@@ -272,6 +272,28 @@ psa_status_t psa_destroy_se_key( psa_se_drv_table_entry_t *driver,
     return( status == PSA_SUCCESS ? storage_status : status );
 }
 
+psa_status_t psa_init_all_se_drivers( void )
+{
+    size_t i;
+    for( i = 0; i < PSA_MAX_SE_DRIVERS; i++ )
+    {
+        psa_se_drv_table_entry_t *driver = &driver_table[i];
+        if( driver->lifetime == 0 )
+            continue; /* skipping unused entry */
+        const psa_drv_se_t *methods = psa_get_se_driver_methods( driver );
+        if( methods->p_init != NULL )
+        {
+            psa_status_t status = methods->p_init(
+                &driver->context,
+                driver->internal.persistent_data,
+                driver->lifetime );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
+    }
+    return( PSA_SUCCESS );
+}
+
 
 
 /****************************************************************/

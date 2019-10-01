@@ -5687,6 +5687,12 @@ psa_status_t psa_crypto_init( void )
     if( status != PSA_SUCCESS )
         goto exit;
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    status = psa_init_all_se_drivers( );
+    if( status != PSA_SUCCESS )
+        goto exit;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
     status = psa_crypto_load_transaction( );
     if( status == PSA_SUCCESS )

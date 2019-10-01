@@ -589,7 +589,7 @@ int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
             goto exit;
 
         if( oid[0].len != oid[1].len ||
-            memcmp( oid[0].p, oid[1].p, oid[1].len ) != 0 )
+            mbedtls_platform_memcmp( oid[0].p, oid[1].p, oid[1].len ) != 0 )
         {
             return( 1 );
         }

@@ -2883,7 +2883,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
      * Match record's CID with incoming CID.
      */
     if( rec->cid_len != transform->in_cid_len ||
-        memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 )
+        mbedtls_platform_memcmp( rec->cid, transform->in_cid,
+                                 rec->cid_len ) != 0 )
     {
         return( MBEDTLS_ERR_SSL_UNEXPECTED_CID );
     }
@@ -3083,7 +3084,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              *
              * Afterwards, we know that data + data_len is followed by at
              * least maclen Bytes, which justifies the call to
-             * mbedtls_ssl_safer_memcmp() below.
+             * mbedtls_platform_memcmp() below.
              *
              * Further, we still know that data_len > minlen */
             rec->data_len -= transform->maclen;
@@ -3105,7 +3106,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                    transform->maclen );
 
             /* Compare expected MAC with MAC at the end of the record. */
-            if( mbedtls_ssl_safer_memcmp( data + rec->data_len, mac_expect,
+            if( mbedtls_platform_memcmp( data + rec->data_len, mac_expect,
                                           transform->maclen ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
@@ -3444,7 +3445,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", data + rec->data_len, transform->maclen );
 #endif
 
-        if( mbedtls_ssl_safer_memcmp( data + rec->data_len, mac_expect,
+        if( mbedtls_platform_memcmp( data + rec->data_len, mac_expect,
                                       transform->maclen ) != 0 )
         {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
@@ -6872,7 +6873,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
     if( peer_crt->raw.len != crt_buf_len )
         return( -1 );
 
-    return( memcmp( peer_crt->raw.p, crt_buf, crt_buf_len ) );
+    return( mbedtls_platform_memcmp( peer_crt->raw.p, crt_buf, crt_buf_len ) );
 }
 #elif defined(MBEDTLS_SSL_RENEGOTIATION)
 static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
@@ -6903,7 +6904,8 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
     if( ret != 0 )
         return( -1 );
 
-    return( memcmp( tmp_digest, peer_cert_digest, digest_len ) );
+    return( mbedtls_platform_memcmp( tmp_digest, peer_cert_digest,
+                                     digest_len ) );
 }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE && MBEDTLS_SSL_RENEGOTIATION */
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
@@ -7086,7 +7088,8 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
     if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
         ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE    &&
         ssl->in_msg[0]  == MBEDTLS_SSL_HS_CERTIFICATE   &&
-        memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 )
+        memcmp( ssl->in_msg +
+                mbedtls_ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
         return( 0 );
@@ -7913,8 +7916,8 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
-    if( mbedtls_ssl_safer_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
-                      buf, hash_len ) != 0 )
+    if( mbedtls_platform_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
+                                 buf, hash_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         mbedtls_ssl_pend_fatal_alert( ssl,
@@ -9961,8 +9964,8 @@ static int ssl_session_load( mbedtls_ssl_session *session,
         if( (size_t)( end - p ) < sizeof( ssl_serialized_session_header ) )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-        if( memcmp( p, ssl_serialized_session_header,
-                    sizeof( ssl_serialized_session_header ) ) != 0 )
+        if( mbedtls_platform_memcmp( p, ssl_serialized_session_header,
+            sizeof( ssl_serialized_session_header ) ) != 0 )
         {
             return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
         }
@@ -11448,7 +11451,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     if( (size_t)( end - p ) < sizeof( ssl_serialized_context_header ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    if( memcmp( p, ssl_serialized_context_header,
+    if( mbedtls_platform_memcmp( p, ssl_serialized_context_header,
                 sizeof( ssl_serialized_context_header ) ) != 0 )
     {
         return( MBEDTLS_ERR_SSL_VERSION_MISMATCH );
@@ -11615,7 +11618,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
             for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
             {
                 if( strlen( *cur ) == alpn_len &&
-                    memcmp( p, cur, alpn_len ) == 0 )
+                    mbedtls_platform_memcmp( p, cur, alpn_len ) == 0 )
                 {
                     ssl->alpn_chosen = *cur;
                     break;

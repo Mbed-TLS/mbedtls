@@ -88,7 +88,8 @@ void mbedtls_platform_memset( void *ptr, int value, size_t num )
 
     /* Perform a pair of memset operations from random locations with
      * random data */
-    memset( ( void * ) ( ptr + startOffset ), value, ( num - startOffset ) );
+    memset( ( void * ) ( ( unsigned char * ) ptr + startOffset ), value,
+            ( num - startOffset ) );
     memset( ( void * ) ptr, data, startOffset );
 
     /* Perform the original memset */

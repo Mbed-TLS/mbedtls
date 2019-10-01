@@ -155,7 +155,7 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *                      length of the buffer.
  * \param p_entropy     The entropy context to pass to \p f_entropy.
  * \param custom        Personalization data, that is device-specific
- *                      identifiers. This can be NULL, in which case the
+ *                      identifiers. This can be \c NULL, in which case the
  *                      personalization data is empty regardless of the value
  *                      of \p len.
  * \param len           The length of the personalization data.
@@ -165,7 +165,7 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *                      where \p entropy_len is the entropy length
  *                      described above.
  *
- * \return              0 if successful.
+ * \return              \c 0 if successful.
  * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA if \p md_info is
  *                      invalid.
  * \return              #MBEDTLS_ERR_MD_ALLOC_FAILED if there was not enough
@@ -192,7 +192,7 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
  *                      the additional data.
  * \param data_len      Length of \p data in bytes.
  *
- * \return              0 if successful. or
+ * \return              \c 0 if successful. or
  * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA if \p md_info is
  *                      invalid.
  * \return              #MBEDTLS_ERR_MD_ALLOC_FAILED if there was not enough
@@ -251,9 +251,9 @@ void mbedtls_hmac_drbg_set_reseed_interval( mbedtls_hmac_drbg_context *ctx,
  *
  * \param ctx           The HMAC_DRBG context.
  * \param additional    The data to update the state with.
- *                      If this is \p NULL, there is no additional data.
+ *                      If this is \c NULL, there is no additional data.
  * \param add_len       Length of \p additional in bytes.
- *                      Unused if \p additional is null.
+ *                      Unused if \p additional is \c NULL.
  *
  * \return              \c 0 on success, or an error from the underlying
  *                      hash calculation.
@@ -276,7 +276,7 @@ int mbedtls_hmac_drbg_update_ret( mbedtls_hmac_drbg_context *ctx,
  *                      where \p entropy_len is the entropy length
  *                      (see mbedtls_hmac_drbg_set_entropy_len()).
  *
- * \return              0 if successful.
+ * \return              \c 0 if successful.
  * \return              #MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED
  *                      if a call to the entropy function failed.
  */
@@ -295,7 +295,7 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
  * \param output_len    The length of the buffer in bytes.
  *                      This must be at most #MBEDTLS_HMAC_DRBG_MAX_REQUEST.
  * \param additional    Additional data to update with.
- *                      If this is \p NULL, there is no additional data
+ *                      If this is \c NULL, there is no additional data
  *                      and \p add_len should be \c 0.
  * \param add_len       The length of the additional data.
  *                      This must be at most #MBEDTLS_HMAC_DRBG_MAX_INPUT.
@@ -353,9 +353,9 @@ void mbedtls_hmac_drbg_free( mbedtls_hmac_drbg_context *ctx );
  *
  * \param ctx           The HMAC_DRBG context.
  * \param additional    The data to update the state with.
- *                      If this is \p NULL, there is no additional data.
+ *                      If this is \c NULL, there is no additional data.
  * \param add_len       Length of \p additional in bytes.
- *                      Unused if \p additional is null.
+ *                      Unused if \p additional is \c NULL.
  */
 MBEDTLS_DEPRECATED void mbedtls_hmac_drbg_update(
     mbedtls_hmac_drbg_context *ctx,

@@ -90,11 +90,13 @@ static validate_slot_number_directions_t validate_slot_number_directions;
 /* Validate a choice of slot number as directed. */
 static psa_status_t validate_slot_number_as_directed(
     psa_drv_se_context_t *context,
+    void *persistent_data,
     const psa_key_attributes_t *attributes,
     psa_key_creation_method_t method,
     psa_key_slot_number_t slot_number )
 {
     (void) context;
+    (void) persistent_data;
     (void) attributes;
     DRIVER_ASSERT_RETURN( slot_number ==
                           validate_slot_number_directions.slot_number );
@@ -367,11 +369,13 @@ static psa_status_t ram_allocate( psa_drv_se_context_t *context,
 
 static psa_status_t ram_validate_slot_number(
     psa_drv_se_context_t *context,
+    void *persistent_data,
     const psa_key_attributes_t *attributes,
     psa_key_creation_method_t method,
     psa_key_slot_number_t slot_number )
 {
     (void) context;
+    (void) persistent_data;
     (void) attributes;
     (void) method;
     if( slot_number >= ARRAY_LENGTH( ram_slots ) )

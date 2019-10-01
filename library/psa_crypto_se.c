@@ -222,6 +222,7 @@ psa_status_t psa_find_se_slot_for_key(
         if( p_validate_slot_number == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         status = p_validate_slot_number( &driver->context,
+                                         driver->internal.persistent_data,
                                          attributes, method,
                                          *slot_number );
     }

@@ -137,12 +137,13 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
     return 1;
 }
 
-//TODO: This is a stub implementation of the global RNG function.
+#if !defined(MBEDTLS_PLATFORM_GLOBAL_RNG)
 size_t mbedtls_random_in_range( size_t num )
 {
     (void) num;
     return 0;
 }
+#endif /* !MBEDTLS_PLATFORM_GLOBAL_RNG */
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>

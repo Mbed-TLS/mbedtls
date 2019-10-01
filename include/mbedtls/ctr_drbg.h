@@ -233,7 +233,7 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *                      length of the buffer.
  * \param p_entropy     The entropy context to pass to \p f_entropy.
  * \param custom        Personalization data, that is device-specific
- *                      identifiers. This can be NULL, in which case the
+ *                      identifiers. This can be \c NULL, in which case the
  *                      personalization data is empty regardless of the value
  *                      of \p len.
  * \param len           The length of the personalization data.
@@ -332,7 +332,7 @@ void mbedtls_ctr_drbg_set_reseed_interval( mbedtls_ctr_drbg_context *ctx,
  *                      extracts data from the entropy source.
  *
  * \param ctx           The CTR_DRBG context.
- * \param additional    Additional data to add to the state. Can be NULL.
+ * \param additional    Additional data to add to the state. Can be \c NULL.
  * \param len           The length of the additional data.
  *                      This must be less than
  *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT - \c entropy_len
@@ -350,7 +350,7 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
  *
  * \param ctx          The CTR_DRBG context.
  * \param additional   The data to update the state with. This must not be
- *                     null unless \p add_len is 0.
+ *                     \c NULL unless \p add_len is \c 0.
  * \param add_len      Length of \p additional in bytes. This must be at
  *                     most #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
  *
@@ -374,11 +374,11 @@ int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
  *                      #mbedtls_ctr_drbg_context structure.
  * \param output        The buffer to fill.
  * \param output_len    The length of the buffer in bytes.
- * \param additional    Additional data to update. Can be NULL, in which
+ * \param additional    Additional data to update. Can be \c NULL, in which
  *                      case the additional data is empty regardless of
  *                      the value of \p add_len.
  * \param add_len       The length of the additional data
- *                      if \p additional is non-null.
+ *                      if \p additional is not \c NULL.
  *                      This must be less than #MBEDTLS_CTR_DRBG_MAX_INPUT
  *                      and less than
  *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT - \c entropy_len

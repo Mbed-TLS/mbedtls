@@ -287,7 +287,8 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
  * \brief   This function updates an HMAC_DRBG instance with additional
  *          data and uses it to generate random data.
  *
- * \note    The function automatically reseeds if the reseed counter is exceeded.
+ * This function automatically reseeds if the reseed counter is exceeded
+ * or prediction resistance is enabled.
  *
  * \param p_rng         The HMAC_DRBG context. This must be a pointer to a
  *                      #mbedtls_hmac_drbg_context structure.
@@ -316,7 +317,8 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
 /**
  * \brief   This function uses HMAC_DRBG to generate random data.
  *
- * \note    The function automatically reseeds if the reseed counter is exceeded.
+ * This function automatically reseeds if the reseed counter is exceeded
+ * or prediction resistance is enabled.
  *
  * \param p_rng         The HMAC_DRBG context. This must be a pointer to a
  *                      #mbedtls_hmac_drbg_context structure.

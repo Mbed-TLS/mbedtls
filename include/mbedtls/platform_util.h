@@ -228,7 +228,7 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
  * \param num   Max-value for the generated random number.
  *
  */ 
-size_t mbedtls_platform_random_in_range( size_t num );
+uint32_t mbedtls_platform_random_in_range( size_t num );
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**

@@ -82,9 +82,9 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 void mbedtls_platform_memset( void *ptr, int value, size_t num )
 {
     /* Randomize start offset. */
-    size_t startOffset = mbedtls_platform_random_in_range( num );
+    size_t startOffset = ( size_t ) mbedtls_platform_random_in_range( num );
     /* Randomize data */
-    size_t data = mbedtls_platform_random_in_range( 0xff );
+    size_t data = ( size_t ) mbedtls_platform_random_in_range( 0xff );
 
     /* Perform a pair of memset operations from random locations with
      * random data */
@@ -99,9 +99,9 @@ void mbedtls_platform_memset( void *ptr, int value, size_t num )
 void mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
 {
     /* Randomize start offset. */
-    size_t startOffset = mbedtls_platform_random_in_range( num );
+    size_t startOffset = ( size_t ) mbedtls_platform_random_in_range( num );
     /* Randomize initial data to prevent leakage while copying */
-    size_t data = mbedtls_platform_random_in_range( 0xff );
+    size_t data = ( size_t ) mbedtls_platform_random_in_range( 0xff );
 
     memset( ( void * ) dst, data, num );
     memcpy( ( void * ) ( ( unsigned char * ) dst + startOffset ),
@@ -116,7 +116,7 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
 
     size_t i = num;
 
-    size_t startOffset = mbedtls_platform_random_in_range( num );
+    size_t startOffset = ( size_t ) mbedtls_platform_random_in_range( num );
 
     for( i = startOffset; i < num; i++ )
     {
@@ -139,7 +139,7 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
 }
 
 #if !defined(MBEDTLS_PLATFORM_GLOBAL_RNG)
-size_t mbedtls_platform_random_in_range( size_t num )
+uint32_t mbedtls_platform_random_in_range( size_t num )
 {
     (void) num;
     return 0;

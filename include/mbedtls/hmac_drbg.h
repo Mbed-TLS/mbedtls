@@ -224,6 +224,9 @@ void mbedtls_hmac_drbg_set_prediction_resistance( mbedtls_hmac_drbg_context *ctx
  * \brief               This function sets the amount of entropy grabbed on each
  *                      seed or reseed.
  *
+ * During the initial seeding, mbedtls_hmac_drbg_seed() additionally grabs
+ * half this amount to create the nonce.
+ *
  * The default value is given by the security strength, which depends on the
  * hash used. See the documentation of mbedtls_hmac_drbg_seed() for details.
  *

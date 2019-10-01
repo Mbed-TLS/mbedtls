@@ -225,6 +225,12 @@ psa_status_t psa_find_se_slot_for_key(
                                          attributes, method,
                                          *slot_number );
     }
+    else if( method == PSA_KEY_CREATION_REGISTER )
+    {
+        /* The application didn't specify a slot number. This doesn't
+         * make sense when registering a slot. */
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
     else
     {
         /* The application didn't tell us which slot to use. Let the driver

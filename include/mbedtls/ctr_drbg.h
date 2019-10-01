@@ -204,7 +204,7 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  * \p f_entropy is always called with a buffer size equal to the entropy
  * length described in the documentation of mbedtls_ctr_drbg_set_entropy_len().
  *
- * Personalization data can be provided in addition to the more generic
+ * You can provide a personalization string in addition to the
  * entropy source, to make this instantiation as unique as possible.
  *
  * \note                The _seed_material_ value passed to the derivation
@@ -232,11 +232,10 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *                      \p p_entropy context, the buffer to fill, and the
  *                      length of the buffer.
  * \param p_entropy     The entropy context to pass to \p f_entropy.
- * \param custom        Personalization data, that is device-specific
- *                      identifiers. This can be \c NULL, in which case the
- *                      personalization data is empty regardless of the value
- *                      of \p len.
- * \param len           The length of the personalization data.
+ * \param custom        The personalization string.
+ *                      This can be \c NULL, in which case the personalization
+ *                      string is empty regardless of the value of \p len.
+ * \param len           The length of the personalization string.
  *                      This must be at most
  *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT
  *                      - #MBEDTLS_CTR_DRBG_ENTROPY_LEN.

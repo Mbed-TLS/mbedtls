@@ -164,12 +164,70 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  */
 void mbedtls_platform_zeroize( void *buf, size_t len );
 
+/**
+ * \brief       Secure memset
+ *
+ *              This function is meant to provide a more secure way to do
+ *              memset. It starts by initialising the given memory area
+ *              from random tail location with random data. After tail is
+ *              initialised, the remaining head of the buffer is initialised
+ *              with random data. After initialisation, the original memset
+ *              is performed
+ *
+ * \param ptr   Buffer to be set.
+ * \param value Value to be used when setting the buffer.
+ * \param num   The length of the buffer in bytes.
+ * 
+ */
 void mbedtls_platform_memset( void *ptr, int value, size_t num );
 
+/**
+ * \brief       Secure memcpy
+ *
+ *              This function is meant to provide a more secure way to do
+ *              memcpy. It starts by initialising the given memory area
+ *              with random data. After initialisation, the original memcpy
+ *              is performed by starting first copying from random tail
+ *              location of the buffer. After tail has been copied, the
+ *              remaining head is copied as well.
+ *
+ * \param dst   Destination buffer where the data is being copied to.
+ * \param src   Source buffer where the data is being copied from.
+ * \param num   The length of the buffers in bytes.
+ *
+ */
 void mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
 
+/**
+ * \brief       Secure memcmp
+ *
+ *              This function is meant to provide a more secure way to do
+ *              memcmp. It starts comparing from a random offset and goes
+ *              through the tail part of buffers first byte by byte. After
+ *              that it starts going through the head part of buffer. In the
+ *              end, the number of equal bytes is compared to the length of the
+ *              buffers, thus making the function a fixed time memcmp.
+ *
+ * \param buf1  First buffer to compare.
+ * \param buf2  Second buffer to compare against.
+ * \param num   The length of the buffers in bytes.
+ *
+ */
 int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
 
+/**
+ * \brief       A global RNG-function
+ *
+ *              This function is meant to provide a global RNG to be used
+ *              throughout Mbed TLS for hardening the library. It is used
+ *              for generating a random delay, random data or random offset
+ *              for utility functions. It is not meant to be a
+ *              cryptographically secure RNG, but provide an RNG for utility
+ *              functions.
+ *
+ * \param num   Max-value for the generated random number.
+ *
+ */ 
 size_t mbedtls_platform_random_in_range( size_t num );
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)

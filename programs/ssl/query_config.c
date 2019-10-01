@@ -2666,6 +2666,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
+#if defined(MBEDTLS_PLATFORM_GLOBAL_RNG)
+    if( strcmp( "MBEDTLS_PLATFORM_GLOBAL_RNG", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PLATFORM_GLOBAL_RNG );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PLATFORM_GLOBAL_RNG */
+
 #if defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     if( strcmp( "MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION", config ) == 0 )
     {

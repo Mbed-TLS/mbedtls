@@ -1,13 +1,16 @@
 /**
  * \file ctr_drbg.h
  *
- * \brief    CTR_DRBG is based on AES-256, as defined in <em>NIST SP 800-90A:
- *           Recommendation for Random Number Generation Using Deterministic
- *           Random Bit Generators</em>.
+ * \brief    The CTR_DRBG pseudorandom generator.
+ *
+ * CTR_DRBG is a standardized way of building a PRNG from a block-cipher
+ * in counter mode operation, as defined in <em>NIST SP 800-90A:
+ * Recommendation for Random Number Generation Using Deterministic Random
+ * Bit Generators</em>.
  *
  */
 /*
- *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
+ *  Copyright (C) 2006-2019, Arm Limited (or its affiliates), All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -92,7 +95,7 @@
 
 #if !defined(MBEDTLS_CTR_DRBG_MAX_SEED_INPUT)
 #define MBEDTLS_CTR_DRBG_MAX_SEED_INPUT     384
-/**< The maximum size of seed or reseed buffer. */
+/**< The maximum size of seed or reseed buffer in bytes. */
 #endif
 
 /* \} name SECTION: Module settings */
@@ -150,17 +153,21 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  * \brief               This function seeds and sets up the CTR_DRBG
  *                      entropy source for future reseeds.
  *
- * \note Personalization data can be provided in addition to the more generic
- *       entropy source, to make this instantiation as unique as possible.
+ * You can provide a personalization string in addition to the
+ * entropy source, to make this instantiation as unique as possible.
+ *
  *
  * \param ctx           The CTR_DRBG context to seed.
  * \param f_entropy     The entropy callback, taking as arguments the
  *                      \p p_entropy context, the buffer to fill, and the
-                        length of the buffer.
- * \param p_entropy     The entropy context.
- * \param custom        Personalization data, that is device-specific
-                        identifiers. Can be NULL.
- * \param len           The length of the personalization data.
+ *                      length of the buffer.
+ * \param p_entropy     The entropy context to pass to \p f_entropy.
+ * \param custom        The personalization string.
+ *                      This can be \c NULL, in which case the personalization
+ *                      string is empty regardless of the value of \p len.
+ * \param len           The length of the personalization string.
+ *                      This must be at most
+ *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT / 2.
  *
  * \return              \c 0 on success, or
  *                      #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on failure.
@@ -183,7 +190,8 @@ void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx );
  *                      The default value is off.
  *
  * \note                If enabled, entropy is gathered at the beginning of
- *                      every call to mbedtls_ctr_drbg_random_with_add().
+ *                      every call to mbedtls_ctr_drbg_random_with_add()
+ *                      or mbedtls_ctr_drbg_random().
  *                      Only use this if your entropy source has sufficient
  *                      throughput.
  *
@@ -199,14 +207,20 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
  *                      #MBEDTLS_CTR_DRBG_ENTROPY_LEN.
  *
  * \param ctx           The CTR_DRBG context.
- * \param len           The amount of entropy to grab.
+ * \param len           The amount of entropy to grab, in bytes.
+ *                      This must be at most #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
  */
 void mbedtls_ctr_drbg_set_entropy_len( mbedtls_ctr_drbg_context *ctx,
                                size_t len );
 
 /**
  * \brief               This function sets the reseed interval.
- *                      The default value is #MBEDTLS_CTR_DRBG_RESEED_INTERVAL.
+ *
+ * The reseed interval is the number of calls to mbedtls_ctr_drbg_random()
+ * or mbedtls_ctr_drbg_random_with_add() after which the entropy function
+ * is called again.
+ *
+ * The default value is #MBEDTLS_CTR_DRBG_RESEED_INTERVAL.
  *
  * \param ctx           The CTR_DRBG context.
  * \param interval      The reseed interval.
@@ -219,8 +233,12 @@ void mbedtls_ctr_drbg_set_reseed_interval( mbedtls_ctr_drbg_context *ctx,
  *                      extracts data from the entropy source.
  *
  * \param ctx           The CTR_DRBG context.
- * \param additional    Additional data to add to the state. Can be NULL.
+ * \param additional    Additional data to add to the state. Can be \c NULL.
  * \param len           The length of the additional data.
+ *                      This must be less than
+ *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT - \c entropy_len
+ *                      where \c entropy_len is the entropy length
+ *                      configured for the context.
  *
  * \return   \c 0 on success, or
  *           #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on failure.
@@ -232,7 +250,8 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
  * \brief               This function updates the state of the CTR_DRBG context.
  *
  * \param ctx           The CTR_DRBG context.
- * \param additional    The data to update the state with.
+ * \param additional    The data to update the state with. This must not be
+ *                      \c NULL unless \p add_len is \c 0.
  * \param add_len       Length of \p additional in bytes. This must be at
  *                      most #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
  *
@@ -258,8 +277,10 @@ int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
  *                      The remaining Bytes are silently discarded.
  *
  * \param ctx           The CTR_DRBG context.
- * \param additional    The data to update the state with.
- * \param add_len       Length of \p additional data.
+ * \param additional    The data to update the state with. This must not be
+ *                      \c NULL unless \p add_len is \c 0.
+ * \param add_len       Length of \p additional data. This must be at
+ *                      most #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
  */
 void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
                               const unsigned char *additional,
@@ -269,17 +290,26 @@ void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
  * \brief   This function updates a CTR_DRBG instance with additional
  *          data and uses it to generate random data.
  *
- * \note    The function automatically reseeds if the reseed counter is exceeded.
+ * This function automatically reseeds if the reseed counter is exceeded
+ * or prediction resistance is enabled.
  *
  * \param p_rng         The CTR_DRBG context. This must be a pointer to a
  *                      #mbedtls_ctr_drbg_context structure.
  * \param output        The buffer to fill.
- * \param output_len    The length of the buffer.
- * \param additional    Additional data to update. Can be NULL.
- * \param add_len       The length of the additional data.
+ * \param output_len    The length of the buffer in bytes.
+ * \param additional    Additional data to update. Can be \c NULL, in which
+ *                      case the additional data is empty regardless of
+ *                      the value of \p add_len.
+ * \param add_len       The length of the additional data
+ *                      if \p additional is not \c NULL.
+ *                      This must be less than #MBEDTLS_CTR_DRBG_MAX_INPUT
+ *                      and less than
+ *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT - \c entropy_len
+ *                      where \c entropy_len is the entropy length
+ *                      configured for the context.
  *
- * \return    \c 0 on success, or
- *            #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
+ * \return    \c 0 on success.
+ * \return    #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
  *            #MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG on failure.
  */
 int mbedtls_ctr_drbg_random_with_add( void *p_rng,
@@ -289,15 +319,17 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
 /**
  * \brief   This function uses CTR_DRBG to generate random data.
  *
- * \note    The function automatically reseeds if the reseed counter is exceeded.
+ * This function automatically reseeds if the reseed counter is exceeded
+ * or prediction resistance is enabled.
+ *
  *
  * \param p_rng         The CTR_DRBG context. This must be a pointer to a
  *                      #mbedtls_ctr_drbg_context structure.
  * \param output        The buffer to fill.
- * \param output_len    The length of the buffer.
+ * \param output_len    The length of the buffer in bytes.
  *
- * \return              \c 0 on success, or
- *                      #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
  *                      #MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG on failure.
  */
 int mbedtls_ctr_drbg_random( void *p_rng,
@@ -310,9 +342,9 @@ int mbedtls_ctr_drbg_random( void *p_rng,
  * \param ctx           The CTR_DRBG context.
  * \param path          The name of the file.
  *
- * \return              \c 0 on success,
- *                      #MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR on file error, or
- *                      #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR on file error.
+ * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on reseed
  *                      failure.
  */
 int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path );
@@ -324,10 +356,12 @@ int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char 
  * \param ctx           The CTR_DRBG context.
  * \param path          The name of the file.
  *
- * \return              \c 0 on success,
- *                      #MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR on file error,
- *                      #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
- *                      #MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG on failure.
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR on file error.
+ * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on
+ *                      reseed failure.
+ * \return              #MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG if the existing
+ *                      seed file is too large.
  */
 int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path );
 #endif /* MBEDTLS_FS_IO */

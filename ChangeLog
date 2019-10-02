@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.16.x branch released xxxx-xx-xx
 
+Bugfix
+   * Remove redundant line for getting the bitlen of a bignum, since the variable
+     holding the returned value is overwritten a line after.
+     Found by irwir in #2377.
+
 Changes
    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
      from the cipher abstraction layer. Fixes #2198.

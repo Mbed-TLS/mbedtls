@@ -18,7 +18,7 @@ use strict;
 
 my %configs = (
     'config-mini-tls1_1.h' => {
-        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
+        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'', #'
     },
     'config-suite-b.h' => {
         'compat' => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
@@ -65,6 +65,7 @@ while( my ($conf, $data) = each %configs ) {
     print "\n******************************************\n";
     print "* Testing configuration: $conf\n";
     print "******************************************\n";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = $conf;
 
     system( "cp configs/$conf $config_h" )
         and abort "Failed to activate $conf\n";

@@ -117,9 +117,15 @@ pre_initialize_variables () {
     CONFIG_H='include/mbedtls/config.h'
     CONFIG_BAK="$CONFIG_H.bak"
 
+    append_outcome=0
     MEMORY=0
     FORCE=0
     KEEP_GOING=0
+
+    : ${MBEDTLS_TEST_OUTCOME_FILE=}
+    : ${MBEDTLS_TEST_PLATFORM="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
+    export MBEDTLS_TEST_OUTCOME_FILE
+    export MBEDTLS_TEST_PLATFORM
 
     # Default commands, can be overridden by the environment
     : ${OPENSSL:="openssl"}
@@ -190,14 +196,18 @@ General options:
   -f|--force            Force the tests to overwrite any modified files.
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
+     --append-outcome   Append to the outcome file (if used).
      --armcc            Run ARM Compiler builds (on by default).
      --except           Exclude the COMPONENTs listed on the command line,
                         instead of running only those.
+     --no-append-outcome    Write a new outcome file and analyze it (default).
      --no-armcc         Skip ARM Compiler builds.
      --no-force         Refuse to overwrite modified files (default).
      --no-keep-going    Stop at the first error (default).
      --no-memory        No additional memory tests (default).
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
+     --outcome-file=<path>  File where test outcomes are written (not done if
+                            empty; default: \$MBEDTLS_TEST_OUTCOME_FILE).
      --random-seed      Use a random seed value for randomized tests (default).
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
   -s|--seed             Integer seed value to use for this test run.
@@ -323,6 +333,7 @@ pre_parse_command_line () {
 
     while [ $# -gt 0 ]; do
         case "$1" in
+            --append-outcome) append_outcome=1;;
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
@@ -337,6 +348,7 @@ pre_parse_command_line () {
             --list-all-components) printf '%s\n' $ALL_COMPONENTS; exit;;
             --list-components) printf '%s\n' $SUPPORTED_COMPONENTS; exit;;
             --memory|-m) MEMORY=1;;
+            --no-append-outcome) append_outcome=0;;
             --no-armcc) no_armcc=1;;
             --no-force) FORCE=0;;
             --no-keep-going) KEEP_GOING=0;;
@@ -344,6 +356,7 @@ pre_parse_command_line () {
             --openssl) shift; OPENSSL="$1";;
             --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
             --openssl-next) shift; OPENSSL_NEXT="$1";;
+            --outcome-file) shift; MBEDTLS_TEST_OUTCOME_FILE="$1";;
             --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
             --random-seed) unset SEED;;
             --release-test|-r) SEED=1;;
@@ -485,11 +498,22 @@ not() {
     ! "$@"
 }
 
+pre_prepare_outcome_file () {
+    case "$MBEDTLS_TEST_OUTCOME_FILE" in
+      [!/]*) MBEDTLS_TEST_OUTCOME_FILE="$PWD/$MBEDTLS_TEST_OUTCOME_FILE";;
+    esac
+    if [ -n "$MBEDTLS_TEST_OUTCOME_FILE" ] && [ "$append_outcome" -eq 0 ]; then
+        rm -f "$MBEDTLS_TEST_OUTCOME_FILE"
+    fi
+}
+
 pre_print_configuration () {
     msg "info: $0 configuration"
     echo "MEMORY: $MEMORY"
     echo "FORCE: $FORCE"
+    echo "MBEDTLS_TEST_OUTCOME_FILE: ${MBEDTLS_TEST_OUTCOME_FILE:-(none)}"
     echo "SEED: ${SEED-"UNSET"}"
+    echo
     echo "OPENSSL: $OPENSSL"
     echo "OPENSSL_LEGACY: $OPENSSL_LEGACY"
     echo "OPENSSL_NEXT: $OPENSSL_NEXT"
@@ -582,32 +606,37 @@ pre_check_tools () {
 # Indicative running times are given for reference.
 
 component_check_recursion () {
-    msg "test: recursion.pl" # < 1s
+    msg "Check: recursion.pl" # < 1s
     record_status tests/scripts/recursion.pl library/*.c
 }
 
 component_check_generated_files () {
-    msg "test: freshness of generated source files" # < 1s
+    msg "Check: freshness of generated source files" # < 1s
     record_status tests/scripts/check-generated-files.sh
 }
 
 component_check_doxy_blocks () {
-    msg "test: doxygen markup outside doxygen blocks" # < 1s
+    msg "Check: doxygen markup outside doxygen blocks" # < 1s
     record_status tests/scripts/check-doxy-blocks.pl
 }
 
 component_check_files () {
-    msg "test: check-files.py" # < 1s
+    msg "Check: file sanity checks (permissions, encodings)" # < 1s
     record_status tests/scripts/check-files.py
 }
 
 component_check_names () {
-    msg "test/build: declared and exported names" # < 3s
+    msg "Check: declared and exported names (builds the library)" # < 3s
     record_status tests/scripts/check-names.sh -v
 }
 
+component_check_test_cases () {
+    msg "Check: test case descriptions" # < 1s
+    record_status tests/scripts/check-test-cases.py
+}
+
 component_check_doxygen_warnings () {
-    msg "test: doxygen warnings" # ~ 3s
+    msg "Check: doxygen warnings (builds the documentation)" # ~ 3s
     record_status tests/scripts/doxygen.sh
 }
 
@@ -637,12 +666,18 @@ component_test_large_ecdsa_key_signature () {
 component_test_default_out_of_box () {
     msg "build: make, default config (out-of-box)" # ~1min
     make
+    # Disable fancy stuff
+    SAVE_MBEDTLS_TEST_OUTCOME_FILE="$MBEDTLS_TEST_OUTCOME_FILE"
+    unset MBEDTLS_TEST_OUTCOME_FILE
 
     msg "test: main suites make, default config (out-of-box)" # ~10s
     make test
 
     msg "selftest: make, default config (out-of-box)" # ~10s
     programs/test/selftest
+
+    export MBEDTLS_TEST_OUTCOME_FILE="$SAVE_MBEDTLS_TEST_OUTCOME_FILE"
+    unset SAVE_MBEDTLS_TEST_OUTCOME_FILE
 }
 
 component_test_default_cmake_gcc_asan () {
@@ -1424,6 +1459,7 @@ run_component () {
     # The cleanup function will restore it.
     cp -p "$CONFIG_H" "$CONFIG_BAK"
     current_component="$1"
+    export MBEDTLS_TEST_CONFIGURATION="$current_component"
     "$@"
     cleanup
 }
@@ -1444,6 +1480,7 @@ else
         "$@"
     }
 fi
+pre_prepare_outcome_file
 pre_print_configuration
 pre_check_tools
 cleanup

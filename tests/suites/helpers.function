@@ -271,7 +271,7 @@ typedef enum
     TEST_RESULT_SKIPPED
 } test_result_t;
 
-static struct
+typedef struct
 {
     paramfail_test_state_t paramfail_test_state;
     test_result_t result;
@@ -279,7 +279,8 @@ static struct
     const char *filename;
     int line_no;
 }
-test_info;
+test_info_t;
+static test_info_t test_info;
 
 #if defined(MBEDTLS_PLATFORM_C)
 mbedtls_platform_context platform_ctx;

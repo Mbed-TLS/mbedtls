@@ -25,9 +25,9 @@ set -u
 # where it may output seemingly unlimited length error logs.
 ulimit -f 20971520
 
-if cd $( dirname $0 ); then :; else
-    echo "cd $( dirname $0 ) failed" >&2
-    exit 1
+ORIGINAL_PWD=$PWD
+if ! cd "$(dirname "$0")"; then
+    exit 125
 fi
 
 # default values, can be overridden by the environment
@@ -38,6 +38,17 @@ fi
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 : ${PERL:=perl}
+
+guess_config_name() {
+    if git diff --quiet ../include/mbedtls/config.h 2>/dev/null; then
+        echo "default"
+    else
+        echo "unknown"
+    fi
+}
+: ${MBEDTLS_TEST_OUTCOME_FILE=}
+: ${MBEDTLS_TEST_CONFIGURATION:="$(guess_config_name)"}
+: ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
 
 O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
@@ -97,9 +108,11 @@ print_usage() {
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
-    printf "     --port\tTCP/UDP port (default: randomish 1xxxx)\n"
+    printf "     --outcome-file\tFile where test outcomes are written\n"
+    printf "                \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+    printf "     --port     \tTCP/UDP port (default: randomish 1xxxx)\n"
     printf "     --proxy-port\tTCP/UDP proxy port (default: randomish 2xxxx)\n"
-    printf "     --seed\tInteger seed value to use for this test run\n"
+    printf "     --seed     \tInteger seed value to use for this test run\n"
 }
 
 get_options() {
@@ -145,6 +158,14 @@ get_options() {
         shift
     done
 }
+
+# Make the outcome file path relative to the original directory, not
+# to .../tests
+case "$MBEDTLS_TEST_OUTCOME_FILE" in
+    [!/]*)
+        MBEDTLS_TEST_OUTCOME_FILE="$ORIGINAL_PWD/$MBEDTLS_TEST_OUTCOME_FILE"
+        ;;
+esac
 
 # Skip next test; use this macro to skip tests which are legitimate
 # in theory and expected to be re-introduced at some point, but
@@ -359,9 +380,22 @@ print_name() {
 
 }
 
+# record_outcome <outcome> [<failure-reason>]
+# The test name must be in $NAME.
+record_outcome() {
+    echo "$1"
+    if [ -n "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
+        printf '%s;%s;%s;%s;%s;%s\n' \
+               "$MBEDTLS_TEST_PLATFORM" "$MBEDTLS_TEST_CONFIGURATION" \
+               "ssl-opt" "$NAME" \
+               "$1" "${2-}" \
+               >>"$MBEDTLS_TEST_OUTCOME_FILE"
+    fi
+}
+
 # fail <message>
 fail() {
-    echo "FAIL"
+    record_outcome "FAIL" "$1"
     echo "  ! $1"
 
     mv $SRV_OUT o-srv-${TESTS}.log
@@ -539,6 +573,7 @@ run_test() {
     if echo "$NAME" | grep "$FILTER" | grep -v "$EXCLUDE" >/dev/null; then :
     else
         SKIP_NEXT="NO"
+        # There was no request to run the test, so don't record its outcome.
         return
     fi
 
@@ -586,7 +621,7 @@ run_test() {
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
         SKIP_NEXT="NO"
-        echo "SKIP"
+        record_outcome "SKIP"
         SKIPS=$(( $SKIPS + 1 ))
         return
     fi
@@ -772,7 +807,7 @@ run_test() {
     fi
 
     # if we're here, everything is ok
-    echo "PASS"
+    record_outcome "PASS"
     if [ "$PRESERVE_LOGS" -gt 0 ]; then
         mv $SRV_OUT o-srv-${TESTS}.log
         mv $CLI_OUT o-cli-${TESTS}.log
@@ -1127,7 +1162,7 @@ run_test    "SHA-1 forbidden by default in server certificate" \
             -c "The certificate is signed with an unacceptable hash"
 
 requires_config_enabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-run_test    "SHA-1 forbidden by default in server certificate" \
+run_test    "SHA-1 allowed by default in server certificate" \
             "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt" \
             "$P_CLI debug_level=2 allow_sha1=0" \
             0
@@ -1150,7 +1185,7 @@ run_test    "SHA-1 forbidden by default in client certificate" \
             -s "The certificate is signed with an unacceptable hash"
 
 requires_config_enabled MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-run_test    "SHA-1 forbidden by default in client certificate" \
+run_test    "SHA-1 allowed by default in client certificate" \
             "$P_SRV auth_mode=required allow_sha1=0" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha1.crt" \
             0
@@ -6992,7 +7027,7 @@ run_test    "SSL async private: sign, error in resume then fall back to transpar
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: client-initiated; sign" \
+run_test    "SSL async private: renegotiation: client-initiated, sign" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1" \
@@ -7003,7 +7038,7 @@ run_test    "SSL async private: renegotiation: client-initiated; sign" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: server-initiated; sign" \
+run_test    "SSL async private: renegotiation: server-initiated, sign" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1 renegotiate=1" \
@@ -7014,7 +7049,7 @@ run_test    "SSL async private: renegotiation: server-initiated; sign" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: client-initiated; decrypt" \
+run_test    "SSL async private: renegotiation: client-initiated, decrypt" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1" \
@@ -7026,7 +7061,7 @@ run_test    "SSL async private: renegotiation: client-initiated; decrypt" \
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
-run_test    "SSL async private: renegotiation: server-initiated; decrypt" \
+run_test    "SSL async private: renegotiation: server-initiated, decrypt" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1 \
              exchanges=2 renegotiation=1 renegotiate=1" \
@@ -7594,7 +7629,7 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
-run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
+run_test    "DTLS fragmenting: proxy MTU: auto-reduction (not valgrind)" \
             -p "$P_PXY mtu=508" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -7618,7 +7653,7 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
-run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
+run_test    "DTLS fragmenting: proxy MTU: auto-reduction (with valgrind)" \
             -p "$P_PXY mtu=508" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \

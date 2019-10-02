@@ -8,6 +8,24 @@
  * Recommendation for Random Number Generation Using Deterministic Random
  * Bit Generators</em>.
  *
+ * The Mbed TLS implementation of CTR_DRBG uses AES-256
+ * as the underlying block cipher, with a derivation function. The security
+ * strength is:
+ * - 256 bits under the default configuration of the library,
+ *   with #MBEDTLS_CTR_DRBG_ENTROPY_LEN set to 48 or more.
+ * - 256 bits if #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set
+ *   to 32 or more and the DRBG is initialized with an explicit
+ *   nonce in the \c custom parameter to mbedtls_ctr_drbg_seed().
+ * - 128 bits if #MBEDTLS_CTR_DRBG_ENTROPY_LEN is
+ *   between 24 and 47 and the DRBG is not initialized with an explicit
+ *   nonce (see mbedtls_ctr_drbg_seed()).
+ *
+ * Note that the value of #MBEDTLS_CTR_DRBG_ENTROPY_LEN defaults to:
+ * - \c 48 if the module #MBEDTLS_SHA512_C is enabled and the symbol
+ *   #MBEDTLS_ENTROPY_FORCE_SHA256 is not enabled at compile time.
+ *   This is the default configuration of the library.
+ * - \c 32 if the module #MBEDTLS_SHA512_C is disabled at compile time.
+ * - \c 32 if #MBEDTLS_ENTROPY_FORCE_SHA256 is enabled at compile time.
  */
 /*
  *  Copyright (C) 2006-2019, Arm Limited (or its affiliates), All Rights Reserved
@@ -64,17 +82,25 @@
 
 #if !defined(MBEDTLS_CTR_DRBG_ENTROPY_LEN)
 #if defined(MBEDTLS_SHA512_C) && !defined(MBEDTLS_ENTROPY_FORCE_SHA256)
+/** The amount of entropy used per seed by default.
+ *
+ * This is 48 bytes because the entropy module uses SHA-512
+ * (#MBEDTLS_ENTROPY_FORCE_SHA256 is not set).
+ *
+ * \note See mbedtls_ctr_drbg_set_entropy_len() regarding what values are
+ *       acceptable.
+ */
 #define MBEDTLS_CTR_DRBG_ENTROPY_LEN        48
-/**< The amount of entropy used per seed by default:
- * <ul><li>48 with SHA-512.</li>
- * <li>32 with SHA-256.</li></ul>
- */
 #else
-#define MBEDTLS_CTR_DRBG_ENTROPY_LEN        32
-/**< Amount of entropy used per seed by default:
- * <ul><li>48 with SHA-512.</li>
- * <li>32 with SHA-256.</li></ul>
+/** The amount of entropy used per seed by default.
+ *
+ * This is 32 bytes because the entropy module uses SHA-256
+ * (the SHA512 module is disabled or #MBEDTLS_ENTROPY_FORCE_SHA256 is set).
+ *
+ * \note See mbedtls_ctr_drbg_set_entropy_len() regarding what values are
+ *       acceptable.
  */
+#define MBEDTLS_CTR_DRBG_ENTROPY_LEN        32
 #endif
 #endif
 
@@ -156,6 +182,25 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  * You can provide a personalization string in addition to the
  * entropy source, to make this instantiation as unique as possible.
  *
+ * \note                The _seed_material_ value passed to the derivation
+ *                      function in the CTR_DRBG Instantiate Process
+ *                      described in NIST SP 800-90A §10.2.1.3.2
+ *                      is the concatenation of the string obtained from
+ *                      calling \p f_entropy and the \p custom string.
+ *                      The origin of the nonce depends on the value of
+ *                      the entropy length relative to the security strength.
+ *                      See the documentation of
+ *                      mbedtls_ctr_drbg_set_entropy_len() for information
+ *                      about the entropy length.
+ *                      - If the entropy length is at least 1.5 times the
+ *                        security strength then the nonce is taken from the
+ *                        string obtained with \p f_entropy.
+ *                      - If the entropy length is less than the security
+ *                        strength, then the nonce is taken from \p custom.
+ *                        In this case, for compliance with SP 800-90A,
+ *                        you must pass a unique value of \p custom at
+ *                        each invocation. See SP 800-90A §8.6.7 for more
+ *                        details.
  *
  * \param ctx           The CTR_DRBG context to seed.
  * \param f_entropy     The entropy callback, taking as arguments the
@@ -203,8 +248,25 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
 
 /**
  * \brief               This function sets the amount of entropy grabbed on each
- *                      seed or reseed. The default value is
- *                      #MBEDTLS_CTR_DRBG_ENTROPY_LEN.
+ *                      seed or reseed.
+ *
+ * The default value is #MBEDTLS_CTR_DRBG_ENTROPY_LEN.
+ *
+ * \note                For compliance with NIST SP 800-90A, the entropy length
+ *                      (\p len bytes = \p len * 8 bits)
+ *                      must be at least the security strength.
+ *                      Furthermore, if the entropy input is used to provide
+ *                      the nonce, the entropy length must be 1.5 times
+ *                      the security strength.
+ *                      See NIST SP 800-57A table 2.
+ *
+ *                      To achieve 256-bit security,
+ *                      the entropy input must be at least:
+ *                      - 48 bytes if the \p custom argument to
+ *                        mbedtls_ctr_drbg_seed() may repeat (for example
+ *                        because it is empty, or more generally constant);
+ *                      - 32 bytes if the \p custom argument to
+ *                        mbedtls_ctr_drbg_seed() includes a nonce.
  *
  * \param ctx           The CTR_DRBG context.
  * \param len           The amount of entropy to grab, in bytes.

@@ -1,10 +1,14 @@
 /**
  * \file hmac_drbg.h
  *
- * \brief HMAC_DRBG (NIST SP 800-90A)
+ * \brief The HMAC_DRBG pseudorandom generator.
+ *
+ * This module implements the HMAC_DRBG pseudorandom generator described
+ * in <em>NIST SP 800-90A: Recommendation for Random Number Generation Using
+ * Deterministic Random Bit Generators</em>.
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2019, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may

@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.7.x branch released xxxx-xx-xx
+
+Changes
+   * Clarify how the interface of the CTR_DRBG and HMAC modules relates to
+     NIST SP 800-90A. In particular CTR_DRBG requires an explicit nonce
+     to achieve a 256-bit strength if MBEDTLS_ENTROPY_FORCE_SHA256 is set.
+
 = mbed TLS 2.7.12 branch released 2019-09-06
 
 Security

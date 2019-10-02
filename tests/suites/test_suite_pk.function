@@ -548,7 +548,7 @@ void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
                              char * input_E, data_t * result_str,
                              int result )
 {
-    unsigned char hash_result[1000];
+    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
     mbedtls_rsa_context *rsa;
     mbedtls_pk_context pk;
     mbedtls_pk_restart_ctx *rs_ctx = NULL;
@@ -563,7 +563,7 @@ void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
 
     mbedtls_pk_init( &pk );
 
-    memset( hash_result, 0x00, 1000 );
+    memset( hash_result, 0x00, MBEDTLS_MD_MAX_SIZE );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
     rsa = mbedtls_pk_rsa( pk );
@@ -597,7 +597,7 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
                                  data_t * result_str, int pk_type,
                                  int mgf1_hash_id, int salt_len, int result )
 {
-    unsigned char hash_result[1000];
+    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
     mbedtls_rsa_context *rsa;
     mbedtls_pk_context pk;
     mbedtls_pk_rsassa_pss_options pss_opts;
@@ -606,7 +606,7 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
 
     mbedtls_pk_init( &pk );
 
-    memset( hash_result, 0x00, 1000 );
+    memset( hash_result, 0x00, sizeof( hash_result ) );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
     rsa = mbedtls_pk_rsa( pk );
@@ -856,7 +856,7 @@ void pk_rsa_encrypt_test_vec( data_t * message, int mod, int radix_N,
                               char * input_N, int radix_E, char * input_E,
                               data_t * result, int ret )
 {
-    unsigned char output[1000];
+    unsigned char output[300];
     rnd_pseudo_info rnd_info;
     mbedtls_rsa_context *rsa;
     mbedtls_pk_context pk;
@@ -891,7 +891,7 @@ void pk_rsa_decrypt_test_vec( data_t * cipher, int mod, int radix_P,
                               int radix_N, char * input_N, int radix_E,
                               char * input_E, data_t * clear, int ret )
 {
-    unsigned char output[1000];
+    unsigned char output[256];
     rnd_pseudo_info rnd_info;
     mbedtls_mpi N, P, Q, E;
     mbedtls_rsa_context *rsa;
@@ -1016,8 +1016,8 @@ void pk_rsa_alt(  )
     mbedtls_rsa_context raw;
     mbedtls_pk_context rsa, alt;
     mbedtls_pk_debug_item dbg_items[10];
-    unsigned char hash[50], sig[1000];
-    unsigned char msg[50], ciph[1000], test[1000];
+    unsigned char hash[50], sig[64];
+    unsigned char msg[50], ciph[64], test[50];
     size_t sig_len, ciph_len, test_len;
     int ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 

@@ -208,7 +208,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 
     *ticket_lifetime = ctx->ticket_lifetime;
 
-    memcpy( key_name, key->name, 4 );
+    mbedtls_platform_memcpy( key_name, key->name, 4 );
 
     if( ( ret = ctx->f_rng( ctx->p_rng, iv, 12 ) ) != 0 )
         goto cleanup;

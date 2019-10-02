@@ -144,7 +144,7 @@ static int ssl_cookie_hmac( mbedtls_md_context_t *hmac_ctx,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    memcpy( *p, hmac_out, COOKIE_HMAC_LEN );
+    mbedtls_platform_memcpy( *p, hmac_out, COOKIE_HMAC_LEN );
     *p += COOKIE_HMAC_LEN;
 
     return( 0 );

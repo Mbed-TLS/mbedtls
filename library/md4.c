@@ -271,7 +271,7 @@ int mbedtls_md4_update_ret( mbedtls_md4_context *ctx,
 
     if( left && ilen >= fill )
     {
-        memcpy( (void *) (ctx->buffer + left),
+        mbedtls_platform_memcpy( (void *) (ctx->buffer + left),
                 (void *) input, fill );
 
         if( ( ret = mbedtls_internal_md4_process( ctx, ctx->buffer ) ) != 0 )
@@ -293,7 +293,7 @@ int mbedtls_md4_update_ret( mbedtls_md4_context *ctx,
 
     if( ilen > 0 )
     {
-        memcpy( (void *) (ctx->buffer + left),
+        mbedtls_platform_memcpy( (void *) (ctx->buffer + left),
                 (void *) input, ilen );
     }
 

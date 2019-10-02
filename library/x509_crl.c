@@ -347,7 +347,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
     if( p == NULL )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 
-    memcpy( p, buf, buflen );
+    mbedtls_platform_memcpy( p, buf, buflen );
 
     crl->raw.p = p;
     crl->raw.len = buflen;

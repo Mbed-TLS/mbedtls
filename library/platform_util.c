@@ -211,7 +211,7 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 
     if( lt != NULL )
     {
-        memcpy( tm_buf, lt, sizeof( struct tm ) );
+        mbedtls_platform_memcpy( tm_buf, lt, sizeof( struct tm ) );
     }
 
 #if defined(MBEDTLS_THREADING_C)

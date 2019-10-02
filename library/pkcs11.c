@@ -219,7 +219,7 @@ int mbedtls_pkcs11_sign( mbedtls_pkcs11_context *ctx,
         *p++ = (unsigned char) ( 0x04 + oid_size );
         *p++ = MBEDTLS_ASN1_OID;
         *p++ = oid_size & 0xFF;
-        memcpy( p, oid, oid_size );
+        mbedtls_platform_memcpy( p, oid, oid_size );
         p += oid_size;
         *p++ = MBEDTLS_ASN1_NULL;
         *p++ = 0x00;
@@ -227,7 +227,7 @@ int mbedtls_pkcs11_sign( mbedtls_pkcs11_context *ctx,
         *p++ = hashlen;
     }
 
-    memcpy( p, hash, hashlen );
+    mbedtls_platform_memcpy( p, hash, hashlen );
 
     if( pkcs11h_certificate_signAny( ctx->pkcs11h_cert, CKM_RSA_PKCS, sig,
             asn_len + hashlen, sig, &sig_len ) != CKR_OK )

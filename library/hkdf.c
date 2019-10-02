@@ -177,7 +177,7 @@ int mbedtls_hkdf_expand( mbedtls_md_handle_t md, const unsigned char *prk,
         }
 
         num_to_copy = i != n ? hash_len : okm_len - where;
-        memcpy( okm + where, t, num_to_copy );
+        mbedtls_platform_memcpy( okm + where, t, num_to_copy );
         where += hash_len;
         t_len = hash_len;
     }

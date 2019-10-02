@@ -90,7 +90,7 @@ int mbedtls_padlock_xcryptecb( mbedtls_aes_context *ctx,
 
     rk  = ctx->rk;
     blk = MBEDTLS_PADLOCK_ALIGN16( buf );
-    memcpy( blk, input, 16 );
+    mbedtls_platform_memcpy( blk, input, 16 );
 
      ctrl = blk + 4;
     *ctrl = 0x80 | ctx->nr | ( ( ctx->nr + ( mode^1 ) - 10 ) << 9 );
@@ -109,7 +109,7 @@ int mbedtls_padlock_xcryptecb( mbedtls_aes_context *ctx,
          :  "m" (ebx), "m" (ctrl), "m" (rk), "m" (blk)
          : "memory", "ecx", "edx", "esi", "edi" );
 
-    memcpy( output, blk, 16 );
+    mbedtls_platform_memcpy( output, blk, 16 );
 
     return( 0 );
 }
@@ -137,7 +137,7 @@ int mbedtls_padlock_xcryptcbc( mbedtls_aes_context *ctx,
 
     rk = ctx->rk;
     iw = MBEDTLS_PADLOCK_ALIGN16( buf );
-    memcpy( iw, iv, 16 );
+    mbedtls_platform_memcpy( iw, iv, 16 );
 
      ctrl = iw + 4;
     *ctrl = 0x80 | ctx->nr | ( ( ctx->nr + ( mode ^ 1 ) - 10 ) << 9 );
@@ -160,7 +160,7 @@ int mbedtls_padlock_xcryptcbc( mbedtls_aes_context *ctx,
             "m"  (rk), "m" (input), "m" (output), "m" (iw)
          : "memory", "eax", "ecx", "edx", "esi", "edi" );
 
-    memcpy( iv, iw, 16 );
+    mbedtls_platform_memcpy( iv, iw, 16 );
 
     return( 0 );
 }

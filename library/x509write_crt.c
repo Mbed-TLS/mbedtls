@@ -481,7 +481,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
     c2 -= len;
-    memcpy( c2, c, len );
+    mbedtls_platform_memcpy( c2, c, len );
 
     len += sig_and_oid_len;
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c2, buf, len ) );

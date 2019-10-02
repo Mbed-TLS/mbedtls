@@ -290,7 +290,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
             goto exit;
         }
 
-        memcpy( cur->peer_cert.p,
+        mbedtls_platform_memcpy( cur->peer_cert.p,
                 cur->session.peer_cert->raw.p,
                 cur->session.peer_cert->raw.len );
         cur->peer_cert.len = session->peer_cert->raw.len;

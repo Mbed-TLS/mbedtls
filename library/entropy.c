@@ -424,7 +424,7 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     for( i = 0; i < ctx->source_count; i++ )
         ctx->source[i].size = 0;
 
-    memcpy( output, buf, len );
+    mbedtls_platform_memcpy( output, buf, len );
 
     ret = 0;
 

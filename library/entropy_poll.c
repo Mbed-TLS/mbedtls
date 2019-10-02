@@ -37,6 +37,7 @@
 
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
+#include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_TIMING_C)
 #include "mbedtls/timing.h"
@@ -188,7 +189,7 @@ int mbedtls_hardclock_poll( void *data,
     if( len < sizeof(unsigned long) )
         return( 0 );
 
-    memcpy( output, &timer, sizeof(unsigned long) );
+    mbedtls_platform_memcpy( output, &timer, sizeof(unsigned long) );
     *olen = sizeof(unsigned long);
 
     return( 0 );
@@ -227,7 +228,7 @@ int mbedtls_nv_seed_poll( void *data,
     if( len < use_len )
       use_len = len;
 
-    memcpy( output, buf, use_len );
+    mbedtls_platform_memcpy( output, buf, use_len );
     *olen = use_len;
 
     return( 0 );

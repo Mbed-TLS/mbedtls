@@ -116,7 +116,7 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
 
     *p -= len;
     (*p)[0] = 0x04;
-    memcpy( *p + 1, uecc->public_key, 2 * NUM_ECC_BYTES );
+    mbedtls_platform_memcpy( *p + 1, uecc->public_key, 2 * NUM_ECC_BYTES );
 
     return( (int) len );
 }
@@ -180,7 +180,7 @@ static int pk_write_ec_pubkey( unsigned char **p, unsigned char *start,
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
     *p -= len;
-    memcpy( *p, buf, len );
+    mbedtls_platform_memcpy( *p, buf, len );
 
     return( (int) len );
 }

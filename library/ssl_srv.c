@@ -63,7 +63,7 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
     if( ( ssl->cli_id = mbedtls_calloc( 1, ilen ) ) == NULL )
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
-    memcpy( ssl->cli_id, info, ilen );
+    mbedtls_platform_memcpy( ssl->cli_id, info, ilen );
     ssl->cli_id_len = ilen;
 
     return( 0 );
@@ -485,7 +485,7 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
 
     ssl->handshake->cid_in_use = MBEDTLS_SSL_CID_ENABLED;
     ssl->handshake->peer_cid_len = (uint8_t) peer_cid_len;
-    memcpy( ssl->handshake->peer_cid, buf, peer_cid_len );
+    mbedtls_platform_memcpy( ssl->handshake->peer_cid, buf, peer_cid_len );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Use of CID extension negotiated" ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "Client CID", buf, peer_cid_len );
@@ -615,10 +615,10 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
      * inform them we're accepting the ticket  (RFC 5077 section 3.4)
      */
     session.id_len = ssl->session_negotiate->id_len;
-    memcpy( &session.id, ssl->session_negotiate->id, session.id_len );
+    mbedtls_platform_memcpy( &session.id, ssl->session_negotiate->id, session.id_len );
 
     mbedtls_ssl_session_free( ssl->session_negotiate );
-    memcpy( ssl->session_negotiate, &session, sizeof( mbedtls_ssl_session ) );
+    mbedtls_platform_memcpy( ssl->session_negotiate, &session, sizeof( mbedtls_ssl_session ) );
 
     /* Zeroize instead of free as we copied the content */
     mbedtls_platform_zeroize( &session, sizeof( mbedtls_ssl_session ) );
@@ -1218,11 +1218,11 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     ssl->session_negotiate->id_len = sess_len;
     memset( ssl->session_negotiate->id, 0,
             sizeof( ssl->session_negotiate->id ) );
-    memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->id_len );
+    mbedtls_platform_memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->id_len );
 
     p += sess_len;
     memset( ssl->handshake->randbytes, 0, 64 );
-    memcpy( ssl->handshake->randbytes + 32 - chal_len, p, chal_len );
+    mbedtls_platform_memcpy( ssl->handshake->randbytes + 32 - chal_len, p, chal_len );
 
     /*
      * Check for TLS_EMPTY_RENEGOTIATION_INFO_SCSV
@@ -1484,7 +1484,7 @@ read_record_header:
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
         }
 
-        memcpy( ssl->cur_out_ctr + 2, ssl->in_ctr + 2, 6 );
+        mbedtls_platform_memcpy( ssl->cur_out_ctr + 2, ssl->in_ctr + 2, 6 );
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
         if( mbedtls_ssl_dtls_replay_check( ssl ) != 0 )
@@ -1717,7 +1717,7 @@ read_record_header:
      */
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", buf + 2, 32 );
 
-    memcpy( ssl->handshake->randbytes, buf + 2, 32 );
+    mbedtls_platform_memcpy( ssl->handshake->randbytes, buf + 2, 32 );
 
     /*
      * Check the session ID length and save session ID
@@ -1738,7 +1738,7 @@ read_record_header:
     ssl->session_negotiate->id_len = sess_len;
     memset( ssl->session_negotiate->id, 0,
             sizeof( ssl->session_negotiate->id ) );
-    memcpy( ssl->session_negotiate->id, buf + 35,
+    mbedtls_platform_memcpy( ssl->session_negotiate->id, buf + 35,
             ssl->session_negotiate->id_len );
 
     /*
@@ -2391,7 +2391,7 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
     ext_len = (size_t) ssl->own_cid_len + 1;
     p = mbedtls_platform_put_uint16_be( p, ext_len );
     *p++ = (uint8_t) ssl->own_cid_len;
-    memcpy( p, ssl->own_cid, ssl->own_cid_len );
+    mbedtls_platform_memcpy( p, ssl->own_cid, ssl->own_cid_len );
 
     *olen = ssl->own_cid_len + 5;
 }
@@ -2520,9 +2520,9 @@ static void ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
         *p++ = ( ssl->verify_data_len * 2 + 1 ) & 0xFF;
         *p++ = ssl->verify_data_len * 2 & 0xFF;
 
-        memcpy( p, ssl->peer_verify_data, ssl->verify_data_len );
+        mbedtls_platform_memcpy( p, ssl->peer_verify_data, ssl->verify_data_len );
         p += ssl->verify_data_len;
-        memcpy( p, ssl->own_verify_data, ssl->verify_data_len );
+        mbedtls_platform_memcpy( p, ssl->own_verify_data, ssl->verify_data_len );
         p += ssl->verify_data_len;
     }
     else
@@ -2664,7 +2664,7 @@ static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
 
     buf[6] = (unsigned char)( ( ( *olen - 7 )      ) & 0xFF );
 
-    memcpy( buf + 7, ssl->alpn_chosen, *olen - 7 );
+    mbedtls_platform_memcpy( buf + 7, ssl->alpn_chosen, *olen - 7 );
 }
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
@@ -2811,7 +2811,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     p += 28;
 
-    memcpy( ssl->handshake->randbytes + 32, buf + 6, 32 );
+    mbedtls_platform_memcpy( ssl->handshake->randbytes + 32, buf + 6, 32 );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 
@@ -2887,7 +2887,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
      *   44+n . 43+n+m  extensions
      */
     *p++ = (unsigned char) ssl->session_negotiate->id_len;
-    memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->id_len );
+    mbedtls_platform_memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->id_len );
     p += ssl->session_negotiate->id_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
@@ -3161,7 +3161,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
             }
 
             p = mbedtls_platform_put_uint16_be( p, dn_size );
-            memcpy( p, frame->subject_raw.p, dn_size );
+            mbedtls_platform_memcpy( p, frame->subject_raw.p, dn_size );
             p += dn_size;
 
             MBEDTLS_SSL_DEBUG_BUF( 3, "requested DN", p - dn_size, dn_size );
@@ -3203,7 +3203,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
     }
 
-    memcpy( ssl->handshake->ecdh_privkey,
+    mbedtls_platform_memcpy( ssl->handshake->ecdh_privkey,
             own_key->private_key,
             sizeof( ssl->handshake->ecdh_privkey ) );
 
@@ -3420,7 +3420,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
             dig_signed = ssl->out_msg + ssl->out_msglen;
 #endif
 
-            memcpy( ssl->out_msg + ssl->out_msglen,
+            mbedtls_platform_memcpy( ssl->out_msg + ssl->out_msglen,
                     ecdh_param_hdr, sizeof( ecdh_param_hdr ) );
             ssl->out_msglen += sizeof( ecdh_param_hdr );
 

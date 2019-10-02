@@ -1,7 +1,8 @@
 /**
  * \file ctr_drbg.h
  *
- * \brief    This file contains CTR_DRBG definitions and functions.
+ * \brief    This file contains definitions and functions for the
+ *           CTR_DRBG pseudorandom generator.
  *
  * CTR_DRBG is a standardized way of building a PRNG from a block-cipher
  * in counter mode operation, as defined in <em>NIST SP 800-90A:
@@ -410,7 +411,7 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
  * \param p_rng         The CTR_DRBG context. This must be a pointer to a
  *                      #mbedtls_ctr_drbg_context structure.
  * \param output        The buffer to fill.
- * \param output_len    The length of the buffer.
+ * \param output_len    The length of the buffer in bytes.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or

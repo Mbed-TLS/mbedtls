@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_ERROR_C) || defined(MBEDTLS_ERROR_STRERROR_DUMMY)
 #include "mbedtls/error.h"
 #include <string.h>
+#include "mbedtls/platform_util.h"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)

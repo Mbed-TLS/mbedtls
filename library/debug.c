@@ -42,6 +42,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)

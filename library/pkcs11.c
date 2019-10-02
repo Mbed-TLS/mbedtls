@@ -40,6 +40,7 @@
 #endif
 
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx )
 {

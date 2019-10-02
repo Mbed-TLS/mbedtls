@@ -31,6 +31,7 @@
 #endif
 
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_ENTROPY_C)
 

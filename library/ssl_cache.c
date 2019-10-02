@@ -43,6 +43,7 @@
 #include "mbedtls/ssl_internal.h"
 
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache )
 {

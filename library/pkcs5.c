@@ -46,6 +46,7 @@
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

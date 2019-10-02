@@ -294,22 +294,24 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
  *                      Per NIST SP 800-57A table 2, the achievable security
  *                      strength is 128 bits if using AES-128 and
  *                      256 bits if using AES-256.
- *                      Therefore, to provide full security,
+ *
+ *                      To achieve 256-bit security,
+ *                      you must use AES-256 and
  *                      the entropy input must be at least:
- *                      - 24 bytes if using AES-128 and the \p custom
- *                        argument to mbedtls_ctr_drbg_seed() may repeat
- *                        (for example because it is empty, or more generally
- *                        constant);
- *                      - 48 bytes if using AES-256 and the \p custom
- *                        argument to mbedtls_ctr_drbg_seed() may repeat
- *                        (for example because it is empty, or more generally
- *                        constant);
- *                      - 16 bytes if using AES-128 and the \p custom
- *                        argument to mbedtls_ctr_drbg_seed() includes
- *                        a nonce;
- *                      - 32 bytes if using AES-256 and the \p custom
- *                        argument to mbedtls_ctr_drbg_seed() includes
- *                        a nonce.
+ *                      - 48 bytes if the \p custom argument to
+ *                        mbedtls_ctr_drbg_seed() may repeat (for example
+ *                        because it is empty, or more generally constant);
+ *                      - 32 bytes if the \p custom argument to
+ *                        mbedtls_ctr_drbg_seed() includes a nonce.
+ *
+ *                      To achieve 128-bit security,
+ *                      whether AES-128 or AES-256 is used,
+ *                      the entropy input must be at least:
+ *                      - 24 bytes if the \p custom argument to
+ *                        mbedtls_ctr_drbg_seed() may repeat (for example
+ *                        because it is empty, or more generally constant);
+ *                      - 16 bytes if the \p custom argument to
+ *                        mbedtls_ctr_drbg_seed() includes a nonce.
  *
  * \param ctx           The CTR_DRBG context.
  * \param len           The amount of entropy to grab, in bytes.

@@ -112,7 +112,9 @@ void mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
 
 int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
 {
-    volatile unsigned int equal = 0;
+    volatile const unsigned char *A = (volatile const unsigned char *) buf1;
+    volatile const unsigned char *B = (volatile const unsigned char *) buf2;
+    volatile unsigned char diff = 0;
 
     size_t i = num;
 
@@ -120,22 +122,17 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
 
     for( i = start_offset; i < num; i++ )
     {
-        equal += ( ( (unsigned char *) buf1 )[i] ==
-                   ( (unsigned char *) buf2 )[i] );
+        unsigned char x = A[i], y = B[i];
+        diff |= x ^ y;
     }
 
     for( i = 0; i < start_offset; i++ )
     {
-        equal += ( ( (unsigned char *) buf1 )[i] ==
-                   ( (unsigned char *) buf2 )[i] );
+        unsigned char x = A[i], y = B[i];
+        diff |= x ^ y;
     }
 
-    if ( equal == num )
-    {
-        return 0;
-    }
-
-    return 1;
+    return( diff );
 }
 
 #if !defined(MBEDTLS_PLATFORM_GLOBAL_RNG)

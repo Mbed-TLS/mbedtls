@@ -212,6 +212,7 @@ void mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
  * \param buf2  Second buffer to compare against.
  * \param num   The length of the buffers in bytes.
  *
+ * \return      0 if the buffers were equal.
  */
 int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
 
@@ -227,6 +228,7 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
  *
  * \param num   Max-value for the generated random number, exclusive.
  *              The generated number will be on range [0, num).
+ *
  * \return      The generated random number.
  */ 
 uint32_t mbedtls_platform_random_in_range( size_t num );

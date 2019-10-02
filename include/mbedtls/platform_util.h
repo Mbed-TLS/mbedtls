@@ -230,7 +230,7 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
  *              The generated number will be on range [0, num).
  *
  * \return      The generated random number.
- */ 
+ */
 uint32_t mbedtls_platform_random_in_range( size_t num );
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)

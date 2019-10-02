@@ -122,6 +122,13 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *
  * Set the initial seed and set up the entropy source for future reseeds.
  *
+ * A typical choice for the \p f_entropy and \p p_entropy parameters is
+ * to use the entropy module:
+ * - \p f_entropy is mbedtls_entropy_func();
+ * - \p p_entropy is an instance of ::mbedtls_entropy_context initialized
+ *   with mbedtls_entropy_init() (which registers the platform's default
+ *   entropy sources).
+ *
  * You can provide a personalization string in addition to the
  * entropy source, to make this instantiation as unique as possible.
  *

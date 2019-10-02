@@ -25,6 +25,13 @@
  *   and #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set to 24 or more (which is
  *   always the case unless it is explicitly set to a different value
  *   in `config.h`).
+ *
+ * Note that the value of #MBEDTLS_CTR_DRBG_ENTROPY_LEN defaults to:
+ * - \c 48 if the module #MBEDTLS_SHA512_C is enabled and the symbol
+ *   #MBEDTLS_ENTROPY_FORCE_SHA256 is not enabled at compile time.
+ *   This is the default configuration of the library.
+ * - \c 32 if the module #MBEDTLS_SHA512_C is disabled at compile time.
+ * - \c 32 if #MBEDTLS_ENTROPY_FORCE_SHA256 is enabled at compile time.
  */
 /*
  *  Copyright (C) 2006-2019, Arm Limited (or its affiliates), All Rights Reserved
@@ -100,7 +107,7 @@
 /** The amount of entropy used per seed by default.
  *
  * This is 48 bytes because the entropy module uses SHA-512
- * (`MBEDTLS_ENTROPY_FORCE_SHA256` is not set).
+ * #MBEDTLS_ENTROPY_FORCE_SHA256 is not set).
  *
  * \note See mbedtls_ctr_drbg_set_entropy_len() regarding what values are
  *       acceptable.
@@ -110,7 +117,7 @@
 /** The amount of entropy used per seed by default.
  *
  * This is 32 bytes because the entropy module uses SHA-256
- * (the SHA-512 module is disabled or `MBEDTLS_ENTROPY_FORCE_SHA256` is set).
+ * (the SHA512 module is disabled or #MBEDTLS_ENTROPY_FORCE_SHA256 is set).
  *
  * \note See mbedtls_ctr_drbg_set_entropy_len() regarding what values are
  *       acceptable.

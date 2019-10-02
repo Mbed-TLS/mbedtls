@@ -88,9 +88,9 @@ void mbedtls_platform_memset( void *ptr, int value, size_t num )
 
     /* Perform a pair of memset operations from random locations with
      * random data */
-    memset( (void *) ( (unsigned char *) ptr + start_offset ), data,
+    memset( (void *) ( (unsigned char *) ptr + start_offset ), (int) data,
             ( num - start_offset ) );
-    memset( (void *) ptr, data, start_offset );
+    memset( (void *) ptr, (int) data, start_offset );
 
     /* Perform the original memset */
     memset( ptr, value, num );
@@ -103,7 +103,7 @@ void mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
     /* Randomize initial data to prevent leakage while copying */
     size_t data = (size_t) mbedtls_platform_random_in_range( 256 );
 
-    memset( (void *) dst, data, num );
+    memset( (void *) dst, (int) data, num );
     memcpy( (void *) ( (unsigned char *) dst + start_offset ),
             (void *) ( (unsigned char *) src + start_offset ),
             ( num - start_offset ) );

@@ -178,8 +178,9 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
  * \param value Value to be used when setting the buffer.
  * \param num   The length of the buffer in bytes.
  *
+ * \return      The value of \p ptr.
  */
-void mbedtls_platform_memset( void *ptr, int value, size_t num );
+void *mbedtls_platform_memset( void *ptr, int value, size_t num );
 
 /**
  * \brief       Secure memcpy
@@ -195,8 +196,9 @@ void mbedtls_platform_memset( void *ptr, int value, size_t num );
  * \param src   Source buffer where the data is being copied from.
  * \param num   The length of the buffers in bytes.
  *
+ * \return      The value of \p dst.
  */
-void mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
+void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
 
 /**
  * \brief       Secure memcmp

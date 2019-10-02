@@ -79,7 +79,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
 
-void mbedtls_platform_memset( void *ptr, int value, size_t num )
+void *mbedtls_platform_memset( void *ptr, int value, size_t num )
 {
     /* Randomize start offset. */
     size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
@@ -93,10 +93,10 @@ void mbedtls_platform_memset( void *ptr, int value, size_t num )
     memset( (void *) ptr, data, start_offset );
 
     /* Perform the original memset */
-    memset( ptr, value, num );
+    return( memset( ptr, value, num ) );
 }
 
-void mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
+void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
 {
     /* Randomize start offset. */
     size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
@@ -107,7 +107,7 @@ void mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
     memcpy( (void *) ( (unsigned char *) dst + start_offset ),
             (void *) ( (unsigned char *) src + start_offset ),
             ( num - start_offset ) );
-    memcpy( (void *) dst, (void *) src, start_offset );
+    return( memcpy( (void *) dst, (void *) src, start_offset ) );
 }
 
 int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )

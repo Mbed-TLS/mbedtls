@@ -315,7 +315,7 @@ static void *buffer_alloc_calloc( size_t n, size_t size )
             mbedtls_exit( 1 );
 
         ret = (unsigned char *) cur + sizeof( memory_header );
-        memset( ret, 0, original_len );
+        mbedtls_platform_memset( ret, 0, original_len );
 
         return( ret );
     }
@@ -373,7 +373,7 @@ static void *buffer_alloc_calloc( size_t n, size_t size )
         mbedtls_exit( 1 );
 
     ret = (unsigned char *) cur + sizeof( memory_header );
-    memset( ret, 0, original_len );
+    mbedtls_platform_memset( ret, 0, original_len );
 
     return( ret );
 }
@@ -438,7 +438,7 @@ static void buffer_alloc_free( void *ptr )
         if( hdr->next != NULL )
             hdr->next->prev = hdr;
 
-        memset( old, 0, sizeof(memory_header) );
+        mbedtls_platform_memset( old, 0, sizeof(memory_header) );
     }
 
     // Regroup with block after
@@ -477,7 +477,7 @@ static void buffer_alloc_free( void *ptr )
         if( hdr->next != NULL )
             hdr->next->prev = hdr;
 
-        memset( old, 0, sizeof(memory_header) );
+        mbedtls_platform_memset( old, 0, sizeof(memory_header) );
     }
 
     // Prepend to free_list if we have not merged
@@ -572,7 +572,7 @@ static void buffer_alloc_free_mutexed( void *ptr )
 
 void mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len )
 {
-    memset( &heap, 0, sizeof( buffer_alloc_ctx ) );
+    mbedtls_platform_memset( &heap, 0, sizeof( buffer_alloc_ctx ) );
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &heap.mutex );
@@ -593,7 +593,7 @@ void mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len )
              - (size_t)buf % MBEDTLS_MEMORY_ALIGN_MULTIPLE;
     }
 
-    memset( buf, 0, len );
+    mbedtls_platform_memset( buf, 0, len );
 
     heap.buf = buf;
     heap.len = len;

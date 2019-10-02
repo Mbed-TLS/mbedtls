@@ -1553,7 +1553,7 @@ static void ecp_comb_recode_core( unsigned char x[], size_t d,
     size_t i, j;
     unsigned char c, cc, adjust;
 
-    memset( x, 0, d+1 );
+    mbedtls_platform_memset( x, 0, d+1 );
 
     /* First get the classical comb values (except for x_d = 0) */
     for( i = 0; i < d; i++ )

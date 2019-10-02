@@ -160,7 +160,7 @@ static void blowfish_dec( mbedtls_blowfish_context *ctx, uint32_t *xl, uint32_t 
 void mbedtls_blowfish_init( mbedtls_blowfish_context *ctx )
 {
     BLOWFISH_VALIDATE( ctx != NULL );
-    memset( ctx, 0, sizeof( mbedtls_blowfish_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_blowfish_context ) );
 }
 
 void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx )

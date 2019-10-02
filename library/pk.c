@@ -511,7 +511,7 @@ static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end
         return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     padding_len = to_len - unpadded_len;
-    memset( to, 0x00, padding_len );
+    mbedtls_platform_memset( to, 0x00, padding_len );
     memcpy( to + padding_len, *from, unpadded_len );
     ( *from ) += unpadded_len;
 
@@ -941,7 +941,7 @@ static int rsa_alt_check_pair( const void *pub, const void *prv )
     if( rsa_alt_get_bitlen( prv ) != rsa_get_bitlen( pub ) )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
-    memset( hash, 0x2a, sizeof( hash ) );
+    mbedtls_platform_memset( hash, 0x2a, sizeof( hash ) );
 
     if( ( ret = rsa_alt_sign_wrap( (void *) prv, MBEDTLS_MD_NONE,
                                    hash, sizeof( hash ),
@@ -965,7 +965,7 @@ static void *rsa_alt_alloc_wrap( void )
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_rsa_alt_context ) );
 
     if( ctx != NULL )
-        memset( ctx, 0, sizeof( mbedtls_rsa_alt_context ) );
+        mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_rsa_alt_context ) );
 
     return( ctx );
 }

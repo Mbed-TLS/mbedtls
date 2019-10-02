@@ -65,7 +65,7 @@
 void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
 {
     ctx->source_count = 0;
-    memset( ctx->source, 0, sizeof( ctx->source ) );
+    mbedtls_platform_memset( ctx->source, 0, sizeof( ctx->source ) );
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );
@@ -370,7 +370,7 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     }
     while( ! done );
 
-    memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    mbedtls_platform_memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
     /*
@@ -453,7 +453,7 @@ int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx )
         return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
 
     /* Manually update the remaining stream with a separator value to diverge */
-    memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    mbedtls_platform_memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
     ret = mbedtls_entropy_update_manual( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
     return( ret );
@@ -531,7 +531,7 @@ static int entropy_dummy_source( void *data, unsigned char *output,
 {
     ((void) data);
 
-    memset( output, 0x2a, len );
+    mbedtls_platform_memset( output, 0x2a, len );
     *olen = len;
 
     return( 0 );
@@ -602,8 +602,8 @@ int mbedtls_entropy_source_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "  ENTROPY_BIAS test: " );
 
-    memset( buf0, 0x00, sizeof( buf0 ) );
-    memset( buf1, 0x00, sizeof( buf1 ) );
+    mbedtls_platform_memset( buf0, 0x00, sizeof( buf0 ) );
+    mbedtls_platform_memset( buf1, 0x00, sizeof( buf1 ) );
 
     if( ( ret = mbedtls_entropy_source_self_test_gather( buf0, sizeof( buf0 ) ) ) != 0 )
         goto cleanup;

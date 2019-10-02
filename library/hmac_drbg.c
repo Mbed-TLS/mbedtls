@@ -56,7 +56,7 @@
  */
 void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );
@@ -141,7 +141,7 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
     if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V,
                                         mbedtls_md_get_size( md_info ) ) ) != 0 )
         return( ret );
-    memset( ctx->V, 0x01, mbedtls_md_get_size( md_info ) );
+    mbedtls_platform_memset( ctx->V, 0x01, mbedtls_md_get_size( md_info ) );
 
     if( ( ret = mbedtls_hmac_drbg_update_ret( ctx, data, data_len ) ) != 0 )
         return( ret );
@@ -178,7 +178,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
         }
     }
 
-    memset( seed, 0, MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT );
+    mbedtls_platform_memset( seed, 0, MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT );
 
     /* IV. Gather entropy_len bytes of entropy for the seed */
     if( ( ret = ctx->f_entropy( ctx->p_entropy,
@@ -268,7 +268,7 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
      */
     if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V, md_size ) ) != 0 )
         return( ret );
-    memset( ctx->V, 0x01, md_size );
+    mbedtls_platform_memset( ctx->V, 0x01, md_size );
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;

@@ -231,7 +231,7 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *p
     unsigned char *out_p = output;
     unsigned char counter[4];
 
-    memset( counter, 0, 4 );
+    mbedtls_platform_memset( counter, 0, 4 );
     counter[3] = 1;
 
 #if UINT_MAX > 0xFFFFFFFF

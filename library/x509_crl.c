@@ -313,9 +313,9 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
     if( crl == NULL || buf == NULL )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    memset( &sig_params1, 0, sizeof( mbedtls_x509_buf ) );
-    memset( &sig_params2, 0, sizeof( mbedtls_x509_buf ) );
-    memset( &sig_oid2, 0, sizeof( mbedtls_x509_buf ) );
+    mbedtls_platform_memset( &sig_params1, 0, sizeof( mbedtls_x509_buf ) );
+    mbedtls_platform_memset( &sig_params2, 0, sizeof( mbedtls_x509_buf ) );
+    mbedtls_platform_memset( &sig_oid2, 0, sizeof( mbedtls_x509_buf ) );
 
     /*
      * Add new CRL on the end of the chain if needed.
@@ -709,7 +709,7 @@ int mbedtls_x509_crl_info( char *buf, size_t size, const char *prefix,
  */
 void mbedtls_x509_crl_init( mbedtls_x509_crl *crl )
 {
-    memset( crl, 0, sizeof(mbedtls_x509_crl) );
+    mbedtls_platform_memset( crl, 0, sizeof(mbedtls_x509_crl) );
 }
 
 /*

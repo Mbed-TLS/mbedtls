@@ -1215,12 +1215,12 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 
     p = buf + 6 + ciph_len;
     ssl->session_negotiate->id_len = sess_len;
-    memset( ssl->session_negotiate->id, 0,
+    mbedtls_platform_memset( ssl->session_negotiate->id, 0,
             sizeof( ssl->session_negotiate->id ) );
     memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->id_len );
 
     p += sess_len;
-    memset( ssl->handshake->randbytes, 0, 64 );
+    mbedtls_platform_memset( ssl->handshake->randbytes, 0, 64 );
     memcpy( ssl->handshake->randbytes + 32 - chal_len, p, chal_len );
 
     /*
@@ -1735,7 +1735,7 @@ read_record_header:
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, session id", buf + 35, sess_len );
 
     ssl->session_negotiate->id_len = sess_len;
-    memset( ssl->session_negotiate->id, 0,
+    mbedtls_platform_memset( ssl->session_negotiate->id, 0,
             sizeof( ssl->session_negotiate->id ) );
     memcpy( ssl->session_negotiate->id, buf + 35,
             ssl->session_negotiate->id_len );
@@ -2863,7 +2863,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
         if( ssl->handshake->new_session_ticket != 0 )
         {
             ssl->session_negotiate->id_len = n = 0;
-            memset( ssl->session_negotiate->id, 0, 32 );
+            mbedtls_platform_memset( ssl->session_negotiate->id, 0, 32 );
         }
         else
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */

@@ -650,7 +650,7 @@ int mbedtls_x509_get_name( unsigned char *p,
                            mbedtls_x509_name *cur )
 {
     mbedtls_x509_buf_raw name_buf = { p, len };
-    memset( cur, 0, sizeof( mbedtls_x509_name ) );
+    mbedtls_platform_memset( cur, 0, sizeof( mbedtls_x509_name ) );
     return( mbedtls_x509_name_cmp_raw( &name_buf, &name_buf,
                                        x509_get_name_cb,
                                        &cur ) );
@@ -943,7 +943,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
     const char *short_name = NULL;
     char s[MBEDTLS_X509_MAX_DN_NAME_SIZE], *p;
 
-    memset( s, 0, sizeof( s ) );
+    mbedtls_platform_memset( s, 0, sizeof( s ) );
 
     name = dn;
     p = buf;

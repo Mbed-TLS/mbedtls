@@ -450,7 +450,7 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
     }
     else
     {
-        memset( zero_key, 0, MBEDTLS_AES_BLOCK_SIZE );
+        mbedtls_platform_memset( zero_key, 0, MBEDTLS_AES_BLOCK_SIZE );
 
         ret = mbedtls_cipher_cmac( cipher_info, zero_key, 128, key,
                                    key_length, int_key );

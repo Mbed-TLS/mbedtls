@@ -519,7 +519,7 @@ void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
     AES_VALIDATE( ctx != NULL );
 
-    memset( ctx, 0, sizeof( mbedtls_aes_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_aes_context ) );
 }
 
 void mbedtls_aes_free( mbedtls_aes_context *ctx )
@@ -1809,7 +1809,7 @@ int mbedtls_aes_self_test( int verbose )
 #endif
     mbedtls_aes_context ctx;
 
-    memset( key, 0, 32 );
+    mbedtls_platform_memset( key, 0, 32 );
     mbedtls_aes_init( &ctx );
 
     /*
@@ -1825,7 +1825,7 @@ int mbedtls_aes_self_test( int verbose )
             mbedtls_printf( "  AES-ECB-%3d (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
-        memset( buf, 0, 16 );
+        mbedtls_platform_memset( buf, 0, 16 );
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
@@ -1887,9 +1887,9 @@ int mbedtls_aes_self_test( int verbose )
             mbedtls_printf( "  AES-CBC-%3d (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
-        memset( iv , 0, 16 );
-        memset( prv, 0, 16 );
-        memset( buf, 0, 16 );
+        mbedtls_platform_memset( iv , 0, 16 );
+        mbedtls_platform_memset( prv, 0, 16 );
+        mbedtls_platform_memset( buf, 0, 16 );
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
@@ -2147,7 +2147,7 @@ int mbedtls_aes_self_test( int verbose )
             mbedtls_printf( "  AES-XTS-128 (%s): ",
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
-        memset( key, 0, sizeof( key ) );
+        mbedtls_platform_memset( key, 0, sizeof( key ) );
         memcpy( key, aes_test_xts_key[u], 32 );
         data_unit = aes_test_xts_data_unit[u];
 

@@ -127,7 +127,7 @@ cleanup:
 void mbedtls_dhm_init( mbedtls_dhm_context *ctx )
 {
     DHM_VALIDATE( ctx != NULL );
-    memset( ctx, 0, sizeof( mbedtls_dhm_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_dhm_context ) );
 }
 
 /*

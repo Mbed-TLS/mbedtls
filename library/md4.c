@@ -74,7 +74,7 @@
 
 void mbedtls_md4_init( mbedtls_md4_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_md4_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_md4_context ) );
 }
 
 void mbedtls_md4_free( mbedtls_md4_context *ctx )

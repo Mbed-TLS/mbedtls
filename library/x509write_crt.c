@@ -58,7 +58,7 @@
 
 void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_x509write_cert ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_x509write_cert ) );
 
     mbedtls_mpi_init( &ctx->serial );
     ctx->version = MBEDTLS_X509_CRT_VERSION_3;
@@ -150,7 +150,7 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf) );
+    mbedtls_platform_memset( buf, 0, sizeof(buf) );
 
     if( is_ca && max_pathlen > 127 )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
@@ -181,7 +181,7 @@ int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ct
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf) );
+    mbedtls_platform_memset( buf, 0, sizeof(buf) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_pk_write_pubkey( &c, buf, ctx->subject_key ) );
 
     ret = mbedtls_sha1_ret( buf + sizeof( buf ) - len, len,
@@ -206,7 +206,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
     unsigned char *c = buf + sizeof( buf );
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf) );
+    mbedtls_platform_memset( buf, 0, sizeof(buf) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_pk_write_pubkey( &c, buf, ctx->issuer_key ) );
 
     ret = mbedtls_sha1_ret( buf + sizeof( buf ) - len, len,

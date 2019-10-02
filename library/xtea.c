@@ -68,7 +68,7 @@
 
 void mbedtls_xtea_init( mbedtls_xtea_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_xtea_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_xtea_context ) );
 }
 
 void mbedtls_xtea_free( mbedtls_xtea_context *ctx )
@@ -86,7 +86,7 @@ void mbedtls_xtea_setup( mbedtls_xtea_context *ctx, const unsigned char key[16] 
 {
     int i;
 
-    memset( ctx, 0, sizeof(mbedtls_xtea_context) );
+    mbedtls_platform_memset( ctx, 0, sizeof(mbedtls_xtea_context) );
 
     for( i = 0; i < 4; i++ )
     {

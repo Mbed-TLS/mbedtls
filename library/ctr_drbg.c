@@ -55,7 +55,7 @@
  */
 void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_ctr_drbg_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_ctr_drbg_context ) );
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );
@@ -89,7 +89,7 @@ int mbedtls_ctr_drbg_seed_entropy_len(
     int ret;
     unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
 
-    memset( key, 0, MBEDTLS_CTR_DRBG_KEYSIZE );
+    mbedtls_platform_memset( key, 0, MBEDTLS_CTR_DRBG_KEYSIZE );
 
     mbedtls_aes_init( &ctx->aes_ctx );
 
@@ -168,7 +168,7 @@ static int block_cipher_df( unsigned char *output,
     if( data_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
         return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
 
-    memset( buf, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT + MBEDTLS_CTR_DRBG_BLOCKSIZE + 16 );
+    mbedtls_platform_memset( buf, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT + MBEDTLS_CTR_DRBG_BLOCKSIZE + 16 );
     mbedtls_aes_init( &aes_ctx );
 
     /*
@@ -204,7 +204,7 @@ static int block_cipher_df( unsigned char *output,
     for( j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE )
     {
         p = buf;
-        memset( chain, 0, MBEDTLS_CTR_DRBG_BLOCKSIZE );
+        mbedtls_platform_memset( chain, 0, MBEDTLS_CTR_DRBG_BLOCKSIZE );
         use_len = buf_len;
 
         while( use_len > 0 )
@@ -284,7 +284,7 @@ static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
     int i, j;
     int ret = 0;
 
-    memset( tmp, 0, MBEDTLS_CTR_DRBG_SEEDLEN );
+    mbedtls_platform_memset( tmp, 0, MBEDTLS_CTR_DRBG_SEEDLEN );
 
     for( j = 0; j < MBEDTLS_CTR_DRBG_SEEDLEN; j += MBEDTLS_CTR_DRBG_BLOCKSIZE )
     {
@@ -387,7 +387,7 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
         len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT - ctx->entropy_len )
         return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
 
-    memset( seed, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT );
+    mbedtls_platform_memset( seed, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT );
 
     /*
      * Gather entropy_len bytes of entropy to seed state
@@ -464,7 +464,7 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
     if( add_len > MBEDTLS_CTR_DRBG_MAX_INPUT )
         return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
 
-    memset( add_input, 0, MBEDTLS_CTR_DRBG_SEEDLEN );
+    mbedtls_platform_memset( add_input, 0, MBEDTLS_CTR_DRBG_SEEDLEN );
 
     if( ctx->reseed_counter > ctx->reseed_interval ||
         ctx->prediction_resistance )

@@ -48,7 +48,7 @@
 #if defined(MBEDTLS_PEM_PARSE_C)
 void mbedtls_pem_init( mbedtls_pem_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_pem_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_pem_context ) );
 }
 
 #if defined(MBEDTLS_MD5_C) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
@@ -61,7 +61,7 @@ static int pem_get_iv( const unsigned char *s, unsigned char *iv,
 {
     size_t i, j, k;
 
-    memset( iv, 0, iv_len );
+    mbedtls_platform_memset( iv, 0, iv_len );
 
     for( i = 0; i < iv_len * 2; i++, s++ )
     {

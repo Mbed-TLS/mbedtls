@@ -59,7 +59,7 @@ void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
     SHA256_VALIDATE( ctx != NULL );
 
-    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
@@ -337,17 +337,17 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     if( used <= 56 )
     {
         /* Enough room for padding + length in current block */
-        memset( ctx->buffer + used, 0, 56 - used );
+        mbedtls_platform_memset( ctx->buffer + used, 0, 56 - used );
     }
     else
     {
         /* We'll need an extra block */
-        memset( ctx->buffer + used, 0, 64 - used );
+        mbedtls_platform_memset( ctx->buffer + used, 0, 64 - used );
 
         if( ( ret = mbedtls_internal_sha256_process( ctx, ctx->buffer ) ) != 0 )
             return( ret );
 
-        memset( ctx->buffer, 0, 56 );
+        mbedtls_platform_memset( ctx->buffer, 0, 56 );
     }
 
     /*
@@ -527,7 +527,7 @@ int mbedtls_sha256_self_test( int verbose )
 
         if( j == 2 )
         {
-            memset( buf, 'a', buflen = 1000 );
+            mbedtls_platform_memset( buf, 'a', buflen = 1000 );
 
             for( j = 0; j < 1000; j++ )
             {

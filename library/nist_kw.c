@@ -107,7 +107,7 @@ do {                                                    \
  */
 void mbedtls_nist_kw_init( mbedtls_nist_kw_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_nist_kw_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_nist_kw_context ) );
 }
 
 int mbedtls_nist_kw_setkey( mbedtls_nist_kw_context *ctx,
@@ -254,7 +254,7 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
                        KW_SEMIBLOCK_LENGTH / 2 );
 
         memcpy( output + KW_SEMIBLOCK_LENGTH, input, in_len );
-        memset( output + KW_SEMIBLOCK_LENGTH + in_len, 0, padlen );
+        mbedtls_platform_memset( output + KW_SEMIBLOCK_LENGTH + in_len, 0, padlen );
     }
     semiblocks = ( ( in_len + padlen ) / KW_SEMIBLOCK_LENGTH ) + 1;
 
@@ -307,7 +307,7 @@ cleanup:
 
     if( ret != 0)
     {
-        memset( output, 0, semiblocks * KW_SEMIBLOCK_LENGTH );
+        mbedtls_platform_memset( output, 0, semiblocks * KW_SEMIBLOCK_LENGTH );
     }
     mbedtls_platform_zeroize( inbuff, KW_SEMIBLOCK_LENGTH * 2 );
     mbedtls_platform_zeroize( outbuff, KW_SEMIBLOCK_LENGTH * 2 );
@@ -373,7 +373,7 @@ static int unwrap( mbedtls_nist_kw_context *ctx,
 
 cleanup:
     if( ret != 0)
-        memset( output, 0, ( semiblocks - 1 ) * KW_SEMIBLOCK_LENGTH );
+        mbedtls_platform_memset( output, 0, ( semiblocks - 1 ) * KW_SEMIBLOCK_LENGTH );
     mbedtls_platform_zeroize( inbuff, sizeof( inbuff )  );
     mbedtls_platform_zeroize( outbuff, sizeof( outbuff ) );
 
@@ -509,7 +509,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
         {
             goto cleanup;
         }
-        memset( output + Plen, 0, padlen );
+        mbedtls_platform_memset( output + Plen, 0, padlen );
         *out_len = Plen;
     }
     else
@@ -521,7 +521,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
 cleanup:
     if( ret != 0 )
     {
-        memset( output, 0, *out_len );
+        mbedtls_platform_memset( output, 0, *out_len );
         *out_len = 0;
     }
 

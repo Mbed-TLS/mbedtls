@@ -170,7 +170,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
     debug_send_line( ssl, level, file, line, str );
 
     idx = 0;
-    memset( txt, 0, sizeof( txt ) );
+    mbedtls_platform_memset( txt, 0, sizeof( txt ) );
     for( i = 0; i < len; i++ )
     {
         if( i >= 4096 )
@@ -184,7 +184,7 @@ void mbedtls_debug_print_buf( const mbedtls_ssl_context *ssl, int level,
                 debug_send_line( ssl, level, file, line, str );
 
                 idx = 0;
-                memset( txt, 0, sizeof( txt ) );
+                mbedtls_platform_memset( txt, 0, sizeof( txt ) );
             }
 
             idx += mbedtls_snprintf( str + idx, sizeof( str ) - idx, "%04x: ",
@@ -309,7 +309,7 @@ static void debug_print_pk( const mbedtls_ssl_context *ssl, int level,
     mbedtls_pk_debug_item items[MBEDTLS_PK_DEBUG_MAX_ITEMS];
     char name[16];
 
-    memset( items, 0, sizeof( items ) );
+    mbedtls_platform_memset( items, 0, sizeof( items ) );
 
     if( mbedtls_pk_debug( pk, items ) != 0 )
     {

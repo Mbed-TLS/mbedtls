@@ -68,7 +68,7 @@ static int chachapoly_pad_aad( mbedtls_chachapoly_context *ctx )
     if( partial_block_len == 0U )
         return( 0 );
 
-    memset( zeroes, 0, sizeof( zeroes ) );
+    mbedtls_platform_memset( zeroes, 0, sizeof( zeroes ) );
 
     return( mbedtls_poly1305_update( &ctx->poly1305_ctx,
                                      zeroes,
@@ -88,7 +88,7 @@ static int chachapoly_pad_ciphertext( mbedtls_chachapoly_context *ctx )
     if( partial_block_len == 0U )
         return( 0 );
 
-    memset( zeroes, 0, sizeof( zeroes ) );
+    mbedtls_platform_memset( zeroes, 0, sizeof( zeroes ) );
     return( mbedtls_poly1305_update( &ctx->poly1305_ctx,
                                      zeroes,
                                      16U - partial_block_len ) );
@@ -150,7 +150,7 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
      * Only the first 256-bits (32 bytes) of the key is used for Poly1305.
      * The other 256 bits are discarded.
      */
-    memset( poly1305_key, 0, sizeof( poly1305_key ) );
+    mbedtls_platform_memset( poly1305_key, 0, sizeof( poly1305_key ) );
     ret = mbedtls_chacha20_update( &ctx->chacha20_ctx, sizeof( poly1305_key ),
                                       poly1305_key, poly1305_key );
     if( ret != 0 )

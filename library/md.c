@@ -387,7 +387,7 @@ mbedtls_md_handle_t mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
 
 void mbedtls_md_init( mbedtls_md_context_t *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_md_context_t ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_md_context_t ) );
 
 #if defined(MBEDTLS_MD_SINGLE_HASH)
     mbedtls_md_info_init( mbedtls_md_get_handle( ctx ),
@@ -563,8 +563,8 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
     opad = (unsigned char *) ctx->hmac_ctx +
         mbedtls_md_info_block_size( md_info );
 
-    memset( ipad, 0x36, mbedtls_md_info_block_size( md_info ) );
-    memset( opad, 0x5C, mbedtls_md_info_block_size( md_info ) );
+    mbedtls_platform_memset( ipad, 0x36, mbedtls_md_info_block_size( md_info ) );
+    mbedtls_platform_memset( opad, 0x5C, mbedtls_md_info_block_size( md_info ) );
 
     for( i = 0; i < keylen; i++ )
     {

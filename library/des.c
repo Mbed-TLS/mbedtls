@@ -311,7 +311,7 @@ static const uint32_t RHs[16] =
 
 void mbedtls_des_init( mbedtls_des_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_des_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_des_context ) );
 }
 
 void mbedtls_des_free( mbedtls_des_context *ctx )
@@ -324,7 +324,7 @@ void mbedtls_des_free( mbedtls_des_context *ctx )
 
 void mbedtls_des3_init( mbedtls_des3_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_des3_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_des3_context ) );
 }
 
 void mbedtls_des3_free( mbedtls_des3_context *ctx )

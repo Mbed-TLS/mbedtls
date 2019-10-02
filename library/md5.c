@@ -73,7 +73,7 @@
 
 void mbedtls_md5_init( mbedtls_md5_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_md5_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_md5_context ) );
 }
 
 void mbedtls_md5_free( mbedtls_md5_context *ctx )
@@ -332,17 +332,17 @@ int mbedtls_md5_finish_ret( mbedtls_md5_context *ctx,
     if( used <= 56 )
     {
         /* Enough room for padding + length in current block */
-        memset( ctx->buffer + used, 0, 56 - used );
+        mbedtls_platform_memset( ctx->buffer + used, 0, 56 - used );
     }
     else
     {
         /* We'll need an extra block */
-        memset( ctx->buffer + used, 0, 64 - used );
+        mbedtls_platform_memset( ctx->buffer + used, 0, 64 - used );
 
         if( ( ret = mbedtls_internal_md5_process( ctx, ctx->buffer ) ) != 0 )
             return( ret );
 
-        memset( ctx->buffer, 0, 56 );
+        mbedtls_platform_memset( ctx->buffer, 0, 56 );
     }
 
     /*

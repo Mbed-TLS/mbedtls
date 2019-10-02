@@ -328,7 +328,7 @@ static void camellia_feistel( const uint32_t x[2], const uint32_t k[2],
 void mbedtls_camellia_init( mbedtls_camellia_context *ctx )
 {
     CAMELLIA_VALIDATE( ctx != NULL );
-    memset( ctx, 0, sizeof( mbedtls_camellia_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_camellia_context ) );
 }
 
 void mbedtls_camellia_free( mbedtls_camellia_context *ctx )
@@ -359,8 +359,8 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
 
     RK = ctx->rk;
 
-    memset( t, 0, 64 );
-    memset( RK, 0, sizeof(ctx->rk) );
+    mbedtls_platform_memset( t, 0, 64 );
+    mbedtls_platform_memset( RK, 0, sizeof(ctx->rk) );
 
     switch( keybits )
     {
@@ -390,7 +390,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
      * Key storage in KC
      * Order: KL, KR, KA, KB
      */
-    memset( KC, 0, sizeof(KC) );
+    mbedtls_platform_memset( KC, 0, sizeof(KC) );
 
     /* Store KL, KR */
     for( i = 0; i < 8; i++ )
@@ -951,7 +951,7 @@ int mbedtls_camellia_self_test( int verbose )
 
     mbedtls_camellia_context ctx;
 
-    memset( key, 0, 32 );
+    mbedtls_platform_memset( key, 0, 32 );
 
     for( j = 0; j < 6; j++ ) {
         u = j >> 1;

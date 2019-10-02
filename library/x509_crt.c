@@ -292,7 +292,7 @@ int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
 
 static void x509_crt_cache_init( mbedtls_x509_crt_cache *cache )
 {
-    memset( cache, 0, sizeof( *cache ) );
+    mbedtls_platform_memset( cache, 0, sizeof( *cache ) );
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &cache->frame_mutex );
     mbedtls_mutex_init( &cache->pk_mutex );
@@ -332,7 +332,7 @@ static void x509_crt_cache_free( mbedtls_x509_crt_cache *cache )
     x509_crt_cache_clear_frame( cache );
     x509_crt_cache_clear_pk( cache );
 
-    memset( cache, 0, sizeof( *cache ) );
+    mbedtls_platform_memset( cache, 0, sizeof( *cache ) );
 }
 
 #if !defined(MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION)
@@ -1182,7 +1182,7 @@ static int x509_crt_parse_frame( unsigned char *start,
     size_t inner_sig_alg_len;
     unsigned char *inner_sig_alg_start;
 
-    memset( frame, 0, sizeof( *frame ) );
+    mbedtls_platform_memset( frame, 0, sizeof( *frame ) );
 
     /*
      * Certificate  ::=  SEQUENCE {
@@ -1484,7 +1484,7 @@ static int x509_crt_subject_alt_from_frame( mbedtls_x509_crt_frame const *frame,
     unsigned char *p   = frame->subject_alt_raw.p;
     unsigned char *end = p + frame->subject_alt_raw.len;
 
-    memset( subject_alt, 0, sizeof( *subject_alt ) );
+    mbedtls_platform_memset( subject_alt, 0, sizeof( *subject_alt ) );
 
     if( ( frame->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME ) == 0 )
         return( 0 );
@@ -1503,7 +1503,7 @@ static int x509_crt_ext_key_usage_from_frame( mbedtls_x509_crt_frame const *fram
     unsigned char *p   = frame->ext_key_usage_raw.p;
     unsigned char *end = p + frame->ext_key_usage_raw.len;
 
-    memset( ext_key_usage, 0, sizeof( *ext_key_usage ) );
+    mbedtls_platform_memset( ext_key_usage, 0, sizeof( *ext_key_usage ) );
 
     if( ( frame->ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE ) == 0 )
         return( 0 );
@@ -1940,8 +1940,8 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
     if( len > MAX_PATH - 3 )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    memset( szDir, 0, sizeof(szDir) );
-    memset( filename, 0, MAX_PATH );
+    mbedtls_platform_memset( szDir, 0, sizeof(szDir) );
+    mbedtls_platform_memset( filename, 0, MAX_PATH );
     memcpy( filename, path, len );
     filename[len++] = '\\';
     p = filename + len;
@@ -1959,7 +1959,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
     len = MAX_PATH - len;
     do
     {
-        memset( p, 0, len );
+        mbedtls_platform_memset( p, 0, len );
 
         if( file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             continue;
@@ -2271,7 +2271,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     p = buf;
     n = size;
 
-    memset( &sig_info, 0, sizeof( mbedtls_x509_crt_sig_info ) );
+    mbedtls_platform_memset( &sig_info, 0, sizeof( mbedtls_x509_crt_sig_info ) );
     mbedtls_pk_init( &pk );
 
     if( NULL == crt )
@@ -3834,7 +3834,7 @@ exit:
  */
 void mbedtls_x509_crt_init( mbedtls_x509_crt *crt )
 {
-    memset( crt, 0, sizeof(mbedtls_x509_crt) );
+    mbedtls_platform_memset( crt, 0, sizeof(mbedtls_x509_crt) );
 }
 
 /*

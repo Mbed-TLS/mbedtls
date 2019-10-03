@@ -391,7 +391,7 @@ int mbedtls_asn1_get_alg_null( unsigned char **p,
     int ret;
     mbedtls_asn1_buf params;
 
-    mbedtls_platform_memset( &params, 0, sizeof(mbedtls_asn1_buf) );
+    memset( &params, 0, sizeof(mbedtls_asn1_buf) );
 
     if( ( ret = mbedtls_asn1_get_alg( p, end, alg, &params ) ) != 0 )
         return( ret );

@@ -178,7 +178,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
         }
     }
 
-    mbedtls_platform_memset( seed, 0, MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT );
+    memset( seed, 0, MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT );
 
     /* IV. Gather entropy_len bytes of entropy for the seed */
     if( ( ret = ctx->f_entropy( ctx->p_entropy,

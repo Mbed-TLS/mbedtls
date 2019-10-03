@@ -211,7 +211,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
 
     /* Start CBC-MAC with first block */
-    mbedtls_platform_memset( y, 0, 16 );
+    memset( y, 0, 16 );
     UPDATE_CBC_MAC;
 
     /*

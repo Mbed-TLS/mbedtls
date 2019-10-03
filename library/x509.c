@@ -943,7 +943,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
     const char *short_name = NULL;
     char s[MBEDTLS_X509_MAX_DN_NAME_SIZE], *p;
 
-    mbedtls_platform_memset( s, 0, sizeof( s ) );
+    memset( s, 0, sizeof( s ) );
 
     name = dn;
     p = buf;

@@ -370,7 +370,7 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
     }
     while( ! done );
 
-    mbedtls_platform_memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
     /*

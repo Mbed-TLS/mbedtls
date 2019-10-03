@@ -2271,7 +2271,7 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
     p = buf;
     n = size;
 
-    mbedtls_platform_memset( &sig_info, 0, sizeof( mbedtls_x509_crt_sig_info ) );
+    memset( &sig_info, 0, sizeof( mbedtls_x509_crt_sig_info ) );
     mbedtls_pk_init( &pk );
 
     if( NULL == crt )

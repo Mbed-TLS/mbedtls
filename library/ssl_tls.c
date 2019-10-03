@@ -3376,7 +3376,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             const size_t max_len = rec->data_len + padlen;
             const size_t min_len = ( max_len > 256 ) ? max_len - 256 : 0;
 
-            mbedtls_platform_memset( tmp, 0, sizeof( tmp ) );
+            memset( tmp, 0, sizeof( tmp ) );
 
             switch( mbedtls_md_get_type(
                         mbedtls_md_get_handle( &transform->md_ctx_dec ) ) )

@@ -150,7 +150,17 @@ uint32_t mbedtls_platform_random_in_range( size_t num )
 
     mbedtls_hardware_poll( NULL, (unsigned char *) &result, sizeof( result ),
                            &olen );
-    return( result % num );
+
+    if( num == 0 )
+    {
+        result = 0;
+    }
+    else
+    {
+        result %= num;
+    }
+
+    return( result );
 #endif
 }
 

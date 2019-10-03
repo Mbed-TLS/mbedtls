@@ -383,7 +383,7 @@ int mbedtls_pkcs5_self_test( int verbose )
         ret = mbedtls_pkcs5_pbkdf2_hmac( &sha1_ctx, password[i], plen[i], salt[i],
                                   slen[i], it_cnt[i], key_len[i], key );
         if( ret != 0 ||
-            memcmp( result_key[i], key, key_len[i] ) != 0 )
+                memcmp( result_key[i], key, key_len[i] ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );

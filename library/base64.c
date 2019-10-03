@@ -260,7 +260,7 @@ int mbedtls_base64_self_test( int verbose )
     src = base64_test_dec;
 
     if( mbedtls_base64_encode( buffer, sizeof( buffer ), &len, src, 64 ) != 0 ||
-         memcmp( base64_test_enc, buffer, 88 ) != 0 )
+            memcmp( base64_test_enc, buffer, 88 ) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
@@ -274,7 +274,7 @@ int mbedtls_base64_self_test( int verbose )
     src = base64_test_enc;
 
     if( mbedtls_base64_decode( buffer, sizeof( buffer ), &len, src, 88 ) != 0 ||
-         memcmp( base64_test_dec, buffer, 64 ) != 0 )
+            memcmp( base64_test_dec, buffer, 64 ) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );

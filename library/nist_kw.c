@@ -651,7 +651,7 @@ int mbedtls_nist_kw_self_test( int verbose )
         ret = mbedtls_nist_kw_wrap( &ctx, MBEDTLS_KW_MODE_KW, kw_msg[i],
                                     kw_msg_len[i], out, &olen, sizeof( out ) );
         if( ret != 0 || kw_out_len[i] != olen ||
-            memcmp( out, kw_res[i], kw_out_len[i] ) != 0 )
+                memcmp( out, kw_res[i], kw_out_len[i] ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed. ");
@@ -674,7 +674,7 @@ int mbedtls_nist_kw_self_test( int verbose )
                                       out, olen, out, &olen, sizeof( out ) );
 
         if( ret != 0 || olen != kw_msg_len[i] ||
-            memcmp( out, kw_msg[i], kw_msg_len[i] ) != 0 )
+                memcmp( out, kw_msg[i], kw_msg_len[i] ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -706,7 +706,7 @@ int mbedtls_nist_kw_self_test( int verbose )
                                     kwp_msg_len[i], out, &olen, sizeof( out ) );
 
         if( ret != 0 || kwp_out_len[i] != olen ||
-            memcmp( out, kwp_res[i], kwp_out_len[i] ) != 0 )
+                memcmp( out, kwp_res[i], kwp_out_len[i] ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed. ");
@@ -729,7 +729,7 @@ int mbedtls_nist_kw_self_test( int verbose )
                                        olen, out, &olen, sizeof( out ) );
 
         if( ret != 0 || olen != kwp_msg_len[i] ||
-            memcmp( out, kwp_msg[i], kwp_msg_len[i] ) != 0 )
+                memcmp( out, kwp_msg[i], kwp_msg_len[i] ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed. ");

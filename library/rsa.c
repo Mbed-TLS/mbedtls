@@ -2266,7 +2266,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     if ( ret != 0 )
         goto exit;
 
-    if( memcmp( hash_start, result, hlen ) != 0 )
+    if( mbedtls_platform_memcmp( hash_start, result, hlen ) != 0 )
     {
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
         goto exit;

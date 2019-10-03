@@ -902,7 +902,7 @@ static int test_aes128_cmac_prf( int verbose )
         mbedtls_printf( "  AES CMAC 128 PRF #%u: ", i );
         ret = mbedtls_aes_cmac_prf_128( PRFK, PRFKlen[i], PRFM, 20, output );
         if( ret != 0 ||
-            memcmp( output, PRFT[i], MBEDTLS_AES_BLOCK_SIZE ) != 0 )
+                memcmp( output, PRFT[i], MBEDTLS_AES_BLOCK_SIZE ) != 0 )
         {
 
             if( verbose != 0 )

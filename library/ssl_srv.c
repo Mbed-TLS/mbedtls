@@ -708,7 +708,7 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
             cur_len = *theirs++;
 
             if( cur_len == ours_len &&
-                memcmp( theirs, *ours, cur_len ) == 0 )
+                mbedtls_platform_memcmp( theirs, *ours, cur_len ) == 0 )
             {
                 ssl->alpn_chosen = *ours;
                 return( 0 );
@@ -1618,7 +1618,7 @@ read_record_header:
          * fragment_offset == 0 and fragment_length == length
          */
         if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
-            memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
+            mbedtls_platform_memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "ClientHello fragmentation not supported" ) );
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );

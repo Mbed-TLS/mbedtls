@@ -417,7 +417,7 @@ int mbedtls_des_key_check_weak( const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
     int i;
 
     for( i = 0; i < WEAK_KEY_COUNT; i++ )
-        if( memcmp( weak_key_table[i], key, MBEDTLS_DES_KEY_SIZE) == 0 )
+        if( mbedtls_platform_memcmp( weak_key_table[i], key, MBEDTLS_DES_KEY_SIZE) == 0 )
             return( 1 );
 
     return( 0 );
@@ -939,7 +939,7 @@ int mbedtls_des_self_test( int verbose )
         if( ( v == MBEDTLS_DES_DECRYPT &&
                 memcmp( buf, des3_test_ecb_dec[u], 8 ) != 0 ) ||
             ( v != MBEDTLS_DES_DECRYPT &&
-                memcmp( buf, des3_test_ecb_enc[u], 8 ) != 0 ) )
+                    memcmp( buf, des3_test_ecb_enc[u], 8 ) != 0 ) )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -1035,7 +1035,7 @@ int mbedtls_des_self_test( int verbose )
         if( ( v == MBEDTLS_DES_DECRYPT &&
                 memcmp( buf, des3_test_cbc_dec[u], 8 ) != 0 ) ||
             ( v != MBEDTLS_DES_DECRYPT &&
-                memcmp( buf, des3_test_cbc_enc[u], 8 ) != 0 ) )
+                    memcmp( buf, des3_test_cbc_enc[u], 8 ) != 0 ) )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );

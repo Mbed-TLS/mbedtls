@@ -1291,7 +1291,7 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx )
     ctx->pk_info = MBEDTLS_PK_INVALID_HANDLE;
     ctx->pk_ctx = NULL;
 #else
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
+    memset( ctx, 0, sizeof( mbedtls_pk_context ) );
 #endif
 }
 

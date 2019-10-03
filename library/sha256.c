@@ -59,7 +59,7 @@ void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
     SHA256_VALIDATE( ctx != NULL );
 
-    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_free( mbedtls_sha256_context *ctx )

@@ -7955,7 +7955,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 
 static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 {
-    mbedtls_platform_memset( handshake, 0, sizeof( mbedtls_ssl_handshake_params ) );
+    memset( handshake, 0, sizeof( mbedtls_ssl_handshake_params ) );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
@@ -8010,7 +8010,7 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 
 void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform )
 {
-    mbedtls_platform_memset( transform, 0, sizeof(mbedtls_ssl_transform) );
+    memset( transform, 0, sizeof(mbedtls_ssl_transform) );
 
     mbedtls_cipher_init( &transform->cipher_ctx_enc );
     mbedtls_cipher_init( &transform->cipher_ctx_dec );
@@ -8023,7 +8023,7 @@ void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform )
 
 void mbedtls_ssl_session_init( mbedtls_ssl_session *session )
 {
-    mbedtls_platform_memset( session, 0, sizeof(mbedtls_ssl_session) );
+    memset( session, 0, sizeof(mbedtls_ssl_session) );
 }
 
 static int ssl_handshake_init( mbedtls_ssl_context *ssl )
@@ -8226,7 +8226,7 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl )
  */
 void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
 {
-    mbedtls_platform_memset( ssl, 0, sizeof( mbedtls_ssl_context ) );
+    memset( ssl, 0, sizeof( mbedtls_ssl_context ) );
 }
 
 /*
@@ -11773,7 +11773,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
  */
 void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 {
-    mbedtls_platform_memset( conf, 0, sizeof( mbedtls_ssl_config ) );
+    memset( conf, 0, sizeof( mbedtls_ssl_config ) );
 
 #if !defined(MBEDTLS_SSL_PROTO_TLS)
     conf->transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;

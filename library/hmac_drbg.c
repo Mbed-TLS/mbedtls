@@ -56,7 +56,7 @@
  */
 void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx )
 {
-    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
+    memset( ctx, 0, sizeof( mbedtls_hmac_drbg_context ) );
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );

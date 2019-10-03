@@ -156,7 +156,7 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values( const mbedtls_ciph
 void mbedtls_cipher_init( mbedtls_cipher_context_t *ctx )
 {
     CIPHER_VALIDATE( ctx != NULL );
-    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_cipher_context_t ) );
+    memset( ctx, 0, sizeof( mbedtls_cipher_context_t ) );
 }
 
 void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )

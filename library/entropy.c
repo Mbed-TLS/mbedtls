@@ -65,7 +65,7 @@
 void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
 {
     ctx->source_count = 0;
-    mbedtls_platform_memset( ctx->source, 0, sizeof( ctx->source ) );
+    memset( ctx->source, 0, sizeof( ctx->source ) );
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );

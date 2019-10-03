@@ -292,7 +292,7 @@ int mbedtls_x509_crt_cache_provide_pk( mbedtls_x509_crt const *crt )
 
 static void x509_crt_cache_init( mbedtls_x509_crt_cache *cache )
 {
-    mbedtls_platform_memset( cache, 0, sizeof( *cache ) );
+    memset( cache, 0, sizeof( *cache ) );
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &cache->frame_mutex );
     mbedtls_mutex_init( &cache->pk_mutex );
@@ -3834,7 +3834,7 @@ exit:
  */
 void mbedtls_x509_crt_init( mbedtls_x509_crt *crt )
 {
-    mbedtls_platform_memset( crt, 0, sizeof(mbedtls_x509_crt) );
+    memset( crt, 0, sizeof(mbedtls_x509_crt) );
 }
 
 /*

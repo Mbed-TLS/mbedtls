@@ -519,7 +519,7 @@ void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
     AES_VALIDATE( ctx != NULL );
 
-    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_aes_context ) );
+    memset( ctx, 0, sizeof( mbedtls_aes_context ) );
 }
 
 void mbedtls_aes_free( mbedtls_aes_context *ctx )

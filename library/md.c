@@ -387,7 +387,7 @@ mbedtls_md_handle_t mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
 
 void mbedtls_md_init( mbedtls_md_context_t *ctx )
 {
-    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_md_context_t ) );
+    memset( ctx, 0, sizeof( mbedtls_md_context_t ) );
 
 #if defined(MBEDTLS_MD_SINGLE_HASH)
     mbedtls_md_info_init( mbedtls_md_get_handle( ctx ),

@@ -38,6 +38,10 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/threading.h"
 
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+#include "mbedtls/entropy_poll.h"
+#endif
+
 #include <stddef.h>
 #include <string.h>
 
@@ -135,13 +139,20 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
     return( diff );
 }
 
-#if !defined(MBEDTLS_PLATFORM_GLOBAL_RNG)
 uint32_t mbedtls_platform_random_in_range( size_t num )
 {
+#if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
     (void) num;
     return 0;
+#else
+    uint32_t result = 0;
+    size_t olen = 0;
+
+    mbedtls_hardware_poll( NULL, (unsigned char *) &result, sizeof( result ),
+                           &olen );
+    return( result % num );
+#endif
 }
-#endif /* !MBEDTLS_PLATFORM_GLOBAL_RNG */
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>

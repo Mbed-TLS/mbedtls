@@ -3683,14 +3683,6 @@
  */
 //#define MBEDTLS_PLATFORM_GMTIME_R_ALT
 
-/**
- * Uncomment the macro to let Mbed TLS use a platform implementation of
- * global RNG.
- *
- * By default the global RNG function will be a no-op.
- */
-//#define MBEDTLS_PLATFORM_GLOBAL_RNG
-
 /* \} name SECTION: Customisation configuration options */
 
 /**

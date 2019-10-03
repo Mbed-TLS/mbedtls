@@ -244,7 +244,8 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *                      string is empty regardless of the value of \p len.
  * \param len           The length of the personalization string.
  *                      This must be at most
- *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT / 2.
+ *                      #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT
+ *                      - #MBEDTLS_CTR_DRBG_ENTROPY_LEN.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on failure.

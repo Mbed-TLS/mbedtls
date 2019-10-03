@@ -68,7 +68,6 @@ endif
 # Look in crypto for libmbedcrypto.
 LOCAL_LDFLAGS += -L../crypto/library
 LOCAL_CFLAGS += -I../crypto/include
-CRYPTO := ../crypto/library/
 
 OBJS_X509=	certs.o		pkcs11.o	x509.o		\
 		x509_create.o	x509_crl.o	x509_crt.o	\
@@ -138,7 +137,7 @@ ifneq ($(APPLE_BUILD),0)
 endif
 endif
 
-libmbedx509.$(SOEXT_X509): $(OBJS_X509) $(CRYPTO)libmbedcrypto.so
+libmbedx509.$(SOEXT_X509): $(OBJS_X509) libmbedcrypto.so
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -L. -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
 

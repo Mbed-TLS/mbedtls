@@ -219,7 +219,7 @@ void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
 int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
 
 /**
- * \brief       A global RNG-function
+ * \brief       RNG-function for getting a random in given range.
  *
  *              This function is meant to provide a global RNG to be used
  *              throughout Mbed TLS for hardening the library. It is used
@@ -227,6 +227,12 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
  *              for utility functions. It is not meant to be a
  *              cryptographically secure RNG, but provide an RNG for utility
  *              functions.
+ *
+ * \note        Currently the function is dependent of hardware providing an
+ *              rng with MBEDTLS_ENTROPY_HARDWARE_ALT. By default, 0 is
+ *              returned.
+ *
+ * \note        If the given range is [0, 0), 0 is returned.
  *
  * \param num   Max-value for the generated random number, exclusive.
  *              The generated number will be on range [0, num).

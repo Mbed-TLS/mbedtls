@@ -472,8 +472,8 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
                              char * input_N, int radix_E, char * input_E,
                              data_t * result_hex_str, int result )
 {
-    unsigned char hash_result[1000];
-    unsigned char output[1000];
+    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
+    unsigned char output[256];
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, P, Q, E;
     rnd_pseudo_info rnd_info;
@@ -482,8 +482,8 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
     mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
     mbedtls_rsa_init( &ctx, padding_mode, 0 );
 
-    memset( hash_result, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
+    memset( hash_result, 0x00, sizeof( hash_result ) );
+    memset( output, 0x00, sizeof( output ) );
     memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &P, radix_P, input_P ) == 0 );
@@ -522,14 +522,14 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
                                char * input_N, int radix_E, char * input_E,
                                data_t * result_str, int result )
 {
-    unsigned char hash_result[1000];
+    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
     mbedtls_rsa_context ctx;
 
     mbedtls_mpi N, E;
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
     mbedtls_rsa_init( &ctx, padding_mode, 0 );
-    memset( hash_result, 0x00, 1000 );
+    memset( hash_result, 0x00, sizeof( hash_result ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
@@ -557,7 +557,7 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
                          int radix_N, char * input_N, int radix_E,
                          char * input_E, data_t * result_hex_str )
 {
-    unsigned char output[1000];
+    unsigned char output[256];
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, P, Q, E;
     rnd_pseudo_info rnd_info;
@@ -566,7 +566,7 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
     mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
 
-    memset( output, 0x00, 1000 );
+    memset( output, 0x00, sizeof( output ) );
     memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &P, radix_P, input_P ) == 0 );
@@ -593,7 +593,7 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
         int res;
-        memset( output, 0x00, 1000 );
+        memset( output, 0x00, sizeof( output) );
 
         res = mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx,
                     &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE,
@@ -627,7 +627,7 @@ void rsa_pkcs1_verify_raw( data_t * hash_result,
                            char * input_N, int radix_E, char * input_E,
                            data_t * result_str, int correct )
 {
-    unsigned char output[1000];
+    unsigned char output[256];
     mbedtls_rsa_context ctx;
 
     mbedtls_mpi N, E;
@@ -688,7 +688,7 @@ void mbedtls_rsa_pkcs1_encrypt( data_t * message_str, int padding_mode,
                                 int radix_E, char * input_E,
                                 data_t * result_hex_str, int result )
 {
-    unsigned char output[1000];
+    unsigned char output[256];
     mbedtls_rsa_context ctx;
     rnd_pseudo_info rnd_info;
 
@@ -698,7 +698,7 @@ void mbedtls_rsa_pkcs1_encrypt( data_t * message_str, int padding_mode,
     memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
     mbedtls_rsa_init( &ctx, padding_mode, 0 );
-    memset( output, 0x00, 1000 );
+    memset( output, 0x00, sizeof( output ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
@@ -729,14 +729,14 @@ void rsa_pkcs1_encrypt_bad_rng( data_t * message_str, int padding_mode,
                                 int radix_E, char * input_E,
                                 data_t * result_hex_str, int result )
 {
-    unsigned char output[1000];
+    unsigned char output[256];
     mbedtls_rsa_context ctx;
 
     mbedtls_mpi N, E;
 
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
     mbedtls_rsa_init( &ctx, padding_mode, 0 );
-    memset( output, 0x00, 1000 );
+    memset( output, 0x00, sizeof( output ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
@@ -769,7 +769,7 @@ void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
                                 int max_output, data_t * result_hex_str,
                                 int result )
 {
-    unsigned char output[1000];
+    unsigned char output[32];
     mbedtls_rsa_context ctx;
     size_t output_len;
     rnd_pseudo_info rnd_info;
@@ -780,7 +780,7 @@ void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
 
     mbedtls_rsa_init( &ctx, padding_mode, 0 );
 
-    memset( output, 0x00, 1000 );
+    memset( output, 0x00, sizeof( output ) );
     memset( &rnd_info, 0, sizeof( rnd_pseudo_info ) );
 
 
@@ -815,7 +815,7 @@ void mbedtls_rsa_public( data_t * message_str, int mod, int radix_N,
                          char * input_N, int radix_E, char * input_E,
                          data_t * result_hex_str, int result )
 {
-    unsigned char output[1000];
+    unsigned char output[256];
     mbedtls_rsa_context ctx, ctx2; /* Also test mbedtls_rsa_copy() while at it */
 
     mbedtls_mpi N, E;
@@ -823,7 +823,7 @@ void mbedtls_rsa_public( data_t * message_str, int mod, int radix_N,
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
     mbedtls_rsa_init( &ctx, MBEDTLS_RSA_PKCS_V15, 0 );
     mbedtls_rsa_init( &ctx2, MBEDTLS_RSA_PKCS_V15, 0 );
-    memset( output, 0x00, 1000 );
+    memset( output, 0x00, sizeof( output ) );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
@@ -847,7 +847,7 @@ void mbedtls_rsa_public( data_t * message_str, int mod, int radix_N,
 
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx2 ) == 0 );
 
-    memset( output, 0x00, 1000 );
+    memset( output, 0x00, sizeof( output ) );
     TEST_ASSERT( mbedtls_rsa_public( &ctx2, message_str->x, output ) == result );
     if( result == 0 )
     {
@@ -869,7 +869,7 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
                           char * input_E, data_t * result_hex_str,
                           int result )
 {
-    unsigned char output[1000];
+    unsigned char output[256];
     mbedtls_rsa_context ctx, ctx2; /* Also test mbedtls_rsa_copy() while at it */
     mbedtls_mpi N, P, Q, E;
     rnd_pseudo_info rnd_info;
@@ -896,7 +896,7 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
     /* repeat three times to test updating of blinding values */
     for( i = 0; i < 3; i++ )
     {
-        memset( output, 0x00, 1000 );
+        memset( output, 0x00, sizeof( output ) );
         TEST_ASSERT( mbedtls_rsa_private( &ctx, rnd_pseudo_rand, &rnd_info,
                                   message_str->x, output ) == result );
         if( result == 0 )
@@ -913,7 +913,7 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
 
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx2 ) == 0 );
 
-    memset( output, 0x00, 1000 );
+    memset( output, 0x00, sizeof( output ) );
     TEST_ASSERT( mbedtls_rsa_private( &ctx2, rnd_pseudo_rand, &rnd_info,
                               message_str->x, output ) == result );
     if( result == 0 )
@@ -1577,11 +1577,11 @@ void mbedtls_rsa_export_raw( data_t *input_N, data_t *input_P,
                              int successive )
 {
     /* Exported buffers */
-    unsigned char bufNe[1000];
-    unsigned char bufPe[1000];
-    unsigned char bufQe[1000];
-    unsigned char bufDe[1000];
-    unsigned char bufEe[1000];
+    unsigned char bufNe[256];
+    unsigned char bufPe[128];
+    unsigned char bufQe[128];
+    unsigned char bufDe[256];
+    unsigned char bufEe[1];
 
     mbedtls_rsa_context ctx;
 

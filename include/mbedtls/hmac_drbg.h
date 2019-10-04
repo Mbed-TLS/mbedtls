@@ -139,13 +139,13 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *                      Note that SHA-256 is just as efficient as SHA-224.
  *                      The security strength can be reduced if a smaller
  *                      entropy length is set with
- *                      mbedtls_hmac_drbg_set_entropy_len().
+ *                      mbedtls_hmac_drbg_set_entropy_len() afterwards.
  *
- * \note                The default entropy length is the security strength
- *                      (converted from bits to bytes). You can override
- *                      it mbedtls_hmac_drbg_set_entropy_len().
- *                      \p f_entropy is always called with a length that is
- *                      less than or equal to the entropy length.
+ * \note                The entropy length for the initial seeding is
+ *                      the security strength (converted from bits to bytes).
+ *                      You can set a different entropy length for subsequent
+ *                      seeding by calling mbedtls_hmac_drbg_set_entropy_len()
+ *                      after this function.
  *
  * \note                During the initial seeding, this function calls
  *                      the entropy source to obtain a nonce
@@ -156,6 +156,8 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  * \param f_entropy     The entropy callback, taking as arguments the
  *                      \p p_entropy context, the buffer to fill, and the
  *                      length of the buffer.
+ *                      \p f_entropy is always called with a length that is
+ *                      less than or equal to the entropy length.
  * \param p_entropy     The entropy context to pass to \p f_entropy.
  * \param custom        The personalization string.
  *                      This can be \c NULL, in which case the personalization
@@ -222,13 +224,14 @@ void mbedtls_hmac_drbg_set_prediction_resistance( mbedtls_hmac_drbg_context *ctx
 
 /**
  * \brief               This function sets the amount of entropy grabbed on each
- *                      seed or reseed.
+ *                      reseed.
  *
- * During the initial seeding, mbedtls_hmac_drbg_seed() additionally grabs
- * half this amount to create the nonce.
+ * The default value is set by mbedtls_hmac_drbg_seed().
  *
- * The default value is given by the security strength, which depends on the
- * hash used. See the documentation of mbedtls_hmac_drbg_seed() for details.
+ * \note                mbedtls_hmac_drbg_seed() always sets the entropy length
+ *                      to the default value based on the chosen MD algorithm,
+ *                      so this function only has an effect if it is called
+ *                      after mbedtls_hmac_drbg_seed().
  *
  * \param ctx           The HMAC_DRBG context.
  * \param len           The amount of entropy to grab, in bytes.

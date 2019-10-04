@@ -4712,7 +4712,7 @@ static void ssl_bitmask_set( unsigned char *mask, size_t offset, size_t len )
             mask[last_byte_idx] |= 1 << ( 8 - end_bits );
     }
 
-    mbedtls_platform_memset( mask + offset / 8, 0xFF, len / 8 );
+    memset( mask + offset / 8, 0xFF, len / 8 );
 }
 
 /*
@@ -7799,7 +7799,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
         memcpy( ssl->handshake->alt_out_ctr, ssl->cur_out_ctr, 8 );
 
         /* Set sequence_number to zero */
-        mbedtls_platform_memset( ssl->cur_out_ctr + 2, 0, 6 );
+        memset( ssl->cur_out_ctr + 2, 0, 6 );
 
         /* Increment epoch */
         for( i = 2; i > 0; i-- )
@@ -8379,7 +8379,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
         ssl->split_done = 0;
 #endif
 
-    mbedtls_platform_memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
+    memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
 
     ssl->transform_in = NULL;
     ssl->transform_out = NULL;

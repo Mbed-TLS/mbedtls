@@ -34,6 +34,7 @@
 #if defined(MBEDTLS_PADLOCK_C)
 
 #include "mbedtls/padlock.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 

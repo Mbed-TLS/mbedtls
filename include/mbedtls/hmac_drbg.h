@@ -141,11 +141,9 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *                      entropy length is set with
  *                      mbedtls_hmac_drbg_set_entropy_len() afterwards.
  *
- * \note                The entropy length for the initial seeding is
- *                      the security strength (converted from bits to bytes).
- *                      You can set a different entropy length for subsequent
- *                      seeding by calling mbedtls_hmac_drbg_set_entropy_len()
- *                      after this function.
+ * \note                The default entropy length is the security strength
+ *                      (converted from bits to bytes). You can override
+ *                      it by calling mbedtls_hmac_drbg_set_entropy_len().
  *
  * \note                During the initial seeding, this function calls
  *                      the entropy source to obtain a nonce

@@ -561,6 +561,16 @@ static int uecc_rng_wrapper( uint8_t *dest, unsigned int size )
 }
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+int mbedtls_hardware_poll( void *data, unsigned char *output,
+                           size_t len, size_t *olen )
+{
+    (void) data;
+    *olen = len;
+    return( rnd_std_rand( NULL, output, len ) );
+}
+#endif
+
 /**
  * This function only returns zeros
  *

@@ -72,7 +72,10 @@ void ctr_drbg_validate_pr( char *add_init_string, char *entropy_string,
     add2_len = unhexify( add2, add2_string );
 
     test_offset_idx = 0;
-    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_test_entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
+    mbedtls_ctr_drbg_set_entropy_len( &ctx, 32 );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx,
+                                        mbedtls_test_entropy_func, entropy,
+                                        add_init, add_init_len ) == 0 );
     mbedtls_ctr_drbg_set_prediction_resistance( &ctx, MBEDTLS_CTR_DRBG_PR_ON );
 
     TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1, add1_len ) == 0 );
@@ -110,7 +113,10 @@ void ctr_drbg_validate_nopr( char *add_init_string, char *entropy_string,
     add2_len = unhexify( add2, add2_string );
 
     test_offset_idx = 0;
-    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_test_entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
+    mbedtls_ctr_drbg_set_entropy_len( &ctx, 32 );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx,
+                                        mbedtls_test_entropy_func, entropy,
+                                        add_init, add_init_len ) == 0 );
 
     TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1, add1_len ) == 0 );
     TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, add_reseed, add_reseed_len ) == 0 );

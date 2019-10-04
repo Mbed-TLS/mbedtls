@@ -511,7 +511,7 @@ static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end
         return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     padding_len = to_len - unpadded_len;
-    mbedtls_platform_memset( to, 0x00, padding_len );
+    memset( to, 0x00, padding_len );
     memcpy( to + padding_len, *from, unpadded_len );
     ( *from ) += unpadded_len;
 

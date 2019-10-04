@@ -40,7 +40,6 @@
 #if defined(MBEDTLS_ECP_C)
 #include "mbedtls/bignum.h"
 #include "mbedtls/ecp.h"
-#include "mbedtls/platform_util.h"
 #endif
 #if defined(MBEDTLS_ECDSA_C)
 #include "mbedtls/ecdsa.h"

@@ -3083,7 +3083,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              *
              * Afterwards, we know that data + data_len is followed by at
              * least maclen Bytes, which justifies the call to
-             * mbedtls_ssl_safer_memcmp() below.
+             * mbedtls_platform_memcmp() below.
              *
              * Further, we still know that data_len > minlen */
             rec->data_len -= transform->maclen;
@@ -3105,7 +3105,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                    transform->maclen );
 
             /* Compare expected MAC with MAC at the end of the record. */
-            if( mbedtls_ssl_safer_memcmp( data + rec->data_len, mac_expect,
+            if( mbedtls_platform_memcmp( data + rec->data_len, mac_expect,
                                           transform->maclen ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
@@ -3444,7 +3444,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", data + rec->data_len, transform->maclen );
 #endif
 
-        if( mbedtls_ssl_safer_memcmp( data + rec->data_len, mac_expect,
+        if( mbedtls_platform_memcmp( data + rec->data_len, mac_expect,
                                       transform->maclen ) != 0 )
         {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
@@ -7913,7 +7913,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
-    if( mbedtls_ssl_safer_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
+    if( mbedtls_platform_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
                       buf, hash_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );

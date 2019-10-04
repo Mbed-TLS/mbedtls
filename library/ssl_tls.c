@@ -2883,7 +2883,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
      * Match record's CID with incoming CID.
      */
     if( rec->cid_len != transform->in_cid_len ||
-        memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 ) // use regular memcmp as CID is not that critical
+        memcmp( rec->cid, transform->in_cid, rec->cid_len ) != 0 ) // use regular memcmp as CID is public
     {
         return( MBEDTLS_ERR_SSL_UNEXPECTED_CID );
     }
@@ -6013,7 +6013,7 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
             else
             {
                 /* Make sure msg_type and length are consistent */
-                if( memcmp( hs_buf->data, ssl->in_msg, 4 ) != 0 ) // use regular memcmp as msg type is not that critical
+                if( memcmp( hs_buf->data, ssl->in_msg, 4 ) != 0 ) // use regular memcmp as msg type is public
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Fragment header mismatch - ignore" ) );
                     /* Ignore */
@@ -7086,7 +7086,7 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
     if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
         ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE    &&
         ssl->in_msg[0]  == MBEDTLS_SSL_HS_CERTIFICATE   &&
-        memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 ) // use regular memcmp as this compare is not that critical
+        memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 ) // use regular memcmp as comparing public data
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
         return( 0 );
@@ -9961,7 +9961,7 @@ static int ssl_session_load( mbedtls_ssl_session *session,
         if( (size_t)( end - p ) < sizeof( ssl_serialized_session_header ) )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-        // use regular memcmp as session header is not that critical
+        // use regular memcmp as session header is public data
         if( memcmp( p, ssl_serialized_session_header,
                     sizeof( ssl_serialized_session_header ) ) != 0 )
         {
@@ -10404,7 +10404,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    // use regular memcmp as counters are not that critical
+    // use regular memcmp as counters are public data
     in_ctr_cmp = memcmp( ssl->in_ctr + ep_len,
                         ssl->conf->renego_period + ep_len, 8 - ep_len );
     out_ctr_cmp = memcmp( ssl->cur_out_ctr + ep_len,

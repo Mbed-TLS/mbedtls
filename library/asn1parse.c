@@ -149,11 +149,18 @@ int mbedtls_asn1_get_int( unsigned char **p,
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
         return( ret );
 
-    if( len == 0 || len > sizeof( int ) || ( **p & 0x80 ) != 0 )
+    if( len == 0 || ( **p & 0x80 ) != 0 )
+        return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+
+    while( len > 0 && **p == 0 )
+    {
+        ++( *p );
+        --len;
+    }
+    if( len > sizeof( int ) )
         return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
 
     *val = 0;
-
     while( len-- > 0 )
     {
         *val = ( *val << 8 ) | **p;
@@ -223,8 +230,13 @@ int mbedtls_asn1_get_bitstring_null( unsigned char **p, const unsigned char *end
     if( ( ret = mbedtls_asn1_get_tag( p, end, len, MBEDTLS_ASN1_BIT_STRING ) ) != 0 )
         return( ret );
 
-    if( (*len)-- < 2 || *(*p)++ != 0 )
+    if( *len == 0 )
         return( MBEDTLS_ERR_ASN1_INVALID_DATA );
+    --( *len );
+
+    if( **p != 0 )
+        return( MBEDTLS_ERR_ASN1_INVALID_DATA );
+    ++( *p );
 
     return( 0 );
 }

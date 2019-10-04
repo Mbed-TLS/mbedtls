@@ -158,6 +158,26 @@ typedef enum
     }                                                             \
     while( 0 )
 
+/** Allocate memory dynamically. Exit the test if this fails, but do
+ * not mark the test as failed.
+ *
+ * This macro behaves like #ASSERT_ALLOC, except that if the allocation
+ * fails, it jumps to the \c exit label without calling test_fail().
+ */
+#define ASSERT_ALLOC_WEAK( pointer, length )                      \
+    do                                                            \
+    {                                                             \
+        TEST_ASSERT( ( pointer ) == NULL );                       \
+        if( ( length ) != 0 )                                     \
+        {                                                         \
+            ( pointer ) = mbedtls_calloc( sizeof( *( pointer ) ), \
+                                          ( length ) );           \
+            if( ( pointer ) == NULL )                             \
+                goto exit;                                        \
+        }                                                         \
+    }                                                             \
+    while( 0 )
+
 /** Compare two buffers and fail the test case if they differ.
  *
  * This macro expands to an instruction, not an expression.
@@ -393,6 +413,7 @@ static struct
     const char *test;
     const char *filename;
     int line_no;
+    unsigned long step;
 }
 test_info;
 
@@ -422,6 +443,19 @@ jmp_buf jmp_tmp;
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
+
+/** Set the test step number for failure reports.
+ *
+ * Call this function to display "step NNN" in addition to the line number
+ * and file name if a test fails. Typically the "step number" is the index
+ * of a for loop but it can be whatever you want.
+ *
+ * \param step  The step number to report.
+ */
+void test_set_step( unsigned long step )
+{
+    test_info.step = step;
+}
 
 void test_fail( const char *test, int line_no, const char* filename )
 {

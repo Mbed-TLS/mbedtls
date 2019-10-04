@@ -236,17 +236,20 @@ int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val )
     int ret;
     size_t len = 0;
 
-    if( *p - start < 1 )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
-
-    len += 1;
-    *--(*p) = val;
-
-    if( val > 0 && **p & 0x80 )
+    do
     {
         if( *p - start < 1 )
             return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+        len += 1;
+        *--(*p) = val & 0xff;
+        val >>= 8;
+    }
+    while( val > 0 );
 
+    if( **p & 0x80 )
+    {
+        if( *p - start < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
         *--(*p) = 0x00;
         len += 1;
     }
@@ -429,18 +432,26 @@ mbedtls_asn1_named_data *mbedtls_asn1_store_named_data(
         memcpy( cur->oid.p, oid, oid_len );
 
         cur->val.len = val_len;
-        cur->val.p = mbedtls_calloc( 1, val_len );
-        if( cur->val.p == NULL )
+        if( val_len != 0 )
         {
-            mbedtls_free( cur->oid.p );
-            mbedtls_free( cur );
-            return( NULL );
+            cur->val.p = mbedtls_calloc( 1, val_len );
+            if( cur->val.p == NULL )
+            {
+                mbedtls_free( cur->oid.p );
+                mbedtls_free( cur );
+                return( NULL );
+            }
         }
 
         cur->next = *head;
         *head = cur;
     }
-    else if( cur->val.len < val_len )
+    else if( val_len == 0 )
+    {
+        mbedtls_free( cur->val.p );
+        cur->val.p = NULL;
+    }
+    else if( cur->val.len != val_len )
     {
         /*
          * Enlarge existing value buffer if needed

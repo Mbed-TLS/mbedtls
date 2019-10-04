@@ -100,6 +100,7 @@ int mbedtls_asn1_write_raw_buffer( unsigned char **p, unsigned char *start,
  * \param p         The reference to the current position pointer.
  * \param start     The start of the buffer, for bounds-checking.
  * \param X         The MPI to write.
+ *                  It must be non-negative.
  *
  * \return          The number of bytes written to \p p on success.
  * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
@@ -184,6 +185,7 @@ int mbedtls_asn1_write_bool( unsigned char **p, unsigned char *start,
  * \param p         The reference to the current position pointer.
  * \param start     The start of the buffer, for bounds-checking.
  * \param val       The integer value to write.
+ *                  It must be non-negative.
  *
  * \return          The number of bytes written to \p p on success.
  * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
@@ -232,7 +234,7 @@ int mbedtls_asn1_write_printable_string( unsigned char **p,
 
 /**
  * \brief           Write a UTF8 string in ASN.1 format using the UTF8String
- *                  string encoding tag (#MBEDTLS_ASN1_PRINTABLE_STRING).
+ *                  string encoding tag (#MBEDTLS_ASN1_UTF8_STRING).
  *
  * \note            This function works backwards in data buffer.
  *
@@ -332,9 +334,13 @@ int mbedtls_asn1_write_octet_string( unsigned char **p, unsigned char *start,
  *                  through (will be updated in case of a new entry).
  * \param oid       The OID to look for.
  * \param oid_len   The size of the OID.
- * \param val       The data to store (can be \c NULL if you want to fill
- *                  it by hand).
+ * \param val       The associated data to store. If this is \c NULL,
+ *                  no data is copied to the new or existing buffer.
  * \param val_len   The minimum length of the data buffer needed.
+ *                  If this is 0, do not allocate a buffer for the associated
+ *                  data.
+ *                  If the OID was already present, enlarge, shrink or free
+ *                  the existing buffer to fit \p val_len.
  *
  * \return          A pointer to the new / existing entry on success.
  * \return          \c NULL if if there was a memory allocation error.

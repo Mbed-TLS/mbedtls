@@ -1561,6 +1561,16 @@ component_test_baremetal () {
     if_build_succeeded tests/ssl-opt.sh --filter "^Default, DTLS$"
 }
 
+component_test_hardware_entropy () {
+    msg "build: default config + MBEDTLS_ENTROPY_HARDWARE_ALT"
+    scripts/config.pl set MBEDTLS_ENTROPY_HARDWARE_ALT
+    make CFLAGS='-Werror -O1'
+
+    msg "test: default config + MBEDTLS_ENTROPY_HARDWARE_ALT"
+    if_build_succeeded make test
+    if_build_succeeded tests/ssl-opt.sh --filter "^Default, DTLS$"
+}
+
 component_test_allow_sha1 () {
     msg "build: allow SHA1 in certificates by default"
     scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES

@@ -1832,15 +1832,10 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
 # signature = bit string with invalid encoding (number of unused bits too large)
 x509parse_crt:"3081bc3081a7a0030201028204deadbeef300d06092a864886f70d01010b0500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa100a200a321301f301d0603551d11041630148208666f6f2e7465737482086261722e74657374300d06092a864886f70d01010b0500030108":"":MBEDTLS_ERR_X509_INVALID_SIGNATURE + MBEDTLS_ERR_ASN1_INVALID_DATA
 
-## This edge case currently fails to parse due to an ASN.1 bug.
-## It doesn't matter as far as X.509 is concerned since the signature would
-## not be valid anyway.
-## https://github.com/ARMmbed/mbed-crypto/pull/75 will fix this bug and make
-## this test case pass.
-# X509 CRT ASN1 (empty Signature)
-# depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
-# # signature = empty bit string in DER encoding
-# x509parse_crt:"3081bc3081a7a0030201028204deadbeef300d06092a864886f70d01010b0500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa100a200a321301f301d0603551d11041630148208666f6f2e7465737482086261722e74657374300d06092a864886f70d01010b0500030100":"cert. version     \: 3\nserial number     \: DE\:AD\:BE\:EF\nissuer name       \: ??=Test\nsubject name      \: ??=Test\nissued  on        \: 2009-01-01 00\:00\:00\nexpires on        \: 2009-12-31 23\:59\:59\nsigned using      \: RSA with SHA-256\nRSA key size      \: 128 bits\nsubject alt name  \:\n    dNSName \: foo.test\n    dNSName \: bar.test\n":0
+X509 CRT ASN1 (empty Signature)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
+# signature = empty bit string in DER encoding
+x509parse_crt:"3081bc3081a7a0030201028204deadbeef300d06092a864886f70d01010b0500300c310a30080600130454657374301c170c303930313031303030303030170c303931323331323335393539300c310a30080600130454657374302a300d06092A864886F70D010101050003190030160210ffffffffffffffffffffffffffffffff0202ffffa100a200a321301f301d0603551d11041630148208666f6f2e7465737482086261722e74657374300d06092a864886f70d01010b0500030100":"cert. version     \: 3\nserial number     \: DE\:AD\:BE\:EF\nissuer name       \: ??=Test\nsubject name      \: ??=Test\nissued  on        \: 2009-01-01 00\:00\:00\nexpires on        \: 2009-12-31 23\:59\:59\nsigned using      \: RSA with SHA-256\nRSA key size      \: 128 bits\nsubject alt name  \:\n    dNSName \: foo.test\n    dNSName \: bar.test\n":0
 
 X509 CRT ASN1 (dummy 24-bit Signature)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA256_C

@@ -2623,7 +2623,7 @@ int mbedtls_rsa_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "passed\n  PKCS#1 encryption : " );
 
-    mbedtls_platform_memcpy( rsa_plaintext, RSA_PT, PT_LEN );
+    memcpy( rsa_plaintext, RSA_PT, PT_LEN );
 
     if( mbedtls_rsa_pkcs1_encrypt( &rsa, myrand, NULL, MBEDTLS_RSA_PUBLIC,
                                    PT_LEN, rsa_plaintext,

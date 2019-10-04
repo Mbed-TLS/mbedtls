@@ -169,7 +169,7 @@ int mbedtls_arc4_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  ARC4 test #%d: ", i + 1 );
 
-        mbedtls_platform_memcpy( ibuf, arc4_test_pt[i], 8 );
+        memcpy( ibuf, arc4_test_pt[i], 8 );
 
         mbedtls_arc4_setup( &ctx, arc4_test_key[i], 8 );
         mbedtls_arc4_crypt( &ctx, 8, ibuf, obuf );

@@ -1992,9 +1992,9 @@ int mbedtls_aes_self_test( int verbose )
             {
                 unsigned char tmp[16];
 
-                mbedtls_platform_memcpy( tmp, prv, 16 );
-                mbedtls_platform_memcpy( prv, buf, 16 );
-                mbedtls_platform_memcpy( buf, tmp, 16 );
+                memcpy( tmp, prv, 16 );
+                memcpy( prv, buf, 16 );
+                memcpy( buf, tmp, 16 );
             }
 
             ret = mbedtls_aes_crypt_cbc( &ctx, mode, 16, iv, buf, buf );
@@ -2069,12 +2069,12 @@ int mbedtls_aes_self_test( int verbose )
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
-            mbedtls_platform_memcpy( buf, aes_test_cfb128_ct[u], 64 );
+            memcpy( buf, aes_test_cfb128_ct[u], 64 );
             aes_tests = aes_test_cfb128_pt;
         }
         else
         {
-            mbedtls_platform_memcpy( buf, aes_test_cfb128_pt, 64 );
+            memcpy( buf, aes_test_cfb128_pt, 64 );
             aes_tests = aes_test_cfb128_ct[u];
         }
 
@@ -2148,12 +2148,12 @@ int mbedtls_aes_self_test( int verbose )
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
-            mbedtls_platform_memcpy( buf, aes_test_ofb_ct[u], 64 );
+            memcpy( buf, aes_test_ofb_ct[u], 64 );
             aes_tests = aes_test_ofb_pt;
         }
         else
         {
-            mbedtls_platform_memcpy( buf, aes_test_ofb_pt, 64 );
+            memcpy( buf, aes_test_ofb_pt, 64 );
             aes_tests = aes_test_ofb_ct[u];
         }
 
@@ -2215,12 +2215,12 @@ int mbedtls_aes_self_test( int verbose )
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
-            mbedtls_platform_memcpy( buf, aes_test_ctr_ct[u], len );
+            memcpy( buf, aes_test_ctr_ct[u], len );
             aes_tests = aes_test_ctr_pt[u];
         }
         else
         {
-            mbedtls_platform_memcpy( buf, aes_test_ctr_pt[u], len );
+            memcpy( buf, aes_test_ctr_pt[u], len );
             aes_tests = aes_test_ctr_ct[u];
         }
 
@@ -2283,7 +2283,7 @@ int mbedtls_aes_self_test( int verbose )
             ret = mbedtls_aes_xts_setkey_dec( &ctx_xts, key, 256 );
             if( ret != 0)
                 goto exit;
-            mbedtls_platform_memcpy( buf, aes_test_xts_ct32[u], len );
+            memcpy( buf, aes_test_xts_ct32[u], len );
             aes_tests = aes_test_xts_pt32[u];
         }
         else
@@ -2291,7 +2291,7 @@ int mbedtls_aes_self_test( int verbose )
             ret = mbedtls_aes_xts_setkey_enc( &ctx_xts, key, 256 );
             if( ret != 0)
                 goto exit;
-            mbedtls_platform_memcpy( buf, aes_test_xts_pt32[u], len );
+            memcpy( buf, aes_test_xts_pt32[u], len );
             aes_tests = aes_test_xts_ct32[u];
         }
 

@@ -983,7 +983,7 @@ static int ecjpake_lgc( void *p, unsigned char *out, size_t len )
     {
         size_t use_len = len > 4 ? 4 : len;
         x = 1664525 * x + 1013904223;
-        mbedtls_platform_memcpy( out, &x, use_len );
+        memcpy( out, &x, use_len );
         out += use_len;
         len -= use_len;
     }

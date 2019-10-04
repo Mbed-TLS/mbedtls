@@ -495,9 +495,9 @@ int mbedtls_ccm_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  CCM-AES #%u: ", (unsigned int) i + 1 );
 
-        mbedtls_platform_memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
-        mbedtls_platform_memset( ciphertext, 0, CCM_SELFTEST_CT_MAX_LEN );
-        mbedtls_platform_memcpy( plaintext, msg, msg_len[i] );
+        memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
+        memset( ciphertext, 0, CCM_SELFTEST_CT_MAX_LEN );
+        memcpy( plaintext, msg, msg_len[i] );
 
         ret = mbedtls_ccm_encrypt_and_tag( &ctx, msg_len[i],
                                            iv, iv_len[i], ad, add_len[i],

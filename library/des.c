@@ -896,7 +896,7 @@ int mbedtls_des_self_test( int verbose )
                              ( u == 0 ) ? ' ' : '3', 56 + u * 56,
                              ( v == MBEDTLS_DES_DECRYPT ) ? "dec" : "enc" );
 
-        mbedtls_platform_memcpy( buf, des3_test_buf, 8 );
+        memcpy( buf, des3_test_buf, 8 );
 
         switch( i )
         {
@@ -969,9 +969,9 @@ int mbedtls_des_self_test( int verbose )
                              ( u == 0 ) ? ' ' : '3', 56 + u * 56,
                              ( v == MBEDTLS_DES_DECRYPT ) ? "dec" : "enc" );
 
-        mbedtls_platform_memcpy( iv,  des3_test_iv,  8 );
-        mbedtls_platform_memcpy( prv, des3_test_iv,  8 );
-        mbedtls_platform_memcpy( buf, des3_test_buf, 8 );
+        memcpy( iv,  des3_test_iv,  8 );
+        memcpy( prv, des3_test_iv,  8 );
+        memcpy( buf, des3_test_buf, 8 );
 
         switch( i )
         {
@@ -1024,12 +1024,12 @@ int mbedtls_des_self_test( int verbose )
                 else
                     mbedtls_des3_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
 
-                mbedtls_platform_memcpy( tmp, prv, 8 );
-                mbedtls_platform_memcpy( prv, buf, 8 );
-                mbedtls_platform_memcpy( buf, tmp, 8 );
+                memcpy( tmp, prv, 8 );
+                memcpy( prv, buf, 8 );
+                memcpy( buf, tmp, 8 );
             }
 
-            mbedtls_platform_memcpy( buf, prv, 8 );
+            memcpy( buf, prv, 8 );
         }
 
         if( ( v == MBEDTLS_DES_DECRYPT &&

@@ -245,7 +245,7 @@ int mbedtls_xtea_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  XTEA test #%d: ", i + 1 );
 
-        mbedtls_platform_memcpy( buf, xtea_test_pt[i], 8 );
+        memcpy( buf, xtea_test_pt[i], 8 );
 
         mbedtls_xtea_setup( &ctx, xtea_test_key[i] );
         mbedtls_xtea_crypt_ecb( &ctx, MBEDTLS_XTEA_ENCRYPT, buf, buf );

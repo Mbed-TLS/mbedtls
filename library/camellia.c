@@ -962,16 +962,16 @@ int mbedtls_camellia_self_test( int verbose )
                          (v == MBEDTLS_CAMELLIA_DECRYPT) ? "dec" : "enc");
 
     for( i = 0; i < CAMELLIA_TESTS_ECB; i++ ) {
-        mbedtls_platform_memcpy( key, camellia_test_ecb_key[u][i], 16 + 8 * u );
+        memcpy( key, camellia_test_ecb_key[u][i], 16 + 8 * u );
 
         if( v == MBEDTLS_CAMELLIA_DECRYPT ) {
             mbedtls_camellia_setkey_dec( &ctx, key, 128 + u * 64 );
-            mbedtls_platform_memcpy( src, camellia_test_ecb_cipher[u][i], 16 );
-            mbedtls_platform_memcpy( dst, camellia_test_ecb_plain[i], 16 );
+            memcpy( src, camellia_test_ecb_cipher[u][i], 16 );
+            memcpy( dst, camellia_test_ecb_plain[i], 16 );
         } else { /* MBEDTLS_CAMELLIA_ENCRYPT */
             mbedtls_camellia_setkey_enc( &ctx, key, 128 + u * 64 );
-            mbedtls_platform_memcpy( src, camellia_test_ecb_plain[i], 16 );
-            mbedtls_platform_memcpy( dst, camellia_test_ecb_cipher[u][i], 16 );
+            memcpy( src, camellia_test_ecb_plain[i], 16 );
+            memcpy( dst, camellia_test_ecb_cipher[u][i], 16 );
         }
 
         mbedtls_camellia_crypt_ecb( &ctx, v, src, buf );
@@ -1005,9 +1005,9 @@ int mbedtls_camellia_self_test( int verbose )
             mbedtls_printf( "  CAMELLIA-CBC-%3d (%s): ", 128 + u * 64,
                              ( v == MBEDTLS_CAMELLIA_DECRYPT ) ? "dec" : "enc" );
 
-        mbedtls_platform_memcpy( src, camellia_test_cbc_iv, 16 );
-        mbedtls_platform_memcpy( dst, camellia_test_cbc_iv, 16 );
-        mbedtls_platform_memcpy( key, camellia_test_cbc_key[u], 16 + 8 * u );
+        memcpy( src, camellia_test_cbc_iv, 16 );
+        memcpy( dst, camellia_test_cbc_iv, 16 );
+        memcpy( key, camellia_test_cbc_key[u], 16 + 8 * u );
 
         if( v == MBEDTLS_CAMELLIA_DECRYPT ) {
             mbedtls_camellia_setkey_dec( &ctx, key, 128 + u * 64 );
@@ -1018,13 +1018,13 @@ int mbedtls_camellia_self_test( int verbose )
         for( i = 0; i < CAMELLIA_TESTS_CBC; i++ ) {
 
             if( v == MBEDTLS_CAMELLIA_DECRYPT ) {
-                mbedtls_platform_memcpy( iv , src, 16 );
-                mbedtls_platform_memcpy( src, camellia_test_cbc_cipher[u][i], 16 );
-                mbedtls_platform_memcpy( dst, camellia_test_cbc_plain[i], 16 );
+                memcpy( iv , src, 16 );
+                memcpy( src, camellia_test_cbc_cipher[u][i], 16 );
+                memcpy( dst, camellia_test_cbc_plain[i], 16 );
             } else { /* MBEDTLS_CAMELLIA_ENCRYPT */
-                mbedtls_platform_memcpy( iv , dst, 16 );
-                mbedtls_platform_memcpy( src, camellia_test_cbc_plain[i], 16 );
-                mbedtls_platform_memcpy( dst, camellia_test_cbc_cipher[u][i], 16 );
+                memcpy( iv , dst, 16 );
+                memcpy( src, camellia_test_cbc_plain[i], 16 );
+                memcpy( dst, camellia_test_cbc_cipher[u][i], 16 );
             }
 
             mbedtls_camellia_crypt_cbc( &ctx, v, 16, iv, src, buf );
@@ -1059,8 +1059,8 @@ int mbedtls_camellia_self_test( int verbose )
             mbedtls_printf( "  CAMELLIA-CTR-128 (%s): ",
                              ( v == MBEDTLS_CAMELLIA_DECRYPT ) ? "dec" : "enc" );
 
-        mbedtls_platform_memcpy( nonce_counter, camellia_test_ctr_nonce_counter[u], 16 );
-        mbedtls_platform_memcpy( key, camellia_test_ctr_key[u], 16 );
+        memcpy( nonce_counter, camellia_test_ctr_nonce_counter[u], 16 );
+        memcpy( key, camellia_test_ctr_key[u], 16 );
 
         offset = 0;
         mbedtls_camellia_setkey_enc( &ctx, key, 128 );
@@ -1068,7 +1068,7 @@ int mbedtls_camellia_self_test( int verbose )
         if( v == MBEDTLS_CAMELLIA_DECRYPT )
         {
             len = camellia_test_ctr_len[u];
-            mbedtls_platform_memcpy( buf, camellia_test_ctr_ct[u], len );
+            memcpy( buf, camellia_test_ctr_ct[u], len );
 
             mbedtls_camellia_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
                                 buf, buf );
@@ -1084,7 +1084,7 @@ int mbedtls_camellia_self_test( int verbose )
         else
         {
             len = camellia_test_ctr_len[u];
-            mbedtls_platform_memcpy( buf, camellia_test_ctr_pt[u], len );
+            memcpy( buf, camellia_test_ctr_pt[u], len );
 
             mbedtls_camellia_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
                                 buf, buf );

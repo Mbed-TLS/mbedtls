@@ -299,7 +299,8 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    mbedtls_platform_memcpy( ssl->own_cid, own_cid, own_cid_len );
+    /* Not using more secure mbedtls_platform_memcpy as cid is public */
+    memcpy( ssl->own_cid, own_cid, own_cid_len );
     /* Truncation is not an issue here because
      * MBEDTLS_SSL_CID_IN_LEN_MAX at most 255. */
     ssl->own_cid_len = (uint8_t) own_cid_len;
@@ -335,7 +336,8 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
         *peer_cid_len = ssl->transform_in->out_cid_len;
         if( peer_cid != NULL )
         {
-            mbedtls_platform_memcpy( peer_cid, ssl->transform_in->out_cid,
+            /* Not using more secure mbedtls_platform_memcpy as cid is public */
+            memcpy( peer_cid, ssl->transform_in->out_cid,
                     ssl->transform_in->out_cid_len );
         }
     }
@@ -1317,12 +1319,14 @@ int ssl_populate_transform( mbedtls_ssl_transform *transform,
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Copy CIDs into SSL transform" ) );
 
         transform->in_cid_len = ssl->own_cid_len;
-        mbedtls_platform_memcpy( transform->in_cid, ssl->own_cid, ssl->own_cid_len );
+        /* Not using more secure mbedtls_platform_memcpy as cid is public */
+        memcpy( transform->in_cid, ssl->own_cid, ssl->own_cid_len );
         MBEDTLS_SSL_DEBUG_BUF( 3, "Incoming CID", transform->in_cid,
                                transform->in_cid_len );
 
         transform->out_cid_len = ssl->handshake->peer_cid_len;
-        mbedtls_platform_memcpy( transform->out_cid, ssl->handshake->peer_cid,
+        /* Not using more secure mbedtls_platform_memcpy as cid is public */
+        memcpy( transform->out_cid, ssl->handshake->peer_cid,
                 ssl->handshake->peer_cid_len );
         MBEDTLS_SSL_DEBUG_BUF( 3, "Outgoing CID", transform->out_cid,
                                transform->out_cid_len );
@@ -2479,7 +2483,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
      * Add CID information
      */
     rec->cid_len = transform->out_cid_len;
-    mbedtls_platform_memcpy( rec->cid, transform->out_cid, transform->out_cid_len );
+    /* Not using more secure mbedtls_platform_memcpy as cid is public */
+    memcpy( rec->cid, transform->out_cid, transform->out_cid_len );
     MBEDTLS_SSL_DEBUG_BUF( 3, "CID", rec->cid, rec->cid_len );
 
     if( rec->cid_len != 0 )
@@ -4540,7 +4545,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             /* Update the record content type and CID. */
             ssl->out_msgtype = rec.type;
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID )
-            mbedtls_platform_memcpy( ssl->out_cid, rec.cid, rec.cid_len );
+            /* Not using more secure mbedtls_platform_memcpy as cid is public */
+            memcpy( ssl->out_cid, rec.cid, rec.cid_len );
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
             ssl->out_msglen = len = rec.data_len;
             (void)mbedtls_platform_put_uint16_be( ssl->out_len, rec.data_len );
@@ -5328,7 +5334,8 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
         /* configured CID len is guaranteed at most 255, see
          * MBEDTLS_SSL_CID_OUT_LEN_MAX in check_config.h */
         rec->cid_len = (uint8_t) rec_hdr_cid_len;
-        mbedtls_platform_memcpy( rec->cid, buf + rec_hdr_cid_offset, rec_hdr_cid_len );
+        /* Not using more secure mbedtls_platform_memcpy as cid is public */
+        memcpy( rec->cid, buf + rec_hdr_cid_offset, rec_hdr_cid_len );
     }
     else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -5372,7 +5379,8 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
     {
         /* Copy explicit record sequence number from input buffer. */
-        mbedtls_platform_memcpy( &rec->ctr[0], buf + rec_hdr_ctr_offset,
+        /* Not using more secure mbedtls_platform_memcpy as sequence number is public */
+        memcpy( &rec->ctr[0], buf + rec_hdr_ctr_offset,
                 rec_hdr_ctr_len );
     }
     MBEDTLS_SSL_TRANSPORT_ELSE
@@ -5380,7 +5388,8 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS)
     {
         /* Copy implicit record sequence number from SSL context structure. */
-        mbedtls_platform_memcpy( &rec->ctr[0], ssl->in_ctr, rec_hdr_ctr_len );
+        /* Not using more secure mbedtls_platform_memcpy as sequence number is public */
+        memcpy( &rec->ctr[0], ssl->in_ctr, rec_hdr_ctr_len );
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS */
 
@@ -9019,7 +9028,8 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
         if( ssl->hostname == NULL )
             return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
-        mbedtls_platform_memcpy( ssl->hostname, hostname, hostname_len );
+        /* Not using more secure mbedtls_platform_memcpy as hostname is public in initial handshake */
+        memcpy( ssl->hostname, hostname, hostname_len );
 
         ssl->hostname[hostname_len] = '\0';
     }
@@ -9828,7 +9838,8 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
 #endif
 
         *p++ = (unsigned char)( session->id_len & 0xFF );
-        mbedtls_platform_memcpy( p, session->id, 32 );
+        /* Not using more secure mbedtls_platform_memcpy as session id is public */
+        memcpy( p, session->id, 32 );
         p += 32;
 
         mbedtls_platform_memcpy( p, session->master, 48 );
@@ -10055,7 +10066,8 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 #endif
 
     session->id_len = *p++;
-    mbedtls_platform_memcpy( session->id, p, 32 );
+    /* Not using more secure mbedtls_platform_memcpy as session id is public */
+    memcpy( session->id, p, 32 );
     p += 32;
 
     mbedtls_platform_memcpy( session->master, p, 48 );
@@ -11313,11 +11325,13 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     if( used <= buf_len )
     {
         *p++ = ssl->transform->in_cid_len;
-        mbedtls_platform_memcpy( p, ssl->transform->in_cid, ssl->transform->in_cid_len );
+        /* Not using more secure mbedtls_platform_memcpy as cid is public */
+        memcpy( p, ssl->transform->in_cid, ssl->transform->in_cid_len );
         p += ssl->transform->in_cid_len;
 
         *p++ = ssl->transform->out_cid_len;
-        mbedtls_platform_memcpy( p, ssl->transform->out_cid, ssl->transform->out_cid_len );
+        /* Not using more secure mbedtls_platform_memcpy as cid is public */
+        memcpy( p, ssl->transform->out_cid, ssl->transform->out_cid_len );
         p += ssl->transform->out_cid_len;
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -11554,7 +11568,8 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     if( (size_t)( end - p ) < ssl->transform->in_cid_len + 1u )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    mbedtls_platform_memcpy( ssl->transform->in_cid, p, ssl->transform->in_cid_len );
+    /* Not using more secure mbedtls_platform_memcpy as cid is public */
+    memcpy( ssl->transform->in_cid, p, ssl->transform->in_cid_len );
     p += ssl->transform->in_cid_len;
 
     ssl->transform->out_cid_len = *p++;
@@ -11562,7 +11577,8 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     if( (size_t)( end - p ) < ssl->transform->out_cid_len )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    mbedtls_platform_memcpy( ssl->transform->out_cid, p, ssl->transform->out_cid_len );
+    /* Not using more secure mbedtls_platform_memcpy as cid is public */
+    memcpy( ssl->transform->out_cid, p, ssl->transform->out_cid_len );
     p += ssl->transform->out_cid_len;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 

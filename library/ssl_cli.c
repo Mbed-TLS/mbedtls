@@ -440,7 +440,8 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
     p = mbedtls_platform_put_uint16_be( p, ext_len );
 
     *p++ = (uint8_t) ssl->own_cid_len;
-    mbedtls_platform_memcpy( p, ssl->own_cid, ssl->own_cid_len );
+    /* Not using more secure mbedtls_platform_memcpy as cid is public */
+    memcpy( p, ssl->own_cid, ssl->own_cid_len );
 
     *olen = ssl->own_cid_len + 5;
 }
@@ -1272,7 +1273,8 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
 
     ssl->handshake->cid_in_use = MBEDTLS_SSL_CID_ENABLED;
     ssl->handshake->peer_cid_len = (uint8_t) peer_cid_len;
-    mbedtls_platform_memcpy( ssl->handshake->peer_cid, buf, peer_cid_len );
+    /* Not using more secure mbedtls_platform_memcpy as peer_cid is public */
+    memcpy( ssl->handshake->peer_cid, buf, peer_cid_len );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Use of CID extension negotiated" ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "Server CID", buf, peer_cid_len );
@@ -1848,7 +1850,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         ssl->session_negotiate->compression = comp;
 #endif
         ssl->session_negotiate->id_len = n;
-        mbedtls_platform_memcpy( ssl->session_negotiate->id, buf + 35, n );
+        /* Not using more secure mbedtls_platform_memcpy as id is public */
+        memcpy( ssl->session_negotiate->id, buf + 35, n );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",

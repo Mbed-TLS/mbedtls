@@ -63,7 +63,8 @@ int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
     if( ( ssl->cli_id = mbedtls_calloc( 1, ilen ) ) == NULL )
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
-    mbedtls_platform_memcpy( ssl->cli_id, info, ilen );
+    /* Not using more secure mbedtls_platform_memcpy as id is public*/
+    memcpy( ssl->cli_id, info, ilen );
     ssl->cli_id_len = ilen;
 
     return( 0 );
@@ -485,7 +486,8 @@ static int ssl_parse_cid_ext( mbedtls_ssl_context *ssl,
 
     ssl->handshake->cid_in_use = MBEDTLS_SSL_CID_ENABLED;
     ssl->handshake->peer_cid_len = (uint8_t) peer_cid_len;
-    mbedtls_platform_memcpy( ssl->handshake->peer_cid, buf, peer_cid_len );
+    /* Not using more secure mbedtls_platform_memcpy as peer_cid is is public */
+    memcpy( ssl->handshake->peer_cid, buf, peer_cid_len );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Use of CID extension negotiated" ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "Client CID", buf, peer_cid_len );
@@ -1738,7 +1740,8 @@ read_record_header:
     ssl->session_negotiate->id_len = sess_len;
     memset( ssl->session_negotiate->id, 0,
             sizeof( ssl->session_negotiate->id ) );
-    mbedtls_platform_memcpy( ssl->session_negotiate->id, buf + 35,
+    /* Not using more secure mbedtls_platform_memcpy as id is public */
+    memcpy( ssl->session_negotiate->id, buf + 35,
             ssl->session_negotiate->id_len );
 
     /*
@@ -2391,7 +2394,8 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
     ext_len = (size_t) ssl->own_cid_len + 1;
     p = mbedtls_platform_put_uint16_be( p, ext_len );
     *p++ = (uint8_t) ssl->own_cid_len;
-    mbedtls_platform_memcpy( p, ssl->own_cid, ssl->own_cid_len );
+    /* Not using more secure mbedtls_platform_memcpy as cid is public */
+    memcpy( p, ssl->own_cid, ssl->own_cid_len );
 
     *olen = ssl->own_cid_len + 5;
 }
@@ -2887,7 +2891,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
      *   44+n . 43+n+m  extensions
      */
     *p++ = (unsigned char) ssl->session_negotiate->id_len;
-    mbedtls_platform_memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->id_len );
+    /* Not using more secure mbedtls_platform_memcpy as id is public */
+    memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->id_len );
     p += ssl->session_negotiate->id_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );

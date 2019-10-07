@@ -309,7 +309,8 @@ int mbedtls_writer_get( mbedtls_writer *wr,
             overflow = ( end + desired < end );
             if( overflow || desired > ql )
             {
-                TRACE( trace_comment, "no queue, or queue too small" );
+                TRACE( trace_comment, "queue present but too small, need %u but only got %u",
+                       (unsigned) desired, (unsigned) ql );
                 RETURN( MBEDTLS_ERR_WRITER_OUT_OF_DATA );
             }
 
@@ -332,7 +333,10 @@ int mbedtls_writer_get( mbedtls_writer *wr,
         /* No queue present, so serve only what's available
          * in the output buffer, provided the user allows it. */
         if( buflen == NULL )
+        {
+            TRACE( trace_comment, "no queue present" );
             RETURN( MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+        }
 
         desired = or;
     }

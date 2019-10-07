@@ -1043,15 +1043,10 @@ typedef struct
 
 typedef struct
 {
-    size_t cur_chunk;
-    size_t num_chunks;
-    size_t bytes_per_chunk;
+    size_t bytes_written;
+    size_t total_len;
+    size_t max_bytes_per_chunk;
 } dummy_cb_ctx;
-
-size_t mps_l4_dummy_callback_msg_length( dummy_cb_ctx *ctx )
-{
-    return( ctx->num_chunks + ctx->bytes_per_chunk );
-}
 
 int mps_l4_dummy_callback( mbedtls_mps_write_cb_ctx_t const *ctx,
                            mbedtls_writer_ext *writer )
@@ -1060,33 +1055,38 @@ int mps_l4_dummy_callback( mbedtls_mps_write_cb_ctx_t const *ctx,
     dummy_cb_ctx *dummy_ctx = ( (dummy_cb_ctx*) ctx );
     unsigned char *chunk;
     size_t idx;
+    size_t bytes_in_chunk;
 
-    printf( "Dummy callback called - state %u / %u\n",
-            (unsigned) dummy_ctx->cur_chunk,
-            (unsigned) dummy_ctx->num_chunks );
+    printf( "Dummy callback called - state %u / %u Bytes\n",
+            (unsigned) dummy_ctx->bytes_written,
+            (unsigned) dummy_ctx->total_len );
 
-    ret = mbedtls_writer_get_ext( writer, dummy_ctx->bytes_per_chunk,
+    bytes_in_chunk = dummy_ctx->total_len - dummy_ctx->bytes_written;
+    if( bytes_in_chunk > dummy_ctx->max_bytes_per_chunk )
+        bytes_in_chunk = dummy_ctx->max_bytes_per_chunk;
+
+    ret = mbedtls_writer_get_ext( writer, bytes_in_chunk,
                                   &chunk, NULL );
     if( ret == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
         return( MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE );
     else if( ret != 0 )
         return( ret );
 
-    for( idx = 0; idx < dummy_ctx->bytes_per_chunk; idx++ )
+    for( idx = 0; idx < bytes_in_chunk; idx++ )
     {
         chunk[idx] = (unsigned char)
-            ( ( dummy_ctx->cur_chunk * dummy_ctx->bytes_per_chunk ) + idx );
+            ( dummy_ctx->bytes_written + idx );
     }
 
     ret = mbedtls_writer_commit_ext( writer );
     if( ret != 0 )
         return( ret );
 
-    dummy_ctx->cur_chunk++;
-    if( dummy_ctx->cur_chunk == dummy_ctx->num_chunks )
+    dummy_ctx->bytes_written += bytes_in_chunk;
+    if( dummy_ctx->bytes_written == dummy_ctx->total_len )
     {
         printf( "Callback done.\n" );
-        dummy_ctx->cur_chunk = 0;
+        dummy_ctx->bytes_written = 0;
         return( 0 );
     }
 
@@ -10082,9 +10082,9 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
 
     unsigned iteration;
     dummy_cb_ctx dummy_ctx;
-    dummy_ctx.bytes_per_chunk = 50;
-    dummy_ctx.cur_chunk       = 0;
-    dummy_ctx.num_chunks      = 2;
+    dummy_ctx.bytes_written = 0;
+    dummy_ctx.total_len     = 100;
+    dummy_ctx.max_bytes_per_chunk = 50;
 
     dummy_s->type = 0;
     dummy_s->mock.enabled = 1;
@@ -10381,9 +10381,9 @@ void mbedtls_mps_l4_flight_exchange( int mode,
     TEST_ASSERT( cb_ctxs != NULL );
     for( round = 0; round < (unsigned) ( rounds * num_hs ); round++ )
     {
-        cb_ctxs[round].cur_chunk       = 0;
-        cb_ctxs[round].num_chunks      = 2;
-        cb_ctxs[round].bytes_per_chunk = 50;
+        cb_ctxs[round].bytes_written = 0;
+        cb_ctxs[round].max_bytes_per_chunk = 50;
+        cb_ctxs[round].total_len = hs_len + ( round % num_hs );
     }
 
     dummy_s->type = 0;
@@ -10511,7 +10511,8 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
         /* Send flight */
 
-        for( iteration=0; iteration < (size_t) num_hs; iteration++ )
+        iteration = 0;
+        while( iteration < (size_t) num_hs )
         {
             int ret;
             printf( "[[[ ITERATION %u / %u ]]]\n",
@@ -10533,7 +10534,8 @@ void mbedtls_mps_l4_flight_exchange( int mode,
             }
             else
             {
-                hs_out.length = hs_len;
+                hs_out.length = hs_len + iteration;
+
                 while( 1 )
                 {
                     ret = mbedtls_mps_write_handshake( sender, &hs_out,
@@ -10564,17 +10566,23 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
                 /* Dispatch handshake message */
                 TEST_ASSERT( mbedtls_mps_dispatch( sender ) == 0 );
+
+                iteration++;
             }
             else
             {
-                ret = mps_l4_dummy_callback( &cb_ctxs[round * num_hs], hs_out.handle );
+                ret = mps_l4_dummy_callback( &cb_ctxs[round * num_hs + iteration],
+                                             hs_out.handle );
                 TEST_ASSERT( ret == 0 ||
                              ret == MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE );
 
                 if( ret == 0 )
+                {
                     TEST_ASSERT( mbedtls_mps_dispatch( sender ) == 0 );
+                    iteration++;
+                }
                 else
-                    TEST_ASSERT( mbedtls_mps_write_pause( sender ) );
+                    TEST_ASSERT( mbedtls_mps_write_pause( sender ) == 0 );
             }
         }
 

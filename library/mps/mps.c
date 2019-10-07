@@ -3220,6 +3220,14 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
                                            hs->queue_len,
                                            &handle->metadata,
                                            MPS_DTLS_FRAG_OUT_START_USE_L3 ) );
+
+                /* We now have a message handle in PAUSED state for the
+                 * handshake message to be retransmitted. We handle this
+                 * situation in the same way as the case where the callback
+                 * has been called at least once but didn't yet finish
+                 * the message. */
+                ret = MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED;
+                break;
             }
             else
             {

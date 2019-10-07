@@ -429,7 +429,6 @@ typedef uint_fast16_t mbedtls_mps_size_t;
  * \{
  */
 
-/* #define MBEDTLS_MPS_CONF_MODE MBEDTLS_MPS_MODE_DATAGRAM */
 /* #define MBEDTLS_MPS_CONF_VERSION 3   /\*!< TLS v1.2 *\/ */
 /* #define MBEDTLS_MPS_CONF_ANTI_REPLAY 1 */
 /* #define MBEDTLS_MPS_CONF_MAX_PLAIN_IN  1000 */
@@ -442,6 +441,17 @@ typedef uint_fast16_t mbedtls_mps_size_t;
 /* #define MBEDTLS_MPS_CONF_BADMAC_LIMIT ( (uint32_t) 10000 ) */
 /* #define MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN 1000 */
 /* #define MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX 32000 */
+
+/* TLS vs. DTLS configuration is automatically deduced from
+ * the settings of MBEDTLS_MPS_PROTO_TLS / MBEDTLS_MPS_PROTO_DTLS
+ * and should not be set directly. */
+#if !defined(MBEDTLS_MPS_PROTO_BOTH)
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+#define MBEDTLS_MPS_CONF_MODE MBEDTLS_MPS_MODE_STREAM
+#else
+#define MBEDTLS_MPS_CONF_MODE MBEDTLS_MPS_MODE_DATAGRAM
+#endif
+#endif /* !MBEDTLS_MPS_PROTO_BOTH */
 
 /* \} SECTION: Hardcoded configurations */
 

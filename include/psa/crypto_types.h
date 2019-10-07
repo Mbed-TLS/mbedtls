@@ -111,9 +111,35 @@ typedef uint16_t psa_ecc_curve_t;
  * 1. Select a ::psa_dh_group_t value in the range #PSA_DH_GROUP_VENDOR_MIN to
  *    #PSA_DH_GROUP_VENDOR_MAX, which is a subset of the IANA private use
  *    range.
- * 2. Use a ::psa_key_type_t value that is vendor-defined.
+ * 2. Select a ::psa_dh_group_t value from the named groups allocated for
+ *    GREASE in the IETF draft specification. The GREASE specification and
+ *    values are listed below.
+ * 3. Use a ::psa_key_type_t value that is vendor-defined.
  *
- * The first option is recommended.
+ * Option 1 or 2 are recommended.
+ *
+ * The current draft of the GREASE specification is
+ * https://datatracker.ietf.org/doc/draft-ietf-tls-grease
+ *
+ * The following GREASE values are allocated for named groups:
+ * \code
+ * 0x0A0A
+ * 0x1A1A
+ * 0x2A2A
+ * 0x3A3A
+ * 0x4A4A
+ * 0x5A5A
+ * 0x6A6A
+ * 0x7A7A
+ * 0x8A8A
+ * 0x9A9A
+ * 0xAAAA
+ * 0xBABA
+ * 0xCACA
+ * 0xDADA
+ * 0xEAEA
+ * 0xFAFA
+ * \endcode
  */
 typedef uint16_t psa_dh_group_t;
 

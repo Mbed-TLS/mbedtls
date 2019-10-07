@@ -70,13 +70,12 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs );
  * Constants and sizes from the [D]TLS standard
  */
 
-#define MPS_TLS_HS_HDR_SIZE 4
-#define MPS_TLS_ALERT_SIZE  2
-#define MPS_TLS_CCS_SIZE    1
+#define MPS_TLS_HS_HDR_SIZE   4 /* The handshake header length in TLS.        */
+#define MPS_TLS_ALERT_SIZE    2 /* The length of an Alert message.            */
+#define MPS_TLS_CCS_SIZE      1 /* The length of a CCS message.               */
+#define MPS_TLS_CCS_VALUE     1 /* The expected value of a valid CCS message. */
 
-#define MPS_TLS_CCS_VALUE   1
-
-#define MPS_DTLS_HS_HDR_SIZE 13
+#define MPS_DTLS_HS_HDR_SIZE 13 /* The handshake header length in DTLS.       */
 
 /*
  * Init & Free API

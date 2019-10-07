@@ -10362,10 +10362,6 @@ void mbedtls_mps_l4_flight_exchange( int mode,
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
-    /* Dummy record transformations for epoch 0 */
-    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
-    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
-
     size_t hs_len    = 100;
     unsigned iteration;
     unsigned round = 0;
@@ -10374,6 +10370,26 @@ void mbedtls_mps_l4_flight_exchange( int mode,
     mock_timer_ctx timer_srv;
 
     dummy_cb_ctx *cb_ctxs;
+
+    mbedtls_mps_transform_t **epochs_c = malloc( rounds *
+                                             sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t **epochs_s = malloc( rounds *
+                                             sizeof( mbedtls_mps_transform_t ) );
+
+    TEST_ASSERT( epochs_s != NULL && epochs_c != NULL );
+    for( size_t id=0; id < (unsigned) rounds; id++ )
+    {
+        epochs_c[id] = malloc( sizeof( mbedtls_mps_transform_t ) );
+        epochs_s[id] = malloc( sizeof( mbedtls_mps_transform_t ) );
+        TEST_ASSERT( epochs_s[id] != NULL && epochs_c[id] != NULL );
+
+        epochs_c[id]->type = 0;
+        epochs_c[id]->mock.enabled = ( id > 0 );
+        epochs_c[id]->mock.pad = id % 13 + 5;
+        epochs_s[id]->type = 0;
+        epochs_s[id]->mock.enabled = ( id > 0 );
+        epochs_s[id]->mock.pad = id % 13 + 5;
+    }
 
     ((void) multiple_epochs);
 
@@ -10385,13 +10401,6 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         cb_ctxs[round].max_bytes_per_chunk = 50;
         cb_ctxs[round].total_len = hs_len + ( round % num_hs );
     }
-
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
 
     /* Initialize Layer 0 mock objects */
     if( mode == MBEDTLS_MPS_MODE_STREAM )
@@ -10467,12 +10476,12 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                    mode,
                                    ( 3 * hs_len ) / 2 ) == 0 );
 
-    TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
+    TEST_ASSERT( mbedtls_mps_add_key_material( &cli, epochs_c[0],
                                                &cli_epoch ) == 0 );
     TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli, cli_epoch ) == 0 );
     TEST_ASSERT( mbedtls_mps_set_incoming_keys( &cli, cli_epoch ) == 0 );
 
-    TEST_ASSERT( mbedtls_mps_add_key_material( &srv, dummy_s,
+    TEST_ASSERT( mbedtls_mps_add_key_material( &srv, epochs_s[0],
                                                &srv_epoch ) == 0 );
     TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv, srv_epoch ) == 0 );
     TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, srv_epoch ) == 0 );
@@ -10628,11 +10637,11 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
             /* MPS owns the transform once passed to it, hence will destroy
              * it when being freed. Set it up again. */
-            dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
-            dummy_s->type = 0;
-            dummy_s->mock.enabled = 1;
-            dummy_s->mock.pad = 5;
-            TEST_ASSERT( mbedtls_mps_add_key_material( &srv, dummy_s,
+            epochs_s[0] = malloc( sizeof( mbedtls_mps_transform_t ) );
+            epochs_s[0]->type = 0;
+            epochs_s[0]->mock.enabled = 0;
+            epochs_s[0]->mock.pad = 5;
+            TEST_ASSERT( mbedtls_mps_add_key_material( &srv, epochs_s[0],
                                                        &srv_epoch ) == 0 );
             TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv, srv_epoch ) == 0 );
             TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, srv_epoch ) == 0 );
@@ -10743,6 +10752,8 @@ exit:
         layer0_dgram_free( &c2s_d );
     }
 
+    free( epochs_s );
+    free( epochs_c );
     free( cb_ctxs );
 }
 /* END_CASE */

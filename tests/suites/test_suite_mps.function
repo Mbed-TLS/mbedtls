@@ -10297,14 +10297,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_DTLS:TEST_SUITE_MPS_L4 */
-void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
-                                          int retransmission_callback,
-                                          int num_hs,
-                                          int rounds,
-                                          int server_reset,
-                                          int permute,
-                                          int use_mock_timer,
-                                          int multiple_epochs )
+void mbedtls_mps_l4_flight_exchange( int mode,
+                                     int allocator_buffer_sz,
+                                     int retransmission_callback,
+                                     int num_hs,
+                                     int rounds,
+                                     int server_reset,
+                                     int permute,
+                                     int use_mock_timer,
+                                     int multiple_epochs )
 {
     /* This test exercises client and server exchanging
      * flights of handshake messages, which may be subject
@@ -10358,6 +10359,9 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
     mbedtls_mps_handshake_out hs_out;
     mbedtls_mps_handshake_in  hs_in;
 
+    mps_l0_send_t *cli_wr,  *srv_wr;
+    mps_l0_recv_t *cli_rcv, *srv_rcv;
+
     /* Dummy record transformations for epoch 0 */
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
@@ -10390,29 +10394,51 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
     dummy_c->mock.pad = 5;
 
     /* Initialize Layer 0 mock objects */
-    TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
-    TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
+    {
+        /* Server reset doesn't make sense for TLS. */
+        TEST_ASSERT( server_reset == 0 );
+
+        layer0_bufsize = /* TODO: Make flexible */ 1000;
+        TEST_ASSERT( layer0_init( &s2c ) == 0 );
+        TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+        cli_wr  = &layer0_write_cli;
+        cli_rcv = &layer0_read_cli;
+        srv_wr  = &layer0_write_srv;
+        srv_rcv = &layer0_read_srv;
+    }
+    else
+    {
+        TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+        TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+        cli_wr  = &layer0_dgram_write_cli;
+        cli_rcv = &layer0_dgram_read_cli;
+        srv_wr  = &layer0_dgram_write_srv;
+        srv_rcv = &layer0_dgram_read_srv;
+    }
 
     /* Initialize allocators */
     mps_alloc_init( &cli_alloc, allocator_buffer_sz );
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l1_init( &cli_l1, mode,
                               &cli_alloc,
-                              layer0_dgram_write_cli,
-                              layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
+                              cli_wr,
+                              cli_rcv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, mode,
                               &srv_alloc,
-                              layer0_dgram_write_srv,
-                              layer0_dgram_read_srv ) == 0 );
+                              srv_wr,
+                              srv_rcv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, mode,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, mode,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -10430,15 +10456,15 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
                                          1, 1, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, mode ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, mode ) == 0 );
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
-                                   MBEDTLS_MPS_MODE_DATAGRAM,
+                                   mode,
                                    L4_DEFAULT_QUEUE_SIZE ) == 0 );
     TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
-                                   MBEDTLS_MPS_MODE_DATAGRAM,
+                                   mode,
                                    L4_DEFAULT_QUEUE_SIZE ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
@@ -10690,8 +10716,17 @@ exit:
     mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
-    layer0_dgram_free( &s2c_d );
-    layer0_dgram_free( &c2s_d );
+
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
 
     free( cb_ctxs );
 }

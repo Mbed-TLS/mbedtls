@@ -10435,12 +10435,12 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
     /* Initialize and configure Layer 2 */
     TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, mode,
-                              L2_DEFAULT_ACCUMULATOR_SIZE,
-                              L2_DEFAULT_QUEUE_SIZE,
+                              ( 3 * hs_len ) / 2,
+                              ( 3 * hs_len ) / 2,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, mode,
-                              L2_DEFAULT_ACCUMULATOR_SIZE,
-                              L2_DEFAULT_QUEUE_SIZE,
+                              ( 3 * hs_len ) / 2,
+                              ( 3 * hs_len ) / 2,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mps_l2_config_version( &cli_l2,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
@@ -10462,10 +10462,10 @@ void mbedtls_mps_l4_flight_exchange( int mode,
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
                                    mode,
-                                   L4_DEFAULT_QUEUE_SIZE ) == 0 );
+                                   ( 3 * hs_len ) / 2 ) == 0 );
     TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
                                    mode,
-                                   L4_DEFAULT_QUEUE_SIZE ) == 0 );
+                                   ( 3 * hs_len ) / 2 ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
                                                &cli_epoch ) == 0 );

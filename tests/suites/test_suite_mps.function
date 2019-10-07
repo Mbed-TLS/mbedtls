@@ -10674,26 +10674,31 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         printf( "RECEIVE\n" );
 
         /* Receive flight */
-        for( iteration=0; iteration < (size_t) num_hs; iteration++ )
+        iteration = 0;
+        while( iteration < (size_t) num_hs )
         {
-            while( 1 )
-            {
-                int ret;
-                ret = mbedtls_mps_read( receiver );
-                TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
-                             ret == MPS_ERR_WANT_READ  ||
-                             ret == MPS_ERR_WANT_WRITE );
-                if( ret == MBEDTLS_MPS_MSG_HS )
-                    break;
-            }
+            int ret;
+            ret = mbedtls_mps_read( receiver );
+            TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
+                         ret == MPS_ERR_WANT_READ  ||
+                         ret == MPS_ERR_WANT_WRITE );
+            if( ret != MBEDTLS_MPS_MSG_HS )
+                continue;
 
             TEST_ASSERT( mbedtls_mps_read_handshake( receiver, &hs_in ) == 0 );
 
             TEST_ASSERT( hs_in.length == hs_len + iteration );
             TEST_ASSERT( hs_in.type   == iteration );
 
-            TEST_ASSERT( mbedtls_reader_get_ext( hs_in.handle, hs_in.length,
-                                                 &tmp, NULL ) == 0 );
+            ret = mbedtls_reader_get_ext( hs_in.handle, hs_in.length,
+                                          &tmp, NULL );
+            if( ret == MBEDTLS_ERR_READER_OUT_OF_DATA )
+            {
+                TEST_ASSERT( mbedtls_mps_read_pause( receiver ) == 0 );
+                continue;
+            }
+            TEST_ASSERT( ret == 0 );
+
             for( size_t idx=0; idx<(unsigned) ( hs_len + iteration ); idx++ )
                 TEST_ASSERT( tmp[idx] == (unsigned char) idx );
             TEST_ASSERT( mbedtls_reader_commit_ext( hs_in.handle ) == 0 );
@@ -10705,6 +10710,8 @@ void mbedtls_mps_l4_flight_exchange( int mode,
             }
 
             TEST_ASSERT( mbedtls_mps_read_consume( receiver ) == 0 );
+
+            iteration++;
         }
     }
 

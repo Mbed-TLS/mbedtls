@@ -377,6 +377,22 @@ struct mps_l1
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
     } raw;
 };
+typedef struct mps_l1 mps_l1;
+
+#if !defined(MBEDTLS_MPS_CONF_MODE)
+static inline uint8_t
+mbedtls_mps_l1_get_mode( mps_l1 *l1 )
+{
+    return( l1->mode );
+}
+#else /* !MBEDTLS_MPS_CONF_MODE */
+static inline uint8_t
+mbedtls_mps_l1_get_mode( mps_l1 *l1 )
+{
+    ((void) l1);
+    return( MBEDTLS_MPS_CONF_MODE );
+}
+#endif /* MBEDTLS_MPS_CONF_MODE */
 
 #define MPS_L1_INV_STREAM_READ_RECV_VALID( p )                              \
     ( \valid( p ) &&                                                    \
@@ -516,9 +532,6 @@ struct mps_l1
  * Layer 1 interface
  *
  */
-
-struct mps_l1;
-typedef struct mps_l1 mps_l1;
 
 /**
  * Allocator ID bits used when Layer 1 requests memory from the allocator.

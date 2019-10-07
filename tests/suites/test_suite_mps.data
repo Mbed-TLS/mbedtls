@@ -1142,3 +1142,57 @@ mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:3:3:1:1:1:0
 
 MPS Layer 4 DTLS: 3 flights, 3 msgs/flight, server restart, fragmented + reordered, mock timer, retransmission callback
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:3:3:1:1:1:0
+
+MPS Layer 4 TLS: 1 flight, 2 msgs/flight
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:0:2:1:0:0:0:0
+
+MPS Layer 4 TLS: 1 flight, 2 msgs/flight, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:1:2:1:0:0:0:0
+
+MPS Layer 4 TLS: 2 flights, 2 msgs/flight
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:0:2:2:0:0:0:0
+
+MPS Layer 4 TLS: 2 flights, 2 msgs/flight, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:1:2:2:0:0:0:0
+
+MPS Layer 4 TLS: 3 flights, 3 msgs/flight
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:0:3:3:0:0:0:0
+
+MPS Layer 4 TLS: 3 flights, 3 msgs/flight, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:1:3:3:0:0:0:0
+
+MPS Layer 4 TLS: 1 flight, 2 msgs/flight, fragmented
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:0:2:1:0:0:0:0
+
+MPS Layer 4 TLS: 1 flight, 2 msgs/flight, fragmented, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:1:2:1:0:0:0:0
+
+MPS Layer 4 TLS: 2 flights, 2 msgs/flight, fragmented
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:0:2:2:0:0:0:0
+
+MPS Layer 4 TLS: 2 flights, 2 msgs/flight, fragmented, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:1:2:2:0:0:0:0
+
+MPS Layer 4 TLS: 1 flight, 2 msgs/flight, mock timer
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:0:2:1:0:0:1:0
+
+MPS Layer 4 TLS: 1 flight, 2 msgs/flight, mock timer, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:1:2:1:0:0:1:0
+
+MPS Layer 4 TLS: 2 flight, 2 msgs/flight, mock timer
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:0:2:2:0:0:1:0
+
+MPS Layer 4 TLS: 2 flight, 2 msgs/flight, mock timer, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:1:2:2:0:0:1:0
+
+MPS Layer 4 TLS: 1 flight, 2 msgs/flight, fragmented, mock timer
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:0:2:1:0:0:1:0
+
+MPS Layer 4 TLS: 1 flight, 2 msgs/flight, fragmented, mock timer, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:1:2:1:0:0:1:0
+
+MPS Layer 4 TLS: 2 flights, 2 msgs/flight, fragmented, mock timer
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:0:2:2:0:0:1:0
+
+MPS Layer 4 TLS: 2 flights, 2 msgs/flight, fragmented, mock timer, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:0:2:2:0:0:1:0

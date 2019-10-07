@@ -157,6 +157,11 @@ libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 libmbedcrypto.%:
 	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C ../crypto/library $@
 
+libmbedcrypto.$(DLEXT): $(CRYPTO)libmbedcrypto.$(DLEXT)
+
+$(CRYPTO)libmbedcrypto.$(DLEXT): | libmbedcrypto.a
+	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C ../crypto/library libmbedcrypto.$(DLEXT)
+
 .c.o:
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<

@@ -371,7 +371,7 @@ struct mps_l3_hs_out_internal
     mbedtls_mps_stored_size_t hdr_len;
 
     /*! The extended writer providing buffers to which the message
-     *  contents can be written, and keeing track of message bounds. */
+     *  contents can be written, and keeping track of message bounds. */
 
     /* OPTIMIZATION:
      * Consider removing the extended writer from Layer 3 and

@@ -867,7 +867,7 @@ struct mbedtls_mps_l2
              * This has overlap with \c hdr: the outer buffer in the
              * \c payload buffer pair always starts at `hdr + hdr_len`.
              * Consider removing this redundancy provided (?) it's possible
-             * to do so without sacrifing structure and clarity of the code.  */
+             * to do so without sacrificing structure and clarity of the code.  */
             mps_l2_bufpair payload;
 
             /** The structure through which the content type, the epoch

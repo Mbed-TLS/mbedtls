@@ -1124,15 +1124,44 @@ int mbedtls_mps_set_bio( mbedtls_mps *mps, void *p_bio,
  */
 
 /**
- * \brief                Initialize an MPS context.
+ * \brief           Initialize an MPS context.
  *
- * \param mps            The MPS context to initialize.
+ * \param mps       The MPS context to initialize.
+ * \param l3        The underlying Layer 3 context.
+ *                  This must be freshly initialized.
+ * \param mode      The mode of operation for the MPS context.
+ *                  Either #MBEDTLS_MPS_MODE_STREAM if the underlying
+ *                  Layer 0 transport is a stream transport, or
+ *                  #MBEDTLS_MPS_MODE_DATAGRAM if the underlying
+ *                  Layer 0 transport is a datagram transport.
+ * \param max_write The maximum number of bytes that the user can request
+ *                  to write between two consecutive write-commits such that
+ *                  MPS still guarantees progress in DTLS.
+ *                  It is implementation- and runtime-specific as to whether
+ *                  larger chunks can be fetched, too, but MPS doesn't
+ *                  guarantee for it.
+ *                  Here, 'guarantee' means that while the user must always
+ *                  expect to receive an #MPS_ERR_WRITER_OUT_OF_DATA or
+ *                  #MPS_ERR_WANT_WRITE error code while writing, closing
+ *                  and reopening the write-port in this case must eventually
+ *                  lead to success, provided the underlying transport
+ *                  is (eventually) available to send the request amount
+ *                  of data.
+ *                  The value \c 0 is supported and means that the user
+ *                  can deal with arbitrarily fragmented outgoing data himself.
+ *                  This is DTLS-only, i.e. if \p mode is #MPS_L2_MODE_STREAM.
  *
- * \return               \c 0 on success.
- * \return               A negative error code on failure.
+ * \note            The \p max_write parameter is DTLS only. To establish the
+ *                  aforementioned write-progress guarantee for TLS, you need
+ *                  to pass \p max_write during initialization of the Layer 2
+ *                  context.
+ *
+ * \return          \c 0 on success.
+ * \return          A negative error code on failure.
  */
 int mbedtls_mps_init( mbedtls_mps *mps,
-                      mps_l3 *l3, uint8_t mode );
+                      mps_l3 *l3, uint8_t mode,
+                      size_t max_write );
 
 /**
  * \brief                Free an MPS context.

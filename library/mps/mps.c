@@ -772,7 +772,8 @@ MBEDTLS_MPS_STATIC int mps_check_write( mbedtls_mps const *mps )
 
 int mbedtls_mps_init( mbedtls_mps *mps,
                       mps_l3 *l3,
-                      uint8_t mode )
+                      uint8_t mode,
+                      size_t max_write )
 {
     TRACE_INIT( "mbedtls_mps_init" );
 
@@ -825,9 +826,24 @@ int mbedtls_mps_init( mbedtls_mps *mps,
     mps_retransmit_in_init( mps );
     mps_reassembly_init( mps );
 
-    /* TODO: Make configurable */
-    mps->dtls.io.out.hs.queue_len = 420;
-    mps->dtls.io.out.hs.queue     = malloc( 420 );
+    if( max_write > 0 )
+    {
+        unsigned char *queue = NULL;
+        TRACE( trace_comment, "Allocating L4 writer queue of size %u Bytes",
+               (unsigned) max_write );
+
+        queue = calloc( 1, max_write );
+        if( queue == NULL )
+        {
+            TRACE( trace_error, "Failed to allocate L4 writer queue." );
+            RETURN( MPS_ERR_ALLOC_FAILED );
+        }
+
+        mps->dtls.io.out.hs.queue_len = max_write;
+        mps->dtls.io.out.hs.queue     = queue;
+    }
+#else
+    ((void) max_write);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     RETURN( 0 );

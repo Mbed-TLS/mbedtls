@@ -49,6 +49,15 @@
  */
 #define L2_DEFAULT_ACCUMULATOR_SIZE 100
 #define L2_DEFAULT_QUEUE_SIZE       10
+/* The size of the queue used by DTLS-writers on
+ * Layer 4.
+ *
+ * This is passed as `max_write` in `mps_init()`; see
+ * the documentation of the latter for how they manifest
+ * as semantic guarantees on the MPS API boundary.
+ * in case of MPS.
+ */
+#define L4_DEFAULT_QUEUE_SIZE       100
 
 /* End of compile-time configuration. */
 
@@ -9412,9 +9421,9 @@ void mbedtls_mps_l4_basic_handshake(
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
-                                   mode ) == 0 );
+                                   mode, L4_DEFAULT_QUEUE_SIZE ) == 0 );
     TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
-                                   mode ) == 0 );
+                                   mode, L4_DEFAULT_QUEUE_SIZE ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
                                                &cli_epoch ) == 0 );
@@ -9665,8 +9674,10 @@ void mbedtls_mps_l4_disruption( int mode,
     TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, mode ) == 0 );
 
     /* Initialize Layer 4 */
-    TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3, mode ) == 0 );
-    TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3, mode ) == 0 );
+    TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3, mode,
+                                   L4_DEFAULT_QUEUE_SIZE ) == 0 );
+    TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3, mode,
+                                   L4_DEFAULT_QUEUE_SIZE ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
                                                &cli_epoch ) == 0 );
@@ -9847,7 +9858,7 @@ void mbedtls_mps_l4_dtls_fragmentation( int allocator_buffer_sz,
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
-    size_t hs_len    = 100;
+    size_t hs_len = L4_DEFAULT_QUEUE_SIZE;
     size_t hs_offset;
 
     unsigned iteration;
@@ -9908,9 +9919,11 @@ void mbedtls_mps_l4_dtls_fragmentation( int allocator_buffer_sz,
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
-                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+                                   MBEDTLS_MPS_MODE_DATAGRAM,
+                                   L4_DEFAULT_QUEUE_SIZE + num_hs ) == 0 );
     TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
-                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+                                   MBEDTLS_MPS_MODE_DATAGRAM,
+                                   L4_DEFAULT_QUEUE_SIZE + num_hs ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
                                                &cli_epoch ) == 0 );
@@ -10126,9 +10139,11 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
-                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+                                   MBEDTLS_MPS_MODE_DATAGRAM,
+                                   L4_DEFAULT_QUEUE_SIZE ) == 0 );
     TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
-                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+                                   MBEDTLS_MPS_MODE_DATAGRAM,
+                                   L4_DEFAULT_QUEUE_SIZE ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
                                                &cli_epoch ) == 0 );
@@ -10420,9 +10435,11 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
-                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+                                   MBEDTLS_MPS_MODE_DATAGRAM,
+                                   L4_DEFAULT_QUEUE_SIZE ) == 0 );
     TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
-                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+                                   MBEDTLS_MPS_MODE_DATAGRAM,
+                                   L4_DEFAULT_QUEUE_SIZE ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
                                                &cli_epoch ) == 0 );
@@ -10572,7 +10589,8 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
                                                  1, 1, 0 ) == 0 );
             TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
             TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
-                                           MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+                                           MBEDTLS_MPS_MODE_DATAGRAM,
+                                           L4_DEFAULT_QUEUE_SIZE ) == 0 );
 
             /* MPS owns the transform once passed to it, hence will destroy
              * it when being freed. Set it up again. */

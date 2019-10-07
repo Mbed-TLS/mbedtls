@@ -3210,6 +3210,7 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
 
         case MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_CALLBACK:
         {
+            int cb_unfinished = 0;
             mbedtls_mps_write_cb_t      const cb  = handle->handle.callback.cb;
             mbedtls_mps_write_cb_ctx_t* const ctx = handle->handle.callback.ctx;
             TRACE( trace_comment, "Retransmission via callback" );
@@ -3240,13 +3241,15 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
 
             /* Call retransmission callback. */
             ret = cb( ctx, &hs->wr_ext );
-            if( ret != 0 && ret != MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE )
+            if( ret == MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE )
+                cb_unfinished = 1;
+            else
                 MPS_CHK( ret );
 
             MPS_CHK( mps_dtls_frag_out_close( mps ) );
             MPS_CHK( mps_dtls_frag_out_dispatch( mps ) );
 
-            if( ret == MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE )
+            if( cb_unfinished == 1 )
             {
                 ret = MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED;
             }

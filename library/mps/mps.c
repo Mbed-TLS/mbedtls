@@ -1371,6 +1371,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
          * Write a handshake message on Layer 3 and forward the writer. */
         mps_l3_handshake_out hs_l3;
 
+        /* Retransmission isn't needed in TLS. */
         ((void) cb);
         ((void) cb_ctx);
 

@@ -25,12 +25,6 @@ LOCAL_CFLAGS += $(patsubst -I../3rdparty/%, -I../crypto/3rdparty/%, $(THIRDPARTY
 # on non-POSIX platforms.
 LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
 
-ifndef SHARED
-DEP=$(CRYPTO)libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
-else
-DEP=$(CRYPTO)libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
-endif
-
 ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
@@ -54,6 +48,12 @@ EXEXT=
 SHARED_SUFFIX=
 # python2 for POSIX since FreeBSD has only python2 as default.
 PYTHON ?= python2
+endif
+
+ifndef SHARED
+DEP=$(CRYPTO)libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
+else
+DEP=$(CRYPTO)libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
 endif
 
 # Zlib shared library extensions:

@@ -1958,20 +1958,24 @@ MBEDTLS_MPS_STATIC int mps_retransmission_timer_check( mbedtls_mps *mps )
     int ret = 0;
     void*                     const timer_ctx = mps->conf.p_timer;
     mbedtls_mps_get_timer_t * const get_timer = mps->conf.f_get_timer;
+    TRACE_INIT( "mps_retransmission_timer_check" );
 
     if( get_timer != NULL && get_timer( timer_ctx ) == 2 )
     {
+        TRACE( trace_comment, "Retransmission timer fired" );
         mps_retransmission_timer_stop( mps );
         switch( mps->dtls.state )
         {
             case MBEDTLS_MPS_FLIGHT_AWAIT:
                 /* TODO: Extract to function */
+                TRACE( trace_comment, "Trigger retransmission of last outgoing flight." );
                 mps->dtls.retransmit_state   = MBEDTLS_MPS_RETRANSMIT_RESEND;
                 mps->dtls.wait.resend_offset = 0;
                 break;
 
             case MBEDTLS_MPS_FLIGHT_RECEIVE:
                 /* TODO: Extract to function */
+                TRACE( trace_comment, "Trigger sending retransmission request to peer." );
                 mps->dtls.retransmit_state   = MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND;
                 mps->dtls.wait.resend_offset = 0;
                 break;
@@ -1990,7 +1994,7 @@ MBEDTLS_MPS_STATIC int mps_retransmission_timer_check( mbedtls_mps *mps )
     }
 
 exit:
-    return( ret );
+    RETURN( ret );
 }
 
 MBEDTLS_MPS_STATIC int mps_check_retransmit( mbedtls_mps *mps )

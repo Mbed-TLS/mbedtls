@@ -403,12 +403,6 @@ pre_check_git () {
     fi
 }
 
-pre_check_seedfile () {
-    if [ ! -f "./tests/seedfile" ]; then
-        dd if=/dev/urandom of=./tests/seedfile bs=32 count=1
-    fi
-}
-
 pre_setup_keep_going () {
     failure_summary=
     failure_count=0
@@ -1272,7 +1266,16 @@ run_component () {
     cp -p "$CONFIG_H" "$CONFIG_BAK"
     current_component="$1"
     export MBEDTLS_TEST_CONFIGURATION="$current_component"
+
+    # Unconditionally create a seedfile that's sufficiently long.
+    # Do this before each component, because a previous component may
+    # have messed it up or shortened it.
+    dd if=/dev/urandom of=./tests/seedfile bs=64 count=1
+
+    # Run the component code.
     "$@"
+
+    # Restore the build tree to a clean state.
     cleanup
 }
 
@@ -1282,7 +1285,6 @@ pre_initialize_variables
 pre_parse_command_line "$@"
 
 pre_check_git
-pre_check_seedfile
 
 build_status=0
 if [ $KEEP_GOING -eq 1 ]; then

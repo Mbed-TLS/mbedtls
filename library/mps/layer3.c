@@ -89,6 +89,16 @@ int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode )
 
 #if !defined(MBEDTLS_MPS_CONF_MODE)
     l3->conf.mode = mode;
+#else
+    ((void) mode);
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( mode != MBEDTLS_MPS_CONF_MODE )
+    {
+        TRACE( trace_error, "Protocol passed to mps_l3_init() doesn't match " \
+               "hardcoded protocol." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
 #endif /* !MBEDTLS_MPS_CONF_MODE */
 
     l3->io.in.state = MBEDTLS_MPS_MSG_NONE;

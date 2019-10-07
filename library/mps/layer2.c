@@ -478,6 +478,16 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
 
 #if !defined(MBEDTLS_MPS_CONF_MODE)
     ctx->conf.mode = mode;
+#else
+    ((void) mode);
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( mode != MBEDTLS_MPS_CONF_MODE )
+    {
+        TRACE( trace_error, "Protocol passed to mps_l2_init() doesn't match " \
+               "hardcoded protocol." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
 #endif /* MBEDTLS_MPS_CONF_MODE */
 
 #if !defined(MBEDTLS_MPS_CONF_VERSION)

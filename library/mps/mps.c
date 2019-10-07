@@ -780,6 +780,16 @@ int mbedtls_mps_init( mbedtls_mps *mps,
 
 #if !defined(MBEDTLS_MPS_CONF_MODE)
     mps->conf.mode = mode;
+#else
+    ((void) mode);
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( mode != MBEDTLS_MPS_CONF_MODE )
+    {
+        TRACE( trace_error, "Protocol passed to mps_l3_init() doesn't match " \
+               "hardcoded protocol." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
 #endif /* !MBEDTLS_MPS_CONF_MODE */
 
 #if !defined(MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX)

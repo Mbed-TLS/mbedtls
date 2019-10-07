@@ -454,13 +454,22 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( max_write > 0 )
+    {
+        TRACE( trace_comment, "Allocating L2 writer queue of size %u Bytes",
+               (unsigned) max_write );
         queue = malloc( max_write );
+    }
     if( max_read > 0 )
+    {
+        TRACE( trace_comment, "Allocating L2 reader accumulator of size %u Bytes",
+               (unsigned) max_read );
         accumulator = malloc( max_read );
+    }
 
     if( ( max_write > 0  && queue       == NULL ) ||
         ( max_read  > 0  && accumulator == NULL ) )
     {
+        TRACE( trace_error, "Failed to allocate queue or accumulator." );
         free( queue );
         free( accumulator );
         RETURN( MPS_ERR_ALLOC_FAILED );

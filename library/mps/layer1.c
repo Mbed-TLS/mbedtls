@@ -1064,9 +1064,8 @@ int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
 
 void mps_l1_free( mps_l1 *ctx )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = ctx->mode;
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l1_get_mode( ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -1080,9 +1079,8 @@ void mps_l1_free( mps_l1 *ctx )
 
 int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = ctx->mode;
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l1_get_mode( ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -1096,9 +1094,8 @@ int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired )
 
 int mps_l1_consume( mps_l1 *ctx )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = ctx->mode;
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l1_get_mode( ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -1112,9 +1109,8 @@ int mps_l1_consume( mps_l1 *ctx )
 
 int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = ctx->mode;
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l1_get_mode( ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -1128,9 +1124,8 @@ int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
 
 int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = ctx->mode;
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l1_get_mode( ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -1144,9 +1139,8 @@ int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
 
 int mps_l1_flush( mps_l1 *ctx )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = ctx->mode;
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l1_get_mode( ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -1160,9 +1154,8 @@ int mps_l1_flush( mps_l1 *ctx )
 
 int mps_l1_read_dependency( mps_l1 *ctx )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = ctx->mode;
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l1_get_mode( ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -1176,9 +1169,8 @@ int mps_l1_read_dependency( mps_l1 *ctx )
 
 int mps_l1_write_dependency( mps_l1 *ctx )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode = ctx->mode;
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l1_get_mode( ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -1196,7 +1188,9 @@ int mps_l1_skip( mps_l1 *ctx )
     mps_l1_dgram_read *p;
 
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    uint8_t const mode = ctx->mode;
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_l1_get_mode( ctx );
+
     if( mode != MPS_L1_MODE_DATAGRAM )
     {
         TRACE( trace_error, "mps_l1_skip() only for DTLS." );

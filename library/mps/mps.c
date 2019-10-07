@@ -368,10 +368,8 @@ MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
                               uint8_t allow_active_hs )
 {
     int ret = 0;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_clear_pending, allow_active_hs %u",
                 (unsigned) allow_active_hs );
@@ -382,6 +380,8 @@ MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
         /* If present, dispatch queueing handshake data. */
         MPS_CHK( mps_dtls_frag_out_unpause( mps, allow_active_hs ) );
     }
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* Attempt to send any pending alerts. */
@@ -406,10 +406,8 @@ MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
 MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
 {
     int ret;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mps_prepare_read" );
 
     ret = mps_check_read( mps );
@@ -464,6 +462,8 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
          * earlier one that hasn't yet completed. */
         MPS_CHK( mps_check_retransmit( mps ) );
     }
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* If a flush is pending, ensure that all outgoing data
@@ -497,10 +497,8 @@ MBEDTLS_MPS_STATIC int mps_prepare_write( mbedtls_mps *mps,
                               uint8_t allow_paused_hs )
 {
     int ret = 0;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mps_prepare_write" );
 
     ret = mps_check_write( mps );
@@ -541,6 +539,8 @@ MBEDTLS_MPS_STATIC int mps_prepare_write( mbedtls_mps *mps,
          * the timer has expired and we can wrapup the flight-exchange. */
         MPS_CHK( mps_retransmission_timer_check( mps ) );
     }
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -854,10 +854,8 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 {
     int ret;
     mbedtls_mps_msg_type_t msg;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_read" );
 
     MPS_CHK( mps_prepare_read( mps ) );
@@ -1089,10 +1087,8 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
                                 mbedtls_mps_handshake_in *hs )
 {
     int ret;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_read_handshake" );
 
     ret = mps_check_read( mps );
@@ -1165,10 +1161,8 @@ int mbedtls_mps_read_alert( mbedtls_mps const *mps,
 
 int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_write_set_flags" );
     TRACE( trace_comment, "* Flags: %02x", (unsigned) flags );
 
@@ -1185,6 +1179,8 @@ int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     if( MBEDTLS_MPS_IS_DTLS( mode ) )
         mps->in.flags = flags;
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     RETURN( 0 );
@@ -1193,10 +1189,8 @@ int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 int mbedtls_mps_read_pause( mbedtls_mps *mps )
 {
     int ret;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->in.state != MBEDTLS_MPS_MSG_HS )
@@ -1231,10 +1225,8 @@ int mbedtls_mps_read_pause( mbedtls_mps *mps )
 int mbedtls_mps_read_consume( mbedtls_mps *mps )
 {
     int ret;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_read_consume" );
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
@@ -1320,10 +1312,8 @@ int mbedtls_mps_get_sequence_number( mbedtls_mps *mps, uint8_t seq[8] )
 
 int mbedtls_mps_write_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_write_set_flags" );
     TRACE( trace_comment, "* Flags: %02x", (unsigned) flags );
 
@@ -1340,6 +1330,8 @@ int mbedtls_mps_write_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     if( MBEDTLS_MPS_IS_DTLS( mode ) )
         mps->dtls.io.out.flags = flags;
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     RETURN( 0 );
@@ -1364,10 +1356,8 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
      */
 
     int ret;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mbedtls_mps_write_handshake, type %u, length %u",
                 (unsigned) hs_new->type, (unsigned) hs_new->length );
@@ -1670,10 +1660,8 @@ int mbedtls_mps_write_ccs( mbedtls_mps *mps )
 int mbedtls_mps_write_pause( mbedtls_mps *mps )
 {
     int ret;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_write_pause" );
 
     ret = mps_check_write( mps );
@@ -1715,10 +1703,8 @@ int mbedtls_mps_write_pause( mbedtls_mps *mps )
 int mbedtls_mps_dispatch( mbedtls_mps *mps )
 {
     int ret;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_dispatch" );
 
     ret = mps_check_write( mps );

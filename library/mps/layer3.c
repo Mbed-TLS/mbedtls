@@ -139,10 +139,8 @@ int mps_l3_read( mps_l3 *l3 )
 {
     int res;
     mps_l2_in in;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_l3_conf_get_mode( &l3->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l3_read" );
 
@@ -799,10 +797,8 @@ MBEDTLS_MPS_STATIC int l3_parse_ccs( mbedtls_reader *rd )
 
 int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_l3_conf_get_mode( &l3->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l3_read_handshake" );
 
@@ -826,6 +822,8 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
         hs->frag_offset = l3->io.in.hs.frag_offset;
         hs->frag_len    = l3->io.in.hs.frag_len;
     }
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     RETURN( 0 );
@@ -935,10 +933,8 @@ MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
 
 MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr( mps_l3 *l3 )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_l3_conf_get_mode( &l3->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )
@@ -957,10 +953,8 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 {
     int res;
     int32_t len;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_l3_conf_get_mode( &l3->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l3_write_handshake" );
     TRACE( trace_comment, "Parameters: " );
@@ -1300,10 +1294,8 @@ int mps_l3_dispatch( mps_l3 *l3 )
     int res;
     size_t committed;
     size_t uncommitted;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_l3_conf_get_mode( &l3->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l3_dispatch" );
 

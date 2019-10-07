@@ -328,10 +328,8 @@ mbedtls_mps_l2_in_internal* mps_l2_readers_get_active( mbedtls_mps_l2 *ctx )
 MBEDTLS_MPS_INLINE
 void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -375,10 +373,8 @@ mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot( mbedtls_mps_l2 *ctx,
                                                     mbedtls_mps_msg_type_t type,
                                                     mbedtls_mps_epoch_id epoch )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -758,10 +754,6 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
 {
     int ret;
     mps_rec rec;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
-        mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif
 
     TRACE_INIT( "l2_out_dispatch_record" );
     TRACE( trace_comment, "Plaintext length: %u",
@@ -850,18 +842,19 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
             RETURN( ret );
 
 #if defined(MBEDTLS_MPS_ASSERT)
-        if( !( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET
+            if( !( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-               || ( MBEDTLS_MPS_IS_TLS( mode )
-                    && ctx->io.out.state ==
-                       MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING )
+                   || ( MBEDTLS_MPS_IS_TLS(
+                          mbedtls_mps_l2_conf_get_mode( &ctx->conf ) )
+                        && ctx->io.out.state ==
+                          MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-            ) )
-        {
-            TRACE( trace_error, "Unexpected writer state at the end of l2_out_dispatch_record()." );
-            RETURN( MPS_ERR_INTERNAL_ERROR );
-        }
-#endif
+                    ) )
+            {
+                TRACE( trace_error, "Unexpected writer state at the end of l2_out_dispatch_record()." );
+                RETURN( MPS_ERR_INTERNAL_ERROR );
+            }
+#endif /* MBEDTLS_MPS_ASSERT */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
         if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET )
@@ -884,10 +877,8 @@ int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     int ret = 0;
     mps_l2_bufpair const zero_bufpair = { NULL, 0, 0, 0 };
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type mode =
+    mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif
 
     TRACE_INIT( "Write protected record" );
 
@@ -1466,10 +1457,8 @@ int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx, uint8_t force )
 int mps_l2_read_done( mbedtls_mps_l2 *ctx )
 {
     int ret;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     mbedtls_mps_l2_in_internal * active;
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -1479,6 +1468,7 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
     mbedtls_mps_size_t * const paused_ptr = NULL;
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
+    ((void) mode);
     TRACE_INIT( "mps_l2_read_done" );
 
     /* This only makes sense if the active reader is currently
@@ -1672,10 +1662,8 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
     {
         /* 3 */
 
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
         mbedtls_mps_transport_type const mode =
             mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
         /* The slot we attempt to use to store payload from the new record. */
         mbedtls_mps_l2_in_internal *slot = NULL;
@@ -1983,10 +1971,8 @@ int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 MBEDTLS_MPS_STATIC
 int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l2_in_fetch_protected_record" );
 
@@ -2027,10 +2013,9 @@ int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 MBEDTLS_MPS_STATIC
 size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
 {
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     size_t const dtls12_rec_hdr_len = 13;
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
@@ -2223,10 +2208,8 @@ int l2_in_update_counter( mbedtls_mps_l2 *ctx,
                           uint32_t ctr_lo )
 {
     int ret;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif
     mbedtls_mps_l2_epoch_t *epoch;
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
@@ -2319,12 +2302,8 @@ int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
                                    uint32_t *dst_ctr )
 {
     uint32_t *src_ctr;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#else
-    ((void) ctx);
-#endif
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     MBEDTLS_MPS_IF_TLS( mode )
@@ -2515,10 +2494,8 @@ int l2_type_can_be_paused( mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
     uint32_t const flag =
         mbedtls_mps_l2_conf_get_pause_flag( &ctx->conf );
 
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     return( MBEDTLS_MPS_IS_TLS( mode ) &&
             ( flag & mask ) != 0 );
@@ -2600,10 +2577,8 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
 {
     int ret;
     mbedtls_mps_l2_epoch_t  *epoch;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l2_epoch_usage" );
     TRACE( trace_comment, "* Epoch: %d", epoch_id );
@@ -2676,6 +2651,8 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
         if( ( set & MPS_EPOCH_WRITE_MASK ) != 0 )
             ctx->epochs.default_out = epoch_id;
     }
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     epoch->usage |= set;
@@ -2869,10 +2846,8 @@ int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
     mbedtls_mps_l2_epoch_t *epoch;
     uint32_t window_top_hi, window_top_lo;
     uint32_t window;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l2_counter_replay_check, epoch %u",
                 (unsigned) epoch_id );
@@ -2880,6 +2855,8 @@ int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )
         RETURN( 0 );
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     if( mbedtls_mps_l2_conf_get_anti_replay( &ctx->conf )
@@ -2937,10 +2914,8 @@ int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
 {
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l2_force_next_sequence_number, epoch %u, ctr %u",
                 (unsigned) epoch_id, (unsigned) ctr );
@@ -2951,6 +2926,8 @@ int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
         TRACE( trace_error, "Sequence number forcing only needed and allowed in DTLS." );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
@@ -2968,10 +2945,8 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
 {
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l2_get_last_sequence_number, epoch %u",
                 (unsigned) epoch_id );
@@ -2982,6 +2957,8 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
         TRACE( trace_error, "Sequence number retrieval only needed and allowed in DTLS." );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );

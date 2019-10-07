@@ -840,6 +840,8 @@ int mbedtls_mps_free( mbedtls_mps *mps )
     mps_retransmit_in_free( mps );
     mps_reassembly_free( mps );
     free( mps->dtls.io.out.hs.queue );
+#else
+    ((void) mps);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
     return( 0 );
 }

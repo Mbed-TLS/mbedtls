@@ -2070,6 +2070,8 @@ size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
          * which have a uniform and simple record header. */
         RETURN( dtls12_rec_hdr_len );
     }
+#else
+    ((void) ctx);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 }
 
@@ -2280,6 +2282,9 @@ int l2_in_update_counter( mbedtls_mps_l2 *ctx,
             epoch->stats.dtls.replay.in_window = window;
         }
     }
+#else
+    ((void) ctr_hi);
+    ((void) ctr_lo);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     return( 0 );

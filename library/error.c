@@ -642,7 +642,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_ASN1_LENGTH_MISMATCH) )
         mbedtls_snprintf( buf, buflen, "ASN1 - Actual length differs from expected length" );
     if( use_ret == -(MBEDTLS_ERR_ASN1_INVALID_DATA) )
-        mbedtls_snprintf( buf, buflen, "ASN1 - Data is invalid. (not used)" );
+        mbedtls_snprintf( buf, buflen, "ASN1 - Data is invalid" );
     if( use_ret == -(MBEDTLS_ERR_ASN1_ALLOC_FAILED) )
         mbedtls_snprintf( buf, buflen, "ASN1 - Memory allocation failed" );
     if( use_ret == -(MBEDTLS_ERR_ASN1_BUF_TOO_SMALL) )

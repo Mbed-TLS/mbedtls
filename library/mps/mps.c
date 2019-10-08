@@ -323,7 +323,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
 /*
  * Incoming flight retransmission request
  *
- * (In DLTS 1.0 and 1.2, this is done by resending the last
+ * (In DTLS 1.0 and 1.2, this is done by resending the last
  *  outgoing flight; in DTLS 1.3, it's done using ACK's.)
  */
 
@@ -410,6 +410,7 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
         mbedtls_mps_conf_get_mode( &mps->conf );
     TRACE_INIT( "mps_prepare_read" );
 
+    /* Check that MPS isn't blocked or has its reading side closed. */
     ret = mps_check_read( mps );
     if( ret != 0 )
         RETURN( ret );
@@ -471,14 +472,16 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
      * Do not allow partially sent handshake messages. */
     MPS_CHK( mps_clear_pending( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
-    /* Note: Outgoing data that has been dispatched but not
-     *       yet flushed is not flushed automatically!
-     *       This would not be desirable in case an application
-     *       protocol is used for which multiple messages can fit
-     *       into a single DTLS-datagram, and for which incoming
-     *       messages might trigger independent responses.
-     *       In this case, a peer might loop on reading a message
-     *       and writing a response, and it, if space permits,
+    /* Note: At this point, we might still have data dispatched but
+     *       not yet flushed to the underlying transport, which is
+     *       deliberate.
+     *
+     *       Flushing all dispatched outgoing data on each read would
+     *       not be desirable in case an application protocol is used
+     *       for which multiple messages can fit into a single DTLS-datagram,
+     *       and for which incoming messages might trigger independent
+     *       responses. In this case, a peer might loop on reading a
+     *       message and writing a response, and it, if space permits,
      *       it is desirable to handle multiple such read-write
      *       with a single incoming/outgoing datagram, which
      *       wouldn't be possible if MPS always flushed outgoing
@@ -488,6 +491,10 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
      *       a handshake, though, a flush is implicit, so subsequent
      *       reads will only commence once the last outgoing flight
      *       has been fully delivered.
+     *
+     * TODO: If the I/O buffers are shared, all dispatched data
+     *       must be flushed before the next read can commence.
+     *       Implement this!
      */
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -874,10 +881,20 @@ int mbedtls_mps_read( mbedtls_mps *mps )
         mbedtls_mps_conf_get_mode( &mps->conf );
     TRACE_INIT( "mbedtls_mps_read" );
 
+    /* Take care of numerous checks that need to be performed
+     * before we can fetch a new message:
+     * - Check that MPS isn't blocked or closed.
+     * - Flush any pending outgoing handshake messages.
+     * - Complete any ongoing flight retransmissions or
+     *   retransmission requests, or trigger such if the
+     *   retransmission timer has fired.
+     */
     MPS_CHK( mps_prepare_read( mps ) );
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     /* Check if a future message has been buffered. */
+    /* TODO: This appears to be performed even outside of handshakes
+     *       -- is this deliberate? */
     if( mps_reassembly_check( mps ) == 0 )
     {
         mps->in.state = MBEDTLS_MPS_MSG_HS;
@@ -2669,6 +2686,13 @@ static inline const char * mps_flight_state_to_string(
 }
 
 MBEDTLS_MPS_INLINE
+/* Perform a retransmisison state machine transition and
+ * all necessary initialization/freeing of internal structures.
+ *
+ * The `old` state parameter indicates the expected current state
+ * of the state machine and is hence redundant in ordinary runs;
+ * it is passed solely as a safeguard.
+ */
 int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
                                                  mbedtls_mps_flight_state_t old,
                                                  mbedtls_mps_flight_state_t new )
@@ -2697,7 +2721,6 @@ int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
     if( old == MBEDTLS_MPS_FLIGHT_DONE &&
         new == MBEDTLS_MPS_FLIGHT_RECVINIT )
     {
-        /* Initialize reassembly module with provided sequence number */
         MPS_CHK( mps_reassembly_init( mps ) );
     }
     else

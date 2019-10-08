@@ -168,7 +168,7 @@ typedef uint8_t mbedtls_mps_connection_state_t;
  * I'd expect it to generate slightly smaller code. Is it actually true? */
 #define MBEDTLS_MPS_STATE_EITHER_OR( state, option_a, option_b ) \
     ( ( state & ~( option_a | option_b ) ) == 0 )
-/* This alternative would work regardless of the valus of the enumeration. */
+/* This alternative would work regardless of the values of the enumeration: */
 /* #define MBEDTLS_MPS_STATE_EITHER_OR( state, option_a, option_b ) \ */
 /*     ( ( state == option_a ) ||                                   \ */
 /*       ( state == option_b ) ) */
@@ -938,8 +938,14 @@ struct mbedtls_mps
                      * and only allocate it when necessary.
                      */
 
+                    /* TODO: Document how to infer the abstract state described
+                     *       above from the C structure instance. */
+
                     /*! The reader and extended reader managing the contents
-                     *  of the current incoming handshake message. */
+                     *  of the current incoming handshake message.
+                     *
+                     *  TODO: Document in which states this is valid.
+                     */
                     mbedtls_reader         rd;
                     mbedtls_reader_ext rd_ext;
 

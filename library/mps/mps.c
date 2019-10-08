@@ -1134,7 +1134,7 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         /* TLS */
         mps_l3_handshake_in hs_l3;
@@ -1146,9 +1146,8 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
         hs->addlen = 0; /* No additional data in TLS */
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
         MPS_CHK( mps_reassembly_read( mps, hs ) );
     }
@@ -2398,7 +2397,10 @@ MBEDTLS_MPS_STATIC int mps_reassembly_init( mbedtls_mps *mps )
 {
     uint8_t idx;
     for( idx = 0; idx < 1 + MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS; idx++ )
-        mps->dtls.io.in.incoming.reassembly[idx].status = MBEDTLS_MPS_REASSEMBLY_NONE;
+    {
+        mps->dtls.io.in.incoming.reassembly[idx].status =
+            MBEDTLS_MPS_REASSEMBLY_NONE;
+    }
 
     return( 0 );
 }
@@ -2412,8 +2414,8 @@ MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps,
 
 MBEDTLS_MPS_STATIC int mps_reassembly_check( mbedtls_mps *mps )
 {
-    mbedtls_mps_reassembly * const in = &mps->dtls.io.in.incoming;
-    mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
+    mbedtls_mps_reassembly const * const in = &mps->dtls.io.in.incoming;
+    mbedtls_mps_msg_reassembly const * const reassembly = &in->reassembly[0];
 
     switch( reassembly->status )
     {

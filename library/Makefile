@@ -146,11 +146,11 @@ libmbedx509.so: libmbedx509.$(SOEXT_X509)
 	echo "  LN    $@ -> $<"
 	ln -sf $< $@
 
-libmbedx509.dylib: $(OBJS_X509) libmbedcrypto.dylib
+libmbedx509.dylib: $(OBJS_X509) $(CRYPTO)libmbedcrypto.dylib
 	echo "  LD    $@"
 	$(CC) -dynamiclib -L. -lmbedcrypto  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
 
-libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
+libmbedx509.dll: $(OBJS_X509) $(CRYPTO)libmbedcrypto.dll
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_X509) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 

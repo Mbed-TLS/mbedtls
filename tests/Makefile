@@ -6,8 +6,21 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wunused
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
-LOCAL_LDFLAGS = -L../library			\
+# Check test environment. If ../library is available then Mbed TLS is used.
+# Otherwise Mbed OS environment is used.
+DIR_FOR_MBED_TLS_ENV=../library
+ifneq "$(wildcard $(DIR_FOR_MBED_TLS_ENV) )" ""
+	LIBRARY_DIR=../library
+	INCLUDE_DIR=-I../include
+else
+	LIBRARY_DIR=../src
+	INCLUDE_DIR=-I../inc
+	CFLAGS += "-DMBEDTLS_CONFIG_FILE=\"mbedtls/test_config.h\""
+endif
+
+LOCAL_CFLAGS = $(WARNING_CFLAGS) $(INCLUDE_DIR) -D_FILE_OFFSET_BITS=64
+
+LOCAL_LDFLAGS = -L$(LIBRARY_DIR)		\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
@@ -18,9 +31,9 @@ LOCAL_LDFLAGS = -L../library			\
 LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
 
 ifndef SHARED
-DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
+DEP=$(LIBRARY_DIR)/libmbedcrypto.a $(LIBRARY_DIR)/libmbedx509.a $(LIBRARY_DIR)/libmbedtls.a
 else
-DEP=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
+DEP=$(LIBRARY_DIR)/libmbedcrypto.$(DLEXT) $(LIBRARY_DIR)/libmbedx509.$(DLEXT) $(LIBRARY_DIR)/libmbedtls.$(DLEXT)
 endif
 
 ifdef DEBUG
@@ -77,7 +90,7 @@ BINARIES := $(addsuffix $(EXEXT),$(APPS))
 all: $(BINARIES)
 
 $(DEP):
-	$(MAKE) -C ../library
+	$(MAKE) -C $(LIBRARY_DIR) $(INCLUDE_DIR)
 
 C_FILES := $(addsuffix .c,$(APPS))
 

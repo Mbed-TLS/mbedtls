@@ -5,7 +5,20 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
+# Check test environment. If ../library is available then Mbed TLS is used.
+# Otherwise Mbed OS environment is used.
+DIR_FOR_MBED_TLS_ENV=../library
+ifneq "$(wildcard $(DIR_FOR_MBED_TLS_ENV) )" ""
+	# Set include dirs for Mbed TLS test environment
+	INCLUDE_DIRS=-I../include
+else
+	# Set include dirs for Mbed OS test environment
+	INCLUDE_DIRS=-I../inc
+	CFLAGS += "-DMBEDTLS_CONFIG_FILE=\"mbedtls/test_config.h\""
+endif
+
+LOCAL_CFLAGS = $(WARNING_CFLAGS) $(INCLUDE_DIRS) -D_FILE_OFFSET_BITS=64
+
 LOCAL_LDFLAGS =
 
 ifdef DEBUG

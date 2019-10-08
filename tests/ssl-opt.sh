@@ -71,8 +71,6 @@ TESTS=0
 FAILS=0
 SKIPS=0
 
-CONFIG_H='../include/mbedtls/config.h'
-
 MEMCHECK=0
 FILTER='.*'
 EXCLUDE='^$'
@@ -154,20 +152,6 @@ skip_next_test() {
     SKIP_NEXT="YES"
 }
 
-# skip next test if the flag is not enabled in config.h
-requires_config_enabled() {
-    if grep "^#define $1" $CONFIG_H > /dev/null; then :; else
-        SKIP_NEXT="YES"
-    fi
-}
-
-# skip next test if the flag is enabled in config.h
-requires_config_disabled() {
-    if grep "^#define $1" $CONFIG_H > /dev/null; then
-        SKIP_NEXT="YES"
-    fi
-}
-
 requires_ciphersuite_enabled() {
     if [ -z "$($P_CLI --help | grep "$1")" ]; then
         SKIP_NEXT="YES"
@@ -183,6 +167,19 @@ get_config_value_or_default() {
     # Note that if the configuration is not defined or is defined to nothing,
     # the output of this function will be an empty string.
     ${P_SRV} "query_config=${1}"
+}
+
+# skip next test if the flag is enabled in config.h
+requires_config_disabled() {
+    if get_config_value_or_default $1; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_config_enabled() {
+    if ! get_config_value_or_default $1; then
+        SKIP_NEXT="YES"
+    fi
 }
 
 requires_config_value_at_least() {
@@ -203,6 +200,17 @@ requires_config_value_at_most() {
         echo "Mbed TLS configuration $1 is not defined"
         exit 1
     elif [ "$VAL" -gt "$2" ]; then
+       SKIP_NEXT="YES"
+    fi
+}
+
+requires_config_value_exactly() {
+    VAL=$( get_config_value_or_default "$1" )
+    if [ -z "$VAL" ]; then
+        # Should never happen
+        echo "Mbed TLS configuration $1 is not defined"
+        exit 1
+    elif [ "$VAL" -ne "$2" ]; then
        SKIP_NEXT="YES"
     fi
 }
@@ -300,9 +308,20 @@ requires_not_i686() {
 }
 
 # Calculate the input & output maximum content lengths set in the config
-MAX_CONTENT_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN || echo "16384")
-MAX_IN_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_IN_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
-MAX_OUT_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_OUT_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
+MAX_CONTENT_LEN="$( get_config_value_or_default MBEDTLS_SSL_MAX_CONTENT_LEN )"
+if [ -z "$MAX_CONTENT_LEN" ]; then
+    MAX_CONTENT_LEN=16384
+fi
+
+MAX_IN_LEN="$( get_config_value_or_default MBEDTLS_SSL_IN_CONTENT_LEN )"
+if [ -z "$MAX_IN_LEN" ]; then
+    MAX_IN_LEN=$MAX_CONTENT_LEN
+fi
+
+MAX_OUT_LEN="$( get_config_value_or_default MBEDTLS_SSL_OUT_CONTENT_LEN )"
+if [ -z "$MAX_OUT_LEN" ]; then
+    MAX_OUT_LEN=$MAX_CONTENT_LEN
+fi
 
 if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
     MAX_CONTENT_LEN="$MAX_IN_LEN"
@@ -2989,11 +3008,6 @@ run_test    "Session resume using cache, DTLS: openssl server" \
 
 # Tests for Max Fragment Length extension
 
-if [ "$MAX_CONTENT_LEN" -lt "4096" ]; then
-    printf "${CONFIG_H} defines MBEDTLS_SSL_MAX_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n"
-    exit 1
-fi
-
 if [ $MAX_CONTENT_LEN -ne 16384 ]; then
     printf "Using non-default maximum content length $MAX_CONTENT_LEN\n"
 fi
@@ -3026,6 +3040,7 @@ run_test    "Max fragment length: enabled, default, larger message" \
             -s "1 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 4096
 run_test    "Max fragment length, DTLS: enabled, default, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
@@ -3043,6 +3058,7 @@ run_test    "Max fragment length, DTLS: enabled, default, larger message" \
 # content length configuration.)
 
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 16384
 run_test    "Max fragment length: disabled, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
@@ -3054,6 +3070,7 @@ run_test    "Max fragment length: disabled, larger message" \
             -s "1 bytes read"
 
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 16384
 run_test    "Max fragment length DTLS: disabled, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
@@ -3063,6 +3080,7 @@ run_test    "Max fragment length DTLS: disabled, larger message" \
             -c "fragment larger than.*maximum "
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 4096
 run_test    "Max fragment length: used by client" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=4096" \
@@ -3075,6 +3093,7 @@ run_test    "Max fragment length: used by client" \
             -c "found max_fragment_length extension"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 4096
 run_test    "Max fragment length: used by server" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3" \
@@ -3087,6 +3106,7 @@ run_test    "Max fragment length: used by server" \
             -C "found max_fragment_length extension"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 4096
 requires_gnutls
 run_test    "Max fragment length: gnutls server" \
             "$G_SRV" \
@@ -3097,6 +3117,7 @@ run_test    "Max fragment length: gnutls server" \
             -c "found max_fragment_length extension"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 2048
 run_test    "Max fragment length: client, message just fits" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2048" \
@@ -3111,6 +3132,7 @@ run_test    "Max fragment length: client, message just fits" \
             -s "2048 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 2048
 run_test    "Max fragment length: client, larger message" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 max_frag_len=2048 request_size=2345" \
@@ -3126,6 +3148,7 @@ run_test    "Max fragment length: client, larger message" \
             -s "297 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+requires_config_value_at_least "MBEDTLS_SSL_MAX_CONTENT_LEN" 2048
 run_test    "Max fragment length: DTLS client, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
             "$P_CLI debug_level=3 dtls=1 max_frag_len=2048 request_size=2345" \
@@ -3951,21 +3974,10 @@ run_test    "Authentication: client no cert, ssl3" \
 # default value (8)
 
 MAX_IM_CA='8'
-MAX_IM_CA_CONFIG=$( ../scripts/config.pl get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
-
-if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
-    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
-    printf "MBEDTLS_X509_MAX_INTERMEDIATE_CA that is different from the script’s\n"
-    printf "test value of ${MAX_IM_CA}. \n"
-    printf "\n"
-    printf "The tests assume this value and if it changes, the tests in this\n"
-    printf "script should also be adjusted.\n"
-    printf "\n"
-
-    exit 1
-fi
+MAX_IM_CA_CONFIG="$( get_config_value_or_default MBEDTLS_X509_MAX_INTERMEDIATE_CA )"
 
 requires_full_size_output_buffer
+requires_config_value_exactly "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
 run_test    "Authentication: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
@@ -3974,6 +3986,7 @@ run_test    "Authentication: server max_int chain, client default" \
             -C "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
+requires_config_value_exactly "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
 run_test    "Authentication: server max_int+1 chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -3982,6 +3995,7 @@ run_test    "Authentication: server max_int+1 chain, client default" \
             -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
+requires_config_value_exactly "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
 run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -3991,6 +4005,7 @@ run_test    "Authentication: server max_int+1 chain, client optional" \
             -c "X509 - A fatal error occurred"
 
 requires_full_size_output_buffer
+requires_config_value_exactly "MBEDTLS_X509_MAX_INTERMEDIATE_CA" 8
 run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \

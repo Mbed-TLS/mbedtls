@@ -2257,6 +2257,18 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
     TRACE( trace_comment, "Sequence number of next HS message: %u",
            (unsigned) mps->dtls.seq_nr );
 
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    {
+        TRACE( trace_error, "Trying to use reassembly module outside of "
+                            "RECEIVE and RECVINIT state." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
+
     seq_nr = hs->seq_nr;
     seq_nr_offset = seq_nr - mps->dtls.seq_nr;
 
@@ -2412,7 +2424,21 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
 MBEDTLS_MPS_STATIC int mps_reassembly_free( mbedtls_mps *mps )
 {
     ((void) mps);
-    return( 0 );
+    TRACE_INIT( "mps_reassembly_free" );
+
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    {
+        TRACE( trace_error, "Trying to use reassembly module outside of "
+                            "RECEIVE and RECVINIT state." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
+
+    RETURN( 0 );
 }
 
 MBEDTLS_MPS_STATIC int mps_reassembly_init( mbedtls_mps *mps )
@@ -2430,27 +2456,57 @@ MBEDTLS_MPS_STATIC int mps_reassembly_init( mbedtls_mps *mps )
 MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps,
                                    uint8_t *seq_nr )
 {
+    TRACE_INIT( "mps_reassembly_get_seq" );
+
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    {
+        TRACE( trace_error, "Trying to use reassembly module outside of "
+                            "RECEIVE and RECVINIT state." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
+
     *seq_nr = mps->dtls.seq_nr;
-    return( 0 );
+    RETURN( 0 );
 }
 
 MBEDTLS_MPS_STATIC int mps_reassembly_check( mbedtls_mps *mps )
 {
-    mbedtls_mps_reassembly const * const in = &mps->dtls.io.in.incoming;
-    mbedtls_mps_msg_reassembly const * const reassembly = &in->reassembly[0];
+    mbedtls_mps_reassembly const * in;
+    mbedtls_mps_msg_reassembly const * reassembly;
+    TRACE_INIT( "mps_reassembly_check" );
+
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    {
+        TRACE( trace_error, "Trying to use reassembly module outside of "
+                            "RECEIVE and RECVINIT state." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
+
+    in = &mps->dtls.io.in.incoming;
+    reassembly = &in->reassembly[0];
 
     switch( reassembly->status )
     {
         case MBEDTLS_MPS_REASSEMBLY_NO_FRAGMENTATION:
-            return( 0 );
+            RETURN( 0 );
 
         case MBEDTLS_MPS_REASSEMBLY_WINDOW:
             if( reassembly->data.window.bitmask == NULL )
-                return( 0 );
+                RETURN( 0 );
 
             /* Deliberately fall through here. */
         default:
-            return( -1 );
+            RETURN( -1 );
     }
 
 }
@@ -2462,6 +2518,18 @@ MBEDTLS_MPS_STATIC int mps_reassembly_read( mbedtls_mps *mps,
     mbedtls_mps_reassembly * const in = &mps->dtls.io.in.incoming;
     mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_read" );
+
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    {
+        TRACE( trace_error, "Trying to use reassembly module outside of "
+                            "RECEIVE and RECVINIT state." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
 
     hs->length = reassembly->length;
     hs->type   = reassembly->type;
@@ -2501,6 +2569,18 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     mbedtls_mps_reassembly * const in = &mps->dtls.io.in.incoming;
     mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_done" );
+
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    {
+        TRACE( trace_error, "Trying to use reassembly module outside of "
+                            "RECEIVE and RECVINIT state." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
 
     if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW )
     {
@@ -2547,6 +2627,18 @@ MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
     mbedtls_mps_msg_reassembly * const reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_next_msg_complete" );
 
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    {
+        TRACE( trace_error, "Trying to use reassembly module outside of "
+                            "RECEIVE and RECVINIT state." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
+
     if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW &&
         reassembly->data.window.bitmask == NULL )
     {
@@ -2569,7 +2661,21 @@ MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
 MBEDTLS_MPS_STATIC int mps_reassembly_pause( mbedtls_mps *mps )
 {
     ((void) mps);
-    return( MPS_ERR_UNSUPPORTED_FEATURE );
+    TRACE_INIT( "mps_reassembly_pause" );
+
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    {
+        TRACE( trace_error, "Trying to use reassembly module outside of "
+                            "RECEIVE and RECVINIT state." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
+
+    RETURN( MPS_ERR_UNSUPPORTED_FEATURE );
 }
 
 MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps )
@@ -2578,6 +2684,18 @@ MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps )
     int ret = 0;
     mbedtls_mps_reassembly * const in = &mps->dtls.io.in.incoming;
     TRACE_INIT( "mps_reassembly_forget" );
+
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    {
+        TRACE( trace_error, "Trying to use reassembly module outside of "
+                            "RECEIVE and RECVINIT state." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_MPS_ASSERT */
 
     /* Check that there are no more buffered messages.
      * This catches the situation where the peer sends

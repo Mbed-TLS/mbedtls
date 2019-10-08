@@ -2956,6 +2956,46 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
     {
         mbedtls_mps_hs_seq_nr_t seq_nr = hs_l3.seq_nr;
 
+        /* Only start handshakes with initial handshake fragments.
+         *
+         * This is a heuristic to deal especially with the following situation:
+         * If a DTLS server receives a proper fragment of a ClientHello message
+         * without cookie, which is large enough to determine that there's no
+         * cookie to follow, then the server might send its HelloVerifyRequest
+         * straight away and reset in order to avoid allocation of state.
+         * If subsequent later fragments of the ClientHello are still in flight,
+         * they might be received by the re-started server earlier than the new
+         * ClientHello that contains the cookie, and they would therefore
+         * mistakenly be viewed as initiating a new handshake. In particular,
+         * they would miscalibrate the server's initial handshake sequence number
+         * to 0, leading to discarding or indefinite buffering of the new
+         * ClientHello+Cookie, which will have handshake sequence number 1.
+         *
+         * To deal with this situation, we only consider initial fragments
+         * when starting new handshakes.
+         *
+         * NOTE: So far, MPS is _not_ DoS resistant in the face of fragmented
+         *       ClientHello's: If a proper fragment of a ClientHello comes in,
+         *       it be fed into a new reassembly structure as for any other message.
+         *       This needs to be changed at some point. */
+        if( hs_l3.frag_offset != 0 )
+        {
+            mbedtls_reader_ext *hs_rd_ext;
+            unsigned char *tmp;
+
+            TRACE( trace_comment, "Discard non-initial fragments outside of handshake." );
+
+            /* Layer 3 will error out if we don't fully consume a fragment,
+             * so fetch and commit it even if we don't consider the contents. */
+            /* TODO: This could be moved to an 'abort' function on Layer 3. */
+            hs_rd_ext = hs_l3.rd_ext;
+            MPS_CHK( mbedtls_reader_get_ext( hs_rd_ext, hs_l3.frag_len, &tmp, NULL ) );
+            MPS_CHK( mbedtls_reader_commit_ext( hs_rd_ext ) );
+
+            MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
+            MPS_CHK( MBEDTLS_ERR_MPS_NO_FORWARD );
+        }
+
         /* DTLS suffers from the following ambiguity:
          * For the purpose of DoS mitigation a server receiving
          * a cookieless ClientHello may reply with a HelloVerifyRequest

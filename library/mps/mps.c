@@ -912,7 +912,9 @@ int mbedtls_mps_read( mbedtls_mps *mps )
             MBEDTLS_MPS_FLIGHT_RECVINIT,
             MBEDTLS_MPS_FLIGHT_RECEIVE ) )
     {
-        if( mps_reassembly_check( mps ) == 0 )
+        ret = mps_reassembly_check( mps );
+        MPS_CHK( ret );
+        if( ret == 0 )
         {
             mps->in.state = MBEDTLS_MPS_MSG_HS;
             RETURN( MBEDTLS_MPS_MSG_HS );
@@ -2506,7 +2508,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_check( mbedtls_mps *mps )
 
             /* Deliberately fall through here. */
         default:
-            RETURN( -1 );
+            RETURN( 1 );
     }
 
 }

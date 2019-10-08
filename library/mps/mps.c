@@ -907,12 +907,16 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     /* Check if a future message has been buffered. */
-    /* TODO: This appears to be performed even outside of handshakes
-     *       -- is this deliberate? */
-    if( mps_reassembly_check( mps ) == 0 )
+    if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT,
+            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
     {
-        mps->in.state = MBEDTLS_MPS_MSG_HS;
-        RETURN( MBEDTLS_MPS_MSG_HS );
+        if( mps_reassembly_check( mps ) == 0 )
+        {
+            mps->in.state = MBEDTLS_MPS_MSG_HS;
+            RETURN( MBEDTLS_MPS_MSG_HS );
+        }
     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 

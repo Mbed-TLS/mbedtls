@@ -1013,6 +1013,9 @@ psa_status_t psa_destroy_key( psa_key_handle_t handle )
     psa_se_drv_table_entry_t *driver;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+    if( handle == 0 )
+        return( PSA_SUCCESS );
+
     status = psa_get_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );

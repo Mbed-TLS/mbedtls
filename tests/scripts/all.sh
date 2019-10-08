@@ -633,6 +633,22 @@ component_test_default_cmake_gcc_asan () {
     if_build_succeeded tests/compat.sh
 }
 
+component_test_full_cmake_gcc_asan () {
+    msg "build: full config, cmake, gcc, ASan"
+    scripts/config.pl full
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: main suites (inc. selftests) (full config, ASan build)"
+    make test
+
+    msg "test: ssl-opt.sh (full config, ASan build)"
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: compat.sh (full config, ASan build)"
+    if_build_succeeded tests/compat.sh
+}
+
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -793,7 +809,6 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     CC=clang cmake -D LINK_WITH_PTHREAD=1 -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
     make
 
@@ -1004,7 +1019,6 @@ component_test_check_params_functionality () {
     scripts/config.pl full # includes CHECK_PARAMS
     # Make MBEDTLS_PARAM_FAILED call mbedtls_param_failed().
     scripts/config.pl unset MBEDTLS_CHECK_PARAMS_ASSERT
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     # Only build and run tests. Do not build sample programs, because
     # they don't have a mbedtls_param_failed() function.
     make CC=gcc CFLAGS='-Werror -O1' lib test
@@ -1014,8 +1028,6 @@ component_test_check_params_without_platform () {
     msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
     scripts/config.pl full # includes CHECK_PARAMS
     # Keep MBEDTLS_PARAM_FAILED as assert.
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
@@ -1030,7 +1042,6 @@ component_test_check_params_without_platform () {
 component_test_check_params_silent () {
     msg "build+test: MBEDTLS_CHECK_PARAMS with alternative MBEDTLS_PARAM_FAILED()"
     scripts/config.pl full # includes CHECK_PARAMS
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     # Set MBEDTLS_PARAM_FAILED to nothing.
     sed -i 's/.*\(#define MBEDTLS_PARAM_FAILED( cond )\).*/\1/' "$CONFIG_H"
     make CC=gcc PTHREAD=1 CFLAGS='-Werror -O1' all test
@@ -1051,7 +1062,6 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl unset MBEDTLS_FS_IO
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
@@ -1090,6 +1100,34 @@ component_build_no_sockets () {
     scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
     make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' lib
+}
+
+component_test_memory_buffer_allocator_backtrace () {
+    msg "build: default config with memory buffer allocator and backtrace enabled"
+    scripts/config.pl set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
+    scripts/config.pl set MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.pl set MBEDTLS_MEMORY_DEBUG
+    CC=gcc cmake .
+    make
+
+    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
+    make test
+}
+
+component_test_memory_buffer_allocator () {
+    msg "build: default config with memory buffer allocator"
+    scripts/config.pl set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
+    CC=gcc cmake .
+    make
+
+    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
+    make test
+
+    msg "test: ssl-opt.sh, MBEDTLS_MEMORY_BUFFER_ALLOC_C"
+    # MBEDTLS_MEMORY_BUFFER_ALLOC is slow. Skip tests that tend to time out.
+    if_build_succeeded tests/ssl-opt.sh -e '^DTLS proxy'
 }
 
 component_test_no_max_fragment_length () {
@@ -1262,9 +1300,6 @@ component_test_m32_o0 () {
     # Build once with -O0, to compile out the i386 specific inline assembly
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
     make CC=gcc PTHREAD=1 CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32'
 
     msg "test: i386, make, gcc -O0 (ASan build)"
@@ -1281,9 +1316,6 @@ component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
     make CC=gcc PTHREAD=1 CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32'
 
     msg "test: i386, make, gcc -O1 (ASan build)"
@@ -1346,7 +1378,6 @@ component_test_have_int64 () {
 component_test_no_udbl_division () {
     msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
     make CFLAGS='-Werror -O1'
 
@@ -1357,7 +1388,6 @@ component_test_no_udbl_division () {
 component_test_no_64bit_multiplication () {
     msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
     scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
     make CFLAGS='-Werror -O1'
 

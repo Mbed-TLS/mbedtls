@@ -2894,6 +2894,17 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
     if( old == MBEDTLS_MPS_FLIGHT_RECVINIT &&
         new == MBEDTLS_MPS_FLIGHT_DONE )
     {
+        /* Clear the reassembly module; this fails if we attempt
+         * to close a flight if there are still some future messages
+         * buffered; this could happen e.g. if a Client sends its
+         * ClientKeyExchange immediately after the ClientHello,
+         * not waiting until it has received the ServerHello,
+         * and the server receives and buffer the ClientKeyExchange
+         * before the ClientHello.
+         *
+         * TODO: Does this endanger compatibility? */
+        MPS_CHK( mps_reassembly_forget( mps ) );
+
         /* It is possible that we have already received some handshake
          * message fragments from the peer -- delete these. See the
          * documentation of mbedtls_mps_retransmission_handle_incoming_fragment()
@@ -2911,6 +2922,10 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
          *       \c mbedtls_mps_retransmission_handle_incoming_fragment()
          *       for more. */
         MPS_CHK( mps_out_flight_forget( mps ) );
+
+        /* As for RECVINIT -> DONE */
+        MPS_CHK( mps_reassembly_forget( mps ) );
+        MPS_CHK( mps_reassembly_free( mps ) );
 
         /* Keep memory of last incoming flight intact. */
     }
@@ -3263,17 +3278,6 @@ MBEDTLS_MPS_STATIC int mps_retransmission_finish_incoming_message( mbedtls_mps *
     if( flags == MBEDTLS_MPS_FLIGHT_END )
     {
         TRACE( trace_comment, "Incoming message ends a flight. Switch to PREPARE state." );
-
-        /* Clear the reassembly module; this fails if we attempt
-         * to close a flight if there are still some future messages
-         * buffered; this could happen e.g. if a Client sends its
-         * ClientKeyExchange immediately after the ClientHello,
-         * not waiting until it has received the ServerHello,
-         * and the server receives and buffer the ClientKeyExchange
-         * before the ClientHello.
-         *
-         * TODO: Does this endanger compatibility? */
-        MPS_CHK( mps_reassembly_forget( mps ) );
 
         MPS_CHK( mps_handshake_state_transition(
                      mps,

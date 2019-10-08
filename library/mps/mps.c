@@ -242,6 +242,17 @@ MBEDTLS_MPS_ALWAYS_INLINE int mps_retransmission_state_machine_transition(
                                                mbedtls_mps_flight_state_t old,
                                                mbedtls_mps_flight_state_t new );
 
+MBEDTLS_MPS_ALWAYS_INLINE mbedtls_mps_flight_state_t
+mps_get_handshake_state( mbedtls_mps *mps )
+{
+    /* NOTE: To RAM, and likely also some code on Thumb, it should
+     *       be considered to allocate the retransmission state machine
+     *       only when a handshake is active -- in this case, this
+     *       function should check whether it's present first, and
+     *       return MBEDTLS_MPS_FLIGHT_DONE if not. */
+    return( mps->dtls.state );
+}
+
 /*
  * Read interface to the retransmission state machine.
  */
@@ -445,8 +456,10 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
     {
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
         /* Reject read requests when sending flights. */
-        if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_SEND ||
-            mps->dtls.state == MBEDTLS_MPS_FLIGHT_PREPARE )
+        if( MBEDTLS_MPS_STATE_EITHER_OR(
+                mps_get_handshake_state( mps ),
+                MBEDTLS_MPS_FLIGHT_SEND,
+                MBEDTLS_MPS_FLIGHT_PREPARE ) )
         {
             TRACE( trace_error, "Refuse read request when sending flights." );
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
@@ -532,12 +545,13 @@ MBEDTLS_MPS_STATIC int mps_prepare_write( mbedtls_mps *mps,
          * those are sent through mbedtls_mps_send_fatal()
          * which does not call this function. */
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-        if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( mps->dtls.state,
-                                                MBEDTLS_MPS_FLIGHT_AWAIT,
-                                                MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+        if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+                mps_get_handshake_state( mps ),
+                MBEDTLS_MPS_FLIGHT_AWAIT,
+                MBEDTLS_MPS_FLIGHT_RECEIVE ) )
         {
             TRACE( trace_error, "Attempt to send message in an unexpected flight state %u",
-                   (unsigned) mps->dtls.state );
+                   (unsigned) mps_get_handshake_state( mps ) );
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
         }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
@@ -1437,7 +1451,8 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
          *
          * TODO: Test this!
          */
-        if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_FINALIZE )
+        if( mps_get_handshake_state( mps )
+              == MBEDTLS_MPS_FLIGHT_FINALIZE )
         {
             TRACE( trace_comment, "Last flight-exchange complete for us, but not necessarily for peer - ignore." );
             MPS_CHK( mps_retransmission_state_machine_transition(
@@ -1445,7 +1460,8 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                          MBEDTLS_MPS_FLIGHT_FINALIZE,
                          MBEDTLS_MPS_FLIGHT_DONE ) );
         }
-        else if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_RECVINIT )
+        else if( mps_get_handshake_state( mps )
+                   == MBEDTLS_MPS_FLIGHT_RECVINIT )
         {
             MPS_CHK( mps_retransmission_state_machine_transition(
                          mps,
@@ -1454,7 +1470,8 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
         }
 
         /* No `else` because we want to fall through. */
-        if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_DONE )
+        if( mps_get_handshake_state( mps )
+              == MBEDTLS_MPS_FLIGHT_DONE )
         {
             TRACE( trace_comment, "No flight-exchange in progress. Start a new one" );
             mps->dtls.seq_nr = MPS_INITIAL_HS_SEQ_NR;
@@ -1463,7 +1480,8 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                          MBEDTLS_MPS_FLIGHT_DONE,
                          MBEDTLS_MPS_FLIGHT_SEND ) );
         }
-        else if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_PREPARE )
+        else if( mps_get_handshake_state( mps )
+                   == MBEDTLS_MPS_FLIGHT_PREPARE )
         {
             MPS_CHK( mps_retransmission_state_machine_transition(
                          mps,
@@ -1980,7 +1998,7 @@ MBEDTLS_MPS_STATIC int mps_retransmission_timer_check( mbedtls_mps *mps )
     {
         TRACE( trace_comment, "Retransmission timer fired" );
         mps_retransmission_timer_stop( mps );
-        switch( mps->dtls.state )
+        switch( mps_get_handshake_state( mps ) )
         {
             case MBEDTLS_MPS_FLIGHT_AWAIT:
                 /* TODO: Extract to function */
@@ -2704,12 +2722,13 @@ int mps_retransmission_state_machine_transition( mbedtls_mps *mps,
                 (unsigned) old, mps_flight_state_to_string( old ),
                 (unsigned) new, mps_flight_state_to_string( new ) );
 #if defined(MBEDTLS_MPS_ASSERT)
-    if( mps->dtls.state != old )
+    if( mps_get_handshake_state( mps ) != old )
     {
         TRACE( trace_error, "Mismatched flight state: expected %u (%s), got %u (%s)",
                (unsigned) old, mps_flight_state_to_string( old ),
-               (unsigned) mps->dtls.state,
-               mps_flight_state_to_string( mps->dtls.state ) );
+               (unsigned) mps_get_handshake_state( mps ),
+               mps_flight_state_to_string(
+                   mps_get_handshake_state( mps ) ) );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
@@ -2874,9 +2893,10 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
     /* 1. Check if the message is recognized as a retransmission
      *    from an old flight. */
 
-    if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( mps->dtls.state,
-                                            MBEDTLS_MPS_FLIGHT_AWAIT,
-                                            MBEDTLS_MPS_FLIGHT_FINALIZE ) )
+    if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+            mps_get_handshake_state( mps ),
+            MBEDTLS_MPS_FLIGHT_AWAIT,
+            MBEDTLS_MPS_FLIGHT_FINALIZE ) )
     {
         TRACE( trace_comment, "Check if the fragment is a retransmission from an old flight." );
         ret = mps_retransmit_in_check( mps, &hs_l3 );
@@ -2936,14 +2956,15 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
          *       backup buffers at this point.
          */
 
-        if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_AWAIT )
+        if( mps_get_handshake_state( mps ) == MBEDTLS_MPS_FLIGHT_AWAIT )
         {
             TRACE( trace_comment, "Switch from AWAIT to RECEIVE state" );
             MPS_CHK( mps_retransmission_state_machine_transition( mps,
                                                  MBEDTLS_MPS_FLIGHT_AWAIT,
                                                  MBEDTLS_MPS_FLIGHT_RECEIVE ) );
         }
-        else /* if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_FINALIZE ) */
+        else /* if( mps_get_handshake_state( mps )
+                      == MBEDTLS_MPS_FLIGHT_FINALIZE ) */
         {
             TRACE( trace_comment, "Switch from FINALIZE to DONE state" );
             MPS_CHK( mps_retransmission_state_machine_transition( mps,
@@ -2952,7 +2973,7 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
         }
     }
 
-    if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_DONE )
+    if( mps_get_handshake_state( mps ) == MBEDTLS_MPS_FLIGHT_DONE )
     {
         mbedtls_mps_hs_seq_nr_t seq_nr = hs_l3.seq_nr;
 
@@ -3065,7 +3086,7 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
     else
         MPS_CHK( ret );
 
-    if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_RECVINIT )
+    if( mps_get_handshake_state( mps ) == MBEDTLS_MPS_FLIGHT_RECVINIT )
     {
         uint64_t rec_ctr;
 

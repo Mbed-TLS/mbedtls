@@ -3,10 +3,19 @@
 #include "mbedtls/entropy_poll.h"
 #include "string.h"
 
-/*
- * Number of calls made to entropy_dummy_source()
- */
-static size_t entropy_dummy_calls;
+typedef enum
+{
+    DUMMY_CONSTANT_LENGTH, /* Output context->length bytes */
+    DUMMY_REQUESTED_LENGTH, /* Output whatever length was requested */
+    DUMMY_FAIL, /* Return an error code */
+} entropy_dummy_instruction;
+
+typedef struct
+{
+    entropy_dummy_instruction instruction;
+    size_t length; /* Length to return for DUMMY_CONSTANT_LENGTH */
+    size_t calls; /* Incremented at each call */
+} entropy_dummy_context;
 
 /*
  * Dummy entropy source
@@ -14,25 +23,25 @@ static size_t entropy_dummy_calls;
  * If data is NULL, write exactly the requested length.
  * Otherwise, write the length indicated by data or error if negative
  */
-static int entropy_dummy_source( void *data, unsigned char *output,
+static int entropy_dummy_source( void *arg, unsigned char *output,
                                  size_t len, size_t *olen )
 {
-    entropy_dummy_calls++;
+    entropy_dummy_context *context = arg;
+    ++context->calls;
 
-    if( data == NULL )
-        *olen = len;
-    else
+    switch( context->instruction )
     {
-        int *d = (int *) data;
-
-        if( *d < 0 )
+        case DUMMY_CONSTANT_LENGTH:
+            *olen = context->length;
+            break;
+        case DUMMY_REQUESTED_LENGTH:
+            *olen = len;
+            break;
+        case DUMMY_FAIL:
             return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
-        else
-            *olen = *d;
     }
 
     memset( output, 0x2a, *olen );
-
     return( 0 );
 }
 
@@ -144,6 +153,7 @@ void entropy_too_many_sources(  )
 {
     mbedtls_entropy_context ctx;
     size_t i;
+    entropy_dummy_context dummy = {DUMMY_REQUESTED_LENGTH, 0, 0};
 
     mbedtls_entropy_init( &ctx );
 
@@ -152,10 +162,10 @@ void entropy_too_many_sources(  )
      * since we don't know how many sources were automatically added.
      */
     for( i = 0; i < MBEDTLS_ENTROPY_MAX_SOURCES; i++ )
-        (void) mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL,
+        (void) mbedtls_entropy_add_source( &ctx, entropy_dummy_source, &dummy,
                                            16, MBEDTLS_ENTROPY_SOURCE_WEAK );
 
-    TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source, NULL,
+    TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source, &dummy,
                                              16, MBEDTLS_ENTROPY_SOURCE_WEAK )
                  == MBEDTLS_ERR_ENTROPY_MAX_SOURCES );
 
@@ -197,13 +207,13 @@ void entropy_func_len( int len, int ret )
 void entropy_source_fail( char * path )
 {
     mbedtls_entropy_context ctx;
-    int fail = -1;
     unsigned char buf[16];
+    entropy_dummy_context dummy = {DUMMY_FAIL, 0, 0};
 
     mbedtls_entropy_init( &ctx );
 
     TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source,
-                                             &fail, 16,
+                                             &dummy, 16,
                                              MBEDTLS_ENTROPY_SOURCE_WEAK )
                  == 0 );
 
@@ -229,16 +239,16 @@ exit:
 void entropy_threshold( int threshold, int chunk_size, int result )
 {
     mbedtls_entropy_context ctx;
+    entropy_dummy_context dummy = {DUMMY_CONSTANT_LENGTH, chunk_size, 0};
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE] = { 0 };
     int ret;
 
     mbedtls_entropy_init( &ctx );
 
     TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source,
-                                     &chunk_size, threshold,
+                                     &dummy, threshold,
                                      MBEDTLS_ENTROPY_SOURCE_WEAK ) == 0 );
 
-    entropy_dummy_calls = 0;
     ret = mbedtls_entropy_func( &ctx, buf, sizeof( buf ) );
 
     if( result >= 0 )
@@ -248,7 +258,7 @@ void entropy_threshold( int threshold, int chunk_size, int result )
         // Two times as much calls due to the NV seed update
         result *= 2;
 #endif
-        TEST_ASSERT( entropy_dummy_calls == (size_t) result );
+        TEST_ASSERT( dummy.calls == (size_t) result );
     }
     else
     {

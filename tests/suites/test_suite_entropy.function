@@ -45,7 +45,6 @@ static int entropy_dummy_source( void *arg, unsigned char *output,
     return( 0 );
 }
 
-#if defined(MBEDTLS_ENTROPY_NV_SEED)
 /*
  * Ability to clear entropy sources to allow testing with just predefined
  * entropy sources. This function or tests depending on it might break if there
@@ -57,11 +56,12 @@ static int entropy_dummy_source( void *arg, unsigned char *output,
  * This might break memory checks in the future if sources need 'free-ing' then
  * as well.
  */
-void entropy_clear_sources( mbedtls_entropy_context *ctx )
+static void entropy_clear_sources( mbedtls_entropy_context *ctx )
 {
     ctx->source_count = 0;
 }
 
+#if defined(MBEDTLS_ENTROPY_NV_SEED)
 /*
  * NV seed read/write functions that use a buffer instead of a file
  */
@@ -142,6 +142,22 @@ void entropy_seed_file( char * path, int ret )
 
     TEST_ASSERT( mbedtls_entropy_write_seed_file( &ctx, path ) == ret );
     TEST_ASSERT( mbedtls_entropy_update_seed_file( &ctx, path ) == ret );
+
+exit:
+    mbedtls_entropy_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void entropy_no_sources( )
+{
+    mbedtls_entropy_context ctx;
+    unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
+
+    mbedtls_entropy_init( &ctx );
+    entropy_clear_sources( &ctx );
+    TEST_EQUAL( mbedtls_entropy_func( &ctx, buf, sizeof( buf ) ),
+                MBEDTLS_ERR_ENTROPY_NO_SOURCES_DEFINED );
 
 exit:
     mbedtls_entropy_free( &ctx );

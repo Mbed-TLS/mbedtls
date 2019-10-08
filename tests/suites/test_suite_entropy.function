@@ -286,6 +286,49 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void entropy_calls( int strength1, int strength2,
+                    int threshold, int chunk_size,
+                    int result )
+{
+    /*
+     * if result >= 0: result = expected number of calls to source 1
+     * if result < 0: result = expected return code from mbedtls_entropy_func()
+     */
+
+    mbedtls_entropy_context ctx;
+    entropy_dummy_context dummy1 = {DUMMY_CONSTANT_LENGTH, chunk_size, 0};
+    entropy_dummy_context dummy2 = {DUMMY_CONSTANT_LENGTH, chunk_size, 0};
+    unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE] = { 0 };
+    int ret;
+
+    mbedtls_entropy_init( &ctx );
+    entropy_clear_sources( &ctx );
+
+    TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source,
+                                             &dummy1, threshold,
+                                             strength1 ) == 0 );
+    TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source,
+                                             &dummy2, threshold,
+                                             strength2 ) == 0 );
+
+    ret = mbedtls_entropy_func( &ctx, buf, sizeof( buf ) );
+
+    if( result >= 0 )
+    {
+        TEST_ASSERT( ret == 0 );
+        TEST_ASSERT( dummy1.calls == (size_t) result );
+    }
+    else
+    {
+        TEST_ASSERT( ret == result );
+    }
+
+exit:
+    mbedtls_entropy_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO */
 void nv_seed_file_create(  )
 {

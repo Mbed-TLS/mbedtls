@@ -680,11 +680,15 @@
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_DERIVATION)
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
-
+/** MD2 */
 #define PSA_ALG_MD2                             ((psa_algorithm_t)0x01000001)
+/** MD4 */
 #define PSA_ALG_MD4                             ((psa_algorithm_t)0x01000002)
+/** MD5 */
 #define PSA_ALG_MD5                             ((psa_algorithm_t)0x01000003)
+/** PSA_ALG_RIPEMD160 */
 #define PSA_ALG_RIPEMD160                       ((psa_algorithm_t)0x01000004)
+/** SHA1 */
 #define PSA_ALG_SHA_1                           ((psa_algorithm_t)0x01000005)
 /** SHA2-224 */
 #define PSA_ALG_SHA_224                         ((psa_algorithm_t)0x01000008)

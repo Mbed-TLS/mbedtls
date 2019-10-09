@@ -222,8 +222,15 @@ psa_status_t psa_find_se_slot_for_key(
         if( p_validate_slot_number == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         status = p_validate_slot_number( &driver->context,
+                                         driver->internal.persistent_data,
                                          attributes, method,
                                          *slot_number );
+    }
+    else if( method == PSA_KEY_CREATION_REGISTER )
+    {
+        /* The application didn't specify a slot number. This doesn't
+         * make sense when registering a slot. */
+        return( PSA_ERROR_INVALID_ARGUMENT );
     }
     else
     {
@@ -263,6 +270,31 @@ psa_status_t psa_destroy_se_key( psa_se_drv_table_entry_t *driver,
         slot_number );
     storage_status = psa_save_se_persistent_data( driver );
     return( status == PSA_SUCCESS ? storage_status : status );
+}
+
+psa_status_t psa_init_all_se_drivers( void )
+{
+    size_t i;
+    for( i = 0; i < PSA_MAX_SE_DRIVERS; i++ )
+    {
+        psa_se_drv_table_entry_t *driver = &driver_table[i];
+        if( driver->lifetime == 0 )
+            continue; /* skipping unused entry */
+        const psa_drv_se_t *methods = psa_get_se_driver_methods( driver );
+        if( methods->p_init != NULL )
+        {
+            psa_status_t status = methods->p_init(
+                &driver->context,
+                driver->internal.persistent_data,
+                driver->lifetime );
+            if( status != PSA_SUCCESS )
+                return( status );
+            status = psa_save_se_persistent_data( driver );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
+    }
+    return( PSA_SUCCESS );
 }
 
 
@@ -309,6 +341,8 @@ psa_status_t psa_register_se_driver(
 
     driver_table[i].lifetime = lifetime;
     driver_table[i].methods = methods;
+    driver_table[i].internal.persistent_data_size =
+        methods->persistent_data_size;
 
     if( methods->persistent_data_size != 0 )
     {
@@ -326,8 +360,6 @@ psa_status_t psa_register_se_driver(
         if( status != PSA_SUCCESS && status != PSA_ERROR_DOES_NOT_EXIST )
             goto error;
     }
-    driver_table[i].internal.persistent_data_size =
-        methods->persistent_data_size;
 
     return( PSA_SUCCESS );
 

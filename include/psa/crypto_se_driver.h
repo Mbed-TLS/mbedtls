@@ -927,7 +927,14 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
  * sake of initial device provisioning or onboarding. Such a mechanism may
  * be added to a future version of the PSA Cryptography API specification.
  *
+ * This function may update the driver's persistent data through
+ * \p persistent_data. The core will save the updated persistent data at the
+ * end of the key creation process. See the description of
+ * ::psa_drv_se_allocate_key_t for more information.
+ *
  * \param[in,out] drv_context   The driver context structure.
+ * \param[in,out] persistent_data   A pointer to the persistent data
+ *                                  that allows writing.
  * \param[in] attributes        Attributes of the key.
  * \param method                The way in which the key is being created.
  * \param[in] key_slot          Slot where the key is to be stored.
@@ -946,6 +953,7 @@ typedef psa_status_t (*psa_drv_se_allocate_key_t)(
  */
 typedef psa_status_t (*psa_drv_se_validate_slot_number_t)(
     psa_drv_se_context_t *drv_context,
+    void *persistent_data,
     const psa_key_attributes_t *attributes,
     psa_key_creation_method_t method,
     psa_key_slot_number_t key_slot);

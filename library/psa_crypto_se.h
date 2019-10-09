@@ -66,6 +66,12 @@
  */
 void psa_unregister_all_se_drivers( void );
 
+/** Initialize all secure element drivers.
+ *
+ * Called from psa_crypto_init().
+ */
+psa_status_t psa_init_all_se_drivers( void );
+
 /** A structure that describes a registered secure element driver.
  *
  * A secure element driver table entry contains a pointer to the

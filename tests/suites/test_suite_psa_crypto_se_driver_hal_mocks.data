@@ -1,3 +1,12 @@
+SE init mock test: success
+mock_init:2:PSA_SUCCESS:PSA_SUCCESS:PSA_SUCCESS:1
+
+SE init mock test: failure
+mock_init:2:PSA_SUCCESS:PSA_ERROR_HARDWARE_FAILURE:PSA_ERROR_HARDWARE_FAILURE:1
+
+SE init mock test: invalid lifetime
+mock_init:1:PSA_ERROR_INVALID_ARGUMENT:PSA_ERROR_BAD_STATE:PSA_SUCCESS:0
+
 SE key importing mock test
 mock_import:PSA_SUCCESS:PSA_SUCCESS:0:PSA_SUCCESS
 

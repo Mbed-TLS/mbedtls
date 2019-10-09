@@ -1579,7 +1579,7 @@ static psa_status_t psa_start_key_creation(
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* For a key in a secure element, we need to do three things
-     * when creating a key (but not when registering an existing key):
+     * when creating or registering a key:
      * create the key file in internal storage, create the
      * key inside the secure element, and update the driver's
      * persistent data. Start a transaction that will encompass these
@@ -1592,7 +1592,7 @@ static psa_status_t psa_start_key_creation(
      * secure element driver updates its persistent state, but we do not yet
      * save the driver's persistent state, so that if the power fails,
      * we can roll back to a state where the key doesn't exist. */
-    if( *p_drv != NULL && method != PSA_KEY_CREATION_REGISTER )
+    if( *p_drv != NULL )
     {
         status = psa_find_se_slot_for_key( attributes, method, *p_drv,
                                            &slot->data.se.slot_number );
@@ -1608,6 +1608,12 @@ static psa_status_t psa_start_key_creation(
             (void) psa_crypto_stop_transaction( );
             return( status );
         }
+    }
+
+    if( *p_drv == NULL && method == PSA_KEY_CREATION_REGISTER )
+    {
+        /* Key registration only makes sense with a secure element. */
+        return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
@@ -1883,7 +1889,6 @@ psa_status_t mbedtls_psa_register_se_key(
     psa_status_t status;
     psa_key_slot_t *slot = NULL;
     psa_se_drv_table_entry_t *driver = NULL;
-    const psa_drv_se_t *drv;
     psa_key_handle_t handle = 0;
 
     /* Leaving attributes unspecified is not currently supported.
@@ -1899,37 +1904,6 @@ psa_status_t mbedtls_psa_register_se_key(
                                      &handle, &slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
-
-    if( driver == NULL )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
-    drv = psa_get_se_driver_methods( driver );
-
-    if ( psa_get_key_slot_number( attributes,
-                                  &slot->data.se.slot_number ) != PSA_SUCCESS )
-    {
-        /* The application didn't specify a slot number. This doesn't
-         * make sense when registering a slot. */
-        status = PSA_ERROR_INVALID_ARGUMENT;
-        goto exit;
-    }
-
-    /* If the driver has a slot number validation method, call it.
-     * If it doesn't, it means the secure element is unable to validate
-     * anything and so we have to trust the application. */
-    if( drv->key_management != NULL &&
-        drv->key_management->p_validate_slot_number != NULL )
-    {
-        status = drv->key_management->p_validate_slot_number(
-            psa_get_se_driver_context( driver ),
-            attributes,
-            PSA_KEY_CREATION_REGISTER,
-            slot->data.se.slot_number );
-        if( status != PSA_SUCCESS )
-            goto exit;
-    }
 
     status = psa_finish_key_creation( slot, driver );
 
@@ -5712,6 +5686,12 @@ psa_status_t psa_crypto_init( void )
     status = psa_initialize_key_slots( );
     if( status != PSA_SUCCESS )
         goto exit;
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    status = psa_init_all_se_drivers( );
+    if( status != PSA_SUCCESS )
+        goto exit;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(PSA_CRYPTO_STORAGE_HAS_TRANSACTIONS)
     status = psa_crypto_load_transaction( );

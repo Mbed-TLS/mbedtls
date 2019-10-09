@@ -186,6 +186,9 @@ static inline void psa_clear_key_slot_number(
  * \retval #PSA_ERROR_ALREADY_EXISTS
  *         There is already a key with the identifier specified in
  *         \p attributes.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The secure element driver for the specified lifetime does not
+ *         support registering a key.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \p attributes specifies a lifetime which is not located
  *         in a secure element.

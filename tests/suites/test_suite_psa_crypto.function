@@ -894,6 +894,8 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
                               "No sanity check for public key type=0x%08lx",
                               (unsigned long) type );
             test_fail( message, __LINE__, __FILE__ );
+            (void) p;
+            (void) end;
             return( 0 );
         }
     }

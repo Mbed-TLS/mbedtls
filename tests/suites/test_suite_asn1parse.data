@@ -172,26 +172,14 @@ get_integer:"020100":"0":0
 INTEGER 0, extra leading 0
 get_integer:"02020000":"0":0
 
-INTEGER -0
-depends_on:SUPPORT_NEGATIVE_INTEGERS
-get_integer:"020180":"0":0
-
 INTEGER 1
 get_integer:"020101":"1":0:
 
 INTEGER 1, extra leading 0
 get_integer:"02020001":"1":0:
 
-INTEGER -1
-depends_on:SUPPORT_NEGATIVE_INTEGERS
-get_integer:"020181":"-1":0
-
 INTEGER 0x7f
 get_integer:"02017f":"7f":0
-
-INTEGER -0x7f
-depends_on:SUPPORT_NEGATIVE_INTEGERS
-get_integer:"0201ff":"-7f":0
 
 INTEGER 0x80
 get_integer:"02020080":"80":0
@@ -225,6 +213,12 @@ get_integer:"0281800123456789abcdef0123456789abcdef0123456789abcdef0123456789abc
 
 INTEGER with 128 value octets (leading 0 in length)
 get_integer:"028200800123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef":0
+
+INTEGER -1
+get_integer:"0201ff":"-1":0
+
+INTEGER -0x7f
+get_integer:"020181":"-7f":0
 
 Not INTEGER
 get_integer:"010101":"":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG

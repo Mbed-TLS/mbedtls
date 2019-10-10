@@ -251,6 +251,41 @@ void get_boolean( const data_t *input,
 /* END_CASE */
 
 /* BEGIN_CASE */
+void empty_integer( const data_t *input )
+{
+    unsigned char *p;
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_mpi actual_mpi;
+#endif
+    int val;
+
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_mpi_init( & actual_mpi );
+#endif
+
+    /* An INTEGER with no content is not valid. */
+    p = input->x;
+    TEST_EQUAL( mbedtls_asn1_get_int( &p, input->x + input->len, &val ),
+                MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+
+#if defined(MBEDTLS_BIGNUM_C)
+    /* INTEGERs are sometimes abused as bitstrings, so the library accepts
+     * an INTEGER with empty content and gives it the value 0. */
+    p = input->x;
+    TEST_EQUAL( mbedtls_asn1_get_mpi( &p, input->x + input->len, &actual_mpi ),
+                0 );
+    TEST_EQUAL( mbedtls_mpi_cmp_int( &actual_mpi, 0 ), 0 );
+#endif
+
+exit:
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_mpi_free( &actual_mpi );
+#endif
+    /*empty cleanup in some configurations*/ ;
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void get_integer( const data_t *input,
                   const char *expected_hex, int expected_result )
 {

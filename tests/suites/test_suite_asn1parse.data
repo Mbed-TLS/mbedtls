@@ -199,8 +199,29 @@ get_integer:"020412345678":"12345678":0
 INTEGER 0x12345678, extra leading 0
 get_integer:"02050012345678":"12345678":0
 
+INTEGER 0x7fffffff
+get_integer:"02047fffffff":"7fffffff":0
+
+INTEGER 0x7fffffff, extra leading 0
+get_integer:"0205007fffffff":"7fffffff":0
+
+INTEGER 0x80000000
+get_integer:"02050080000000":"80000000":0
+
+INTEGER 0xffffffff
+get_integer:"020500ffffffff":"ffffffff":0
+
+INTEGER 0x100000000
+get_integer:"02050100000000":"0100000000":0
+
 INTEGER 0x123456789abcdef0
 get_integer:"0208123456789abcdef0":"123456789abcdef0":0
+
+INTEGER 0xfedcab9876543210
+get_integer:"020900fedcab9876543210":"fedcab9876543210":0
+
+INTEGER 0x1fedcab9876543210
+get_integer:"020901fedcab9876543210":"1fedcab9876543210":0
 
 INTEGER with 127 value octets
 get_integer:"027f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd":0
@@ -217,8 +238,47 @@ get_integer:"028200800123456789abcdef0123456789abcdef0123456789abcdef0123456789a
 INTEGER -1
 get_integer:"0201ff":"-1":0
 
+INTEGER -1, extra leading ff
+get_integer:"0202ffff":"-1":0
+
 INTEGER -0x7f
 get_integer:"020181":"-7f":0
+
+INTEGER -0x80
+get_integer:"020180":"-80":0
+
+INTEGER -0x81
+get_integer:"0202ff7f":"-81":0
+
+INTEGER -0xff
+get_integer:"0202ff01":"-ff":0
+
+INTEGER -0x100
+get_integer:"0202ff00":"-100":0
+
+INTEGER -0x7fffffff
+get_integer:"020480000001":"-7fffffff":0
+
+INTEGER -0x80000000
+get_integer:"020480000000":"-80000000":0
+
+INTEGER -0x80000001
+get_integer:"0205ff7fffffff":"-80000001":0
+
+INTEGER -0xffffffff
+get_integer:"0205ff00000001":"-ffffffff":0
+
+INTEGER -0x100000000
+get_integer:"0205ff00000000":"-100000000":0
+
+INTEGER -0x123456789abcdef0
+get_integer:"0208edcba98765432110":"-123456789abcdef0":0
+
+INTEGER -0xfedcba9876543210
+get_integer:"0209ff0123456789abcdf0":"-fedcba9876543210":0
+
+INTEGER -0x1fedcab9876543210
+get_integer:"0209fe0123546789abcdf0":"-1fedcab9876543210":0
 
 Not INTEGER
 get_integer:"010101":"":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG

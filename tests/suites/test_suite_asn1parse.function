@@ -59,6 +59,10 @@ static int nested_parse( unsigned char **const p,
             *p = start;
             ret = mbedtls_asn1_get_mpi( p, end, &mpi );
             mbedtls_mpi_free( &mpi );
+#else
+            *p = start + 1;
+            ret = mbedtls_asn1_get_len( p, end, &len );
+            *p += len;
 #endif
             /* If we're sure that the number fits in an int, also
              * call mbedtls_asn1_get_int(). */
@@ -254,10 +258,10 @@ void get_integer( const data_t *input,
 #if defined(MBEDTLS_BIGNUM_C)
     mbedtls_mpi expected_mpi;
     mbedtls_mpi actual_mpi;
+    int expected_result_for_mpi = expected_result;
 #endif
     long expected_value;
     int expected_result_for_int = expected_result;
-    int expected_result_for_mpi = expected_result;
     int val;
     int ret;
 
@@ -310,6 +314,7 @@ exit:
     mbedtls_mpi_free( &expected_mpi );
     mbedtls_mpi_free( &actual_mpi );
 #endif
+    /*empty cleanup in some configurations*/ ;
 }
 /* END_CASE */
 

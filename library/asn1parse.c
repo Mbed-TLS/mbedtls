@@ -167,6 +167,8 @@ int mbedtls_asn1_get_int( unsigned char **p,
      * the int type has no padding bit. */
     if( len > sizeof( int ) )
         return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+    if( len == sizeof( int ) && ( **p & 0x80 ) != 0 )
+        return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
 
     *val = 0;
     while( len-- > 0 )

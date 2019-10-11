@@ -2814,7 +2814,6 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
          */
         do
         {
-
             MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_size, f_rng, p_rng ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_size - grp->nbits ) );
 

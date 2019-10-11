@@ -22,24 +22,6 @@ persistence_attributes:0x1234:3:0x1235:0x1235:3
 PSA key attributes: slot number
 slot_number_attribute:
 
-psa_destroy_key(0)
-destroy_invalid:0:PSA_SUCCESS
-
-psa_destroy_key(invalid)
-destroy_invalid:1:PSA_ERROR_INVALID_HANDLE
-
-psa_destroy_key(huge)
-destroy_invalid:-1:PSA_ERROR_INVALID_HANDLE
-
-psa_close_key(0)
-close_invalid:0:PSA_SUCCESS
-
-psa_close_key(invalid)
-close_invalid:1:PSA_ERROR_INVALID_HANDLE
-
-psa_close_key(huge)
-close_invalid:-1:PSA_ERROR_INVALID_HANDLE
-
 PSA import/export raw: 1 bytes
 import_export:"2a":PSA_KEY_TYPE_RAW_DATA:PSA_KEY_USAGE_EXPORT:0:8:0:PSA_SUCCESS:1
 

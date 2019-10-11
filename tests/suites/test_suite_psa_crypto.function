@@ -1269,34 +1269,6 @@ void slot_number_attribute( )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void destroy_invalid( int handle_arg, int expected_status_arg )
-{
-    psa_key_handle_t handle = handle_arg;
-    psa_status_t expected_status = expected_status_arg;
-
-    PSA_ASSERT( psa_crypto_init( ) );
-    TEST_EQUAL( psa_destroy_key( handle ), expected_status );
-
-exit:
-    PSA_DONE( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void close_invalid( int handle_arg, int expected_status_arg )
-{
-    psa_key_handle_t handle = handle_arg;
-    psa_status_t expected_status = expected_status_arg;
-
-    PSA_ASSERT( psa_crypto_init( ) );
-    TEST_EQUAL( psa_close_key( handle ), expected_status );
-
-exit:
-    PSA_DONE( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
 void import_with_policy( int type_arg,
                          int usage_arg, int alg_arg,
                          int expected_status_arg )

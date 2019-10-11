@@ -407,6 +407,24 @@ static uint32_t RCON[10];
 
 static int aes_init_done = 0;
 
+/*
+ * SCA CM table position check
+ */
+#define SCA_CM_TBL_MATCH(tbl, n) ( tbl[0] == ( n ) || \
+                                   tbl[1] == ( n ) || \
+                                   tbl[2] == ( n ) )
+
+/*
+ * SCA CM always true check
+ */
+#define SCA_CM_ALWAYS_TRUE(tbl, n) ( tbl[0] != ( n ) || \
+                                     tbl[1] != ( n ) || \
+                                     tbl[2] != tbl[0] )
+/*
+ * Number of SCA CM dummy rounds.
+ */
+#define SCA_CM_DUMMY_ROUND_COUNT 3
+
 static void aes_gen_tables( void )
 {
     int i, x, y, z;
@@ -526,6 +544,42 @@ static void aes_gen_tables( void )
 #define AES_FT3(idx) FT3[idx]
 
 #endif /* MBEDTLS_AES_FEWER_TABLES */
+
+// TODO, replace with proper flagging
+
+#if /* defined(AES_128_SCA_CM) &&*/ defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+#define AES_SCA_COUNTERMEASURES
+#endif
+
+#if defined(AES_SCA_COUNTERMEASURES)
+static void aes_sca_rand_tbl_fill(uint8_t *tbl, uint8_t tbl_len, uint8_t max_num)
+{
+    int i, j, is_unique_number;
+    uint8_t *cur_num;
+    uint8_t num;
+
+    cur_num = tbl;
+
+    for ( i = 0; i < tbl_len; i++ )
+    {
+        do {
+            is_unique_number = 1;
+            num = mbedtls_platform_random_in_range( max_num + 1 );
+
+            for ( j = 0; j < i; j++ )
+            {
+                if (num == tbl[j])
+                {
+                    is_unique_number = 0;
+                    break;
+                }
+            }
+        } while ( is_unique_number == 0 );
+
+        *cur_num++ = num;
+    }
+}
+#endif
 
 void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
@@ -838,52 +892,99 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
 
 #endif /* !MBEDTLS_AES_SETKEY_DEC_ALT */
 
-#define AES_FROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                     \
-    do                                                          \
-    {                                                           \
-        (X0) = *RK++ ^ AES_FT0( ( (Y0)       ) & 0xFF ) ^       \
-                       AES_FT1( ( (Y1) >>  8 ) & 0xFF ) ^       \
-                       AES_FT2( ( (Y2) >> 16 ) & 0xFF ) ^       \
-                       AES_FT3( ( (Y3) >> 24 ) & 0xFF );        \
-                                                                \
-        (X1) = *RK++ ^ AES_FT0( ( (Y1)       ) & 0xFF ) ^       \
-                       AES_FT1( ( (Y2) >>  8 ) & 0xFF ) ^       \
-                       AES_FT2( ( (Y3) >> 16 ) & 0xFF ) ^       \
-                       AES_FT3( ( (Y0) >> 24 ) & 0xFF );        \
-                                                                \
-        (X2) = *RK++ ^ AES_FT0( ( (Y2)       ) & 0xFF ) ^       \
-                       AES_FT1( ( (Y3) >>  8 ) & 0xFF ) ^       \
-                       AES_FT2( ( (Y0) >> 16 ) & 0xFF ) ^       \
-                       AES_FT3( ( (Y1) >> 24 ) & 0xFF );        \
-                                                                \
-        (X3) = *RK++ ^ AES_FT0( ( (Y3)       ) & 0xFF ) ^       \
-                       AES_FT1( ( (Y0) >>  8 ) & 0xFF ) ^       \
-                       AES_FT2( ( (Y1) >> 16 ) & 0xFF ) ^       \
-                       AES_FT3( ( (Y2) >> 24 ) & 0xFF );        \
+#define AES_FROUND(R,X0,X1,X2,X3,Y0,Y1,Y2,Y3)                  \
+    do                                                         \
+    {                                                          \
+        (X0) = *(R)++ ^ AES_FT0( ( (Y0)       ) & 0xFF ) ^     \
+                        AES_FT1( ( (Y1) >>  8 ) & 0xFF ) ^     \
+                        AES_FT2( ( (Y2) >> 16 ) & 0xFF ) ^     \
+                        AES_FT3( ( (Y3) >> 24 ) & 0xFF );      \
+                                                               \
+        (X1) = *(R)++ ^ AES_FT0( ( (Y1)       ) & 0xFF ) ^     \
+                        AES_FT1( ( (Y2) >>  8 ) & 0xFF ) ^     \
+                        AES_FT2( ( (Y3) >> 16 ) & 0xFF ) ^     \
+                        AES_FT3( ( (Y0) >> 24 ) & 0xFF );      \
+                                                               \
+        (X2) = *(R)++ ^ AES_FT0( ( (Y2)       ) & 0xFF ) ^     \
+                        AES_FT1( ( (Y3) >>  8 ) & 0xFF ) ^     \
+                        AES_FT2( ( (Y0) >> 16 ) & 0xFF ) ^     \
+                        AES_FT3( ( (Y1) >> 24 ) & 0xFF );      \
+                                                               \
+        (X3) = *(R)++ ^ AES_FT0( ( (Y3)       ) & 0xFF ) ^     \
+                        AES_FT1( ( (Y0) >>  8 ) & 0xFF ) ^     \
+                        AES_FT2( ( (Y1) >> 16 ) & 0xFF ) ^     \
+                        AES_FT3( ( (Y2) >> 24 ) & 0xFF );      \
     } while( 0 )
 
-#define AES_RROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                 \
-    do                                                      \
-    {                                                       \
-        (X0) = *RK++ ^ AES_RT0( ( (Y0)       ) & 0xFF ) ^   \
-                       AES_RT1( ( (Y3) >>  8 ) & 0xFF ) ^   \
-                       AES_RT2( ( (Y2) >> 16 ) & 0xFF ) ^   \
-                       AES_RT3( ( (Y1) >> 24 ) & 0xFF );    \
-                                                            \
-        (X1) = *RK++ ^ AES_RT0( ( (Y1)       ) & 0xFF ) ^   \
-                       AES_RT1( ( (Y0) >>  8 ) & 0xFF ) ^   \
-                       AES_RT2( ( (Y3) >> 16 ) & 0xFF ) ^   \
-                       AES_RT3( ( (Y2) >> 24 ) & 0xFF );    \
-                                                            \
-        (X2) = *RK++ ^ AES_RT0( ( (Y2)       ) & 0xFF ) ^   \
-                       AES_RT1( ( (Y1) >>  8 ) & 0xFF ) ^   \
-                       AES_RT2( ( (Y0) >> 16 ) & 0xFF ) ^   \
-                       AES_RT3( ( (Y3) >> 24 ) & 0xFF );    \
-                                                            \
-        (X3) = *RK++ ^ AES_RT0( ( (Y3)       ) & 0xFF ) ^   \
-                       AES_RT1( ( (Y2) >>  8 ) & 0xFF ) ^   \
-                       AES_RT2( ( (Y1) >> 16 ) & 0xFF ) ^   \
-                       AES_RT3( ( (Y0) >> 24 ) & 0xFF );    \
+#define AES_FROUND_F(R,X0,X1,X2,X3,Y0,Y1,Y2,Y3)                             \
+    do {                                                                    \
+        (X0) = *(R)++ ^ ( (uint32_t) FSb[ ( (Y0)       ) & 0xFF ]       ) ^ \
+                        ( (uint32_t) FSb[ ( (Y1) >>  8 ) & 0xFF ] <<  8 ) ^ \
+                        ( (uint32_t) FSb[ ( (Y2) >> 16 ) & 0xFF ] << 16 ) ^ \
+                        ( (uint32_t) FSb[ ( (Y3) >> 24 ) & 0xFF ] << 24 );  \
+                                                                            \
+        (X1) = *(R)++ ^ ( (uint32_t) FSb[ ( (Y1)       ) & 0xFF ]       ) ^ \
+                        ( (uint32_t) FSb[ ( (Y2) >>  8 ) & 0xFF ] <<  8 ) ^ \
+                        ( (uint32_t) FSb[ ( (Y3) >> 16 ) & 0xFF ] << 16 ) ^ \
+                        ( (uint32_t) FSb[ ( (Y0) >> 24 ) & 0xFF ] << 24 );  \
+                                                                            \
+        (X2) = *(R)++ ^ ( (uint32_t) FSb[ ( (Y2)       ) & 0xFF ]       ) ^ \
+                        ( (uint32_t) FSb[ ( (Y3) >>  8 ) & 0xFF ] <<  8 ) ^ \
+                        ( (uint32_t) FSb[ ( (Y0) >> 16 ) & 0xFF ] << 16 ) ^ \
+                        ( (uint32_t) FSb[ ( (Y1) >> 24 ) & 0xFF ] << 24 );  \
+                                                                            \
+        (X3) = *(R)++ ^ ( (uint32_t) FSb[ ( (Y3)       ) & 0xFF ]       ) ^ \
+                        ( (uint32_t) FSb[ ( (Y0) >>  8 ) & 0xFF ] <<  8 ) ^ \
+                        ( (uint32_t) FSb[ ( (Y1) >> 16 ) & 0xFF ] << 16 ) ^ \
+                        ( (uint32_t) FSb[ ( (Y2) >> 24 ) & 0xFF ] << 24 );  \
+    } while ( 0 )
+
+#define AES_RROUND(R,X0,X1,X2,X3,Y0,Y1,Y2,Y3)                  \
+    do                                                         \
+    {                                                          \
+        (X0) = *(R)++ ^ AES_RT0( ( (Y0)       ) & 0xFF ) ^     \
+                        AES_RT1( ( (Y3) >>  8 ) & 0xFF ) ^     \
+                        AES_RT2( ( (Y2) >> 16 ) & 0xFF ) ^     \
+                        AES_RT3( ( (Y1) >> 24 ) & 0xFF );      \
+                                                               \
+        (X1) = *(R)++ ^ AES_RT0( ( (Y1)       ) & 0xFF ) ^     \
+                        AES_RT1( ( (Y0) >>  8 ) & 0xFF ) ^     \
+                        AES_RT2( ( (Y3) >> 16 ) & 0xFF ) ^     \
+                        AES_RT3( ( (Y2) >> 24 ) & 0xFF );      \
+                                                               \
+        (X2) = *(R)++ ^ AES_RT0( ( (Y2)       ) & 0xFF ) ^     \
+                        AES_RT1( ( (Y1) >>  8 ) & 0xFF ) ^     \
+                        AES_RT2( ( (Y0) >> 16 ) & 0xFF ) ^     \
+                        AES_RT3( ( (Y3) >> 24 ) & 0xFF );      \
+                                                               \
+        (X3) = *(R)++ ^ AES_RT0( ( (Y3)       ) & 0xFF ) ^     \
+                        AES_RT1( ( (Y2) >>  8 ) & 0xFF ) ^     \
+                        AES_RT2( ( (Y1) >> 16 ) & 0xFF ) ^     \
+                        AES_RT3( ( (Y0) >> 24 ) & 0xFF );      \
+    } while( 0 )
+
+#define AES_RROUND_F(R,X0,X1,X2,X3,Y0,Y1,Y2,Y3)                 \
+    do                                                         \
+    {                                                          \
+        (X0) = *(R)++ ^ ( (uint32_t) RSb[ ( (Y0)       ) & 0xFF ]       ) ^ \
+                        ( (uint32_t) RSb[ ( (Y3) >>  8 ) & 0xFF ] <<  8 ) ^ \
+                        ( (uint32_t) RSb[ ( (Y2) >> 16 ) & 0xFF ] << 16 ) ^ \
+                        ( (uint32_t) RSb[ ( (Y1) >> 24 ) & 0xFF ] << 24 );  \
+                                                                            \
+        (X1) = *(R)++ ^ ( (uint32_t) RSb[ ( (Y1)       ) & 0xFF ]       ) ^ \
+                        ( (uint32_t) RSb[ ( (Y0) >>  8 ) & 0xFF ] <<  8 ) ^ \
+                        ( (uint32_t) RSb[ ( (Y3) >> 16 ) & 0xFF ] << 16 ) ^ \
+                        ( (uint32_t) RSb[ ( (Y2) >> 24 ) & 0xFF ] << 24 );  \
+                                                                            \
+        (X2) = *(R)++ ^ ( (uint32_t) RSb[ ( (Y2)       ) & 0xFF ]       ) ^ \
+                        ( (uint32_t) RSb[ ( (Y1) >>  8 ) & 0xFF ] <<  8 ) ^ \
+                        ( (uint32_t) RSb[ ( (Y0) >> 16 ) & 0xFF ] << 16 ) ^ \
+                        ( (uint32_t) RSb[ ( (Y3) >> 24 ) & 0xFF ] << 24 );  \
+                                                                            \
+        (X3) = *(R)++ ^ ( (uint32_t) RSb[ ( (Y3)       ) & 0xFF ]       ) ^ \
+                        ( (uint32_t) RSb[ ( (Y2) >>  8 ) & 0xFF ] <<  8 ) ^ \
+                        ( (uint32_t) RSb[ ( (Y1) >> 16 ) & 0xFF ] << 16 ) ^ \
+                        ( (uint32_t) RSb[ ( (Y0) >> 24 ) & 0xFF ] << 24 );  \
     } while( 0 )
 
 /*
@@ -895,10 +996,34 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
                                   unsigned char output[16] )
 {
     int i;
-    uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
+    uint32_t *RK, X0, X1, X2, X3, Y0 = 0, Y1 = 0, Y2 = 0, Y3 = 0;
+
+#ifdef AES_SCA_COUNTERMEASURES
+    uint32_t *RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA;
+    uint8_t sca_cm_pos_tbl[SCA_CM_DUMMY_ROUND_COUNT];  // position for SCA countermeasure dummy rounds, not in any order
+
+    aes_sca_rand_tbl_fill(sca_cm_pos_tbl, SCA_CM_DUMMY_ROUND_COUNT, ctx->nr);
+
+    X0_SCA = mbedtls_platform_random_in_range( 0xffffffff );
+    X1_SCA = mbedtls_platform_random_in_range( 0xffffffff );
+    X2_SCA = mbedtls_platform_random_in_range( 0xffffffff );
+    X3_SCA = mbedtls_platform_random_in_range( 0xffffffff );
+#endif /* AES_SCA_COUNTERMEASURES */
 
     RK = ctx->rk;
 
+#ifdef AES_SCA_COUNTERMEASURES
+    RK_SCA = RK;
+
+    if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, ctx->nr ) )
+    {
+        /* LE conversions to Xn, Xn_SCA randomized */
+        GET_UINT32_LE( X0, input,  0 ); X0_SCA ^= *RK_SCA++;
+        GET_UINT32_LE( X1, input,  4 ); X1_SCA ^= *RK_SCA++;
+        GET_UINT32_LE( X2, input,  8 ); X2_SCA ^= *RK_SCA++;
+        GET_UINT32_LE( X3, input, 12 ); X3_SCA ^= *RK_SCA++;
+    }
+#endif /* AES_SCA_COUNTERMEASURES */
     GET_UINT32_LE( X0, input,  0 ); X0 ^= *RK++;
     GET_UINT32_LE( X1, input,  4 ); X1 ^= *RK++;
     GET_UINT32_LE( X2, input,  8 ); X2 ^= *RK++;
@@ -906,35 +1031,47 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
     for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
     {
-        AES_FROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
-        AES_FROUND( X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+#ifdef AES_SCA_COUNTERMEASURES
+        // Would random delay before each round be necessary?
+        //
+        if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, i * 2 ) )
+            AES_FROUND( RK_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA,
+                                X0_SCA, X1_SCA, X2_SCA, X3_SCA );
+
+        if ( SCA_CM_ALWAYS_TRUE( sca_cm_pos_tbl, i* 2 ) )
+            AES_FROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+
+        if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, i * 2 + 1 ) )
+            AES_FROUND( RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA,
+                                Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA);
+
+        if ( SCA_CM_ALWAYS_TRUE( sca_cm_pos_tbl, i * 2 + 1 ) )
+            AES_FROUND( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+#else /* AES_SCA_COUNTERMEASURES */
+        AES_FROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+        AES_FROUND( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+#endif /* AES_SCA_COUNTERMEASURES */
     }
 
-    AES_FROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+#ifdef AES_SCA_COUNTERMEASURES
+    if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, 1 ) )
+        AES_FROUND( RK_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA,
+                            X0_SCA, X1_SCA, X2_SCA, X3_SCA );
 
-    X0 = *RK++ ^ \
-            ( (uint32_t) FSb[ ( Y0       ) & 0xFF ]       ) ^
-            ( (uint32_t) FSb[ ( Y1 >>  8 ) & 0xFF ] <<  8 ) ^
-            ( (uint32_t) FSb[ ( Y2 >> 16 ) & 0xFF ] << 16 ) ^
-            ( (uint32_t) FSb[ ( Y3 >> 24 ) & 0xFF ] << 24 );
+    if ( SCA_CM_ALWAYS_TRUE ( sca_cm_pos_tbl, 1 ) )
+        AES_FROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
 
-    X1 = *RK++ ^ \
-            ( (uint32_t) FSb[ ( Y1       ) & 0xFF ]       ) ^
-            ( (uint32_t) FSb[ ( Y2 >>  8 ) & 0xFF ] <<  8 ) ^
-            ( (uint32_t) FSb[ ( Y3 >> 16 ) & 0xFF ] << 16 ) ^
-            ( (uint32_t) FSb[ ( Y0 >> 24 ) & 0xFF ] << 24 );
+    if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, 0 ) )
+        AES_FROUND_F( RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA,
+                                  Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA );
 
-    X2 = *RK++ ^ \
-            ( (uint32_t) FSb[ ( Y2       ) & 0xFF ]       ) ^
-            ( (uint32_t) FSb[ ( Y3 >>  8 ) & 0xFF ] <<  8 ) ^
-            ( (uint32_t) FSb[ ( Y0 >> 16 ) & 0xFF ] << 16 ) ^
-            ( (uint32_t) FSb[ ( Y1 >> 24 ) & 0xFF ] << 24 );
+    if ( SCA_CM_ALWAYS_TRUE ( sca_cm_pos_tbl, 0 ) )
+        AES_FROUND_F( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
 
-    X3 = *RK++ ^ \
-            ( (uint32_t) FSb[ ( Y3       ) & 0xFF ]       ) ^
-            ( (uint32_t) FSb[ ( Y0 >>  8 ) & 0xFF ] <<  8 ) ^
-            ( (uint32_t) FSb[ ( Y1 >> 16 ) & 0xFF ] << 16 ) ^
-            ( (uint32_t) FSb[ ( Y2 >> 24 ) & 0xFF ] << 24 );
+#else
+    AES_FROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+    AES_FROUND_F( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+#endif
 
     PUT_UINT32_LE( X0, output,  0 );
     PUT_UINT32_LE( X1, output,  4 );
@@ -965,46 +1102,89 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                   unsigned char output[16] )
 {
     int i;
-    uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
+    uint32_t *RK, X0, X1, X2, X3, Y0 = 0, Y1 = 0, Y2 = 0, Y3 = 0;
+
+#ifdef AES_SCA_COUNTERMEASURES
+    uint32_t *RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA;
+    uint8_t sca_cm_pos_tbl[SCA_CM_DUMMY_ROUND_COUNT];  // position for SCA countermeasure dummy rounds, not in any order
+
+    aes_sca_rand_tbl_fill(sca_cm_pos_tbl, SCA_CM_DUMMY_ROUND_COUNT, ctx->nr);
+
+    X0_SCA = mbedtls_platform_random_in_range( 0xffffffff );
+    X1_SCA = mbedtls_platform_random_in_range( 0xffffffff );
+    X2_SCA = mbedtls_platform_random_in_range( 0xffffffff );
+    X3_SCA = mbedtls_platform_random_in_range( 0xffffffff );
+#endif /* AES_SCA_COUNTERMEASURES */
 
     RK = ctx->rk;
 
+#ifdef AES_SCA_COUNTERMEASURES
+    RK_SCA = RK;
+    if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, ctx->nr ) )
+    {
+        GET_UINT32_LE( X0, input,  0 ); X0_SCA ^= *RK_SCA++;
+        GET_UINT32_LE( X1, input,  4 ); X1_SCA ^= *RK_SCA++;
+        GET_UINT32_LE( X2, input,  8 ); X2_SCA ^= *RK_SCA++;
+        GET_UINT32_LE( X3, input, 12 ); X3_SCA ^= *RK_SCA++;
+    }
+
+    if ( SCA_CM_ALWAYS_TRUE( sca_cm_pos_tbl, ctx->nr ) )
+    {
+        GET_UINT32_LE( X0, input,  0 ); X0 ^= *RK++;
+        GET_UINT32_LE( X1, input,  4 ); X1 ^= *RK++;
+        GET_UINT32_LE( X2, input,  8 ); X2 ^= *RK++;
+        GET_UINT32_LE( X3, input, 12 ); X3 ^= *RK++;
+    }
+#else /* AES_SCA_COUNTERMEASURES */
     GET_UINT32_LE( X0, input,  0 ); X0 ^= *RK++;
     GET_UINT32_LE( X1, input,  4 ); X1 ^= *RK++;
     GET_UINT32_LE( X2, input,  8 ); X2 ^= *RK++;
     GET_UINT32_LE( X3, input, 12 ); X3 ^= *RK++;
+#endif /* AES_SCA_COUNTERMEASURES */
 
     for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
     {
-        AES_RROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
-        AES_RROUND( X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+#ifdef AES_SCA_COUNTERMEASURES
+        // Would random delay before each round be necessary?
+        //
+        if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, i * 2 ) )
+            AES_RROUND( RK_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA,
+                                X0_SCA, X1_SCA, X2_SCA, X3_SCA );
+
+        if ( SCA_CM_ALWAYS_TRUE( sca_cm_pos_tbl, i* 2 ) )
+            AES_RROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+
+        if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, i * 2 + 1 ) )
+            AES_RROUND( RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA,
+                                Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA);
+
+        if ( SCA_CM_ALWAYS_TRUE( sca_cm_pos_tbl, i * 2 + 1 ) )
+            AES_RROUND( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+#else /* AES_SCA_COUNTERMEASURES */
+        AES_RROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+        AES_RROUND( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+#endif /* AES_SCA_COUNTERMEASURES */
     }
 
-    AES_RROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+#ifdef AES_SCA_COUNTERMEASURES
+    if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, 1 ) )
+        AES_RROUND( RK_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA,
+                            X0_SCA, X1_SCA, X2_SCA, X3_SCA );
 
-    X0 = *RK++ ^ \
-            ( (uint32_t) RSb[ ( Y0       ) & 0xFF ]       ) ^
-            ( (uint32_t) RSb[ ( Y3 >>  8 ) & 0xFF ] <<  8 ) ^
-            ( (uint32_t) RSb[ ( Y2 >> 16 ) & 0xFF ] << 16 ) ^
-            ( (uint32_t) RSb[ ( Y1 >> 24 ) & 0xFF ] << 24 );
+    if ( SCA_CM_ALWAYS_TRUE ( sca_cm_pos_tbl, 1 ) )
+        AES_RROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
 
-    X1 = *RK++ ^ \
-            ( (uint32_t) RSb[ ( Y1       ) & 0xFF ]       ) ^
-            ( (uint32_t) RSb[ ( Y0 >>  8 ) & 0xFF ] <<  8 ) ^
-            ( (uint32_t) RSb[ ( Y3 >> 16 ) & 0xFF ] << 16 ) ^
-            ( (uint32_t) RSb[ ( Y2 >> 24 ) & 0xFF ] << 24 );
+    if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, 0 ) )
+        AES_RROUND_F( RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA,
+                              Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA );
 
-    X2 = *RK++ ^ \
-            ( (uint32_t) RSb[ ( Y2       ) & 0xFF ]       ) ^
-            ( (uint32_t) RSb[ ( Y1 >>  8 ) & 0xFF ] <<  8 ) ^
-            ( (uint32_t) RSb[ ( Y0 >> 16 ) & 0xFF ] << 16 ) ^
-            ( (uint32_t) RSb[ ( Y3 >> 24 ) & 0xFF ] << 24 );
+    if ( SCA_CM_ALWAYS_TRUE ( sca_cm_pos_tbl, 0 ) )
+        AES_RROUND_F( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
 
-    X3 = *RK++ ^ \
-            ( (uint32_t) RSb[ ( Y3       ) & 0xFF ]       ) ^
-            ( (uint32_t) RSb[ ( Y2 >>  8 ) & 0xFF ] <<  8 ) ^
-            ( (uint32_t) RSb[ ( Y1 >> 16 ) & 0xFF ] << 16 ) ^
-            ( (uint32_t) RSb[ ( Y0 >> 24 ) & 0xFF ] << 24 );
+#else /* AES_SCA_COUNTERMEASURES */
+    AES_RROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+    AES_RROUND_F( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+#endif /* AES_SCA_COUNTERMEASURES */
 
     PUT_UINT32_LE( X0, output,  0 );
     PUT_UINT32_LE( X1, output,  4 );

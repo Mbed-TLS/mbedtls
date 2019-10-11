@@ -1175,6 +1175,11 @@ static int ct_lt_mpi_uint( const mbedtls_mpi_uint x, const mbedtls_mpi_uint y )
     return ret;
 }
 
+static int ct_bool_get_mask( unsigned int b )
+{
+    return ~( b - 1 );
+}
+
 /*
  * Compare signed values in constant time
  */
@@ -1206,7 +1211,7 @@ int mbedtls_mpi_cmp_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
     sign_X = X->s;
     sign_Y = Y->s;
     cond = ( ( sign_X ^ sign_Y ) >> ( sizeof( unsigned int ) * 8 - 1 ) );
-    *ret = cond * X->s;
+    *ret = ct_bool_get_mask( cond ) & X->s;
     done = cond;
 
     for( i = X->n; i > 0; i-- )
@@ -1219,8 +1224,8 @@ int mbedtls_mpi_cmp_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
          * }
          */
         cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] );
-        *ret |= ( cond * ( 1 - done ) ) * X->s;
-        done |= cond * ( 1 - done );
+        *ret |= ct_bool_get_mask( cond & ( 1 - done ) ) & X->s;
+        done |= cond & ( 1 - done );
 
         /*
          * if( ( X->p[i - 1] < Y->p[i - 1] ) && !done )
@@ -1230,9 +1235,8 @@ int mbedtls_mpi_cmp_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
          * }
          */
         cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] );
-        *ret |= ( cond * ( 1 - done ) ) * -X->s;
-        done |= cond * ( 1 - done );
-
+        *ret |= ct_bool_get_mask( cond & ( 1 - done ) ) & -X->s;
+        done |= cond & ( 1 - done );
     }
 
     return( 0 );

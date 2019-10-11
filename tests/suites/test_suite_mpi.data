@@ -175,38 +175,38 @@ mbedtls_mpi_cmp_mpi:10:"2":10:"-3":1
 Base test mbedtls_mpi_cmp_mpi (Mixed values) #6
 mbedtls_mpi_cmp_mpi:10:"-2":10:"31231231289798":-1
 
-Base test mbedtls_mpi_cmp_mpi_ct #1
-mbedtls_mpi_cmp_mpi_ct:1:10:"693":1:10:"693":0:0
+Base test mbedtls_mpi_lt_mpi_ct #1
+mbedtls_mpi_lt_mpi_ct:1:10:"693":1:10:"693":0:0
 
-Base test mbedtls_mpi_cmp_mpi_ct #2
-mbedtls_mpi_cmp_mpi_ct:1:10:"693":1:10:"692":1:0
+Base test mbedtls_mpi_lt_mpi_ct #2
+mbedtls_mpi_lt_mpi_ct:1:10:"693":1:10:"692":0:0
 
-Base test mbedtls_mpi_cmp_mpi_ct #3
-mbedtls_mpi_cmp_mpi_ct:1:10:"693":1:10:"694":-1:0
+Base test mbedtls_mpi_lt_mpi_ct #3
+mbedtls_mpi_lt_mpi_ct:1:10:"693":1:10:"694":1:0
 
-Base test mbedtls_mpi_cmp_mpi_ct (Negative values) #1
-mbedtls_mpi_cmp_mpi_ct:1:10:"-2":1:10:"-2":0:0
+Base test mbedtls_mpi_lt_mpi_ct (Negative values) #1
+mbedtls_mpi_lt_mpi_ct:1:10:"-2":1:10:"-2":0:0
 
-Base test mbedtls_mpi_cmp_mpi_ct (Negative values) #2
-mbedtls_mpi_cmp_mpi_ct:1:10:"-2":1:10:"-3":1:0
+Base test mbedtls_mpi_lt_mpi_ct (Negative values) #2
+mbedtls_mpi_lt_mpi_ct:1:10:"-2":1:10:"-3":0:0
 
-Base test mbedtls_mpi_cmp_mpi_ct (Negative values) #3
-mbedtls_mpi_cmp_mpi_ct:1:10:"-2":1:10:"-1":-1:0
+Base test mbedtls_mpi_lt_mpi_ct (Negative values) #3
+mbedtls_mpi_lt_mpi_ct:1:10:"-2":1:10:"-1":1:0
 
-Base test mbedtls_mpi_cmp_mpi_ct (Mixed values) #4
-mbedtls_mpi_cmp_mpi_ct:1:10:"-3":1:10:"2":-1:0
+Base test mbedtls_mpi_lt_mpi_ct (Mixed values) #4
+mbedtls_mpi_lt_mpi_ct:1:10:"-3":1:10:"2":1:0
 
-Base test mbedtls_mpi_cmp_mpi_ct (Mixed values) #5
-mbedtls_mpi_cmp_mpi_ct:1:10:"2":1:10:"-3":1:0
+Base test mbedtls_mpi_lt_mpi_ct (Mixed values) #5
+mbedtls_mpi_lt_mpi_ct:1:10:"2":1:10:"-3":0:0
 
-Base test mbedtls_mpi_cmp_mpi_ct (Mixed values) #6
-mbedtls_mpi_cmp_mpi_ct:2:10:"-2":2:10:"31231231289798":-1:0
+Base test mbedtls_mpi_lt_mpi_ct (Mixed values) #6
+mbedtls_mpi_lt_mpi_ct:2:10:"-2":2:10:"31231231289798":1:0
 
-Base test mbedtls_mpi_cmp_mpi_ct (X is longer in storage) #7
-mbedtls_mpi_cmp_mpi_ct:3:10:"693":2:10:"693":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+Base test mbedtls_mpi_lt_mpi_ct (X is longer in storage) #7
+mbedtls_mpi_lt_mpi_ct:3:10:"693":2:10:"693":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Base test mbedtls_mpi_cmp_mpi_ct (Y is longer in storage) #8
-mbedtls_mpi_cmp_mpi_ct:3:10:"693":4:10:"693":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+Base test mbedtls_mpi_lt_mpi_ct (Y is longer in storage) #8
+mbedtls_mpi_lt_mpi_ct:3:10:"693":4:10:"693":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Base test mbedtls_mpi_cmp_abs #1
 mbedtls_mpi_cmp_abs:10:"693":10:"693":0

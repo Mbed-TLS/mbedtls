@@ -1071,7 +1071,8 @@ int mbedtls_mpi_cmp_mpi( const mbedtls_mpi *X, const mbedtls_mpi *Y )
     return( 0 );
 }
 
-static int ct_lt_mpi_uint( const mbedtls_mpi_uint x, const mbedtls_mpi_uint y )
+static unsigned ct_lt_mpi_uint( const mbedtls_mpi_uint x,
+        const mbedtls_mpi_uint y )
 {
     mbedtls_mpi_uint ret;
     mbedtls_mpi_uint cond;
@@ -1098,16 +1099,11 @@ static int ct_lt_mpi_uint( const mbedtls_mpi_uint x, const mbedtls_mpi_uint y )
     return ret;
 }
 
-static int ct_bool_get_mask( unsigned int b )
-{
-    return ~( b - 1 );
-}
-
 /*
  * Compare signed values in constant time
  */
-int mbedtls_mpi_cmp_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
-        int *ret )
+int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
+        unsigned *ret )
 {
     size_t i;
     unsigned int cond, done, sign_X, sign_Y;
@@ -1120,45 +1116,49 @@ int mbedtls_mpi_cmp_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
     /*
-     * if( X->s > 0 && Y->s < 0 )
-     * {
-     *     *ret = 1;
-     *     done = 1;
-     * }
-     * else if( Y->s > 0 && X->s < 0 )
-     * {
-     *     *ret = -1;
-     *     done = 1;
-     * }
+     * Get sign bits of the signs.
      */
     sign_X = X->s;
+    sign_X = sign_X >> ( sizeof( unsigned int ) * 8 - 1 );
     sign_Y = Y->s;
-    cond = ( ( sign_X ^ sign_Y ) >> ( sizeof( unsigned int ) * 8 - 1 ) );
-    *ret = ct_bool_get_mask( cond ) & X->s;
+    sign_Y = sign_Y >> ( sizeof( unsigned int ) * 8 - 1 );
+
+    /*
+     * If the signs are different, then the positive operand is the bigger.
+     * That is if X is negative (sign bit 1), then X < Y is true and it is false
+     * if X is positive (sign bit 0).
+     */
+    cond = ( sign_X ^ sign_Y );
+    *ret = cond & sign_X;
+
+    /*
+     * This is a constant time function, we might have the result, but we still
+     * need to go through the loop. Record if we have the result already.
+     */
     done = cond;
 
     for( i = X->n; i > 0; i-- )
     {
         /*
-         * if( ( X->p[i - 1] > Y->p[i - 1] ) && !done )
-         * {
-         *     done = 1;
-         *     *ret = X->s;
-         * }
+         * If Y->p[i - 1] < X->p[i - 1] and both X and Y are negative, then
+         * X < Y.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
          */
-        cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] );
-        *ret |= ct_bool_get_mask( cond & ( 1 - done ) ) & X->s;
+        cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] ) & sign_X;
+        *ret |= cond & ( 1 - done );
         done |= cond & ( 1 - done );
 
         /*
-         * if( ( X->p[i - 1] < Y->p[i - 1] ) && !done )
-         * {
-         *     done = 1;
-         *     *ret = -X->s;
-         * }
+         * If X->p[i - 1] < Y->p[i - 1] and both X and Y are positive, then
+         * X < Y.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
          */
-        cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] );
-        *ret |= ct_bool_get_mask( cond & ( 1 - done ) ) & -X->s;
+        cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] ) & ( 1 - sign_X );
+        *ret |= cond & ( 1 - done );
         done |= cond & ( 1 - done );
     }
 

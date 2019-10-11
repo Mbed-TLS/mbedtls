@@ -828,6 +828,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_CIPHER_PADDING_ZEROS */
 
+#if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
+    if( strcmp( "MBEDTLS_CTR_DRBG_USE_128_BIT_KEY", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_CTR_DRBG_USE_128_BIT_KEY );
+        return( 0 );
+    }
+#endif /* MBEDTLS_CTR_DRBG_USE_128_BIT_KEY */
+
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
     if( strcmp( "MBEDTLS_ECP_DP_SECP192R1_ENABLED", config ) == 0 )
     {
@@ -1675,14 +1683,6 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_CTR_DRBG_MAX_SEED_INPUT */
-
-#if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
-    if( strcmp( "MBEDTLS_CTR_DRBG_USE_128_BIT_KEY", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_CTR_DRBG_USE_128_BIT_KEY );
-        return( 0 );
-    }
-#endif /* MBEDTLS_CTR_DRBG_USE_128_BIT_KEY */
 
 #if defined(MBEDTLS_HMAC_DRBG_RESEED_INTERVAL)
     if( strcmp( "MBEDTLS_HMAC_DRBG_RESEED_INTERVAL", config ) == 0 )

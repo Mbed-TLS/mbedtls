@@ -1,0 +1,21 @@
+This directory contains changelog entries that have not yet been merged
+to the changelog file (../ChangeLog.md).
+
+A changelog entry file must have the extension *.md and must have the
+following format:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Section title
+
+* Change descritpion.
+* Another change description.
+
+### Another section title
+
+* Yet another change description.
+* Yet again another change description.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See STANDARD_SECTIONS in ../scripts/assemble_changelog.py for
+recognized section titles.

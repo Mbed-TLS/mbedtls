@@ -1094,7 +1094,7 @@ static unsigned ct_lt_mpi_uint( const mbedtls_mpi_uint x,
     ret |= y & cond;
 
 
-    ret = ret >> ( sizeof( mbedtls_mpi_uint ) * 8 - 1 );
+    ret = ret >> ( biL - 1 );
 
     return ret;
 }

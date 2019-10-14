@@ -190,6 +190,36 @@ mbedtls_mpi_lt_mpi_ct:3:"2B5":2:"2B5":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 Base test mbedtls_mpi_lt_mpi_ct (Y is longer in storage) #8
 mbedtls_mpi_lt_mpi_ct:3:"2B5":4:"2B5":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
+Base test mbedtls_mpi_lt_mpi_ct (corner case) #1
+mbedtls_mpi_lt_mpi_ct:1:"7FFFFFFFFFFFFFFF":1:"FF":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case) #2
+mbedtls_mpi_lt_mpi_ct:1:"8000000000000000":1:"7FFFFFFFFFFFFFFF":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case) #2
+mbedtls_mpi_lt_mpi_ct:1:"8000000000000000":1:"1":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case) #2
+mbedtls_mpi_lt_mpi_ct:1:"8000000000000000":1:"0":0:0
+
+Base test mbedtls_mpi_lt_mpi_ct (corner case) #3
+mbedtls_mpi_lt_mpi_ct:1:"FFFFFFFFFFFFFFFF":1:"FF":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (X<Y, zero vs non-zero MS limb) #1
+mbedtls_mpi_lt_mpi_ct:2:"0FFFFFFFFFFFFFFFF":2:"1FFFFFFFFFFFFFFFF":1:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (X<Y, different MS limbs) #2
+mbedtls_mpi_lt_mpi_ct:2:"-EEFFFFFFFFFFFFFFFF":2:"-EFFFFFFFFFFFFFFFF":1:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (X>Y, equal MS limbs) #3
+mbedtls_mpi_lt_mpi_ct:2:"-EEFFFFFFFFFFFFFFF1":2:"-EEFFFFFFFFFFFFFFFF":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (X=Y) #4
+mbedtls_mpi_lt_mpi_ct:2:"EEFFFFFFFFFFFFFFFF":2:"EEFFFFFFFFFFFFFFFF":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (X=-Y) #4
+mbedtls_mpi_lt_mpi_ct:2:"-EEFFFFFFFFFFFFFFFF":2:"EEFFFFFFFFFFFFFFFF":1:0
+
 Base test mbedtls_mpi_cmp_abs #1
 mbedtls_mpi_cmp_abs:10:"693":10:"693":0
 

@@ -255,6 +255,9 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     psa_status_t status;
     psa_key_slot_t *slot;
 
+    if( handle == 0 )
+        return( PSA_SUCCESS );
+
     status = psa_get_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );

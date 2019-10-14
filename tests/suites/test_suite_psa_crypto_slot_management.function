@@ -20,6 +20,14 @@ typedef enum
     CLOSE_AFTER,
 } reopen_policy_t;
 
+typedef enum
+{
+    INVALID_HANDLE_0,
+    INVALID_HANDLE_UNOPENED,
+    INVALID_HANDLE_CLOSED,
+    INVALID_HANDLE_HUGE,
+} invalid_handle_construction_t;
+
 /* All test functions that create persistent keys must call
  * `TEST_USES_KEY_ID( key_id )` before creating a persistent key with this
  * identifier, and must call psa_purge_key_storage() in their cleanup
@@ -625,9 +633,13 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void invalid_handle( )
+void invalid_handle( int handle_construction,
+                     int close_status_arg, int usage_status_arg )
 {
-    psa_key_handle_t handle1 = 0;
+    psa_key_handle_t valid_handle = 0;
+    psa_key_handle_t invalid_handle = 0;
+    psa_status_t close_status = close_status_arg;
+    psa_status_t usage_status = usage_status_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t material[1] = "a";
 
@@ -639,23 +651,50 @@ void invalid_handle( )
     psa_set_key_algorithm( &attributes, 0 );
     PSA_ASSERT( psa_import_key( &attributes,
                                 material, sizeof( material ),
-                                &handle1 ) );
-    TEST_ASSERT( handle1 != 0 );
+                                &valid_handle ) );
+    TEST_ASSERT( valid_handle != 0 );
 
-    /* Attempt to close and destroy some invalid handles. */
-    TEST_EQUAL( psa_close_key( 0 ), PSA_ERROR_INVALID_HANDLE );
-    TEST_EQUAL( psa_close_key( handle1 - 1 ), PSA_ERROR_INVALID_HANDLE );
-    TEST_EQUAL( psa_close_key( handle1 + 1 ), PSA_ERROR_INVALID_HANDLE );
-    TEST_EQUAL( psa_destroy_key( 0 ), PSA_ERROR_INVALID_HANDLE );
-    TEST_EQUAL( psa_destroy_key( handle1 - 1 ), PSA_ERROR_INVALID_HANDLE );
-    TEST_EQUAL( psa_destroy_key( handle1 + 1 ), PSA_ERROR_INVALID_HANDLE );
+    /* Construct an invalid handle as specified in the test case data. */
+    switch( handle_construction )
+    {
+        case INVALID_HANDLE_0:
+            invalid_handle = 0;
+            break;
+        case INVALID_HANDLE_UNOPENED:
+            /* We can't easily construct a handle that's never been opened
+             * without knowing how the implementation constructs handle
+             * values. The current test code assumes that valid handles
+             * are in a range between 1 and some maximum. */
+            if( valid_handle == 1 )
+                invalid_handle = 2;
+            else
+                invalid_handle = valid_handle - 1;
+            break;
+        case INVALID_HANDLE_CLOSED:
+            PSA_ASSERT( psa_import_key( &attributes,
+                                        material, sizeof( material ),
+                                        &invalid_handle ) );
+            PSA_ASSERT( psa_destroy_key( invalid_handle ) );
+            break;
+        case INVALID_HANDLE_HUGE:
+            invalid_handle = (psa_key_handle_t) ( -1 );
+            break;
+        default:
+            TEST_ASSERT( ! "unknown handle construction" );
+    }
+
+    /* Attempt to use the invalid handle. */
+    TEST_EQUAL( psa_get_key_attributes( invalid_handle, &attributes ),
+                usage_status );
+    TEST_EQUAL( psa_close_key( invalid_handle ), close_status );
+    TEST_EQUAL( psa_destroy_key( invalid_handle ), close_status );
 
     /* After all this, check that the original handle is intact. */
-    PSA_ASSERT( psa_get_key_attributes( handle1, &attributes ) );
+    PSA_ASSERT( psa_get_key_attributes( valid_handle, &attributes ) );
     TEST_EQUAL( psa_get_key_type( &attributes ), PSA_KEY_TYPE_RAW_DATA );
     TEST_EQUAL( psa_get_key_bits( &attributes ),
                 PSA_BYTES_TO_BITS( sizeof( material ) ) );
-    PSA_ASSERT( psa_close_key( handle1 ) );
+    PSA_ASSERT( psa_close_key( valid_handle ) );
 
 exit:
     PSA_DONE( );

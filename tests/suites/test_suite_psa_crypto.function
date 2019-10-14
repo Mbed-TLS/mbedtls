@@ -1103,9 +1103,6 @@ static int test_operations_on_invalid_handle( psa_key_handle_t handle )
                                        buffer, sizeof( buffer ), &length ),
                 PSA_ERROR_INVALID_HANDLE );
 
-    TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
-    TEST_EQUAL( psa_destroy_key( handle ), PSA_ERROR_INVALID_HANDLE );
-
     ok = 1;
 
 exit:
@@ -1531,17 +1528,6 @@ exit:
     mbedtls_free( exported );
     mbedtls_free( reexported );
     psa_reset_key_attributes( &got_attributes );
-    PSA_DONE( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void invalid_handle( int handle )
-{
-    PSA_ASSERT( psa_crypto_init( ) );
-    test_operations_on_invalid_handle( handle );
-
-exit:
     PSA_DONE( );
 }
 /* END_CASE */

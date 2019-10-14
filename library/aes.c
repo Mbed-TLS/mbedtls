@@ -549,7 +549,7 @@ static void aes_gen_tables( void )
 #endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
 #if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
-static void aes_sca_rand_tbl_fill(uint8_t *tbl, uint8_t tbl_len, uint8_t max_num)
+static void aes_sca_rand_tbl_fill( uint8_t *tbl, uint8_t tbl_len, uint8_t max_num )
 {
     int i, j, is_unique_number;
     uint8_t *cur_num;
@@ -565,7 +565,7 @@ static void aes_sca_rand_tbl_fill(uint8_t *tbl, uint8_t tbl_len, uint8_t max_num
 
             for ( j = 0; j < i; j++ )
             {
-                if (num == tbl[j])
+                if ( num == tbl[j] )
                 {
                     is_unique_number = 0;
                     break;
@@ -999,7 +999,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     uint32_t *RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA;
     uint8_t sca_cm_pos_tbl[SCA_CM_DUMMY_ROUND_COUNT];  // position for SCA countermeasure dummy rounds, not in any order
 
-    aes_sca_rand_tbl_fill(sca_cm_pos_tbl, SCA_CM_DUMMY_ROUND_COUNT, ctx->nr);
+    aes_sca_rand_tbl_fill( sca_cm_pos_tbl, SCA_CM_DUMMY_ROUND_COUNT, ctx->nr );
 
     X0_SCA = mbedtls_platform_random_in_range( 0xffffffff );
     X1_SCA = mbedtls_platform_random_in_range( 0xffffffff );
@@ -1105,7 +1105,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     uint32_t *RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA;
     uint8_t sca_cm_pos_tbl[SCA_CM_DUMMY_ROUND_COUNT];  // position for SCA countermeasure dummy rounds, not in any order
 
-    aes_sca_rand_tbl_fill(sca_cm_pos_tbl, SCA_CM_DUMMY_ROUND_COUNT, ctx->nr);
+    aes_sca_rand_tbl_fill( sca_cm_pos_tbl, SCA_CM_DUMMY_ROUND_COUNT, ctx->nr );
 
     X0_SCA = mbedtls_platform_random_in_range( 0xffffffff );
     X1_SCA = mbedtls_platform_random_in_range( 0xffffffff );

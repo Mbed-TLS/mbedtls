@@ -3006,7 +3006,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay1 >= 0 )
         {
-            ret = ssl_async_set_key( ssl_async_keys, srvcert, pk, 0,
+            ret = ssl_async_set_key( &ssl_async_keys, srvcert, pk, 0,
                                      opt.async_private_delay1 );
             if( ret < 0 )
             {
@@ -3029,7 +3029,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay2 >= 0 )
         {
-            ret = ssl_async_set_key( ssl_async_keys, srvcert2, pk, 0,
+            ret = ssl_async_set_key( &ssl_async_keys, srvcert2, pk, 0,
                                      opt.async_private_delay2 );
             if( ret < 0 )
             {
@@ -3075,7 +3075,7 @@ int main( int argc, char *argv[] )
                                            decrypt,
                                            ssl_async_resume,
                                            ssl_async_cancel,
-                                           ssl_async_keys );
+                                           &ssl_async_keys );
     }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
@@ -3090,7 +3090,7 @@ int main( int argc, char *argv[] )
             sni_entry *cur;
             for( cur = sni_info; cur != NULL; cur = cur->next )
             {
-                ret = ssl_async_set_key( ssl_async_keys,
+                ret = ssl_async_set_key( &ssl_async_keys,
                                          cur->cert, cur->key, 1,
                                          opt.async_private_delay2 );
                 if( ret < 0 )

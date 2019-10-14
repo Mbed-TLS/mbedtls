@@ -1183,7 +1183,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
         unsigned *ret )
 {
     size_t i;
-    unsigned int cond, done, sign_X, sign_Y;
+    unsigned cond, done, sign_X, sign_Y;
 
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
@@ -1196,9 +1196,9 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
      * Get sign bits of the signs.
      */
     sign_X = X->s;
-    sign_X = sign_X >> ( sizeof( unsigned int ) * 8 - 1 );
+    sign_X = sign_X >> ( sizeof( unsigned ) * 8 - 1 );
     sign_Y = Y->s;
-    sign_Y = sign_Y >> ( sizeof( unsigned int ) * 8 - 1 );
+    sign_Y = sign_Y >> ( sizeof( unsigned ) * 8 - 1 );
 
     /*
      * If the signs are different, then the positive operand is the bigger.

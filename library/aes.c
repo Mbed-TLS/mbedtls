@@ -407,24 +407,6 @@ static uint32_t RCON[10];
 
 static int aes_init_done = 0;
 
-/*
- * SCA CM table position check
- */
-#define SCA_CM_TBL_MATCH(tbl, n) ( tbl[0] == ( n ) || \
-                                   tbl[1] == ( n ) || \
-                                   tbl[2] == ( n ) )
-
-/*
- * SCA CM always true check
- */
-#define SCA_CM_ALWAYS_TRUE(tbl, n) ( tbl[0] != ( n ) || \
-                                     tbl[1] != ( n ) || \
-                                     tbl[2] != tbl[0] )
-/*
- * Number of SCA CM dummy rounds.
- */
-#define SCA_CM_DUMMY_ROUND_COUNT 3
-
 static void aes_gen_tables( void )
 {
     int i, x, y, z;
@@ -545,13 +527,28 @@ static void aes_gen_tables( void )
 
 #endif /* MBEDTLS_AES_FEWER_TABLES */
 
-// TODO, replace with proper flagging
+#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
+/*
+ * SCA CM table position check
+ */
+#define SCA_CM_TBL_MATCH(tbl, n) ( tbl[0] == ( n ) || \
+                                   tbl[1] == ( n ) || \
+                                   tbl[2] == ( n ) )
 
-#if /* defined(AES_128_SCA_CM) &&*/ defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-#define AES_SCA_COUNTERMEASURES
-#endif
+/*
+ * SCA CM always true check
+ */
+#define SCA_CM_ALWAYS_TRUE(tbl, n) ( tbl[0] != ( n ) || \
+                                     tbl[1] != ( n ) || \
+                                     tbl[2] != tbl[0] )
+/*
+ * Number of SCA CM dummy rounds.
+ */
+#define SCA_CM_DUMMY_ROUND_COUNT 3
 
-#if defined(AES_SCA_COUNTERMEASURES)
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
+
+#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
 static void aes_sca_rand_tbl_fill(uint8_t *tbl, uint8_t tbl_len, uint8_t max_num)
 {
     int i, j, is_unique_number;
@@ -579,7 +576,7 @@ static void aes_sca_rand_tbl_fill(uint8_t *tbl, uint8_t tbl_len, uint8_t max_num
         *cur_num++ = num;
     }
 }
-#endif
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
 void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
@@ -998,7 +995,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     int i;
     uint32_t *RK, X0, X1, X2, X3, Y0 = 0, Y1 = 0, Y2 = 0, Y3 = 0;
 
-#ifdef AES_SCA_COUNTERMEASURES
+#ifdef MBEDTLS_AES_SCA_COUNTERMEASURES
     uint32_t *RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA;
     uint8_t sca_cm_pos_tbl[SCA_CM_DUMMY_ROUND_COUNT];  // position for SCA countermeasure dummy rounds, not in any order
 
@@ -1008,11 +1005,11 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     X1_SCA = mbedtls_platform_random_in_range( 0xffffffff );
     X2_SCA = mbedtls_platform_random_in_range( 0xffffffff );
     X3_SCA = mbedtls_platform_random_in_range( 0xffffffff );
-#endif /* AES_SCA_COUNTERMEASURES */
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
     RK = ctx->rk;
 
-#ifdef AES_SCA_COUNTERMEASURES
+#ifdef MBEDTLS_AES_SCA_COUNTERMEASURES
     RK_SCA = RK;
 
     if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, ctx->nr ) )
@@ -1023,7 +1020,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         GET_UINT32_LE( X2, input,  8 ); X2_SCA ^= *RK_SCA++;
         GET_UINT32_LE( X3, input, 12 ); X3_SCA ^= *RK_SCA++;
     }
-#endif /* AES_SCA_COUNTERMEASURES */
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
     GET_UINT32_LE( X0, input,  0 ); X0 ^= *RK++;
     GET_UINT32_LE( X1, input,  4 ); X1 ^= *RK++;
     GET_UINT32_LE( X2, input,  8 ); X2 ^= *RK++;
@@ -1031,7 +1028,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
     for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
     {
-#ifdef AES_SCA_COUNTERMEASURES
+#ifdef MBEDTLS_AES_SCA_COUNTERMEASURES
         // Would random delay before each round be necessary?
         //
         if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, i * 2 ) )
@@ -1047,13 +1044,13 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
         if ( SCA_CM_ALWAYS_TRUE( sca_cm_pos_tbl, i * 2 + 1 ) )
             AES_FROUND( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
-#else /* AES_SCA_COUNTERMEASURES */
+#else /* MBEDTLS_AES_SCA_COUNTERMEASURES */
         AES_FROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
         AES_FROUND( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
-#endif /* AES_SCA_COUNTERMEASURES */
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
     }
 
-#ifdef AES_SCA_COUNTERMEASURES
+#ifdef MBEDTLS_AES_SCA_COUNTERMEASURES
     if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, 1 ) )
         AES_FROUND( RK_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA,
                             X0_SCA, X1_SCA, X2_SCA, X3_SCA );
@@ -1104,7 +1101,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     int i;
     uint32_t *RK, X0, X1, X2, X3, Y0 = 0, Y1 = 0, Y2 = 0, Y3 = 0;
 
-#ifdef AES_SCA_COUNTERMEASURES
+#ifdef MBEDTLS_AES_SCA_COUNTERMEASURES
     uint32_t *RK_SCA, X0_SCA, X1_SCA, X2_SCA, X3_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA;
     uint8_t sca_cm_pos_tbl[SCA_CM_DUMMY_ROUND_COUNT];  // position for SCA countermeasure dummy rounds, not in any order
 
@@ -1114,11 +1111,11 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     X1_SCA = mbedtls_platform_random_in_range( 0xffffffff );
     X2_SCA = mbedtls_platform_random_in_range( 0xffffffff );
     X3_SCA = mbedtls_platform_random_in_range( 0xffffffff );
-#endif /* AES_SCA_COUNTERMEASURES */
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
     RK = ctx->rk;
 
-#ifdef AES_SCA_COUNTERMEASURES
+#ifdef MBEDTLS_AES_SCA_COUNTERMEASURES
     RK_SCA = RK;
     if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, ctx->nr ) )
     {
@@ -1135,16 +1132,16 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
         GET_UINT32_LE( X2, input,  8 ); X2 ^= *RK++;
         GET_UINT32_LE( X3, input, 12 ); X3 ^= *RK++;
     }
-#else /* AES_SCA_COUNTERMEASURES */
+#else /* MBEDTLS_AES_SCA_COUNTERMEASURES */
     GET_UINT32_LE( X0, input,  0 ); X0 ^= *RK++;
     GET_UINT32_LE( X1, input,  4 ); X1 ^= *RK++;
     GET_UINT32_LE( X2, input,  8 ); X2 ^= *RK++;
     GET_UINT32_LE( X3, input, 12 ); X3 ^= *RK++;
-#endif /* AES_SCA_COUNTERMEASURES */
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
     for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
     {
-#ifdef AES_SCA_COUNTERMEASURES
+#ifdef MBEDTLS_AES_SCA_COUNTERMEASURES
         // Would random delay before each round be necessary?
         //
         if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, i * 2 ) )
@@ -1160,13 +1157,13 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 
         if ( SCA_CM_ALWAYS_TRUE( sca_cm_pos_tbl, i * 2 + 1 ) )
             AES_RROUND( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
-#else /* AES_SCA_COUNTERMEASURES */
+#else /* MBEDTLS_AES_SCA_COUNTERMEASURES */
         AES_RROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
         AES_RROUND( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
-#endif /* AES_SCA_COUNTERMEASURES */
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
     }
 
-#ifdef AES_SCA_COUNTERMEASURES
+#ifdef MBEDTLS_AES_SCA_COUNTERMEASURES
     if ( SCA_CM_TBL_MATCH( sca_cm_pos_tbl, 1 ) )
         AES_RROUND( RK_SCA, Y0_SCA, Y1_SCA, Y2_SCA, Y3_SCA,
                             X0_SCA, X1_SCA, X2_SCA, X3_SCA );
@@ -1181,10 +1178,10 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     if ( SCA_CM_ALWAYS_TRUE ( sca_cm_pos_tbl, 0 ) )
         AES_RROUND_F( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
 
-#else /* AES_SCA_COUNTERMEASURES */
+#else /* MBEDTLS_AES_SCA_COUNTERMEASURES */
     AES_RROUND( RK, Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
     AES_RROUND_F( RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
-#endif /* AES_SCA_COUNTERMEASURES */
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
     PUT_UINT32_LE( X0, output,  0 );
     PUT_UINT32_LE( X1, output,  4 );

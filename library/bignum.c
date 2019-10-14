@@ -919,6 +919,13 @@ int mbedtls_mpi_cmp_mpi( const mbedtls_mpi *X, const mbedtls_mpi *Y )
     return( 0 );
 }
 
+/** Decide if an integer is less than the other, without branches.
+ *
+ * \param x         First integer.
+ * \param y         Second integer.
+ *
+ * \return          1 if \p x is less than \p y, 0 otherwise
+ */
 static unsigned ct_lt_mpi_uint( const mbedtls_mpi_uint x,
         const mbedtls_mpi_uint y )
 {

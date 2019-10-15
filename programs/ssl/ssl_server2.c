@@ -1625,79 +1625,6 @@ int main( int argc, char *argv[] )
     char *p, *q;
     const int *list;
 
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-    mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
-#endif
-
-    ssl = mbedtls_calloc( 1, sizeof( *ssl ) );
-    conf = mbedtls_calloc( 1, sizeof( *conf ) );
-    cacert = mbedtls_calloc( 1, sizeof( *cacert ) );
-    srvcert = mbedtls_calloc( 1, sizeof( *srvcert ) );
-    pkey = mbedtls_calloc( 1, sizeof( *pkey ) );
-    srvcert2 = mbedtls_calloc( 1, sizeof( *srvcert2 ) );
-    pkey2 = mbedtls_calloc( 1, sizeof( *pkey2 ) );
-    cache = mbedtls_calloc( 1, sizeof( *cache ) );
-    timer = mbedtls_calloc( 1, sizeof( *timer ) );
-    ticket_ctx = mbedtls_calloc( 1, sizeof( *ticket_ctx ) );
-    entropy = mbedtls_calloc( 1, sizeof( *entropy ) );
-#if defined(MBEDTLS_CTR_DRBG_C)
-    ctr_drbg = mbedtls_calloc( 1, sizeof( *ctr_drbg ) );
-#else
-    hmac_drbg = mbedtls_calloc( 1, sizeof( *hmac_drbg ) );
-#endif
-
-    if( ssl       == NULL || conf      == NULL ||
-        cacert    == NULL || srvcert   == NULL ||
-        pkey      == NULL || srvcert2  == NULL ||
-        pkey2     == NULL || cache     == NULL ||
-#if defined(MBEDTLS_CTR_DRBG_C)
-        ctr_drbg  == NULL ||
-#else
-        hmac_drbg == NULL ||
-#endif
-        entropy   == NULL )
-    {
-        goto exit;
-    }
-
-    /*
-     * Make sure memory references are valid in case we exit early.
-     */
-    mbedtls_net_init( &client_fd );
-    mbedtls_net_init( &listen_fd );
-    mbedtls_ssl_init( ssl );
-    mbedtls_ssl_config_init( conf );
-#if defined(MBEDTLS_CTR_DRBG_C)
-    mbedtls_ctr_drbg_init( ctr_drbg );
-#else
-    mbedtls_hmac_drbg_init( hmac_drbg );
-#endif /* MBEDTLS_CTR_DRBG_C */
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    mbedtls_x509_crt_init( cacert );
-    mbedtls_x509_crt_init( srvcert );
-    mbedtls_pk_init( pkey );
-    mbedtls_x509_crt_init( srvcert2 );
-    mbedtls_pk_init( pkey2 );
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    memset( &ssl_async_keys, 0, sizeof( ssl_async_keys ) );
-#endif
-#endif
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    mbedtls_dhm_init( &dhm );
-#endif
-#if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_cache_init( cache );
-#endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    mbedtls_ssl_ticket_init( ticket_ctx );
-#endif
-#if defined(MBEDTLS_SSL_ALPN)
-    memset( (void *) alpn_list, 0, sizeof( alpn_list ) );
-#endif
-#if defined(MBEDTLS_SSL_COOKIE_C)
-    mbedtls_ssl_cookie_init( &cookie_ctx );
-#endif
-
 #if !defined(_WIN32)
     /* Abort cleanly on SIGTERM and SIGINT */
     signal( SIGTERM, term_handler );
@@ -2360,6 +2287,99 @@ int main( int argc, char *argv[] )
             }
         }
     }
+
+/* Do all necessary allocations and initializations */
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
+#endif
+
+    ssl = mbedtls_calloc( 1, sizeof( *ssl ) );
+    conf = mbedtls_calloc( 1, sizeof( *conf ) );
+    cacert = mbedtls_calloc( 1, sizeof( *cacert ) );
+    srvcert = mbedtls_calloc( 1, sizeof( *srvcert ) );
+    pkey = mbedtls_calloc( 1, sizeof( *pkey ) );
+    srvcert2 = mbedtls_calloc( 1, sizeof( *srvcert2 ) );
+    pkey2 = mbedtls_calloc( 1, sizeof( *pkey2 ) );
+#if defined(MBEDTLS_SSL_CACHE_C)
+    cache = mbedtls_calloc( 1, sizeof( *cache ) );
+#endif
+#if defined(MBEDTLS_TIMING_C)
+    timer = mbedtls_calloc( 1, sizeof( *timer ) );
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    ticket_ctx = mbedtls_calloc( 1, sizeof( *ticket_ctx ) );
+#endif
+    entropy = mbedtls_calloc( 1, sizeof( *entropy ) );
+#if defined(MBEDTLS_CTR_DRBG_C)
+    ctr_drbg = mbedtls_calloc( 1, sizeof( *ctr_drbg ) );
+#else
+    hmac_drbg = mbedtls_calloc( 1, sizeof( *hmac_drbg ) );
+#endif
+
+    if( ssl         == NULL || conf      == NULL ||
+        cacert      == NULL || srvcert   == NULL ||
+        pkey        == NULL || srvcert2  == NULL ||
+        pkey2       == NULL ||
+#if defined(MBEDTLS_SSL_CACHE_C)
+        cache       == NULL ||
+#endif
+#if defined(MBEDTLS_TIMING_C)
+        timer       == NULL ||
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+        ticket_ctx  == NULL ||
+#endif
+#if defined(MBEDTLS_CTR_DRBG_C)
+        ctr_drbg    == NULL ||
+#else
+        hmac_drbg   == NULL ||
+#endif
+        entropy     == NULL )
+    {
+        goto exit;
+    }
+
+    /*
+     * Make sure memory references are valid in case we exit early.
+     */
+    mbedtls_net_init( &client_fd );
+    mbedtls_net_init( &listen_fd );
+    mbedtls_ssl_init( ssl );
+    mbedtls_ssl_config_init( conf );
+#if defined(MBEDTLS_CTR_DRBG_C)
+    mbedtls_ctr_drbg_init( ctr_drbg );
+#else
+    mbedtls_hmac_drbg_init( hmac_drbg );
+#endif /* MBEDTLS_CTR_DRBG_C */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt_init( cacert );
+    mbedtls_x509_crt_init( srvcert );
+    mbedtls_pk_init( pkey );
+    mbedtls_x509_crt_init( srvcert2 );
+    mbedtls_pk_init( pkey2 );
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    memset( &ssl_async_keys, 0, sizeof( ssl_async_keys ) );
+#endif
+#endif
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
+    mbedtls_dhm_init( &dhm );
+#endif
+#if defined(MBEDTLS_SSL_CACHE_C)
+    mbedtls_ssl_cache_init( cache );
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_ticket_init( ticket_ctx );
+#endif
+#if defined(MBEDTLS_SSL_ALPN)
+    memset( (void *) alpn_list, 0, sizeof( alpn_list ) );
+#endif
+#if defined(MBEDTLS_SSL_COOKIE_C)
+    mbedtls_ssl_cookie_init( &cookie_ctx );
+#endif
+
+
+
+
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( unhexify( cid, opt.cid_val, &cid_len ) != 0 )
@@ -3960,9 +3980,11 @@ exit:
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( cache );
+    mbedtls_free( cache );
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     mbedtls_ssl_ticket_free( ticket_ctx );
+    mbedtls_free( ticket_ctx );
 #endif
 #if defined(MBEDTLS_SSL_COOKIE_C)
     mbedtls_ssl_cookie_free( &cookie_ctx );
@@ -3983,9 +4005,9 @@ exit:
     mbedtls_free( pkey );
     mbedtls_free( srvcert2 );
     mbedtls_free( pkey2 );
-    mbedtls_free( cache );
+#if defined(MBEDTLS_TIMING_C)
     mbedtls_free( timer );
-    mbedtls_free( ticket_ctx );
+#endif
     mbedtls_free( entropy );
 #if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_free( ctr_drbg );

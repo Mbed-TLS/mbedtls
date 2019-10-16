@@ -616,6 +616,22 @@
 //#define MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 
 /**
+ * \def MBEDTLS_AES_ONLY_ENCRYPT
+ *
+ * Use only AES encryption, decryption is not possible.
+ *
+ * Uncommenting this macro removes support for AES decryption.
+ *
+ * Tradeoff: Uncommenting this macro reduces ROM footprint by ~2.5 kB.
+ *
+ * Module:  library/aes.c
+ *
+ * Requires: MBEDTLS_AES_C
+ *
+ */
+//#define MBEDTLS_AES_ONLY_ENCRYPT
+
+/**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
  *
  * Use less ROM for the Camellia implementation (saves about 768 bytes).

@@ -746,6 +746,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_AES_FEWER_TABLES */
 
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+    if( strcmp( "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH );
+        return( 0 );
+    }
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+
 #if defined(MBEDTLS_CAMELLIA_SMALL_MEMORY)
     if( strcmp( "MBEDTLS_CAMELLIA_SMALL_MEMORY", config ) == 0 )
     {
@@ -2929,14 +2937,6 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_PK_SINGLE_TYPE */
-
-#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
-    if( strcmp( "MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH );
-        return( 0 );
-    }
-#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
     /* If the symbol is not found, return an error */
     return( 1 );

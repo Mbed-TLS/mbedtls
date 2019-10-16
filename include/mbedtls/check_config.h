@@ -74,6 +74,10 @@
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_CTR_DRBG_C) && defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && !defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
+#error "MBEDTLS_CTR_DRBG_C and MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH defined, but MBEDTLS_CTR_DRBG_USE_128_BIT_KEY is not defined"
+#endif
+
 #if defined(MBEDTLS_DHM_C) && !defined(MBEDTLS_BIGNUM_C)
 #error "MBEDTLS_DHM_C defined, but not all prerequisites"
 #endif

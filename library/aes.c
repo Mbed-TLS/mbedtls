@@ -1860,7 +1860,15 @@ int mbedtls_aes_self_test( int verbose )
             mbedtls_printf( "skipped\n" );
             continue;
         }
-#endif
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
         mbedtls_platform_memset( buf, 0, 16 );
 
@@ -1931,6 +1939,14 @@ int mbedtls_aes_self_test( int verbose )
             continue;
         }
 #endif
+
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
         mbedtls_platform_memset( iv , 0, 16 );
         mbedtls_platform_memset( prv, 0, 16 );
@@ -2015,6 +2031,14 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif
 
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
+
         memcpy( iv,  aes_test_cfb128_iv, 16 );
         memcpy( key, aes_test_cfb128_key[u], keybits / 8 );
 
@@ -2085,6 +2109,15 @@ int mbedtls_aes_self_test( int verbose )
             continue;
         }
 #endif
+
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
+
         memcpy( iv,  aes_test_ofb_iv, 16 );
         memcpy( key, aes_test_ofb_key[u], keybits / 8 );
 
@@ -2155,6 +2188,14 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif
 
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
+
         memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
         memcpy( key, aes_test_ctr_key[u], 16 );
 
@@ -2214,6 +2255,14 @@ int mbedtls_aes_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  AES-XTS-128 (%s): ",
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
+
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
         mbedtls_platform_memset( key, 0, sizeof( key ) );
         memcpy( key, aes_test_xts_key[u], 32 );

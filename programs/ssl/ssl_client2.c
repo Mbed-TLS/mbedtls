@@ -997,18 +997,24 @@ int main( int argc, char *argv[] )
 #else
     hmac_drbg = mbedtls_calloc( 1, sizeof( *hmac_drbg ) );
 #endif
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     cacert    = mbedtls_calloc( 1, sizeof( *cacert ) );
     clicert   = mbedtls_calloc( 1, sizeof( *clicert ) );
     pkey      = mbedtls_calloc( 1, sizeof( *pkey ) );
+#endif
 
-    if( ssl       == NULL || conf   == NULL ||
-        entropy   == NULL || cacert == NULL ||
+    if( ssl       == NULL || entropy   == NULL ||
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+           cacert == NULL ||
+           clicert== NULL || pkey      == NULL ||
+#endif
 #if defined(MBEDTLS_CTR_DRBG_C)
         ctr_drbg  == NULL ||
 #else
         hmac_drbg == NULL ||
 #endif
-        clicert   == NULL || pkey   == NULL )
+
+        conf   == NULL)
     {
         goto exit;
     }
@@ -2993,10 +2999,11 @@ exit:
 #else
     mbedtls_free( hmac_drbg );
 #endif
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_free( cacert );
     mbedtls_free( clicert );
     mbedtls_free( pkey );
-
+#endif
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();

@@ -10371,13 +10371,20 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
     dummy_cb_ctx *cb_ctxs;
 
-    mbedtls_mps_transform_t **epochs_c = malloc( rounds *
-                                             sizeof( mbedtls_mps_transform_t ) );
-    mbedtls_mps_transform_t **epochs_s = malloc( rounds *
-                                             sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t **epochs_c;
+    mbedtls_mps_transform_t **epochs_s;
+    size_t num_epochs;
+
+    if( multiple_epochs == 0 )
+        num_epochs = 1;
+    else
+        num_epochs = rounds;
+
+    epochs_c = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
+    epochs_s = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
 
     TEST_ASSERT( epochs_s != NULL && epochs_c != NULL );
-    for( size_t id=0; id < (unsigned) rounds; id++ )
+    for( size_t id=0; id < (unsigned) num_epochs; id++ )
     {
         epochs_c[id] = malloc( sizeof( mbedtls_mps_transform_t ) );
         epochs_s[id] = malloc( sizeof( mbedtls_mps_transform_t ) );
@@ -10390,8 +10397,6 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         epochs_s[id]->mock.enabled = ( id > 0 );
         epochs_s[id]->mock.pad = id % 13 + 5;
     }
-
-    ((void) multiple_epochs);
 
     cb_ctxs = malloc( sizeof( *cb_ctxs ) * ( rounds * num_hs ) );
     TEST_ASSERT( cb_ctxs != NULL );

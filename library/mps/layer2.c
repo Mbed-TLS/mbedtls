@@ -130,6 +130,22 @@ MBEDTLS_MPS_STATIC int l2_type_empty_allowed( mbedtls_mps_l2 *ctx,
  * Epoch handling
  */
 
+static inline const char * l2_epoch_usage_to_string(
+    mbedtls_mps_epoch_usage usage )
+{
+    if( ( usage & MPS_EPOCH_READ_MASK  ) != 0 &&
+        ( usage & MPS_EPOCH_WRITE_MASK ) != 0 )
+    {
+        return( "READ | WRITE" );
+    }
+    else if( ( usage & MPS_EPOCH_READ_MASK ) != 0 )
+        return( "READ" );
+    else if( ( usage & MPS_EPOCH_WRITE_MASK ) != 0 )
+        return( "WRITE" );
+
+    return( "NONE" );
+}
+
 /* Internal macro used to indicate internal usage
  * of an epoch, e.g. because data it still pending
  * to be dispatched.
@@ -2683,8 +2699,9 @@ int l2_epoch_check( mbedtls_mps_l2 *ctx,
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
 
-    TRACE_INIT( "l2_epoch_check for epoch %d, purpose %u",
-                epoch_id, (unsigned) purpose );
+    TRACE_INIT( "l2_epoch_check for epoch %d, purpose %s",
+                epoch_id,
+                l2_epoch_usage_to_string( purpose ) );
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )
@@ -2692,7 +2709,10 @@ int l2_epoch_check( mbedtls_mps_l2 *ctx,
 
     if( ( purpose & epoch->usage ) == 0 )
     {
-        TRACE( trace_comment, "epoch usage not allowed" );
+        TRACE( trace_comment, "Epoch %u has usage %s, but flag from %s is required.",
+               (unsigned) epoch_id,
+               l2_epoch_usage_to_string( epoch->usage ),
+               l2_epoch_usage_to_string( purpose ) );
         RETURN( MPS_ERR_INVALID_RECORD );
     }
 
@@ -2724,10 +2744,10 @@ int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     /* An epoch is in use if its flags are not empty. */
     for( offset = 0; offset < ctx->epochs.next; offset++ )
     {
-        TRACE( trace_comment, "Checking epoch %u at window offset %u, usage %x",
+        TRACE( trace_comment, "Checking epoch %u at window offset %u, usage %s",
                (unsigned)( ctx->epochs.base + offset ),
                (unsigned) offset,
-               (unsigned) ctx->epochs.window[offset].usage );
+               l2_epoch_usage_to_string( ctx->epochs.window[offset].usage ) );
         if( ctx->epochs.window[offset].usage == 0 )
         {
             TRACE( trace_comment, "No longer needed" );

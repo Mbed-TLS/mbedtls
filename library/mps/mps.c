@@ -2863,6 +2863,8 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
          * acknowledges the last outgoing flight. We may therefore forget
          * about the last incoming flight and make space for the new one. */
         MPS_CHK( mps_retransmit_in_forget( mps ) );
+
+        MPS_CHK( mps_reassembly_init( mps ) );
     }
     else
     if( old == MBEDTLS_MPS_FLIGHT_DONE &&
@@ -2889,6 +2891,7 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
     if( old == MBEDTLS_MPS_FLIGHT_RECVINIT &&
         new == MBEDTLS_MPS_FLIGHT_RECEIVE )
     {
+        MPS_CHK( mps_out_flight_init( mps ) );
         MPS_CHK( mps_retransmit_in_init( mps ) );
         mps->dtls.wait.retransmit_timeout =
                 mbedtls_mps_conf_get_hs_timeout_min( &mps->conf );

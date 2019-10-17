@@ -2616,13 +2616,6 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
         TRACE( trace_error, "Unexpected operation" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
-
-    if( mps_l2_readers_active_state( ctx )
-        == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
-    {
-        TRACE( trace_comment, "Unexpected operation" );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
-    }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
 #if defined(MBEDTLS_MPS_ASSERT)

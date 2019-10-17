@@ -95,6 +95,16 @@ MBEDTLS_MPS_STATIC void mps_generic_failure_handler(
 MBEDTLS_MPS_STATIC int mps_handle_pending_alert( mbedtls_mps *mps );
 
 /*
+ * Internal flags used to indicate usage of epochs
+ */
+
+#define MPS_READ_ACTIVE                   0
+#define MPS_READ_RETRANSMISSION_DETECTION 1
+
+#define MPS_WRITE_ACTIVE         0
+#define MPS_WRITE_RETRANSMISSION 1
+
+/*
  * Read/Write preparations
  *
  * Check if the handshake state allows reading/writing,
@@ -1892,8 +1902,17 @@ int mbedtls_mps_set_incoming_keys( mbedtls_mps *mps,
 {
     int ret;
     TRACE_INIT( "mbedtls_mps_set_incoming_keys, epoch %d", (int) id );
+
+    /* Clear 'active epoch' usage for old epoch and set it for new. */
+    if( mps->in_epoch != MBEDTLS_MPS_EPOCH_NONE )
+    {
+        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, mps->in_epoch,
+                                     MPS_EPOCH_USAGE_READ(
+                                         MPS_READ_ACTIVE ), 0 ) );
+    }
     MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id, 0,
-                                 MPS_EPOCH_USAGE_READ( 0 ) ) );
+                                 MPS_EPOCH_USAGE_READ(
+                                     MPS_READ_ACTIVE ) ) );
     mps->in_epoch = id;
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
@@ -1904,8 +1923,17 @@ int mbedtls_mps_set_outgoing_keys( mbedtls_mps *mps,
 {
     int ret;
     TRACE_INIT( "mbedtls_mps_set_outgoing_keys, epoch %d", (int) id );
+
+    /* Clear 'active epoch' usage for old epoch and set it for new. */
+    if( mps->out_epoch != MBEDTLS_MPS_EPOCH_NONE )
+    {
+        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, mps->out_epoch,
+                                     MPS_EPOCH_USAGE_WRITE(
+                                         MPS_WRITE_ACTIVE ), 0 ) );
+    }
     MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, id, 0,
-                                 MPS_EPOCH_USAGE_WRITE( 0 ) ) );
+                                 MPS_EPOCH_USAGE_WRITE(
+                                     MPS_WRITE_ACTIVE ) ) );
     mps->out_epoch = id;
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
@@ -2176,6 +2204,14 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_remember( mbedtls_mps *mps,
 
     mps->dtls.retransmission_detection.flight_len++;
 
+    /* Keep an epoch as long as we might still receive
+     * retransmissions using that epoch. */
+    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3,
+                   mps->in_epoch,
+                   0,
+                   MPS_EPOCH_USAGE_READ(
+                       MPS_READ_RETRANSMISSION_DETECTION ) ) );
+
     MPS_INTERNAL_FAILURE_HANDLER
 }
 
@@ -2187,14 +2223,40 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_init( mbedtls_mps *mps )
 
 MBEDTLS_MPS_STATIC int mps_retransmit_in_free( mbedtls_mps *mps )
 {
-    ((void) mps);
-    return( 0 );
+    int ret = 0;
+    uint8_t flight_len, msg_idx;
+    mbedtls_mps_recognition_info *info;
+    TRACE_INIT( "mps_retransmit_in_free" );
+
+    flight_len = mps->dtls.retransmission_detection.flight_len;
+    info       = &mps->dtls.retransmission_detection.msgs[0];
+
+    TRACE( trace_comment, "Flight length: %u", (unsigned) flight_len );
+    for( msg_idx=0; msg_idx < flight_len; msg_idx++, info++ )
+    {
+        TRACE( trace_comment,
+               "Epoch %u no longer needed for retransmission detection",
+               (unsigned) info->epoch );
+
+        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3,
+                    info->epoch,
+                    MPS_EPOCH_USAGE_READ(
+                        MPS_READ_RETRANSMISSION_DETECTION ),
+                    0 ) );
+    }
+
+    mps->dtls.retransmission_detection.flight_len = 0;
+
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 MBEDTLS_MPS_STATIC int mps_retransmit_in_forget( mbedtls_mps *mps )
 {
-    mps->dtls.retransmission_detection.flight_len = 0;
-    return( 0 );
+    int ret = 0;
+    TRACE_INIT( "mps_retransmit_in_forget" );
+    MPS_CHK( mps_retransmit_in_free( mps ) );
+    MPS_CHK( mps_retransmit_in_init( mps ) );
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 /*
@@ -3313,6 +3375,7 @@ MBEDTLS_MPS_STATIC int mps_out_flight_init( mbedtls_mps *mps )
 
 MBEDTLS_MPS_STATIC int mps_out_flight_free( mbedtls_mps *mps )
 {
+    int ret = 0;
     uint8_t idx, flight_len;
     mbedtls_mps_retransmission_handle *handle;
     TRACE_INIT( "mps_out_flight_free" );
@@ -3322,10 +3385,20 @@ MBEDTLS_MPS_STATIC int mps_out_flight_free( mbedtls_mps *mps )
     TRACE( trace_comment, "Flight length: %u", (unsigned) flight_len );
 
     for( idx=0; idx < flight_len; idx++, handle++ )
+    {
+        mbedtls_mps_epoch_id cur_epoch =
+            handle->metadata.epoch;
+
+        MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, cur_epoch,
+                                     MPS_EPOCH_USAGE_WRITE(
+                                         MPS_WRITE_RETRANSMISSION ), 0 ) );
+
         mbedtls_mps_retransmission_handle_free( handle );
+    }
 
     mps->dtls.outgoing.flight_len = 0;
-    RETURN( 0 );
+
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 MBEDTLS_MPS_STATIC void mbedtls_mps_retransmission_handle_init(
@@ -3798,10 +3871,20 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
 
 MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps )
 {
+    int ret;
+    TRACE_INIT( "mps_out_flight_msg_done" );
+
+    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3,
+                                 mps->out_epoch,
+                                 0,
+                                 MPS_EPOCH_USAGE_WRITE(
+                                     MPS_WRITE_RETRANSMISSION ) ) );
+
     /* It has been checked in mps_out_flight_msg_start()
      * that this does not wrap. */
     mps->dtls.seq_nr++;
-    return( 0 );
+
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 #endif /* MBEDTLS_MPS_PROTO_DTLS */

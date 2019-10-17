@@ -10371,10 +10371,12 @@ void mbedtls_mps_l4_flight_exchange( int mode,
     mbedtls_mps_transform_t **epochs[2];
     size_t num_epochs;
 
+    mbedtls_mps_epoch_id next_epoch[2];
+
     if( multiple_epochs == 0 )
         num_epochs = 1;
     else
-        num_epochs = rounds;
+        num_epochs = ( rounds + 1 ) /2;
 
     epochs[0] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
     epochs[1] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
@@ -10477,24 +10479,18 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                    mode,
                                    ( 3 * hs_len ) / 2 ) == 0 );
 
+    if( multiple_epochs == 0 )
     {
         /* Register initial key material. */
-        mbedtls_mps_epoch_id cli_init_epoch;
-        mbedtls_mps_epoch_id srv_init_epoch;
-
         TEST_ASSERT( mbedtls_mps_add_key_material( &cli, epochs[0][0],
-                                                   &cli_init_epoch ) == 0 );
-        TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli,
-                                                    cli_init_epoch ) == 0 );
-        TEST_ASSERT( mbedtls_mps_set_incoming_keys( &cli,
-                                                    cli_init_epoch ) == 0 );
+                                                   &next_epoch[0] ) == 0 );
+        TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli, next_epoch[0] ) == 0 );
+        TEST_ASSERT( mbedtls_mps_set_incoming_keys( &cli, next_epoch[0] ) == 0 );
 
         TEST_ASSERT( mbedtls_mps_add_key_material( &srv, epochs[1][0],
-                                                   &srv_init_epoch ) == 0 );
-        TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv,
-                                                    srv_init_epoch ) == 0 );
-        TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv,
-                                                    srv_init_epoch ) == 0 );
+                                                   &next_epoch[1] ) == 0 );
+        TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv, next_epoch[1] ) == 0 );
+        TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, next_epoch[1] ) == 0 );
     }
 
     if( use_mock_timer )
@@ -10518,6 +10514,20 @@ void mbedtls_mps_l4_flight_exchange( int mode,
             l0       = &c2s_d;
 
             printf( "\n\n[[[[ ROUND %u, CLIENT ]]]]\n\n", (unsigned) round );
+
+            if( multiple_epochs == 1 )
+            {
+                /* Register and switch to new outgoing epoch */
+                TEST_ASSERT( mbedtls_mps_add_key_material( &cli, epochs[0][round / 2],
+                                                           &next_epoch[0] ) == 0 );
+                TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli,
+                                                            next_epoch[0] ) == 0 );
+
+                TEST_ASSERT( mbedtls_mps_add_key_material( &srv, epochs[1][round / 2],
+                                                           &next_epoch[1] ) == 0 );
+                TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv,
+                                                            next_epoch[1] ) == 0 );
+            }
         }
         else
         {
@@ -10526,8 +10536,16 @@ void mbedtls_mps_l4_flight_exchange( int mode,
             l0       = &s2c_d;
 
             printf( "\n\n[[[[ ROUND %u, SERVER ]]]]\n\n", (unsigned) round );
-        }
 
+            if( multiple_epochs == 1 )
+            {
+                /* Allow sending/reading from current epoch. */
+                TEST_ASSERT( mbedtls_mps_set_incoming_keys( &cli,
+                                                            next_epoch[0] ) == 0 );
+                TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv,
+                                                            next_epoch[1] ) == 0 );
+            }
+        }
 
         /* Send flight */
 

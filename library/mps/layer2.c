@@ -1204,7 +1204,7 @@ int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out )
 
     /* Check if the requested epoch is valid for writing. */
     desired_epoch = out->epoch;
-    ret = l2_epoch_check( ctx, desired_epoch, MPS_EPOCH_WRITE );
+    ret = l2_epoch_check( ctx, desired_epoch, MPS_EPOCH_WRITE_MASK );
     if( ret != 0 )
         RETURN( ret );
 
@@ -1863,7 +1863,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
      *       handshake message -- which should use the new epoch -- in
      *       the same record as the previous one. */
 
-    ret = l2_epoch_check( ctx, active->epoch, MPS_EPOCH_READ );
+    ret = l2_epoch_check( ctx, active->epoch, MPS_EPOCH_READ_MASK );
     if( ret != 0 )
         RETURN( ret );
 
@@ -2426,7 +2426,7 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 
     /* Epoch */
     MPS_READ_UINT16_BE( buf + dtls_rec_epoch_offset, &epoch );
-    ret = l2_epoch_check( ctx, epoch, MPS_EPOCH_READ );
+    ret = l2_epoch_check( ctx, epoch, MPS_EPOCH_READ_MASK );
     if( ret == MPS_ERR_INVALID_EPOCH )
         ret = MPS_ERR_INVALID_RECORD;
     if ( ret != 0 )
@@ -2690,7 +2690,7 @@ int l2_epoch_check( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         RETURN( ret );
 
-    if( ( purpose & epoch->usage ) != purpose )
+    if( ( purpose & epoch->usage ) == 0 )
     {
         TRACE( trace_comment, "epoch usage not allowed" );
         RETURN( MPS_ERR_INVALID_RECORD );

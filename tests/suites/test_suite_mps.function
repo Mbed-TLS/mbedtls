@@ -4091,10 +4091,10 @@ void mbedtls_mps_l2_basic( int mode,
                                          MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /* Ensure that the test parameters are valid */
     TEST_ASSERT( transform_get_expansion( dummy_c, &pre_exp, &post_exp ) == 0 );
@@ -4305,10 +4305,10 @@ void mbedtls_mps_l2_non_packable_type( int mode,
                                          MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, 0,
-                                     MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                     MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init, 0,
-                                     MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                     MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
 
     /*
      * Client: Write two consecutive messages of type ty_A to server.
@@ -4533,10 +4533,10 @@ void mbedtls_mps_l2_bad_record( int mode,
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 0, 1, 1 ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Write a malformed record to server
@@ -4838,10 +4838,10 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 0, 1, 1 ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /* Writing */
 
@@ -5184,10 +5184,10 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
 
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Write something of type A to server
@@ -5473,9 +5473,9 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     TEST_ASSERT( mps_l2_epoch_add( &cli,  epoch0_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv,  epoch0_s, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init,
-                                     0, MPS_EPOCH_READ  ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 )  ) == 0 );
 
     TEST_ASSERT( mps_l2_epoch_add( &cli, epoch1_c, &epoch_crypt ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, epoch1_s, &epoch_crypt ) == 0 );
@@ -5503,9 +5503,9 @@ void mbedtls_mps_l2_switch_epoch( int mode,
      * Client: Switch epochs
      */
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
-                                     MPS_EPOCH_WRITE, 0 ) == 0);
+                                     MPS_EPOCH_USAGE_WRITE( 0 ), 0 ) == 0);
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_crypt,
-                                     0, MPS_EPOCH_WRITE ) == 0);
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0);
 
     /*
      * Client: Write something of type B to server, using new epoch
@@ -5549,9 +5549,9 @@ void mbedtls_mps_l2_switch_epoch( int mode,
      * Server: Switch epochs
      */
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init,
-                                     MPS_EPOCH_READ, 0 ) == 0 );
+                                     MPS_EPOCH_USAGE_READ( 0 ), 0 ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_crypt,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Server: Read type B record using new epoch.
@@ -5665,10 +5665,10 @@ void mbedtls_mps_l2_queueing( int allocator_buffer_sz,
 
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Request a large write of type A to server, so
@@ -5876,9 +5876,9 @@ void mbedtls_mps_l2_many_epochs( int mode,
     TEST_ASSERT( mps_l2_epoch_add( &cli, epochs_c[0], &next_cli_epoch ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, epochs_s[0], &next_srv_epoch ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, next_cli_epoch, 0,
-                                     MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                     MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, next_srv_epoch, 0,
-                                     MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                     MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
 
     for( size_t rd=0; rd < (unsigned) num_rounds - 1; rd++ )
     {
@@ -5929,7 +5929,7 @@ void mbedtls_mps_l2_many_epochs( int mode,
             TEST_ASSERT( ret == 0 );
 
         TEST_ASSERT( mps_l2_epoch_usage( &cli, next_cli_epoch, 0,
-                                MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
 
         /*
          * Client: Write something of type B to server
@@ -5991,7 +5991,7 @@ void mbedtls_mps_l2_many_epochs( int mode,
         TEST_ASSERT( mps_l2_epoch_add( &srv, epochs_s[rd + 1],
                                        &next_srv_epoch ) == 0 );
         TEST_ASSERT( mps_l2_epoch_usage( &srv, next_srv_epoch, 0,
-                                MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
 
         /*
          * Server: Read second message
@@ -6195,14 +6195,14 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                                    &latest_epoch[0] ) == 0 );
     TEST_ASSERT( latest_epoch[0] == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &endpoint[0], latest_epoch[0], 0,
-                                  MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                  MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     read_epoch[0] = write_epoch[0] = latest_epoch[0];
 
     TEST_ASSERT( mps_l2_epoch_add( &endpoint[1], epochs[1][0],
                                    &latest_epoch[1] ) == 0 );
     TEST_ASSERT( latest_epoch[1] == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &endpoint[1], latest_epoch[1], 0,
-                                  MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                  MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     read_epoch[1] = write_epoch[1] = latest_epoch[1];
 
 
@@ -6291,13 +6291,13 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                 /* Clear read flag for old epoch. */
                 TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
                                                  read_epoch[self],
-                                                 MPS_EPOCH_READ,
+                                                 MPS_EPOCH_USAGE_READ( 0 ),
                                                  0 ) == 0 );
 
                 /* Set usage for new epoch */
                 TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
                                                  epoch, 0,
-                                                 MPS_EPOCH_READ ) == 0 );
+                                                 MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
                 printf( "[%u] SWITCHED TO READ EPOCH %u\n",
                         (unsigned) self, (unsigned) epoch );
@@ -6445,13 +6445,13 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                 /* Clear write flag for old epoch. */
                 TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
                                                  write_epoch[self],
-                                                 MPS_EPOCH_WRITE,
+                                                 MPS_EPOCH_USAGE_WRITE( 0 ),
                                                  0 ) == 0 );
 
                 /* Set write usage for new epoch */
                 TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
                                                  epoch, 0,
-                                                 MPS_EPOCH_WRITE ) == 0 );
+                                                 MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
 
                 printf( "[%u] SWITCHED TO WRITE EPOCH %u\n",
                         (unsigned) self, (unsigned) epoch );
@@ -6695,11 +6695,11 @@ void mbedtls_mps_l3_basic_handshake(
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
 
     TEST_ASSERT( mps_l3_epoch_add( &srv, dummy_s, &srv_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &srv, srv_epoch,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Start but abort writing handshake message, if requested
@@ -7048,12 +7048,12 @@ void mbedtls_mps_l3_bad_msg( int variant )
     TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
 
     TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
     TEST_ASSERT( mps_l3_epoch_add( &srv, dummy_s, &srv_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &srv, srv_epoch,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Write an invalid handshake header to server.
@@ -7255,10 +7255,10 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l3_epoch_add( &srv, dummy_s, &srv_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &srv, srv_epoch,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Write handshake message to server
@@ -7658,10 +7658,10 @@ void mbedtls_mps_l3_basic_application( int mode,
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l3_epoch_add( &srv, dummy_s, &srv_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &srv, srv_epoch,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Write application data to server
@@ -7870,10 +7870,10 @@ void mbedtls_mps_l3_basic_alert( int mode,
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l3_epoch_add( &srv, dummy_s, &srv_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &srv, srv_epoch,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Write alert message to server
@@ -8063,10 +8063,10 @@ void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l3_epoch_add( &srv, dummy_s, &srv_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &srv, srv_epoch,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Write handshake message to server
@@ -8266,10 +8266,10 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch,
-                                     0, MPS_EPOCH_WRITE ) == 0 );
+                                     0, MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     TEST_ASSERT( mps_l3_epoch_add( &srv, dummy_s, &srv_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &srv, srv_epoch,
-                                     0, MPS_EPOCH_READ ) == 0 );
+                                     0, MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
     /*
      * Client: Write handshake message to server
@@ -8780,14 +8780,14 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
                                    &latest_epoch[0] ) == 0 );
     TEST_ASSERT( latest_epoch[0] == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &endpoint[0], latest_epoch[0], 0,
-                                  MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                  MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     read_epoch[0] = write_epoch[0] = latest_epoch[0];
 
     TEST_ASSERT( mps_l3_epoch_add( &endpoint[1], epochs[1][0],
                                    &latest_epoch[1] ) == 0 );
     TEST_ASSERT( latest_epoch[1] == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &endpoint[1], latest_epoch[1], 0,
-                                  MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+                                  MPS_EPOCH_USAGE_READ( 0 ) | MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
     read_epoch[1] = write_epoch[1] = latest_epoch[1];
 
     write_chunk[0] = 0;
@@ -8866,7 +8866,7 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
 
                 TEST_ASSERT( mps_l3_epoch_usage( &endpoint[self],
                                                  epoch, 0,
-                                                 MPS_EPOCH_READ ) == 0 );
+                                                 MPS_EPOCH_USAGE_READ( 0 ) ) == 0 );
 
                 printf( "[%u] SWITCHED TO READ EPOCH %u\n",
                         (unsigned) self, (unsigned) epoch );
@@ -9096,7 +9096,7 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
 
                 TEST_ASSERT( mps_l3_epoch_usage( &endpoint[self],
                                                  epoch, 0,
-                                                 MPS_EPOCH_WRITE ) == 0 );
+                                                 MPS_EPOCH_USAGE_WRITE( 0 ) ) == 0 );
 
                 printf( "[%u] SWITCHED TO WRITE EPOCH %u\n",
                         (unsigned) self, (unsigned) epoch );

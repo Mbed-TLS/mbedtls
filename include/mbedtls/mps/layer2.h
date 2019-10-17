@@ -73,13 +73,15 @@ typedef uint8_t mbedtls_mps_epoch_usage;
  *  Currently, only `0` and `1` are supported as values
  *  for `reason`.
  */
-#define MPS_EPOCH_USAGE_READ( reason )  \
-    ( (mbedtls_mps_epoch_usage) ( 1u << ( reason ) ) )
-#define MPS_EPOCH_USAGE_WRITE( reason ) \
-    ( (mbedtls_mps_epoch_usage) ( 1u << ( 2 + ( reason ) ) ) )
+#define MPS_EPOCH_USAGE_READ_OFFSET 0
+#define MPS_EPOCH_USAGE_READ( reason )                          \
+    ( (mbedtls_mps_epoch_usage) ( 1u << (                       \
+                MPS_EPOCH_USAGE_READ_OFFSET + reason ) ) )
 
-#define MPS_EPOCH_READ  MPS_EPOCH_USAGE_READ( 0 )
-#define MPS_EPOCH_WRITE MPS_EPOCH_USAGE_WRITE( 0 )
+#define MPS_EPOCH_USAGE_WRITE_OFFSET 2
+#define MPS_EPOCH_USAGE_WRITE( reason ) \
+    ( (mbedtls_mps_epoch_usage) ( 1u << (                       \
+                MPS_EPOCH_USAGE_WRITE_OFFSET + ( reason ) ) ) )
 
 #define MPS_EPOCH_READ_MASK  ( MPS_EPOCH_USAGE_READ( 0 ) | \
                                MPS_EPOCH_USAGE_READ( 1 ) )

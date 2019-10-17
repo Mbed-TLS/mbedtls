@@ -10353,9 +10353,6 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
     unsigned char *tmp;
 
-    mbedtls_mps_epoch_id cli_epoch;
-    mbedtls_mps_epoch_id srv_epoch;
-
     mbedtls_mps_handshake_out hs_out;
     mbedtls_mps_handshake_in  hs_in;
 
@@ -10371,8 +10368,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
     dummy_cb_ctx *cb_ctxs;
 
-    mbedtls_mps_transform_t **epochs_c;
-    mbedtls_mps_transform_t **epochs_s;
+    mbedtls_mps_transform_t **epochs[2];
     size_t num_epochs;
 
     if( multiple_epochs == 0 )
@@ -10380,22 +10376,22 @@ void mbedtls_mps_l4_flight_exchange( int mode,
     else
         num_epochs = rounds;
 
-    epochs_c = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
-    epochs_s = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
+    epochs[0] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
+    epochs[1] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
 
-    TEST_ASSERT( epochs_s != NULL && epochs_c != NULL );
+    TEST_ASSERT( epochs[1] != NULL && epochs[0] != NULL );
     for( size_t id=0; id < (unsigned) num_epochs; id++ )
     {
-        epochs_c[id] = malloc( sizeof( mbedtls_mps_transform_t ) );
-        epochs_s[id] = malloc( sizeof( mbedtls_mps_transform_t ) );
-        TEST_ASSERT( epochs_s[id] != NULL && epochs_c[id] != NULL );
+        epochs[0][id] = malloc( sizeof( mbedtls_mps_transform_t ) );
+        epochs[1][id] = malloc( sizeof( mbedtls_mps_transform_t ) );
+        TEST_ASSERT( epochs[1][id] != NULL && epochs[0][id] != NULL );
 
-        epochs_c[id]->type = 0;
-        epochs_c[id]->mock.enabled = ( id > 0 );
-        epochs_c[id]->mock.pad = id % 13 + 5;
-        epochs_s[id]->type = 0;
-        epochs_s[id]->mock.enabled = ( id > 0 );
-        epochs_s[id]->mock.pad = id % 13 + 5;
+        epochs[0][id]->type = 0;
+        epochs[0][id]->mock.enabled = ( id > 0 );
+        epochs[0][id]->mock.pad = id % 13 + 5;
+        epochs[1][id]->type = 0;
+        epochs[1][id]->mock.enabled = ( id > 0 );
+        epochs[1][id]->mock.pad = id % 13 + 5;
     }
 
     cb_ctxs = malloc( sizeof( *cb_ctxs ) * ( rounds * num_hs ) );
@@ -10481,15 +10477,25 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                    mode,
                                    ( 3 * hs_len ) / 2 ) == 0 );
 
-    TEST_ASSERT( mbedtls_mps_add_key_material( &cli, epochs_c[0],
-                                               &cli_epoch ) == 0 );
-    TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli, cli_epoch ) == 0 );
-    TEST_ASSERT( mbedtls_mps_set_incoming_keys( &cli, cli_epoch ) == 0 );
+    {
+        /* Register initial key material. */
+        mbedtls_mps_epoch_id cli_init_epoch;
+        mbedtls_mps_epoch_id srv_init_epoch;
 
-    TEST_ASSERT( mbedtls_mps_add_key_material( &srv, epochs_s[0],
-                                               &srv_epoch ) == 0 );
-    TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv, srv_epoch ) == 0 );
-    TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, srv_epoch ) == 0 );
+        TEST_ASSERT( mbedtls_mps_add_key_material( &cli, epochs[0][0],
+                                                   &cli_init_epoch ) == 0 );
+        TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli,
+                                                    cli_init_epoch ) == 0 );
+        TEST_ASSERT( mbedtls_mps_set_incoming_keys( &cli,
+                                                    cli_init_epoch ) == 0 );
+
+        TEST_ASSERT( mbedtls_mps_add_key_material( &srv, epochs[1][0],
+                                                   &srv_init_epoch ) == 0 );
+        TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv,
+                                                    srv_init_epoch ) == 0 );
+        TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv,
+                                                    srv_init_epoch ) == 0 );
+    }
 
     if( use_mock_timer )
     {
@@ -10640,21 +10646,27 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                            MBEDTLS_MPS_MODE_DATAGRAM,
                                            ( 3 * hs_len ) / 2 ) == 0 );
 
-            /* MPS owns the transform once passed to it, hence will destroy
-             * it when being freed. Set it up again. */
-            epochs_s[0] = malloc( sizeof( mbedtls_mps_transform_t ) );
-            epochs_s[0]->type = 0;
-            epochs_s[0]->mock.enabled = 0;
-            epochs_s[0]->mock.pad = 5;
-            TEST_ASSERT( mbedtls_mps_add_key_material( &srv, epochs_s[0],
-                                                       &srv_epoch ) == 0 );
-            TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv, srv_epoch ) == 0 );
-            TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, srv_epoch ) == 0 );
-            if( use_mock_timer )
             {
-                srv.conf.p_timer = &timer_srv;
-                srv.conf.f_set_timer = set_mock_timer;
-                srv.conf.f_get_timer = get_mock_timer;
+                mbedtls_mps_epoch_id srv_init_epoch;
+
+                /* MPS owns the transform once passed to it, hence will destroy
+                 * it when being freed. Set it up again. */
+                epochs[1][0] = malloc( sizeof( mbedtls_mps_transform_t ) );
+                epochs[1][0]->type = 0;
+                epochs[1][0]->mock.enabled = 0;
+                epochs[1][0]->mock.pad = 5;
+                TEST_ASSERT( mbedtls_mps_add_key_material( &srv, epochs[1][0],
+                                                           &srv_init_epoch ) == 0 );
+                TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv,
+                                                            srv_init_epoch ) == 0 );
+                TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv,
+                                                            srv_init_epoch ) == 0 );
+                if( use_mock_timer )
+                {
+                    srv.conf.p_timer = &timer_srv;
+                    srv.conf.f_set_timer = set_mock_timer;
+                    srv.conf.f_get_timer = get_mock_timer;
+                }
             }
         }
         else
@@ -10757,8 +10769,8 @@ exit:
         layer0_dgram_free( &c2s_d );
     }
 
-    free( epochs_s );
-    free( epochs_c );
+    free( epochs[0] );
+    free( epochs[1] );
     free( cb_ctxs );
 }
 /* END_CASE */

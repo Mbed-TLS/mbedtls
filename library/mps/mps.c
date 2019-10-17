@@ -2798,12 +2798,6 @@ MBEDTLS_MPS_STATIC int mps_request_resend( mbedtls_mps *mps )
                                      MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS ) );
 }
 
-/* This function should only be called with compile-time constants
- * for the `old` and `new` parameters, for the compiler to eliminate
- * all but the relevant branch when inlining the function.
- *
- * The reason to provide the `old` parameter (as opposed to just reading it
- * from `mps`) is just as a safe-guard. */
 static inline const char * mps_flight_state_to_string(
     mbedtls_mps_flight_state_t state )
 {

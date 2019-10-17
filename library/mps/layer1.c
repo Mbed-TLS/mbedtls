@@ -1186,17 +1186,18 @@ int mps_l1_write_dependency( mps_l1 *ctx )
 int mps_l1_skip( mps_l1 *ctx )
 {
     mps_l1_dgram_read *p;
-
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l1_get_mode( ctx );
 
-    if( mode != MPS_L1_MODE_DATAGRAM )
+    TRACE_INIT( "mps_l1_skip" );
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         TRACE( trace_error, "mps_l1_skip() only for DTLS." );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     p = &ctx->raw.dgram.rd;
     l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );

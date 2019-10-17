@@ -2638,6 +2638,10 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
     clear |= MPS_EPOCH_USAGE_INTERNAL_OUT_PROTECTED;
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
+
+    /* Silently ignore requests to remove flags for invalid epochs. */
+    if( ret == MPS_ERR_INVALID_EPOCH && set == 0 )
+        RETURN( 0 );
     if( ret != 0 )
         RETURN( ret );
 

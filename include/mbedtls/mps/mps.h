@@ -219,6 +219,80 @@ typedef uint8_t mbedtls_mps_connection_state_t;
  *  The state transitions are as follows:
  *
  *      TODO: Draw state machine graph
+ *
+ *  The retransmission state machine maintains the following submodules:
+ *  - Reassembly module (piecing together and buffering next incoming flight)
+ *  - Retransmission module (remembering last outgoing flight)
+ *  - Retransmission detection module (remembering sufficient data from the
+ *    last incoming flight to detect retransmissions).
+ *
+ *  These submodules are valid in the following states:
+ *
+ *  - Reassembly module
+ *
+ *    Valid in
+ *      MBEDTLS_MPS_FLIGHT_RECVINIT
+ *      MBEDTLS_MPS_FLIGHT_RECEIVE
+ *
+ *    This means it is affected by the following state transitions;
+ *
+ *    + Initialized (mps_reassembly_init()) on transition
+ *      MBEDTLS_MPS_FLIGHT_DONE -> MBEDTLS_MPS_FLIGHT_RECVINIT
+ *    + Kept during transition
+ *      MBEDTLS_MPS_FLIGHT_RECVINIT -> MBEDTLS_MPS_FLIGHT_RECEIVE
+ *    + Destroyed (mps_reassembly_free()) during transitions
+ *      MBEDTLS_MPS_FLIGHT_RECVINIT -> MBEDTLS_MPS_FLIGHT_DONE
+ *      MBEDTLS_MPS_FLIGHT_RECEIVE  -> MBEDTLS_MPS_FLIGHT_DONE
+ *      MBEDTLS_MPS_FLIGHT_RECEIVE  -> MBEDTLS_MPS_FLIGHT_PREPARE
+ *
+ *  - Retransmission module
+ *
+ *    Valid in
+ *      MBEDTLS_MPS_FLIGHT_SEND
+ *      MBEDTLS_MPS_FLIGHT_AWAIT
+ *      MBEDTLS_MPS_FLIGHT_FINALIZE
+ *      If !DTLS 1.3:
+ *        MBEDTLS_MPS_FLIGHT_RECEIVE
+ *
+ *    + Initialized (mps_out_flight_init()) on transition
+ *      MBEDTLS_MPS_FLIGHT_DONE -> MBEDTLS_MPS_FLIGHT_SEND
+ *      MBEDTLS_MPS_FLIGHT_RECVINIT -> MBEDTLS_MPS_FLIGHT_RECEIVE
+ *      MBEDTLS_MPS_FLIGHT_PREPARE -> MBEDTLS_MPS_FLIGHT_SEND
+ *    + Kept on transition
+ *      MBEDTLS_MPS_FLIGHT_SEND -> MBEDTLS_MPS_FLIGHT_AWAIT
+ *      MBEDTLS_MPS_FLIGHT_SEND -> MBEDTLS_MPS_FLIGHT_FINALIZE
+ *      If !DTLS 1.3:
+ *        MBEDTLS_MPS_FLIGHT_AWAIT -> MBEDTLS_MPS_FLIGHT_RECEIVE
+ *    + Destroyed (mps_out_flight_free()) on transition
+ *      MBEDTLS_MPS_FLIGHT_FINALIZE -> MBEDTLS_MPS_FLIGHT_DONE
+ *      If !DTLS 1.3:
+ *        MBEDTLS_MPS_FLIGHT_RECEIVE -> MBEDTLS_MPS_FLIGHT_PREPARE
+ *        MBEDTLS_MPS_FLIGHT_RECEIVE -> MBEDTLS_MPS_FLIGHT_DONE
+ *      If DTLS 1.3:
+ *        MBEDTLS_MPS_FLIGHT_AWAIT -> MBEDTLS_MPS_FLIGHT_RECEIVE
+ *
+ *    (See the documentation of
+ *      mbedtls_mps_retransmission_handle_incoming_fragment()
+ *     for the explanation of this distinction on DTLS 1.3.)
+ *
+ * - Retransmission detection (memory of last incoming flight)
+ *   (empty in DTLS 1.3 because retransmission requests are handled
+ *    through ACKs; old handshake messages are always ignored)
+ *
+ *   Valid in
+ *     MBEDTLS_MPS_RECEIVE
+ *     MBEDTLS_MPS_AWAIT
+ *     MBEDTLS_MPS_PREPARE
+ *     MBEDTLS_MPS_SEND
+ *
+ *   + Initialized on transition
+ *     MBEDTLS_MPS_FLIGHT_RECVINIT -> MBEDTLS_MPS_FLIGHT_RECEIVE
+ *     MBEDTLS_MPS_FLIGHT_DONE -> MBEDTLS_MPS_FLIGHT_SEND
+ *   + Reset on transition
+ *     MBEDTLS_MPS_FLIGHT_AWAIT -> MBEDTLS_MPS_FLIGHT_RECEIVE
+ *   + Destroyed on transition
+ *     MBEDTLS_MPS_FLIGHT_RECEIVE -> MBEDTLS_MPS_FLIGHT_DONE
+ *     MBEDTLS_MPS_FLIGHT_FINALIZE -> MBEDTLS_MPS_FLIGHT_DONE
  */
 typedef uint8_t mbedtls_mps_flight_state_t;
 #define MBEDTLS_MPS_FLIGHT_DONE     ( (mbedtls_mps_flight_state_t) ( 1u << 0 ) )

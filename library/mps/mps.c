@@ -305,7 +305,6 @@ MBEDTLS_MPS_STATIC int mps_retransmission_timer_increase_timeout(
 
 MBEDTLS_MPS_STATIC int mps_out_flight_init( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_out_flight_free( mbedtls_mps *mps );
-MBEDTLS_MPS_STATIC int mps_out_flight_forget( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_out_flight_msg_start(
     mbedtls_mps *mps, mbedtls_mps_retransmission_handle **handle );
 MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps );
@@ -2860,7 +2859,10 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
     if( old == MBEDTLS_MPS_FLIGHT_AWAIT &&
         new == MBEDTLS_MPS_FLIGHT_RECEIVE )
     {
-
+        /* The first message not recognized as a retransmission implicitly
+         * acknowledges the last outgoing flight. We may therefore forget
+         * about the last incoming flight and make space for the new one. */
+        MPS_CHK( mps_retransmit_in_forget( mps ) );
     }
     else
     if( old == MBEDTLS_MPS_FLIGHT_DONE &&
@@ -2923,7 +2925,7 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
          *       see the corresponding comments in
          *       \c mbedtls_mps_retransmission_handle_incoming_fragment()
          *       for more. */
-        MPS_CHK( mps_out_flight_forget( mps ) );
+        MPS_CHK( mps_out_flight_free( mps ) );
 
         /* As for RECVINIT -> DONE */
         MPS_CHK( mps_reassembly_forget( mps ) );
@@ -2935,6 +2937,7 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
     if( old == MBEDTLS_MPS_FLIGHT_PREPARE &&
         new == MBEDTLS_MPS_FLIGHT_SEND )
     {
+        MPS_CHK( mps_out_flight_init( mps ) );
     }
     else
     if( old == MBEDTLS_MPS_FLIGHT_RECEIVE &&
@@ -3070,13 +3073,6 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
             MPS_CHK( ret );
 
         TRACE( trace_comment, "Fragment not recognized as a retransmission." );
-
-        /* The first message not recognized as a retransmission implicitly
-         * acknowledges the last outgoing flight.
-         *
-         * We may therefore forget about the last incoming flight
-         * and make space for the new one. */
-        MPS_CHK( mps_retransmit_in_forget( mps ) );
 
         /* Logically, we should also be able to forget about our last
          * outgoing flight, because we know that our peer has already
@@ -3320,15 +3316,9 @@ MBEDTLS_MPS_STATIC int mps_out_flight_init( mbedtls_mps *mps )
 
 MBEDTLS_MPS_STATIC int mps_out_flight_free( mbedtls_mps *mps )
 {
-    TRACE_INIT( "mps_out_flight_free" );
-    RETURN( mps_out_flight_forget( mps ) );
-}
-
-MBEDTLS_MPS_STATIC int mps_out_flight_forget( mbedtls_mps *mps )
-{
     uint8_t idx, flight_len;
     mbedtls_mps_retransmission_handle *handle;
-    TRACE_INIT( "mps_out_flight_forget" );
+    TRACE_INIT( "mps_out_flight_free" );
 
     flight_len =  mps->dtls.outgoing.flight_len;
     handle     = &mps->dtls.outgoing.backup[0];
@@ -3341,12 +3331,14 @@ MBEDTLS_MPS_STATIC int mps_out_flight_forget( mbedtls_mps *mps )
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC void mbedtls_mps_retransmission_handle_init( mbedtls_mps_retransmission_handle *handle )
+MBEDTLS_MPS_STATIC void mbedtls_mps_retransmission_handle_init(
+    mbedtls_mps_retransmission_handle *handle )
 {
     handle->handle_type = MBEDTLS_MPS_RETRANSMISSION_HANDLE_NONE;
 }
 
-MBEDTLS_MPS_STATIC void mbedtls_mps_retransmission_handle_free( mbedtls_mps_retransmission_handle *handle )
+MBEDTLS_MPS_STATIC void mbedtls_mps_retransmission_handle_free(
+    mbedtls_mps_retransmission_handle *handle )
 {
     switch( handle->handle_type )
     {

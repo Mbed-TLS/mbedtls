@@ -2,6 +2,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.7.x branch released xxxx-xx-xx
 
+Bugfix
+   * Support mbedtls_hmac_drbg_set_entropy_len() and
+     mbedtls_ctr_drbg_set_entropy_len() before the DRBG is seeded. Before,
+     the initial seeding always reset the entropy length to the compile-time
+     default.
+
 Changes
    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
      from the cipher abstraction layer. Fixes #2198.

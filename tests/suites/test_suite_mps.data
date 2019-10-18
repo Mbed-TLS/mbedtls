@@ -427,7 +427,7 @@ mbedtls_mps_l2_random:100:200:10:5:50:200:0:50:50
 
 MPS Layer 2 TLS: Random communication, fake transforms, small records
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l2_random:36:200:10:5:10:100:0:50:50
+mbedtls_mps_l2_random:37:200:10:5:10:100:0:50:50
 
 MPS Layer 2 TLS: Random communication, real transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
@@ -789,7 +789,7 @@ MPS Layer 3 TLS: Interleave fragmented handshake message with alert, real transf
 mbedtls_mps_l3_handshake_alert_interleaved:74:10000:100:1:5
 
 MPS Layer 3 TLS: Interleave fragmented handshake message with alert, fake transforms
-mbedtls_mps_l3_handshake_alert_interleaved:74:10000:100:0:5
+mbedtls_mps_l3_handshake_alert_interleaved:75:10000:100:0:5
 
 MPS Layer 3 TLS: Random communication, fake transforms
 mbedtls_mps_l3_random:100:200:1:3:200:0:50:50
@@ -976,16 +976,16 @@ MPS Layer 4 DTLS: Fragmentation of HS msg with raw backup, repeated
 mbedtls_mps_l4_dtls_fragmentation:100:0:4
 
 MPS Layer 4 DTLS: 1-byte fragmentation of HS msg with raw backup
-mbedtls_mps_l4_dtls_fragmentation:47:0:1
+mbedtls_mps_l4_dtls_fragmentation:48:0:1
 
 MPS Layer 4 DTLS: 1-byte fragmentation of HS msg with callback
-mbedtls_mps_l4_dtls_fragmentation:47:1:1
+mbedtls_mps_l4_dtls_fragmentation:48:1:1
 
 MPS Layer 4 DTLS: 1-byte fragmentation of HS msg with callback, repeated
-mbedtls_mps_l4_dtls_fragmentation:47:1:4
+mbedtls_mps_l4_dtls_fragmentation:48:1:4
 
 MPS Layer 4 DTLS: 1-byte fragmentation of HS msg with raw backup, repeated
-mbedtls_mps_l4_dtls_fragmentation:47:0:4
+mbedtls_mps_l4_dtls_fragmentation:48:0:4
 
 MPS Layer 4 DTLS: Reassembly #0
 mbedtls_mps_l4_dtls_reassembly:100:0:1:0:0

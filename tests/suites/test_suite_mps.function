@@ -737,6 +737,7 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
     size_t idx;
     size_t pre_pad;
     size_t post_pad;
+    unsigned char checksum;
     mbedtls_transform_mock_t *transform;
 
     /* Distinguish between our test-only mock transforms and
@@ -794,6 +795,18 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
         return( 0 );
     }
 
+    /* Add checksum */
+    if( rec->buf.data_offset < 1 )
+        return( -1 );
+
+    checksum = 0;
+    for( idx = 0; idx < rec->buf.data_len; idx++ )
+        checksum ^= rec->buf.buf[ rec->buf.data_offset + idx ];
+
+    rec->buf.data_offset -= 1;
+    rec->buf.data_len    += 1;
+    rec->buf.buf[ rec->buf.data_offset ] = checksum;
+
     /* Add record sequence number */
     if( rec->buf.data_offset < sizeof( rec->ctr ) )
         return( -1 );
@@ -838,6 +851,7 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
     size_t pre_pad;
     size_t post_pad;
     uint8_t val;
+    uint8_t checksum;
 
     mbedtls_transform_mock_t *transform;
     transform = &transform_->mock;
@@ -950,6 +964,23 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
     rec->buf.data_offset += sizeof( rec->ctr );
     rec->buf.data_len    -= sizeof( rec->ctr );
 
+    /* Read checksum */
+    if( rec->buf.data_len == 0 )
+        return( MPS_ERR_INVALID_MAC );
+
+    checksum = rec->buf.buf[ rec->buf.data_offset ];
+    rec->buf.data_offset += 1;
+    rec->buf.data_len    -= 1;
+
+    /* Check checksum */
+    for( idx = 0; idx < rec->buf.data_len; idx++ )
+        checksum ^= rec->buf.buf[ rec->buf.data_offset + idx ];
+    if( checksum != 0 )
+    {
+        fprintf( stderr, "CHECKSUM FAILURE!\n" );
+        return( MPS_ERR_INVALID_MAC );
+    }
+
     return( 0 );
 }
 
@@ -996,8 +1027,9 @@ int transform_get_expansion( mbedtls_mps_transform_t *transform,
         return( 0 );
     }
 
-    *pre_exp = transform->mock.pad + sizeof( ((mps_rec*) NULL)->ctr ) +
-                                     sizeof( ((mps_rec*) NULL)->epoch );
+    *pre_exp = transform->mock.pad + 1 /* checksum */
+        + sizeof( ((mps_rec*) NULL)->ctr )
+        + sizeof( ((mps_rec*) NULL)->epoch );
     *post_exp = transform->mock.pad;
     return( 0 );
 }

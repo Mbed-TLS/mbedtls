@@ -283,7 +283,7 @@ static void layer0_dgram_permute( layer0_dgram_mock *ctx,
     size_t const msg_avail = layer0_dgram_msg_available( ctx );
     size_t iter;
 
-    if( msg_avail <= 1 )
+    if( msg_avail <= 2 )
         return;
 
     for( iter=0; iter < transpositions; iter++ )
@@ -291,9 +291,12 @@ static void layer0_dgram_permute( layer0_dgram_mock *ctx,
         size_t i, j;
         do
         {
-            i = rand() % msg_avail;
-            j = rand() % msg_avail;
+            i = 1 + ( rand() % ( msg_avail - 1 ) );
+            j = 1 + ( rand() % ( msg_avail - 1 ) );
         } while( i == j );
+
+        i = layer0_dgram_shift_idx( i, ctx->read_pos );
+        j = layer0_dgram_shift_idx( j, ctx->read_pos );
 
         layer0_dgram_swap_dgrams( ctx, i, j );
     }
@@ -10242,7 +10245,7 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
 
     if( permute )
     {
-        layer0_dgram_permute( &c2s_d, 3 /* number of transpositions */ );
+        layer0_dgram_permute( &c2s_d, 2 /* number of transpositions */ );
     }
 
 
@@ -10760,7 +10763,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
         if( permute )
         {
-            layer0_dgram_permute( l0, 5 /* number of transpositions */ );
+            layer0_dgram_permute( l0, 2 /* number of transpositions */ );
         }
 
         printf( "RECEIVE\n" );

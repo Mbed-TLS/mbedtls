@@ -10422,6 +10422,8 @@ void mbedtls_mps_l4_flight_exchange( int mode,
     unsigned iteration_of_last_epoch_handling;
     unsigned round = 0;
 
+    unsigned repeated_want_reads;
+
     mock_timer_ctx timer_cli;
     mock_timer_ctx timer_srv;
 
@@ -10831,6 +10833,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         /* Receive flight */
         iteration = 0;
         iteration_of_last_epoch_handling = -1;
+        repeated_want_reads = 0;
 
         while( iteration < (size_t) num_hs )
         {
@@ -10866,7 +10869,22 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                          ret == MPS_ERR_WANT_READ  ||
                          ret == MPS_ERR_WANT_WRITE );
             if( ret != MBEDTLS_MPS_MSG_HS )
+            {
+                if( ret == MPS_ERR_WANT_READ )
+                {
+                    repeated_want_reads++;
+                    if( repeated_want_reads % 5 == 0 )
+                    {
+                        ret = mbedtls_mps_read( sender );
+                        TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
+                                     ret == MPS_ERR_WANT_READ  ||
+                                     ret == MPS_ERR_WANT_WRITE );
+                    }
+                }
                 continue;
+            }
+
+            repeated_want_reads = 0;
 
             TEST_ASSERT( mbedtls_mps_read_handshake( receiver, &hs_in ) == 0 );
 

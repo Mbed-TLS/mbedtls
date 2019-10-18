@@ -10,6 +10,9 @@ Bugfix
 Changes
    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
      from the cipher abstraction layer. Fixes #2198.
+   * Clarify how the interface of the CTR_DRBG and HMAC modules relates to
+     NIST SP 800-90A. In particular CTR_DRBG requires an explicit nonce
+     to achieve a 256-bit strength if MBEDTLS_ENTROPY_FORCE_SHA256 is set.
 
 = mbed TLS 2.16.3 branch released 2019-09-06
 

@@ -69,6 +69,10 @@ Bugfix
    * Remove redundant line for getting the bitlen of a bignum, since the variable
      holding the returned value is overwritten a line after.
      Found by irwir in #2377.
+   * Support mbedtls_hmac_drbg_set_entropy_len() and
+     mbedtls_ctr_drbg_set_entropy_len() before the DRBG is seeded. Before,
+     the initial seeding always reset the entropy length to the compile-time
+     default.
 
 Changes
    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()

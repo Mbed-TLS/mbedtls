@@ -382,14 +382,13 @@ exit:
 }
 
 /* CTR_DRBG_Instantiate with derivation function (SP 800-90A &sect;10.2.1.3.2)
- * mbedtls_ctr_drbg_seed_entropy_len(ctx, f_entropy, p_entropy,
- *                                   custom, len, entropy_len)
+ * mbedtls_ctr_drbg_seed(ctx, f_entropy, p_entropy, custom, len)
  * implements
  * CTR_DRBG_Instantiate(entropy_input, nonce, personalization_string,
  *                      security_strength) -> initial_working_state
  * with inputs
  *   custom[:len] = nonce || personalization_string
- * where entropy_input comes from f_entropy for entropy_len bytes
+ * where entropy_input comes from f_entropy for ctx->entropy_len bytes
  * and with outputs
  *   ctx = initial_working_state
  */

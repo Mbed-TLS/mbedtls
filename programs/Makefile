@@ -23,12 +23,6 @@ include ../crypto/3rdparty/Makefile.inc
 LOCAL_CFLAGS += $(patsubst -I../3rdparty/%, -I../crypto/3rdparty/%, $(THIRDPARTY_INCLUDES))
 LOCAL_CFLAGS += $(patsubst -I../3rdparty/%, -I../crypto/3rdparty/%, $(THIRDPARTY_INCLUDES))
 
-ifndef SHARED
-DEP=../crypto/library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
-else
-DEP=../crypto/library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
-endif
-
 ifdef DEBUG
 LOCAL_CFLAGS += -g3
 endif
@@ -49,6 +43,12 @@ else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
+endif
+
+ifndef SHARED
+DEP=../crypto/library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
+else
+DEP=../crypto/library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
 endif
 
 # Zlib shared library extensions:

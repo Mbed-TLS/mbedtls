@@ -73,7 +73,7 @@
         | ( (uint32_t) (b)[(i) + 2] << 16 )             \
         | ( (uint32_t) (b)[(i) + 3] << 24 );            \
 }
-#endif
+#endif /* !GET_UINT32_LE */
 
 #ifndef PUT_UINT32_LE
 #define PUT_UINT32_LE(n,b,i)                                    \
@@ -83,11 +83,15 @@
     (b)[(i) + 2] = (unsigned char) ( ( (n) >> 16 ) & 0xFF );    \
     (b)[(i) + 3] = (unsigned char) ( ( (n) >> 24 ) & 0xFF );    \
 }
-#endif
+#endif /* !PUT_UINT32_LE */
 
 #if defined(MBEDTLS_PADLOCK_C) &&                      \
     ( defined(MBEDTLS_HAVE_X86) || defined(MBEDTLS_PADLOCK_ALIGN16) )
 static int aes_padlock_ace = -1;
+#endif
+
+#if !defined(MBEDTLS_AES_ROM_TABLES) || defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
+static int aes_init_done = 0;
 #endif
 
 /* Rotation macros for shifting 8, 16 and 24 bits left */
@@ -404,7 +408,6 @@ static uint32_t RCON[10];
 /*
  * Tables generation code
  */
-static int aes_init_done = 0;
 
 static void aes_gen_tables( void )
 {
@@ -486,11 +489,12 @@ static void aes_gen_tables( void )
     }
 }
 
-#undef ROTL8
-
 #endif /* MBEDTLS_AES_ROM_TABLES */
 
 #if defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
+
+static uint8_t pow[256];
+static uint8_t log[256];
 
 #define AES_FT0(idx) ( aes_round(idx) )
 #define AES_FT1(idx) ROTL8(  aes_round(idx) )
@@ -548,19 +552,22 @@ static uint32_t aes_round(unsigned char i)
     return result;
 }
 
-static uint32_t aes_reverse(unsigned char i)
+static void aes_pow_log_table_fill(void)
 {
-    int x, j;
-    uint32_t result;
-    int pow[256];
-    int log[256];
+    int i, x;
 
-    for( j = 0, x = 1; j < 256; j++ )
+    for( i = 0, x = 1; i < 256; i++ )
     {
-        pow[j] = x;
-        log[x] = j;
+        pow[i] = x;
+        log[x] = i;
         x = ( x ^ XTIME( x ) ) & 0xFF;
     }
+}
+
+static uint32_t aes_reverse(unsigned char i)
+{
+    int x;
+    uint32_t result;
 
     x = RSb[i];
 
@@ -695,6 +702,14 @@ void mbedtls_aes_init( mbedtls_aes_context *ctx )
     AES_VALIDATE( ctx != NULL );
 
     memset( ctx, 0, sizeof( mbedtls_aes_context ) );
+
+#ifdef MBEDTLS_AES_SBOX_TABLE_ONLY
+    if( aes_init_done == 0 )
+    {
+        aes_pow_log_table_fill();
+        aes_init_done = 1;
+    }
+#endif
 }
 
 void mbedtls_aes_free( mbedtls_aes_context *ctx )

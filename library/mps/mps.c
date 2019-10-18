@@ -296,9 +296,6 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_free( mbedtls_mps *mps );
  * remove all memory of the last incoming flight. */
 MBEDTLS_MPS_STATIC int mps_retransmit_in_forget( mbedtls_mps *mps );
 
-/* TODO: Document */
-MBEDTLS_MPS_STATIC int mps_check_retransmit( mbedtls_mps *mps );
-
 /*
  * Retransmission timer handling
  */
@@ -336,6 +333,8 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend_empty(
  * Outgoing flight retransmission
  */
 
+MBEDTLS_MPS_STATIC int mps_trigger_retransmission( mbedtls_mps *mps );
+
 MBEDTLS_MPS_STATIC int mps_retransmit_out( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
                                                 uint8_t mode );
@@ -347,7 +346,18 @@ MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
  *  outgoing flight; in DTLS 1.3, it's done using ACK's.)
  */
 
+MBEDTLS_MPS_STATIC int mps_trigger_retransmission_request( mbedtls_mps *mps );
+
 MBEDTLS_MPS_STATIC int mps_request_resend( mbedtls_mps *mps );
+
+/*
+ * Handling of retransmissions / retransmission requests.
+ */
+
+/* Check whether we're currently retransmitting our last outgoing
+ * flight, or requesting retransmission from the peer, and attempt
+ * to finish it. */
+MBEDTLS_MPS_STATIC int mps_handle_pending_retransmit( mbedtls_mps *mps );
 
 /*
  * DTLS reassembly and future message buffering
@@ -467,7 +477,7 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
         /* Check if a retransmission is ongoing (might be one just triggered
          * by the previous call to mps_retransmission_timer_check(), or an
          * earlier one that hasn't yet completed. */
-        MPS_CHK( mps_check_retransmit( mps ) );
+        MPS_CHK( mps_handle_pending_retransmit( mps ) );
     }
 #else
     ((void) mode);
@@ -2031,22 +2041,30 @@ MBEDTLS_MPS_STATIC int mps_retransmission_timer_check( mbedtls_mps *mps )
     {
         TRACE( trace_comment, "Retransmission timer fired" );
         mps_retransmission_timer_stop( mps );
+
+        /* The retransmission timer is used in various states of the
+         * flight exchange; check the state and take appropriate action. */
+
         switch( mps_get_handshake_state( mps ) )
         {
+            /* When waiting for the first message of the next flight
+             * from the peer, resend the last outgoing flight. */
             case MBEDTLS_MPS_FLIGHT_AWAIT:
-                /* TODO: Extract to function */
                 TRACE( trace_comment, "Trigger retransmission of last outgoing flight." );
-                mps->dtls.retransmit_state   = MBEDTLS_MPS_RETRANSMIT_RESEND;
-                mps->dtls.wait.resend_offset = 0;
+                MPS_CHK( mps_trigger_retransmission( mps ) );
                 break;
 
+            /* If we have already received some parts of the next
+             * flight from the peer, send a retransmission request. */
             case MBEDTLS_MPS_FLIGHT_RECEIVE:
-                /* TODO: Extract to function */
                 TRACE( trace_comment, "Trigger sending retransmission request to peer." );
-                mps->dtls.retransmit_state   = MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND;
-                mps->dtls.wait.resend_offset = 0;
+                MPS_CHK( mps_trigger_retransmission_request( mps ) );
                 break;
 
+            /* After completing the handshake with our last outgoing flight
+             * we keep backup of the latter for some period of time, in case
+             * the peer doesn't fully receive it. Once that period has passed
+             * and the timer fires, wrapup the handshake. */
             case MBEDTLS_MPS_FLIGHT_FINALIZE:
                 /* TODO: Extract to function, share code
                  * with mbedtls_mps_write_handshake(). */
@@ -2064,7 +2082,21 @@ exit:
     RETURN( ret );
 }
 
-MBEDTLS_MPS_STATIC int mps_check_retransmit( mbedtls_mps *mps )
+MBEDTLS_MPS_STATIC int mps_trigger_retransmission( mbedtls_mps *mps )
+{
+    mps->dtls.retransmit_state   = MBEDTLS_MPS_RETRANSMIT_RESEND;
+    mps->dtls.wait.resend_offset = 0;
+    return( 0 );
+}
+
+MBEDTLS_MPS_STATIC int mps_trigger_retransmission_request( mbedtls_mps *mps )
+{
+    mps->dtls.retransmit_state   = MBEDTLS_MPS_RETRANSMIT_RESEND;
+    mps->dtls.wait.resend_offset = 0;
+    return( 0 );
+}
+
+MBEDTLS_MPS_STATIC int mps_handle_pending_retransmit( mbedtls_mps *mps )
 {
     int ret;
     mbedtls_mps_retransmit_state_t state = mps->dtls.retransmit_state;
@@ -2821,8 +2853,13 @@ MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
             if( ret != 0 && ret != MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED )
                 MPS_CHK( ret );
         }
-        else /* if( mode == MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS ) */
+        else
         {
+#if defined(MBEDTLS_MPS_ASSERT)
+            if( mode != MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS )
+                RETURN( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
+
             ret = mbedtls_mps_retransmission_handle_resend_empty( mps, handle );
         }
 
@@ -2839,8 +2876,6 @@ MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
 
 exit:
     mps->dtls.wait.resend_offset = offset;
-
-    /* No failure handler for internal functions. */
     RETURN( ret );
 }
 
@@ -3121,11 +3156,8 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
              * the retransmission, which might return WANT_WRITE. */
             MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
 
-            /* TODO: Extract to function */
-            mps->dtls.retransmit_state = MBEDTLS_MPS_RETRANSMIT_RESEND;
-            mps->dtls.wait.resend_offset = 0;
-
-            MPS_CHK( mps_check_retransmit( mps ) );
+            MPS_CHK( mps_trigger_retransmission( mps ) );
+            MPS_CHK( mps_handle_pending_retransmit( mps ) );
             MPS_CHK( MBEDTLS_ERR_MPS_NO_FORWARD );
         }
         else

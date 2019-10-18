@@ -63,11 +63,11 @@ typedef struct mbedtls_mps_app_out mbedtls_mps_app_out;
  *  This is used to allocate space for retransmission backup handles. */
 #define MBEDTLS_MPS_MAX_FLIGHT_LENGTH         5
 
-/*!< The maximum allowed handshake sequence number.
- *   This must not be larger than #MBEDTLS_MPS_HS_SEQ_MAX. */
+/*! The maximum allowed handshake sequence number.
+ *  This must not be larger than #MBEDTLS_MPS_HS_SEQ_MAX. */
 #define MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER MBEDTLS_MPS_HS_SEQ_MAX
 
-/*!< (DTLS only) The maximum number of future messages to be buffered. */
+/*! (DTLS only) The maximum number of future messages to be buffered. */
 #define MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS 4
 
 #define MBEDTLS_MPS_RETRANSMISSION_CALLBACK_SUCCESS 0

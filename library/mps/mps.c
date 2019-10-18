@@ -435,22 +435,6 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
     if( ret != 0 )
         RETURN( ret );
 
-    /* Note: In contrast to many other state checks, we deliberately
-     * tolerate calling mps_read() while a message is already open.
-     * This is used when it's not clear which handshake message to
-     * expect next: In this case, the state coordination function can
-     * peek at the next message's content and call the corresonding
-     * handler, which in turn doesn't need to know that the message
-     * has already been opened and may call mps_read() again instead,
-     * like any other handler function for states where the next
-     * expected message is unambiguous. */
-    if( mps->in.state != MBEDTLS_MPS_MSG_NONE )
-    {
-        TRACE( trace_comment, "Message of type %d already open",
-               mps->in.state );
-        RETURN( mps->in.state );
-    }
-
     /* Layer 4 forbids reading while writing. */
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->out.state != MBEDTLS_MPS_MSG_NONE )
@@ -913,6 +897,22 @@ int mbedtls_mps_read( mbedtls_mps *mps )
      *   retransmission timer has fired.
      */
     MPS_CHK( mps_prepare_read( mps ) );
+
+    /* Note: In contrast to many other state checks, we deliberately
+     * tolerate calling mps_read() while a message is already open.
+     * This is used when it's not clear which handshake message to
+     * expect next: In this case, the state coordination function can
+     * peek at the next message's content and call the corresonding
+     * handler, which in turn doesn't need to know that the message
+     * has already been opened and may call mps_read() again instead,
+     * like any other handler function for states where the next
+     * expected message is unambiguous. */
+    if( mps->in.state != MBEDTLS_MPS_MSG_NONE )
+    {
+        TRACE( trace_comment, "Message of type %d already open",
+               mps->in.state );
+        RETURN( mps->in.state );
+    }
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     /* Check if a future message has been buffered. */
@@ -2075,14 +2075,14 @@ MBEDTLS_MPS_STATIC int mps_check_retransmit( mbedtls_mps *mps )
     if( state == MBEDTLS_MPS_RETRANSMIT_RESEND )
         ret = mps_retransmit_out( mps );
     else
+    {
 #if defined(MBEDTLS_MPS_ASSERT)
-    if( state ==  MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND )
-#endif /* MBEDTLS_MPS_ASSERT */
-        ret = mps_request_resend( mps );
-#if defined(MBEDTLS_MPS_ASSERT)
-    else
+    if( state != MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND )
         return( MPS_ERR_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
+
+        ret = mps_request_resend( mps );
+    }
     MPS_CHK( ret );
 
     mps->dtls.retransmit_state = MBEDTLS_MPS_RETRANSMIT_NONE;

@@ -180,7 +180,7 @@ typedef uint8_t mbedtls_mps_connection_state_t;
  *    No flight exchange is in progress.
  *  - #MBEDTLS_MPS_FLIGHT_RECVINIT
  *    We're in the process of receiving and reassembling a handshake message
- *    from the peer that initializes a flight exchange.
+ *    from the peer that initializes a flight exchange (e.g. a ClientHello).
  *    This state is the same as #MBEDTLS_MPS_FLIGHT_DONE to the user,
  *    but internally it is different because the reassembly context
  *    has already been setup.

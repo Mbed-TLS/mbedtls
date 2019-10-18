@@ -302,6 +302,23 @@ static void layer0_dgram_permute( layer0_dgram_mock *ctx,
     }
 }
 
+static void layer0_dgram_corrupt( layer0_dgram_mock *ctx )
+{
+    size_t const msg_avail = layer0_dgram_msg_available( ctx );
+    layer0_dgram_mock_msg *msg;
+    size_t msg_idx;
+    size_t idx;
+
+    if( msg_avail < 1 )
+        return;
+
+    msg_idx = rand() % msg_avail;
+    msg = &ctx->msgs[ msg_idx ];
+
+    for( idx = 0; idx < msg->buflen; idx++ )
+        msg->buf[ idx ] ^= 1;
+}
+
 static int layer0_dgram_free( layer0_dgram_mock *ctx )
 {
     size_t idx;
@@ -10067,7 +10084,8 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
                                      int retransmission_callback,
                                      int num_hs,
                                      int permute,
-                                     int force_pause )
+                                     int force_pause,
+                                     int corrupt )
 {
     /* This test exercises a client sending a number of handshake
      * messages to the server which are subject to fragmentation
@@ -10280,6 +10298,10 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
         layer0_dgram_permute( &c2s_d, 2 /* number of transpositions */ );
     }
 
+    if( corrupt )
+    {
+        layer0_dgram_corrupt( &c2s_d );
+    }
 
     /*
      * Server: Read handshake messages from client
@@ -10340,7 +10362,8 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                      int server_reset,
                                      int permute,
                                      int use_mock_timer,
-                                     int multiple_epochs )
+                                     int multiple_epochs,
+                                     int corrupt )
 {
     /* This test exercises client and server exchanging
      * flights of handshake messages, which may be subject
@@ -10439,10 +10462,10 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         TEST_ASSERT( epochs[1][id] != NULL && epochs[0][id] != NULL );
 
         epochs[0][id]->type = 0;
-        epochs[0][id]->mock.enabled = ( id > 0 );
+        epochs[0][id]->mock.enabled = 1;
         epochs[0][id]->mock.pad = id % 13 + 5;
         epochs[1][id]->type = 0;
-        epochs[1][id]->mock.enabled = ( id > 0 );
+        epochs[1][id]->mock.enabled = 1;
         epochs[1][id]->mock.pad = id % 13 + 5;
     }
 
@@ -10754,7 +10777,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                  * it when being freed. Set it up again. */
                 epochs[1][0] = malloc( sizeof( mbedtls_mps_transform_t ) );
                 epochs[1][0]->type = 0;
-                epochs[1][0]->mock.enabled = 0;
+                epochs[1][0]->mock.enabled = 1;
                 epochs[1][0]->mock.pad = 5;
                 TEST_ASSERT( mbedtls_mps_add_key_material( &srv, epochs[1][0],
                                                            &srv_init_epoch ) == 0 );
@@ -10796,6 +10819,11 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         if( permute )
         {
             layer0_dgram_permute( l0, 2 /* number of transpositions */ );
+        }
+
+        if( corrupt )
+        {
+            layer0_dgram_corrupt( l0 );
         }
 
         printf( "RECEIVE\n" );

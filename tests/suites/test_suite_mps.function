@@ -10361,6 +10361,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
     size_t hs_len    = 100;
     unsigned iteration;
+    unsigned iteration_of_last_epoch_handling;
     unsigned round = 0;
 
     mock_timer_ctx timer_cli;
@@ -10373,10 +10374,24 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
     mbedtls_mps_epoch_id next_epoch[2];
 
-    if( multiple_epochs == 0 )
-        num_epochs = 1;
-    else
-        num_epochs = ( rounds + 1 ) /2;
+    switch( multiple_epochs )
+    {
+        case 0:
+            num_epochs = 1;
+            break;
+
+        case 1:
+            num_epochs = ( rounds + 1 ) / 2;
+            break;
+
+        case 2:
+            num_epochs = ( ( rounds + 1 ) / 2 ) + 1;
+            break;
+
+        default:
+            num_epochs = 1;
+            break;
+    }
 
     epochs[0] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
     epochs[1] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
@@ -10479,7 +10494,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                    mode,
                                    ( 3 * hs_len ) / 2 ) == 0 );
 
-    if( multiple_epochs == 0 )
+    if( multiple_epochs == 0 || multiple_epochs == 2 )
     {
         /* Register initial key material. */
         TEST_ASSERT( mbedtls_mps_add_key_material( &cli, epochs[0][0],
@@ -10505,10 +10520,13 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
     for( round=0; round < (unsigned) rounds; round++ )
     {
+        uint8_t sender_id, receiver_id;
         mbedtls_mps *sender, *receiver;
         layer0_dgram_mock *l0;
         if( round % 2 == 0 )
         {
+            sender_id   = 0;
+            receiver_id = 1;
             sender   = &cli;
             receiver = &srv;
             l0       = &c2s_d;
@@ -10531,6 +10549,9 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         }
         else
         {
+            sender_id   = 1;
+            receiver_id = 0;
+
             sender   = &srv;
             receiver = &cli;
             l0       = &s2c_d;
@@ -10550,12 +10571,39 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         /* Send flight */
 
         iteration = 0;
+        iteration_of_last_epoch_handling = -1;
+
         while( iteration < (size_t) num_hs )
         {
             int ret;
             printf( "[[[ ITERATION %u / %u ]]]\n",
                     (unsigned) iteration, (unsigned) num_hs );
             hs_out.type = iteration;
+
+            /* Handle test case where we switch epochs in the
+             * middle of the flight. */
+            if( multiple_epochs == 2 &&
+                iteration_of_last_epoch_handling != iteration )
+            {
+                /* For the client, switch epoch at the end of flight. */
+                if( sender_id == 0 && iteration == (size_t) num_hs - 1 )
+                {
+                    TEST_ASSERT( mbedtls_mps_add_key_material( sender,
+                                          epochs[sender_id][round / 2 + 1],
+                                          &next_epoch[sender_id] ) == 0 );
+
+                    TEST_ASSERT( mbedtls_mps_set_outgoing_keys( sender,
+                                          next_epoch[sender_id] ) == 0 );
+                }
+                /* For the server, switch at the beginning. */
+                else if( sender_id == 1 && iteration == 0 )
+                {
+                    TEST_ASSERT( mbedtls_mps_set_outgoing_keys( sender,
+                                          next_epoch[sender_id] ) == 0 );
+                }
+
+                iteration_of_last_epoch_handling = iteration;
+            }
 
             if( retransmission_callback == 0 )
             {
@@ -10719,9 +10767,37 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
         /* Receive flight */
         iteration = 0;
+        iteration_of_last_epoch_handling = -1;
+
         while( iteration < (size_t) num_hs )
         {
             int ret;
+
+            /* Handle test case where we switch epochs in the
+             * middle of the flight. */
+            if( multiple_epochs == 2 &&
+                iteration_of_last_epoch_handling != iteration )
+            {
+                /* For the server, switch epoch at the end of flight. */
+                if( receiver_id == 1 && iteration == (size_t) num_hs - 1 )
+                {
+                    TEST_ASSERT( mbedtls_mps_add_key_material( receiver,
+                                          epochs[receiver_id][round / 2 + 1],
+                                          &next_epoch[receiver_id] ) == 0 );
+
+                    TEST_ASSERT( mbedtls_mps_set_incoming_keys( receiver,
+                                          next_epoch[receiver_id] ) == 0 );
+                }
+                /* For the client, switch at the beginning. */
+                else if( receiver_id == 0 && iteration == 0 )
+                {
+                    TEST_ASSERT( mbedtls_mps_set_incoming_keys( receiver,
+                                          next_epoch[receiver_id] ) == 0 );
+                }
+
+                iteration_of_last_epoch_handling = iteration;
+            }
+
             ret = mbedtls_mps_read( receiver );
             TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
                          ret == MPS_ERR_WANT_READ  ||

@@ -1271,6 +1271,17 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make test
 }
 
+component_test_aes_sbox_tables_only () {
+    msg "build: default config with AES_ROM_TABLES and AES_SBOX_TABLE_ONLY enabled"
+    scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+    scripts/config.pl set MBEDTLS_AES_SBOX_TABLE_ONLY
+    scripts/config.pl unset MBEDTLS_AESNI_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: AES_ROM_TABLES + AES_SBOX_TABLE_ONLY"
+    make test
+}
+
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check

@@ -572,7 +572,7 @@
  * This option is independent of \c MBEDTLS_AES_FEWER_TABLES.
  *
  */
-#define MBEDTLS_AES_ROM_TABLES
+//#define MBEDTLS_AES_ROM_TABLES
 
 /**
  * \def MBEDTLS_AES_FEWER_TABLES
@@ -599,24 +599,19 @@
 /**
  * \def MBEDTLS_AES_SBOX_TABLE_ONLY
  *
- * Use less ROM/RAM for AES tables.
+ * Use less ROM for AES tables and compute needed information when needed.
  *
- * Uncommenting this macro omits 75% of the AES tables from
- * ROM / RAM (depending on the value of \c MBEDTLS_AES_ROM_TABLES)
- * by computing their values on the fly during operations
- * (the tables are entry-wise rotations of one another).
+ * Uncommenting this macro reduces ROM consumption by ~2KB conpared to
+ * configuration with enabled MBEDTLS_AES_FEWER_TABLES.
  *
- * Tradeoff: Uncommenting this reduces the RAM / ROM footprint
- * by ~6kb but at the cost of more arithmetic operations during
- * runtime. Specifically, one has to compare 4 accesses within
- * different tables to 4 accesses with additional arithmetic
- * operations within the same table. The performance gain/loss
- * depends on the system and memory details.
+ * Tradeoff: Uncommenting this reduces the ROM footprint by ~2kb but at the
+ * cost of more arithmetic operations during runtime.
  *
- * This option is independent of \c MBEDTLS_AES_ROM_TABLES.
+ * This option requires \c MBEDTLS_AES_ROM_TABLES.
+ * This option will override usage of option MBEDTLS_AES_FEWER_TABLES.
  *
  */
-#define MBEDTLS_AES_SBOX_TABLE_ONLY
+//#define MBEDTLS_AES_SBOX_TABLE_ONLY
 
 /**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
@@ -2126,7 +2121,7 @@
  *
  * This modules adds support for the AES-NI instructions on x86-64
  */
-//#define MBEDTLS_AESNI_C
+#define MBEDTLS_AESNI_C
 
 /**
  * \def MBEDTLS_AES_C

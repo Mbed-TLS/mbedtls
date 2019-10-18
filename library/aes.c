@@ -228,12 +228,11 @@ static const uint32_t FT2[256] = { FT };
 static const uint32_t FT3[256] = { FT };
 #undef V
 
-#endif /* !MBEDTLS_AES_SBOX_TABLE_ONLY */
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_SBOX_TABLE_ONLY */
 
 #undef FT
 
-#if !defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
 /* Reverse S-box */
 static const unsigned char RSb[256] =
 {
@@ -271,6 +270,7 @@ static const unsigned char RSb[256] =
     0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
 
+#if !defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
 /* Reverse tables */
 #define RT \
 \
@@ -381,26 +381,22 @@ static const uint32_t RCON[10] =
 /* Forward S-box & tables */
 static unsigned char FSb[256];
 
-#if !defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
 static uint32_t FT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
 static uint32_t FT1[256];
 static uint32_t FT2[256];
 static uint32_t FT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
-#endif /* !MBEDTLS_AES_SBOX_TABLE_ONLY */
 
 /* Reverse S-box & tables */
 static unsigned char RSb[256];
 
-#if !defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
 static uint32_t RT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
 static uint32_t RT1[256];
 static uint32_t RT2[256];
 static uint32_t RT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
-#endif /* !MBEDTLS_AES_SBOX_TABLE_ONLY */
 
 /* Round constants */
 static uint32_t RCON[10];
@@ -494,8 +490,20 @@ static void aes_gen_tables( void )
 
 #endif /* MBEDTLS_AES_ROM_TABLES */
 
-#if !defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
-#if defined(MBEDTLS_AES_FEWER_TABLES)
+#if defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
+
+#define AES_FT0(idx) ( aes_round(idx) )
+#define AES_FT1(idx) ROTL8(  aes_round(idx) )
+#define AES_FT2(idx) ROTL16( aes_round(idx) )
+#define AES_FT3(idx) ROTL24( aes_round(idx) )
+
+#define AES_RT0(idx) ( aes_reverse(idx) )
+#define AES_RT1(idx) ROTL8(  aes_reverse(idx) )
+#define AES_RT2(idx) ROTL16( aes_reverse(idx) )
+#define AES_RT3(idx) ROTL24( aes_reverse(idx) )
+
+
+#elif defined(MBEDTLS_AES_FEWER_TABLES)
 
 #define AES_RT0(idx) RT0[idx]
 #define AES_RT1(idx) ROTL8(  RT0[idx] )
@@ -507,7 +515,7 @@ static void aes_gen_tables( void )
 #define AES_FT2(idx) ROTL16( FT0[idx] )
 #define AES_FT3(idx) ROTL24( FT0[idx] )
 
-#else /* MBEDTLS_AES_FEWER_TABLES */
+#else
 
 #define AES_RT0(idx) RT0[idx]
 #define AES_RT1(idx) RT1[idx]
@@ -519,8 +527,7 @@ static void aes_gen_tables( void )
 #define AES_FT2(idx) FT2[idx]
 #define AES_FT3(idx) FT3[idx]
 
-#endif /* MBEDTLS_AES_FEWER_TABLES */
-#endif /* !MBEDTLS_AES_SBOX_TABLE_ONLY */
+#endif /* MBEDTLS_AES_SBOX_TABLE_ONLY MBEDTLS_AES_FEWER_TABLES MBEDTLS_AES_ROM_TABLES */
 
 #if defined( MBEDTLS_AES_SBOX_TABLE_ONLY )
 
@@ -543,10 +550,20 @@ static uint32_t aes_round(unsigned char i)
 
 static uint32_t aes_reverse(unsigned char i)
 {
-    int x;
+    int x, j;
     uint32_t result;
+    int pow[256];
+    int log[256];
+
+    for( j = 0, x = 1; j < 256; j++ )
+    {
+        pow[j] = x;
+        log[x] = j;
+        x = ( x ^ XTIME( x ) ) & 0xFF;
+    }
 
     x = RSb[i];
+
     result = ( (uint32_t) MUL( 0x0E, x )       ) ^
              ( (uint32_t) MUL( 0x09, x ) <<  8 ) ^
              ( (uint32_t) MUL( 0x0D, x ) << 16 ) ^
@@ -554,11 +571,6 @@ static uint32_t aes_reverse(unsigned char i)
 
     return result;
 }
-
-#define AES_FT0(idx) ( aes_round(idx) )
-#define AES_FT1(idx) ROTL8(  aes_round(idx) )
-#define AES_FT2(idx) ROTL16( aes_round(idx) )
-#define AES_FT3(idx) ROTL24( aes_round(idx) )
 
 static void mbedtls_aes_forward_round(uint32_t* out_x0, uint32_t* out_x1,
                                       uint32_t* out_x2, uint32_t* out_x3,
@@ -593,45 +605,41 @@ static void mbedtls_aes_forward_round(uint32_t* out_x0, uint32_t* out_x1,
 #define AES_FROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                     \
             mbedtls_aes_forward_round(&X0, &X1, &X2, &X3, Y0, Y1, Y2, Y3, RK, &RK)
 
-#define AES_RT0(idx) ( aes_reverse(idx) )
-#define AES_RT1(idx) ROTL8(  aes_reverse(idx) )
-#define AES_RT2(idx) ROTL16( aes_reverse(idx) )
-#define AES_RT3(idx) ROTL24( aes_reverse(idx) )
-
 static void mbedtls_aes_reverse_round(uint32_t* out_x0, uint32_t* out_x1,
                                       uint32_t* out_x2, uint32_t* out_x3,
                                       uint32_t in_y0, uint32_t in_y1,
                                       uint32_t in_y2, uint32_t in_y3,
                                       uint32_t *in_RK, uint32_t **out_RK )
 {
-    *out_x0 = *in_RK++ ^ AES_FT0( ( (in_y0)       ) & 0xFF ) ^
-                         AES_FT1( ( (in_y1) >>  8 ) & 0xFF ) ^
-                         AES_FT2( ( (in_y2) >> 16 ) & 0xFF ) ^
-                         AES_FT3( ( (in_y3) >> 24 ) & 0xFF );
+    *out_x0 = *in_RK++ ^ AES_RT0( ( (in_y0)       ) & 0xFF ) ^
+                         AES_RT1( ( (in_y3) >>  8 ) & 0xFF ) ^
+                         AES_RT2( ( (in_y2) >> 16 ) & 0xFF ) ^
+                         AES_RT3( ( (in_y1) >> 24 ) & 0xFF );
 
-    *out_x1 = *in_RK++ ^ AES_FT0( ( (in_y1)       ) & 0xFF ) ^
-                         AES_FT1( ( (in_y2) >>  8 ) & 0xFF ) ^
-                         AES_FT2( ( (in_y3) >> 16 ) & 0xFF ) ^
-                         AES_FT3( ( (in_y0) >> 24 ) & 0xFF );
+    *out_x1 = *in_RK++ ^ AES_RT0( ( (in_y1)       ) & 0xFF ) ^
+                         AES_RT1( ( (in_y0) >>  8 ) & 0xFF ) ^
+                         AES_RT2( ( (in_y3) >> 16 ) & 0xFF ) ^
+                         AES_RT3( ( (in_y2) >> 24 ) & 0xFF );
 
-    *out_x2 = *in_RK++ ^ AES_FT0( ( (in_y2)       ) & 0xFF ) ^
-                         AES_FT1( ( (in_y3) >>  8 ) & 0xFF ) ^
-                         AES_FT2( ( (in_y0) >> 16 ) & 0xFF ) ^
-                         AES_FT3( ( (in_y1) >> 24 ) & 0xFF );
+    *out_x2 = *in_RK++ ^ AES_RT0( ( (in_y2)       ) & 0xFF ) ^
+                         AES_RT1( ( (in_y1) >>  8 ) & 0xFF ) ^
+                         AES_RT2( ( (in_y0) >> 16 ) & 0xFF ) ^
+                         AES_RT3( ( (in_y3) >> 24 ) & 0xFF );
 
-    *out_x3 = *in_RK++ ^ AES_FT0( ( (in_y3)       ) & 0xFF ) ^
-                         AES_FT1( ( (in_y0) >>  8 ) & 0xFF ) ^
-                         AES_FT2( ( (in_y1) >> 16 ) & 0xFF ) ^
-                         AES_FT3( ( (in_y2) >> 24 ) & 0xFF );
+    *out_x3 = *in_RK++ ^ AES_RT0( ( (in_y3)       ) & 0xFF ) ^
+                         AES_RT1( ( (in_y2) >>  8 ) & 0xFF ) ^
+                         AES_RT2( ( (in_y1) >> 16 ) & 0xFF ) ^
+                         AES_RT3( ( (in_y0) >> 24 ) & 0xFF );
 
     /* Store the roundkey  */
     *out_RK = in_RK;
 }
 
-#define AES_FROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                     \
-            mbedtls_aes_forward_round(&X0, &X1, &X2, &X3, Y0, Y1, Y2, Y3, RK, &RK)
+#define AES_RROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                     \
+            mbedtls_aes_reverse_round(&X0, &X1, &X2, &X3, Y0, Y1, Y2, Y3, RK, &RK)
 
-#else
+#else /* MBEDTLS_AES_SBOX_TABLE_ONLY */
+
 #define AES_FROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                     \
     do                                                          \
     {                                                           \

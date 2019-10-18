@@ -746,6 +746,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_AES_FEWER_TABLES */
 
+#if defined(MBEDTLS_AES_SBOX_TABLE_ONLY)
+    if( strcmp( "MBEDTLS_AES_SBOX_TABLE_ONLY", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_AES_SBOX_TABLE_ONLY );
+        return( 0 );
+    }
+#endif /* MBEDTLS_AES_SBOX_TABLE_ONLY */
+
 #if defined(MBEDTLS_CAMELLIA_SMALL_MEMORY)
     if( strcmp( "MBEDTLS_CAMELLIA_SMALL_MEMORY", config ) == 0 )
     {

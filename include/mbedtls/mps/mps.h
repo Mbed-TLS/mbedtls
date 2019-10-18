@@ -218,7 +218,38 @@ typedef uint8_t mbedtls_mps_connection_state_t;
  *
  *  The state transitions are as follows:
  *
- *      TODO: Draw state machine graph
+ *                    Finish outgoing flight, but not handshake
+ *          .----------------------------------------------------------.
+ *          |                                                          |
+ *          v                                                          |
+ *  .--------------.              .--------------.    Finish   .--------------.
+ *  |              |              |              | flight + HS |              |
+ *  |    Await     |              |   Finalize   |<------------|     Send     |
+ *  |              |              |              |             |              |
+ *  '--------------'              '--------------'             '--------------'
+ *          |                             | Witness that peer      ^   ^
+ *          |                             | has received last      |   |
+ *          |                             | flight, or timeout     |   |
+ *          |                             v                        |   |
+ *          |     Finish incoming .--------------.                 |   |
+ *  Receive frag    flight + HS   |              |     Start HS    |   |
+ *   of msg from .--------------->|     Done     |-----------------'   |
+ *   next flight |                |              |                     |
+ *          |    |                '--------------'                Send first
+ *          |    |                       |   ^                    msg of next
+ *          |    |      Receive frag of  |   |                      flight
+ *          |    |      first HS message |   |                         |
+ *          v    |                       v   |                         |
+ *  .--------------.              .--------------.             .--------------.
+ *  |              |              |              |             |              |
+ *  |   Receive    |<-------------|   RecvInit   |             |   Prepare    |
+ *  |              | First HS msg |              |             |              |
+ *  '--------------' signalled to '--------------'             '--------------'
+ *          |            user                                          ^
+ *          |                                                          |
+ *          '----------------------------------------------------------'
+ *                     Finish incoming flight, but not handshake
+ *
  *
  *  The retransmission state machine maintains the following submodules:
  *  - Reassembly module (piecing together and buffering next incoming flight)

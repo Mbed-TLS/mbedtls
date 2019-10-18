@@ -3853,7 +3853,7 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
     cur_seq_nr = mps->dtls.seq_nr;
     if( cur_seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
     {
-        TRACE( trace_error, "Reached maximum outoing sequence number %u",
+        TRACE( trace_error, "Reached maximum outgoing sequence number %u",
                (unsigned) MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER );
         MPS_CHK( MBEDTLS_ERR_MPS_COUNTER_WRAP );
     }

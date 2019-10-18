@@ -270,7 +270,7 @@ static void layer0_dgram_swap_dgrams( layer0_dgram_mock *ctx,
 static unsigned layer0_dgram_msg_available( layer0_dgram_mock *ctx )
 {
     size_t write_pos = ctx->write_pos;
-    size_t read_pos  = ctx->write_pos;
+    size_t read_pos  = ctx->read_pos;
     if( write_pos >= read_pos )
         return( write_pos - read_pos );
 

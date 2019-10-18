@@ -822,7 +822,7 @@ int mbedtls_mps_init( mbedtls_mps *mps,
 #endif /* !MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX */
 
 #if !defined(MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN)
-    mps->conf.hs_timeout_max = 250;
+    mps->conf.hs_timeout_min = 250;
 #endif /* !MBEDTLS_MPS_CONF_HS_TIMEOUT_MIN */
 
     mps->conf.f_get_timer = NULL;

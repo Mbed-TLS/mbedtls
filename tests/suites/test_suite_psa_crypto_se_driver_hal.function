@@ -565,16 +565,17 @@ static int check_persistent_data( psa_key_lifetime_t lifetime,
     psa_storage_uid_t uid = file_uid_for_lifetime( lifetime );
     struct psa_storage_info_t info;
     uint8_t *loaded = NULL;
+    int ok = 0;
 
     PSA_ASSERT( psa_its_get_info( uid, &info ) );
     ASSERT_ALLOC( loaded, info.size );
     PSA_ASSERT( psa_its_get( uid, 0, info.size, loaded, NULL ) );
     ASSERT_COMPARE( expected_data, size, loaded, info.size );
-    return( 1 );
+    ok = 1;
 
 exit:
     mbedtls_free( loaded );
-    return( 0 );
+    return( ok );
 }
 
 /* Check that a function's return status is "smoke-free", i.e. that

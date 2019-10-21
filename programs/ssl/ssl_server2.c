@@ -1561,7 +1561,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
-    mbedtls_entropy_context entropy;
+    mbedtls_entropy_context *entropy = NULL;
 #if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_context *ctr_drbg = NULL;
 #else
@@ -2295,6 +2295,7 @@ int main( int argc, char *argv[] )
 
     ssl         = mbedtls_calloc( 1, sizeof( *ssl ) );
     conf        = mbedtls_calloc( 1, sizeof( *conf ) );
+    entropy     = mbedtls_calloc( 1, sizeof( *entropy) );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     cacert      = mbedtls_calloc( 1, sizeof( *cacert ) );
     srvcert     = mbedtls_calloc( 1, sizeof( *srvcert ) );
@@ -2324,7 +2325,7 @@ int main( int argc, char *argv[] )
     mbedtls_net_init( &listen_fd );
     mbedtls_ssl_init( ssl );
     mbedtls_ssl_config_init( conf );
-    mbedtls_entropy_init( &entropy );
+    mbedtls_entropy_init( entropy );
 #if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_ctr_drbg_init( ctr_drbg );
 #else
@@ -2356,7 +2357,7 @@ int main( int argc, char *argv[] )
     mbedtls_ssl_cookie_init( &cookie_ctx );
 #endif
 
-    if( ssl         == NULL ||
+    if( ssl         == NULL || conf     == NULL ||
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
         cacert      == NULL || srvcert  == NULL ||
         pkey        == NULL || srvcert2 == NULL ||
@@ -2376,7 +2377,7 @@ int main( int argc, char *argv[] )
 #else
         hmac_drbg   == NULL ||
 #endif
-        conf        == NULL)
+        entropy     == NULL)
     {
         mbedtls_printf( "Initial allocations failed!\n" );
         goto exit;
@@ -2508,7 +2509,7 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_CTR_DRBG_C)
     if( ( ret = mbedtls_ctr_drbg_seed( ctr_drbg, mbedtls_entropy_func,
-                                       &entropy, (const unsigned char *) pers,
+                                       entropy, (const unsigned char *) pers,
                                        strlen( pers ) ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
@@ -2520,7 +2521,7 @@ int main( int argc, char *argv[] )
                                         mbedtls_md_info_from_type(
                                             available_hashes[0] ),
                                         mbedtls_entropy_func,
-                                        &entropy, (const unsigned char *) pers,
+                                        entropy, (const unsigned char *) pers,
                                         strlen( pers ) ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
@@ -3977,7 +3978,7 @@ exit:
 #else
     mbedtls_hmac_drbg_free( hmac_drbg );
 #endif
-    mbedtls_entropy_free( &entropy );
+    mbedtls_entropy_free( entropy );
 
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( cache );
@@ -3999,6 +4000,7 @@ exit:
 
     mbedtls_free( ssl );
     mbedtls_free( conf );
+    mbedtls_free( entropy );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_free( cacert );
     mbedtls_free( srvcert );

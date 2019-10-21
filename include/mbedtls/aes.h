@@ -87,6 +87,9 @@ typedef struct mbedtls_aes_context
 {
     int nr;                     /*!< The number of rounds. */
     uint32_t *rk;               /*!< AES round keys. */
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH) && !defined(MBEDTLS_PADLOCK_C)
+    uint32_t buf[44];           /*!< Unaligned data buffer */
+#else /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     uint32_t buf[68];           /*!< Unaligned data buffer. This buffer can
                                      hold 32 extra Bytes, which can be used for
                                      one of the following purposes:
@@ -95,6 +98,7 @@ typedef struct mbedtls_aes_context
                                      <li>Simplifying key expansion in the 256-bit
                                          case by generating an extra round key.
                                          </li></ul> */
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 }
 mbedtls_aes_context;
 

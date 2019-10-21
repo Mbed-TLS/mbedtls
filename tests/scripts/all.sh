@@ -138,7 +138,7 @@ pre_initialize_variables () {
     fi
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
-    ASAN_CFLAGS='-Werror -Wall -Wextra -fsanitize=address,undefined'
+    ASAN_CFLAGS='-Werror -Wall -Wextra -fsanitize=address,undefined -fno-sanitize-recover=all'
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".

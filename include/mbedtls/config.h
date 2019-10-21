@@ -622,7 +622,10 @@
  *
  * Uncommenting this macro removes support for AES decryption.
  *
- * Tradeoff: Uncommenting this macro reduces ROM footprint by ~2.5 kB.
+ * Tradeoff: Uncommenting this macro reduces the footprint. For
+ * example, when both MBEDTLS_AES_ROM_TABLES and
+ * MBEDTLS_AES_FEWER_TABLES are enabled, enabling this macro
+ * further reduces the ROM footprint by ~2.5kB.
  *
  * Module:  library/aes.c
  *

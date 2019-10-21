@@ -337,7 +337,6 @@ static const unsigned char RSb[256] =
 #define V(a,b,c,d) 0x##a##b##c##d
 static const uint32_t RT0[256] = { RT };
 #undef V
-#endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
 
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
 
@@ -354,6 +353,7 @@ static const uint32_t RT3[256] = { RT };
 #undef V
 
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
 
 #undef RT
 
@@ -383,6 +383,7 @@ static uint32_t FT3[256];
 /*
  * Reverse S-box & tables
  */
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
 static unsigned char RSb[256];
 static uint32_t RT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
@@ -390,6 +391,7 @@ static uint32_t RT1[256];
 static uint32_t RT2[256];
 static uint32_t RT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
 
 /*
  * Round constants
@@ -434,7 +436,9 @@ static void aes_gen_tables( void )
      * generate the forward and reverse S-boxes
      */
     FSb[0x00] = 0x63;
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
     RSb[0x63] = 0x00;
+#endif
 
     for( i = 1; i < 256; i++ )
     {
@@ -447,7 +451,9 @@ static void aes_gen_tables( void )
         x ^= y ^ 0x63;
 
         FSb[i] = (unsigned char) x;
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
         RSb[x] = (unsigned char) i;
+#endif
     }
 
     /*
@@ -470,6 +476,7 @@ static void aes_gen_tables( void )
         FT3[i] = ROTL8( FT2[i] );
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
 
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
         x = RSb[i];
 
         RT0[i] = ( (uint32_t) MUL( 0x0E, x )       ) ^
@@ -482,6 +489,7 @@ static void aes_gen_tables( void )
         RT2[i] = ROTL8( RT1[i] );
         RT3[i] = ROTL8( RT2[i] );
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
     }
 }
 

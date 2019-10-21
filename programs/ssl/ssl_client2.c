@@ -935,7 +935,8 @@ int main( int argc, char *argv[] )
     io_ctx_t io_ctx;
 #endif
 
-    unsigned char buf[MAX_REQUEST_SIZE + 1];
+    unsigned char *buf = NULL;
+    unsigned int main_buf_len = 0;
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
@@ -1519,6 +1520,13 @@ int main( int argc, char *argv[] )
         }
         else
             goto usage;
+    }
+
+    main_buf_len = MAX_REQUEST_SIZE  + 1;
+    buf = mbedtls_calloc( 1, MAX_REQUEST_SIZE  + 1 );
+    if( buf == NULL ) {
+        mbedtls_printf( "buf allocation failed!\n" );
+        goto exit;
     }
 
     /* Event-driven IO is incompatible with the above custom
@@ -2449,7 +2457,7 @@ send_request:
     mbedtls_printf( "  > Write to server:" );
     fflush( stdout );
 
-    len = mbedtls_snprintf( (char *) buf, sizeof( buf ) - 1, GET_REQUEST,
+    len = mbedtls_snprintf( (char *) buf, main_buf_len - 1, GET_REQUEST,
                             opt.request_page );
     tail_len = (int) strlen( GET_REQUEST_END );
 
@@ -2461,7 +2469,7 @@ send_request:
         len += opt.request_size - len - tail_len;
     }
 
-    strncpy( (char *) buf + len, GET_REQUEST_END, sizeof( buf ) - len - 1 );
+    strncpy( (char *) buf + len, GET_REQUEST_END, main_buf_len - len - 1 );
     len += tail_len;
 
     /* Truncate if request size is smaller than the "natural" size */
@@ -2577,8 +2585,8 @@ send_request:
     {
         do
         {
-            len = sizeof( buf ) - 1;
-            memset( buf, 0, sizeof( buf ) );
+            len = main_buf_len - 1;
+            memset( buf, 0, main_buf_len );
             ret = mbedtls_ssl_read( ssl, buf, len );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2639,8 +2647,8 @@ send_request:
     }
     else /* Not stream, so datagram */
     {
-        len = sizeof( buf ) - 1;
-        memset( buf, 0, sizeof( buf ) );
+        len = main_buf_len - 1;
+        memset( buf, 0, main_buf_len );
 
         while( 1 )
         {
@@ -2994,6 +3002,7 @@ exit:
     mbedtls_free( ssl );
     mbedtls_free( conf );
     mbedtls_free( entropy );
+    mbedtls_free( buf );
 #if defined(MBEDTLS_CTR_DRBG_C)
     mbedtls_free( ctr_drbg );
 #else

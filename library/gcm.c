@@ -246,7 +246,7 @@ static void gcm_mult( mbedtls_gcm_context *ctx, const unsigned char x[16],
     for( i = 15; i >= 0; i-- )
     {
         lo = x[i] & 0xf;
-        hi = x[i] >> 4;
+        hi = ( x[i] >> 4 ) & 0xf;
 
         if( i != 15 )
         {

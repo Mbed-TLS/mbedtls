@@ -45,6 +45,7 @@ static void ctr_drbg_validate_internal( int reseed_mode, data_t * nonce,
     /* CTR_DRBG_Instantiate(entropy[:entropy->len], nonce, perso, <ignored>)
      * where nonce||perso = nonce[nonce->len] */
     mbedtls_ctr_drbg_set_entropy_len( &ctx, entropy_chunk_len );
+    mbedtls_ctr_drbg_set_nonce_len( &ctx, 0 );
     TEST_ASSERT( mbedtls_ctr_drbg_seed(
                      &ctx,
                      mbedtls_test_entropy_func, entropy->x,

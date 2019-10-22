@@ -732,6 +732,7 @@ int mbedtls_ctr_drbg_self_test( int verbose )
 
     test_offset = 0;
     mbedtls_ctr_drbg_set_entropy_len( &ctx, 32 );
+    mbedtls_ctr_drbg_set_nonce_len( &ctx, 0 );
     CHK( mbedtls_ctr_drbg_seed( &ctx,
                                 ctr_drbg_self_test_entropy,
                                 (void *) entropy_source_pr,
@@ -756,6 +757,7 @@ int mbedtls_ctr_drbg_self_test( int verbose )
 
     test_offset = 0;
     mbedtls_ctr_drbg_set_entropy_len( &ctx, 32 );
+    mbedtls_ctr_drbg_set_nonce_len( &ctx, 0 );
     CHK( mbedtls_ctr_drbg_seed( &ctx,
                                 ctr_drbg_self_test_entropy,
                                 (void *) entropy_source_nopr,

@@ -301,11 +301,6 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
  *
  * The default value is #MBEDTLS_CTR_DRBG_ENTROPY_LEN.
  *
- * \note                mbedtls_ctr_drbg_seed() always sets the entropy length
- *                      to #MBEDTLS_CTR_DRBG_ENTROPY_LEN, so this function
- *                      only has an effect when it is called after
- *                      mbedtls_ctr_drbg_seed().
- *
  * \note                The security strength of CTR_DRBG is bounded by the
  *                      entropy length. Thus:
  *                      - When using AES-256

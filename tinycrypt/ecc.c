@@ -253,6 +253,12 @@ static void uECC_vli_rshift1(uECC_word_t *vli, wordcount_t num_words)
 	}
 }
 
+/* Compute (r2, r1, r0) = a * b + (r1, r0):
+ * [in] a, b: operands to be multiplied
+ * [in] r0, r1: low and high-order words of operand to add
+ * [out] r0, r1: low and high-order words of the result
+ * [out] r2: carry
+ */
 static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
 		   uECC_word_t *r1, uECC_word_t *r2)
 {
@@ -266,15 +272,71 @@ static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
 
 }
 
-/* Computes result = left * right. Result must be 2 * num_words long. */
-static void uECC_vli_mult(uECC_word_t *result, const uECC_word_t *left,
-			  const uECC_word_t *right, wordcount_t num_words)
+/* State for implementing random delays in uECC_vli_mult_rnd().
+ *
+ * The state is initialised by randomizing delays and setting i = 0.
+ * Each call to uECC_vli_mult_rnd() uses one byte of delays and increments i.
+ *
+ * A scalar muliplication uses 14 field multiplications per bit of exponent.
+ */
+typedef struct {
+	uint8_t delays[14 * 256];
+	uint16_t i;
+} wait_state_t;
+
+#if 0
+static void wait_init(wait_state_t *s)
+{
+	g_rng_function(s->delays, sizeof(s->delays));
+	s->i = 0;
+}
+#endif
+
+/* Computes result = left * right. Result must be 2 * num_words long.
+ *
+ * As a counter-measure against horizontal attacks, add noise by performing
+ * a random number of extra computations performing random additional accesses
+ * to limbs of the input.
+ *
+ * Each of the two actual computation loops is surrounded by two
+ * similar-looking waiting loops, to make the beginning and end of the actual
+ * computation harder to spot.
+ *
+ * We add 4 waiting loops of between 0 and 3 calls to muladd() each. That
+ * makes an average of 6 extra calls. Compared to the main computation which
+ * makes 64 such calls, this represents an average performance degradation of
+ * less than 10%.
+ *
+ * Compared to the original uECC_vli_mult(), loose the num_words argument as we
+ * know it's always 8. This saves a bit of code size and execution speed.
+ */
+static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
+			      const uECC_word_t *right, wait_state_t *s)
 {
 
 	uECC_word_t r0 = 0;
 	uECC_word_t r1 = 0;
 	uECC_word_t r2 = 0;
 	wordcount_t i, k;
+	const uint8_t num_words = 8;
+
+	/* Fetch 8 bit worth of delay from the state; 0 if we have no state */
+	uint8_t delays = s ? s->delays[s->i++] : 0;
+	uECC_word_t rr0 = 0, rr1 = 0;
+	volatile uECC_word_t r;
+
+	/* Mimic start of next loop: k in [0, 3] */
+	k = 0 + (delays & 0x03);
+	delays >>= 2;
+	/* k = 0 -> i in [1, 0] -> 0 extra muladd;
+	 * k = 3 -> i in [1, 3] -> 3 extra muladd */
+	for (i = 0; i <= k; ++i) {
+		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+	}
+	r = rr0;
+	rr0 = rr1;
+	rr1 = r2;
+	r2 = 0;
 
 	/* Compute each digit of result in sequence, maintaining the carries. */
 	for (k = 0; k < num_words; ++k) {
@@ -289,6 +351,32 @@ static void uECC_vli_mult(uECC_word_t *result, const uECC_word_t *left,
 		r2 = 0;
 	}
 
+	/* Mimic end of previous loop: k in [4, 7] */
+	k = 4 + (delays & 0x03);
+	delays >>= 2;
+	/* k = 4 -> i in [5, 4] -> 0 extra muladd;
+	 * k = 7 -> i in [5, 7] -> 3 extra muladd */
+	for (i = 5; i <= k; ++i) {
+		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+	}
+	r = rr0;
+	rr0 = rr1;
+	rr1 = r2;
+	r2 = 0;
+
+	/* Mimic start of next loop: k in [8, 11] */
+	k = 11 - (delays & 0x03);
+	delays >>= 2;
+	/* k =  8 -> i in [5, 7] -> 3 extra muladd;
+	 * k = 11 -> i in [8, 7] -> 0 extra muladd */
+	for (i = (k + 5) - num_words; i < num_words; ++i) {
+		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+	}
+	r = rr0;
+	rr0 = rr1;
+	rr1 = r2;
+	r2 = 0;
+
 	for (k = num_words; k < num_words * 2 - 1; ++k) {
 
 		for (i = (k + 1) - num_words; i < num_words; ++i) {
@@ -299,7 +387,32 @@ static void uECC_vli_mult(uECC_word_t *result, const uECC_word_t *left,
 		r1 = r2;
 		r2 = 0;
 	}
+
 	result[num_words * 2 - 1] = r0;
+
+	/* Mimic end of previous loop: k in [12, 15] */
+	k = 15 - (delays & 0x03);
+	delays >>= 2;
+	/* k = 12 -> i in [5, 7] -> 3 extra muladd;
+	 * k = 15 -> i in [8, 7] -> 0 extra muladd */
+	for (i = (k + 1) - num_words; i < num_words; ++i) {
+		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
+	}
+	r = rr0;
+	rr0 = rr1;
+	rr1 = r2;
+	r2 = 0;
+
+	/* avoid warning that r is set but not used */
+	(void) r;
+}
+
+/* Computes result = left * right. Result must be 2 * num_words long. */
+static void uECC_vli_mult(uECC_word_t *result, const uECC_word_t *left,
+			  const uECC_word_t *right, wordcount_t num_words)
+{
+	(void) num_words;
+	uECC_vli_mult_rnd(result, left, right, NULL);
 }
 
 void uECC_vli_modAdd(uECC_word_t *result, const uECC_word_t *left,

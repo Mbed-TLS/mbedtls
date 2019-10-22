@@ -337,41 +337,32 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
     size_t seedlen = 0;
     int ret;
 
-    if( ctx->entropy_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT ||
-        len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT - ctx->entropy_len )
+    if( ctx->entropy_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
+        return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
+    if( len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT - ctx->entropy_len )
         return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
 
     memset( seed, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT );
 
-    /*
-     * Gather entropy_len bytes of entropy to seed state
-     */
-    if( 0 != ctx->f_entropy( ctx->p_entropy, seed,
-                             ctx->entropy_len ) )
+    /* Gather entropy_len bytes of entropy to seed state. */
+    if( 0 != ctx->f_entropy( ctx->p_entropy, seed, ctx->entropy_len ) )
     {
         return( MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED );
     }
-
     seedlen += ctx->entropy_len;
 
-    /*
-     * Add additional data
-     */
-    if( additional && len )
+    /* Add additional data if provided. */
+    if( additional != NULL && len != 0 )
     {
         memcpy( seed + seedlen, additional, len );
         seedlen += len;
     }
 
-    /*
-     * Reduce to 384 bits
-     */
+    /* Reduce to 384 bits. */
     if( ( ret = block_cipher_df( seed, seed, seedlen ) ) != 0 )
         goto exit;
 
-    /*
-     * Update state
-     */
+    /* Update state. */
     if( ( ret = ctr_drbg_update_internal( ctx, seed ) ) != 0 )
         goto exit;
     ctx->reseed_counter = 1;

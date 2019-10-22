@@ -141,7 +141,7 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
     if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V,
                                         mbedtls_md_get_size( md_info ) ) ) != 0 )
         return( ret );
-    mbedtls_platform_memset( ctx->V, 0x01, mbedtls_md_get_size( md_info ) );
+    memset( ctx->V, 0x01, mbedtls_md_get_size( md_info ) );
 
     if( ( ret = mbedtls_hmac_drbg_update_ret( ctx, data, data_len ) ) != 0 )
         return( ret );
@@ -268,7 +268,7 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
      */
     if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V, md_size ) ) != 0 )
         return( ret );
-    mbedtls_platform_memset( ctx->V, 0x01, md_size );
+    memset( ctx->V, 0x01, md_size );
 
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;

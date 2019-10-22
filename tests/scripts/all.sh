@@ -144,6 +144,9 @@ pre_initialize_variables () {
         export MAKEFLAGS="-j"
     fi
 
+    # CFLAGS and LDFLAGS for Asan builds that don't use CMake
+    ASAN_CFLAGS='-Werror -Wall -Wextra -fsanitize=address,undefined -fno-sanitize-recover=all'
+
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
     # Parse the script with sed, because in sh there is no way to list
@@ -1163,7 +1166,7 @@ component_test_m32_o0 () {
     # Build once with -O0, to compile out the i386 specific inline assembly
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.py full
-    make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32 -fsanitize=address'
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O0 (ASan build)"
     make test
@@ -1179,7 +1182,7 @@ component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
     scripts/config.py full
-    make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32 -fsanitize=address'
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O1" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O1 (ASan build)"
     make test
@@ -1195,7 +1198,7 @@ component_test_m32_everest () {
     msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
     scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-    make CC=gcc CFLAGS='-O2 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32 -fsanitize=address'
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test

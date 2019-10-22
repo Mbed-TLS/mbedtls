@@ -93,7 +93,7 @@ for my $suite (@suites)
     $suite_cases_failed = () = $result =~ /.. FAILED/g;
     $suite_cases_skipped = () = $result =~ /.. ----/g;
 
-    if( $result =~ /PASSED/ ) {
+    if( $? == 0 ) {
         print "PASS\n";
         if( $verbose > 2 ) {
             pad_print_center( 72, '-', "Begin $suite" );

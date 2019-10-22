@@ -22,6 +22,9 @@
  * - 256 bits if AES-256 is used, #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set
  *   to 32 or more, and the DRBG is initialized with an explicit
  *   nonce in the \c custom parameter to mbedtls_ctr_drbg_seed().
+ * - 256 bits if AES-256 is used, #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set
+ *   to 32 or more, and mbedtls_ctr_drbg_set_nonce_len() is called to set
+ *   an entropy nonce length of 16 bytes or more.
  * - 128 bits if AES-256 is used but #MBEDTLS_CTR_DRBG_ENTROPY_LEN is
  *   between 24 and 47 and the DRBG is not initialized with an explicit
  *   nonce (see mbedtls_ctr_drbg_seed()).
@@ -29,6 +32,9 @@
  *   and #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set to 24 or more (which is
  *   always the case unless it is explicitly set to a different value
  *   in config.h).
+ * - 128 bits if AES-128 is used (\c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY enabled)
+ *   to 16 or more, and mbedtls_ctr_drbg_set_nonce_len() is called to set
+ *   an entropy nonce length of 8 bytes or more.
  *
  * Note that the value of #MBEDTLS_CTR_DRBG_ENTROPY_LEN defaults to:
  * - \c 48 if the module \c MBEDTLS_SHA512_C is enabled and the symbol
@@ -172,7 +178,11 @@ typedef struct mbedtls_ctr_drbg_context
     int reseed_counter;         /*!< The reseed counter.
                                  * This is the number of requests that have
                                  * been made since the last (re)seeding,
-                                 * minus one. */
+                                 * minus one.
+                                 * Before the initial seeding, this field
+                                 * contains the amount of entropy in bytes
+                                 * to use as a nonce for the initial seeding.
+                                 */
     int prediction_resistance;  /*!< This determines whether prediction
                                      resistance is enabled, that is
                                      whether to systematically reseed before
@@ -222,43 +232,45 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  * The entropy length is #MBEDTLS_CTR_DRBG_ENTROPY_LEN by default.
  * You can override it by calling mbedtls_ctr_drbg_set_entropy_len().
  *
- * You can provide a personalization string in addition to the
+ * You can provide a nonce and personalization string in addition to the
  * entropy source, to make this instantiation as unique as possible.
+ * See SP 800-90A §8.6.7 for more details about nonces.
  *
- * \note                The _seed_material_ value passed to the derivation
- *                      function in the CTR_DRBG Instantiate Process
- *                      described in NIST SP 800-90A §10.2.1.3.2
- *                      is the concatenation of the string obtained from
- *                      calling \p f_entropy and the \p custom string.
- *                      The origin of the nonce depends on the value of
- *                      the entropy length relative to the security strength.
- *                      - If the entropy length is at least 1.5 times the
- *                        security strength then the nonce is taken from the
- *                        string obtained with \p f_entropy.
- *                      - If the entropy length is less than the security
- *                        strength, then the nonce is taken from \p custom.
- *                        In this case, for compliance with SP 800-90A,
- *                        you must pass a unique value of \p custom at
- *                        each invocation. See SP 800-90A §8.6.7 for more
- *                        details.
- */
-#if MBEDTLS_CTR_DRBG_ENTROPY_LEN < MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2
-/** \warning            When #MBEDTLS_CTR_DRBG_ENTROPY_LEN is less than
- *                      #MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2, to achieve the
- *                      maximum security strength permitted by CTR_DRBG,
- *                      you must pass a value of \p custom that is a nonce:
- *                      this value must never be repeated in subsequent
- *                      runs of the same application or on a different
- *                      device.
- */
-#endif
-/**
+ * The _seed_material_ value passed to the derivation function in
+ * the CTR_DRBG Instantiate Process described in NIST SP 800-90A §10.2.1.3.2
+ * is the concatenation of the following strings:
+ * - A string obtained by calling \p f_entropy function for the entropy
+ *   length.
+ * - A string obtained by calling \p f_entropy function for the nonce
+ *   length set with mbedtls_ctr_drbg_set_nonce_len(). If the entropy
+ *   nonce length is \c 0, this function does not make a second call
+ *   to \p f_entropy.
+ * - The \p custom string.
+ *
+ * \note                To achieve the nominal security strength permitted
+ *                      by CTR_DRBG, the entropy length must be:
+ *                      - at least 16 bytes for a 128-bit strength
+ *                      (maximum achievable strength when using AES-128);
+ *                      - at least 32 bytes for a 256-bit strength
+ *                      (maximum achievable strength when using AES-256).
+ *
+ *                      In addition, if you do not pass a nonce in \p custom,
+ *                      the sum of the entropy length
+ *                      (#MBEDTLS_CTR_DRBG_ENTROPY_LEN unless overridden with
+ *                      mbedtls_ctr_drbg_set_entropy_len())
+ *                      and the entropy nonce length (\c 0 unless overridden
+ *                      with mbedtls_ctr_drbg_set_nonce_len()) must be:
+ *                      - at least 24 bytes for a 128-bit strength
+ *                      (maximum achievable strength when using AES-128);
+ *                      - at least 48 bytes for a 256-bit strength
+ *                      (maximum achievable strength when using AES-256).
+ *
  * \param ctx           The CTR_DRBG context to seed.
  * \param f_entropy     The entropy callback, taking as arguments the
  *                      \p p_entropy context, the buffer to fill, and the
  *                      length of the buffer.
  *                      \p f_entropy is always called with a buffer size
- *                      equal to the entropy length.
+ *                      less than or equal to the entropy length.
  * \param p_entropy     The entropy context to pass to \p f_entropy.
  * \param custom        The personalization string.
  *                      This can be \c NULL, in which case the personalization
@@ -320,10 +332,34 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
  *
  * \param ctx           The CTR_DRBG context.
  * \param len           The amount of entropy to grab, in bytes.
- *                      This must be at most #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
+ *                      This must be at most #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT
+ *                      and at most the maximum length accepted by the
+ *                      entropy function that is set in the context.
  */
 void mbedtls_ctr_drbg_set_entropy_len( mbedtls_ctr_drbg_context *ctx,
                                size_t len );
+
+/**
+ * \brief               This function sets the amount of entropy grabbed
+ *                      as a nonce for the initial seeding.
+ *
+ * Call this function before calling mbedtls_ctr_drbg_seed() to read
+ * a nonce from the entropy source during the initial seeding.
+ *
+ * \param ctx           The CTR_DRBG context.
+ * \param len           The amount of entropy to grab for the nonce, in bytes.
+ *                      This must be at most #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT
+ *                      and at most the maximum length accepted by the
+ *                      entropy function that is set in the context.
+ *
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG if \p len is
+ *                      more than #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
+ * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED
+ *                      if the initial seeding has already taken place.
+ */
+int mbedtls_ctr_drbg_set_nonce_len( mbedtls_ctr_drbg_context *ctx,
+                                    size_t len );
 
 /**
  * \brief               This function sets the reseed interval.

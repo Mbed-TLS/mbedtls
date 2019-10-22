@@ -169,14 +169,19 @@ extern "C" {
 typedef struct mbedtls_ctr_drbg_context
 {
     unsigned char counter[16];  /*!< The counter (V). */
-    int reseed_counter;         /*!< The reseed counter. */
+    int reseed_counter;         /*!< The reseed counter.
+                                 * This is the number of requests that have
+                                 * been made since the last (re)seeding,
+                                 * minus one. */
     int prediction_resistance;  /*!< This determines whether prediction
                                      resistance is enabled, that is
                                      whether to systematically reseed before
                                      each random generation. */
     size_t entropy_len;         /*!< The amount of entropy grabbed on each
-                                     seed or reseed operation. */
-    int reseed_interval;        /*!< The reseed interval. */
+                                     seed or reseed operation, in bytes. */
+    int reseed_interval;        /*!< The reseed interval.
+                                 * This is the maximum number of requests
+                                 * that can be made between reseedings. */
 
     mbedtls_aes_context aes_ctx;        /*!< The AES context. */
 

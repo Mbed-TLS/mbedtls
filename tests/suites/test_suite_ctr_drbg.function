@@ -190,7 +190,7 @@ void ctr_drbg_validate_reseed_first( data_t * add_init, data_t * entropy,
 
 
 /* BEGIN_CASE */
-void ctr_drbg_entropy_usage(  )
+void ctr_drbg_entropy_usage( int entropy_nonce_len )
 {
     unsigned char out[16];
     unsigned char add[16];
@@ -206,9 +206,14 @@ void ctr_drbg_entropy_usage(  )
     memset( out, 0, sizeof( out ) );
     memset( add, 0, sizeof( add ) );
 
+    if( entropy_nonce_len >= 0 )
+        TEST_ASSERT( mbedtls_ctr_drbg_set_nonce_len( &ctx, entropy_nonce_len ) == 0 );
+
     /* Init must use entropy */
     TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx, mbedtls_test_entropy_func, entropy, NULL, 0 ) == 0 );
     expected_idx += MBEDTLS_CTR_DRBG_ENTROPY_LEN;
+    if( entropy_nonce_len >= 0 )
+        expected_idx += entropy_nonce_len;
     TEST_EQUAL( test_offset_idx, expected_idx );
 
     /* By default, PR is off and reseed_interval is large,

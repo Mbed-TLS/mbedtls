@@ -3,6 +3,14 @@
 #include "mbedtls/ctr_drbg.h"
 #include "string.h"
 
+/* mbedtls_ctr_drbg_seed() grabs a nonce by default if the entropy
+ * length is smaller than 3/2 times the maximum security strength. */
+#if MBEDTLS_CTR_DRBG_ENTROPY_LEN >= MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2
+#undef DEFAULT_ENTROPY_NONCE
+#else
+#define DEFAULT_ENTROPY_NONCE
+#endif
+
 /* Modes for ctr_drbg_validate */
 enum reseed_mode
 {
@@ -215,6 +223,12 @@ void ctr_drbg_entropy_usage( int entropy_nonce_len )
     expected_idx += MBEDTLS_CTR_DRBG_ENTROPY_LEN;
     if( entropy_nonce_len >= 0 )
         expected_idx += entropy_nonce_len;
+    else
+    {
+#if defined(DEFAULT_ENTROPY_NONCE)
+        expected_idx += ( MBEDTLS_CTR_DRBG_ENTROPY_LEN + 1 ) / 2;
+#endif
+    }
     TEST_EQUAL( test_offset_idx, expected_idx );
 
     /* By default, PR is off and reseed_interval is large,

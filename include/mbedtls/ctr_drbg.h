@@ -12,36 +12,14 @@
  * The Mbed TLS implementation of CTR_DRBG uses AES-256 (default) or AES-128
  * (if \c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY is enabled at compile time)
  * as the underlying block cipher, with a derivation function.
- * The initial seeding grabs #MBEDTLS_CTR_DRBG_ENTROPY_LEN bytes of entropy.
- * See the documentation of mbedtls_ctr_drbg_seed() for more details.
  *
- * Based on NIST SP 800-90A §10.2.1 table 3 and NIST SP 800-57 part 1 table 2,
- * here are the security strengths achieved in typical configuration:
- * - 256 bits under the default configuration of the library, with AES-256
- *   and with #MBEDTLS_CTR_DRBG_ENTROPY_LEN set to 48 or more.
- * - 256 bits if AES-256 is used, #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set
- *   to 32 or more, and the DRBG is initialized with an explicit
- *   nonce in the \c custom parameter to mbedtls_ctr_drbg_seed().
- * - 256 bits if AES-256 is used, #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set
- *   to 32 or more, and mbedtls_ctr_drbg_set_nonce_len() is called to set
- *   an entropy nonce length of 16 bytes or more.
- * - 128 bits if AES-256 is used but #MBEDTLS_CTR_DRBG_ENTROPY_LEN is
- *   between 24 and 47 and the DRBG is not initialized with an explicit
- *   nonce (see mbedtls_ctr_drbg_seed()).
- * - 128 bits if AES-128 is used (\c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY enabled)
- *   and #MBEDTLS_CTR_DRBG_ENTROPY_LEN is set to 24 or more (which is
- *   always the case unless it is explicitly set to a different value
- *   in config.h).
- * - 128 bits if AES-128 is used (\c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY enabled)
- *   to 16 or more, and mbedtls_ctr_drbg_set_nonce_len() is called to set
- *   an entropy nonce length of 8 bytes or more.
- *
- * Note that the value of #MBEDTLS_CTR_DRBG_ENTROPY_LEN defaults to:
- * - \c 48 if the module \c MBEDTLS_SHA512_C is enabled and the symbol
- *   \c MBEDTLS_ENTROPY_FORCE_SHA256 is disabled at compile time.
- *   This is the default configuration of the library.
- * - \c 32 if the module \c MBEDTLS_SHA512_C is disabled at compile time.
- * - \c 32 if \c MBEDTLS_ENTROPY_FORCE_SHA256 is enabled at compile time.
+ * The security strength as defined in NIST SP 800-90A is
+ * 128 bits when AES-128 is used (\c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY enabled)
+ * and 256 bits otherwise, provided that #MBEDTLS_CTR_DRBG_ENTROPY_LEN is
+ * kept at its default value (and not overridden in config.h) and that the
+ * DRBG instance is set up with default parameters.
+ * See the documentation of mbedtls_ctr_drbg_seed() for more
+ * information.
  */
 /*
  *  Copyright (C) 2006-2019, Arm Limited (or its affiliates), All Rights Reserved
@@ -232,6 +210,26 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  * The entropy length is #MBEDTLS_CTR_DRBG_ENTROPY_LEN by default.
  * You can override it by calling mbedtls_ctr_drbg_set_entropy_len().
  *
+ * The entropy nonce length is:
+ * - \c 0 if the entropy length is at least 3/2 times the entropy length,
+ *   which guarantees that the security strength is the maximum permitted
+ *   by the key size and entropy length according to NIST SP 800-90A §10.2.1;
+ * - Half the entropy length otherwise.
+ * You can override it by calling mbedtls_ctr_drbg_set_nonce_len().
+ */
+#if MBEDTLS_CTR_DRBG_ENTROPY_LEN >= MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2
+/** With the default entropy length, the entropy nonce length is \c 0.
+ */
+#elif MBEDTLS_CTR_DRBG_ENTROPY_LEN & 1
+/** With the default entropy length, the entropy nonce length is
+ * (#MBEDTLS_CTR_DRBG_ENTROPY_LEN + 1) / 2.
+ */
+#else
+/** With the default entropy length, the entropy nonce length is
+ * #MBEDTLS_CTR_DRBG_ENTROPY_LEN / 2.
+ */
+#endif
+/**
  * You can provide a nonce and personalization string in addition to the
  * entropy source, to make this instantiation as unique as possible.
  * See SP 800-90A §8.6.7 for more details about nonces.
@@ -241,10 +239,20 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  * is the concatenation of the following strings:
  * - A string obtained by calling \p f_entropy function for the entropy
  *   length.
- * - A string obtained by calling \p f_entropy function for the nonce
- *   length set with mbedtls_ctr_drbg_set_nonce_len(). If the entropy
- *   nonce length is \c 0, this function does not make a second call
- *   to \p f_entropy.
+ */
+#if MBEDTLS_CTR_DRBG_ENTROPY_LEN >= MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2
+/**
+ * - If mbedtls_ctr_drbg_set_nonce_len() has been called, a string
+ *   obtained by calling \p f_entropy function for the specified length.
+ */
+#else
+/**
+ * - A string obtained by calling \p f_entropy function for the entropy nonce
+ *   length. If the entropy nonce length is \c 0, this function does not
+ *   make a second call to \p f_entropy.
+ */
+#endif
+/**
  * - The \p custom string.
  *
  * \note                To achieve the nominal security strength permitted
@@ -256,10 +264,7 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *
  *                      In addition, if you do not pass a nonce in \p custom,
  *                      the sum of the entropy length
- *                      (#MBEDTLS_CTR_DRBG_ENTROPY_LEN unless overridden with
- *                      mbedtls_ctr_drbg_set_entropy_len())
- *                      and the entropy nonce length (\c 0 unless overridden
- *                      with mbedtls_ctr_drbg_set_nonce_len()) must be:
+ *                      and the entropy nonce length must be:
  *                      - at least 24 bytes for a 128-bit strength
  *                      (maximum achievable strength when using AES-128);
  *                      - at least 48 bytes for a 256-bit strength

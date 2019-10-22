@@ -1071,6 +1071,11 @@ depends_on:MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 ctr_drbg_validate_pr:"d4f1f4ae08bcb3e1":"5d4041942bcf68864a4997d8171f1f9fef55a769b7eaf03fe082029bb32a2b9d8239e865c0a42e14b964b9c09de85a20":"":"":"4155320287eedcf7d484c2c2a1e2eb64b9c9ce77c87202a1ae1616c7a5cfd1c687c7a0bfcc85bda48fdd4629fd330c22d0a76076f88fc7cd04037ee06b7af602"
 
 CTR_DRBG entropy usage (entropy_nonce_len=0 by default)
+depends_on:!DEFAULT_ENTROPY_NONCE
+ctr_drbg_entropy_usage:-1
+
+CTR_DRBG entropy usage (entropy_nonce_len=entropy_len/2 by default)
+depends_on:DEFAULT_ENTROPY_NONCE
 ctr_drbg_entropy_usage:-1
 
 CTR_DRBG entropy usage (entropy_nonce_len=0)

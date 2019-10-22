@@ -79,6 +79,19 @@ int main( void )
 #include <unistd.h>
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+int mbedtls_hardware_poll( void *data, unsigned char *output,
+                           size_t len, size_t *olen )
+{
+    size_t i;
+    (void) data;
+    for( i = 0; i < len; ++i )
+        output[i] = rand();
+    *olen = len;
+    return( 0 );
+}
+#endif
+
 #define MAX_MSG_SIZE            16384 + 2048 /* max record/datagram size */
 
 #define DFL_SERVER_ADDR         "localhost"

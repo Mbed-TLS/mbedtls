@@ -357,10 +357,10 @@ void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
  * and with output
  *   ctx contains new_working_state
  */
-int mbedtls_ctr_drbg_reseed_internal( mbedtls_ctr_drbg_context *ctx,
-                                      const unsigned char *additional,
-                                      size_t len,
-                                      size_t nonce_len )
+static int mbedtls_ctr_drbg_reseed_internal( mbedtls_ctr_drbg_context *ctx,
+                                             const unsigned char *additional,
+                                             size_t len,
+                                             size_t nonce_len )
 {
     unsigned char seed[MBEDTLS_CTR_DRBG_MAX_SEED_INPUT];
     size_t seedlen = 0;

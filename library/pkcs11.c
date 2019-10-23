@@ -40,10 +40,11 @@
 #endif
 
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_pkcs11_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_pkcs11_context ) );
 }
 
 int mbedtls_pkcs11_x509_cert_bind( mbedtls_x509_crt *cert, pkcs11h_certificate_t pkcs11_cert )

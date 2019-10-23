@@ -666,7 +666,7 @@ static int mbedtls_x509_get_name( unsigned char *p,
                            mbedtls_x509_name *cur )
 {
     mbedtls_x509_buf_raw name_buf = { p, len };
-    memset( cur, 0, sizeof( mbedtls_x509_name ) );
+    mbedtls_platform_memset( cur, 0, sizeof( mbedtls_x509_name ) );
     return( mbedtls_x509_name_cmp_raw( &name_buf, &name_buf,
                                        x509_get_name_cb,
                                        &cur ) );

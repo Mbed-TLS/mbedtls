@@ -404,7 +404,7 @@ int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
         ctx->queue_len++;
 
         /* Pad with zeroes */
-        memset( &ctx->queue[ctx->queue_len],
+        mbedtls_platform_memset( &ctx->queue[ctx->queue_len],
                 0,
                 POLY1305_BLOCK_SIZE_BYTES - ctx->queue_len );
 

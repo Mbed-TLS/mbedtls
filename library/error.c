@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_ERROR_C) || defined(MBEDTLS_ERROR_STRERROR_DUMMY)
 #include "mbedtls/error.h"
 #include <string.h>
+#include "mbedtls/platform_util.h"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -218,7 +219,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( buflen == 0 )
         return;
 
-    memset( buf, 0x00, buflen );
+    mbedtls_platform_memset( buf, 0x00, buflen );
 
     if( ret < 0 )
         ret = -ret;

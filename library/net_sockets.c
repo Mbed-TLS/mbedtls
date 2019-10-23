@@ -47,6 +47,7 @@
 #include "mbedtls/net_sockets.h"
 
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
@@ -154,7 +155,7 @@ int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host,
         return( ret );
 
     /* Do name resolution with both IPv6 and IPv4 */
-    memset( &hints, 0, sizeof( hints ) );
+    mbedtls_platform_memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
     hints.ai_protocol = proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
@@ -201,7 +202,7 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
         return( ret );
 
     /* Bind to IPv6 and/or IPv4, but only in the desired protocol */
-    memset( &hints, 0, sizeof( hints ) );
+    mbedtls_platform_memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
     hints.ai_protocol = proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
@@ -471,8 +472,8 @@ int mbedtls_net_poll( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
     /* Ensure that memory sanitizers consider read_fds and write_fds as
      * initialized even on platforms such as Glibc/x86_64 where FD_ZERO
      * is implemented in assembly. */
-    memset( &read_fds, 0, sizeof( read_fds ) );
-    memset( &write_fds, 0, sizeof( write_fds ) );
+    mbedtls_platform_memset( &read_fds, 0, sizeof( read_fds ) );
+    mbedtls_platform_memset( &write_fds, 0, sizeof( write_fds ) );
 #endif
 #endif
 

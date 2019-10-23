@@ -426,7 +426,9 @@ $text"
                 ;;
             *)
                 record_status command make "$@"
-                build_status=$last_status
+                if [ $build_status -eq 0 ]; then
+                    build_status=$last_status
+                fi
                 ;;
         esac
     }
@@ -1594,7 +1596,8 @@ component_test_baremetal () {
 component_test_hardware_entropy () {
     msg "build: default config + MBEDTLS_ENTROPY_HARDWARE_ALT"
     scripts/config.pl set MBEDTLS_ENTROPY_HARDWARE_ALT
-    make CFLAGS='-Werror -O1'
+    make CFLAGS='-Werror -O1' lib tests
+    make CFLAGS='-Werror -O1' -C programs ssl/ssl_server2 ssl/ssl_client2 test/udp_proxy
 
     msg "test: default config + MBEDTLS_ENTROPY_HARDWARE_ALT"
     if_build_succeeded make test

@@ -654,7 +654,7 @@ static int pk_get_pk_alg( unsigned char **p,
     int ret;
     mbedtls_asn1_buf alg_oid;
 
-    memset( params, 0, sizeof(mbedtls_asn1_buf) );
+    mbedtls_platform_memset( params, 0, sizeof(mbedtls_asn1_buf) );
 
     if( ( ret = mbedtls_asn1_get_alg( p, end, &alg_oid, params ) ) != 0 )
         return( MBEDTLS_ERR_PK_INVALID_ALG + ret );

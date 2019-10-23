@@ -224,7 +224,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         len_left = add_len;
         src = add;
 
-        memset( b, 0, 16 );
+        mbedtls_platform_memset( b, 0, 16 );
         b[0] = (unsigned char)( ( add_len >> 8 ) & 0xFF );
         b[1] = (unsigned char)( ( add_len      ) & 0xFF );
 
@@ -239,7 +239,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         {
             use_len = len_left > 16 ? 16 : len_left;
 
-            memset( b, 0, 16 );
+            mbedtls_platform_memset( b, 0, 16 );
             memcpy( b, src, use_len );
             UPDATE_CBC_MAC;
 
@@ -260,7 +260,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
      */
     ctr[0] = q - 1;
     memcpy( ctr + 1, iv, iv_len );
-    memset( ctr + 1 + iv_len, 0, q );
+    mbedtls_platform_memset( ctr + 1 + iv_len, 0, q );
     ctr[15] = 1;
 
     /*
@@ -279,7 +279,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         if( mode == CCM_ENCRYPT )
         {
-            memset( b, 0, 16 );
+            mbedtls_platform_memset( b, 0, 16 );
             memcpy( b, src, use_len );
             UPDATE_CBC_MAC;
         }
@@ -288,7 +288,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 
         if( mode == CCM_DECRYPT )
         {
-            memset( b, 0, 16 );
+            mbedtls_platform_memset( b, 0, 16 );
             memcpy( b, dst, use_len );
             UPDATE_CBC_MAC;
         }
@@ -495,8 +495,8 @@ int mbedtls_ccm_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  CCM-AES #%u: ", (unsigned int) i + 1 );
 
-        memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
-        memset( ciphertext, 0, CCM_SELFTEST_CT_MAX_LEN );
+        mbedtls_platform_memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
+        mbedtls_platform_memset( ciphertext, 0, CCM_SELFTEST_CT_MAX_LEN );
         memcpy( plaintext, msg, msg_len[i] );
 
         ret = mbedtls_ccm_encrypt_and_tag( &ctx, msg_len[i],
@@ -512,7 +512,7 @@ int mbedtls_ccm_self_test( int verbose )
 
             return( 1 );
         }
-        memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
+        mbedtls_platform_memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
 
         ret = mbedtls_ccm_auth_decrypt( &ctx, msg_len[i],
                                         iv, iv_len[i], ad, add_len[i],

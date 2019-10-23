@@ -31,6 +31,7 @@
 #endif
 
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_ENTROPY_C)
 
@@ -106,7 +107,7 @@ static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
     /* MemSan cannot understand that the syscall writes to the buffer */
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)
-    memset( buf, 0, buflen );
+    mbedtls_platform_memset( buf, 0, buflen );
 #endif
 #endif
     return( syscall( SYS_getrandom, buf, buflen, flags ) );
@@ -218,7 +219,7 @@ int mbedtls_nv_seed_poll( void *data,
     size_t use_len = MBEDTLS_ENTROPY_BLOCK_SIZE;
     ((void) data);
 
-    memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    mbedtls_platform_memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
 
     if( mbedtls_nv_seed_read( buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) < 0 )
       return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );

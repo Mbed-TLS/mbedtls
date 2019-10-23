@@ -184,7 +184,7 @@ static void havege_fill( mbedtls_havege_state *hs )
 
     (void)PTX;
 
-    memset( RES, 0, sizeof( RES ) );
+    mbedtls_platform_memset( RES, 0, sizeof( RES ) );
 
     while( n < MBEDTLS_HAVEGE_COLLECT_SIZE * 4 )
     {
@@ -206,7 +206,7 @@ static void havege_fill( mbedtls_havege_state *hs )
  */
 void mbedtls_havege_init( mbedtls_havege_state *hs )
 {
-    memset( hs, 0, sizeof( mbedtls_havege_state ) );
+    mbedtls_platform_memset( hs, 0, sizeof( mbedtls_havege_state ) );
 
     havege_fill( hs );
 }

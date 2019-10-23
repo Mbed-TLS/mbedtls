@@ -92,7 +92,7 @@
 void mbedtls_gcm_init( mbedtls_gcm_context *ctx )
 {
     GCM_VALIDATE( ctx != NULL );
-    memset( ctx, 0, sizeof( mbedtls_gcm_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_gcm_context ) );
 }
 
 /*
@@ -111,7 +111,7 @@ static int gcm_gen_table( mbedtls_gcm_context *ctx )
     unsigned char h[16];
     size_t olen = 0;
 
-    memset( h, 0, 16 );
+    mbedtls_platform_memset( h, 0, 16 );
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, h, 16, h, &olen ) ) != 0 )
         return( ret );
 
@@ -298,8 +298,8 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
     }
 
-    memset( ctx->y, 0x00, sizeof(ctx->y) );
-    memset( ctx->buf, 0x00, sizeof(ctx->buf) );
+    mbedtls_platform_memset( ctx->y, 0x00, sizeof(ctx->y) );
+    mbedtls_platform_memset( ctx->buf, 0x00, sizeof(ctx->buf) );
 
     ctx->mode = mode;
     ctx->len = 0;
@@ -312,7 +312,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     }
     else
     {
-        memset( work_buf, 0x00, 16 );
+        mbedtls_platform_memset( work_buf, 0x00, 16 );
         PUT_UINT32_BE( iv_len * 8, work_buf, 12 );
 
         p = iv;
@@ -444,7 +444,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
 
     if( orig_len || orig_add_len )
     {
-        memset( work_buf, 0x00, 16 );
+        mbedtls_platform_memset( work_buf, 0x00, 16 );
 
         PUT_UINT32_BE( ( orig_add_len >> 32 ), work_buf, 0  );
         PUT_UINT32_BE( ( orig_add_len       ), work_buf, 4  );

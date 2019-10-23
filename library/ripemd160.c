@@ -74,7 +74,7 @@
 
 void mbedtls_ripemd160_init( mbedtls_ripemd160_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_ripemd160_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_ripemd160_context ) );
 }
 
 void mbedtls_ripemd160_free( mbedtls_ripemd160_context *ctx )
@@ -520,7 +520,7 @@ int mbedtls_ripemd160_self_test( int verbose )
     int i, ret = 0;
     unsigned char output[20];
 
-    memset( output, 0, sizeof output );
+    mbedtls_platform_memset( output, 0, sizeof output );
 
     for( i = 0; i < TESTS; i++ )
     {

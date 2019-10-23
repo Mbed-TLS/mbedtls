@@ -43,10 +43,11 @@
 #include "mbedtls/ssl_internal.h"
 
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache )
 {
-    memset( cache, 0, sizeof( mbedtls_ssl_cache_context ) );
+    mbedtls_platform_memset( cache, 0, sizeof( mbedtls_ssl_cache_context ) );
 
     cache->timeout = MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT;
     cache->max_entries = MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES;
@@ -260,7 +261,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session )
     if( cur->peer_cert.p != NULL )
     {
         mbedtls_free( cur->peer_cert.p );
-        memset( &cur->peer_cert, 0, sizeof(mbedtls_x509_buf) );
+        mbedtls_platform_memset( &cur->peer_cert, 0, sizeof(mbedtls_x509_buf) );
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 

@@ -99,8 +99,8 @@ static int pkcs12_pbe_derive_key_iv( mbedtls_asn1_buf *pbe_params, mbedtls_md_ty
     if( pwdlen > PKCS12_MAX_PWDLEN )
         return( MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA );
 
-    memset( &salt, 0, sizeof(mbedtls_asn1_buf) );
-    memset( &unipwd, 0, sizeof(unipwd) );
+    mbedtls_platform_memset( &salt, 0, sizeof(mbedtls_asn1_buf) );
+    mbedtls_platform_memset( &unipwd, 0, sizeof(unipwd) );
 
     if( ( ret = pkcs12_parse_pbe_params( pbe_params, &salt,
                                          &iterations ) ) != 0 )
@@ -283,7 +283,7 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
     else
         v = 128;
 
-    memset( diversifier, (unsigned char) id, v );
+    mbedtls_platform_memset( diversifier, (unsigned char) id, v );
 
     pkcs12_fill_buffer( salt_block, v, salt, saltlen );
     pkcs12_fill_buffer( pwd_block,  v, pwd,  pwdlen  );

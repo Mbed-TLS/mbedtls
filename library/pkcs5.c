@@ -46,6 +46,7 @@
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
 #include <string.h>
+#include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -231,7 +232,7 @@ int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *p
     unsigned char *out_p = output;
     unsigned char counter[4];
 
-    memset( counter, 0, 4 );
+    mbedtls_platform_memset( counter, 0, 4 );
     counter[3] = 1;
 
 #if UINT_MAX > 0xFFFFFFFF

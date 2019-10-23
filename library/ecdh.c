@@ -179,7 +179,7 @@ void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
     mbedtls_ecp_point_init( &ctx->Vf  );
     mbedtls_mpi_init( &ctx->_d );
 #else
-    memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
 
     ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
 #endif

@@ -481,7 +481,7 @@ void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
     RSA_VALIDATE( padding == MBEDTLS_RSA_PKCS_V15 ||
                   padding == MBEDTLS_RSA_PKCS_V21 );
 
-    memset( ctx, 0, sizeof( mbedtls_rsa_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_rsa_context ) );
 
     mbedtls_rsa_set_padding( ctx, padding, hash_id );
 
@@ -1073,8 +1073,8 @@ static int mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
     size_t i, use_len;
     int ret = 0;
 
-    memset( mask, 0, MBEDTLS_MD_MAX_SIZE );
-    memset( counter, 0, 4 );
+    mbedtls_platform_memset( mask, 0, MBEDTLS_MD_MAX_SIZE );
+    mbedtls_platform_memset( counter, 0, 4 );
 
     hlen = mbedtls_md_get_size( mbedtls_md_get_handle( md_ctx ) );
 
@@ -1155,7 +1155,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     if( ilen + 2 * hlen + 2 < ilen || olen < ilen + 2 * hlen + 2 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    memset( output, 0, olen );
+    mbedtls_platform_memset( output, 0, olen );
 
     *p++ = 0;
 
@@ -1510,7 +1510,7 @@ static unsigned if_int( unsigned cond, unsigned if1, unsigned if0 )
  * `mem_move_to_left(start, total, offset)` is functionally equivalent to
  * ```
  * memmove(start, start + offset, total - offset);
- * memset(start + offset, 0, total - offset);
+ * mbedtls_platform_memset(start + offset, 0, total - offset);
  * ```
  * but it strives to use a memory access pattern (and thus total timing)
  * that does not depend on \p offset. This timing independence comes at
@@ -1815,7 +1815,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     else
         slen = olen - hlen - 2;
 
-    memset( sig, 0, olen );
+    mbedtls_platform_memset( sig, 0, olen );
 
     /* Generate salt of length slen */
     if( ( ret = f_rng( p_rng, salt, slen ) ) != 0 )
@@ -1958,7 +1958,7 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     /* Write signature header and padding */
     *p++ = 0;
     *p++ = MBEDTLS_RSA_SIGN;
-    memset( p, 0xFF, nb_pad );
+    mbedtls_platform_memset( p, 0xFF, nb_pad );
     p += nb_pad;
     *p++ = 0;
 
@@ -2198,7 +2198,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
 
     hlen = mbedtls_md_get_size( md_info );
 
-    memset( zeros, 0, 8 );
+    mbedtls_platform_memset( zeros, 0, 8 );
 
     /*
      * Note: EMSA-PSS verification is over the length of N - 1 bits

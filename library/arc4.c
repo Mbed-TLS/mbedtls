@@ -50,7 +50,7 @@
 
 void mbedtls_arc4_init( mbedtls_arc4_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_arc4_context ) );
+    mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_arc4_context ) );
 }
 
 void mbedtls_arc4_free( mbedtls_arc4_context *ctx )

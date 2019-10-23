@@ -941,7 +941,7 @@ static int rsa_alt_check_pair( const void *pub, const void *prv )
     if( rsa_alt_get_bitlen( prv ) != rsa_get_bitlen( pub ) )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
-    memset( hash, 0x2a, sizeof( hash ) );
+    mbedtls_platform_memset( hash, 0x2a, sizeof( hash ) );
 
     if( ( ret = rsa_alt_sign_wrap( (void *) prv, MBEDTLS_MD_NONE,
                                    hash, sizeof( hash ),
@@ -965,7 +965,7 @@ static void *rsa_alt_alloc_wrap( void )
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_rsa_alt_context ) );
 
     if( ctx != NULL )
-        memset( ctx, 0, sizeof( mbedtls_rsa_alt_context ) );
+        mbedtls_platform_memset( ctx, 0, sizeof( mbedtls_rsa_alt_context ) );
 
     return( ctx );
 }
@@ -1291,7 +1291,7 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx )
     ctx->pk_info = MBEDTLS_PK_INVALID_HANDLE;
     ctx->pk_ctx = NULL;
 #else
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
+    memset( ctx, 0, sizeof( mbedtls_pk_context ) );
 #endif
 }
 

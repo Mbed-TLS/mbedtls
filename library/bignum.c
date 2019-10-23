@@ -217,7 +217,7 @@ int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y )
     }
     else
     {
-        memset( X->p + i, 0, ( X->n - i ) * ciL );
+        mbedtls_platform_memset( X->p + i, 0, ( X->n - i ) * ciL );
     }
 
     memcpy( X->p, Y->p, i * ciL );
@@ -318,7 +318,7 @@ int mbedtls_mpi_lset( mbedtls_mpi *X, mbedtls_mpi_sint z )
     MPI_VALIDATE_RET( X != NULL );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, 1 ) );
-    memset( X->p, 0, X->n * ciL );
+    mbedtls_platform_memset( X->p, 0, X->n * ciL );
 
     X->p[0] = ( z < 0 ) ? -z : z;
     X->s    = ( z < 0 ) ? -1 : 1;
@@ -673,7 +673,7 @@ int mbedtls_mpi_read_file( mbedtls_mpi *X, int radix, FILE *fin )
     if( radix < 2 || radix > 16 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    memset( s, 0, sizeof( s ) );
+    mbedtls_platform_memset( s, 0, sizeof( s ) );
     if( fgets( s, sizeof( s ) - 1, fin ) == NULL )
         return( MBEDTLS_ERR_MPI_FILE_IO_ERROR );
 
@@ -709,7 +709,7 @@ int mbedtls_mpi_write_file( const char *p, const mbedtls_mpi *X, int radix, FILE
     if( radix < 2 || radix > 16 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    memset( s, 0, sizeof( s ) );
+    mbedtls_platform_memset( s, 0, sizeof( s ) );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_string( X, radix, s, sizeof( s ) - 2, &n ) );
 
@@ -888,7 +888,7 @@ int mbedtls_mpi_write_binary( const mbedtls_mpi *X,
          * number. */
         bytes_to_copy = stored_bytes;
         p = buf + buflen - stored_bytes;
-        memset( buf, 0, buflen - stored_bytes );
+        mbedtls_platform_memset( buf, 0, buflen - stored_bytes );
     }
     else
     {
@@ -1797,7 +1797,7 @@ static int mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi 
     if( T->n < N->n + 1 || T->p == NULL )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    memset( T->p, 0, T->n * ciL );
+    mbedtls_platform_memset( T->p, 0, T->n * ciL );
 
     d = T->p;
     n = N->n;
@@ -1875,7 +1875,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     mpi_montg_init( &mm, N );
     mbedtls_mpi_init( &RR ); mbedtls_mpi_init( &T );
     mbedtls_mpi_init( &Apos );
-    memset( W, 0, sizeof( W ) );
+    mbedtls_platform_memset( W, 0, sizeof( W ) );
 
     i = mbedtls_mpi_bitlen( E );
 

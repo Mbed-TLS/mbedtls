@@ -96,7 +96,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
     unsigned char *p, *end;
     mbedtls_x509_buf sig_params;
 
-    memset( &sig_params, 0, sizeof( mbedtls_x509_buf ) );
+    mbedtls_platform_memset( &sig_params, 0, sizeof( mbedtls_x509_buf ) );
 
     /*
      * Check for valid input
@@ -383,7 +383,7 @@ int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
  */
 void mbedtls_x509_csr_init( mbedtls_x509_csr *csr )
 {
-    memset( csr, 0, sizeof(mbedtls_x509_csr) );
+    mbedtls_platform_memset( csr, 0, sizeof(mbedtls_x509_csr) );
 }
 
 /*

@@ -139,7 +139,7 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *                      Note that SHA-256 is just as efficient as SHA-224.
  *                      The security strength can be reduced if a smaller
  *                      entropy length is set with
- *                      mbedtls_hmac_drbg_set_entropy_len() afterwards.
+ *                      mbedtls_hmac_drbg_set_entropy_len().
  *
  * \note                The default entropy length is the security strength
  *                      (converted from bits to bytes). You can override
@@ -222,14 +222,9 @@ void mbedtls_hmac_drbg_set_prediction_resistance( mbedtls_hmac_drbg_context *ctx
 
 /**
  * \brief               This function sets the amount of entropy grabbed on each
- *                      reseed.
+ *                      seed or reseed.
  *
- * The default value is set by mbedtls_hmac_drbg_seed().
- *
- * \note                mbedtls_hmac_drbg_seed() always sets the entropy length
- *                      to the default value based on the chosen MD algorithm,
- *                      so this function only has an effect if it is called
- *                      after mbedtls_hmac_drbg_seed().
+ * See the documentation of mbedtls_hmac_drbg_seed() for the default value.
  *
  * \param ctx           The HMAC_DRBG context.
  * \param len           The amount of entropy to grab, in bytes.

@@ -823,7 +823,7 @@ int mbedtls_gcm_self_test( int verbose )
                 goto exit;
 
             if ( memcmp( buf, ct[j * 6 + i], pt_len[i] ) != 0 ||
-                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+                    memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 ret = 1;
                 goto exit;
@@ -855,7 +855,7 @@ int mbedtls_gcm_self_test( int verbose )
                 goto exit;
 
             if( memcmp( buf, pt[pt_index[i]], pt_len[i] ) != 0 ||
-                memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+                    memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 ret = 1;
                 goto exit;
@@ -907,7 +907,7 @@ int mbedtls_gcm_self_test( int verbose )
                 goto exit;
 
             if( memcmp( buf, ct[j * 6 + i], pt_len[i] ) != 0 ||
-                memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+                    memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 ret = 1;
                 goto exit;
@@ -960,7 +960,7 @@ int mbedtls_gcm_self_test( int verbose )
                 goto exit;
 
             if( memcmp( buf, pt[pt_index[i]], pt_len[i] ) != 0 ||
-                memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+                    memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
             {
                 ret = 1;
                 goto exit;

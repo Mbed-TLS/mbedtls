@@ -1152,9 +1152,9 @@ static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
         /* Check verify-data in constant-time. The length OTOH is no secret */
         if( len    != 1 + ssl->verify_data_len * 2 ||
             buf[0] !=     ssl->verify_data_len * 2 ||
-            mbedtls_ssl_safer_memcmp( buf + 1,
+            mbedtls_platform_memcmp( buf + 1,
                           ssl->own_verify_data, ssl->verify_data_len ) != 0 ||
-            mbedtls_ssl_safer_memcmp( buf + 1 + ssl->verify_data_len,
+            mbedtls_platform_memcmp( buf + 1 + ssl->verify_data_len,
                           ssl->peer_verify_data, ssl->verify_data_len ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-matching renegotiation info" ) );
@@ -1482,7 +1482,7 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
     for( p = ssl->conf->alpn_list; *p != NULL; p++ )
     {
         if( name_len == strlen( *p ) &&
-            memcmp( buf + 3, *p, name_len ) == 0 )
+            mbedtls_platform_memcmp( buf + 3, *p, name_len ) == 0 )
         {
             ssl->alpn_chosen = *p;
             return( 0 );
@@ -1815,7 +1815,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ) != i ||
         mbedtls_ssl_session_get_compression( ssl->session_negotiate ) != comp ||
         ssl->session_negotiate->id_len != n ||
-        memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
+        mbedtls_platform_memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
     {
         ssl->handshake->resume = 0;
     }
@@ -2811,7 +2811,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
 
-        if( memcmp( p, ecdh_group, sizeof( ecdh_group ) ) != 0 )
+        if( mbedtls_platform_memcmp( p, ecdh_group, sizeof( ecdh_group ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "Bad server key exchange (unexpected header)" ) );
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );

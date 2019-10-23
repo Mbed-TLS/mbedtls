@@ -160,7 +160,7 @@ static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
         /* Check verify-data in constant-time. The length OTOH is no secret */
         if( len    != 1 + ssl->verify_data_len ||
             buf[0] !=     ssl->verify_data_len ||
-            mbedtls_ssl_safer_memcmp( buf + 1, ssl->peer_verify_data,
+            mbedtls_platform_memcmp( buf + 1, ssl->peer_verify_data,
                           ssl->verify_data_len ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-matching renegotiation info" ) );
@@ -708,7 +708,7 @@ static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
             cur_len = *theirs++;
 
             if( cur_len == ours_len &&
-                memcmp( theirs, *ours, cur_len ) == 0 )
+                mbedtls_platform_memcmp( theirs, *ours, cur_len ) == 0 )
             {
                 ssl->alpn_chosen = *ours;
                 return( 0 );
@@ -1619,7 +1619,7 @@ read_record_header:
          * fragment_offset == 0 and fragment_length == length
          */
         if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
-            memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
+            mbedtls_platform_memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "ClientHello fragmentation not supported" ) );
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
@@ -4090,7 +4090,7 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
         /* Identity is not a big secret since clients send it in the clear,
          * but treat it carefully anyway, just in case */
         if( n != ssl->conf->psk_identity_len ||
-            mbedtls_ssl_safer_memcmp( ssl->conf->psk_identity, *p, n ) != 0 )
+            mbedtls_platform_memcmp( ssl->conf->psk_identity, *p, n ) != 0 )
         {
             ret = MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY;
         }

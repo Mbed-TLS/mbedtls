@@ -1159,26 +1159,6 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
                               const mbedtls_ssl_session *src );
 
-/* constant-time buffer comparison */
-static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
-{
-    size_t i;
-    volatile const unsigned char *A = (volatile const unsigned char *) a;
-    volatile const unsigned char *B = (volatile const unsigned char *) b;
-    volatile unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-    {
-        /* Read volatile data in order before computing diff.
-         * This avoids IAR compiler warning:
-         * 'the order of volatile accesses is undefined ..' */
-        unsigned char x = A[i], y = B[i];
-        diff |= x ^ y;
-    }
-
-    return( diff );
-}
-
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
 int mbedtls_ssl_get_key_exchange_md_ssl_tls( mbedtls_ssl_context *ssl,

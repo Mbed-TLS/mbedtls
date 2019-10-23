@@ -516,7 +516,7 @@ static int x509_string_cmp( const mbedtls_x509_buf *a,
 {
     if( a->tag == b->tag &&
         a->len == b->len &&
-        memcmp( a->p, b->p, b->len ) == 0 )
+        mbedtls_platform_memcmp( a->p, b->p, b->len ) == 0 )
     {
         return( 0 );
     }
@@ -605,7 +605,7 @@ static int mbedtls_x509_name_cmp_raw( mbedtls_x509_buf_raw const *a,
             goto exit;
 
         if( oid[0].len != oid[1].len ||
-            memcmp( oid[0].p, oid[1].p, oid[1].len ) != 0 )
+            mbedtls_platform_memcmp( oid[0].p, oid[1].p, oid[1].len ) != 0 )
         {
             return( 1 );
         }

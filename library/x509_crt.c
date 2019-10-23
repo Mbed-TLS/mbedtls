@@ -1316,7 +1316,7 @@ static int x509_crt_parse_frame( unsigned char *start,
      *    signature field in the sequence tbsCertificate (Section 4.1.2.3).
      */
     if( outer_sig_alg.len != inner_sig_alg_len ||
-        memcmp( outer_sig_alg.p, inner_sig_alg_start, inner_sig_alg_len ) != 0 )
+        mbedtls_platform_memcmp( outer_sig_alg.p, inner_sig_alg_start, inner_sig_alg_len ) != 0 )
     {
         return( MBEDTLS_ERR_X509_SIG_MISMATCH );
     }
@@ -2588,7 +2588,7 @@ static int x509_crt_check_ext_key_usage_cb( void *ctx,
         return( 1 );
     }
 
-    if( data_len == cb_ctx->oid_len && memcmp( data, cb_ctx->oid,
+    if( data_len == cb_ctx->oid_len && mbedtls_platform_memcmp( data, cb_ctx->oid,
                                                data_len ) == 0 )
     {
         return( 1 );
@@ -2646,7 +2646,7 @@ static int x509_serial_is_revoked( unsigned char const *serial,
     while( cur != NULL && cur->serial.len != 0 )
     {
         if( serial_len == cur->serial.len &&
-            memcmp( serial, cur->serial.p, serial_len ) == 0 )
+            mbedtls_platform_memcmp( serial, cur->serial.p, serial_len ) == 0 )
         {
             if( mbedtls_x509_time_is_past( &cur->revocation_date ) )
                 return( 1 );
@@ -3173,7 +3173,7 @@ static int x509_crt_check_ee_locally_trusted(
     for( cur = trust_ca; cur != NULL; cur = cur->next )
     {
         if( crt->raw.len == cur->raw.len &&
-            memcmp( crt->raw.p, cur->raw.p, crt->raw.len ) == 0 )
+            mbedtls_platform_memcmp( crt->raw.p, cur->raw.p, crt->raw.len ) == 0 )
         {
             return( 0 );
         }

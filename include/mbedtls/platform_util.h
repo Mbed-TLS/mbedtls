@@ -164,6 +164,80 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  */
 void mbedtls_platform_zeroize( void *buf, size_t len );
 
+/**
+ * \brief       Secure memset
+ *
+ *              This is a constant-time version of memset(). If
+ *              MBEDTLS_ENTROPY_HARDWARE_ALT is defined, the buffer is
+ *              initialised with random data and the order is also
+ *              randomised using the hardware RNG in order to further harden
+ *              against side-channel attacks.
+ *
+ * \param ptr   Buffer to be set.
+ * \param value Value to be used when setting the buffer.
+ * \param num   The length of the buffer in bytes.
+ *
+ * \return      The value of \p ptr.
+ */
+void *mbedtls_platform_memset( void *ptr, int value, size_t num );
+
+/**
+ * \brief       Secure memcpy
+ *
+ *              This is a constant-time version of memcpy(). If
+ *              MBEDTLS_ENTROPY_HARDWARE_ALT is defined, the buffer is
+ *              initialised with random data and the order is also
+ *              randomised using the hardware RNG in order to further harden
+ *              against side-channel attacks.
+ *
+ * \param dst   Destination buffer where the data is being copied to.
+ * \param src   Source buffer where the data is being copied from.
+ * \param num   The length of the buffers in bytes.
+ *
+ * \return      The value of \p dst.
+ */
+void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num );
+
+/**
+ * \brief       Secure memcmp
+ *
+ *              This is a constant-time version of memcmp(). If
+ *              MBEDTLS_ENTROPY_HARDWARE_ALT is defined, the order is also
+ *              randomised using the hardware RNG in order to further harden
+ *              against side-channel attacks.
+ *
+ * \param buf1  First buffer to compare.
+ * \param buf2  Second buffer to compare against.
+ * \param num   The length of the buffers in bytes.
+ *
+ * \return      0 if the buffers were equal or an unspecified non-zero value
+ *              otherwise.
+ */
+int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
+
+/**
+ * \brief       RNG-function for getting a random in given range.
+ *
+ *              This function is meant to provide a global RNG to be used
+ *              throughout Mbed TLS for hardening the library. It is used
+ *              for generating a random delay, random data or random offset
+ *              for utility functions. It is not meant to be a
+ *              cryptographically secure RNG, but provide an RNG for utility
+ *              functions.
+ *
+ * \note        Currently the function is dependent of hardware providing an
+ *              rng with MBEDTLS_ENTROPY_HARDWARE_ALT. By default, 0 is
+ *              returned.
+ *
+ * \note        If the given range is [0, 0), 0 is returned.
+ *
+ * \param num   Max-value for the generated random number, exclusive.
+ *              The generated number will be on range [0, num).
+ *
+ * \return      The generated random number.
+ */
+uint32_t mbedtls_platform_random_in_range( size_t num );
+
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
  * \brief      Platform-specific implementation of gmtime_r()

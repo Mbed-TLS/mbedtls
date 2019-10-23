@@ -60,6 +60,18 @@ int main( void )
 }
 #else
 
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+int mbedtls_hardware_poll( void *data, unsigned char *output,
+                           size_t len, size_t *olen )
+{
+    size_t i;
+    (void) data;
+    for( i = 0; i < len; ++i )
+        output[i] = rand();
+    *olen = len;
+    return( 0 );
+}
+#endif
 
 int main( int argc, char *argv[] )
 {

@@ -38,6 +38,10 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/threading.h"
 
+#if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+#include "mbedtls/entropy_poll.h"
+#endif
+
 #include <stddef.h>
 #include <string.h>
 
@@ -78,6 +82,87 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
         memset_func( buf, 0, len );
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
+
+void *mbedtls_platform_memset( void *ptr, int value, size_t num )
+{
+    /* Randomize start offset. */
+    size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
+    /* Randomize data */
+    uint32_t data = mbedtls_platform_random_in_range( 256 );
+
+    /* Perform a pair of memset operations from random locations with
+     * random data */
+    memset( (void *) ( (unsigned char *) ptr + start_offset ), data,
+            ( num - start_offset ) );
+    memset( (void *) ptr, data, start_offset );
+
+    /* Perform the original memset */
+    return( memset( ptr, value, num ) );
+}
+
+void *mbedtls_platform_memcpy( void *dst, const void *src, size_t num )
+{
+    /* Randomize start offset. */
+    size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
+    /* Randomize initial data to prevent leakage while copying */
+    uint32_t data = mbedtls_platform_random_in_range( 256 );
+
+    memset( (void *) dst, data, num );
+    memcpy( (void *) ( (unsigned char *) dst + start_offset ),
+            (void *) ( (unsigned char *) src + start_offset ),
+            ( num - start_offset ) );
+    return( memcpy( (void *) dst, (void *) src, start_offset ) );
+}
+
+int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
+{
+    volatile const unsigned char *A = (volatile const unsigned char *) buf1;
+    volatile const unsigned char *B = (volatile const unsigned char *) buf2;
+    volatile unsigned char diff = 0;
+
+    size_t i = num;
+
+    size_t start_offset = (size_t) mbedtls_platform_random_in_range( num );
+
+    for( i = start_offset; i < num; i++ )
+    {
+        unsigned char x = A[i], y = B[i];
+        diff |= x ^ y;
+    }
+
+    for( i = 0; i < start_offset; i++ )
+    {
+        unsigned char x = A[i], y = B[i];
+        diff |= x ^ y;
+    }
+
+    return( diff );
+}
+
+uint32_t mbedtls_platform_random_in_range( size_t num )
+{
+#if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+    (void) num;
+    return 0;
+#else
+    uint32_t result = 0;
+    size_t olen = 0;
+
+    mbedtls_hardware_poll( NULL, (unsigned char *) &result, sizeof( result ),
+                           &olen );
+
+    if( num == 0 )
+    {
+        result = 0;
+    }
+    else
+    {
+        result %= num;
+    }
+
+    return( result );
+#endif
+}
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>

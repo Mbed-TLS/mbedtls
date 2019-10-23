@@ -3,14 +3,6 @@
 #include "mbedtls/ctr_drbg.h"
 #include "string.h"
 
-/* mbedtls_ctr_drbg_seed() grabs a nonce by default if the entropy
- * length is smaller than 3/2 times the maximum security strength. */
-#if MBEDTLS_CTR_DRBG_ENTROPY_LEN >= MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2
-#undef DEFAULT_ENTROPY_NONCE
-#else
-#define DEFAULT_ENTROPY_NONCE
-#endif
-
 /* Modes for ctr_drbg_validate */
 enum reseed_mode
 {
@@ -196,7 +188,37 @@ void ctr_drbg_validate_reseed_first( data_t * add_init, data_t * entropy,
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void ctr_drbg_entropy_strength( int expected_bit_strength )
+{
+    unsigned char entropy[/*initial entropy*/ MBEDTLS_CTR_DRBG_ENTROPY_LEN +
+                          /*nonce*/     MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN +
+                          /*reseed*/          MBEDTLS_CTR_DRBG_ENTROPY_LEN];
+    mbedtls_ctr_drbg_context ctx;
+    size_t last_idx;
+    size_t byte_strength = expected_bit_strength / 8;
 
+    mbedtls_ctr_drbg_init( &ctx );
+    test_offset_idx = 0;
+    test_max_idx = sizeof( entropy );
+    memset( entropy, 0, sizeof( entropy ) );
+
+    /* The initial seeding must grab at least byte_strength bytes of entropy
+     * for the entropy input and byte_strength/2 bytes for a nonce. */
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx,
+                                        mbedtls_test_entropy_func, entropy,
+                                        NULL, 0 ) == 0 );
+    TEST_ASSERT( test_offset_idx >= ( byte_strength * 3 + 1 ) / 2 );
+    last_idx = test_offset_idx;
+
+    /* A reseed must grab at least byte_strength bytes of entropy. */
+    TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, NULL, 0 ) == 0 );
+    TEST_ASSERT( test_offset_idx - last_idx >= byte_strength );
+
+exit:
+    mbedtls_ctr_drbg_free( &ctx );
+}
+/* END_CASE */
 
 /* BEGIN_CASE */
 void ctr_drbg_entropy_usage( int entropy_nonce_len )
@@ -224,11 +246,7 @@ void ctr_drbg_entropy_usage( int entropy_nonce_len )
     if( entropy_nonce_len >= 0 )
         expected_idx += entropy_nonce_len;
     else
-    {
-#if defined(DEFAULT_ENTROPY_NONCE)
-        expected_idx += ( MBEDTLS_CTR_DRBG_ENTROPY_LEN + 1 ) / 2;
-#endif
-    }
+        expected_idx += MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN;
     TEST_EQUAL( test_offset_idx, expected_idx );
 
     /* By default, PR is off and reseed_interval is large,

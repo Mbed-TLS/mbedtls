@@ -147,6 +147,24 @@
 extern "C" {
 #endif
 
+#if MBEDTLS_CTR_DRBG_ENTROPY_LEN >= MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2
+/** The default length of the nonce read from the entropy source.
+ *
+ * This is \c 0 because a single read from the entropy source is sufficient
+ * to include a nonce.
+ * See the documentation of mbedtls_ctr_drbg_seed() for more information.
+ */
+#define MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN 0
+#else
+/** The default length of the nonce read from the entropy source.
+ *
+ * This is half of the default entropy length because a single read from
+ * the entropy source does not provide enough material to form a nonce.
+ * See the documentation of mbedtls_ctr_drbg_seed() for more information.
+ */
+#define MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN ( MBEDTLS_CTR_DRBG_ENTROPY_LEN + 1 ) / 2
+#endif
+
 /**
  * \brief          The CTR_DRBG context structure.
  */
@@ -216,20 +234,9 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *   by the key size and entropy length according to NIST SP 800-90A §10.2.1;
  * - Half the entropy length otherwise.
  * You can override it by calling mbedtls_ctr_drbg_set_nonce_len().
- */
-#if MBEDTLS_CTR_DRBG_ENTROPY_LEN >= MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2
-/** With the default entropy length, the entropy nonce length is \c 0.
- */
-#elif MBEDTLS_CTR_DRBG_ENTROPY_LEN & 1
-/** With the default entropy length, the entropy nonce length is
- * (#MBEDTLS_CTR_DRBG_ENTROPY_LEN + 1) / 2.
- */
-#else
-/** With the default entropy length, the entropy nonce length is
- * #MBEDTLS_CTR_DRBG_ENTROPY_LEN / 2.
- */
-#endif
-/**
+ * With the default entropy length, the entropy nonce length is
+ * #MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN.
+ *
  * You can provide a nonce and personalization string in addition to the
  * entropy source, to make this instantiation as unique as possible.
  * See SP 800-90A §8.6.7 for more details about nonces.
@@ -240,7 +247,7 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  * - A string obtained by calling \p f_entropy function for the entropy
  *   length.
  */
-#if MBEDTLS_CTR_DRBG_ENTROPY_LEN >= MBEDTLS_CTR_DRBG_KEYSIZE * 3 / 2
+#if MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN == 0
 /**
  * - If mbedtls_ctr_drbg_set_nonce_len() has been called, a string
  *   obtained by calling \p f_entropy function for the specified length.

@@ -34,14 +34,24 @@ fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:0:0:0:0:PSA_ERROR_INSUFFICIENT_EN
 Fake entropy: less than the block size
 fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:-1:-1:-1:PSA_ERROR_INSUFFICIENT_ENTROPY
 
+Fake entropy: not enough for a nonce
+depends_on:ENTROPY_NONCE_LEN != 0
+fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:ENTROPY_NONCE_LEN - 1:-1:-1:-1:PSA_ERROR_INSUFFICIENT_ENTROPY
+
 Fake entropy: one block eventually
+depends_on:ENTROPY_NONCE_LEN == 0
 fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:0:0:0:MBEDTLS_ENTROPY_BLOCK_SIZE:PSA_SUCCESS
 
 Fake entropy: one block in two steps
+depends_on:ENTROPY_NONCE_LEN == 0
 fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:1:-1:-1:PSA_SUCCESS
 
 Fake entropy: more than one block in two steps
+depends_on:ENTROPY_NONCE_LEN == 0
 fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:-1:-1:PSA_SUCCESS
+
+Fake entropy: two blocks eventually
+fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:0:MBEDTLS_ENTROPY_BLOCK_SIZE:0:MBEDTLS_ENTROPY_BLOCK_SIZE:PSA_SUCCESS
 
 NV seed only: less than minimum
 entropy_from_nv_seed:MBEDTLS_ENTROPY_MIN_PLATFORM - 1:PSA_ERROR_INSUFFICIENT_ENTROPY

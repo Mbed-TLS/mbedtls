@@ -12,7 +12,11 @@
 /* We need to include x509.c because we are testing x509 internal
  * functions from x509_internal.h which are static. With this include
  * we get the tested functions defined. */
+#if defined(TEST_ENV_MBED_OS)
+#include "../src/x509.c"
+#else
 #include "../library/x509.c"
+#endif
 
 #if MBEDTLS_X509_MAX_INTERMEDIATE_CA > 19
 #error "The value of MBEDTLS_X509_MAX_INTERMEDIATE_C is larger \

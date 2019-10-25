@@ -2375,6 +2375,17 @@ run_test    "Extended Master Secret: client enabled, server SSLv3" \
             -C "session hash for extended master secret" \
             -S "session hash for extended master secret"
 
+run_test    "Extended Master Secret: both enabled, both enforcing, DTLS" \
+            "$P_SRV dtls=1 debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
+            "$P_CLI dtls=1 debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
+            0 \
+            -c "client hello, adding extended_master_secret extension" \
+            -s "found extended master secret extension" \
+            -s "server hello, adding extended master secret extension" \
+            -c "found extended_master_secret extension" \
+            -c "session hash for extended master secret" \
+            -s "session hash for extended master secret"
+
 # Tests for FALLBACK_SCSV
 
 run_test    "Fallback SCSV: default" \

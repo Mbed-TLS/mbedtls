@@ -1522,9 +1522,23 @@ int main( int argc, char *argv[] )
             goto usage;
     }
 
-    main_buf_len = MAX_REQUEST_SIZE  + 1;
-    buf = mbedtls_calloc( 1, MAX_REQUEST_SIZE  + 1 );
-    if( buf == NULL ) {
+    /* try to use as small buf from the heap as possible */
+    if( opt.request_size <= 0 )
+    {
+        main_buf_len = MBEDTLS_SSL_MAX_CONTENT_LEN + 1;
+    }
+    else if( opt.request_size < (int)sizeof(GET_REQUEST) )
+    {
+        main_buf_len = sizeof(GET_REQUEST) + 1;
+    }
+    else
+    {
+        main_buf_len = opt.request_size + 1;
+    }
+
+    buf = mbedtls_calloc( 1, main_buf_len );
+    if( buf == NULL )
+    {
         mbedtls_printf( "buf allocation failed!\n" );
         goto exit;
     }

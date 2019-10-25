@@ -2318,6 +2318,32 @@ int main( int argc, char *argv[] )
     hmac_drbg   = mbedtls_calloc( 1, sizeof( *hmac_drbg ) );
 #endif
 
+    if( ssl         == NULL || conf     == NULL ||
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        cacert      == NULL || srvcert  == NULL ||
+        pkey        == NULL || srvcert2 == NULL ||
+        pkey2       == NULL ||
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+        ticket_ctx  == NULL ||
+#endif
+#if defined(MBEDTLS_SSL_CACHE_C)
+        cache       == NULL ||
+#endif
+#if defined(MBEDTLS_TIMING_C)
+        timer       == NULL ||
+#endif
+#if defined(MBEDTLS_CTR_DRBG_C)
+        ctr_drbg    == NULL ||
+#else
+        hmac_drbg   == NULL ||
+#endif
+        entropy     == NULL)
+    {
+        mbedtls_printf( "Initial allocations failed!\n" );
+        goto exit;
+    }
+
     /*
      * Make sure memory references are valid in case we exit early.
      */
@@ -2356,33 +2382,6 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_COOKIE_C)
     mbedtls_ssl_cookie_init( &cookie_ctx );
 #endif
-
-    if( ssl         == NULL || conf     == NULL ||
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-        cacert      == NULL || srvcert  == NULL ||
-        pkey        == NULL || srvcert2 == NULL ||
-        pkey2       == NULL ||
-#endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        ticket_ctx  == NULL ||
-#endif
-#if defined(MBEDTLS_SSL_CACHE_C)
-        cache       == NULL ||
-#endif
-#if defined(MBEDTLS_TIMING_C)
-        timer       == NULL ||
-#endif
-#if defined(MBEDTLS_CTR_DRBG_C)
-        ctr_drbg    == NULL ||
-#else
-        hmac_drbg   == NULL ||
-#endif
-        entropy     == NULL)
-    {
-        mbedtls_printf( "Initial allocations failed!\n" );
-        goto exit;
-    }
-
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( unhexify( cid, opt.cid_val, &cid_len ) != 0 )

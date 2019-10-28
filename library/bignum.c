@@ -961,6 +961,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
         unsigned *ret )
 {
     size_t i;
+    /* The value of any of these variables is either 0 or 1 at all times. */
     unsigned cond, done, sign_X, sign_Y;
 
     if( X->n != Y->n )
@@ -975,14 +976,14 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
 
     /*
      * If the signs are different, then the positive operand is the bigger.
-     * That is if X is negative (sign bit 1), then X < Y is true and it is false
-     * if X is positive (sign bit 0).
+     * That is if X is negative (sign_X == 1), then X < Y is true and it is
+     * false if X is positive (sign_X == 0).
      */
     cond = ( sign_X ^ sign_Y );
     *ret = cond & sign_X;
 
     /*
-     * This is a constant time function, we might have the result, but we still
+     * This is a constant-time function. We might have the result, but we still
      * need to go through the loop. Record if we have the result already.
      */
     done = cond;

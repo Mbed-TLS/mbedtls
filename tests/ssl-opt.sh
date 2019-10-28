@@ -5657,6 +5657,13 @@ run_test    "Small client packet DTLS 1.2, without EtM, truncated MAC" \
             0 \
             -s "Read from client: 1 bytes read"
 
+run_test    "Small client packet DTLS, ECDHE-ECDSA" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1 request_size=1 \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
 # Tests for small server packets
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3

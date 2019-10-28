@@ -4835,6 +4835,12 @@ run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA" \
             0 \
             -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
 
+run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA p256" \
+            "$P_SRV dtls=1 key_file=data_files/server11.key.der \
+             crt_file=data_files/server11.crt.der" \
+            "$P_CLI dtls=1 ca_file=data_files/test-ca3.crt.der" \
+            0 \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
 
 run_test    "keyUsage srv: ECDSA, keyAgreement -> ECDH-" \
             "$P_SRV key_file=data_files/server5.key \

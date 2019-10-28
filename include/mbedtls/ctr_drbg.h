@@ -224,6 +224,13 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
 #endif
 /**
  * \param ctx           The CTR_DRBG context to seed.
+ *                      It must have been initialized with
+ *                      mbedtls_ctr_drbg_init().
+ *                      After a successful call to mbedtls_ctr_drbg_seed(),
+ *                      you may not call mbedtls_ctr_drbg_seed() again on
+ *                      the same context unless you call
+ *                      mbedtls_ctr_drbg_free() and mbedtls_ctr_drbg_init()
+ *                      again first.
  * \param f_entropy     The entropy callback, taking as arguments the
  *                      \p p_entropy context, the buffer to fill, and the
  *                      length of the buffer.

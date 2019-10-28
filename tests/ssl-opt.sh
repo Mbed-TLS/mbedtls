@@ -7035,7 +7035,6 @@ run_test    "DTLS cookie: disabled" \
             -S "hello verification requested" \
             -S "SSL - The requested feature is not available"
 
-requires_config_enabled MBEDTLS_ERROR_C
 run_test    "DTLS cookie: default (failing)" \
             "$P_SRV dtls=1 debug_level=2 cookies=-1" \
             "$P_CLI dtls=1 debug_level=2 hs_timeout=100-400" \
@@ -7044,8 +7043,7 @@ run_test    "DTLS cookie: default (failing)" \
             -S "cookie verification passed" \
             -S "cookie verification skipped" \
             -C "received hello verify request" \
-            -S "hello verification requested" \
-            -s "SSL - The requested feature is not available"
+            -S "hello verification requested"
 
 requires_ipv6
 run_test    "DTLS cookie: enabled, IPv6" \

@@ -179,7 +179,7 @@ extern "C" {
  */
 typedef struct
 {
-    int s;              /*!<  integer sign      */
+    int s;              /*!<  Sign: -1 if the mpi is negative, 1 otherwise */
     size_t n;           /*!<  total # of limbs  */
     mbedtls_mpi_uint *p;          /*!<  pointer to limbs  */
 }

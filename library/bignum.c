@@ -1155,7 +1155,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
          */
         cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] ) & X_is_negative;
         *ret |= cond & ( 1 - done );
-        done |= cond & ( 1 - done );
+        done |= cond;
 
         /*
          * If X->p[i - 1] < Y->p[i - 1] and both X and Y are positive, then
@@ -1167,7 +1167,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
         cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] )
                & ( 1 - X_is_negative );
         *ret |= cond & ( 1 - done );
-        done |= cond & ( 1 - done );
+        done |= cond;
     }
 
     return( 0 );

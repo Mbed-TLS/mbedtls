@@ -6987,6 +6987,30 @@ run_test    "Force an ECC ciphersuite in the server side" \
             -c "found supported_point_formats extension" \
             -s "server hello, supported_point_formats extension"
 
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_CCM_C
+requires_config_enabled MBEDTLS_SHA256_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+run_test    "Force an ECC ciphersuite with CCM in the client side" \
+            "$P_SRV dtls=1 debug_level=3" \
+            "$P_CLI dtls=1 debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -c "client hello, adding supported_elliptic_curves extension" \
+            -c "client hello, adding supported_point_formats extension" \
+            -s "found supported elliptic curves extension" \
+            -s "found supported point formats extension"
+
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_CCM_C
+requires_config_enabled MBEDTLS_SHA256_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+run_test    "Force an ECC ciphersuite with CCM in the server side" \
+            "$P_SRV dtls=1 debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            "$P_CLI dtls=1 debug_level=3" \
+            0 \
+            -c "found supported_point_formats extension" \
+            -s "server hello, supported_point_formats extension"
+
 # Tests for DTLS HelloVerifyRequest
 
 run_test    "DTLS cookie: enabled" \

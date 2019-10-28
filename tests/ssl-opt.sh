@@ -656,7 +656,6 @@ check_cmdline_force_version_compat() {
             SKIP_NEXT="YES"
         elif ( [ "$__ARG" = "tls1_2" ] || [ "$__ARG" = "dtls1_2" ] ) && \
                   ( [ "$__VAL_MIN" != "3" ] || [ "$__VAL_MAX" != "3" ] ); then
-            echo "FORCE SKIP"
             SKIP_NEXT="YES"
         fi
 

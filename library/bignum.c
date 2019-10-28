@@ -1191,7 +1191,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
 {
     size_t i;
     /* The value of any of these variables is either 0 or 1 at all times. */
-    unsigned cond, done, sign_X, sign_Y;
+    unsigned cond, done, X_is_negative, Y_is_negative;
 
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
@@ -1204,16 +1204,16 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
      * Set sign_N to 1 if N >= 0, 0 if N < 0.
      * We know that N->s == 1 if N >= 0 and N->s == -1 if N < 0.
      */
-    sign_X = ( X->s & 2 ) >> 1;
-    sign_Y = ( Y->s & 2 ) >> 1;
+    X_is_negative = ( X->s & 2 ) >> 1;
+    Y_is_negative = ( Y->s & 2 ) >> 1;
 
     /*
      * If the signs are different, then the positive operand is the bigger.
-     * That is if X is negative (sign_X == 1), then X < Y is true and it is
-     * false if X is positive (sign_X == 0).
+     * That is if X is negative (X_is_negative == 1), then X < Y is true and it
+     * is false if X is positive (X_is_negative == 0).
      */
-    cond = ( sign_X ^ sign_Y );
-    *ret = cond & sign_X;
+    cond = ( X_is_negative ^ Y_is_negative );
+    *ret = cond & X_is_negative;
 
     /*
      * This is a constant-time function. We might have the result, but we still
@@ -1230,7 +1230,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] ) & sign_X;
+        cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] ) & X_is_negative;
         *ret |= cond & ( 1 - done );
         done |= cond & ( 1 - done );
 
@@ -1241,7 +1241,8 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] ) & ( 1 - sign_X );
+        cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] )
+               & ( 1 - X_is_negative );
         *ret |= cond & ( 1 - done );
         done |= cond & ( 1 - done );
     }

@@ -43,6 +43,9 @@
 /* Use Mbed TLS' timer implementation for Linux. */
 #define MBEDTLS_TIMING_C
 
+/* Needed for certificates in ssl_opt.sh */
+#define MBEDTLS_FS_IO
+
 #undef MBEDTLS_NO_PLATFORM_ENTROPY
 
 #undef  MBEDTLS_ENTROPY_MAX_SOURCES

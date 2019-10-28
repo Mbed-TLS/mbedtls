@@ -967,12 +967,11 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
         return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
     /*
-     * Get sign bits of the signs.
+     * Set sign_N to 1 if N >= 0, 0 if N < 0.
+     * We know that N->s == 1 if N >= 0 and N->s == -1 if N < 0.
      */
-    sign_X = X->s;
-    sign_X = sign_X >> ( sizeof( unsigned ) * 8 - 1 );
-    sign_Y = Y->s;
-    sign_Y = sign_Y >> ( sizeof( unsigned ) * 8 - 1 );
+    sign_X = ( X->s & 2 ) >> 1;
+    sign_Y = ( Y->s & 2 ) >> 1;
 
     /*
      * If the signs are different, then the positive operand is the bigger.

@@ -222,6 +222,7 @@ static const uint32_t FT3[256] = { FT };
 
 #undef FT
 
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
 /*
  * Reverse S-box
  */
@@ -260,6 +261,7 @@ static const unsigned char RSb[256] =
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26,
     0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
+#endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
 
 /*
  * Reverse tables
@@ -331,6 +333,7 @@ static const unsigned char RSb[256] =
     V(71,01,A8,39), V(DE,B3,0C,08), V(9C,E4,B4,D8), V(90,C1,56,64), \
     V(61,84,CB,7B), V(70,B6,32,D5), V(74,5C,6C,48), V(42,57,B8,D0)
 
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
 #define V(a,b,c,d) 0x##a##b##c##d
 static const uint32_t RT0[256] = { RT };
 #undef V
@@ -350,6 +353,7 @@ static const uint32_t RT3[256] = { RT };
 #undef V
 
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
 
 #undef RT
 
@@ -379,6 +383,7 @@ static uint32_t FT3[256];
 /*
  * Reverse S-box & tables
  */
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
 static unsigned char RSb[256];
 static uint32_t RT0[256];
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
@@ -386,6 +391,7 @@ static uint32_t RT1[256];
 static uint32_t RT2[256];
 static uint32_t RT3[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
 
 /*
  * Round constants
@@ -430,7 +436,9 @@ static void aes_gen_tables( void )
      * generate the forward and reverse S-boxes
      */
     FSb[0x00] = 0x63;
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
     RSb[0x63] = 0x00;
+#endif
 
     for( i = 1; i < 256; i++ )
     {
@@ -443,7 +451,9 @@ static void aes_gen_tables( void )
         x ^= y ^ 0x63;
 
         FSb[i] = (unsigned char) x;
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
         RSb[x] = (unsigned char) i;
+#endif
     }
 
     /*
@@ -466,6 +476,7 @@ static void aes_gen_tables( void )
         FT3[i] = ROTL8( FT2[i] );
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
 
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
         x = RSb[i];
 
         RT0[i] = ( (uint32_t) MUL( 0x0E, x )       ) ^
@@ -478,6 +489,7 @@ static void aes_gen_tables( void )
         RT2[i] = ROTL8( RT1[i] );
         RT3[i] = ROTL8( RT2[i] );
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
+#endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
     }
 }
 
@@ -675,6 +687,13 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits )
 {
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+    (void) ctx;
+    (void) key;
+    (void) keybits;
+
+    return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH;
+#else /* */
     int i, j, ret;
     mbedtls_aes_context cty;
     uint32_t *RK;
@@ -737,6 +756,7 @@ exit:
     mbedtls_aes_free( &cty );
 
     return( ret );
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
@@ -937,7 +957,9 @@ void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
 /*
  * AES-ECB block decryption
  */
+
 #if !defined(MBEDTLS_AES_DECRYPT_ALT)
+#if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
 int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
                                   unsigned char output[16] )
@@ -991,6 +1013,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
+#endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
 #endif /* !MBEDTLS_AES_DECRYPT_ALT */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -998,7 +1021,13 @@ void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
                           const unsigned char input[16],
                           unsigned char output[16] )
 {
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+    (void) ctx;
+    (void) input;
+    (void) output;
+#else /* MBEDTLS_AES_ONLY_ENCRYPT */
     mbedtls_internal_aes_decrypt( ctx, input, output );
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 }
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
@@ -1015,6 +1044,7 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
     AES_VALIDATE_RET( output != NULL );
     AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
                       mode == MBEDTLS_AES_DECRYPT );
+    (void) mode;
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
@@ -1032,11 +1062,15 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
         //
     }
 #endif
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+    return( mbedtls_internal_aes_encrypt( ctx, input, output ) );
+#else /* MBEDTLS_AES_ONLY_ENCRYPT */
 
     if( mode == MBEDTLS_AES_ENCRYPT )
         return( mbedtls_internal_aes_encrypt( ctx, input, output ) );
     else
         return( mbedtls_internal_aes_decrypt( ctx, input, output ) );
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
@@ -1834,7 +1868,15 @@ int mbedtls_aes_self_test( int verbose )
             mbedtls_printf( "skipped\n" );
             continue;
         }
-#endif
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
         mbedtls_platform_memset( buf, 0, 16 );
 
@@ -1905,6 +1947,14 @@ int mbedtls_aes_self_test( int verbose )
             continue;
         }
 #endif
+
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
         mbedtls_platform_memset( iv , 0, 16 );
         mbedtls_platform_memset( prv, 0, 16 );
@@ -1989,6 +2039,14 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif
 
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
+
         memcpy( iv,  aes_test_cfb128_iv, 16 );
         memcpy( key, aes_test_cfb128_key[u], keybits / 8 );
 
@@ -2059,6 +2117,15 @@ int mbedtls_aes_self_test( int verbose )
             continue;
         }
 #endif
+
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
+
         memcpy( iv,  aes_test_ofb_iv, 16 );
         memcpy( key, aes_test_ofb_key[u], keybits / 8 );
 
@@ -2129,6 +2196,14 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif
 
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
+
         memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
         memcpy( key, aes_test_ctr_key[u], 16 );
 
@@ -2188,6 +2263,14 @@ int mbedtls_aes_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  AES-XTS-128 (%s): ",
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
+
+#if defined(MBEDTLS_AES_ONLY_ENCRYPT)
+        if( mode == MBEDTLS_AES_DECRYPT )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
         mbedtls_platform_memset( key, 0, sizeof( key ) );
         memcpy( key, aes_test_xts_key[u], 32 );

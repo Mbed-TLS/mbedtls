@@ -1275,6 +1275,15 @@ component_test_aes_only_128_bit_keys () {
     make test
 }
 
+component_test_aes_only_encrypt () {
+    msg "build: default config with MBEDTLS_AES_ONLY_ENCRYPT enabled"
+    scripts/config.pl set MBEDTLS_AES_ONLY_ENCRYPT
+    make CC=gcc CFLAGS='-Werror -O1'
+
+    msg "test: AES_ONLY_ENCRYPT"
+    make test
+}
+
 component_test_aes_fewer_tables_and_rom_tables () {
     msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
     scripts/config.pl set MBEDTLS_AES_FEWER_TABLES

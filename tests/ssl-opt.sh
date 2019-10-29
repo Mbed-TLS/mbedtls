@@ -1343,6 +1343,7 @@ run_test    "Truncated HMAC: client enabled, server enabled" \
             -S "dumping 'expected mac' (20 bytes)" \
             -s "dumping 'expected mac' (10 bytes)"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Truncated HMAC, DTLS: client default, server default" \
             "$P_SRV dtls=1 debug_level=4" \
             "$P_CLI dtls=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
@@ -1599,7 +1600,7 @@ run_test    "Context serialization, re-init, both serialize, with CID" \
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli enabled, Srv disabled" \
             "$P_SRV debug_level=3 dtls=1 cid=0" \
-            "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
+            "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=dead" \
             0 \
             -s "Disable use of CID extension." \
             -s "found CID extension"           \
@@ -1614,7 +1615,7 @@ run_test    "Connection ID: Cli enabled, Srv disabled" \
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
 run_test    "Connection ID: Cli disabled, Srv enabled" \
-            "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
+            "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead" \
             "$P_CLI debug_level=3 dtls=1 cid=0" \
             0 \
             -c "Disable use of CID extension." \
@@ -1715,6 +1716,7 @@ run_test    "Connection ID, 3D+MTU: Cli+Srv enabled, Cli+Srv CID nonempty" \
             -s "ignoring unexpected CID"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_disabled MBEDTLS_SSL_CONF_CID_LEN
 run_test    "Connection ID: Cli+Srv enabled, Cli CID empty" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
             "$P_CLI debug_level=3 dtls=1 cid=1" \
@@ -1735,6 +1737,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli CID empty" \
             -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_disabled MBEDTLS_SSL_CONF_CID_LEN
 run_test    "Connection ID: Cli+Srv enabled, Srv CID empty" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
@@ -1755,6 +1758,7 @@ run_test    "Connection ID: Cli+Srv enabled, Srv CID empty" \
             -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_disabled MBEDTLS_SSL_CONF_CID_LEN
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1" \
@@ -1793,6 +1797,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CCM-8
             -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_disabled MBEDTLS_SSL_CONF_CID_LEN
 run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -1813,6 +1818,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CCM-8" \
             -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_disabled MBEDTLS_SSL_CONF_CID_LEN
 run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -1833,6 +1839,7 @@ run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CCM-8" \
             -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_disabled MBEDTLS_SSL_CONF_CID_LEN
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CCM-8" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -1851,6 +1858,7 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CCM-8" \
             -C "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_ciphersuite_enabled TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=dead" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=beef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -1871,6 +1879,8 @@ run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID nonempty, AES-128-CBC" 
             -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_disabled MBEDTLS_SSL_CONF_CID_LEN
+requires_ciphersuite_enabled TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
 run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1 cid_val=deadbeef" \
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -1891,6 +1901,8 @@ run_test    "Connection ID: Cli+Srv enabled, Cli CID empty, AES-128-CBC" \
             -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_disabled MBEDTLS_SSL_CONF_CID_LEN
+requires_ciphersuite_enabled TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
 run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 cid_val=deadbeef force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -1911,6 +1923,8 @@ run_test    "Connection ID: Cli+Srv enabled, Srv CID empty, AES-128-CBC" \
             -c "Use of Connection ID has been negotiated"
 
 requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+requires_config_disabled MBEDTLS_SSL_CONF_CID_LEN
+requires_ciphersuite_enabled TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
 run_test    "Connection ID: Cli+Srv enabled, Cli+Srv CID empty, AES-128-CBC" \
             "$P_SRV debug_level=3 dtls=1 cid=1" \
             "$P_CLI debug_level=3 dtls=1 cid=1 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -6967,6 +6981,7 @@ run_test    "DTLS cookie: disabled" \
             -S "hello verification requested" \
             -S "SSL - The requested feature is not available"
 
+requires_config_enabled MBEDTLS_ERROR_C
 run_test    "DTLS cookie: default (failing)" \
             "$P_SRV dtls=1 debug_level=2 cookies=-1" \
             "$P_CLI dtls=1 debug_level=2 hs_timeout=100-400" \
@@ -7004,6 +7019,7 @@ run_test    "DTLS cookie: enabled, nbio" \
 # Tests for client reconnecting from the same port with DTLS
 
 not_with_valgrind # spurious resend
+requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
 run_test    "DTLS client reconnect from same port: reference" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000" \
@@ -7013,6 +7029,7 @@ run_test    "DTLS client reconnect from same port: reference" \
             -S "Client initiated reconnection from same port"
 
 not_with_valgrind # spurious resend
+requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
 run_test    "DTLS client reconnect from same port: reconnect" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
@@ -7022,6 +7039,7 @@ run_test    "DTLS client reconnect from same port: reconnect" \
             -s "Client initiated reconnection from same port"
 
 not_with_valgrind # server/client too slow to respond in time (next test has higher timeouts)
+requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
 run_test    "DTLS client reconnect from same port: reconnect, nbio, no valgrind" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000 nbio=2" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
@@ -7030,6 +7048,7 @@ run_test    "DTLS client reconnect from same port: reconnect, nbio, no valgrind"
             -s "Client initiated reconnection from same port"
 
 only_with_valgrind # Only with valgrind, do previous test but with higher read_timeout and hs_timeout
+requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
 run_test    "DTLS client reconnect from same port: reconnect, nbio, valgrind" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=2000 nbio=2 hs_timeout=1500-6000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=1500-3000 reconnect_hard=1" \
@@ -7037,6 +7056,7 @@ run_test    "DTLS client reconnect from same port: reconnect, nbio, valgrind" \
             -S "The operation timed out" \
             -s "Client initiated reconnection from same port"
 
+requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
 run_test    "DTLS client reconnect from same port: no cookies" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000 cookies=0" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-8000 reconnect_hard=1" \
@@ -7070,6 +7090,7 @@ run_test    "DTLS client auth: none, client has no cert" \
             -c "skip write certificate$" \
             -s "! Certificate verification was skipped"
 
+requires_ciphersuite_enabled TLS-PSK-WITH-AES-128-GCM-SHA256
 run_test    "DTLS wrong PSK: badmac alert" \
             "$P_SRV dtls=1 psk=abc123 force_ciphersuite=TLS-PSK-WITH-AES-128-GCM-SHA256" \
             "$P_CLI dtls=1 psk=abc124" \
@@ -8202,6 +8223,7 @@ run_test    "DTLS proxy: multiple records in same datagram, duplicate every pack
             -c "next record in same datagram" \
             -s "next record in same datagram"
 
+requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
 run_test    "DTLS proxy: inject invalid AD record, default badmac_limit" \
             -p "$P_PXY bad_ad=1" \
             "$P_SRV dtls=1 dgram_packing=0 debug_level=1" \
@@ -8214,6 +8236,7 @@ run_test    "DTLS proxy: inject invalid AD record, default badmac_limit" \
             -S "too many records with bad MAC" \
             -S "Verification of the message MAC failed"
 
+requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
 run_test    "DTLS proxy: inject invalid AD record, badmac_limit 1" \
             -p "$P_PXY bad_ad=1" \
             "$P_SRV dtls=1 dgram_packing=0 debug_level=1 badmac_limit=1" \
@@ -8226,6 +8249,7 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 1" \
             -s "too many records with bad MAC" \
             -s "Verification of the message MAC failed"
 
+requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
 run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2" \
             -p "$P_PXY bad_ad=1" \
             "$P_SRV dtls=1 dgram_packing=0 debug_level=1 badmac_limit=2" \
@@ -8238,6 +8262,7 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2" \
             -S "too many records with bad MAC" \
             -S "Verification of the message MAC failed"
 
+requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
 run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2, exchanges 2"\
             -p "$P_PXY bad_ad=1" \
             "$P_SRV dtls=1 dgram_packing=0 debug_level=1 badmac_limit=2 exchanges=2" \
@@ -8280,7 +8305,7 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
 
 run_test    "DTLS reordering: Buffer out-of-order handshake message fragment on client" \
             -p "$P_PXY delay_srv=ServerHello" \
-            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
+            "$P_SRV mtu=256 dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
             hs_timeout=2500-60000" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
             hs_timeout=2500-60000" \
@@ -8374,6 +8399,8 @@ run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
             -S "Injecting buffered CCS message" \
             -S "Remember CCS message"
 
+# This needs session tickets; otherwise CCS is the first message in its flight
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
 run_test    "DTLS reordering: Buffer out-of-order CCS message on server"\
             -p "$P_PXY delay_cli=ClientKeyExchange" \
             "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2 \

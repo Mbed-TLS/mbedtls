@@ -1611,7 +1611,7 @@ component_test_baremetal () {
 
     msg "test: baremetal.h + baremetal_test.h"
     if_build_succeeded make test
-    if_build_succeeded tests/ssl-opt.sh --filter "^Default, DTLS$"
+    if_build_succeeded tests/ssl-opt.sh
 }
 
 component_test_hardware_entropy () {

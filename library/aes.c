@@ -565,8 +565,10 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     switch( keybits )
     {
         case 128: ctx->nr = 10; break;
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 192: ctx->nr = 12; break;
         case 256: ctx->nr = 14; break;
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
         default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
 
@@ -615,7 +617,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                 RK[7]  = RK[3] ^ RK[6];
             }
             break;
-
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 12:
 
             for( i = 0; i < 8; i++, RK += 6 )
@@ -659,6 +661,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                 RK[15] = RK[7] ^ RK[14];
             }
             break;
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     }
 
     return( 0 );
@@ -1825,6 +1828,14 @@ int mbedtls_aes_self_test( int verbose )
             mbedtls_printf( "  AES-ECB-%3d (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if( keybits > 128 )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif
+
         mbedtls_platform_memset( buf, 0, 16 );
 
         if( mode == MBEDTLS_AES_DECRYPT )
@@ -1886,6 +1897,14 @@ int mbedtls_aes_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  AES-CBC-%3d (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
+
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if( keybits > 128 )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif
 
         mbedtls_platform_memset( iv , 0, 16 );
         mbedtls_platform_memset( prv, 0, 16 );
@@ -1962,6 +1981,14 @@ int mbedtls_aes_self_test( int verbose )
             mbedtls_printf( "  AES-CFB128-%3d (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if( keybits > 128 )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif
+
         memcpy( iv,  aes_test_cfb128_iv, 16 );
         memcpy( key, aes_test_cfb128_key[u], keybits / 8 );
 
@@ -2025,6 +2052,13 @@ int mbedtls_aes_self_test( int verbose )
             mbedtls_printf( "  AES-OFB-%3d (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if( keybits > 128 )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif
         memcpy( iv,  aes_test_ofb_iv, 16 );
         memcpy( key, aes_test_ofb_key[u], keybits / 8 );
 
@@ -2086,6 +2120,14 @@ int mbedtls_aes_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  AES-CTR-128 (%s): ",
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
+
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        if( keybits > 128 )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+#endif
 
         memcpy( nonce_counter, aes_test_ctr_nonce_counter[u], 16 );
         memcpy( key, aes_test_ctr_key[u], 16 );

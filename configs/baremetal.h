@@ -39,6 +39,7 @@
 #define MBEDTLS_AES_C
 #define MBEDTLS_AES_ROM_TABLES
 #define MBEDTLS_AES_FEWER_TABLES
+#define MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 #define MBEDTLS_CCM_C
 
 /* Asymmetric crypto: Single-curve ECC only. */

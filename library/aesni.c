@@ -327,6 +327,7 @@ static void aesni_setkey_enc_128( unsigned char *rk,
 /*
  * Key expansion, 192-bit case
  */
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static void aesni_setkey_enc_192( unsigned char *rk,
                                   const unsigned char *key )
 {
@@ -380,10 +381,12 @@ static void aesni_setkey_enc_192( unsigned char *rk,
          : "r" (rk), "r" (key)
          : "memory", "cc", "0" );
 }
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
 /*
  * Key expansion, 256-bit case
  */
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
 static void aesni_setkey_enc_256( unsigned char *rk,
                                   const unsigned char *key )
 {
@@ -446,6 +449,7 @@ static void aesni_setkey_enc_256( unsigned char *rk,
          : "r" (rk), "r" (key)
          : "memory", "cc", "0" );
 }
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
 
 /*
  * Key expansion, wrapper
@@ -457,8 +461,10 @@ int mbedtls_aesni_setkey_enc( unsigned char *rk,
     switch( bits )
     {
         case 128: aesni_setkey_enc_128( rk, key ); break;
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         case 192: aesni_setkey_enc_192( rk, key ); break;
         case 256: aesni_setkey_enc_256( rk, key ); break;
+#endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
         default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
 

@@ -797,6 +797,14 @@ int mbedtls_gcm_self_test( int verbose )
                 mbedtls_printf( "  AES-GCM-%3d #%d (%s): ",
                                 key_len, i, "enc" );
 
+#if defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+            if( key_len > 128 )
+            {
+                mbedtls_printf( "skipped\n" );
+                continue;
+            }
+#endif /* MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
+
             ret = mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]],
                                       key_len );
             /*

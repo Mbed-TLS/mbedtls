@@ -284,14 +284,6 @@ typedef struct {
 	uint16_t i;
 } wait_state_t;
 
-#if 0
-static void wait_init(wait_state_t *s)
-{
-	g_rng_function(s->delays, sizeof(s->delays));
-	s->i = 0;
-}
-#endif
-
 /* Computes result = left * right. Result must be 2 * num_words long.
  *
  * As a counter-measure against horizontal attacks, add noise by performing
@@ -494,6 +486,15 @@ void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
 	uECC_vli_mmod(result, product, mod, num_words);
 }
 
+static void uECC_vli_modMult_rnd(uECC_word_t *result, const uECC_word_t *left,
+				 const uECC_word_t *right, wait_state_t *s)
+{
+	uECC_word_t product[2 * NUM_ECC_WORDS];
+	uECC_vli_mult_rnd(product, left, right, s);
+
+	vli_mmod_fast_secp256r1(result, product);
+}
+
 void uECC_vli_modMult_fast(uECC_word_t *result, const uECC_word_t *left,
 			   const uECC_word_t *right, uECC_Curve curve)
 {
@@ -501,6 +502,13 @@ void uECC_vli_modMult_fast(uECC_word_t *result, const uECC_word_t *left,
 	uECC_vli_mult(product, left, right, curve->num_words);
 
 	curve->mmod_fast(result, product);
+}
+
+static void uECC_vli_modSquare_rnd(uECC_word_t *result,
+				   const uECC_word_t *left,
+				   wait_state_t *s)
+{
+	uECC_vli_modMult_rnd(result, left, left, s);
 }
 
 static void uECC_vli_modSquare_fast(uECC_word_t *result,
@@ -782,68 +790,78 @@ static void XYcZ_initial_double(uECC_word_t * X1, uECC_word_t * Y1,
 	apply_z(X2, Y2, z, curve);
 }
 
-void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1,
-	      uECC_word_t * X2, uECC_word_t * Y2,
-	      uECC_Curve curve)
+static void XYcZ_add_rnd(uECC_word_t * X1, uECC_word_t * Y1,
+			 uECC_word_t * X2, uECC_word_t * Y2,
+			 wait_state_t *s)
 {
 	/* t1 = X1, t2 = Y1, t3 = X2, t4 = Y2 */
 	uECC_word_t t5[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
+	const uECC_Curve curve = &curve_secp256r1;
+	const wordcount_t num_words = 8;
 
 	uECC_vli_modSub(t5, X2, X1, curve->p, num_words); /* t5 = x2 - x1 */
-	uECC_vli_modSquare_fast(t5, t5, curve); /* t5 = (x2 - x1)^2 = A */
-	uECC_vli_modMult_fast(X1, X1, t5, curve); /* t1 = x1*A = B */
-	uECC_vli_modMult_fast(X2, X2, t5, curve); /* t3 = x2*A = C */
+	uECC_vli_modSquare_rnd(t5, t5, s); /* t5 = (x2 - x1)^2 = A */
+	uECC_vli_modMult_rnd(X1, X1, t5, s); /* t1 = x1*A = B */
+	uECC_vli_modMult_rnd(X2, X2, t5, s); /* t3 = x2*A = C */
 	uECC_vli_modSub(Y2, Y2, Y1, curve->p, num_words); /* t4 = y2 - y1 */
-	uECC_vli_modSquare_fast(t5, Y2, curve); /* t5 = (y2 - y1)^2 = D */
+	uECC_vli_modSquare_rnd(t5, Y2, s); /* t5 = (y2 - y1)^2 = D */
 
 	uECC_vli_modSub(t5, t5, X1, curve->p, num_words); /* t5 = D - B */
 	uECC_vli_modSub(t5, t5, X2, curve->p, num_words); /* t5 = D - B - C = x3 */
 	uECC_vli_modSub(X2, X2, X1, curve->p, num_words); /* t3 = C - B */
-	uECC_vli_modMult_fast(Y1, Y1, X2, curve); /* t2 = y1*(C - B) */
+	uECC_vli_modMult_rnd(Y1, Y1, X2, s); /* t2 = y1*(C - B) */
 	uECC_vli_modSub(X2, X1, t5, curve->p, num_words); /* t3 = B - x3 */
-	uECC_vli_modMult_fast(Y2, Y2, X2, curve); /* t4 = (y2 - y1)*(B - x3) */
+	uECC_vli_modMult_rnd(Y2, Y2, X2, s); /* t4 = (y2 - y1)*(B - x3) */
 	uECC_vli_modSub(Y2, Y2, Y1, curve->p, num_words); /* t4 = y3 */
 
 	uECC_vli_set(X2, t5, num_words);
+}
+
+void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1,
+	      uECC_word_t * X2, uECC_word_t * Y2,
+	      uECC_Curve curve)
+{
+	(void) curve;
+	XYcZ_add_rnd(X1, Y1, X2, Y2, NULL);
 }
 
 /* Input P = (x1, y1, Z), Q = (x2, y2, Z)
    Output P + Q = (x3, y3, Z3), P - Q = (x3', y3', Z3)
    or P => P - Q, Q => P + Q
  */
-static void XYcZ_addC(uECC_word_t * X1, uECC_word_t * Y1,
-		      uECC_word_t * X2, uECC_word_t * Y2,
-		      uECC_Curve curve)
+static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
+			  uECC_word_t * X2, uECC_word_t * Y2,
+			  wait_state_t *s)
 {
 	/* t1 = X1, t2 = Y1, t3 = X2, t4 = Y2 */
 	uECC_word_t t5[NUM_ECC_WORDS];
 	uECC_word_t t6[NUM_ECC_WORDS];
 	uECC_word_t t7[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
+	const uECC_Curve curve = &curve_secp256r1;
+	const wordcount_t num_words = 8;
 
 	uECC_vli_modSub(t5, X2, X1, curve->p, num_words); /* t5 = x2 - x1 */
-	uECC_vli_modSquare_fast(t5, t5, curve); /* t5 = (x2 - x1)^2 = A */
-	uECC_vli_modMult_fast(X1, X1, t5, curve); /* t1 = x1*A = B */
-	uECC_vli_modMult_fast(X2, X2, t5, curve); /* t3 = x2*A = C */
+	uECC_vli_modSquare_rnd(t5, t5, s); /* t5 = (x2 - x1)^2 = A */
+	uECC_vli_modMult_rnd(X1, X1, t5, s); /* t1 = x1*A = B */
+	uECC_vli_modMult_rnd(X2, X2, t5, s); /* t3 = x2*A = C */
 	uECC_vli_modAdd(t5, Y2, Y1, curve->p, num_words); /* t5 = y2 + y1 */
 	uECC_vli_modSub(Y2, Y2, Y1, curve->p, num_words); /* t4 = y2 - y1 */
 
 	uECC_vli_modSub(t6, X2, X1, curve->p, num_words); /* t6 = C - B */
-	uECC_vli_modMult_fast(Y1, Y1, t6, curve); /* t2 = y1 * (C - B) = E */
+	uECC_vli_modMult_rnd(Y1, Y1, t6, s); /* t2 = y1 * (C - B) = E */
 	uECC_vli_modAdd(t6, X1, X2, curve->p, num_words); /* t6 = B + C */
-	uECC_vli_modSquare_fast(X2, Y2, curve); /* t3 = (y2 - y1)^2 = D */
+	uECC_vli_modSquare_rnd(X2, Y2, s); /* t3 = (y2 - y1)^2 = D */
 	uECC_vli_modSub(X2, X2, t6, curve->p, num_words); /* t3 = D - (B + C) = x3 */
 
 	uECC_vli_modSub(t7, X1, X2, curve->p, num_words); /* t7 = B - x3 */
-	uECC_vli_modMult_fast(Y2, Y2, t7, curve); /* t4 = (y2 - y1)*(B - x3) */
+	uECC_vli_modMult_rnd(Y2, Y2, t7, s); /* t4 = (y2 - y1)*(B - x3) */
 	/* t4 = (y2 - y1)*(B - x3) - E = y3: */
 	uECC_vli_modSub(Y2, Y2, Y1, curve->p, num_words);
 
-	uECC_vli_modSquare_fast(t7, t5, curve); /* t7 = (y2 + y1)^2 = F */
+	uECC_vli_modSquare_rnd(t7, t5, s); /* t7 = (y2 + y1)^2 = F */
 	uECC_vli_modSub(t7, t7, t6, curve->p, num_words); /* t7 = F - (B + C) = x3' */
 	uECC_vli_modSub(t6, t7, X1, curve->p, num_words); /* t6 = x3' - B */
-	uECC_vli_modMult_fast(t6, t6, t5, curve); /* t6 = (y2+y1)*(x3' - B) */
+	uECC_vli_modMult_rnd(t6, t6, t5, s); /* t6 = (y2+y1)*(x3' - B) */
 	/* t2 = (y2+y1)*(x3' - B) - E = y3': */
 	uECC_vli_modSub(Y1, t6, Y1, curve->p, num_words);
 
@@ -862,6 +880,13 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	bitcount_t i;
 	uECC_word_t nb;
 	wordcount_t num_words = curve->num_words;
+	wait_state_t wait_state, *ws = NULL;
+
+	if (g_rng_function) {
+		ws = &wait_state;
+		g_rng_function(ws->delays, sizeof(ws->delays));
+		ws->i = 0;
+	}
 
 	uECC_vli_set(Rx[1], point, num_words);
   	uECC_vli_set(Ry[1], point + num_words, num_words);
@@ -870,12 +895,12 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 
 	for (i = num_bits - 2; i > 0; --i) {
 		nb = !uECC_vli_testBit(scalar, i);
-		XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], curve);
-		XYcZ_add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb], curve);
+		XYcZ_addC_rnd(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], ws);
+		XYcZ_add_rnd(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb], ws);
 	}
 
 	nb = !uECC_vli_testBit(scalar, 0);
-	XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], curve);
+	XYcZ_addC_rnd(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], ws);
 
 	/* Find final 1/Z value. */
 	uECC_vli_modSub(z, Rx[1], Rx[0], curve->p, num_words); /* X1 - X0 */
@@ -888,7 +913,7 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	uECC_vli_modMult_fast(z, z, Rx[1 - nb], curve);
 	/* End 1/Z calculation */
 
-	XYcZ_add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb], curve);
+	XYcZ_add_rnd(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb], ws);
 	apply_z(Rx[0], Ry[0], z, curve);
 
 	uECC_vli_set(result, Rx[0], num_words);

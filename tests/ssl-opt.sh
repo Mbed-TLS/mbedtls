@@ -3787,6 +3787,25 @@ run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsuppo
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
+requires_config_enabled MBEDTLS_USE_TINYCRYPT
+run_test    "Authentication: DTLS server ECDH p256v1, client required, server goodcert" \
+            "$P_SRV dtls=1 debug_level=1 key_file=data_files/server11.key.der \
+             crt_file=data_files/server11.crt.der" \
+            "$P_CLI dtls=1 debug_level=3 auth_mode=required" \
+            0 \
+            -C "bad certificate (EC key curve)"\
+            -C "! Certificate verification flags"\
+            -C "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_USE_TINYCRYPT
+run_test    "Authentication: DTLS server ECDH p256v1, client required, server badcert" \
+            "$P_SRV dtls=1 debug_level=1 key_file=data_files/server11.key.der \
+             crt_file=data_files/server11-bad.crt.der" \
+            "$P_CLI dtls=1 debug_level=3 auth_mode=required" \
+            1 \
+            -c "! Certificate verification flags"\
+            -c "! mbedtls_ssl_handshake returned"
+
 run_test    "Authentication: server badcert, client none" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \

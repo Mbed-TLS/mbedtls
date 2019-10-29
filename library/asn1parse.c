@@ -139,17 +139,20 @@ int mbedtls_asn1_get_bool( unsigned char **p,
     return( 0 );
 }
 
-int mbedtls_asn1_get_int( unsigned char **p,
-                  const unsigned char *end,
-                  int *val )
+static int asn1_get_tagged_int( unsigned char **p,
+                                const unsigned char *end,
+                                int tag, int *val )
 {
     int ret;
     size_t len;
 
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len, tag ) ) != 0 )
         return( ret );
 
-    /* len==0 is malformed (0 must be represented as 020100). */
+    /*
+     * len==0 is malformed (0 must be represented as 020100 for INTEGER,
+     * or 0A0100 for ENUMERATED tags
+     */
     if( len == 0 )
         return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
     /* This is a cryptography library. Reject negative integers. */
@@ -178,6 +181,20 @@ int mbedtls_asn1_get_int( unsigned char **p,
     }
 
     return( 0 );
+}
+
+int mbedtls_asn1_get_int( unsigned char **p,
+                          const unsigned char *end,
+                          int *val )
+{
+    return( asn1_get_tagged_int( p, end, MBEDTLS_ASN1_INTEGER, val) );
+}
+
+int mbedtls_asn1_get_enum( unsigned char **p,
+                           const unsigned char *end,
+                           int *val )
+{
+    return( asn1_get_tagged_int( p, end, MBEDTLS_ASN1_ENUMERATED, val) );
 }
 
 #if defined(MBEDTLS_BIGNUM_C)

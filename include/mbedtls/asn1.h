@@ -75,6 +75,7 @@
 #define MBEDTLS_ASN1_OCTET_STRING            0x04
 #define MBEDTLS_ASN1_NULL                    0x05
 #define MBEDTLS_ASN1_OID                     0x06
+#define MBEDTLS_ASN1_ENUMERATED              0x0A
 #define MBEDTLS_ASN1_UTF8_STRING             0x0C
 #define MBEDTLS_ASN1_SEQUENCE                0x10
 #define MBEDTLS_ASN1_SET                     0x11
@@ -254,12 +255,31 @@ int mbedtls_asn1_get_bool( unsigned char **p,
  *              a valid ASN.1 INTEGER.
  * \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the parsed value does
  *              not fit in an \c int.
- * \return      An ASN.1 error code if the input does not start with
- *              a valid ASN.1 INTEGER.
  */
 int mbedtls_asn1_get_int( unsigned char **p,
                           const unsigned char *end,
                           int *val );
+
+/**
+ * \brief       Retrieve an enumerated ASN.1 tag and its value.
+ *              Updates the pointer to immediately behind the full tag.
+ *
+ * \param p     On entry, \c *p points to the start of the ASN.1 element.
+ *              On successful completion, \c *p points to the first byte
+ *              beyond the ASN.1 element.
+ *              On error, the value of \c *p is undefined.
+ * \param end   End of data.
+ * \param val   On success, the parsed value.
+ *
+ * \return      0 if successful.
+ * \return      An ASN.1 error code if the input does not start with
+ *              a valid ASN.1 ENUMERATED.
+ * \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the parsed value does
+ *              not fit in an \c int.
+ */
+int mbedtls_asn1_get_enum( unsigned char **p,
+                           const unsigned char *end,
+                           int *val );
 
 /**
  * \brief       Retrieve a bitstring ASN.1 tag and its value.
@@ -367,8 +387,6 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
  * \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the parsed value does
  *              not fit in an \c int.
  * \return      An MPI error code if the parsed value is too large.
- * \return      An ASN.1 error code if the input does not start with
- *              a valid ASN.1 INTEGER.
  */
 int mbedtls_asn1_get_mpi( unsigned char **p,
                           const unsigned char *end,

@@ -512,7 +512,7 @@ int mbedtls_ccm_self_test( int verbose )
 
             return( 1 );
         }
-        mbedtls_platform_memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
+        memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
 
         ret = mbedtls_ccm_auth_decrypt( &ctx, msg_len[i],
                                         iv, iv_len[i], ad, add_len[i],

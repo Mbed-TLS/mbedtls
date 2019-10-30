@@ -527,7 +527,7 @@ int mbedtls_sha256_self_test( int verbose )
 
         if( j == 2 )
         {
-            mbedtls_platform_memset( buf, 'a', buflen = 1000 );
+            memset( buf, 'a', buflen = 1000 );
 
             for( j = 0; j < 1000; j++ )
             {

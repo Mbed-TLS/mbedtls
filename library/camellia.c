@@ -951,7 +951,7 @@ int mbedtls_camellia_self_test( int verbose )
 
     mbedtls_camellia_context ctx;
 
-    mbedtls_platform_memset( key, 0, 32 );
+    memset( key, 0, 32 );
 
     for( j = 0; j < 6; j++ ) {
         u = j >> 1;

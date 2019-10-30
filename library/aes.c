@@ -1846,7 +1846,7 @@ int mbedtls_aes_self_test( int verbose )
 #endif
     mbedtls_aes_context ctx;
 
-    mbedtls_platform_memset( key, 0, 32 );
+    memset( key, 0, 32 );
     mbedtls_aes_init( &ctx );
 
     /*
@@ -1878,7 +1878,7 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
-        mbedtls_platform_memset( buf, 0, 16 );
+        memset( buf, 0, 16 );
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
@@ -1956,9 +1956,9 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
-        mbedtls_platform_memset( iv , 0, 16 );
-        mbedtls_platform_memset( prv, 0, 16 );
-        mbedtls_platform_memset( buf, 0, 16 );
+        memset( iv , 0, 16 );
+        memset( prv, 0, 16 );
+        memset( buf, 0, 16 );
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
@@ -2272,8 +2272,8 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
-        mbedtls_platform_memset( key, 0, sizeof( key ) );
-        mbedtls_platform_memcpy( key, aes_test_xts_key[u], 32 );
+        memset( key, 0, sizeof( key ) );
+        memcpy( key, aes_test_xts_key[u], 32 );
         data_unit = aes_test_xts_data_unit[u];
 
         len = sizeof( *aes_test_xts_ct32 );

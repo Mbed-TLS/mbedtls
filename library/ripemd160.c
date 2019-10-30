@@ -520,7 +520,7 @@ int mbedtls_ripemd160_self_test( int verbose )
     int i, ret = 0;
     unsigned char output[20];
 
-    mbedtls_platform_memset( output, 0, sizeof output );
+    memset( output, 0, sizeof output );
 
     for( i = 0; i < TESTS; i++ )
     {

@@ -379,9 +379,12 @@ int mbedtls_asn1_get_bitstring_null( unsigned char **p,
  * \return      0 if successful.
  * \return      #MBEDTLS_ERR_ASN1_LENGTH_MISMATCH if the input contains
  *              extra data after a valid SEQUENCE OF \p tag.
+ * \return      #MBEDTLS_ERR_ASN1_UNEXPECTED_TAG if the input starts with
+ *              an ASN.1 SEQUENCE in which an element has a tag that
+ *              is different from \p tag.
  * \return      #MBEDTLS_ERR_ASN1_ALLOC_FAILED if a memory allocation failed.
  * \return      An ASN.1 error code if the input does not start with
- *              a valid ASN.1 BIT STRING.
+ *              a valid ASN.1 SEQUENCE.
  */
 int mbedtls_asn1_get_sequence_of( unsigned char **p,
                                   const unsigned char *end,

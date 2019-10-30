@@ -154,7 +154,7 @@ mbedtls_pk_check_pair:"data_files/ec_256_pub.pem":"data_files/server5.key":MBEDT
 
 Check pair #2 (EC, bad, TinyCrypt)
 depends_on:MBEDTLS_USE_TINYCRYPT
-mbedtls_pk_check_pair:"data_files/ec_256_pub.pem":"data_files/server5.key":MBEDTLS_ERR_PK_BAD_INPUT_DATA
+mbedtls_pk_check_pair:"data_files/ec_256_pub.der":"data_files/server5.key.der":MBEDTLS_ERR_PK_BAD_INPUT_DATA
 
 Check pair #3 (RSA, OK)
 depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15

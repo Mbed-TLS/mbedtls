@@ -3788,7 +3788,7 @@ run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsuppo
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
 requires_config_enabled MBEDTLS_USE_TINYCRYPT
-run_test    "Authentication: DTLS server ECDH p256v1, client required, server goodcert" \
+run_test    "Authentication: DTLS server ECDH p256, client required, server goodcert" \
             "$P_SRV dtls=1 debug_level=1 key_file=data_files/server11.key.der \
              crt_file=data_files/server11.crt.der" \
             "$P_CLI dtls=1 debug_level=3 auth_mode=required" \
@@ -3798,7 +3798,7 @@ run_test    "Authentication: DTLS server ECDH p256v1, client required, server go
             -C "! mbedtls_ssl_handshake returned"
 
 requires_config_enabled MBEDTLS_USE_TINYCRYPT
-run_test    "Authentication: DTLS server ECDH p256v1, client required, server badcert" \
+run_test    "Authentication: DTLS server ECDH p256, client required, server badcert" \
             "$P_SRV dtls=1 debug_level=1 key_file=data_files/server11.key.der \
              crt_file=data_files/server11-bad.crt.der" \
             "$P_CLI dtls=1 debug_level=3 auth_mode=required" \
@@ -7006,10 +7006,7 @@ run_test    "Force an ECC ciphersuite in the server side" \
             -c "found supported_point_formats extension" \
             -s "server hello, supported_point_formats extension"
 
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CCM_C
-requires_config_enabled MBEDTLS_SHA256_C
-requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+requires_ciphersuite_enabled TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8
 run_test    "Force an ECC ciphersuite with CCM in the client side" \
             "$P_SRV dtls=1 debug_level=3" \
             "$P_CLI dtls=1 debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
@@ -7019,10 +7016,7 @@ run_test    "Force an ECC ciphersuite with CCM in the client side" \
             -s "found supported elliptic curves extension" \
             -s "found supported point formats extension"
 
-requires_config_enabled MBEDTLS_AES_C
-requires_config_enabled MBEDTLS_CCM_C
-requires_config_enabled MBEDTLS_SHA256_C
-requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
+requires_ciphersuite_enabled TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8
 run_test    "Force an ECC ciphersuite with CCM in the server side" \
             "$P_SRV dtls=1 debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             "$P_CLI dtls=1 debug_level=3" \

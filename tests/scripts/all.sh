@@ -877,6 +877,7 @@ component_test_se_default () {
 component_test_se_full () {
     msg "build: full config + MBEDTLS_PSA_CRYPTO_SE_C"
     scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.pl set MBEDTLS_PSA_CRYPTO_SE_C
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O2 -fsanitize=address' LDFLAGS='-fsanitize=address'
 

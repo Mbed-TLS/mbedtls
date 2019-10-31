@@ -286,6 +286,90 @@ get_integer:"010101":"":MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
 INTEGER too large for mpi
 get_mpi_too_large:
 
+ENUMERATED 0
+get_enum:"0A0100":"0":0
+
+ENUMERATED 0, extra leading 0
+get_enum:"0A020000":"0":0
+
+ENUMERATED 1
+get_enum:"0A0101":"1":0
+
+ENUMERATED 1, extra leading 0
+get_enum:"0A020001":"1":0
+
+ENUMERATED 0x7f
+get_enum:"0A017f":"7f":0
+
+ENUMERATED 0x80
+get_enum:"0A020080":"80":0
+
+ENUMERATED 0x80, extra leading 0
+get_enum:"0A03000080":"80":0
+
+ENUMERATED 0xff
+get_enum:"0A0200ff":"ff":0
+
+ENUMERATED 0x7fff
+get_enum:"0A027fff":"7fff":0
+
+ENUMERATED 0x12345678
+get_enum:"0A0412345678":"12345678":0
+
+ENUMERATED 0x12345678, extra leading 0
+get_enum:"0A050012345678":"12345678":0
+
+ENUMERATED 0x7fffffff
+get_enum:"0A047fffffff":"7fffffff":0
+
+ENUMERATED 0x7fffffff, extra leading 0
+get_enum:"0A05007fffffff":"7fffffff":0
+
+ENUMERATED 0x80000000
+get_enum:"0A050080000000":"80000000":0
+
+ENUMERATED 0xffffffff
+get_enum:"0A0500ffffffff":"ffffffff":0
+
+ENUMERATED 0x100000000
+get_enum:"0A050100000000":"0100000000":0
+
+ENUMERATED -1
+get_enum:"0A01ff":"-1":0
+
+ENUMERATED -1, extra leading ff
+get_enum:"0A02ffff":"-1":0
+
+ENUMERATED -0x7f
+get_enum:"0A0181":"-7f":0
+
+ENUMERATED -0x80
+get_enum:"0A0180":"-80":0
+
+ENUMERATED -0x81
+get_enum:"0A02ff7f":"-81":0
+
+ENUMERATED -0xff
+get_enum:"0A02ff01":"-ff":0
+
+ENUMERATED -0x100
+get_enum:"0A02ff00":"-100":0
+
+ENUMERATED -0x7fffffff
+get_enum:"0A0480000001":"-7fffffff":0
+
+ENUMERATED -0x80000000
+get_enum:"0A0480000000":"-80000000":0
+
+ENUMERATED -0x80000001
+get_enum:"0A05ff7fffffff":"-80000001":0
+
+ENUMERATED -0xffffffff
+get_enum:"0A05ff00000001":"-ffffffff":0
+
+ENUMERATED -0x100000000
+get_enum:"0A05ff00000000":"-100000000":0
+
 BIT STRING: empty
 get_bitstring:"0300":0:0:MBEDTLS_ERR_ASN1_OUT_OF_DATA:MBEDTLS_ERR_ASN1_INVALID_DATA
 

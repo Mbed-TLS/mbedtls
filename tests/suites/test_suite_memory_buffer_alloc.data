@@ -19,5 +19,5 @@ memory_buffer_alloc_oom_test:
 Memory buffer: heap too small (header verification should fail)
 memory_buffer_heap_too_small:
 
-Memory buffer underalloc
+Memory buffer: attempt to allocate SIZE_MAX
 memory_buffer_underalloc:

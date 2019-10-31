@@ -253,7 +253,11 @@ static void uECC_vli_rshift1(uECC_word_t *vli, wordcount_t num_words)
 	}
 }
 
-/* Compute (r2, r1, r0) = a * b + (r1, r0):
+/* Compute a * b + r, where r is a double-word with high-order word r1 and
+ * low-order word r0, and store the result in the same double-word (r1, r0),
+ * with the carry bit stored in r2.
+ *
+ * (r2, r1, r0) = a * b + (r1, r0):
  * [in] a, b: operands to be multiplied
  * [in] r0, r1: low and high-order words of operand to add
  * [out] r0, r1: low and high-order words of the result

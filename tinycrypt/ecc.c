@@ -274,15 +274,36 @@ static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
 
 /* State for implementing random delays in uECC_vli_mult_rnd().
  *
- * The state is initialised by randomizing delays and setting i = 0.
+ * The state is initialized by randomizing delays and setting i = 0.
  * Each call to uECC_vli_mult_rnd() uses one byte of delays and increments i.
  *
- * A scalar muliplication uses 14 field multiplications per bit of exponent.
+ * Randomized vli multiplication is used only for point operations
+ * (XYcZ_add_rnd() * and XYcZ_addC_rnd()) in scalar multiplication
+ * (ECCPoint_mult()). Those go in pair, and each pair does 14 calls to
+ * uECC_vli_mult_rnd() (6 in XYcZ_add_rnd() and 8 in XYcZ_addC_rnd(),
+ * indirectly through uECC_vli_modMult_rnd() or uECC_vli_modSquare_rnd()).
+ *
+ * Considering this, in order to minimize the number of calls to the RNG
+ * (which impact performance) while keeping the size of the structure low,
+ * make room for 14 randomized vli mults, which corresponds to one step in the
+ * scalar multiplication routine.
  */
 typedef struct {
-	uint8_t delays[14 * 256];
-	uint16_t i;
+	uint8_t i;
+	uint8_t delays[14];
 } wait_state_t;
+
+/*
+ * Reset wait_state so that it's ready to be used.
+ */
+void wait_state_reset(wait_state_t *ws)
+{
+	if (ws == NULL)
+		return;
+
+	ws->i = 0;
+	g_rng_function(ws->delays, sizeof(ws->delays));
+}
 
 /* Computes result = left * right. Result must be 2 * num_words long.
  *
@@ -880,13 +901,8 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	bitcount_t i;
 	uECC_word_t nb;
 	wordcount_t num_words = curve->num_words;
-	wait_state_t wait_state, *ws = NULL;
-
-	if (g_rng_function) {
-		ws = &wait_state;
-		g_rng_function(ws->delays, sizeof(ws->delays));
-		ws->i = 0;
-	}
+	wait_state_t wait_state;
+	wait_state_t * const ws = g_rng_function ? &wait_state : NULL;
 
 	uECC_vli_set(Rx[1], point, num_words);
   	uECC_vli_set(Ry[1], point + num_words, num_words);
@@ -894,11 +910,13 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	XYcZ_initial_double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z, curve);
 
 	for (i = num_bits - 2; i > 0; --i) {
+		wait_state_reset(ws);
 		nb = !uECC_vli_testBit(scalar, i);
 		XYcZ_addC_rnd(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], ws);
 		XYcZ_add_rnd(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb], ws);
 	}
 
+	wait_state_reset(ws);
 	nb = !uECC_vli_testBit(scalar, 0);
 	XYcZ_addC_rnd(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], ws);
 

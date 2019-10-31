@@ -233,11 +233,14 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
-void memory_buffer_small_buffer( )
+void memory_buffer_heap_too_small( )
 {
     unsigned char buf[1];
 
     mbedtls_memory_buffer_alloc_init( buf, sizeof( buf ) );
+    /* With MBEDTLS_MEMORY_DEBUG enabled, this prints a message
+     * "FATAL: verification of first header failed".
+     */
     TEST_ASSERT( mbedtls_memory_buffer_alloc_verify() != 0 );
 }
 /* END_CASE */

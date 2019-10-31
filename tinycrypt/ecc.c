@@ -291,12 +291,12 @@ static void muladd(uECC_word_t a, uECC_word_t b, uECC_word_t *r0,
 typedef struct {
 	uint8_t i;
 	uint8_t delays[14];
-} wait_state_t;
+} ecc_wait_state_t;
 
 /*
  * Reset wait_state so that it's ready to be used.
  */
-void wait_state_reset(wait_state_t *ws)
+void ecc_wait_state_reset(ecc_wait_state_t *ws)
 {
 	if (ws == NULL)
 		return;
@@ -324,7 +324,7 @@ void wait_state_reset(wait_state_t *ws)
  * know it's always 8. This saves a bit of code size and execution speed.
  */
 static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
-			      const uECC_word_t *right, wait_state_t *s)
+			      const uECC_word_t *right, ecc_wait_state_t *s)
 {
 
 	uECC_word_t r0 = 0;
@@ -508,7 +508,7 @@ void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
 }
 
 static void uECC_vli_modMult_rnd(uECC_word_t *result, const uECC_word_t *left,
-				 const uECC_word_t *right, wait_state_t *s)
+				 const uECC_word_t *right, ecc_wait_state_t *s)
 {
 	uECC_word_t product[2 * NUM_ECC_WORDS];
 	uECC_vli_mult_rnd(product, left, right, s);
@@ -527,7 +527,7 @@ void uECC_vli_modMult_fast(uECC_word_t *result, const uECC_word_t *left,
 
 static void uECC_vli_modSquare_rnd(uECC_word_t *result,
 				   const uECC_word_t *left,
-				   wait_state_t *s)
+				   ecc_wait_state_t *s)
 {
 	uECC_vli_modMult_rnd(result, left, left, s);
 }
@@ -813,7 +813,7 @@ static void XYcZ_initial_double(uECC_word_t * X1, uECC_word_t * Y1,
 
 static void XYcZ_add_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 			 uECC_word_t * X2, uECC_word_t * Y2,
-			 wait_state_t *s)
+			 ecc_wait_state_t *s)
 {
 	/* t1 = X1, t2 = Y1, t3 = X2, t4 = Y2 */
 	uECC_word_t t5[NUM_ECC_WORDS];
@@ -852,7 +852,7 @@ void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1,
  */
 static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 			  uECC_word_t * X2, uECC_word_t * Y2,
-			  wait_state_t *s)
+			  ecc_wait_state_t *s)
 {
 	/* t1 = X1, t2 = Y1, t3 = X2, t4 = Y2 */
 	uECC_word_t t5[NUM_ECC_WORDS];
@@ -901,8 +901,8 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	bitcount_t i;
 	uECC_word_t nb;
 	wordcount_t num_words = curve->num_words;
-	wait_state_t wait_state;
-	wait_state_t * const ws = g_rng_function ? &wait_state : NULL;
+	ecc_wait_state_t wait_state;
+	ecc_wait_state_t * const ws = g_rng_function ? &wait_state : NULL;
 
 	uECC_vli_set(Rx[1], point, num_words);
   	uECC_vli_set(Ry[1], point + num_words, num_words);
@@ -910,13 +910,13 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	XYcZ_initial_double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z, curve);
 
 	for (i = num_bits - 2; i > 0; --i) {
-		wait_state_reset(ws);
+		ecc_wait_state_reset(ws);
 		nb = !uECC_vli_testBit(scalar, i);
 		XYcZ_addC_rnd(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], ws);
 		XYcZ_add_rnd(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb], ws);
 	}
 
-	wait_state_reset(ws);
+	ecc_wait_state_reset(ws);
 	nb = !uECC_vli_testBit(scalar, 0);
 	XYcZ_addC_rnd(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], ws);
 

@@ -1632,7 +1632,7 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
     int ret;
     size_t i, n, t, k;
     mbedtls_mpi X, Y, Z, T1, T2;
-    mbedtls_mpi_uint __tp2[3];
+    mbedtls_mpi_uint TP2[3];
     MPI_VALIDATE_RET( A != NULL );
     MPI_VALIDATE_RET( B != NULL );
 
@@ -1641,10 +1641,16 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
 
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &Z );
     mbedtls_mpi_init( &T1 );
-    /* Avoid dynamic memory allocations for constant-size T2. */
+    /*
+     * Avoid dynamic memory allocations for constant-size T2.
+     *
+     * T2 is used for comparison only and the 3 limbs are assigned explicitly,
+     * so nobody increase the size of the MPI and we're safe to use an on-stack
+     * buffer.
+     */
     T2.s = 1;
-    T2.n = 3;
-    T2.p = __tp2;
+    T2.n = sizeof( TP2 ) / sizeof( *TP2 );
+    T2.p = TP2;
 
     if( mbedtls_mpi_cmp_abs( A, B ) < 0 )
     {
@@ -1740,6 +1746,7 @@ cleanup:
 
     mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &Z );
     mbedtls_mpi_free( &T1 );
+    mbedtls_platform_zeroize( TP2, sizeof( TP2 ) );
 
     return( ret );
 }

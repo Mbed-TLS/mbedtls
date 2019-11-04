@@ -420,8 +420,8 @@ mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot( mbedtls_mps_l2 *ctx,
             {
                 TRACE( trace_comment, "No accumulator is available, but open nonetheless." );
             }
-        }
 #endif /* MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR */
+        }
 
         mbedtls_reader_init( &ctx->io.in.active.rd, acc, acc_len );
         ctx->io.in.active.type = type;

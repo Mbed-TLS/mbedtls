@@ -283,33 +283,6 @@ uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
 					uECC_word_t *private_key, uECC_Curve curve);
 
 /*
- * @brief Regularize the bitcount for the private key so that attackers cannot
- * use a side channel attack to learn the number of leading zeros.
- * @return Regularized k
- * @param k IN -- private-key
- * @param k0 IN/OUT -- regularized k
- * @param k1 IN/OUT -- regularized k
- * @param curve IN -- elliptic curve
- */
-uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
-			 uECC_word_t *k1, uECC_Curve curve);
-
-/*
- * @brief Point multiplication algorithm using Montgomery's ladder with co-Z
- * coordinates. See http://eprint.iacr.org/2011/338.pdf.
- * @note Result may overlap point.
- * @param result OUT -- returns scalar*point
- * @param point IN -- elliptic curve point
- * @param scalar IN -- scalar
- * @param initial_Z IN -- initial value for z
- * @param num_bits IN -- number of bits in scalar
- * @param curve IN -- elliptic curve
- */
-void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
-		   const uECC_word_t * scalar, const uECC_word_t * initial_Z,
-		   bitcount_t num_bits, uECC_Curve curve);
-
-/*
  * @brief Point multiplication algorithm using Montgomery's ladder with co-Z
  * coordinates. See http://eprint.iacr.org/2011/338.pdf.
  * Uses scalar regularization and coordinate randomization (if a global RNG

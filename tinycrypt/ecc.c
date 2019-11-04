@@ -871,7 +871,7 @@ static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_vli_set(X1, t7, num_words);
 }
 
-void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
+static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 		   const uECC_word_t * scalar,
 		   const uECC_word_t * initial_Z,
 		   bitcount_t num_bits, uECC_Curve curve)
@@ -920,7 +920,7 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	uECC_vli_set(result + num_words, Ry[0], num_words);
 }
 
-uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
+static uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
 			 uECC_word_t *k1, uECC_Curve curve)
 {
 

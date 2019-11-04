@@ -104,7 +104,7 @@ int mbedtls_reader_feed( mbedtls_reader *rd, unsigned char *new_frag,
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     frag = rd->frag;
     if( frag != NULL )
-        RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
 #else
     ((void) frag);
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
@@ -170,7 +170,7 @@ int mbedtls_reader_get( mbedtls_reader *rd, size_t desired,
     if( frag == NULL )
     {
         TRACE( trace_error, "The reader is not in consuming mode." );
-        RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -340,7 +340,7 @@ int mbedtls_reader_commit( mbedtls_reader *rd )
         unsigned char *frag;
         frag = rd->frag;
         if( frag == NULL )
-            RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+            RETURN( MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -396,7 +396,7 @@ int mbedtls_reader_reclaim( mbedtls_reader *rd, size_t *paused )
     frag = rd->frag;
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( frag == NULL )
-        RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     acc    = rd->acc;
@@ -549,7 +549,7 @@ int mbedtls_reader_get_ext( mbedtls_reader_ext *rd_ext, size_t desired,
     if( rd_ext->rd == NULL )
     {
         TRACE( trace_comment, "No raw reader bound to extended reader" );
-        RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -582,7 +582,7 @@ int mbedtls_reader_commit_ext( mbedtls_reader_ext *rd )
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( rd->rd == NULL )
-        RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     ret = mbedtls_reader_commit( rd->rd );
@@ -638,7 +638,7 @@ int mbedtls_reader_attach( mbedtls_reader_ext *rd_ext,
     TRACE_INIT( "reader_attach" );
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( rd_ext->rd != NULL )
-        RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     rd_ext->rd = rd;
@@ -650,7 +650,7 @@ int mbedtls_reader_detach( mbedtls_reader_ext *rd_ext )
     TRACE_INIT( "reader_detach" );
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( rd_ext->rd == NULL )
-        RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_READER_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     rd_ext->ofs_fetch = rd_ext->ofs_commit;

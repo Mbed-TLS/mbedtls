@@ -27,113 +27,85 @@
 /**
  * MPS-specific error codes
  */
-/* TODO: Put proper error code constants in here. */
-#define MBEDTLS_ERR_MPS_RETRY_ON_CONDITION    -0x01
-#define MBEDTLS_ERR_MPS_NO_FORWARD            -0x02
-#define MBEDTLS_ERR_MPS_WRITE_PORT_ACTIVE     -0x03
-#define MBEDTLS_ERR_MPS_BLOCKED               -0x04
-#define MBEDTLS_ERR_MPS_TIMEOUT               -0x05
-#define MBEDTLS_ERR_MPS_INVALID_ALERT         -0x06
-#define MBEDTLS_ERR_MPS_FATAL_ALERT           -0x07
-#define MBEDTLS_ERR_MPS_INTERNAL_ERROR        -0x08
-#define MBEDTLS_ERR_MPS_PORT_NOT_ACTIVE       -0x09
-#define MBEDTLS_ERR_MPS_REQUEST_TOO_LARGE     -0x09
-#define MBEDTLS_ERR_MPS_DOUBLE_REQUEST        -0x0a
-#define MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED -0x0b
-#define MBEDTLS_ERR_MPS_OPTION_UNSUPPORTED    -0x0c
-#define MBEDTLS_ERR_MPS_OPTION_SET            -0x0d
-#define MBEDTLS_ERR_MPS_PARAM_MISSING         -0x0e
-#define MBEDTLS_ERR_MPS_PARAM_MISMATCH        -0x0f
-#define MBEDTLS_ERR_MPS_UNEXPECTED_FLIGHT     -0x10
-#define MBEDTLS_ERR_MPS_NO_PROGRESS           -0x11
-#define MBEDTLS_ERR_MPS_NOT_BLOCKED           -0x12
-#define MBEDTLS_ERR_MPS_UNTRACKED_DIGEST      -0x13
-#define MBEDTLS_ERR_MPS_CLOSE_NOTIFY          -0x14
-#define MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED  -0x15
-#define MBEDTLS_ERR_MPS_BAD_EPOCH             -0x16
-#define MBEDTLS_ERR_MPS_BAD_FRAGMENTATION     -0x1b
-#define MBEDTLS_ERR_MPS_FLIGHT_RETRANSMISSION -0x17
-#define MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG       -0x18
-#define MBEDTLS_ERR_MPS_COUNTER_WRAP          -0x1a
-#define MBEDTLS_ERR_MPS_OUT_OF_MEMORY         -0x19
-#define MBEDTLS_ERR_MPS_REASSEMBLY_PENDING    -0x1b
+
+#ifndef MBEDTLS_MPS_ERR_BASE
+#define MBEDTLS_MPS_ERR_BASE 0
+#endif
+
+#define MBEDTLS_MPS_MAKE_ERROR(code) \
+    ( -( MBEDTLS_MPS_ERR_BASE | (code) ) )
 
 /*
- * Layer 2 specific error codes
+ * Error codes visible at the MPS boundary.
  */
 
-#define MPS_ERR_ALLOC_FAILED           -0x1a /*!< A request for dynamic memory
-                                              *  allocation failed.           */
-#define MPS_ERR_UNEXPECTED_OPERATION   -0x17 /*!< The requested operation cannot
-                                              *  be performed in the current
-                                              *  state of the Layer 2 context.*/
-#define MPS_ERR_INVALID_CONTENT_MERGE  -0x52
-#define MPS_ERR_TYPE_CANT_BE_PAUSED    -0x1b
-#define MPS_ERR_PAUSE_REFUSED          -0x18
-#define MPS_ERR_MULTIPLE_PAUSING       -0x19
-#define MPS_ERR_COUNTER_WRAP           -0x15 /*!< The record sequence number be increased
-                                              *   because it would wrap.                   */
-#define MPS_ERR_REPLAYED_RECORD        -0x17
-#define MPS_ERR_INVALID_ARGS           -0x28 /*!< The parameter validation failed.         */
-#define MPS_ERR_INVALID_RECORD         -0x321  /*!< The record header is invalid.            */
-#define MPS_ERR_INVALID_MAC            -0x33  /*!< The record MAC is invalid.               */
-#define MPS_ERR_INVALID_EPOCH          -0x42  /*!< The record header is invalid.            */
-#define MPS_ERR_EPOCH_CHANGE_REJECTED  -0x6  /*!< The current epoch couldn't be changed.   */
-#define MPS_ERR_EPOCH_ALREADY_SET      -0x7  /*!< The epoch under consideration has already
-                                              *   been configured.                         */
-#define MPS_ERR_EPOCH_WINDOW_EXCEEDED  -0x7  /*!< The epoch under consideration exceeds the
-                                              *   current epoch window.                    */
-#define MPS_ERR_EPOCH_OVERFLOW         -0xa  /*!< The epoch under consideration exceeds the
-                                              *   current epoch window.                    */
-#define MPS_ERR_RETRY                  -0x123
-#define MPS_ERR_BAD_TRANSFORM          -0x124
+/*! A request for dynamic memory allocation failed. */
+#define MBEDTLS_ERR_MPS_OUT_OF_MEMORY         MBEDTLS_MPS_MAKE_ERROR( 0x0e )
+/*! The requested operation is not supported. */
+#define MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED MBEDTLS_MPS_MAKE_ERROR( 0x06 )
+/*! The requested operation cannot be performed in the current state. */
+#define MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED  MBEDTLS_MPS_MAKE_ERROR( 0x10 )
+/*! The peer has sent a closure notification alert. */
+#define MBEDTLS_ERR_MPS_CLOSE_NOTIFY          MBEDTLS_MPS_MAKE_ERROR( 0x07 )
+/*! The MPS is blocked. */
+#define MBEDTLS_ERR_MPS_BLOCKED               MBEDTLS_MPS_MAKE_ERROR( 0x02 )
+/*! The peer has sent an unknown non-fatal alert and MPS
+ *  is configured to treat this as fatal. */
+#define MBEDTLS_ERR_MPS_UNKNOWN_ALERT         MBEDTLS_MPS_MAKE_ERROR( 0x03 )
+/*! The peer has sent a fatal alert. */
+#define MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED  MBEDTLS_MPS_MAKE_ERROR( 0x08 )
+/*! An internal assertion has failed - should never happen. */
+#define MBEDTLS_ERR_MPS_INTERNAL_ERROR        MBEDTLS_MPS_MAKE_ERROR( 0x05 )
+#define MBEDTLS_ERR_MPS_RETRY                 MBEDTLS_MPS_MAKE_ERROR( 0x11 )
+#define MBEDTLS_ERR_MPS_NO_FORWARD            MBEDTLS_ERR_MPS_RETRY
+#define MBEDTLS_ERR_MPS_COUNTER_WRAP          MBEDTLS_MPS_MAKE_ERROR( 0x0d )
+#define MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG       MBEDTLS_MPS_MAKE_ERROR( 0x0c )
+/*! MPS cannot handle the amount of record fragmentation used by the peer.
+ *  This happens e.g. if fragmented handshake records are interleaved with
+ *  fragmented alert records. */
+#define MBEDTLS_ERR_MPS_EXCESS_RECORD_FRAGMENTATION  MBEDTLS_MPS_MAKE_ERROR( 0x12 )
+/*! Layer 2 has been asked to pause a non-pausable record type. */
+#define MBEDTLS_ERR_MPS_INVALID_RECORD_FRAGMENTATION MBEDTLS_MPS_MAKE_ERROR( 0x13 )
+/*! The epoch under consideration exceeds the current epoch window. */
+#define MBEDTLS_ERR_MPS_TOO_MANY_LIVE_EPOCHS  MBEDTLS_MPS_MAKE_ERROR( 0x7 )
+#define MBEDTLS_ERR_MPS_TOO_MANY_EPOCHS       MBEDTLS_MPS_MAKE_ERROR( 0xa )
+/*! The underlying transport does not have enough incoming data available
+ *  to perform the requested read operation. */
+#define MBEDTLS_ERR_MPS_WANT_READ             MBEDTLS_MPS_MAKE_ERROR( 0x02 )
+/*! The underlying transport is unavailable perform the send operation. */
+#define MBEDTLS_ERR_MPS_WANT_WRITE            MBEDTLS_MPS_MAKE_ERROR( 0x03 )
+#define MBEDTLS_ERR_MPS_BAD_TRANSFORM         MBEDTLS_MPS_MAKE_ERROR( 0x124 )
+#define MBEDTLS_ERR_MPS_BUFFER_TOO_SMALL      MBEDTLS_MPS_MAKE_ERROR( 0x13 )
+/*! A request was made to send non-handshake data while an
+ *  an outgoing handshake message was paused. */
+#define MBEDTLS_ERR_MPS_NO_INTERLEAVING       MBEDTLS_MPS_MAKE_ERROR( 0x124 )
+/*! A request was made to finish the writing of a handshake
+ *  message before as much data had been written to it as indicated
+ *  in the handshake message length specified in the initial call
+ *  to mps_l3_write_handshake().   */
+#define MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG     MBEDTLS_MPS_MAKE_ERROR( 0x112 )
+#define MBEDTLS_ERR_MPS_ALLOC_OUT_OF_SPACE    MBEDTLS_MPS_MAKE_ERROR( 0x1 )
+#define MBEDTLS_ERR_MPS_ALLOC_NOT_ALLOCATED   MBEDTLS_MPS_MAKE_ERROR( 0x2 )
+/*! The parameter validation failed. */
+#define MBEDTLS_ERR_MPS_INVALID_ARGS          MBEDTLS_MPS_MAKE_ERROR( 0x18 )
+/*! The record header is invalid.
+ *  This is only visible on the MPS boundary in TLS. */
+#define MBEDTLS_ERR_MPS_INVALID_CONTENT       MBEDTLS_MPS_MAKE_ERROR( 0x19 )
+/*! The record header is invalid.
+ *  This is only visible on the MPS boundary in TLS. */
+#define MBEDTLS_ERR_MPS_INVALID_RECORD        MBEDTLS_MPS_MAKE_ERROR( 0x19 )
+/*! The record MAC is invalid.
+ *  This is only visible on the MPS boundary in TLS. */
+#define MBEDTLS_ERR_MPS_INVALID_MAC           MBEDTLS_MPS_MAKE_ERROR( 0x33 )
+/*! The record header is invalid.
+ *  This is only visible on the MPS boundary in TLS. */
+#define MBEDTLS_ERR_MPS_INVALID_EPOCH         MBEDTLS_MPS_MAKE_ERROR( 0x42 )
 
 /*
- * Error codes
+ * Internal error codes
  */
-
-#define MPS_ERR_EOF                   -0x01
-#define MPS_ERR_WANT_READ             -0x02 /*!< The underlying transport
-                                             *   does not have enough incoming
-                                             *   data available to perform the
-                                             *   requested read operation.    */
-#define MPS_ERR_WANT_WRITE            -0x03 /*!< The underlying transport is
-                                             *   unavailable perform the
-                                             *   request send operation.      */
-#define MPS_ERR_NO_DATA               -0x7
-#define MPS_ERR_UNSUPPORTED_FEATURE   -0x12
-#define MPS_ERR_BUFFER_TOO_SMALL      -0x13
-#define MPS_ERR_INTERNAL_ERROR        -0x14
-#define MPS_ERR_REQUEST_OUT_OF_BOUNDS -0x15
-#define MPS_ERR_INVALID_PARAMS        -0x16
-#define MPS_ERR_UNEXPECTED_OPERATION  -0x17
-#define MPS_ERR_INCONSISTENT_READ     -0x18
-
-/*
- * Layer 3 specific error codes
- */
-
-#define MPS_ERR_INCONSISTENT_ARGS -0x123 /*!< The handshake parameters don't
-                                          *   match those from the currently
-                                          *   paused outgoing handshake
-                                          *   message.                       */
-#define MPS_ERR_NO_INTERLEAVING   -0x124 /*!< A request was made to send
-                                          *   non-handshake data while an
-                                          *   an outgoing handshake message
-                                          *   was paused.                    */
-#define MPS_ERR_UNFINISHED_HS_MSG -0x112 /*!< A request was made to finish
-                                          *   the writing of a handshake
-                                          *   message before as much data had
-                                          *   been written to it as indicated
-                                          *   in the handshake message length
-                                          *   specified in the initial call
-                                          *   to mps_l3_write_handshake().   */
-#define MPS_ERR_BAD_MSG           -0x124 /*!< A handshake message with invalid
-                                              handshake header was received. */
-
-/* TODO: Integrate MPS error codes with rest of the library. */
-#define MPS_ERR_ALLOC_OUT_OF_SPACE    0x1
-#define MPS_ERR_ALLOC_NOT_ALLOCATED   0x2
-#define MPS_ERR_ALLOC_INVALID_PURPOSE 0x3
+#define MBEDTLS_ERR_MPS_FLIGHT_RETRANSMISSION MBEDTLS_MPS_MAKE_ERROR( 0x0b )
+#define MBEDTLS_ERR_MPS_REPLAYED_RECORD   MBEDTLS_MPS_MAKE_ERROR( 0x17 )
+#define MBEDTLS_ERR_MPS_REQUEST_OUT_OF_BOUNDS MBEDTLS_MPS_MAKE_ERROR( 0x15 )
 
 #endif /* MBEDTLS_MPS_ERROR_H */

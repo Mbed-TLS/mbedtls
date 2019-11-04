@@ -95,7 +95,7 @@ int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode )
     {
         TRACE( trace_error, "Protocol passed to mps_l3_init() doesn't match " \
                "hardcoded protocol." );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 #endif /* !MBEDTLS_MPS_CONF_MODE */
@@ -169,7 +169,7 @@ int mps_l3_read( mps_l3 *l3 )
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     /* 1 */
     if( l3->io.in.state != MBEDTLS_MPS_MSG_NONE )
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* 2 */
@@ -212,7 +212,7 @@ int mps_l3_read( mps_l3 *l3 )
                 if( MBEDTLS_MPS_IS_DTLS( mode ) )
                 {
                     TRACE( trace_error, "Incomplete alert message found -- abort" );
-                    RETURN( MPS_ERR_BAD_MSG );
+                    RETURN( MBEDTLS_ERR_MPS_INVALID_CONTENT );
                 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -226,10 +226,10 @@ int mps_l3_read( mps_l3 *l3 )
 
                     /* No records are buffered by Layer 2, so progress depends
                      * on the availability of the underlying transport. We could
-                     * hence return MPS_ERR_WANT_READ here. However, this would
+                     * hence return MBEDTLS_ERR_MPS_WANT_READ here. However, this would
                      * need to be re-evaluated with any change on Layer 2, so
-                     * it's safer to return MPS_ERR_RETRY. */
-                    RETURN( MPS_ERR_RETRY );
+                     * it's safer to return MBEDTLS_ERR_MPS_RETRY. */
+                    RETURN( MBEDTLS_ERR_MPS_RETRY );
                 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
             }
@@ -253,7 +253,7 @@ int mps_l3_read( mps_l3 *l3 )
 
         case MBEDTLS_MPS_MSG_ACK:
             /* DTLS-1.3-TODO: Implement */
-            RETURN( MPS_ERR_UNSUPPORTED_FEATURE );
+            RETURN( MBEDTLS_ERR_MPS_INVALID_CONTENT );
 
         /* 3.2 */
 
@@ -318,7 +318,7 @@ int mps_l3_read( mps_l3 *l3 )
                         if( MBEDTLS_MPS_IS_DTLS( mode ) )
                         {
                             TRACE( trace_error, "Incomplete handshake header found -- abort" );
-                            RETURN( MPS_ERR_BAD_MSG );
+                            RETURN( MBEDTLS_ERR_MPS_INVALID_CONTENT );
                         }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -337,9 +337,9 @@ int mps_l3_read( mps_l3 *l3 )
                              * underlying transport.
                              * However, this would need to be reconsidered and
                              * potentially adapted with any change to Layer 2,
-                             * so returning MPS_ERR_RETRY
+                             * so returning MBEDTLS_ERR_MPS_RETRY
                              * is safer. */
-                            RETURN( MPS_ERR_RETRY );
+                            RETURN( MBEDTLS_ERR_MPS_RETRY );
                         }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
                     }
@@ -379,7 +379,7 @@ int mps_l3_read( mps_l3 *l3 )
                          * the incoming epoch while pausing the reading of a
                          * handshake message. But double-check nonetheless. */
                         TRACE( trace_error, "ASSERTION FAILURE!" );
-                        RETURN( MPS_ERR_INTERNAL_ERROR );
+                        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
                     }
 #endif /* MBEDTLS_MPS_ASSERT */
                     break;
@@ -391,7 +391,7 @@ int mps_l3_read( mps_l3 *l3 )
                      * is active, then this must be reflected in the
                      * state variable l3->io.in.state. */
                     TRACE( trace_error, "ASSERTION FAILURE!" );
-                    RETURN( MPS_ERR_INTERNAL_ERROR );
+                    RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
             }
 
@@ -413,7 +413,7 @@ int mps_l3_read( mps_l3 *l3 )
             /* Should never happen because we configured L2
              * to only accept the above types. */
             TRACE( trace_error, "ASSERTION FAILURE!" );
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
     }
 
@@ -440,7 +440,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
     {
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
         case MBEDTLS_MPS_MSG_NONE:
-            RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+            RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
         case MBEDTLS_MPS_MSG_HS:
@@ -455,7 +455,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
             if( mbedtls_reader_check_done( &l3->io.in.hs.rd_ext ) != 0 )
             {
                 TRACE( trace_error, "Attempting to close a not fully processed handshake message." );
-                RETURN( MPS_ERR_UNFINISHED_HS_MSG );
+                RETURN( MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG );
             }
 
             /* Remove reference to raw reader from extended reader. */
@@ -478,7 +478,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
 #if defined(MBEDTLS_MPS_ASSERT)
         default:
             TRACE( trace_error, "ASSERTION FAILURE!" );
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
     }
 
@@ -513,7 +513,7 @@ int mps_l3_read_pause_handshake( mps_l3 *l3 )
     if( l3->io.in.state != MBEDTLS_MPS_MSG_HS ||
         l3->io.in.hs.state != MPS_L3_HS_ACTIVE )
     {
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -561,7 +561,7 @@ MBEDTLS_MPS_STATIC int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
         return( l3_parse_hs_header_dtls( rd, in ) );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-    return( MPS_ERR_INTERNAL_ERROR );
+    return( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -694,7 +694,7 @@ MBEDTLS_MPS_STATIC int l3_parse_hs_header_dtls( mbedtls_reader *rd,
                (unsigned)in->frag_offset,
                (unsigned)in->frag_len,
                (unsigned)in->len );
-        RETURN( MPS_ERR_BAD_MSG );
+        RETURN( MBEDTLS_ERR_MPS_INVALID_CONTENT );
     }
 
     TRACE( trace_comment, "Parsed DTLS handshake header" );
@@ -785,7 +785,7 @@ MBEDTLS_MPS_STATIC int l3_parse_ccs( mbedtls_reader *rd )
     if( val != MPS_TLS_CCS_VALUE )
     {
         TRACE( trace_error, "Bad CCS value %u", (unsigned) val );
-        RETURN( MPS_ERR_BAD_MSG );
+        RETURN( MBEDTLS_ERR_MPS_INVALID_CONTENT );
     }
 
     TRACE( trace_comment, "Parsed alert message" );
@@ -808,7 +808,7 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
     if( l3->io.in.state    != MBEDTLS_MPS_MSG_HS ||
         l3->io.in.hs.state != MPS_L3_HS_ACTIVE )
     {
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -838,7 +838,7 @@ int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app )
     if( l3->io.in.state != MBEDTLS_MPS_MSG_APP )
     {
         TRACE( trace_comment, "No application data message opened" );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -854,7 +854,7 @@ int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert )
     if( l3->io.in.state != MBEDTLS_MPS_MSG_ALERT )
     {
         TRACE( trace_comment, "No alert message opened" );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -871,7 +871,7 @@ int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs )
     if( l3->io.in.state != MBEDTLS_MPS_MSG_CCS )
     {
         TRACE( trace_comment, "No CCS message opened" );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -948,7 +948,7 @@ MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr( mps_l3 *l3 )
         return( l3_check_write_hs_hdr_dtls( l3 ) );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-    return( MPS_ERR_INTERNAL_ERROR );
+    return( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 }
 
 int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
@@ -981,7 +981,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
           l3->io.out.hs.len   != out->len ) )
     {
         TRACE( trace_error, "Inconsistent parameters on continuation." );
-        RETURN( MPS_ERR_INCONSISTENT_ARGS );
+        RETURN( MBEDTLS_ERR_MPS_INVALID_ARGS );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -1012,7 +1012,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
                   out->frag_len    != MBEDTLS_MPS_SIZE_UNKNOWN ) )
             {
                 TRACE( trace_error, "ASSERTION FAILURE!" );
-                RETURN( MPS_ERR_INTERNAL_ERROR );
+                RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
             }
 
             /* Check that fragment doesn't exceed the total message length. */
@@ -1023,7 +1023,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
                 if( overflow || out->frag_offset + out->frag_len > out->len )
                 {
                     TRACE( trace_error, "ASSERTION FAILURE!" );
-                    RETURN( MPS_ERR_INTERNAL_ERROR );
+                    RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
                 }
             }
 #endif /* MBEDTLS_MPS_ASSERT */
@@ -1058,7 +1058,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             /* We could return WANT_WRITE here to indicate that
              * progress hinges on the availability of the underlying
              * transport. */
-            RETURN( MPS_ERR_RETRY );
+            RETURN( MBEDTLS_ERR_MPS_RETRY );
         }
         else if( res != 0 )
             RETURN( res );
@@ -1160,7 +1160,7 @@ int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert )
         /* We could return WANT_WRITE here to indicate that
          * progress hinges on the availability of the underlying
          * transport. */
-        RETURN( MPS_ERR_RETRY );
+        RETURN( MBEDTLS_ERR_MPS_RETRY );
     }
     else if( res != 0 )
         RETURN( res );
@@ -1193,7 +1193,7 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs )
         /* We could return WANT_WRITE here to indicate that
          * progress hinges on the availability of the underlying
          * transport. */
-        RETURN( MPS_ERR_RETRY );
+        RETURN( MBEDTLS_ERR_MPS_RETRY );
     }
     else if( res != 0 )
         RETURN( res );
@@ -1220,7 +1220,7 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
         l3->io.out.hs.state != MPS_L3_HS_ACTIVE         ||
         l3->io.out.hs.len   == MBEDTLS_MPS_SIZE_UNKNOWN )
     {
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -1268,7 +1268,7 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
     if( l3->io.out.state  != MBEDTLS_MPS_MSG_HS ||
         l3->io.out.hs.state != MPS_L3_HS_ACTIVE )
     {
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -1285,7 +1285,7 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
     if( committed > 0 )
     {
         TRACE( trace_error, "Attempt to abort handshake message parts of which have already been committed." );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 
     /* Remove reference to the raw writer borrowed from Layer 2
@@ -1317,7 +1317,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
     {
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
         case MBEDTLS_MPS_MSG_NONE:
-            RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+            RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
         case MBEDTLS_MPS_MSG_HS:
@@ -1327,7 +1327,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
             if( l3->io.out.hs.state != MPS_L3_HS_ACTIVE )
             {
                 TRACE( trace_error, "ASSERTION FAILURE!" );
-                RETURN( MPS_ERR_INTERNAL_ERROR );
+                RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
             }
 #endif /* MBEDTLS_MPS_ASSERT */
 
@@ -1335,7 +1335,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
             if( res != 0 )
             {
                 TRACE( trace_error, "Attempting to close not yet fully written handshake message." );
-                RETURN( MPS_ERR_UNFINISHED_HS_MSG );
+                RETURN( MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG );
             }
 
             res = mbedtls_writer_detach( &l3->io.out.hs.wr_ext,
@@ -1409,7 +1409,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
 #if defined(MBEDTLS_MPS_ASSERT)
         default:
             TRACE( trace_error, "ASSERTION FAILURE!" );
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
     }
 
@@ -1471,7 +1471,7 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
     if( buf == NULL || hs->hdr_len != tls_hs_hdr_len )
     {
         TRACE( trace_error, "ASSERTION FAILURE!" );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #else
     ((void) tls_hs_hdr_len);
@@ -1531,7 +1531,7 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
     if( buf == NULL || hs->hdr_len != dtls_hs_hdr_len )
     {
         TRACE( trace_error, "ASSERTION FAILURE!" );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #else
     ((void) dtls_hs_hdr_len);
@@ -1590,7 +1590,7 @@ MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port
     if( l3->io.out.state != MBEDTLS_MPS_MSG_NONE )
     {
         TRACE( trace_error, "Unexpected state" );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -1598,7 +1598,7 @@ MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port
     if( l3->io.out.hs.state == MPS_L3_HS_PAUSED && port != MBEDTLS_MPS_MSG_HS )
     {
         TRACE( trace_error, "Interleaving of outgoing messages is disabled." );
-        RETURN( MPS_ERR_NO_INTERLEAVING );
+        RETURN( MBEDTLS_ERR_MPS_NO_INTERLEAVING );
     }
 #endif
 

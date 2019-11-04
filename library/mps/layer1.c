@@ -257,7 +257,7 @@ int l1_fetch_stream( mps_l1_stream_read *p,
     read_ptr = p->buf;
     bl = p->buf_len;
     if( len > bl )
-        RETURN( MPS_ERR_BUFFER_TOO_SMALL );
+        RETURN( MBEDTLS_ERR_MPS_BUFFER_TOO_SMALL );
 
     br = p->bytes_read;
     if( br <= len )
@@ -277,7 +277,7 @@ int l1_fetch_stream( mps_l1_stream_read *p,
 
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif
 
         /* Now we know that we can safely cast ret to size_t. */
@@ -287,7 +287,7 @@ int l1_fetch_stream( mps_l1_stream_read *p,
         /* Double-check that the external Layer 0 obeys its spec;
          * if it doesn't, we'd otherwise underflow data_need. */
         if( data_fetched > data_need )
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 
         data_need -= data_fetched;
         read_ptr  += data_fetched;
@@ -379,7 +379,7 @@ int l1_flush_stream( mps_l1_stream_write *p )
     {
         TRACE( trace_comment, "L1 flush stream, unexpected state %u",
                (unsigned) status );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -404,13 +404,13 @@ int l1_flush_stream( mps_l1_stream_write *p )
              * WANT_WRITE instead of 0 if no data can currently be sent.
              * Fail with a fatal internal error if this spec is not obeyed. */
             if( ret == 0 )
-                ret = MPS_ERR_INTERNAL_ERROR;
+                ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
             break;
         }
 
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif
 
         /* Now we know that we can safely cast ret to size_t. */
@@ -420,7 +420,7 @@ int l1_flush_stream( mps_l1_stream_write *p )
         /* Double-check that the external Layer 0 obeys its
          * spec to prevent an underflow in data_remaining. */
         if( data_written > data_remaining )
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 
         data_remaining -= data_written;
         buf += data_written;
@@ -479,7 +479,7 @@ int l1_write_stream( mps_l1_stream_write *p,
     if( status != MPS_L1_STREAM_STATUS_READY )
     {
         TRACE( trace_comment, "unexpected operation, status %u", (unsigned) status );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 
@@ -500,7 +500,7 @@ int l1_write_stream( mps_l1_stream_write *p,
     /* The flushing strategy should ensure that we should never
      * reach this point if the entire buffer has been dispatched. */
     if( data_remaining == 0 )
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
 
     *dst = buf;
@@ -579,7 +579,7 @@ int l1_dispatch_stream( mps_l1_stream_write *p, size_t len, size_t *pending )
     if( status != MPS_L1_STREAM_STATUS_WRITE )
     {
         TRACE( trace_comment, "Unexpected state %u", (unsigned) status );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -590,7 +590,7 @@ int l1_dispatch_stream( mps_l1_stream_write *p, size_t len, size_t *pending )
     {
         TRACE( trace_comment, "out of bounds %u > %u",
                (unsigned) len, (unsigned) data_remaining );
-        RETURN( MPS_ERR_REQUEST_OUT_OF_BOUNDS );
+        RETURN( MBEDTLS_ERR_MPS_REQUEST_OUT_OF_BOUNDS );
     }
 
     br += len;
@@ -729,7 +729,7 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
 
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif
 
         /* Now we know that we can safely cast ret to size_t. */
@@ -737,7 +737,7 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
 
         /* Double-check that the external Layer 0 obeys its spec. */
         if( ml > bl )
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 
         TRACE( trace_comment, "Obtained datagram of size %u", (unsigned) ml );
         p->msg_len = ml;
@@ -787,7 +787,7 @@ int l1_fetch_dgram( mps_l1_dgram_read *p,
     {
         TRACE( trace_error, "Read request goes beyond the datagram boundary - requested %u, available %u",
                (unsigned) data_need, (unsigned) data_avail );
-        RETURN( MPS_ERR_REQUEST_OUT_OF_BOUNDS );
+        RETURN( MBEDTLS_ERR_MPS_REQUEST_OUT_OF_BOUNDS );
     }
 
     wl += data_need;
@@ -809,7 +809,7 @@ int l1_consume_dgram( mps_l1_dgram_read *p )
     {
         unsigned char * const buf = p->buf;
         if( buf == NULL )
-            return( MPS_ERR_UNEXPECTED_OPERATION );
+            return(MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -926,7 +926,7 @@ int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
         if( buf == NULL )
         {
             TRACE( trace_error, "No outgoing datagram open." );
-            RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+            RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
         }
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
@@ -938,7 +938,7 @@ int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
     {
         TRACE( trace_error, "Request to dispatch more data (%u bytes) than what's available in the datagram (%u bytes).",
                (unsigned) len, (unsigned) ( bl - br ) );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 
     br += len;
@@ -1002,20 +1002,20 @@ int l1_flush_dgram( mps_l1_dgram_write *p )
          * WANT_WRITE instead of 0 if no data can currently be sent.
          * Fail with a fatal internal error if this spec is not obeyed. */
         if( ret == 0 )
-            ret = MPS_ERR_INTERNAL_ERROR;
+            ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
 
         RETURN( ret );
     }
 
 #if( MAX_INT > SIZE_MAX )
     if( ret > (int) SIZE_MAX )
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif
 
     if( (size_t) ret != br )
     {
         /* Couldn't deliver the datagram to Layer 0 at once. */
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 
     l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_OUT );
@@ -1195,7 +1195,7 @@ int mps_l1_skip( mps_l1 *ctx )
     MBEDTLS_MPS_IF_TLS( mode )
     {
         TRACE( trace_error, "mps_l1_skip() only for DTLS." );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 

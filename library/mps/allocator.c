@@ -36,7 +36,7 @@ int mps_alloc_init( mps_alloc *ctx,
         free( ctx->l1_in );
         free( ctx->l1_out );
         ctx->l1_in = ctx->l1_out = NULL;
-        return( MPS_ERR_ALLOC_OUT_OF_SPACE );
+        return( MBEDTLS_ERR_MPS_ALLOC_OUT_OF_SPACE );
     }
 
     ctx->alloc_state = 0;
@@ -77,7 +77,7 @@ int mps_alloc_acquire( mps_alloc *ctx, mps_alloc_type purpose,
                        unsigned char **buf, size_t *buflen )
 {
     if( alloc_check_flag( ctx, purpose ) )
-        return( MPS_ERR_ALLOC_OUT_OF_SPACE );
+        return( MBEDTLS_ERR_MPS_ALLOC_OUT_OF_SPACE );
 
     switch( purpose )
     {
@@ -92,7 +92,7 @@ int mps_alloc_acquire( mps_alloc *ctx, mps_alloc_type purpose,
             break;
 
         default:
-            return( MPS_ERR_ALLOC_INVALID_PURPOSE );
+            return( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
             break;
     }
 
@@ -103,12 +103,12 @@ int mps_alloc_acquire( mps_alloc *ctx, mps_alloc_type purpose,
 int mps_alloc_release( mps_alloc* ctx, mps_alloc_type purpose )
 {
     if( alloc_check_flag( ctx, purpose ) == 0 )
-        return( MPS_ERR_ALLOC_NOT_ALLOCATED );
+        return( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 
     if( purpose != MPS_ALLOC_L1_IN  &&
         purpose != MPS_ALLOC_L1_OUT )
     {
-        return( MPS_ERR_ALLOC_INVALID_PURPOSE );
+        return( MBEDTLS_ERR_MPS_INVALID_ARGS );
     }
 
     alloc_remove_flag( ctx, purpose );

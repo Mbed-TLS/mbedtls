@@ -109,7 +109,7 @@ typedef struct mbedtls_writer_ext mbedtls_writer_ext;
 #define MBEDTLS_ERR_WRITER_NEED_MORE             -0x3
 /** The requested operation is not possible
  *  in the current state of the writer.                       */
-#define MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION  -0x4
+#define MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED  -0x4
 /** The remaining amount of space for outgoing data is not
  *  sufficient to serve the user's request. The current
  *  outgoing data buffer must be reclaimed, dispatched,
@@ -415,7 +415,7 @@ void mbedtls_writer_free( mbedtls_writer *writer );
  *
  * \return          \c 0 on success. In this case, the writer is
  *                  in consuming state afterwards.
- * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION if
+ * \return          #MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED if
  *                  the writer is not in providing state. In this case,
  *                  the writer is unmodified and can still be used.
  *                  In particular, the writer stays in consuming state.
@@ -460,7 +460,7 @@ int mbedtls_writer_feed( mbedtls_writer *writer,
  *
  * \return          \c 0 on success. In this case, the writer is in
  *                  providing state afterwards.
- * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION if
+ * \return          #MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED if
  *                  the writer is not in consuming state. In this case,
  *                  the writer is unmodified and can still be used.
  *                  In particular, the writer stays in providing state.
@@ -515,7 +515,7 @@ int mbedtls_writer_bytes_written( mbedtls_writer *writer,
  *
  * \return          \c 0 on success. In this case, the writer
  *                  stays in consuming state.
- * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
+ * \return          #MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED
  *                  if the writer is not in consuming state.
  *                  In this case, the writer is unchanged and
  *                  can still be used.
@@ -549,7 +549,7 @@ int mbedtls_writer_commit( mbedtls_writer *writer );
  *
  * \return          \c 0 on success. In this case, the writer
  *                  stays in consuming state.
- * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
+ * \return          #MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED
  *                  if the writer is not in consuming state.
  *                  In this case, the writer is unchanged and
  *                  can still be used.
@@ -586,7 +586,7 @@ int mbedtls_writer_commit_partial( mbedtls_writer *writer,
  *
  * \return          \c 0 on success. In this case, the writer
  *                  stays in consuming state.
- * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
+ * \return          #MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED
  *                  if the writer is not in consuming state.
  *                  In this case, the writer is unchanged and
  *                  can still be used.
@@ -714,7 +714,7 @@ int mbedtls_writer_commit_ext( mbedtls_writer_ext *writer );
  *
  * \return          \c 0 on success. In this case, the writer
  *                  stays in consuming state.
- * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
+ * \return          #MBEDTLS_ERR_WRITER_OPERATION_UNEXPECTED
  *                  if the writer is not in consuming state.
  *                  In this case, the writer is unchanged and
  *                  can still be used.

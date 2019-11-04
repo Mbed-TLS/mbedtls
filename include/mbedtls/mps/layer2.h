@@ -410,7 +410,7 @@ struct mbedtls_mps_l2_config
                            *   Incoming record of invalid record content
                            *   types, or attempts to send data of invalid
                            *   content types, are reported through the error
-                           *   code MPS_ERR_INVALID_RECORD.                 */
+                           *   code MBEDTLS_ERR_MPS_INVALID_RECORD.                 */
 #endif /* !MBEDTLS_MPS_CONF_TYPE_FLAG */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -1237,11 +1237,11 @@ static inline int mps_l2_config_add_type( mbedtls_mps_l2 *ctx,
     uint32_t mask;
 
     if( type >= MBEDTLS_MPS_MSG_MAX )
-        return( MPS_ERR_INVALID_RECORD );
+        return( MBEDTLS_ERR_MPS_INVALID_RECORD );
 
     mask = ( (uint32_t) 1u << type );
     if( mbedtls_mps_l2_conf_get_type_flag( &ctx->conf ) & mask )
-        return( MPS_ERR_INVALID_ARGS );
+        return( MBEDTLS_ERR_MPS_INVALID_ARGS );
 
 #if !defined(MBEDTLS_MPS_CONF_PAUSE_FLAG)
     ctx->conf.type_flag |= mask;

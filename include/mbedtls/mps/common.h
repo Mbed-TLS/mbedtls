@@ -59,7 +59,7 @@
  *  is part of the API preconditions or not. If it is, the function's
  *  behavior is undefined if the abstract state is not as expected.
  *  If it is set, API is required to fail gracefully with error
- *  #MPS_ERR_UNEXPECTED_OPERATION, and without changing the abstract
+ *  #MPS_ERR_OPERATION_UNEXPECTED, and without changing the abstract
  *  state of the input context, if the abstract state is unexpected but
  *  all other preconditions are satisfied.
  *

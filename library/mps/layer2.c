@@ -736,7 +736,7 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
 #endif /* MBEDTLS_MPS_ASSERT */
 
         /* We could also return WANT_WRITE here. */
-        RETURN( MPS_ERR_CONTINUE_PROCESSING );
+        RETURN( MPS_ERR_RETRY );
     }
 
     /* Dissect L1 record buffer into header, ciphertext and plaintext parts.
@@ -1717,7 +1717,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
              * only be made once another datagram is available).
              * However, this non-locally depends on Layer 1 not buffering
              * more than one datagram and is hence slightly fragile. */
-            RETURN( MPS_ERR_CONTINUE_PROCESSING );
+            RETURN( MPS_ERR_RETRY );
         }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -1732,7 +1732,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
          * - If this option is set and if l2_in_fetch_record()
          *   returns INVALID_MAC, we should not forward this error
          *   here but instead call l2_release_record() and return
-         *   MPS_ERR_CONTINUE_PROCESSING.
+         *   MPS_ERR_RETRY.
          */
 
         if( ret != 0 )
@@ -1767,7 +1767,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
                     /* As above, at the moment it is safe to return WANT_READ,
                      * but this might change if Layer 1 ever buffers more than
                      * one datagram. */
-                    RETURN( MPS_ERR_CONTINUE_PROCESSING );
+                    RETURN( MPS_ERR_RETRY );
                 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -1845,9 +1845,9 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
              * indicates.
              * However, if Layer 1 ever changes to request and buffer more
              * data than what we asked for, this would need to be reconsidered,
-             * so it's safer to return MPS_ERR_CONTINUE_PROCESSING.
+             * so it's safer to return MPS_ERR_RETRY.
              */
-            RETURN( MPS_ERR_CONTINUE_PROCESSING );
+            RETURN( MPS_ERR_RETRY );
         }
         else
 #endif /* MBEDTLS_MPS_PROTO_TLS */

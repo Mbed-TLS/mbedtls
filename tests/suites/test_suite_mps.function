@@ -4773,7 +4773,7 @@ void mbedtls_mps_l2_bad_record( int mode,
     else
     {
         TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
-                     MPS_ERR_CONTINUE_PROCESSING );
+                     MPS_ERR_RETRY );
 
         TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
         TEST_ASSERT( in_srv.type == ty_A );
@@ -5044,7 +5044,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
             TEST_ASSERT( in_ctr == 42 );
 
             TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
-                         MPS_ERR_CONTINUE_PROCESSING );
+                         MPS_ERR_RETRY );
 
             /* The sequence number of a replayed record shouldn't be recorded. */
             TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
@@ -5084,7 +5084,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
                 TEST_ASSERT( in_ctr == 1223 );
 
             TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
-                         MPS_ERR_CONTINUE_PROCESSING );
+                         MPS_ERR_RETRY );
 
             break;
         }
@@ -5123,7 +5123,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
             else
             {
                 TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
-                             MPS_ERR_CONTINUE_PROCESSING );
+                             MPS_ERR_RETRY );
 
                 TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init,
                                                               &in_ctr ) == 0 );
@@ -6032,7 +6032,7 @@ void mbedtls_mps_l2_many_epochs( int mode,
         {
             ret = mps_l2_read_start( &srv, &in_srv );
             TEST_ASSERT( ret == MPS_ERR_WANT_READ           ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING ||
+                         ret == MPS_ERR_RETRY ||
                          ret == 0 );
             if( ret != 0 )
                 continue;
@@ -6072,7 +6072,7 @@ void mbedtls_mps_l2_many_epochs( int mode,
         {
             ret = mps_l2_read_start( &srv, &in_srv );
             TEST_ASSERT( ret == MPS_ERR_WANT_READ ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING ||
+                         ret == MPS_ERR_RETRY ||
                          ret == 0 );
             if( ret != 0 )
                 continue;
@@ -6394,7 +6394,7 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
 
             ret = mps_l2_read_start( &endpoint[self], &in );
             TEST_ASSERT( ret == MPS_ERR_WANT_READ ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING ||
+                         ret == MPS_ERR_RETRY ||
                          ret == 0 );
             if( ret != 0 )
             {
@@ -6465,7 +6465,7 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
                 ret = mps_l2_write_flush( &endpoint[self] );
                 TEST_ASSERT( ret == 0                           ||
                              ret == MPS_ERR_WANT_WRITE          ||
-                             ret == MPS_ERR_CONTINUE_PROCESSING );
+                             ret == MPS_ERR_RETRY );
                 continue;
             }
 
@@ -6555,7 +6555,7 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
             ret = mps_l2_write_start( &endpoint[self], &out );
             TEST_ASSERT( ret == 0                           ||
                          ret == MPS_ERR_WANT_WRITE          ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING );
+                         ret == MPS_ERR_RETRY );
             if( ret != 0 )
                 continue;
 
@@ -7525,7 +7525,7 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
             res = mps_l3_read( &srv );
             TEST_ASSERT( res == MBEDTLS_MPS_MSG_HS ||
                          res == MPS_ERR_WANT_READ ||
-                         res == MPS_ERR_CONTINUE_PROCESSING );
+                         res == MPS_ERR_RETRY );
             if( res < 0 )
                 continue;
 
@@ -7973,7 +7973,7 @@ void mbedtls_mps_l3_basic_alert( int mode,
                                       &alert_out );
             TEST_ASSERT( res == 0                           ||
                          res == MPS_ERR_WANT_WRITE          ||
-                         res == MPS_ERR_CONTINUE_PROCESSING );
+                         res == MPS_ERR_RETRY );
             if( res == 0 )
                 break;
 
@@ -8003,7 +8003,7 @@ void mbedtls_mps_l3_basic_alert( int mode,
             TEST_ASSERT( retry <= 1 );
             res = mps_l3_read( &srv );
             TEST_ASSERT( res == MPS_ERR_WANT_READ ||
-                         res == MPS_ERR_CONTINUE_PROCESSING ||
+                         res == MPS_ERR_RETRY ||
                          res == MBEDTLS_MPS_MSG_ALERT );
             if( res == MBEDTLS_MPS_MSG_ALERT )
                 break;
@@ -8165,7 +8165,7 @@ void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
             res = mps_l3_write_ccs( &cli, &ccs_out );
             TEST_ASSERT( res == 0                           ||
                          res == MPS_ERR_WANT_WRITE          ||
-                         res == MPS_ERR_CONTINUE_PROCESSING );
+                         res == MPS_ERR_RETRY );
         } while( res != 0 );
 
         /* Dispatch CCS message */
@@ -8532,7 +8532,7 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
 
             TEST_ASSERT( res == MBEDTLS_MPS_MSG_HS          ||
                          res == MBEDTLS_MPS_MSG_ALERT       ||
-                         res == MPS_ERR_CONTINUE_PROCESSING ||
+                         res == MPS_ERR_RETRY ||
                          res == MPS_ERR_WANT_READ );
             if( res < 0 )
                 continue;
@@ -8968,7 +8968,7 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
             ret = mps_l3_read( &endpoint[self] );
             if( ! ( ret == 0                           ||
                     ret == MPS_ERR_WANT_READ           ||
-                    ret == MPS_ERR_CONTINUE_PROCESSING ||
+                    ret == MPS_ERR_RETRY ||
                     ret == MBEDTLS_MPS_MSG_APP         ||
                     ret == MBEDTLS_MPS_MSG_HS          ||
                     ret == MBEDTLS_MPS_MSG_ALERT       ||
@@ -8979,14 +8979,14 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
             }
             TEST_ASSERT( ret == 0                           ||
                          ret == MPS_ERR_WANT_READ           ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING ||
+                         ret == MPS_ERR_RETRY ||
                          ret == MBEDTLS_MPS_MSG_APP         ||
                          ret == MBEDTLS_MPS_MSG_HS          ||
                          ret == MBEDTLS_MPS_MSG_ALERT       ||
                          ret == MBEDTLS_MPS_MSG_CCS );
 
             if( ret == MPS_ERR_WANT_READ ||
-                ret == MPS_ERR_CONTINUE_PROCESSING )
+                ret == MPS_ERR_RETRY )
             {
                 continue;
             }
@@ -9211,7 +9211,7 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
                     ret = mps_l3_write_handshake( &endpoint[self], &hs_out );
                     TEST_ASSERT( ret == 0                           ||
                                  ret == MPS_ERR_WANT_WRITE          ||
-                                 ret == MPS_ERR_CONTINUE_PROCESSING );
+                                 ret == MPS_ERR_RETRY );
                     if( ret != 0 )
                         continue;
 
@@ -9257,7 +9257,7 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
                     ret = mps_l3_write_app( &endpoint[self], &app_out );
                     TEST_ASSERT( ret == 0                  ||
                                  ret == MPS_ERR_WANT_WRITE ||
-                                 ret == MPS_ERR_CONTINUE_PROCESSING );
+                                 ret == MPS_ERR_RETRY );
                     if( ret != 0 )
                         continue;
 
@@ -9298,7 +9298,7 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
                     ret = mps_l3_write_alert( &endpoint[self], &alert_out );
                     TEST_ASSERT( ret == 0                           ||
                                  ret == MPS_ERR_WANT_WRITE          ||
-                                 ret == MPS_ERR_CONTINUE_PROCESSING );
+                                 ret == MPS_ERR_RETRY );
                     if( ret != 0 )
                         continue;
 
@@ -9322,7 +9322,7 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
                     ret = mps_l3_write_ccs( &endpoint[self], &ccs_out );
                     TEST_ASSERT( ret == 0                           ||
                                  ret == MPS_ERR_WANT_WRITE          ||
-                                 ret == MPS_ERR_CONTINUE_PROCESSING );
+                                 ret == MPS_ERR_RETRY );
                     if( ret != 0 )
                         continue;
 
@@ -10078,7 +10078,7 @@ void mbedtls_mps_l4_dtls_fragmentation( int allocator_buffer_sz,
         {
             ret = mps_l3_read( &srv_l3 );
             if( ret == MPS_ERR_WANT_READ ||
-                ret == MPS_ERR_CONTINUE_PROCESSING )
+                ret == MPS_ERR_RETRY )
             {
                 break;
             }
@@ -10273,7 +10273,7 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
                                                NULL, NULL );
             TEST_ASSERT( ret == 0                           ||
                          ret == MPS_ERR_WANT_WRITE          ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING );
+                         ret == MPS_ERR_RETRY );
             if( ret != 0 )
                 continue;
 
@@ -10297,7 +10297,7 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
                                                NULL );
             TEST_ASSERT( ret == 0                           ||
                          ret == MPS_ERR_WANT_WRITE          ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING );
+                         ret == MPS_ERR_RETRY );
             if( ret != 0 )
                 continue;
 
@@ -10341,7 +10341,7 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
         ret = mbedtls_mps_flush( &cli );
         TEST_ASSERT( ret == 0                  ||
                      ret == MPS_ERR_WANT_WRITE ||
-                     ret == MPS_ERR_CONTINUE_PROCESSING );
+                     ret == MPS_ERR_RETRY );
         if( ret == 0 )
             break;
     }
@@ -10371,7 +10371,7 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
             ret = mbedtls_mps_read( &srv );
             TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
                          ret == MPS_ERR_WANT_READ  ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING );
+                         ret == MPS_ERR_RETRY );
             if( ret == MBEDTLS_MPS_MSG_HS )
                 break;
         }
@@ -10748,7 +10748,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                                        NULL, NULL );
                     TEST_ASSERT( ret == 0                           ||
                                  ret == MPS_ERR_WANT_WRITE          ||
-                                 ret == MPS_ERR_CONTINUE_PROCESSING );
+                                 ret == MPS_ERR_RETRY );
                     if( ret == 0 )
                         break;
                 }
@@ -10764,7 +10764,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                          &cb_ctxs[round * num_hs + iteration] );
                     TEST_ASSERT( ret == 0                           ||
                                  ret == MPS_ERR_WANT_WRITE          ||
-                                 ret == MPS_ERR_CONTINUE_PROCESSING );
+                                 ret == MPS_ERR_RETRY );
                     if( ret == 0 )
                         break;
                 }
@@ -10814,7 +10814,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
             int ret;
             ret = mbedtls_mps_flush( sender );
             TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING );
+                         ret == MPS_ERR_RETRY );
             if( ret == 0 )
                 break;
         }
@@ -10891,11 +10891,11 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                 int ret;
                 ret = mbedtls_mps_read( sender );
                 TEST_ASSERT( ret == MPS_ERR_WANT_READ           ||
-                             ret == MPS_ERR_CONTINUE_PROCESSING ||
+                             ret == MPS_ERR_RETRY ||
                              ret == MPS_ERR_WANT_WRITE );
 
                 if( ret == MPS_ERR_WANT_READ ||
-                    ret == MPS_ERR_CONTINUE_PROCESSING )
+                    ret == MPS_ERR_RETRY )
                 {
                     break;
                 }
@@ -10956,7 +10956,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
             TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
                          ret == MPS_ERR_WANT_READ  ||
                          ret == MPS_ERR_WANT_WRITE ||
-                         ret == MPS_ERR_CONTINUE_PROCESSING );
+                         ret == MPS_ERR_RETRY );
             if( ret != MBEDTLS_MPS_MSG_HS )
             {
                 if( ret == MPS_ERR_WANT_READ )
@@ -10965,10 +10965,10 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                     if( repeated_want_reads % 5 == 0 )
                     {
                         ret = mbedtls_mps_read( sender );
-                        TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS          ||
-                                     ret == MPS_ERR_WANT_READ           ||
-                                     ret == MPS_ERR_CONTINUE_PROCESSING ||
-                                     ret == MPS_ERR_WANT_WRITE );
+                        TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
+                                     ret == MPS_ERR_WANT_READ  ||
+                                     ret == MPS_ERR_WANT_WRITE ||
+                                     ret == MPS_ERR_RETRY      );
                     }
                 }
                 continue;

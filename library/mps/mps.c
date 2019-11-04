@@ -589,7 +589,7 @@ MBEDTLS_MPS_STATIC void mps_generic_failure_handler( mbedtls_mps *mps, int ret )
     uint8_t idx;
     int whitelist[] = {
         0,
-        MPS_ERR_CONTINUE_PROCESSING,
+        MPS_ERR_RETRY,
         MPS_ERR_WANT_READ,
         MPS_ERR_WANT_WRITE
     };
@@ -1112,7 +1112,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
                     TRACE( trace_comment,
                            "Handshake message consumed by "
                            "retransmission state machine." );
-                    MPS_CHK( MPS_ERR_CONTINUE_PROCESSING );
+                    MPS_CHK( MPS_ERR_RETRY );
                 }
                 MPS_CHK( ret );
             }

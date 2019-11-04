@@ -228,8 +228,8 @@ int mps_l3_read( mps_l3 *l3 )
                      * on the availability of the underlying transport. We could
                      * hence return MPS_ERR_WANT_READ here. However, this would
                      * need to be re-evaluated with any change on Layer 2, so
-                     * it's safer to return MPS_ERR_CONTINUE_PROCESSING. */
-                    RETURN( MPS_ERR_CONTINUE_PROCESSING );
+                     * it's safer to return MPS_ERR_RETRY. */
+                    RETURN( MPS_ERR_RETRY );
                 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
             }
@@ -337,9 +337,9 @@ int mps_l3_read( mps_l3 *l3 )
                              * underlying transport.
                              * However, this would need to be reconsidered and
                              * potentially adapted with any change to Layer 2,
-                             * so returning MPS_ERR_CONTINUE_PROCESSING
+                             * so returning MPS_ERR_RETRY
                              * is safer. */
-                            RETURN( MPS_ERR_CONTINUE_PROCESSING );
+                            RETURN( MPS_ERR_RETRY );
                         }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
                     }
@@ -1058,7 +1058,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             /* We could return WANT_WRITE here to indicate that
              * progress hinges on the availability of the underlying
              * transport. */
-            RETURN( MPS_ERR_CONTINUE_PROCESSING );
+            RETURN( MPS_ERR_RETRY );
         }
         else if( res != 0 )
             RETURN( res );
@@ -1160,7 +1160,7 @@ int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert )
         /* We could return WANT_WRITE here to indicate that
          * progress hinges on the availability of the underlying
          * transport. */
-        RETURN( MPS_ERR_CONTINUE_PROCESSING );
+        RETURN( MPS_ERR_RETRY );
     }
     else if( res != 0 )
         RETURN( res );
@@ -1193,7 +1193,7 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs )
         /* We could return WANT_WRITE here to indicate that
          * progress hinges on the availability of the underlying
          * transport. */
-        RETURN( MPS_ERR_CONTINUE_PROCESSING );
+        RETURN( MPS_ERR_RETRY );
     }
     else if( res != 0 )
         RETURN( res );

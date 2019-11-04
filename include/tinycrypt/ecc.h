@@ -331,8 +331,7 @@ cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right,
  * @param num_words IN -- number of words
  * @return the sign of left - right
  */
-cmpresult_t uECC_vli_cmp_unsafe(const uECC_word_t *left, const uECC_word_t *right,
-				wordcount_t num_words);
+cmpresult_t uECC_vli_cmp_unsafe(const uECC_word_t *left, const uECC_word_t *right);
 
 /*
  * @brief Computes result = (left - right) % mod.

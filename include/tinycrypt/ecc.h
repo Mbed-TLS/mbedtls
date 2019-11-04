@@ -310,6 +310,20 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 		   bitcount_t num_bits, uECC_Curve curve);
 
 /*
+ * @brief Point multiplication algorithm using Montgomery's ladder with co-Z
+ * coordinates. See http://eprint.iacr.org/2011/338.pdf.
+ * Uses scalar regularization and coordinate randomization (if a global RNG
+ * function is set) in order to protect against some side channel attacks.
+ * @note Result may overlap point.
+ * @param result OUT -- returns scalar*point
+ * @param point IN -- elliptic curve point
+ * @param scalar IN -- scalar
+ * @param curve IN -- elliptic curve
+ */
+int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
+			const uECC_word_t * scalar, uECC_Curve curve);
+
+/*
  * @brief Constant-time comparison to zero - secure way to compare long integers
  * @param vli IN -- very long integer
  * @param num_words IN -- number of words in the vli

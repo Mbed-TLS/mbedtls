@@ -65,6 +65,7 @@
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
+#include "mbedtls/platform_util.h"
 #include <string.h>
 
 /* IMPORTANT: Make sure a cryptographically-secure PRNG is set and the platform
@@ -873,7 +874,7 @@ static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 		   const uECC_word_t * scalar,
 		   const uECC_word_t * initial_Z,
-		   bitcount_t num_bits, uECC_Curve curve) 
+		   bitcount_t num_bits, uECC_Curve curve)
 {
 	/* R0 and R1 */
 	uECC_word_t Rx[2][NUM_ECC_WORDS];
@@ -934,6 +935,44 @@ uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
 	uECC_vli_add(k1, k0, curve->n, num_n_words);
 
 	return carry;
+}
+
+int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
+			const uECC_word_t * scalar, uECC_Curve curve)
+{
+	uECC_word_t tmp[NUM_ECC_WORDS];
+	uECC_word_t s[NUM_ECC_WORDS];
+	uECC_word_t *k2[2] = {tmp, s};
+	wordcount_t num_words = curve->num_words;
+	bitcount_t num_n_bits = curve->num_n_bits;
+	uECC_word_t carry;
+	uECC_word_t *initial_Z = 0;
+	int r;
+
+	/* Regularize the bitcount for the private key so that attackers cannot use a
+	 * side channel attack to learn the number of leading zeros. */
+	carry = regularize_k(scalar, tmp, s, curve);
+
+	/* If an RNG function was specified, get a random initial Z value to
+         * protect against side-channel attacks such as Template SPA */
+	if (g_rng_function) {
+		if (!uECC_generate_random_int(k2[carry], curve->p, num_words)) {
+			r = 0;
+			goto clear_and_out;
+		}
+		initial_Z = k2[carry];
+	}
+
+	EccPoint_mult(result, point, k2[!carry], initial_Z, num_n_bits + 1, curve);
+	r = 1;
+
+clear_and_out:
+	/* erasing temporary buffer used to store secret: */
+	mbedtls_platform_zeroize(k2, sizeof(k2));
+	mbedtls_platform_zeroize(tmp, sizeof(tmp));
+	mbedtls_platform_zeroize(s, sizeof(s));
+
+	return r;
 }
 
 uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,

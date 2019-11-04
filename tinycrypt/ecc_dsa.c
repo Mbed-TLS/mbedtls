@@ -114,13 +114,11 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 
 	uECC_word_t tmp[NUM_ECC_WORDS];
 	uECC_word_t s[NUM_ECC_WORDS];
-	uECC_word_t *k2[2] = {tmp, s};
 	uECC_word_t p[NUM_ECC_WORDS * 2];
-	uECC_word_t *initial_Z = 0;
-	uECC_word_t carry;
 	wordcount_t num_words = curve->num_words;
 	wordcount_t num_n_words = BITS_TO_WORDS(curve->num_n_bits);
-	bitcount_t num_n_bits = curve->num_n_bits;
+	int r;
+
 
 	/* Make sure 0 < k < curve_n */
   	if (uECC_vli_isZero(k, num_words) ||
@@ -128,21 +126,8 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 		return 0;
 	}
 
-	/* Regularize the bitcount for the private key so that attackers cannot use a
-	 * side channel attack to learn the number of leading zeros. */
-	carry = regularize_k(k, tmp, s, curve);
-
-	/* If an RNG function was specified, get a random initial Z value to
-         * protect against side-channel attacks such as Template SPA */
-	if (g_rng_function) {
-		if (!uECC_generate_random_int(k2[carry], curve->p, num_words)) {
-			return 0;
-		}
-		initial_Z = k2[carry];
-	}
-
-	EccPoint_mult(p, curve->G, k2[!carry], initial_Z, num_n_bits + 1, curve);
-	if (uECC_vli_isZero(p, num_words)) {
+	r = EccPoint_mult_safer(p, curve->G, k, curve);
+	if (r == 0 || uECC_vli_isZero(p, num_words)) {
 		return 0;
 	}
 

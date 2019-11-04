@@ -11,6 +11,12 @@
 #define ENTROPY_MIN_NV_SEED_SIZE                                        \
     MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
 
+/* PSA crypto uses the CTR_DRBG module. In some configurations, it needs
+ * to read from the entropy source twice: once for the initial entropy
+ * and once for a nonce. */
+#include "mbedtls/ctr_drbg.h"
+#define ENTROPY_NONCE_LEN MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN
+
 typedef struct
 {
     size_t threshold; /* Minimum bytes to make mbedtls_entropy_func happy */

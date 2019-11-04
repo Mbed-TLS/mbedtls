@@ -264,6 +264,9 @@ static void layer0_dgram_swap_dgrams( layer0_dgram_mock *ctx,
     size_t idx_a = layer0_dgram_shift_idx( ctx->read_pos, i );
     size_t idx_b = layer0_dgram_shift_idx( ctx->read_pos, j );
 
+    printf( "Swapping datagrams %u and %u\n",
+            (unsigned) ( i + 1 ), (unsigned) ( j + 1 ) );
+
     tmp = ctx->msgs[idx_a];
     ctx->msgs[idx_a] = ctx->msgs[idx_b];
     ctx->msgs[idx_b] = tmp;
@@ -322,6 +325,9 @@ static void layer0_dgram_corrupt( layer0_dgram_mock *ctx )
 
     msg_idx = 1 + rand() % ( msg_avail - 1 );
     msg = &ctx->msgs[ msg_idx ];
+
+    printf( "Corrupting datagram %u",
+            (unsigned) ( msg_idx + 1 ) );
 
     for( idx = 0; idx < msg->buflen; idx++ )
         msg->buf[ idx ] ^= 1;
@@ -10845,8 +10851,6 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         /*
          * Apply a permutation to the underlying datagram transport.
          */
-
-        printf( "PERMUTE\n" );
 
         if( permute )
         {

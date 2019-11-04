@@ -218,11 +218,11 @@ uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
 /* Computes result = left + right, returning carry, in constant time.
  * Can modify in place. */
 static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
-				const uECC_word_t *right, wordcount_t num_words)
+				const uECC_word_t *right)
 {
 	uECC_word_t carry = 0;
 	wordcount_t i;
-	for (i = 0; i < num_words; ++i) {
+	for (i = 0; i < NUM_ECC_WORDS; ++i) {
 		uECC_word_t sum = left[i] + right[i] + carry;
 		uECC_word_t val = (sum < left[i]);
 		carry = cond_set(val, carry, (sum != left[i]));
@@ -429,7 +429,7 @@ void uECC_vli_modAdd(uECC_word_t *result, const uECC_word_t *left,
 		     const uECC_word_t *right, const uECC_word_t *mod,
 		     wordcount_t num_words)
 {
-	uECC_word_t carry = uECC_vli_add(result, left, right, num_words);
+	uECC_word_t carry = uECC_vli_add(result, left, right);
 	if (carry || uECC_vli_cmp_unsafe(mod, result, num_words) != 1) {
 	/* result > mod (result = mod + remainder), so subtract mod to get
 	 * remainder. */
@@ -445,7 +445,7 @@ void uECC_vli_modSub(uECC_word_t *result, const uECC_word_t *left,
 	if (l_borrow) {
 		/* In this case, result == -diff == (max int) - diff. Since -x % d == d - x,
 		 * we can get the correct result from result + mod (with overflow). */
-		uECC_vli_add(result, result, mod, num_words);
+		uECC_vli_add(result, result, mod);
 	}
 }
 
@@ -529,7 +529,7 @@ static void vli_modInv_update(uECC_word_t *uv,
 	uECC_word_t carry = 0;
 
 	if (!EVEN(uv)) {
-		carry = uECC_vli_add(uv, uv, mod, num_words);
+		carry = uECC_vli_add(uv, uv, mod);
 	}
 	uECC_vli_rshift1(uv, num_words);
 	if (carry) {
@@ -565,7 +565,7 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
 			uECC_vli_sub(a, a, b, num_words);
 			uECC_vli_rshift1(a, num_words);
 			if (uECC_vli_cmp_unsafe(u, v, num_words) < 0) {
-        			uECC_vli_add(u, u, mod, num_words);
+        			uECC_vli_add(u, u, mod);
       			}
       			uECC_vli_sub(u, u, v, num_words);
       			vli_modInv_update(u, mod, num_words);
@@ -573,7 +573,7 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
       			uECC_vli_sub(b, b, a, num_words);
       			uECC_vli_rshift1(b, num_words);
       			if (uECC_vli_cmp_unsafe(v, u, num_words) < 0) {
-        			uECC_vli_add(v, v, mod, num_words);
+        			uECC_vli_add(v, v, mod);
       			}
       			uECC_vli_sub(v, v, u, num_words);
       			vli_modInv_update(v, mod, num_words);
@@ -610,7 +610,7 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_vli_modAdd(Z1, X1, X1, curve->p, num_words); /* t3 = 2*(x1^2 - z1^4) */
 	uECC_vli_modAdd(X1, X1, Z1, curve->p, num_words); /* t1 = 3*(x1^2 - z1^4) */
 	if (uECC_vli_testBit(X1, 0)) {
-		uECC_word_t l_carry = uECC_vli_add(X1, X1, curve->p, num_words);
+		uECC_word_t l_carry = uECC_vli_add(X1, X1, curve->p);
 		uECC_vli_rshift1(X1, num_words);
 		X1[num_words - 1] |= l_carry << (uECC_WORD_BITS - 1);
 	} else {
@@ -665,8 +665,8 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	tmp[5] = product[13];
 	tmp[6] = product[14];
 	tmp[7] = product[15];
-	carry = uECC_vli_add(tmp, tmp, tmp, NUM_ECC_WORDS);
-	carry += uECC_vli_add(result, result, tmp, NUM_ECC_WORDS);
+	carry = uECC_vli_add(tmp, tmp, tmp);
+	carry += uECC_vli_add(result, result, tmp);
 
 	/* s2 */
 	tmp[3] = product[12];
@@ -674,8 +674,8 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	tmp[5] = product[14];
 	tmp[6] = product[15];
 	tmp[7] = 0;
-	carry += uECC_vli_add(tmp, tmp, tmp, NUM_ECC_WORDS);
-	carry += uECC_vli_add(result, result, tmp, NUM_ECC_WORDS);
+	carry += uECC_vli_add(tmp, tmp, tmp);
+	carry += uECC_vli_add(result, result, tmp);
 
 	/* s3 */
 	tmp[0] = product[8];
@@ -684,7 +684,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	tmp[3] = tmp[4] = tmp[5] = 0;
 	tmp[6] = product[14];
 	tmp[7] = product[15];
-  	carry += uECC_vli_add(result, result, tmp, NUM_ECC_WORDS);
+  	carry += uECC_vli_add(result, result, tmp);
 
 	/* s4 */
 	tmp[0] = product[9];
@@ -695,7 +695,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	tmp[5] = product[15];
 	tmp[6] = product[13];
 	tmp[7] = product[8];
-	carry += uECC_vli_add(result, result, tmp, NUM_ECC_WORDS);
+	carry += uECC_vli_add(result, result, tmp);
 
 	/* d1 */
 	tmp[0] = product[11];
@@ -740,7 +740,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 
 	if (carry < 0) {
 		do {
-			carry += uECC_vli_add(result, result, curve_secp256r1.p, NUM_ECC_WORDS);
+			carry += uECC_vli_add(result, result, curve_secp256r1.p);
 		}
 		while (carry < 0);
 	} else  {
@@ -925,11 +925,11 @@ static uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
 	bitcount_t num_n_bits = NUM_ECC_BITS;
 	const uECC_Curve curve = uECC_secp256r1();
 
-	uECC_word_t carry = uECC_vli_add(k0, k, curve->n, num_n_words) ||
+	uECC_word_t carry = uECC_vli_add(k0, k, curve->n) ||
 			     (num_n_bits < ((bitcount_t)num_n_words * uECC_WORD_SIZE * 8) &&
 			     uECC_vli_testBit(k0, num_n_bits));
 
-	uECC_vli_add(k1, k0, curve->n, num_n_words);
+	uECC_vli_add(k1, k0, curve->n);
 
 	return carry;
 }

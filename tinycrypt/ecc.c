@@ -514,8 +514,7 @@ void uECC_vli_modMult_fast(uECC_word_t *result, const uECC_word_t *left,
 #define EVEN(vli) (!(vli[0] & 1))
 
 static void vli_modInv_update(uECC_word_t *uv,
-			      const uECC_word_t *mod,
-			      wordcount_t num_words)
+			      const uECC_word_t *mod)
 {
 
 	uECC_word_t carry = 0;
@@ -525,12 +524,12 @@ static void vli_modInv_update(uECC_word_t *uv,
 	}
 	uECC_vli_rshift1(uv);
 	if (carry) {
-		uv[num_words - 1] |= HIGH_BIT_SET;
+		uv[NUM_ECC_WORDS - 1] |= HIGH_BIT_SET;
 	}
 }
 
 void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
-		     const uECC_word_t *mod, wordcount_t num_words)
+		     const uECC_word_t *mod)
 {
 	uECC_word_t a[NUM_ECC_WORDS], b[NUM_ECC_WORDS];
 	uECC_word_t u[NUM_ECC_WORDS], v[NUM_ECC_WORDS];
@@ -549,10 +548,10 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
 	while ((cmpResult = uECC_vli_cmp_unsafe(a, b)) != 0) {
 		if (EVEN(a)) {
 			uECC_vli_rshift1(a);
-      			vli_modInv_update(u, mod, num_words);
+      			vli_modInv_update(u, mod);
     		} else if (EVEN(b)) {
 			uECC_vli_rshift1(b);
-			vli_modInv_update(v, mod, num_words);
+			vli_modInv_update(v, mod);
 		} else if (cmpResult > 0) {
 			uECC_vli_sub(a, a, b);
 			uECC_vli_rshift1(a);
@@ -560,7 +559,7 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
         			uECC_vli_add(u, u, mod);
       			}
       			uECC_vli_sub(u, u, v);
-      			vli_modInv_update(u, mod, num_words);
+      			vli_modInv_update(u, mod);
     		} else {
       			uECC_vli_sub(b, b, a);
       			uECC_vli_rshift1(b);
@@ -568,7 +567,7 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
         			uECC_vli_add(v, v, mod);
       			}
       			uECC_vli_sub(v, v, u);
-      			vli_modInv_update(v, mod, num_words);
+      			vli_modInv_update(v, mod);
     		}
   	}
   	uECC_vli_set(result, u);
@@ -892,7 +891,7 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	uECC_vli_modSub(z, Rx[1], Rx[0], curve->p); /* X1 - X0 */
 	uECC_vli_modMult_fast(z, z, Ry[1 - nb]); /* Yb * (X1 - X0) */
 	uECC_vli_modMult_fast(z, z, point); /* xP * Yb * (X1 - X0) */
-	uECC_vli_modInv(z, z, curve->p, num_words); /* 1 / (xP * Yb * (X1 - X0))*/
+	uECC_vli_modInv(z, z, curve->p); /* 1 / (xP * Yb * (X1 - X0))*/
 	/* yP / (xP * Yb * (X1 - X0)) */
 	uECC_vli_modMult_fast(z, z, point + num_words);
 	/* Xb * yP / (xP * Yb * (X1 - X0)) */

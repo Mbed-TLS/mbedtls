@@ -440,7 +440,7 @@ void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
  * @param num_words -- number of words
  */
 void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
-		     const uECC_word_t *mod, wordcount_t num_words);
+		     const uECC_word_t *mod);
 
 /*
  * @brief Sets dest = src.

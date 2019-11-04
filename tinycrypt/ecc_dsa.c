@@ -143,7 +143,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	/* Prevent side channel analysis of uECC_vli_modInv() to determine
 	bits of k / the private key by premultiplying by a random number */
 	uECC_vli_modMult(k, k, tmp, curve->n); /* k' = rand * k */
-	uECC_vli_modInv(k, k, curve->n, num_n_words);       /* k = 1 / k' */
+	uECC_vli_modInv(k, k, curve->n);       /* k = 1 / k' */
 	uECC_vli_modMult(k, k, tmp, curve->n); /* k = 1 / k */
 
 	uECC_vli_nativeToBytes(signature, curve->num_bytes, p); /* store r */
@@ -242,7 +242,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	}
 
 	/* Calculate u1 and u2. */
-	uECC_vli_modInv(z, s, curve->n, num_n_words); /* z = 1/s */
+	uECC_vli_modInv(z, s, curve->n); /* z = 1/s */
 	u1[num_n_words - 1] = 0;
 	bits2int(u1, message_hash, hash_size, curve);
 	uECC_vli_modMult(u1, u1, z, curve->n); /* u1 = e/s */
@@ -255,7 +255,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_set(ty, curve->G + num_words);
 	uECC_vli_modSub(z, sum, tx, curve->p); /* z = x2 - x1 */
 	XYcZ_add(tx, ty, sum, sum + num_words, curve);
-	uECC_vli_modInv(z, z, curve->p, num_words); /* z = 1/z */
+	uECC_vli_modInv(z, z, curve->p); /* z = 1/z */
 	apply_z(sum, sum + num_words, z);
 
 	/* Use Shamir's trick to calculate u1*G + u2*Q */
@@ -289,7 +289,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 		}
   	}
 
-	uECC_vli_modInv(z, z, curve->p, num_words); /* Z = 1/Z */
+	uECC_vli_modInv(z, z, curve->p); /* Z = 1/Z */
 	apply_z(rx, ry, z);
 
 	/* v = x1 (mod n) */

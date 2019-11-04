@@ -303,7 +303,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
  * @param num_words IN -- number of words in the vli
  * @return 1 if vli == 0, 0 otherwise.
  */
-uECC_word_t uECC_vli_isZero(const uECC_word_t *vli, wordcount_t num_words);
+uECC_word_t uECC_vli_isZero(const uECC_word_t *vli);
 
 /*
  * @brief Check if 'point' is the point at infinity

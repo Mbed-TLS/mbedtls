@@ -121,13 +121,13 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 
 
 	/* Make sure 0 < k < curve_n */
-  	if (uECC_vli_isZero(k, num_words) ||
+  	if (uECC_vli_isZero(k) ||
 	    uECC_vli_cmp(curve->n, k, num_n_words) != 1) {
 		return 0;
 	}
 
 	r = EccPoint_mult_safer(p, curve->G, k, curve);
-	if (r == 0 || uECC_vli_isZero(p, num_words)) {
+	if (r == 0 || uECC_vli_isZero(p)) {
 		return 0;
 	}
 
@@ -232,7 +232,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_bytesToNative(s, signature + curve->num_bytes, curve->num_bytes);
 
 	/* r, s must not be 0. */
-	if (uECC_vli_isZero(r, num_words) || uECC_vli_isZero(s, num_words)) {
+	if (uECC_vli_isZero(r) || uECC_vli_isZero(s)) {
 		return 0;
 	}
 

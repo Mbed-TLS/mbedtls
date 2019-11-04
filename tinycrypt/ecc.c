@@ -104,11 +104,11 @@ void uECC_vli_clear(uECC_word_t *vli, wordcount_t num_words)
 	}
 }
 
-uECC_word_t uECC_vli_isZero(const uECC_word_t *vli, wordcount_t num_words)
+uECC_word_t uECC_vli_isZero(const uECC_word_t *vli)
 {
 	uECC_word_t bits = 0;
 	wordcount_t i;
-	for (i = 0; i < num_words; ++i) {
+	for (i = 0; i < NUM_ECC_WORDS; ++i) {
 		bits |= vli[i];
 	}
 	return (bits == 0);
@@ -236,7 +236,7 @@ cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right,
 {
 	uECC_word_t tmp[NUM_ECC_WORDS];
 	uECC_word_t neg = !!uECC_vli_sub(tmp, left, right, num_words);
-	uECC_word_t equal = uECC_vli_isZero(tmp, num_words);
+	uECC_word_t equal = uECC_vli_isZero(tmp);
 	return (!equal - 2 * neg);
 }
 
@@ -544,7 +544,7 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
 	uECC_word_t u[NUM_ECC_WORDS], v[NUM_ECC_WORDS];
 	cmpresult_t cmpResult;
 
-	if (uECC_vli_isZero(input, num_words)) {
+	if (uECC_vli_isZero(input)) {
 		uECC_vli_clear(result, num_words);
 		return;
 	}
@@ -592,7 +592,7 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_word_t t5[NUM_ECC_WORDS];
 	wordcount_t num_words = curve->num_words;
 
-	if (uECC_vli_isZero(Z1, num_words)) {
+	if (uECC_vli_isZero(Z1)) {
 		return;
 	}
 
@@ -753,7 +753,8 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 
 uECC_word_t EccPoint_isZero(const uECC_word_t *point, uECC_Curve curve)
 {
-	return uECC_vli_isZero(point, curve->num_words * 2);
+	(void) curve;
+	return uECC_vli_isZero(point);
 }
 
 void apply_z(uECC_word_t * X1, uECC_word_t * Y1, const uECC_word_t * const Z)
@@ -1040,7 +1041,7 @@ int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
     		}
 		random[num_words - 1] &=
         		mask >> ((bitcount_t)(num_words * uECC_WORD_SIZE * 8 - num_bits));
-		if (!uECC_vli_isZero(random, num_words) &&
+		if (!uECC_vli_isZero(random) &&
 			uECC_vli_cmp(top, random, num_words) == 1) {
 			return 1;
 		}
@@ -1107,7 +1108,7 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
 	BITS_TO_BYTES(curve->num_n_bits));
 
 	/* Make sure the private key is in the range [1, n-1]. */
-	if (uECC_vli_isZero(_private, BITS_TO_WORDS(curve->num_n_bits))) {
+	if (uECC_vli_isZero(_private)) {
 		return 0;
 	}
 

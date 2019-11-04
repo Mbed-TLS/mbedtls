@@ -735,7 +735,8 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
             RETURN( MPS_ERR_BUFFER_TOO_SMALL );
         }
 
-        RETURN( MPS_ERR_WANT_WRITE );
+        /* We could also return WANT_WRITE here. */
+        RETURN( MPS_ERR_CONTINUE_PROCESSING );
     }
 
     /* Dissect L1 record buffer into header, ciphertext and plaintext parts.
@@ -1709,16 +1710,14 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
                 RETURN( ret );
 
             TRACE( trace_comment, "Signal that the processing should be retried." );
-            /* Remember that MPS_ERR_WANT_READ should only be returned when
+            /* We could return MPS_ERR_WANT_READ here, indicating that
              * progress can _only_ be made through additional data on the
-             * underlying transport.
-             * That's the case here because we have discarded the entire
-             * underlying datagram, hence progress can only be made once
-             * another datagram is available.
-             *
-             * BUT: If Layer 1 ever buffers more than one datagram,
-             * this needs to be reconsidered. */
-            RETURN( MPS_ERR_WANT_READ );
+             * underlying transport (which is the case here because we have
+             * discarded the entire underlying datagram, hence progress can
+             * only be made once another datagram is available).
+             * However, this non-locally depends on Layer 1 not buffering
+             * more than one datagram and is hence slightly fragile. */
+            RETURN( MPS_ERR_CONTINUE_PROCESSING );
         }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -1765,10 +1764,10 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
                     if( ( ret = mps_l1_skip( ctx->conf.l1 ) ) != 0 )
                         RETURN( ret );
 
-                    /* NOTE: As above, if Layer 1 ever buffers more than
-                     *       one datagram, returning #MPS_ERR_WANT_READ
-                     *       here needs to be reconsidered. */
-                    RETURN( MPS_ERR_WANT_READ );
+                    /* As above, at the moment it is safe to return WANT_READ,
+                     * but this might change if Layer 1 ever buffers more than
+                     * one datagram. */
+                    RETURN( MPS_ERR_CONTINUE_PROCESSING );
                 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -1837,19 +1836,18 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
             if( ret != 0 )
                 RETURN( ret );
 
-            /* It is OK to return #MPS_ERR_WANT_READ here because the
-             * present code-path is TLS-only, and in TLS we never
+            /* As above, it would be ok to return #MPS_ERR_WANT_READ here
+             * because the present code-path is TLS-only, and in TLS we never
              * internally buffer more than one record. As we're done
              * with the current record, progress can only be made if
              * the underlying transport signals more incoming data
              * available, which is precisely what #MPS_ERR_WANT_READ
              * indicates.
-             *
-             * NOTE: If Layer 1 ever changes to request and buffer more
-             *       data than what we asked for, this needs to be
-             *       reconsidered.
+             * However, if Layer 1 ever changes to request and buffer more
+             * data than what we asked for, this would need to be reconsidered,
+             * so it's safer to return MPS_ERR_CONTINUE_PROCESSING.
              */
-            RETURN( MPS_ERR_WANT_READ );
+            RETURN( MPS_ERR_CONTINUE_PROCESSING );
         }
         else
 #endif /* MBEDTLS_MPS_PROTO_TLS */

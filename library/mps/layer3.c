@@ -225,11 +225,11 @@ int mps_l3_read( mps_l3 *l3 )
                         RETURN( res );
 
                     /* No records are buffered by Layer 2, so progress depends
-                     * on the availability of the underlying transport.
-                     *
-                     * NOTE: If Layer 2 ever happens to fetch and buffer
-                     *       multiple records, this must be changed. */
-                    RETURN( MPS_ERR_WANT_READ );
+                     * on the availability of the underlying transport. We could
+                     * hence return MPS_ERR_WANT_READ here. However, this would
+                     * need to be re-evaluated with any change on Layer 2, so
+                     * it's safer to return MPS_ERR_CONTINUE_PROCESSING. */
+                    RETURN( MPS_ERR_CONTINUE_PROCESSING );
                 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
             }
@@ -331,13 +331,15 @@ int mps_l3_read( mps_l3 *l3 )
                             if( res != 0 )
                                 RETURN( res );
 
-                            /* No records are buffered by Layer 2, so progress
-                             * depends on the availability of the underlying
-                             * transport.
-                             *
-                             * NOTE: If Layer 2 ever happens to fetch and buffer
-                             *       multiple records, this must be changed. */
-                            RETURN( MPS_ERR_WANT_READ );
+                            /* We could return WANT_READ here, because
+                             * _currently_ no records are buffered by Layer 2,
+                             * hence progress depends on the availability of the
+                             * underlying transport.
+                             * However, this would need to be reconsidered and
+                             * potentially adapted with any change to Layer 2,
+                             * so returning MPS_ERR_CONTINUE_PROCESSING
+                             * is safer. */
+                            RETURN( MPS_ERR_CONTINUE_PROCESSING );
                         }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
                     }
@@ -1052,7 +1054,11 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             res = mps_l2_write_done( l3->conf.l2 );
             if( res != 0 )
                 RETURN( res );
-            RETURN( MPS_ERR_WANT_WRITE );
+
+            /* We could return WANT_WRITE here to indicate that
+             * progress hinges on the availability of the underlying
+             * transport. */
+            RETURN( MPS_ERR_CONTINUE_PROCESSING );
         }
         else if( res != 0 )
             RETURN( res );
@@ -1150,7 +1156,11 @@ int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert )
         res = mps_l2_write_done( l3->conf.l2 );
         if( res != 0 )
             RETURN( res );
-        RETURN( MPS_ERR_WANT_WRITE );
+
+        /* We could return WANT_WRITE here to indicate that
+         * progress hinges on the availability of the underlying
+         * transport. */
+        RETURN( MPS_ERR_CONTINUE_PROCESSING );
     }
     else if( res != 0 )
         RETURN( res );
@@ -1179,7 +1189,11 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs )
         res = mps_l2_write_done( l3->conf.l2 );
         if( res != 0 )
             RETURN( res );
-        RETURN( MPS_ERR_WANT_WRITE );
+
+        /* We could return WANT_WRITE here to indicate that
+         * progress hinges on the availability of the underlying
+         * transport. */
+        RETURN( MPS_ERR_CONTINUE_PROCESSING );
     }
     else if( res != 0 )
         RETURN( res );

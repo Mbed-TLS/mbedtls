@@ -873,8 +873,7 @@ static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 
 static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 		   const uECC_word_t * scalar,
-		   const uECC_word_t * initial_Z,
-		   bitcount_t num_bits, uECC_Curve curve)
+		   const uECC_word_t * initial_Z)
 {
 	/* R0 and R1 */
 	uECC_word_t Rx[2][NUM_ECC_WORDS];
@@ -882,7 +881,9 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	uECC_word_t z[NUM_ECC_WORDS];
 	bitcount_t i;
 	uECC_word_t nb;
-	wordcount_t num_words = curve->num_words;
+	const wordcount_t num_words = 8;
+	const bitcount_t num_bits = 256 + 1; /* from regularize_k */
+	const uECC_Curve curve = uECC_secp256r1();
 	ecc_wait_state_t wait_state;
 	ecc_wait_state_t * const ws = g_rng_function ? &wait_state : NULL;
 
@@ -921,12 +922,12 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 }
 
 static uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
-			 uECC_word_t *k1, uECC_Curve curve)
+			 uECC_word_t *k1)
 {
 
-	wordcount_t num_n_words = BITS_TO_WORDS(curve->num_n_bits);
-
-	bitcount_t num_n_bits = curve->num_n_bits;
+	wordcount_t num_n_words = 8;
+	bitcount_t num_n_bits = 256;
+	const uECC_Curve curve = uECC_secp256r1();
 
 	uECC_word_t carry = uECC_vli_add(k0, k, curve->n, num_n_words) ||
 			     (num_n_bits < ((bitcount_t)num_n_words * uECC_WORD_SIZE * 8) &&
@@ -943,15 +944,17 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	uECC_word_t tmp[NUM_ECC_WORDS];
 	uECC_word_t s[NUM_ECC_WORDS];
 	uECC_word_t *k2[2] = {tmp, s};
-	wordcount_t num_words = curve->num_words;
-	bitcount_t num_n_bits = curve->num_n_bits;
+	wordcount_t num_words = 8;
 	uECC_word_t carry;
 	uECC_word_t *initial_Z = 0;
 	int r;
 
+	if (curve != uECC_secp256r1())
+		return 0;
+
 	/* Regularize the bitcount for the private key so that attackers cannot use a
 	 * side channel attack to learn the number of leading zeros. */
-	carry = regularize_k(scalar, tmp, s, curve);
+	carry = regularize_k(scalar, tmp, s);
 
 	/* If an RNG function was specified, get a random initial Z value to
          * protect against side-channel attacks such as Template SPA */
@@ -963,7 +966,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 		initial_Z = k2[carry];
 	}
 
-	EccPoint_mult(result, point, k2[!carry], initial_Z, num_n_bits + 1, curve);
+	EccPoint_mult(result, point, k2[!carry], initial_Z);
 	r = 1;
 
 clear_and_out:
@@ -985,11 +988,14 @@ uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
 	uECC_word_t *p2[2] = {tmp1, tmp2};
 	uECC_word_t carry;
 
+	if (curve != uECC_secp256r1())
+		return 0;
+
 	/* Regularize the bitcount for the private key so that attackers cannot
 	 * use a side channel attack to learn the number of leading zeros. */
-	carry = regularize_k(private_key, tmp1, tmp2, curve);
+	carry = regularize_k(private_key, tmp1, tmp2);
 
-	EccPoint_mult(result, curve->G, p2[!carry], 0, curve->num_n_bits + 1, curve);
+	EccPoint_mult(result, curve->G, p2[!carry], 0);
 
 	if (EccPoint_isZero(result, curve)) {
 		return 0;

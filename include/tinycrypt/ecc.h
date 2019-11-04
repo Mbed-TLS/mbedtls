@@ -453,8 +453,7 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
  * @param src IN --  origin buffer
  * @param num_words IN -- number of words
  */
-void uECC_vli_set(uECC_word_t *dest, const uECC_word_t *src,
-		  wordcount_t num_words);
+void uECC_vli_set(uECC_word_t *dest, const uECC_word_t *src);
 
 /*
  * @brief Computes (left + right) % mod.

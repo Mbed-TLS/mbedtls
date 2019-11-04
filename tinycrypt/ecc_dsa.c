@@ -115,7 +115,6 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_word_t tmp[NUM_ECC_WORDS];
 	uECC_word_t s[NUM_ECC_WORDS];
 	uECC_word_t p[NUM_ECC_WORDS * 2];
-	wordcount_t num_words = curve->num_words;
 	wordcount_t num_n_words = BITS_TO_WORDS(curve->num_n_bits);
 	int r;
 
@@ -153,7 +152,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_vli_bytesToNative(tmp, private_key, BITS_TO_BYTES(curve->num_n_bits));
 
 	s[num_n_words - 1] = 0;
-	uECC_vli_set(s, p, num_words);
+	uECC_vli_set(s, p);
 	uECC_vli_modMult(s, tmp, s, curve->n, num_n_words); /* s = r*d */
 
 	bits2int(tmp, message_hash, hash_size, curve);
@@ -250,10 +249,10 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_modMult(u2, r, z, curve->n, num_n_words); /* u2 = r/s */
 
 	/* Calculate sum = G + Q. */
-	uECC_vli_set(sum, _public, num_words);
-	uECC_vli_set(sum + num_words, _public + num_words, num_words);
-	uECC_vli_set(tx, curve->G, num_words);
-	uECC_vli_set(ty, curve->G + num_words, num_words);
+	uECC_vli_set(sum, _public);
+	uECC_vli_set(sum + num_words, _public + num_words);
+	uECC_vli_set(tx, curve->G);
+	uECC_vli_set(ty, curve->G + num_words);
 	uECC_vli_modSub(z, sum, tx, curve->p, num_words); /* z = x2 - x1 */
 	XYcZ_add(tx, ty, sum, sum + num_words, curve);
 	uECC_vli_modInv(z, z, curve->p, num_words); /* z = 1/z */
@@ -269,8 +268,8 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	point = points[(!!uECC_vli_testBit(u1, num_bits - 1)) |
                        ((!!uECC_vli_testBit(u2, num_bits - 1)) << 1)];
-	uECC_vli_set(rx, point, num_words);
-	uECC_vli_set(ry, point + num_words, num_words);
+	uECC_vli_set(rx, point);
+	uECC_vli_set(ry, point + num_words);
 	uECC_vli_clear(z);
 	z[0] = 1;
 
@@ -281,8 +280,8 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 		index = (!!uECC_vli_testBit(u1, i)) | ((!!uECC_vli_testBit(u2, i)) << 1);
 		point = points[index];
 		if (point) {
-			uECC_vli_set(tx, point, num_words);
-			uECC_vli_set(ty, point + num_words, num_words);
+			uECC_vli_set(tx, point);
+			uECC_vli_set(ty, point + num_words);
 			apply_z(tx, ty, z);
 			uECC_vli_modSub(tz, rx, tx, curve->p, num_words); /* Z = x2 - x1 */
 			XYcZ_add(tx, ty, rx, ry, curve);

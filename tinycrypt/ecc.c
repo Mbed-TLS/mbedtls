@@ -152,12 +152,11 @@ bitcount_t uECC_vli_numBits(const uECC_word_t *vli)
 	return (((bitcount_t)(num_digits - 1) << uECC_WORD_BITS_SHIFT) + i);
 }
 
-void uECC_vli_set(uECC_word_t *dest, const uECC_word_t *src,
-		  wordcount_t num_words)
+void uECC_vli_set(uECC_word_t *dest, const uECC_word_t *src)
 {
 	wordcount_t i;
 
-	for (i = 0; i < num_words; ++i) {
+	for (i = 0; i < NUM_ECC_WORDS; ++i) {
 		dest[i] = src[i];
   	}
 }
@@ -470,7 +469,7 @@ void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
 			carry = mod[index] >> (uECC_WORD_BITS - bit_shift);
 		}
 	} else {
-		uECC_vli_set(mod_multiple + word_shift, mod, num_words);
+		uECC_vli_set(mod_multiple + word_shift, mod);
 	}
 
 	for (index = 1; shift >= 0; --shift) {
@@ -490,7 +489,7 @@ void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
 					       (uECC_WORD_BITS - 1);
 		uECC_vli_rshift1(mod_multiple + num_words, num_words);
 	}
-	uECC_vli_set(result, v[index], num_words);
+	uECC_vli_set(result, v[index]);
 }
 
 void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
@@ -547,8 +546,8 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
 		return;
 	}
 
-	uECC_vli_set(a, input, num_words);
-	uECC_vli_set(b, mod, num_words);
+	uECC_vli_set(a, input);
+	uECC_vli_set(b, mod);
 	uECC_vli_clear(u);
 	u[0] = 1;
 	uECC_vli_clear(v);
@@ -577,7 +576,7 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
       			vli_modInv_update(v, mod, num_words);
     		}
   	}
-  	uECC_vli_set(result, u, num_words);
+  	uECC_vli_set(result, u);
 }
 
 /* ------ Point operations ------ */
@@ -624,9 +623,9 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 	/* t4 = B * (A - x3) - y1^4 = y3: */
 	uECC_vli_modSub(t4, X1, t4, curve->p, num_words);
 
-	uECC_vli_set(X1, Z1, num_words);
-	uECC_vli_set(Z1, Y1, num_words);
-	uECC_vli_set(Y1, t4, num_words);
+	uECC_vli_set(X1, Z1);
+	uECC_vli_set(Z1, Y1);
+	uECC_vli_set(Y1, t4);
 }
 
 void x_side_default(uECC_word_t *result,
@@ -654,7 +653,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	int carry;
 
 	/* t */
-	uECC_vli_set(result, product, NUM_ECC_WORDS);
+	uECC_vli_set(result, product);
 
 	/* s1 */
 	tmp[0] = tmp[1] = tmp[2] = 0;
@@ -772,16 +771,15 @@ static void XYcZ_initial_double(uECC_word_t * X1, uECC_word_t * Y1,
 				uECC_Curve curve)
 {
 	uECC_word_t z[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
 	if (initial_Z) {
-		uECC_vli_set(z, initial_Z, num_words);
+		uECC_vli_set(z, initial_Z);
 	} else {
 		uECC_vli_clear(z);
 		z[0] = 1;
 	}
 
-	uECC_vli_set(X2, X1, num_words);
-	uECC_vli_set(Y2, Y1, num_words);
+	uECC_vli_set(X2, X1);
+	uECC_vli_set(Y2, Y1);
 
 	apply_z(X1, Y1, z);
 	curve->double_jacobian(X1, Y1, z, curve);
@@ -812,7 +810,7 @@ static void XYcZ_add_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_vli_modMult_rnd(Y2, Y2, X2, s); /* t4 = (y2 - y1)*(B - x3) */
 	uECC_vli_modSub(Y2, Y2, Y1, curve->p, num_words); /* t4 = y3 */
 
-	uECC_vli_set(X2, t5, num_words);
+	uECC_vli_set(X2, t5);
 }
 
 void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1,
@@ -863,7 +861,7 @@ static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 	/* t2 = (y2+y1)*(x3' - B) - E = y3': */
 	uECC_vli_modSub(Y1, t6, Y1, curve->p, num_words);
 
-	uECC_vli_set(X1, t7, num_words);
+	uECC_vli_set(X1, t7);
 }
 
 static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
@@ -882,8 +880,8 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	ecc_wait_state_t wait_state;
 	ecc_wait_state_t * const ws = g_rng_function ? &wait_state : NULL;
 
-	uECC_vli_set(Rx[1], point, num_words);
-  	uECC_vli_set(Ry[1], point + num_words, num_words);
+	uECC_vli_set(Rx[1], point);
+  	uECC_vli_set(Ry[1], point + num_words);
 
 	XYcZ_initial_double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z, curve);
 
@@ -912,8 +910,8 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	XYcZ_add_rnd(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb], ws);
 	apply_z(Rx[0], Ry[0], z);
 
-	uECC_vli_set(result, Rx[0], num_words);
-	uECC_vli_set(result + num_words, Ry[0], num_words);
+	uECC_vli_set(result, Rx[0]);
+	uECC_vli_set(result + num_words, Ry[0]);
 }
 
 static uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,

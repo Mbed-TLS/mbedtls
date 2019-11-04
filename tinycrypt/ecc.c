@@ -489,13 +489,11 @@ void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
 }
 
 void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
-		      const uECC_word_t *right, const uECC_word_t *mod,
-		      wordcount_t num_words)
+		      const uECC_word_t *right, const uECC_word_t *mod)
 {
 	uECC_word_t product[2 * NUM_ECC_WORDS];
 	uECC_vli_mult_rnd(product, left, right, NULL);
 	uECC_vli_mmod(result, product, mod);
-	(void) num_words;
 }
 
 static void uECC_vli_modMult_rnd(uECC_word_t *result, const uECC_word_t *left,

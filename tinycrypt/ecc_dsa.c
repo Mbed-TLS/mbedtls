@@ -142,9 +142,9 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 
 	/* Prevent side channel analysis of uECC_vli_modInv() to determine
 	bits of k / the private key by premultiplying by a random number */
-	uECC_vli_modMult(k, k, tmp, curve->n, num_n_words); /* k' = rand * k */
+	uECC_vli_modMult(k, k, tmp, curve->n); /* k' = rand * k */
 	uECC_vli_modInv(k, k, curve->n, num_n_words);       /* k = 1 / k' */
-	uECC_vli_modMult(k, k, tmp, curve->n, num_n_words); /* k = 1 / k */
+	uECC_vli_modMult(k, k, tmp, curve->n); /* k = 1 / k */
 
 	uECC_vli_nativeToBytes(signature, curve->num_bytes, p); /* store r */
 
@@ -153,11 +153,11 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 
 	s[num_n_words - 1] = 0;
 	uECC_vli_set(s, p);
-	uECC_vli_modMult(s, tmp, s, curve->n, num_n_words); /* s = r*d */
+	uECC_vli_modMult(s, tmp, s, curve->n); /* s = r*d */
 
 	bits2int(tmp, message_hash, hash_size, curve);
 	uECC_vli_modAdd(s, tmp, s, curve->n); /* s = e + r*d */
-	uECC_vli_modMult(s, s, k, curve->n, num_n_words);  /* s = (e + r*d) / k */
+	uECC_vli_modMult(s, s, k, curve->n);  /* s = (e + r*d) / k */
 	if (uECC_vli_numBits(s) > (bitcount_t)curve->num_bytes * 8) {
 		return 0;
 	}
@@ -245,8 +245,8 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_modInv(z, s, curve->n, num_n_words); /* z = 1/s */
 	u1[num_n_words - 1] = 0;
 	bits2int(u1, message_hash, hash_size, curve);
-	uECC_vli_modMult(u1, u1, z, curve->n, num_n_words); /* u1 = e/s */
-	uECC_vli_modMult(u2, r, z, curve->n, num_n_words); /* u2 = r/s */
+	uECC_vli_modMult(u1, u1, z, curve->n); /* u1 = e/s */
+	uECC_vli_modMult(u2, r, z, curve->n); /* u2 = r/s */
 
 	/* Calculate sum = G + Q. */
 	uECC_vli_set(sum, _public);

@@ -336,7 +336,7 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	uECC_word_t r1 = 0;
 	uECC_word_t r2 = 0;
 	wordcount_t i, k;
-	const uint8_t num_words = 8;
+	const uint8_t num_words = NUM_ECC_WORDS;
 
 	/* Fetch 8 bit worth of delay from the state; 0 if we have no state */
 	uint8_t delays = s ? s->delays[s->i++] : 0;
@@ -796,7 +796,7 @@ static void XYcZ_add_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 	/* t1 = X1, t2 = Y1, t3 = X2, t4 = Y2 */
 	uECC_word_t t5[NUM_ECC_WORDS];
 	const uECC_Curve curve = &curve_secp256r1;
-	const wordcount_t num_words = 8;
+	const wordcount_t num_words = NUM_ECC_WORDS;
 
 	uECC_vli_modSub(t5, X2, X1, curve->p, num_words); /* t5 = x2 - x1 */
 	uECC_vli_modMult_rnd(t5, t5, t5, s); /* t5 = (x2 - x1)^2 = A */
@@ -837,7 +837,7 @@ static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_word_t t6[NUM_ECC_WORDS];
 	uECC_word_t t7[NUM_ECC_WORDS];
 	const uECC_Curve curve = &curve_secp256r1;
-	const wordcount_t num_words = 8;
+	const wordcount_t num_words = NUM_ECC_WORDS;
 
 	uECC_vli_modSub(t5, X2, X1, curve->p, num_words); /* t5 = x2 - x1 */
 	uECC_vli_modMult_rnd(t5, t5, t5, s); /* t5 = (x2 - x1)^2 = A */
@@ -877,8 +877,8 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	uECC_word_t z[NUM_ECC_WORDS];
 	bitcount_t i;
 	uECC_word_t nb;
-	const wordcount_t num_words = 8;
-	const bitcount_t num_bits = 256 + 1; /* from regularize_k */
+	const wordcount_t num_words = NUM_ECC_WORDS;
+	const bitcount_t num_bits = NUM_ECC_BITS + 1; /* from regularize_k */
 	const uECC_Curve curve = uECC_secp256r1();
 	ecc_wait_state_t wait_state;
 	ecc_wait_state_t * const ws = g_rng_function ? &wait_state : NULL;
@@ -921,8 +921,8 @@ static uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
 			 uECC_word_t *k1)
 {
 
-	wordcount_t num_n_words = 8;
-	bitcount_t num_n_bits = 256;
+	wordcount_t num_n_words = NUM_ECC_WORDS;
+	bitcount_t num_n_bits = NUM_ECC_BITS;
 	const uECC_Curve curve = uECC_secp256r1();
 
 	uECC_word_t carry = uECC_vli_add(k0, k, curve->n, num_n_words) ||
@@ -940,7 +940,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	uECC_word_t tmp[NUM_ECC_WORDS];
 	uECC_word_t s[NUM_ECC_WORDS];
 	uECC_word_t *k2[2] = {tmp, s};
-	wordcount_t num_words = 8;
+	wordcount_t num_words = NUM_ECC_WORDS;
 	uECC_word_t carry;
 	uECC_word_t *initial_Z = 0;
 	int r;

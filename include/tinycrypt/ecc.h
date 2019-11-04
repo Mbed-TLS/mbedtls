@@ -111,6 +111,7 @@ typedef uint64_t uECC_dword_t;
 #define NUM_ECC_WORDS 8
 /* Number of bytes to represent an element of the the curve p-256: */
 #define NUM_ECC_BYTES (uECC_WORD_SIZE*NUM_ECC_WORDS)
+#define NUM_ECC_BITS 256
 
 /* structure that represents an elliptic curve (e.g. p256):*/
 struct uECC_Curve_t;

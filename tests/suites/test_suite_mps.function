@@ -309,10 +309,16 @@ static void layer0_dgram_corrupt( layer0_dgram_mock *ctx )
     size_t msg_idx;
     size_t idx;
 
-    if( msg_avail < 1 )
+    /* Corrupting the first message isn't guaranteed to work,
+     * specification-wise: It'll be dropped, and then the next
+     * message's higher sequence number will calibrate the
+     * handshake (the server accepts anything as the first
+     * sequence number in order to support server reset after
+     * the initial ClientHello). */
+    if( msg_avail < 2 )
         return;
 
-    msg_idx = rand() % msg_avail;
+    msg_idx = 1 + rand() % ( msg_avail - 1 );
     msg = &ctx->msgs[ msg_idx ];
 
     for( idx = 0; idx < msg->buflen; idx++ )

@@ -343,8 +343,7 @@ cmpresult_t uECC_vli_cmp_unsafe(const uECC_word_t *left, const uECC_word_t *righ
  * @param num_words IN -- number of words
  */
 void uECC_vli_modSub(uECC_word_t *result, const uECC_word_t *left,
-		     const uECC_word_t *right, const uECC_word_t *mod,
-		     wordcount_t num_words);
+		     const uECC_word_t *right, const uECC_word_t *mod);
 
 /*
  * @brief Computes P' = (x1', y1', Z3), P + Q = (x3, y3, Z3) or

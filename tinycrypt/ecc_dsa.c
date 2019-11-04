@@ -253,7 +253,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_set(sum + num_words, _public + num_words);
 	uECC_vli_set(tx, curve->G);
 	uECC_vli_set(ty, curve->G + num_words);
-	uECC_vli_modSub(z, sum, tx, curve->p, num_words); /* z = x2 - x1 */
+	uECC_vli_modSub(z, sum, tx, curve->p); /* z = x2 - x1 */
 	XYcZ_add(tx, ty, sum, sum + num_words, curve);
 	uECC_vli_modInv(z, z, curve->p, num_words); /* z = 1/z */
 	apply_z(sum, sum + num_words, z);
@@ -283,7 +283,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 			uECC_vli_set(tx, point);
 			uECC_vli_set(ty, point + num_words);
 			apply_z(tx, ty, z);
-			uECC_vli_modSub(tz, rx, tx, curve->p, num_words); /* Z = x2 - x1 */
+			uECC_vli_modSub(tz, rx, tx, curve->p); /* Z = x2 - x1 */
 			XYcZ_add(tx, ty, rx, ry, curve);
 			uECC_vli_modMult_fast(z, z, tz);
 		}

@@ -431,11 +431,9 @@ void uECC_vli_modAdd(uECC_word_t *result, const uECC_word_t *left,
 }
 
 void uECC_vli_modSub(uECC_word_t *result, const uECC_word_t *left,
-		     const uECC_word_t *right, const uECC_word_t *mod,
-		     wordcount_t num_words)
+		     const uECC_word_t *right, const uECC_word_t *mod)
 {
 	uECC_word_t l_borrow = uECC_vli_sub(result, left, right);
-	(void) num_words;
 	if (l_borrow) {
 		/* In this case, result == -diff == (max int) - diff. Since -x % d == d - x,
 		 * we can get the correct result from result + mod (with overflow). */
@@ -598,7 +596,7 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 
 	uECC_vli_modAdd(X1, X1, Z1, curve->p); /* t1 = x1 + z1^2 */
 	uECC_vli_modAdd(Z1, Z1, Z1, curve->p); /* t3 = 2*z1^2 */
-	uECC_vli_modSub(Z1, X1, Z1, curve->p, num_words); /* t3 = x1 - z1^2 */
+	uECC_vli_modSub(Z1, X1, Z1, curve->p); /* t3 = x1 - z1^2 */
 	uECC_vli_modMult_fast(X1, X1, Z1); /* t1 = x1^2 - z1^4 */
 
 	uECC_vli_modAdd(Z1, X1, X1, curve->p); /* t3 = 2*(x1^2 - z1^4) */
@@ -613,12 +611,12 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 
 	/* t1 = 3/2*(x1^2 - z1^4) = B */
 	uECC_vli_modMult_fast(Z1, X1, X1); /* t3 = B^2 */
-	uECC_vli_modSub(Z1, Z1, t5, curve->p, num_words); /* t3 = B^2 - A */
-	uECC_vli_modSub(Z1, Z1, t5, curve->p, num_words); /* t3 = B^2 - 2A = x3 */
-	uECC_vli_modSub(t5, t5, Z1, curve->p, num_words); /* t5 = A - x3 */
+	uECC_vli_modSub(Z1, Z1, t5, curve->p); /* t3 = B^2 - A */
+	uECC_vli_modSub(Z1, Z1, t5, curve->p); /* t3 = B^2 - 2A = x3 */
+	uECC_vli_modSub(t5, t5, Z1, curve->p); /* t5 = A - x3 */
 	uECC_vli_modMult_fast(X1, X1, t5); /* t1 = B * (A - x3) */
 	/* t4 = B * (A - x3) - y1^4 = y3: */
-	uECC_vli_modSub(t4, X1, t4, curve->p, num_words);
+	uECC_vli_modSub(t4, X1, t4, curve->p);
 
 	uECC_vli_set(X1, Z1);
 	uECC_vli_set(Z1, Y1);
@@ -630,10 +628,9 @@ void x_side_default(uECC_word_t *result,
 		    uECC_Curve curve)
 {
 	uECC_word_t _3[NUM_ECC_WORDS] = {3}; /* -a = 3 */
-	wordcount_t num_words = curve->num_words;
 
 	uECC_vli_modMult_fast(result, x, x); /* r = x^2 */
-	uECC_vli_modSub(result, result, _3, curve->p, num_words); /* r = x^2 - 3 */
+	uECC_vli_modSub(result, result, _3, curve->p); /* r = x^2 - 3 */
 	uECC_vli_modMult_fast(result, result, x); /* r = x^3 - 3x */
 	/* r = x^3 - 3x + b: */
 	uECC_vli_modAdd(result, result, curve->b, curve->p);
@@ -790,22 +787,21 @@ static void XYcZ_add_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 	/* t1 = X1, t2 = Y1, t3 = X2, t4 = Y2 */
 	uECC_word_t t5[NUM_ECC_WORDS];
 	const uECC_Curve curve = &curve_secp256r1;
-	const wordcount_t num_words = NUM_ECC_WORDS;
 
-	uECC_vli_modSub(t5, X2, X1, curve->p, num_words); /* t5 = x2 - x1 */
+	uECC_vli_modSub(t5, X2, X1, curve->p); /* t5 = x2 - x1 */
 	uECC_vli_modMult_rnd(t5, t5, t5, s); /* t5 = (x2 - x1)^2 = A */
 	uECC_vli_modMult_rnd(X1, X1, t5, s); /* t1 = x1*A = B */
 	uECC_vli_modMult_rnd(X2, X2, t5, s); /* t3 = x2*A = C */
-	uECC_vli_modSub(Y2, Y2, Y1, curve->p, num_words); /* t4 = y2 - y1 */
+	uECC_vli_modSub(Y2, Y2, Y1, curve->p); /* t4 = y2 - y1 */
 	uECC_vli_modMult_rnd(t5, Y2, Y2, s); /* t5 = (y2 - y1)^2 = D */
 
-	uECC_vli_modSub(t5, t5, X1, curve->p, num_words); /* t5 = D - B */
-	uECC_vli_modSub(t5, t5, X2, curve->p, num_words); /* t5 = D - B - C = x3 */
-	uECC_vli_modSub(X2, X2, X1, curve->p, num_words); /* t3 = C - B */
+	uECC_vli_modSub(t5, t5, X1, curve->p); /* t5 = D - B */
+	uECC_vli_modSub(t5, t5, X2, curve->p); /* t5 = D - B - C = x3 */
+	uECC_vli_modSub(X2, X2, X1, curve->p); /* t3 = C - B */
 	uECC_vli_modMult_rnd(Y1, Y1, X2, s); /* t2 = y1*(C - B) */
-	uECC_vli_modSub(X2, X1, t5, curve->p, num_words); /* t3 = B - x3 */
+	uECC_vli_modSub(X2, X1, t5, curve->p); /* t3 = B - x3 */
 	uECC_vli_modMult_rnd(Y2, Y2, X2, s); /* t4 = (y2 - y1)*(B - x3) */
-	uECC_vli_modSub(Y2, Y2, Y1, curve->p, num_words); /* t4 = y3 */
+	uECC_vli_modSub(Y2, Y2, Y1, curve->p); /* t4 = y3 */
 
 	uECC_vli_set(X2, t5);
 }
@@ -831,32 +827,31 @@ static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_word_t t6[NUM_ECC_WORDS];
 	uECC_word_t t7[NUM_ECC_WORDS];
 	const uECC_Curve curve = &curve_secp256r1;
-	const wordcount_t num_words = NUM_ECC_WORDS;
 
-	uECC_vli_modSub(t5, X2, X1, curve->p, num_words); /* t5 = x2 - x1 */
+	uECC_vli_modSub(t5, X2, X1, curve->p); /* t5 = x2 - x1 */
 	uECC_vli_modMult_rnd(t5, t5, t5, s); /* t5 = (x2 - x1)^2 = A */
 	uECC_vli_modMult_rnd(X1, X1, t5, s); /* t1 = x1*A = B */
 	uECC_vli_modMult_rnd(X2, X2, t5, s); /* t3 = x2*A = C */
 	uECC_vli_modAdd(t5, Y2, Y1, curve->p); /* t5 = y2 + y1 */
-	uECC_vli_modSub(Y2, Y2, Y1, curve->p, num_words); /* t4 = y2 - y1 */
+	uECC_vli_modSub(Y2, Y2, Y1, curve->p); /* t4 = y2 - y1 */
 
-	uECC_vli_modSub(t6, X2, X1, curve->p, num_words); /* t6 = C - B */
+	uECC_vli_modSub(t6, X2, X1, curve->p); /* t6 = C - B */
 	uECC_vli_modMult_rnd(Y1, Y1, t6, s); /* t2 = y1 * (C - B) = E */
 	uECC_vli_modAdd(t6, X1, X2, curve->p); /* t6 = B + C */
 	uECC_vli_modMult_rnd(X2, Y2, Y2, s); /* t3 = (y2 - y1)^2 = D */
-	uECC_vli_modSub(X2, X2, t6, curve->p, num_words); /* t3 = D - (B + C) = x3 */
+	uECC_vli_modSub(X2, X2, t6, curve->p); /* t3 = D - (B + C) = x3 */
 
-	uECC_vli_modSub(t7, X1, X2, curve->p, num_words); /* t7 = B - x3 */
+	uECC_vli_modSub(t7, X1, X2, curve->p); /* t7 = B - x3 */
 	uECC_vli_modMult_rnd(Y2, Y2, t7, s); /* t4 = (y2 - y1)*(B - x3) */
 	/* t4 = (y2 - y1)*(B - x3) - E = y3: */
-	uECC_vli_modSub(Y2, Y2, Y1, curve->p, num_words);
+	uECC_vli_modSub(Y2, Y2, Y1, curve->p);
 
 	uECC_vli_modMult_rnd(t7, t5, t5, s); /* t7 = (y2 + y1)^2 = F */
-	uECC_vli_modSub(t7, t7, t6, curve->p, num_words); /* t7 = F - (B + C) = x3' */
-	uECC_vli_modSub(t6, t7, X1, curve->p, num_words); /* t6 = x3' - B */
+	uECC_vli_modSub(t7, t7, t6, curve->p); /* t7 = F - (B + C) = x3' */
+	uECC_vli_modSub(t6, t7, X1, curve->p); /* t6 = x3' - B */
 	uECC_vli_modMult_rnd(t6, t6, t5, s); /* t6 = (y2+y1)*(x3' - B) */
 	/* t2 = (y2+y1)*(x3' - B) - E = y3': */
-	uECC_vli_modSub(Y1, t6, Y1, curve->p, num_words);
+	uECC_vli_modSub(Y1, t6, Y1, curve->p);
 
 	uECC_vli_set(X1, t7);
 }
@@ -894,7 +889,7 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	XYcZ_addC_rnd(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], ws);
 
 	/* Find final 1/Z value. */
-	uECC_vli_modSub(z, Rx[1], Rx[0], curve->p, num_words); /* X1 - X0 */
+	uECC_vli_modSub(z, Rx[1], Rx[0], curve->p); /* X1 - X0 */
 	uECC_vli_modMult_fast(z, z, Ry[1 - nb]); /* Yb * (X1 - X0) */
 	uECC_vli_modMult_fast(z, z, point); /* xP * Yb * (X1 - X0) */
 	uECC_vli_modInv(z, z, curve->p, num_words); /* 1 / (xP * Yb * (X1 - X0))*/

@@ -367,8 +367,7 @@ void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1, uECC_word_t * X2,
  * @param Z IN -- z value
  * @param curve IN -- elliptic curve
  */
-void apply_z(uECC_word_t * X1, uECC_word_t * Y1, const uECC_word_t * const Z,
-	     uECC_Curve curve);
+void apply_z(uECC_word_t * X1, uECC_word_t * Y1, const uECC_word_t * const Z);
 
 /*
  * @brief Check if bit is set.
@@ -399,7 +398,7 @@ void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
  * @param curve IN -- elliptic curve
  */
 void uECC_vli_modMult_fast(uECC_word_t *result, const uECC_word_t *left,
-			   const uECC_word_t *right, uECC_Curve curve);
+			   const uECC_word_t *right);
 
 /*
  * @brief Computes result = left - right.

@@ -1125,11 +1125,17 @@ mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:0:0
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, mock timer
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:0:1
 
+MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, real timer
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:2:0:1
+
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered, mock timer, retransmission callback
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:0:0
 
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, retransmission callback
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:0:1
+
+MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, real timer, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:2:0:1
 
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered, mock timer
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:0:0
@@ -1137,11 +1143,17 @@ mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:0:0
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, mock timer
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:0:1
 
+MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, real timer
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:2:0:1
+
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered, mock timer, retransmission callback
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:0:0
 
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, retransmission callback
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:0:1
+
+MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, real timer, retransmission callback
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:2:0:1
 
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, server restart, fragmented + reordered, mock timer
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:1:1:1:0:0
@@ -1285,11 +1297,17 @@ mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:1:0
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, epoch switch #0
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:1:1
 
+MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, real timer, epoch switch #0
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:2:1:1
+
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered, mock timer, retransmission callback, epoch switch #0
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:1:0
 
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, retransmission callback, epoch switch #0
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:1:1
+
+MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, real timer, retransmission callback, epoch switch #0
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:2:1:1
 
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered, mock timer, epoch switch #0
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:1:0
@@ -1297,11 +1315,17 @@ mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:1:0
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, epoch switch #0
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:1:1
 
+MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, real timer, epoch switch #0
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:2:1:1
+
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered, mock timer, retransmission callback, epoch switch #0
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:1:0
 
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, retransmission callback, epoch switch #0
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:1:1
+
+MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, real timer, retransmission callback, epoch switch #0
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:2:1:1
 
 MPS Layer 4 TLS: 1 flight, 2 msgs/flight, epoch switch #0
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:0:2:1:0:0:0:1:0
@@ -1417,11 +1441,17 @@ mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:2:0
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, epoch switch #1
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:2:1
 
+MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, real timer, epoch switch #1
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:2:2:1
+
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered, mock timer, retransmission callback, epoch switch #1
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:2:0
 
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, retransmission callback, epoch switch #1
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:1:2:1
+
+MPS Layer 4 DTLS: 1 flight, 2 msgs/flight, fragmented + reordered + corrupted, real timer, retransmission callback, epoch switch #1
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:1:0:1:2:2:1
 
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered, mock timer, epoch switch #1
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:2:0
@@ -1429,11 +1459,17 @@ mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:2:0
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, epoch switch #1
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:2:1
 
+MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, real timer, epoch switch #1
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:2:2:1
+
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered, mock timer, retransmission callback, epoch switch #1
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:2:0
 
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, mock timer, retransmission callback, epoch switch #1
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:1:2:1
+
+MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, fragmented + reordered + corrupted, real timer, retransmission callback, epoch switch #1
+mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:100:0:2:2:0:1:2:2:1
 
 MPS Layer 4 TLS: 1 flight, 2 msgs/flight, epoch switch #1
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:1000:0:2:1:0:0:0:2:0

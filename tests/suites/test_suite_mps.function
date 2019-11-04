@@ -14,6 +14,8 @@
 #include "../include/mbedtls/mps/layer3.h"
 #include "../include/mbedtls/mps/mps.h"
 
+#include "../include/mbedtls/timing.h"
+
 /*
  * Compile-time configuration for test suite.
  */
@@ -406,7 +408,7 @@ int layer0_dgram_read_cli( unsigned char *dst, unsigned long size )
 }
 
 /*
- * Timer mock object
+ * Timer mock object #1 -- always fires
  */
 
 typedef struct
@@ -10367,7 +10369,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                      int rounds,
                                      int server_reset,
                                      int permute,
-                                     int use_mock_timer,
+                                     int use_timer,
                                      int multiple_epochs,
                                      int corrupt )
 {
@@ -10391,8 +10393,11 @@ void mbedtls_mps_l4_flight_exchange( int mode,
      *                   seen in the ClientHello.
      * - `permute`: Indicates whether the handshake message fragments
      *              should be permuted on the underlying transport.
-     * - `use_mock_timer`: Indicates whether a dummy timer should be
-     *                     used in which time passes infinitely fast.
+     * - `use_timer`: Indicates whether a timer should be used:
+     *                0: No timer
+     *                1: Dummy timer in which time passes infinitely fast.
+     *                2: Mbed TLS' real time timer implementation.
+     *
      * -  multiple_epochs: Indicates whether epoch switching should
      *                     happen during the handshake. Possible values are:
      *                     - 0: No epoch switching
@@ -10430,8 +10435,11 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
     unsigned repeated_want_reads;
 
-    mock_timer_ctx timer_cli;
-    mock_timer_ctx timer_srv;
+    mock_timer_ctx timer_cli_mock;
+    mock_timer_ctx timer_srv_mock;
+
+    mbedtls_timing_delay_context timer_cli_real;
+    mbedtls_timing_delay_context timer_srv_real;
 
     dummy_cb_ctx *cb_ctxs;
 
@@ -10574,14 +10582,23 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, next_epoch[1] ) == 0 );
     }
 
-    if( use_mock_timer )
+    if( use_timer == 1 )
     {
-        srv.conf.p_timer = &timer_srv;
+        srv.conf.p_timer = &timer_srv_mock;
         srv.conf.f_set_timer = set_mock_timer;
         srv.conf.f_get_timer = get_mock_timer;
-        cli.conf.p_timer = &timer_cli;
+        cli.conf.p_timer = &timer_cli_mock;
         cli.conf.f_set_timer = set_mock_timer;
         cli.conf.f_get_timer = get_mock_timer;
+    }
+    else if( use_timer == 2 )
+    {
+        srv.conf.p_timer = &timer_srv_real;
+        srv.conf.f_set_timer = mbedtls_timing_set_delay;
+        srv.conf.f_get_timer = mbedtls_timing_get_delay;
+        cli.conf.p_timer = &timer_cli_real;
+        cli.conf.f_set_timer = mbedtls_timing_set_delay;
+        cli.conf.f_get_timer = mbedtls_timing_get_delay;
     }
 
     for( round=0; round < (unsigned) rounds; round++ )
@@ -10793,11 +10810,18 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                                             srv_init_epoch ) == 0 );
                 TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv,
                                                             srv_init_epoch ) == 0 );
-                if( use_mock_timer )
+
+                if( use_timer == 1 )
                 {
-                    srv.conf.p_timer = &timer_srv;
+                    srv.conf.p_timer = &timer_srv_mock;
                     srv.conf.f_set_timer = set_mock_timer;
                     srv.conf.f_get_timer = get_mock_timer;
+                }
+                else if( use_timer == 2 )
+                {
+                    srv.conf.p_timer = &timer_srv_real;
+                    srv.conf.f_set_timer = mbedtls_timing_set_delay;
+                    srv.conf.f_get_timer = mbedtls_timing_get_delay;
                 }
             }
         }

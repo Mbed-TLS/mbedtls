@@ -159,7 +159,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	bits2int(tmp, message_hash, hash_size, curve);
 	uECC_vli_modAdd(s, tmp, s, curve->n, num_n_words); /* s = e + r*d */
 	uECC_vli_modMult(s, s, k, curve->n, num_n_words);  /* s = (e + r*d) / k */
-	if (uECC_vli_numBits(s, num_n_words) > (bitcount_t)curve->num_bytes * 8) {
+	if (uECC_vli_numBits(s) > (bitcount_t)curve->num_bytes * 8) {
 		return 0;
 	}
 
@@ -264,8 +264,8 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	points[1] = curve->G;
 	points[2] = _public;
 	points[3] = sum;
-	num_bits = smax(uECC_vli_numBits(u1, num_n_words),
-	uECC_vli_numBits(u2, num_n_words));
+	num_bits = smax(uECC_vli_numBits(u1),
+	uECC_vli_numBits(u2));
 
 	point = points[(!!uECC_vli_testBit(u1, num_bits - 1)) |
                        ((!!uECC_vli_testBit(u2, num_bits - 1)) << 1)];

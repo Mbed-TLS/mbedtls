@@ -121,27 +121,25 @@ uECC_word_t uECC_vli_testBit(const uECC_word_t *vli, bitcount_t bit)
 }
 
 /* Counts the number of words in vli. */
-static wordcount_t vli_numDigits(const uECC_word_t *vli,
-				 const wordcount_t max_words)
+static wordcount_t vli_numDigits(const uECC_word_t *vli)
 {
 
 	wordcount_t i;
 	/* Search from the end until we find a non-zero digit. We do it in reverse
 	 * because we expect that most digits will be nonzero. */
-	for (i = max_words - 1; i >= 0 && vli[i] == 0; --i) {
+	for (i = NUM_ECC_WORDS - 1; i >= 0 && vli[i] == 0; --i) {
 	}
 
 	return (i + 1);
 }
 
-bitcount_t uECC_vli_numBits(const uECC_word_t *vli,
-			    const wordcount_t max_words)
+bitcount_t uECC_vli_numBits(const uECC_word_t *vli)
 {
 
 	uECC_word_t i;
 	uECC_word_t digit;
 
-	wordcount_t num_digits = vli_numDigits(vli, max_words);
+	wordcount_t num_digits = vli_numDigits(vli);
 	if (num_digits == 0) {
 		return 0;
 	}
@@ -461,7 +459,7 @@ void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
 
 	/* Shift mod so its highest set bit is at the maximum position. */
 	bitcount_t shift = (num_words * 2 * uECC_WORD_BITS) -
-			   uECC_vli_numBits(mod, num_words);
+			   uECC_vli_numBits(mod);
 	wordcount_t word_shift = shift / uECC_WORD_BITS;
 	wordcount_t bit_shift = shift % uECC_WORD_BITS;
 	uECC_word_t carry = 0;
@@ -1029,7 +1027,7 @@ int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
 {
 	uECC_word_t mask = (uECC_word_t)-1;
 	uECC_word_t tries;
-	bitcount_t num_bits = uECC_vli_numBits(top, num_words);
+	bitcount_t num_bits = uECC_vli_numBits(top);
 
 	if (!g_rng_function) {
 		return 0;

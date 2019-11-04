@@ -2576,6 +2576,14 @@ int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
     TRACE_INIT( "mps_l2_epoch_add" );
 
     next_offset = ctx->epochs.next;
+
+    if( ctx->epochs.next > MBEDTLS_MPS_EPOCH_MAX )
+    {
+        TRACE( trace_error, "Maximum number %u of epochs reached.",
+               (unsigned) MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE );
+        RETURN( MBEDTLS_ERR_MPS_TOO_MANY_EPOCHS );
+    }
+
     if( next_offset == MBEDTLS_MPS_L2_EPOCH_WINDOW_SIZE )
     {
         TRACE( trace_error, "The epoch window (size %u) is full.",

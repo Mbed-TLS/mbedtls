@@ -235,12 +235,12 @@ cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right)
 }
 
 /* Computes vli = vli >> 1. */
-static void uECC_vli_rshift1(uECC_word_t *vli, wordcount_t num_words)
+static void uECC_vli_rshift1(uECC_word_t *vli)
 {
 	uECC_word_t *end = vli;
 	uECC_word_t carry = 0;
 
-	vli += num_words;
+	vli += NUM_ECC_WORDS;
 	while (vli-- > end) {
 		uECC_word_t temp = *vli;
 		*vli = (temp >> 1) | carry;
@@ -483,10 +483,10 @@ void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
 		}
 		/* Swap the index if there was no borrow */
 		index = !(index ^ borrow);
-		uECC_vli_rshift1(mod_multiple, num_words);
+		uECC_vli_rshift1(mod_multiple);
 		mod_multiple[num_words - 1] |= mod_multiple[num_words] <<
 					       (uECC_WORD_BITS - 1);
-		uECC_vli_rshift1(mod_multiple + num_words, num_words);
+		uECC_vli_rshift1(mod_multiple + num_words);
 	}
 	uECC_vli_set(result, v[index]);
 }
@@ -527,7 +527,7 @@ static void vli_modInv_update(uECC_word_t *uv,
 	if (!EVEN(uv)) {
 		carry = uECC_vli_add(uv, uv, mod);
 	}
-	uECC_vli_rshift1(uv, num_words);
+	uECC_vli_rshift1(uv);
 	if (carry) {
 		uv[num_words - 1] |= HIGH_BIT_SET;
 	}
@@ -552,14 +552,14 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
 	uECC_vli_clear(v);
 	while ((cmpResult = uECC_vli_cmp_unsafe(a, b)) != 0) {
 		if (EVEN(a)) {
-			uECC_vli_rshift1(a, num_words);
+			uECC_vli_rshift1(a);
       			vli_modInv_update(u, mod, num_words);
     		} else if (EVEN(b)) {
-			uECC_vli_rshift1(b, num_words);
+			uECC_vli_rshift1(b);
 			vli_modInv_update(v, mod, num_words);
 		} else if (cmpResult > 0) {
 			uECC_vli_sub(a, a, b);
-			uECC_vli_rshift1(a, num_words);
+			uECC_vli_rshift1(a);
 			if (uECC_vli_cmp_unsafe(u, v) < 0) {
         			uECC_vli_add(u, u, mod);
       			}
@@ -567,7 +567,7 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
       			vli_modInv_update(u, mod, num_words);
     		} else {
       			uECC_vli_sub(b, b, a);
-      			uECC_vli_rshift1(b, num_words);
+      			uECC_vli_rshift1(b);
       			if (uECC_vli_cmp_unsafe(v, u) < 0) {
         			uECC_vli_add(v, v, mod);
       			}
@@ -607,10 +607,10 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_vli_modAdd(X1, X1, Z1, curve->p, num_words); /* t1 = 3*(x1^2 - z1^4) */
 	if (uECC_vli_testBit(X1, 0)) {
 		uECC_word_t l_carry = uECC_vli_add(X1, X1, curve->p);
-		uECC_vli_rshift1(X1, num_words);
+		uECC_vli_rshift1(X1);
 		X1[num_words - 1] |= l_carry << (uECC_WORD_BITS - 1);
 	} else {
-		uECC_vli_rshift1(X1, num_words);
+		uECC_vli_rshift1(X1);
 	}
 
 	/* t1 = 3/2*(x1^2 - z1^4) = B */

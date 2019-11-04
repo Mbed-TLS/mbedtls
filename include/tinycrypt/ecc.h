@@ -410,7 +410,7 @@ void uECC_vli_modMult_fast(uECC_word_t *result, const uECC_word_t *left,
  * @return borrow
  */
 uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
-			 const uECC_word_t *right, wordcount_t num_words);
+			 const uECC_word_t *right);
 
 /*
  * @brief Constant-time comparison function(secure way to compare long ints)

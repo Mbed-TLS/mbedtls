@@ -103,7 +103,7 @@ static void bits2int(uECC_word_t *native, const uint8_t *bits,
 
 	/* Reduce mod curve_n */
 	if (uECC_vli_cmp_unsafe(curve->n, native) != 1) {
-		uECC_vli_sub(native, native, curve->n, num_n_words);
+		uECC_vli_sub(native, native, curve->n);
 	}
 }
 
@@ -294,7 +294,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	/* v = x1 (mod n) */
 	if (uECC_vli_cmp_unsafe(curve->n, rx) != 1) {
-		uECC_vli_sub(rx, rx, curve->n, num_n_words);
+		uECC_vli_sub(rx, rx, curve->n);
 	}
 
 	/* Accept only if v == r. */

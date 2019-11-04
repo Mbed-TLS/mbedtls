@@ -196,11 +196,11 @@ uECC_word_t cond_set(uECC_word_t p_true, uECC_word_t p_false, unsigned int cond)
 /* Computes result = left - right, returning borrow, in constant time.
  * Can modify in place. */
 uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
-			 const uECC_word_t *right, wordcount_t num_words)
+			 const uECC_word_t *right)
 {
 	uECC_word_t borrow = 0;
 	wordcount_t i;
-	for (i = 0; i < num_words; ++i) {
+	for (i = 0; i < NUM_ECC_WORDS; ++i) {
 		uECC_word_t diff = left[i] - right[i] - borrow;
 		uECC_word_t val = (diff > left[i]);
 		borrow = cond_set(val, borrow, (diff != left[i]));
@@ -230,8 +230,9 @@ cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right,
 			 wordcount_t num_words)
 {
 	uECC_word_t tmp[NUM_ECC_WORDS];
-	uECC_word_t neg = !!uECC_vli_sub(tmp, left, right, num_words);
+	uECC_word_t neg = !!uECC_vli_sub(tmp, left, right);
 	uECC_word_t equal = uECC_vli_isZero(tmp);
+	(void) num_words;
 	return (!equal - 2 * neg);
 }
 
@@ -425,10 +426,11 @@ void uECC_vli_modAdd(uECC_word_t *result, const uECC_word_t *left,
 		     wordcount_t num_words)
 {
 	uECC_word_t carry = uECC_vli_add(result, left, right);
+	(void) num_words;
 	if (carry || uECC_vli_cmp_unsafe(mod, result) != 1) {
 	/* result > mod (result = mod + remainder), so subtract mod to get
 	 * remainder. */
-		uECC_vli_sub(result, result, mod, num_words);
+		uECC_vli_sub(result, result, mod);
 	}
 }
 
@@ -436,7 +438,8 @@ void uECC_vli_modSub(uECC_word_t *result, const uECC_word_t *left,
 		     const uECC_word_t *right, const uECC_word_t *mod,
 		     wordcount_t num_words)
 {
-	uECC_word_t l_borrow = uECC_vli_sub(result, left, right, num_words);
+	uECC_word_t l_borrow = uECC_vli_sub(result, left, right);
+	(void) num_words;
 	if (l_borrow) {
 		/* In this case, result == -diff == (max int) - diff. Since -x % d == d - x,
 		 * we can get the correct result from result + mod (with overflow). */
@@ -557,20 +560,20 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
 			uECC_vli_rshift1(b, num_words);
 			vli_modInv_update(v, mod, num_words);
 		} else if (cmpResult > 0) {
-			uECC_vli_sub(a, a, b, num_words);
+			uECC_vli_sub(a, a, b);
 			uECC_vli_rshift1(a, num_words);
 			if (uECC_vli_cmp_unsafe(u, v) < 0) {
         			uECC_vli_add(u, u, mod);
       			}
-      			uECC_vli_sub(u, u, v, num_words);
+      			uECC_vli_sub(u, u, v);
       			vli_modInv_update(u, mod, num_words);
     		} else {
-      			uECC_vli_sub(b, b, a, num_words);
+      			uECC_vli_sub(b, b, a);
       			uECC_vli_rshift1(b, num_words);
       			if (uECC_vli_cmp_unsafe(v, u) < 0) {
         			uECC_vli_add(v, v, mod);
       			}
-      			uECC_vli_sub(v, v, u, num_words);
+      			uECC_vli_sub(v, v, u);
       			vli_modInv_update(v, mod, num_words);
     		}
   	}
@@ -699,7 +702,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	tmp[3] = tmp[4] = tmp[5] = 0;
 	tmp[6] = product[8];
 	tmp[7] = product[10];
-	carry -= uECC_vli_sub(result, result, tmp, NUM_ECC_WORDS);
+	carry -= uECC_vli_sub(result, result, tmp);
 
 	/* d2 */
 	tmp[0] = product[12];
@@ -709,7 +712,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	tmp[4] = tmp[5] = 0;
 	tmp[6] = product[9];
 	tmp[7] = product[11];
-	carry -= uECC_vli_sub(result, result, tmp, NUM_ECC_WORDS);
+	carry -= uECC_vli_sub(result, result, tmp);
 
 	/* d3 */
 	tmp[0] = product[13];
@@ -720,7 +723,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	tmp[5] = product[10];
 	tmp[6] = 0;
 	tmp[7] = product[12];
-	carry -= uECC_vli_sub(result, result, tmp, NUM_ECC_WORDS);
+	carry -= uECC_vli_sub(result, result, tmp);
 
 	/* d4 */
 	tmp[0] = product[14];
@@ -731,7 +734,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	tmp[5] = product[11];
 	tmp[6] = 0;
 	tmp[7] = product[13];
-	carry -= uECC_vli_sub(result, result, tmp, NUM_ECC_WORDS);
+	carry -= uECC_vli_sub(result, result, tmp);
 
 	if (carry < 0) {
 		do {
@@ -741,7 +744,7 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	} else  {
 		while (carry || 
 		       uECC_vli_cmp_unsafe(curve_secp256r1.p, result) != 1) {
-			carry -= uECC_vli_sub(result, result, curve_secp256r1.p, NUM_ECC_WORDS);
+			carry -= uECC_vli_sub(result, result, curve_secp256r1.p);
 		}
 	}
 }

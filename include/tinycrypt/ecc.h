@@ -419,8 +419,7 @@ uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
  * @param num_words IN -- number of words
  * @return Returns 0 if left == right, 1 otherwise.
  */
-uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right,
-			   wordcount_t num_words);
+uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right);
 
 /*
  * @brief Computes (left * right) % mod

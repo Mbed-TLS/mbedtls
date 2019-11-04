@@ -176,14 +176,13 @@ cmpresult_t uECC_vli_cmp_unsafe(const uECC_word_t *left,
 	return 0;
 }
 
-uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right,
-			   wordcount_t num_words)
+uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 {
 
 	uECC_word_t diff = 0;
 	wordcount_t i;
 
-	for (i = num_words - 1; i >= 0; --i) {
+	for (i = NUM_ECC_WORDS - 1; i >= 0; --i) {
 		diff |= (left[i] ^ right[i]);
 	}
 	return !(diff == 0);
@@ -1066,7 +1065,7 @@ int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve)
 	curve->x_side(tmp2, point, curve); /* tmp2 = x^3 + ax + b */
 
 	/* Make sure that y^2 == x^3 + ax + b */
-	if (uECC_vli_equal(tmp1, tmp2, num_words) != 0)
+	if (uECC_vli_equal(tmp1, tmp2) != 0)
 		return -3;
 
 	return 0;

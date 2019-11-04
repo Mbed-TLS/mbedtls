@@ -724,16 +724,16 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                          &bytes_pending );
         ctx->io.out.clearing = 1;
 
-        /* OPTIMIZATION: This is an assertion. Consider moving
-         *               it to debug-only modes. */
+#if defined(MBEDTLS_MPS_ASSERT)
         if( bytes_pending == 0 )
         {
             /* If Layer 1 has no bytes pending but doesn't have enough space
              * to allow a record of size 1 to be sent, something must be
              * ill-configured. */
             TRACE( trace_error, "Layer 1 doesn't have any data pending to be written but cannot serve a buffer large enough to hold a non-empty record. Abort." );
-            RETURN( MPS_ERR_BUFFER_TOO_SMALL );
+            RETURN( MPS_ERR_INTERNAL_ERROR );
         }
+#endif /* MBEDTLS_MPS_ASSERT */
 
         /* We could also return WANT_WRITE here. */
         RETURN( MPS_ERR_CONTINUE_PROCESSING );

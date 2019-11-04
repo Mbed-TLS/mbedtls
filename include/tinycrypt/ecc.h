@@ -484,7 +484,7 @@ bitcount_t uECC_vli_numBits(const uECC_word_t *vli,
  * @param vli IN -- very long integer
  * @param num_words IN -- number of words
  */
-void uECC_vli_clear(uECC_word_t *vli, wordcount_t num_words);
+void uECC_vli_clear(uECC_word_t *vli);
 
 /*
  * @brief check if it is a valid point in the curve

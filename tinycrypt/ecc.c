@@ -96,10 +96,10 @@ int uECC_curve_public_key_size(uECC_Curve curve)
 	return 2 * curve->num_bytes;
 }
 
-void uECC_vli_clear(uECC_word_t *vli, wordcount_t num_words)
+void uECC_vli_clear(uECC_word_t *vli)
 {
 	wordcount_t i;
-	for (i = 0; i < num_words; ++i) {
+	for (i = 0; i < NUM_ECC_WORDS; ++i) {
 		 vli[i] = 0;
 	}
 }
@@ -465,7 +465,7 @@ void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
 	wordcount_t word_shift = shift / uECC_WORD_BITS;
 	wordcount_t bit_shift = shift % uECC_WORD_BITS;
 	uECC_word_t carry = 0;
-	uECC_vli_clear(mod_multiple, word_shift);
+	uECC_vli_clear(mod_multiple);
 	if (bit_shift > 0) {
 		for(index = 0; index < (uECC_word_t)num_words; ++index) {
 			mod_multiple[word_shift + index] = (mod[index] << bit_shift) | carry;
@@ -545,15 +545,15 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
 	cmpresult_t cmpResult;
 
 	if (uECC_vli_isZero(input)) {
-		uECC_vli_clear(result, num_words);
+		uECC_vli_clear(result);
 		return;
 	}
 
 	uECC_vli_set(a, input, num_words);
 	uECC_vli_set(b, mod, num_words);
-	uECC_vli_clear(u, num_words);
+	uECC_vli_clear(u);
 	u[0] = 1;
-	uECC_vli_clear(v, num_words);
+	uECC_vli_clear(v);
 	while ((cmpResult = uECC_vli_cmp_unsafe(a, b, num_words)) != 0) {
 		if (EVEN(a)) {
 			uECC_vli_rshift1(a, num_words);
@@ -778,7 +778,7 @@ static void XYcZ_initial_double(uECC_word_t * X1, uECC_word_t * Y1,
 	if (initial_Z) {
 		uECC_vli_set(z, initial_Z, num_words);
 	} else {
-		uECC_vli_clear(z, num_words);
+		uECC_vli_clear(z);
 		z[0] = 1;
 	}
 
@@ -1016,7 +1016,7 @@ void uECC_vli_bytesToNative(unsigned int *native, const uint8_t *bytes,
 			    int num_bytes)
 {
 	wordcount_t i;
-	uECC_vli_clear(native, (num_bytes + (uECC_WORD_SIZE - 1)) / uECC_WORD_SIZE);
+	uECC_vli_clear(native);
 	for (i = 0; i < num_bytes; ++i) {
 		unsigned b = num_bytes - 1 - i;
 		native[b / uECC_WORD_SIZE] |=

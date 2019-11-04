@@ -87,7 +87,7 @@ static void bits2int(uECC_word_t *native, const uint8_t *bits,
 		bits_size = num_n_bytes;
 	}
 
-	uECC_vli_clear(native, num_n_words);
+	uECC_vli_clear(native);
 	uECC_vli_bytesToNative(native, bits, bits_size);
 	if (bits_size * 8 <= (unsigned)curve->num_n_bits) {
 		return;
@@ -134,7 +134,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	/* If an RNG function was specified, get a random number
 	to prevent side channel analysis of k. */
 	if (!g_rng_function) {
-		uECC_vli_clear(tmp, num_n_words);
+		uECC_vli_clear(tmp);
 		tmp[0] = 1;
 	}
 	else if (!uECC_generate_random_int(tmp, curve->n, num_n_words)) {
@@ -271,7 +271,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
                        ((!!uECC_vli_testBit(u2, num_bits - 1)) << 1)];
 	uECC_vli_set(rx, point, num_words);
 	uECC_vli_set(ry, point + num_words, num_words);
-	uECC_vli_clear(z, num_words);
+	uECC_vli_clear(z);
 	z[0] = 1;
 
 	for (i = num_bits - 2; i >= 0; --i) {

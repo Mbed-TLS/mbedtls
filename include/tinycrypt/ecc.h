@@ -463,8 +463,7 @@ void uECC_vli_set(uECC_word_t *dest, const uECC_word_t *src);
  * @param num_words IN -- number of words
  */
 void uECC_vli_modAdd(uECC_word_t *result,  const uECC_word_t *left,
-    		     const uECC_word_t *right, const uECC_word_t *mod,
-   		     wordcount_t num_words);
+    		     const uECC_word_t *right, const uECC_word_t *mod);
 
 /*
  * @brief Counts the number of bits required to represent vli.

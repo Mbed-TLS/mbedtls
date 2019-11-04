@@ -156,7 +156,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_vli_modMult(s, tmp, s, curve->n, num_n_words); /* s = r*d */
 
 	bits2int(tmp, message_hash, hash_size, curve);
-	uECC_vli_modAdd(s, tmp, s, curve->n, num_n_words); /* s = e + r*d */
+	uECC_vli_modAdd(s, tmp, s, curve->n); /* s = e + r*d */
 	uECC_vli_modMult(s, s, k, curve->n, num_n_words);  /* s = (e + r*d) / k */
 	if (uECC_vli_numBits(s) > (bitcount_t)curve->num_bytes * 8) {
 		return 0;

@@ -226,13 +226,11 @@ static uECC_word_t uECC_vli_add(uECC_word_t *result, const uECC_word_t *left,
 	return carry;
 }
 
-cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right,
-			 wordcount_t num_words)
+cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right)
 {
 	uECC_word_t tmp[NUM_ECC_WORDS];
 	uECC_word_t neg = !!uECC_vli_sub(tmp, left, right);
 	uECC_word_t equal = uECC_vli_isZero(tmp);
-	(void) num_words;
 	return (!equal - 2 * neg);
 }
 
@@ -1039,7 +1037,7 @@ int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
 		random[num_words - 1] &=
         		mask >> ((bitcount_t)(num_words * uECC_WORD_SIZE * 8 - num_bits));
 		if (!uECC_vli_isZero(random) &&
-			uECC_vli_cmp(top, random, num_words) == 1) {
+			uECC_vli_cmp(top, random) == 1) {
 			return 1;
 		}
 	}
@@ -1109,7 +1107,7 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
 		return 0;
 	}
 
-	if (uECC_vli_cmp(curve->n, _private, BITS_TO_WORDS(curve->num_n_bits)) != 1) {
+	if (uECC_vli_cmp(curve->n, _private) != 1) {
 		return 0;
 	}
 

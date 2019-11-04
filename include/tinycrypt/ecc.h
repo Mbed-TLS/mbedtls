@@ -320,8 +320,7 @@ uECC_word_t EccPoint_isZero(const uECC_word_t *point, uECC_Curve curve);
  * @param num_words IN -- number of words
  * @return the sign of left - right
  */
-cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right,
-			 wordcount_t num_words);
+cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right);
 
 /*
  * @brief computes sign of left - right, not in constant time.

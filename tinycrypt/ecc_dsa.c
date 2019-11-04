@@ -121,7 +121,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 
 	/* Make sure 0 < k < curve_n */
   	if (uECC_vli_isZero(k) ||
-	    uECC_vli_cmp(curve->n, k, num_n_words) != 1) {
+	    uECC_vli_cmp(curve->n, k) != 1) {
 		return 0;
 	}
 

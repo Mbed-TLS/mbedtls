@@ -444,12 +444,13 @@ void uECC_vli_modSub(uECC_word_t *result, const uECC_word_t *left,
 /* Computes result = product % mod, where product is 2N words long. */
 /* Currently only designed to work for curve_p or curve_n. */
 void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
-    		   const uECC_word_t *mod, wordcount_t num_words)
+    		   const uECC_word_t *mod)
 {
 	uECC_word_t mod_multiple[2 * NUM_ECC_WORDS];
 	uECC_word_t tmp[2 * NUM_ECC_WORDS];
 	uECC_word_t *v[2] = {tmp, product};
 	uECC_word_t index;
+	const wordcount_t num_words = NUM_ECC_WORDS;
 
 	/* Shift mod so its highest set bit is at the maximum position. */
 	bitcount_t shift = (num_words * 2 * uECC_WORD_BITS) -
@@ -493,7 +494,8 @@ void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
 {
 	uECC_word_t product[2 * NUM_ECC_WORDS];
 	uECC_vli_mult_rnd(product, left, right, NULL);
-	uECC_vli_mmod(result, product, mod, num_words);
+	uECC_vli_mmod(result, product, mod);
+	(void) num_words;
 }
 
 static void uECC_vli_modMult_rnd(uECC_word_t *result, const uECC_word_t *left,

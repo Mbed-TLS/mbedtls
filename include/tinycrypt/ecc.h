@@ -386,7 +386,7 @@ uECC_word_t uECC_vli_testBit(const uECC_word_t *vli, bitcount_t bit);
  * @warning Currently only designed to work for curve_p or curve_n.
  */
 void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
-		   const uECC_word_t *mod, wordcount_t num_words);
+		   const uECC_word_t *mod);
 
 /*
  * @brief Computes modular product (using curve->mmod_fast)

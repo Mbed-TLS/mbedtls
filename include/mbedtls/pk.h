@@ -102,6 +102,11 @@ typedef struct mbedtls_pk_rsassa_pss_options
 } mbedtls_pk_rsassa_pss_options;
 
 /**
+ * \brief           Maximum size of a signature made by mbedtls_pk_sign().
+ */
+#define MBEDTLS_PK_SIGNATURE_MAX_SIZE MBEDTLS_MPI_MAX_SIZE
+
+/**
  * \brief           Types for interfacing with the debug module
  */
 typedef enum
@@ -442,8 +447,13 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  * \param md_alg    Hash algorithm used (see notes)
  * \param hash      Hash of the message to sign
  * \param hash_len  Hash length or 0 (see notes)
- * \param sig       Place to write the signature
- * \param sig_len   Number of bytes written
+ * \param sig       Place to write the signature.
+ *                  It must have enough room for the signature.
+ *                  #MBEDTLS_PK_SIGNATURE_MAX_SIZE is always enough.
+ *                  You may use a smaller buffer if it is large enough
+ *                  given the key type.
+ * \param sig_len   On successful return,
+ *                  the number of bytes written to \p sig.
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *

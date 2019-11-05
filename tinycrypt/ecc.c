@@ -342,7 +342,7 @@ static void uECC_vli_mult_rnd(uECC_word_t *result, const uECC_word_t *left,
 	delays >>= 2;
 	/* k = 0 -> i in [1, 0] -> 0 extra muladd;
 	 * k = 3 -> i in [1, 3] -> 3 extra muladd */
-	for (i = 0; i <= k; ++i) {
+	for (i = 1; i <= k; ++i) {
 		muladd(left[i], right[k - i], &rr0, &rr1, &r2);
 	}
 	r = rr0;

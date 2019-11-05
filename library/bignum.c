@@ -1224,26 +1224,25 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
     for( i = X->n; i > 0; i-- )
     {
         /*
-         * If Y->p[i - 1] < X->p[i - 1] and both X and Y are negative, then
-         * X < Y.
+         * If Y->p[i - 1] < X->p[i - 1] then X < Y is true if and only if both
+         * X and Y are negative.
          *
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] ) & X_is_negative;
-        *ret |= cond & ( 1 - done );
+        cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] );
+        *ret |= cond & ( 1 - done ) & X_is_negative;
         done |= cond;
 
         /*
-         * If X->p[i - 1] < Y->p[i - 1] and both X and Y are positive, then
-         * X < Y.
+         * If X->p[i - 1] < Y->p[i - 1] then X < Y is true if and only if both
+         * X and Y are positive.
          *
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] )
-               & ( 1 - X_is_negative );
-        *ret |= cond & ( 1 - done );
+        cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] );
+        *ret |= cond & ( 1 - done ) & ( 1 - X_is_negative );
         done |= cond;
     }
 

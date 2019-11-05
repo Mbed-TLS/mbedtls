@@ -223,9 +223,6 @@ mbedtls_mpi_lt_mpi_ct:1:"FFFFFFFF":1:"FF":0:0
 Multi-limb mbedtls_mpi_lt_mpi_ct (X<Y, zero vs non-zero MS limb)
 mbedtls_mpi_lt_mpi_ct:2:"0FFFFFFFFFFFFFFFF":2:"1FFFFFFFFFFFFFFFF":1:0
 
-Multi-limb mbedtls_mpi_lt_mpi_ct (X<Y, different MS limbs)
-mbedtls_mpi_lt_mpi_ct:2:"-EEFFFFFFFFFFFFFFFF":2:"-EFFFFFFFFFFFFFFFF":1:0
-
 Multi-limb mbedtls_mpi_lt_mpi_ct (X>Y, equal MS limbs)
 mbedtls_mpi_lt_mpi_ct:2:"-EEFFFFFFFFFFFFFFF1":2:"-EEFFFFFFFFFFFFFFFF":0:0
 
@@ -234,6 +231,18 @@ mbedtls_mpi_lt_mpi_ct:2:"EEFFFFFFFFFFFFFFFF":2:"EEFFFFFFFFFFFFFFFF":0:0
 
 Multi-limb mbedtls_mpi_lt_mpi_ct (X=-Y)
 mbedtls_mpi_lt_mpi_ct:2:"-EEFFFFFFFFFFFFFFFF":2:"EEFFFFFFFFFFFFFFFF":1:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (Alternating limbs) #1
+mbedtls_mpi_lt_mpi_ct:2:"11FFFFFFFFFFFFFFFF":2:"FF1111111111111111":1:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (Alternating limbs) #2
+mbedtls_mpi_lt_mpi_ct:2:"FF1111111111111111":2:"11FFFFFFFFFFFFFFFF":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (Alternating limbs) #3
+mbedtls_mpi_lt_mpi_ct:2:"-11FFFFFFFFFFFFFFFF":2:"-FF1111111111111111":0:0
+
+Multi-limb mbedtls_mpi_lt_mpi_ct (Alternating limbs) #4
+mbedtls_mpi_lt_mpi_ct:2:"-FF1111111111111111":2:"-11FFFFFFFFFFFFFFFF":1:0
 
 Base test mbedtls_mpi_cmp_abs #1
 mbedtls_mpi_cmp_abs:10:"693":10:"693":0

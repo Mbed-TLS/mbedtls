@@ -104,7 +104,37 @@ typedef struct mbedtls_pk_rsassa_pss_options
 /**
  * \brief           Maximum size of a signature made by mbedtls_pk_sign().
  */
+/* This fallback value is used if there is no software signature support.
+ * This is possible even if check_config.h is included, for example if
+ * MBEDTLS_ECDH_C is enabled but neither MBEDTLS_ECDSA_C  nor MBEDTLS_RSA_C.
+ * Use MBEDTLS_MPI_MAX_SIZE which is the maximum size than an RSA-alt
+ * implementation can produce, assuming that MBEDTLS_MPI_MAX_SIZE is set
+ * correctly. This is not necessarily the best choice of size and it may
+ * change in future versions. */
 #define MBEDTLS_PK_SIGNATURE_MAX_SIZE MBEDTLS_MPI_MAX_SIZE
+#if defined(MBEDTLS_RSA_C) &&                                   \
+    MBEDTLS_MPI_MAX_SIZE > MBEDTLS_PK_SIGNATURE_MAX_SIZE
+#undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
+#define MBEDTLS_PK_SIGNATURE_MAX_SIZE MBEDTLS_MPI_MAX_SIZE
+#endif
+#if defined(MBEDTLS_ECDSA_C) &&                                 \
+    MBEDTLS_ECDSA_MAX_LEN > MBEDTLS_PK_SIGNATURE_MAX_SIZE
+#undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
+#define MBEDTLS_PK_SIGNATURE_MAX_SIZE MBEDTLS_ECDSA_MAX_LEN
+#endif
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE + 11 > MBEDTLS_PK_SIGNATURE_MAX_SIZE
+/* PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE is the maximum size of a signature made
+ * through the PSA API in the PSA representation.
+ * The Mbed TLS representation is different for ECDSA signatures:
+ * PSA uses the raw concatenation of r and s,
+ * whereas Mbed TLS uses the ASN.1 representation (SEQUENCE of two INTEGERs).
+ * Add the overhead of ASN.1: up to (1+2) + 2 * (1+2+1) for the
+ * types, lengths (represented by up to 2 bytes), and potential leading
+ * zeros of the INTEGERs and the SEQUENCE. */
+#undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
+#define MBEDTLS_PK_SIGNATURE_MAX_SIZE ( PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE + 11 )
+#endif
 
 /**
  * \brief           Types for interfacing with the debug module

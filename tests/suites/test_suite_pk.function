@@ -900,8 +900,9 @@ exit:
 void pk_sign_verify( int type, int sign_ret, int verify_ret )
 {
     mbedtls_pk_context pk;
-    unsigned char hash[50], sig[5000];
     size_t sig_len;
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     void *rs_ctx = NULL;
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_pk_restart_ctx ctx;
@@ -926,7 +927,9 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     TEST_ASSERT( mbedtls_pk_sign_restartable( &pk, MBEDTLS_MD_SHA256,
                  hash, sizeof hash, sig, &sig_len,
                  rnd_std_rand, NULL, rs_ctx ) == sign_ret );
-    if( sign_ret != 0 )
+    if( sign_ret == 0 )
+        TEST_ASSERT( sig_len <= MBEDTLS_PK_SIGNATURE_MAX_SIZE );
+    else
         sig_len = MBEDTLS_PK_SIGNATURE_MAX_SIZE;
 
     TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
@@ -947,7 +950,9 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
 
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
                           sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
-    if( sign_ret != 0 )
+    if( sign_ret == 0 )
+        TEST_ASSERT( sig_len <= MBEDTLS_PK_SIGNATURE_MAX_SIZE );
+    else
         sig_len = MBEDTLS_PK_SIGNATURE_MAX_SIZE;
 
     TEST_ASSERT( mbedtls_pk_verify_restartable( &pk, MBEDTLS_MD_SHA256,

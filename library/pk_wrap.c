@@ -774,6 +774,8 @@ static int rsa_alt_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 #endif /* SIZE_MAX > UINT_MAX */
 
     *sig_len = rsa_alt->key_len_func( rsa_alt->key );
+    if( *sig_len > MBEDTLS_PK_SIGNATURE_MAX_SIZE )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     return( rsa_alt->sign_func( rsa_alt->key, f_rng, p_rng, MBEDTLS_RSA_PRIVATE,
                 md_alg, (unsigned int) hash_len, hash, sig ) );
@@ -1017,6 +1019,8 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
         return( mbedtls_psa_err_translate_pk( status ) );
     buf_len = MBEDTLS_ECDSA_MAX_SIG_LEN( psa_get_key_bits( &attributes ) );
     psa_reset_key_attributes( &attributes );
+    if( *sig_len > MBEDTLS_PK_SIGNATURE_MAX_SIZE )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     /* make the signature */
     status = psa_asymmetric_sign( *key, alg, hash, hash_len,

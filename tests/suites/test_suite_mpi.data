@@ -197,43 +197,33 @@ Base test mbedtls_mpi_lt_mpi_ct (Y is longer in storage) #8
 mbedtls_mpi_lt_mpi_ct:3:"2B5":4:"2B5":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #1
-depends_on:MBEDTLS_HAVE_INT64
-mbedtls_mpi_lt_mpi_ct:1:"7FFFFFFFFFFFFFFF":1:"FF":0:0
+mbedtls_mpi_lt_mpi_ct:2:"7FFFFFFFFFFFFFFF":2:"FF":0:0
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #2
-depends_on:MBEDTLS_HAVE_INT64
-mbedtls_mpi_lt_mpi_ct:1:"8000000000000000":1:"7FFFFFFFFFFFFFFF":0:0
+mbedtls_mpi_lt_mpi_ct:2:"8000000000000000":2:"7FFFFFFFFFFFFFFF":0:0
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #3
-depends_on:MBEDTLS_HAVE_INT64
-mbedtls_mpi_lt_mpi_ct:1:"8000000000000000":1:"1":0:0
+mbedtls_mpi_lt_mpi_ct:2:"8000000000000000":2:"1":0:0
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #4
-depends_on:MBEDTLS_HAVE_INT64
-mbedtls_mpi_lt_mpi_ct:1:"8000000000000000":1:"0":0:0
+mbedtls_mpi_lt_mpi_ct:2:"8000000000000000":2:"0":0:0
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 64 bit) #5
-depends_on:MBEDTLS_HAVE_INT64
-mbedtls_mpi_lt_mpi_ct:1:"FFFFFFFFFFFFFFFF":1:"FF":0:0
+mbedtls_mpi_lt_mpi_ct:2:"FFFFFFFFFFFFFFFF":2:"FF":0:0
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #1
-depends_on:MBEDTLS_HAVE_INT32
 mbedtls_mpi_lt_mpi_ct:1:"7FFFFFFF":1:"FF":0:0
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #2
-depends_on:MBEDTLS_HAVE_INT32
 mbedtls_mpi_lt_mpi_ct:1:"80000000":1:"7FFFFFFF":0:0
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #3
-depends_on:MBEDTLS_HAVE_INT32
 mbedtls_mpi_lt_mpi_ct:1:"80000000":1:"1":0:0
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #4
-depends_on:MBEDTLS_HAVE_INT32
 mbedtls_mpi_lt_mpi_ct:1:"80000000":1:"0":0:0
 
 Base test mbedtls_mpi_lt_mpi_ct (corner case - 32 bit) #5
-depends_on:MBEDTLS_HAVE_INT32
 mbedtls_mpi_lt_mpi_ct:1:"FFFFFFFF":1:"FF":0:0
 
 Multi-limb mbedtls_mpi_lt_mpi_ct (X<Y, zero vs non-zero MS limb) #1

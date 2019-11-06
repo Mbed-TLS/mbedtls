@@ -235,13 +235,13 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	/* r, s must not be 0. */
 	if (uECC_vli_isZero(r) || uECC_vli_isZero(s)) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	/* r, s must be < n. */
 	if (uECC_vli_cmp_unsafe(curve->n, r) != 1 ||
 	    uECC_vli_cmp_unsafe(curve->n, s) != 1) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	/* Calculate u1 and u2. */
@@ -301,7 +301,10 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	}
 
 	/* Accept only if v == r. */
-	return (int)(uECC_vli_equal(rx, r) == 0);
+	if (uECC_vli_equal(rx, r) == 0)
+		return UECC_SUCCESS;
+
+	return UECC_FAILURE;
 }
 #else
 typedef int mbedtls_dummy_tinycrypt_def;

@@ -591,7 +591,7 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     ret = uECC_verify( keypair->public_key, hash,
                        (unsigned) hash_len, signature, uecc_curve );
-    if( ret == 0 )
+    if( ret != UECC_SUCCESS )
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     return( 0 );

@@ -422,7 +422,7 @@ uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
  * @param left IN -- left term in comparison
  * @param right IN -- right term in comparison
  * @param num_words IN -- number of words
- * @return Returns 0 if left == right, 1 otherwise.
+ * @return Returns 0 if left == right, non-zero otherwise.
  */
 uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right);
 

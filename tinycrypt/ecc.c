@@ -185,7 +185,7 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 	for (i = NUM_ECC_WORDS - 1; i >= 0; --i) {
 		diff |= (left[i] ^ right[i]);
 	}
-	return !(diff == 0);
+	return diff;
 }
 
 uECC_word_t cond_set(uECC_word_t p_true, uECC_word_t p_false, unsigned int cond)

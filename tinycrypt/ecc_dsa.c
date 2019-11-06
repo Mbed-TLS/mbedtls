@@ -214,6 +214,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	const uECC_word_t *point;
 	bitcount_t num_bits;
 	bitcount_t i;
+	volatile uECC_word_t diff;
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 	uECC_word_t r[NUM_ECC_WORDS], s[NUM_ECC_WORDS];
@@ -301,8 +302,15 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	}
 
 	/* Accept only if v == r. */
-	if (uECC_vli_equal(rx, r) == 0)
-		return UECC_SUCCESS;
+	diff = uECC_vli_equal(rx, r);
+	if (diff == 0) {
+		if (diff == 0) {
+			return UECC_SUCCESS;
+		}
+		else {
+			return UECC_ATTACK_DETECTED;
+		}
+	}
 
 	return UECC_FAILURE;
 }

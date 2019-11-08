@@ -3385,6 +3385,7 @@ static int x509_crt_verify_chain(
     int parent_is_trusted;
     int child_is_trusted;
     int signature_is_good;
+    volatile int signature_is_good_fi;
     unsigned self_cnt;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -3527,8 +3528,15 @@ find_parent:
         }
 
         /* signature was checked while searching parent */
-        if( signature_is_good != X509_SIGNATURE_IS_GOOD )
+        signature_is_good_fi = signature_is_good;
+        if( signature_is_good_fi != X509_SIGNATURE_IS_GOOD )
+        {
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+
+            mbedtls_platform_enforce_volatile_reads();
+            if( signature_is_good_fi != X509_SIGNATURE_IS_GOOD )
+                *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+        }
 
         {
             mbedtls_pk_context *parent_pk;

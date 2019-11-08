@@ -1019,7 +1019,7 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
         return( mbedtls_psa_err_translate_pk( status ) );
     buf_len = MBEDTLS_ECDSA_MAX_SIG_LEN( psa_get_key_bits( &attributes ) );
     psa_reset_key_attributes( &attributes );
-    if( *sig_len > MBEDTLS_PK_SIGNATURE_MAX_SIZE )
+    if( buf_len > MBEDTLS_PK_SIGNATURE_MAX_SIZE )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     /* make the signature */

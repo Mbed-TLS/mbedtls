@@ -238,6 +238,13 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num );
  */
 uint32_t mbedtls_platform_random_in_range( size_t num );
 
+/**
+ * \brief       This function does nothing, but can be inserted between
+ *              successive reads to a volatile local variable to prevent
+ *              compilers from optimizing them away.
+ */
+void mbedtls_platform_enforce_volatile_reads( void );
+
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
  * \brief      Platform-specific implementation of gmtime_r()

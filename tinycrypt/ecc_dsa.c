@@ -67,6 +67,7 @@
 #if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include <tinycrypt/ecc_dsa.h>
+#include "mbedtls/platform_util.h"
 
 #if default_RNG_defined
 static uECC_RNG_Function g_rng_function = &default_CSPRNG;
@@ -304,6 +305,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	/* Accept only if v == r. */
 	diff = uECC_vli_equal(rx, r);
 	if (diff == 0) {
+		mbedtls_platform_enforce_volatile_reads();
 		if (diff == 0) {
 			return UECC_SUCCESS;
 		}

@@ -598,6 +598,7 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     if( ret_fi == UECC_SUCCESS )
     {
+        mbedtls_platform_enforce_volatile_reads();
         if( ret_fi == UECC_SUCCESS )
             return( 0 );
         else

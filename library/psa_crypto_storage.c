@@ -419,7 +419,7 @@ psa_status_t psa_crypto_save_transaction( void )
 {
     struct psa_storage_info_t p_info;
     psa_status_t status;
-    status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
+    status = psa_its_get_info( PSA_CRYPTO_ITS_TRANSACTION_UID, &p_info );
     if( status == PSA_SUCCESS )
     {
         /* This shouldn't happen: we're trying to start a transaction while

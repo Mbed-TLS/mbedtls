@@ -2884,6 +2884,10 @@ static int x509_crt_check_parent( const mbedtls_x509_crt_sig_info *sig_info,
     return( 0 );
 }
 
+/* This value is different enough from 0 that it's hard for an active physical
+ * attacker to reach it just by flipping a few bits. */
+#define X509_SIGNATURE_IS_GOOD      0x7f5a5a5a
+
 /*
  * Find a suitable parent for child in candidates, or return NULL.
  *
@@ -2915,7 +2919,8 @@ static int x509_crt_check_parent( const mbedtls_x509_crt_sig_info *sig_info,
  *  - [in] child: certificate for which we're looking for a parent
  *  - [in] candidates: chained list of potential parents
  *  - [out] r_parent: parent found (or NULL)
- *  - [out] r_signature_is_good: 1 if child signature by parent is valid, or 0
+ *  - [out] r_signature_is_good: set to X509_SIGNATURE_IS_GOOD if
+ *                               child signature by parent is valid, or to 0
  *  - [in] top: 1 if candidates consists of trusted roots, ie we're at the top
  *         of the chain, 0 otherwise
  *  - [in] path_cnt: number of intermediates seen so far
@@ -3040,7 +3045,7 @@ check_signature:
         {
             mbedtls_platform_enforce_volatile_reads();
             if( ret_fi == 0 )
-                signature_is_good = 1;
+                signature_is_good = X509_SIGNATURE_IS_GOOD;
         }
 
         if( top && ! signature_is_good )
@@ -3522,7 +3527,7 @@ find_parent:
         }
 
         /* signature was checked while searching parent */
-        if( ! signature_is_good )
+        if( signature_is_good != X509_SIGNATURE_IS_GOOD )
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
 
         {

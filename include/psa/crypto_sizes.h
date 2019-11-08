@@ -247,21 +247,6 @@
  */
 #define PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN 128
 
-/** \def PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE
- *
- * Maximum size of an asymmetric signature.
- *
- * This macro must expand to a compile-time constant integer. This value
- * should be the maximum size of a MAC supported by the implementation,
- * in bytes, and must be no smaller than this maximum.
- */
-#define PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE                               \
-    PSA_BITS_TO_BYTES(                                                  \
-        PSA_VENDOR_RSA_MAX_KEY_BITS > PSA_VENDOR_ECC_MAX_CURVE_BITS ?   \
-        PSA_VENDOR_RSA_MAX_KEY_BITS :                                   \
-        PSA_VENDOR_ECC_MAX_CURVE_BITS                                   \
-        )
-
 /** The maximum size of a block cipher supported by the implementation. */
 #define PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE 16
 
@@ -456,6 +441,22 @@
     (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void)alg, PSA_BITS_TO_BYTES(key_bits)) : \
      PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_ECDSA_SIGNATURE_SIZE(key_bits) : \
      ((void)alg, 0))
+
+#define PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE     \
+    PSA_ECDSA_SIGNATURE_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
+
+/** \def PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE
+ *
+ * Maximum size of an asymmetric signature.
+ *
+ * This macro must expand to a compile-time constant integer. This value
+ * should be the maximum size of a signature supported by the implementation,
+ * in bytes, and must be no smaller than this maximum.
+ */
+#define PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE                               \
+    (PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS) > PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE ? \
+     PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS) :                   \
+     PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE)
 
 /** Sufficient output buffer size for psa_asymmetric_encrypt().
  *

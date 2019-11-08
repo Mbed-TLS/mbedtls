@@ -2938,6 +2938,7 @@ static int x509_crt_find_parent_in(
                         mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
+    volatile int ret_fi;
     mbedtls_x509_crt *parent_crt;
     int signature_is_good;
 
@@ -3018,10 +3019,10 @@ check_signature:
             continue;
 
         /* Signature */
-        ret = x509_crt_check_signature( child_sig, parent_crt, rs_ctx );
+        ret_fi = x509_crt_check_signature( child_sig, parent_crt, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-        if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        if( rs_ctx != NULL && ret_fi == MBEDTLS_ERR_ECP_IN_PROGRESS )
         {
             /* save state */
             rs_ctx->parent = parent_crt;
@@ -3030,13 +3031,18 @@ check_signature:
             rs_ctx->fallback_signature_is_good = fallback_signature_is_good;
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
-            return( ret );
+            return( ret_fi );
         }
-#else
-        (void) ret;
 #endif
 
-        signature_is_good = ret == 0;
+        signature_is_good = 0;
+        if( ret_fi == 0 )
+        {
+            mbedtls_platform_enforce_volatile_reads();
+            if( ret_fi == 0 )
+                signature_is_good = 1;
+        }
+
         if( top && ! signature_is_good )
             continue;
 

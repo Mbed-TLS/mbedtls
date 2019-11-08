@@ -531,16 +531,21 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *
  * \param ctx       The PK context to use. It must have been set up
  *                  with a private key.
- * \param md_alg    Hash algorithm used (see notes)
+ * \param md_alg    Hash algorithm used (see notes for mbedtls_pk_sign())
  * \param hash      Hash of the message to sign
- * \param hash_len  Hash length or 0 (see notes)
- * \param sig       Place to write the signature
- * \param sig_len   Number of bytes written
+ * \param hash_len  Hash length or 0 (see notes for mbedtls_pk_sign())
+ * \param sig       Place to write the signature.
+ *                  It must have enough room for the signature.
+ *                  #MBEDTLS_PK_SIGNATURE_MAX_SIZE is always enough.
+ *                  You may use a smaller buffer if it is large enough
+ *                  given the key type.
+ * \param sig_len   On successful return,
+ *                  the number of bytes written to \p sig.
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  * \param rs_ctx    Restart context (NULL to disable restart)
  *
- * \return          See \c mbedtls_pk_sign(), or
+ * \return          See \c mbedtls_pk_sign().
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */

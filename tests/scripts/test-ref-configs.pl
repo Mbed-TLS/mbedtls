@@ -17,6 +17,8 @@ use warnings;
 use strict;
 
 my %configs = (
+    'config-symmetric-only.h' => {
+    },
     'config-suite-b.h' => {
     },
 );
@@ -46,6 +48,15 @@ sub abort {
     # use an exit code between 1 and 124 for git bisect (die returns 255)
     warn $_[0];
     exit 1;
+}
+
+# Create a seedfile for configurations that enable MBEDTLS_ENTROPY_NV_SEED.
+# For test purposes, this doesn't have to be cryptographically random.
+if (!-e "tests/seedfile" || -s "tests/seedfile" < 64) {
+    local *SEEDFILE;
+    open SEEDFILE, ">tests/seedfile" or die;
+    print SEEDFILE "*" x 64 or die;
+    close SEEDFILE or die;
 }
 
 while( my ($conf, $data) = each %configs ) {

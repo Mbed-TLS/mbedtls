@@ -538,6 +538,31 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_mpi_lt_mpi_ct( int size_X, char * input_X,
+                            int size_Y, char * input_Y,
+                            int input_ret, int input_err )
+{
+    unsigned ret;
+    unsigned input_uret = input_ret;
+    mbedtls_mpi X, Y;
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &X, 16, input_X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &Y, 16, input_Y ) == 0 );
+
+    mbedtls_mpi_grow( &X, size_X );
+    mbedtls_mpi_grow( &Y, size_Y );
+
+    TEST_ASSERT( mbedtls_mpi_lt_mpi_ct( &X, &Y, &ret ) == input_err );
+    if( input_err == 0 )
+        TEST_ASSERT( ret == input_uret );
+
+exit:
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_mpi_cmp_abs( int radix_X, char * input_X, int radix_Y,
                           char * input_Y, int input_A )
 {

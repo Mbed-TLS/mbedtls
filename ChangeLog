@@ -2,6 +2,13 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.7.x branch released xxxx-xx-xx
 
+Security
+   * Fix side channel vulnerability in ECDSA. Our bignum implementation is not
+     constant time/constant trace, so side channel attacks can retrieve the
+     blinded value, factor it (as it is smaller than RSA keys and not guaranteed
+     to have only large prime factors), and then, by brute force, recover the
+     key. Reported by Alejandro Cabrera Aldaya and Billy Brumley.
+
 Changes
    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
      from the cipher abstraction layer. Fixes #2198.

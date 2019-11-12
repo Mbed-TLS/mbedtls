@@ -6748,6 +6748,10 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
         {
             ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
         }
+        else
+        {
+            ssl->state = MBEDTLS_SSL_INVALID;
+        }
         return( 0 );
     }
 
@@ -6772,6 +6776,10 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         else if( ssl->state == MBEDTLS_SSL_SERVER_CERTIFICATE )
         {
             ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
+        }
+        else
+        {
+            ssl->state = MBEDTLS_SSL_INVALID;
         }
         return( 0 );
     }
@@ -6804,6 +6812,10 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
         {
             ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
         }
+        else
+        {
+            ssl->state = MBEDTLS_SSL_INVALID;
+        }
         return( 0 );
     }
 
@@ -6821,6 +6833,10 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
             else if( ssl->state == MBEDTLS_SSL_SERVER_CERTIFICATE )
             {
                 ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
+            }
+            else
+            {
+                ssl->state = MBEDTLS_SSL_INVALID;
             }
             return( 0 );
         }
@@ -6902,6 +6918,10 @@ write_msg:
     else if( ssl->state == MBEDTLS_SSL_SERVER_CERTIFICATE )
     {
         ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
+    }
+    else
+    {
+        ssl->state = MBEDTLS_SSL_INVALID;
     }
 
     if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
@@ -7567,6 +7587,10 @@ exit:
         {
             ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
         }
+        else
+        {
+            ssl->state = MBEDTLS_SSL_INVALID;
+        }
     }
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
@@ -7604,6 +7628,10 @@ int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl )
     else if( ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
     {
         ssl->state = MBEDTLS_SSL_SERVER_FINISHED;
+    }
+    else
+    {
+        ssl->state = MBEDTLS_SSL_INVALID;
     }
 
     if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
@@ -7694,6 +7722,10 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     else if( ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
     {
         ssl->state = MBEDTLS_SSL_SERVER_FINISHED;
+    }
+    else
+    {
+        ssl->state = MBEDTLS_SSL_INVALID;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse change cipher spec" ) );
@@ -7871,6 +7903,10 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
         {
             ssl->state = MBEDTLS_SSL_FLUSH_BUFFERS;
         }
+        else
+        {
+            ssl->state = MBEDTLS_SSL_INVALID;
+        }
     }
 
     /*
@@ -8039,6 +8075,10 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         else if( ssl->state == MBEDTLS_SSL_SERVER_FINISHED )
         {
             ssl->state = MBEDTLS_SSL_FLUSH_BUFFERS;
+        }
+        else
+        {
+            ssl->state = MBEDTLS_SSL_INVALID;
         }
     }
 

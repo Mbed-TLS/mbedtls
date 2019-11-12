@@ -71,6 +71,14 @@ Security
      blinded value, factor it (as it is smaller than RSA keys and not guaranteed
      to have only large prime factors), and then, by brute force, recover the
      key. Reported by Alejandro Cabrera Aldaya and Billy Brumley.
+   * Zeroize local variables in mbedtls_internal_aes_encrypt() and
+     mbedtls_internal_aes_decrypt() before exiting the function. The value of
+     these variables can be used to recover the last round key. To follow best
+     practice and to limit the impact of buffer overread vulnerabilities (like
+     Heartbleed) we need to zeroize them before exiting the function.
+     Issue reported by Tuba Yavuz, Farhaan Fowze, Ken (Yihang) Bai,
+     Grant Hernandez, and Kevin Butler (University of Florida) and
+     Dave Tian (Purdue University).
 
 Bugfix
    * Remove redundant line for getting the bitlen of a bignum, since the variable

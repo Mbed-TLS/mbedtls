@@ -6,9 +6,9 @@ Mbed Crypto is distributed under the Apache License, version 2.0. See the [LICEN
 
 ## PSA cryptography API
 
-Arm's Platform Security Architecture (PSA) is a holistic set of threat models, security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that allows security to be consistently designed in, at both a hardware and firmware level.
+Arm's [Platform Security Architecture (PSA)](https://developer.arm.com/architectures/security-architectures/platform-security-architecture) is a holistic set of threat models, security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that allows security to be consistently designed in, at both a hardware and firmware level.
 
-The PSA cryptography API provides access to a set of cryptographic primitives. It has a dual purpose. First, it can be used in a PSA-compliant platform to build services, such as secure boot, secure storage and secure communication. Second, it can also be used independently of other PSA components on any platform.
+The [PSA cryptography API](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) provides access to a set of cryptographic primitives. It has a dual purpose. First, it can be used in a PSA-compliant platform to build services, such as secure boot, secure storage and secure communication. Second, it can also be used independently of other PSA components on any platform.
 
 The design goals of the PSA cryptography API include:
 
@@ -28,11 +28,9 @@ The Mbed Crypto library implements both the legacy Mbed TLS interfaces to crypto
 
 Documentation for the Mbed TLS interfaces in the default library configuration is available as part of the [Mbed TLS documentation](https://tls.mbed.org/api/).
 
+For the PSA interfaces, please refer to the PSA Cryptography API documents linked from the [PSA cryptography interfaces documentation portal](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) for an overview of the library's interfaces and a detailed description of the types, macros and functions that it provides. The API reference is available in [PDF](https://armmbed.github.io/mbed-crypto/PSA_Cryptography_API_Specification.pdf) and [HTML](https://armmbed.github.io/mbed-crypto/html/index.html) formats.
+
 There are currently a few deviations where the library does not yet implement the latest version of the specification. Please refer to the [compliance issues on Github](https://github.com/ARMmbed/mbed-crypto/labels/compliance) for an up-to-date list.
-
-### PSA Cryptography API
-
-You can read the [complete PSA cryptography API specification as a PDF document](https://github.com/ARMmbed/mbed-crypto/raw/psa-crypto-api/docs/PSA_Cryptography_API_Specification.pdf). The API reference is also available in [HTML format](https://armmbed.github.io/mbed-crypto/html/index.html).
 
 ### Browsable library documentation
 

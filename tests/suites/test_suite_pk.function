@@ -926,6 +926,8 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     TEST_ASSERT( mbedtls_pk_sign_restartable( &pk, MBEDTLS_MD_SHA256,
                  hash, sizeof hash, sig, &sig_len,
                  rnd_std_rand, NULL, rs_ctx ) == sign_ret );
+    if( sign_ret != 0 )
+        sig_len = MBEDTLS_PK_SIGNATURE_MAX_SIZE;
 
     TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
                             hash, sizeof hash, sig, sig_len ) == verify_ret );
@@ -945,6 +947,8 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
 
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
                           sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
+    if( sign_ret != 0 )
+        sig_len = MBEDTLS_PK_SIGNATURE_MAX_SIZE;
 
     TEST_ASSERT( mbedtls_pk_verify_restartable( &pk, MBEDTLS_MD_SHA256,
                  hash, sizeof hash, sig, sig_len, rs_ctx ) == verify_ret );

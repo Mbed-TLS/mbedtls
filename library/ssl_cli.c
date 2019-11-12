@@ -1116,7 +1116,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CLIENT_HELLO;
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
@@ -1839,7 +1839,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     else
     {
         /* Start a new session */
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_SERVER_CERTIFICATE;
 #if defined(MBEDTLS_HAVE_TIME)
         ssl->session_negotiate->start = mbedtls_time( NULL );
 #endif
@@ -3143,7 +3143,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     if( ! mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
         return( 0 );
     }
 
@@ -3165,7 +3165,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     if( ! mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
         return( 0 );
     }
 
@@ -3183,7 +3183,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
     ssl->client_auth = ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
@@ -3340,7 +3340,7 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE );
     }
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
@@ -3827,7 +3827,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
 
@@ -3866,14 +3866,14 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
 
     if( ssl->client_auth == 0 || mbedtls_ssl_own_cert( ssl ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
 
@@ -3997,7 +3997,7 @@ sign:
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_VERIFY;
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
 
     if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
     {

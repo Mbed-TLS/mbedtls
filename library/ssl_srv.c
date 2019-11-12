@@ -1360,7 +1360,7 @@ have_ciphersuite_v2:
     }
 
     ssl->in_left = 0;
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse client hello v2" ) );
 
@@ -2298,7 +2298,7 @@ have_ciphersuite:
         mbedtls_ssl_get_ciphersuite_name(
             mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ) ) ) );
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
@@ -2858,7 +2858,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
          * New session, create a new session id,
          * unless we're about to issue a session ticket
          */
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_SERVER_CERTIFICATE;
 
 #if defined(MBEDTLS_HAVE_TIME)
         ssl->session_negotiate->start = mbedtls_time( NULL );
@@ -3008,7 +3008,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
         return( 0 );
     }
 
@@ -3030,7 +3030,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
@@ -3693,7 +3693,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
         /* Key exchanges not involving ephemeral keys don't use
          * ServerKeyExchange, so end here. */
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
         return( 0 );
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED */
@@ -3751,7 +3751,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE;
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
 
     if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
     {
@@ -3773,7 +3773,7 @@ static int ssl_write_server_hello_done( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_SERVER_HELLO_DONE;
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
@@ -4422,7 +4422,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
 
@@ -4450,7 +4450,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
 
@@ -4478,7 +4478,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( peer_pk == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
 
@@ -4490,7 +4490,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         goto exit;
     }
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
 
     /* Process the message contents */
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||

@@ -24,7 +24,9 @@ Mbed Crypto is a reference implementation of the PSA cryptography API. It is wri
 
 ## Documentation
 
-The Mbed Crypto library is a reference implementation of the PSA cryptography API. Please refer to the PSA Cryptography API documents for an overview of the library's interfaces and a detailed description of the types, macros and functions that it provides.
+The Mbed Crypto library implements both the legacy Mbed TLS interfaces to cryptographic primitives (`mbedtls_xxx`) and the new PSA Cryptography interfaces (`psa_xxx`).
+
+Documentation for the Mbed TLS interfaces in the default library configuration is available as part of the [Mbed TLS documentation](https://tls.mbed.org/api/).
 
 There are currently a few deviations where the library does not yet implement the latest version of the specification. Please refer to the [compliance issues on Github](https://github.com/ARMmbed/mbed-crypto/labels/compliance) for an up-to-date list.
 

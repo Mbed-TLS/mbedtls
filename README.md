@@ -36,7 +36,7 @@ You can read the [complete PSA cryptography API specification as a PDF document]
 
 ### Browsable library documentation
 
-To generate a local copy of the library documentation in HTML format:
+To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
 
 1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed. We use version 1.8.11 but slightly older or more recent versions should work.
 1. Run `make apidoc`.

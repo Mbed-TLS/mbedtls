@@ -3783,6 +3783,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     int ret;
     mbedtls_x509_crt_verify_chain ver_chain;
     uint32_t ee_flags;
+    volatile uint32_t flags_fi;
 
     *flags = 0;
     ee_flags = 0;
@@ -3859,16 +3860,19 @@ exit:
         return( ret );
     }
 
-    if( *flags != 0 )
+    flags_fi = *flags;
+    if( flags_fi == 0 )
     {
-        /* Preserve the API by removing internal extra bits - from now on the
-         * fact that flags is non-zero is also redundantly encoded by the
-         * return value from this function. */
-        *flags &= ~ X509_BADCERT_FI_EXTRA;
-        return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
+        mbedtls_platform_enforce_volatile_reads();
+        if( flags_fi == 0 )
+            return( 0 );
     }
 
-    return( 0 );
+    /* Preserve the API by removing internal extra bits - from now on the
+     * fact that flags is non-zero is also redundantly encoded by the
+     * non-zero return value from this function. */
+    *flags &= ~ X509_BADCERT_FI_EXTRA;
+    return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
 }
 
 /*

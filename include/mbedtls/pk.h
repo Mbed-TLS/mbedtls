@@ -102,6 +102,58 @@ typedef struct mbedtls_pk_rsassa_pss_options
 } mbedtls_pk_rsassa_pss_options;
 
 /**
+ * \brief           Maximum size of a signature made by mbedtls_pk_sign().
+ */
+/* We need to set MBEDTLS_PK_SIGNATURE_MAX_SIZE to the maximum signature
+ * size among the supported signature types. Do it by starting at 0,
+ * then incrementally increasing to be large enough for each supported
+ * signature mechanism.
+ *
+ * The resulting value can be 0, for example if MBEDTLS_ECDH_C is enabled
+ * (which allows the pk module to be included) but neither MBEDTLS_ECDSA_C
+ * nor MBEDTLS_RSA_C nor any opaque signature mechanism (PSA or RSA_ALT).
+ */
+#define MBEDTLS_PK_SIGNATURE_MAX_SIZE 0
+
+#if ( defined(MBEDTLS_RSA_C) || defined(MBEDTLS_PK_RSA_ALT_SUPPORT) ) && \
+    MBEDTLS_MPI_MAX_SIZE > MBEDTLS_PK_SIGNATURE_MAX_SIZE
+/* For RSA, the signature can be as large as the bignum module allows.
+ * For RSA_ALT, the signature size is not necessarily tied to what the
+ * bignum module can do, but in the absence of any specific setting,
+ * we use that (rsa_alt_sign_wrap in pk_wrap will check). */
+#undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
+#define MBEDTLS_PK_SIGNATURE_MAX_SIZE MBEDTLS_MPI_MAX_SIZE
+#endif
+
+#if defined(MBEDTLS_ECDSA_C) &&                                 \
+    MBEDTLS_ECDSA_MAX_LEN > MBEDTLS_PK_SIGNATURE_MAX_SIZE
+/* For ECDSA, the ecdsa module exports a constant for the maximum
+ * signature size. */
+#undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
+#define MBEDTLS_PK_SIGNATURE_MAX_SIZE MBEDTLS_ECDSA_MAX_LEN
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE > MBEDTLS_PK_SIGNATURE_MAX_SIZE
+/* PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE is the maximum size of a signature made
+ * through the PSA API in the PSA representation. */
+#undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
+#define MBEDTLS_PK_SIGNATURE_MAX_SIZE PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE
+#endif
+
+#if PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE + 11 > MBEDTLS_PK_SIGNATURE_MAX_SIZE
+/* The Mbed TLS representation is different for ECDSA signatures:
+ * PSA uses the raw concatenation of r and s,
+ * whereas Mbed TLS uses the ASN.1 representation (SEQUENCE of two INTEGERs).
+ * Add the overhead of ASN.1: up to (1+2) + 2 * (1+2+1) for the
+ * types, lengths (represented by up to 2 bytes), and potential leading
+ * zeros of the INTEGERs and the SEQUENCE. */
+#undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
+#define MBEDTLS_PK_SIGNATURE_MAX_SIZE ( PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE + 11 )
+#endif
+#endif /* defined(MBEDTLS_USE_PSA_CRYPTO) */
+
+/**
  * \brief           Types for interfacing with the debug module
  */
 typedef enum
@@ -442,8 +494,13 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  * \param md_alg    Hash algorithm used (see notes)
  * \param hash      Hash of the message to sign
  * \param hash_len  Hash length or 0 (see notes)
- * \param sig       Place to write the signature
- * \param sig_len   Number of bytes written
+ * \param sig       Place to write the signature.
+ *                  It must have enough room for the signature.
+ *                  #MBEDTLS_PK_SIGNATURE_MAX_SIZE is always enough.
+ *                  You may use a smaller buffer if it is large enough
+ *                  given the key type.
+ * \param sig_len   On successful return,
+ *                  the number of bytes written to \p sig.
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
@@ -474,16 +531,21 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *
  * \param ctx       The PK context to use. It must have been set up
  *                  with a private key.
- * \param md_alg    Hash algorithm used (see notes)
+ * \param md_alg    Hash algorithm used (see notes for mbedtls_pk_sign())
  * \param hash      Hash of the message to sign
- * \param hash_len  Hash length or 0 (see notes)
- * \param sig       Place to write the signature
- * \param sig_len   Number of bytes written
+ * \param hash_len  Hash length or 0 (see notes for mbedtls_pk_sign())
+ * \param sig       Place to write the signature.
+ *                  It must have enough room for the signature.
+ *                  #MBEDTLS_PK_SIGNATURE_MAX_SIZE is always enough.
+ *                  You may use a smaller buffer if it is large enough
+ *                  given the key type.
+ * \param sig_len   On successful return,
+ *                  the number of bytes written to \p sig.
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  * \param rs_ctx    Restart context (NULL to disable restart)
  *
- * \return          See \c mbedtls_pk_sign(), or
+ * \return          See \c mbedtls_pk_sign().
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */

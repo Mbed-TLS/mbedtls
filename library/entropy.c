@@ -271,7 +271,13 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
      */
     for( i = 0; i < ctx->source_count; i++ )
     {
-        if( ctx->source[i].strong == MBEDTLS_ENTROPY_SOURCE_STRONG )
+        volatile int strong_fi = ctx->source[i].strong;
+        if( strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
+            have_one_strong_fi = 1;
+
+        mbedtls_platform_enforce_volatile_reads();
+
+        if( strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
             have_one_strong_fi = 1;
 
         olen = 0;

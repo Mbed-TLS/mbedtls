@@ -3547,13 +3547,11 @@ find_parent:
         /* signature was checked while searching parent */
         signature_is_good_fi = signature_is_good;
         if( signature_is_good_fi != X509_SIGNATURE_IS_GOOD )
-        {
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED | X509_BADCERT_FI_EXTRA;
 
-            mbedtls_platform_enforce_volatile_reads();
-            if( signature_is_good_fi != X509_SIGNATURE_IS_GOOD )
-                *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED | X509_BADCERT_FI_EXTRA;
-        }
+        mbedtls_platform_enforce_volatile_reads();
+        if( signature_is_good_fi != X509_SIGNATURE_IS_GOOD )
+            *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED | X509_BADCERT_FI_EXTRA;
 
         {
             mbedtls_pk_context *parent_pk;

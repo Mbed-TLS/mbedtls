@@ -4490,6 +4490,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
     {
         unsigned i;
         size_t protected_record_size;
+        volatile int encrypted_fi = 0;
 
         /* Skip writing the record content type to after the encryption,
          * as it may change when using the CID extension. */
@@ -4544,6 +4545,13 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
             ssl->out_msglen = len = rec.data_len;
             (void)mbedtls_platform_put_uint16_be( ssl->out_len, rec.data_len );
+            encrypted_fi = 1;
+        }
+
+        //Double check to ensure the encryption has been done
+        if( ssl->transform_out != NULL && encrypted_fi == 0 )
+        {
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
         protected_record_size = len + mbedtls_ssl_out_hdr_len( ssl );

@@ -951,6 +951,12 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	}
 
 	EccPoint_mult(result, point, k2[!carry], initial_Z);
+
+	if (EccPoint_isZero(result, curve)) {
+		r = 0;
+		goto clear_and_out;
+	}
+
 	r = 1;
 
 clear_and_out:
@@ -966,25 +972,7 @@ uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
 					uECC_word_t *private_key,
 					uECC_Curve curve)
 {
-
-	uECC_word_t tmp1[NUM_ECC_WORDS];
- 	uECC_word_t tmp2[NUM_ECC_WORDS];
-	uECC_word_t *p2[2] = {tmp1, tmp2};
-	uECC_word_t carry;
-
-	if (curve != uECC_secp256r1())
-		return 0;
-
-	/* Regularize the bitcount for the private key so that attackers cannot
-	 * use a side channel attack to learn the number of leading zeros. */
-	carry = regularize_k(private_key, tmp1, tmp2);
-
-	EccPoint_mult(result, curve->G, p2[!carry], 0);
-
-	if (EccPoint_isZero(result, curve)) {
-		return 0;
-	}
-	return 1;
+	return EccPoint_mult_safer(result, curve->G, private_key, curve);
 }
 
 /* Converts an integer in uECC native format to big-endian bytes. */

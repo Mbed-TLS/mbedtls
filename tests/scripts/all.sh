@@ -590,10 +590,10 @@ component_test_ref_configs () {
 
 component_test_no_pem_no_fs () {
     msg "build: Default + !MBEDTLS_PEM_PARSE_C + !MBEDTLS_FS_IO (ASan build)"
-    scripts/config.pl unset MBEDTLS_PEM_PARSE_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C # requires a filesystem
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA ITS
+    scripts/config.py unset MBEDTLS_PEM_PARSE_C
+    scripts/config.py unset MBEDTLS_FS_IO
+    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C # requires a filesystem
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA ITS
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -603,7 +603,7 @@ component_test_no_pem_no_fs () {
 
 component_test_rsa_no_crt () {
     msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
-    scripts/config.pl set MBEDTLS_RSA_NO_CRT
+    scripts/config.py set MBEDTLS_RSA_NO_CRT
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -613,7 +613,7 @@ component_test_rsa_no_crt () {
 
 component_test_new_ecdh_context () {
     msg "build: new ECDH context (ASan build)" # ~ 6 min
-    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -623,8 +623,8 @@ component_test_new_ecdh_context () {
 
 component_test_everest () {
     msg "build: Everest ECDH context (ASan build)" # ~ 6 min
-    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
-    scripts/config.pl set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -634,8 +634,8 @@ component_test_everest () {
 
 component_test_psa_collect_statuses () {
   msg "build+test: psa_collect_statuses" # ~30s
-  scripts/config.pl full
-  scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # slow and irrelevant
+  scripts/config.py full
+  scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # slow and irrelevant
   record_status tests/scripts/psa_collect_statuses.py
   # Check that psa_crypto_init() succeeded at least once
   record_status grep -q '^0:psa_crypto_init:' tests/statuses.log
@@ -644,8 +644,8 @@ component_test_psa_collect_statuses () {
 
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
     make
 
@@ -658,8 +658,8 @@ component_test_full_cmake_clang () {
 
 component_test_full_make_gcc_o0 () {
     msg "build: make, full config, gcc -O0" # ~ 50s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     make CC=gcc CFLAGS='-O0'
 
     msg "test: main suites (full config, gcc -O0)" # ~ 5s
@@ -668,8 +668,8 @@ component_test_full_make_gcc_o0 () {
 
 component_build_deprecated () {
     msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
-    scripts/config.pl full
-    scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_DEPRECATED_WARNING
     # Build with -O -Wextra to catch a maximum of issues.
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
@@ -677,8 +677,8 @@ component_build_deprecated () {
     msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
     # No cleanup, just tweak the configuration and rebuild
     make clean
-    scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
-    scripts/config.pl set MBEDTLS_DEPRECATED_REMOVED
+    scripts/config.py unset MBEDTLS_DEPRECATED_WARNING
+    scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
     # Build with -O -Wextra to catch a maximum of issues.
     make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
     make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
@@ -713,13 +713,13 @@ component_build_default_make_gcc_and_cxx () {
 component_test_no_use_psa_crypto_full_cmake_asan() {
     # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
     msg "build: cmake, full config + MBEDTLS_USE_PSA_CRYPTO, ASan"
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.pl set MBEDTLS_ECP_RESTARTABLE  # not using PSA, so enable restartable ECC
-    scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py set MBEDTLS_ECP_RESTARTABLE  # not using PSA, so enable restartable ECC
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -729,10 +729,10 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
 
 component_test_check_params_functionality () {
     msg "build+test: MBEDTLS_CHECK_PARAMS functionality"
-    scripts/config.pl full # includes CHECK_PARAMS
+    scripts/config.py full # includes CHECK_PARAMS
     # Make MBEDTLS_PARAM_FAILED call mbedtls_param_failed().
-    scripts/config.pl unset MBEDTLS_CHECK_PARAMS_ASSERT
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py unset MBEDTLS_CHECK_PARAMS_ASSERT
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     # Only build and run tests. Do not build sample programs, because
     # they don't have a mbedtls_param_failed() function.
     make CC=gcc CFLAGS='-Werror -O1' lib test
@@ -740,25 +740,25 @@ component_test_check_params_functionality () {
 
 component_test_check_params_without_platform () {
     msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
-    scripts/config.pl full # includes CHECK_PARAMS
+    scripts/config.py full # includes CHECK_PARAMS
     # Keep MBEDTLS_PARAM_FAILED as assert.
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
-    scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
-    scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
-    scripts/config.pl unset MBEDTLS_PLATFORM_MEMORY
-    scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
-    scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl unset MBEDTLS_PLATFORM_C
+    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py unset MBEDTLS_PLATFORM_C
     make CC=gcc CFLAGS='-Werror -O1' all test
 }
 
 component_test_check_params_silent () {
     msg "build+test: MBEDTLS_CHECK_PARAMS with alternative MBEDTLS_PARAM_FAILED()"
-    scripts/config.pl full # includes CHECK_PARAMS
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.py full # includes CHECK_PARAMS
+    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     # Set MBEDTLS_PARAM_FAILED to nothing.
     sed -i 's/.*\(#define MBEDTLS_PARAM_FAILED( cond )\).*/\1/' "$CONFIG_H"
     make CC=gcc CFLAGS='-Werror -O1' all test
@@ -769,20 +769,20 @@ component_test_no_platform () {
     # This should catch missing mbedtls_printf definitions, and by disabling file
     # IO, it should catch missing '#include <stdio.h>'
     msg "build: full config except platform/fsio/net, make, gcc, C99" # ~ 30s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_PLATFORM_C
-    scripts/config.pl unset MBEDTLS_PLATFORM_MEMORY
-    scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
-    scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
-    scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
-    scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
-    scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_SE_C
-    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C
-    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_PLATFORM_C
+    scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py unset MBEDTLS_FS_IO
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
@@ -792,20 +792,20 @@ component_test_no_platform () {
 component_build_no_std_function () {
     # catch compile bugs in _uninit functions
     msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
-    scripts/config.pl full
-    scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
 }
 
 component_test_null_entropy () {
     msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
-    scripts/config.pl set MBEDTLS_TEST_NULL_ENTROPY
-    scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-    scripts/config.pl set MBEDTLS_ENTROPY_C
-    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
-    scripts/config.pl unset MBEDTLS_HAVEGE_C
+    scripts/config.py set MBEDTLS_TEST_NULL_ENTROPY
+    scripts/config.py set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
+    scripts/config.py set MBEDTLS_ENTROPY_C
+    scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py unset MBEDTLS_ENTROPY_HARDWARE_ALT
+    scripts/config.py unset MBEDTLS_HAVEGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan -D UNSAFE_BUILD=ON .
     make
 
@@ -815,9 +815,9 @@ component_test_null_entropy () {
 
 component_test_platform_calloc_macro () {
     msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
-    scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
-    scripts/config.pl set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
-    scripts/config.pl set MBEDTLS_PLATFORM_FREE_MACRO   free
+    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
+    scripts/config.py set MBEDTLS_PLATFORM_FREE_MACRO   free
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -827,8 +827,8 @@ component_test_platform_calloc_macro () {
 
 component_test_malloc_0_null () {
     msg "build: malloc(0) returns NULL (ASan+UBSan build)"
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     make CC=gcc CFLAGS="'-DMBEDTLS_CONFIG_FILE=\"$PWD/tests/configs/config-wrapper-malloc-0-null.h\"' $ASAN_CFLAGS -O" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: malloc(0) returns NULL (ASan+UBSan build)"
@@ -842,7 +842,7 @@ component_test_malloc_0_null () {
 
 component_test_aes_fewer_tables () {
     msg "build: default config with AES_FEWER_TABLES enabled"
-    scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
+    scripts/config.py set MBEDTLS_AES_FEWER_TABLES
     make CC=gcc CFLAGS='-Werror -Wall -Wextra'
 
     msg "test: AES_FEWER_TABLES"
@@ -851,7 +851,7 @@ component_test_aes_fewer_tables () {
 
 component_test_aes_rom_tables () {
     msg "build: default config with AES_ROM_TABLES enabled"
-    scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+    scripts/config.py set MBEDTLS_AES_ROM_TABLES
     make CC=gcc CFLAGS='-Werror -Wall -Wextra'
 
     msg "test: AES_ROM_TABLES"
@@ -860,8 +860,8 @@ component_test_aes_rom_tables () {
 
 component_test_aes_fewer_tables_and_rom_tables () {
     msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
-    scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
-    scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+    scripts/config.py set MBEDTLS_AES_FEWER_TABLES
+    scripts/config.py set MBEDTLS_AES_ROM_TABLES
     make CC=gcc CFLAGS='-Werror -Wall -Wextra'
 
     msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
@@ -870,7 +870,7 @@ component_test_aes_fewer_tables_and_rom_tables () {
 
 component_test_se_default () {
     msg "build: default config + MBEDTLS_PSA_CRYPTO_SE_C"
-    scripts/config.pl set MBEDTLS_PSA_CRYPTO_SE_C
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_SE_C
     make CC=clang CFLAGS="$ASAN_CFLAGS -Os" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: default config + MBEDTLS_PSA_CRYPTO_SE_C"
@@ -879,9 +879,9 @@ component_test_se_default () {
 
 component_test_se_full () {
     msg "build: full config + MBEDTLS_PSA_CRYPTO_SE_C"
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.pl set MBEDTLS_PSA_CRYPTO_SE_C
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_SE_C
     make CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: full config + MBEDTLS_PSA_CRYPTO_SE_C"
@@ -906,7 +906,7 @@ component_build_mbedtls_config_file () {
     msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
     # Use the full config so as to catch a maximum of places where
     # the check of MBEDTLS_CONFIG_FILE might be missing.
-    scripts/config.pl full
+    scripts/config.py full
     sed 's!"check_config.h"!"mbedtls/check_config.h"!' <"$CONFIG_H" >full_config.h
     echo '#error "MBEDTLS_CONFIG_FILE is not working"' >"$CONFIG_H"
     make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"'"
@@ -916,7 +916,7 @@ component_build_mbedtls_config_file () {
 component_test_m32_o0 () {
     # Build once with -O0, to compile out the i386 specific inline assembly
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
-    scripts/config.pl full
+    scripts/config.py full
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O0 (ASan build)"
@@ -932,10 +932,10 @@ support_test_m32_o0 () {
 component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.pl unset MBEDTLS_MEMORY_DEBUG
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py unset MBEDTLS_MEMORY_DEBUG
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O1" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O1 (ASan build)"
@@ -947,8 +947,8 @@ support_test_m32_o1 () {
 
 component_test_m32_everest () {
     msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
-    scripts/config.pl unset MBEDTLS_ECDH_LEGACY_CONTEXT
-    scripts/config.pl set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
@@ -960,7 +960,7 @@ support_test_m32_everest () {
 
 component_test_mx32 () {
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
-    scripts/config.pl full
+    scripts/config.py full
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32' LDFLAGS='-mx32'
 
     msg "test: 64-bit ILP32, make, gcc"
@@ -975,7 +975,7 @@ support_test_mx32 () {
 
 component_test_min_mpi_window_size () {
     msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
-    scripts/config.pl set MBEDTLS_MPI_WINDOW_SIZE 1
+    scripts/config.py set MBEDTLS_MPI_WINDOW_SIZE 1
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -985,9 +985,9 @@ component_test_min_mpi_window_size () {
 
 component_test_have_int32 () {
     msg "build: gcc, force 32-bit bignum limbs"
-    scripts/config.pl unset MBEDTLS_HAVE_ASM
-    scripts/config.pl unset MBEDTLS_AESNI_C
-    scripts/config.pl unset MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
 
     msg "test: gcc, force 32-bit bignum limbs"
@@ -996,9 +996,9 @@ component_test_have_int32 () {
 
 component_test_have_int64 () {
     msg "build: gcc, force 64-bit bignum limbs"
-    scripts/config.pl unset MBEDTLS_HAVE_ASM
-    scripts/config.pl unset MBEDTLS_AESNI_C
-    scripts/config.pl unset MBEDTLS_PADLOCK_C
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
 
     msg "test: gcc, force 64-bit bignum limbs"
@@ -1007,9 +1007,9 @@ component_test_have_int64 () {
 
 component_test_no_udbl_division () {
     msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.py set MBEDTLS_NO_UDBL_DIVISION
     make CFLAGS='-Werror -O1'
 
     msg "test: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
@@ -1018,9 +1018,9 @@ component_test_no_udbl_division () {
 
 component_test_no_64bit_multiplication () {
     msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.py set MBEDTLS_NO_64BIT_MULTIPLICATION
     make CFLAGS='-Werror -O1'
 
     msg "test: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
@@ -1029,13 +1029,13 @@ component_test_no_64bit_multiplication () {
 
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
-    scripts/config.pl baremetal
+    scripts/config.py baremetal
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
 }
 
 component_build_arm_none_eabi_gcc_arm5vte () {
     msg "build: arm-none-eabi-gcc -march=arm5vte, make" # ~ 10s
-    scripts/config.pl baremetal
+    scripts/config.py baremetal
     # Build for a target platform that's close to what Debian uses
     # for its "armel" distribution (https://wiki.debian.org/ArmEabiPort).
     # See https://github.com/ARMmbed/mbedtls/pull/2169 and comments.
@@ -1046,8 +1046,8 @@ component_build_arm_none_eabi_gcc_arm5vte () {
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {
     msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
-    scripts/config.pl baremetal
-    scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
+    scripts/config.py baremetal
+    scripts/config.py set MBEDTLS_NO_UDBL_DIVISION
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
     if_build_succeeded not grep __aeabi_uldiv library/*.o
@@ -1055,8 +1055,8 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
 
 component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     msg "build: arm-none-eabi-gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
-    scripts/config.pl baremetal
-    scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
+    scripts/config.py baremetal
+    scripts/config.py set MBEDTLS_NO_64BIT_MULTIPLICATION
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
     echo "Checking that software 64-bit multiplication is not required"
     if_build_succeeded not grep __aeabi_lmul library/*.o
@@ -1064,7 +1064,7 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
 
 component_build_armcc () {
     msg "build: ARM Compiler 5, make"
-    scripts/config.pl baremetal
+    scripts/config.py baremetal
 
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
     make clean
@@ -1107,7 +1107,7 @@ support_build_mingw() {
 
 component_test_memsan () {
     msg "build: MSan (clang)" # ~ 1 min 20s
-    scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    scripts/config.py unset MBEDTLS_AESNI_C # memsan doesn't grok asm
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
 

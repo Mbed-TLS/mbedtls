@@ -5,12 +5,6 @@ compiler:
 sudo: false
 cache: ccache
 
-# blocklist
-branches:
-  except:
-  - development-psa
-  - coverity_scan
-
 script:
 - tests/scripts/recursion.pl library/*.c
 - tests/scripts/check-generated-files.sh
@@ -27,7 +21,7 @@ script:
 env:
   global:
     - SEED=1
-    - secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="
+    - secure: "FrI5d2s+ckckC17T66c8jm2jV6i2DkBPU5nyWzwbedjmEBeocREfQLd/x8yKpPzLDz7ghOvr+/GQvsPPn0dVkGlNzm3Q+hGHc/ujnASuUtGrcuMM+0ALnJ3k4rFr9xEvjJeWb4SmhJO5UCAZYvTItW4k7+bj9L+R6lt3TzQbXzg="
 
 addons:
   apt:
@@ -37,7 +31,7 @@ addons:
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"
-    notification_email: simon.butcher@arm.com
+    notification_email: support-mbedtls@arm.com
     build_command_prepend:
     build_command: make
     branch_pattern: coverity_scan

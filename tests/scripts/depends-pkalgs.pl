@@ -59,6 +59,7 @@ while( my ($alg, $extras) = each %algs ) {
     print "\n******************************************\n";
     print "* Testing without alg: $alg\n";
     print "******************************************\n";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = "-$alg";
 
     system( "scripts/config.py unset $alg" )
         and abort "Failed to disable $alg\n";

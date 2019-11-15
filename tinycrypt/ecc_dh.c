@@ -158,12 +158,6 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 	wordcount_t num_bytes = curve->num_bytes;
 	int r;
 
-        /* Protect against invalid curve attacks */
-        if (uECC_valid_public_key(public_key, curve) != 0) {
-            r = 0;
-            goto clear_and_out;
-        }
-
 	/* Converting buffers to correct bit order: */
 	uECC_vli_bytesToNative(_private,
       			       private_key,
@@ -176,13 +170,8 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 			       num_bytes);
 
 	r = EccPoint_mult_safer(_public, _public, _private, curve);
-        if (r == 0)
-            goto clear_and_out;
-
 	uECC_vli_nativeToBytes(secret, num_bytes, _public);
-	r = !EccPoint_isZero(_public, curve);
 
-clear_and_out:
 	/* erasing temporary buffer used to store secret: */
 	mbedtls_platform_zeroize(_private, sizeof(_private));
 

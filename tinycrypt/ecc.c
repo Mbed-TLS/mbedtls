@@ -936,6 +936,11 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	if (curve != uECC_secp256r1())
 		return 0;
 
+	/* Protects against invalid curves attacks */
+	if (uECC_valid_point(point, curve) != 0 ) {
+		return 0;
+	}
+
 	/* Regularize the bitcount for the private key so that attackers cannot use a
 	 * side channel attack to learn the number of leading zeros. */
 	carry = regularize_k(scalar, tmp, s);
@@ -952,7 +957,9 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 
 	EccPoint_mult(result, point, k2[!carry], initial_Z);
 
-	if (EccPoint_isZero(result, curve)) {
+	/* Protect against fault injections that would make the resulting
+	 * point not lie on the intended curve */
+	if (uECC_valid_point(result, curve) != 0 ) {
 		r = 0;
 		goto clear_and_out;
 	}

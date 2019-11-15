@@ -679,7 +679,6 @@ component_test_everest () {
 component_test_psa_collect_statuses () {
   msg "build+test: psa_collect_statuses" # ~30s
   scripts/config.py full
-  scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # slow and irrelevant
   record_status tests/scripts/psa_collect_statuses.py
   # Check that psa_crypto_init() succeeded at least once
   record_status grep -q '^0:psa_crypto_init:' tests/statuses.log
@@ -689,7 +688,6 @@ component_test_psa_collect_statuses () {
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
     make
 
@@ -703,7 +701,6 @@ component_test_full_cmake_clang () {
 component_test_full_make_gcc_o0 () {
     msg "build: make, full config, gcc -O0" # ~ 50s
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     make CC=gcc CFLAGS='-O0'
 
     msg "test: main suites (full config, gcc -O0)" # ~ 5s
@@ -758,7 +755,6 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
     msg "build: cmake, full config minus MBEDTLS_USE_PSA_CRYPTO, ASan"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_ECP_RESTARTABLE  # not using PSA, so enable restartable ECC
     scripts/config.py set MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
@@ -776,7 +772,6 @@ component_test_check_params_functionality () {
     scripts/config.py full # includes CHECK_PARAMS
     # Make MBEDTLS_PARAM_FAILED call mbedtls_param_failed().
     scripts/config.py unset MBEDTLS_CHECK_PARAMS_ASSERT
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     # Only build and run tests. Do not build sample programs, because
     # they don't have a mbedtls_param_failed() function.
     make CC=gcc CFLAGS='-Werror -O1' lib test
@@ -786,8 +781,6 @@ component_test_check_params_without_platform () {
     msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
     scripts/config.py full # includes CHECK_PARAMS
     # Keep MBEDTLS_PARAM_FAILED as assert.
-    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT
@@ -802,7 +795,6 @@ component_test_check_params_without_platform () {
 component_test_check_params_silent () {
     msg "build+test: MBEDTLS_CHECK_PARAMS with alternative MBEDTLS_PARAM_FAILED()"
     scripts/config.py full # includes CHECK_PARAMS
-    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     # Set MBEDTLS_PARAM_FAILED to nothing.
     sed -i 's/.*\(#define MBEDTLS_PARAM_FAILED( cond )\).*/\1/' "$CONFIG_H"
     make CC=gcc CFLAGS='-Werror -O1' all test
@@ -822,7 +814,6 @@ component_test_no_platform () {
     scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py unset MBEDTLS_FS_IO
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
@@ -872,7 +863,6 @@ component_test_platform_calloc_macro () {
 component_test_malloc_0_null () {
     msg "build: malloc(0) returns NULL (ASan+UBSan build)"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     make CC=gcc CFLAGS="'-DMBEDTLS_CONFIG_FILE=\"$PWD/tests/configs/config-wrapper-malloc-0-null.h\"' $ASAN_CFLAGS -O" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: malloc(0) returns NULL (ASan+UBSan build)"
@@ -948,7 +938,6 @@ component_test_se_default () {
 component_test_se_full () {
     msg "build: full config + MBEDTLS_PSA_CRYPTO_SE_C"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_PSA_CRYPTO_SE_C
     make CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
 
@@ -1001,9 +990,6 @@ component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE
-    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.py unset MBEDTLS_MEMORY_DEBUG
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O1" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O1 (ASan build)"
@@ -1076,7 +1062,6 @@ component_test_have_int64 () {
 component_test_no_udbl_division () {
     msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.py set MBEDTLS_NO_UDBL_DIVISION
     make CFLAGS='-Werror -O1'
 
@@ -1087,7 +1072,6 @@ component_test_no_udbl_division () {
 component_test_no_64bit_multiplication () {
     msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.py set MBEDTLS_NO_64BIT_MULTIPLICATION
     make CFLAGS='-Werror -O1'
 

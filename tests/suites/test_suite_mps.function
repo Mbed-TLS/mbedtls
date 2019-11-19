@@ -7212,7 +7212,7 @@ void mbedtls_mps_l3_bad_msg( int variant )
      * Server: Read handshake message from client
      */
 
-    TEST_ASSERT( mps_l3_read( &srv ) == MBEDTLS_ERR_MPS_INVALID_RECORD );
+    TEST_ASSERT( mps_l3_read( &srv ) == MBEDTLS_ERR_MPS_INVALID_CONTENT );
 
 exit:
 

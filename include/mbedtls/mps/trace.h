@@ -136,7 +136,8 @@ void trace_indent( int level, trace_type ty );
     do {                                                                \
         if( ! ( TRACE_MASK & ( 1u << trace_id ) ) )                     \
             break;                                                      \
-        TRACE( trace_return, "%d", (int) val );                       \
+        TRACE( trace_return, "%d (-%#04x)",                             \
+               (int) (val), -((unsigned)(val)) );                       \
         dec_trace_depth();                                              \
     } while( 0 )
 

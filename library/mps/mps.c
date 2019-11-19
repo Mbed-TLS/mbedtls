@@ -1081,7 +1081,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
             mps_l3_alert_in alert;
 
             TRACE( trace_comment,
-                   "ChangeCipherSpec message received from Layer 3." );
+                   "Alert message received from Layer 3." );
             MPS_CHK( mps_l3_read_alert( mps->conf.l3, &alert ) );
 
             /* For DTLS, Layer 3 might be configured to pass through

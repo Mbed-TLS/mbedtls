@@ -949,19 +949,19 @@ mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:1:1:1:0
 
 MPS Layer 4 TLS: Connection closure #0, real transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:1
+mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1
 
 MPS Layer 4 TLS: Fatal alert #0, real transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
-mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:0
+mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0
 
 MPS Layer 4 DTLS: Connection closure #0, real transforms
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:1
+mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1
 
 MPS Layer 4 DTLS: Fatal alert #0, real transforms
 depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:0
+mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0
 
 MPS Layer 4 DTLS: Fragmentation of HS msg with raw backup
 mbedtls_mps_l4_dtls_fragmentation:100:0:1

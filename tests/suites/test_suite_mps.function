@@ -9655,7 +9655,6 @@ void mbedtls_mps_l4_disruption( int mode,
           int allocator_buffer_sz,
           int layer0_buffer_sz,
           int rec_sz,
-          int real_transforms,
           int shutdown )
 {
     /* Allocator objects */
@@ -9688,30 +9687,12 @@ void mbedtls_mps_l4_disruption( int mode,
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
-    if( real_transforms == 1 )
-    {
-        dummy_c->type = 1;
-        dummy_s->type = 1;
-        build_transforms( &dummy_c->real,
-                          &dummy_s->real,
-                          MBEDTLS_CIPHER_AES_128_CBC,
-                          MBEDTLS_MD_SHA1,
-                          1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
-                          mbedtls_test_rnd_std_rand, NULL );
-    }
-    else
-#else
-    ((void) real_transforms);
-#endif
-    {
-        dummy_s->type = 0;
-        dummy_s->mock.enabled = 1;
-        dummy_s->mock.pad = 5;
-        dummy_c->type = 0;
-        dummy_c->mock.enabled = 1;
-        dummy_c->mock.pad = 5;
-    }
+    dummy_s->type = 0;
+    dummy_s->mock.enabled = 1;
+    dummy_s->mock.pad = 5;
+    dummy_c->type = 0;
+    dummy_c->mock.enabled = 1;
+    dummy_c->mock.pad = 5;
 
     ((void) rec_sz);
 

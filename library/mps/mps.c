@@ -66,7 +66,7 @@ static int trace_id = TRACE_BIT_LAYER_4;
  * should block the MPS on most errors. */
 #define MPS_API_BOUNDARY_FAILURE_HANDLER        \
     exit:                                       \
-    mps_generic_failure_handler( mps, ret );    \
+    ret = mps_generic_failure_handler( mps, ret );      \
     RETURN( ret );                              \
 
 /* Check if the MPS will serve read resp. write API calls.
@@ -88,7 +88,7 @@ MBEDTLS_MPS_STATIC void mps_fatal_alert_received(
 
 /* Failure handler at the end of any MPS API function.
  * This checks the return code and potentially blocks the MPS.         */
-MBEDTLS_MPS_STATIC void mps_generic_failure_handler(
+MBEDTLS_MPS_STATIC int mps_generic_failure_handler(
     mbedtls_mps *mps, int ret );
 
 /* Attempts to deliver a pending alert to the underlying Layer 3.      */
@@ -584,7 +584,7 @@ MBEDTLS_MPS_STATIC void mps_block( mbedtls_mps *mps )
 }
 
 /* Handle an error code from an internal library call. */
-MBEDTLS_MPS_STATIC void mps_generic_failure_handler( mbedtls_mps *mps, int ret )
+MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
 {
     uint8_t idx;
     int non_fatal_errors[] = {
@@ -672,13 +672,15 @@ MBEDTLS_MPS_STATIC void mps_generic_failure_handler( mbedtls_mps *mps, int ret )
     for( idx=0; idx < sizeof( non_fatal_errors ) / sizeof( int ); idx++ )
     {
         if( ret == non_fatal_errors[idx] )
-            return;
+            return( ret );
     }
 
     /* Remember error and block MPS. */
     mps->blocking_reason = MBEDTLS_MPS_ERROR_INTERNAL_ERROR;
     mps->blocking_info.err = ret;
     mps_block( mps );
+
+    return( ret );
 }
 
 /* Send fatal alert and block MPS. */

@@ -1632,6 +1632,7 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
     int ret;
     size_t i, n, t, k;
     mbedtls_mpi X, Y, Z, T1, T2;
+    mbedtls_mpi_uint TP2[3];
     MPI_VALIDATE_RET( A != NULL );
     MPI_VALIDATE_RET( B != NULL );
 
@@ -1639,7 +1640,17 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
         return( MBEDTLS_ERR_MPI_DIVISION_BY_ZERO );
 
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &Z );
-    mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 );
+    mbedtls_mpi_init( &T1 );
+    /*
+     * Avoid dynamic memory allocations for constant-size T2.
+     *
+     * T2 is used for comparison only and the 3 limbs are assigned explicitly,
+     * so nobody increase the size of the MPI and we're safe to use an on-stack
+     * buffer.
+     */
+    T2.s = 1;
+    T2.n = sizeof( TP2 ) / sizeof( *TP2 );
+    T2.p = TP2;
 
     if( mbedtls_mpi_cmp_abs( A, B ) < 0 )
     {
@@ -1655,7 +1666,6 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &Z, A->n + 2 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &Z,  0 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T1, 2 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T2, 3 ) );
 
     k = mbedtls_mpi_bitlen( &Y ) % biL;
     if( k < biL - 1 )
@@ -1687,6 +1697,10 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
                                                             Y.p[t], NULL);
         }
 
+        T2.p[0] = ( i < 2 ) ? 0 : X.p[i - 2];
+        T2.p[1] = ( i < 1 ) ? 0 : X.p[i - 1];
+        T2.p[2] = X.p[i];
+
         Z.p[i - t - 1]++;
         do
         {
@@ -1696,11 +1710,6 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
             T1.p[0] = ( t < 1 ) ? 0 : Y.p[t - 1];
             T1.p[1] = Y.p[t];
             MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &T1, &T1, Z.p[i - t - 1] ) );
-
-            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &T2, 0 ) );
-            T2.p[0] = ( i < 2 ) ? 0 : X.p[i - 2];
-            T2.p[1] = ( i < 1 ) ? 0 : X.p[i - 1];
-            T2.p[2] = X.p[i];
         }
         while( mbedtls_mpi_cmp_mpi( &T1, &T2 ) > 0 );
 
@@ -1736,7 +1745,8 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
 cleanup:
 
     mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &Z );
-    mbedtls_mpi_free( &T1 ); mbedtls_mpi_free( &T2 );
+    mbedtls_mpi_free( &T1 );
+    mbedtls_platform_zeroize( TP2, sizeof( TP2 ) );
 
     return( ret );
 }

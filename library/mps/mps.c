@@ -587,16 +587,91 @@ MBEDTLS_MPS_STATIC void mps_block( mbedtls_mps *mps )
 MBEDTLS_MPS_STATIC void mps_generic_failure_handler( mbedtls_mps *mps, int ret )
 {
     uint8_t idx;
-    int whitelist[] = {
+    int non_fatal_errors[] = {
         0,
         MBEDTLS_ERR_MPS_RETRY,
         MBEDTLS_ERR_MPS_WANT_READ,
         MBEDTLS_ERR_MPS_WANT_WRITE
     };
 
-    for( idx=0; idx < sizeof( whitelist ) / sizeof( int ); idx++ )
+#if defined(MBEDTLS_MPS_ASSERT)
+    /* Check that we never return error codes that haven't been explicitly
+     * named as potential return values at the MPS boundary. */
+    int public_errors[] = {
+        0,
+        MBEDTLS_ERR_MPS_OUT_OF_MEMORY,
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+        MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED,
+#endif /* MBEDTLS_MPS_STATE_VALIDATION  */
+        MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED,
+        MBEDTLS_ERR_MPS_CLOSE_NOTIFY,
+        MBEDTLS_ERR_MPS_BLOCKED,
+        MBEDTLS_ERR_MPS_UNKNOWN_ALERT,
+        MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED,
+        MBEDTLS_ERR_MPS_INTERNAL_ERROR,
+        MBEDTLS_ERR_MPS_RETRY,
+        MBEDTLS_ERR_MPS_COUNTER_WRAP,
+        MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG,
+        MBEDTLS_ERR_MPS_EXCESS_RECORD_FRAGMENTATION,
+        MBEDTLS_ERR_MPS_INVALID_RECORD_FRAGMENTATION,
+        MBEDTLS_ERR_MPS_TOO_MANY_LIVE_EPOCHS,
+        MBEDTLS_ERR_MPS_TOO_MANY_EPOCHS,
+        MBEDTLS_ERR_MPS_WANT_READ,
+        MBEDTLS_ERR_MPS_WANT_WRITE,
+#if defined(MBEDTLS_MPS_TRANSFORM_VALIDATION)
+        MBEDTLS_ERR_MPS_BAD_TRANSFORM,
+#endif /* MBEDTLS_MPS_TRANSFORM_VALIDATION */
+        MBEDTLS_ERR_MPS_BUFFER_TOO_SMALL,
+#if !defined(MPS_L3_ALLOW_INTERLEAVED_SENDING)
+        MBEDTLS_ERR_MPS_NO_INTERLEAVING,
+#endif /* MPS_L3_ALLOW_INTERLEAVED_SENDING */
+        MBEDTLS_ERR_MPS_UNFINISHED_HS_MSG,
+        MBEDTLS_ERR_MPS_ALLOC_OUT_OF_SPACE,
+        MBEDTLS_ERR_MPS_INVALID_ARGS,
+        MBEDTLS_ERR_MPS_INVALID_EPOCH,
+    };
+
+    int error_ok = 0;
+    for( idx=0; idx < sizeof( public_errors ) / sizeof( int ); idx++ )
     {
-        if( ret == whitelist[idx] )
+        if( ret == public_errors[ idx ] )
+            error_ok = 1;
+    }
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    {
+        mbedtls_mps_transport_type const mode =
+            mbedtls_mps_conf_get_mode( &mps->conf );
+
+        if( MBEDTLS_MPS_IS_TLS( mode ) )
+        {
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+            int tls_only_errors[] = {
+                MBEDTLS_ERR_MPS_INVALID_CONTENT,
+                MBEDTLS_ERR_MPS_INVALID_RECORD,
+                MBEDTLS_ERR_MPS_INVALID_MAC,
+            };
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+            for( idx=0; idx < sizeof( tls_only_errors ) / sizeof( int ); idx++ )
+            {
+                if( ret == tls_only_errors[ idx ] )
+                    error_ok = 1;
+            }
+        }
+    }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+    if( error_ok == 0 )
+    {
+        TRACE( trace_error, "Invalid error at MPS boundary: -%#04x", -ret );
+        ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
+    }
+
+#endif /* MBEDTLS_MPS_ASSERT */
+
+    for( idx=0; idx < sizeof( non_fatal_errors ) / sizeof( int ); idx++ )
+    {
+        if( ret == non_fatal_errors[idx] )
             return;
     }
 

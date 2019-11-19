@@ -450,7 +450,7 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
     if( mps->out.state != MBEDTLS_MPS_MSG_NONE )
     {
         TRACE( trace_error, "Refuse to start reading while writing message." );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
+        MPS_CHK( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -689,9 +689,7 @@ int mbedtls_mps_send_fatal( mbedtls_mps *mps, mbedtls_mps_alert_t alert_type )
     int ret;
     TRACE_INIT( "mbedtls_mps_send_fatal, type %d", alert_type );
 
-    ret = mps_check_write( mps );
-    if( ret != 0 )
-        RETURN( ret );
+    MPS_CHK( mps_check_write( mps ) );
 
     /* Remember the reason for blocking. */
     mps->blocking_reason = MBEDTLS_MPS_ERROR_ALERT_SENT;
@@ -787,7 +785,7 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_alert( mbedtls_mps *mps )
     else
     {
         /* Should never happen. */
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 
     MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
@@ -795,7 +793,7 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_alert( mbedtls_mps *mps )
     mps->alert_pending = 0;
     mps->out.flush = 1;
 
-    MPS_API_BOUNDARY_FAILURE_HANDLER
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 /* Close the write-side of the MPS and inform the peer. */
@@ -808,24 +806,33 @@ int mbedtls_mps_close( mbedtls_mps *mps )
     {
         case MBEDTLS_MPS_STATE_OPEN:
             TRACE( trace_comment, "Moving from open to read-only state" );
+            TRACE( trace_comment, "Pend closure alert" );
             mps->state = MBEDTLS_MPS_STATE_READ_ONLY;
+            mps->alert_pending = 1;
             break;
 
         case MBEDTLS_MPS_STATE_WRITE_ONLY:
             TRACE( trace_comment, "Moving from write-only to closed state" );
+            TRACE( trace_comment, "Pend closure alert" );
             mps->state = MBEDTLS_MPS_STATE_CLOSED;
+            mps->alert_pending = 1;
+            break;
+
+        case MBEDTLS_MPS_STATE_READ_ONLY:
+        case MBEDTLS_MPS_STATE_CLOSED:
+            /* If the write-side has already been closed, just flush to
+             * make sure the closure alert is being sent. This allows users
+             * to repeatedly calling mbedtls_mps_close() until it returns 0. */
             break;
 
         default:
-            RETURN( MBEDTLS_ERR_MPS_BLOCKED );
+            MPS_CHK( MBEDTLS_ERR_MPS_BLOCKED );
     }
 
     /* Attempt to send the alert - this works regardless
      * of whether data is still pending to be delivered;
      * in that case, the pending data will be flushed first
      * before writing and dispatching the alert. */
-    TRACE( trace_comment, "Pend closure alert" );
-    mps->alert_pending = 1;
     MPS_CHK( mbedtls_mps_flush( mps ) );
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
@@ -1108,7 +1115,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
                     TRACE( trace_comment, "Alert is fatal of type %d",
                            alert.type );
                     mps_fatal_alert_received( mps, alert.type );
-                    RETURN( MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED );
+                    MPS_CHK( MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED );
                     break;
 
                 case MBEDTLS_MPS_ALERT_LEVEL_WARNING:
@@ -1120,7 +1127,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
                     {
                         TRACE( trace_comment, "Close notification received" );
                         mps_close_notification_received( mps );
-                        RETURN( MBEDTLS_ERR_MPS_CLOSE_NOTIFY );
+                        MPS_CHK( MBEDTLS_ERR_MPS_CLOSE_NOTIFY );
                     }
                     mps->in.data.alert = alert.type;
 
@@ -1326,12 +1333,14 @@ int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 {
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    int ret = 0;
+
     TRACE_INIT( "mbedtls_mps_write_set_flags" );
     TRACE( trace_comment, "* Flags: %02x", (unsigned) flags );
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->in.state == MBEDTLS_MPS_MSG_NONE )
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
+        MPS_CHK( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* The logic layer may call this function even for TLS,
@@ -1346,7 +1355,7 @@ int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
     ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-    RETURN( 0 );
+    MPS_API_BOUNDARY_FAILURE_HANDLER
 }
 
 int mbedtls_mps_read_pause( mbedtls_mps *mps )
@@ -1477,12 +1486,14 @@ int mbedtls_mps_write_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 {
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_conf_get_mode( &mps->conf );
+    int ret = 0;
+
     TRACE_INIT( "mbedtls_mps_write_set_flags" );
     TRACE( trace_comment, "* Flags: %02x", (unsigned) flags );
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->out.state == MBEDTLS_MPS_MSG_NONE )
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
+        MPS_CHK( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* The logic layer may call this function even for TLS,
@@ -1497,7 +1508,7 @@ int mbedtls_mps_write_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
     ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-    RETURN( 0 );
+    MPS_API_BOUNDARY_FAILURE_HANDLER
 }
 
 int mbedtls_mps_write_handshake( mbedtls_mps *mps,
@@ -1750,7 +1761,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                     TRACE( trace_error,
                            "Handshake messages with retransmission callback "
                            "and unknown size not supported." );
-                    RETURN( MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED );
+                    MPS_CHK( MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED );
                 }
 
                 handle->handle.callback.cb  = cb;
@@ -2260,6 +2271,8 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_check( mbedtls_mps *mps,
     mbedtls_mps_recognition_info *info;
     uint8_t *status;
 
+    int ret;
+
     /*
      * Please consult the documentation of
      * ::mbedtls_mps::dtls::retransmission_detection
@@ -2308,7 +2321,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_check( mbedtls_mps *mps,
         for( msg_idx=0; msg_idx < flight_len; msg_idx++, status++ )
             *status = MBEDTLS_MPS_RETRANSMISSION_DETECTION_ON_HOLD;
 
-        RETURN( MBEDTLS_ERR_MPS_FLIGHT_RETRANSMISSION );
+        MPS_CHK( MBEDTLS_ERR_MPS_FLIGHT_RETRANSMISSION );
     }
     else
     {
@@ -2318,6 +2331,8 @@ MBEDTLS_MPS_STATIC int mps_retransmit_in_check( mbedtls_mps *mps,
         *status = MBEDTLS_MPS_RETRANSMISSION_DETECTION_ENABLED;
         RETURN( 0 );
     }
+
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 MBEDTLS_MPS_STATIC int mps_retransmit_in_remember( mbedtls_mps *mps,
@@ -2471,7 +2486,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
     {
         TRACE( trace_error, "Trying to use reassembly module outside of "
                             "RECEIVE and RECVINIT state." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 
@@ -2498,7 +2513,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
                                          &tmp, NULL ) );
         MPS_CHK( mbedtls_reader_commit_ext( hs->rd_ext ) );
         MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
-        RETURN( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
+        MPS_CHK( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
     }
 
     /* Check if the message has already been initialized. */
@@ -2509,7 +2524,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
         TRACE( trace_error,
                "Attempt to feed a fragment for a message that "
                "has previously been fully received." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 
     if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_NONE )
@@ -2624,12 +2639,12 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
             {
                 TRACE( trace_comment,
                        "Reassembly incomplete -- need more fragments." );
-                RETURN( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
+                MPS_CHK( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
             }
         }
 
         if( seq_nr_offset != 0 )
-            RETURN( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
+            MPS_CHK( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
     }
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -2692,6 +2707,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_check( mbedtls_mps *mps )
 {
     mbedtls_mps_reassembly const * in;
     mbedtls_mps_msg_reassembly const * reassembly;
+    int ret = 0;
     TRACE_INIT( "mps_reassembly_check" );
 
 #if defined(MBEDTLS_MPS_ASSERT)
@@ -2702,7 +2718,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_check( mbedtls_mps *mps )
     {
         TRACE( trace_error, "Trying to use reassembly module outside of "
                             "RECEIVE and RECVINIT state." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 
@@ -2723,6 +2739,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_check( mbedtls_mps *mps )
             RETURN( 1 );
     }
 
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 MBEDTLS_MPS_STATIC int mps_reassembly_read( mbedtls_mps *mps,
@@ -2741,7 +2758,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_read( mbedtls_mps *mps,
     {
         TRACE( trace_error, "Trying to use reassembly module outside of "
                             "RECEIVE and RECVINIT state." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 
@@ -2796,7 +2813,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     {
         TRACE( trace_error, "Trying to use reassembly module outside of "
                             "RECEIVE and RECVINIT state." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 
@@ -2853,7 +2870,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
     {
         TRACE( trace_error, "Trying to use reassembly module outside of "
                             "RECEIVE and RECVINIT state." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 
@@ -2911,7 +2928,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps )
     {
         TRACE( trace_error, "Trying to use reassembly module outside of "
                             "RECEIVE and RECVINIT state." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 
@@ -2984,7 +3001,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
         {
 #if defined(MBEDTLS_MPS_ASSERT)
             if( mode != MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS )
-                RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+                MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
 
             ret = mbedtls_mps_retransmission_handle_resend_empty( mps, handle );
@@ -3887,7 +3904,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
                 TRACE( trace_comment,
                        "Writer claims to have written more data than what's"
                        "available in current fragment -- should never happen" );
-                RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+                MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
             }
         }
 #endif /* MBEDTLS_MPS_ASSERT */
@@ -3984,7 +4001,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_start( mbedtls_mps_handshake_out_intern
         TRACE( trace_comment,
                "Attempt to start a new outgoing handshake message "
                "while another one is still not finished." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
 #endif /* MBEDTLS_MPS_ASSERT */
 

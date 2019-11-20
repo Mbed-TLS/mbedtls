@@ -371,16 +371,13 @@ MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps, uint8_t *seq_nr
 
 MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps );
 
-MBEDTLS_MPS_STATIC int mps_reassembly_check( mbedtls_mps *mps );
+MBEDTLS_MPS_STATIC int mps_reassembly_check_and_load( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_reassembly_read( mbedtls_mps *mps,
                                 mbedtls_mps_handshake_in *in );
 MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_reassembly_pause( mbedtls_mps *mps );
 
 MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps );
-
-#define MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED -1
-#define MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE        -1
 
 #define MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS 0
 #define MPS_RETRANSMIT_FULL_FLIGHT          1
@@ -1011,18 +1008,11 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     /* Check if a future message has been buffered. */
-    if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+    ret = mps_reassembly_check_and_load( mps );
+    if( ret != MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE )
     {
-        ret = mps_reassembly_check( mps );
         MPS_CHK( ret );
-        if( ret == 0 )
-        {
-            mps->in.state = MBEDTLS_MPS_MSG_HS;
-            RETURN( MBEDTLS_MPS_MSG_HS );
-        }
+        RETURN( MBEDTLS_MPS_MSG_HS );
     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -1185,22 +1175,12 @@ int mbedtls_mps_read( mbedtls_mps *mps )
             {
                 /* DTLS */
                 ret = mbedtls_mps_retransmission_handle_incoming_fragment( mps );
-                if( ret == 0 )
-                {
-                    TRACE( trace_comment,
-                           "Handshake message ready to be passed to the user" );
-
-                    mps->in.state = MBEDTLS_MPS_MSG_HS;
-                    RETURN( MBEDTLS_MPS_MSG_HS );
-                }
-                else if( ret == MBEDTLS_ERR_MPS_NO_FORWARD )
-                {
-                    TRACE( trace_comment,
-                           "Handshake message consumed by "
-                           "retransmission state machine." );
+                if( ret == MBEDTLS_ERR_MPS_NO_FORWARD )
                     ret = MBEDTLS_ERR_MPS_RETRY;
-                }
                 MPS_CHK( ret );
+
+                MPS_CHK( mps_reassembly_check_and_load( mps ) );
+                RETURN( MBEDTLS_MPS_MSG_HS );
             }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
             break;
@@ -2510,7 +2490,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
                                          &tmp, NULL ) );
         MPS_CHK( mbedtls_reader_commit_ext( hs->rd_ext ) );
         MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
-        MPS_CHK( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
+        MPS_CHK( MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE );
     }
 
     /* Check if the message has already been initialized. */
@@ -2636,12 +2616,12 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
             {
                 TRACE( trace_comment,
                        "Reassembly incomplete -- need more fragments." );
-                MPS_CHK( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
+                MPS_CHK( MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE );
             }
         }
 
         if( seq_nr_offset != 0 )
-            MPS_CHK( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
+            MPS_CHK( MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE );
     }
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -2700,24 +2680,21 @@ MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps,
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int mps_reassembly_check( mbedtls_mps *mps )
+MBEDTLS_MPS_STATIC int mps_reassembly_check_and_load( mbedtls_mps *mps )
 {
     mbedtls_mps_reassembly const * in;
     mbedtls_mps_msg_reassembly const * reassembly;
+    int next_message_complete = 0;
     int ret = 0;
-    TRACE_INIT( "mps_reassembly_check" );
+    TRACE_INIT( "mps_reassembly_check_and_load" );
 
-#if defined(MBEDTLS_MPS_ASSERT)
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
             MBEDTLS_MPS_FLIGHT_RECEIVE ) )
     {
-        TRACE( trace_error, "Trying to use reassembly module outside of "
-                            "RECEIVE and RECVINIT state." );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MPS_CHK( MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
 
     in = &mps->dtls.io.in.incoming;
     reassembly = &in->reassembly[0];
@@ -2725,17 +2702,25 @@ MBEDTLS_MPS_STATIC int mps_reassembly_check( mbedtls_mps *mps )
     switch( reassembly->status )
     {
         case MBEDTLS_MPS_REASSEMBLY_NO_FRAGMENTATION:
-            RETURN( 0 );
+            next_message_complete = 1;
+            break;
 
         case MBEDTLS_MPS_REASSEMBLY_WINDOW:
             if( reassembly->data.window.bitmask == NULL )
-                RETURN( 0 );
-
-            /* Deliberately fall through here. */
-        default:
-            RETURN( 1 );
+                next_message_complete = 1;
     }
 
+    if( next_message_complete == 0 )
+        MPS_CHK( MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE );
+
+    /* Check that message's epoch matches the current incoming epoch. */
+    if( reassembly->epoch != mps->in_epoch )
+    {
+        TRACE( trace_error, "Reassembled message isn't protected through current incoming epoch." );
+        MPS_CHK( MBEDTLS_ERR_MPS_INVALID_CONTENT );
+    }
+
+    mps->in.state = MBEDTLS_MPS_MSG_HS;
     MPS_INTERNAL_FAILURE_HANDLER
 }
 
@@ -2991,7 +2976,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
         if( mode == MPS_RETRANSMIT_FULL_FLIGHT )
         {
             ret = mbedtls_mps_retransmission_handle_resend( mps, handle );
-            if( ret != 0 && ret != MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED )
+            if( ret != 0 && ret != MBEDTLS_ERR_MPS_RETRANSMISSION_HANDLE_UNFINISHED )
                 MPS_CHK( ret );
         }
         else
@@ -3447,7 +3432,7 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
 
     TRACE( trace_comment, "Feed fragment into reassembly module." );
     ret = mps_reassembly_feed( mps, &hs_l3 );
-    if( ret == MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE )
+    if( ret == MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE )
     {
         /* The current fragment didn't lead to the next handshake
          * message being ready. That might be because it contributed
@@ -3689,7 +3674,7 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
                  * situation in the same way as the case where the callback
                  * has been called at least once but didn't yet finish
                  * the message. */
-                ret = MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED;
+                ret = MBEDTLS_ERR_MPS_RETRANSMISSION_HANDLE_UNFINISHED;
                 break;
             }
             else
@@ -3709,7 +3694,7 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
 
             if( cb_unfinished == 1 )
             {
-                ret = MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED;
+                ret = MBEDTLS_ERR_MPS_RETRANSMISSION_HANDLE_UNFINISHED;
             }
             break;
         }

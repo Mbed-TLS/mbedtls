@@ -625,6 +625,7 @@ MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
         MBEDTLS_ERR_MPS_ALLOC_OUT_OF_SPACE,
         MBEDTLS_ERR_MPS_INVALID_ARGS,
         MBEDTLS_ERR_MPS_INVALID_EPOCH,
+        MBEDTLS_ERR_MPS_INVALID_CONTENT
     };
 
     int error_ok = 0;
@@ -643,7 +644,6 @@ MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
         {
 #if defined(MBEDTLS_MPS_PROTO_TLS)
             int tls_only_errors[] = {
-                MBEDTLS_ERR_MPS_INVALID_CONTENT,
                 MBEDTLS_ERR_MPS_INVALID_RECORD,
                 MBEDTLS_ERR_MPS_INVALID_MAC,
             };

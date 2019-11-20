@@ -2010,6 +2010,14 @@ int mbedtls_mps_set_incoming_keys( mbedtls_mps *mps,
     int ret;
     TRACE_INIT( "mbedtls_mps_set_incoming_keys, epoch %d", (int) id );
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+    if( mps->in.state != MBEDTLS_MPS_MSG_NONE )
+    {
+        TRACE( trace_error, "Refuse to change incoming keys while reading a message." );
+        MPS_CHK( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
+    }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
     /* Clear 'active epoch' usage for old epoch and set it for new. */
     if( mps->in_epoch != MBEDTLS_MPS_EPOCH_NONE )
     {
@@ -2030,6 +2038,14 @@ int mbedtls_mps_set_outgoing_keys( mbedtls_mps *mps,
 {
     int ret;
     TRACE_INIT( "mbedtls_mps_set_outgoing_keys, epoch %d", (int) id );
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+    if( mps->out.state != MBEDTLS_MPS_MSG_NONE )
+    {
+        TRACE( trace_error, "Refuse to change outgoing keys while writing a message." );
+        MPS_CHK( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
+    }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Clear 'active epoch' usage for old epoch and set it for new. */
     if( mps->out_epoch != MBEDTLS_MPS_EPOCH_NONE )

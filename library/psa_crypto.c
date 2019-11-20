@@ -2006,6 +2006,7 @@ exit:
 /* Message digests */
 /****************************************************************/
 
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_DETERMINISTIC)
 static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
 {
     switch( alg )
@@ -2046,6 +2047,7 @@ static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
             return( NULL );
     }
 }
+#endif
 
 psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
 {

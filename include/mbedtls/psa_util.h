@@ -230,9 +230,11 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
             *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP512R1 );
             return( 0 );
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
+        default:
+            (void) oid;
+            (void) oid_len;
+            return( -1 );
     }
-
-     return( -1 );
 }
 
 #define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH 1

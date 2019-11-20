@@ -13,7 +13,7 @@ if grep -i cmake Makefile >/dev/null; then
 fi
 
 cp include/mbedtls/config.h include/mbedtls/config.h.bak
-scripts/config.pl full
+scripts/config.py full
 make clean
 make_ret=
 CFLAGS=-fno-asynchronous-unwind-tables make lib \

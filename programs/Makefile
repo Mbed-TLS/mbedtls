@@ -249,8 +249,8 @@ ifndef WINDOWS
 	rm -f $(APPS) $(EXTRA_GENERATED)
 	-rm -f test/cpp_dummy_build$(EXEXT)
 else
-	if exist *.o del /S /Q /F *.o
-	if exist *.exe del /S /Q /F *.exe
+	if exist *.o del /Q /F *.o
+	if exist *.exe del /Q /F *.exe
 	if exist $(EXTRA_GENERATED) del /S /Q /F $(EXTRA_GENERATED)
 endif
 

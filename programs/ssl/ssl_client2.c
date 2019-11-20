@@ -194,7 +194,8 @@ int main( void )
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK_RAW                                               \
-    "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
+    "    psk=%%s              default: \"\" (disabled)\n"     \
+    "                          The PSK values are in hex, without 0x.\n" \
     "    psk_identity=%%s     default: \"Client_identity\"\n"
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define USAGE_PSK_SLOT                          \
@@ -2374,13 +2375,16 @@ int main( int argc, char *argv[] )
     }
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    if( ( ret = mbedtls_ssl_conf_psk( &conf, psk, psk_len,
-                             (const unsigned char *) opt.psk_identity,
-                             strlen( opt.psk_identity ) ) ) != 0 )
+    if( psk_len > 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk returned %d\n\n",
-                        ret );
-        goto exit;
+        ret = mbedtls_ssl_conf_psk( &conf, psk, psk_len,
+                             (const unsigned char *) opt.psk_identity,
+                             strlen( opt.psk_identity ) );
+        if( ret != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk returned %d\n\n", ret );
+            goto exit;
+        }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 

@@ -951,6 +951,21 @@ MPS Layer 4 DTLS: HS, real transform, known length #2
 depends_on:MBEDTLS_MPS_PROTO_DTLS
 mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:1:1:1:0
 
+MPS Layer 4 DTLS: HS, inconsistent fragments, bad total length
+mbedtls_mps_l4_hs_inconsistent_continuation:0
+
+MPS Layer 4 DTLS: HS, inconsistent fragments, bad HS type
+mbedtls_mps_l4_hs_inconsistent_continuation:1
+
+MPS Layer 4 DTLS: HS, inconsistent fragments, epoch change #0
+mbedtls_mps_l4_hs_inconsistent_continuation:2
+
+MPS Layer 4 DTLS: HS, inconsistent fragments, epoch change #1
+mbedtls_mps_l4_hs_inconsistent_continuation:4
+
+MPS Layer 4 DTLS: Epoch switch at flight boundary, next HS message with old epoch
+mbedtls_mps_l4_hs_inconsistent_continuation:3
+
 MPS Layer 4 TLS: Connection closure #0, real transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
 mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1

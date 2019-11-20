@@ -606,7 +606,6 @@ MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
         MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED,
         MBEDTLS_ERR_MPS_CLOSE_NOTIFY,
         MBEDTLS_ERR_MPS_BLOCKED,
-        MBEDTLS_ERR_MPS_UNKNOWN_ALERT,
         MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED,
         MBEDTLS_ERR_MPS_INTERNAL_ERROR,
         MBEDTLS_ERR_MPS_RETRY,
@@ -1136,13 +1135,11 @@ int mbedtls_mps_read( mbedtls_mps *mps )
                     break;
 
                 default:
-
-#if defined(MBEDTLS_MPS_CONF_IGNORE_UNKNOWN_WARNINGS)
-                    ret = MBEDTLS_ERR_MPS_RETRY;
-#else
-                    ret = MBEDTLS_ERR_MPS_UNKNOWN_ALERT;
-#endif /* MBEDTLS_MPS_CONF_IGNORE_UNKNOWN_WARNINGS */
-
+                    /* Layer 3 checks the level, so this shouldn't happen. */
+#if defined(MBEDTLS_MPS_ASSERT)
+                    TRACE( trace_error, "Received invalid alert level from Layer 3." );
+                    RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
                     break;
             }
 

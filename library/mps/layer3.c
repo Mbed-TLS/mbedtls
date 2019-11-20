@@ -70,12 +70,14 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs );
  * Constants and sizes from the [D]TLS standard
  */
 
-#define MPS_TLS_HS_HDR_SIZE   4 /* The handshake header length in TLS.        */
-#define MPS_TLS_ALERT_SIZE    2 /* The length of an Alert message.            */
-#define MPS_TLS_CCS_SIZE      1 /* The length of a CCS message.               */
-#define MPS_TLS_CCS_VALUE     1 /* The expected value of a valid CCS message. */
+#define MPS_TLS_HS_HDR_SIZE   4 /* The handshake header length in TLS.         */
+#define MPS_TLS_ALERT_SIZE    2 /* The length of an Alert message.             */
+#define MPS_TLS_ALERT_LEVEL_FATAL   1 /* The 'level' field of a fatal alert.   */
+#define MPS_TLS_ALERT_LEVEL_WARNING 2 /* The 'level' field of a warning alert. */
+#define MPS_TLS_CCS_SIZE      1 /* The length of a CCS message.                */
+#define MPS_TLS_CCS_VALUE     1 /* The expected value of a valid CCS message.  */
 
-#define MPS_DTLS_HS_HDR_SIZE 13 /* The handshake header length in DTLS.       */
+#define MPS_DTLS_HS_HDR_SIZE 13 /* The handshake header length in DTLS.        */
 
 /*
  * Init & Free API
@@ -750,6 +752,14 @@ MBEDTLS_MPS_STATIC int l3_parse_alert( mbedtls_reader *rd,
     TRACE( trace_comment, "Parsed alert message" );
     TRACE( trace_comment, "* Level: %u", (unsigned) alert->level );
     TRACE( trace_comment, "* Type:  %u", (unsigned) alert->type );
+
+    if( alert->level != MPS_TLS_ALERT_LEVEL_FATAL &&
+        alert->level != MPS_TLS_ALERT_LEVEL_WARNING )
+    {
+        TRACE( trace_error, "Alert level unknown" );
+        RETURN( MBEDTLS_ERR_MPS_INVALID_CONTENT );
+    }
+
     RETURN( 0 );
 }
 

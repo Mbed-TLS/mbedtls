@@ -49,9 +49,6 @@
 #define MBEDTLS_ERR_MPS_CLOSE_NOTIFY          MBEDTLS_MPS_MAKE_ERROR( 0x04 )
 /*! The MPS is blocked. */
 #define MBEDTLS_ERR_MPS_BLOCKED               MBEDTLS_MPS_MAKE_ERROR( 0x05 )
-/*! The peer has sent an unknown non-fatal alert and MPS
- *  is configured to treat this as fatal. */
-#define MBEDTLS_ERR_MPS_UNKNOWN_ALERT         MBEDTLS_MPS_MAKE_ERROR( 0x06 )
 /*! The peer has sent a fatal alert. */
 #define MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED  MBEDTLS_MPS_MAKE_ERROR( 0x07 )
 /*! An internal assertion has failed - should never happen. */

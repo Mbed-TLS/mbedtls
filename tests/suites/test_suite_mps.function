@@ -7044,6 +7044,7 @@ void mbedtls_mps_l3_bad_msg( int variant )
      * - bad handshake header (frag_offset + frag_len > len )
      * - partial alert message
      * - bad CCS message
+     * - alert with invalid level
      */
 
     /* Allocator objects */
@@ -7202,6 +7203,18 @@ void mbedtls_mps_l3_bad_msg( int variant )
         TEST_ASSERT( mps_l2_write_start( &cli_l2, &out_cli ) == 0 );
         TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 1, &tmp, NULL ) == 0 );
         tmp[0] = 42;
+        TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+    }
+    else if( variant == 4 )
+    {
+        /* Send an alert record with invalid alert level. */
+
+        out_cli.type  = MBEDTLS_MPS_MSG_ALERT;
+        out_cli.epoch = cli_epoch;
+        TEST_ASSERT( mps_l2_write_start( &cli_l2, &out_cli ) == 0 );
+        TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 2, &tmp, NULL ) == 0 );
+        tmp[0] = 42;
+        tmp[1] = 42;
         TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
     }
 

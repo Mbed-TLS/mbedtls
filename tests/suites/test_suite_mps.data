@@ -681,6 +681,10 @@ MPS Layer 3 DTLS: CCS, bad constant
 depends_on:MBEDTLS_MPS_PROTO_DTLS
 mbedtls_mps_l3_bad_msg:3
 
+MPS Layer 3 DTLS: Alert, bad level
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l3_bad_msg:4
+
 MPS Layer 3 TLS: HS, gradual in small records, real transforms
 mbedtls_mps_l3_handshake_gradual:58:1000:100:1:1:0
 

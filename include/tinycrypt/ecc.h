@@ -111,6 +111,7 @@ typedef uint64_t uECC_dword_t;
 #define NUM_ECC_WORDS 8
 /* Number of bytes to represent an element of the the curve p-256: */
 #define NUM_ECC_BYTES (uECC_WORD_SIZE*NUM_ECC_WORDS)
+#define NUM_ECC_BITS 256
 
 /* structure that represents an elliptic curve (e.g. p256):*/
 struct uECC_Curve_t;
@@ -283,31 +284,18 @@ uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
 					uECC_word_t *private_key, uECC_Curve curve);
 
 /*
- * @brief Regularize the bitcount for the private key so that attackers cannot
- * use a side channel attack to learn the number of leading zeros.
- * @return Regularized k
- * @param k IN -- private-key
- * @param k0 IN/OUT -- regularized k
- * @param k1 IN/OUT -- regularized k
- * @param curve IN -- elliptic curve
- */
-uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
-			 uECC_word_t *k1, uECC_Curve curve);
-
-/*
  * @brief Point multiplication algorithm using Montgomery's ladder with co-Z
  * coordinates. See http://eprint.iacr.org/2011/338.pdf.
+ * Uses scalar regularization and coordinate randomization (if a global RNG
+ * function is set) in order to protect against some side channel attacks.
  * @note Result may overlap point.
  * @param result OUT -- returns scalar*point
  * @param point IN -- elliptic curve point
  * @param scalar IN -- scalar
- * @param initial_Z IN -- initial value for z
- * @param num_bits IN -- number of bits in scalar
  * @param curve IN -- elliptic curve
  */
-void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
-		   const uECC_word_t * scalar, const uECC_word_t * initial_Z,
-		   bitcount_t num_bits, uECC_Curve curve);
+int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
+			const uECC_word_t * scalar, uECC_Curve curve);
 
 /*
  * @brief Constant-time comparison to zero - secure way to compare long integers
@@ -315,7 +303,7 @@ void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
  * @param num_words IN -- number of words in the vli
  * @return 1 if vli == 0, 0 otherwise.
  */
-uECC_word_t uECC_vli_isZero(const uECC_word_t *vli, wordcount_t num_words);
+uECC_word_t uECC_vli_isZero(const uECC_word_t *vli);
 
 /*
  * @brief Check if 'point' is the point at infinity
@@ -332,8 +320,7 @@ uECC_word_t EccPoint_isZero(const uECC_word_t *point, uECC_Curve curve);
  * @param num_words IN -- number of words
  * @return the sign of left - right
  */
-cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right,
-			 wordcount_t num_words);
+cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right);
 
 /*
  * @brief computes sign of left - right, not in constant time.
@@ -343,8 +330,7 @@ cmpresult_t uECC_vli_cmp(const uECC_word_t *left, const uECC_word_t *right,
  * @param num_words IN -- number of words
  * @return the sign of left - right
  */
-cmpresult_t uECC_vli_cmp_unsafe(const uECC_word_t *left, const uECC_word_t *right,
-				wordcount_t num_words);
+cmpresult_t uECC_vli_cmp_unsafe(const uECC_word_t *left, const uECC_word_t *right);
 
 /*
  * @brief Computes result = (left - right) % mod.
@@ -357,8 +343,7 @@ cmpresult_t uECC_vli_cmp_unsafe(const uECC_word_t *left, const uECC_word_t *righ
  * @param num_words IN -- number of words
  */
 void uECC_vli_modSub(uECC_word_t *result, const uECC_word_t *left,
-		     const uECC_word_t *right, const uECC_word_t *mod,
-		     wordcount_t num_words);
+		     const uECC_word_t *right, const uECC_word_t *mod);
 
 /*
  * @brief Computes P' = (x1', y1', Z3), P + Q = (x3, y3, Z3) or
@@ -380,8 +365,7 @@ void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1, uECC_word_t * X2,
  * @param Z IN -- z value
  * @param curve IN -- elliptic curve
  */
-void apply_z(uECC_word_t * X1, uECC_word_t * Y1, const uECC_word_t * const Z,
-	     uECC_Curve curve);
+void apply_z(uECC_word_t * X1, uECC_word_t * Y1, const uECC_word_t * const Z);
 
 /*
  * @brief Check if bit is set.
@@ -402,7 +386,7 @@ uECC_word_t uECC_vli_testBit(const uECC_word_t *vli, bitcount_t bit);
  * @warning Currently only designed to work for curve_p or curve_n.
  */
 void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
-		   const uECC_word_t *mod, wordcount_t num_words);
+		   const uECC_word_t *mod);
 
 /*
  * @brief Computes modular product (using curve->mmod_fast)
@@ -412,7 +396,7 @@ void uECC_vli_mmod(uECC_word_t *result, uECC_word_t *product,
  * @param curve IN -- elliptic curve
  */
 void uECC_vli_modMult_fast(uECC_word_t *result, const uECC_word_t *left,
-			   const uECC_word_t *right, uECC_Curve curve);
+			   const uECC_word_t *right);
 
 /*
  * @brief Computes result = left - right.
@@ -424,7 +408,7 @@ void uECC_vli_modMult_fast(uECC_word_t *result, const uECC_word_t *left,
  * @return borrow
  */
 uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
-			 const uECC_word_t *right, wordcount_t num_words);
+			 const uECC_word_t *right);
 
 /*
  * @brief Constant-time comparison function(secure way to compare long ints)
@@ -433,8 +417,7 @@ uECC_word_t uECC_vli_sub(uECC_word_t *result, const uECC_word_t *left,
  * @param num_words IN -- number of words
  * @return Returns 0 if left == right, 1 otherwise.
  */
-uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right,
-			   wordcount_t num_words);
+uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right);
 
 /*
  * @brief Computes (left * right) % mod
@@ -445,8 +428,7 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right,
  * @param num_words IN -- number of words
  */
 void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
-		      const uECC_word_t *right, const uECC_word_t *mod,
-	              wordcount_t num_words);
+		      const uECC_word_t *right, const uECC_word_t *mod);
 
 /*
  * @brief Computes (1 / input) % mod
@@ -458,7 +440,7 @@ void uECC_vli_modMult(uECC_word_t *result, const uECC_word_t *left,
  * @param num_words -- number of words
  */
 void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
-		     const uECC_word_t *mod, wordcount_t num_words);
+		     const uECC_word_t *mod);
 
 /*
  * @brief Sets dest = src.
@@ -466,8 +448,7 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
  * @param src IN --  origin buffer
  * @param num_words IN -- number of words
  */
-void uECC_vli_set(uECC_word_t *dest, const uECC_word_t *src,
-		  wordcount_t num_words);
+void uECC_vli_set(uECC_word_t *dest, const uECC_word_t *src);
 
 /*
  * @brief Computes (left + right) % mod.
@@ -480,8 +461,7 @@ void uECC_vli_set(uECC_word_t *dest, const uECC_word_t *src,
  * @param num_words IN -- number of words
  */
 void uECC_vli_modAdd(uECC_word_t *result,  const uECC_word_t *left,
-    		     const uECC_word_t *right, const uECC_word_t *mod,
-   		     wordcount_t num_words);
+    		     const uECC_word_t *right, const uECC_word_t *mod);
 
 /*
  * @brief Counts the number of bits required to represent vli.
@@ -489,15 +469,14 @@ void uECC_vli_modAdd(uECC_word_t *result,  const uECC_word_t *left,
  * @param max_words IN -- number of words
  * @return number of bits in given vli
  */
-bitcount_t uECC_vli_numBits(const uECC_word_t *vli, 
-			    const wordcount_t max_words);
+bitcount_t uECC_vli_numBits(const uECC_word_t *vli);
 
 /*
  * @brief Erases (set to 0) vli
  * @param vli IN -- very long integer
  * @param num_words IN -- number of words
  */
-void uECC_vli_clear(uECC_word_t *vli, wordcount_t num_words);
+void uECC_vli_clear(uECC_word_t *vli);
 
 /*
  * @brief check if it is a valid point in the curve

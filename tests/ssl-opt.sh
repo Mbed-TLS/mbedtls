@@ -656,7 +656,6 @@ check_cmdline_force_version_compat() {
             SKIP_NEXT="YES"
         elif ( [ "$__ARG" = "tls1_2" ] || [ "$__ARG" = "dtls1_2" ] ) && \
                   ( [ "$__VAL_MIN" != "3" ] || [ "$__VAL_MAX" != "3" ] ); then
-            echo "FORCE SKIP"
             SKIP_NEXT="YES"
         fi
 
@@ -2376,6 +2375,17 @@ run_test    "Extended Master Secret: client enabled, server SSLv3" \
             -C "session hash for extended master secret" \
             -S "session hash for extended master secret"
 
+run_test    "Extended Master Secret: both enabled, both enforcing, DTLS" \
+            "$P_SRV dtls=1 debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
+            "$P_CLI dtls=1 debug_level=3 extended_ms=1 enforce_extended_master_secret=1" \
+            0 \
+            -c "client hello, adding extended_master_secret extension" \
+            -s "found extended master secret extension" \
+            -s "server hello, adding extended master secret extension" \
+            -c "found extended_master_secret extension" \
+            -c "session hash for extended master secret" \
+            -s "session hash for extended master secret"
+
 # Tests for FALLBACK_SCSV
 
 run_test    "Fallback SCSV: default" \
@@ -3777,6 +3787,25 @@ run_test    "Authentication: server ECDH p256v1, client optional, p256v1 unsuppo
             -c "! Certificate verification flags"\
             -c "bad server certificate (ECDH curve)" # Expect failure only at ECDH params check
 
+requires_config_enabled MBEDTLS_USE_TINYCRYPT
+run_test    "Authentication: DTLS server ECDH p256, client required, server goodcert" \
+            "$P_SRV dtls=1 debug_level=1 key_file=data_files/server11.key.der \
+             crt_file=data_files/server11.crt.der" \
+            "$P_CLI dtls=1 debug_level=3 auth_mode=required" \
+            0 \
+            -C "bad certificate (EC key curve)"\
+            -C "! Certificate verification flags"\
+            -C "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_USE_TINYCRYPT
+run_test    "Authentication: DTLS server ECDH p256, client required, server badcert" \
+            "$P_SRV dtls=1 debug_level=1 key_file=data_files/server11.key.der \
+             crt_file=data_files/server11-bad.crt.der" \
+            "$P_CLI dtls=1 debug_level=3 auth_mode=required" \
+            1 \
+            -c "! Certificate verification flags"\
+            -c "! mbedtls_ssl_handshake returned"
+
 run_test    "Authentication: server badcert, client none" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -4825,6 +4854,12 @@ run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA" \
             0 \
             -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
 
+run_test    "keyUsage srv: ECDSA, digitalSignature -> ECDHE-ECDSA p256" \
+            "$P_SRV dtls=1 key_file=data_files/server11.key.der \
+             crt_file=data_files/server11.crt.der" \
+            "$P_CLI dtls=1 ca_file=data_files/test-ca3.crt.der" \
+            0 \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-"
 
 run_test    "keyUsage srv: ECDSA, keyAgreement -> ECDH-" \
             "$P_SRV key_file=data_files/server5.key \
@@ -5641,6 +5676,13 @@ run_test    "Small client packet DTLS 1.2, without EtM, truncated MAC" \
             0 \
             -s "Read from client: 1 bytes read"
 
+run_test    "Small client packet DTLS, ECDHE-ECDSA" \
+            "$P_SRV dtls=1" \
+            "$P_CLI dtls=1 request_size=1 \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
 # Tests for small server packets
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
@@ -5919,6 +5961,13 @@ run_test    "Small server packet DTLS 1.2, without EtM, truncated MAC" \
             "$P_SRV dtls=1 response_size=1 force_version=dtls1_2 trunc_hmac=1 etm=0" \
             "$P_CLI dtls=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1"\
+            0 \
+            -c "Read from server: 1 bytes read"
+
+run_test    "Small server packet DTLS, ECDHE-ECDSA" \
+            "$P_SRV dtls=1 response_size=1" \
+            "$P_CLI dtls=1 \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
             0 \
             -c "Read from server: 1 bytes read"
 
@@ -6957,6 +7006,24 @@ run_test    "Force an ECC ciphersuite in the server side" \
             -c "found supported_point_formats extension" \
             -s "server hello, supported_point_formats extension"
 
+requires_ciphersuite_enabled TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8
+run_test    "Force an ECC ciphersuite with CCM in the client side" \
+            "$P_SRV dtls=1 debug_level=3" \
+            "$P_CLI dtls=1 debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -c "client hello, adding supported_elliptic_curves extension" \
+            -c "client hello, adding supported_point_formats extension" \
+            -s "found supported elliptic curves extension" \
+            -s "found supported point formats extension"
+
+requires_ciphersuite_enabled TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8
+run_test    "Force an ECC ciphersuite with CCM in the server side" \
+            "$P_SRV dtls=1 debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            "$P_CLI dtls=1 debug_level=3" \
+            0 \
+            -c "found supported_point_formats extension" \
+            -s "server hello, supported_point_formats extension"
+
 # Tests for DTLS HelloVerifyRequest
 
 run_test    "DTLS cookie: enabled" \
@@ -6981,7 +7048,6 @@ run_test    "DTLS cookie: disabled" \
             -S "hello verification requested" \
             -S "SSL - The requested feature is not available"
 
-requires_config_enabled MBEDTLS_ERROR_C
 run_test    "DTLS cookie: default (failing)" \
             "$P_SRV dtls=1 debug_level=2 cookies=-1" \
             "$P_CLI dtls=1 debug_level=2 hs_timeout=100-400" \
@@ -6990,8 +7056,7 @@ run_test    "DTLS cookie: default (failing)" \
             -S "cookie verification passed" \
             -S "cookie verification skipped" \
             -C "received hello verify request" \
-            -S "hello verification requested" \
-            -s "SSL - The requested feature is not available"
+            -S "hello verification requested"
 
 requires_ipv6
 run_test    "DTLS cookie: enabled, IPv6" \

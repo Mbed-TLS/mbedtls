@@ -107,6 +107,7 @@ List of certificates:
     _int3_int-ca2_ca.crt: S10 + I3 + I2 + 1
     _int3_spurious_int-ca2.crt: S10 + I3 + I1(spurious) + I2
  - server11.crt: 3 E, secp256r1 curve
+    -bad.crt.der: S11 with corrupted public key and signature
 
 Certificate revocation lists
 ----------------------------

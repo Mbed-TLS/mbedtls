@@ -731,7 +731,7 @@ MBEDTLS_MPS_STATIC int l3_parse_alert( mbedtls_reader *rd,
     */
 
     /* This call might fail for alert messages spanning
-     * two records. This will be caught in up in the
+     * two records. This will be caught higher up in the
      * call chain, and Layer 2 will remember the request
      * in this case and ensure it can be satisfied the next
      * time it signals incoming data of alert content type.

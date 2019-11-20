@@ -575,14 +575,27 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
     if( ( ret = mbedtls_md_info_starts( md_info, ctx->md_ctx ) ) != 0 )
         goto cleanup;
 
+    i++;    // Use i as flow control
+
     if( ( ret = mbedtls_md_info_update( md_info, ctx->md_ctx, ipad,
            mbedtls_md_info_block_size( md_info ) ) ) != 0 )
     {
         goto cleanup;
     }
 
+    i++;    // Use i as flow control now
+
 cleanup:
     mbedtls_platform_zeroize( sum, sizeof( sum ) );
+
+    if ( ret == 0 )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+        /* Check possible fault injection */
+        if ( ( i - 2 ) == keylen ) {
+            ret = 0;
+        }
+    }
 
     return( ret );
 }
@@ -653,7 +666,7 @@ int mbedtls_md_hmac_finish( mbedtls_md_context_t *ctx, unsigned char *output )
     if( ( ret = mbedtls_md_info_finish( md_info, ctx->md_ctx, output ) ) != 0 )
         return( ret );
 
-    return( 0 );
+    return( ret );
 }
 
 int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx )

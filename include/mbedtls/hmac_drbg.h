@@ -70,8 +70,8 @@
 
 /* \} name SECTION: Module settings */
 
-#define MBEDTLS_HMAC_DRBG_PR_OFF   0   /**< No prediction resistance       */
-#define MBEDTLS_HMAC_DRBG_PR_ON    1   /**< Prediction resistance enabled  */
+#define MBEDTLS_HMAC_DRBG_PR_OFF   0x55555555   /**< No prediction resistance       */
+#define MBEDTLS_HMAC_DRBG_PR_ON    0x2AAAAAAA   /**< Prediction resistance enabled  */
 
 #ifdef __cplusplus
 extern "C" {
@@ -202,7 +202,8 @@ void mbedtls_hmac_drbg_set_reseed_interval( mbedtls_hmac_drbg_context *ctx,
  * \param add_len       Length of additional data, or 0
  *
  * \return              \c 0 on success, or an error from the underlying
- *                      hash calculation.
+ *                      hash calculation or
+ *                      MBEDTLS_ERR_PLATFORM_FAULT_DETECTED.
  *
  * \note                Additional data is optional, pass NULL and 0 as second
  *                      third argument if no additional data is being used.
@@ -237,7 +238,8 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
  * \return              0 if successful, or
  *                      MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED, or
  *                      MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG, or
- *                      MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG.
+ *                      MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG, or
+ *                      MBEDTLS_ERR_PLATFORM_FAULT_DETECTED.
  */
 int mbedtls_hmac_drbg_random_with_add( void *p_rng,
                                unsigned char *output, size_t output_len,
@@ -255,7 +257,9 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
  *
  * \return              0 if successful, or
  *                      MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED, or
- *                      MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG
+ *                      MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG,
+ *                      MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG, or
+ *                      MBEDTLS_ERR_PLATFORM_FAULT_DETECTED.
  */
 int mbedtls_hmac_drbg_random( void *p_rng, unsigned char *output, size_t out_len );
 

@@ -1893,9 +1893,11 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
      *       handshake message -- which should use the new epoch -- in
      *       the same record as the previous one. */
 
-    ret = l2_epoch_check( ctx, active->epoch, MPS_EPOCH_READ_MASK );
-    if( ret != 0 )
-        RETURN( ret );
+    if( l2_epoch_check( ctx, active->epoch, MPS_EPOCH_READ_MASK ) != 0 )
+    {
+        TRACE( trace_error, "Content piggy-backing in record with old epoch." );
+        RETURN( MBEDTLS_ERR_MPS_INVALID_CONTENT );
+    }
 
     in->type  = active->type;
     in->epoch = active->epoch;

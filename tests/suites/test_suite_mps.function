@@ -7843,9 +7843,6 @@ void mbedtls_mps_l3_basic_alert( int mode,
     mps_l3_alert_out alert_out;
     mps_l3_alert_in alert_in;
 
-    uint8_t const alert_type = 0xc;
-    uint8_t const alert_level = 0x1a;
-
     mbedtls_mps_epoch_id cli_epoch;
     mbedtls_mps_epoch_id srv_epoch;
 
@@ -7981,8 +7978,8 @@ void mbedtls_mps_l3_basic_alert( int mode,
             retry++;
         }
 
-        *alert_out.level = (uint8_t)( alert_level + alerts_remaining );
-        *alert_out.type = (uint8_t)( alert_type + alerts_remaining );
+        *alert_out.level = ( alerts_remaining % 2 ) ? 1 : 2;
+        *alert_out.type  = alerts_remaining;
 
         /* Dispatch application data message */
         TEST_ASSERT( mps_l3_dispatch( &cli ) == 0 );
@@ -8014,9 +8011,8 @@ void mbedtls_mps_l3_basic_alert( int mode,
         TEST_ASSERT( mps_l3_read_alert( &srv, &alert_in ) == 0 );
 
         TEST_ASSERT( alert_in.level ==
-                     (uint8_t)( alert_level + alerts_remaining ) );
-        TEST_ASSERT( alert_in.type ==
-                     (uint8_t)( alert_type + alerts_remaining ) );
+                     ( alerts_remaining % 2 ) ? 1 : 2 );
+        TEST_ASSERT( alert_in.type == alerts_remaining );
 
         /* Signal that message has been processed. */
         TEST_ASSERT( mps_l3_read_consume( &srv ) == 0 );
@@ -8275,9 +8271,6 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
     mps_l3_alert_out alert_out;
     mps_l3_alert_in alert_in;
 
-    uint8_t const alert_type = 0xc;
-    uint8_t const alert_level = 0x1a;
-
     mbedtls_mps_epoch_id cli_epoch;
     mbedtls_mps_epoch_id srv_epoch;
 
@@ -8468,8 +8461,8 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                     /* Send an alert */
                     alert_out.epoch = 0;
                     TEST_ASSERT( mps_l3_write_alert( &cli, &alert_out ) == 0 );
-                    *alert_out.level = (uint8_t)( alert_level + msgs_remaining );
-                    *alert_out.type = (uint8_t)( alert_type + msgs_remaining );
+                    *alert_out.level = msgs_remaining % 2 ? 1 : 2;
+                    *alert_out.type  = msgs_remaining;
                     TEST_ASSERT( mps_l3_dispatch( &cli ) == 0 );
                     TEST_ASSERT( mps_l3_flush( &cli ) == 0 );
 
@@ -8544,9 +8537,8 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                 TEST_ASSERT( mps_l3_read_alert( &srv, &alert_in ) == 0 );
 
                 TEST_ASSERT( alert_in.level ==
-                     (uint8_t)( alert_level + msgs_remaining ) );
-                TEST_ASSERT( alert_in.type ==
-                             (uint8_t)( alert_type + msgs_remaining ) );
+                             msgs_remaining % 2 ? 1 : 2 );
+                TEST_ASSERT( alert_in.type == msgs_remaining );
 
                 /* Signal that message has been processed. */
                 TEST_ASSERT( mps_l3_read_consume( &srv ) == 0 );
@@ -8802,8 +8794,9 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
                     case 3: /* Alert */
                         printf( "Alert message\n" );
                         chunks[k][id][chunk].type = MBEDTLS_MPS_MSG_ALERT;
+                        chunks[k][id][chunk].data.alert.level =
+                            (uint8_t)( rand() % 2 ? 1 : 2 );
                         chunks[k][id][chunk].data.alert.type = (uint8_t) rand();
-                        chunks[k][id][chunk].data.alert.level = (uint8_t) rand();
                         break;
 
                     default:

@@ -1113,13 +1113,13 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     {
         while( length > 0 )
         {
-            memcpy( temp, input, 16 );
+            mbedtls_platform_memcpy( temp, input, 16 );
             mbedtls_aes_crypt_ecb( ctx, mode, input, output );
 
             for( i = 0; i < 16; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
 
-            memcpy( iv, temp, 16 );
+            mbedtls_platform_memcpy( iv, temp, 16 );
 
             input  += 16;
             output += 16;
@@ -1134,7 +1134,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
             mbedtls_aes_crypt_ecb( ctx, mode, output, output );
-            memcpy( iv, output, 16 );
+            mbedtls_platform_memcpy( iv, output, 16 );
 
             input  += 16;
             output += 16;
@@ -1251,7 +1251,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
              * and this tweak for the lefover bytes. Save the current tweak for
              * the leftovers and then update the current tweak for use on this,
              * the last full block. */
-            memcpy( prev_tweak, tweak, sizeof( tweak ) );
+            mbedtls_platform_memcpy( prev_tweak, tweak, sizeof( tweak ) );
             mbedtls_gf128mul_x_ble( tweak, tweak );
         }
 
@@ -1393,7 +1393,7 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
     AES_VALIDATE_RET( output != NULL );
     while( length-- )
     {
-        memcpy( ov, iv, 16 );
+        mbedtls_platform_memcpy( ov, iv, 16 );
         mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
 
         if( mode == MBEDTLS_AES_DECRYPT )
@@ -1404,7 +1404,7 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
         if( mode == MBEDTLS_AES_ENCRYPT )
             ov[16] = c;
 
-        memcpy( iv, ov + 1, 16 );
+        mbedtls_platform_memcpy( iv, ov + 1, 16 );
     }
 
     return( 0 );
@@ -1846,7 +1846,7 @@ int mbedtls_aes_self_test( int verbose )
 #endif
     mbedtls_aes_context ctx;
 
-    mbedtls_platform_memset( key, 0, 32 );
+    memset( key, 0, 32 );
     mbedtls_aes_init( &ctx );
 
     /*
@@ -1878,7 +1878,7 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
-        mbedtls_platform_memset( buf, 0, 16 );
+        memset( buf, 0, 16 );
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
@@ -1956,9 +1956,9 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
-        mbedtls_platform_memset( iv , 0, 16 );
-        mbedtls_platform_memset( prv, 0, 16 );
-        mbedtls_platform_memset( buf, 0, 16 );
+        memset( iv , 0, 16 );
+        memset( prv, 0, 16 );
+        memset( buf, 0, 16 );
 
         if( mode == MBEDTLS_AES_DECRYPT )
         {
@@ -2272,7 +2272,7 @@ int mbedtls_aes_self_test( int verbose )
         }
 #endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
-        mbedtls_platform_memset( key, 0, sizeof( key ) );
+        memset( key, 0, sizeof( key ) );
         memcpy( key, aes_test_xts_key[u], 32 );
         data_unit = aes_test_xts_data_unit[u];
 

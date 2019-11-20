@@ -148,7 +148,7 @@ static void chacha20_block( const uint32_t initial_state[16],
     uint32_t working_state[16];
     size_t i;
 
-    memcpy( working_state,
+    mbedtls_platform_memcpy( working_state,
             initial_state,
             CHACHA20_BLOCK_SIZE_BYTES );
 

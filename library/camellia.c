@@ -593,13 +593,13 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
     {
         while( length > 0 )
         {
-            memcpy( temp, input, 16 );
+            mbedtls_platform_memcpy( temp, input, 16 );
             mbedtls_camellia_crypt_ecb( ctx, mode, input, output );
 
             for( i = 0; i < 16; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
 
-            memcpy( iv, temp, 16 );
+            mbedtls_platform_memcpy( iv, temp, 16 );
 
             input  += 16;
             output += 16;
@@ -614,7 +614,7 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
             mbedtls_camellia_crypt_ecb( ctx, mode, output, output );
-            memcpy( iv, output, 16 );
+            mbedtls_platform_memcpy( iv, output, 16 );
 
             input  += 16;
             output += 16;
@@ -951,7 +951,7 @@ int mbedtls_camellia_self_test( int verbose )
 
     mbedtls_camellia_context ctx;
 
-    mbedtls_platform_memset( key, 0, 32 );
+    memset( key, 0, 32 );
 
     for( j = 0; j < 6; j++ ) {
         u = j >> 1;

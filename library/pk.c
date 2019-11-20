@@ -512,7 +512,7 @@ static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end
 
     padding_len = to_len - unpadded_len;
     memset( to, 0x00, padding_len );
-    memcpy( to + padding_len, *from, unpadded_len );
+    mbedtls_platform_memcpy( to + padding_len, *from, unpadded_len );
     ( *from ) += unpadded_len;
 
     return( 0 );

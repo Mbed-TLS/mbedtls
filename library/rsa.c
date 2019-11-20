@@ -1171,7 +1171,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     p += hlen;
     p += olen - 2 * hlen - 2 - ilen;
     *p++ = 1;
-    memcpy( p, input, ilen );
+    mbedtls_platform_memcpy( p, input, ilen );
 
     mbedtls_md_init( &md_ctx );
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
@@ -1263,7 +1263,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     }
 
     *p++ = 0;
-    memcpy( p, input, ilen );
+    mbedtls_platform_memcpy( p, input, ilen );
 
     return( ( mode == MBEDTLS_RSA_PUBLIC )
             ? mbedtls_rsa_public(  ctx, output, output )
@@ -1441,7 +1441,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     }
 
     *olen = ilen - (p - buf);
-    memcpy( output, p, *olen );
+    mbedtls_platform_memcpy( output, p, *olen );
     ret = 0;
 
 cleanup:
@@ -1695,7 +1695,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
 
     /* Finally copy the decrypted plaintext plus trailing zeros
      * into the output buffer. */
-    memcpy( output, buf + ilen - plaintext_max_size, plaintext_max_size );
+    mbedtls_platform_memcpy( output, buf + ilen - plaintext_max_size, plaintext_max_size );
 
     /* Report the amount of data we copied to the output buffer. In case
      * of errors (bad padding or output too large), the value of *olen
@@ -1825,7 +1825,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     msb = mbedtls_mpi_bitlen( &ctx->N ) - 1;
     p += olen - hlen - slen - 2;
     *p++ = 0x01;
-    memcpy( p, salt, slen );
+    mbedtls_platform_memcpy( p, salt, slen );
     p += slen;
 
     mbedtls_md_init( &md_ctx );
@@ -1965,7 +1965,7 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     /* Are we signing raw data? */
     if( md_alg == MBEDTLS_MD_NONE )
     {
-        memcpy( p, hash, hashlen );
+        mbedtls_platform_memcpy( p, hash, hashlen );
         return( 0 );
     }
 
@@ -1988,13 +1988,13 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     *p++ = (unsigned char)( 0x04 + oid_size );
     *p++ = MBEDTLS_ASN1_OID;
     *p++ = (unsigned char) oid_size;
-    memcpy( p, oid, oid_size );
+    mbedtls_platform_memcpy( p, oid, oid_size );
     p += oid_size;
     *p++ = MBEDTLS_ASN1_NULL;
     *p++ = 0x00;
     *p++ = MBEDTLS_ASN1_OCTET_STRING;
     *p++ = (unsigned char) hashlen;
-    memcpy( p, hash, hashlen );
+    mbedtls_platform_memcpy( p, hash, hashlen );
     p += hashlen;
 
     /* Just a sanity-check, should be automatic
@@ -2078,7 +2078,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
         goto cleanup;
     }
 
-    memcpy( sig, sig_try, ctx->len );
+    mbedtls_platform_memcpy( sig, sig_try, ctx->len );
 
 cleanup:
     mbedtls_free( sig_try );

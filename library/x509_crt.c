@@ -1559,7 +1559,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt,
         if( crt->raw.p == NULL )
             return( MBEDTLS_ERR_X509_ALLOC_FAILED );
         crt->raw.len = buflen;
-        memcpy( crt->raw.p, buf, buflen );
+        mbedtls_platform_memcpy( crt->raw.p, buf, buflen );
 
         crt->own_buffer = 1;
     }
@@ -1942,7 +1942,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
 
     mbedtls_platform_memset( szDir, 0, sizeof(szDir) );
     mbedtls_platform_memset( filename, 0, MAX_PATH );
-    memcpy( filename, path, len );
+    mbedtls_platform_memcpy( filename, path, len );
     filename[len++] = '\\';
     p = filename + len;
     filename[len++] = '*';

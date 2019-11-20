@@ -154,13 +154,13 @@ int mbedtls_xtea_crypt_cbc( mbedtls_xtea_context *ctx, int mode, size_t length,
     {
         while( length > 0 )
         {
-            memcpy( temp, input, 8 );
+            mbedtls_platform_memcpy( temp, input, 8 );
             mbedtls_xtea_crypt_ecb( ctx, mode, input, output );
 
             for( i = 0; i < 8; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
 
-            memcpy( iv, temp, 8 );
+            mbedtls_platform_memcpy( iv, temp, 8 );
 
             input  += 8;
             output += 8;
@@ -175,7 +175,7 @@ int mbedtls_xtea_crypt_cbc( mbedtls_xtea_context *ctx, int mode, size_t length,
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
             mbedtls_xtea_crypt_ecb( ctx, mode, output, output );
-            memcpy( iv, output, 8 );
+            mbedtls_platform_memcpy( iv, output, 8 );
 
             input  += 8;
             output += 8;

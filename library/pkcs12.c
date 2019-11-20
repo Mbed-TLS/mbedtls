@@ -239,7 +239,7 @@ static void pkcs12_fill_buffer( unsigned char *data, size_t data_len,
     while( data_len > 0 )
     {
         use_len = ( data_len > fill_len ) ? fill_len : data_len;
-        memcpy( p, filler, use_len );
+        mbedtls_platform_memcpy( p, filler, use_len );
         p += use_len;
         data_len -= use_len;
     }
@@ -315,7 +315,7 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
         }
 
         use_len = ( datalen > hlen ) ? hlen : datalen;
-        memcpy( p, hash_output, use_len );
+        mbedtls_platform_memcpy( p, hash_output, use_len );
         datalen -= use_len;
         p += use_len;
 

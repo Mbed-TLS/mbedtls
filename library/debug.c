@@ -355,7 +355,7 @@ static void debug_print_line_by_line( const mbedtls_ssl_context *ssl, int level,
             if( len > DEBUG_BUF_SIZE - 1 )
                 len = DEBUG_BUF_SIZE - 1;
 
-            memcpy( str, start, len );
+            mbedtls_platform_memcpy( str, start, len );
             str[len] = '\0';
 
             debug_send_line( ssl, level, file, line, str );

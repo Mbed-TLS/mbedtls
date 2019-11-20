@@ -185,7 +185,7 @@ static int block_cipher_df( unsigned char *output,
     *p++ = ( data_len       ) & 0xff;
     p += 3;
     *p++ = MBEDTLS_CTR_DRBG_SEEDLEN;
-    memcpy( p, data, data_len );
+    mbedtls_platform_memcpy( p, data, data_len );
     p[data_len] = 0x80;
 
     buf_len = MBEDTLS_CTR_DRBG_BLOCKSIZE + 8 + data_len + 1;
@@ -221,7 +221,7 @@ static int block_cipher_df( unsigned char *output,
             }
         }
 
-        memcpy( tmp + j, chain, MBEDTLS_CTR_DRBG_BLOCKSIZE );
+        mbedtls_platform_memcpy( tmp + j, chain, MBEDTLS_CTR_DRBG_BLOCKSIZE );
 
         /*
          * Update IV
@@ -245,7 +245,7 @@ static int block_cipher_df( unsigned char *output,
         {
             goto exit;
         }
-        memcpy( p, iv, MBEDTLS_CTR_DRBG_BLOCKSIZE );
+        mbedtls_platform_memcpy( p, iv, MBEDTLS_CTR_DRBG_BLOCKSIZE );
         p += MBEDTLS_CTR_DRBG_BLOCKSIZE;
     }
 exit:
@@ -312,7 +312,7 @@ static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
      */
     if( ( ret = mbedtls_aes_setkey_enc( &ctx->aes_ctx, tmp, MBEDTLS_CTR_DRBG_KEYBITS ) ) != 0 )
         goto exit;
-    memcpy( ctx->counter, tmp + MBEDTLS_CTR_DRBG_KEYSIZE, MBEDTLS_CTR_DRBG_BLOCKSIZE );
+    mbedtls_platform_memcpy( ctx->counter, tmp + MBEDTLS_CTR_DRBG_KEYSIZE, MBEDTLS_CTR_DRBG_BLOCKSIZE );
 
 exit:
     mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
@@ -405,7 +405,7 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
      */
     if( additional && len )
     {
-        memcpy( seed + seedlen, additional, len );
+        mbedtls_platform_memcpy( seed + seedlen, additional, len );
         seedlen += len;
     }
 
@@ -504,7 +504,7 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
         /*
          * Copy random block to destination
          */
-        memcpy( p, tmp, use_len );
+        mbedtls_platform_memcpy( p, tmp, use_len );
         p += use_len;
         output_len -= use_len;
     }

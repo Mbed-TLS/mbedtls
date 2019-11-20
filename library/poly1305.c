@@ -346,7 +346,7 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
             /* Not enough data to complete the block.
              * Store this data with the other leftovers.
              */
-            memcpy( &ctx->queue[ctx->queue_len],
+            mbedtls_platform_memcpy( &ctx->queue[ctx->queue_len],
                     input,
                     ilen );
 
@@ -357,7 +357,7 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
         else
         {
             /* Enough data to produce a complete block */
-            memcpy( &ctx->queue[ctx->queue_len],
+            mbedtls_platform_memcpy( &ctx->queue[ctx->queue_len],
                     input,
                     queue_free_len );
 
@@ -384,7 +384,7 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
     {
         /* Store partial block */
         ctx->queue_len = remaining;
-        memcpy( ctx->queue, &input[offset], remaining );
+        mbedtls_platform_memcpy( ctx->queue, &input[offset], remaining );
     }
 
     return( 0 );

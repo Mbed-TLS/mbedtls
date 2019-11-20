@@ -684,7 +684,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
             mbedtls_des_crypt_ecb( ctx, output, output );
-            memcpy( iv, output, 8 );
+            mbedtls_platform_memcpy( iv, output, 8 );
 
             input  += 8;
             output += 8;
@@ -695,13 +695,13 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
     {
         while( length > 0 )
         {
-            memcpy( temp, input, 8 );
+            mbedtls_platform_memcpy( temp, input, 8 );
             mbedtls_des_crypt_ecb( ctx, input, output );
 
             for( i = 0; i < 8; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
 
-            memcpy( iv, temp, 8 );
+            mbedtls_platform_memcpy( iv, temp, 8 );
 
             input  += 8;
             output += 8;
@@ -783,7 +783,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
             mbedtls_des3_crypt_ecb( ctx, output, output );
-            memcpy( iv, output, 8 );
+            mbedtls_platform_memcpy( iv, output, 8 );
 
             input  += 8;
             output += 8;
@@ -794,13 +794,13 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
     {
         while( length > 0 )
         {
-            memcpy( temp, input, 8 );
+            mbedtls_platform_memcpy( temp, input, 8 );
             mbedtls_des3_crypt_ecb( ctx, input, output );
 
             for( i = 0; i < 8; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
 
-            memcpy( iv, temp, 8 );
+            mbedtls_platform_memcpy( iv, temp, 8 );
 
             input  += 8;
             output += 8;

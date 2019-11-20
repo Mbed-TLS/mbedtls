@@ -103,11 +103,11 @@ static int pem_pbkdf1( unsigned char *key, size_t keylen,
 
     if( keylen <= 16 )
     {
-        memcpy( key, md5sum, keylen );
+        mbedtls_platform_memcpy( key, md5sum, keylen );
         goto exit;
     }
 
-    memcpy( key, md5sum, 16 );
+    mbedtls_platform_memcpy( key, md5sum, 16 );
 
     /*
      * key[16..23] = MD5(key[ 0..15] || pwd || IV])
@@ -127,7 +127,7 @@ static int pem_pbkdf1( unsigned char *key, size_t keylen,
     if( keylen < 32 )
         use_len = keylen - 16;
 
-    memcpy( key + 16, md5sum, use_len );
+    mbedtls_platform_memcpy( key + 16, md5sum, use_len );
 
 exit:
     mbedtls_md5_free( &md5_ctx );
@@ -463,21 +463,21 @@ int mbedtls_pem_write_buffer( const char *header, const char *footer,
         return( ret );
     }
 
-    memcpy( p, header, strlen( header ) );
+    mbedtls_platform_memcpy( p, header, strlen( header ) );
     p += strlen( header );
     c = encode_buf;
 
     while( use_len )
     {
         len = ( use_len > 64 ) ? 64 : use_len;
-        memcpy( p, c, len );
+        mbedtls_platform_memcpy( p, c, len );
         use_len -= len;
         p += len;
         c += len;
         *p++ = '\n';
     }
 
-    memcpy( p, footer, strlen( footer ) );
+    mbedtls_platform_memcpy( p, footer, strlen( footer ) );
     p += strlen( footer );
 
     *p++ = '\0';

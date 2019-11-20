@@ -221,7 +221,7 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
         }
 
-        memcpy( output, NIST_KW_ICV1, KW_SEMIBLOCK_LENGTH );
+        mbedtls_platform_memcpy( output, NIST_KW_ICV1, KW_SEMIBLOCK_LENGTH );
         memmove( output + KW_SEMIBLOCK_LENGTH, input, in_len );
     }
     else
@@ -249,11 +249,11 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
         }
 
-        memcpy( output, NIST_KW_ICV2, KW_SEMIBLOCK_LENGTH / 2 );
+        mbedtls_platform_memcpy( output, NIST_KW_ICV2, KW_SEMIBLOCK_LENGTH / 2 );
         PUT_UINT32_BE( ( in_len & 0xffffffff ), output,
                        KW_SEMIBLOCK_LENGTH / 2 );
 
-        memcpy( output + KW_SEMIBLOCK_LENGTH, input, in_len );
+        mbedtls_platform_memcpy( output + KW_SEMIBLOCK_LENGTH, input, in_len );
         mbedtls_platform_memset( output + KW_SEMIBLOCK_LENGTH + in_len, 0, padlen );
     }
     semiblocks = ( ( in_len + padlen ) / KW_SEMIBLOCK_LENGTH ) + 1;
@@ -263,7 +263,7 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
     if( mode == MBEDTLS_KW_MODE_KWP
         && in_len <= KW_SEMIBLOCK_LENGTH )
     {
-        memcpy( inbuff, output, 16 );
+        mbedtls_platform_memcpy( inbuff, output, 16 );
         ret = mbedtls_cipher_update( &ctx->cipher_ctx,
                                      inbuff, 16, output, &olen );
         if( ret != 0 )
@@ -283,18 +283,18 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
         /* Calculate intermediate values */
         for( t = 1; t <= s; t++ )
         {
-            memcpy( inbuff, A, KW_SEMIBLOCK_LENGTH );
-            memcpy( inbuff + KW_SEMIBLOCK_LENGTH, R2, KW_SEMIBLOCK_LENGTH );
+            mbedtls_platform_memcpy( inbuff, A, KW_SEMIBLOCK_LENGTH );
+            mbedtls_platform_memcpy( inbuff + KW_SEMIBLOCK_LENGTH, R2, KW_SEMIBLOCK_LENGTH );
 
             ret = mbedtls_cipher_update( &ctx->cipher_ctx,
                                          inbuff, 16, outbuff, &olen );
             if( ret != 0 )
                 goto cleanup;
 
-            memcpy( A, outbuff, KW_SEMIBLOCK_LENGTH );
+            mbedtls_platform_memcpy( A, outbuff, KW_SEMIBLOCK_LENGTH );
             calc_a_xor_t( A, t );
 
-            memcpy( R2, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH );
+            mbedtls_platform_memcpy( R2, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH );
             R2 += KW_SEMIBLOCK_LENGTH;
             if( R2 >= output + ( semiblocks * KW_SEMIBLOCK_LENGTH ) )
                 R2 = output + KW_SEMIBLOCK_LENGTH;
@@ -342,7 +342,7 @@ static int unwrap( mbedtls_nist_kw_context *ctx,
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
-    memcpy( A, input, KW_SEMIBLOCK_LENGTH );
+    mbedtls_platform_memcpy( A, input, KW_SEMIBLOCK_LENGTH );
     memmove( output, input + KW_SEMIBLOCK_LENGTH, ( semiblocks - 1 ) * KW_SEMIBLOCK_LENGTH );
 
     /* Calculate intermediate values */
@@ -350,18 +350,18 @@ static int unwrap( mbedtls_nist_kw_context *ctx,
     {
         calc_a_xor_t( A, t );
 
-        memcpy( inbuff, A, KW_SEMIBLOCK_LENGTH );
-        memcpy( inbuff + KW_SEMIBLOCK_LENGTH, R, KW_SEMIBLOCK_LENGTH );
+        mbedtls_platform_memcpy( inbuff, A, KW_SEMIBLOCK_LENGTH );
+        mbedtls_platform_memcpy( inbuff + KW_SEMIBLOCK_LENGTH, R, KW_SEMIBLOCK_LENGTH );
 
         ret = mbedtls_cipher_update( &ctx->cipher_ctx,
                                      inbuff, 16, outbuff, &olen );
         if( ret != 0 )
             goto cleanup;
 
-        memcpy( A, outbuff, KW_SEMIBLOCK_LENGTH );
+        mbedtls_platform_memcpy( A, outbuff, KW_SEMIBLOCK_LENGTH );
 
         /* Set R as LSB64 of outbuff */
-        memcpy( R, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH );
+        mbedtls_platform_memcpy( R, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH );
 
         if( R == output )
             R = output + ( semiblocks - 2 ) * KW_SEMIBLOCK_LENGTH;
@@ -455,8 +455,8 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
             if( ret != 0 )
                 goto cleanup;
 
-            memcpy( A, outbuff, KW_SEMIBLOCK_LENGTH );
-            memcpy( output, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH );
+            mbedtls_platform_memcpy( A, outbuff, KW_SEMIBLOCK_LENGTH );
+            mbedtls_platform_memcpy( output, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH );
             mbedtls_platform_zeroize( outbuff, sizeof( outbuff ) );
             *out_len = KW_SEMIBLOCK_LENGTH;
         }

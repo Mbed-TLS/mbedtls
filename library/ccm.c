@@ -201,7 +201,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
     b[0] |= ( ( tag_len - 2 ) / 2 ) << 3;
     b[0] |= q - 1;
 
-    memcpy( b + 1, iv, iv_len );
+    mbedtls_platform_memcpy( b + 1, iv, iv_len );
 
     for( i = 0, len_left = length; i < q; i++, len_left >>= 8 )
         b[15-i] = (unsigned char)( len_left & 0xFF );
@@ -229,7 +229,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         b[1] = (unsigned char)( ( add_len      ) & 0xFF );
 
         use_len = len_left < 16 - 2 ? len_left : 16 - 2;
-        memcpy( b + 2, src, use_len );
+        mbedtls_platform_memcpy( b + 2, src, use_len );
         len_left -= use_len;
         src += use_len;
 
@@ -240,7 +240,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
             use_len = len_left > 16 ? 16 : len_left;
 
             mbedtls_platform_memset( b, 0, 16 );
-            memcpy( b, src, use_len );
+            mbedtls_platform_memcpy( b, src, use_len );
             UPDATE_CBC_MAC;
 
             len_left -= use_len;
@@ -259,7 +259,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
      * 2 .. 0   q - 1
      */
     ctr[0] = q - 1;
-    memcpy( ctr + 1, iv, iv_len );
+    mbedtls_platform_memcpy( ctr + 1, iv, iv_len );
     mbedtls_platform_memset( ctr + 1 + iv_len, 0, q );
     ctr[15] = 1;
 
@@ -280,7 +280,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         if( mode == CCM_ENCRYPT )
         {
             mbedtls_platform_memset( b, 0, 16 );
-            memcpy( b, src, use_len );
+            mbedtls_platform_memcpy( b, src, use_len );
             UPDATE_CBC_MAC;
         }
 
@@ -289,7 +289,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         if( mode == CCM_DECRYPT )
         {
             mbedtls_platform_memset( b, 0, 16 );
-            memcpy( b, dst, use_len );
+            mbedtls_platform_memcpy( b, dst, use_len );
             UPDATE_CBC_MAC;
         }
 
@@ -313,7 +313,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
         ctr[15-i] = 0;
 
     CTR_CRYPT( y, y, 16 );
-    memcpy( tag, y, tag_len );
+    mbedtls_platform_memcpy( tag, y, tag_len );
 
     return( 0 );
 }
@@ -495,8 +495,8 @@ int mbedtls_ccm_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  CCM-AES #%u: ", (unsigned int) i + 1 );
 
-        mbedtls_platform_memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
-        mbedtls_platform_memset( ciphertext, 0, CCM_SELFTEST_CT_MAX_LEN );
+        memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
+        memset( ciphertext, 0, CCM_SELFTEST_CT_MAX_LEN );
         memcpy( plaintext, msg, msg_len[i] );
 
         ret = mbedtls_ccm_encrypt_and_tag( &ctx, msg_len[i],
@@ -512,7 +512,7 @@ int mbedtls_ccm_self_test( int verbose )
 
             return( 1 );
         }
-        mbedtls_platform_memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
+        memset( plaintext, 0, CCM_SELFTEST_PT_MAX_LEN );
 
         ret = mbedtls_ccm_auth_decrypt( &ctx, msg_len[i],
                                         iv, iv_len[i], ad, add_len[i],

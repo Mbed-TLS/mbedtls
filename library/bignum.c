@@ -132,7 +132,7 @@ int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs )
 
         if( X->p != NULL )
         {
-            memcpy( p, X->p, X->n * ciL );
+            mbedtls_platform_memcpy( p, X->p, X->n * ciL );
             mbedtls_mpi_zeroize( X->p, X->n );
             mbedtls_free( X->p );
         }
@@ -174,7 +174,7 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
 
     if( X->p != NULL )
     {
-        memcpy( p, X->p, i * ciL );
+        mbedtls_platform_memcpy( p, X->p, i * ciL );
         mbedtls_mpi_zeroize( X->p, X->n );
         mbedtls_free( X->p );
     }
@@ -220,7 +220,7 @@ int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y )
         mbedtls_platform_memset( X->p + i, 0, ( X->n - i ) * ciL );
     }
 
-    memcpy( X->p, Y->p, i * ciL );
+    mbedtls_platform_memcpy( X->p, Y->p, i * ciL );
 
 cleanup:
 
@@ -236,9 +236,9 @@ void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y )
     MPI_VALIDATE( X != NULL );
     MPI_VALIDATE( Y != NULL );
 
-    memcpy( &T,  X, sizeof( mbedtls_mpi ) );
-    memcpy(  X,  Y, sizeof( mbedtls_mpi ) );
-    memcpy(  Y, &T, sizeof( mbedtls_mpi ) );
+    mbedtls_platform_memcpy( &T,  X, sizeof( mbedtls_mpi ) );
+    mbedtls_platform_memcpy(  X,  Y, sizeof( mbedtls_mpi ) );
+    mbedtls_platform_memcpy(  Y, &T, sizeof( mbedtls_mpi ) );
 }
 
 /*
@@ -848,12 +848,12 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
     }
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
 
-    /* Avoid calling `memcpy` with NULL source argument,
+    /* Avoid calling `mbedtls_platform_memcpy` with NULL source argument,
      * even if buflen is 0. */
     if( buf != NULL )
     {
         Xp = (unsigned char*) X->p;
-        memcpy( Xp + overhead, buf, buflen );
+        mbedtls_platform_memcpy( Xp + overhead, buf, buflen );
 
         mpi_bigendian_to_host( X->p, limbs );
     }
@@ -1817,7 +1817,7 @@ static int mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi 
         *d++ = u0; d[n + 1] = 0;
     }
 
-    memcpy( A->p, d, ( n + 1 ) * ciL );
+    mbedtls_platform_memcpy( A->p, d, ( n + 1 ) * ciL );
 
     if( mbedtls_mpi_cmp_abs( A, N ) >= 0 )
         mpi_sub_hlp( n, N->p, A->p );
@@ -1913,10 +1913,10 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &RR, &RR, N ) );
 
         if( _RR != NULL )
-            memcpy( _RR, &RR, sizeof( mbedtls_mpi ) );
+            mbedtls_platform_memcpy( _RR, &RR, sizeof( mbedtls_mpi ) );
     }
     else
-        memcpy( &RR, _RR, sizeof( mbedtls_mpi ) );
+        mbedtls_platform_memcpy( &RR, _RR, sizeof( mbedtls_mpi ) );
 
     /*
      * W[1] = A * R^2 * R^-1 mod N = A * R mod N

@@ -225,7 +225,7 @@ static int ecjpake_hash( mbedtls_md_handle_t md_info,
     if( end < p || (size_t)( end - p ) < id_len )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
-    memcpy( p, id, id_len );
+    mbedtls_platform_memcpy( p, id, id_len );
     p += id_len;
 
     /* Compute hash */
@@ -1104,7 +1104,7 @@ int mbedtls_ecjpake_self_test( int verbose )
     TEST_ASSERT( len == sizeof( ecjpake_test_pms ) );
     TEST_ASSERT( memcmp( buf, ecjpake_test_pms, len ) == 0 );
 
-    mbedtls_platform_memset( buf, 0, len ); /* Avoid interferences with next step */
+    memset( buf, 0, len ); /* Avoid interferences with next step */
 
     /* Client derives PMS */
     TEST_ASSERT( mbedtls_ecjpake_derive_secret( &cli,

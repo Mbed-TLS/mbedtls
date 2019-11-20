@@ -260,7 +260,7 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
     if( cmac_ctx->unprocessed_len > 0 &&
         ilen > block_size - cmac_ctx->unprocessed_len )
     {
-        memcpy( &cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len],
+        mbedtls_platform_memcpy( &cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len],
                 input,
                 block_size - cmac_ctx->unprocessed_len );
 
@@ -297,7 +297,7 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
     /* If there is data left over that wasn't aligned to a block */
     if( ilen > 0 )
     {
-        memcpy( &cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len],
+        mbedtls_platform_memcpy( &cmac_ctx->unprocessed_block[cmac_ctx->unprocessed_len],
                 input,
                 ilen );
         cmac_ctx->unprocessed_len += ilen;
@@ -352,7 +352,7 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
         goto exit;
     }
 
-    memcpy( output, state, block_size );
+    mbedtls_platform_memcpy( output, state, block_size );
 
 exit:
     /* Wipe the generated keys on the stack, and any other transients to avoid
@@ -446,7 +446,7 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
     if( key_length == MBEDTLS_AES_BLOCK_SIZE )
     {
         /* Use key as is */
-        memcpy( int_key, key, MBEDTLS_AES_BLOCK_SIZE );
+        mbedtls_platform_memcpy( int_key, key, MBEDTLS_AES_BLOCK_SIZE );
     }
     else
     {

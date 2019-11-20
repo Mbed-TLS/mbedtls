@@ -241,7 +241,7 @@ int mbedtls_havege_random( void *p_rng, unsigned char *buf, size_t len )
         val  = hs->pool[hs->offset[0]++];
         val ^= hs->pool[hs->offset[1]++];
 
-        memcpy( p, &val, use_len );
+        mbedtls_platform_memcpy( p, &val, use_len );
 
         len -= use_len;
         p += use_len;

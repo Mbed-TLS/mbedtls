@@ -180,7 +180,7 @@ int mbedtls_md2_update_ret( mbedtls_md2_context *ctx,
         else
             fill = ilen;
 
-        memcpy( ctx->buffer + ctx->left, input, fill );
+        mbedtls_platform_memcpy( ctx->buffer + ctx->left, input, fill );
 
         ctx->left += fill;
         input += fill;
@@ -224,11 +224,11 @@ int mbedtls_md2_finish_ret( mbedtls_md2_context *ctx,
     if( ( ret = mbedtls_internal_md2_process( ctx ) ) != 0 )
         return( ret );
 
-    memcpy( ctx->buffer, ctx->cksum, 16 );
+    mbedtls_platform_memcpy( ctx->buffer, ctx->cksum, 16 );
     if( ( ret = mbedtls_internal_md2_process( ctx ) ) != 0 )
         return( ret );
 
-    memcpy( output, ctx->state, 16 );
+    mbedtls_platform_memcpy( output, ctx->state, 16 );
 
     return( 0 );
 }

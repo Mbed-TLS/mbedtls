@@ -408,7 +408,7 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
             if( buf_size < *ip_len )
                 return( MBEDTLS_ERR_NET_BUFFER_TOO_SMALL );
 
-            memcpy( client_ip, &addr4->sin_addr.s_addr, *ip_len );
+            mbedtls_platform_memcpy( client_ip, &addr4->sin_addr.s_addr, *ip_len );
         }
         else
         {
@@ -418,7 +418,7 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
             if( buf_size < *ip_len )
                 return( MBEDTLS_ERR_NET_BUFFER_TOO_SMALL );
 
-            memcpy( client_ip, &addr6->sin6_addr.s6_addr, *ip_len);
+            mbedtls_platform_memcpy( client_ip, &addr6->sin6_addr.s6_addr, *ip_len);
         }
     }
 

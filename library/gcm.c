@@ -307,7 +307,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
 
     if( iv_len == 12 )
     {
-        memcpy( ctx->y, iv, iv_len );
+        mbedtls_platform_memcpy( ctx->y, iv, iv_len );
         ctx->y[15] = 1;
     }
     else
@@ -440,7 +440,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     if( tag_len > 16 || tag_len < 4 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
-    memcpy( tag, ctx->base_ectr, tag_len );
+    mbedtls_platform_memcpy( tag, ctx->base_ectr, tag_len );
 
     if( orig_len || orig_add_len )
     {

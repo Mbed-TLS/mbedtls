@@ -213,7 +213,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
     /* 1. Concatenate entropy and additional data if any */
     if( additional != NULL && len != 0 )
     {
-        memcpy( seed + seedlen, additional, len );
+        mbedtls_platform_memcpy( seed + seedlen, additional, len );
         seedlen += len;
     }
 
@@ -375,7 +375,7 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
         if( ( ret = mbedtls_md_hmac_finish( &ctx->md_ctx, ctx->V ) ) != 0 )
             goto exit;
 
-        memcpy( out, ctx->V, use_len );
+        mbedtls_platform_memcpy( out, ctx->V, use_len );
         out += use_len;
         left -= use_len;
     }

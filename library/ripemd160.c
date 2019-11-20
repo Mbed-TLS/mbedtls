@@ -340,7 +340,7 @@ int mbedtls_ripemd160_update_ret( mbedtls_ripemd160_context *ctx,
 
     if( left && ilen >= fill )
     {
-        memcpy( (void *) (ctx->buffer + left), input, fill );
+        mbedtls_platform_memcpy( (void *) (ctx->buffer + left), input, fill );
 
         if( ( ret = mbedtls_internal_ripemd160_process( ctx, ctx->buffer ) ) != 0 )
             return( ret );
@@ -361,7 +361,7 @@ int mbedtls_ripemd160_update_ret( mbedtls_ripemd160_context *ctx,
 
     if( ilen > 0 )
     {
-        memcpy( (void *) (ctx->buffer + left), input, ilen );
+        mbedtls_platform_memcpy( (void *) (ctx->buffer + left), input, ilen );
     }
 
     return( 0 );
@@ -520,7 +520,7 @@ int mbedtls_ripemd160_self_test( int verbose )
     int i, ret = 0;
     unsigned char output[20];
 
-    mbedtls_platform_memset( output, 0, sizeof output );
+    memset( output, 0, sizeof output );
 
     for( i = 0; i < TESTS; i++ )
     {

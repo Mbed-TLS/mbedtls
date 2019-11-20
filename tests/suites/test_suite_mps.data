@@ -421,6 +421,22 @@ MPS Layer 2 DTLS: Exchange of messages of two types, many epochs, real transform
 depends_on:MBEDTLS_MPS_PROTO_DTLS
 mbedtls_mps_l2_many_epochs:MBEDTLS_MPS_MODE_DATAGRAM:200:20000:100:1
 
+MPS Layer 2 TLS: Piggy-backed record content after epoch switch, real transforms
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_STREAM:500:500:1
+
+MPS Layer 2 DTLS: Piggy-backed record content after epoch switch, real transforms
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_DATAGRAM:500:500:1
+
+MPS Layer 2 TLS: Piggy-backed record content after epoch switch, mock transforms
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_STREAM:500:500:0
+
+MPS Layer 2 DTLS: Piggy-backed record content after epoch switch, mock transforms
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l2_piggyback_data:MBEDTLS_MPS_MODE_DATAGRAM:500:500:0
+
 MPS Layer 2 TLS: Random communication, fake transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
 mbedtls_mps_l2_random:100:200:10:5:50:200:0:50:50

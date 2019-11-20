@@ -1250,16 +1250,6 @@ mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:0:2:2:0:0:1:0:0
 MPS Layer 4 TLS: 2f, 2 m/f, F, mock-time, cb
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_STREAM:100:0:2:2:0:0:1:0:0
 
-
-
-
-
-
-
-
-
-
-
 MPS Layer 4 DTLS: 1f, 2 m/f, epoch switch #0
 mbedtls_mps_l4_flight_exchange:MBEDTLS_MPS_MODE_DATAGRAM:1000:0:2:1:0:0:0:1:0
 

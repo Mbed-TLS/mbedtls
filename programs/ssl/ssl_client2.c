@@ -54,6 +54,10 @@ int main( void )
 }
 #else
 
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+#include "mbedtls/memory_buffer_alloc.h"
+#endif
+
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
@@ -72,6 +76,10 @@ int main( void )
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* Size of memory to be allocated for the heap, when using the library's memory
+ * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
+#define MEMORY_HEAP_SIZE      120000
 
 #define MAX_REQUEST_SIZE      20000
 #define MAX_REQUEST_SIZE_STR "20000"
@@ -1130,6 +1138,11 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_list[ALPN_LIST_SIZE];
 #endif
+
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    unsigned char alloc_buf[MEMORY_HEAP_SIZE];
+#endif
+
 #if defined(MBEDTLS_ECP_C)
     mbedtls_ecp_group_id curve_list[CURVE_LIST_SIZE];
     const mbedtls_ecp_curve_info *curve_cur;
@@ -1177,6 +1190,10 @@ int main( int argc, char *argv[] )
     unsigned char eap_tls_iv[8];
     const char* eap_tls_label = "client EAP encryption";
     eap_tls_keys eap_tls_keying;
+#endif
+
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
 #endif
 
     /*
@@ -3290,6 +3307,13 @@ exit:
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+#if defined(MBEDTLS_MEMORY_DEBUG)
+    mbedtls_memory_buffer_alloc_status();
+#endif
+    mbedtls_memory_buffer_alloc_free();
+#endif
 
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );

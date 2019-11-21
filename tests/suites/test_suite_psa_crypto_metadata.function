@@ -37,6 +37,8 @@
 #define ALG_IS_WILDCARD                 ( 1u << 19 )
 #define ALG_IS_RAW_KEY_AGREEMENT        ( 1u << 20 )
 #define ALG_IS_AEAD_ON_BLOCK_CIPHER     ( 1u << 21 )
+#define ALG_IS_TLS12_PRF                ( 1u << 22 )
+#define ALG_IS_TLS12_PSK_TO_MS          ( 1u << 23 )
 
 /* Flags for key type classification macros. There is a flag for every
  * key type classification macro PSA_KEY_TYPE_IS_xxx except for some that

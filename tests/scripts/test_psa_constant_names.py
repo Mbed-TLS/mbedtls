@@ -354,15 +354,15 @@ def main():
     parser.add_argument('--include', '-I',
                         action='append', default=['include'],
                         help='Directory for header files')
-    parser.add_argument('--program',
-                        default='programs/psa/psa_constant_names',
-                        help='Program to test')
     parser.add_argument('--keep-c',
                         action='store_true', dest='keep_c', default=False,
                         help='Keep the intermediate C file')
     parser.add_argument('--no-keep-c',
                         action='store_false', dest='keep_c',
                         help='Don\'t keep the intermediate C file (default)')
+    parser.add_argument('--program',
+                        default='programs/psa/psa_constant_names',
+                        help='Program to test')
     options = parser.parse_args()
     headers = [os.path.join(options.include[0], 'psa', h)
                for h in ['crypto.h', 'crypto_extra.h', 'crypto_values.h']]

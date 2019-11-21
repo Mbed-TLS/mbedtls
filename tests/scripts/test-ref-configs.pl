@@ -17,6 +17,8 @@ use warnings;
 use strict;
 
 my %configs = (
+    'config-symmetric-only.h' => {
+    },
     'config-suite-b.h' => {
     },
 );
@@ -48,6 +50,15 @@ sub abort {
     exit 1;
 }
 
+# Create a seedfile for configurations that enable MBEDTLS_ENTROPY_NV_SEED.
+# For test purposes, this doesn't have to be cryptographically random.
+if (!-e "tests/seedfile" || -s "tests/seedfile" < 64) {
+    local *SEEDFILE;
+    open SEEDFILE, ">tests/seedfile" or die;
+    print SEEDFILE "*" x 64 or die;
+    close SEEDFILE or die;
+}
+
 while( my ($conf, $data) = each %configs ) {
     system( "cp $config_h.bak $config_h" ) and die;
     system( "make clean" ) and die;
@@ -55,6 +66,7 @@ while( my ($conf, $data) = each %configs ) {
     print "\n******************************************\n";
     print "* Testing configuration: $conf\n";
     print "******************************************\n";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = $conf;
 
     system( "cp configs/$conf $config_h" )
         and abort "Failed to activate $conf\n";

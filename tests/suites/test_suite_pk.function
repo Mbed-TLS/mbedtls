@@ -27,13 +27,27 @@ static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64
 
-static int pk_genkey( mbedtls_pk_context *pk )
+/** Generate a key of the desired type.
+ *
+ * \param pk        The PK object to fill. It must have been initialized
+ *                  with mbedtls_pk_setup().
+ * \param parameter - For RSA keys, the key size in bits.
+ *                  - For EC keys, the curve (\c MBEDTLS_ECP_DP_xxx).
+ *
+ * \return          The status from the underlying type-specific key
+ *                  generation function.
+ * \return          -1 if the key type is not recognized.
+ */
+static int pk_genkey( mbedtls_pk_context *pk, int parameter )
 {
     ((void) pk);
+    (void) parameter;
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_RSA )
-        return mbedtls_rsa_gen_key( mbedtls_pk_rsa( *pk ), rnd_std_rand, NULL, RSA_KEY_SIZE, 3 );
+        return mbedtls_rsa_gen_key( mbedtls_pk_rsa( *pk ),
+                                    rnd_std_rand, NULL,
+                                    parameter, 3 );
 #endif
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_ECKEY ||
@@ -42,7 +56,7 @@ static int pk_genkey( mbedtls_pk_context *pk )
     {
         int ret;
         if( ( ret = mbedtls_ecp_group_load( &mbedtls_pk_ec( *pk )->grp,
-                                      MBEDTLS_ECP_DP_SECP192R1 ) ) != 0 )
+                                            parameter ) ) != 0 )
             return( ret );
 
         return mbedtls_ecp_gen_keypair( &mbedtls_pk_ec( *pk )->grp, &mbedtls_pk_ec( *pk )->d,
@@ -608,18 +622,18 @@ void invalid_parameters( )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void pk_utils( int type, int size, int len, char * name )
+void pk_utils( int type, int parameter, int bitlen, int len, char * name )
 {
     mbedtls_pk_context pk;
 
     mbedtls_pk_init( &pk );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
-    TEST_ASSERT( pk_genkey( &pk ) == 0 );
+    TEST_ASSERT( pk_genkey( &pk, parameter ) == 0 );
 
     TEST_ASSERT( (int) mbedtls_pk_get_type( &pk ) == type );
     TEST_ASSERT( mbedtls_pk_can_do( &pk, type ) );
-    TEST_ASSERT( mbedtls_pk_get_bitlen( &pk ) == (unsigned) size );
+    TEST_ASSERT( mbedtls_pk_get_bitlen( &pk ) == (unsigned) bitlen );
     TEST_ASSERT( mbedtls_pk_get_len( &pk ) == (unsigned) len );
     TEST_ASSERT( strcmp( mbedtls_pk_get_name( &pk), name ) == 0 );
 
@@ -897,11 +911,12 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
-void pk_sign_verify( int type, int sign_ret, int verify_ret )
+void pk_sign_verify( int type, int parameter, int sign_ret, int verify_ret )
 {
     mbedtls_pk_context pk;
-    unsigned char hash[50], sig[5000];
     size_t sig_len;
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     void *rs_ctx = NULL;
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_pk_restart_ctx ctx;
@@ -921,11 +936,15 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     memset( sig, 0, sizeof sig );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
-    TEST_ASSERT( pk_genkey( &pk ) == 0 );
+    TEST_ASSERT( pk_genkey( &pk, parameter ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_sign_restartable( &pk, MBEDTLS_MD_SHA256,
                  hash, sizeof hash, sig, &sig_len,
                  rnd_std_rand, NULL, rs_ctx ) == sign_ret );
+    if( sign_ret == 0 )
+        TEST_ASSERT( sig_len <= MBEDTLS_PK_SIGNATURE_MAX_SIZE );
+    else
+        sig_len = MBEDTLS_PK_SIGNATURE_MAX_SIZE;
 
     TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
                             hash, sizeof hash, sig, sig_len ) == verify_ret );
@@ -945,6 +964,10 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
 
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
                           sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
+    if( sign_ret == 0 )
+        TEST_ASSERT( sig_len <= MBEDTLS_PK_SIGNATURE_MAX_SIZE );
+    else
+        sig_len = MBEDTLS_PK_SIGNATURE_MAX_SIZE;
 
     TEST_ASSERT( mbedtls_pk_verify_restartable( &pk, MBEDTLS_MD_SHA256,
                  hash, sizeof hash, sig, sig_len, rs_ctx ) == verify_ret );
@@ -1153,7 +1176,7 @@ void pk_rsa_alt(  )
     /* Initiliaze PK RSA context with random key */
     TEST_ASSERT( mbedtls_pk_setup( &rsa,
                               mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
-    TEST_ASSERT( pk_genkey( &rsa ) == 0 );
+    TEST_ASSERT( pk_genkey( &rsa, RSA_KEY_SIZE ) == 0 );
 
     /* Extract key to the raw rsa context */
     TEST_ASSERT( mbedtls_rsa_copy( &raw, mbedtls_pk_rsa( rsa ) ) == 0 );

@@ -57,12 +57,13 @@ for my $hash (@hashes) {
     print "\n******************************************\n";
     print "* Testing without hash: $hash\n";
     print "******************************************\n";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = "-$hash";
 
-    system( "scripts/config.pl unset $hash" )
+    system( "scripts/config.py unset $hash" )
         and abort "Failed to disable $hash\n";
 
     for my $opt (@ssl) {
-        system( "scripts/config.pl unset $opt" )
+        system( "scripts/config.py unset $opt" )
             and abort "Failed to disable $opt\n";
     }
 

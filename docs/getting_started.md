@@ -72,9 +72,10 @@ with other function calls.
 
 This example shows how to import a key:
 ```C
+void import_a_key(const uint8_t *key, size_t key_len)
+{
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    uint8_t data[] = AES_KEY;
     psa_key_handle_t handle;
 
     printf("Import an AES key...\t");
@@ -94,7 +95,7 @@ This example shows how to import a key:
     psa_set_key_bits(&attributes, 128);
 
     /* Import the key */
-    status = psa_import_key(&attributes, data, sizeof(data), &handle);
+    status = psa_import_key(&attributes, key, key_len, &handle);
     if (status != PSA_SUCCESS) {
         printf("Failed to import key\n");
         return;
@@ -108,6 +109,7 @@ This example shows how to import a key:
     psa_destroy_key(handle);
 
     mbedtls_psa_crypto_free();
+}
 ```
 
 ### Signing a message using RSA
@@ -123,9 +125,10 @@ Mbed Crypto supports encrypting, decrypting, signing and verifying messages usin
 
 This example shows how to sign a hash that has already been calculated:
 ```C
+void sign_a_message_using_rsa(const uint8_t *key, size_t key_len)
+{
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    uint8_t key[] = RSA_KEY;
     uint8_t hash[32] = {0x50, 0xd8, 0x58, 0xe0, 0x98, 0x5e, 0xcc, 0x7f,
                         0x60, 0x41, 0x8a, 0xaf, 0x0c, 0xc5, 0xab, 0x58,
                         0x7f, 0x42, 0xc2, 0x57, 0x0a, 0x88, 0x40, 0x95,
@@ -151,7 +154,7 @@ This example shows how to sign a hash that has already been calculated:
     psa_set_key_bits(&attributes, 1024);
 
     /* Import the key */
-    status = psa_import_key(&attributes, key, sizeof(key), &handle);
+    status = psa_import_key(&attributes, key, key_len, &handle);
     if (status != PSA_SUCCESS) {
         printf("Failed to import key\n");
         return;
@@ -176,6 +179,7 @@ This example shows how to sign a hash that has already been calculated:
     psa_destroy_key(handle);
 
     mbedtls_psa_crypto_free();
+}
 ```
 
 ### Using symmetric ciphers
@@ -196,6 +200,8 @@ Mbed Crypto supports encrypting and decrypting messages using various symmetric 
 
 This example shows how to encrypt data using an AES (Advanced Encryption Standard) key in CBC (Cipher Block Chaining) mode with no padding (assuming all prerequisites have been fulfilled):
 ```c
+void encrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
+{
     enum {
         block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES),
     };
@@ -205,7 +211,6 @@ This example shows how to encrypt data using an AES (Advanced Encryption Standar
     uint8_t plaintext[block_size] = SOME_PLAINTEXT;
     uint8_t iv[block_size];
     size_t iv_len;
-    uint8_t key[] = AES_KEY;
     uint8_t output[block_size];
     size_t output_len;
     psa_key_handle_t handle;
@@ -227,7 +232,7 @@ This example shows how to encrypt data using an AES (Advanced Encryption Standar
     psa_set_key_algorithm(&attributes, alg);
     psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
     psa_set_key_bits(&attributes, 128);
-    status = psa_import_key(&attributes, key, sizeof(key), &handle);
+    status = psa_import_key(&attributes, key, key_len, &handle);
     if (status != PSA_SUCCESS) {
         printf("Failed to import a key\n");
         return;
@@ -266,6 +271,7 @@ This example shows how to encrypt data using an AES (Advanced Encryption Standar
     psa_destroy_key(handle);
 
     mbedtls_psa_crypto_free();
+}
 ```
 
 **To decrypt a message with a symmetric cipher:**
@@ -279,6 +285,8 @@ This example shows how to encrypt data using an AES (Advanced Encryption Standar
 This example shows how to decrypt encrypted data using an AES key in CBC mode with no padding
 (assuming all prerequisites have been fulfilled):
 ```c
+void decrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
+{
     enum {
         block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(PSA_KEY_TYPE_AES),
     };
@@ -288,7 +296,6 @@ This example shows how to decrypt encrypted data using an AES key in CBC mode wi
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     uint8_t ciphertext[block_size] = SOME_CIPHERTEXT;
     uint8_t iv[block_size] = ENCRYPTED_WITH_IV;
-    uint8_t key[] = AES_KEY;
     uint8_t output[block_size];
     size_t output_len;
     psa_key_handle_t handle;
@@ -309,7 +316,7 @@ This example shows how to decrypt encrypted data using an AES key in CBC mode wi
     psa_set_key_algorithm(&attributes, alg);
     psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
     psa_set_key_bits(&attributes, 128);
-    status = psa_import_key(&attributes, key, sizeof(key), &handle);
+    status = psa_import_key(&attributes, key, key_len, &handle);
     if (status != PSA_SUCCESS) {
         printf("Failed to import a key\n");
         return;
@@ -348,6 +355,7 @@ This example shows how to decrypt encrypted data using an AES key in CBC mode wi
     psa_destroy_key(handle);
 
     mbedtls_psa_crypto_free();
+}
 ```
 
 #### Handling cipher operation contexts

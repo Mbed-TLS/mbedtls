@@ -120,12 +120,11 @@ typedef uint64_t uECC_dword_t;
 #define NUM_ECC_BYTES (uECC_WORD_SIZE*NUM_ECC_WORDS)
 #define NUM_ECC_BITS 256
 
-/* structure that represents an elliptic curve (e.g. p256):*/
-struct uECC_Curve_t;
-typedef const struct uECC_Curve_t * uECC_Curve;
-struct uECC_Curve_t {
-	unsigned char dummy;
-};
+/* curve identifier (for API compatility - only P-256 is supported) */
+typedef enum {
+	curve_invalid = 0,
+	curve_secp256r1 = 0xff
+} uECC_Curve;
 
 /*
  * @brief computes doubling of point ion jacobian coordinates, in place.
@@ -156,11 +155,6 @@ extern const uECC_word_t curve_p[NUM_ECC_WORDS];
 extern const uECC_word_t curve_n[NUM_ECC_WORDS];
 extern const uECC_word_t curve_G[2 * NUM_ECC_WORDS];
 extern const uECC_word_t curve_b[NUM_ECC_WORDS];
-
-/* definition of curve NIST p-256: */
-static const struct uECC_Curve_t curve_secp256r1 = {
-	0
-};
 
 uECC_Curve uECC_secp256r1(void);
 

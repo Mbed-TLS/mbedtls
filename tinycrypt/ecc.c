@@ -679,7 +679,7 @@ static void x_side_default(uECC_word_t *result,
 
 uECC_Curve uECC_secp256r1(void)
 {
-	return &curve_secp256r1;
+	return curve_secp256r1;
 }
 
 void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
@@ -827,9 +827,6 @@ static void XYcZ_add_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 {
 	/* t1 = X1, t2 = Y1, t3 = X2, t4 = Y2 */
 	uECC_word_t t5[NUM_ECC_WORDS];
-	const uECC_Curve curve = &curve_secp256r1;
-
-	(void) curve;
 
 	uECC_vli_modSub(t5, X2, X1, curve_p); /* t5 = x2 - x1 */
 	uECC_vli_modMult_rnd(t5, t5, t5, s); /* t5 = (x2 - x1)^2 = A */
@@ -869,9 +866,6 @@ static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_word_t t5[NUM_ECC_WORDS];
 	uECC_word_t t6[NUM_ECC_WORDS];
 	uECC_word_t t7[NUM_ECC_WORDS];
-	const uECC_Curve curve = &curve_secp256r1;
-
-	(void) curve;
 
 	uECC_vli_modSub(t5, X2, X1, curve_p); /* t5 = x2 - x1 */
 	uECC_vli_modMult_rnd(t5, t5, t5, s); /* t5 = (x2 - x1)^2 = A */

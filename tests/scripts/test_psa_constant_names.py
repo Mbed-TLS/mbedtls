@@ -89,8 +89,8 @@ class Inputs:
         self.table_by_prefix = {
             'ERROR': self.statuses,
             'ALG': self.algorithms,
-            'CURVE': self.ecc_curves,
-            'GROUP': self.dh_groups,
+            'ECC_CURVE': self.ecc_curves,
+            'DH_GROUP': self.dh_groups,
             'KEY_TYPE': self.key_types,
             'KEY_USAGE': self.key_usage_flags,
         }
@@ -183,7 +183,7 @@ class Inputs:
     # Groups: 1=macro name, 2=type, 3=argument list (optional).
     _header_line_re = \
         re.compile(r'#define +' +
-                   r'(PSA_((?:KEY_)?[A-Z]+)_\w+)' +
+                   r'(PSA_((?:(?:DH|ECC|KEY)_)?[A-Z]+)_\w+)' +
                    r'(?:\(([^\n()]*)\))?')
     # Regex of macro names to exclude.
     _excluded_name_re = re.compile(r'_(?:GET|IS|OF)_|_(?:BASE|FLAG|MASK)\Z')

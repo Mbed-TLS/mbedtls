@@ -147,7 +147,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_vli_modInv(k, k, curve->n);       /* k = 1 / k' */
 	uECC_vli_modMult(k, k, tmp, curve->n); /* k = 1 / k */
 
-	uECC_vli_nativeToBytes(signature, curve->num_bytes, p); /* store r */
+	uECC_vli_nativeToBytes(signature, NUM_ECC_BYTES, p); /* store r */
 
 	/* tmp = d: */
 	uECC_vli_bytesToNative(tmp, private_key, BITS_TO_BYTES(curve->num_n_bits));
@@ -159,11 +159,11 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	bits2int(tmp, message_hash, hash_size, curve);
 	uECC_vli_modAdd(s, tmp, s, curve->n); /* s = e + r*d */
 	uECC_vli_modMult(s, s, k, curve->n);  /* s = (e + r*d) / k */
-	if (uECC_vli_numBits(s) > (bitcount_t)curve->num_bytes * 8) {
+	if (uECC_vli_numBits(s) > (bitcount_t)NUM_ECC_BYTES * 8) {
 		return 0;
 	}
 
-	uECC_vli_nativeToBytes(signature + curve->num_bytes, curve->num_bytes, s);
+	uECC_vli_nativeToBytes(signature + NUM_ECC_BYTES, NUM_ECC_BYTES, s);
 	return 1;
 }
 
@@ -229,11 +229,11 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	r[num_n_words - 1] = 0;
 	s[num_n_words - 1] = 0;
 
-	uECC_vli_bytesToNative(_public, public_key, curve->num_bytes);
-	uECC_vli_bytesToNative(_public + num_words, public_key + curve->num_bytes,
-			       curve->num_bytes);
-	uECC_vli_bytesToNative(r, signature, curve->num_bytes);
-	uECC_vli_bytesToNative(s, signature + curve->num_bytes, curve->num_bytes);
+	uECC_vli_bytesToNative(_public, public_key, NUM_ECC_BYTES);
+	uECC_vli_bytesToNative(_public + num_words, public_key + NUM_ECC_BYTES,
+			       NUM_ECC_BYTES);
+	uECC_vli_bytesToNative(r, signature, NUM_ECC_BYTES);
+	uECC_vli_bytesToNative(s, signature + NUM_ECC_BYTES, NUM_ECC_BYTES);
 
 	/* r, s must not be 0. */
 	if (uECC_vli_isZero(r) || uECC_vli_isZero(s)) {

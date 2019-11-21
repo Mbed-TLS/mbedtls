@@ -93,7 +93,8 @@ int uECC_curve_private_key_size(uECC_Curve curve)
 
 int uECC_curve_public_key_size(uECC_Curve curve)
 {
-	return 2 * curve->num_bytes;
+	(void) curve;
+	return 2 * NUM_ECC_BYTES;
 }
 
 void uECC_vli_clear(uECC_word_t *vli)
@@ -1070,11 +1071,11 @@ int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve)
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 
-	uECC_vli_bytesToNative(_public, public_key, curve->num_bytes);
+	uECC_vli_bytesToNative(_public, public_key, NUM_ECC_BYTES);
 	uECC_vli_bytesToNative(
 	_public + NUM_ECC_WORDS,
-	public_key + curve->num_bytes,
-	curve->num_bytes);
+	public_key + NUM_ECC_BYTES,
+	NUM_ECC_BYTES);
 
 	if (memcmp(_public, curve->G, NUM_ECC_WORDS * 2) == 0) {
 		return -4;
@@ -1109,10 +1110,10 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
 		return 0;
 	}
 
-	uECC_vli_nativeToBytes(public_key, curve->num_bytes, _public);
+	uECC_vli_nativeToBytes(public_key, NUM_ECC_BYTES, _public);
 	uECC_vli_nativeToBytes(
 	public_key +
-	curve->num_bytes, curve->num_bytes, _public + NUM_ECC_WORDS);
+	NUM_ECC_BYTES, NUM_ECC_BYTES, _public + NUM_ECC_WORDS);
 	return 1;
 }
 #else

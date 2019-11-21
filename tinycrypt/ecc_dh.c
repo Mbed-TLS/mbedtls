@@ -92,10 +92,10 @@ int uECC_make_key_with_d(uint8_t *public_key, uint8_t *private_key,
 				       BITS_TO_BYTES(curve->num_n_bits),
 				       _private);
 		uECC_vli_nativeToBytes(public_key,
-				       curve->num_bytes,
+				       NUM_ECC_BYTES,
 				       _public);
-		uECC_vli_nativeToBytes(public_key + curve->num_bytes,
-				       curve->num_bytes,
+		uECC_vli_nativeToBytes(public_key + NUM_ECC_BYTES,
+				       NUM_ECC_BYTES,
 				       _public + NUM_ECC_WORDS);
 
 		/* erasing temporary buffer used to store secret: */
@@ -133,10 +133,10 @@ int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve)
 					       BITS_TO_BYTES(curve->num_n_bits),
 					       _private);
 			uECC_vli_nativeToBytes(public_key,
-					       curve->num_bytes,
+					       NUM_ECC_BYTES,
 					       _public);
-			uECC_vli_nativeToBytes(public_key + curve->num_bytes,
- 					       curve->num_bytes,
+			uECC_vli_nativeToBytes(public_key + NUM_ECC_BYTES,
+ 					       NUM_ECC_BYTES,
 					       _public + NUM_ECC_WORDS);
 
 			/* erasing temporary buffer that stored secret: */
@@ -155,7 +155,7 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 	uECC_word_t _private[NUM_ECC_WORDS];
 	wordcount_t num_words = NUM_ECC_WORDS;
-	wordcount_t num_bytes = curve->num_bytes;
+	wordcount_t num_bytes = NUM_ECC_BYTES;
 	int r;
 
 	/* Converting buffers to correct bit order: */

@@ -307,8 +307,7 @@ def normalize(expr):
     """Normalize the C expression so as not to care about trivial differences.
     Currently "trivial differences" means whitespace.
     """
-    expr = re.sub(NORMALIZE_STRIP_RE, '', expr, len(expr))
-    return expr.strip().split('\n')
+    return re.sub(NORMALIZE_STRIP_RE, '', expr)
 
 def do_test(options, inputs, type_word, names):
     """Test psa_constant_names for the specified type.

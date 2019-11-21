@@ -66,7 +66,6 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include <tinycrypt/ecc_dh.h>
 #include <string.h>
@@ -188,6 +187,3 @@ clear_and_out:
 
 	return r;
 }
-#else
-typedef int mbedtls_dummy_tinycrypt_def;
-#endif /* MBEDTLS_USE_TINYCRYPT */

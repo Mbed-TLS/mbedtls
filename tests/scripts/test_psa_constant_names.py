@@ -349,6 +349,9 @@ def run_tests(options, inputs):
         errors += e
     return count, errors
 
+HEADERS = ['psa/crypto.h', 'psa/crypto_extra.h', 'psa/crypto_values.h']
+TEST_SUITES = ['tests/suites/test_suite_psa_crypto_metadata.data']
+
 def main():
     parser = argparse.ArgumentParser(description=globals()['__doc__'])
     parser.add_argument('--include', '-I',
@@ -364,10 +367,8 @@ def main():
                         default='programs/psa/psa_constant_names',
                         help='Program to test')
     options = parser.parse_args()
-    headers = [os.path.join(options.include[0], 'psa', h)
-               for h in ['crypto.h', 'crypto_extra.h', 'crypto_values.h']]
-    test_suites = ['tests/suites/test_suite_psa_crypto_metadata.data']
-    inputs = gather_inputs(headers, test_suites)
+    headers = [os.path.join(options.include[0], h) for h in HEADERS]
+    inputs = gather_inputs(headers, TEST_SUITES)
     count, errors = run_tests(options, inputs)
     report_errors(errors)
     if errors == []:

@@ -622,7 +622,13 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_vli_set(Y1, t4);
 }
 
-void x_side_default(uECC_word_t *result,
+/*
+ * @brief Computes x^3 + ax + b. result must not overlap x.
+ * @param result OUT -- x^3 + ax + b
+ * @param x IN -- value of x
+ * @param curve IN -- elliptic curve
+ */
+static void x_side_default(uECC_word_t *result,
 		    const uECC_word_t *x,
 		    uECC_Curve curve)
 {
@@ -775,7 +781,7 @@ static void XYcZ_initial_double(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_vli_set(Y2, Y1);
 
 	apply_z(X1, Y1, z);
-	curve->double_jacobian(X1, Y1, z, curve);
+	double_jacobian_default(X1, Y1, z, curve);
 	apply_z(X2, Y2, z);
 }
 
@@ -1050,7 +1056,7 @@ int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve)
 	}
 
 	uECC_vli_modMult_fast(tmp1, point + num_words, point + num_words);
-	curve->x_side(tmp2, point, curve); /* tmp2 = x^3 + ax + b */
+	x_side_default(tmp2, point, curve); /* tmp2 = x^3 + ax + b */
 
 	/* Make sure that y^2 == x^3 + ax + b */
 	if (uECC_vli_equal(tmp1, tmp2) != 0)

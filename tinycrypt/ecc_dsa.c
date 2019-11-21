@@ -280,7 +280,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	for (i = num_bits - 2; i >= 0; --i) {
 		uECC_word_t index;
-		curve->double_jacobian(rx, ry, z, curve);
+		double_jacobian_default(rx, ry, z, curve);
 
 		index = (!!uECC_vli_testBit(u1, i)) | ((!!uECC_vli_testBit(u2, i)) << 1);
 		point = points[index];

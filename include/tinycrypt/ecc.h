@@ -131,10 +131,6 @@ struct uECC_Curve_t {
   uECC_word_t n[NUM_ECC_WORDS];
   uECC_word_t G[NUM_ECC_WORDS * 2];
   uECC_word_t b[NUM_ECC_WORDS];
-  void (*double_jacobian)(uECC_word_t * X1, uECC_word_t * Y1, uECC_word_t * Z1,
-	uECC_Curve curve);
-  void (*x_side)(uECC_word_t *result, const uECC_word_t *x, uECC_Curve curve);
-  void (*mmod_fast)(uECC_word_t *result, uECC_word_t *product);
 };
 
 /*
@@ -146,15 +142,6 @@ struct uECC_Curve_t {
  */
 void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 			     uECC_word_t * Z1, uECC_Curve curve);
-
-/*
- * @brief Computes x^3 + ax + b. result must not overlap x.
- * @param result OUT -- x^3 + ax + b
- * @param x IN -- value of x
- * @param curve IN -- elliptic curve
- */
-void x_side_default(uECC_word_t *result, const uECC_word_t *x,
-		    uECC_Curve curve);
 
 /*
  * @brief Computes result = product % curve_p
@@ -201,9 +188,6 @@ static const struct uECC_Curve_t curve_secp256r1 = {
                 BYTES_TO_WORDS_8(BC, 86, 98, 76, 55, BD, EB, B3),
                 BYTES_TO_WORDS_8(E7, 93, 3A, AA, D8, 35, C6, 5A)
 	},
-        &double_jacobian_default,
-        &x_side_default,
-        &vli_mmod_fast_secp256r1
 };
 
 uECC_Curve uECC_secp256r1(void);

@@ -61,6 +61,7 @@ class read_file_lines:
                 from exc_value
 
 class Inputs:
+    # pylint: disable=too-many-instance-attributes
     """Accumulate information about macros to test.
 
     This includes macro names as well as information about their arguments
@@ -92,6 +93,16 @@ class Inputs:
             'GROUP': self.dh_groups,
             'KEY_TYPE': self.key_types,
             'KEY_USAGE': self.key_usage_flags,
+        }
+        # Test functions
+        self.table_by_test_function = {
+            'key_type': self.key_types,
+            'ecc_key_types': self.ecc_curves,
+            'dh_key_types': self.dh_groups,
+            'hash_algorithm': self.hash_algorithms,
+            'mac_algorithm': self.mac_algorithms,
+            'hmac_algorithm': self.mac_algorithms,
+            'aead_algorithm': self.aead_algorithms,
         }
         # macro name -> list of argument names
         self.argspecs = {}
@@ -220,24 +231,17 @@ class Inputs:
 
     def add_test_case_line(self, function, argument):
         """Parse a test case data line, looking for algorithm metadata tests."""
+        sets = []
         if function.endswith('_algorithm'):
             # As above, ECDH and FFDH algorithms are excluded for now.
             # Support for them will be added in the future.
             if 'ECDH' in argument or 'FFDH' in argument:
                 return
-            self.algorithms.add(argument)
-            if function == 'hash_algorithm':
-                self.hash_algorithms.add(argument)
-            elif function in ['mac_algorithm', 'hmac_algorithm']:
-                self.mac_algorithms.add(argument)
-            elif function == 'aead_algorithm':
-                self.aead_algorithms.add(argument)
-        elif function == 'key_type':
-            self.key_types.add(argument)
-        elif function == 'ecc_key_types':
-            self.ecc_curves.add(argument)
-        elif function == 'dh_key_types':
-            self.dh_groups.add(argument)
+            sets.append(self.algorithms)
+        if function in self.table_by_test_function:
+            sets.append(self.table_by_test_function[function])
+        for s in sets:
+            s.add(argument)
 
     # Regex matching a *.data line containing a test function call and
     # its arguments. The actual definition is partly positional, but this

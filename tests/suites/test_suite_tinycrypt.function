@@ -21,7 +21,7 @@ void test_ecdh()
     uint8_t secret1[NUM_ECC_BYTES] = {0};
     uint8_t secret2[NUM_ECC_BYTES] = {0};
 
-    const struct uECC_Curve_t * curve = uECC_secp256r1();
+    uECC_Curve curve = uECC_secp256r1();
 
     uECC_set_rng( &uecc_rng_wrapper );
 
@@ -45,7 +45,7 @@ void test_ecdsa()
     uint8_t hash[NUM_ECC_BYTES] = {0};
     uint8_t sig[2*NUM_ECC_BYTES] = {0};
 
-    const struct uECC_Curve_t * curve = uECC_secp256r1();
+    uECC_Curve curve = uECC_secp256r1();
 
     uECC_set_rng( &uecc_rng_wrapper );
 
@@ -64,7 +64,7 @@ void ecdh_primitive_testvec( data_t * private1, data_t * xA_str,
                              data_t * yA_str, data_t * private2,
                              data_t * xB_str, data_t * yB_str, data_t * z_str )
 {
-    const struct uECC_Curve_t * curve = uECC_secp256r1();
+    uECC_Curve curve = uECC_secp256r1();
     uint8_t public1[2*NUM_ECC_BYTES] = {0};
     uint8_t public2[2*NUM_ECC_BYTES] = {0};
     uint8_t secret1[NUM_ECC_BYTES] = {0};
@@ -90,7 +90,7 @@ void ecdh_primitive_testvec( data_t * private1, data_t * xA_str,
 void ecdsa_primitive_testvec( data_t * xQ_str, data_t * yQ_str,
                               data_t * hash, data_t * r_str, data_t * s_str )
 {
-    const struct uECC_Curve_t * curve = uECC_secp256r1();
+    uECC_Curve curve = uECC_secp256r1();
     uint8_t pub_bytes[2*NUM_ECC_BYTES] = {0};
     uint8_t sig_bytes[2*NUM_ECC_BYTES] = {0};
 

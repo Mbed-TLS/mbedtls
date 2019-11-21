@@ -580,7 +580,7 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     volatile int ret_fi;
     uint8_t signature[2*NUM_ECC_BYTES];
     unsigned char *p;
-    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+    uECC_Curve uecc_curve = uECC_secp256r1();
     const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
 
     ((void) md_alg);
@@ -704,7 +704,7 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
-    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
+    uECC_Curve uecc_curve = uECC_secp256r1();
     int ret;
 
     /*

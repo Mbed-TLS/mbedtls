@@ -61,6 +61,7 @@ class read_file_lines:
 
 class Inputs:
     """Accumulate information about macros to test.
+
     This includes macro names as well as information about their arguments
     when applicable.
     """
@@ -101,6 +102,7 @@ class Inputs:
 
     def gather_arguments(self):
         """Populate the list of values for macro arguments.
+
         Call this after parsing all the inputs.
         """
         self.arguments_for['hash_alg'] = sorted(self.hash_algorithms)
@@ -118,6 +120,7 @@ class Inputs:
 
     def distribute_arguments(self, name):
         """Generate macro calls with each tested argument set.
+
         If name is a macro without arguments, just yield "name".
         If name is a macro with arguments, yield a series of
         "name(arg1,...,argN)" where each argument takes each possible
@@ -305,15 +308,21 @@ int main(void)
 NORMALIZE_STRIP_RE = re.compile(r'\s+')
 def normalize(expr):
     """Normalize the C expression so as not to care about trivial differences.
+
     Currently "trivial differences" means whitespace.
     """
     return re.sub(NORMALIZE_STRIP_RE, '', expr)
 
 def do_test(options, inputs, type_word, names):
     """Test psa_constant_names for the specified type.
+
     Run program on names.
     Use inputs to figure out what arguments to pass to macros that
     take arguments.
+
+    Return ``(count, errors)`` where ``count`` is the number of expressions
+    that have been tested and ``errors`` is the list of errors that were
+    encountered.
     """
     expressions = sorted(inputs.generate_expressions(names))
     values = run_c(options, type_word, expressions)
@@ -332,6 +341,7 @@ def report_errors(errors):
 
 def run_tests(options, inputs):
     """Run psa_constant_names on all the gathered inputs.
+
     Return a tuple (count, errors) where count is the total number of inputs
     that were tested and errors is the list of cases where the output was
     not as expected.

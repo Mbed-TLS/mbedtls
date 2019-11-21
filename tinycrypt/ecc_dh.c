@@ -123,7 +123,7 @@ int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve)
 		}
 
 		/* computing modular reduction of _random (see FIPS 186.4 B.4.1): */
-		uECC_vli_mmod(_private, _random, curve->n);
+		uECC_vli_mmod(_private, _random, curve_n);
 
 		/* Computing public-key from private: */
 		if (EccPoint_compute_public_key(_public, _private, curve)) {

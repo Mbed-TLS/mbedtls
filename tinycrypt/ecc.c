@@ -75,6 +75,12 @@ const uECC_word_t curve_p[NUM_ECC_WORDS] = {
 	BYTES_TO_WORDS_8(00, 00, 00, 00, 00, 00, 00, 00),
 	BYTES_TO_WORDS_8(01, 00, 00, 00, FF, FF, FF, FF)
 };
+const uECC_word_t curve_n[NUM_ECC_WORDS] = {
+	BYTES_TO_WORDS_8(51, 25, 63, FC, C2, CA, B9, F3),
+	BYTES_TO_WORDS_8(84, 9E, 17, A7, AD, FA, E6, BC),
+	BYTES_TO_WORDS_8(FF, FF, FF, FF, FF, FF, FF, FF),
+	BYTES_TO_WORDS_8(00, 00, 00, 00, FF, FF, FF, FF)
+};
 
 /* IMPORTANT: Make sure a cryptographically-secure PRNG is set and the platform
  * has access to enough entropy in order to feed the PRNG regularly. */
@@ -933,13 +939,12 @@ static uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
 
 	wordcount_t num_n_words = NUM_ECC_WORDS;
 	bitcount_t num_n_bits = NUM_ECC_BITS;
-	const uECC_Curve curve = uECC_secp256r1();
 
-	uECC_word_t carry = uECC_vli_add(k0, k, curve->n) ||
+	uECC_word_t carry = uECC_vli_add(k0, k, curve_n) ||
 			     (num_n_bits < ((bitcount_t)num_n_words * uECC_WORD_SIZE * 8) &&
 			     uECC_vli_testBit(k0, num_n_bits));
 
-	uECC_vli_add(k1, k0, curve->n);
+	uECC_vli_add(k1, k0, curve_n);
 
 	return carry;
 }
@@ -1116,7 +1121,7 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
 		return 0;
 	}
 
-	if (uECC_vli_cmp(curve->n, _private) != 1) {
+	if (uECC_vli_cmp(curve_n, _private) != 1) {
 		return 0;
 	}
 

@@ -81,6 +81,16 @@ const uECC_word_t curve_n[NUM_ECC_WORDS] = {
 	BYTES_TO_WORDS_8(FF, FF, FF, FF, FF, FF, FF, FF),
 	BYTES_TO_WORDS_8(00, 00, 00, 00, FF, FF, FF, FF)
 };
+const uECC_word_t curve_G[2 * NUM_ECC_WORDS] = {
+	BYTES_TO_WORDS_8(96, C2, 98, D8, 45, 39, A1, F4),
+	BYTES_TO_WORDS_8(A0, 33, EB, 2D, 81, 7D, 03, 77),
+	BYTES_TO_WORDS_8(F2, 40, A4, 63, E5, E6, BC, F8),
+	BYTES_TO_WORDS_8(47, 42, 2C, E1, F2, D1, 17, 6B),
+	BYTES_TO_WORDS_8(F5, 51, BF, 37, 68, 40, B6, CB),
+	BYTES_TO_WORDS_8(CE, 5E, 31, 6B, 57, 33, CE, 2B),
+	BYTES_TO_WORDS_8(16, 9E, 0F, 7C, 4A, EB, E7, 8E),
+	BYTES_TO_WORDS_8(9B, 7F, 1A, FE, E2, 42, E3, 4F)
+};
 
 /* IMPORTANT: Make sure a cryptographically-secure PRNG is set and the platform
  * has access to enough entropy in order to feed the PRNG regularly. */
@@ -1006,7 +1016,7 @@ uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
 					uECC_word_t *private_key,
 					uECC_Curve curve)
 {
-	return EccPoint_mult_safer(result, curve->G, private_key, curve);
+	return EccPoint_mult_safer(result, curve_G, private_key, curve);
 }
 
 /* Converts an integer in uECC native format to big-endian bytes. */
@@ -1097,7 +1107,7 @@ int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve)
 	public_key + NUM_ECC_BYTES,
 	NUM_ECC_BYTES);
 
-	if (memcmp(_public, curve->G, NUM_ECC_WORDS * 2) == 0) {
+	if (memcmp(_public, curve_G, NUM_ECC_WORDS * 2) == 0) {
 		return -4;
 	}
 

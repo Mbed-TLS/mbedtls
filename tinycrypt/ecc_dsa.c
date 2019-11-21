@@ -128,7 +128,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 		return 0;
 	}
 
-	r = EccPoint_mult_safer(p, curve->G, k, curve);
+	r = EccPoint_mult_safer(p, curve_G, k, curve);
 	if (r == 0 || uECC_vli_isZero(p)) {
 		return 0;
 	}
@@ -258,8 +258,8 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	/* Calculate sum = G + Q. */
 	uECC_vli_set(sum, _public);
 	uECC_vli_set(sum + num_words, _public + num_words);
-	uECC_vli_set(tx, curve->G);
-	uECC_vli_set(ty, curve->G + num_words);
+	uECC_vli_set(tx, curve_G);
+	uECC_vli_set(ty, curve_G + num_words);
 	uECC_vli_modSub(z, sum, tx, curve_p); /* z = x2 - x1 */
 	XYcZ_add(tx, ty, sum, sum + num_words, curve);
 	uECC_vli_modInv(z, z, curve_p); /* z = 1/z */
@@ -267,7 +267,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	/* Use Shamir's trick to calculate u1*G + u2*Q */
 	points[0] = 0;
-	points[1] = curve->G;
+	points[1] = curve_G;
 	points[2] = _public;
 	points[3] = sum;
 	num_bits = smax(uECC_vli_numBits(u1),

@@ -69,6 +69,7 @@ class Inputs:
     """
 
     def __init__(self):
+        self.all_declared = set()
         # Sets of names per type
         self.statuses = set(['PSA_SUCCESS'])
         self.algorithms = set(['0xffffffff'])
@@ -213,6 +214,7 @@ class Inputs:
         if not m:
             return
         name = m.group(1)
+        self.all_declared.add(name)
         if re.search(self._excluded_name_re, name) or \
            name in self._excluded_names:
             return
@@ -229,6 +231,19 @@ class Inputs:
             for line in lines:
                 self.parse_header_line(line)
 
+    _macro_identifier_re = r'[A-Z]\w+'
+    def generate_undeclared_names(self, expr):
+        for name in re.findall(self._macro_identifier_re, expr):
+            if name not in self.all_declared:
+                yield name
+
+    def accept_test_case_line(self, function, argument):
+        #pylint: disable=unused-argument
+        undeclared = list(self.generate_undeclared_names(argument))
+        if undeclared:
+            raise Exception('Undeclared names in test case', undeclared)
+        return True
+
     def add_test_case_line(self, function, argument):
         """Parse a test case data line, looking for algorithm metadata tests."""
         sets = []
@@ -240,8 +255,9 @@ class Inputs:
             sets.append(self.algorithms)
         if function in self.table_by_test_function:
             sets.append(self.table_by_test_function[function])
-        for s in sets:
-            s.add(argument)
+        if self.accept_test_case_line(function, argument):
+            for s in sets:
+                s.add(argument)
 
     # Regex matching a *.data line containing a test function call and
     # its arguments. The actual definition is partly positional, but this

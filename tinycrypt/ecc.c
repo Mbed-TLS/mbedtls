@@ -91,6 +91,12 @@ const uECC_word_t curve_G[2 * NUM_ECC_WORDS] = {
 	BYTES_TO_WORDS_8(16, 9E, 0F, 7C, 4A, EB, E7, 8E),
 	BYTES_TO_WORDS_8(9B, 7F, 1A, FE, E2, 42, E3, 4F)
 };
+const uECC_word_t curve_b[NUM_ECC_WORDS] = {
+	BYTES_TO_WORDS_8(4B, 60, D2, 27, 3E, 3C, CE, 3B),
+	BYTES_TO_WORDS_8(F6, B0, 53, CC, B0, 06, 1D, 65),
+	BYTES_TO_WORDS_8(BC, 86, 98, 76, 55, BD, EB, B3),
+	BYTES_TO_WORDS_8(E7, 93, 3A, AA, D8, 35, C6, 5A)
+};
 
 /* IMPORTANT: Make sure a cryptographically-secure PRNG is set and the platform
  * has access to enough entropy in order to feed the PRNG regularly. */
@@ -662,11 +668,13 @@ static void x_side_default(uECC_word_t *result,
 {
 	uECC_word_t _3[NUM_ECC_WORDS] = {3}; /* -a = 3 */
 
+	(void) curve;
+
 	uECC_vli_modMult_fast(result, x, x); /* r = x^2 */
 	uECC_vli_modSub(result, result, _3, curve_p); /* r = x^2 - 3 */
 	uECC_vli_modMult_fast(result, result, x); /* r = x^3 - 3x */
 	/* r = x^3 - 3x + b: */
-	uECC_vli_modAdd(result, result, curve->b, curve_p);
+	uECC_vli_modAdd(result, result, curve_b, curve_p);
 }
 
 uECC_Curve uECC_secp256r1(void)

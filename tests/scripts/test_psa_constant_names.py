@@ -324,6 +324,17 @@ def normalize(expr):
     """
     return re.sub(NORMALIZE_STRIP_RE, '', expr)
 
+def collect_values(options, inputs, type_word):
+    """Generate expressions using known macro names and calculate their values.
+
+    Return a list of pairs of (expr, value) where expr is an expression and
+    value is a string representation of its integer value.
+    """
+    names = inputs.get_names(type_word)
+    expressions = sorted(inputs.generate_expressions(names))
+    values = run_c(options, type_word, expressions)
+    return expressions, values
+
 def do_test(options, inputs, type_word):
     """Test psa_constant_names for the specified type.
 
@@ -335,9 +346,7 @@ def do_test(options, inputs, type_word):
     that have been tested and ``errors`` is the list of errors that were
     encountered.
     """
-    names = inputs.get_names(type_word)
-    expressions = sorted(inputs.generate_expressions(names))
-    values = run_c(options, type_word, expressions)
+    expressions, values = collect_values(options, inputs, type_word)
     output = subprocess.check_output([options.program, type_word] + values)
     outputs = output.decode('ascii').strip().split('\n')
     errors = [(type_word, expr, value, output)

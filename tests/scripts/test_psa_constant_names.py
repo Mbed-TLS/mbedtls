@@ -145,6 +145,9 @@ class Inputs:
         except BaseException as e:
             raise Exception('distribute_arguments({})'.format(name)) from e
 
+    def generate_expressions(self, names):
+        return itertools.chain(*map(self.distribute_arguments, names))
+
     _argument_split_re = re.compile(r' *, *')
     @classmethod
     def _argument_split(cls, arguments):
@@ -252,8 +255,8 @@ def remove_file_if_exists(filename):
     except OSError:
         pass
 
-def run_c(options, type_word, names):
-    """Generate and run a program to print out numerical values for names."""
+def run_c(options, type_word, expressions):
+    """Generate and run a program to print out numerical values for expressions."""
     if type_word == 'status':
         cast_to = 'long'
         printf_format = '%ld'
@@ -278,9 +281,9 @@ def run_c(options, type_word, names):
 int main(void)
 {
 ''')
-        for name in names:
+        for expr in expressions:
             c_file.write('    printf("{}\\n", ({}) {});\n'
-                         .format(printf_format, cast_to, name))
+                         .format(printf_format, cast_to, expr))
         c_file.write('''    return 0;
 }
 ''')
@@ -313,14 +316,14 @@ def do_test(options, inputs, type_word, names):
     Use inputs to figure out what arguments to pass to macros that
     take arguments.
     """
-    names = sorted(itertools.chain(*map(inputs.distribute_arguments, names)))
-    values = run_c(options, type_word, names)
+    expressions = sorted(inputs.generate_expressions(names))
+    values = run_c(options, type_word, expressions)
     output = subprocess.check_output([options.program, type_word] + values)
     outputs = output.decode('ascii').strip().split('\n')
-    errors = [(type_word, name, value, output)
-              for (name, value, output) in zip(names, values, outputs)
-              if normalize(name) != normalize(output)]
-    return len(names), errors
+    errors = [(type_word, expr, value, output)
+              for (expr, value, output) in zip(expressions, values, outputs)
+              if normalize(expr) != normalize(output)]
+    return len(expressions), errors
 
 def report_errors(errors):
     """Describe each case where the output is not as expected."""

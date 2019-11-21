@@ -251,9 +251,9 @@ class Inputs:
                 if m:
                     self.add_test_case_line(m.group(1), m.group(2))
 
-def gather_inputs(headers, test_suites):
+def gather_inputs(headers, test_suites, inputs_class=Inputs):
     """Read the list of inputs to test psa_constant_names with."""
-    inputs = Inputs()
+    inputs = inputs_class()
     for header in headers:
         inputs.parse_header(header)
     for test_cases in test_suites:

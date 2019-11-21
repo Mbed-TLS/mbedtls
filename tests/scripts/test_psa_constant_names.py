@@ -8,6 +8,7 @@ or 1 (with a Python backtrace) if there was an operational error.
 """
 
 import argparse
+from collections import namedtuple
 import itertools
 import os
 import platform
@@ -341,6 +342,9 @@ def collect_values(inputs, type_word, include_path=None, keep_c=False):
 class Tests:
     """An object representing tests and their results."""
 
+    Error = namedtuple('Error',
+                       ['type', 'expression', 'value', 'output'])
+
     def __init__(self, options):
         self.options = options
         self.count = 0
@@ -362,7 +366,10 @@ class Tests:
         self.count += len(expressions)
         for expr, value, output in zip(expressions, values, outputs):
             if normalize(expr) != normalize(output):
-                self.errors.append((type_word, expr, value, output))
+                self.errors.append(self.Error(type=type_word,
+                                              expression=expr,
+                                              value=value,
+                                              output=output))
 
     def run_all(self, inputs):
         """Run psa_constant_names on all the gathered inputs."""
@@ -376,9 +383,10 @@ class Tests:
         Write the errors to ``out``.
         Also write a total.
         """
-        for type_word, name, value, output in self.errors:
+        for error in self.errors:
             out.write('For {} "{}", got "{}" (value: {})\n'
-                      .format(type_word, name, output, value))
+                      .format(error.type, error.expression,
+                              error.output, error.value))
         out.write('{} test cases'.format(self.count))
         if self.errors:
             out.write(', {} FAIL\n'.format(len(self.errors)))

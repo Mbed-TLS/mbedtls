@@ -581,7 +581,7 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 	/* t1 = X, t2 = Y, t3 = Z */
 	uECC_word_t t4[NUM_ECC_WORDS];
 	uECC_word_t t5[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
+	wordcount_t num_words = NUM_ECC_WORDS;
 
 	if (uECC_vli_isZero(Z1)) {
 		return;
@@ -1042,7 +1042,7 @@ int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve)
 {
 	uECC_word_t tmp1[NUM_ECC_WORDS];
 	uECC_word_t tmp2[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
+	wordcount_t num_words = NUM_ECC_WORDS;
 
 	/* The point at infinity is invalid. */
 	if (EccPoint_isZero(point, curve)) {
@@ -1072,7 +1072,7 @@ int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve)
 
 	uECC_vli_bytesToNative(_public, public_key, curve->num_bytes);
 	uECC_vli_bytesToNative(
-	_public + curve->num_words,
+	_public + NUM_ECC_WORDS,
 	public_key + curve->num_bytes,
 	curve->num_bytes);
 
@@ -1112,7 +1112,7 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
 	uECC_vli_nativeToBytes(public_key, curve->num_bytes, _public);
 	uECC_vli_nativeToBytes(
 	public_key +
-	curve->num_bytes, curve->num_bytes, _public + curve->num_words);
+	curve->num_bytes, curve->num_bytes, _public + NUM_ECC_WORDS);
 	return 1;
 }
 #else

@@ -124,7 +124,6 @@ typedef uint64_t uECC_dword_t;
 struct uECC_Curve_t;
 typedef const struct uECC_Curve_t * uECC_Curve;
 struct uECC_Curve_t {
-  wordcount_t num_words;
   wordcount_t num_bytes;
   bitcount_t num_n_bits;
   uECC_word_t p[NUM_ECC_WORDS];
@@ -160,7 +159,6 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int *product);
 
 /* definition of curve NIST p-256: */
 static const struct uECC_Curve_t curve_secp256r1 = {
-	NUM_ECC_WORDS,
 	NUM_ECC_BYTES,
 	256, /* num_n_bits */ {
 		BYTES_TO_WORDS_8(FF, FF, FF, FF, FF, FF, FF, FF),

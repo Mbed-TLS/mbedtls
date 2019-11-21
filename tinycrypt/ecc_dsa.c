@@ -219,7 +219,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 	uECC_word_t r[NUM_ECC_WORDS], s[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
+	wordcount_t num_words = NUM_ECC_WORDS;
 	wordcount_t num_n_words = BITS_TO_WORDS(curve->num_n_bits);
 
 	if (curve != uECC_secp256r1())

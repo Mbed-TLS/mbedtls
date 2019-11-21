@@ -96,7 +96,7 @@ int uECC_make_key_with_d(uint8_t *public_key, uint8_t *private_key,
 				       _public);
 		uECC_vli_nativeToBytes(public_key + curve->num_bytes,
 				       curve->num_bytes,
-				       _public + curve->num_words);
+				       _public + NUM_ECC_WORDS);
 
 		/* erasing temporary buffer used to store secret: */
 		mbedtls_platform_memset(_private, 0, NUM_ECC_BYTES);
@@ -137,7 +137,7 @@ int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve)
 					       _public);
 			uECC_vli_nativeToBytes(public_key + curve->num_bytes,
  					       curve->num_bytes,
-					       _public + curve->num_words);
+					       _public + NUM_ECC_WORDS);
 
 			/* erasing temporary buffer that stored secret: */
 			mbedtls_platform_memset(_private, 0, NUM_ECC_BYTES);
@@ -154,7 +154,7 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 	uECC_word_t _private[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
+	wordcount_t num_words = NUM_ECC_WORDS;
 	wordcount_t num_bytes = curve->num_bytes;
 	int r;
 

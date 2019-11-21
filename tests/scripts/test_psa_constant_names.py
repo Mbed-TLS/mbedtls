@@ -104,6 +104,8 @@ class Inputs:
             'mac_algorithm': self.mac_algorithms,
             'hmac_algorithm': self.mac_algorithms,
             'aead_algorithm': self.aead_algorithms,
+            'key_derivation_algorithm': self.kdf_algorithms,
+            'key_agreement_algorithm': self.ka_algorithms,
         }
         # macro name -> list of argument names
         self.argspecs = {}
@@ -197,10 +199,6 @@ class Inputs:
         # Auxiliary macro whose name doesn't fit the usual patterns for
         # auxiliary macros.
         'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE',
-        # PSA_ALG_ECDH and PSA_ALG_FFDH are excluded for now as the script
-        # currently doesn't support them.
-        'PSA_ALG_ECDH',
-        'PSA_ALG_FFDH',
         # Deprecated aliases.
         'PSA_ERROR_UNKNOWN_ERROR',
         'PSA_ERROR_OCCUPIED_SLOT',
@@ -248,11 +246,13 @@ class Inputs:
         """Parse a test case data line, looking for algorithm metadata tests."""
         sets = []
         if function.endswith('_algorithm'):
-            # As above, ECDH and FFDH algorithms are excluded for now.
-            # Support for them will be added in the future.
-            if 'ECDH' in argument or 'FFDH' in argument:
-                return
             sets.append(self.algorithms)
+            if function == 'key_agreement_algorithm' and \
+               argument.startswith('PSA_ALG_KEY_AGREEMENT('):
+                # We only want *raw* key agreement algorithms as such, so
+                # exclude ones that are already chained with a KDF.
+                # Keep the expression as one to test as an algorithm.
+                function = 'other_algorithm'
         if function in self.table_by_test_function:
             sets.append(self.table_by_test_function[function])
         if self.accept_test_case_line(function, argument):

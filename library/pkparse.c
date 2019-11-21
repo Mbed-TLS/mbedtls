@@ -986,8 +986,7 @@ static int pk_parse_key_sec1_der( mbedtls_uecc_keypair *keypair,
     if( !pubkey_done )
     {
         ret = uECC_compute_public_key( keypair->private_key,
-                                       keypair->public_key,
-                                       uECC_secp256r1() );
+                                       keypair->public_key );
         if( ret == 0 )
             return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
     }

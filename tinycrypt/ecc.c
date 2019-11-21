@@ -116,15 +116,13 @@ uECC_RNG_Function uECC_get_rng(void)
 	return g_rng_function;
 }
 
-int uECC_curve_private_key_size(uECC_Curve curve)
+int uECC_curve_private_key_size(void)
 {
-	(void) curve;
 	return BITS_TO_BYTES(NUM_ECC_BITS);
 }
 
-int uECC_curve_public_key_size(uECC_Curve curve)
+int uECC_curve_public_key_size(void)
 {
-	(void) curve;
 	return 2 * NUM_ECC_BYTES;
 }
 
@@ -672,11 +670,6 @@ static void x_side_default(uECC_word_t *result,
 	uECC_vli_modAdd(result, result, curve_b, curve_p);
 }
 
-uECC_Curve uECC_secp256r1(void)
-{
-	return curve_secp256r1;
-}
-
 void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 {
 	unsigned int tmp[NUM_ECC_WORDS];
@@ -952,7 +945,7 @@ static uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
 }
 
 int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
-			const uECC_word_t * scalar, uECC_Curve curve)
+			const uECC_word_t * scalar)
 {
 	uECC_word_t tmp[NUM_ECC_WORDS];
 	uECC_word_t s[NUM_ECC_WORDS];
@@ -961,9 +954,6 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	uECC_word_t carry;
 	uECC_word_t *initial_Z = 0;
 	int r;
-
-	if (curve != uECC_secp256r1())
-		return 0;
 
 	/* Protects against invalid curves attacks */
 	if (uECC_valid_point(point) != 0 ) {
@@ -1005,10 +995,9 @@ clear_and_out:
 }
 
 uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
-					uECC_word_t *private_key,
-					uECC_Curve curve)
+					uECC_word_t *private_key)
 {
-	return EccPoint_mult_safer(result, curve_G, private_key, curve);
+	return EccPoint_mult_safer(result, curve_G, private_key);
 }
 
 /* Converts an integer in uECC native format to big-endian bytes. */
@@ -1106,8 +1095,7 @@ int uECC_valid_public_key(const uint8_t *public_key)
 	return uECC_valid_point(_public);
 }
 
-int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
-			    uECC_Curve curve)
+int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 {
 
 	uECC_word_t _private[NUM_ECC_WORDS];
@@ -1128,7 +1116,7 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
 	}
 
 	/* Compute public key. */
-	if (!EccPoint_compute_public_key(_public, _private, curve)) {
+	if (!EccPoint_compute_public_key(_public, _private)) {
 		return 0;
 	}
 

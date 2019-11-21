@@ -73,7 +73,7 @@
 #include "mbedtls/platform_util.h"
 
 int uECC_make_key_with_d(uint8_t *public_key, uint8_t *private_key,
-			 unsigned int *d, uECC_Curve curve)
+			 unsigned int *d)
 {
 
 	uECC_word_t _private[NUM_ECC_WORDS];
@@ -85,7 +85,7 @@ int uECC_make_key_with_d(uint8_t *public_key, uint8_t *private_key,
 	mbedtls_platform_memcpy (_private, d, NUM_ECC_BYTES);
 
 	/* Computing public-key from private: */
-	if (EccPoint_compute_public_key(_public, _private, curve)) {
+	if (EccPoint_compute_public_key(_public, _private)) {
 
 		/* Converting buffers to correct bit order: */
 		uECC_vli_nativeToBytes(private_key,
@@ -106,7 +106,7 @@ int uECC_make_key_with_d(uint8_t *public_key, uint8_t *private_key,
 	return 0;
 }
 
-int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve)
+int uECC_make_key(uint8_t *public_key, uint8_t *private_key)
 {
 
 	uECC_word_t _random[NUM_ECC_WORDS * 2];
@@ -126,7 +126,7 @@ int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve)
 		uECC_vli_mmod(_private, _random, curve_n);
 
 		/* Computing public-key from private: */
-		if (EccPoint_compute_public_key(_public, _private, curve)) {
+		if (EccPoint_compute_public_key(_public, _private)) {
 
 			/* Converting buffers to correct bit order: */
 			uECC_vli_nativeToBytes(private_key,
@@ -149,7 +149,7 @@ int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve)
 }
 
 int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
-		       uint8_t *secret, uECC_Curve curve)
+		       uint8_t *secret)
 {
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
@@ -169,7 +169,7 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 			       public_key + num_bytes,
 			       num_bytes);
 
-	r = EccPoint_mult_safer(_public, _public, _private, curve);
+	r = EccPoint_mult_safer(_public, _public, _private);
 	uECC_vli_nativeToBytes(secret, num_bytes, _public);
 
 	/* erasing temporary buffer used to store secret: */

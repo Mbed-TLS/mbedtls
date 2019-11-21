@@ -120,12 +120,6 @@ typedef uint64_t uECC_dword_t;
 #define NUM_ECC_BYTES (uECC_WORD_SIZE*NUM_ECC_WORDS)
 #define NUM_ECC_BITS 256
 
-/* curve identifier (for API compatility - only P-256 is supported) */
-typedef enum {
-	curve_invalid = 0,
-	curve_secp256r1 = 0xff
-} uECC_Curve;
-
 /*
  * @brief computes doubling of point ion jacobian coordinates, in place.
  * @param X1 IN/OUT -- x coordinate
@@ -155,8 +149,6 @@ extern const uECC_word_t curve_p[NUM_ECC_WORDS];
 extern const uECC_word_t curve_n[NUM_ECC_WORDS];
 extern const uECC_word_t curve_G[2 * NUM_ECC_WORDS];
 extern const uECC_word_t curve_b[NUM_ECC_WORDS];
-
-uECC_Curve uECC_secp256r1(void);
 
 /*
  * @brief Generates a random integer in the range 0 < random < top.
@@ -211,14 +203,14 @@ uECC_RNG_Function uECC_get_rng(void);
  * @param curve IN -- elliptic curve
  * @return size of a private key for the curve in bytes.
  */
-int uECC_curve_private_key_size(uECC_Curve curve);
+int uECC_curve_private_key_size(void);
 
 /*
  * @brief computes the size of a public key for the curve in bytes.
  * @param curve IN -- elliptic curve
  * @return the size of a public key for the curve in bytes.
  */
-int uECC_curve_public_key_size(uECC_Curve curve);
+int uECC_curve_public_key_size(void);
 
 /*
  * @brief Compute the corresponding public key for a private key.
@@ -228,7 +220,7 @@ int uECC_curve_public_key_size(uECC_Curve curve);
  * @return Returns 1 if key was computed successfully, 0 if an error occurred.
  */
 int uECC_compute_public_key(const uint8_t *private_key,
-			    uint8_t *public_key, uECC_Curve curve);
+			    uint8_t *public_key);
 
 /*
  * @brief Compute public-key.
@@ -238,7 +230,7 @@ int uECC_compute_public_key(const uint8_t *private_key,
  * @param curve IN -- elliptic curve
  */
 uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
-					uECC_word_t *private_key, uECC_Curve curve);
+					uECC_word_t *private_key);
 
 /*
  * @brief Point multiplication algorithm using Montgomery's ladder with co-Z
@@ -249,10 +241,9 @@ uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
  * @param result OUT -- returns scalar*point
  * @param point IN -- elliptic curve point
  * @param scalar IN -- scalar
- * @param curve IN -- elliptic curve
  */
 int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
-			const uECC_word_t * scalar, uECC_Curve curve);
+			const uECC_word_t * scalar);
 
 /*
  * @brief Constant-time comparison to zero - secure way to compare long integers

@@ -3567,7 +3567,6 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
 
     {
-        uECC_Curve uecc_curve = uECC_secp256r1();
         ((void) n);
         ((void) ret);
 
@@ -3577,8 +3576,7 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         *p++ = 2 * NUM_ECC_BYTES + 1;
         *p++ = 0x04; /* uncompressed point presentation */
 
-        if( !uECC_make_key( p, ssl->handshake->ecdh_privkey,
-                            uecc_curve ) )
+        if( !uECC_make_key( p, ssl->handshake->ecdh_privkey ) )
         {
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
@@ -3718,7 +3716,6 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
             == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
         {
 #if defined(MBEDTLS_USE_TINYCRYPT)
-            uECC_Curve uecc_curve = uECC_secp256r1();
             ((void) n);
             ((void) ret);
 
@@ -3728,8 +3725,7 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
             *p++ = 2 * NUM_ECC_BYTES + 1;
             *p++ = 0x04; /* uncompressed point presentation */
 
-            if( !uECC_make_key( p, ssl->handshake->ecdh_privkey,
-                                uecc_curve ) )
+            if( !uECC_make_key( p, ssl->handshake->ecdh_privkey ) )
             {
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
             }

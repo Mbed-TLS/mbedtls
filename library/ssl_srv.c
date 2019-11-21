@@ -3279,9 +3279,6 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
     unsigned char *dig_signed = NULL;
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED */
-#if defined(MBEDTLS_USE_TINYCRYPT)
-    uECC_Curve uecc_curve = uECC_secp256r1();
-#endif
 
     (void) ciphersuite_info; /* unused in some configurations */
 #if !defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
@@ -3430,8 +3427,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
             ssl->out_msglen += sizeof( ecdh_param_hdr );
 
             if( !uECC_make_key( &ssl->out_msg[ ssl->out_msglen ],
-                                ssl->handshake->ecdh_privkey,
-                                uecc_curve ) )
+                                ssl->handshake->ecdh_privkey ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "Key creation failed" ) );
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );

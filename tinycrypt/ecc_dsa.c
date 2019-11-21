@@ -76,15 +76,13 @@ static uECC_RNG_Function g_rng_function = 0;
 #endif
 
 static void bits2int(uECC_word_t *native, const uint8_t *bits,
-		     unsigned bits_size, uECC_Curve curve)
+		     unsigned bits_size)
 {
 	unsigned num_n_bytes = BITS_TO_BYTES(NUM_ECC_BITS);
 	unsigned num_n_words = BITS_TO_WORDS(NUM_ECC_BITS);
 	int shift;
 	uECC_word_t carry;
 	uECC_word_t *ptr;
-
-        (void) curve;
 
 	if (bits_size > num_n_bytes) {
 		bits_size = num_n_bytes;
@@ -111,8 +109,7 @@ static void bits2int(uECC_word_t *native, const uint8_t *bits,
 }
 
 int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
-		     unsigned hash_size, uECC_word_t *k, uint8_t *signature,
-		     uECC_Curve curve)
+		     unsigned hash_size, uECC_word_t *k, uint8_t *signature)
 {
 
 	uECC_word_t tmp[NUM_ECC_WORDS];
@@ -128,7 +125,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 		return 0;
 	}
 
-	r = EccPoint_mult_safer(p, curve_G, k, curve);
+	r = EccPoint_mult_safer(p, curve_G, k);
 	if (r == 0 || uECC_vli_isZero(p)) {
 		return 0;
 	}
@@ -158,7 +155,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_vli_set(s, p);
 	uECC_vli_modMult(s, tmp, s, curve_n); /* s = r*d */
 
-	bits2int(tmp, message_hash, hash_size, curve);
+	bits2int(tmp, message_hash, hash_size);
 	uECC_vli_modAdd(s, tmp, s, curve_n); /* s = e + r*d */
 	uECC_vli_modMult(s, s, k, curve_n);  /* s = (e + r*d) / k */
 	if (uECC_vli_numBits(s) > (bitcount_t)NUM_ECC_BYTES * 8) {
@@ -170,7 +167,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 }
 
 int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
-	      unsigned hash_size, uint8_t *signature, uECC_Curve curve)
+	      unsigned hash_size, uint8_t *signature)
 {
 	      uECC_word_t _random[2*NUM_ECC_WORDS];
 	      uECC_word_t k[NUM_ECC_WORDS];
@@ -187,8 +184,7 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 		// computing k as modular reduction of _random (see FIPS 186.4 B.5.1):
 		uECC_vli_mmod(k, _random, curve_n);
 
-		if (uECC_sign_with_k(private_key, message_hash, hash_size, k, signature, 
-		    curve)) {
+		if (uECC_sign_with_k(private_key, message_hash, hash_size, k, signature)) {
 			return 1;
 		}
 	}
@@ -201,8 +197,7 @@ static bitcount_t smax(bitcount_t a, bitcount_t b)
 }
 
 int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
-		unsigned hash_size, const uint8_t *signature,
-	        uECC_Curve curve)
+		unsigned hash_size, const uint8_t *signature)
 {
 
 	uECC_word_t u1[NUM_ECC_WORDS], u2[NUM_ECC_WORDS];
@@ -223,9 +218,6 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_word_t r[NUM_ECC_WORDS], s[NUM_ECC_WORDS];
 	wordcount_t num_words = NUM_ECC_WORDS;
 	wordcount_t num_n_words = BITS_TO_WORDS(NUM_ECC_BITS);
-
-	if (curve != uECC_secp256r1())
-		return 0;
 
 	rx[num_n_words - 1] = 0;
 	r[num_n_words - 1] = 0;
@@ -251,7 +243,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	/* Calculate u1 and u2. */
 	uECC_vli_modInv(z, s, curve_n); /* z = 1/s */
 	u1[num_n_words - 1] = 0;
-	bits2int(u1, message_hash, hash_size, curve);
+	bits2int(u1, message_hash, hash_size);
 	uECC_vli_modMult(u1, u1, z, curve_n); /* u1 = e/s */
 	uECC_vli_modMult(u2, r, z, curve_n); /* u2 = r/s */
 

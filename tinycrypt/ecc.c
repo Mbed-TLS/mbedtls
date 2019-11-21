@@ -88,7 +88,8 @@ uECC_RNG_Function uECC_get_rng(void)
 
 int uECC_curve_private_key_size(uECC_Curve curve)
 {
-	return BITS_TO_BYTES(curve->num_n_bits);
+	(void) curve;
+	return BITS_TO_BYTES(NUM_ECC_BITS);
 }
 
 int uECC_curve_public_key_size(uECC_Curve curve)
@@ -1094,7 +1095,7 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
 	uECC_vli_bytesToNative(
 	_private,
 	private_key,
-	BITS_TO_BYTES(curve->num_n_bits));
+	BITS_TO_BYTES(NUM_ECC_BITS));
 
 	/* Make sure the private key is in the range [1, n-1]. */
 	if (uECC_vli_isZero(_private)) {

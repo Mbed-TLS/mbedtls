@@ -89,7 +89,7 @@ int uECC_make_key_with_d(uint8_t *public_key, uint8_t *private_key,
 
 		/* Converting buffers to correct bit order: */
 		uECC_vli_nativeToBytes(private_key,
-				       BITS_TO_BYTES(curve->num_n_bits),
+				       BITS_TO_BYTES(NUM_ECC_BITS),
 				       _private);
 		uECC_vli_nativeToBytes(public_key,
 				       NUM_ECC_BYTES,
@@ -130,7 +130,7 @@ int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve)
 
 			/* Converting buffers to correct bit order: */
 			uECC_vli_nativeToBytes(private_key,
-					       BITS_TO_BYTES(curve->num_n_bits),
+					       BITS_TO_BYTES(NUM_ECC_BITS),
 					       _private);
 			uECC_vli_nativeToBytes(public_key,
 					       NUM_ECC_BYTES,
@@ -161,7 +161,7 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 	/* Converting buffers to correct bit order: */
 	uECC_vli_bytesToNative(_private,
       			       private_key,
-			       BITS_TO_BYTES(curve->num_n_bits));
+			       BITS_TO_BYTES(NUM_ECC_BITS));
 	uECC_vli_bytesToNative(_public,
       			       public_key,
 			       num_bytes);

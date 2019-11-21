@@ -78,8 +78,8 @@ static uECC_RNG_Function g_rng_function = 0;
 static void bits2int(uECC_word_t *native, const uint8_t *bits,
 		     unsigned bits_size, uECC_Curve curve)
 {
-	unsigned num_n_bytes = BITS_TO_BYTES(curve->num_n_bits);
-	unsigned num_n_words = BITS_TO_WORDS(curve->num_n_bits);
+	unsigned num_n_bytes = BITS_TO_BYTES(NUM_ECC_BITS);
+	unsigned num_n_words = BITS_TO_WORDS(NUM_ECC_BITS);
 	int shift;
 	uECC_word_t carry;
 	uECC_word_t *ptr;
@@ -90,10 +90,10 @@ static void bits2int(uECC_word_t *native, const uint8_t *bits,
 
 	uECC_vli_clear(native);
 	uECC_vli_bytesToNative(native, bits, bits_size);
-	if (bits_size * 8 <= (unsigned)curve->num_n_bits) {
+	if (bits_size * 8 <= (unsigned)NUM_ECC_BITS) {
 		return;
 	}
-	shift = bits_size * 8 - curve->num_n_bits;
+	shift = bits_size * 8 - NUM_ECC_BITS;
 	carry = 0;
 	ptr = native + num_n_words;
 	while (ptr-- > native) {
@@ -116,7 +116,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_word_t tmp[NUM_ECC_WORDS];
 	uECC_word_t s[NUM_ECC_WORDS];
 	uECC_word_t p[NUM_ECC_WORDS * 2];
-	wordcount_t num_n_words = BITS_TO_WORDS(curve->num_n_bits);
+	wordcount_t num_n_words = BITS_TO_WORDS(NUM_ECC_BITS);
 	int r;
 
 
@@ -150,7 +150,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_vli_nativeToBytes(signature, NUM_ECC_BYTES, p); /* store r */
 
 	/* tmp = d: */
-	uECC_vli_bytesToNative(tmp, private_key, BITS_TO_BYTES(curve->num_n_bits));
+	uECC_vli_bytesToNative(tmp, private_key, BITS_TO_BYTES(NUM_ECC_BITS));
 
 	s[num_n_words - 1] = 0;
 	uECC_vli_set(s, p);
@@ -220,7 +220,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 	uECC_word_t r[NUM_ECC_WORDS], s[NUM_ECC_WORDS];
 	wordcount_t num_words = NUM_ECC_WORDS;
-	wordcount_t num_n_words = BITS_TO_WORDS(curve->num_n_bits);
+	wordcount_t num_n_words = BITS_TO_WORDS(NUM_ECC_BITS);
 
 	if (curve != uECC_secp256r1())
 		return 0;

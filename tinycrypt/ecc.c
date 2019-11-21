@@ -66,6 +66,7 @@
 #if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include "mbedtls/platform_util.h"
+#include "mbedtls/sha256.h"
 #include <string.h>
 
 /* Parameters for curve NIST P-256 aka secp256r1 */
@@ -97,6 +98,73 @@ const uECC_word_t curve_b[NUM_ECC_WORDS] = {
 	BYTES_TO_WORDS_8(BC, 86, 98, 76, 55, BD, EB, B3),
 	BYTES_TO_WORDS_8(E7, 93, 3A, AA, D8, 35, C6, 5A)
 };
+
+static int uECC_update_param_sha256(mbedtls_sha256_context *ctx,
+				    const uECC_word_t val[NUM_ECC_WORDS])
+{
+	uint8_t bytes[NUM_ECC_BYTES];
+
+	uECC_vli_nativeToBytes(bytes, NUM_ECC_BYTES, val);
+	return mbedtls_sha256_update_ret(ctx, bytes, NUM_ECC_BYTES);
+}
+
+static int uECC_compute_param_sha256(unsigned char output[32])
+{
+	int ret = UECC_FAILURE;
+	mbedtls_sha256_context ctx;
+
+	mbedtls_sha256_init( &ctx );
+
+	if (mbedtls_sha256_starts_ret(&ctx, 0) != 0) {
+		goto exit;
+	}
+
+	if (uECC_update_param_sha256(&ctx, curve_p) != 0 ||
+	    uECC_update_param_sha256(&ctx, curve_n) != 0 ||
+	    uECC_update_param_sha256(&ctx, curve_G) != 0 ||
+	    uECC_update_param_sha256(&ctx, curve_G + NUM_ECC_WORDS) != 0 ||
+	    uECC_update_param_sha256(&ctx, curve_b) != 0)
+	{
+		goto exit;
+	}
+
+	if (mbedtls_sha256_finish_ret(&ctx, output) != 0) {
+		goto exit;
+	}
+
+	ret = UECC_SUCCESS;
+
+exit:
+	mbedtls_sha256_free( &ctx );
+
+	return ret;
+}
+
+/*
+ * Check integrity of curve parameters.
+ * Return 0 if everything's OK, non-zero otherwise.
+ */
+static int uECC_check_curve_integrity(void)
+{
+	unsigned char computed[32];
+	unsigned char reference[32] = {
+		0x2d, 0xa1, 0xa4, 0x64, 0x45, 0x28, 0x0d, 0xe1,
+		0x93, 0xf9, 0x29, 0x2f, 0xac, 0x3e, 0xe2, 0x92,
+		0x76, 0x0a, 0xe2, 0xbc, 0xce, 0x2a, 0xa2, 0xc6,
+		0x38, 0xf2, 0x19, 0x1d, 0x76, 0x72, 0x93, 0x49,
+	};
+	volatile unsigned char diff = 0;
+	unsigned char i;
+
+	if (uECC_compute_param_sha256(computed) != UECC_SUCCESS) {
+		return UECC_FAILURE;
+	}
+
+	for (i = 0; i < 32; i++)
+		diff |= computed[i] ^ reference[i];
+
+	return diff;
+}
 
 /* IMPORTANT: Make sure a cryptographically-secure PRNG is set and the platform
  * has access to enough entropy in order to feed the PRNG regularly. */
@@ -955,6 +1023,11 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	uECC_word_t *initial_Z = 0;
 	int r;
 
+	/* Protect against faults modifying curve paremeters in flash */
+	if (uECC_check_curve_integrity() != 0) {
+		return 0;
+	}
+
 	/* Protects against invalid curves attacks */
 	if (uECC_valid_point(point) != 0 ) {
 		return 0;
@@ -979,6 +1052,12 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	/* Protect against fault injections that would make the resulting
 	 * point not lie on the intended curve */
 	if (uECC_valid_point(result) != 0 ) {
+		r = 0;
+		goto clear_and_out;
+	}
+
+	/* Protect against faults modifying curve paremeters in flash */
+	if (uECC_check_curve_integrity() != 0) {
 		r = 0;
 		goto clear_and_out;
 	}

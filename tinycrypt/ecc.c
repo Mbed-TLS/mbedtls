@@ -608,14 +608,12 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
 /* ------ Point operations ------ */
 
 void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
-			     uECC_word_t * Z1, uECC_Curve curve)
+			     uECC_word_t * Z1)
 {
 	/* t1 = X, t2 = Y, t3 = Z */
 	uECC_word_t t4[NUM_ECC_WORDS];
 	uECC_word_t t5[NUM_ECC_WORDS];
 	wordcount_t num_words = NUM_ECC_WORDS;
-
-	(void) curve;
 
 	if (uECC_vli_isZero(Z1)) {
 		return;
@@ -663,12 +661,9 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
  * @param curve IN -- elliptic curve
  */
 static void x_side_default(uECC_word_t *result,
-		    const uECC_word_t *x,
-		    uECC_Curve curve)
+		    const uECC_word_t *x)
 {
 	uECC_word_t _3[NUM_ECC_WORDS] = {3}; /* -a = 3 */
-
-	(void) curve;
 
 	uECC_vli_modMult_fast(result, x, x); /* r = x^2 */
 	uECC_vli_modSub(result, result, _3, curve_p); /* r = x^2 - 3 */
@@ -783,9 +778,8 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 	}
 }
 
-uECC_word_t EccPoint_isZero(const uECC_word_t *point, uECC_Curve curve)
+uECC_word_t EccPoint_isZero(const uECC_word_t *point)
 {
-	(void) curve;
 	return uECC_vli_isZero(point);
 }
 
@@ -802,8 +796,7 @@ void apply_z(uECC_word_t * X1, uECC_word_t * Y1, const uECC_word_t * const Z)
 /* P = (x1, y1) => 2P, (x2, y2) => P' */
 static void XYcZ_initial_double(uECC_word_t * X1, uECC_word_t * Y1,
 				uECC_word_t * X2, uECC_word_t * Y2,
-				const uECC_word_t * const initial_Z,
-				uECC_Curve curve)
+				const uECC_word_t * const initial_Z)
 {
 	uECC_word_t z[NUM_ECC_WORDS];
 	if (initial_Z) {
@@ -817,7 +810,7 @@ static void XYcZ_initial_double(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_vli_set(Y2, Y1);
 
 	apply_z(X1, Y1, z);
-	double_jacobian_default(X1, Y1, z, curve);
+	double_jacobian_default(X1, Y1, z);
 	apply_z(X2, Y2, z);
 }
 
@@ -847,10 +840,8 @@ static void XYcZ_add_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 }
 
 void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1,
-	      uECC_word_t * X2, uECC_word_t * Y2,
-	      uECC_Curve curve)
+	      uECC_word_t * X2, uECC_word_t * Y2)
 {
-	(void) curve;
 	XYcZ_add_rnd(X1, Y1, X2, Y2, NULL);
 }
 
@@ -907,14 +898,13 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	uECC_word_t nb;
 	const wordcount_t num_words = NUM_ECC_WORDS;
 	const bitcount_t num_bits = NUM_ECC_BITS + 1; /* from regularize_k */
-	const uECC_Curve curve = uECC_secp256r1();
 	ecc_wait_state_t wait_state;
 	ecc_wait_state_t * const ws = g_rng_function ? &wait_state : NULL;
 
 	uECC_vli_set(Rx[1], point);
   	uECC_vli_set(Ry[1], point + num_words);
 
-	XYcZ_initial_double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z, curve);
+	XYcZ_initial_double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z);
 
 	for (i = num_bits - 2; i > 0; --i) {
 		ecc_wait_state_reset(ws);
@@ -976,7 +966,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 		return 0;
 
 	/* Protects against invalid curves attacks */
-	if (uECC_valid_point(point, curve) != 0 ) {
+	if (uECC_valid_point(point) != 0 ) {
 		return 0;
 	}
 
@@ -998,7 +988,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 
 	/* Protect against fault injections that would make the resulting
 	 * point not lie on the intended curve */
-	if (uECC_valid_point(result, curve) != 0 ) {
+	if (uECC_valid_point(result) != 0 ) {
 		r = 0;
 		goto clear_and_out;
 	}
@@ -1071,14 +1061,14 @@ int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
 }
 
 
-int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve)
+int uECC_valid_point(const uECC_word_t *point)
 {
 	uECC_word_t tmp1[NUM_ECC_WORDS];
 	uECC_word_t tmp2[NUM_ECC_WORDS];
 	wordcount_t num_words = NUM_ECC_WORDS;
 
 	/* The point at infinity is invalid. */
-	if (EccPoint_isZero(point, curve)) {
+	if (EccPoint_isZero(point)) {
 		return -1;
 	}
 
@@ -1089,7 +1079,7 @@ int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve)
 	}
 
 	uECC_vli_modMult_fast(tmp1, point + num_words, point + num_words);
-	x_side_default(tmp2, point, curve); /* tmp2 = x^3 + ax + b */
+	x_side_default(tmp2, point); /* tmp2 = x^3 + ax + b */
 
 	/* Make sure that y^2 == x^3 + ax + b */
 	if (uECC_vli_equal(tmp1, tmp2) != 0)
@@ -1098,7 +1088,7 @@ int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve)
 	return 0;
 }
 
-int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve)
+int uECC_valid_public_key(const uint8_t *public_key)
 {
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
@@ -1113,7 +1103,7 @@ int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve)
 		return -4;
 	}
 
-	return uECC_valid_point(_public, curve);
+	return uECC_valid_point(_public);
 }
 
 int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,

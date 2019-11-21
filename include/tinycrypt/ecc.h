@@ -134,7 +134,7 @@ typedef enum {
  * @param curve IN -- elliptic curve
  */
 void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
-			     uECC_word_t * Z1, uECC_Curve curve);
+			     uECC_word_t * Z1);
 
 /*
  * @brief Computes result = product % curve_p
@@ -265,10 +265,9 @@ uECC_word_t uECC_vli_isZero(const uECC_word_t *vli);
 /*
  * @brief Check if 'point' is the point at infinity
  * @param point IN -- elliptic curve point
- * @param curve IN -- elliptic curve
  * @return if 'point' is the point at infinity, 0 otherwise.
  */
-uECC_word_t EccPoint_isZero(const uECC_word_t *point, uECC_Curve curve);
+uECC_word_t EccPoint_isZero(const uECC_word_t *point);
 
 /*
  * @brief computes the sign of left - right, in constant time.
@@ -313,7 +312,7 @@ void uECC_vli_modSub(uECC_word_t *result, const uECC_word_t *left,
  * @param curve IN -- elliptic curve
  */
 void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1, uECC_word_t * X2,
-	      uECC_word_t * Y2, uECC_Curve curve);
+	      uECC_word_t * Y2);
 
 /*
  * @brief Computes (x1 * z^2, y1 * z^3)
@@ -444,7 +443,7 @@ void uECC_vli_clear(uECC_word_t *vli);
  * @exception returns -2 if x or y is smaller than p,
  * @exception returns -3 if y^2 != x^3 + ax + b.
  */
-int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve);
+int uECC_valid_point(const uECC_word_t *point);
 
 /*
  * @brief Check if a public key is valid.
@@ -460,7 +459,7 @@ int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve);
  * time computing a shared secret or verifying a signature using an invalid
  * public key.
  */
-int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve);
+int uECC_valid_public_key(const uint8_t *public_key);
 
  /*
   * @brief Converts an integer in uECC native format to big-endian bytes.

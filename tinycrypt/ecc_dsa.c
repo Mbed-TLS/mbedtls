@@ -261,7 +261,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	uECC_vli_set(tx, curve_G);
 	uECC_vli_set(ty, curve_G + num_words);
 	uECC_vli_modSub(z, sum, tx, curve_p); /* z = x2 - x1 */
-	XYcZ_add(tx, ty, sum, sum + num_words, curve);
+	XYcZ_add(tx, ty, sum, sum + num_words);
 	uECC_vli_modInv(z, z, curve_p); /* z = 1/z */
 	apply_z(sum, sum + num_words, z);
 
@@ -282,7 +282,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	for (i = num_bits - 2; i >= 0; --i) {
 		uECC_word_t index;
-		double_jacobian_default(rx, ry, z, curve);
+		double_jacobian_default(rx, ry, z);
 
 		index = (!!uECC_vli_testBit(u1, i)) | ((!!uECC_vli_testBit(u2, i)) << 1);
 		point = points[index];
@@ -291,7 +291,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 			uECC_vli_set(ty, point + num_words);
 			apply_z(tx, ty, z);
 			uECC_vli_modSub(tz, rx, tx, curve_p); /* Z = x2 - x1 */
-			XYcZ_add(tx, ty, rx, ry, curve);
+			XYcZ_add(tx, ty, rx, ry);
 			uECC_vli_modMult_fast(z, z, tz);
 		}
   	}

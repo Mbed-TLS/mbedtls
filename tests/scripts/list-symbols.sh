@@ -16,7 +16,7 @@ cp include/mbedtls/config.h include/mbedtls/config.h.bak
 scripts/config.pl full
 make clean
 make_ret=
-CFLAGS=-fno-asynchronous-unwind-tables make lib \
+CFLAGS=-fno-asynchronous-unwind-tables TINYCRYPT_BUILD=0 make lib \
       >list-symbols.make.log 2>&1 ||
   {
     make_ret=$?

@@ -99,8 +99,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		ripemd160.o	rsa_internal.o	rsa.o  		\
 		sha1.o		sha256.o	sha512.o	\
 		threading.o	timing.o	version.o	\
-		version_features.o		xtea.o		\
-		ecc.o		ecc_dh.o	ecc_dsa.o
+		version_features.o		xtea.o
 
 OBJS_X509=	certs.o		pkcs11.o	x509.o
 
@@ -109,6 +108,17 @@ OBJS_TLS=	debug.o		net_sockets.o		\
 		ssl_cli.o	ssl_cookie.o		\
 		ssl_srv.o	ssl_ticket.o		\
 		ssl_tls.o
+
+# Default to always build TinyCrypt
+ifndef TINYCRYPT_BUILD
+TINYCRYPT_BUILD=1
+endif
+
+ifeq ($(TINYCRYPT_BUILD),1)
+# Add TinyCrypt to the targets and Makefile path
+VPATH = ../tinycrypt
+OBJS_CRYPTO += ecc.o           ecc_dh.o        ecc_dsa.o
+endif
 
 .SILENT:
 

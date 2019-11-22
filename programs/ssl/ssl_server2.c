@@ -721,6 +721,7 @@ static int nss_keylog_export( void *p_expkey,
         if( fwrite( nss_keylog_line, 1, len, f ) != len )
         {
             ret = -1;
+            fclose( f );
             goto exit;
         }
 

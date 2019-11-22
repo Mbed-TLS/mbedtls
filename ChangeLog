@@ -1,5 +1,15 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.20.0 branch released xxxx-xx-xx
+
+Bugfix
+   * Fix an incorrect size in a debugging message. Reported and fix
+     submitted by irwir. Fixes #2717.
+   * Fix an unused variable warning when compiling without DTLS.
+     Reported and fix submitted by irwir. Fixes #2800.
+   * Remove a useless assignment. Reported and fix submitted by irwir.
+     Fixes #2801.
+
 = mbed TLS 2.19.1 branch released 2019-09-16
 
 Features

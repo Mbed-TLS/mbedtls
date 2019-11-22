@@ -120,7 +120,6 @@ int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
                               size_t buflen )
 {
     int ret = 0;
-    mbedtls_record rec;
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "=> mbedtls_ssl_check_record" ) );
     MBEDTLS_SSL_DEBUG_BUF( 3, "record buffer", buf, buflen );
 
@@ -137,6 +136,8 @@ int mbedtls_ssl_check_record( mbedtls_ssl_context const *ssl,
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     else
     {
+        mbedtls_record rec;
+
         ret = ssl_parse_record_header( ssl, buf, buflen, &rec );
         if( ret != 0 )
         {
@@ -4878,6 +4879,25 @@ static inline uint64_t ssl_load_six_bytes( unsigned char *buf )
             ( (uint64_t) buf[5]       ) );
 }
 
+static int mbedtls_ssl_dtls_record_replay_check( mbedtls_ssl_context *ssl, uint8_t *record_in_ctr )
+{
+    int ret;
+    unsigned char *original_in_ctr;
+
+    // save original in_ctr
+    original_in_ctr = ssl->in_ctr;
+
+    // use counter from record
+    ssl->in_ctr = record_in_ctr;
+
+    ret = mbedtls_ssl_dtls_replay_check( (mbedtls_ssl_context const *) ssl );
+
+    // restore the counter
+    ssl->in_ctr = original_in_ctr;
+
+    return ret;
+}
+
 /*
  * Return 0 if sequence number is acceptable, -1 otherwise
  */
@@ -5383,7 +5403,8 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
         /* For records from the correct epoch, check whether their
          * sequence number has been seen before. */
-        else if( mbedtls_ssl_dtls_replay_check( ssl ) != 0 )
+        else if( mbedtls_ssl_dtls_record_replay_check( (mbedtls_ssl_context *) ssl,
+            &rec->ctr[0] ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "replayed record" ) );
             return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
@@ -6432,7 +6453,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ssl->in_len = ssl->in_cid + rec.cid_len;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-    ssl->in_iv  = ssl->in_msg = ssl->in_len + 2;
+    ssl->in_iv  = ssl->in_len + 2;
 
     /* The record content type may change during decryption,
      * so re-read it. */
@@ -6586,16 +6607,9 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl )
 {
-    int ret;
-
-    if( ( ret = mbedtls_ssl_send_alert_message( ssl,
-                    MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                    MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    return( 0 );
+    return( mbedtls_ssl_send_alert_message( ssl,
+                  MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                  MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE ) );
 }
 
 int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
@@ -7283,7 +7297,7 @@ static int ssl_remember_peer_crt_digest( mbedtls_ssl_context *ssl,
     if( ssl->session_negotiate->peer_cert_digest == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
-                                    sizeof( MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN ) ) );
+                                    MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN ) );
         mbedtls_ssl_send_alert_message( ssl,
                                         MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );

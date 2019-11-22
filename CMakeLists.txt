@@ -185,7 +185,10 @@ endif(ENABLE_ZLIB_SUPPORT)
 
 add_subdirectory(library)
 add_subdirectory(include)
-add_subdirectory(tinycrypt)
+
+if(USE_TINYCRYPT)
+    add_subdirectory(tinycrypt)
+endif()
 
 if(ENABLE_PROGRAMS)
     add_subdirectory(programs)

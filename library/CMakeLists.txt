@@ -1,4 +1,5 @@
 option(USE_STATIC_MBEDTLS_LIBRARY "Build mbed TLS static library." ON)
+option(USE_TINYCRYPT "Include TinyCrypt." ON)
 option(USE_SHARED_MBEDTLS_LIBRARY "Build mbed TLS shared library." OFF)
 option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
 
@@ -123,7 +124,9 @@ if(LINK_WITH_PTHREAD)
     set(libs ${libs} pthread)
 endif()
 
-set(libs ${libs} tinycrypt)
+if(USE_TINYCRYPT)
+    set(libs ${libs} tinycrypt)
+endif()
 
 if (NOT USE_STATIC_MBEDTLS_LIBRARY AND NOT USE_SHARED_MBEDTLS_LIBRARY)
     message(FATAL_ERROR "Need to choose static or shared mbedtls build!")

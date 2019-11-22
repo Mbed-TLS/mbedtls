@@ -30,6 +30,7 @@
 
 #include "mbedtls/poly1305.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -423,7 +424,7 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
                           unsigned char mac[16] )
 {
     mbedtls_poly1305_context ctx;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     POLY1305_VALIDATE_RET( key != NULL );
     POLY1305_VALIDATE_RET( mac != NULL );
     POLY1305_VALIDATE_RET( ilen == 0 || input != NULL );
@@ -529,7 +530,7 @@ int mbedtls_poly1305_self_test( int verbose )
 {
     unsigned char mac[16];
     unsigned i;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     for( i = 0U; i < 2U; i++ )
     {

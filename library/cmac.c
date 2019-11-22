@@ -50,6 +50,7 @@
 
 #include "mbedtls/cmac.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -136,7 +137,7 @@ static int cmac_multiply_by_u( unsigned char *output,
 static int cmac_generate_subkeys( mbedtls_cipher_context_t *ctx,
                                   unsigned char* K1, unsigned char* K2 )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char L[MBEDTLS_CIPHER_BLKSIZE_MAX];
     size_t olen, block_size;
 
@@ -315,7 +316,7 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
     unsigned char K1[MBEDTLS_CIPHER_BLKSIZE_MAX];
     unsigned char K2[MBEDTLS_CIPHER_BLKSIZE_MAX];
     unsigned char M_last[MBEDTLS_CIPHER_BLKSIZE_MAX];
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen, block_size;
 
     if( ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL ||
@@ -393,7 +394,7 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
                          unsigned char *output )
 {
     mbedtls_cipher_context_t ctx;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( cipher_info == NULL || key == NULL || input == NULL || output == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
@@ -427,7 +428,7 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
                               const unsigned char *input, size_t in_len,
                               unsigned char *output )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
     unsigned char zero_key[MBEDTLS_AES_BLOCK_SIZE];
     unsigned char int_key[MBEDTLS_AES_BLOCK_SIZE];
@@ -894,7 +895,7 @@ exit:
 static int test_aes128_cmac_prf( int verbose )
 {
     int i;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char output[MBEDTLS_AES_BLOCK_SIZE];
 
     for( i = 0; i < NB_PRF_TESTS; i++ )
@@ -921,7 +922,7 @@ static int test_aes128_cmac_prf( int verbose )
 
 int mbedtls_cmac_self_test( int verbose )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
 #if defined(MBEDTLS_AES_C)
     /* AES-128 */

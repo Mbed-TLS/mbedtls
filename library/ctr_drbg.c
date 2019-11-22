@@ -34,6 +34,7 @@
 
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -319,7 +320,7 @@ int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
                                  size_t add_len )
 {
     unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( add_len == 0 )
         return( 0 );
@@ -367,7 +368,7 @@ static int mbedtls_ctr_drbg_reseed_internal( mbedtls_ctr_drbg_context *ctx,
 {
     unsigned char seed[MBEDTLS_CTR_DRBG_MAX_SEED_INPUT];
     size_t seedlen = 0;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( ctx->entropy_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
         return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
@@ -452,7 +453,7 @@ int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
                            const unsigned char *custom,
                            size_t len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
     size_t nonce_len;
 
@@ -590,7 +591,7 @@ exit:
 int mbedtls_ctr_drbg_random( void *p_rng, unsigned char *output,
                              size_t output_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *) p_rng;
 
 #if defined(MBEDTLS_THREADING_C)

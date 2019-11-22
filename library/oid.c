@@ -31,6 +31,7 @@
 
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
+#include "mbedtls/error.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -732,7 +733,7 @@ FN_OID_GET_ATTR2(mbedtls_oid_get_pkcs12_pbe_alg, oid_pkcs12_pbe_alg_t, pkcs12_pb
 int mbedtls_oid_get_numeric_string( char *buf, size_t size,
                             const mbedtls_asn1_buf *oid )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i, n;
     unsigned int value;
     char *p;

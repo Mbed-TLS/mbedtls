@@ -351,6 +351,8 @@ static psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
         case MBEDTLS_ERR_ECP_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
+        case MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED:
+            return( PSA_ERROR_CORRUPTION_DETECTED );
 
         default:
             return( PSA_ERROR_GENERIC_ERROR );

@@ -1818,6 +1818,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_ENABLE_TINYCRYPT)
+    if( strcmp( "MBEDTLS_ENABLE_TINYCRYPT", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_ENABLE_TINYCRYPT );
+        return( 0 );
+    }
+#endif /* MBEDTLS_ENABLE_TINYCRYPT */
+
 #if defined(MBEDTLS_USE_TINYCRYPT)
     if( strcmp( "MBEDTLS_USE_TINYCRYPT", config ) == 0 )
     {

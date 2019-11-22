@@ -1528,6 +1528,7 @@ component_build_baremetal_raw_armcc () {
 component_test_default_tinycrypt_without_legacy_ecc () {
     msg "test default config with tinycrypt enabled and legacy ECC disabled"
 
+    scripts/config.pl set MBEDTLS_ENABLE_TINYCRYPT
     scripts/config.pl set MBEDTLS_USE_TINYCRYPT
     scripts/config.pl set MBEDTLS_SSL_CONF_RNG rng_wrap
     scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC
@@ -1567,6 +1568,7 @@ component_test_default_tinycrypt_without_legacy_ecc () {
 component_test_hardcoded_pk_type () {
     msg "build: default config + single PK type harcoded (tinycrypt)"
     # need to enable tinycrypt first - copied from tinycrypt component
+    scripts/config.pl set MBEDTLS_ENABLE_TINYCRYPT
     scripts/config.pl set MBEDTLS_USE_TINYCRYPT
     scripts/config.pl set MBEDTLS_SSL_CONF_RNG rng_wrap
     scripts/config.pl set MBEDTLS_SSL_CONF_SINGLE_EC

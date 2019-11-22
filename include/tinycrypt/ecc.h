@@ -73,7 +73,7 @@
  *
  */
 
-#if defined(MBEDTLS_USE_TINYCRYPT)
+#if defined(MBEDTLS_ENABLE_TINYCRYPT)
 #ifndef __TC_UECC_H__
 #define __TC_UECC_H__
 
@@ -528,4 +528,4 @@ void uECC_vli_bytesToNative(unsigned int *native, const uint8_t *bytes,
 #endif
 
 #endif /* __TC_UECC_H__ */
-#endif /* MBEDTLS_USE_TINYCRYPT */
+#endif /* MBEDTLS_ENABLE_TINYCRYPT */

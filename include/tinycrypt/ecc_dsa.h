@@ -80,7 +80,7 @@
  *          the signer's public key and the signature values (r and s).
  */
 
-#if defined(MBEDTLS_USE_TINYCRYPT)
+#if defined(MBEDTLS_ENABLE_TINYCRYPT)
 #ifndef __TC_ECC_DSA_H__
 #define __TC_ECC_DSA_H__
 
@@ -143,4 +143,4 @@ int uECC_verify(const uint8_t *p_public_key, const uint8_t *p_message_hash,
 #endif
 
 #endif /* __TC_ECC_DSA_H__ */
-#endif /* MBEDTLS_USE_TINYCRYPT */
+#endif /* MBEDTLS_ENABLE_TINYCRYPT */

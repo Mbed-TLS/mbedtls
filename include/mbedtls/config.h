@@ -2636,16 +2636,35 @@
 #define MBEDTLS_ECP_C
 
 /**
- * \def MBEDTLS_USE_TINYCRYPT
+ * \def MBEDTLS_ENABLE_TINYCRYPT
  *
- * Enable the TinyCrypt ECC library. This module provides alternative ECC
- * handling functions replacing the native Mbed TLS ECP module.
+ * Enable building the TinyCrypt ECC library. This module provides alternative ECC
+ * handling functions that can be used by the application, and also by other
+ * Mbed TLS modules if #MBEDTLS_USE_TINYCRYPT is also enabled (see below).
  *
  * TinyCrypt is a project independent from Mbed TLS, licensed under 3-clause
  * BSD, and can be found at https://github.com/intel/tinycrypt - this option
  * only enables the ECC modules from TinyCrypt.
  *
- * Requires: MBEDTLS_SSL_CONF_RNG
+ * Module:  tinycrypt/ecc.c
+ *          tinycrypt/ecc_dh.c
+ *          tinycrypt/ecc_dsa.c
+ *
+ * Uncomment to enable building of the TinyCrypt ECC library.
+ */
+//#define MBEDTLS_ENABLE_TINYCRYPT
+
+/**
+ * \def MBEDTLS_USE_TINYCRYPT
+ *
+ * Enable use of TinyCrypt ECC modules from X.509 and TLS library, as well
+ * as in the PK layer, in place of Mbed TLS's own ECP module.
+ *
+ * \see MBEDTLS_ENABLE_TINYCRYPT
+ *
+ * Requires: MBEDTLS_ENABLE_TINYCRYPT
+ *           !MBEDTLS_ECP_C
+ *           MBEDTLS_SSL_CONF_RNG
  *           MBEDTLS_SSL_CONF_SINGLE_EC
  *           MBEDTLS_SSL_CONF_SINGLE_EC_TLS_ID == 23
  *           MBEDTLS_SSL_CONF_SINGLE_UECC_GRP_ID == MBEDTLS_UECC_DP_SECP256R1
@@ -2654,9 +2673,7 @@
  *
  * \see MBEDTLS_SSL_CONF_SINGLE_EC
  *
- * Module:  tinycrypt/ecc.c
- *          tinycrypt/ecc_dh.c
- *          tinycrypt/ecc_dsa.c
+ * Uncomment to enable use of TinyCrypt ECC by the rest ot the library.
  */
 //#define MBEDTLS_USE_TINYCRYPT
 

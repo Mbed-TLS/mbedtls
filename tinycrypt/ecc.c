@@ -63,7 +63,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_USE_TINYCRYPT)
+#if defined(MBEDTLS_ENABLE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include "mbedtls/platform_util.h"
 #include <string.h>
@@ -1116,5 +1116,5 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
 }
 #else
 typedef int mbedtls_dummy_tinycrypt_def;
-#endif /* MBEDTLS_USE_TINYCRYPT */
+#endif /* MBEDTLS_ENABLE_TINYCRYPT */
 

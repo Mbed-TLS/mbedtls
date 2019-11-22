@@ -70,8 +70,9 @@ Tests are provided as part of Mbed TLS and the Mbed TLS test suites.
 Building:
 
 To include TinyCrypt as part of Mbed TLS, enable the configuration option
-MBEDTLS_USE_TINYCRYPT in the configration file 'include/mbedtls/config.h', and
-build as Mbed TLS as normal.
+MBEDTLS_ENABLE_TINYCRYPT in the configration file 'include/mbedtls/config.h', and
+build as Mbed TLS as normal. Additionaly, to make the rest of Mbed TLS use
+TinyCrypt, enable MBEDTLS_USE_TINYCRYPT in the same file.
 
 ================================================================================
 

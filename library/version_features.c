@@ -666,6 +666,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_ECP_C)
     "MBEDTLS_ECP_C",
 #endif /* MBEDTLS_ECP_C */
+#if defined(MBEDTLS_ENABLE_TINYCRYPT)
+    "MBEDTLS_ENABLE_TINYCRYPT",
+#endif /* MBEDTLS_ENABLE_TINYCRYPT */
 #if defined(MBEDTLS_USE_TINYCRYPT)
     "MBEDTLS_USE_TINYCRYPT",
 #endif /* MBEDTLS_USE_TINYCRYPT */

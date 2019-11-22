@@ -106,8 +106,12 @@
 #error "MBEDTLS_SSL_CONF_SINGLE_SIG_HASH defined, but not all prerequesites"
 #endif
 
-#if defined(MBEDTLS_USE_TINYCRYPT) && defined(MBEDTLS_NO_64BIT_MULTIPLICATION)
-#error "MBEDTLS_USE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
+#if defined(MBEDTLS_ENABLE_TINYCRYPT) && defined(MBEDTLS_NO_64BIT_MULTIPLICATION)
+#error "MBEDTLS_ENABLE_TINYCRYPT defined, but it cannot be defined with MBEDTLS_NO_64BIT_MULTIPLICATION"
+#endif
+
+#if defined(MBEDTLS_USE_TINYCRYPT) && !defined(MBEDTLS_ENABLE_TINYCRYPT)
+#error "MBEDTLS_USE_TINYCRYPT requires MBEDTLS_ENABLE_TINYCRYPT"
 #endif
 
 #if defined(MBEDTLS_USE_TINYCRYPT) &&                                    \

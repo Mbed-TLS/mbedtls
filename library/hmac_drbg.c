@@ -123,30 +123,30 @@ int mbedtls_hmac_drbg_update_ret( mbedtls_hmac_drbg_context *ctx,
         flow_counter++;
         if( ( ret = mbedtls_md_hmac_finish( &ctx->md_ctx, ctx->V ) ) != 0 )
             goto exit;
+        flow_counter++;
     }
 
 exit:
 
-    if( ret == 0 )
+    mbedtls_platform_zeroize( K, sizeof( K ) );
+    /* Check for possible attack.
+     * Counters needs to have correct values when returning success
+     */
+    if ( ret != 0 )
+        return( ret ); // error case, return immediately
+
+    if ( ( ( flow_counter == 8  ) && ( sep[0] == 1 ) ) ||
+         ( ( flow_counter == 18 ) && ( sep[0] == 2 ) ) )
     {
-        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-        /* Check for possible attack.
-         * Counters needs to have correct values when returning success
-         */
-        if ( ( ( flow_counter == 7  ) && ( sep[0] == 1 ) ) ||
-             ( ( flow_counter == 16 ) && ( sep[0] == 2 ) ) )
+        flow_counter = flow_counter - sep[0];
+        // Double check flow_counter
+        if ( ( flow_counter == 7 ) || ( flow_counter == 16 ) )
         {
-            flow_counter = flow_counter - sep[0];
-            // Double check flow_counter
-            if ( ( flow_counter == 6 ) || ( flow_counter == 14 ) )
-            {
-                ret = 0;
-            }
+            return ret;   // success, return 0 from ret
         }
     }
 
-    mbedtls_platform_zeroize( K, sizeof( K ) );
-    return( ret );
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -259,14 +259,20 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
     ctx->reseed_counter = 1;
 
 exit:
-    if (ret == 0 && ctx->reseed_counter != 1)
-    {
-        /* Illegal condition, possible attack detected */
-        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-    }
+
     /* 4. Done */
     mbedtls_platform_zeroize( seed, seedlen );
-    return( ret );
+
+    if ( ret != 0 )
+        return ret;
+
+    if ( ret == 0 && ctx->reseed_counter == 1 )
+    {
+        /* All ok, return 0 from ret */
+        return ret;
+    }
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /*
@@ -430,21 +436,20 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
 exit:
     /* 8. Done */
 
-    if (ret == 0)
+    if ( ret != 0 )
+        return ret;
+
+    /*
+     * Check doubled variables and illegal conditions in case of possible
+     * attack.
+     */
+    if ( ( out_len_fi == out_len ) && ( output_fi == output) &&
+         ( left == 0 ) )
     {
-        /*
-         * Check doubled variables and illegal conditions in case of possible
-         * attack.
-         */
-        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-        if ( ( out_len_fi == out_len ) && ( output_fi == output) &&
-             ( left == 0 ) )
-        {
-            ret = 0;
-        }
+        return ret; // Success, return 0
     }
 
-    return( ret );
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /*

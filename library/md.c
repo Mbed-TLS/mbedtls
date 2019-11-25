@@ -525,7 +525,7 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
     int ret;
     unsigned char sum[MBEDTLS_MD_MAX_SIZE];
     unsigned char *ipad, *opad;
-    size_t i;
+    size_t i = 0;
 
     mbedtls_md_handle_t md_info;
 
@@ -588,16 +588,14 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
 cleanup:
     mbedtls_platform_zeroize( sum, sizeof( sum ) );
 
-    if ( ret == 0 )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-        /* Check possible fault injection */
-        if ( ( i - 2 ) == keylen ) {
-            ret = 0;
-        }
-    }
+    if ( ret != 0 )
+        return ret;
 
-    return( ret );
+    /* Check possible fault injection */
+    if ( ( i - 2 ) == keylen )
+        return ret; // success, return 0 from ret
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 int mbedtls_md_hmac_update( mbedtls_md_context_t *ctx,

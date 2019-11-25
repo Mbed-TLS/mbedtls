@@ -304,7 +304,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 			return UECC_SUCCESS;
 		}
 		else {
-			return UECC_ATTACK_DETECTED;
+			return UECC_FAULT_DETECTED;
 		}
 	}
 

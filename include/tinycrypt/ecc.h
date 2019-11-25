@@ -88,7 +88,7 @@ extern "C" {
  * attacks flipping a low number of bits. */
 #define UECC_SUCCESS            0
 #define UECC_FAILURE            0x75555555
-#define UECC_ATTACK_DETECTED    0x7aaaaaaa
+#define UECC_FAULT_DETECTED     0x7aaaaaaa
 
 /* Word size (4 bytes considering 32-bits architectures) */
 #define uECC_WORD_SIZE 4

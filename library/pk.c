@@ -592,7 +592,7 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     ret_fi = uECC_verify( keypair->public_key, hash,
                           (unsigned) hash_len, signature );
 
-    if( ret_fi == UECC_ATTACK_DETECTED )
+    if( ret_fi == UECC_FAULT_DETECTED )
         return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 
     if( ret_fi == UECC_SUCCESS )

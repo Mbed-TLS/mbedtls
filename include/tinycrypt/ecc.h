@@ -217,7 +217,7 @@ int uECC_curve_public_key_size(void);
  * @param private_key IN -- The private key to compute the public key for
  * @param public_key OUT -- Will be filled in with the corresponding public key
  * @param curve
- * @return Returns 1 if key was computed successfully, 0 if an error occurred.
+ * @return UECC_SUCCESS or UECC_FAILURE or UECC_FAULT_DETECTED
  */
 int uECC_compute_public_key(const uint8_t *private_key,
 			    uint8_t *public_key);
@@ -228,6 +228,7 @@ int uECC_compute_public_key(const uint8_t *private_key,
  * @param result OUT -- public-key
  * @param private_key IN -- private-key
  * @param curve IN -- elliptic curve
+ * @return UECC_SUCCESS or UECC_FAILURE or UECC_FAULT_DETECTED
  */
 uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
 					uECC_word_t *private_key);
@@ -241,6 +242,7 @@ uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
  * @param result OUT -- returns scalar*point
  * @param point IN -- elliptic curve point
  * @param scalar IN -- scalar
+ * @return UECC_SUCCESS or UECC_FAILURE or UECC_FAULT_DETECTED
  */
 int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 			const uECC_word_t * scalar);

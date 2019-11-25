@@ -137,7 +137,7 @@ void pk_parse_keyfile_ec( char * key_file, char * password, int result )
         uecckey = mbedtls_pk_uecc( ctx );
         TEST_ASSERT( uECC_valid_public_key( uecckey->public_key ) == 0 );
         TEST_ASSERT( uECC_compute_public_key( uecckey->private_key,
-                                              tmp_pubkey ) != 0 );
+                                              tmp_pubkey ) == UECC_SUCCESS );
         TEST_ASSERT( memcmp( tmp_pubkey, uecckey->public_key,
                             sizeof( tmp_pubkey ) ) == 0 );
 #endif /* MBEDTLS_USE_TINYCRYPT */

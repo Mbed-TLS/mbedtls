@@ -1021,16 +1021,16 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	wordcount_t num_words = NUM_ECC_WORDS;
 	uECC_word_t carry;
 	uECC_word_t *initial_Z = 0;
-	int r;
+	int r = UECC_FAULT_DETECTED;
 
 	/* Protect against faults modifying curve paremeters in flash */
 	if (uECC_check_curve_integrity() != 0) {
-		return 0;
+		return UECC_FAULT_DETECTED;
 	}
 
-	/* Protects against invalid curves attacks */
+	/* Protects against invalid curve attacks */
 	if (uECC_valid_point(point) != 0 ) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	/* Regularize the bitcount for the private key so that attackers cannot use a
@@ -1041,7 +1041,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
          * protect against side-channel attacks such as Template SPA */
 	if (g_rng_function) {
 		if (!uECC_generate_random_int(k2[carry], curve_p, num_words)) {
-			r = 0;
+			r = UECC_FAILURE;
 			goto clear_and_out;
 		}
 		initial_Z = k2[carry];
@@ -1052,17 +1052,17 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	/* Protect against fault injections that would make the resulting
 	 * point not lie on the intended curve */
 	if (uECC_valid_point(result) != 0 ) {
-		r = 0;
+		r = UECC_FAULT_DETECTED;
 		goto clear_and_out;
 	}
 
 	/* Protect against faults modifying curve paremeters in flash */
 	if (uECC_check_curve_integrity() != 0) {
-		r = 0;
+		r = UECC_FAULT_DETECTED;
 		goto clear_and_out;
 	}
 
-	r = 1;
+	r = UECC_SUCCESS;
 
 clear_and_out:
 	/* erasing temporary buffer used to store secret: */
@@ -1176,7 +1176,7 @@ int uECC_valid_public_key(const uint8_t *public_key)
 
 int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 {
-
+	int ret;
 	uECC_word_t _private[NUM_ECC_WORDS];
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 
@@ -1187,23 +1187,24 @@ int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 
 	/* Make sure the private key is in the range [1, n-1]. */
 	if (uECC_vli_isZero(_private)) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	if (uECC_vli_cmp(curve_n, _private) != 1) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	/* Compute public key. */
-	if (!EccPoint_compute_public_key(_public, _private)) {
-		return 0;
+	ret = EccPoint_compute_public_key(_public, _private);
+	if (ret != UECC_SUCCESS) {
+		return ret;
 	}
 
 	uECC_vli_nativeToBytes(public_key, NUM_ECC_BYTES, _public);
 	uECC_vli_nativeToBytes(
 	public_key +
 	NUM_ECC_BYTES, NUM_ECC_BYTES, _public + NUM_ECC_WORDS);
-	return 1;
+	return UECC_SUCCESS;
 }
 #else
 typedef int mbedtls_dummy_tinycrypt_def;

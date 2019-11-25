@@ -92,8 +92,7 @@ extern "C" {
 
 /**
  * @brief Generate an ECDSA signature for a given hash value.
- * @return returns TC_CRYPTO_SUCCESS (1) if the signature generated successfully
- *         returns TC_CRYPTO_FAIL (0) if an error occurred.
+ * @return UECC_SUCCESS or UECC_FAILURE or UECC_FAULT_DETECTED
  *
  * @param p_private_key IN -- Your private key.
  * @param p_message_hash IN -- The hash of the message to sign.

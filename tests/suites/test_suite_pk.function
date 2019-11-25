@@ -36,7 +36,7 @@ static int pk_genkey( mbedtls_pk_context *pk )
 
         ret = uECC_make_key( mbedtls_pk_uecc( *pk )->public_key,
                              mbedtls_pk_uecc( *pk )->private_key );
-        if( ret == 0 )
+        if( ret != UECC_SUCCESS )
             return( -1 );
 
         return( 0 );

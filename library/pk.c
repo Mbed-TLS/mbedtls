@@ -723,8 +723,9 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
      #define MAX_SECP256R1_ECDSA_SIG_LEN ( 3 + 2 * ( 3 + NUM_ECC_BYTES ) )
 
     ret = uECC_sign( keypair->private_key, hash, hash_len, sig );
-    /* TinyCrypt uses 0 to signal errors. */
-    if( ret == 0 )
+    if( ret == UECC_FAULT_DETECTED )
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    if( ret != UECC_SUCCESS )
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     *sig_len = 2 * NUM_ECC_BYTES;

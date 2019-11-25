@@ -122,12 +122,12 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	/* Make sure 0 < k < curve_n */
   	if (uECC_vli_isZero(k) ||
 	    uECC_vli_cmp(curve_n, k) != 1) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	r = EccPoint_mult_safer(p, curve_G, k);
-	if (r == 0 || uECC_vli_isZero(p)) {
-		return 0;
+        if (r != UECC_SUCCESS) {
+		return r;
 	}
 
 	/* If an RNG function was specified, get a random number
@@ -137,7 +137,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 		tmp[0] = 1;
 	}
 	else if (!uECC_generate_random_int(tmp, curve_n, num_n_words)) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	/* Prevent side channel analysis of uECC_vli_modInv() to determine
@@ -159,16 +159,17 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 	uECC_vli_modAdd(s, tmp, s, curve_n); /* s = e + r*d */
 	uECC_vli_modMult(s, s, k, curve_n);  /* s = (e + r*d) / k */
 	if (uECC_vli_numBits(s) > (bitcount_t)NUM_ECC_BYTES * 8) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	uECC_vli_nativeToBytes(signature + NUM_ECC_BYTES, NUM_ECC_BYTES, s);
-	return 1;
+	return UECC_SUCCESS;
 }
 
 int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 	      unsigned hash_size, uint8_t *signature)
 {
+	int r;
 	      uECC_word_t _random[2*NUM_ECC_WORDS];
 	      uECC_word_t k[NUM_ECC_WORDS];
 	      uECC_word_t tries;
@@ -178,17 +179,23 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 		uECC_RNG_Function rng_function = uECC_get_rng();
 		if (!rng_function ||
 		    !rng_function((uint8_t *)_random, 2*NUM_ECC_WORDS*uECC_WORD_SIZE)) {
-			return 0;
+			return UECC_FAILURE;
 		}
 
 		// computing k as modular reduction of _random (see FIPS 186.4 B.5.1):
 		uECC_vli_mmod(k, _random, curve_n);
 
-		if (uECC_sign_with_k(private_key, message_hash, hash_size, k, signature)) {
-			return 1;
+		r = uECC_sign_with_k(private_key, message_hash, hash_size, k, signature);
+		/* don't keep trying if a fault was detected */
+		if (r == UECC_FAULT_DETECTED) {
+			return r;
 		}
+		if (r == UECC_SUCCESS) {
+			return UECC_SUCCESS;
+		}
+		/* else keep trying */
 	}
-	return 0;
+	return UECC_FAILURE;
 }
 
 static bitcount_t smax(bitcount_t a, bitcount_t b)

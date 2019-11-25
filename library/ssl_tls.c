@@ -1973,14 +1973,13 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
-        ((void) ret);
-
-        if( !uECC_shared_secret( ssl->handshake->ecdh_peerkey,
-                                 ssl->handshake->ecdh_privkey,
-                                 ssl->handshake->premaster ) )
-        {
+        ret = uECC_shared_secret( ssl->handshake->ecdh_peerkey,
+                                  ssl->handshake->ecdh_privkey,
+                                  ssl->handshake->premaster );
+        if( ret == UECC_FAULT_DETECTED )
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        if( ret != UECC_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
 
         ssl->handshake->pmslen = NUM_ECC_BYTES;
     }
@@ -2168,14 +2167,13 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         size_t zlen;
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
-        ((void) ret);
-
-        if( !uECC_shared_secret( ssl->handshake->ecdh_peerkey,
-                                 ssl->handshake->ecdh_privkey,
-                                 p + 2 ) )
-        {
+        ret = uECC_shared_secret( ssl->handshake->ecdh_peerkey,
+                                  ssl->handshake->ecdh_privkey,
+                                  p + 2 );
+        if( ret == UECC_FAULT_DETECTED )
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        if( ret != UECC_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
 
         zlen = NUM_ECC_BYTES;
 #else /* MBEDTLS_USE_TINYCRYPT */

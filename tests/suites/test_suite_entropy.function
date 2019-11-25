@@ -271,7 +271,8 @@ void entropy_threshold( int threshold, int chunk_size, int result )
     {
         TEST_ASSERT( ret == 0 );
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
-        // Two times as much calls due to the NV seed update
+        /* If the NV seed functionality is enabled, there are two entropy
+         * updates: before and after updating the NV seed. */
         result *= 2;
 #endif
         TEST_ASSERT( dummy.calls == (size_t) result );
@@ -317,6 +318,11 @@ void entropy_calls( int strength1, int strength2,
     if( result >= 0 )
     {
         TEST_ASSERT( ret == 0 );
+#if defined(MBEDTLS_ENTROPY_NV_SEED)
+        /* If the NV seed functionality is enabled, there are two entropy
+         * updates: before and after updating the NV seed. */
+        result *= 2;
+#endif
         TEST_ASSERT( dummy1.calls == (size_t) result );
     }
     else

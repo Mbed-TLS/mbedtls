@@ -213,11 +213,15 @@ if ( not defined($action) ){ die $usage; }
 # Check the config file is present
 if (! -f $config_file)  {
 
-    chdir '..' or die;
-
-    # Confirm this is the project root directory and try again
-    if ( !(-d 'scripts' && -d 'include' && -d 'library' && -f $config_file) ) {
-        die "If no file specified, must be run from the project root or scripts directory.\n";
+    if ( -d 'importer' && -d 'inc' && -d 'src') {
+        $config_file = "inc/mbedtls/config.h";
+    }
+    else {
+        chdir '..' or die;
+        # Confirm this is the project root directory and try again
+        if ( !(-d 'scripts' && -d 'include' && -d 'library' && -f $config_file) ) {
+            die "If no file specified, must be run from the project root or scripts directory.\n";
+        }
     }
 }
 

@@ -251,18 +251,26 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:ENTROPY_HAVE_STRONG */
+/* BEGIN_CASE */
 void entropy_threshold( int threshold, int chunk_size, int result )
 {
     mbedtls_entropy_context ctx;
-    entropy_dummy_context dummy = {DUMMY_CONSTANT_LENGTH, chunk_size, 0};
+    entropy_dummy_context strong =
+        {DUMMY_CONSTANT_LENGTH, MBEDTLS_ENTROPY_BLOCK_SIZE, 0};
+    entropy_dummy_context weak = {DUMMY_CONSTANT_LENGTH, chunk_size, 0};
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE] = { 0 };
     int ret;
 
     mbedtls_entropy_init( &ctx );
+    entropy_clear_sources( &ctx );
 
+    /* Set strong source that reaches its threshold immediately and
+     * a weak source whose threshold is a test parameter. */
     TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source,
-                                     &dummy, threshold,
+                                     &strong, 1,
+                                     MBEDTLS_ENTROPY_SOURCE_STRONG ) == 0 );
+    TEST_ASSERT( mbedtls_entropy_add_source( &ctx, entropy_dummy_source,
+                                     &weak, threshold,
                                      MBEDTLS_ENTROPY_SOURCE_WEAK ) == 0 );
 
     ret = mbedtls_entropy_func( &ctx, buf, sizeof( buf ) );
@@ -275,7 +283,7 @@ void entropy_threshold( int threshold, int chunk_size, int result )
          * updates: before and after updating the NV seed. */
         result *= 2;
 #endif
-        TEST_ASSERT( dummy.calls == (size_t) result );
+        TEST_ASSERT( weak.calls == (size_t) result );
     }
     else
     {

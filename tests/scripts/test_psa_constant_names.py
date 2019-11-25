@@ -97,15 +97,22 @@ class Inputs:
         }
         # Test functions
         self.table_by_test_function = {
-            'key_type': self.key_types,
-            'ecc_key_types': self.ecc_curves,
-            'dh_key_types': self.dh_groups,
-            'hash_algorithm': self.hash_algorithms,
-            'mac_algorithm': self.mac_algorithms,
-            'hmac_algorithm': self.mac_algorithms,
-            'aead_algorithm': self.aead_algorithms,
-            'key_derivation_algorithm': self.kdf_algorithms,
-            'key_agreement_algorithm': self.ka_algorithms,
+            # Any function ending in _algorithm also gets added to
+            # self.algorithms.
+            'key_type': [self.key_types],
+            'ecc_key_types': [self.ecc_curves],
+            'dh_key_types': [self.dh_groups],
+            'hash_algorithm': [self.hash_algorithms],
+            'mac_algorithm': [self.mac_algorithms],
+            'cipher_algorithm': [],
+            'hmac_algorithm': [self.mac_algorithms],
+            'aead_algorithm': [self.aead_algorithms],
+            'key_derivation_algorithm': [self.kdf_algorithms],
+            'key_agreement_algorithm': [self.ka_algorithms],
+            'asymmetric_signature_algorithm': [],
+            'asymmetric_signature_wildcard': [self.algorithms],
+            'asymmetric_encryption_algorithm': [],
+            'other_algorithm': [],
         }
         # macro name -> list of argument names
         self.argspecs = {}
@@ -253,8 +260,7 @@ class Inputs:
                 # exclude ones that are already chained with a KDF.
                 # Keep the expression as one to test as an algorithm.
                 function = 'other_algorithm'
-        if function in self.table_by_test_function:
-            sets.append(self.table_by_test_function[function])
+        sets += self.table_by_test_function[function]
         if self.accept_test_case_line(function, argument):
             for s in sets:
                 s.add(argument)

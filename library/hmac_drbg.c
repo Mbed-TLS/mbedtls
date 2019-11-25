@@ -34,6 +34,7 @@
 #if defined(MBEDTLS_HMAC_DRBG_C)
 
 #include "mbedtls/hmac_drbg.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 
 #include <string.h>

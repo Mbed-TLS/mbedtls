@@ -32,6 +32,7 @@
 #if defined(MBEDTLS_MD_C)
 
 #include "mbedtls/md.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_PLATFORM_C)

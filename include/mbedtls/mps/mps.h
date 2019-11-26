@@ -1324,11 +1324,11 @@ int mbedtls_mps_read( mbedtls_mps *mps );
  * \param mps   The MPS context to use.
  *
  * \return      #MBEDTLS_ERR_MPS_BLOCKED if MPS is blocked.
- * \return      #MBEDTLS_MPS_PORT_NONE if no message is available.
- * \return      #MBEDTLS_MPS_PORT_APPLICATION, or
- *              #MBEDTLS_MPS_PORT_HANDSHAKE, or
- *              #MBEDTLS_MPS_PORT_ALERT, or
- *              #MBEDTLS_MPS_PORT_CCS,
+ * \return      #MBEDTLS_MPS_MSG_NONE if no message is available.
+ * \return      #MBEDTLS_MPS_MSG_APPLICATION, or
+ *              #MBEDTLS_MPS_MSG_HANDSHAKE, or
+ *              #MBEDTLS_MPS_MSG_ALERT, or
+ *              #MBEDTLS_MPS_MSG_CCS,
  *              otherwise, indicating the message's record content type.
  *
  * \note        This function doesn't do any processing and
@@ -1348,7 +1348,7 @@ int mbedtls_mps_read_check( mbedtls_mps const *mps );
  *
  * \note        This function should only be called after a successful
  *              call to mbedtls_mps_read() or mbedtls_mps_check() returning
- *              #MBEDTLS_MPS_PORT_HANDSHAKE. Otherwise, the function
+ *              #MBEDTLS_MPS_MSG_HANDSHAKE. Otherwise, the function
  *              will silently fail.
  */
 int mbedtls_mps_read_handshake( mbedtls_mps *mps,
@@ -1366,7 +1366,7 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
  *
  * \note        This function should only be called after a successful
  *              call to mbedtls_mps_read() or mbedtls_mps_check() returning
- *              #MBEDTLS_MPS_PORT_APPLICATION. Otherwise, the function
+ *              #MBEDTLS_MPS_MSG_APPLICATION. Otherwise, the function
  *              will silently fail.
  */
 int mbedtls_mps_read_application( mbedtls_mps *mps,
@@ -1383,7 +1383,7 @@ int mbedtls_mps_read_application( mbedtls_mps *mps,
  *
  * \note        This function should only be called after a successful
  *              call to mbedtls_mps_read() or mbedtls_mps_check() returning
- *              #MBEDTLS_MPS_PORT_ALERT. Otherwise, the function
+ *              #MBEDTLS_MPS_MSG_ALERT. Otherwise, the function
  *              will silently fail.
  */
 int mbedtls_mps_read_alert( mbedtls_mps *mps,

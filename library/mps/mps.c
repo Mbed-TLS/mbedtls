@@ -64,14 +64,14 @@ static int trace_id = TRACE_BIT_LAYER_4;
 /* Convenience macro for the failure handling
  * within functions at MPS-API boundary, which
  * should block the MPS on most errors. */
-#define MPS_API_BOUNDARY_FAILURE_HANDLER        \
-    exit:                                       \
+#define MPS_API_BOUNDARY_FAILURE_HANDLER                \
+    exit:                                               \
     ret = mps_generic_failure_handler( mps, ret );      \
-    RETURN( ret );                              \
+    RETURN( ret );                                      \
 
 /* Check if the MPS will serve read resp. write API calls.
- * It will e.g. reject this if it is blocked or if the user
- * has already sent/received a closure notification.
+ * It will e.g. reject this if it is blocked after a fatal error,
+ * or if the user has already sent/received a closure notification.
  * See also ::mbedtls_mps_connection_state_t.                          */
 MBEDTLS_MPS_STATIC int mps_check_read ( mbedtls_mps const *mps );
 MBEDTLS_MPS_STATIC int mps_check_write( mbedtls_mps const *mps );
@@ -86,38 +86,74 @@ MBEDTLS_MPS_STATIC void mps_close_notification_received( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC void mps_fatal_alert_received(
     mbedtls_mps *mps, mbedtls_mps_alert_t alert_type );
 
-/* Failure handler at the end of any MPS API function.
+/* Failure handler at the end of any public MPS API function.
  * This checks the return code and potentially blocks the MPS.         */
 MBEDTLS_MPS_STATIC int mps_generic_failure_handler(
     mbedtls_mps *mps, int ret );
 
-/* Attempts to deliver a pending alert to the underlying Layer 3.      */
+/* Attempt to deliver a pending alert to the underlying Layer 3.       */
 MBEDTLS_MPS_STATIC int mps_handle_pending_alert( mbedtls_mps *mps );
 
 /*
  * Internal flags used to indicate usage of epochs
+ *
+ * Layer 3 keeps epochs as long as they are marked as used through
+ * 'usage flags', maintained separately for reading or writing.
+ * The DTLS retransmission state machine uses two kinds of read/write
+ * usage flags each, defined below.
  */
 
+/* Epochs for incoming messages. */
+
+/*! This usage flag is set for the currently active incoming epoch. */
 #define MPS_READ_ACTIVE                   0
+/*! This usage flag is set for all epochs of messages of the last incoming flight.
+ *  Such epochs must be kept in order to be able to detect retransmissions. */
 #define MPS_READ_RETRANSMISSION_DETECTION 1
 
+/* Epochs for outgoing messages. */
+
+/*! This usage flag is set for the currently active outgoing epoch.  */
 #define MPS_WRITE_ACTIVE         0
+/*! This usage flag is set for all epochs of messages of the last outgoing flight.
+ *  Such epochs must be kept in order to be able to retransmit the last flight. */
 #define MPS_WRITE_RETRANSMISSION 1
 
 /*
- * Read/Write preparations
+ * Read/Write preparation functions
  *
- * Check if the handshake state allows reading/writing,
- * and perform any necessary preparations such as finishing
- * a retransmission.
+ * These function check if reading/writing is allowed in the current
+ * handshake state, and performs any necessary preparations such as
+ * finishing a retransmission.
+ */
+
+/* This function takes care of numerous operations that need to
+ * be performed before a new incoming message can be fetched:
+ * - Check that MPS isn't blocked or closed.
+ * - Flush any pending outgoing handshake messages.
+ * - Complete any ongoing flight retransmissions or
+ *   retransmission requests, or trigger such if the
+ *   retransmission timer has fired.
+ */
+MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps );
+
+/* This function takes care of numerous operations that need to
+ * be performed before a new incoming message can be written:
+ * - Check that MPS isn't blocked or closed.
+ * - Flush any pending outgoing handshake messages.
+ * - Complete any ongoing flight retransmissions or
+ *   retransmission requests.
  */
 
 #define MPS_PAUSED_HS_FORBIDDEN 0
 #define MPS_PAUSED_HS_ALLOWED   1
 
-MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_prepare_write( mbedtls_mps *mps,
                                           uint8_t allow_paused_hs );
+
+/* This function checks for pending alerts or outgoing handshake messages
+ * and attempts to dispatch them to Layer 3. In case of pending alerts,
+ * it also triggers a flush. */
 MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
                                           uint8_t allow_paused_hs );
 
@@ -255,7 +291,7 @@ MBEDTLS_MPS_ALWAYS_INLINE int mps_handshake_state_transition(
 MBEDTLS_MPS_ALWAYS_INLINE mbedtls_mps_flight_state_t
 mps_get_handshake_state( mbedtls_mps *mps )
 {
-    /* NOTE: To RAM, and likely also some code on Thumb, it should
+    /* NOTE: To save RAM, and likely also some code on Thumb, it should
      *       be considered to allocate the retransmission state machine
      *       only when a handshake is active -- in this case, this
      *       function should check whether it's present first, and
@@ -361,14 +397,24 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_retransmit( mbedtls_mps *mps );
 
 /*
  * DTLS reassembly and future message buffering
+ *
+ * See also the documentation of ::mbedtls_mps_reassembly in mps.h.
  */
 
 MBEDTLS_MPS_STATIC int mps_reassembly_init( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_reassembly_free( mbedtls_mps *mps );
 
+/* Feed a handshake fragment into the reassembly module, which might
+ * drop the fragment, buffer it as (part of) a future message, or use
+ * it for the reassembly of the next handshake message.
+ *
+ * This function returns 0 if (parts of) the next handshake message
+ * are ready to be passed to the user. */
 MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps, mps_l3_handshake_in *hs );
 MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps, uint8_t *seq_nr );
 
+/* This function indicates whether the next expected
+ * handshake message has been fully received. */
 MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps );
 
 MBEDTLS_MPS_STATIC int mps_reassembly_check_and_load( mbedtls_mps *mps );
@@ -484,7 +530,7 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
      *       for which multiple messages can fit into a single DTLS-datagram,
      *       and for which incoming messages might trigger independent
      *       responses. In this case, a peer might loop on reading a
-     *       message and writing a response, and it, if space permits,
+     *       message and writing a response, and if space permits,
      *       it is desirable to handle multiple such read-write
      *       with a single incoming/outgoing datagram, which
      *       wouldn't be possible if MPS always flushed outgoing
@@ -665,7 +711,7 @@ int mbedtls_mps_send_fatal( mbedtls_mps *mps, mbedtls_mps_alert_t alert_type )
 
     MPS_CHK( mps_check_write( mps ) );
 
-    /* Remember the reason for blocking. */
+    /* Remember the reason for blocking MPS. */
     mps->blocking_reason = MBEDTLS_MPS_ERROR_ALERT_SENT;
     mps->blocking_info.alert = alert_type;
 
@@ -1151,8 +1197,13 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
             if( MBEDTLS_MPS_IS_DTLS( mode ) )
             {
-                /* DTLS */
                 ret = mbedtls_mps_retransmission_handle_incoming_fragment( mps );
+                /* The retransmission state machine swallows the fragment if ...
+                 * - it's old, or
+                 * - it's from a future message, or
+                 * - it's a fragment of the next handshake message
+                 *   which isn't yet fully reassembled.
+                 */
                 if( ret == MBEDTLS_ERR_MPS_NO_FORWARD )
                     ret = MBEDTLS_ERR_MPS_RETRY;
                 MPS_CHK( ret );
@@ -1186,7 +1237,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
             }
             mps->in.data.app = app_l3.rd;
 
-            mps->in.state    = MBEDTLS_MPS_MSG_APP;
+            mps->in.state = MBEDTLS_MPS_MSG_APP;
             RETURN( MBEDTLS_MPS_MSG_APP );
         }
 
@@ -2475,9 +2526,8 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
 
         /* Sequence number not seen before. */
         TRACE( trace_comment,
-               "Sequence number %u not seen before - "
-               "setup reassembly structure.",
-               (unsigned) seq_nr );
+           "Sequence number %u not seen before - setup reassembly structure.",
+           (unsigned) seq_nr );
 
         reassembly->epoch  = hs->epoch;
         reassembly->length = hs->len;

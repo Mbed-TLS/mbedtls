@@ -55,6 +55,17 @@ static int trace_id = TRACE_BIT_LAYER_4;
  * Error state handling
  */
 
+/* Convenience macro to quit a function by jumping to its
+ * exit section in case a function call returns an error. */
+#define MPS_CHK( exp )                            \
+    do                                            \
+    {                                             \
+        if( ( ret = ( exp ) ) < 0 )               \
+        {                                         \
+            goto exit;                            \
+        }                                         \
+    } while( 0 )
+
 /* Convenience macro for the failure handling
  * within internal functions. */
 #define MPS_INTERNAL_FAILURE_HANDLER                    \
@@ -160,16 +171,6 @@ MBEDTLS_MPS_STATIC int mps_clear_pending( mbedtls_mps *mps,
 #define MBEDTLS_MPS_ALERT_LEVEL_WARNING         1
 #define MBEDTLS_MPS_ALERT_LEVEL_FATAL           2
 #define MBEDTLS_MPS_ALERT_MSG_CLOSE_NOTIFY      0
-
-#define MPS_CHK( exp )                            \
-    do                                            \
-    {                                             \
-        if( ( ret = ( exp ) ) < 0 )               \
-        {                                         \
-            goto exit;                            \
-        }                                         \
-    } while( 0 )
-
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
 /*

@@ -206,12 +206,6 @@ class Inputs:
         # Auxiliary macro whose name doesn't fit the usual patterns for
         # auxiliary macros.
         'PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH_CASE',
-        # Deprecated aliases.
-        'PSA_ERROR_UNKNOWN_ERROR',
-        'PSA_ERROR_OCCUPIED_SLOT',
-        'PSA_ERROR_EMPTY_SLOT',
-        'PSA_ERROR_INSUFFICIENT_CAPACITY',
-        'PSA_ERROR_TAMPERING_DETECTED',
     ])
     def parse_header_line(self, line):
         """Parse a C header line, looking for "#define PSA_xxx"."""

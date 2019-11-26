@@ -92,14 +92,14 @@ int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode )
     l3->conf.mode = mode;
 #else
     ((void) mode);
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( mode != MBEDTLS_MPS_CONF_MODE )
     {
         TRACE( trace_error, "Protocol passed to mps_l3_init() doesn't match " \
                "hardcoded protocol." );
         RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 #endif /* !MBEDTLS_MPS_CONF_MODE */
 
     l3->io.in.state = MBEDTLS_MPS_MSG_NONE;
@@ -374,7 +374,7 @@ int mps_l3_read( mps_l3 *l3 )
                 /* 3.2.2 */
                 case MPS_L3_HS_PAUSED:
                     TRACE( trace_comment, "A handshake message currently paused" );
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
                     if( l3->io.in.hs.epoch != in.epoch )
                     {
                         /* This should never happen, as we don't allow switching
@@ -383,10 +383,10 @@ int mps_l3_read( mps_l3 *l3 )
                         TRACE( trace_error, "ASSERTION FAILURE!" );
                         RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
                     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
                     break;
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
                 case MPS_L3_HS_ACTIVE:
                 default:
                     /* Should never happen -- if a handshake message
@@ -394,7 +394,7 @@ int mps_l3_read( mps_l3 *l3 )
                      * state variable l3->io.in.state. */
                     TRACE( trace_error, "ASSERTION FAILURE!" );
                     RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
             }
 
             /* Bind the raw reader (supplying record contents) to the
@@ -410,13 +410,13 @@ int mps_l3_read( mps_l3 *l3 )
 
             break;
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         default:
             /* Should never happen because we configured L2
              * to only accept the above types. */
             TRACE( trace_error, "ASSERTION FAILURE!" );
             RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
     }
 
     l3->io.in.raw_in = in.rd;
@@ -477,11 +477,11 @@ int mps_l3_read_consume( mps_l3 *l3 )
             /* All contents are already committed in parsing functions. */
             break;
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         default:
             TRACE( trace_error, "ASSERTION FAILURE!" );
             RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
     }
 
     /* Remove reference to the raw reader borrowed from Layer 2
@@ -1013,7 +1013,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             l3->io.out.hs.frag_len    = out->frag_len;
             l3->io.out.hs.frag_offset = out->frag_offset;
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
             /* If the total length isn't specified, then
              * then the fragment offset must be 0, and the
              * fragment length must be unspecified, too. */
@@ -1036,7 +1036,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
                     RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
                 }
             }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
             l3->io.out.hs.hdr_len = MPS_DTLS_HS_HDR_SIZE;
         }
@@ -1333,13 +1333,13 @@ int mps_l3_dispatch( mps_l3 *l3 )
         case MBEDTLS_MPS_MSG_HS:
             TRACE( trace_comment, "Dispatch handshake message" );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
             if( l3->io.out.hs.state != MPS_L3_HS_ACTIVE )
             {
                 TRACE( trace_error, "ASSERTION FAILURE!" );
                 RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
             }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
             res = mbedtls_writer_check_done( &l3->io.out.hs.wr_ext );
             if( res != 0 )
@@ -1416,11 +1416,11 @@ int mps_l3_dispatch( mps_l3 *l3 )
             TRACE( trace_comment, "Dispatch application data" );
             break;
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         default:
             TRACE( trace_error, "ASSERTION FAILURE!" );
             RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
     }
 
     /* Remove reference to the raw writer borrowed from Layer 2
@@ -1477,7 +1477,7 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
     TRACE_INIT( "l3_write_hs_hdr_tls, type %u, len %u",
            (unsigned) hs->type, (unsigned) hs->len );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( buf == NULL || hs->hdr_len != tls_hs_hdr_len )
     {
         TRACE( trace_error, "ASSERTION FAILURE!" );
@@ -1485,7 +1485,7 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
     }
 #else
     ((void) tls_hs_hdr_len);
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     MPS_WRITE_UINT8_BE ( &hs->type, buf + tls_hs_type_offset   );
     MPS_WRITE_UINT24_BE( &hs->len,  buf + tls_hs_length_offset );
@@ -1537,7 +1537,7 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
     TRACE_INIT( "l3_write_hs_hdr_tls, type %u, len %u",
            (unsigned) hs->type, (unsigned) hs->len );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( buf == NULL || hs->hdr_len != dtls_hs_hdr_len )
     {
         TRACE( trace_error, "ASSERTION FAILURE!" );
@@ -1545,7 +1545,7 @@ MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
     }
 #else
     ((void) dtls_hs_hdr_len);
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     MPS_WRITE_UINT8_BE ( &hs->type,        buf + dtls_hs_type_offset     );
     MPS_WRITE_UINT24_BE( &hs->len,         buf + dtls_hs_len_offset      );

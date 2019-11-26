@@ -87,7 +87,7 @@
  *
  *  Comment this to disable assertions.
  */
-#define MBEDTLS_MPS_ASSERT
+#define MBEDTLS_MPS_ENABLE_ASSERTIONS
 
 /*! This flag determines whether MPS should perform sanity
  *  checks on the data returned by the record protection API.

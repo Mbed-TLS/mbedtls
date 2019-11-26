@@ -607,18 +607,9 @@ MBEDTLS_MPS_STATIC void mps_block( mbedtls_mps *mps )
 /* Handle an error code from an internal library call. */
 MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
 {
-    int is_public_error;
-    int is_non_fatal_error;
 
-    /* The MPS is automatically blocked on a failure, unless the error
-     * belongs to the following whitelist of non-fatal errors. */
-    int non_fatal_errors[] = {
-        0,
-        MBEDTLS_ERR_MPS_RETRY,
-        MBEDTLS_ERR_MPS_WANT_READ,
-        MBEDTLS_ERR_MPS_WANT_WRITE
-    };
-
+    /* Helper-macro to check whether an error belongs to a
+     * static array of error codes. */
 #define MPS_ERROR_CHECK( ret, error_array, error_ok )                   \
     do                                                                  \
     {                                                                   \
@@ -632,7 +623,19 @@ MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
         }                                                               \
     } while( 0 )
 
-#if defined(MBEDTLS_MPS_ASSERT)
+    int is_public_error;
+    int is_non_fatal_error;
+
+    /* The MPS is automatically blocked on a failure, unless the error
+     * belongs to the following whitelist of non-fatal errors. */
+    int non_fatal_errors[] = {
+        0,
+        MBEDTLS_ERR_MPS_RETRY,
+        MBEDTLS_ERR_MPS_WANT_READ,
+        MBEDTLS_ERR_MPS_WANT_WRITE
+    };
+
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     /* Check that we never return error codes that haven't been explicitly
      * named as potential return values at the MPS boundary. */
     int public_errors[] = {
@@ -698,7 +701,7 @@ MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
     }
 #else
     ((void) is_public_error);
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     is_non_fatal_error = 0;
     MPS_ERROR_CHECK( ret, non_fatal_errors, is_non_fatal_error );
@@ -923,14 +926,14 @@ int mbedtls_mps_init( mbedtls_mps *mps,
     mps->conf.mode = mode;
 #else
     ((void) mode);
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( mode != MBEDTLS_MPS_CONF_MODE )
     {
         TRACE( trace_error, "Protocol passed to mps_l3_init() doesn't match " \
                "hardcoded protocol." );
         RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 #endif /* !MBEDTLS_MPS_CONF_MODE */
 
 #if !defined(MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX)
@@ -1160,10 +1163,10 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 
                 default:
                     /* Layer 3 checks the level, so this shouldn't happen. */
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
                     TRACE( trace_error, "Received invalid alert level from Layer 3." );
                     RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
                     break;
             }
 
@@ -1457,10 +1460,10 @@ int mbedtls_mps_read_consume( mbedtls_mps *mps )
              * to Layer 3 in mbedtls_mps_read(). */
             break;
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         default:
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
     }
 
     TRACE( trace_comment, "New incoming state: NONE" );
@@ -1716,13 +1719,13 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 {
                     TRACE( trace_comment, "Total handshake length known: %u",
                            (unsigned) hs_new->length );
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
                     if( handle->metadata.len > MBEDTLS_MPS_MAX_HS_LENGTH )
                     {
                         TRACE( trace_error, "Bad handshake length" );
                         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
                     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
                     backup_len = handle->metadata.len;
                 }
                 else
@@ -1787,7 +1790,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
              * MBEDTLS_MBEDTLS_ERR_MPS_WANT_WRITE. */
             MPS_CHK( mps_dtls_frag_out_unpause( mps, MPS_PAUSED_HS_ALLOWED ) );
         }
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         else
         {
             TRACE( trace_error,
@@ -1795,7 +1798,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                    "in body of write_handshake()" );
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
         }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
         /* Add the sequence number to the handshake handle, exposed
          * opaquely only to allow it to enter checksum computations. */
@@ -2233,10 +2236,10 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_retransmit( mbedtls_mps *mps )
         ret = mps_retransmit_out( mps );
     else
     {
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( state != MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND )
         return( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
         ret = mps_request_resend( mps );
     }
@@ -2481,7 +2484,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
     TRACE( trace_comment, "Sequence number of next HS message: %u",
            (unsigned) mps->dtls.seq_nr );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
@@ -2491,7 +2494,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
                             "RECEIVE and RECVINIT state." );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     seq_nr = hs->seq_nr;
     seq_nr_offset = seq_nr - mps->dtls.seq_nr;
@@ -2657,7 +2660,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_free( mbedtls_mps *mps )
     ((void) mps);
     TRACE_INIT( "mps_reassembly_free" );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
@@ -2667,7 +2670,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_free( mbedtls_mps *mps )
                             "RECEIVE and RECVINIT state." );
         RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     RETURN( 0 );
 }
@@ -2689,7 +2692,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps,
 {
     TRACE_INIT( "mps_reassembly_get_seq" );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
@@ -2699,7 +2702,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps,
                             "RECEIVE and RECVINIT state." );
         RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     *seq_nr = mps->dtls.seq_nr;
     RETURN( 0 );
@@ -2757,7 +2760,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_read( mbedtls_mps *mps,
     mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_read" );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
@@ -2767,7 +2770,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_read( mbedtls_mps *mps,
                             "RECEIVE and RECVINIT state." );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     hs->length = reassembly->length;
     hs->type   = reassembly->type;
@@ -2812,7 +2815,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_done" );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
@@ -2822,7 +2825,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
                             "RECEIVE and RECVINIT state." );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW )
     {
@@ -2869,7 +2872,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
     mbedtls_mps_msg_reassembly * const reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_next_msg_complete" );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
@@ -2879,7 +2882,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
                             "RECEIVE and RECVINIT state." );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW &&
         reassembly->data.window.bitmask == NULL )
@@ -2905,7 +2908,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_pause( mbedtls_mps *mps )
     ((void) mps);
     TRACE_INIT( "mps_reassembly_pause" );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
@@ -2915,7 +2918,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_pause( mbedtls_mps *mps )
                             "RECEIVE and RECVINIT state." );
         RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     RETURN( MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED );
 }
@@ -2927,7 +2930,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps )
     mbedtls_mps_reassembly * const in = &mps->dtls.io.in.incoming;
     TRACE_INIT( "mps_reassembly_forget" );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
@@ -2937,7 +2940,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps )
                             "RECEIVE and RECVINIT state." );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     /* Check that there are no more buffered messages.
      * This catches the situation where the peer sends
@@ -3006,10 +3009,10 @@ MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
         }
         else
         {
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
             if( mode != MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS )
                 MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
             ret = mbedtls_mps_retransmission_handle_resend_empty( mps, handle );
         }
@@ -3086,7 +3089,7 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
     TRACE_INIT( "mps_handshake_state_transition, old %u (%s), new %u (%s)",
                 (unsigned) old, mps_flight_state_to_string( old ),
                 (unsigned) new, mps_flight_state_to_string( new ) );
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( mps_get_handshake_state( mps ) != old )
     {
         TRACE( trace_error, "Mismatched flight state: expected %u (%s), got %u (%s)",
@@ -3096,7 +3099,7 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
                    mps_get_handshake_state( mps ) ) );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     if( old == MBEDTLS_MPS_FLIGHT_AWAIT &&
         new == MBEDTLS_MPS_FLIGHT_RECEIVE )
@@ -3204,12 +3207,12 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
     {
     }
     else
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     {
         TRACE( trace_error, "Unknown state transition!" );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     mps->dtls.state = new;
 
@@ -3735,11 +3738,11 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
             MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
             break;
         }
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         default:
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
             break;
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
     }
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -3780,13 +3783,13 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
 
     } while( mps->dtls.io.out.hs.state == MBEDTLS_MPS_HS_PAUSED );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( mps->dtls.io.out.hs.state != MBEDTLS_MPS_HS_ACTIVE )
     {
         TRACE( trace_error, "Handshake state not ACTIVE after clearing." );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     /* Check if the handshake message has been fully written. */
     if( mbedtls_writer_check_done( &mps->dtls.io.out.hs.wr_ext ) == 0 )
@@ -3807,7 +3810,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
         /* TODO: Think about the classification of this error
          * again. Is it always an internal error, or can this
          * be triggered by malformed input data as well? */
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         if( !allow_active_hs )
         {
             TRACE( trace_error,
@@ -3816,7 +3819,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
         }
 #else
         ((void)allow_active_hs);
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
         TRACE( trace_comment,
                "Handshake message not yet fully written -- keep it open" );
@@ -3900,7 +3903,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
 
     if( hs->wr_ext_l3 != NULL )
     {
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         {
             mbedtls_mps_size_t const hs_frag_len  = hs->frag_len;
             mbedtls_mps_size_t const metadata_len = metadata->len;
@@ -3914,7 +3917,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
                 MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
             }
         }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
         remaining = hs->frag_len - frag_len;
         TRACE( trace_comment, "%u bytes unwritten in fragment",
@@ -3929,7 +3932,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
     }
     else
     {
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         if( frag_len != 0 )
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
 
@@ -3946,7 +3949,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
                    (unsigned) metadata->len, (unsigned) bytes_queued );
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
         }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
         TRACE( trace_comment, "Total handshake length: %u",
                (unsigned) bytes_queued );
@@ -4002,7 +4005,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_start( mbedtls_mps_handshake_out_intern
     TRACE_INIT( "mps_dtls_frag_out_start, type %u, length %u",
                 (unsigned) metadata->type, (unsigned) metadata->len );
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     if( hs->state != MBEDTLS_MPS_HS_NONE )
     {
         TRACE( trace_comment,
@@ -4010,7 +4013,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_start( mbedtls_mps_handshake_out_intern
                "while another one is still not finished." );
         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     hs->metadata = metadata;
     hs->offset = 0;

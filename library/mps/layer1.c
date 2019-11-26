@@ -474,14 +474,14 @@ int l1_write_stream( mps_l1_stream_write *p,
      * fatally or because the underlying transport wasn't
      * available, in which case we already returned.
      * So assume the state is MPS_L1_STREAM_STATUS READY. */
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     status = p->status;
     if( status != MPS_L1_STREAM_STATUS_READY )
     {
         TRACE( trace_comment, "unexpected operation, status %u", (unsigned) status );
         RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     /* Make sure a write-buffer is available. */
     ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
@@ -496,12 +496,12 @@ int l1_write_stream( mps_l1_stream_write *p,
     buf += br;
     data_remaining = bl - br;
 
-#if defined(MBEDTLS_MPS_ASSERT)
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     /* The flushing strategy should ensure that we should never
      * reach this point if the entire buffer has been dispatched. */
     if( data_remaining == 0 )
         RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ASSERT */
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     *dst = buf;
     *buflen = data_remaining;

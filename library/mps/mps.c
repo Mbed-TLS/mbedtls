@@ -1940,8 +1940,9 @@ int mbedtls_mps_dispatch( mbedtls_mps *mps )
         {
             /* Handshake message */
 
-            if( mps->dtls.io.out.hs.state != MBEDTLS_MPS_HS_ACTIVE )
-                MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+            MBEDTLS_MPS_ASSERT(
+                mps->dtls.io.out.hs.state == MBEDTLS_MPS_HS_ACTIVE,
+                "Unexpected handshake state" );
 
             /* Check that the handshake message has been fully written. */
             MPS_CHK( mbedtls_writer_check_done( &mps->dtls.io.out.hs.wr_ext ) );
@@ -3089,17 +3090,9 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
     TRACE_INIT( "mps_handshake_state_transition, old %u (%s), new %u (%s)",
                 (unsigned) old, mps_flight_state_to_string( old ),
                 (unsigned) new, mps_flight_state_to_string( new ) );
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( mps_get_handshake_state( mps ) != old )
-    {
-        TRACE( trace_error, "Mismatched flight state: expected %u (%s), got %u (%s)",
-               (unsigned) old, mps_flight_state_to_string( old ),
-               (unsigned) mps_get_handshake_state( mps ),
-               mps_flight_state_to_string(
-                   mps_get_handshake_state( mps ) ) );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
+    MBEDTLS_MPS_ASSERT( mps_get_handshake_state( mps ) == old,
+            "Mismatch between expected and actual flight state" );
 
     if( old == MBEDTLS_MPS_FLIGHT_AWAIT &&
         new == MBEDTLS_MPS_FLIGHT_RECEIVE )
@@ -3207,12 +3200,9 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
     {
     }
     else
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     {
-        TRACE( trace_error, "Unknown state transition!" );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        MBEDTLS_MPS_ASSERT( 0, "Unknown state transition" );
     }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
     mps->dtls.state = new;
 
@@ -3653,6 +3643,13 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
     mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.io.out.hs;
 
     TRACE_INIT( "mps_retransmission_handle_resend" );
+
+    MBEDTLS_MPS_ASSERT(
+        handle->handle_type == MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW      ||
+        handle->handle_type == MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_CALLBACK ||
+        handle->handle_type == MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS,
+        "Invalid retransmission handle" );
+
     switch( handle->handle_type )
     {
         case MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW:
@@ -3738,11 +3735,6 @@ MBEDTLS_MPS_STATIC int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mp
             MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
             break;
         }
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-        default:
-            MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-            break;
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
     }
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -3783,13 +3775,8 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
 
     } while( mps->dtls.io.out.hs.state == MBEDTLS_MPS_HS_PAUSED );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( mps->dtls.io.out.hs.state != MBEDTLS_MPS_HS_ACTIVE )
-    {
-        TRACE( trace_error, "Handshake state not ACTIVE after clearing." );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT( mps->dtls.io.out.hs.state == MBEDTLS_MPS_HS_ACTIVE,
+                        "Unexpected handshake state after clearing" );
 
     /* Check if the handshake message has been fully written. */
     if( mbedtls_writer_check_done( &mps->dtls.io.out.hs.wr_ext ) == 0 )
@@ -3810,19 +3797,9 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
         /* TODO: Think about the classification of this error
          * again. Is it always an internal error, or can this
          * be triggered by malformed input data as well? */
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-        if( !allow_active_hs )
-        {
-            TRACE( trace_error,
-                   "Caller doesn't allow active handshake after this call." );
-            MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-        }
-#else
-        ((void)allow_active_hs);
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
-
-        TRACE( trace_comment,
-               "Handshake message not yet fully written -- keep it open" );
+        MBEDTLS_MPS_ASSERT( allow_active_hs,
+                            "Caller doesn't allow active handshake" );
+        TRACE( trace_comment, "HS msg not yet fully written -- keep open" );
     }
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -3903,21 +3880,10 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
 
     if( hs->wr_ext_l3 != NULL )
     {
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-        {
-            mbedtls_mps_size_t const hs_frag_len  = hs->frag_len;
-            mbedtls_mps_size_t const metadata_len = metadata->len;
-            /* Sanity check -- should never fail */
-            if( frag_len > hs_frag_len               ||
-                frag_len > metadata_len - hs->offset )
-            {
-                TRACE( trace_comment,
-                       "Writer claims to have written more data than what's"
-                       "available in current fragment -- should never happen" );
-                MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-            }
-        }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+        MBEDTLS_MPS_ASSERT( frag_len <= hs->frag_len &&
+              frag_len <= (mbedtls_mps_size_t)( metadata->len - hs->offset ),
+              "Writer claims to have written more data than "
+              "what's available in current fragment" );
 
         remaining = hs->frag_len - frag_len;
         TRACE( trace_comment, "%u bytes unwritten in fragment",
@@ -3932,24 +3898,14 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
     }
     else
     {
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-        if( frag_len != 0 )
-            MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-
-        if( metadata->len != MBEDTLS_MPS_SIZE_UNKNOWN &&
-            (unsigned) metadata->len != bytes_queued )
-        {
-            /* This is an internal error and not a usage error,
-             * because it is checked in mbedtls_mps_dispatch()
-             * that the extended writer is done, i.e. has written
-             * the entire message. */
-            TRACE( trace_error,
-                   "Handshake message size initially specified as %u, "
-                   "but only %u written.",
-                   (unsigned) metadata->len, (unsigned) bytes_queued );
-            MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-        }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+        /* This is an internal error and not a usage error,
+         * because it is checked in mbedtls_mps_dispatch()
+         * that the extended writer is done, i.e. has written
+         * the entire message. */
+        MBEDTLS_MPS_ASSERT( frag_len == 0, "Invalid fragment length" );
+        MBEDTLS_MPS_ASSERT( metadata->len == MBEDTLS_MPS_SIZE_UNKNOWN ||
+                            (unsigned) metadata->len == bytes_queued,
+              "Mismatch between HS msg size and amount of data written" );
 
         TRACE( trace_comment, "Total handshake length: %u",
                (unsigned) bytes_queued );
@@ -4005,15 +3961,8 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_start( mbedtls_mps_handshake_out_intern
     TRACE_INIT( "mps_dtls_frag_out_start, type %u, length %u",
                 (unsigned) metadata->type, (unsigned) metadata->len );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( hs->state != MBEDTLS_MPS_HS_NONE )
-    {
-        TRACE( trace_comment,
-               "Attempt to start a new outgoing handshake message "
-               "while another one is still not finished." );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT( hs->state == MBEDTLS_MPS_HS_NONE,
+        "Can't start new HS msg while another is still unfinished" );
 
     hs->metadata = metadata;
     hs->offset = 0;

@@ -171,6 +171,24 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
 
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
+#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
+
+#define MBEDTLS_MPS_ASSERT( cond, string )                       \
+    do                                                           \
+    {                                                            \
+        if( !(cond) )                                            \
+        {                                                        \
+            TRACE( trace_error, string );                        \
+            MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );           \
+        }                                                        \
+    } while( 0 )
+
+#else /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
+#define MBEDTLS_MPS_ASSERT( cond, string ) do {} while( 0 )
+
+#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
 #if defined(MBEDTLS_MPS_NO_STATIC_FUNCTIONS)
 #define MBEDTLS_MPS_STATIC
 #define MBEDTLS_MPS_INLINE

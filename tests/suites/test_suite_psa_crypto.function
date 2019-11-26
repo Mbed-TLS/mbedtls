@@ -3769,6 +3769,15 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     ASSERT_COMPARE( output_data->x, output_data->len,
                     signature, signature_length );
 
+#if defined(MBEDTLS_TEST_DEPRECATED)
+    PSA_ASSERT( psa_asymmetric_sign( handle, alg,
+                                     input_data->x, input_data->len,
+                                     signature, signature_size,
+                                     &signature_length ) );
+    ASSERT_COMPARE( output_data->x, output_data->len,
+                    signature, signature_length );
+#endif /* MBEDTLS_TEST_DEPRECATED */
+
 exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( handle );
@@ -3912,6 +3921,15 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_verify_hash( handle, alg,
                                  hash_data->x, hash_data->len,
                                  signature_data->x, signature_data->len ) );
+
+#if defined(MBEDTLS_TEST_DEPRECATED)
+    PSA_ASSERT( psa_asymmetric_verify( handle, alg,
+                                       hash_data->x, hash_data->len,
+                                       signature_data->x,
+                                       signature_data->len ) );
+
+#endif /* MBEDTLS_TEST_DEPRECATED */
+
 exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( handle );

@@ -1407,6 +1407,37 @@ int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags );
 /**
  * \brief          Pause the reading of an incoming handshake message.
  *
+ *                 When a handshake message has been received, the user of the
+ *                 MPS can query its contents through mbedtls_reader_get_ext(),
+ *                 using the reader returned from mbedtls_mps_read_handshake().
+ *                 If the handshake message is only partially available - for
+ *                 example, because it was fragments on the TLS record layer -
+ *                 and the requested content goes beyond the bounds what has
+ *                 already been received, this function must be called to pause
+ *                 the processing of the handshake message until more data is
+ *                 available. (Note: mbedtls_mps_read_consume() must only be
+ *                 called if the entire handshake message has been processed,
+ *                 and will fail if more data is pending, regardless of whether
+ *                 that data belongs to fragments that weren't received yet).
+ *
+ *                 After a successful call to mbedtls_mps_read_pause(),
+ *                 continuation can be attempted through subsequent calls to
+ *                 mbedtls_mps_read(). If such calls indicate the availability
+ *                 of a handshake message, it is guaranteed to be the
+ *                 continuation of the handshake message that has been paused.
+ *                 Note, however, that handshake fragments might be interleaved
+ *                 with messages of other types, and hence the user must be
+ *                 prepared to handle other message types, too, when attempting
+ *                 to continue the reading.
+ *
+ *                 The recommended way to deal with initiating and continuing
+ *                 the reading of a handshake message is to have a single path
+ *                 calling mbedtls_mps_read() which deals with unavailability
+ *                 of data as well as data of unexpected type, and to jump to
+ *                 the concrete handshake message processing routine otherwise.
+ *                 This routine should also maintain the state of the processing
+ *                 of the handshake message, so that it would pick up the
+ *                 processing at the correct point after pausing.
  * \param mps      The MPS context to use.
  *
  * \return         \c 0 on success.

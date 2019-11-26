@@ -29,6 +29,10 @@
 #include "psa/crypto.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) && !defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_TEST_DEPRECATED
+#endif
+
 /*----------------------------------------------------------------------------*/
 /* Common helper code */
 

@@ -1164,6 +1164,18 @@ void static_checks( )
      * encoding. The shifted mask is the maximum truncated value. The
      * untruncated algorithm may be one byte larger. */
     TEST_ASSERT( PSA_MAC_MAX_SIZE <= 1 + max_truncated_mac_size );
+
+#if defined(MBEDTLS_TEST_DEPRECATED)
+    /* Check deprecated constants. */
+    TEST_EQUAL( PSA_ERROR_UNKNOWN_ERROR, PSA_ERROR_GENERIC_ERROR );
+    TEST_EQUAL( PSA_ERROR_OCCUPIED_SLOT, PSA_ERROR_ALREADY_EXISTS );
+    TEST_EQUAL( PSA_ERROR_EMPTY_SLOT, PSA_ERROR_DOES_NOT_EXIST );
+    TEST_EQUAL( PSA_ERROR_INSUFFICIENT_CAPACITY, PSA_ERROR_INSUFFICIENT_DATA );
+    TEST_EQUAL( PSA_ERROR_TAMPERING_DETECTED, PSA_ERROR_CORRUPTION_DETECTED );
+    TEST_EQUAL( PSA_KEY_USAGE_SIGN, PSA_KEY_USAGE_SIGN_HASH );
+    TEST_EQUAL( PSA_KEY_USAGE_VERIFY, PSA_KEY_USAGE_VERIFY_HASH );
+    TEST_EQUAL( PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE, PSA_SIGNATURE_MAX_SIZE );
+#endif /* MBEDTLS_TEST_DEPRECATED */
 }
 /* END_CASE */
 
@@ -3703,7 +3715,13 @@ void signature_size( int type_arg,
     psa_key_type_t type = type_arg;
     psa_algorithm_t alg = alg_arg;
     size_t actual_size = PSA_SIGN_OUTPUT_SIZE( type, bits, alg );
+
     TEST_EQUAL( actual_size, (size_t) expected_size_arg );
+#if defined(MBEDTLS_TEST_DEPRECATED)
+    TEST_EQUAL( actual_size,
+                PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( type, bits, alg ) );
+#endif /* MBEDTLS_TEST_DEPRECATED */
+
 exit:
     ;
 }

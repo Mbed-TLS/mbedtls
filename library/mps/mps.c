@@ -607,13 +607,30 @@ MBEDTLS_MPS_STATIC void mps_block( mbedtls_mps *mps )
 /* Handle an error code from an internal library call. */
 MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
 {
-    uint8_t idx;
+    int is_public_error;
+    int is_non_fatal_error;
+
+    /* The MPS is automatically blocked on a failure, unless the error
+     * belongs to the following whitelist of non-fatal errors. */
     int non_fatal_errors[] = {
         0,
         MBEDTLS_ERR_MPS_RETRY,
         MBEDTLS_ERR_MPS_WANT_READ,
         MBEDTLS_ERR_MPS_WANT_WRITE
     };
+
+#define MPS_ERROR_CHECK( ret, error_array, error_ok )                   \
+    do                                                                  \
+    {                                                                   \
+        unsigned idx;                                                   \
+        for( idx=0;                                                     \
+             idx < sizeof( error_array ) / sizeof( *error_array );      \
+             idx++ )                                                    \
+        {                                                               \
+            if( ret == error_array[ idx ] )                             \
+                error_ok = 1;                                           \
+        }                                                               \
+    } while( 0 )
 
 #if defined(MBEDTLS_MPS_ASSERT)
     /* Check that we never return error codes that haven't been explicitly
@@ -652,48 +669,41 @@ MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
         MBEDTLS_ERR_MPS_INVALID_CONTENT
     };
 
-    int error_ok = 0;
-    for( idx=0; idx < sizeof( public_errors ) / sizeof( int ); idx++ )
-    {
-        if( ret == public_errors[ idx ] )
-            error_ok = 1;
-    }
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_conf_get_mode( &mps->conf );
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    {
-        mbedtls_mps_transport_type const mode =
-            mbedtls_mps_conf_get_mode( &mps->conf );
+    is_public_error = 0;
 
-        if( MBEDTLS_MPS_IS_TLS( mode ) )
-        {
+    /* Double-check that we only return documented public error code.    */
+    MPS_ERROR_CHECK( ret, public_errors, is_public_error );
+    /* Some error codes are publicly visible only for TLS - check those. */
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-            int tls_only_errors[] = {
-                MBEDTLS_ERR_MPS_INVALID_RECORD,
-                MBEDTLS_ERR_MPS_INVALID_MAC,
-            };
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-            for( idx=0; idx < sizeof( tls_only_errors ) / sizeof( int ); idx++ )
-            {
-                if( ret == tls_only_errors[ idx ] )
-                    error_ok = 1;
-            }
-        }
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    {
+        int tls_only_errors[] = {
+            MBEDTLS_ERR_MPS_INVALID_RECORD,
+            MBEDTLS_ERR_MPS_INVALID_MAC,
+        };
+
+        MPS_ERROR_CHECK( ret, tls_only_errors, is_public_error );
     }
+#else
+    ((void) mode);
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-    if( error_ok == 0 )
+    if( is_public_error == 0 )
     {
         TRACE( trace_error, "Invalid error at MPS boundary: -%#04x", -ret );
         ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
     }
-
+#else
+    ((void) is_public_error);
 #endif /* MBEDTLS_MPS_ASSERT */
 
-    for( idx=0; idx < sizeof( non_fatal_errors ) / sizeof( int ); idx++ )
-    {
-        if( ret == non_fatal_errors[idx] )
-            return( ret );
-    }
+    is_non_fatal_error = 0;
+    MPS_ERROR_CHECK( ret, non_fatal_errors, is_non_fatal_error );
+    if( is_non_fatal_error == 1 )
+        return( ret );
 
     /* Remember error and block MPS. */
     mps->blocking_reason = MBEDTLS_MPS_ERROR_INTERNAL_ERROR;

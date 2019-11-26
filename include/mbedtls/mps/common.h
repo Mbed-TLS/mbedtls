@@ -153,6 +153,24 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
  * Internal helper macros derived from the MPS configuration.
  */
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+
+#define MBEDTLS_MPS_STATE_VALIDATE( cond, string )               \
+    do                                                           \
+    {                                                            \
+        if( !(cond) )                                            \
+        {                                                        \
+            TRACE( trace_error, string );                        \
+            MPS_CHK( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );     \
+        }                                                        \
+    } while( 0 )
+
+#else /* MBEDTLS_MPS_STATE_VALIDATION */
+
+#define MBEDTLS_MPS_STATE_VALIDATE( cond, string ) do {} while( 0 )
+
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
 #if defined(MBEDTLS_MPS_NO_STATIC_FUNCTIONS)
 #define MBEDTLS_MPS_STATIC
 #define MBEDTLS_MPS_INLINE

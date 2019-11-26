@@ -1386,7 +1386,7 @@ int mbedtls_mps_read_application( mbedtls_mps *mps,
  *              #MBEDTLS_MPS_PORT_ALERT. Otherwise, the function
  *              will silently fail.
  */
-int mbedtls_mps_read_alert( mbedtls_mps const *mps,
+int mbedtls_mps_read_alert( mbedtls_mps *mps,
                             mbedtls_mps_alert_t *type );
 
 /**

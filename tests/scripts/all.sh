@@ -1079,6 +1079,19 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
     if_build_succeeded tests/ssl-opt.sh -f "Max fragment length\|Large buffer"
 }
 
+component_test_ssl_alloc_buffer_and_mfl () {
+    msg "build: default config with memory buffer allocator and MFL extension"
+    scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py set MBEDTLS_MEMORY_DEBUG
+    scripts/config.py set MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+    CC=gcc cmake .
+    make
+
+    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C, MBEDTLS_MEMORY_DEBUG and MBEDTLS_SSL_MAX_FRAGMENT_LENGTH"
+    if_build_succeeded tests/ssl-opt.sh -f "Handshake memory usage"
+}
+
 component_test_when_no_ciphersuites_have_mac () {
     msg "build: when no ciphersuites have MAC"
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER

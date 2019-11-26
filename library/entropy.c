@@ -327,7 +327,8 @@ int mbedtls_entropy_gather( mbedtls_entropy_context *ctx )
 
 int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
 {
-    int ret, count = 0, i, done;
+    int ret, count = 0, i, thresholds_reached;
+    size_t strong_size;
     mbedtls_entropy_context *ctx = (mbedtls_entropy_context *) data;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
@@ -365,12 +366,17 @@ int mbedtls_entropy_func( void *data, unsigned char *output, size_t len )
         if( ( ret = entropy_gather_internal( ctx ) ) != 0 )
             goto exit;
 
-        done = 1;
+        thresholds_reached = 1;
+        strong_size = 0;
         for( i = 0; i < ctx->source_count; i++ )
+        {
             if( ctx->source[i].size < ctx->source[i].threshold )
-                done = 0;
+                thresholds_reached = 0;
+            if( ctx->source[i].strong == MBEDTLS_ENTROPY_SOURCE_STRONG )
+                strong_size += ctx->source[i].size;
+        }
     }
-    while( ! done );
+    while( ! thresholds_reached || strong_size < MBEDTLS_ENTROPY_BLOCK_SIZE );
 
     memset( buf, 0, MBEDTLS_ENTROPY_BLOCK_SIZE );
 

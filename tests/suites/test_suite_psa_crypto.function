@@ -1647,14 +1647,20 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void check_key_policy( int type_arg, int bits_arg,
-                       int usage_arg, int alg_arg )
+void effective_key_attributes( int type_arg, int expected_type_arg,
+                               int bits_arg, int expected_bits_arg,
+                               int usage_arg, int expected_usage_arg,
+                               int alg_arg, int expected_alg_arg )
 {
     psa_key_handle_t handle = 0;
     psa_key_type_t key_type = type_arg;
+    psa_key_type_t expected_key_type = expected_type_arg;
     size_t bits = bits_arg;
+    size_t expected_bits = expected_bits_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t expected_alg = expected_alg_arg;
     psa_key_usage_t usage = usage_arg;
+    psa_key_usage_t expected_usage = expected_usage_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -1668,15 +1674,25 @@ void check_key_policy( int type_arg, int bits_arg,
     psa_reset_key_attributes( &attributes );
 
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
-    TEST_EQUAL( psa_get_key_type( &attributes ), key_type );
-    TEST_EQUAL( psa_get_key_bits( &attributes ), bits );
-    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), usage );
-    TEST_EQUAL( psa_get_key_algorithm( &attributes ), alg );
+    TEST_EQUAL( psa_get_key_type( &attributes ), expected_key_type );
+    TEST_EQUAL( psa_get_key_bits( &attributes ), expected_bits );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), expected_usage );
+    TEST_EQUAL( psa_get_key_algorithm( &attributes ), expected_alg );
 
 exit:
     psa_destroy_key( handle );
     psa_reset_key_attributes( &attributes );
     PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void check_key_policy( int type_arg, int bits_arg,
+                       int usage_arg, int alg_arg )
+{
+    test_effective_key_attributes( type_arg, type_arg, bits_arg, bits_arg,
+                                   usage_arg, usage_arg, alg_arg, alg_arg );
+    goto exit;
 }
 /* END_CASE */
 

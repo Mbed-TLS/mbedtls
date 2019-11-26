@@ -1462,8 +1462,8 @@ static psa_status_t psa_validate_key_policy( const psa_key_policy_t *policy )
                              PSA_KEY_USAGE_COPY |
                              PSA_KEY_USAGE_ENCRYPT |
                              PSA_KEY_USAGE_DECRYPT |
-                             PSA_KEY_USAGE_SIGN |
-                             PSA_KEY_USAGE_VERIFY |
+                             PSA_KEY_USAGE_SIGN_HASH |
+                             PSA_KEY_USAGE_VERIFY_HASH |
                              PSA_KEY_USAGE_DERIVE ) ) != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -2726,7 +2726,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_key_slot_t *slot;
     size_t key_bits;
     psa_key_usage_t usage =
-        is_sign ? PSA_KEY_USAGE_SIGN : PSA_KEY_USAGE_VERIFY;
+        is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH;
     uint8_t truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
     psa_algorithm_t full_length_alg = PSA_ALG_FULL_LENGTH_MAC( alg );
 
@@ -3310,13 +3310,13 @@ cleanup:
 }
 #endif /* MBEDTLS_ECDSA_C */
 
-psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
-                                  psa_algorithm_t alg,
-                                  const uint8_t *hash,
-                                  size_t hash_length,
-                                  uint8_t *signature,
-                                  size_t signature_size,
-                                  size_t *signature_length )
+psa_status_t psa_sign_hash( psa_key_handle_t handle,
+                            psa_algorithm_t alg,
+                            const uint8_t *hash,
+                            size_t hash_length,
+                            uint8_t *signature,
+                            size_t signature_size,
+                            size_t *signature_length )
 {
     psa_key_slot_t *slot;
     psa_status_t status;
@@ -3333,7 +3333,7 @@ psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
     if( signature_size == 0 )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
+    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN_HASH, alg );
     if( status != PSA_SUCCESS )
         goto exit;
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
@@ -3414,12 +3414,12 @@ exit:
     return( status );
 }
 
-psa_status_t psa_asymmetric_verify( psa_key_handle_t handle,
-                                    psa_algorithm_t alg,
-                                    const uint8_t *hash,
-                                    size_t hash_length,
-                                    const uint8_t *signature,
-                                    size_t signature_length )
+psa_status_t psa_verify_hash( psa_key_handle_t handle,
+                              psa_algorithm_t alg,
+                              const uint8_t *hash,
+                              size_t hash_length,
+                              const uint8_t *signature,
+                              size_t signature_length )
 {
     psa_key_slot_t *slot;
     psa_status_t status;
@@ -3428,7 +3428,7 @@ psa_status_t psa_asymmetric_verify( psa_key_handle_t handle,
     psa_drv_se_context_t *drv_context;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_VERIFY, alg );
+    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_VERIFY_HASH, alg );
     if( status != PSA_SUCCESS )
         return( status );
 

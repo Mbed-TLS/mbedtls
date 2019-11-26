@@ -766,17 +766,17 @@
  * Then you may create and use a key as follows:
  * - Set the key usage field using #PSA_ALG_ANY_HASH, for example:
  *   ```
- *   psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN); // or VERIFY
+ *   psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH); // or VERIFY
  *   psa_set_key_algorithm(&attributes, PSA_xxx_SIGNATURE(PSA_ALG_ANY_HASH));
  *   ```
  * - Import or generate key material.
- * - Call psa_asymmetric_sign() or psa_asymmetric_verify(), passing
+ * - Call psa_sign_hash() or psa_verify_hash(), passing
  *   an algorithm built from `PSA_xxx_SIGNATURE` and a specific hash. Each
  *   call to sign or verify a message may use a different hash.
  *   ```
- *   psa_asymmetric_sign(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_256), ...);
- *   psa_asymmetric_sign(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_512), ...);
- *   psa_asymmetric_sign(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA3_256), ...);
+ *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_256), ...);
+ *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_512), ...);
+ *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA3_256), ...);
  *   ```
  *
  * This value may not be used to build other algorithms that are
@@ -1640,7 +1640,7 @@
  *
  * For a key pair, this concerns the private key.
  */
-#define PSA_KEY_USAGE_SIGN                      ((psa_key_usage_t)0x00000400)
+#define PSA_KEY_USAGE_SIGN_HASH                 ((psa_key_usage_t)0x00000400)
 
 /** Whether the key may be used to verify a message signature.
  *
@@ -1650,7 +1650,7 @@
  *
  * For a key pair, this concerns the public key.
  */
-#define PSA_KEY_USAGE_VERIFY                    ((psa_key_usage_t)0x00000800)
+#define PSA_KEY_USAGE_VERIFY_HASH               ((psa_key_usage_t)0x00000800)
 
 /** Whether the key may be used to derive other keys.
  */

@@ -119,8 +119,8 @@ Mbed Crypto supports encrypting, decrypting, signing and verifying messages usin
 **Prerequisites to performing asymmetric signature operations:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
 * Have a valid key with appropriate attributes set:
-    * Usage flag `PSA_KEY_USAGE_SIGN` to allow signing.
-    * Usage flag `PSA_KEY_USAGE_VERIFY` to allow signature verification.
+    * Usage flag `PSA_KEY_USAGE_SIGN_HASH` to allow signing.
+    * Usage flag `PSA_KEY_USAGE_VERIFY_HASH` to allow signature verification.
     * Algorithm set to the desired signature algorithm.
 
 This example shows how to sign a hash that has already been calculated:
@@ -133,7 +133,7 @@ void sign_a_message_using_rsa(const uint8_t *key, size_t key_len)
                         0x60, 0x41, 0x8a, 0xaf, 0x0c, 0xc5, 0xab, 0x58,
                         0x7f, 0x42, 0xc2, 0x57, 0x0a, 0x88, 0x40, 0x95,
                         0xa9, 0xe8, 0xcc, 0xac, 0xd0, 0xf6, 0x54, 0x5c};
-    uint8_t signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
+    uint8_t signature[PSA_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length;
     psa_key_handle_t handle;
 
@@ -148,7 +148,7 @@ void sign_a_message_using_rsa(const uint8_t *key, size_t key_len)
     }
 
     /* Set key attributes */
-    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
     psa_set_key_algorithm(&attributes, PSA_ALG_RSA_PKCS1V15_SIGN_RAW);
     psa_set_key_type(&attributes, PSA_KEY_TYPE_RSA_KEY_PAIR);
     psa_set_key_bits(&attributes, 1024);
@@ -161,10 +161,10 @@ void sign_a_message_using_rsa(const uint8_t *key, size_t key_len)
     }
 
     /* Sign message using the key */
-    status = psa_asymmetric_sign(handle, PSA_ALG_RSA_PKCS1V15_SIGN_RAW,
-                                 hash, sizeof(hash),
-                                 signature, sizeof(signature),
-                                 &signature_length);
+    status = psa_sign_hash(handle, PSA_ALG_RSA_PKCS1V15_SIGN_RAW,
+                           hash, sizeof(hash),
+                           signature, sizeof(signature),
+                           &signature_length);
     if (status != PSA_SUCCESS) {
         printf("Failed to sign\n");
         return;
@@ -861,7 +861,7 @@ Mbed Crypto provides a simple way to generate a key or key pair.
     }
 
     /* Generate a key */
-    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH);
     psa_set_key_algorithm(&attributes,
                           PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
     psa_set_key_type(&attributes,

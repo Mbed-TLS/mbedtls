@@ -2879,7 +2879,7 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p signature buffer is too small. You can
  *         determine a sufficient buffer size by calling
- *         #PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
+ *         #PSA_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
  *         where \c key_type and \c key_bits are the type and bit-size
  *         respectively of \p handle.
  * \retval #PSA_ERROR_NOT_SUPPORTED
@@ -2895,13 +2895,13 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_asymmetric_sign(psa_key_handle_t handle,
-                                 psa_algorithm_t alg,
-                                 const uint8_t *hash,
-                                 size_t hash_length,
-                                 uint8_t *signature,
-                                 size_t signature_size,
-                                 size_t *signature_length);
+psa_status_t psa_sign_hash(psa_key_handle_t handle,
+                           psa_algorithm_t alg,
+                           const uint8_t *hash,
+                           size_t hash_length,
+                           uint8_t *signature,
+                           size_t signature_size,
+                           size_t *signature_length);
 
 /**
  * \brief Verify the signature a hash or short message using a public key.
@@ -2941,12 +2941,12 @@ psa_status_t psa_asymmetric_sign(psa_key_handle_t handle,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_asymmetric_verify(psa_key_handle_t handle,
-                                   psa_algorithm_t alg,
-                                   const uint8_t *hash,
-                                   size_t hash_length,
-                                   const uint8_t *signature,
-                                   size_t signature_length);
+psa_status_t psa_verify_hash(psa_key_handle_t handle,
+                             psa_algorithm_t alg,
+                             const uint8_t *hash,
+                             size_t hash_length,
+                             const uint8_t *signature,
+                             size_t signature_length);
 
 /**
  * \brief Encrypt a short message with a public key.

@@ -621,7 +621,7 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
 
     /* prepare the key attributes */
     psa_set_key_type( &attributes, key_type );
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
     psa_set_key_algorithm( &attributes, PSA_ALG_ECDSA(hash_alg) );
 
     /* import private key into PSA */

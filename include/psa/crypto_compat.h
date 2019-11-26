@@ -40,7 +40,9 @@ extern "C" {
 #define MBEDTLS_PSA_DEPRECATED
 #endif
 
+typedef MBEDTLS_PSA_DEPRECATED size_t mbedtls_deprecated_size_t;
 typedef MBEDTLS_PSA_DEPRECATED psa_status_t mbedtls_deprecated_psa_status_t;
+typedef MBEDTLS_PSA_DEPRECATED psa_key_usage_t mbedtls_deprecated_psa_key_usage_t;
 
 #define MBEDTLS_DEPRECATED_CONSTANT( type, value )      \
     ( (mbedtls_deprecated_##type) ( value ) )
@@ -58,6 +60,38 @@ typedef MBEDTLS_PSA_DEPRECATED psa_status_t mbedtls_deprecated_psa_status_t;
     MBEDTLS_DEPRECATED_CONSTANT( psa_status_t, PSA_ERROR_INSUFFICIENT_DATA )
 #define PSA_ERROR_TAMPERING_DETECTED \
     MBEDTLS_DEPRECATED_CONSTANT( psa_status_t, PSA_ERROR_CORRUPTION_DETECTED )
+
+/*
+ * Deprecated PSA Crypto numerical encodings
+ */
+#define PSA_KEY_USAGE_SIGN \
+    MBEDTLS_DEPRECATED_CONSTANT( psa_key_usage_t, PSA_KEY_USAGE_SIGN_HASH )
+#define PSA_KEY_USAGE_VERIFY \
+    MBEDTLS_DEPRECATED_CONSTANT( psa_key_usage_t, PSA_KEY_USAGE_VERIFY_HASH )
+
+/*
+ * Deprecated PSA Crypto size calculation macros
+ */
+#define PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_SIGNATURE_MAX_SIZE )
+#define PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( key_type, key_bits, alg ) \
+    MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_SIGN_OUTPUT_SIZE( key_type, key_bits, alg ) )
+
+/*
+ * Deprecated PSA Crypto function names
+ */
+/* Make these macros and not wrappers so that there is no cost to
+ * applications that don't use the deprecated names.
+ *
+ * Put backslash-newline after "#define" to bypass check-names.sh which
+ * would otherwise complain about lowercase macro names.
+ */
+#define \
+    psa_asymmetric_sign( key, alg, hash, hash_length, signature, signature_size, signature_length ) \
+    ( (mbedtls_deprecated_psa_status_t) psa_sign_hash( key, alg, hash, hash_length, signature, signature_size, signature_length ) )
+#define \
+    psa_asymmetric_verify( key, alg, hash, hash_length, signature, signature_length ) \
+    ( (mbedtls_deprecated_psa_status_t) psa_verify_hash( key, alg, hash, hash_length, signature, signature_length ) )
 
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 

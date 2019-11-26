@@ -19,11 +19,11 @@
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
-#include "../../include/mbedtls/mps/mps.h"
-#include "../../include/mbedtls/mps/trace.h"
-#include "../../include/mbedtls/mps/common.h"
+#include "mbedtls/mps/mps.h"
+#include "mbedtls/mps/trace.h"
+#include "mbedtls/mps/common.h"
 
-#include "../../include/mbedtls/platform_util.h"
+#include "mbedtls/platform_util.h"
 
 /* Embed all other MPS translation units into here
  * for release builds on constrained systems to allow
@@ -926,14 +926,8 @@ int mbedtls_mps_init( mbedtls_mps *mps,
     mps->conf.mode = mode;
 #else
     ((void) mode);
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( mode != MBEDTLS_MPS_CONF_MODE )
-    {
-        TRACE( trace_error, "Protocol passed to mps_l3_init() doesn't match " \
-               "hardcoded protocol." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT( mode == MBEDTLS_MPS_CONF_MODE,
+                        "Protocol passed to mps_l3_init() doesn't match hardcoded protocol." );
 #endif /* !MBEDTLS_MPS_CONF_MODE */
 
 #if !defined(MBEDTLS_MPS_CONF_HS_TIMEOUT_MAX)
@@ -1163,10 +1157,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 
                 default:
                     /* Layer 3 checks the level, so this shouldn't happen. */
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-                    TRACE( trace_error, "Received invalid alert level from Layer 3." );
-                    RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+                    MBEDTLS_MPS_ASSERT( 0, "Received invalid alert level from Layer 3." );
                     break;
             }
 
@@ -1460,10 +1451,11 @@ int mbedtls_mps_read_consume( mbedtls_mps *mps )
              * to Layer 3 in mbedtls_mps_read(). */
             break;
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
         default:
-            MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
+            MBEDTLS_MPS_ASSERT( 0,
+                   "Invalid state in mbedtls_mps_read_consume()" );
+            break;
     }
 
     TRACE( trace_comment, "New incoming state: NONE" );
@@ -1627,6 +1619,10 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                          MBEDTLS_MPS_FLIGHT_SEND ) );
         }
 
+        MBEDTLS_MPS_ASSERT( hs->state == MBEDTLS_MPS_HS_ACTIVE ||
+                            hs->state == MBEDTLS_MPS_HS_NONE,
+                            "Bad handshake state" );
+
         /* Check if a handshake message is currently paused or not. */
         if( hs->state == MBEDTLS_MPS_HS_ACTIVE )
         {
@@ -1719,13 +1715,11 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 {
                     TRACE( trace_comment, "Total handshake length known: %u",
                            (unsigned) hs_new->length );
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-                    if( handle->metadata.len > MBEDTLS_MPS_MAX_HS_LENGTH )
-                    {
-                        TRACE( trace_error, "Bad handshake length" );
-                        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-                    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
+                    MBEDTLS_MPS_ASSERT(
+                        handle->metadata.len <= MBEDTLS_MPS_MAX_HS_LENGTH,
+                        "Bad handshake length" );
+
                     backup_len = handle->metadata.len;
                 }
                 else
@@ -1790,15 +1784,6 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
              * MBEDTLS_MBEDTLS_ERR_MPS_WANT_WRITE. */
             MPS_CHK( mps_dtls_frag_out_unpause( mps, MPS_PAUSED_HS_ALLOWED ) );
         }
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-        else
-        {
-            TRACE( trace_error,
-                   "Expecting HS state to be ACTIVE or NONE "
-                   "in body of write_handshake()" );
-            MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-        }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
 
         /* Add the sequence number to the handshake handle, exposed
          * opaquely only to allow it to enter checksum computations. */
@@ -2233,17 +2218,15 @@ MBEDTLS_MPS_STATIC int mps_handle_pending_retransmit( mbedtls_mps *mps )
     if( state == MBEDTLS_MPS_RETRANSMIT_NONE )
         return( 0 );
 
+    MBEDTLS_MPS_ASSERT( state == MBEDTLS_MPS_RETRANSMIT_RESEND ||
+                        state == MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND,
+                        "Bad retransmission state" );
+
     if( state == MBEDTLS_MPS_RETRANSMIT_RESEND )
         ret = mps_retransmit_out( mps );
-    else
-    {
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( state != MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND )
-        return( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
-
+    else /* state == MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND */
         ret = mps_request_resend( mps );
-    }
+
     MPS_CHK( ret );
 
     mps->dtls.retransmit_state = MBEDTLS_MPS_RETRANSMIT_NONE;
@@ -2485,17 +2468,13 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
     TRACE( trace_comment, "Sequence number of next HS message: %u",
            (unsigned) mps->dtls.seq_nr );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+    MBEDTLS_MPS_ASSERT(
+        MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
-    {
-        TRACE( trace_error, "Trying to use reassembly module outside of "
-                            "RECEIVE and RECVINIT state." );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+            MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Trying to use reassembly module outside of "
+        "RECEIVE and RECVINIT state." );
 
     seq_nr = hs->seq_nr;
     seq_nr_offset = seq_nr - mps->dtls.seq_nr;
@@ -2658,22 +2637,18 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
 
 MBEDTLS_MPS_STATIC int mps_reassembly_free( mbedtls_mps *mps )
 {
+    int ret = 0;
     ((void) mps);
     TRACE_INIT( "mps_reassembly_free" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+    MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
-    {
-        TRACE( trace_error, "Trying to use reassembly module outside of "
-                            "RECEIVE and RECVINIT state." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+            MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Trying to use reassembly module outside of "
+        "RECEIVE and RECVINIT state." );
 
-    RETURN( 0 );
+    MPS_INTERNAL_FAILURE_HANDLER;
 }
 
 MBEDTLS_MPS_STATIC int mps_reassembly_init( mbedtls_mps *mps )
@@ -2691,22 +2666,19 @@ MBEDTLS_MPS_STATIC int mps_reassembly_init( mbedtls_mps *mps )
 MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps,
                                    uint8_t *seq_nr )
 {
+    int ret = 0;
     TRACE_INIT( "mps_reassembly_get_seq" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+    MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
-    {
-        TRACE( trace_error, "Trying to use reassembly module outside of "
-                            "RECEIVE and RECVINIT state." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+            MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Trying to use reassembly module outside of "
+        "RECEIVE and RECVINIT state." );
 
     *seq_nr = mps->dtls.seq_nr;
-    RETURN( 0 );
+
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 MBEDTLS_MPS_STATIC int mps_reassembly_check_and_load( mbedtls_mps *mps )
@@ -2761,17 +2733,12 @@ MBEDTLS_MPS_STATIC int mps_reassembly_read( mbedtls_mps *mps,
     mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_read" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+    MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
-    {
-        TRACE( trace_error, "Trying to use reassembly module outside of "
-                            "RECEIVE and RECVINIT state." );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+            MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Trying to use reassembly module outside of "
+        "RECEIVE and RECVINIT state." );
 
     hs->length = reassembly->length;
     hs->type   = reassembly->type;
@@ -2816,17 +2783,12 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_done" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+    MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
-    {
-        TRACE( trace_error, "Trying to use reassembly module outside of "
-                            "RECEIVE and RECVINIT state." );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+            MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Trying to use reassembly module outside of "
+        "RECEIVE and RECVINIT state." );
 
     if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW )
     {
@@ -2873,17 +2835,12 @@ MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
     mbedtls_mps_msg_reassembly * const reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_next_msg_complete" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+    MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
-    {
-        TRACE( trace_error, "Trying to use reassembly module outside of "
-                            "RECEIVE and RECVINIT state." );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+            MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Trying to use reassembly module outside of "
+        "RECEIVE and RECVINIT state." );
 
     if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW &&
         reassembly->data.window.bitmask == NULL )
@@ -2906,22 +2863,20 @@ MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
 
 MBEDTLS_MPS_STATIC int mps_reassembly_pause( mbedtls_mps *mps )
 {
+    int ret = 0;
     ((void) mps);
     TRACE_INIT( "mps_reassembly_pause" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+    MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
-    {
-        TRACE( trace_error, "Trying to use reassembly module outside of "
-                            "RECEIVE and RECVINIT state." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+            MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Trying to use reassembly module outside of "
+        "RECEIVE and RECVINIT state." );
 
-    RETURN( MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED );
+    ret = MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED;
+
+    MPS_INTERNAL_FAILURE_HANDLER
 }
 
 MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps )
@@ -2931,17 +2886,12 @@ MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps )
     mbedtls_mps_reassembly * const in = &mps->dtls.io.in.incoming;
     TRACE_INIT( "mps_reassembly_forget" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
+    MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
             mps_get_handshake_state( mps ),
             MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
-    {
-        TRACE( trace_error, "Trying to use reassembly module outside of "
-                            "RECEIVE and RECVINIT state." );
-        MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+            MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Trying to use reassembly module outside of "
+        "RECEIVE and RECVINIT state." );
 
     /* Check that there are no more buffered messages.
      * This catches the situation where the peer sends
@@ -3002,20 +2952,20 @@ MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
                "Retransmitting message %u of last outgoing flight.",
                (unsigned) offset );
 
+        MBEDTLS_MPS_ASSERT( mode == MPS_RETRANSMIT_FULL_FLIGHT ||
+                            mode == MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS,
+                            "Invalid flight retransmission mode" );
+
         if( mode == MPS_RETRANSMIT_FULL_FLIGHT )
         {
             ret = mbedtls_mps_retransmission_handle_resend( mps, handle );
-            if( ret != 0 && ret != MBEDTLS_ERR_MPS_RETRANSMISSION_HANDLE_UNFINISHED )
+            if( ret != MBEDTLS_ERR_MPS_RETRANSMISSION_HANDLE_UNFINISHED )
                 MPS_CHK( ret );
         }
-        else
+        else /* mode == MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS */
         {
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-            if( mode != MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS )
-                MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
-
             ret = mbedtls_mps_retransmission_handle_resend_empty( mps, handle );
+            MPS_CHK( ret );
         }
 
         if( ret == 0 )

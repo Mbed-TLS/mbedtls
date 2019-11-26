@@ -19,10 +19,8 @@
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
-/* TODO: Use usual include path
- *       This one is just to make flycheck happy */
-#include "../../include/mbedtls/mps/reader.h"
-#include "../../include/mbedtls/mps/trace.h"
+#include "mbedtls/mps/reader.h"
+#include "mbedtls/mps/trace.h"
 
 #if defined(MBEDTLS_MPS_SEPARATE_LAYERS) ||     \
     defined(MBEDTLS_MPS_TOP_TRANSLATION_UNIT)

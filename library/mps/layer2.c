@@ -19,8 +19,8 @@
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
-#include "../../include/mbedtls/mps/layer2.h"
-#include "../../include/mbedtls/mps/trace.h"
+#include "mbedtls/mps/layer2.h"
+#include "mbedtls/mps/trace.h"
 
 #if defined(MBEDTLS_MPS_SEPARATE_LAYERS) ||     \
     defined(MBEDTLS_MPS_TOP_TRANSLATION_UNIT)

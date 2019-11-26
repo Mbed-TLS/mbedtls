@@ -3700,20 +3700,17 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
 
     if( mps->dtls.io.out.hs.state != MBEDTLS_MPS_HS_PAUSED )
     {
-        TRACE( trace_comment,
-               "No handshake data queueing to be dispatched - skip." );
+        TRACE( trace_comment, "No handshake data queueing - skip." );
         RETURN( 0 );
     }
 
-    /* In theory, this could loop indefinitely if we happen
-     * to configure Layer 1 in such a way that the record
-     * plaintext size is precisely 13 bytes.
-     * It must be ensured that the Layer 1 buffer never
-     * gets configured to be that small. */
+    /* In theory, this could loop indefinitely if we happen to configure Layer 1
+     * in such a way that the record plaintext size is precisely 13 bytes.
+     * It must be ensured that the Layer 1 buffer never gets configured to
+     * be that small. */
     do
     {
-        TRACE( trace_comment,
-               "Fetch new HS fragment from Layer 3 to dispatch queued data." );
+        TRACE( trace_comment, "Fetch frag from L3 to dispatch queued data." );
 
         ret = mps_dtls_frag_out_bind( mps );
         if( ret == 0 )
@@ -3803,10 +3800,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_bind( mbedtls_mps *mps )
         MPS_CHK( MBEDTLS_ERR_WRITER_NEED_MORE );
     }
 
-    TRACE( trace_comment,
-           "New outgoing handshake message state: MBEDTLS_MPS_HS_ACTIVE." );
     hs->state = MBEDTLS_MPS_HS_ACTIVE;
-
     MPS_INTERNAL_FAILURE_HANDLER
 }
 
@@ -3825,7 +3819,6 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
                                      MBEDTLS_WRITER_RECLAIM_FORCE ) );
     TRACE( trace_comment, "* Fragment length: %u", (unsigned) frag_len );
     TRACE( trace_comment, "* Bytes queued:    %u", (unsigned) bytes_queued );
-
     TRACE( trace_comment, "* Total length:    %u", (unsigned) metadata->len );
     TRACE( trace_comment, "* Fragment offset: %u", (unsigned) hs->offset );
 
@@ -3860,10 +3853,8 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
 
         TRACE( trace_comment, "Total handshake length: %u",
                (unsigned) bytes_queued );
-        metadata->len = bytes_queued;
 
-        TRACE( trace_comment,
-               "New outgoing handshake message state: MBEDTLS_MPS_HS_PAUSED." );
+        metadata->len = bytes_queued;
         hs->state  = MBEDTLS_MPS_HS_PAUSED;
     }
 
@@ -3874,9 +3865,9 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_dispatch( mbedtls_mps *mps )
 {
     int ret = 0;
     mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.io.out.hs;
-#if defined(MBEDTLS_MPS_TRACE)
     mbedtls_mps_msg_metadata * const metadata = hs->metadata;
-#endif /* MBEDTLS_MPS_TRACE */
+    ((void) metadata);
+
     TRACE_INIT( "mps_dtls_frag_out_dispatch" );
 
     if( mps->dtls.io.out.hs.wr_ext_l3 != NULL )
@@ -3897,7 +3888,6 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_dispatch( mbedtls_mps *mps )
         hs->frag_len   = 0;
     }
 
-    TRACE( trace_comment, "Done" );
     MPS_INTERNAL_FAILURE_HANDLER
 }
 

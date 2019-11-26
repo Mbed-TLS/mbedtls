@@ -1438,6 +1438,7 @@ int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags );
  *                 This routine should also maintain the state of the processing
  *                 of the handshake message, so that it would pick up the
  *                 processing at the correct point after pausing.
+ *
  * \param mps      The MPS context to use.
  *
  * \return         \c 0 on success.
@@ -1445,7 +1446,7 @@ int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags );
  *
  * \note           If this function succeeds, the MPS holds back the reader
  *                 used to fetch the message contents and returns it to the
- *                 MPS-client on the next successful reading of a handshake
+ *                 MPS user on the next successful reading of a handshake
  *                 message via mbedtls_mps_read().
  */
 int mbedtls_mps_read_pause( mbedtls_mps *mps );
@@ -1471,7 +1472,7 @@ int mbedtls_mps_read_consume( mbedtls_mps *mps );
  *                 the external dependencies.
  *
  * \return         \c 0 on success. In that case,
- *                 *flags holds a bitwise OR of some of the following flags:
+ *                 \c *flags holds a bitwise OR of some of the following flags:
  *                 - #MBEDTLS_MPS_BLOCK_READ
  *                   The underlying transport must signal incoming data.
  *                 - #MBEDTLS_MPS_BLOCK_WRITE

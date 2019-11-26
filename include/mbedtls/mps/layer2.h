@@ -1450,8 +1450,7 @@ MBEDTLS_MPS_PUBLIC int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
                                  mbedtls_mps_epoch_id *epoch );
 
 /**
- * \brief          Modify the usage configuration for a previously
- *                 added epoch ID.
+ * \brief          Modify the usage configuration for a previously added epoch.
  *
  * \param ctx      The address of the Layer 2 context to use.
  * \param epoch    The ID of the epoch to configure.

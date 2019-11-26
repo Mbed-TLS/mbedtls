@@ -156,7 +156,7 @@ struct mbedtls_reader
 {
     unsigned char *frag;  /*!< The fragment of incoming data managed by
                            *   the reader; it is provided to the reader
-                           *   through mbedtls_reader_fetch(). The reader
+                           *   through mbedtls_reader_get(). The reader
                            *   does not own the fragment and does not
                            *   perform any allocation operations on it,
                            *   but does have read and write access to it.   */

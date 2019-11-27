@@ -1806,6 +1806,7 @@ int mbedtls_mps_write_application( mbedtls_mps *mps,
     MPS_CHK( mps_l3_write_app( mps->conf.l3, &out_l3 ) );
 
     *app = out_l3.wr;
+    mps->out.state = MBEDTLS_MPS_MSG_APP;
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
 }
@@ -1824,6 +1825,8 @@ int mbedtls_mps_write_alert( mbedtls_mps *mps,
     *alert_l3.level = MBEDTLS_MPS_ALERT_LEVEL_WARNING;
     *alert_l3.type = alert_type;
 
+    mps->out.state = MBEDTLS_MPS_MSG_ALERT;
+
     MPS_API_BOUNDARY_FAILURE_HANDLER
 }
 
@@ -1836,6 +1839,8 @@ int mbedtls_mps_write_ccs( mbedtls_mps *mps )
 
     ccs_l3.epoch = mps->out_epoch;
     MPS_CHK( mps_l3_write_ccs( mps->conf.l3, &ccs_l3 ) );
+
+    mps->out.state = MBEDTLS_MPS_MSG_CCS;
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
 }

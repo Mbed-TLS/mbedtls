@@ -1807,14 +1807,29 @@ int mbedtls_mps_write_ccs( mbedtls_mps *mps )
 {
     int ret;
     mps_l3_ccs_out ccs_l3;
-    TRACE_INIT( "mbedtls_mps_write_application" );
+    mbedtls_mps_transport_type const mode =
+        mbedtls_mps_conf_get_mode( &mps->conf );
+    ((void) mode);
+
+    TRACE_INIT( "mbedtls_mps_write_ccs" );
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
     ccs_l3.epoch = mps->out_epoch;
     MPS_CHK( mps_l3_write_ccs( mps->conf.l3, &ccs_l3 ) );
 
-    mps->out.state = MBEDTLS_MPS_MSG_CCS;
+    /* In case of DTLS, add CCS to flight for potential retransmission. */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    {
+        mbedtls_mps_retransmission_handle *handle;
 
+        MPS_CHK( mps_out_flight_msg_start( mps, &handle ) );
+        handle->handle_type = MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS;
+        handle->metadata.epoch = mps->out_epoch;
+    }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
+    mps->out.state = MBEDTLS_MPS_MSG_CCS;
     MPS_API_BOUNDARY_FAILURE_HANDLER
 }
 
@@ -2777,13 +2792,13 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     reassembly = &in->reassembly[ MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS ];
     reassembly->status = MBEDTLS_MPS_REASSEMBLY_NONE;
 
-    mps->dtls.seq_nr++;
     if( mps->dtls.seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
     {
         TRACE( trace_error, "Reached maximum incoming sequence number %u",
                (unsigned) MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER );
         MPS_CHK( MBEDTLS_ERR_MPS_COUNTER_WRAP );
     }
+    mps->dtls.seq_nr++;
 
     MPS_CHK( mps_reassembly_next_msg_complete( mps ) );
 
@@ -3869,7 +3884,6 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
 {
     int ret = 0;
     uint8_t cur_flight_len;
-    uint8_t cur_seq_nr;
     mbedtls_mps_retransmission_handle *hdl;
     TRACE_INIT( "mps_out_flight_msg_start" );
 
@@ -3884,20 +3898,14 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
         MPS_CHK( MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG );
     }
 
-    cur_seq_nr = mps->dtls.seq_nr;
-    if( cur_seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
-    {
-        TRACE( trace_error, "Reached max seq nr %u",
-               (unsigned) MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER );
-        MPS_CHK( MBEDTLS_ERR_MPS_COUNTER_WRAP );
-    }
-
     mps->dtls.outgoing.flight_len = cur_flight_len + 1;
     mps->dtls.io.out.flags = 0;
 
     hdl = &mps->dtls.outgoing.backup[ cur_flight_len ];
     mbedtls_mps_retransmission_handle_init( hdl );
-    hdl->metadata.seq_nr = cur_seq_nr;
+
+    hdl->metadata.seq_nr = mps->dtls.seq_nr;
+
     *handle = hdl;
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -3906,15 +3914,34 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
 MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps )
 {
     int ret;
+    uint8_t cur_flight_len;
+
+    mbedtls_mps_retransmission_handle *hdl;
     TRACE_INIT( "mps_out_flight_msg_done" );
 
     MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, mps->out_epoch,
                                  0, MPS_EPOCH_USAGE_WRITE(
                                      MPS_WRITE_RETRANSMISSION ) ) );
 
-    /* It has been checked in mps_out_flight_msg_start()
-     * that this does not wrap. */
-    mps->dtls.seq_nr++;
+    cur_flight_len = mps->dtls.outgoing.flight_len;
+    MBEDTLS_MPS_ASSERT( cur_flight_len > 0,
+                        "mps_out_flight_msg_done() called with flight length 0" );
+
+    hdl = &mps->dtls.outgoing.backup[ cur_flight_len - 1 ];
+
+    if( hdl->handle_type != MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS )
+    {
+        uint8_t cur_seq_nr;
+        cur_seq_nr = mps->dtls.seq_nr;
+        if( cur_seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
+        {
+            TRACE( trace_error, "Reached max seq nr %u",
+                   (unsigned) MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER );
+            MPS_CHK( MBEDTLS_ERR_MPS_COUNTER_WRAP );
+        }
+
+        mps->dtls.seq_nr++;
+    }
 
     MPS_INTERNAL_FAILURE_HANDLER
 }

@@ -1027,15 +1027,30 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	uECC_word_t carry;
 	uECC_word_t *initial_Z = 0;
 	int r = UECC_FAULT_DETECTED;
+	volatile int problem;
 
 	/* Protect against faults modifying curve paremeters in flash */
-	if (uECC_check_curve_integrity() != 0) {
+	problem = -1;
+	problem = uECC_check_curve_integrity();
+	if (problem != 0) {
+		return UECC_FAULT_DETECTED;
+	}
+	mbedtls_platform_enforce_volatile_reads();
+	if (problem != 0) {
 		return UECC_FAULT_DETECTED;
 	}
 
 	/* Protects against invalid curve attacks */
-	if (uECC_valid_point(point) != 0 ) {
+	problem = -1;
+	problem = uECC_valid_point(point);
+	if (problem != 0) {
+		/* invalid input, can happen without fault */
 		return UECC_FAILURE;
+	}
+	mbedtls_platform_enforce_volatile_reads();
+	if (problem != 0) {
+		/* failure on second check means fault, though */
+		return UECC_FAULT_DETECTED;
 	}
 
 	/* Regularize the bitcount for the private key so that attackers cannot use a
@@ -1056,13 +1071,27 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 
 	/* Protect against fault injections that would make the resulting
 	 * point not lie on the intended curve */
-	if (uECC_valid_point(result) != 0 ) {
+	problem = -1;
+	problem = uECC_valid_point(result);
+	if (problem != 0) {
+		r = UECC_FAULT_DETECTED;
+		goto clear_and_out;
+	}
+	mbedtls_platform_enforce_volatile_reads();
+	if (problem != 0) {
 		r = UECC_FAULT_DETECTED;
 		goto clear_and_out;
 	}
 
 	/* Protect against faults modifying curve paremeters in flash */
-	if (uECC_check_curve_integrity() != 0) {
+	problem = -1;
+	problem = uECC_check_curve_integrity();
+	if (problem != 0) {
+		r = UECC_FAULT_DETECTED;
+		goto clear_and_out;
+	}
+	mbedtls_platform_enforce_volatile_reads();
+	if (problem != 0) {
 		r = UECC_FAULT_DETECTED;
 		goto clear_and_out;
 	}
@@ -1139,6 +1168,7 @@ int uECC_valid_point(const uECC_word_t *point)
 	uECC_word_t tmp1[NUM_ECC_WORDS];
 	uECC_word_t tmp2[NUM_ECC_WORDS];
 	wordcount_t num_words = NUM_ECC_WORDS;
+	volatile uECC_word_t diff = -1u;
 
 	/* The point at infinity is invalid. */
 	if (EccPoint_isZero(point)) {
@@ -1155,10 +1185,15 @@ int uECC_valid_point(const uECC_word_t *point)
 	x_side_default(tmp2, point); /* tmp2 = x^3 + ax + b */
 
 	/* Make sure that y^2 == x^3 + ax + b */
-	if (uECC_vli_equal(tmp1, tmp2) != 0)
-		return -3;
+	diff = uECC_vli_equal(tmp1, tmp2);
+	if (diff == 0) {
+		mbedtls_platform_enforce_volatile_reads();
+		if (diff == 0) {
+			return 0;
+		}
+	}
 
-	return 0;
+	return -3;
 }
 
 int uECC_valid_public_key(const uint8_t *public_key)

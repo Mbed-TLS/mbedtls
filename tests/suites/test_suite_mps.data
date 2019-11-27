@@ -823,11 +823,17 @@ mbedtls_mps_l3_random:100:200:1:3:200:1:50:50
 MPS Layer 3 TLS: Random communication, real transforms, 1-byte Layer 0
 mbedtls_mps_l3_random:100:200:100:100:200:1:50:50
 
-MPS Layer 4 DTLS: Non-fatal warnings
+MPS Layer 4 DTLS: Basic - non-fatal warnings
 mbedtls_mps_l4_warning:MBEDTLS_MPS_MODE_DATAGRAM:1000
 
-MPS Layer 4 TLS: Non-fatal warnings
+MPS Layer 4 TLS: Basic - non-fatal warnings
 mbedtls_mps_l4_warning:MBEDTLS_MPS_MODE_STREAM:1000
+
+MPS Layer 4 DTLS: Basic - CCS
+mbedtls_mps_l4_ccs:MBEDTLS_MPS_MODE_DATAGRAM:1000
+
+MPS Layer 4 TLS: Basic - CCS
+mbedtls_mps_l4_ccs:MBEDTLS_MPS_MODE_STREAM:1000
 
 MPS Layer 4 TLS: HS, fake transform, unknown length #0
 depends_on:MBEDTLS_MPS_PROTO_TLS

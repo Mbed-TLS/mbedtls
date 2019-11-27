@@ -260,10 +260,7 @@ int l1_fetch_stream( mps_l1_stream_read *p,
         RETURN( MBEDTLS_ERR_MPS_BUFFER_TOO_SMALL );
 
     br = p->bytes_read;
-    if( br <= len )
-        data_need = len - br;
-    else
-        data_need = 0;
+    data_need = br <= len ? len - br : 0;
 
     recv = p->recv;
     read_ptr += br;

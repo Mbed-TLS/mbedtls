@@ -31,6 +31,9 @@ test_callback_buffer:50:50:50:0:0:10:0:60:50
 Callback buffer test: Reading from empty buffer
 test_callback_buffer:50:0:0:10:0:0:0:0:0
 
+Test mock TCP connection
+ssl_mock_tcp:
+
 SSL DTLS replay: initial state, seqnum 0
 ssl_dtls_replay:"":"000000000000":0
 

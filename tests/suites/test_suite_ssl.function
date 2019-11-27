@@ -138,6 +138,147 @@ int mbedtls_test_buffer_get( mbedtls_test_buffer *buf,
 }
 
 /*
+ * Context for the I/O callbacks simulating network connection.
+ */
+
+#define MBEDTLS_MOCK_SOCKET_CONNECTED 1
+
+typedef struct mbedtls_mock_socket
+{
+    int status;
+    mbedtls_test_buffer *input;
+    mbedtls_test_buffer *output;
+    struct mbedtls_mock_socket *peer;
+} mbedtls_mock_socket;
+
+/*
+ * Setup and teardown functions for mock sockets.
+ */
+void mbedtls_mock_socket_init( mbedtls_mock_socket *socket )
+{
+    memset( socket, 0, sizeof( *socket ) );
+}
+
+/*
+ * Closes the socket \p socket.
+ *
+ * \p socket must have been previously initialized by calling
+ * mbedtls_mock_socket_init().
+ *
+ * This function frees all allocated resources and both sockets are aware of the
+ * new connection state.
+ *
+ * That is, this function does not simulate half-open TCP connections and the
+ * phenomenon that when closing a UDP connection the peer is not aware of the
+ * connection having been closed.
+ */
+void mbedtls_mock_socket_close( mbedtls_mock_socket* socket )
+{
+    if( socket == NULL )
+        return;
+
+    if( socket->input != NULL )
+    {
+        mbedtls_test_buffer_free( socket->input );
+        mbedtls_free( socket->input );
+    }
+
+    if( socket->output != NULL )
+    {
+        mbedtls_test_buffer_free( socket->output );
+        mbedtls_free( socket->output );
+    }
+
+    if( socket->peer != NULL )
+        memset( socket->peer, 0, sizeof( *socket->peer ) );
+
+    memset( socket, 0, sizeof( *socket ) );
+}
+
+/*
+ * Establishes a connection between \p peer1 and \p peer2.
+ *
+ * \p peer1 and \p peer2 must have been previously initialized by calling
+ * mbedtls_mock_socket_init().
+ *
+ * The capacites of the internal buffers are set to \p bufsize. Setting this to
+ * the correct value allows for simulation of MTU, sanity testing the mock
+ * implementation and mocking TCP connections with lower memory cost.
+ */
+int mbedtls_mock_socket_connect( mbedtls_mock_socket* peer1,
+                                 mbedtls_mock_socket* peer2,
+                                 size_t bufsize )
+{
+    int ret = -1;
+
+    peer1->input = peer2->output =
+        (mbedtls_test_buffer*) mbedtls_calloc( 1, sizeof(mbedtls_test_buffer) );
+    if( peer1->input == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
+    mbedtls_test_buffer_init( peer1->input );
+    if( 0 != ( ret = mbedtls_test_buffer_setup( peer1->input, bufsize ) ) )
+    {
+        goto exit;
+    }
+
+    peer1->output = peer2->input =
+        (mbedtls_test_buffer*) mbedtls_calloc( 1, sizeof(mbedtls_test_buffer) );
+    if( peer1->output == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
+    mbedtls_test_buffer_init( peer1->output );
+    if( 0 != ( ret = mbedtls_test_buffer_setup( peer1->output, bufsize ) ) )
+    {
+        goto exit;
+    }
+
+    peer1->peer = peer2;
+    peer2->peer = peer1;
+
+    peer1->status = peer2->status = MBEDTLS_MOCK_SOCKET_CONNECTED;
+    ret = 0;
+
+exit:
+
+    if( ret != 0 )
+    {
+        mbedtls_mock_socket_close( peer1 );
+        mbedtls_mock_socket_close( peer2 );
+    }
+
+    return ret;
+}
+
+/*
+ * Callbacks for simulating blocking I/O over connection-oriented transport.
+ */
+
+int mbedtls_mock_tcp_send_b( void *ctx, const unsigned char *buf, size_t len )
+{
+    mbedtls_mock_socket *socket = (mbedtls_mock_socket*) ctx;
+
+    if( socket == NULL || socket->status != MBEDTLS_MOCK_SOCKET_CONNECTED )
+        return -1;
+
+    return mbedtls_test_buffer_put( socket->output, buf, len );
+}
+
+int mbedtls_mock_tcp_recv_b( void *ctx, unsigned char *buf, size_t len )
+{
+    mbedtls_mock_socket *socket = (mbedtls_mock_socket*) ctx;
+
+    if( socket == NULL || socket->status != MBEDTLS_MOCK_SOCKET_CONNECTED )
+        return -1;
+
+    return mbedtls_test_buffer_get( socket->input, buf, len );
+}
+
+/*
  * Helper function setting up inverse record transformations
  * using given cipher, hash, EtM mode, authentication tag length,
  * and version.
@@ -575,8 +716,7 @@ void test_callback_buffer( int size, int put1, int put1_ret,
     size_t input_len;
     unsigned char* output = NULL;
     size_t output_len;
-    size_t i, written, read;
-    int j;
+    size_t i, j, written, read;
 
     mbedtls_test_buffer_init( &buf );
     TEST_ASSERT( mbedtls_test_buffer_setup( &buf, size ) == 0 );
@@ -662,6 +802,131 @@ exit:
     mbedtls_free( input );
     mbedtls_free( output );
     mbedtls_test_buffer_free( &buf );
+}
+/* END_CASE */
+
+/*
+ * Test if the implementation of `mbedtls_mock_socket` related functions is
+ * correct and works as expected.
+ */
+
+/* BEGIN_CASE */
+void ssl_mock_tcp()
+{
+    enum { ROUNDS = 2 };
+    enum { MSGLEN = 105 };
+    unsigned char message[ROUNDS][MSGLEN];
+    unsigned char received[ROUNDS][MSGLEN];
+    mbedtls_mock_socket client;
+    mbedtls_mock_socket server;
+    size_t written[ROUNDS];
+    size_t read[ROUNDS];
+    int send_ret[ROUNDS];
+    int recv_ret[ROUNDS];
+    unsigned i, j, progress;
+
+    mbedtls_mock_socket_init( &client );
+    mbedtls_mock_socket_init( &server );
+
+    /* Fill up the buffers with structured data so that unwanted changes
+     * can be detected */
+    for( i = 0; i < ROUNDS; i++ )
+    {
+        for( j = 0; j < MSGLEN; j++ )
+        {
+            message[i][j] = ( i * MSGLEN + j ) & 0xFF;
+        }
+    }
+
+    /* Try sending or receiving on an unconnected socket */
+    TEST_ASSERT( mbedtls_mock_tcp_send_b( &client, message[0], MSGLEN ) < 0 );
+    TEST_ASSERT( mbedtls_mock_tcp_recv_b( &client, received[0], MSGLEN ) < 0 );
+
+    /* Make sure that sending a message takes a few  iterations. */
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   MSGLEN / 5 ) );
+
+    /* Send the message to the server */
+    send_ret[0] = recv_ret[0] = 1;
+    written[0] = read[0] = 0;
+    while( send_ret[0] != 0 || recv_ret[0] != 0 )
+    {
+        send_ret[0] = mbedtls_mock_tcp_send_b( &client,
+                                               message[0] + written[0],
+                                               MSGLEN - written[0] );
+        TEST_ASSERT( send_ret[0] >= 0 );
+        written[0] += send_ret[0];
+
+        recv_ret[0] = mbedtls_mock_tcp_recv_b( &server,
+                                               received[0] + read[0],
+                                               MSGLEN - read[0] );
+        TEST_ASSERT( recv_ret[0] >= 0 );
+        read[0] += recv_ret[0];
+    }
+    TEST_ASSERT( memcmp( message[0], received[0], MSGLEN ) == 0 );
+
+    /* Reset connection for the next test */
+    mbedtls_mock_socket_close( &client );
+    mbedtls_mock_socket_close( &server );
+    mbedtls_mock_socket_init( &client );
+    mbedtls_mock_socket_init( &server );
+    /* Make sure that sending a message takes a few  iterations. */
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   MSGLEN / 5 ) );
+
+    /* Send the message from both sides, interleaving. */
+    progress = 1;
+    for( i = 0; i < ROUNDS; i++ )
+    {
+        written[i] = 0;
+        read[i] = 0;
+    }
+    /* This loop does not stop as long as there was a successful write or read
+     * of at least one byte on either side. */
+    while( progress != 0 )
+    {
+        send_ret[0] = mbedtls_mock_tcp_send_b( &client,
+                                               message[0] + written[0],
+                                               MSGLEN - written[0] );
+        TEST_ASSERT( send_ret[0] >= 0 );
+        written[0] += send_ret[0];
+
+        send_ret[1] = mbedtls_mock_tcp_send_b( &server,
+                                               message[1] + written[1],
+                                               MSGLEN - written[1] );
+        TEST_ASSERT( send_ret[1] >= 0 );
+        written[1] += send_ret[1];
+
+        recv_ret[0] = mbedtls_mock_tcp_recv_b( &server,
+                                               received[0] + read[0],
+                                               MSGLEN - read[0] );
+        TEST_ASSERT( recv_ret[0] >= 0 );
+        read[0] += recv_ret[0];
+
+        recv_ret[1] = mbedtls_mock_tcp_recv_b( &client,
+                                               received[1] + read[1],
+                                               MSGLEN - read[1] );
+        TEST_ASSERT( recv_ret[1] >= 0 );
+        read[1] += recv_ret[1];
+
+        progress = 0;
+        for( i = 0; i < ROUNDS; i++ )
+        {
+            if( send_ret[i] > 0 )
+                progress++;
+
+            if( recv_ret[i] > 0 )
+                progress++;
+        }
+    }
+
+    for( i = 0; i < ROUNDS; i++ )
+        TEST_ASSERT( memcmp( message[i], received[i], MSGLEN ) == 0 );
+
+exit:
+
+    mbedtls_mock_socket_close( &client );
+    mbedtls_mock_socket_close( &server );
 }
 /* END_CASE */
 

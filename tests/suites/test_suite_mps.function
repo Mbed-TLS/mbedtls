@@ -505,6 +505,19 @@ struct mbedtls_mps_transform_t
 #endif
 };
 
+static void build_mock_transforms( mbedtls_mps_transform_t *ptr0,
+                                   mbedtls_mps_transform_t *ptr1,
+                                   size_t enabled, size_t pad )
+{
+    ptr0->type = 0;
+    ptr0->mock.enabled = enabled;
+    ptr0->mock.pad     = pad;
+
+    ptr1->type = 0;
+    ptr1->mock.enabled = enabled;
+    ptr1->mock.pad     = pad;
+}
+
 static void write_version( int major, int minor, int transport,
                            unsigned char ver[2] )
 {
@@ -564,8 +577,8 @@ static void read_version( int *major, int *minor, int transport,
  * TLS version.
  */
 #if !defined(TEST_SUITE_MPS_NO_SSL)
-static int build_transforms( mbedtls_ssl_transform *t_in,
-                             mbedtls_ssl_transform *t_out,
+static int build_real_transforms( mbedtls_mps_transform_t *t_in_,
+                             mbedtls_mps_transform_t *t_out_,
                              int cipher_type, int hash_id,
                              int etm, int tag_mode, int ver,
                              int (*f_rng)(void *, unsigned char *, size_t),
@@ -577,6 +590,12 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     size_t keylen, maclen, ivlen;
     unsigned char *key0, *key1, *md0, *md1;
     unsigned char iv_enc[16], iv_dec[16];
+
+    mbedtls_ssl_transform * const t_in  = &t_in_->real;
+    mbedtls_ssl_transform * const t_out = &t_out_->real;
+
+    t_in_->type = 1;
+    t_out_->type = 1;
 
     /* Pick cipher */
     cipher_info = mbedtls_cipher_info_from_type( cipher_type );
@@ -4074,29 +4093,21 @@ void mbedtls_mps_l2_basic( int mode,
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
     if( real_transforms == 1 )
     {
-        dummy_c->type = 1;
-        dummy_s->type = 1;
-        build_transforms( &dummy_c->real,
-                          &dummy_s->real,
+        build_real_transforms( dummy_c, dummy_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA1,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
     else
-#else
-    ((void) real_transforms);
 #endif
     {
-        dummy_s->type = 0;
-        dummy_s->mock.enabled = 1;
-        dummy_s->mock.pad = 5;
-        dummy_c->type = 0;
-        dummy_c->mock.enabled = 1;
-        dummy_c->mock.pad = 5;
+        build_mock_transforms( dummy_s, dummy_c, 1, 5 );
     }
 
     /* Initialize Layer 0 mock objects */
@@ -4314,12 +4325,7 @@ void mbedtls_mps_l2_non_packable_type( int mode,
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
+    build_mock_transforms( dummy_s, dummy_c, 1, 5 );
 
     /* Initialize Layer 0 mock objects */
     if( mode == MBEDTLS_MPS_MODE_STREAM )
@@ -4548,12 +4554,7 @@ void mbedtls_mps_l2_bad_record( int mode,
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
+    build_mock_transforms( dummy_s, dummy_c, 1, 5 );
 
     /* Initialize Layer 0 mock objects */
     if( mode == MBEDTLS_MPS_MODE_STREAM )
@@ -4870,12 +4871,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
+    build_mock_transforms( dummy_s, dummy_c, 1, 5 );
 
     /* Initialize Layer 0 mock objects */
     TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
@@ -5194,12 +5190,8 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
 
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
+
+    build_mock_transforms( dummy_s, dummy_c, 1, 5 );
 
     /* Ensure that the test parameters are valid */
     TEST_ASSERT( transform_get_expansion( dummy_c, &pre_exp, &post_exp ) == 0 );
@@ -5445,18 +5437,12 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     if( real_transforms == 1 )
     {
         srand( 0 );
-        epoch0_c->type = 1;
-        epoch0_s->type = 1;
-        epoch1_c->type = 1;
-        epoch1_s->type = 1;
-        build_transforms( &epoch0_c->real,
-                          &epoch0_s->real,
+        build_real_transforms( epoch0_c, epoch0_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA256,
                           0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
-        build_transforms( &epoch1_c->real,
-                          &epoch1_s->real,
+        build_real_transforms( epoch1_c, epoch1_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA256,
                           0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
@@ -5467,18 +5453,8 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     ((void) real_transforms);
 #endif
     {
-        epoch0_c->type = 0;
-        epoch0_c->mock.enabled = 0;
-        epoch0_c->mock.pad = 0;
-        epoch1_c->type = 0;
-        epoch1_c->mock.enabled = 1;
-        epoch1_c->mock.pad = 5;
-        epoch0_s->type = 0;
-        epoch0_s->mock.enabled = 0;
-        epoch0_s->mock.pad = 0;
-        epoch1_s->type = 0;
-        epoch1_s->mock.enabled = 1;
-        epoch1_s->mock.pad = 5;
+        build_mock_transforms( epoch0_c, epoch0_s, 0, 0 );
+        build_mock_transforms( epoch1_c, epoch1_s, 1, 5 );
     }
 
     /* Initialize Layer 0 mock objects */
@@ -5695,12 +5671,8 @@ void mbedtls_mps_l2_queueing( int allocator_buffer_sz,
     mps_l2_in in_srv;
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
+
+    build_mock_transforms( dummy_s, dummy_c, 1, 5 );
 
     /* Initialize Layer 0 mock objects */
     layer0_bufsize = (size_t) layer0_buffer_sz;
@@ -5856,30 +5828,23 @@ void mbedtls_mps_l2_many_epochs( int mode,
         epochs_s[id] = malloc( sizeof( mbedtls_mps_transform_t ) );
         TEST_ASSERT( epochs_s[id] != NULL && epochs_c[id] != NULL );
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+        ((void) real_transform);
+#else
         if( real_transforms == 1 )
         {
             srand( id );
-            epochs_c[id]->type = 1;
-            epochs_s[id]->type = 1;
-            build_transforms( &epochs_c[id]->real,
-                              &epochs_s[id]->real,
+            build_real_transforms( epochs_c[id], epochs_s[id],
                               MBEDTLS_CIPHER_AES_128_CBC,
                               MBEDTLS_MD_SHA1,
                               0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                               mbedtls_test_rnd_std_rand, NULL );
         }
         else
-#else
-    ((void) real_transforms);
 #endif
         {
-            epochs_c[id]->type = 0;
-            epochs_c[id]->mock.enabled = ( id > 0 );
-            epochs_c[id]->mock.pad = id % 13 + 5;
-            epochs_s[id]->type = 0;
-            epochs_s[id]->mock.enabled = ( id > 0 );
-            epochs_s[id]->mock.pad = id % 13 + 5;
+            build_mock_transforms( epochs_c[id], epochs_s[id],
+                                   id > 0, id % 13 + 5 );
         }
     }
 
@@ -6165,44 +6130,28 @@ void mbedtls_mps_l2_piggyback_data( int mode,
     mbedtls_mps_transform_t *epoch0_s = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *epoch1_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
     if( real_transforms == 1 )
     {
         srand( 0 );
-        epoch0_c->type = 1;
-        epoch0_s->type = 1;
-        epoch1_c->type = 1;
-        epoch1_s->type = 1;
-        build_transforms( &epoch0_c->real,
-                          &epoch0_s->real,
+        build_real_transforms( epoch0_c, epoch0_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA256,
                           0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
-        build_transforms( &epoch1_c->real,
-                          &epoch1_s->real,
+        build_real_transforms( epoch1_c, epoch1_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA256,
                           0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
     else
-#else
-    ((void) real_transforms);
 #endif
     {
-        epoch0_c->type = 0;
-        epoch0_c->mock.enabled = 0;
-        epoch0_c->mock.pad = 0;
-        epoch1_c->type = 0;
-        epoch1_c->mock.enabled = 1;
-        epoch1_c->mock.pad = 5;
-        epoch0_s->type = 0;
-        epoch0_s->mock.enabled = 0;
-        epoch0_s->mock.pad = 0;
-        epoch1_s->type = 0;
-        epoch1_s->mock.enabled = 1;
-        epoch1_s->mock.pad = 5;
+        build_mock_transforms( epoch0_c, epoch0_s, 0, 0 );
+        build_mock_transforms( epoch1_c, epoch1_s, 1, 5 );
     }
 
     /* Initialize Layer 0 mock objects */
@@ -6396,30 +6345,23 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
         epochs[1][id] = malloc( sizeof( mbedtls_mps_transform_t ) );
         TEST_ASSERT( epochs[0][id] != NULL && epochs[1][id] != NULL );
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
         if( real_transforms == 1 )
         {
             srand( id );
-            epochs[0][id]->type = 1;
-            epochs[1][id]->type = 1;
-            build_transforms( &epochs[0][id]->real,
-                              &epochs[1][id]->real,
+            build_real_transforms( epochs[0][id], epochs[1][id],
                               MBEDTLS_CIPHER_AES_128_CBC,
                               MBEDTLS_MD_SHA1,
                               0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                               mbedtls_test_rnd_std_rand, NULL );
         }
         else
-#else
-    ((void) real_transforms);
 #endif
         {
-            epochs[0][id]->type = 0;
-            epochs[0][id]->mock.enabled = ( id > 0 );
-            epochs[0][id]->mock.pad = 10;
-            epochs[1][id]->type = 0;
-            epochs[1][id]->mock.enabled = ( id > 0 );
-            epochs[1][id]->mock.pad = 10;
+            build_mock_transforms( epochs[0][id], epochs[1][id],
+                                   id > 0, 10 );
         }
 
         for( size_t k=0; k<2; k++ )
@@ -6918,29 +6860,20 @@ void mbedtls_mps_l3_basic_handshake(
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
     if( real_transforms == 1 )
     {
-        dummy_c->type = 1;
-        dummy_s->type = 1;
-        build_transforms( &dummy_c->real,
-                          &dummy_s->real,
+        build_real_transforms( dummy_c, dummy_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA1,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
-    else
-#else
-    ((void) real_transforms);
 #endif
     {
-        dummy_s->type = 0;
-        dummy_s->mock.enabled = 1;
-        dummy_s->mock.pad = 5;
-        dummy_c->type = 0;
-        dummy_c->mock.enabled = 1;
-        dummy_c->mock.pad = 5;
+        build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
 
     /* Initialize Layer 0 mock objects */
@@ -7293,12 +7226,7 @@ void mbedtls_mps_l3_bad_msg( int variant )
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
+    build_mock_transforms( dummy_c, dummy_s, 1, 5 );
 
     /* Initialize Layer 0 mock objects */
     TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
@@ -7505,29 +7433,21 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
     if( real_transforms == 1 )
     {
-        dummy_c->type = 1;
-        dummy_s->type = 1;
-        build_transforms( &dummy_c->real,
-                          &dummy_s->real,
+        build_real_transforms( dummy_c, dummy_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA1,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
     else
-#else
-    ((void) real_transforms);
 #endif
     {
-        dummy_s->type = 0;
-        dummy_s->mock.enabled = 1;
-        dummy_s->mock.pad = 5;
-        dummy_c->type = 0;
-        dummy_c->mock.enabled = 1;
-        dummy_c->mock.pad = 5;
+        build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
 
     ((void) rec_sz);
@@ -7891,29 +7811,21 @@ void mbedtls_mps_l3_basic_application( int mode,
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
     if( real_transforms == 1 )
     {
-        dummy_c->type = 1;
-        dummy_s->type = 1;
-        build_transforms( &dummy_c->real,
-                          &dummy_s->real,
+        build_real_transforms( dummy_c, dummy_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA1,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
     else
-#else
-    ((void) real_transforms);
 #endif
     {
-        dummy_s->type = 0;
-        dummy_s->mock.enabled = 1;
-        dummy_s->mock.pad = 5;
-        dummy_c->type = 0;
-        dummy_c->mock.enabled = 1;
-        dummy_c->mock.pad = 5;
+        build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
 
     ((void) rec_sz);
@@ -8089,28 +8001,20 @@ void mbedtls_mps_l3_basic_alert( int mode,
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
 #if !defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
     if( real_transforms == 1 )
     {
-        dummy_c->type = 1;
-        dummy_s->type = 1;
-        build_transforms( &dummy_c->real,
-                          &dummy_s->real,
+        build_real_transforms( dummy_c, dummy_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA1,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
     else
-#else
-    ((void) real_transforms);
 #endif
     {
-        dummy_s->type = 0;
-        dummy_s->mock.enabled = 1;
-        dummy_s->mock.pad = 5;
-        dummy_c->type = 0;
-        dummy_c->mock.enabled = 1;
-        dummy_c->mock.pad = 5;
+        build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
 
     ((void) rec_sz);
@@ -8314,28 +8218,19 @@ void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
 #if !defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
     if( real_transforms == 1 )
     {
-        dummy_c->type = 1;
-        dummy_s->type = 1;
-        build_transforms( &dummy_c->real,
-                          &dummy_s->real,
+        build_real_transforms( dummy_c, dummy_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA1,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
-    else
-#else
-    ((void) real_transforms);
 #endif
     {
-        dummy_s->type = 0;
-        dummy_s->mock.enabled = 1;
-        dummy_s->mock.pad = 5;
-        dummy_c->type = 0;
-        dummy_c->mock.enabled = 1;
-        dummy_c->mock.pad = 5;
+        build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
 
     ((void) rec_sz);
@@ -8513,29 +8408,21 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
     if( real_transforms == 1 )
     {
-        dummy_c->type = 1;
-        dummy_s->type = 1;
-        build_transforms( &dummy_c->real,
-                          &dummy_s->real,
+        build_real_transforms( dummy_c, dummy_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA1,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
     else
-#else
-    ((void) real_transforms);
 #endif
     {
-        dummy_s->type = 0;
-        dummy_s->mock.enabled = 1;
-        dummy_s->mock.pad = 5;
-        dummy_c->type = 0;
-        dummy_c->mock.enabled = 1;
-        dummy_c->mock.pad = 5;
+        build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
 
     ((void) rec_sz);
@@ -8934,30 +8821,23 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
         epochs[1][id] = malloc( sizeof( mbedtls_mps_transform_t ) );
         TEST_ASSERT( epochs[0][id] != NULL && epochs[1][id] != NULL );
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+        ((void) real_transforms);
+#else
         if( real_transforms == 1 )
         {
             srand( id );
-            epochs[0][id]->type = 1;
-            epochs[1][id]->type = 1;
-            build_transforms( &epochs[0][id]->real,
-                              &epochs[1][id]->real,
+            build_real_transforms( epochs[0][id], epochs[1][id],
                               MBEDTLS_CIPHER_AES_128_CBC,
                               MBEDTLS_MD_SHA1,
                               0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                               mbedtls_test_rnd_std_rand, NULL );
         }
         else
-#else
-    ((void) real_transforms);
 #endif
         {
-            epochs[0][id]->type = 0;
-            epochs[0][id]->mock.enabled = ( id > 0 );
-            epochs[0][id]->mock.pad = id % 13 + 5;
-            epochs[1][id]->type = 0;
-            epochs[1][id]->mock.enabled = ( id > 0 );
-            epochs[1][id]->mock.pad = id % 13 + 5;
+            build_mock_transforms( epochs[0][id], epochs[1][id],
+                                   id > 0, id % 13 + 5 );
         }
 
         for( size_t k=0; k<2; k++ )
@@ -9666,29 +9546,21 @@ void mbedtls_mps_l4_basic_handshake(
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
-#if !defined(TEST_SUITE_MPS_NO_SSL)
+#if defined(TEST_SUITE_MPS_NO_SSL)
+    ((void) real_transforms);
+#else
     if( real_transforms == 1 )
     {
-        dummy_c->type = 1;
-        dummy_s->type = 1;
-        build_transforms( &dummy_c->real,
-                          &dummy_s->real,
+        build_real_transforms( dummy_c, dummy_s,
                           MBEDTLS_CIPHER_AES_128_CBC,
                           MBEDTLS_MD_SHA1,
                           1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
                           mbedtls_test_rnd_std_rand, NULL );
     }
     else
-#else
-    ((void) real_transforms);
 #endif
     {
-        dummy_s->type = 0;
-        dummy_s->mock.enabled = 1;
-        dummy_s->mock.pad = 5;
-        dummy_c->type = 0;
-        dummy_c->mock.enabled = 1;
-        dummy_c->mock.pad = 5;
+        build_mock_transforms( dummy_c, dummy_s, 1, 5 );
     }
 
     ((void) rec_sz);
@@ -9939,19 +9811,8 @@ void mbedtls_mps_l4_hs_inconsistent_continuation( int variant )
     TEST_ASSERT( dummy_c[0] != NULL && dummy_c[1] != NULL &&
                  dummy_s[0] != NULL && dummy_s[1] != NULL );
 
-    dummy_s[0]->type = 0;
-    dummy_s[0]->mock.enabled = 1;
-    dummy_s[0]->mock.pad = 5;
-    dummy_c[0]->type = 0;
-    dummy_c[0]->mock.enabled = 1;
-    dummy_c[0]->mock.pad = 5;
-
-    dummy_s[1]->type = 0;
-    dummy_s[1]->mock.enabled = 1;
-    dummy_s[1]->mock.pad = 10;
-    dummy_c[1]->type = 0;
-    dummy_c[1]->mock.enabled = 1;
-    dummy_c[1]->mock.pad = 10;
+    build_mock_transforms( dummy_c[0], dummy_s[0], 1, 5 );
+    build_mock_transforms( dummy_c[1], dummy_s[1], 1, 10 );
 
     TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
     TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
@@ -10253,12 +10114,7 @@ void mbedtls_mps_l4_disruption( int mode,
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
+    build_mock_transforms( dummy_c, dummy_s, 1, 5 );
 
     ((void) rec_sz);
 
@@ -10579,12 +10435,7 @@ void mbedtls_mps_l4_dtls_fragmentation( int allocator_buffer_sz,
     mbedtls_test_rnd_std_rand( NULL, (unsigned char*) &cli, sizeof( cli ) );
     mbedtls_test_rnd_std_rand( NULL, (unsigned char*) &srv, sizeof( srv ) );
 
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
+    build_mock_transforms( dummy_c, dummy_s, 1, 5 );
 
     /* Initialize Layer 0 mock objects */
     TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
@@ -10803,12 +10654,7 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
     dummy_ctx.total_len     = 100;
     dummy_ctx.max_bytes_per_chunk = 50;
 
-    dummy_s->type = 0;
-    dummy_s->mock.enabled = 1;
-    dummy_s->mock.pad = 5;
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
+    build_mock_transforms( dummy_c, dummy_s, 1, 5 );
 
     /* Initialize Layer 0 mock objects */
     TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
@@ -11140,12 +10986,8 @@ void mbedtls_mps_l4_flight_exchange( int mode,
         epochs[1][id] = malloc( sizeof( mbedtls_mps_transform_t ) );
         TEST_ASSERT( epochs[1][id] != NULL && epochs[0][id] != NULL );
 
-        epochs[0][id]->type = 0;
-        epochs[0][id]->mock.enabled = 1;
-        epochs[0][id]->mock.pad = id % 13 + 5;
-        epochs[1][id]->type = 0;
-        epochs[1][id]->mock.enabled = 1;
-        epochs[1][id]->mock.pad = id % 13 + 5;
+        build_mock_transforms( epochs[0][id], epochs[1][id],
+                               1, id % 13 + 5 );
     }
 
     cb_ctxs = malloc( sizeof( *cb_ctxs ) * ( rounds * num_hs ) );

@@ -1300,6 +1300,8 @@ int mbedtls_mps_read_application( mbedtls_mps *mps,
                                   mbedtls_reader **rd )
 {
     int ret;
+    TRACE_INIT( "mbedtls_mps_read_application" );
+
     ret = mps_check_read( mps );
     if( ret != 0 )
         return( ret );
@@ -1316,6 +1318,7 @@ int mbedtls_mps_read_alert( mbedtls_mps *mps,
                             mbedtls_mps_alert_t *alert_type )
 {
     int ret;
+    TRACE_INIT( "mbedtls_mps_read_alert" );
 
     ret = mps_check_read( mps );
     if( ret != 0 )
@@ -1796,6 +1799,7 @@ int mbedtls_mps_write_application( mbedtls_mps *mps,
 {
     int ret;
     mps_l3_app_out out_l3;
+    TRACE_INIT( "mbedtls_mps_write_application" );
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
     out_l3.epoch = mps->out_epoch;
@@ -1811,6 +1815,7 @@ int mbedtls_mps_write_alert( mbedtls_mps *mps,
 {
     int ret;
     mps_l3_alert_out alert_l3;
+    TRACE_INIT( "mbedtls_mps_write_alert" );
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
     alert_l3.epoch = mps->out_epoch;
@@ -1826,6 +1831,7 @@ int mbedtls_mps_write_ccs( mbedtls_mps *mps )
 {
     int ret;
     mps_l3_ccs_out ccs_l3;
+    TRACE_INIT( "mbedtls_mps_write_application" );
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
     ccs_l3.epoch = mps->out_epoch;

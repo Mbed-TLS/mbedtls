@@ -373,15 +373,9 @@ int l1_flush_stream( mps_l1_stream_write *p )
      */
     status = p->status;
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( status != MPS_L1_STREAM_STATUS_READY &&
-        status != MPS_L1_STREAM_STATUS_FLUSH )
-    {
-        TRACE( trace_comment, "L1 flush stream, unexpected state %u",
-               (unsigned) status );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE( status == MPS_L1_STREAM_STATUS_READY ||
+                                status == MPS_L1_STREAM_STATUS_FLUSH,
+                                "Invalid state in l1_flush_stream()" );
 
     p->status = MPS_L1_STREAM_STATUS_FLUSH;
     br = p->bytes_ready;
@@ -575,13 +569,8 @@ int l1_dispatch_stream( mps_l1_stream_write *p, size_t len, size_t *pending )
     uint8_t status = p->status;
     TRACE_INIT( "L1 dispatch %u", (unsigned) len );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( status != MPS_L1_STREAM_STATUS_WRITE )
-    {
-        TRACE( trace_comment, "Unexpected state %u", (unsigned) status );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE( status == MPS_L1_STREAM_STATUS_WRITE,
+                                "Invalid state in l1_dispatch_stream()" );
 
     bl = p->buf_len;
     br = p->bytes_ready;
@@ -805,13 +794,9 @@ int l1_consume_dgram( mps_l1_dgram_read *p )
     size_t wl, wb, ml;
 
     TRACE_INIT( "l1_consume_dgram" );
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    {
-        unsigned char * const buf = p->buf;
-        if( buf == NULL )
-            return(MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
+    MBEDTLS_MPS_STATE_VALIDATE( p->buf != NULL,
+                  "l1_consume_dgram() called, but no datagram available" );
 
     wb = p->window_base;
     wl = p->window_len;
@@ -920,16 +905,8 @@ int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
     size_t bl, br;
     TRACE_INIT( "l1_dispatch_dgram, length %u", (unsigned) len );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    {
-        unsigned char * const buf = p->buf;
-        if( buf == NULL )
-        {
-            TRACE( trace_error, "No outgoing datagram open." );
-            RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-        }
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE( p->buf != NULL,
+                  "l1_dispatch_dgram() called, but no datagram open" );
 
     bl = p->buf_len;
     br = p->bytes_ready;

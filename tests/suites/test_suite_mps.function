@@ -3757,32 +3757,6 @@ void mbedtls_mps_l1_random_communication_stream( int allocator_buffer_sz,
      * - The receive buffers xxx_recv_buffer store what has already been fetched
      *   from layer 1, with xxx_recv_pos indicating the current read position.
      *
-     * In contrast to the stream-based test, we need to keep track
-     * of datagram boundaries here: Architecturally, we cannot know
-     * how many chunks of outgoing data Layer 1 will fit into a single
-     * datagram on Layer 0. The only guarantees we have are that
-     * - A flush leads enforces delivery to Layer 0, and hence
-     *   enforces a datagram boundary.
-     * - Layer 1 does not split single write-chunks across multiple
-     *   datagrams.
-     * Hence, if the sender sends data in a series of n chunks to Layer 1,
-     * with the total amount of data in the first i chunks denoted by
-     * M_i, and if the sender flushes after chunks i_1, ..., i_k, then the
-     * set of architecturally allowed datagram boundaries in the total
-     * data block of size M_n consists of all subsets of { M_1, ..., M_n }
-     * containing { M_{i_1}, ..., M_{i_k} }. For example, in the extreme case
-     * where the sender flushes after every chunk, the datagram boundaries
-     * are precisely { M_1, ..., M_n }, if the sender only flushes after
-     * dispatching all chunks, the datagram bounds are an arbitrary
-     * subset of { M_1, ..., M_n } containing Mn.
-     *
-     * When writing, we record both the potential datagram bounds M_i as
-     * well as the enforced onces M_{i_j}. When reading, we check that
-     * - any read requests exceeding an enforced boundary M_{i_j} leads
-     *   to a bounds violation, while
-     * - any other read request leading to a bounds violation must
-     *   have crossed a tentative boundary M_i.
-     *
      * NOTE: This test uses rand() for random data, which is not optimal.
      *       Instead, it would be better to get the random data from a
      *       static buffer. This both eases reproducibility and allows
@@ -3918,9 +3892,10 @@ void mbedtls_mps_l1_random_communication_stream( int allocator_buffer_sz,
              * in its entirety, WANT_READ is returned, and one should
              * retry later. */
             ret = mps_l1_fetch( actor, &recv_src_buf, recv_attempt );
-            TEST_ASSERT( ret == 0 || ret == MBEDTLS_ERR_MPS_WANT_READ ||
-                         ( recv_attempt > (unsigned) allocator_buffer_sz &&
-                           ret == MBEDTLS_ERR_MPS_BUFFER_TOO_SMALL ) );
+            TEST_ASSERT( ret == 0                         ||
+                         ret == MBEDTLS_ERR_MPS_WANT_READ ||
+                         ( ret == MBEDTLS_ERR_MPS_BUFFER_TOO_SMALL &&
+                           recv_attempt > (unsigned) allocator_buffer_sz ) );
             if( ret != 0 )
                 continue;
 
@@ -3968,6 +3943,33 @@ void mbedtls_mps_l1_random_communication_dgram( int max_dgram_size )
      *
      * - The receive buffers xxx_recv_buffer store what has already been fetched
      *   from layer 1, with xxx_recv_pos indicating the current read position.
+     *
+     * In contrast to the stream-based test, we need to keep track
+     * of datagram boundaries here: Architecturally, we cannot know
+     * how many chunks of outgoing data Layer 1 will fit into a single
+     * datagram on Layer 0. The only guarantees we have are that
+     * - A flush enforces delivery to Layer 0, and hence
+     *   enforces a datagram boundary.
+     * - Layer 1 does not split single write-chunks across multiple
+     *   datagrams.
+     * Hence, if the sender sends data in a series of n chunks to Layer 1,
+     * with the total amount of data in the first i chunks denoted by
+     * M_i, and if the sender flushes after chunks i_1, ..., i_k, then the
+     * set of architecturally allowed datagram boundaries in the total
+     * data block of size M_n consists of all subsets of { M_1, ..., M_n }
+     * containing { M_{i_1}, ..., M_{i_k} }. For example, in the extreme case
+     * where the sender flushes after every chunk, the datagram boundaries
+     * are precisely { M_1, ..., M_n }, if the sender only flushes after
+     * dispatching all chunks, the datagram bounds are an arbitrary
+     * subset of { M_1, ..., M_n } containing Mn.
+     *
+     * When writing, we record both the potential datagram bounds M_i as
+     * well as the enforced onces M_{i_j}. When reading, we check that
+     * - any read requests exceeding an enforced boundary M_{i_j} leads
+     *   to a bounds violation, while
+     * - any other read request leading to a bounds violation must
+     *   have crossed a tentative boundary M_i.
+     *
      *
      * NOTE: This test uses rand() for random data, which is not optimal.
      *       Instead, it would be better to get the random data from a

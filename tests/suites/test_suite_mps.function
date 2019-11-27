@@ -11295,7 +11295,8 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                                      int permute,
                                      int use_timer,
                                      int multiple_epochs,
-                                     int corrupt )
+                                     int corrupt,
+                                     int ccs )
 {
     /* This test exercises client and server exchanging
      * flights of handshake messages, which may be subject
@@ -11327,6 +11328,7 @@ void mbedtls_mps_l4_flight_exchange( int mode,
      *                     - 0: No epoch switching
      *                     - 1: Epoch switch at the end of a flight.
      *                     - 2: Epoch switch in the middle of a flight.
+     * - ccs: Add CCS before switching epoch (only for multiple_epoch == 2)
      */
 
     /* Allocator objects */
@@ -11469,11 +11471,11 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
                                          1, 1, 0 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_ALERT,
+    TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_CCS,
                                          1, 1, 0 ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_HS,
                                          1, 1, 0 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
+    TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_CCS,
                                          1, 1, 0 ) == 0 );
 
     /* Initialize Layer 3 */
@@ -11591,6 +11593,18 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                 /* For the client, switch epoch at the end of flight. */
                 if( sender_id == 0 && iteration == (size_t) num_hs - 1 )
                 {
+                    if( ccs )
+                    {
+                        ret = mbedtls_mps_write_ccs( sender );
+                        TEST_ASSERT( ret == 0                          ||
+                                     ret == MBEDTLS_ERR_MPS_WANT_WRITE ||
+                                     ret == MBEDTLS_ERR_MPS_RETRY );
+                        if( ret != 0 )
+                            continue;
+
+                        TEST_ASSERT( mbedtls_mps_dispatch( sender ) == 0 );
+                    }
+
                     TEST_ASSERT( mbedtls_mps_add_key_material( sender,
                                           epochs[sender_id][round / 2 + 1],
                                           &next_epoch[sender_id] ) == 0 );
@@ -11805,6 +11819,33 @@ void mbedtls_mps_l4_flight_exchange( int mode,
                 /* For the server, switch epoch at the end of flight. */
                 if( receiver_id == 1 && iteration == (size_t) num_hs - 1 )
                 {
+                    if( ccs )
+                    {
+                        ret = mbedtls_mps_read( receiver );
+                        TEST_ASSERT( ret == MBEDTLS_ERR_MPS_RETRY     ||
+                                     ret == MBEDTLS_ERR_MPS_WANT_READ ||
+                                     ret == MBEDTLS_MPS_MSG_CCS );
+
+                        if( ret != MBEDTLS_MPS_MSG_CCS )
+                        {
+                            if( ret == MBEDTLS_ERR_MPS_WANT_READ )
+                            {
+                                repeated_want_reads++;
+                                if( repeated_want_reads % 5 == 0 )
+                                {
+                                    ret = mbedtls_mps_read( sender );
+                                    TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
+                                                 ret == MBEDTLS_ERR_MPS_WANT_READ  ||
+                                                 ret == MBEDTLS_ERR_MPS_WANT_WRITE ||
+                                                 ret == MBEDTLS_ERR_MPS_RETRY      );
+                                }
+                            }
+                            continue;
+                        }
+
+                        TEST_ASSERT( mbedtls_mps_read_consume( receiver ) == 0 );
+                    }
+
                     TEST_ASSERT( mbedtls_mps_add_key_material( receiver,
                                           epochs[receiver_id][round / 2 + 1],
                                           &next_epoch[receiver_id] ) == 0 );
@@ -11824,9 +11865,18 @@ void mbedtls_mps_l4_flight_exchange( int mode,
 
             ret = mbedtls_mps_read( receiver );
             TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
+                         ( ccs == 1 && ret == MBEDTLS_MPS_MSG_CCS ) ||
                          ret == MBEDTLS_ERR_MPS_WANT_READ  ||
                          ret == MBEDTLS_ERR_MPS_WANT_WRITE ||
                          ret == MBEDTLS_ERR_MPS_RETRY );
+
+            if( ret == MBEDTLS_MPS_MSG_CCS )
+            {
+                /* Ignore unexpected CCS */
+                TEST_ASSERT( mbedtls_mps_read_consume( receiver ) == 0 );
+                continue;
+            }
+
             if( ret != MBEDTLS_MPS_MSG_HS )
             {
                 if( ret == MBEDTLS_ERR_MPS_WANT_READ )

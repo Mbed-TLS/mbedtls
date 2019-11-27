@@ -10215,6 +10215,14 @@ void mbedtls_mps_l4_disruption( int mode,
           int rec_sz,
           int shutdown )
 {
+    /*
+     * This test exercises the behaviour of MPS when sending/receiving
+     * closure notifications or fatal alerts to shut down a connection.
+     *
+     * shutdown == 0: Send fatal alert
+     * shutdown == 1: Send closure notification
+     */
+
     /* Allocator objects */
     mps_alloc cli_alloc, srv_alloc;
 
@@ -10322,9 +10330,11 @@ void mbedtls_mps_l4_disruption( int mode,
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
                                                &cli_epoch ) == 0 );
     TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli, cli_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_incoming_keys( &cli, cli_epoch ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &srv, dummy_s,
                                                &srv_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv, srv_epoch ) == 0 );
     TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, srv_epoch ) == 0 );
 
     /*
@@ -10401,6 +10411,10 @@ void mbedtls_mps_l4_disruption( int mode,
     /* Commit last incoming chunk and update state */
     TEST_ASSERT( mbedtls_reader_commit_ext( hs_in.handle ) == 0 );
 
+    /* An orderly shutdown cannot happen in the middle of a handshake. */
+    TEST_ASSERT( mbedtls_mps_read_set_flags( &srv,
+                              MBEDTLS_MPS_FLIGHT_FINISHED ) == 0 );
+
     /* Signal that message has been processed. */
     TEST_ASSERT( mbedtls_mps_read_consume( &srv ) == 0 );
 
@@ -10418,6 +10432,65 @@ void mbedtls_mps_l4_disruption( int mode,
 
     /* Trying to read anything more from the peer should be blocked. */
     TEST_ASSERT( mbedtls_mps_read( &srv ) == MBEDTLS_ERR_MPS_BLOCKED );
+
+    if( shutdown )
+    {
+        /* We should still be able to send something, so wrapup communication
+         * to client by sending a final message and a closure alert. */
+
+        hs_out.type = 12;
+        hs_out.length = 20;
+
+        TEST_ASSERT( mbedtls_mps_write_handshake( &srv, &hs_out,
+                                                  NULL, NULL ) == 0 );
+
+        TEST_ASSERT( mbedtls_writer_get_ext( hs_out.handle,
+                                             20,
+                                             &tmp, NULL ) == 0 );
+        for( size_t idx=0; idx<20; idx++ )
+            tmp[idx] = (unsigned char) idx;
+
+        /* Commit and update state */
+        TEST_ASSERT( mbedtls_writer_commit_ext( hs_out.handle ) == 0 );
+
+        /* Dispatch handshake message */
+        TEST_ASSERT( mbedtls_mps_dispatch( &srv ) == 0 );
+
+        /* Signal closure of write side */
+        TEST_ASSERT( mbedtls_mps_close( &srv ) == 0 );
+        /* But flushing should still work. */
+        TEST_ASSERT( mbedtls_mps_flush( &srv ) == 0 );
+
+        /*
+         * Client: Read last handshake message from server
+         */
+
+        TEST_ASSERT( mbedtls_mps_read( &cli ) == MBEDTLS_MPS_MSG_HS );
+
+        TEST_ASSERT( mbedtls_mps_read_handshake( &cli, &hs_in ) == 0 );
+        TEST_ASSERT( hs_in.type   == 12 );
+        TEST_ASSERT( hs_in.length == 20 );
+
+        /* Fetch next chunk of incoming data */
+        TEST_ASSERT( mbedtls_reader_get_ext( hs_in.handle, 20, &tmp, NULL ) == 0 );
+
+        /* Process incoming data */
+        for( size_t idx=0; idx<10; idx++ )
+            TEST_ASSERT( tmp[idx] == (unsigned char) idx );
+
+        /* Commit last incoming chunk and update state */
+        TEST_ASSERT( mbedtls_reader_commit_ext( hs_in.handle ) == 0 );
+
+        /* An orderly shutdown cannot happen in the middle of a handshake. */
+        TEST_ASSERT( mbedtls_mps_read_set_flags( &cli,
+                                     MBEDTLS_MPS_FLIGHT_FINISHED ) == 0 );
+
+        /* Signal that message has been processed. */
+        TEST_ASSERT( mbedtls_mps_read_consume( &cli ) == 0 );
+
+        /* Next, the closure notification should be received */
+        TEST_ASSERT( mbedtls_mps_read( &cli ) == MBEDTLS_ERR_MPS_CLOSE_NOTIFY );
+    }
 
 exit:
 

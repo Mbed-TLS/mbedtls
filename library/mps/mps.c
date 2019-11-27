@@ -633,7 +633,9 @@ MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
         0,
         MBEDTLS_ERR_MPS_RETRY,
         MBEDTLS_ERR_MPS_WANT_READ,
-        MBEDTLS_ERR_MPS_WANT_WRITE
+        MBEDTLS_ERR_MPS_WANT_WRITE,
+        MBEDTLS_ERR_MPS_BLOCKED,
+        MBEDTLS_ERR_MPS_CLOSE_NOTIFY
     };
 
 #if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
@@ -710,6 +712,7 @@ MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
         return( ret );
 
     /* Remember error and block MPS. */
+    TRACE( trace_error, "Blocking MPS after a fatal error" );
     mps->blocking_reason = MBEDTLS_MPS_ERROR_INTERNAL_ERROR;
     mps->blocking_info.err = ret;
     mps_block( mps );
@@ -755,30 +758,23 @@ MBEDTLS_MPS_STATIC void mps_fatal_alert_received( mbedtls_mps *mps,
 
             mps_block( mps );
             break;
-
-        default:
-            /* This function should not be called if the
-             * MPS cannot be used for reading. */
-            break;
     }
 }
 
 /* React to a close notification from the peer. */
 MBEDTLS_MPS_STATIC void mps_close_notification_received( mbedtls_mps *mps )
 {
+    TRACE_INIT( "mps_close_notification_received" );
     switch( mps->state )
     {
         case MBEDTLS_MPS_STATE_OPEN:
+            TRACE( trace_comment, "State transition OPEN -> WRITE-ONLY" );
             mps->state = MBEDTLS_MPS_STATE_WRITE_ONLY;
             break;
 
         case MBEDTLS_MPS_STATE_READ_ONLY:
+            TRACE( trace_comment, "State transition READ-ONLY -> CLOSED" );
             mps->state = MBEDTLS_MPS_STATE_CLOSED;
-            break;
-
-        default:
-            /* This function should not be called if the
-             * MPS cannot be used for reading. */
             break;
     }
 }
@@ -839,15 +835,13 @@ int mbedtls_mps_close( mbedtls_mps *mps )
     switch( mps->state )
     {
         case MBEDTLS_MPS_STATE_OPEN:
-            TRACE( trace_comment, "Moving from open to read-only state" );
-            TRACE( trace_comment, "Pend closure alert" );
+            TRACE( trace_comment, "State transition OPEN -> READ-ONLY" );
             mps->state = MBEDTLS_MPS_STATE_READ_ONLY;
             mps->alert_pending = 1;
             break;
 
         case MBEDTLS_MPS_STATE_WRITE_ONLY:
-            TRACE( trace_comment, "Moving from write-only to closed state" );
-            TRACE( trace_comment, "Pend closure alert" );
+            TRACE( trace_comment, "State transition WRITE-ONLY -> CLOSED" );
             mps->state = MBEDTLS_MPS_STATE_CLOSED;
             mps->alert_pending = 1;
             break;
@@ -1146,7 +1140,6 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 
                     if( alert.type == MBEDTLS_MPS_ALERT_MSG_CLOSE_NOTIFY )
                     {
-                        TRACE( trace_comment, "Close notification received" );
                         mps_close_notification_received( mps );
                         MPS_CHK( MBEDTLS_ERR_MPS_CLOSE_NOTIFY );
                     }

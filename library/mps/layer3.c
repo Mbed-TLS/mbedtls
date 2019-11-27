@@ -1054,7 +1054,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
          * and there's not enough space left to write the
          * handshake header. In this case, abort the write
          * and make sure Layer 2 is flushed before we attempt
-         * agaio.in. */
+         * again. */
         if( res == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
         {
             TRACE( trace_comment, "Not enough space to write handshake header - flush." );

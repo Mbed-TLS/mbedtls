@@ -278,11 +278,16 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 {
 
 	uECC_word_t diff = 0;
-	wordcount_t i;
+	volatile int i;
 
 	for (i = NUM_ECC_WORDS - 1; i >= 0; --i) {
 		diff |= (left[i] ^ right[i]);
 	}
+
+	/* i should be -1 now */
+	mbedtls_platform_enforce_volatile_reads();
+	diff |= i ^ -1;
+
 	return diff;
 }
 

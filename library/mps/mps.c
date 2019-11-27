@@ -290,7 +290,7 @@ MBEDTLS_MPS_ALWAYS_INLINE int mps_handshake_state_transition(
     mbedtls_mps_flight_state_t new );
 
 MBEDTLS_MPS_ALWAYS_INLINE mbedtls_mps_flight_state_t
-mps_get_handshake_state( mbedtls_mps *mps )
+mps_get_hs_state( mbedtls_mps *mps )
 {
     /* NOTE: To save RAM, and likely also some code on Thumb, it should
      *       be considered to allocate the retransmission state machine
@@ -497,10 +497,8 @@ MBEDTLS_MPS_STATIC int mps_prepare_read( mbedtls_mps *mps )
     if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         MBEDTLS_MPS_STATE_VALIDATE(
-            ! MBEDTLS_MPS_STATE_EITHER_OR(
-                mps_get_handshake_state( mps ),
-                MBEDTLS_MPS_FLIGHT_SEND,
-                MBEDTLS_MPS_FLIGHT_PREPARE ),
+            ! MBEDTLS_MPS_STATE_EITHER_OR( mps_get_hs_state( mps ),
+                MBEDTLS_MPS_FLIGHT_SEND, MBEDTLS_MPS_FLIGHT_PREPARE ),
             "Refuse read request when sending flights." );
 
         /* Check if the timer expired, and take appropriate action
@@ -576,10 +574,8 @@ MBEDTLS_MPS_STATIC int mps_prepare_write( mbedtls_mps *mps,
          * those are sent through mbedtls_mps_send_fatal()
          * which does not call this function. */
         MBEDTLS_MPS_STATE_VALIDATE(
-            ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-                mps_get_handshake_state( mps ),
-                MBEDTLS_MPS_FLIGHT_AWAIT,
-                MBEDTLS_MPS_FLIGHT_RECEIVE ),
+            ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( mps_get_hs_state( mps ),
+                MBEDTLS_MPS_FLIGHT_AWAIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
             "Attempt to send message in an unexpected flight state." );
 
         /* In state #MBEDTLS_MPS_FLIGHT_FINALIZE, check if
@@ -876,10 +872,8 @@ MBEDTLS_MPS_STATIC int mps_check_read( mbedtls_mps const *mps )
     TRACE_INIT( "mps_check_read, state %d", mps->state );
 
     if( MBEDTLS_MPS_STATE_EITHER_OR( mps->state,
-                                     MBEDTLS_MPS_STATE_OPEN,
-                                     MBEDTLS_MPS_STATE_READ_ONLY ) )
+               MBEDTLS_MPS_STATE_OPEN, MBEDTLS_MPS_STATE_READ_ONLY ) )
     {
-        TRACE( trace_comment, "Reading possible" );
         RETURN( 0 );
     }
 
@@ -893,10 +887,8 @@ MBEDTLS_MPS_STATIC int mps_check_write( mbedtls_mps const *mps )
     TRACE_INIT( "mps_check_write, state %d", mps->state );
 
     if( MBEDTLS_MPS_STATE_EITHER_OR( mps->state,
-                                     MBEDTLS_MPS_STATE_OPEN,
-                                     MBEDTLS_MPS_STATE_WRITE_ONLY ) )
+                MBEDTLS_MPS_STATE_OPEN, MBEDTLS_MPS_STATE_WRITE_ONLY ) )
     {
-        TRACE( trace_comment, "Writing possible" );
         RETURN( 0 );
     }
 
@@ -961,15 +953,11 @@ int mbedtls_mps_init( mbedtls_mps *mps,
     if( max_write > 0 )
     {
         unsigned char *queue = NULL;
-        TRACE( trace_comment, "Allocating L4 writer queue of size %u Bytes",
-               (unsigned) max_write );
+        TRACE( trace_comment, "Alloc L4 %u Byte queue", (unsigned) max_write );
 
         queue = calloc( 1, max_write );
         if( queue == NULL )
-        {
-            TRACE( trace_error, "Failed to allocate L4 writer queue." );
             RETURN( MBEDTLS_ERR_MPS_OUT_OF_MEMORY );
-        }
 
         mps->dtls.io.out.hs.queue_len = max_write;
         mps->dtls.io.out.hs.queue     = queue;
@@ -1027,8 +1015,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
      * expected message is unambiguous. */
     if( mps->in.state != MBEDTLS_MPS_MSG_NONE )
     {
-        TRACE( trace_comment, "Message of type %d already open",
-               mps->in.state );
+        TRACE( trace_comment, "Msg of type %d already open", mps->in.state );
         RETURN( mps->in.state );
     }
 
@@ -1075,9 +1062,8 @@ int mbedtls_mps_read( mbedtls_mps *mps )
         case MBEDTLS_MPS_MSG_CCS:
         {
             mps_l3_ccs_in ccs_l3;
+            TRACE( trace_comment, "CCS message received from L3." );
 
-            TRACE( trace_comment,
-                   "ChangeCipherSpec message received from Layer 3." );
             MPS_CHK( mps_l3_read_ccs( mps->conf.l3, &ccs_l3 ) );
 
             /* For DTLS, Layer 3 might be configured to pass through
@@ -1104,8 +1090,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
         {
             mps_l3_alert_in alert;
 
-            TRACE( trace_comment,
-                   "Alert message received from Layer 3." );
+            TRACE( trace_comment, "Alert msg received from L3." );
             MPS_CHK( mps_l3_read_alert( mps->conf.l3, &alert ) );
 
             /* For DTLS, Layer 3 might be configured to pass through
@@ -1127,16 +1112,14 @@ int mbedtls_mps_read( mbedtls_mps *mps )
             switch( alert.level )
             {
                 case MBEDTLS_MPS_ALERT_LEVEL_FATAL:
-                    TRACE( trace_comment, "Alert is fatal of type %d",
-                           alert.type );
+                    TRACE( trace_comment, "Fatal alert, type %d", alert.type );
                     mps_fatal_alert_received( mps, alert.type );
                     MPS_CHK( MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED );
                     break;
 
                 case MBEDTLS_MPS_ALERT_LEVEL_WARNING:
 
-                    TRACE( trace_comment, "Alert is a warning of type %d",
-                           alert.type );
+                    TRACE( trace_comment, "Warning, type %d", alert.type );
 
                     if( alert.type == MBEDTLS_MPS_ALERT_MSG_CLOSE_NOTIFY )
                     {
@@ -1168,8 +1151,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 
         case MBEDTLS_MPS_MSG_HS:
         {
-            TRACE( trace_comment,
-                   "Received a handshake (fragment) from Layer 3" );
+            TRACE( trace_comment, "Received HS fragment from L3" );
 
             /* Pass message fragment to retransmission state machine
              * and check if it leads to a handshake message being ready
@@ -1575,43 +1557,34 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
          *
          * TODO: Test this!
          */
-        if( mps_get_handshake_state( mps )
-              == MBEDTLS_MPS_FLIGHT_FINALIZE )
+        if( mps_get_hs_state( mps ) == MBEDTLS_MPS_FLIGHT_FINALIZE )
         {
-            TRACE( trace_comment,
-                   "Last flight-exchange complete for us, "
-                   "but not necessarily for peer - ignore." );
-            MPS_CHK( mps_handshake_state_transition(
-                         mps,
+            TRACE( trace_comment, "Last flight-exchange complete for us, "
+                                  "but not necessarily for peer - ignore." );
+            MPS_CHK( mps_handshake_state_transition( mps,
                          MBEDTLS_MPS_FLIGHT_FINALIZE,
                          MBEDTLS_MPS_FLIGHT_DONE ) );
         }
-        else if( mps_get_handshake_state( mps )
-                   == MBEDTLS_MPS_FLIGHT_RECVINIT )
+        else if( mps_get_hs_state( mps ) == MBEDTLS_MPS_FLIGHT_RECVINIT )
         {
-            MPS_CHK( mps_handshake_state_transition(
-                         mps,
+            MPS_CHK( mps_handshake_state_transition( mps,
                          MBEDTLS_MPS_FLIGHT_RECVINIT,
                          MBEDTLS_MPS_FLIGHT_DONE ) );
         }
 
         /* No `else` because we want to fall through. */
-        if( mps_get_handshake_state( mps )
-              == MBEDTLS_MPS_FLIGHT_DONE )
+        if( mps_get_hs_state( mps ) == MBEDTLS_MPS_FLIGHT_DONE )
         {
             TRACE( trace_comment,
                    "No flight-exchange in progress. Start a new one" );
             mps->dtls.seq_nr = MPS_INITIAL_HS_SEQ_NR;
-            MPS_CHK( mps_handshake_state_transition(
-                         mps,
+            MPS_CHK( mps_handshake_state_transition( mps,
                          MBEDTLS_MPS_FLIGHT_DONE,
                          MBEDTLS_MPS_FLIGHT_SEND ) );
         }
-        else if( mps_get_handshake_state( mps )
-                   == MBEDTLS_MPS_FLIGHT_PREPARE )
+        else if( mps_get_hs_state( mps ) == MBEDTLS_MPS_FLIGHT_PREPARE )
         {
-            MPS_CHK( mps_handshake_state_transition(
-                         mps,
+            MPS_CHK( mps_handshake_state_transition( mps,
                          MBEDTLS_MPS_FLIGHT_PREPARE,
                          MBEDTLS_MPS_FLIGHT_SEND ) );
         }
@@ -2162,7 +2135,7 @@ MBEDTLS_MPS_STATIC int mps_retransmission_timer_check( mbedtls_mps *mps )
         /* The retransmission timer is used in various states of the
          * flight exchange; check the state and take appropriate action. */
 
-        switch( mps_get_handshake_state( mps ) )
+        switch( mps_get_hs_state( mps ) )
         {
             /* When waiting for the first message of the next flight
              * from the peer, resend the last outgoing flight. */
@@ -2474,12 +2447,9 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
            (unsigned) mps->dtls.seq_nr );
 
     MBEDTLS_MPS_ASSERT(
-        MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ),
-        "Trying to use reassembly module outside of "
-        "RECEIVE and RECVINIT state." );
+        MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( mps_get_hs_state( mps ),
+                  MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Can't use reassembly module outside of RECEIVE and RECVINIT state." );
 
     seq_nr = hs->seq_nr;
     seq_nr_offset = seq_nr - mps->dtls.seq_nr;
@@ -2647,11 +2617,9 @@ MBEDTLS_MPS_STATIC int mps_reassembly_free( mbedtls_mps *mps )
     TRACE_INIT( "mps_reassembly_free" );
 
     MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ),
-        "Trying to use reassembly module outside of "
-        "RECEIVE and RECVINIT state." );
+            mps_get_hs_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Can't use reassembly module outside of RECEIVE and RECVINIT state." );
 
     MPS_INTERNAL_FAILURE_HANDLER;
 }
@@ -2675,11 +2643,9 @@ MBEDTLS_MPS_STATIC int mps_reassembly_get_seq( mbedtls_mps *mps,
     TRACE_INIT( "mps_reassembly_get_seq" );
 
     MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ),
-        "Trying to use reassembly module outside of "
-        "RECEIVE and RECVINIT state." );
+            mps_get_hs_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Can't use reassembly module outside of RECEIVE and RECVINIT state." );
 
     *seq_nr = mps->dtls.seq_nr;
 
@@ -2695,9 +2661,8 @@ MBEDTLS_MPS_STATIC int mps_reassembly_check_and_load( mbedtls_mps *mps )
     TRACE_INIT( "mps_reassembly_check_and_load" );
 
     if( ! MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ) )
+            mps_get_hs_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ) )
     {
         MPS_CHK( MBEDTLS_ERR_MPS_REASSEMBLY_FEED_NEED_MORE );
     }
@@ -2739,11 +2704,9 @@ MBEDTLS_MPS_STATIC int mps_reassembly_read( mbedtls_mps *mps,
     TRACE_INIT( "mps_reassembly_read" );
 
     MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ),
-        "Trying to use reassembly module outside of "
-        "RECEIVE and RECVINIT state." );
+            mps_get_hs_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Can't use reassembly module outside of RECEIVE and RECVINIT state." );
 
     hs->length = reassembly->length;
     hs->type   = reassembly->type;
@@ -2789,11 +2752,9 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     TRACE_INIT( "mps_reassembly_done" );
 
     MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ),
-        "Trying to use reassembly module outside of "
-        "RECEIVE and RECVINIT state." );
+            mps_get_hs_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Can't use reassembly module outside of RECEIVE and RECVINIT state." );
 
     if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW )
     {
@@ -2810,12 +2771,8 @@ MBEDTLS_MPS_STATIC int mps_reassembly_done( mbedtls_mps *mps )
     }
 
     /* Shift array of reassembly structures. */
-#if MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS > 0
     for( idx = 0; idx < MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS; idx++ )
         in->reassembly[idx] = in->reassembly[idx + 1];
-#else
-    ((void) idx);
-#endif
 
     reassembly = &in->reassembly[ MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS ];
     reassembly->status = MBEDTLS_MPS_REASSEMBLY_NONE;
@@ -2841,11 +2798,9 @@ MBEDTLS_MPS_STATIC int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
     TRACE_INIT( "mps_reassembly_next_msg_complete" );
 
     MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ),
-        "Trying to use reassembly module outside of "
-        "RECEIVE and RECVINIT state." );
+            mps_get_hs_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Can't use reassembly module outside of RECEIVE and RECVINIT state." );
 
     if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW &&
         reassembly->data.window.bitmask == NULL )
@@ -2873,11 +2828,9 @@ MBEDTLS_MPS_STATIC int mps_reassembly_pause( mbedtls_mps *mps )
     TRACE_INIT( "mps_reassembly_pause" );
 
     MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ),
-        "Trying to use reassembly module outside of "
-        "RECEIVE and RECVINIT state." );
+            mps_get_hs_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Can't use reassembly module outside of RECEIVE and RECVINIT state." );
 
     ret = MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED;
 
@@ -2892,11 +2845,9 @@ MBEDTLS_MPS_STATIC int mps_reassembly_forget( mbedtls_mps *mps )
     TRACE_INIT( "mps_reassembly_forget" );
 
     MBEDTLS_MPS_ASSERT( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_RECVINIT,
-            MBEDTLS_MPS_FLIGHT_RECEIVE ),
-        "Trying to use reassembly module outside of "
-        "RECEIVE and RECVINIT state." );
+            mps_get_hs_state( mps ),
+            MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ),
+        "Can't use reassembly module outside of RECEIVE and RECVINIT state." );
 
     /* Check that there are no more buffered messages.
      * This catches the situation where the peer sends
@@ -3046,7 +2997,7 @@ int mps_handshake_state_transition( mbedtls_mps *mps,
                 (unsigned) old, mps_flight_state_to_string( old ),
                 (unsigned) new, mps_flight_state_to_string( new ) );
 
-    MBEDTLS_MPS_ASSERT( mps_get_handshake_state( mps ) == old,
+    MBEDTLS_MPS_ASSERT( mps_get_hs_state( mps ) == old,
             "Mismatch between expected and actual flight state" );
 
     if( old == MBEDTLS_MPS_FLIGHT_AWAIT &&
@@ -3228,10 +3179,8 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
     /* 1. Check if the message is recognized as a retransmission
      *    from an old flight. */
 
-    if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR(
-            mps_get_handshake_state( mps ),
-            MBEDTLS_MPS_FLIGHT_AWAIT,
-            MBEDTLS_MPS_FLIGHT_FINALIZE ) )
+    if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( mps_get_hs_state( mps ),
+            MBEDTLS_MPS_FLIGHT_AWAIT, MBEDTLS_MPS_FLIGHT_FINALIZE ) )
     {
         TRACE( trace_comment,
                "Check if the fragment is a retransmission from old flight." );
@@ -3265,8 +3214,7 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
         else
             MPS_CHK( ret );
 
-        TRACE( trace_comment,
-               "Fragment not recognized as a retransmission." );
+        TRACE( trace_comment, "Frag not recognized as a retransmission." );
 
         /* Logically, we should also be able to forget about our last
          * outgoing flight, because we know that our peer has already
@@ -3285,24 +3233,26 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
          *       backup buffers at this point.
          */
 
-        if( mps_get_handshake_state( mps ) == MBEDTLS_MPS_FLIGHT_AWAIT )
+        MBEDTLS_MPS_ASSERT( mps_get_hs_state( mps ) == MBEDTLS_MPS_FLIGHT_AWAIT ||
+                            mps_get_hs_state( mps ) == MBEDTLS_MPS_FLIGHT_FINALIZE,
+                            "Unexpected flight state" );
+
+        if( mps_get_hs_state( mps ) == MBEDTLS_MPS_FLIGHT_AWAIT )
         {
-            TRACE( trace_comment, "Switch from AWAIT to RECEIVE state" );
             MPS_CHK( mps_handshake_state_transition( mps,
                                                  MBEDTLS_MPS_FLIGHT_AWAIT,
                                                  MBEDTLS_MPS_FLIGHT_RECEIVE ) );
         }
-        else /* if( mps_get_handshake_state( mps )
+        else /* if( mps_get_hs_state( mps )
                       == MBEDTLS_MPS_FLIGHT_FINALIZE ) */
         {
-            TRACE( trace_comment, "Switch from FINALIZE to DONE state" );
             MPS_CHK( mps_handshake_state_transition( mps,
                                                  MBEDTLS_MPS_FLIGHT_FINALIZE,
                                                  MBEDTLS_MPS_FLIGHT_DONE ) );
         }
     }
 
-    if( mps_get_handshake_state( mps ) == MBEDTLS_MPS_FLIGHT_DONE )
+    if( mps_get_hs_state( mps ) == MBEDTLS_MPS_FLIGHT_DONE )
     {
         mbedtls_mps_hs_seq_nr_t seq_nr = hs_l3.seq_nr;
 
@@ -3416,28 +3366,22 @@ int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
     else
         MPS_CHK( ret );
 
-    if( mps_get_handshake_state( mps ) == MBEDTLS_MPS_FLIGHT_RECVINIT )
+    if( mps_get_hs_state( mps ) == MBEDTLS_MPS_FLIGHT_RECVINIT )
     {
         uint64_t rec_ctr;
 
-        MPS_CHK( mps_handshake_state_transition(
-                     mps,
-                     MBEDTLS_MPS_FLIGHT_RECVINIT,
-                     MBEDTLS_MPS_FLIGHT_RECEIVE ) );
+        MPS_CHK( mps_handshake_state_transition( mps,
+                   MBEDTLS_MPS_FLIGHT_RECVINIT, MBEDTLS_MPS_FLIGHT_RECEIVE ) );
 
         /* TODO: Move this logic to Layer 2 -- mirror the sequence
          * number when the first operation is the receipt of an
          * incoming record. That avoids the abstraction break
          * and saves some code. */
-        MPS_CHK( mps_l3_get_last_sequence_number( mps->conf.l3,
-                                                  hs_l3.epoch,
+        MPS_CHK( mps_l3_get_last_sequence_number( mps->conf.l3, hs_l3.epoch,
                                                   &rec_ctr ) );
 
-        TRACE( trace_comment,
-               "Mirror record sequence number %u in response to first message.",
-               (unsigned) rec_ctr );
-        MPS_CHK( mps_l3_force_next_sequence_number( mps->conf.l3,
-                                                    hs_l3.epoch,
+        TRACE( trace_comment, "Mirror rec seq nr %u", (unsigned) rec_ctr );
+        MPS_CHK( mps_l3_force_next_sequence_number( mps->conf.l3, hs_l3.epoch,
                                                     rec_ctr ) );
     }
 
@@ -3471,27 +3415,19 @@ MBEDTLS_MPS_STATIC int mps_retransmission_finish_incoming_message( mbedtls_mps *
 
     if( flags == MBEDTLS_MPS_FLIGHT_END )
     {
-        TRACE( trace_comment,
-               "Incoming message ends a flight. Switch to PREPARE state." );
-
-        MPS_CHK( mps_handshake_state_transition(
-                     mps,
-                     MBEDTLS_MPS_FLIGHT_RECEIVE,
-                     MBEDTLS_MPS_FLIGHT_PREPARE ) );
+        TRACE( trace_comment, "Incoming msg ends flight. -> PREPARE" );
+        MPS_CHK( mps_handshake_state_transition( mps,
+                     MBEDTLS_MPS_FLIGHT_RECEIVE, MBEDTLS_MPS_FLIGHT_PREPARE ) );
     }
     else if( flags == MBEDTLS_MPS_FLIGHT_FINISHED )
     {
-        TRACE( trace_comment,
-               "Incoming message ends a exchange. Switch to DONE state." );
-        MPS_CHK( mps_handshake_state_transition(
-                     mps,
-                     MBEDTLS_MPS_FLIGHT_RECEIVE,
-                     MBEDTLS_MPS_FLIGHT_DONE ) );
+        TRACE( trace_comment, "Incoming msg ends exchange. -> DONE" );
+        MPS_CHK( mps_handshake_state_transition( mps,
+                     MBEDTLS_MPS_FLIGHT_RECEIVE, MBEDTLS_MPS_FLIGHT_DONE ) );
     }
     else
     {
-        TRACE( trace_comment,
-               "Incoming message not the last in flight. Keep RECEIVE state." );
+        TRACE( trace_comment, "Incoming msg not last in flight. Keep RECEIVE" );
     }
 
     mps->in.flags = 0;
@@ -3777,11 +3713,11 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_bind( mbedtls_mps *mps )
     l3_hs.frag_len    = MBEDTLS_MPS_SIZE_UNKNOWN;
     MPS_CHK( mps_l3_write_handshake( mps->conf.l3, &l3_hs ) );
 
+    TRACE( trace_comment, "Get max len buffer from L3 and feed to writer." );
+
     /* Extract buffer for remaining handshake content from
      * reader obtained from Layer 3. */
     hs->wr_ext_l3 = l3_hs.wr_ext;
-    TRACE( trace_comment,
-           "Get maximum length buffer from Layer 3 and feed it to writer." );
     if( metadata->len == MBEDTLS_MPS_SIZE_UNKNOWN )
         remaining = MBEDTLS_MPS_SIZE_MAX;
     else
@@ -3789,17 +3725,14 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_bind( mbedtls_mps *mps )
     MPS_CHK( mbedtls_writer_get_ext( hs->wr_ext_l3, remaining,
                                      &frag, &frag_len ) );
     hs->frag_len = frag_len;
-    TRACE( trace_comment,
-           "Received buffer of length %u from Layer 3.",
-           (unsigned) frag_len );
+    TRACE( trace_comment, "Received len %u buf from L3.", (unsigned) frag_len );
 
     /* Feed the buffer into the user-facing writer
      * used to write the handshake message. */
     ret = mbedtls_writer_feed( &hs->wr, frag, frag_len );
     if( ret == MBEDTLS_ERR_WRITER_NEED_MORE )
     {
-        TRACE( trace_comment,
-               "The Layer 3 buffer is not large enough to dispatch all queued data." );
+        TRACE( trace_comment, "L3 buffer too small to dispatch queued data." );
         MPS_CHK( mbedtls_writer_commit_ext( hs->wr_ext_l3 ) );
         MPS_CHK( MBEDTLS_ERR_WRITER_NEED_MORE );
     }
@@ -3834,8 +3767,6 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
               "what's available in current fragment" );
 
         remaining = hs->frag_len - frag_len;
-        TRACE( trace_comment, "%u bytes unwritten in fragment",
-               (unsigned) remaining );
 
         /* Inform Layer 3 about how much has been written,
          * and dispatch the fragment. */
@@ -3855,8 +3786,7 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_close( mbedtls_mps *mps )
                             (unsigned) metadata->len == bytes_queued,
               "Mismatch between HS msg size and amount of data written" );
 
-        TRACE( trace_comment, "Total handshake length: %u",
-               (unsigned) bytes_queued );
+        TRACE( trace_comment, "Total HS len: %u", (unsigned) bytes_queued );
 
         metadata->len = bytes_queued;
         hs->state  = MBEDTLS_MPS_HS_PAUSED;
@@ -3876,14 +3806,10 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_dispatch( mbedtls_mps *mps )
 
     if( mps->dtls.io.out.hs.wr_ext_l3 != NULL )
     {
-        TRACE( trace_comment, " * Sequence number: %u",
-               (unsigned) metadata->seq_nr );
-        TRACE( trace_comment, " * Fragment offset: %u",
-               (unsigned) hs->offset );
-        TRACE( trace_comment, " * Fragment length: %u",
-               (unsigned) hs->frag_len );
-        TRACE( trace_comment, " * Total length   : %u",
-               (unsigned) metadata->len );
+        TRACE( trace_comment, " * Seq: %u", (unsigned) metadata->seq_nr );
+        TRACE( trace_comment, " * Frag off: %u", (unsigned) hs->offset );
+        TRACE( trace_comment, " * Frag len: %u", (unsigned) hs->frag_len );
+        TRACE( trace_comment, " * Total len: %u", (unsigned) metadata->len );
 
         MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
 
@@ -3920,6 +3846,10 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_start( mbedtls_mps_handshake_out_intern
     MPS_CHK( mbedtls_writer_attach( &hs->wr_ext, &hs->wr,
                                     MBEDTLS_WRITER_EXT_PASS ) );
 
+    MBEDTLS_MPS_ASSERT( mode == MPS_DTLS_FRAG_OUT_START_USE_L3 ||
+                        mode == MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY,
+                        "Invalid handshake message mode" );
+
     if( mode == MPS_DTLS_FRAG_OUT_START_USE_L3 )
     {
         hs->state = MBEDTLS_MPS_HS_PAUSED;
@@ -3943,14 +3873,13 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
     mbedtls_mps_retransmission_handle *hdl;
     TRACE_INIT( "mps_out_flight_msg_start" );
 
-    TRACE( trace_comment,
-           "Add a new message to the current outgoing flight, seq nr %u",
+    TRACE( trace_comment, "Add msg to flight, seq nr %u",
            (unsigned) mps->dtls.seq_nr );
 
     cur_flight_len = mps->dtls.outgoing.flight_len;
     if( cur_flight_len == MBEDTLS_MPS_MAX_FLIGHT_LENGTH )
     {
-        TRACE( trace_error, "Outgoing flight has reached its maximum length %u",
+        TRACE( trace_error, "Outgoing flight reached max len %u",
                (unsigned) MBEDTLS_MPS_MAX_FLIGHT_LENGTH );
         MPS_CHK( MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG );
     }
@@ -3958,7 +3887,7 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
     cur_seq_nr = mps->dtls.seq_nr;
     if( cur_seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
     {
-        TRACE( trace_error, "Reached maximum outgoing sequence number %u",
+        TRACE( trace_error, "Reached max seq nr %u",
                (unsigned) MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER );
         MPS_CHK( MBEDTLS_ERR_MPS_COUNTER_WRAP );
     }
@@ -3979,10 +3908,8 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps )
     int ret;
     TRACE_INIT( "mps_out_flight_msg_done" );
 
-    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3,
-                                 mps->out_epoch,
-                                 0,
-                                 MPS_EPOCH_USAGE_WRITE(
+    MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, mps->out_epoch,
+                                 0, MPS_EPOCH_USAGE_WRITE(
                                      MPS_WRITE_RETRANSMISSION ) ) );
 
     /* It has been checked in mps_out_flight_msg_start()

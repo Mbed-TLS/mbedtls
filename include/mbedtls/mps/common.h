@@ -165,9 +165,20 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
         }                                                        \
     } while( 0 )
 
+#define MBEDTLS_MPS_STATE_VALIDATE_RAW( cond, string )           \
+    do                                                           \
+    {                                                            \
+        if( !(cond) )                                            \
+        {                                                        \
+            TRACE( trace_error, string );                        \
+            RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );      \
+        }                                                        \
+    } while( 0 )
+
 #else /* MBEDTLS_MPS_STATE_VALIDATION */
 
-#define MBEDTLS_MPS_STATE_VALIDATE( cond, string ) do {} while( 0 )
+#define MBEDTLS_MPS_STATE_VALIDATE( cond, string )     do {} while( 0 )
+#define MBEDTLS_MPS_STATE_VALIDATE_RAW( cond, string ) do {} while( 0 )
 
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
@@ -180,6 +191,16 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
         {                                                        \
             TRACE( trace_error, string );                        \
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );           \
+        }                                                        \
+    } while( 0 )
+
+#define MBEDTLS_MPS_ASSERT_RAW( cond, string )                   \
+    do                                                           \
+    {                                                            \
+        if( !(cond) )                                            \
+        {                                                        \
+            TRACE( trace_error, string );                        \
+            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );            \
         }                                                        \
     } while( 0 )
 
@@ -277,6 +298,7 @@ typedef uint8_t mbedtls_mps_transport_type;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #define MBEDTLS_MPS_IF_TLS( mode ) if( MBEDTLS_MPS_IS_TLS( mode ) )
+
 #endif /* MBEDTLS_MPS_PROTO_TLS  */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)

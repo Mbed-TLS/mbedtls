@@ -373,9 +373,9 @@ int l1_flush_stream( mps_l1_stream_write *p )
      */
     status = p->status;
 
-    MBEDTLS_MPS_STATE_VALIDATE( status == MPS_L1_STREAM_STATUS_READY ||
-                                status == MPS_L1_STREAM_STATUS_FLUSH,
-                                "Invalid state in l1_flush_stream()" );
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( status == MPS_L1_STREAM_STATUS_READY ||
+                                    status == MPS_L1_STREAM_STATUS_FLUSH,
+                                    "Invalid state in l1_flush_stream()" );
 
     p->status = MPS_L1_STREAM_STATUS_FLUSH;
     br = p->bytes_ready;
@@ -457,10 +457,7 @@ int l1_write_stream( mps_l1_stream_write *p,
     {
         ret = l1_flush_stream( p );
         if( ret != 0 )
-        {
-            TRACE( trace_comment, "flush failed with error code %d", ret );
             RETURN( ret );
-        }
     }
 
     /* The flush call either succeeded and reset the state
@@ -468,14 +465,8 @@ int l1_write_stream( mps_l1_stream_write *p,
      * fatally or because the underlying transport wasn't
      * available, in which case we already returned.
      * So assume the state is MPS_L1_STREAM_STATUS READY. */
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    status = p->status;
-    if( status != MPS_L1_STREAM_STATUS_READY )
-    {
-        TRACE( trace_comment, "unexpected operation, status %u", (unsigned) status );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT_RAW( p->status == MPS_L1_STREAM_STATUS_READY,
+                            "Unexpected state are flushing" );
 
     /* Make sure a write-buffer is available. */
     ret = l1_acquire_if_unset( &p->buf, (size_t*) &p->buf_len,
@@ -490,12 +481,10 @@ int l1_write_stream( mps_l1_stream_write *p,
     buf += br;
     data_remaining = bl - br;
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     /* The flushing strategy should ensure that we should never
      * reach this point if the entire buffer has been dispatched. */
-    if( data_remaining == 0 )
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT_RAW( data_remaining != 0,
+                            "Data remaining despite flush" );
 
     *dst = buf;
     *buflen = data_remaining;
@@ -569,8 +558,8 @@ int l1_dispatch_stream( mps_l1_stream_write *p, size_t len, size_t *pending )
     uint8_t status = p->status;
     TRACE_INIT( "L1 dispatch %u", (unsigned) len );
 
-    MBEDTLS_MPS_STATE_VALIDATE( status == MPS_L1_STREAM_STATUS_WRITE,
-                                "Invalid state in l1_dispatch_stream()" );
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( status == MPS_L1_STREAM_STATUS_WRITE,
+                                    "Invalid state in l1_dispatch_stream()" );
 
     bl = p->buf_len;
     br = p->bytes_ready;
@@ -795,8 +784,8 @@ int l1_consume_dgram( mps_l1_dgram_read *p )
 
     TRACE_INIT( "l1_consume_dgram" );
 
-    MBEDTLS_MPS_STATE_VALIDATE( p->buf != NULL,
-                  "l1_consume_dgram() called, but no datagram available" );
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( p->buf != NULL,
+                "l1_consume_dgram() called, but no datagram available" );
 
     wb = p->window_base;
     wl = p->window_len;
@@ -905,18 +894,14 @@ int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
     size_t bl, br;
     TRACE_INIT( "l1_dispatch_dgram, length %u", (unsigned) len );
 
-    MBEDTLS_MPS_STATE_VALIDATE( p->buf != NULL,
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( p->buf != NULL,
                   "l1_dispatch_dgram() called, but no datagram open" );
 
     bl = p->buf_len;
     br = p->bytes_ready;
 
-    if( len > bl - br )
-    {
-        TRACE( trace_error, "Request to dispatch more data (%u bytes) than what's available in the datagram (%u bytes).",
-               (unsigned) len, (unsigned) ( bl - br ) );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
+    MBEDTLS_MPS_ASSERT_RAW( len <= bl - br,
+                            "l1_dispatch_dgram() length too large" );
 
     br += len;
     p->bytes_ready = br;
@@ -1168,13 +1153,8 @@ int mps_l1_skip( mps_l1 *ctx )
 
     TRACE_INIT( "mps_l1_skip" );
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    MBEDTLS_MPS_IF_TLS( mode )
-    {
-        TRACE( trace_error, "mps_l1_skip() only for DTLS." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_PROTO_TLS */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW( MBEDTLS_MPS_IS_DTLS( mode ),
+                                    "mps_l1_skip() only for DTLS." );
 
     p = &ctx->raw.dgram.rd;
     l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );

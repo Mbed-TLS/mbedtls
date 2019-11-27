@@ -114,6 +114,7 @@
 /*! The record MAC is invalid.
  *  This is only visible on the MPS boundary in TLS. */
 #define MBEDTLS_ERR_MPS_INVALID_MAC           MBEDTLS_MPS_MAKE_ERROR( 0x1b )
+#define MBEDTLS_ERR_MPS_BAD_TRANSPORT         MBEDTLS_MPS_MAKE_ERROR( 0x21 )
 
 /*
  * Internal error codes

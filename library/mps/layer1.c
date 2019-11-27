@@ -277,7 +277,7 @@ int l1_fetch_stream( mps_l1_stream_read *p,
 
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 #endif
 
         /* Now we know that we can safely cast ret to size_t. */
@@ -287,7 +287,7 @@ int l1_fetch_stream( mps_l1_stream_read *p,
         /* Double-check that the external Layer 0 obeys its spec;
          * if it doesn't, we'd otherwise underflow data_need. */
         if( data_fetched > data_need )
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 
         data_need -= data_fetched;
         read_ptr  += data_fetched;
@@ -398,13 +398,13 @@ int l1_flush_stream( mps_l1_stream_write *p )
              * WANT_WRITE instead of 0 if no data can currently be sent.
              * Fail with a fatal internal error if this spec is not obeyed. */
             if( ret == 0 )
-                ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
+                ret = MBEDTLS_ERR_MPS_BAD_TRANSPORT;
             break;
         }
 
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 #endif
 
         /* Now we know that we can safely cast ret to size_t. */
@@ -414,7 +414,7 @@ int l1_flush_stream( mps_l1_stream_write *p )
         /* Double-check that the external Layer 0 obeys its
          * spec to prevent an underflow in data_remaining. */
         if( data_written > data_remaining )
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 
         data_remaining -= data_written;
         buf += data_written;
@@ -718,7 +718,7 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
 
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 #endif
 
         /* Now we know that we can safely cast ret to size_t. */
@@ -726,7 +726,7 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
 
         /* Double-check that the external Layer 0 obeys its spec. */
         if( ml > bl )
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+            RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 
         TRACE( trace_comment, "Obtained datagram of size %u", (unsigned) ml );
         p->msg_len = ml;
@@ -979,20 +979,20 @@ int l1_flush_dgram( mps_l1_dgram_write *p )
          * WANT_WRITE instead of 0 if no data can currently be sent.
          * Fail with a fatal internal error if this spec is not obeyed. */
         if( ret == 0 )
-            ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
+            ret = MBEDTLS_ERR_MPS_BAD_TRANSPORT;
 
         RETURN( ret );
     }
 
 #if( MAX_INT > SIZE_MAX )
     if( ret > (int) SIZE_MAX )
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
 #endif
 
     if( (size_t) ret != br )
     {
         /* Couldn't deliver the datagram to Layer 0 at once. */
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
+        RETURN( MBEDTLS_ERR_MPS_BAD_TRANSPORT );
     }
 
     l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_OUT );

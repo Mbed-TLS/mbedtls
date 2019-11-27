@@ -299,6 +299,10 @@ typedef uint8_t mbedtls_mps_transport_type;
 
 #define MBEDTLS_MPS_IF_TLS( mode ) if( MBEDTLS_MPS_IS_TLS( mode ) )
 
+#else /* MBEDTLS_MPS_PROTO_TLS */
+
+#define MBEDTLS_MPS_IS_TLS( mode ) 0
+
 #endif /* MBEDTLS_MPS_PROTO_TLS  */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)

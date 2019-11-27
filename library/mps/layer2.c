@@ -303,8 +303,8 @@ MBEDTLS_MPS_STATIC
 int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
 {
     mbedtls_mps_l2_in_internal tmp;
+    TRACE_INIT( "mps_l2_readers_pause_active" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     /*
      * At this point, we know that data has been backed up, so
      * we must have provided an accumulator, so the record content
@@ -314,9 +314,9 @@ int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
      *
      * Let's double-check this reasoning nonetheless.
      */
-    if( ctx->io.in.paused.state != MBEDTLS_MPS_L2_READER_STATE_UNSET )
-        return( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT_RAW(
+        ctx->io.in.paused.state == MBEDTLS_MPS_L2_READER_STATE_UNSET,
+        "Invalid reader state in mps_l2_readers_pause_active()" );
 
     tmp = ctx->io.in.active;
     ctx->io.in.active = ctx->io.in.paused;
@@ -325,7 +325,7 @@ int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
     ctx->io.in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
     ctx->io.in.paused.state = MBEDTLS_MPS_L2_READER_STATE_PAUSED;
 
-    return( 0 );
+    RETURN( 0 );
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -501,14 +501,8 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
     ctx->conf.mode = mode;
 #else
     ((void) mode);
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( mode != MBEDTLS_MPS_CONF_MODE )
-    {
-        TRACE( trace_error, "Protocol passed to mps_l2_init() doesn't match " \
-               "hardcoded protocol." );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT_RAW( mode == MBEDTLS_MPS_CONF_MODE,
+            "Mismatch between compile- and runtime configuration" );
 #endif /* MBEDTLS_MPS_CONF_MODE */
 
 #if !defined(MBEDTLS_MPS_CONF_VERSION)
@@ -724,16 +718,12 @@ int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                          &bytes_pending );
         ctx->io.out.clearing = 1;
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-        if( bytes_pending == 0 )
-        {
-            /* If Layer 1 has no bytes pending but doesn't have enough space
-             * to allow a record of size 1 to be sent, something must be
-             * ill-configured. */
-            TRACE( trace_error, "Layer 1 doesn't have any data pending to be written but cannot serve a buffer large enough to hold a non-empty record. Abort." );
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-        }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+        /* If Layer 1 has no bytes pending but doesn't have enough space
+         * to allow a record of size 1 to be sent, something must be
+         * ill-configured. */
+        MBEDTLS_MPS_ASSERT_RAW( bytes_pending != 0,
+                  "Layer 1 doesn't have data pending but cannot "
+                  "serve a buffer large enough to hold a non-empty record." );
 
         /* We could also return WANT_WRITE here. */
         RETURN( MBEDTLS_ERR_MPS_RETRY );
@@ -867,20 +857,11 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         if( ret != 0 )
             RETURN( ret );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-            if( !( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-                   || ( MBEDTLS_MPS_IS_TLS(
-                          mbedtls_mps_l2_conf_get_mode( &ctx->conf ) )
-                        && ctx->io.out.state ==
-                          MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING )
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-                    ) )
-            {
-                TRACE( trace_error, "Unexpected writer state at the end of l2_out_dispatch_record()." );
-                RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-            }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+        MBEDTLS_MPS_ASSERT_RAW(
+           ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET ||
+           ( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING &&
+             MBEDTLS_MPS_IS_TLS( mbedtls_mps_l2_conf_get_mode( &ctx->conf ) ) ),
+           "Unexpected writer state at the end of l2_out_dispatch_record()" );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
         if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET )
@@ -959,17 +940,14 @@ int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
     const size_t tls_rec_ver_offset  = 1;
     const size_t tls_rec_len_offset  = 3;
 
+    ((void) tls_rec_hdr_len);
     TRACE_INIT( "l2_write_protected_record_tls" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     /* Double-check that we have calculated the header length
      * correctly when preparing the outgoing record.
      * This should always be true, but better err on the safe side. */
-    if( hdr_len != tls_rec_hdr_len )
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#else
-    ((void) tls_rec_hdr_len);
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT_RAW( hdr_len == tls_rec_hdr_len,
+                            "Invalid record header length" );
 
     /* Header structure is the same for all TLS versions.
 
@@ -1045,15 +1023,12 @@ int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 
     TRACE_INIT( "l2_write_protected_record_dtls12" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
     /* Double-check that we have calculated the header length
      * correctly when preparing the outgoing record.
      * This should always be true, but better err on the safe side. */
-    if( hdr_len != dtls_rec_hdr_len )
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-#else
     ((void) dtls_rec_hdr_len);
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT_RAW( hdr_len == dtls_rec_hdr_len,
+                            "Invalid DTLS record header length" );
 
     /* Write record content type. */
     MPS_WRITE_UINT8_BE( &rec->type, hdr + dtls_rec_type_offset );
@@ -1448,13 +1423,9 @@ int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx, uint8_t force )
     int ret;
     TRACE_INIT( "l2_out_release_and_dispatch, force %u", force );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_INTERNAL )
-    {
-        TRACE( trace_error, "Unexpected writer state in l2_out_release_and_dispatch()" );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT_RAW( ctx->io.out.state ==
+                            MBEDTLS_MPS_L2_WRITER_STATE_INTERNAL,
+          "Unexpected writer state in l2_out_release_and_dispatch()" );
 
     /* Attempt to detach the underlying record buffer from the writer.
      * This fails if `force` is unset and there is sufficient space
@@ -1801,17 +1772,11 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
                        "A reader is being paused for the "
                        "received record content type." );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
                 /* It is not possible to change the incoming epoch when
                  * a reader is being paused, hence the epoch of the new
                  * record must match. Double-check this nonetheless. */
-                if( ctx->io.in.paused.epoch != rec.epoch )
-                {
-                    TRACE( trace_error,
-                           "The paused epoch doesn't match incoming epoch." );
-                    RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-                }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+                MBEDTLS_MPS_ASSERT_RAW( ctx->io.in.paused.epoch == rec.epoch,
+                    "The paused epoch doesn't match the incoming epoch" );
             }
         }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
@@ -1823,18 +1788,14 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
             /* 3.2 */
             /* Feed the payload into a fresh reader. */
             slot = mps_l2_setup_free_slot( ctx, rec.type, rec.epoch );
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-            if( slot == NULL )
-            {
-                /* This should never happen with the current implementation,
-                 * but it might if we switch the TLS implementation to use
-                 * a single pausable slot only. In the latter case, we'd reach
-                 * the present code-path in case of interleaving of records of
-                 * different content types. */
-                TRACE( trace_error, "No free slot available to store incoming record payload." );
-                RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-            }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+
+            /* This should never happen with the current implementation,
+             * but it might if we switch the TLS implementation to use
+             * a single pausable slot only. In the latter case, we'd reach
+             * the present code-path in case of interleaving of records of
+             * different content types. */
+            MBEDTLS_MPS_ASSERT_RAW( slot != NULL,
+                "No free slow available to store incoming record payload" );
         }
 
         /* 3.1.1 and 3.2 */
@@ -2033,16 +1994,12 @@ int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-        if( mbedtls_mps_l2_conf_get_version( &ctx->conf )
-              != MBEDTLS_SSL_MINOR_VERSION_2 &&
+        MBEDTLS_MPS_ASSERT_RAW(
             mbedtls_mps_l2_conf_get_version( &ctx->conf )
-              != MBEDTLS_SSL_MINOR_VERSION_3 )
-        {
-            TRACE( trace_error, "ASSERTION FAILURE!" );
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-        }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+              == MBEDTLS_SSL_MINOR_VERSION_2 ||
+            mbedtls_mps_l2_conf_get_version( &ctx->conf )
+              == MBEDTLS_SSL_MINOR_VERSION_3,
+            "unexpected version" );
 
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -2081,16 +2038,12 @@ size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
          * which share the same record header, remove this
          * switch to save a few bytes? */
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-        if( mbedtls_mps_l2_conf_get_version( &ctx->conf )
-              != MBEDTLS_SSL_MINOR_VERSION_2 &&
+        MBEDTLS_MPS_ASSERT_RAW(
             mbedtls_mps_l2_conf_get_version( &ctx->conf )
-              != MBEDTLS_SSL_MINOR_VERSION_3 )
-        {
-            TRACE( trace_error, "ASSERTION FAILURE!" );
-            RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-        }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+              == MBEDTLS_SSL_MINOR_VERSION_2 ||
+            mbedtls_mps_l2_conf_get_version( &ctx->conf )
+              == MBEDTLS_SSL_MINOR_VERSION_3,
+            "Unexpected version" );
 
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -2634,30 +2587,13 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
     TRACE( trace_comment, "* Clear: %u", (unsigned) clear );
     TRACE( trace_comment, "* Set:   %u", (unsigned) set );
 
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( ctx->io.out.state == MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
-    {
-        TRACE( trace_error, "Unexpected operation" );
-        RETURN( MBEDTLS_ERR_MPS_OPERATION_UNEXPECTED );
-    }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+    MBEDTLS_MPS_STATE_VALIDATE_RAW(
+        ctx->io.out.state != MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL,
+        "Unexpected state in mps_l2_epoch_usage()" );
 
-#if defined(MBEDTLS_MPS_ENABLE_ASSERTIONS)
-    if( ( clear & set ) != 0 )
-    {
-        TRACE( trace_error, "Invalid usage of mps_l2_epoch_usage: "
-               "Flags for clearing and setting overlap" );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-
-    if( ( ( clear | set ) & ~MPS_EPOCH_USAGE_ALL ) != 0 )
-    {
-        TRACE( trace_error, "Invalid usage of mps_l2_epoch_usage: "
-               "Flags %#02x contains internal flags",
-               (unsigned)( clear | set ) );
-        RETURN( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_MPS_ENABLE_ASSERTIONS */
+    MBEDTLS_MPS_ASSERT_RAW( ( ( clear & set ) == 0 ) &&
+                 ( ( clear | set ) & ~MPS_EPOCH_USAGE_ALL ) == 0,
+                 "Invalid flags in mps_l2_epoch_usage" );
 
     clear |= MPS_EPOCH_USAGE_INTERNAL_OUT_PROTECTED;
 

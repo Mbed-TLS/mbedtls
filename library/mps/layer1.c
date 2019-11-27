@@ -481,7 +481,7 @@ int l1_write_stream( mps_l1_stream_write *p,
     /* The flushing strategy should ensure that we should never
      * reach this point if the entire buffer has been dispatched. */
     MBEDTLS_MPS_ASSERT_RAW( data_remaining != 0,
-                            "Data remaining despite flush" );
+                            "No data remaining despite flush" );
 
     *dst = buf;
     *buflen = data_remaining;

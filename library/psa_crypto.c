@@ -2737,14 +2737,8 @@ static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
 
     if( key_length > block_size )
     {
-        status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
-        status = psa_hash_update( &hmac->hash_ctx, key, key_length );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
-        status = psa_hash_finish( &hmac->hash_ctx,
-                                  ipad, sizeof( ipad ), &key_length );
+        status = psa_hash_compute( hash_alg, key, key_length,
+                                   ipad, sizeof( ipad ), &key_length );
         if( status != PSA_SUCCESS )
             goto cleanup;
     }

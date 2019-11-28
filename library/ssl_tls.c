@@ -3729,6 +3729,8 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
                        const mbedtls_ssl_config *conf )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
+    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
 
     ssl->conf = conf;
 
@@ -3739,18 +3741,24 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     /* Set to NULL in case of an error condition */
     ssl->out_buf = NULL;
 
-    ssl->in_buf = mbedtls_calloc( 1, MBEDTLS_SSL_IN_BUFFER_LEN );
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    ssl->in_buf_len = in_buf_len;
+#endif
+    ssl->in_buf = mbedtls_calloc( 1, in_buf_len );
     if( ssl->in_buf == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed", MBEDTLS_SSL_IN_BUFFER_LEN) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed", in_buf_len ) );
         ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
         goto error;
     }
 
-    ssl->out_buf = mbedtls_calloc( 1, MBEDTLS_SSL_OUT_BUFFER_LEN );
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    ssl->out_buf_len = out_buf_len;
+#endif
+    ssl->out_buf = mbedtls_calloc( 1, out_buf_len );
     if( ssl->out_buf == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed", MBEDTLS_SSL_OUT_BUFFER_LEN) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed", out_buf_len ) );
         ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
         goto error;
     }
@@ -3768,6 +3776,10 @@ error:
 
     ssl->conf = NULL;
 
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    ssl->in_buf_len = 0;
+    ssl->out_buf_len = 0;
+#endif
     ssl->in_buf = NULL;
     ssl->out_buf = NULL;
 
@@ -3796,6 +3808,13 @@ error:
 int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    size_t in_buf_len = ssl->in_buf_len;
+    size_t out_buf_len = ssl->out_buf_len;
+#else
+    size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
+    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
+#endif
 
 #if !defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) ||     \
     !defined(MBEDTLS_SSL_SRV_C)
@@ -3851,14 +3870,14 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->session_in = NULL;
     ssl->session_out = NULL;
 
-    memset( ssl->out_buf, 0, MBEDTLS_SSL_OUT_BUFFER_LEN );
+    memset( ssl->out_buf, 0, out_buf_len );
 
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
     if( partial == 0 )
 #endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
     {
         ssl->in_left = 0;
-        memset( ssl->in_buf, 0, MBEDTLS_SSL_IN_BUFFER_LEN );
+        memset( ssl->in_buf, 0, in_buf_len );
     }
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
@@ -6463,6 +6482,14 @@ int mbedtls_ssl_context_load( mbedtls_ssl_context *context,
  */
 void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 {
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    size_t in_buf_len = ssl->in_buf_len;
+    size_t out_buf_len = ssl->out_buf_len;
+#else
+    size_t in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
+    size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
+#endif
+
     if( ssl == NULL )
         return;
 
@@ -6470,13 +6497,13 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 
     if( ssl->out_buf != NULL )
     {
-        mbedtls_platform_zeroize( ssl->out_buf, MBEDTLS_SSL_OUT_BUFFER_LEN );
+        mbedtls_platform_zeroize( ssl->out_buf, out_buf_len );
         mbedtls_free( ssl->out_buf );
     }
 
     if( ssl->in_buf != NULL )
     {
-        mbedtls_platform_zeroize( ssl->in_buf, MBEDTLS_SSL_IN_BUFFER_LEN );
+        mbedtls_platform_zeroize( ssl->in_buf, in_buf_len );
         mbedtls_free( ssl->in_buf );
     }
 

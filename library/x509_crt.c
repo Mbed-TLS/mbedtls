@@ -2943,9 +2943,9 @@ static int x509_crt_find_parent_in(
                         mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
-    volatile int ret_fi;
+    volatile int ret_fi = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     mbedtls_x509_crt *parent_crt;
-    int signature_is_good;
+    int signature_is_good = 0;
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
     mbedtls_x509_crt *fallback_parent;
@@ -3040,7 +3040,6 @@ check_signature:
         }
 #endif
 
-        signature_is_good = 0;
         if( ret_fi == 0 )
         {
             mbedtls_platform_enforce_volatile_reads();
@@ -3781,7 +3780,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     int ret;
     mbedtls_x509_crt_verify_chain ver_chain;
     uint32_t ee_flags;
-    volatile uint32_t flags_fi;
+    volatile uint32_t flags_fi = -1u;
 
     *flags = 0;
     ee_flags = 0;

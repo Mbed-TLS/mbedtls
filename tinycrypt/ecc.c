@@ -147,14 +147,14 @@ exit:
 static int uECC_check_curve_integrity(void)
 {
 	unsigned char computed[32];
-	unsigned char reference[32] = {
+	static const unsigned char reference[32] = {
 		0x2d, 0xa1, 0xa4, 0x64, 0x45, 0x28, 0x0d, 0xe1,
 		0x93, 0xf9, 0x29, 0x2f, 0xac, 0x3e, 0xe2, 0x92,
 		0x76, 0x0a, 0xe2, 0xbc, 0xce, 0x2a, 0xa2, 0xc6,
 		0x38, 0xf2, 0x19, 0x1d, 0x76, 0x72, 0x93, 0x49,
 	};
 	volatile unsigned char diff = 0;
-	unsigned char i;
+	volatile unsigned i;
 
 	if (uECC_compute_param_sha256(computed) != UECC_SUCCESS) {
 		return UECC_FAILURE;
@@ -162,6 +162,10 @@ static int uECC_check_curve_integrity(void)
 
 	for (i = 0; i < 32; i++)
 		diff |= computed[i] ^ reference[i];
+
+	/* i should be 32 */
+	mbedtls_platform_enforce_volatile_reads();
+	diff |= (unsigned char) i ^ 32;
 
 	return diff;
 }

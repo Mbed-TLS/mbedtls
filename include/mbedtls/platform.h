@@ -39,13 +39,15 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_HAVE_TIME)
-#include "platform_time.h"
-#endif
-
 #define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED     -0x0070 /**< Hardware accelerator failed */
 #define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */
 #define MBEDTLS_ERR_PLATFORM_FAULT_DETECTED      -0x0071 /**< A fault was detected in a critical path, likely indicative of an active physical attack */
+
+#if defined(MBEDTLS_PLATFORM_C)
+
+#if defined(MBEDTLS_HAVE_TIME)
+#include "platform_time.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -364,5 +366,7 @@ void mbedtls_platform_teardown( mbedtls_platform_context *ctx );
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* MBEDTLS_PLATFORM_C */
 
 #endif /* platform.h */

@@ -78,7 +78,7 @@ int mbedtls_hmac_drbg_update_ret( mbedtls_hmac_drbg_context *ctx,
         mbedtls_md_get_handle( &ctx->md_ctx ) );
     unsigned char rounds = ( additional != NULL && add_len != 0 ) ? 2 : 1;
     unsigned char sep[1];
-    volatile unsigned char flow_counter = 0;
+    volatile unsigned int flow_counter = 0;
     unsigned char K[MBEDTLS_MD_MAX_SIZE];
     int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 

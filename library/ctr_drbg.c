@@ -584,7 +584,7 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
 exit:
     mbedtls_platform_zeroize( add_input, sizeof( add_input ) );
     mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
-    return( 0 );
+    return( ret );
 }
 
 int mbedtls_ctr_drbg_random( void *p_rng, unsigned char *output,

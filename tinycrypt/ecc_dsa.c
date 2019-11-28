@@ -170,9 +170,9 @@ int uECC_sign(const uint8_t *private_key, const uint8_t *message_hash,
 	      unsigned hash_size, uint8_t *signature)
 {
 	int r;
-	      uECC_word_t _random[2*NUM_ECC_WORDS];
-	      uECC_word_t k[NUM_ECC_WORDS];
-	      uECC_word_t tries;
+	uECC_word_t _random[2*NUM_ECC_WORDS];
+	uECC_word_t k[NUM_ECC_WORDS];
+	uECC_word_t tries;
 
 	for (tries = 0; tries < uECC_RNG_MAX_TRIES; ++tries) {
 		/* Generating _random uniformly at random: */

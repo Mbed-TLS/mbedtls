@@ -2351,6 +2351,58 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
     return( PSA_SUCCESS );
 }
 
+psa_status_t psa_hash_compute( psa_algorithm_t alg,
+                               const uint8_t *input, size_t input_length,
+                               uint8_t *hash, size_t hash_size,
+                               size_t *hash_length )
+{
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    *hash_length = hash_size;
+    status = psa_hash_setup( &operation, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = psa_hash_update( &operation, input, input_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = psa_hash_finish( &operation, hash, hash_size, hash_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+exit:
+    if( status == PSA_SUCCESS )
+        status = psa_hash_abort( &operation );
+    else
+        psa_hash_abort( &operation );
+    return( status );
+}
+
+psa_status_t psa_hash_compare( psa_algorithm_t alg,
+                               const uint8_t *input, size_t input_length,
+                               const uint8_t *hash, size_t hash_length )
+{
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = psa_hash_setup( &operation, alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = psa_hash_update( &operation, input, input_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = psa_hash_verify( &operation, hash, hash_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+exit:
+    if( status == PSA_SUCCESS )
+        status = psa_hash_abort( &operation );
+    else
+        psa_hash_abort( &operation );
+    return( status );
+}
+
 psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
                              psa_hash_operation_t *target_operation )
 {

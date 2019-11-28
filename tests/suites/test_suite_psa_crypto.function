@@ -2431,6 +2431,89 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void hash_compute_fail( int alg_arg, data_t *input,
+                        int output_size_arg, int expected_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    uint8_t *output = NULL;
+    size_t output_size = output_size_arg;
+    size_t output_length = INVALID_EXPORT_LENGTH;
+    psa_status_t expected_status = expected_status_arg;
+    psa_status_t status;
+
+    ASSERT_ALLOC( output, output_size );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    status = psa_hash_compute( alg, input->x, input->len,
+                               output, output_size, &output_length );
+    TEST_EQUAL( status, expected_status );
+    TEST_ASSERT( output_length <= output_size );
+
+exit:
+    mbedtls_free( output );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_compute_compare( int alg_arg, data_t *input,
+                           data_t *expected_output )
+{
+    psa_algorithm_t alg = alg_arg;
+    uint8_t output[PSA_HASH_MAX_SIZE + 1];
+    size_t output_length = INVALID_EXPORT_LENGTH;
+    size_t i;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Compute with tight buffer */
+    PSA_ASSERT( psa_hash_compute( alg, input->x, input->len,
+                                  output, PSA_HASH_SIZE( alg ),
+                                  &output_length ) );
+    TEST_EQUAL( output_length, PSA_HASH_SIZE( alg ) );
+    ASSERT_COMPARE( output, output_length,
+                    expected_output->x, expected_output->len );
+
+    /* Compute with larger buffer */
+    PSA_ASSERT( psa_hash_compute( alg, input->x, input->len,
+                                  output, sizeof( output ),
+                                  &output_length ) );
+    TEST_EQUAL( output_length, PSA_HASH_SIZE( alg ) );
+    ASSERT_COMPARE( output, output_length,
+                    expected_output->x, expected_output->len );
+
+    /* Compare with correct hash */
+    PSA_ASSERT( psa_hash_compare( alg, input->x, input->len,
+                                  output, output_length ) );
+
+    /* Compare with trailing garbage */
+    TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
+                                  output, output_length + 1 ),
+                PSA_ERROR_INVALID_SIGNATURE );
+
+    /* Compare with truncated hash */
+    TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
+                                  output, output_length - 1 ),
+                PSA_ERROR_INVALID_SIGNATURE );
+
+    /* Compare with corrupted value */
+    for( i = 0; i < output_length; i++ )
+    {
+        test_set_step( i );
+        output[i] ^= 1;
+        TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
+                                      output, output_length ),
+                    PSA_ERROR_INVALID_SIGNATURE );
+        output[i] ^= 1;
+    }
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void hash_bad_order( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;

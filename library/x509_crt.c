@@ -43,6 +43,7 @@
 #include "mbedtls/x509_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/platform.h"
 
 #include <string.h>
 
@@ -3780,7 +3781,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     int ret;
     mbedtls_x509_crt_verify_chain ver_chain;
     uint32_t ee_flags;
-    volatile uint32_t flags_fi = -1u;
+    volatile uint32_t flags_fi = (uint32_t) -1;
 
     *flags = 0;
     ee_flags = 0;

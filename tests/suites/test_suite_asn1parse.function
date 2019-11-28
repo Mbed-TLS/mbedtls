@@ -393,6 +393,49 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void get_enum( const data_t *input,
+               const char *expected_hex, int expected_result )
+{
+    unsigned char *p;
+    long expected_value;
+    int expected_result_for_enum = expected_result;
+    int val;
+    int ret;
+
+    errno = 0;
+    expected_value = strtol( expected_hex, NULL, 16 );
+    if( expected_result == 0 &&
+        ( errno == ERANGE
+#if LONG_MAX > INT_MAX
+          || expected_value > INT_MAX || expected_value < INT_MIN
+#endif
+            ) )
+    {
+        /* The library returns the dubious error code INVALID_LENGTH
+         * for integers that are out of range. */
+        expected_result_for_enum = MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+    }
+    if( expected_result == 0 && expected_value < 0 )
+    {
+        /* The library does not support negative INTEGERs and
+         * returns the dubious error code INVALID_LENGTH.
+         * Test that we preserve the historical behavior. If we
+         * decide to change the behavior, we'll also change this test. */
+        expected_result_for_enum = MBEDTLS_ERR_ASN1_INVALID_LENGTH;
+    }
+
+    p = input->x;
+    ret = mbedtls_asn1_get_enum( &p, input->x + input->len, &val );
+    TEST_EQUAL( ret, expected_result_for_enum );
+    if( ret == 0 )
+    {
+        TEST_EQUAL( val, expected_value );
+        TEST_ASSERT( p == input->x + input->len );
+    }
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_BIGNUM_C */
 void get_mpi_too_large( )
 {

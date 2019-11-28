@@ -117,6 +117,27 @@ exit:
 }
 /* END_CASE */
 
+
+/* BEGIN_CASE */
+void mbedtls_asn1_write_enum( int val, data_t *expected )
+{
+    generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
+    int ret;
+
+    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    {
+        if( ! generic_write_start_step( &data ) )
+            goto exit;
+        ret = mbedtls_asn1_write_enum( &data.p, data.start, val );
+        if( ! generic_write_finish_step( &data, expected, ret ) )
+            goto exit;
+    }
+
+exit:
+    mbedtls_free( data.output );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_BIGNUM_C */
 void mbedtls_asn1_write_mpi( data_t *val, data_t *expected )
 {

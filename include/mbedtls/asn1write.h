@@ -193,6 +193,21 @@ int mbedtls_asn1_write_bool( unsigned char **p, unsigned char *start,
 int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val );
 
 /**
+ * \brief           Write an enum tag (#MBEDTLS_ASN1_ENUMERATED) and value
+ *                  in ASN.1 format.
+ *
+ * \note            This function works backwards in data buffer.
+ *
+ * \param p         The reference to the current position pointer.
+ * \param start     The start of the buffer, for bounds-checking.
+ * \param val       The integer value to write.
+ *
+ * \return          The number of bytes written to \p p on success.
+ * \return          A negative \c MBEDTLS_ERR_ASN1_XXX error code on failure.
+ */
+int mbedtls_asn1_write_enum( unsigned char **p, unsigned char *start, int val );
+
+/**
  * \brief           Write a string in ASN.1 format using a specific
  *                  string encoding tag.
 

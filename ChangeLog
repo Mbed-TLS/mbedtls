@@ -20,6 +20,10 @@ Security
      timings on the comparison in the key generation enabled the attacker to
      learn leading bits of the ephemeral key used during ECDSA signatures and to
      recover the private key.
+   * Catch failure of AES functions in mbedtls_ctr_drbg_random(). Uncaught
+     failures could happen with alternative implementations of AES. Bug
+     reported and fix proposed by Johan Uppman Bruce and Christoffer Lauri,
+     Sectra.
 
 Changes
    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()

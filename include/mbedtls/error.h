@@ -30,6 +30,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "mbedtls/export.h"
+
 #include <stddef.h>
 
 /**
@@ -121,7 +123,7 @@ extern "C" {
  * \param buffer    buffer to place representation in
  * \param buflen    length of the buffer
  */
-void mbedtls_strerror( int errnum, char *buffer, size_t buflen );
+MBEDCRYPTO_EXPORT void mbedtls_strerror( int errnum, char *buffer, size_t buflen );
 
 #ifdef __cplusplus
 }

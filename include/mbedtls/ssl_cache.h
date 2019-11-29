@@ -30,6 +30,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "mbedtls/export.h"
+
 #include "mbedtls/ssl.h"
 
 #if defined(MBEDTLS_THREADING_C)
@@ -95,7 +97,7 @@ struct mbedtls_ssl_cache_context
  *
  * \param cache    SSL cache context
  */
-void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache );
+MBEDTLS_EXPORT void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache );
 
 /**
  * \brief          Cache get callback implementation
@@ -104,7 +106,7 @@ void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache );
  * \param data     SSL cache context
  * \param session  session to retrieve entry for
  */
-int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session );
+MBEDTLS_EXPORT int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session );
 
 /**
  * \brief          Cache set callback implementation
@@ -113,7 +115,7 @@ int mbedtls_ssl_cache_get( void *data, mbedtls_ssl_session *session );
  * \param data     SSL cache context
  * \param session  session to store entry for
  */
-int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session );
+MBEDTLS_EXPORT int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session );
 
 #if defined(MBEDTLS_HAVE_TIME)
 /**
@@ -125,7 +127,7 @@ int mbedtls_ssl_cache_set( void *data, const mbedtls_ssl_session *session );
  * \param cache    SSL cache context
  * \param timeout  cache entry timeout in seconds
  */
-void mbedtls_ssl_cache_set_timeout( mbedtls_ssl_cache_context *cache, int timeout );
+MBEDTLS_EXPORT void mbedtls_ssl_cache_set_timeout( mbedtls_ssl_cache_context *cache, int timeout );
 #endif /* MBEDTLS_HAVE_TIME */
 
 /**
@@ -135,14 +137,14 @@ void mbedtls_ssl_cache_set_timeout( mbedtls_ssl_cache_context *cache, int timeou
  * \param cache    SSL cache context
  * \param max      cache entry maximum
  */
-void mbedtls_ssl_cache_set_max_entries( mbedtls_ssl_cache_context *cache, int max );
+MBEDTLS_EXPORT void mbedtls_ssl_cache_set_max_entries( mbedtls_ssl_cache_context *cache, int max );
 
 /**
  * \brief          Free referenced items in a cache context and clear memory
  *
  * \param cache    SSL cache context
  */
-void mbedtls_ssl_cache_free( mbedtls_ssl_cache_context *cache );
+MBEDTLS_EXPORT void mbedtls_ssl_cache_free( mbedtls_ssl_cache_context *cache );
 
 #ifdef __cplusplus
 }

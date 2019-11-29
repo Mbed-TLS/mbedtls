@@ -32,6 +32,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "mbedtls/export.h"
+
 #if defined(MBEDTLS_PKCS11_C)
 
 #include "mbedtls/x509_crt.h"
@@ -60,7 +62,7 @@ typedef struct mbedtls_pkcs11_context
  * Initialize a mbedtls_pkcs11_context.
  * (Just making memory references valid.)
  */
-void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx );
+MBEDX509_EXPORT void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx );
 
 /**
  * Fill in a mbed TLS certificate, based on the given PKCS11 helper certificate.
@@ -70,7 +72,7 @@ void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx );
  *
  * \return              0 on success.
  */
-int mbedtls_pkcs11_x509_cert_bind( mbedtls_x509_crt *cert, pkcs11h_certificate_t pkcs11h_cert );
+MBEDX509_EXPORT int mbedtls_pkcs11_x509_cert_bind( mbedtls_x509_crt *cert, pkcs11h_certificate_t pkcs11h_cert );
 
 /**
  * Set up a mbedtls_pkcs11_context storing the given certificate. Note that the
@@ -82,7 +84,7 @@ int mbedtls_pkcs11_x509_cert_bind( mbedtls_x509_crt *cert, pkcs11h_certificate_t
  *
  * \return              0 on success
  */
-int mbedtls_pkcs11_priv_key_bind( mbedtls_pkcs11_context *priv_key,
+MBEDX509_EXPORT int mbedtls_pkcs11_priv_key_bind( mbedtls_pkcs11_context *priv_key,
         pkcs11h_certificate_t pkcs11_cert );
 
 /**
@@ -91,7 +93,7 @@ int mbedtls_pkcs11_priv_key_bind( mbedtls_pkcs11_context *priv_key,
  *
  * \param priv_key      Private key structure to cleanup
  */
-void mbedtls_pkcs11_priv_key_free( mbedtls_pkcs11_context *priv_key );
+MBEDX509_EXPORT void mbedtls_pkcs11_priv_key_free( mbedtls_pkcs11_context *priv_key );
 
 /**
  * \brief          Do an RSA private key decrypt, then remove the message
@@ -110,7 +112,7 @@ void mbedtls_pkcs11_priv_key_free( mbedtls_pkcs11_context *priv_key );
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used) otherwise
  *                 an error is thrown.
  */
-int mbedtls_pkcs11_decrypt( mbedtls_pkcs11_context *ctx,
+MBEDX509_EXPORT int mbedtls_pkcs11_decrypt( mbedtls_pkcs11_context *ctx,
                        int mode, size_t *olen,
                        const unsigned char *input,
                        unsigned char *output,
@@ -132,7 +134,7 @@ int mbedtls_pkcs11_decrypt( mbedtls_pkcs11_context *ctx,
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  */
-int mbedtls_pkcs11_sign( mbedtls_pkcs11_context *ctx,
+MBEDX509_EXPORT int mbedtls_pkcs11_sign( mbedtls_pkcs11_context *ctx,
                     int mode,
                     mbedtls_md_type_t md_alg,
                     unsigned int hashlen,

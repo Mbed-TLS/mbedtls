@@ -30,6 +30,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "mbedtls/export.h"
+
 /*
  * This implementation of the session ticket callbacks includes key
  * management, rotating the keys periodically in order to preserve forward
@@ -85,7 +87,7 @@ mbedtls_ssl_ticket_context;
  *
  * \param ctx       Context to be initialized
  */
-void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx );
+MBEDTLS_EXPORT void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx );
 
 /**
  * \brief           Prepare context to be actually used
@@ -109,7 +111,7 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx );
  * \return          0 if successful,
  *                  or a specific MBEDTLS_ERR_XXX error code
  */
-int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
+MBEDTLS_EXPORT int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
     mbedtls_cipher_type_t cipher,
     uint32_t lifetime );
@@ -119,21 +121,21 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
  *
  * \note            See \c mbedtls_ssl_ticket_write_t for description
  */
-mbedtls_ssl_ticket_write_t mbedtls_ssl_ticket_write;
+MBEDTLS_EXPORT mbedtls_ssl_ticket_write_t mbedtls_ssl_ticket_write;
 
 /**
  * \brief           Implementation of the ticket parse callback
  *
  * \note            See \c mbedtls_ssl_ticket_parse_t for description
  */
-mbedtls_ssl_ticket_parse_t mbedtls_ssl_ticket_parse;
+MBEDTLS_EXPORT mbedtls_ssl_ticket_parse_t mbedtls_ssl_ticket_parse;
 
 /**
  * \brief           Free a context's content and zeroize it.
  *
  * \param ctx       Context to be cleaned up
  */
-void mbedtls_ssl_ticket_free( mbedtls_ssl_ticket_context *ctx );
+MBEDTLS_EXPORT void mbedtls_ssl_ticket_free( mbedtls_ssl_ticket_context *ctx );
 
 #ifdef __cplusplus
 }

@@ -175,17 +175,29 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
 
     add_library(mbedx509 SHARED ${src_x509})
     set_target_properties(mbedx509 PROPERTIES VERSION 2.19.1 SOVERSION 1)
-    target_link_libraries(mbedx509 ${libs} mbedcrypto)
+    target_link_libraries(mbedx509 
+		PUBLIC ${libs} mbedcrypto
+		INTERFACE mbedcrypto
+	)
     target_include_directories(mbedx509
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${MBEDTLS_DIR}/crypto/include/)
+	target_compile_definitions(mbedx509
+		PRIVATE MAKING_SHARED_MBEDX509
+		INTERFACE USING_SHARED_MBEDTLS)
 
     add_library(mbedtls SHARED ${src_tls})
     set_target_properties(mbedtls PROPERTIES VERSION 2.19.1 SOVERSION 13)
-    target_link_libraries(mbedtls ${libs} mbedx509)
+    target_link_libraries(mbedtls 
+		PUBLIC ${libs} mbedx509
+		INTERFACE mbedx509
+	)
     target_include_directories(mbedtls
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${MBEDTLS_DIR}/crypto/include/)
+	target_compile_definitions(mbedtls
+		PRIVATE MAKING_SHARED_MBEDTLS
+		INTERFACE USING_SHARED_MBEDTLS)
 
       install(TARGETS mbedtls mbedx509
               DESTINATION ${LIB_INSTALL_DIR}

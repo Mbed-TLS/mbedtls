@@ -93,7 +93,7 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
     int ret = 0;
     mbedtls_md_context_t ctx;
     unsigned char t[MBEDTLS_MD_MAX_SIZE];
-    bzero(t, sizeof(t));
+    mbedtls_platform_zeroize(t, sizeof(t));
 
     if( okm == NULL )
     {

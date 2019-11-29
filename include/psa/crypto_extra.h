@@ -384,7 +384,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 #define PSA_ALG_DSA(hash_alg)                             \
     (PSA_ALG_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 #define PSA_ALG_DETERMINISTIC_DSA_BASE          ((psa_algorithm_t)0x10050000)
-#define PSA_ALG_DSA_DETERMINISTIC_FLAG          ((psa_algorithm_t)0x00010000)
+#define PSA_ALG_DSA_DETERMINISTIC_FLAG PSA_ALG_ECDSA_DETERMINISTIC_FLAG
 /** Deterministic DSA signature with hashing.
  *
  * This is the deterministic variant defined by RFC 6979 of

@@ -1197,11 +1197,12 @@
  */
 #define PSA_ALG_DETERMINISTIC_ECDSA(hash_alg)                           \
     (PSA_ALG_DETERMINISTIC_ECDSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_ECDSA_DETERMINISTIC_FLAG        ((psa_algorithm_t)0x00010000)
 #define PSA_ALG_IS_ECDSA(alg)                                           \
-    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_DSA_DETERMINISTIC_FLAG) ==  \
+    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_ECDSA_DETERMINISTIC_FLAG) ==  \
      PSA_ALG_ECDSA_BASE)
 #define PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)             \
-    (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
+    (((alg) & PSA_ALG_ECDSA_DETERMINISTIC_FLAG) != 0)
 #define PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)                             \
     (PSA_ALG_IS_ECDSA(alg) && PSA_ALG_ECDSA_IS_DETERMINISTIC(alg))
 #define PSA_ALG_IS_RANDOMIZED_ECDSA(alg)                                \

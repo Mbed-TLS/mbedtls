@@ -928,106 +928,63 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
 
 #endif /* !MBEDTLS_AES_SETKEY_DEC_ALT */
 
-#define AES_FROUND(R,X0,X1,X2,X3,Y0,Y1,Y2,Y3)                   \
-    do                                                          \
-    {                                                           \
-        (X0) = *(R)++ ^ AES_FT0( ( (Y0)       ) & 0xFF ) ^      \
-                        AES_FT1( ( (Y1) >>  8 ) & 0xFF ) ^      \
-                        AES_FT2( ( (Y2) >> 16 ) & 0xFF ) ^      \
-                        AES_FT3( ( (Y3) >> 24 ) & 0xFF );       \
-                                                                \
-        (X1) = *(R)++ ^ AES_FT0( ( (Y1)       ) & 0xFF ) ^      \
-                        AES_FT1( ( (Y2) >>  8 ) & 0xFF ) ^      \
-                        AES_FT2( ( (Y3) >> 16 ) & 0xFF ) ^      \
-                        AES_FT3( ( (Y0) >> 24 ) & 0xFF );       \
-                                                                \
-        (X2) = *(R)++ ^ AES_FT0( ( (Y2)       ) & 0xFF ) ^      \
-                        AES_FT1( ( (Y3) >>  8 ) & 0xFF ) ^      \
-                        AES_FT2( ( (Y0) >> 16 ) & 0xFF ) ^      \
-                        AES_FT3( ( (Y1) >> 24 ) & 0xFF );       \
-                                                                \
-        (X3) = *(R)++ ^ AES_FT0( ( (Y3)       ) & 0xFF ) ^      \
-                        AES_FT1( ( (Y0) >>  8 ) & 0xFF ) ^      \
-                        AES_FT2( ( (Y1) >> 16 ) & 0xFF ) ^      \
-                        AES_FT3( ( (Y2) >> 24 ) & 0xFF );       \
-    } while( 0 )
-
-#define AES_FROUND_F(R,X0,X1,X2,X3,Y0,Y1,Y2,Y3)                             \
-    do {                                                                    \
-        (X0) = *(R)++ ^ ( (uint32_t) FSb[ ( (Y0)       ) & 0xFF ]       ) ^ \
-                        ( (uint32_t) FSb[ ( (Y1) >>  8 ) & 0xFF ] <<  8 ) ^ \
-                        ( (uint32_t) FSb[ ( (Y2) >> 16 ) & 0xFF ] << 16 ) ^ \
-                        ( (uint32_t) FSb[ ( (Y3) >> 24 ) & 0xFF ] << 24 );  \
-                                                                            \
-        (X1) = *(R)++ ^ ( (uint32_t) FSb[ ( (Y1)       ) & 0xFF ]       ) ^ \
-                        ( (uint32_t) FSb[ ( (Y2) >>  8 ) & 0xFF ] <<  8 ) ^ \
-                        ( (uint32_t) FSb[ ( (Y3) >> 16 ) & 0xFF ] << 16 ) ^ \
-                        ( (uint32_t) FSb[ ( (Y0) >> 24 ) & 0xFF ] << 24 );  \
-                                                                            \
-        (X2) = *(R)++ ^ ( (uint32_t) FSb[ ( (Y2)       ) & 0xFF ]       ) ^ \
-                        ( (uint32_t) FSb[ ( (Y3) >>  8 ) & 0xFF ] <<  8 ) ^ \
-                        ( (uint32_t) FSb[ ( (Y0) >> 16 ) & 0xFF ] << 16 ) ^ \
-                        ( (uint32_t) FSb[ ( (Y1) >> 24 ) & 0xFF ] << 24 );  \
-                                                                            \
-        (X3) = *(R)++ ^ ( (uint32_t) FSb[ ( (Y3)       ) & 0xFF ]       ) ^ \
-                        ( (uint32_t) FSb[ ( (Y0) >>  8 ) & 0xFF ] <<  8 ) ^ \
-                        ( (uint32_t) FSb[ ( (Y1) >> 16 ) & 0xFF ] << 16 ) ^ \
-                        ( (uint32_t) FSb[ ( (Y2) >> 24 ) & 0xFF ] << 24 );  \
-    } while ( 0 )
-
-
-#define AES_RROUND(R,X0,X1,X2,X3,Y0,Y1,Y2,Y3)                   \
-    do                                                          \
-    {                                                           \
-        (X0) = *(R)++ ^ AES_RT0( ( (Y0)       ) & 0xFF ) ^      \
-                        AES_RT1( ( (Y3) >>  8 ) & 0xFF ) ^      \
-                        AES_RT2( ( (Y2) >> 16 ) & 0xFF ) ^      \
-                        AES_RT3( ( (Y1) >> 24 ) & 0xFF );       \
-                                                                \
-        (X1) = *(R)++ ^ AES_RT0( ( (Y1)       ) & 0xFF ) ^      \
-                        AES_RT1( ( (Y0) >>  8 ) & 0xFF ) ^      \
-                        AES_RT2( ( (Y3) >> 16 ) & 0xFF ) ^      \
-                        AES_RT3( ( (Y2) >> 24 ) & 0xFF );       \
-                                                                \
-        (X2) = *(R)++ ^ AES_RT0( ( (Y2)       ) & 0xFF ) ^      \
-                        AES_RT1( ( (Y1) >>  8 ) & 0xFF ) ^      \
-                        AES_RT2( ( (Y0) >> 16 ) & 0xFF ) ^      \
-                        AES_RT3( ( (Y3) >> 24 ) & 0xFF );       \
-                                                                \
-        (X3) = *(R)++ ^ AES_RT0( ( (Y3)       ) & 0xFF ) ^      \
-                        AES_RT1( ( (Y2) >>  8 ) & 0xFF ) ^      \
-                        AES_RT2( ( (Y1) >> 16 ) & 0xFF ) ^      \
-                        AES_RT3( ( (Y0) >> 24 ) & 0xFF );       \
-    } while( 0 )
-
-#define AES_RROUND_F(R,X0,X1,X2,X3,Y0,Y1,Y2,Y3)                             \
-    do                                                                      \
-    {                                                                       \
-        (X0) = *(R)++ ^ ( (uint32_t) RSb[ ( (Y0)       ) & 0xFF ]       ) ^ \
-                        ( (uint32_t) RSb[ ( (Y3) >>  8 ) & 0xFF ] <<  8 ) ^ \
-                        ( (uint32_t) RSb[ ( (Y2) >> 16 ) & 0xFF ] << 16 ) ^ \
-                        ( (uint32_t) RSb[ ( (Y1) >> 24 ) & 0xFF ] << 24 );  \
-                                                                            \
-        (X1) = *(R)++ ^ ( (uint32_t) RSb[ ( (Y1)       ) & 0xFF ]       ) ^ \
-                        ( (uint32_t) RSb[ ( (Y0) >>  8 ) & 0xFF ] <<  8 ) ^ \
-                        ( (uint32_t) RSb[ ( (Y3) >> 16 ) & 0xFF ] << 16 ) ^ \
-                        ( (uint32_t) RSb[ ( (Y2) >> 24 ) & 0xFF ] << 24 );  \
-                                                                            \
-        (X2) = *(R)++ ^ ( (uint32_t) RSb[ ( (Y2)       ) & 0xFF ]       ) ^ \
-                        ( (uint32_t) RSb[ ( (Y1) >>  8 ) & 0xFF ] <<  8 ) ^ \
-                        ( (uint32_t) RSb[ ( (Y0) >> 16 ) & 0xFF ] << 16 ) ^ \
-                        ( (uint32_t) RSb[ ( (Y3) >> 24 ) & 0xFF ] << 24 );  \
-                                                                            \
-        (X3) = *(R)++ ^ ( (uint32_t) RSb[ ( (Y3)       ) & 0xFF ]       ) ^ \
-                        ( (uint32_t) RSb[ ( (Y2) >>  8 ) & 0xFF ] <<  8 ) ^ \
-                        ( (uint32_t) RSb[ ( (Y1) >> 16 ) & 0xFF ] << 16 ) ^ \
-                        ( (uint32_t) RSb[ ( (Y0) >> 24 ) & 0xFF ] << 24 );  \
-    } while( 0 )
-
 /*
  * AES-ECB block encryption
  */
 #if !defined(MBEDTLS_AES_ENCRYPT_ALT)
+
+static uint32_t *aes_fround( uint32_t *R,
+    uint32_t *X0, uint32_t *X1, uint32_t *X2, uint32_t *X3,
+    uint32_t Y0, uint32_t Y1, uint32_t Y2, uint32_t Y3 )
+{
+    *X0 = *R++ ^ AES_FT0( ( Y0       ) & 0xFF ) ^
+                 AES_FT1( ( Y1 >>  8 ) & 0xFF ) ^
+                 AES_FT2( ( Y2 >> 16 ) & 0xFF ) ^
+                 AES_FT3( ( Y3 >> 24 ) & 0xFF );
+
+    *X1 = *R++ ^ AES_FT0( ( Y1       ) & 0xFF ) ^
+                 AES_FT1( ( Y2 >>  8 ) & 0xFF ) ^
+                 AES_FT2( ( Y3 >> 16 ) & 0xFF ) ^
+                 AES_FT3( ( Y0 >> 24 ) & 0xFF );
+
+    *X2 = *R++ ^ AES_FT0( ( Y2       ) & 0xFF ) ^
+                 AES_FT1( ( Y3 >>  8 ) & 0xFF ) ^
+                 AES_FT2( ( Y0 >> 16 ) & 0xFF ) ^
+                 AES_FT3( ( Y1 >> 24 ) & 0xFF );
+
+    *X3 = *R++ ^ AES_FT0( ( Y3       ) & 0xFF ) ^
+                 AES_FT1( ( Y0 >>  8 ) & 0xFF ) ^
+                 AES_FT2( ( Y1 >> 16 ) & 0xFF ) ^
+                 AES_FT3( ( Y2 >> 24 ) & 0xFF );
+
+    return R;
+}
+
+static void aes_fround_final( uint32_t *R,
+    uint32_t *X0, uint32_t *X1, uint32_t *X2, uint32_t *X3,
+    uint32_t Y0, uint32_t Y1, uint32_t Y2, uint32_t Y3 )
+{
+    *X0 = *R++ ^ ( (uint32_t) FSb[ ( (Y0)       ) & 0xFF ]       ) ^
+                 ( (uint32_t) FSb[ ( (Y1) >>  8 ) & 0xFF ] <<  8 ) ^
+                 ( (uint32_t) FSb[ ( (Y2) >> 16 ) & 0xFF ] << 16 ) ^
+                 ( (uint32_t) FSb[ ( (Y3) >> 24 ) & 0xFF ] << 24 );
+
+    *X1 = *R++ ^ ( (uint32_t) FSb[ ( (Y1)       ) & 0xFF ]       ) ^
+                 ( (uint32_t) FSb[ ( (Y2) >>  8 ) & 0xFF ] <<  8 ) ^
+                 ( (uint32_t) FSb[ ( (Y3) >> 16 ) & 0xFF ] << 16 ) ^
+                 ( (uint32_t) FSb[ ( (Y0) >> 24 ) & 0xFF ] << 24 );
+
+    *X2 = *R++ ^ ( (uint32_t) FSb[ ( (Y2)       ) & 0xFF ]       ) ^
+                 ( (uint32_t) FSb[ ( (Y3) >>  8 ) & 0xFF ] <<  8 ) ^
+                 ( (uint32_t) FSb[ ( (Y0) >> 16 ) & 0xFF ] << 16 ) ^
+                 ( (uint32_t) FSb[ ( (Y1) >> 24 ) & 0xFF ] << 24 );
+
+    *X3 = *R++ ^ ( (uint32_t) FSb[ ( (Y3)       ) & 0xFF ]       ) ^
+                 ( (uint32_t) FSb[ ( (Y0) >>  8 ) & 0xFF ] <<  8 ) ^
+                 ( (uint32_t) FSb[ ( (Y1) >> 16 ) & 0xFF ] << 16 ) ^
+                 ( (uint32_t) FSb[ ( (Y2) >> 24 ) & 0xFF ] << 24 );
+}
+
 int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
                                   unsigned char output[16] )
@@ -1073,11 +1030,11 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         aes_data_ptr = aes_data_table[round_ctrl_table[i] >> 4];
         offset = round_ctrl_table[i] & 0x0f;
 
-        AES_FROUND( aes_data_ptr->rk_ptr,
-            aes_data_ptr->xy_values[0 + offset],
-            aes_data_ptr->xy_values[1 + offset],
-            aes_data_ptr->xy_values[2 + offset],
-            aes_data_ptr->xy_values[3 + offset],
+        aes_data_ptr->rk_ptr = aes_fround( aes_data_ptr->rk_ptr,
+            &aes_data_ptr->xy_values[0 + offset],
+            &aes_data_ptr->xy_values[1 + offset],
+            &aes_data_ptr->xy_values[2 + offset],
+            &aes_data_ptr->xy_values[3 + offset],
             aes_data_ptr->xy_values[4 - offset],
             aes_data_ptr->xy_values[5 - offset],
             aes_data_ptr->xy_values[6 - offset],
@@ -1087,11 +1044,11 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     for ( j = 0; j < start_fin_loops; j++ )
     {
         aes_data_ptr = aes_data_table[round_ctrl_table[ i + j ] >> 4];
-        AES_FROUND_F( aes_data_ptr->rk_ptr,
-            aes_data_ptr->xy_values[0],
-            aes_data_ptr->xy_values[1],
-            aes_data_ptr->xy_values[2],
-            aes_data_ptr->xy_values[3],
+        aes_fround_final( aes_data_ptr->rk_ptr,
+            &aes_data_ptr->xy_values[0],
+            &aes_data_ptr->xy_values[1],
+            &aes_data_ptr->xy_values[2],
+            &aes_data_ptr->xy_values[3],
             aes_data_ptr->xy_values[4],
             aes_data_ptr->xy_values[5],
             aes_data_ptr->xy_values[6],
@@ -1122,6 +1079,58 @@ void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
 
 #if !defined(MBEDTLS_AES_DECRYPT_ALT)
 #if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
+
+static uint32_t *aes_rround( uint32_t *R,
+    uint32_t *X0, uint32_t *X1, uint32_t *X2, uint32_t *X3,
+    uint32_t Y0, uint32_t Y1, uint32_t Y2, uint32_t Y3 )
+{
+    *X0 = *R++ ^ AES_RT0( ( Y0       ) & 0xFF ) ^
+                 AES_RT1( ( Y3 >>  8 ) & 0xFF ) ^
+                 AES_RT2( ( Y2 >> 16 ) & 0xFF ) ^
+                 AES_RT3( ( Y1 >> 24 ) & 0xFF );
+
+    *X1 = *R++ ^ AES_RT0( ( Y1       ) & 0xFF ) ^
+                 AES_RT1( ( Y0 >>  8 ) & 0xFF ) ^
+                 AES_RT2( ( Y3 >> 16 ) & 0xFF ) ^
+                 AES_RT3( ( Y2 >> 24 ) & 0xFF );
+
+    *X2 = *R++ ^ AES_RT0( ( Y2       ) & 0xFF ) ^
+                 AES_RT1( ( Y1 >>  8 ) & 0xFF ) ^
+                 AES_RT2( ( Y0 >> 16 ) & 0xFF ) ^
+                 AES_RT3( ( Y3 >> 24 ) & 0xFF );
+
+    *X3 = *R++ ^ AES_RT0( ( Y3       ) & 0xFF ) ^
+                 AES_RT1( ( Y2 >>  8 ) & 0xFF ) ^
+                 AES_RT2( ( Y1 >> 16 ) & 0xFF ) ^
+                 AES_RT3( ( Y0 >> 24 ) & 0xFF );
+    return R;
+}
+
+static void aes_rround_final( uint32_t *R,
+    uint32_t *X0, uint32_t *X1, uint32_t *X2, uint32_t *X3,
+    uint32_t Y0, uint32_t Y1, uint32_t Y2, uint32_t Y3 )
+{
+    *X0 = *R++ ^ ( (uint32_t) RSb[ ( (Y0)       ) & 0xFF ]       ) ^
+                 ( (uint32_t) RSb[ ( (Y3) >>  8 ) & 0xFF ] <<  8 ) ^
+                 ( (uint32_t) RSb[ ( (Y2) >> 16 ) & 0xFF ] << 16 ) ^
+                 ( (uint32_t) RSb[ ( (Y1) >> 24 ) & 0xFF ] << 24 );
+
+    *X1 = *R++ ^ ( (uint32_t) RSb[ ( (Y1)       ) & 0xFF ]       ) ^
+                 ( (uint32_t) RSb[ ( (Y0) >>  8 ) & 0xFF ] <<  8 ) ^
+                 ( (uint32_t) RSb[ ( (Y3) >> 16 ) & 0xFF ] << 16 ) ^
+                 ( (uint32_t) RSb[ ( (Y2) >> 24 ) & 0xFF ] << 24 );
+
+    *X2 = *R++ ^ ( (uint32_t) RSb[ ( (Y2)       ) & 0xFF ]       ) ^
+                 ( (uint32_t) RSb[ ( (Y1) >>  8 ) & 0xFF ] <<  8 ) ^
+                 ( (uint32_t) RSb[ ( (Y0) >> 16 ) & 0xFF ] << 16 ) ^
+                 ( (uint32_t) RSb[ ( (Y3) >> 24 ) & 0xFF ] << 24 );
+
+    *X3 = *R++ ^ ( (uint32_t) RSb[ ( (Y3)       ) & 0xFF ]       ) ^
+                 ( (uint32_t) RSb[ ( (Y2) >>  8 ) & 0xFF ] <<  8 ) ^
+                 ( (uint32_t) RSb[ ( (Y1) >> 16 ) & 0xFF ] << 16 ) ^
+                 ( (uint32_t) RSb[ ( (Y0) >> 24 ) & 0xFF ] << 24 );
+}
+
 int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
                                   unsigned char output[16] )
@@ -1167,11 +1176,11 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
         aes_data_ptr = aes_data_table[round_ctrl_table[i] >> 4];
         offset = round_ctrl_table[i] & 0x0f;
 
-        AES_RROUND( aes_data_ptr->rk_ptr,
-            aes_data_ptr->xy_values[0 + offset],
-            aes_data_ptr->xy_values[1 + offset],
-            aes_data_ptr->xy_values[2 + offset],
-            aes_data_ptr->xy_values[3 + offset],
+        aes_data_ptr->rk_ptr = aes_rround( aes_data_ptr->rk_ptr,
+            &aes_data_ptr->xy_values[0 + offset],
+            &aes_data_ptr->xy_values[1 + offset],
+            &aes_data_ptr->xy_values[2 + offset],
+            &aes_data_ptr->xy_values[3 + offset],
             aes_data_ptr->xy_values[4 - offset],
             aes_data_ptr->xy_values[5 - offset],
             aes_data_ptr->xy_values[6 - offset],
@@ -1181,11 +1190,11 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     for ( j = 0; j < start_fin_loops; j++ )
     {
         aes_data_ptr = aes_data_table[round_ctrl_table[ i + j ] >> 4];
-        AES_RROUND_F( aes_data_ptr->rk_ptr,
-            aes_data_ptr->xy_values[0],
-            aes_data_ptr->xy_values[1],
-            aes_data_ptr->xy_values[2],
-            aes_data_ptr->xy_values[3],
+        aes_rround_final( aes_data_ptr->rk_ptr,
+            &aes_data_ptr->xy_values[0],
+            &aes_data_ptr->xy_values[1],
+            &aes_data_ptr->xy_values[2],
+            &aes_data_ptr->xy_values[3],
             aes_data_ptr->xy_values[4],
             aes_data_ptr->xy_values[5],
             aes_data_ptr->xy_values[6],

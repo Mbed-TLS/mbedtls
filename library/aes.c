@@ -535,7 +535,7 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
 
 #if AES_SCA_CM_ROUNDS != 0
     // Randomize SCA CM positions to tbl
-    for ( i = 0; i < AES_SCA_CM_ROUNDS; i++ )
+    for( i = 0; i < AES_SCA_CM_ROUNDS; i++ )
     {
         do {
             is_unique_number = 1;
@@ -551,25 +551,22 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
     }
 
     // Fill start/final round control data
-    if ( AES_SCA_CM_ROUNDS != 0 )
+    num = /* mbedtls_platform_random_in_range( tbl_len - 1 ) */rand() % 0xff;
+    if ( ( num % 2 ) == 0 )
     {
-        num = /* mbedtls_platform_random_in_range( tbl_len - 1 ) */rand() % 0xff;
-        if ( ( num % 2 ) == 0 )
-        {
-            tbl[tbl_len - 2] = 0x10;
-            tbl[tbl_len - 1] = 0x0;
-        }
-        else
-        {
-            tbl[tbl_len - 2] = 0x00;
-            tbl[tbl_len - 1] = 0x10;
-        }
+        tbl[tbl_len - 2] = 0x10;
+        tbl[tbl_len - 1] = 0x0;
+    }
+    else
+    {
+        tbl[tbl_len - 2] = 0x00;
+        tbl[tbl_len - 1] = 0x10;
     }
 #endif /* AES_SCA_CM_ROUNDS != 0 */
 
     // Fill real AES round data to the remaining places
     is_even_pos = 1;
-    for ( i = 0; i < tbl_len - 2; i++ )
+    for( i = 0; i < tbl_len - 2; i++ )
     {
         if ( tbl[i] == 0 )
         {
@@ -1007,19 +1004,20 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     aes_data_table[1] = &aes_data_fake;
     aes_data_fake.rk_ptr = ctx->rk;
     start_fin_loops = 2;
-    for (i = 0; i < 4; i++ )
+    for( i = 0; i < 4; i++ )
         aes_data_fake.xy_values[i] = mbedtls_platform_random_in_range( 0xffffffff );
 #endif
 
     // Get randomized AES calculation control bytes
     aes_sca_cm_data_randomize( round_ctrl_table, round_ctrl_table_len );
 
-    for (i = 0; i < 4; i++ )
+    for( i = 0; i < 4; i++ )
     {
         GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-        for (j = 0; j < start_fin_loops; j++ )
+        for( j = 0; j < start_fin_loops; j++ )
         {
-            aes_data_ptr = aes_data_table[round_ctrl_table[ round_ctrl_table_len - 2 + j ] >> 4];
+            aes_data_ptr =
+                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 2 + j ] >> 4];
             aes_data_ptr->xy_values[i] ^= *aes_data_ptr->rk_ptr++;
         }
     }
@@ -1041,7 +1039,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[7 - offset] );
     }
 
-    for ( j = 0; j < start_fin_loops; j++ )
+    for( j = 0; j < start_fin_loops; j++ )
     {
         aes_data_ptr = aes_data_table[round_ctrl_table[ i + j ] >> 4];
         aes_fround_final( aes_data_ptr->rk_ptr,
@@ -1055,7 +1053,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[7] );
     }
 
-    for ( i = 0; i < 4; i++ )
+    for( i = 0; i < 4; i++ )
     {
         PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
     }
@@ -1153,19 +1151,20 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     aes_data_table[1] = &aes_data_fake;
     aes_data_fake.rk_ptr = ctx->rk;
     start_fin_loops = 2;
-    for (i = 0; i < 4; i++ )
+    for( i = 0; i < 4; i++ )
         aes_data_fake.xy_values[i] = mbedtls_platform_random_in_range( 0xffffffff );
 #endif
 
     // Get randomized AES calculation control bytes
     aes_sca_cm_data_randomize( round_ctrl_table, round_ctrl_table_len );
 
-    for (i = 0; i < 4; i++ )
+    for( i = 0; i < 4; i++ )
     {
         GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-        for (j = 0; j < start_fin_loops; j++ )
+        for( j = 0; j < start_fin_loops; j++ )
         {
-            aes_data_ptr = aes_data_table[round_ctrl_table[ round_ctrl_table_len - 2 + j ] >> 4];
+            aes_data_ptr =
+                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 2 + j ] >> 4];
             aes_data_ptr->xy_values[i] ^= *aes_data_ptr->rk_ptr++;
         }
     }
@@ -1187,7 +1186,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[7 - offset] );
     }
 
-    for ( j = 0; j < start_fin_loops; j++ )
+    for( j = 0; j < start_fin_loops; j++ )
     {
         aes_data_ptr = aes_data_table[round_ctrl_table[ i + j ] >> 4];
         aes_rround_final( aes_data_ptr->rk_ptr,
@@ -1201,7 +1200,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[7] );
     }
 
-    for ( i = 0; i < 4; i++ )
+    for( i = 0; i < 4; i++ )
     {
         PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
     }

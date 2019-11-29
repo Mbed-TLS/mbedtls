@@ -3,6 +3,10 @@
  *
  * \brief PSA cryptography module: Backward compatibility aliases
  *
+ * This header declares alternative names for macro and functions.
+ * New application code should not use these names.
+ * These names may be removed in a future version of Mbed Crypto.
+ *
  * \note This file may not be included directly. Applications must
  * include psa/crypto.h.
  */
@@ -34,6 +38,9 @@ extern "C" {
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 
+/*
+ * Mechanism for declaring deprecated values
+ */
 #if defined(MBEDTLS_DEPRECATED_WARNING) && !defined(MBEDTLS_PSA_DEPRECATED)
 #define MBEDTLS_PSA_DEPRECATED __attribute__((deprecated))
 #else
@@ -48,7 +55,7 @@ typedef MBEDTLS_PSA_DEPRECATED psa_key_usage_t mbedtls_deprecated_psa_key_usage_
     ( (mbedtls_deprecated_##type) ( value ) )
 
 /*
- * Deprecated PSA Crypto error code definitions
+ * Deprecated PSA Crypto error code definitions (PSA Crypto API  <= 1.0 beta2)
  */
 #define PSA_ERROR_UNKNOWN_ERROR \
     MBEDTLS_DEPRECATED_CONSTANT( psa_status_t, PSA_ERROR_GENERIC_ERROR )
@@ -62,7 +69,7 @@ typedef MBEDTLS_PSA_DEPRECATED psa_key_usage_t mbedtls_deprecated_psa_key_usage_
     MBEDTLS_DEPRECATED_CONSTANT( psa_status_t, PSA_ERROR_CORRUPTION_DETECTED )
 
 /*
- * Deprecated PSA Crypto numerical encodings
+ * Deprecated PSA Crypto numerical encodings (PSA Crypto API  <= 1.0 beta3)
  */
 #define PSA_KEY_USAGE_SIGN \
     MBEDTLS_DEPRECATED_CONSTANT( psa_key_usage_t, PSA_KEY_USAGE_SIGN_HASH )
@@ -70,7 +77,7 @@ typedef MBEDTLS_PSA_DEPRECATED psa_key_usage_t mbedtls_deprecated_psa_key_usage_
     MBEDTLS_DEPRECATED_CONSTANT( psa_key_usage_t, PSA_KEY_USAGE_VERIFY_HASH )
 
 /*
- * Deprecated PSA Crypto size calculation macros
+ * Deprecated PSA Crypto size calculation macros (PSA Crypto API  <= 1.0 beta3)
  */
 #define PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE \
     MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_SIGNATURE_MAX_SIZE )
@@ -78,7 +85,7 @@ typedef MBEDTLS_PSA_DEPRECATED psa_key_usage_t mbedtls_deprecated_psa_key_usage_
     MBEDTLS_DEPRECATED_CONSTANT( size_t, PSA_SIGN_OUTPUT_SIZE( key_type, key_bits, alg ) )
 
 /*
- * Deprecated PSA Crypto function names
+ * Deprecated PSA Crypto function names (PSA Crypto API  <= 1.0 beta3)
  */
 /* Make these macros and not wrappers so that there is no cost to
  * applications that don't use the deprecated names.

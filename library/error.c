@@ -842,7 +842,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED) )
         mbedtls_snprintf( buf, buflen, "PLATFORM - The requested feature is not supported by the platform" );
     if( use_ret == -(MBEDTLS_ERR_PLATFORM_FAULT_DETECTED) )
-        mbedtls_snprintf( buf, buflen, "PLATFORM - A fault was detected in a critical path, likely indicative of an active physical attack" );
+        mbedtls_snprintf( buf, buflen, "PLATFORM - A hardware fault was detected in a critical path. As a security precaution this should be treated as a potential physical attack" );
 #endif /* MBEDTLS_PLATFORM_C */
 
 #if defined(MBEDTLS_POLY1305_C)

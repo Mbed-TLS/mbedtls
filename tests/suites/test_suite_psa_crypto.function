@@ -3786,6 +3786,8 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
                     signature, signature_length );
 
 #if defined(MBEDTLS_TEST_DEPRECATED)
+    memset( signature, 0, signature_size );
+    signature_length = INVALID_EXPORT_LENGTH;
     PSA_ASSERT( psa_asymmetric_sign( handle, alg,
                                      input_data->x, input_data->len,
                                      signature, signature_size,
@@ -3838,6 +3840,16 @@ void sign_fail( int key_type_arg, data_t *key_data,
      * if the caller tries to read *signature_length bytes without
      * checking the error code then they don't overflow a buffer. */
     TEST_ASSERT( signature_length <= signature_size );
+
+#if defined(MBEDTLS_TEST_DEPRECATED)
+    signature_length = INVALID_EXPORT_LENGTH;
+    TEST_EQUAL( psa_asymmetric_sign( handle, alg,
+                                     input_data->x, input_data->len,
+                                     signature, signature_size,
+                                     &signature_length ),
+                expected_status );
+    TEST_ASSERT( signature_length <= signature_size );
+#endif /* MBEDTLS_TEST_DEPRECATED */
 
 exit:
     psa_reset_key_attributes( &attributes );
@@ -3978,8 +3990,14 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
     actual_status = psa_verify_hash( handle, alg,
                                      hash_data->x, hash_data->len,
                                      signature_data->x, signature_data->len );
-
     TEST_EQUAL( actual_status, expected_status );
+
+#if defined(MBEDTLS_TEST_DEPRECATED)
+    TEST_EQUAL( psa_asymmetric_verify( handle, alg,
+                                       hash_data->x, hash_data->len,
+                                       signature_data->x, signature_data->len ),
+                expected_status );
+#endif /* MBEDTLS_TEST_DEPRECATED */
 
 exit:
     psa_reset_key_attributes( &attributes );

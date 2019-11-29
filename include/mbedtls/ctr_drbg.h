@@ -190,11 +190,8 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
  *   with mbedtls_entropy_init() (which registers the platform's default
  *   entropy sources).
  *
- * \p f_entropy is always called with a buffer size equal to the entropy
- * length. The entropy length is initially #MBEDTLS_CTR_DRBG_ENTROPY_LEN
- * and this value is always used for the initial seeding. You can change
- * the entropy length for subsequent seeding by calling
- * mbedtls_ctr_drbg_set_entropy_len() after this function.
+ * The entropy length is #MBEDTLS_CTR_DRBG_ENTROPY_LEN by default.
+ * You can override it by calling mbedtls_ctr_drbg_set_entropy_len().
  *
  * You can provide a personalization string in addition to the
  * entropy source, to make this instantiation as unique as possible.
@@ -227,9 +224,18 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
 #endif
 /**
  * \param ctx           The CTR_DRBG context to seed.
+ *                      It must have been initialized with
+ *                      mbedtls_ctr_drbg_init().
+ *                      After a successful call to mbedtls_ctr_drbg_seed(),
+ *                      you may not call mbedtls_ctr_drbg_seed() again on
+ *                      the same context unless you call
+ *                      mbedtls_ctr_drbg_free() and mbedtls_ctr_drbg_init()
+ *                      again first.
  * \param f_entropy     The entropy callback, taking as arguments the
  *                      \p p_entropy context, the buffer to fill, and the
  *                      length of the buffer.
+ *                      \p f_entropy is always called with a buffer size
+ *                      equal to the entropy length.
  * \param p_entropy     The entropy context to pass to \p f_entropy.
  * \param custom        The personalization string.
  *                      This can be \c NULL, in which case the personalization
@@ -273,14 +279,9 @@ void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx,
 
 /**
  * \brief               This function sets the amount of entropy grabbed on each
- *                      subsequent reseed.
+ *                      seed or reseed.
  *
  * The default value is #MBEDTLS_CTR_DRBG_ENTROPY_LEN.
- *
- * \note                mbedtls_ctr_drbg_seed() always sets the entropy length
- *                      to #MBEDTLS_CTR_DRBG_ENTROPY_LEN, so this function
- *                      only has an effect when it is called after
- *                      mbedtls_ctr_drbg_seed().
  *
  * \note                The security strength of CTR_DRBG is bounded by the
  *                      entropy length. Thus \p len must be at least

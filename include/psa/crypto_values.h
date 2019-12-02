@@ -580,6 +580,8 @@
  */
 #define PSA_DH_GROUP_VENDOR_MAX         ((psa_dh_group_t) 0x01fd)
 
+#define PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type)      \
+    (((type) >> 24) & 7)
 /** The block size of a block cipher.
  *
  * \param type  A cipher key type (value of type #psa_key_type_t).
@@ -599,13 +601,9 @@
  * \warning This macro may evaluate its argument multiple times.
  */
 #define PSA_BLOCK_CIPHER_BLOCK_SIZE(type)            \
-    (                                                \
-        (type) == PSA_KEY_TYPE_AES ? 16 :            \
-        (type) == PSA_KEY_TYPE_DES ? 8 :             \
-        (type) == PSA_KEY_TYPE_CAMELLIA ? 16 :       \
-        (type) == PSA_KEY_TYPE_ARC4 ? 1 :            \
-        (type) == PSA_KEY_TYPE_CHACHA20 ? 1 :            \
-        0)
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC ? \
+     1u << PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type) :                 \
+     0u)
 
 /** Vendor-defined algorithm flag.
  *

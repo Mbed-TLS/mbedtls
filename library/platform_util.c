@@ -165,6 +165,29 @@ uint32_t mbedtls_platform_random_in_range( size_t num )
 #endif
 }
 
+int mbedtls_platform_random_delay( size_t max_rand )
+{
+#if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+    (void) max_rand;
+    return -1;
+#else
+    size_t random_number;
+    volatile size_t i = 0;
+    if( max_rand == 0 || max_rand > INT_MAX )
+    {
+        return -1;
+    }
+
+    random_number = mbedtls_platform_random_in_range( max_rand );
+
+    do {
+        i++;
+    } while ( i < random_number );
+
+    return (int) i;
+#endif /* !MBEDTLS_ENTROPY_HARDWARE_ALT */
+}
+
 /* Some compilers (armcc 5 for example) optimize away successive reads from a
  * volatile local variable (which we use as a counter-measure to fault
  * injection attacks), unless there is a call to an external function between

@@ -424,8 +424,10 @@ static psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
     }
 }
 
-static mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve )
+static mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
+                                                      size_t byte_length )
 {
+    (void) byte_length;
     switch( curve )
     {
         case PSA_ECC_CURVE_SECP192R1:
@@ -602,6 +604,8 @@ exit:
 
 #if defined(MBEDTLS_ECP_C)
 static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
+                                               size_t data_length,
+                                               int is_public,
                                                mbedtls_ecp_keypair **p_ecp )
 {
     mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
@@ -610,8 +614,23 @@ static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
     mbedtls_ecp_keypair_init( *p_ecp );
 
+    if( is_public )
+    {
+        /* A public key is represented as:
+         * - The byte 0x04;
+         * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+         * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
+         * So its data length is 2m+1 where n is the key size in bits.
+         */
+        if( ( data_length & 1 ) == 0 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        data_length = data_length / 2;
+    }
+
     /* Load the group. */
-    grp_id = mbedtls_ecc_group_of_psa( curve );
+    grp_id = mbedtls_ecc_group_of_psa( curve, data_length );
+    if( grp_id == MBEDTLS_ECP_DP_NONE )
+        return( PSA_ERROR_INVALID_ARGUMENT );
     return( mbedtls_to_psa_error(
                 mbedtls_ecp_group_load( &( *p_ecp )->grp, grp_id ) ) );
 }
@@ -626,7 +645,7 @@ static psa_status_t psa_import_ec_public_key( psa_ecc_curve_t curve,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
 
-    status = psa_prepare_import_ec_key( curve, &ecp );
+    status = psa_prepare_import_ec_key( curve, data_length, 1, &ecp );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -668,7 +687,7 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
     if( PSA_BITS_TO_BYTES( PSA_ECC_CURVE_BITS( curve ) ) != data_length )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_prepare_import_ec_key( curve, &ecp );
+    status = psa_prepare_import_ec_key( curve, data_length, 0, &ecp );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -5578,7 +5597,8 @@ static psa_status_t psa_generate_key_internal(
     if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
         psa_ecc_curve_t curve = PSA_KEY_TYPE_GET_CURVE( type );
-        mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
+        mbedtls_ecp_group_id grp_id =
+            mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( bits ) );
         const mbedtls_ecp_curve_info *curve_info =
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair *ecp;

@@ -198,38 +198,7 @@
  *                  This may be 0 if the implementation does not support
  *                  the specified curve.
  */
-#define PSA_ECC_CURVE_BITS(curve)               \
-    ((curve) == PSA_ECC_CURVE_SECT163K1        ? 163 : \
-     (curve) == PSA_ECC_CURVE_SECT163R1        ? 163 : \
-     (curve) == PSA_ECC_CURVE_SECT163R2        ? 163 : \
-     (curve) == PSA_ECC_CURVE_SECT193R1        ? 193 : \
-     (curve) == PSA_ECC_CURVE_SECT193R2        ? 193 : \
-     (curve) == PSA_ECC_CURVE_SECT233K1        ? 233 : \
-     (curve) == PSA_ECC_CURVE_SECT233R1        ? 233 : \
-     (curve) == PSA_ECC_CURVE_SECT239K1        ? 239 : \
-     (curve) == PSA_ECC_CURVE_SECT283K1        ? 283 : \
-     (curve) == PSA_ECC_CURVE_SECT283R1        ? 283 : \
-     (curve) == PSA_ECC_CURVE_SECT409K1        ? 409 : \
-     (curve) == PSA_ECC_CURVE_SECT409R1        ? 409 : \
-     (curve) == PSA_ECC_CURVE_SECT571K1        ? 571 : \
-     (curve) == PSA_ECC_CURVE_SECT571R1        ? 571 : \
-     (curve) == PSA_ECC_CURVE_SECP160K1        ? 160 : \
-     (curve) == PSA_ECC_CURVE_SECP160R1        ? 160 : \
-     (curve) == PSA_ECC_CURVE_SECP160R2        ? 160 : \
-     (curve) == PSA_ECC_CURVE_SECP192K1        ? 192 : \
-     (curve) == PSA_ECC_CURVE_SECP192R1        ? 192 : \
-     (curve) == PSA_ECC_CURVE_SECP224K1        ? 224 : \
-     (curve) == PSA_ECC_CURVE_SECP224R1        ? 224 : \
-     (curve) == PSA_ECC_CURVE_SECP256K1        ? 256 : \
-     (curve) == PSA_ECC_CURVE_SECP256R1        ? 256 : \
-     (curve) == PSA_ECC_CURVE_SECP384R1        ? 384 : \
-     (curve) == PSA_ECC_CURVE_SECP521R1        ? 521 : \
-     (curve) == PSA_ECC_CURVE_BRAINPOOL_P256R1 ? 256 : \
-     (curve) == PSA_ECC_CURVE_BRAINPOOL_P384R1 ? 384 : \
-     (curve) == PSA_ECC_CURVE_BRAINPOOL_P512R1 ? 512 : \
-     (curve) == PSA_ECC_CURVE_CURVE25519       ? 255 : \
-     (curve) == PSA_ECC_CURVE_CURVE448         ? 448 : \
-     0)
+#define PSA_ECC_CURVE_BITS(curve) ((curve) & 0xffff)
 
 /** \def PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN
  *

@@ -102,6 +102,8 @@ class Inputs:
             # Any function ending in _algorithm also gets added to
             # self.algorithms.
             'key_type': [self.key_types],
+            'block_cipher_key_type': [self.key_types],
+            'stream_cipher_key_type': [self.key_types],
             'ecc_key_types': [self.ecc_curves],
             'dh_key_types': [self.dh_groups],
             'hash_algorithm': [self.hash_algorithms],

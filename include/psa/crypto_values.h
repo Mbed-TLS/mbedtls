@@ -604,6 +604,7 @@
         (type) == PSA_KEY_TYPE_DES ? 8 :             \
         (type) == PSA_KEY_TYPE_CAMELLIA ? 16 :       \
         (type) == PSA_KEY_TYPE_ARC4 ? 1 :            \
+        (type) == PSA_KEY_TYPE_CHACHA20 ? 1 :            \
         0)
 
 /** Vendor-defined algorithm flag.

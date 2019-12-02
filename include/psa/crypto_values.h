@@ -357,7 +357,7 @@
  *
  * A "key" of this type cannot be used for any cryptographic operation.
  * Applications may use this type to store arbitrary data in the keystore. */
-#define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x50000001)
+#define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x50010000)
 
 /** HMAC key.
  *
@@ -381,7 +381,7 @@
  * The size of the key can be 16 bytes (AES-128), 24 bytes (AES-192) or
  * 32 bytes (AES-256).
  */
-#define PSA_KEY_TYPE_AES                        ((psa_key_type_t)0x40000001)
+#define PSA_KEY_TYPE_AES                        ((psa_key_type_t)0x40010000)
 
 /** Key for a cipher or MAC algorithm based on DES or 3DES (Triple-DES).
  *
@@ -392,17 +392,17 @@
  * deprecated and should only be used to decrypt legacy data. 3-key 3DES
  * is weak and deprecated and should only be used in legacy protocols.
  */
-#define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x40000002)
+#define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x40020000)
 
 /** Key for a cipher, AEAD or MAC algorithm based on the
  * Camellia block cipher. */
-#define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x40000003)
+#define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x40030000)
 
 /** Key for the RC4 stream cipher.
  *
  * Note that RC4 is weak and deprecated and should only be used in
  * legacy protocols. */
-#define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x40000004)
+#define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x40040000)
 
 /** Key for the ChaCha20 stream cipher or the Chacha20-Poly1305 AEAD algorithm.
  *
@@ -411,7 +411,7 @@
  * Implementations must support 12-byte nonces, may support 8-byte nonces,
  * and should reject other sizes.
  */
-#define PSA_KEY_TYPE_CHACHA20                   ((psa_key_type_t)0x40000005)
+#define PSA_KEY_TYPE_CHACHA20                   ((psa_key_type_t)0x40050000)
 
 /** RSA public key. */
 #define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x60010000)

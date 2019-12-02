@@ -329,7 +329,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * string. The length of the byte string is the length of the base prime `p`
  * in bytes.
  */
-#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x60020000)
+#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x60040000)
 
 /** DSA key pair (private and public key).
  *
@@ -347,7 +347,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * Add 1 to the resulting integer and use this as the private key *x*.
  *
  */
-#define PSA_KEY_TYPE_DSA_KEY_PAIR                ((psa_key_type_t)0x70020000)
+#define PSA_KEY_TYPE_DSA_KEY_PAIR                ((psa_key_type_t)0x70040000)
 
 /** Whether a key type is an DSA key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_DSA(type)                                       \

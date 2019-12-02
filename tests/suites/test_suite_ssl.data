@@ -31,6 +31,9 @@ test_callback_buffer:50:50:50:0:0:10:0:60:50
 Callback buffer test: Reading from empty buffer
 test_callback_buffer:50:0:0:10:0:0:0:0:0
 
+Test mock socket sanity
+ssl_mock_sanity:
+
 Test mock blocking TCP connection
 ssl_mock_tcp:1:0:0
 
@@ -45,6 +48,21 @@ ssl_mock_tcp:0:0x0FB1:0
 
 Test mock non-blocking TCP connection: both peers would block
 ssl_mock_tcp:0:0x1111:0xEEEE
+
+Test mock blocking TCP connection (interleaving)
+ssl_mock_tcp_interleaving:1:0:0
+
+Test mock non-blocking TCP connection: would not block (interleaving)
+ssl_mock_tcp_interleaving:0:0:0
+
+Test mock non-blocking TCP connection: client would block (interleaving)
+ssl_mock_tcp_interleaving:0:0xB509:0
+
+Test mock non-blocking TCP connection: server would block (interleaving)
+ssl_mock_tcp_interleaving:0:0x0FB1:0
+
+Test mock non-blocking TCP connection: both peers would block (interleaving)
+ssl_mock_tcp_interleaving:0:0x1111:0xEEEE
 
 SSL DTLS replay: initial state, seqnum 0
 ssl_dtls_replay:"":"000000000000":0

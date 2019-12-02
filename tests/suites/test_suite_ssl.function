@@ -867,12 +867,134 @@ exit:
 /* END_CASE */
 
 /*
- * Test if the implementation of `mbedtls_mock_socket` related functions is
- * correct and works as expected.
+ * Test if the implementation of `mbedtls_mock_socket` related I/O functions is
+ * correct and works as expected on unconnected sockets.
+ */
+
+/* BEGIN_CASE */
+void ssl_mock_sanity( )
+{
+    enum { MSGLEN = 105 };
+    unsigned char message[MSGLEN];
+    unsigned char received[MSGLEN];
+    mbedtls_mock_socket socket;
+
+    mbedtls_mock_socket_init( &socket );
+    TEST_ASSERT( mbedtls_mock_tcp_send_b( &socket, message, MSGLEN ) < 0 );
+    mbedtls_mock_socket_close( &socket );
+    mbedtls_mock_socket_init( &socket );
+    TEST_ASSERT( mbedtls_mock_tcp_recv_b( &socket, received, MSGLEN ) < 0 );
+    mbedtls_mock_socket_close( &socket );
+
+    mbedtls_mock_socket_init( &socket );
+    TEST_ASSERT( mbedtls_mock_tcp_send_nb( &socket, message, MSGLEN ) < 0 );
+    mbedtls_mock_socket_close( &socket );
+    mbedtls_mock_socket_init( &socket );
+    TEST_ASSERT( mbedtls_mock_tcp_recv_nb( &socket, received, MSGLEN ) < 0 );
+    mbedtls_mock_socket_close( &socket );
+
+exit:
+
+    mbedtls_mock_socket_close( &socket );
+}
+/* END_CASE */
+
+/*
+ * Test if the implementation of `mbedtls_mock_socket` related functions can
+ * send a single message from the client to the server.
  */
 
 /* BEGIN_CASE */
 void ssl_mock_tcp( int blocking, int client_pattern, int server_pattern )
+{
+    enum { MSGLEN = 105 };
+    unsigned char message[MSGLEN];
+    unsigned char received[MSGLEN];
+    mbedtls_mock_socket client;
+    mbedtls_mock_socket server;
+    size_t written, read;
+    int send_ret, recv_ret;
+    mbedtls_ssl_send_t *send;
+    mbedtls_ssl_recv_t *recv;
+    uint32_t client_block = client_pattern;
+    uint32_t server_block = server_pattern;
+    unsigned i;
+
+    if( blocking == 0 )
+    {
+        send = mbedtls_mock_tcp_send_nb;
+        recv = mbedtls_mock_tcp_recv_nb;
+    }
+    else
+    {
+        send = mbedtls_mock_tcp_send_b;
+        recv = mbedtls_mock_tcp_recv_b;
+    }
+
+    mbedtls_mock_socket_init( &client );
+    mbedtls_mock_socket_init( &server );
+
+    /* Fill up the buffer with structured data so that unwanted changes
+     * can be detected */
+    for( i = 0; i < MSGLEN; i++ )
+    {
+        message[i] = i & 0xFF;
+    }
+
+    /* Make sure that sending a message takes a few  iterations. */
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   MSGLEN / 5 ) );
+    TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &client, client_block ) );
+    TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &server, server_block ) );
+
+    /* Send the message to the server */
+    send_ret = recv_ret = 1;
+    written = read = 0;
+    while( send_ret != 0 || recv_ret != 0 )
+    {
+        send_ret = send( &client, message + written, MSGLEN - written );
+
+        if( ( blocking == 0 ) && ( client_block & 1 ) )
+        {
+            TEST_ASSERT( send_ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+        }
+        else
+        {
+            TEST_ASSERT( send_ret >= 0 );
+            written += send_ret;
+        }
+        client_block >>= 1;
+
+        recv_ret = recv( &server, received + read, MSGLEN - read );
+        if( ( blocking == 0 ) && ( server_block & 1 ) )
+        {
+            TEST_ASSERT( recv_ret == MBEDTLS_ERR_SSL_WANT_READ );
+        }
+        else
+        {
+            TEST_ASSERT( recv_ret >= 0 );
+            read += recv_ret;
+        }
+        server_block >>= 1;
+    }
+    TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+
+exit:
+
+    mbedtls_mock_socket_close( &client );
+    mbedtls_mock_socket_close( &server );
+}
+/* END_CASE */
+
+/*
+ * Test if the implementation of `mbedtls_mock_socket` related functions can
+ * send messages in both direction at the same time (with the I/O calls
+ * interleaving).
+ */
+
+/* BEGIN_CASE */
+void ssl_mock_tcp_interleaving( int blocking,
+                                int client_pattern, int server_pattern )
 {
     enum { ROUNDS = 2 };
     enum { MSGLEN = 105 };
@@ -914,60 +1036,9 @@ void ssl_mock_tcp( int blocking, int client_pattern, int server_pattern )
         }
     }
 
-    /* Try sending or receiving on an unconnected socket */
-    TEST_ASSERT( send( &client, message[0], MSGLEN ) < 0 );
-    TEST_ASSERT( recv( &client, received[0], MSGLEN ) < 0 );
-
     /* Make sure that sending a message takes a few  iterations. */
     TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
                                                    MSGLEN / 5 ) );
-    TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &client, client_block ) );
-    TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &server, server_block ) );
-
-    /* Send the message to the server */
-    send_ret[0] = recv_ret[0] = 1;
-    written[0] = read[0] = 0;
-    while( send_ret[0] != 0 || recv_ret[0] != 0 )
-    {
-        send_ret[0] = send( &client, message[0] + written[0],
-                                               MSGLEN - written[0] );
-
-        if( ( blocking == 0 ) && ( client_block & 1 ) )
-        {
-            TEST_ASSERT( send_ret[0] == MBEDTLS_ERR_SSL_WANT_WRITE );
-        }
-        else
-        {
-            TEST_ASSERT( send_ret[0] >= 0 );
-            written[0] += send_ret[0];
-        }
-        client_block >>= 1;
-
-        recv_ret[0] = recv( &server, received[0] + read[0],
-                                               MSGLEN - read[0] );
-        if( ( blocking == 0 ) && ( server_block & 1 ) )
-        {
-            TEST_ASSERT( recv_ret[0] == MBEDTLS_ERR_SSL_WANT_READ );
-        }
-        else
-        {
-            TEST_ASSERT( recv_ret[0] >= 0 );
-            read[0] += recv_ret[0];
-        }
-        server_block >>= 1;
-    }
-    TEST_ASSERT( memcmp( message[0], received[0], MSGLEN ) == 0 );
-
-    /* Reset connection for the next test */
-    mbedtls_mock_socket_close( &client );
-    mbedtls_mock_socket_close( &server );
-    mbedtls_mock_socket_init( &client );
-    mbedtls_mock_socket_init( &server );
-    /* Make sure that sending a message takes a few  iterations. */
-    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
-                                                   MSGLEN / 5 ) );
-    client_block = client_pattern;
-    server_block = server_pattern;
     TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &client, client_block ) );
     TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &server, server_block ) );
 

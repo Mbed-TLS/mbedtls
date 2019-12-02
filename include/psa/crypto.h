@@ -932,7 +932,7 @@ psa_status_t psa_hash_compare(psa_algorithm_t alg,
                               const uint8_t *input,
                               size_t input_length,
                               const uint8_t *hash,
-                              const size_t hash_length);
+                              size_t hash_length);
 
 /** The type of the state data structure for multipart hash operations.
  *

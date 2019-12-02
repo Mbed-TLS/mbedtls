@@ -3746,7 +3746,7 @@ void handshake_serialization( )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_CIPHER_MODE_CBC */
 void handshake_fragmentation( int mfl, int expected_srv_hs_fragmentation, int expected_cli_hs_fragmentation)
 {
     handshake_test_options options;
@@ -3759,6 +3759,8 @@ void handshake_fragmentation( int mfl, int expected_srv_hs_fragmentation, int ex
     init_handshake_options( &options );
     options.dtls = 1;
     options.mfl = mfl;
+    /* Set cipher to one using CBC so that record splitting can be tested */
+    options.cipher = "TLS-DHE-RSA-WITH-AES-256-CBC-SHA256";
     options.srv_auth_mode = MBEDTLS_SSL_VERIFY_REQUIRED;
     options.srv_log_obj = &srv_pattern;
     options.cli_log_obj = &cli_pattern;

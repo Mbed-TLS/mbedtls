@@ -584,6 +584,20 @@ exit:
 #endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C) */
 
 #if defined(MBEDTLS_ECP_C)
+static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
+                                               mbedtls_ecp_keypair **p_ecp )
+{
+    mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
+    *p_ecp = mbedtls_calloc( 1, sizeof( mbedtls_ecp_keypair ) );
+    if( *p_ecp == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    mbedtls_ecp_keypair_init( *p_ecp );
+
+    /* Load the group. */
+    grp_id = mbedtls_ecc_group_of_psa( curve );
+    return( mbedtls_to_psa_error(
+                mbedtls_ecp_group_load( &( *p_ecp )->grp, grp_id ) ) );
+}
 
 /* Import a public key given as the uncompressed representation defined by SEC1
  * 2.3.3 as the content of an ECPoint. */
@@ -594,19 +608,11 @@ static psa_status_t psa_import_ec_public_key( psa_ecc_curve_t curve,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
-    mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
 
-    *p_ecp = NULL;
-    ecp = mbedtls_calloc( 1, sizeof( *ecp ) );
-    if( ecp == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    mbedtls_ecp_keypair_init( ecp );
-
-    /* Load the group. */
-    status = mbedtls_to_psa_error(
-        mbedtls_ecp_group_load( &ecp->grp, grp_id ) );
+    status = psa_prepare_import_ec_key( curve, &ecp );
     if( status != PSA_SUCCESS )
         goto exit;
+
     /* Load the public value. */
     status = mbedtls_to_psa_error(
         mbedtls_ecp_point_read_binary( &ecp->grp, &ecp->Q,
@@ -631,9 +637,7 @@ exit:
     }
     return( status );
 }
-#endif /* defined(MBEDTLS_ECP_C) */
 
-#if defined(MBEDTLS_ECP_C)
 /* Import a private key given as a byte string which is the private value
  * in big-endian order. */
 static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
@@ -643,22 +647,14 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
-    mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
 
     if( PSA_BITS_TO_BYTES( PSA_ECC_CURVE_BITS( curve ) ) != data_length )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    *p_ecp = NULL;
-    ecp = mbedtls_calloc( 1, sizeof( mbedtls_ecp_keypair ) );
-    if( ecp == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    mbedtls_ecp_keypair_init( ecp );
-
-    /* Load the group. */
-    status = mbedtls_to_psa_error(
-        mbedtls_ecp_group_load( &ecp->grp, grp_id ) );
+    status = psa_prepare_import_ec_key( curve, &ecp );
     if( status != PSA_SUCCESS )
         goto exit;
+
     /* Load the secret value. */
     status = mbedtls_to_psa_error(
         mbedtls_mpi_read_binary( &ecp->d, data, data_length ) );

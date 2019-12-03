@@ -190,16 +190,6 @@
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 0
 #endif
 
-/** Bit size associated with an elliptic curve.
- *
- * \param curve     An elliptic curve (value of type #psa_ecc_curve_t).
- *
- * \return          The size associated with \p curve, in bits.
- *                  This may be 0 if the implementation does not support
- *                  the specified curve.
- */
-#define PSA_ECC_CURVE_BITS(curve) ((curve) & 0xffff)
-
 /** \def PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN
  *
  * This macro returns the maximum length of the PSK supported

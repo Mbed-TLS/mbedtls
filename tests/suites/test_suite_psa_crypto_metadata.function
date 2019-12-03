@@ -476,11 +476,10 @@ void stream_cipher_key_type( int type_arg )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
-void ecc_key_types( int curve_arg, int curve_bits_arg )
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
+void ecc_key_family( int curve_arg )
 {
     psa_ecc_curve_t curve = curve_arg;
-    size_t curve_bits = curve_bits_arg;
     psa_key_type_t public_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
     psa_key_type_t pair_type = PSA_KEY_TYPE_ECC_KEY_PAIR( curve );
 
@@ -489,17 +488,23 @@ void ecc_key_types( int curve_arg, int curve_bits_arg )
 
     TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( public_type ), curve );
     TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( pair_type ), curve );
+}
+/* END_CASE */
 
-    TEST_EQUAL( curve_bits, PSA_ECC_CURVE_BITS( curve ) );
+/* BEGIN_CASE */
+void ecc_key_types( int curve_arg, int curve_bits_arg )
+{
+    size_t curve_bits = curve_bits_arg;
+    test_ecc_key_family( curve_arg );
+
     TEST_ASSERT( curve_bits <= PSA_VENDOR_ECC_MAX_CURVE_BITS );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_DHM_C */
-void dh_key_types( int group_arg, int group_bits_arg )
+void dh_key_family( int group_arg )
 {
     psa_dh_group_t group = group_arg;
-    size_t group_bits = group_bits_arg;
     psa_key_type_t public_type = PSA_KEY_TYPE_DH_PUBLIC_KEY( group );
     psa_key_type_t pair_type = PSA_KEY_TYPE_DH_KEY_PAIR( group );
 
@@ -508,8 +513,15 @@ void dh_key_types( int group_arg, int group_bits_arg )
 
     TEST_EQUAL( PSA_KEY_TYPE_GET_GROUP( public_type ), group );
     TEST_EQUAL( PSA_KEY_TYPE_GET_GROUP( pair_type ), group );
+}
+/* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_DHM_C */
+void dh_key_types( int group_arg, int group_bits_arg )
+{
+    test_dh_key_family( group_arg );
     /* We have nothing to validate about the group size yet. */
-    (void) group_bits;
+    (void) group_bits_arg;
+    goto exit;
 }
 /* END_CASE */

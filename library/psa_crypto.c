@@ -427,10 +427,30 @@ psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                                                size_t byte_length )
 {
-    if( PSA_BITS_TO_BYTES( curve & 0xffff ) != byte_length )
-        return( MBEDTLS_ECP_DP_NONE );
+    if( ( curve & 0xffff ) != 0 )
+    {
+        if( PSA_BITS_TO_BYTES( curve & 0xffff ) != byte_length )
+            return( MBEDTLS_ECP_DP_NONE );
+    }
     switch( curve )
     {
+        case PSA_ECC_CURVE_SECP_R1:
+            switch( byte_length )
+            {
+                case PSA_BITS_TO_BYTES( 192 ):
+                    return( MBEDTLS_ECP_DP_SECP192R1 );
+                case PSA_BITS_TO_BYTES( 224 ):
+                    return( MBEDTLS_ECP_DP_SECP224R1 );
+                case PSA_BITS_TO_BYTES( 256 ):
+                    return( MBEDTLS_ECP_DP_SECP256R1 );
+                case PSA_BITS_TO_BYTES( 384 ):
+                    return( MBEDTLS_ECP_DP_SECP384R1 );
+                case PSA_BITS_TO_BYTES( 521 ):
+                    return( MBEDTLS_ECP_DP_SECP521R1 );
+                default:
+                    return( MBEDTLS_ECP_DP_NONE );
+            }
+            break;
         case PSA_ECC_CURVE_SECP192R1:
             return( MBEDTLS_ECP_DP_SECP192R1 );
         case PSA_ECC_CURVE_SECP224R1:
@@ -441,22 +461,63 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
             return( MBEDTLS_ECP_DP_SECP384R1 );
         case PSA_ECC_CURVE_SECP521R1:
             return( MBEDTLS_ECP_DP_SECP521R1 );
+
+        case PSA_ECC_CURVE_BRAINPOOL_P_R1:
+            switch( byte_length )
+            {
+                case PSA_BITS_TO_BYTES( 256 ):
+                    return( MBEDTLS_ECP_DP_BP256R1 );
+                case PSA_BITS_TO_BYTES( 384 ):
+                    return( MBEDTLS_ECP_DP_BP384R1 );
+                case PSA_BITS_TO_BYTES( 512 ):
+                    return( MBEDTLS_ECP_DP_BP512R1 );
+                default:
+                    return( MBEDTLS_ECP_DP_NONE );
+            }
+            break;
         case PSA_ECC_CURVE_BRAINPOOL_P256R1:
             return( MBEDTLS_ECP_DP_BP256R1 );
         case PSA_ECC_CURVE_BRAINPOOL_P384R1:
             return( MBEDTLS_ECP_DP_BP384R1 );
         case PSA_ECC_CURVE_BRAINPOOL_P512R1:
             return( MBEDTLS_ECP_DP_BP512R1 );
+
+        case PSA_ECC_CURVE_MONTGOMERY:
+            switch( byte_length )
+            {
+                case PSA_BITS_TO_BYTES( 255 ):
+                    return( MBEDTLS_ECP_DP_CURVE25519 );
+                case PSA_BITS_TO_BYTES( 448 ):
+                    return( MBEDTLS_ECP_DP_CURVE448 );
+                default:
+                    return( MBEDTLS_ECP_DP_NONE );
+            }
+            break;
         case PSA_ECC_CURVE_CURVE25519:
             return( MBEDTLS_ECP_DP_CURVE25519 );
+        case PSA_ECC_CURVE_CURVE448:
+            return( MBEDTLS_ECP_DP_CURVE448 );
+
+        case PSA_ECC_CURVE_SECP_K1:
+            switch( byte_length )
+            {
+                case PSA_BITS_TO_BYTES( 192 ):
+                    return( MBEDTLS_ECP_DP_SECP192K1 );
+                case PSA_BITS_TO_BYTES( 224 ):
+                    return( MBEDTLS_ECP_DP_SECP224K1 );
+                case PSA_BITS_TO_BYTES( 256 ):
+                    return( MBEDTLS_ECP_DP_SECP256K1 );
+                default:
+                    return( MBEDTLS_ECP_DP_NONE );
+            }
+            break;
         case PSA_ECC_CURVE_SECP192K1:
             return( MBEDTLS_ECP_DP_SECP192K1 );
         case PSA_ECC_CURVE_SECP224K1:
             return( MBEDTLS_ECP_DP_SECP224K1 );
         case PSA_ECC_CURVE_SECP256K1:
             return( MBEDTLS_ECP_DP_SECP256K1 );
-        case PSA_ECC_CURVE_CURVE448:
-            return( MBEDTLS_ECP_DP_CURVE448 );
+
         default:
             return( MBEDTLS_ECP_DP_NONE );
     }
@@ -684,9 +745,6 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
-
-    if( PSA_BITS_TO_BYTES( PSA_ECC_CURVE_BITS( curve ) ) != data_length )
-        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_prepare_import_ec_key( curve, data_length, 0, &ecp );
     if( status != PSA_SUCCESS )

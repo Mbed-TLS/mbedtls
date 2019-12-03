@@ -865,7 +865,7 @@ Mbed Crypto provides a simple way to generate a key or key pair.
     psa_set_key_algorithm(&attributes,
                           PSA_ALG_DETERMINISTIC_ECDSA(PSA_ALG_SHA_256));
     psa_set_key_type(&attributes,
-                     PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP256R1));
+                     PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_CURVE_SECP_R1));
     psa_set_key_bits(&attributes, key_bits);
     status = psa_generate_key(&attributes, &handle);
     if (status != PSA_SUCCESS) {

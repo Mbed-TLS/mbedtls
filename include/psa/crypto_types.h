@@ -65,7 +65,7 @@ typedef int32_t psa_status_t;
  */
 typedef uint32_t psa_key_type_t;
 
-/** The type of PSA elliptic curve identifiers.
+/** The type of PSA elliptic curve family identifiers.
  *
  * The curve identifier is required to create an ECC key using the
  * PSA_KEY_TYPE_ECC_KEY_PAIR() or PSA_KEY_TYPE_ECC_PUBLIC_KEY()
@@ -73,7 +73,7 @@ typedef uint32_t psa_key_type_t;
  */
 typedef uint32_t psa_ecc_curve_t;
 
-/** The type of PSA Diffie-Hellman group identifiers.
+/** The type of PSA Diffie-Hellman group family identifiers.
  *
  * The group identifier is required to create an Diffie-Hellman key using the
  * PSA_KEY_TYPE_DH_KEY_PAIR() or PSA_KEY_TYPE_DH_PUBLIC_KEY()

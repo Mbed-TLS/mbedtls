@@ -351,6 +351,30 @@ Key type: DSA key pair
 depends_on:MBEDTLS_DSA_C
 key_type:PSA_KEY_TYPE_DSA_KEY_PAIR:KEY_TYPE_IS_KEY_PAIR | KEY_TYPE_IS_DSA
 
+ECC key family: SECP K1
+ecc_key_family:PSA_ECC_CURVE_SECP_K1
+
+ECC key family: SECP R1
+ecc_key_family:PSA_ECC_CURVE_SECP_R1
+
+ECC key family: SECP R2
+ecc_key_family:PSA_ECC_CURVE_SECP_R2
+
+ECC key family: SECT K1
+ecc_key_family:PSA_ECC_CURVE_SECT_K1
+
+ECC key family: SECT R1
+ecc_key_family:PSA_ECC_CURVE_SECT_R1
+
+ECC key family: SECT R2
+ecc_key_family:PSA_ECC_CURVE_SECT_R2
+
+ECC key family: Brainpool P R1
+ecc_key_family:PSA_ECC_CURVE_BRAINPOOL_P_R1
+
+ECC key family: Montgomery (Curve25519, Curve448)
+ecc_key_family:PSA_ECC_CURVE_MONTGOMERY
+
 ECC key types: sect163k1
 depends_on:MBEDTLS_ECP_DP_SECT163K1_ENABLED
 ecc_key_types:PSA_ECC_CURVE_SECT163K1:163
@@ -470,6 +494,9 @@ ecc_key_types:PSA_ECC_CURVE_CURVE25519:255
 ECC key types: Curve448
 depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
 ecc_key_types:PSA_ECC_CURVE_CURVE448:448
+
+DH group family: RFC 7919
+dh_key_family:PSA_DH_GROUP_RFC7919
 
 DH group types: FFDHE2048
 dh_key_types:PSA_DH_GROUP_FFDHE2048:2048

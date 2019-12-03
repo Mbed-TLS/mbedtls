@@ -458,6 +458,79 @@
                         ((type) & PSA_KEY_TYPE_ECC_CURVE_MASK) : \
                         0))
 
+/** SEC Koblitz curves over prime fields.
+ *
+ * This family comprises the following curves:
+ * secp192k1, secp224k1, secp256k1.
+ * They are defined in _Standards for Efficient Cryptography_,
+ * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
+ * https://www.secg.org/sec2-v2.pdf
+ */
+#define PSA_ECC_CURVE_SECP_K1         ((psa_ecc_curve_t) 0x160000)
+
+/** SEC random curves over prime fields.
+ *
+ * This family comprises the following curves:
+ * secp192k1, secp224r1, secp256r1, secp384r1, secp521r1.
+ * They are defined in _Standards for Efficient Cryptography_,
+ * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
+ * https://www.secg.org/sec2-v2.pdf
+ */
+#define PSA_ECC_CURVE_SECP_R1         ((psa_ecc_curve_t) 0x120000)
+/* SECP160R2 (SEC2 v1, obsolete) */
+#define PSA_ECC_CURVE_SECP_R2         ((psa_ecc_curve_t) 0x1a0000)
+
+/** SEC Koblitz curves over binary fields.
+ *
+ * This family comprises the following curves:
+ * sect163k1, sect233k1, sect239k1, sect283k1, sect409k1, sect571k1.
+ * They are defined in _Standards for Efficient Cryptography_,
+ * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
+ * https://www.secg.org/sec2-v2.pdf
+ */
+#define PSA_ECC_CURVE_SECT_K1         ((psa_ecc_curve_t) 0x260000)
+
+/** SEC random curves over binary fields.
+ *
+ * This family comprises the following curves:
+ * sect163r1, sect233r1, sect283r1, sect409r1, sect571r1.
+ * They are defined in _Standards for Efficient Cryptography_,
+ * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
+ * https://www.secg.org/sec2-v2.pdf
+ */
+#define PSA_ECC_CURVE_SECT_R1         ((psa_ecc_curve_t) 0x220000)
+
+/** SEC additional random curves over binary fields.
+ *
+ * This family comprises the following curve:
+ * sect163r2.
+ * It is defined in _Standards for Efficient Cryptography_,
+ * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
+ * https://www.secg.org/sec2-v2.pdf
+ */
+#define PSA_ECC_CURVE_SECT_R2         ((psa_ecc_curve_t) 0x2a0000)
+
+/** Brainpool P random curves.
+ *
+ * This family comprises the following curves:
+ * brainpoolP160r1, brainpoolP192r1, brainpoolP224r1, brainpoolP256r1,
+ * brainpoolP320r1, brainpoolP384r1, brainpoolP512r1.
+ * It is defined in RFC 5639.
+ */
+#define PSA_ECC_CURVE_BRAINPOOL_P_R1  ((psa_ecc_curve_t) 0x300000)
+
+/** Curve25519 and Curve448.
+ *
+ * This family comprises the following Montgomery curves:
+ * - 255-bit: Bernstein et al.,
+ *   _Curve25519: new Diffie-Hellman speed records_, LNCS 3958, 2006.
+ *   The algorithm #PSA_ALG_ECDH performs X25519 when used with this curve.
+ * - 448-bit: Hamburg,
+ *   _Ed448-Goldilocks, a new elliptic curve_, NIST ECC Workshop, 2015.
+ *   The algorithm #PSA_ALG_ECDH performs X448 when used with this curve.
+ */
+#define PSA_ECC_CURVE_MONTGOMERY      ((psa_ecc_curve_t) 0x400000)
+
 #define PSA_ECC_CURVE_SECP160K1         ((psa_ecc_curve_t) 0x1600a0)
 #define PSA_ECC_CURVE_SECP192K1         ((psa_ecc_curve_t) 0x1600c0)
 #define PSA_ECC_CURVE_SECP224K1         ((psa_ecc_curve_t) 0x1600e0)
@@ -537,6 +610,14 @@
     ((psa_dh_group_t) (PSA_KEY_TYPE_IS_DH(type) ?               \
                        ((type) & PSA_KEY_TYPE_DH_GROUP_MASK) :  \
                        0))
+
+/** Diffie-Hellman groups defined in RFC 7919 Appendix A.
+ *
+ * This family includes groups with the following key sizes (in bits):
+ * 2048, 3072, 4096, 6144, 8192. A given implementation may support
+ * all of these sizes or only a subset.
+ */
+#define PSA_DH_GROUP_RFC7919            ((psa_dh_group_t) 0x020000)
 
 #define PSA_DH_GROUP_FFDHE2048          ((psa_dh_group_t) 0x020800)
 #define PSA_DH_GROUP_FFDHE3072          ((psa_dh_group_t) 0x020c00)

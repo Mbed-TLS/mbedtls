@@ -52,9 +52,10 @@
  * For historical reasons, low-level error codes are divided in even and odd,
  * even codes were assigned first, and -1 is reserved for other errors.
  *
- * Low-level module errors (0x0002-0x007E, 0x0003-0x007F)
+ * Low-level module errors (0x0002-0x007E, 0x0001-0x007F)
  *
  * Module   Nr  Codes assigned
+ * ERROR     2  0x006E          0x0001
  * MPI       7  0x0002-0x0010
  * GCM       3  0x0012-0x0014   0x0013-0x0013
  * BLOWFISH  3  0x0016-0x0018   0x0017-0x0017
@@ -111,6 +112,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define MBEDTLS_ERR_ERROR_GENERIC_ERROR       -0x0001  /**< Generic error */
+#define MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED -0x006E  /**< This is a bug in the library */
 
 /**
  * \brief Translate a mbed TLS error code into a string representation,

@@ -109,6 +109,10 @@
 #include "mbedtls/entropy.h"
 #endif
 
+#if defined(MBEDTLS_ERROR_C)
+#include "mbedtls/error.h"
+#endif
+
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
 #endif
@@ -753,6 +757,13 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR) )
         mbedtls_snprintf( buf, buflen, "ENTROPY - Read/write error in file" );
 #endif /* MBEDTLS_ENTROPY_C */
+
+#if defined(MBEDTLS_ERROR_C)
+    if( use_ret == -(MBEDTLS_ERR_ERROR_GENERIC_ERROR) )
+        mbedtls_snprintf( buf, buflen, "ERROR - Generic error" );
+    if( use_ret == -(MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED) )
+        mbedtls_snprintf( buf, buflen, "ERROR - This is a bug in the library" );
+#endif /* MBEDTLS_ERROR_C */
 
 #if defined(MBEDTLS_GCM_C)
     if( use_ret == -(MBEDTLS_ERR_GCM_AUTH_FAILED) )

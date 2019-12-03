@@ -531,49 +531,6 @@
  */
 #define PSA_ECC_CURVE_MONTGOMERY      ((psa_ecc_curve_t) 0x400000)
 
-#define PSA_ECC_CURVE_SECP160K1         ((psa_ecc_curve_t) 0x1600a0)
-#define PSA_ECC_CURVE_SECP192K1         ((psa_ecc_curve_t) 0x1600c0)
-#define PSA_ECC_CURVE_SECP224K1         ((psa_ecc_curve_t) 0x1600e0)
-#define PSA_ECC_CURVE_SECP256K1         ((psa_ecc_curve_t) 0x160100)
-#define PSA_ECC_CURVE_SECP160R1         ((psa_ecc_curve_t) 0x1200a0)
-#define PSA_ECC_CURVE_SECP192R1         ((psa_ecc_curve_t) 0x1200c0)
-#define PSA_ECC_CURVE_SECP224R1         ((psa_ecc_curve_t) 0x1200e0)
-#define PSA_ECC_CURVE_SECP256R1         ((psa_ecc_curve_t) 0x120100)
-#define PSA_ECC_CURVE_SECP384R1         ((psa_ecc_curve_t) 0x120180)
-#define PSA_ECC_CURVE_SECP521R1         ((psa_ecc_curve_t) 0x120209)
-#define PSA_ECC_CURVE_SECP160R2         ((psa_ecc_curve_t) 0x1a00a0)
-#define PSA_ECC_CURVE_SECT163K1         ((psa_ecc_curve_t) 0x2600a3)
-#define PSA_ECC_CURVE_SECT233K1         ((psa_ecc_curve_t) 0x2600e9)
-#define PSA_ECC_CURVE_SECT239K1         ((psa_ecc_curve_t) 0x2600ef)
-#define PSA_ECC_CURVE_SECT283K1         ((psa_ecc_curve_t) 0x26011b)
-#define PSA_ECC_CURVE_SECT409K1         ((psa_ecc_curve_t) 0x260199)
-#define PSA_ECC_CURVE_SECT571K1         ((psa_ecc_curve_t) 0x26023b)
-#define PSA_ECC_CURVE_SECT163R1         ((psa_ecc_curve_t) 0x2200a3)
-#define PSA_ECC_CURVE_SECT193R1         ((psa_ecc_curve_t) 0x2200c1)
-#define PSA_ECC_CURVE_SECT233R1         ((psa_ecc_curve_t) 0x2200e9)
-#define PSA_ECC_CURVE_SECT283R1         ((psa_ecc_curve_t) 0x22011b)
-#define PSA_ECC_CURVE_SECT409R1         ((psa_ecc_curve_t) 0x220199)
-#define PSA_ECC_CURVE_SECT571R1         ((psa_ecc_curve_t) 0x22023b)
-#define PSA_ECC_CURVE_SECT163R2         ((psa_ecc_curve_t) 0x2a00a3)
-#define PSA_ECC_CURVE_SECT193R2         ((psa_ecc_curve_t) 0x2a00c1)
-#define PSA_ECC_CURVE_BRAINPOOL_P256R1  ((psa_ecc_curve_t) 0x300100)
-#define PSA_ECC_CURVE_BRAINPOOL_P384R1  ((psa_ecc_curve_t) 0x300180)
-#define PSA_ECC_CURVE_BRAINPOOL_P512R1  ((psa_ecc_curve_t) 0x300200)
-/** Curve25519.
- *
- * This is the curve defined in Bernstein et al.,
- * _Curve25519: new Diffie-Hellman speed records_, LNCS 3958, 2006.
- * The algorithm #PSA_ALG_ECDH performs X25519 when used with this curve.
- */
-#define PSA_ECC_CURVE_CURVE25519        ((psa_ecc_curve_t) 0x0200ff)
-/** Curve448
- *
- * This is the curve defined in Hamburg,
- * _Ed448-Goldilocks, a new elliptic curve_, NIST ECC Workshop, 2015.
- * The algorithm #PSA_ALG_ECDH performs X448 when used with this curve.
- */
-#define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x0201c0)
-
 #define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE         ((psa_key_type_t)0x62000000)
 #define PSA_KEY_TYPE_DH_KEY_PAIR_BASE            ((psa_key_type_t)0x72000000)
 #define PSA_KEY_TYPE_DH_GROUP_MASK              ((psa_key_type_t)0x00ffffff)
@@ -618,12 +575,6 @@
  * all of these sizes or only a subset.
  */
 #define PSA_DH_GROUP_RFC7919            ((psa_dh_group_t) 0x020000)
-
-#define PSA_DH_GROUP_FFDHE2048          ((psa_dh_group_t) 0x020800)
-#define PSA_DH_GROUP_FFDHE3072          ((psa_dh_group_t) 0x020c00)
-#define PSA_DH_GROUP_FFDHE4096          ((psa_dh_group_t) 0x021000)
-#define PSA_DH_GROUP_FFDHE6144          ((psa_dh_group_t) 0x021800)
-#define PSA_DH_GROUP_FFDHE8192          ((psa_dh_group_t) 0x022000)
 
 #define PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type)      \
     (((type) >> 24) & 7)

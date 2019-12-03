@@ -273,18 +273,20 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
         psa_key_type_t key_type;
         psa_key_handle_t handle;
         psa_ecc_curve_t curve;
+        size_t bits;
 
         handle = *((psa_key_handle_t*) key->pk_ctx );
         if( PSA_SUCCESS != psa_get_key_attributes( handle, &attributes ) )
             return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
         key_type = psa_get_key_type( &attributes );
+        bits = psa_get_key_bits( &attributes );
         psa_reset_key_attributes( &attributes );
 
-        curve = PSA_KEY_TYPE_GET_CURVE( key_type );
+        curve = PSA_KEY_TYPE_GET_CURVE( key_type ) & 0xff0000;
         if( curve == 0 )
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
-        ret = mbedtls_psa_get_ecc_oid_from_id( curve, &oid, &oid_len );
+        ret = mbedtls_psa_get_ecc_oid_from_id( curve, bits, &oid, &oid_len );
         if( ret != 0 )
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 

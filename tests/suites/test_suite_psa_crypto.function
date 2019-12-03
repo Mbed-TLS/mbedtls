@@ -106,6 +106,22 @@ static const size_t INVALID_EXPORT_LENGTH = ~0U;
 #undef KNOWN_SUPPORTED_CIPHER_KEY_TYPE
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+int lifetime_is_secure_element( psa_key_lifetime_t lifetime )
+{
+    /* At the moment, anything that isn't a built-in lifetime is either
+     * a secure element or unassigned. */
+    return( lifetime != PSA_KEY_LIFETIME_VOLATILE &&
+            lifetime != PSA_KEY_LIFETIME_PERSISTENT );
+}
+#else
+int lifetime_is_secure_element( psa_key_lifetime_t lifetime )
+{
+    (void) lifetime;
+    return( 0 );
+}
+#endif
+
 /** Test if a buffer contains a constant byte value.
  *
  * `mem_is_char(buffer, c, size)` is true after `memset(buffer, c, size)`.
@@ -210,6 +226,69 @@ static int construct_fake_rsa_key( unsigned char *buffer,
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, buffer, tag ) );
     }
     return( len );
+}
+
+int check_key_attributes_sanity( psa_key_handle_t key )
+{
+    int ok = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_lifetime_t lifetime;
+    psa_key_id_t id;
+    psa_key_type_t type;
+    psa_key_type_t bits;
+
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    lifetime = psa_get_key_lifetime( &attributes );
+    id = psa_get_key_id( &attributes );
+    type = psa_get_key_type( &attributes );
+    bits = psa_get_key_bits( &attributes );
+
+    /* Persistence */
+    if( lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        TEST_ASSERT( id == 0 );
+    else
+    {
+        TEST_ASSERT(
+            ( PSA_KEY_ID_USER_MIN <= id && id <= PSA_KEY_ID_USER_MAX ) ||
+            ( PSA_KEY_ID_USER_MIN <= id && id <= PSA_KEY_ID_USER_MAX ) );
+    }
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    /* randomly-generated 64-bit constant, should never appear in test data */
+    psa_key_slot_number_t slot_number = 0xec94d4a5058a1a21;
+    psa_status_t status = psa_get_key_slot_number( &attributes, &slot_number );
+    if( lifetime_is_secure_element( lifetime ) )
+    {
+        /* Mbed Crypto currently always exposes the slot number to
+         * applications. This is not mandated by the PSA specification
+         * and may change in future versions. */
+        TEST_EQUAL( status, 0 );
+        TEST_ASSERT( slot_number != 0xec94d4a5058a1a21 );
+    }
+    else
+    {
+        TEST_EQUAL( status, PSA_ERROR_INVALID_ARGUMENT );
+    }
+#endif
+
+    /* Type and size */
+    TEST_ASSERT( type != 0 );
+    TEST_ASSERT( bits != 0 );
+    TEST_ASSERT( bits <= PSA_MAX_KEY_BITS );
+    if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) )
+        TEST_ASSERT( bits % 8 == 0 );
+
+    /* MAX macros concerning specific key types */
+    if( PSA_KEY_TYPE_IS_ECC( type ) )
+        TEST_ASSERT( bits <= PSA_VENDOR_ECC_MAX_CURVE_BITS );
+    else if( PSA_KEY_TYPE_IS_RSA( type ) )
+        TEST_ASSERT( bits <= PSA_VENDOR_RSA_MAX_KEY_BITS );
+    TEST_ASSERT( PSA_BLOCK_CIPHER_BLOCK_SIZE( type ) <= PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE );
+
+    ok = 1;
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    return( ok );
 }
 
 int exercise_mac_setup( psa_key_type_t key_type,
@@ -1021,6 +1100,10 @@ static int exercise_key( psa_key_handle_t handle,
                          psa_algorithm_t alg )
 {
     int ok;
+
+    if( ! check_key_attributes_sanity( handle ) )
+        return( 0 );
+
     if( alg == 0 )
         ok = 1; /* If no algorihm, do nothing (used for raw data "keys"). */
     else if( PSA_ALG_IS_MAC( alg ) )

@@ -389,6 +389,8 @@ class Tests:
         outputs = output.decode('ascii').strip().split('\n')
         self.count += len(expressions)
         for expr, value, output in zip(expressions, values, outputs):
+            if self.options.show:
+                sys.stdout.write('{} {}\t{}\n'.format(type_word, value, output))
             if normalize(expr) != normalize(output):
                 self.errors.append(self.Error(type=type_word,
                                               expression=expr,
@@ -434,6 +436,12 @@ def main():
     parser.add_argument('--program',
                         default='programs/psa/psa_constant_names',
                         help='Program to test')
+    parser.add_argument('--show',
+                        action='store_true',
+                        help='Keep the intermediate C file')
+    parser.add_argument('--no-show',
+                        action='store_false', dest='show',
+                        help='Don\'t show tested values (default)')
     options = parser.parse_args()
     headers = [os.path.join(options.include[0], h) for h in HEADERS]
     inputs = gather_inputs(headers, TEST_SUITES)

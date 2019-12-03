@@ -90,7 +90,7 @@
  */
 typedef struct _aes_r_data_s {
     uint32_t *rk_ptr;       /* Round Key */
-    uint32_t xy_values[8];  /* X0, X1, X2, X3, Y0, U1, Y2, Y3 */
+    uint32_t xy_values[8];  /* X0, X1, X2, X3, Y0, Y1, Y2, Y3 */
 } aes_r_data_t;
 
 #if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
@@ -547,20 +547,20 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
                 is_unique_number = 0;
                 tbl[num] = 0x10;
             }
-        } while ( is_unique_number == 1 );
+        } while( is_unique_number == 1 );
     }
 
     // Fill start/final round control data
     num = /* mbedtls_platform_random_in_range( tbl_len - 1 ) */rand() % 0xff;
     if( ( num % 2 ) == 0 )
     {
-        tbl[tbl_len - 2] = 0x10;
-        tbl[tbl_len - 1] = 0x0;
+        tbl[tbl_len - 2] = 0x10;    // fake data
+        tbl[tbl_len - 1] = 0x0;     // real data
     }
     else
     {
-        tbl[tbl_len - 2] = 0x00;
-        tbl[tbl_len - 1] = 0x10;
+        tbl[tbl_len - 2] = 0x00;    // real data
+        tbl[tbl_len - 1] = 0x10;    // fake data
     }
 #endif /* AES_SCA_CM_ROUNDS != 0 */
 
@@ -572,7 +572,7 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
         {
             if( is_even_pos == 1 )
             {
-                tbl[i] = 0x04;  // real data, offset 0
+                tbl[i] = 0x04;  // real data, offset 4
                 is_even_pos = 0;
             }
             else

@@ -70,10 +70,6 @@
 #error "MBEDTLS_AESNI_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES) && !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-#error "MBEDTLS_AES_SCA_COUNTERMEASURES defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif

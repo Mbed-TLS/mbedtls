@@ -639,12 +639,12 @@
  *
  * Add countermeasures against possible side-channel-attack to AES calculation.
  *
- * Uncommenting this macro adds three additional calculation rounds to AES
+ * Uncommenting this macro adds additional calculation rounds to AES
  * calculation. Additional rounds are using random data and can occur in any
  * AES calculation round.
  *
- * Tradeoff: Uncommenting this increases ROM footprint by ~800 bytes.
- * The performance loss is 3/11= 27% with 128 bit AES.
+ * Tradeoff: Uncommenting this increases ROM footprint by ~100 bytes.
+ * The performance loss is ~50% with 128 bit AES.
  *
  * This option is dependent of \c MBEDTLS_ENTROPY_HARDWARE_ALT.
  *

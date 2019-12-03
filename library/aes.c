@@ -542,7 +542,7 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
 /* TODO - Use proper random. This is now ONLY FOR TESTING as mbedtls_platform_random_in_range is alwyays returning 0 */
             num = /* mbedtls_platform_random_in_range( tbl_len - 1 ) */rand() % (tbl_len - 2);
 
-            if ( tbl[num] == 0 )
+            if( tbl[num] == 0 )
             {
                 is_unique_number = 0;
                 tbl[num] = 0x10;
@@ -552,7 +552,7 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
 
     // Fill start/final round control data
     num = /* mbedtls_platform_random_in_range( tbl_len - 1 ) */rand() % 0xff;
-    if ( ( num % 2 ) == 0 )
+    if( ( num % 2 ) == 0 )
     {
         tbl[tbl_len - 2] = 0x10;
         tbl[tbl_len - 1] = 0x0;
@@ -568,9 +568,9 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
     is_even_pos = 1;
     for( i = 0; i < tbl_len - 2; i++ )
     {
-        if ( tbl[i] == 0 )
+        if( tbl[i] == 0 )
         {
-            if ( is_even_pos == 1 )
+            if( is_even_pos == 1 )
             {
                 tbl[i] = 0x04;  // real data, offset 0
                 is_even_pos = 0;
@@ -1674,7 +1674,7 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
 
     n = *nc_off;
 
-    if ( n > 0x0F )
+    if( n > 0x0F )
         return( MBEDTLS_ERR_AES_BAD_INPUT_DATA );
 
     while( length-- )

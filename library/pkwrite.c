@@ -282,7 +282,7 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
         bits = psa_get_key_bits( &attributes );
         psa_reset_key_attributes( &attributes );
 
-        curve = PSA_KEY_TYPE_GET_CURVE( key_type ) & 0xff0000;
+        curve = PSA_KEY_TYPE_GET_CURVE( key_type );
         if( curve == 0 )
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 

@@ -282,7 +282,7 @@
  *
  * Zero is not the encoding of any key type.
  */
-#define PSA_KEY_TYPE_NONE                       ((psa_key_type_t)0x00000000)
+#define PSA_KEY_TYPE_NONE                           ((psa_key_type_t)0x0000)
 
 /** Vendor-defined key type flag.
  *
@@ -291,15 +291,15 @@
  * must use an encoding with the #PSA_KEY_TYPE_VENDOR_FLAG bit set and should
  * respect the bitwise structure used by standard encodings whenever practical.
  */
-#define PSA_KEY_TYPE_VENDOR_FLAG                ((psa_key_type_t)0x80000000)
+#define PSA_KEY_TYPE_VENDOR_FLAG                    ((psa_key_type_t)0x8000)
 
-#define PSA_KEY_TYPE_CATEGORY_MASK              ((psa_key_type_t)0x70000000)
-#define PSA_KEY_TYPE_CATEGORY_SYMMETRIC         ((psa_key_type_t)0x40000000)
-#define PSA_KEY_TYPE_CATEGORY_RAW               ((psa_key_type_t)0x50000000)
-#define PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY        ((psa_key_type_t)0x60000000)
-#define PSA_KEY_TYPE_CATEGORY_KEY_PAIR          ((psa_key_type_t)0x70000000)
+#define PSA_KEY_TYPE_CATEGORY_MASK                  ((psa_key_type_t)0x7000)
+#define PSA_KEY_TYPE_CATEGORY_SYMMETRIC             ((psa_key_type_t)0x4000)
+#define PSA_KEY_TYPE_CATEGORY_RAW                   ((psa_key_type_t)0x5000)
+#define PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY            ((psa_key_type_t)0x6000)
+#define PSA_KEY_TYPE_CATEGORY_KEY_PAIR              ((psa_key_type_t)0x7000)
 
-#define PSA_KEY_TYPE_CATEGORY_FLAG_PAIR         ((psa_key_type_t)0x10000000)
+#define PSA_KEY_TYPE_CATEGORY_FLAG_PAIR             ((psa_key_type_t)0x1000)
 
 /** Whether a key type is vendor-defined.
  *
@@ -313,7 +313,7 @@
  * This encompasses both symmetric keys and non-key data.
  */
 #define PSA_KEY_TYPE_IS_UNSTRUCTURED(type) \
-    (((type) & PSA_KEY_TYPE_CATEGORY_MASK & ~(psa_key_type_t)0x10000000) == \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK & ~(psa_key_type_t)0x1000) == \
      PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
 
 /** Whether a key type is asymmetric: either a key pair or a public key. */
@@ -357,7 +357,7 @@
  *
  * A "key" of this type cannot be used for any cryptographic operation.
  * Applications may use this type to store arbitrary data in the keystore. */
-#define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x50010000)
+#define PSA_KEY_TYPE_RAW_DATA                       ((psa_key_type_t)0x5001)
 
 /** HMAC key.
  *
@@ -367,21 +367,21 @@
  * HMAC keys should generally have the same size as the underlying hash.
  * This size can be calculated with #PSA_HASH_SIZE(\c alg) where
  * \c alg is the HMAC algorithm or the underlying hash algorithm. */
-#define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x51000000)
+#define PSA_KEY_TYPE_HMAC                           ((psa_key_type_t)0x5100)
 
 /** A secret for key derivation.
  *
  * The key policy determines which key derivation algorithm the key
  * can be used for.
  */
-#define PSA_KEY_TYPE_DERIVE                     ((psa_key_type_t)0x52000000)
+#define PSA_KEY_TYPE_DERIVE                         ((psa_key_type_t)0x5200)
 
 /** Key for a cipher, AEAD or MAC algorithm based on the AES block cipher.
  *
  * The size of the key can be 16 bytes (AES-128), 24 bytes (AES-192) or
  * 32 bytes (AES-256).
  */
-#define PSA_KEY_TYPE_AES                        ((psa_key_type_t)0x44020000)
+#define PSA_KEY_TYPE_AES                            ((psa_key_type_t)0x4402)
 
 /** Key for a cipher or MAC algorithm based on DES or 3DES (Triple-DES).
  *
@@ -392,17 +392,17 @@
  * deprecated and should only be used to decrypt legacy data. 3-key 3DES
  * is weak and deprecated and should only be used in legacy protocols.
  */
-#define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x43020000)
+#define PSA_KEY_TYPE_DES                            ((psa_key_type_t)0x4302)
 
 /** Key for a cipher, AEAD or MAC algorithm based on the
  * Camellia block cipher. */
-#define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x44040000)
+#define PSA_KEY_TYPE_CAMELLIA                       ((psa_key_type_t)0x4404)
 
 /** Key for the RC4 stream cipher.
  *
  * Note that RC4 is weak and deprecated and should only be used in
  * legacy protocols. */
-#define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x40020000)
+#define PSA_KEY_TYPE_ARC4                           ((psa_key_type_t)0x4002)
 
 /** Key for the ChaCha20 stream cipher or the Chacha20-Poly1305 AEAD algorithm.
  *
@@ -411,19 +411,19 @@
  * Implementations must support 12-byte nonces, may support 8-byte nonces,
  * and should reject other sizes.
  */
-#define PSA_KEY_TYPE_CHACHA20                   ((psa_key_type_t)0x40040000)
+#define PSA_KEY_TYPE_CHACHA20                       ((psa_key_type_t)0x4004)
 
 /** RSA public key. */
-#define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x60020000)
+#define PSA_KEY_TYPE_RSA_PUBLIC_KEY                 ((psa_key_type_t)0x6002)
 /** RSA key pair (private and public key). */
-#define PSA_KEY_TYPE_RSA_KEY_PAIR                ((psa_key_type_t)0x70020000)
+#define PSA_KEY_TYPE_RSA_KEY_PAIR                   ((psa_key_type_t)0x7002)
 /** Whether a key type is an RSA key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_RSA(type)                                       \
     (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 
-#define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x61000000)
-#define PSA_KEY_TYPE_ECC_KEY_PAIR_BASE           ((psa_key_type_t)0x71000000)
-#define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x00ffffff)
+#define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE            ((psa_key_type_t)0x6100)
+#define PSA_KEY_TYPE_ECC_KEY_PAIR_BASE              ((psa_key_type_t)0x7100)
+#define PSA_KEY_TYPE_ECC_CURVE_MASK                 ((psa_key_type_t)0x00ff)
 /** Elliptic curve key pair.
  *
  * \param curve     A value of type ::psa_ecc_curve_t that identifies the
@@ -466,7 +466,7 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_CURVE_SECP_K1         ((psa_ecc_curve_t) 0x160000)
+#define PSA_ECC_CURVE_SECP_K1           ((psa_ecc_curve_t) 0x16)
 
 /** SEC random curves over prime fields.
  *
@@ -476,9 +476,9 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_CURVE_SECP_R1         ((psa_ecc_curve_t) 0x120000)
+#define PSA_ECC_CURVE_SECP_R1           ((psa_ecc_curve_t) 0x12)
 /* SECP160R2 (SEC2 v1, obsolete) */
-#define PSA_ECC_CURVE_SECP_R2         ((psa_ecc_curve_t) 0x1a0000)
+#define PSA_ECC_CURVE_SECP_R2           ((psa_ecc_curve_t) 0x1a)
 
 /** SEC Koblitz curves over binary fields.
  *
@@ -488,7 +488,7 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_CURVE_SECT_K1         ((psa_ecc_curve_t) 0x260000)
+#define PSA_ECC_CURVE_SECT_K1           ((psa_ecc_curve_t) 0x26)
 
 /** SEC random curves over binary fields.
  *
@@ -498,7 +498,7 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_CURVE_SECT_R1         ((psa_ecc_curve_t) 0x220000)
+#define PSA_ECC_CURVE_SECT_R1           ((psa_ecc_curve_t) 0x22)
 
 /** SEC additional random curves over binary fields.
  *
@@ -508,7 +508,7 @@
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
  */
-#define PSA_ECC_CURVE_SECT_R2         ((psa_ecc_curve_t) 0x2a0000)
+#define PSA_ECC_CURVE_SECT_R2           ((psa_ecc_curve_t) 0x2a)
 
 /** Brainpool P random curves.
  *
@@ -517,7 +517,7 @@
  * brainpoolP320r1, brainpoolP384r1, brainpoolP512r1.
  * It is defined in RFC 5639.
  */
-#define PSA_ECC_CURVE_BRAINPOOL_P_R1  ((psa_ecc_curve_t) 0x300000)
+#define PSA_ECC_CURVE_BRAINPOOL_P_R1    ((psa_ecc_curve_t) 0x30)
 
 /** Curve25519 and Curve448.
  *
@@ -529,11 +529,11 @@
  *   _Ed448-Goldilocks, a new elliptic curve_, NIST ECC Workshop, 2015.
  *   The algorithm #PSA_ALG_ECDH performs X448 when used with this curve.
  */
-#define PSA_ECC_CURVE_MONTGOMERY      ((psa_ecc_curve_t) 0x400000)
+#define PSA_ECC_CURVE_MONTGOMERY        ((psa_ecc_curve_t) 0x40)
 
-#define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE         ((psa_key_type_t)0x62000000)
-#define PSA_KEY_TYPE_DH_KEY_PAIR_BASE            ((psa_key_type_t)0x72000000)
-#define PSA_KEY_TYPE_DH_GROUP_MASK              ((psa_key_type_t)0x00ffffff)
+#define PSA_KEY_TYPE_DH_PUBLIC_KEY_BASE             ((psa_key_type_t)0x6200)
+#define PSA_KEY_TYPE_DH_KEY_PAIR_BASE               ((psa_key_type_t)0x7200)
+#define PSA_KEY_TYPE_DH_GROUP_MASK                  ((psa_key_type_t)0x00ff)
 /** Diffie-Hellman key pair.
  *
  * \param group     A value of type ::psa_dh_group_t that identifies the
@@ -574,10 +574,10 @@
  * 2048, 3072, 4096, 6144, 8192. A given implementation may support
  * all of these sizes or only a subset.
  */
-#define PSA_DH_GROUP_RFC7919            ((psa_dh_group_t) 0x020000)
+#define PSA_DH_GROUP_RFC7919            ((psa_dh_group_t) 0x02)
 
 #define PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type)      \
-    (((type) >> 24) & 7)
+    (((type) >> 8) & 7)
 /** The block size of a block cipher.
  *
  * \param type  A cipher key type (value of type #psa_key_type_t).

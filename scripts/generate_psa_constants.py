@@ -61,7 +61,7 @@ static int psa_snprint_key_type(char *buffer, size_t buffer_size,
     default:
         %(key_type_code)s{
             return snprintf(buffer, buffer_size,
-                            "0x%%08lx", (unsigned long) type);
+                            "0x%%04x", (unsigned) type);
         }
         break;
     }

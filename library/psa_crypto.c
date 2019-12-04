@@ -427,11 +427,6 @@ psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                                                size_t byte_length )
 {
-    if( ( curve & 0xffff ) != 0 )
-    {
-        if( PSA_BITS_TO_BYTES( curve & 0xffff ) != byte_length )
-            return( MBEDTLS_ECP_DP_NONE );
-    }
     switch( curve )
     {
         case PSA_ECC_CURVE_SECP_R1:

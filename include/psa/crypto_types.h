@@ -63,7 +63,7 @@ typedef int32_t psa_status_t;
 
 /** \brief Encoding of a key type.
  */
-typedef uint32_t psa_key_type_t;
+typedef uint16_t psa_key_type_t;
 
 /** The type of PSA elliptic curve family identifiers.
  *
@@ -71,7 +71,7 @@ typedef uint32_t psa_key_type_t;
  * PSA_KEY_TYPE_ECC_KEY_PAIR() or PSA_KEY_TYPE_ECC_PUBLIC_KEY()
  * macros.
  */
-typedef uint32_t psa_ecc_curve_t;
+typedef uint8_t psa_ecc_curve_t;
 
 /** The type of PSA Diffie-Hellman group family identifiers.
  *
@@ -79,7 +79,7 @@ typedef uint32_t psa_ecc_curve_t;
  * PSA_KEY_TYPE_DH_KEY_PAIR() or PSA_KEY_TYPE_DH_PUBLIC_KEY()
  * macros.
  */
-typedef uint32_t psa_dh_group_t;
+typedef uint8_t psa_dh_group_t;
 
 /** \brief Encoding of a cryptographic algorithm.
  *

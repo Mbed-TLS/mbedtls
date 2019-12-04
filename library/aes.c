@@ -88,7 +88,7 @@
 /*
  * Data structure for AES round data
  */
-typedef struct _aes_r_data_s {
+typedef struct {
     uint32_t *rk_ptr;       /* Round Key */
     uint32_t xy_values[8];  /* X0, X1, X2, X3, Y0, Y1, Y2, Y3 */
 } aes_r_data_t;
@@ -515,13 +515,20 @@ static void aes_gen_tables( void )
 /**
  * Randomize positions when to use AES SCA countermeasures.
  * Each byte indicates one AES round as follows:
- * first ( tbl_len - 2 ) bytes are reserved for AES rounds
+ * first ( tbl_len - 4 ) bytes are reserved for middle AES rounds:
  *  -4 high bit = table to use 0x10 for SCA CM data, 0 otherwise
  *  -4 low bits = offset based on order, 4 for even position, 0 otherwise
- * Last 2 bytes for first/final round calculation
+ * Last 4 bytes for first(2) and final(2) round calculation
  *  -4 high bit = table to use, 0x10 for SCA CM data, otherwise real data
  *  -4 low bits = not used
  *
+ *  Control data when only real data (R) is used:
+ *  | R  | R  | R  | R  | R  | R  | R  | R  | Start   | Final   |
+ *  |0x04|0x00|0x00|0x04|0x00|0x04|0x00|0x04|0x00|0x00|0x00|0x00|
+ *
+ *  Control data with 5 (F) dummy rounds and randomized start and final round:
+ *  | R  | F  | R  | F  | F  | R  | R  | R  | R  | R  | R  | START RF| FINAL FR|
+ *  |0x04|0x10|0x04|0x10|0x10|0x00|0x04|0x00|0x04|0x00|0x04|0x00|0x10|0x10|0x00|
  */
 static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
 {
@@ -537,10 +544,11 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
     // Randomize SCA CM positions to tbl
     for( i = 0; i < AES_SCA_CM_ROUNDS; i++ )
     {
-        do {
+        do
+        {
             is_unique_number = 1;
 /* TODO - Use proper random. This is now ONLY FOR TESTING as mbedtls_platform_random_in_range is alwyays returning 0 */
-            num = /* mbedtls_platform_random_in_range( tbl_len - 1 ) */rand() % (tbl_len - 2);
+            num = /* mbedtls_platform_random_in_range( tbl_len - 4 ) */rand() % (tbl_len - 4);
 
             if( tbl[num] == 0 )
             {
@@ -550,23 +558,26 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
         } while( is_unique_number == 1 );
     }
 
-    // Fill start/final round control data
-    num = /* mbedtls_platform_random_in_range( tbl_len - 1 ) */rand() % 0xff;
-    if( ( num % 2 ) == 0 )
+    // randomize control data for start and final round
+    for( i = 1; i <= 2; i++ )
     {
-        tbl[tbl_len - 2] = 0x10;    // fake data
-        tbl[tbl_len - 1] = 0x0;     // real data
-    }
-    else
-    {
-        tbl[tbl_len - 2] = 0x00;    // real data
-        tbl[tbl_len - 1] = 0x10;    // fake data
+        num = /* mbedtls_platform_random_in_range( 0xff ) */rand() % 0xff;
+        if( ( num % 2 ) == 0 )
+        {
+            tbl[tbl_len - ( i * 2 - 0 )] = 0x10;    // fake data
+            tbl[tbl_len - ( i * 2 - 1 )] = 0x00;    // real data
+        }
+        else
+        {
+            tbl[tbl_len - ( i * 2 - 0 )] = 0x00;    // real data
+            tbl[tbl_len - ( i * 2 - 1 )] = 0x10;    // fake data
+        }
     }
 #endif /* AES_SCA_CM_ROUNDS != 0 */
 
     // Fill real AES round data to the remaining places
     is_even_pos = 1;
-    for( i = 0; i < tbl_len - 2; i++ )
+    for( i = 0; i < tbl_len - 4; i++ )
     {
         if( tbl[i] == 0 )
         {
@@ -993,9 +1004,9 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 #endif /* AES_SCA_CM_ROUNDS != 0 */
     aes_r_data_t *aes_data_ptr;         // pointer to aes_data_real or aes_data_fake
     aes_r_data_t *aes_data_table[2];    // pointers to real and fake data
-    int round_ctrl_table_len = ctx->nr - 1 + AES_SCA_CM_ROUNDS + 2;
+    int round_ctrl_table_len = ctx->nr - 1 + AES_SCA_CM_ROUNDS + 2 + 2;
     // control bytes for AES rounds, reserve based on max ctx->nr
-    uint8_t round_ctrl_table[ 14 - 1 + AES_SCA_CM_ROUNDS + 2 ];
+    uint8_t round_ctrl_table[ 14 - 1 + AES_SCA_CM_ROUNDS + 2 + 2];
 
     aes_data_real.rk_ptr = ctx->rk;
     aes_data_table[0] = &aes_data_real;
@@ -1017,7 +1028,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         for( j = 0; j < start_fin_loops; j++ )
         {
             aes_data_ptr =
-                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 2 + j ] >> 4];
+                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 4 + j ] >> 4];
             aes_data_ptr->xy_values[i] ^= *aes_data_ptr->rk_ptr++;
         }
     }
@@ -1140,9 +1151,9 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 #endif /* AES_SCA_CM_ROUNDS != 0 */
     aes_r_data_t *aes_data_ptr;         // pointer to aes_data_real or aes_data_fake
     aes_r_data_t *aes_data_table[2];    // pointers to real and fake data
-    int round_ctrl_table_len = ctx->nr - 1 + AES_SCA_CM_ROUNDS + 2;
+    int round_ctrl_table_len = ctx->nr - 1 + AES_SCA_CM_ROUNDS + 2 + 2;
     // control bytes for AES rounds, reserve based on max ctx->nr
-    uint8_t round_ctrl_table[ 14 - 1 + AES_SCA_CM_ROUNDS + 2 ];
+    uint8_t round_ctrl_table[ 14 - 1 + AES_SCA_CM_ROUNDS + 2 + 2 ];
 
     aes_data_real.rk_ptr = ctx->rk;
     aes_data_table[0] = &aes_data_real;
@@ -1164,7 +1175,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
         for( j = 0; j < start_fin_loops; j++ )
         {
             aes_data_ptr =
-                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 2 + j ] >> 4];
+                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 4 + j ] >> 4];
             aes_data_ptr->xy_values[i] ^= *aes_data_ptr->rk_ptr++;
         }
     }

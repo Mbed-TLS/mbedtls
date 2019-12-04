@@ -329,7 +329,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * string. The length of the byte string is the length of the base prime `p`
  * in bytes.
  */
-#define PSA_KEY_TYPE_DSA_PUBLIC_KEY                 ((psa_key_type_t)0x6004)
+#define PSA_KEY_TYPE_DSA_PUBLIC_KEY                 ((psa_key_type_t)0x4002)
 
 /** DSA key pair (private and public key).
  *
@@ -347,7 +347,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * Add 1 to the resulting integer and use this as the private key *x*.
  *
  */
-#define PSA_KEY_TYPE_DSA_KEY_PAIR                    ((psa_key_type_t)0x7004)
+#define PSA_KEY_TYPE_DSA_KEY_PAIR                    ((psa_key_type_t)0x7002)
 
 /** Whether a key type is an DSA key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_DSA(type)                                       \
@@ -418,7 +418,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_GROUP_CUSTOM), the group data comes
  * from domain parameters set by psa_set_key_domain_parameters().
  */
-#define PSA_DH_GROUP_CUSTOM             ((psa_dh_group_t) 0x80)
+#define PSA_DH_GROUP_CUSTOM             ((psa_dh_group_t) 0x7e)
 
 
 /**

@@ -142,10 +142,7 @@ int mbedtls_platform_memcmp( const void *buf1, const void *buf2, size_t num )
 
 uint32_t mbedtls_platform_random_in_range( size_t num )
 {
-    /* Temporary force the dummy version - drawing directly from the HRNG
-     * seems to be causing issues, avoid doing that until we understood the
-     * issue, and perhaps we'll need to draw from a DRBG instead. */
-#if 1 || !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+#if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
     (void) num;
     return 0;
 #else

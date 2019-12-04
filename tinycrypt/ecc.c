@@ -1172,7 +1172,7 @@ int uECC_valid_point(const uECC_word_t *point)
 	uECC_word_t tmp1[NUM_ECC_WORDS];
 	uECC_word_t tmp2[NUM_ECC_WORDS];
 	wordcount_t num_words = NUM_ECC_WORDS;
-	volatile uECC_word_t diff = -1u;
+	volatile uECC_word_t diff = 0xffffffff;
 
 	/* The point at infinity is invalid. */
 	if (EccPoint_isZero(point)) {

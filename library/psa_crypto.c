@@ -382,43 +382,43 @@ psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
     {
         case MBEDTLS_ECP_DP_SECP192R1:
             *bits = 192;
-            return( PSA_ECC_CURVE_SECP192R1 );
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP224R1:
             *bits = 224;
-            return( PSA_ECC_CURVE_SECP224R1 );
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP256R1:
             *bits = 256;
-            return( PSA_ECC_CURVE_SECP256R1 );
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP384R1:
             *bits = 384;
-            return( PSA_ECC_CURVE_SECP384R1 );
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP521R1:
             *bits = 521;
-            return( PSA_ECC_CURVE_SECP521R1 );
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_BP256R1:
             *bits = 256;
-            return( PSA_ECC_CURVE_BRAINPOOL_P256R1 );
+            return( PSA_ECC_CURVE_BRAINPOOL_P_R1 );
         case MBEDTLS_ECP_DP_BP384R1:
             *bits = 384;
-            return( PSA_ECC_CURVE_BRAINPOOL_P384R1 );
+            return( PSA_ECC_CURVE_BRAINPOOL_P_R1 );
         case MBEDTLS_ECP_DP_BP512R1:
             *bits = 512;
-            return( PSA_ECC_CURVE_BRAINPOOL_P512R1 );
+            return( PSA_ECC_CURVE_BRAINPOOL_P_R1 );
         case MBEDTLS_ECP_DP_CURVE25519:
             *bits = 255;
-            return( PSA_ECC_CURVE_CURVE25519 );
+            return( PSA_ECC_CURVE_MONTGOMERY );
         case MBEDTLS_ECP_DP_SECP192K1:
             *bits = 192;
-            return( PSA_ECC_CURVE_SECP192K1 );
+            return( PSA_ECC_CURVE_SECP_K1 );
         case MBEDTLS_ECP_DP_SECP224K1:
             *bits = 224;
-            return( PSA_ECC_CURVE_SECP224K1 );
+            return( PSA_ECC_CURVE_SECP_K1 );
         case MBEDTLS_ECP_DP_SECP256K1:
             *bits = 256;
-            return( PSA_ECC_CURVE_SECP256K1 );
+            return( PSA_ECC_CURVE_SECP_K1 );
         case MBEDTLS_ECP_DP_CURVE448:
             *bits = 448;
-            return( PSA_ECC_CURVE_CURVE448 );
+            return( PSA_ECC_CURVE_MONTGOMERY );
         default:
             return( 0 );
     }
@@ -451,16 +451,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                     return( MBEDTLS_ECP_DP_NONE );
             }
             break;
-        case PSA_ECC_CURVE_SECP192R1:
-            return( MBEDTLS_ECP_DP_SECP192R1 );
-        case PSA_ECC_CURVE_SECP224R1:
-            return( MBEDTLS_ECP_DP_SECP224R1 );
-        case PSA_ECC_CURVE_SECP256R1:
-            return( MBEDTLS_ECP_DP_SECP256R1 );
-        case PSA_ECC_CURVE_SECP384R1:
-            return( MBEDTLS_ECP_DP_SECP384R1 );
-        case PSA_ECC_CURVE_SECP521R1:
-            return( MBEDTLS_ECP_DP_SECP521R1 );
 
         case PSA_ECC_CURVE_BRAINPOOL_P_R1:
             switch( byte_length )
@@ -475,12 +465,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                     return( MBEDTLS_ECP_DP_NONE );
             }
             break;
-        case PSA_ECC_CURVE_BRAINPOOL_P256R1:
-            return( MBEDTLS_ECP_DP_BP256R1 );
-        case PSA_ECC_CURVE_BRAINPOOL_P384R1:
-            return( MBEDTLS_ECP_DP_BP384R1 );
-        case PSA_ECC_CURVE_BRAINPOOL_P512R1:
-            return( MBEDTLS_ECP_DP_BP512R1 );
 
         case PSA_ECC_CURVE_MONTGOMERY:
             switch( byte_length )
@@ -493,10 +477,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                     return( MBEDTLS_ECP_DP_NONE );
             }
             break;
-        case PSA_ECC_CURVE_CURVE25519:
-            return( MBEDTLS_ECP_DP_CURVE25519 );
-        case PSA_ECC_CURVE_CURVE448:
-            return( MBEDTLS_ECP_DP_CURVE448 );
 
         case PSA_ECC_CURVE_SECP_K1:
             switch( byte_length )
@@ -511,12 +491,6 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
                     return( MBEDTLS_ECP_DP_NONE );
             }
             break;
-        case PSA_ECC_CURVE_SECP192K1:
-            return( MBEDTLS_ECP_DP_SECP192K1 );
-        case PSA_ECC_CURVE_SECP224K1:
-            return( MBEDTLS_ECP_DP_SECP224K1 );
-        case PSA_ECC_CURVE_SECP256K1:
-            return( MBEDTLS_ECP_DP_SECP256K1 );
 
         default:
             return( MBEDTLS_ECP_DP_NONE );

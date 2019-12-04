@@ -70,6 +70,9 @@ typedef uint16_t psa_key_type_t;
  * The curve identifier is required to create an ECC key using the
  * PSA_KEY_TYPE_ECC_KEY_PAIR() or PSA_KEY_TYPE_ECC_PUBLIC_KEY()
  * macros.
+ *
+ * Values defined by this standard will never be in the range 0x80-0xff.
+ * Vendors who define additional families must use an encoding in this range.
  */
 typedef uint8_t psa_ecc_curve_t;
 
@@ -78,6 +81,9 @@ typedef uint8_t psa_ecc_curve_t;
  * The group identifier is required to create an Diffie-Hellman key using the
  * PSA_KEY_TYPE_DH_KEY_PAIR() or PSA_KEY_TYPE_DH_PUBLIC_KEY()
  * macros.
+ *
+ * Values defined by this standard will never be in the range 0x80-0xff.
+ * Vendors who define additional families must use an encoding in this range.
  */
 typedef uint8_t psa_dh_group_t;
 

@@ -1491,7 +1491,7 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     msg "build: arm-none-eabi-gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
     scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
-    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
+    make TINYCRYPT_BUILD=0 CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
     echo "Checking that software 64-bit multiplication is not required"
     if_build_succeeded not grep __aeabi_lmul library/*.o
 }

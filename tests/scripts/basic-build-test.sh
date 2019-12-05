@@ -25,13 +25,37 @@
 #
 # This script has been written to be generic and should work on any shell.
 #
-# Usage: basic-build-tests.sh
+# Usage: basic-build-tests.sh               to run all tests
+#        basic-build-tests.sh unit_test     to run only unit tests
 #
 
 # Abort on errors (and uninitiliased variables)
 set -eu
 
-if [ -d library -a -d include -a -d tests ]; then :; else
+CONFIG_H='include/mbedtls/config.h'
+CONFIG_BAK="$CONFIG_H.bak"
+
+UNIT_TESTS_ONLY=0
+
+echo
+if [ -z ${1+x} ]
+then
+    echo "Running all tests"
+else
+    if [ "$1" = "unit_test" ]
+    then
+        echo "Running only unit tests"
+        UNIT_TESTS_ONLY=1
+    fi
+fi
+echo
+
+# Check test environment. If importer, src and inc folders are present then
+# there is a different directory structure and we need to adapt to it.
+if [ -d importer -a -d inc -a -d src ]; then
+    CONFIG_H='inc/mbedtls/config.h'
+    CONFIG_BAK="$CONFIG_H.bak"
+elif [ -d library -a -d include -a -d tests ]; then :; else
     echo "Must be run from mbed TLS root" >&2
     exit 1
 fi
@@ -48,9 +72,6 @@ fi
 export OPENSSL_CMD="$OPENSSL"
 export GNUTLS_CLI="$GNUTLS_CLI"
 export GNUTLS_SERV="$GNUTLS_SERV"
-
-CONFIG_H='include/mbedtls/config.h'
-CONFIG_BAK="$CONFIG_H.bak"
 
 # Step 0 - print build environment info
 OPENSSL="$OPENSSL"                           \
@@ -78,6 +99,12 @@ cd tests
 # Step 2a - Unit Tests
 perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT
 echo
+
+# only unit test are run?
+if [ $UNIT_TESTS_ONLY -eq 1 ]
+then
+    exit 0
+fi
 
 # Step 2b - System Tests
 sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT

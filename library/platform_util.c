@@ -175,16 +175,17 @@ int mbedtls_platform_random_delay( size_t max_rand )
     volatile size_t i = 0;
     if( max_rand == 0 || max_rand > INT_MAX )
     {
-        return -1;
+        return( -1 );
     }
 
     random_number = mbedtls_platform_random_in_range( max_rand );
 
-    do {
+    do
+    {
         i++;
-    } while ( i < random_number );
+    } while( i < random_number );
 
-    return (int) i;
+    return( (int)i );
 #endif /* !MBEDTLS_ENTROPY_HARDWARE_ALT */
 }
 

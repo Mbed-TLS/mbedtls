@@ -34,6 +34,7 @@
 #if defined(MBEDTLS_HMAC_DRBG_C)
 
 #include "mbedtls/hmac_drbg.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 
 #include <string.h>
@@ -50,6 +51,9 @@
 #define mbedtls_printf printf
 #endif /* MBEDTLS_SELF_TEST */
 #endif /* MBEDTLS_PLATFORM_C */
+
+#define HMAC_NONCE_YES     0x4AAAAAAA
+#define HMAC_NONCE_NO      0x75555555
 
 /*
  * HMAC_DRBG context initialization
@@ -74,42 +78,76 @@ int mbedtls_hmac_drbg_update_ret( mbedtls_hmac_drbg_context *ctx,
         mbedtls_md_get_handle( &ctx->md_ctx ) );
     unsigned char rounds = ( additional != NULL && add_len != 0 ) ? 2 : 1;
     unsigned char sep[1];
+    volatile unsigned int flow_counter = 0;
     unsigned char K[MBEDTLS_MD_MAX_SIZE];
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     for( sep[0] = 0; sep[0] < rounds; sep[0]++ )
     {
         /* Step 1 or 4 */
+        flow_counter++;
         if( ( ret = mbedtls_md_hmac_reset( &ctx->md_ctx ) ) != 0 )
             goto exit;
+
+        flow_counter++;
         if( ( ret = mbedtls_md_hmac_update( &ctx->md_ctx,
                                             ctx->V, md_len ) ) != 0 )
             goto exit;
+
+        flow_counter++;
         if( ( ret = mbedtls_md_hmac_update( &ctx->md_ctx,
                                             sep, 1 ) ) != 0 )
             goto exit;
+
         if( rounds == 2 )
         {
+            flow_counter++;
             if( ( ret = mbedtls_md_hmac_update( &ctx->md_ctx,
                                                 additional, add_len ) ) != 0 )
             goto exit;
         }
+
+        flow_counter++;
         if( ( ret = mbedtls_md_hmac_finish( &ctx->md_ctx, K ) ) != 0 )
             goto exit;
 
         /* Step 2 or 5 */
+        flow_counter++;
         if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, K, md_len ) ) != 0 )
             goto exit;
+
+        flow_counter++;
         if( ( ret = mbedtls_md_hmac_update( &ctx->md_ctx,
                                             ctx->V, md_len ) ) != 0 )
             goto exit;
+
+        flow_counter++;
         if( ( ret = mbedtls_md_hmac_finish( &ctx->md_ctx, ctx->V ) ) != 0 )
             goto exit;
+        flow_counter++;
     }
 
 exit:
+
     mbedtls_platform_zeroize( K, sizeof( K ) );
-    return( ret );
+    /* Check for possible attack.
+     * Counters needs to have correct values when returning success
+     */
+    if ( ret != 0 )
+        return( ret ); // error case, return immediately
+
+    if ( ( ( flow_counter == 8  ) && ( sep[0] == 1 ) ) ||
+         ( ( flow_counter == 18 ) && ( sep[0] == 2 ) ) )
+    {
+        flow_counter = flow_counter - sep[0];
+        // Double check flow_counter
+        if ( ( flow_counter == 7 ) || ( flow_counter == 16 ) )
+        {
+            return ret;   // success, return 0 from ret
+        }
+    }
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -125,10 +163,10 @@ void mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
  * Simplified HMAC_DRBG initialisation (for use with deterministic ECDSA)
  */
 int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
-                        mbedtls_md_handle_t md_info,
-                        const unsigned char *data, size_t data_len )
+                                mbedtls_md_handle_t md_info,
+                                const unsigned char *data, size_t data_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
 
     if( ( ret = mbedtls_md_setup( &ctx->md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
@@ -146,7 +184,7 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
     if( ( ret = mbedtls_hmac_drbg_update_ret( ctx, data, data_len ) ) != 0 )
         return( ret );
 
-    return( 0 );
+    return( ret );
 }
 
 /*
@@ -160,22 +198,19 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
 {
     unsigned char seed[MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT];
     size_t seedlen = 0;
+    size_t total_entropy_len;
     int ret;
 
+    if( use_nonce == HMAC_NONCE_NO )
+        total_entropy_len = ctx->entropy_len;
+    else
+        total_entropy_len = ctx->entropy_len * 3 / 2;
+
+    /* III. Check input length */
+    if( len > MBEDTLS_HMAC_DRBG_MAX_INPUT ||
+        total_entropy_len + len > MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT )
     {
-        size_t total_entropy_len;
-
-        if( use_nonce == 0 )
-            total_entropy_len = ctx->entropy_len;
-        else
-            total_entropy_len = ctx->entropy_len * 3 / 2;
-
-        /* III. Check input length */
-        if( len > MBEDTLS_HMAC_DRBG_MAX_INPUT ||
-            total_entropy_len + len > MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT )
-        {
-            return( MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG );
-        }
+        return( MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG );
     }
 
     memset( seed, 0, MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT );
@@ -190,7 +225,7 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
 
     /* For initial seeding, allow adding of nonce generated
      * from the entropy source. See Sect 8.6.7 in SP800-90A. */
-    if( use_nonce )
+    if( use_nonce == HMAC_NONCE_YES )
     {
         /* Note: We don't merge the two calls to f_entropy() in order
          *       to avoid requesting too much entropy from f_entropy()
@@ -225,9 +260,20 @@ static int hmac_drbg_reseed_core( mbedtls_hmac_drbg_context *ctx,
     ctx->reseed_counter = 1;
 
 exit:
+
     /* 4. Done */
     mbedtls_platform_zeroize( seed, seedlen );
-    return( ret );
+
+    if ( ret != 0 )
+        return ret;
+
+    if ( ret == 0 && ctx->reseed_counter == 1 )
+    {
+        /* All ok, return 0 from ret */
+        return ret;
+    }
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /*
@@ -236,8 +282,7 @@ exit:
 int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
                       const unsigned char *additional, size_t len )
 {
-    return( hmac_drbg_reseed_core( ctx, additional, len,
-                                   0 /* no nonce */ ) );
+    return( hmac_drbg_reseed_core( ctx, additional, len, HMAC_NONCE_NO ) );
 }
 
 /*
@@ -286,13 +331,12 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
                        md_size <= 28 ? 24 : /* 224-bits hash -> 192 bits */
                        32;  /* better (256+) -> 256 bits */
 
-    if( ( ret = hmac_drbg_reseed_core( ctx, custom, len,
-                                       1 /* add nonce */ ) ) != 0 )
+    if( ( ret = hmac_drbg_reseed_core( ctx, custom, len, HMAC_NONCE_YES ) ) != 0 )
     {
         return( ret );
     }
 
-    return( 0 );
+    return( ret );
 }
 
 /*
@@ -329,6 +373,8 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
                                const unsigned char *additional, size_t add_len )
 {
     int ret;
+    volatile unsigned char *output_fi = output;
+    volatile size_t out_len_fi = out_len;
     mbedtls_hmac_drbg_context *ctx = (mbedtls_hmac_drbg_context *) p_rng;
     size_t md_len = mbedtls_md_get_size(
         mbedtls_md_get_handle( &ctx->md_ctx ) );
@@ -390,7 +436,21 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
 
 exit:
     /* 8. Done */
-    return( ret );
+
+    if ( ret != 0 )
+        return ret;
+
+    /*
+     * Check doubled variables and illegal conditions in case of possible
+     * attack.
+     */
+    if ( ( out_len_fi == out_len ) && ( output_fi == output) &&
+         ( left == 0 ) )
+    {
+        return ret; // Success, return 0
+    }
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 /*

@@ -32,6 +32,7 @@
 #if defined(MBEDTLS_MD_C)
 
 #include "mbedtls/md.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -525,7 +526,7 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
     int ret;
     unsigned char sum[MBEDTLS_MD_MAX_SIZE];
     unsigned char *ipad, *opad;
-    size_t i;
+    size_t i = 0;
 
     mbedtls_md_handle_t md_info;
 
@@ -575,16 +576,27 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
     if( ( ret = mbedtls_md_info_starts( md_info, ctx->md_ctx ) ) != 0 )
         goto cleanup;
 
+    i++;    // Use i as flow control
+
     if( ( ret = mbedtls_md_info_update( md_info, ctx->md_ctx, ipad,
            mbedtls_md_info_block_size( md_info ) ) ) != 0 )
     {
         goto cleanup;
     }
 
+    i++;    // Use i as flow control now
+
 cleanup:
     mbedtls_platform_zeroize( sum, sizeof( sum ) );
 
-    return( ret );
+    if ( ret != 0 )
+        return ret;
+
+    /* Check possible fault injection */
+    if ( ( i - 2 ) == keylen )
+        return ret; // success, return 0 from ret
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 
 int mbedtls_md_hmac_update( mbedtls_md_context_t *ctx,
@@ -653,7 +665,7 @@ int mbedtls_md_hmac_finish( mbedtls_md_context_t *ctx, unsigned char *output )
     if( ( ret = mbedtls_md_info_finish( md_info, ctx->md_ctx, output ) ) != 0 )
         return( ret );
 
-    return( 0 );
+    return( ret );
 }
 
 int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx )

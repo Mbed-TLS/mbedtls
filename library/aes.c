@@ -544,24 +544,31 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
     // Randomize SCA CM positions to tbl
     for( i = 0; i < AES_SCA_CM_ROUNDS; i++ )
     {
+        is_unique_number = 0;
         do
         {
-            is_unique_number = 1;
-/* TODO - Use proper random. This is now ONLY FOR TESTING as mbedtls_platform_random_in_range is alwyays returning 0 */
-            num = /* mbedtls_platform_random_in_range( tbl_len - 4 ) */rand() % (tbl_len - 4);
+            is_unique_number++;
+            num = mbedtls_platform_random_in_range( tbl_len - 4 );
+
+            if( is_unique_number > 10 )
+            {
+                // prevent forever loop if random returns constant
+                is_unique_number = 0;
+                tbl[i] = 0x10;    // fake data
+            }
 
             if( tbl[num] == 0 )
             {
                 is_unique_number = 0;
-                tbl[num] = 0x10;
+                tbl[num] = 0x10;    // fake data
             }
-        } while( is_unique_number == 1 );
+        } while( is_unique_number != 0 );
     }
 
     // randomize control data for start and final round
     for( i = 1; i <= 2; i++ )
     {
-        num = /* mbedtls_platform_random_in_range( 0xff ) */rand() % 0xff;
+        num = mbedtls_platform_random_in_range( 0xff );
         if( ( num % 2 ) == 0 )
         {
             tbl[tbl_len - ( i * 2 - 0 )] = 0x10;    // fake data

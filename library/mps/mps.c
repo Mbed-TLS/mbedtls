@@ -352,6 +352,8 @@ MBEDTLS_MPS_STATIC int mps_out_flight_free( mbedtls_mps *mps );
 MBEDTLS_MPS_STATIC int mps_out_flight_msg_start(
     mbedtls_mps *mps, mbedtls_mps_retransmission_handle **handle );
 MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps );
+MBEDTLS_MPS_ALWAYS_INLINE int mps_out_flight_get_retransmission_handle(
+    mbedtls_mps *mps, mbedtls_mps_retransmission_handle **hdl, size_t offset );
 
 /*
  * Message retransmission handles
@@ -1803,6 +1805,19 @@ int mbedtls_mps_write_alert( mbedtls_mps *mps,
     MPS_API_BOUNDARY_FAILURE_HANDLER
 }
 
+MBEDTLS_MPS_ALWAYS_INLINE int mps_out_flight_get_retransmission_handle(
+    mbedtls_mps *mps, mbedtls_mps_retransmission_handle **hdl, size_t offset )
+{
+    TRACE_INIT( "mps_get_transmission_handle, index %u",
+                (unsigned) offset );
+
+    MBEDTLS_MPS_ASSERT_RAW( offset < MBEDTLS_MPS_MAX_FLIGHT_LENGTH,
+                            "Invalid retransmission handle index" );
+
+    *hdl = &mps->dtls.outgoing.backup[ offset ];
+    RETURN( 0 );
+}
+
 int mbedtls_mps_write_ccs( mbedtls_mps *mps )
 {
     int ret;
@@ -2915,7 +2930,7 @@ MBEDTLS_MPS_STATIC int mps_retransmit_out_core( mbedtls_mps *mps,
     }
 
     offset = mps->dtls.wait.resend_offset;
-    handle = &mps->dtls.outgoing.backup[offset];
+    MPS_CHK( mps_out_flight_get_retransmission_handle( mps, &handle, offset ) );
 
     while( offset < mps->dtls.outgoing.flight_len )
     {
@@ -3901,7 +3916,8 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_start( mbedtls_mps *mps,
     mps->dtls.outgoing.flight_len = cur_flight_len + 1;
     mps->dtls.io.out.flags = 0;
 
-    hdl = &mps->dtls.outgoing.backup[ cur_flight_len ];
+    MPS_CHK( mps_out_flight_get_retransmission_handle( mps, &hdl,
+                                                       cur_flight_len ) );
     mbedtls_mps_retransmission_handle_init( hdl );
 
     hdl->metadata.seq_nr = mps->dtls.seq_nr;
@@ -3927,8 +3943,8 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps )
     MBEDTLS_MPS_ASSERT( cur_flight_len > 0,
                         "mps_out_flight_msg_done() called with flight length 0" );
 
-    hdl = &mps->dtls.outgoing.backup[ cur_flight_len - 1 ];
-
+    MPS_CHK( mps_out_flight_get_retransmission_handle( mps, &hdl,
+                                                       cur_flight_len - 1 ) );
     if( hdl->handle_type != MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS )
     {
         uint8_t cur_seq_nr;

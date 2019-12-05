@@ -153,15 +153,20 @@ static int uECC_check_curve_integrity(void)
 		0x76, 0x0a, 0xe2, 0xbc, 0xce, 0x2a, 0xa2, 0xc6,
 		0x38, 0xf2, 0x19, 0x1d, 0x76, 0x72, 0x93, 0x49,
 	};
-	volatile unsigned char diff = 0;
+	unsigned char diff = 0;
+	unsigned char tmp1, tmp2;
 	volatile unsigned i;
 
 	if (uECC_compute_param_sha256(computed) != UECC_SUCCESS) {
 		return UECC_FAILURE;
 	}
 
-	for (i = 0; i < 32; i++)
-		diff |= computed[i] ^ reference[i];
+	for (i = 0; i < 32; i++) {
+		/* make sure the order of volatile accesses is well-defined */
+		tmp1 = computed[i];
+		tmp2 = reference[i];
+		diff |= tmp1 ^ tmp2;
+	}
 
 	/* i should be 32 */
 	mbedtls_platform_enforce_volatile_reads();
@@ -282,10 +287,13 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 {
 
 	uECC_word_t diff = 0;
+	uECC_word_t tmp1, tmp2;
 	volatile int i;
 
 	for (i = NUM_ECC_WORDS - 1; i >= 0; --i) {
-		diff |= (left[i] ^ right[i]);
+		tmp1 = left[i];
+		tmp2 = right[i];
+		diff |= (tmp1 ^ tmp2);
 	}
 
 	/* i should be -1 now */

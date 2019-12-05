@@ -85,6 +85,8 @@
  * \{
  */
 /* Reminder: update x509_crt_verify_strings[] in library/x509_crt.c */
+/* Reminder: update X509_BADCERT_FI_EXTRA in library/x509_crt.c if using more
+ * that 24 bits */
 #define MBEDTLS_X509_BADCERT_EXPIRED             0x01  /**< The certificate validity has expired. */
 #define MBEDTLS_X509_BADCERT_REVOKED             0x02  /**< The certificate has been revoked (is on a CRL). */
 #define MBEDTLS_X509_BADCERT_CN_MISMATCH         0x04  /**< The certificate Common Name (CN) does not match with the expected CN. */

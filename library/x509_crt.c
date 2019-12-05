@@ -43,6 +43,7 @@
 #include "mbedtls/x509_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/platform.h"
 
 #include <string.h>
 
@@ -2884,6 +2885,10 @@ static int x509_crt_check_parent( const mbedtls_x509_crt_sig_info *sig_info,
     return( 0 );
 }
 
+/* This value is different enough from 0 that it's hard for an active physical
+ * attacker to reach it just by flipping a few bits. */
+#define X509_SIGNATURE_IS_GOOD      0x7f5a5a5a
+
 /*
  * Find a suitable parent for child in candidates, or return NULL.
  *
@@ -2915,7 +2920,8 @@ static int x509_crt_check_parent( const mbedtls_x509_crt_sig_info *sig_info,
  *  - [in] child: certificate for which we're looking for a parent
  *  - [in] candidates: chained list of potential parents
  *  - [out] r_parent: parent found (or NULL)
- *  - [out] r_signature_is_good: 1 if child signature by parent is valid, or 0
+ *  - [out] r_signature_is_good: set to X509_SIGNATURE_IS_GOOD if
+ *                               child signature by parent is valid, or to 0
  *  - [in] top: 1 if candidates consists of trusted roots, ie we're at the top
  *         of the chain, 0 otherwise
  *  - [in] path_cnt: number of intermediates seen so far
@@ -2938,8 +2944,9 @@ static int x509_crt_find_parent_in(
                         mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
     int ret;
+    volatile int ret_fi = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     mbedtls_x509_crt *parent_crt;
-    int signature_is_good;
+    int signature_is_good = 0;
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
     mbedtls_x509_crt *fallback_parent;
@@ -3018,10 +3025,10 @@ check_signature:
             continue;
 
         /* Signature */
-        ret = x509_crt_check_signature( child_sig, parent_crt, rs_ctx );
+        ret_fi = x509_crt_check_signature( child_sig, parent_crt, rs_ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-        if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        if( rs_ctx != NULL && ret_fi == MBEDTLS_ERR_ECP_IN_PROGRESS )
         {
             /* save state */
             rs_ctx->parent = parent_crt;
@@ -3030,13 +3037,17 @@ check_signature:
             rs_ctx->fallback_signature_is_good = fallback_signature_is_good;
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
-            return( ret );
+            return( ret_fi );
         }
-#else
-        (void) ret;
 #endif
 
-        signature_is_good = ret == 0;
+        if( ret_fi == 0 )
+        {
+            mbedtls_platform_enforce_volatile_reads();
+            if( ret_fi == 0 )
+                signature_is_good = X509_SIGNATURE_IS_GOOD;
+        }
+
         if( top && ! signature_is_good )
             continue;
 
@@ -3318,6 +3329,23 @@ static unsigned x509_crt_verify_chain_len(
 #endif /* MBEDTLS_X509_REMOVE_VERIFY_CALLBACK */
 
 /*
+ * This is used in addition to the flag for a specific issue, to ensure that
+ * it is not possible for an active physical attacker to entirely clear the
+ * flags just by flipping a single bit. Take advantage of the fact that all
+ * values defined in include/mbedtls/x509.h so far are 24-bit or less, so the
+ * top byte is free.
+ *
+ * Currently this protection is not compatible with the vrfy callback (as it
+ * can observ and modify flags freely), so it's only enabled when the callback
+ * is disabled.
+ */
+#if defined(MBEDTLS_X509_REMOVE_VERIFY_CALLBACK)
+#define X509_BADCERT_FI_EXTRA   0xff000000u
+#else
+#define X509_BADCERT_FI_EXTRA   0u
+#endif
+
+/*
  * Build and verify a certificate chain
  *
  * Given a peer-provided list of certificates EE, C1, ..., Cn and
@@ -3374,6 +3402,7 @@ static int x509_crt_verify_chain(
     int parent_is_trusted;
     int child_is_trusted;
     int signature_is_good;
+    volatile int signature_is_good_fi;
     unsigned self_cnt;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -3422,9 +3451,9 @@ find_parent:
 #if !defined(MBEDTLS_X509_CRT_REMOVE_TIME)
                 /* Check time-validity (all certificates) */
                 if( mbedtls_x509_time_is_past( &child->valid_to ) )
-                    *flags |= MBEDTLS_X509_BADCERT_EXPIRED;
+                    *flags |= MBEDTLS_X509_BADCERT_EXPIRED | X509_BADCERT_FI_EXTRA;
                 if( mbedtls_x509_time_is_future( &child->valid_from ) )
-                    *flags |= MBEDTLS_X509_BADCERT_FUTURE;
+                    *flags |= MBEDTLS_X509_BADCERT_FUTURE | X509_BADCERT_FI_EXTRA;
 #endif /* !MBEDTLS_X509_CRT_REMOVE_TIME */
 
                 /* Stop here for trusted roots (but not for trusted EE certs) */
@@ -3444,10 +3473,10 @@ find_parent:
 
                 /* Check signature algorithm: MD & PK algs */
                 if( x509_profile_check_md_alg( profile, child->sig_md ) != 0 )
-                    *flags |= MBEDTLS_X509_BADCERT_BAD_MD;
+                    *flags |= MBEDTLS_X509_BADCERT_BAD_MD | X509_BADCERT_FI_EXTRA;
 
                 if( x509_profile_check_pk_alg( profile, child->sig_pk ) != 0 )
-                    *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+                    *flags |= MBEDTLS_X509_BADCERT_BAD_PK | X509_BADCERT_FI_EXTRA;
 
                 /* Special case: EE certs that are locally trusted */
                 if( x509_crt_verify_chain_len( ver_chain ) == 1 && self_issued &&
@@ -3495,7 +3524,7 @@ find_parent:
         /* No parent? We're done here */
         if( parent_crt == NULL )
         {
-            *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+            *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED | X509_BADCERT_FI_EXTRA;
             return( 0 );
         }
 
@@ -3516,8 +3545,13 @@ find_parent:
         }
 
         /* signature was checked while searching parent */
-        if( ! signature_is_good )
-            *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
+        signature_is_good_fi = signature_is_good;
+        if( signature_is_good_fi != X509_SIGNATURE_IS_GOOD )
+            *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED | X509_BADCERT_FI_EXTRA;
+
+        mbedtls_platform_enforce_volatile_reads();
+        if( signature_is_good_fi != X509_SIGNATURE_IS_GOOD )
+            *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED | X509_BADCERT_FI_EXTRA;
 
         {
             mbedtls_pk_context *parent_pk;
@@ -3527,7 +3561,7 @@ find_parent:
 
             /* check size of signing key */
             if( x509_profile_check_key( profile, parent_pk ) != 0 )
-                *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+                *flags |= MBEDTLS_X509_BADCERT_BAD_KEY | X509_BADCERT_FI_EXTRA;
 
             mbedtls_x509_crt_pk_release( parent_crt );
         }
@@ -3658,7 +3692,7 @@ static int x509_crt_verify_name( const mbedtls_x509_crt *crt,
     if( ret != 0 )
         ret = MBEDTLS_ERR_X509_FATAL_ERROR;
 
-    *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH;
+    *flags |= MBEDTLS_X509_BADCERT_CN_MISMATCH | X509_BADCERT_FI_EXTRA;
     return( ret );
 }
 #endif /* !MBEDTLS_X509_REMOVE_HOSTNAME_VERIFICATION */
@@ -3747,6 +3781,7 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
     int ret;
     mbedtls_x509_crt_verify_chain ver_chain;
     uint32_t ee_flags;
+    volatile uint32_t flags_fi = (uint32_t) -1;
 
     *flags = 0;
     ee_flags = 0;
@@ -3780,10 +3815,10 @@ int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
         pk_type = mbedtls_pk_get_type( pk );
 
         if( x509_profile_check_pk_alg( profile, pk_type ) != 0 )
-            ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK;
+            ee_flags |= MBEDTLS_X509_BADCERT_BAD_PK | X509_BADCERT_FI_EXTRA;
 
         if( x509_profile_check_key( profile, pk ) != 0 )
-            ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
+            ee_flags |= MBEDTLS_X509_BADCERT_BAD_KEY | X509_BADCERT_FI_EXTRA;
 
         mbedtls_x509_crt_pk_release( crt );
     }
@@ -3823,10 +3858,19 @@ exit:
         return( ret );
     }
 
-    if( *flags != 0 )
-        return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
+    flags_fi = *flags;
+    if( flags_fi == 0 )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( flags_fi == 0 )
+            return( 0 );
+    }
 
-    return( 0 );
+    /* Preserve the API by removing internal extra bits - from now on the
+     * fact that flags is non-zero is also redundantly encoded by the
+     * non-zero return value from this function. */
+    *flags &= ~ X509_BADCERT_FI_EXTRA;
+    return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
 }
 
 /*

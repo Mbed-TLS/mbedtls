@@ -168,6 +168,15 @@ uint32_t mbedtls_platform_random_in_range( size_t num )
 #endif
 }
 
+/* Some compilers (armcc 5 for example) optimize away successive reads from a
+ * volatile local variable (which we use as a counter-measure to fault
+ * injection attacks), unless there is a call to an external function between
+ * them. This functions doesn't need to do anything, it just needs to be
+ * in another compilation unit. So here's a function that does nothing. */
+void mbedtls_platform_enforce_volatile_reads( void )
+{
+}
+
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>
 #if !defined(_WIN32) && (defined(unix) || \

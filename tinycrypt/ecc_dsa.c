@@ -67,6 +67,7 @@
 #if defined(MBEDTLS_USE_TINYCRYPT)
 #include <tinycrypt/ecc.h>
 #include <tinycrypt/ecc_dsa.h>
+#include "mbedtls/platform_util.h"
 
 #if default_RNG_defined
 static uECC_RNG_Function g_rng_function = &default_CSPRNG;
@@ -214,6 +215,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	const uECC_word_t *point;
 	bitcount_t num_bits;
 	bitcount_t i;
+	volatile uECC_word_t diff;
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 	uECC_word_t r[NUM_ECC_WORDS], s[NUM_ECC_WORDS];
@@ -235,13 +237,13 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 
 	/* r, s must not be 0. */
 	if (uECC_vli_isZero(r) || uECC_vli_isZero(s)) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	/* r, s must be < n. */
 	if (uECC_vli_cmp_unsafe(curve->n, r) != 1 ||
 	    uECC_vli_cmp_unsafe(curve->n, s) != 1) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
 	/* Calculate u1 and u2. */
@@ -301,7 +303,18 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	}
 
 	/* Accept only if v == r. */
-	return (int)(uECC_vli_equal(rx, r) == 0);
+	diff = uECC_vli_equal(rx, r);
+	if (diff == 0) {
+		mbedtls_platform_enforce_volatile_reads();
+		if (diff == 0) {
+			return UECC_SUCCESS;
+		}
+		else {
+			return UECC_ATTACK_DETECTED;
+		}
+	}
+
+	return UECC_FAILURE;
 }
 #else
 typedef int mbedtls_dummy_tinycrypt_def;

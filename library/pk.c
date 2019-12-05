@@ -577,6 +577,7 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *sig, size_t sig_len )
 {
     int ret;
+    volatile int ret_fi;
     uint8_t signature[2*NUM_ECC_BYTES];
     unsigned char *p;
     const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
@@ -589,12 +590,22 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( ret != 0 )
         return( ret );
 
-    ret = uECC_verify( keypair->public_key, hash,
-                       (unsigned) hash_len, signature, uecc_curve );
-    if( ret == 0 )
-        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+    ret_fi = uECC_verify( keypair->public_key, hash,
+                          (unsigned) hash_len, signature, uecc_curve );
 
-    return( 0 );
+    if( ret_fi == UECC_ATTACK_DETECTED )
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+
+    if( ret_fi == UECC_SUCCESS )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( ret_fi == UECC_SUCCESS )
+            return( 0 );
+        else
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
+
+    return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 }
 
 /*

@@ -43,12 +43,14 @@ class read_file_lines:
     except that if process(line) raises an exception, then the read_file_lines
     snippet annotates the exception with the file name and line number.
     """
-    def __init__(self, filename):
+    def __init__(self, filename, binary=False):
         self.filename = filename
         self.line_number = 'entry'
         self.generator = None
+        self.binary = binary
     def __enter__(self):
-        self.generator = enumerate(open(self.filename, 'r'))
+        self.generator = enumerate(open(self.filename,
+                                        'rb' if self.binary else 'r'))
         return self
     def __iter__(self):
         for line_number, content in self.generator:
@@ -224,13 +226,15 @@ class Inputs:
         if m.group(3):
             self.argspecs[name] = self._argument_split(m.group(3))
 
+    _nonascii_re = re.compile(rb'[^\x00-\x7f]+')
     def parse_header(self, filename):
         """Parse a C header file, looking for "#define PSA_xxx"."""
-        with read_file_lines(filename) as lines:
+        with read_file_lines(filename, binary=True) as lines:
             for line in lines:
+                line = re.sub(self._nonascii_re, rb'', line).decode('ascii')
                 self.parse_header_line(line)
 
-    _macro_identifier_re = r'[A-Z]\w+'
+    _macro_identifier_re = re.compile(r'[A-Z]\w+')
     def generate_undeclared_names(self, expr):
         for name in re.findall(self._macro_identifier_re, expr):
             if name not in self.all_declared:

@@ -270,11 +270,16 @@ class MacroCollector:
             # Other macro without parameter
             return
 
+    _nonascii_re = re.compile(rb'[^\x00-\x7f]+')
+    _continued_line_re = re.compile(rb'\\\r?\n\Z')
     def read_file(self, header_file):
         for line in header_file:
-            while line.endswith('\\\n'):
+            m = re.search(self._continued_line_re, line)
+            while m:
                 cont = next(header_file)
-                line = line[:-2] + cont
+                line = line[:m.start(0)] + cont
+                m = re.search(self._continued_line_re, line)
+            line = re.sub(self._nonascii_re, rb'', line).decode('ascii')
             self.read_line(line)
 
     @staticmethod
@@ -380,7 +385,7 @@ class MacroCollector:
 def generate_psa_constants(header_file_names, output_file_name):
     collector = MacroCollector()
     for header_file_name in header_file_names:
-        with open(header_file_name) as header_file:
+        with open(header_file_name, 'rb') as header_file:
             collector.read_file(header_file)
     temp_file_name = output_file_name + '.tmp'
     with open(temp_file_name, 'w') as output_file:

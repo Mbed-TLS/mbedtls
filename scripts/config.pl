@@ -19,9 +19,9 @@
 ## This file is part of Mbed TLS (https://tls.mbed.org)
 
 my $py = $0;
-$py =~ s/\.pl$/.py/;
+$py =~ s/\.pl$/.py/ or die "Unable to determine the name of the Python script";
 exec 'python3', $py, @ARGV;
-print STDERR "$0: python3: $!\n";
+print STDERR "$0: python3: $!. Trying python instead.\n";
 exec 'python', $py, @ARGV;
 print STDERR "$0: python: $!\n";
 exit 127;

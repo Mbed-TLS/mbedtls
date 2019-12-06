@@ -578,7 +578,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     psa_sig_md = PSA_ALG_ECDSA( psa_md );
 
     psa_set_key_type( &attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve ) );
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
     psa_set_key_algorithm( &attributes, psa_sig_md );
 
     status = psa_import_key( &attributes,
@@ -605,9 +605,9 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
-    if( psa_asymmetric_verify( key_handle, psa_sig_md,
-                               hash, hash_len,
-                               buf, 2 * signature_part_size )
+    if( psa_verify_hash( key_handle, psa_sig_md,
+                         hash, hash_len,
+                         buf, 2 * signature_part_size )
          != PSA_SUCCESS )
     {
          ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
@@ -1023,8 +1023,8 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     /* make the signature */
-    status = psa_asymmetric_sign( *key, alg, hash, hash_len,
-                                        sig, buf_len, sig_len );
+    status = psa_sign_hash( *key, alg, hash, hash_len,
+                            sig, buf_len, sig_len );
     if( status != PSA_SUCCESS )
         return( mbedtls_psa_err_translate_pk( status ) );
 

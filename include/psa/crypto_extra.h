@@ -32,6 +32,8 @@
 
 #include "mbedtls/platform_util.h"
 
+#include "crypto_compat.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,21 +41,6 @@ extern "C" {
 /* UID for secure storage seed */
 #define PSA_CRYPTO_ITS_RANDOM_SEED_UID 0xFFFFFF52
 
-/*
- * Deprecated PSA Crypto error code definitions
- */
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#define PSA_ERROR_UNKNOWN_ERROR \
-    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_GENERIC_ERROR )
-#define PSA_ERROR_OCCUPIED_SLOT \
-    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_ALREADY_EXISTS )
-#define PSA_ERROR_EMPTY_SLOT \
-    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_DOES_NOT_EXIST )
-#define PSA_ERROR_INSUFFICIENT_CAPACITY \
-    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_INSUFFICIENT_DATA )
-#define PSA_ERROR_TAMPERING_DETECTED \
-    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( PSA_ERROR_CORRUPTION_DETECTED )
-#endif
 
 /** \addtogroup attributes
  * @{

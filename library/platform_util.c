@@ -189,13 +189,10 @@ int mbedtls_platform_random_delay( size_t max_rand )
 #endif /* !MBEDTLS_ENTROPY_HARDWARE_ALT */
 }
 
-/* Some compilers (armcc 5 for example) optimize away successive reads from a
- * volatile local variable (which we use as a counter-measure to fault
- * injection attacks), unless there is a call to an external function between
- * them. This functions doesn't need to do anything, it just needs to be
- * in another compilation unit. So here's a function that does nothing. */
 void mbedtls_platform_enforce_volatile_reads( void )
 {
+    // Add a small random delay as a counter-measure to fault injection attack.
+    mbedtls_platform_random_delay( 50 );
 }
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)

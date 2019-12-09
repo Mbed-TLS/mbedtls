@@ -52,7 +52,7 @@
  * For historical reasons, low-level error codes are divided in even and odd,
  * even codes were assigned first, and -1 is reserved for other errors.
  *
- * Low-level module errors (0x0002-0x007E, 0x0003-0x007F)
+ * Low-level module errors (0x0002-0x007E, 0x0001-0x007F)
  *
  * Module   Nr  Codes assigned
  * ERROR     2         0x006E   0x0001

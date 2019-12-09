@@ -241,15 +241,21 @@ uint32_t mbedtls_platform_random_in_range( size_t num );
 /**
  * \brief       Random delay function.
  *
- *              Function implements random delay by incrementing local variable
- *              randomized number of times.
+ *              Function implements a random delay by incrementing a local
+ *              variable randomized number of times (busy-looping).
+ *
+ *              Duration of the delay is random as number of variable increments
+ *              is randomized.
  *
  * \note        Currently the function is dependent of hardware providing an
  *              rng with MBEDTLS_ENTROPY_HARDWARE_ALT.
  *
- * \param num   Max-value for the local variable increments.
+ * \param num   Max-value for the number of local variable increments, must be
+ *              less than INT_MAX. Total number of variable increment will be
+ *              randomized between 1 and num.
  *
- * \return      In success number of increments, -1 in case of errors.
+ * \return      In success number of increments made.
+ * \return      Negative value in case of errors.
  */
 int mbedtls_platform_random_delay( size_t num );
 

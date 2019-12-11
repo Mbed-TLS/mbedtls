@@ -4432,7 +4432,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 #else /* !MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
 static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    volatile int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, sig_len;
     unsigned char hash[48];
     unsigned char *hash_start = hash;
@@ -4618,17 +4618,25 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
             md_alg, ssl, hash, &dummy_hlen );
     }
 
-    if( ( ret = mbedtls_pk_verify( peer_pk,
-                           md_alg, hash_start, hashlen,
-                           ssl->in_msg + i, sig_len ) ) != 0 )
+    ret = mbedtls_pk_verify( peer_pk,
+                                      md_alg, hash_start, hashlen,
+                                      ssl->in_msg + i, sig_len );
+
+    if( ret == 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
-        goto exit;
+        mbedtls_platform_enforce_volatile_reads();
+
+        if( ret == 0 )
+        {
+            mbedtls_ssl_update_handshake_status( ssl );
+
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
+            goto exit;
+        } 
+        
     }
 
-    mbedtls_ssl_update_handshake_status( ssl );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
+    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
 
 exit:
 

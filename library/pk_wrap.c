@@ -542,10 +542,11 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
-static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
+    mbedtls_ecdsa_context *ctx = ctx_arg;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t key_handle = 0;
@@ -557,9 +558,10 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     unsigned char *p;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
     psa_algorithm_t psa_sig_md, psa_md;
-    psa_ecc_curve_t curve = mbedtls_psa_translate_ecc_group(
-                            ( (mbedtls_ecdsa_context *) ctx )->grp.id );
-    const size_t signature_part_size = ( ( (mbedtls_ecdsa_context *) ctx )->grp.nbits + 7 ) / 8;
+    size_t curve_bits;
+    psa_ecc_curve_t curve =
+        mbedtls_ecc_group_to_psa( ctx->grp.id, &curve_bits );
+    const size_t signature_part_size = ( ctx->grp.nbits + 7 ) / 8;
 
     if( curve == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );

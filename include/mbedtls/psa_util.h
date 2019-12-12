@@ -317,67 +317,6 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
 
 
-static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group_id grpid )
-{
-    switch( grpid )
-    {
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP192R1:
-            return( PSA_ECC_CURVE_SECP192R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP224R1:
-            return( PSA_ECC_CURVE_SECP224R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP256R1:
-            return( PSA_ECC_CURVE_SECP256R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP384R1:
-            return( PSA_ECC_CURVE_SECP384R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP521R1:
-            return( PSA_ECC_CURVE_SECP521R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
-        case MBEDTLS_ECP_DP_BP256R1:
-            return( PSA_ECC_CURVE_BRAINPOOL_P256R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
-        case MBEDTLS_ECP_DP_BP384R1:
-            return( PSA_ECC_CURVE_BRAINPOOL_P384R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
-        case MBEDTLS_ECP_DP_BP512R1:
-            return( PSA_ECC_CURVE_BRAINPOOL_P512R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-        case MBEDTLS_ECP_DP_CURVE25519:
-            return( PSA_ECC_CURVE_CURVE25519 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP192K1:
-            return( PSA_ECC_CURVE_SECP192K1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP224K1:
-            return( PSA_ECC_CURVE_SECP224K1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP256K1:
-            return( PSA_ECC_CURVE_SECP256K1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
-        case MBEDTLS_ECP_DP_CURVE448:
-            return( PSA_ECC_CURVE_CURVE448 );
-#endif
-        default:
-            return( 0 );
-    }
-}
-
 /* Translations for PK layer */
 
 static inline int mbedtls_psa_err_translate_pk( psa_status_t status )

@@ -560,6 +560,50 @@ psa_status_t psa_get_key_domain_parameters(
 
 /**@}*/
 
+/** \defgroup psa_tls_helpers TLS helper functions
+ * @{
+ */
+
+#if defined(MBEDTLS_ECP_C)
+#include <mbedtls/ecp.h>
+
+/** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
+ *
+ * \note This function is provided solely for the convenience of
+ *       Mbed TLS and may be removed at any time without notice.
+ *
+ * \param grpid         An Mbed TLS elliptic curve identifier
+ *                      (`MBEDTLS_ECP_DP_xxx`).
+ * \param[out] bits     On success, the bit size of the curve.
+ *
+ * \return              The corresponding PSA elliptic curve identifier
+ *                      (`PSA_ECC_CURVE_xxx`).
+ * \return              \c 0 on failure (\p grpid is not recognized).
+ */
+psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
+                                          size_t *bits );
+
+/** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
+ *
+ * \note This function is provided solely for the convenience of
+ *       Mbed TLS and may be removed at any time without notice.
+ *
+ * \param curve         A PSA elliptic curve identifier
+ *                      (`PSA_ECC_CURVE_xxx`).
+ * \param byte_length   The byte-length of a private key on \p curve.
+ *
+ * \return              The corresponding Mbed TLS elliptic curve identifier
+ *                      (`MBEDTLS_ECP_DP_xxx`).
+ * \return              #MBEDTLS_ECP_DP_NONE if \c curve is not recognized.
+ * \return              #MBEDTLS_ECP_DP_NONE if \p byte_length is not
+ *                      correct for \p curve.
+ */
+mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
+                                               size_t byte_length );
+#endif /* MBEDTLS_ECP_C */
+
+/**@}*/
+
 #ifdef __cplusplus
 }
 #endif

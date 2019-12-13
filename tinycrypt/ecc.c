@@ -65,7 +65,114 @@
 
 #include <tinycrypt/ecc.h>
 #include "mbedtls/platform_util.h"
+#include "mbedtls/sha256.h"
 #include <string.h>
+
+/* Parameters for curve NIST P-256 aka secp256r1 */
+const uECC_word_t curve_p[NUM_ECC_WORDS] = {
+	BYTES_TO_WORDS_8(FF, FF, FF, FF, FF, FF, FF, FF),
+	BYTES_TO_WORDS_8(FF, FF, FF, FF, 00, 00, 00, 00),
+	BYTES_TO_WORDS_8(00, 00, 00, 00, 00, 00, 00, 00),
+	BYTES_TO_WORDS_8(01, 00, 00, 00, FF, FF, FF, FF)
+};
+const uECC_word_t curve_n[NUM_ECC_WORDS] = {
+	BYTES_TO_WORDS_8(51, 25, 63, FC, C2, CA, B9, F3),
+	BYTES_TO_WORDS_8(84, 9E, 17, A7, AD, FA, E6, BC),
+	BYTES_TO_WORDS_8(FF, FF, FF, FF, FF, FF, FF, FF),
+	BYTES_TO_WORDS_8(00, 00, 00, 00, FF, FF, FF, FF)
+};
+const uECC_word_t curve_G[2 * NUM_ECC_WORDS] = {
+	BYTES_TO_WORDS_8(96, C2, 98, D8, 45, 39, A1, F4),
+	BYTES_TO_WORDS_8(A0, 33, EB, 2D, 81, 7D, 03, 77),
+	BYTES_TO_WORDS_8(F2, 40, A4, 63, E5, E6, BC, F8),
+	BYTES_TO_WORDS_8(47, 42, 2C, E1, F2, D1, 17, 6B),
+	BYTES_TO_WORDS_8(F5, 51, BF, 37, 68, 40, B6, CB),
+	BYTES_TO_WORDS_8(CE, 5E, 31, 6B, 57, 33, CE, 2B),
+	BYTES_TO_WORDS_8(16, 9E, 0F, 7C, 4A, EB, E7, 8E),
+	BYTES_TO_WORDS_8(9B, 7F, 1A, FE, E2, 42, E3, 4F)
+};
+const uECC_word_t curve_b[NUM_ECC_WORDS] = {
+	BYTES_TO_WORDS_8(4B, 60, D2, 27, 3E, 3C, CE, 3B),
+	BYTES_TO_WORDS_8(F6, B0, 53, CC, B0, 06, 1D, 65),
+	BYTES_TO_WORDS_8(BC, 86, 98, 76, 55, BD, EB, B3),
+	BYTES_TO_WORDS_8(E7, 93, 3A, AA, D8, 35, C6, 5A)
+};
+
+static int uECC_update_param_sha256(mbedtls_sha256_context *ctx,
+				    const uECC_word_t val[NUM_ECC_WORDS])
+{
+	uint8_t bytes[NUM_ECC_BYTES];
+
+	uECC_vli_nativeToBytes(bytes, NUM_ECC_BYTES, val);
+	return mbedtls_sha256_update_ret(ctx, bytes, NUM_ECC_BYTES);
+}
+
+static int uECC_compute_param_sha256(unsigned char output[32])
+{
+	int ret = UECC_FAILURE;
+	mbedtls_sha256_context ctx;
+
+	mbedtls_sha256_init( &ctx );
+
+	if (mbedtls_sha256_starts_ret(&ctx, 0) != 0) {
+		goto exit;
+	}
+
+	if (uECC_update_param_sha256(&ctx, curve_p) != 0 ||
+	    uECC_update_param_sha256(&ctx, curve_n) != 0 ||
+	    uECC_update_param_sha256(&ctx, curve_G) != 0 ||
+	    uECC_update_param_sha256(&ctx, curve_G + NUM_ECC_WORDS) != 0 ||
+	    uECC_update_param_sha256(&ctx, curve_b) != 0)
+	{
+		goto exit;
+	}
+
+	if (mbedtls_sha256_finish_ret(&ctx, output) != 0) {
+		goto exit;
+	}
+
+	ret = UECC_SUCCESS;
+
+exit:
+	mbedtls_sha256_free( &ctx );
+
+	return ret;
+}
+
+/*
+ * Check integrity of curve parameters.
+ * Return 0 if everything's OK, non-zero otherwise.
+ */
+static int uECC_check_curve_integrity(void)
+{
+	unsigned char computed[32];
+	static const unsigned char reference[32] = {
+		0x2d, 0xa1, 0xa4, 0x64, 0x45, 0x28, 0x0d, 0xe1,
+		0x93, 0xf9, 0x29, 0x2f, 0xac, 0x3e, 0xe2, 0x92,
+		0x76, 0x0a, 0xe2, 0xbc, 0xce, 0x2a, 0xa2, 0xc6,
+		0x38, 0xf2, 0x19, 0x1d, 0x76, 0x72, 0x93, 0x49,
+	};
+	unsigned char diff = 0;
+	unsigned char tmp1, tmp2;
+	volatile unsigned i;
+
+	if (uECC_compute_param_sha256(computed) != UECC_SUCCESS) {
+		return UECC_FAILURE;
+	}
+
+	for (i = 0; i < 32; i++) {
+		/* make sure the order of volatile accesses is well-defined */
+		tmp1 = computed[i];
+		tmp2 = reference[i];
+		diff |= tmp1 ^ tmp2;
+	}
+
+	/* i should be 32 */
+	mbedtls_platform_enforce_volatile_reads();
+	diff |= (unsigned char) i ^ 32;
+
+	return diff;
+}
 
 /* IMPORTANT: Make sure a cryptographically-secure PRNG is set and the platform
  * has access to enough entropy in order to feed the PRNG regularly. */
@@ -85,14 +192,14 @@ uECC_RNG_Function uECC_get_rng(void)
 	return g_rng_function;
 }
 
-int uECC_curve_private_key_size(uECC_Curve curve)
+int uECC_curve_private_key_size(void)
 {
-	return BITS_TO_BYTES(curve->num_n_bits);
+	return BITS_TO_BYTES(NUM_ECC_BITS);
 }
 
-int uECC_curve_public_key_size(uECC_Curve curve)
+int uECC_curve_public_key_size(void)
 {
-	return 2 * curve->num_bytes;
+	return 2 * NUM_ECC_BYTES;
 }
 
 void uECC_vli_clear(uECC_word_t *vli)
@@ -179,11 +286,19 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 {
 
 	uECC_word_t diff = 0;
-	wordcount_t i;
+	uECC_word_t tmp1, tmp2;
+	volatile int i;
 
 	for (i = NUM_ECC_WORDS - 1; i >= 0; --i) {
-		diff |= (left[i] ^ right[i]);
+		tmp1 = left[i];
+		tmp2 = right[i];
+		diff |= (tmp1 ^ tmp2);
 	}
+
+	/* i should be -1 now */
+	mbedtls_platform_enforce_volatile_reads();
+	diff |= i ^ -1;
+
 	return diff;
 }
 
@@ -575,12 +690,12 @@ void uECC_vli_modInv(uECC_word_t *result, const uECC_word_t *input,
 /* ------ Point operations ------ */
 
 void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
-			     uECC_word_t * Z1, uECC_Curve curve)
+			     uECC_word_t * Z1)
 {
 	/* t1 = X, t2 = Y, t3 = Z */
 	uECC_word_t t4[NUM_ECC_WORDS];
 	uECC_word_t t5[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
+	wordcount_t num_words = NUM_ECC_WORDS;
 
 	if (uECC_vli_isZero(Z1)) {
 		return;
@@ -592,15 +707,15 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_vli_modMult_fast(Y1, Y1, Z1); /* t2 = y1*z1 = z3 */
 	uECC_vli_modMult_fast(Z1, Z1, Z1);   /* t3 = z1^2 */
 
-	uECC_vli_modAdd(X1, X1, Z1, curve->p); /* t1 = x1 + z1^2 */
-	uECC_vli_modAdd(Z1, Z1, Z1, curve->p); /* t3 = 2*z1^2 */
-	uECC_vli_modSub(Z1, X1, Z1, curve->p); /* t3 = x1 - z1^2 */
+	uECC_vli_modAdd(X1, X1, Z1, curve_p); /* t1 = x1 + z1^2 */
+	uECC_vli_modAdd(Z1, Z1, Z1, curve_p); /* t3 = 2*z1^2 */
+	uECC_vli_modSub(Z1, X1, Z1, curve_p); /* t3 = x1 - z1^2 */
 	uECC_vli_modMult_fast(X1, X1, Z1); /* t1 = x1^2 - z1^4 */
 
-	uECC_vli_modAdd(Z1, X1, X1, curve->p); /* t3 = 2*(x1^2 - z1^4) */
-	uECC_vli_modAdd(X1, X1, Z1, curve->p); /* t1 = 3*(x1^2 - z1^4) */
+	uECC_vli_modAdd(Z1, X1, X1, curve_p); /* t3 = 2*(x1^2 - z1^4) */
+	uECC_vli_modAdd(X1, X1, Z1, curve_p); /* t1 = 3*(x1^2 - z1^4) */
 	if (uECC_vli_testBit(X1, 0)) {
-		uECC_word_t l_carry = uECC_vli_add(X1, X1, curve->p);
+		uECC_word_t l_carry = uECC_vli_add(X1, X1, curve_p);
 		uECC_vli_rshift1(X1);
 		X1[num_words - 1] |= l_carry << (uECC_WORD_BITS - 1);
 	} else {
@@ -609,34 +724,34 @@ void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
 
 	/* t1 = 3/2*(x1^2 - z1^4) = B */
 	uECC_vli_modMult_fast(Z1, X1, X1); /* t3 = B^2 */
-	uECC_vli_modSub(Z1, Z1, t5, curve->p); /* t3 = B^2 - A */
-	uECC_vli_modSub(Z1, Z1, t5, curve->p); /* t3 = B^2 - 2A = x3 */
-	uECC_vli_modSub(t5, t5, Z1, curve->p); /* t5 = A - x3 */
+	uECC_vli_modSub(Z1, Z1, t5, curve_p); /* t3 = B^2 - A */
+	uECC_vli_modSub(Z1, Z1, t5, curve_p); /* t3 = B^2 - 2A = x3 */
+	uECC_vli_modSub(t5, t5, Z1, curve_p); /* t5 = A - x3 */
 	uECC_vli_modMult_fast(X1, X1, t5); /* t1 = B * (A - x3) */
 	/* t4 = B * (A - x3) - y1^4 = y3: */
-	uECC_vli_modSub(t4, X1, t4, curve->p);
+	uECC_vli_modSub(t4, X1, t4, curve_p);
 
 	uECC_vli_set(X1, Z1);
 	uECC_vli_set(Z1, Y1);
 	uECC_vli_set(Y1, t4);
 }
 
-void x_side_default(uECC_word_t *result,
-		    const uECC_word_t *x,
-		    uECC_Curve curve)
+/*
+ * @brief Computes x^3 + ax + b. result must not overlap x.
+ * @param result OUT -- x^3 + ax + b
+ * @param x IN -- value of x
+ * @param curve IN -- elliptic curve
+ */
+static void x_side_default(uECC_word_t *result,
+		    const uECC_word_t *x)
 {
 	uECC_word_t _3[NUM_ECC_WORDS] = {3}; /* -a = 3 */
 
 	uECC_vli_modMult_fast(result, x, x); /* r = x^2 */
-	uECC_vli_modSub(result, result, _3, curve->p); /* r = x^2 - 3 */
+	uECC_vli_modSub(result, result, _3, curve_p); /* r = x^2 - 3 */
 	uECC_vli_modMult_fast(result, result, x); /* r = x^3 - 3x */
 	/* r = x^3 - 3x + b: */
-	uECC_vli_modAdd(result, result, curve->b, curve->p);
-}
-
-uECC_Curve uECC_secp256r1(void)
-{
-	return &curve_secp256r1;
+	uECC_vli_modAdd(result, result, curve_b, curve_p);
 }
 
 void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
@@ -729,20 +844,19 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int*product)
 
 	if (carry < 0) {
 		do {
-			carry += uECC_vli_add(result, result, curve_secp256r1.p);
+			carry += uECC_vli_add(result, result, curve_p);
 		}
 		while (carry < 0);
 	} else  {
 		while (carry || 
-		       uECC_vli_cmp_unsafe(curve_secp256r1.p, result) != 1) {
-			carry -= uECC_vli_sub(result, result, curve_secp256r1.p);
+		       uECC_vli_cmp_unsafe(curve_p, result) != 1) {
+			carry -= uECC_vli_sub(result, result, curve_p);
 		}
 	}
 }
 
-uECC_word_t EccPoint_isZero(const uECC_word_t *point, uECC_Curve curve)
+uECC_word_t EccPoint_isZero(const uECC_word_t *point)
 {
-	(void) curve;
 	return uECC_vli_isZero(point);
 }
 
@@ -759,8 +873,7 @@ void apply_z(uECC_word_t * X1, uECC_word_t * Y1, const uECC_word_t * const Z)
 /* P = (x1, y1) => 2P, (x2, y2) => P' */
 static void XYcZ_initial_double(uECC_word_t * X1, uECC_word_t * Y1,
 				uECC_word_t * X2, uECC_word_t * Y2,
-				const uECC_word_t * const initial_Z,
-				uECC_Curve curve)
+				const uECC_word_t * const initial_Z)
 {
 	uECC_word_t z[NUM_ECC_WORDS];
 	if (initial_Z) {
@@ -774,7 +887,7 @@ static void XYcZ_initial_double(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_vli_set(Y2, Y1);
 
 	apply_z(X1, Y1, z);
-	curve->double_jacobian(X1, Y1, z, curve);
+	double_jacobian_default(X1, Y1, z);
 	apply_z(X2, Y2, z);
 }
 
@@ -784,31 +897,28 @@ static void XYcZ_add_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 {
 	/* t1 = X1, t2 = Y1, t3 = X2, t4 = Y2 */
 	uECC_word_t t5[NUM_ECC_WORDS];
-	const uECC_Curve curve = &curve_secp256r1;
 
-	uECC_vli_modSub(t5, X2, X1, curve->p); /* t5 = x2 - x1 */
+	uECC_vli_modSub(t5, X2, X1, curve_p); /* t5 = x2 - x1 */
 	uECC_vli_modMult_rnd(t5, t5, t5, s); /* t5 = (x2 - x1)^2 = A */
 	uECC_vli_modMult_rnd(X1, X1, t5, s); /* t1 = x1*A = B */
 	uECC_vli_modMult_rnd(X2, X2, t5, s); /* t3 = x2*A = C */
-	uECC_vli_modSub(Y2, Y2, Y1, curve->p); /* t4 = y2 - y1 */
+	uECC_vli_modSub(Y2, Y2, Y1, curve_p); /* t4 = y2 - y1 */
 	uECC_vli_modMult_rnd(t5, Y2, Y2, s); /* t5 = (y2 - y1)^2 = D */
 
-	uECC_vli_modSub(t5, t5, X1, curve->p); /* t5 = D - B */
-	uECC_vli_modSub(t5, t5, X2, curve->p); /* t5 = D - B - C = x3 */
-	uECC_vli_modSub(X2, X2, X1, curve->p); /* t3 = C - B */
+	uECC_vli_modSub(t5, t5, X1, curve_p); /* t5 = D - B */
+	uECC_vli_modSub(t5, t5, X2, curve_p); /* t5 = D - B - C = x3 */
+	uECC_vli_modSub(X2, X2, X1, curve_p); /* t3 = C - B */
 	uECC_vli_modMult_rnd(Y1, Y1, X2, s); /* t2 = y1*(C - B) */
-	uECC_vli_modSub(X2, X1, t5, curve->p); /* t3 = B - x3 */
+	uECC_vli_modSub(X2, X1, t5, curve_p); /* t3 = B - x3 */
 	uECC_vli_modMult_rnd(Y2, Y2, X2, s); /* t4 = (y2 - y1)*(B - x3) */
-	uECC_vli_modSub(Y2, Y2, Y1, curve->p); /* t4 = y3 */
+	uECC_vli_modSub(Y2, Y2, Y1, curve_p); /* t4 = y3 */
 
 	uECC_vli_set(X2, t5);
 }
 
 void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1,
-	      uECC_word_t * X2, uECC_word_t * Y2,
-	      uECC_Curve curve)
+	      uECC_word_t * X2, uECC_word_t * Y2)
 {
-	(void) curve;
 	XYcZ_add_rnd(X1, Y1, X2, Y2, NULL);
 }
 
@@ -824,32 +934,31 @@ static void XYcZ_addC_rnd(uECC_word_t * X1, uECC_word_t * Y1,
 	uECC_word_t t5[NUM_ECC_WORDS];
 	uECC_word_t t6[NUM_ECC_WORDS];
 	uECC_word_t t7[NUM_ECC_WORDS];
-	const uECC_Curve curve = &curve_secp256r1;
 
-	uECC_vli_modSub(t5, X2, X1, curve->p); /* t5 = x2 - x1 */
+	uECC_vli_modSub(t5, X2, X1, curve_p); /* t5 = x2 - x1 */
 	uECC_vli_modMult_rnd(t5, t5, t5, s); /* t5 = (x2 - x1)^2 = A */
 	uECC_vli_modMult_rnd(X1, X1, t5, s); /* t1 = x1*A = B */
 	uECC_vli_modMult_rnd(X2, X2, t5, s); /* t3 = x2*A = C */
-	uECC_vli_modAdd(t5, Y2, Y1, curve->p); /* t5 = y2 + y1 */
-	uECC_vli_modSub(Y2, Y2, Y1, curve->p); /* t4 = y2 - y1 */
+	uECC_vli_modAdd(t5, Y2, Y1, curve_p); /* t5 = y2 + y1 */
+	uECC_vli_modSub(Y2, Y2, Y1, curve_p); /* t4 = y2 - y1 */
 
-	uECC_vli_modSub(t6, X2, X1, curve->p); /* t6 = C - B */
+	uECC_vli_modSub(t6, X2, X1, curve_p); /* t6 = C - B */
 	uECC_vli_modMult_rnd(Y1, Y1, t6, s); /* t2 = y1 * (C - B) = E */
-	uECC_vli_modAdd(t6, X1, X2, curve->p); /* t6 = B + C */
+	uECC_vli_modAdd(t6, X1, X2, curve_p); /* t6 = B + C */
 	uECC_vli_modMult_rnd(X2, Y2, Y2, s); /* t3 = (y2 - y1)^2 = D */
-	uECC_vli_modSub(X2, X2, t6, curve->p); /* t3 = D - (B + C) = x3 */
+	uECC_vli_modSub(X2, X2, t6, curve_p); /* t3 = D - (B + C) = x3 */
 
-	uECC_vli_modSub(t7, X1, X2, curve->p); /* t7 = B - x3 */
+	uECC_vli_modSub(t7, X1, X2, curve_p); /* t7 = B - x3 */
 	uECC_vli_modMult_rnd(Y2, Y2, t7, s); /* t4 = (y2 - y1)*(B - x3) */
 	/* t4 = (y2 - y1)*(B - x3) - E = y3: */
-	uECC_vli_modSub(Y2, Y2, Y1, curve->p);
+	uECC_vli_modSub(Y2, Y2, Y1, curve_p);
 
 	uECC_vli_modMult_rnd(t7, t5, t5, s); /* t7 = (y2 + y1)^2 = F */
-	uECC_vli_modSub(t7, t7, t6, curve->p); /* t7 = F - (B + C) = x3' */
-	uECC_vli_modSub(t6, t7, X1, curve->p); /* t6 = x3' - B */
+	uECC_vli_modSub(t7, t7, t6, curve_p); /* t7 = F - (B + C) = x3' */
+	uECC_vli_modSub(t6, t7, X1, curve_p); /* t6 = x3' - B */
 	uECC_vli_modMult_rnd(t6, t6, t5, s); /* t6 = (y2+y1)*(x3' - B) */
 	/* t2 = (y2+y1)*(x3' - B) - E = y3': */
-	uECC_vli_modSub(Y1, t6, Y1, curve->p);
+	uECC_vli_modSub(Y1, t6, Y1, curve_p);
 
 	uECC_vli_set(X1, t7);
 }
@@ -866,14 +975,13 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	uECC_word_t nb;
 	const wordcount_t num_words = NUM_ECC_WORDS;
 	const bitcount_t num_bits = NUM_ECC_BITS + 1; /* from regularize_k */
-	const uECC_Curve curve = uECC_secp256r1();
 	ecc_wait_state_t wait_state;
 	ecc_wait_state_t * const ws = g_rng_function ? &wait_state : NULL;
 
 	uECC_vli_set(Rx[1], point);
   	uECC_vli_set(Ry[1], point + num_words);
 
-	XYcZ_initial_double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z, curve);
+	XYcZ_initial_double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z);
 
 	for (i = num_bits - 2; i > 0; --i) {
 		ecc_wait_state_reset(ws);
@@ -887,10 +995,10 @@ static void EccPoint_mult(uECC_word_t * result, const uECC_word_t * point,
 	XYcZ_addC_rnd(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb], ws);
 
 	/* Find final 1/Z value. */
-	uECC_vli_modSub(z, Rx[1], Rx[0], curve->p); /* X1 - X0 */
+	uECC_vli_modSub(z, Rx[1], Rx[0], curve_p); /* X1 - X0 */
 	uECC_vli_modMult_fast(z, z, Ry[1 - nb]); /* Yb * (X1 - X0) */
 	uECC_vli_modMult_fast(z, z, point); /* xP * Yb * (X1 - X0) */
-	uECC_vli_modInv(z, z, curve->p); /* 1 / (xP * Yb * (X1 - X0))*/
+	uECC_vli_modInv(z, z, curve_p); /* 1 / (xP * Yb * (X1 - X0))*/
 	/* yP / (xP * Yb * (X1 - X0)) */
 	uECC_vli_modMult_fast(z, z, point + num_words);
 	/* Xb * yP / (xP * Yb * (X1 - X0)) */
@@ -910,19 +1018,18 @@ static uECC_word_t regularize_k(const uECC_word_t * const k, uECC_word_t *k0,
 
 	wordcount_t num_n_words = NUM_ECC_WORDS;
 	bitcount_t num_n_bits = NUM_ECC_BITS;
-	const uECC_Curve curve = uECC_secp256r1();
 
-	uECC_word_t carry = uECC_vli_add(k0, k, curve->n) ||
+	uECC_word_t carry = uECC_vli_add(k0, k, curve_n) ||
 			     (num_n_bits < ((bitcount_t)num_n_words * uECC_WORD_SIZE * 8) &&
 			     uECC_vli_testBit(k0, num_n_bits));
 
-	uECC_vli_add(k1, k0, curve->n);
+	uECC_vli_add(k1, k0, curve_n);
 
 	return carry;
 }
 
 int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
-			const uECC_word_t * scalar, uECC_Curve curve)
+			const uECC_word_t * scalar)
 {
 	uECC_word_t tmp[NUM_ECC_WORDS];
 	uECC_word_t s[NUM_ECC_WORDS];
@@ -930,10 +1037,32 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	wordcount_t num_words = NUM_ECC_WORDS;
 	uECC_word_t carry;
 	uECC_word_t *initial_Z = 0;
-	int r;
+	int r = UECC_FAULT_DETECTED;
+	volatile int problem;
 
-	if (curve != uECC_secp256r1())
-		return 0;
+	/* Protect against faults modifying curve paremeters in flash */
+	problem = -1;
+	problem = uECC_check_curve_integrity();
+	if (problem != 0) {
+		return UECC_FAULT_DETECTED;
+	}
+	mbedtls_platform_enforce_volatile_reads();
+	if (problem != 0) {
+		return UECC_FAULT_DETECTED;
+	}
+
+	/* Protects against invalid curve attacks */
+	problem = -1;
+	problem = uECC_valid_point(point);
+	if (problem != 0) {
+		/* invalid input, can happen without fault */
+		return UECC_FAILURE;
+	}
+	mbedtls_platform_enforce_volatile_reads();
+	if (problem != 0) {
+		/* failure on second check means fault, though */
+		return UECC_FAULT_DETECTED;
+	}
 
 	/* Regularize the bitcount for the private key so that attackers cannot use a
 	 * side channel attack to learn the number of leading zeros. */
@@ -942,15 +1071,43 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	/* If an RNG function was specified, get a random initial Z value to
          * protect against side-channel attacks such as Template SPA */
 	if (g_rng_function) {
-		if (!uECC_generate_random_int(k2[carry], curve->p, num_words)) {
-			r = 0;
+		if (!uECC_generate_random_int(k2[carry], curve_p, num_words)) {
+			r = UECC_FAILURE;
 			goto clear_and_out;
 		}
 		initial_Z = k2[carry];
 	}
 
 	EccPoint_mult(result, point, k2[!carry], initial_Z);
-	r = 1;
+
+	/* Protect against fault injections that would make the resulting
+	 * point not lie on the intended curve */
+	problem = -1;
+	problem = uECC_valid_point(result);
+	if (problem != 0) {
+		r = UECC_FAULT_DETECTED;
+		goto clear_and_out;
+	}
+	mbedtls_platform_enforce_volatile_reads();
+	if (problem != 0) {
+		r = UECC_FAULT_DETECTED;
+		goto clear_and_out;
+	}
+
+	/* Protect against faults modifying curve paremeters in flash */
+	problem = -1;
+	problem = uECC_check_curve_integrity();
+	if (problem != 0) {
+		r = UECC_FAULT_DETECTED;
+		goto clear_and_out;
+	}
+	mbedtls_platform_enforce_volatile_reads();
+	if (problem != 0) {
+		r = UECC_FAULT_DETECTED;
+		goto clear_and_out;
+	}
+
+	r = UECC_SUCCESS;
 
 clear_and_out:
 	/* erasing temporary buffer used to store secret: */
@@ -962,28 +1119,9 @@ clear_and_out:
 }
 
 uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
-					uECC_word_t *private_key,
-					uECC_Curve curve)
+					uECC_word_t *private_key)
 {
-
-	uECC_word_t tmp1[NUM_ECC_WORDS];
- 	uECC_word_t tmp2[NUM_ECC_WORDS];
-	uECC_word_t *p2[2] = {tmp1, tmp2};
-	uECC_word_t carry;
-
-	if (curve != uECC_secp256r1())
-		return 0;
-
-	/* Regularize the bitcount for the private key so that attackers cannot
-	 * use a side channel attack to learn the number of leading zeros. */
-	carry = regularize_k(private_key, tmp1, tmp2);
-
-	EccPoint_mult(result, curve->G, p2[!carry], 0);
-
-	if (EccPoint_isZero(result, curve)) {
-		return 0;
-	}
-	return 1;
+	return EccPoint_mult_safer(result, curve_G, private_key);
 }
 
 /* Converts an integer in uECC native format to big-endian bytes. */
@@ -1036,81 +1174,87 @@ int uECC_generate_random_int(uECC_word_t *random, const uECC_word_t *top,
 }
 
 
-int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve)
+int uECC_valid_point(const uECC_word_t *point)
 {
 	uECC_word_t tmp1[NUM_ECC_WORDS];
 	uECC_word_t tmp2[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
+	wordcount_t num_words = NUM_ECC_WORDS;
+	volatile uECC_word_t diff = 0xffffffff;
 
 	/* The point at infinity is invalid. */
-	if (EccPoint_isZero(point, curve)) {
+	if (EccPoint_isZero(point)) {
 		return -1;
 	}
 
 	/* x and y must be smaller than p. */
-	if (uECC_vli_cmp_unsafe(curve->p, point) != 1 ||
-		uECC_vli_cmp_unsafe(curve->p, point + num_words) != 1) {
+	if (uECC_vli_cmp_unsafe(curve_p, point) != 1 ||
+		uECC_vli_cmp_unsafe(curve_p, point + num_words) != 1) {
 		return -2;
 	}
 
 	uECC_vli_modMult_fast(tmp1, point + num_words, point + num_words);
-	curve->x_side(tmp2, point, curve); /* tmp2 = x^3 + ax + b */
+	x_side_default(tmp2, point); /* tmp2 = x^3 + ax + b */
 
 	/* Make sure that y^2 == x^3 + ax + b */
-	if (uECC_vli_equal(tmp1, tmp2) != 0)
-		return -3;
+	diff = uECC_vli_equal(tmp1, tmp2);
+	if (diff == 0) {
+		mbedtls_platform_enforce_volatile_reads();
+		if (diff == 0) {
+			return 0;
+		}
+	}
 
-	return 0;
+	return -3;
 }
 
-int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve)
+int uECC_valid_public_key(const uint8_t *public_key)
 {
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 
-	uECC_vli_bytesToNative(_public, public_key, curve->num_bytes);
+	uECC_vli_bytesToNative(_public, public_key, NUM_ECC_BYTES);
 	uECC_vli_bytesToNative(
-	_public + curve->num_words,
-	public_key + curve->num_bytes,
-	curve->num_bytes);
+	_public + NUM_ECC_WORDS,
+	public_key + NUM_ECC_BYTES,
+	NUM_ECC_BYTES);
 
-	if (memcmp(_public, curve->G, NUM_ECC_WORDS * 2) == 0) {
+	if (memcmp(_public, curve_G, NUM_ECC_WORDS * 2) == 0) {
 		return -4;
 	}
 
-	return uECC_valid_point(_public, curve);
+	return uECC_valid_point(_public);
 }
 
-int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key,
-			    uECC_Curve curve)
+int uECC_compute_public_key(const uint8_t *private_key, uint8_t *public_key)
 {
-
+	int ret;
 	uECC_word_t _private[NUM_ECC_WORDS];
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 
 	uECC_vli_bytesToNative(
 	_private,
 	private_key,
-	BITS_TO_BYTES(curve->num_n_bits));
+	BITS_TO_BYTES(NUM_ECC_BITS));
 
 	/* Make sure the private key is in the range [1, n-1]. */
 	if (uECC_vli_isZero(_private)) {
-		return 0;
+		return UECC_FAILURE;
 	}
 
-	if (uECC_vli_cmp(curve->n, _private) != 1) {
-		return 0;
+	if (uECC_vli_cmp(curve_n, _private) != 1) {
+		return UECC_FAILURE;
 	}
 
 	/* Compute public key. */
-	if (!EccPoint_compute_public_key(_public, _private, curve)) {
-		return 0;
+	ret = EccPoint_compute_public_key(_public, _private);
+	if (ret != UECC_SUCCESS) {
+		return ret;
 	}
 
-	uECC_vli_nativeToBytes(public_key, curve->num_bytes, _public);
+	uECC_vli_nativeToBytes(public_key, NUM_ECC_BYTES, _public);
 	uECC_vli_nativeToBytes(
 	public_key +
-	curve->num_bytes, curve->num_bytes, _public + curve->num_words);
-	return 1;
+	NUM_ECC_BYTES, NUM_ECC_BYTES, _public + NUM_ECC_WORDS);
+	return UECC_SUCCESS;
 }
 

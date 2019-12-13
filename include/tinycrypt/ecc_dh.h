@@ -82,8 +82,7 @@ extern "C" {
 
 /**
  * @brief Create a public/private key pair.
- * @return returns TC_CRYPTO_SUCCESS (1) if the key pair was generated successfully
- *         returns TC_CRYPTO_FAIL (0) if error while generating key pair
+ * @return UECC_SUCCESS or UECC_FAILURE or UECC_FAULT_DETECTED
  *
  * @param p_public_key OUT -- Will be filled in with the public key. Must be at
  * least 2 * the curve size (in bytes) long. For curve secp256r1, p_public_key
@@ -96,7 +95,7 @@ extern "C" {
  * @warning A cryptographically-secure PRNG function must be set (using
  * uECC_set_rng()) before calling uECC_make_key().
  */
-int uECC_make_key(uint8_t *p_public_key, uint8_t *p_private_key, uECC_Curve curve);
+int uECC_make_key(uint8_t *p_public_key, uint8_t *p_private_key);
 
 #ifdef ENABLE_TESTS
 
@@ -107,14 +106,13 @@ int uECC_make_key(uint8_t *p_public_key, uint8_t *p_private_key, uECC_Curve curv
  * uECC_make_key() function for real applications.
  */
 int uECC_make_key_with_d(uint8_t *p_public_key, uint8_t *p_private_key,
-    			 unsigned int *d, uECC_Curve curve);
+    			 unsigned int *d);
 #endif
 
 /**
  * @brief Compute a shared secret given your secret key and someone else's
  * public key.
- * @return returns TC_CRYPTO_SUCCESS (1) if the shared secret was computed successfully
- *         returns TC_CRYPTO_FAIL (0) otherwise
+ * @return UECC_SUCCESS or UECC_FAILURE or UECC_FAULT_DETECTED
  *
  * @param p_secret OUT -- Will be filled in with the shared secret value. Must be
  * the same size as the curve size (for curve secp256r1, secret must be 32 bytes
@@ -127,7 +125,7 @@ int uECC_make_key_with_d(uint8_t *p_public_key, uint8_t *p_private_key,
  * order to produce a cryptographically secure symmetric key.
  */
 int uECC_shared_secret(const uint8_t *p_public_key, const uint8_t *p_private_key,
-		       uint8_t *p_secret, uECC_Curve curve);
+		       uint8_t *p_secret);
 
 #ifdef __cplusplus
 }

@@ -3279,9 +3279,6 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
     unsigned char *dig_signed = NULL;
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED */
-#if defined(MBEDTLS_USE_TINYCRYPT)
-    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
-#endif
 
     (void) ciphersuite_info; /* unused in some configurations */
 #if !defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
@@ -3413,6 +3410,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_USE_TINYCRYPT)
         {
+            int ret;
             static const unsigned char ecdh_param_hdr[] = {
                 MBEDTLS_SSL_EC_TLS_NAMED_CURVE,
                 0  /* high bits of secp256r1 TLS ID  */,
@@ -3429,13 +3427,12 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                     ecdh_param_hdr, sizeof( ecdh_param_hdr ) );
             ssl->out_msglen += sizeof( ecdh_param_hdr );
 
-            if( !uECC_make_key( &ssl->out_msg[ ssl->out_msglen ],
-                                ssl->handshake->ecdh_privkey,
-                                uecc_curve ) )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Key creation failed" ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            }
+            ret = uECC_make_key( &ssl->out_msg[ ssl->out_msglen ],
+                                 ssl->handshake->ecdh_privkey );
+            if( ret == UECC_FAULT_DETECTED )
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+            if( ret != UECC_SUCCESS )
+                return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
             ssl->out_msglen += 2*NUM_ECC_BYTES;
         }

@@ -87,7 +87,7 @@ extern "C" {
  * attacks flipping a low number of bits. */
 #define UECC_SUCCESS            0
 #define UECC_FAILURE            0x75555555
-#define UECC_ATTACK_DETECTED    0x7aaaaaaa
+#define UECC_FAULT_DETECTED     0x7aaaaaaa
 
 /* Word size (4 bytes considering 32-bits architectures) */
 #define uECC_WORD_SIZE 4
@@ -119,23 +119,6 @@ typedef uint64_t uECC_dword_t;
 #define NUM_ECC_BYTES (uECC_WORD_SIZE*NUM_ECC_WORDS)
 #define NUM_ECC_BITS 256
 
-/* structure that represents an elliptic curve (e.g. p256):*/
-struct uECC_Curve_t;
-typedef const struct uECC_Curve_t * uECC_Curve;
-struct uECC_Curve_t {
-  wordcount_t num_words;
-  wordcount_t num_bytes;
-  bitcount_t num_n_bits;
-  uECC_word_t p[NUM_ECC_WORDS];
-  uECC_word_t n[NUM_ECC_WORDS];
-  uECC_word_t G[NUM_ECC_WORDS * 2];
-  uECC_word_t b[NUM_ECC_WORDS];
-  void (*double_jacobian)(uECC_word_t * X1, uECC_word_t * Y1, uECC_word_t * Z1,
-	uECC_Curve curve);
-  void (*x_side)(uECC_word_t *result, const uECC_word_t *x, uECC_Curve curve);
-  void (*mmod_fast)(uECC_word_t *result, uECC_word_t *product);
-};
-
 /*
  * @brief computes doubling of point ion jacobian coordinates, in place.
  * @param X1 IN/OUT -- x coordinate
@@ -144,16 +127,7 @@ struct uECC_Curve_t {
  * @param curve IN -- elliptic curve
  */
 void double_jacobian_default(uECC_word_t * X1, uECC_word_t * Y1,
-			     uECC_word_t * Z1, uECC_Curve curve);
-
-/*
- * @brief Computes x^3 + ax + b. result must not overlap x.
- * @param result OUT -- x^3 + ax + b
- * @param x IN -- value of x
- * @param curve IN -- elliptic curve
- */
-void x_side_default(uECC_word_t *result, const uECC_word_t *x,
-		    uECC_Curve curve);
+			     uECC_word_t * Z1);
 
 /*
  * @brief Computes result = product % curve_p
@@ -170,42 +144,10 @@ void vli_mmod_fast_secp256r1(unsigned int *result, unsigned int *product);
 	((num_bits + ((uECC_WORD_SIZE * 8) - 1)) / (uECC_WORD_SIZE * 8))
 #define BITS_TO_BYTES(num_bits) ((num_bits + 7) / 8)
 
-/* definition of curve NIST p-256: */
-static const struct uECC_Curve_t curve_secp256r1 = {
-	NUM_ECC_WORDS,
-	NUM_ECC_BYTES,
-	256, /* num_n_bits */ {
-		BYTES_TO_WORDS_8(FF, FF, FF, FF, FF, FF, FF, FF),
-		BYTES_TO_WORDS_8(FF, FF, FF, FF, 00, 00, 00, 00),
-        	BYTES_TO_WORDS_8(00, 00, 00, 00, 00, 00, 00, 00),
-        	BYTES_TO_WORDS_8(01, 00, 00, 00, FF, FF, FF, FF)
-	}, {
-		BYTES_TO_WORDS_8(51, 25, 63, FC, C2, CA, B9, F3),
-            	BYTES_TO_WORDS_8(84, 9E, 17, A7, AD, FA, E6, BC),
-            	BYTES_TO_WORDS_8(FF, FF, FF, FF, FF, FF, FF, FF),
-            	BYTES_TO_WORDS_8(00, 00, 00, 00, FF, FF, FF, FF)
-	}, {
-		BYTES_TO_WORDS_8(96, C2, 98, D8, 45, 39, A1, F4),
-                BYTES_TO_WORDS_8(A0, 33, EB, 2D, 81, 7D, 03, 77),
-                BYTES_TO_WORDS_8(F2, 40, A4, 63, E5, E6, BC, F8),
-                BYTES_TO_WORDS_8(47, 42, 2C, E1, F2, D1, 17, 6B),
-
-                BYTES_TO_WORDS_8(F5, 51, BF, 37, 68, 40, B6, CB),
-                BYTES_TO_WORDS_8(CE, 5E, 31, 6B, 57, 33, CE, 2B),
-                BYTES_TO_WORDS_8(16, 9E, 0F, 7C, 4A, EB, E7, 8E),
-                BYTES_TO_WORDS_8(9B, 7F, 1A, FE, E2, 42, E3, 4F)
-	}, {
-		BYTES_TO_WORDS_8(4B, 60, D2, 27, 3E, 3C, CE, 3B),
-                BYTES_TO_WORDS_8(F6, B0, 53, CC, B0, 06, 1D, 65),
-                BYTES_TO_WORDS_8(BC, 86, 98, 76, 55, BD, EB, B3),
-                BYTES_TO_WORDS_8(E7, 93, 3A, AA, D8, 35, C6, 5A)
-	},
-        &double_jacobian_default,
-        &x_side_default,
-        &vli_mmod_fast_secp256r1
-};
-
-uECC_Curve uECC_secp256r1(void);
+extern const uECC_word_t curve_p[NUM_ECC_WORDS];
+extern const uECC_word_t curve_n[NUM_ECC_WORDS];
+extern const uECC_word_t curve_G[2 * NUM_ECC_WORDS];
+extern const uECC_word_t curve_b[NUM_ECC_WORDS];
 
 /*
  * @brief Generates a random integer in the range 0 < random < top.
@@ -260,24 +202,24 @@ uECC_RNG_Function uECC_get_rng(void);
  * @param curve IN -- elliptic curve
  * @return size of a private key for the curve in bytes.
  */
-int uECC_curve_private_key_size(uECC_Curve curve);
+int uECC_curve_private_key_size(void);
 
 /*
  * @brief computes the size of a public key for the curve in bytes.
  * @param curve IN -- elliptic curve
  * @return the size of a public key for the curve in bytes.
  */
-int uECC_curve_public_key_size(uECC_Curve curve);
+int uECC_curve_public_key_size(void);
 
 /*
  * @brief Compute the corresponding public key for a private key.
  * @param private_key IN -- The private key to compute the public key for
  * @param public_key OUT -- Will be filled in with the corresponding public key
  * @param curve
- * @return Returns 1 if key was computed successfully, 0 if an error occurred.
+ * @return UECC_SUCCESS or UECC_FAILURE or UECC_FAULT_DETECTED
  */
 int uECC_compute_public_key(const uint8_t *private_key,
-			    uint8_t *public_key, uECC_Curve curve);
+			    uint8_t *public_key);
 
 /*
  * @brief Compute public-key.
@@ -285,9 +227,10 @@ int uECC_compute_public_key(const uint8_t *private_key,
  * @param result OUT -- public-key
  * @param private_key IN -- private-key
  * @param curve IN -- elliptic curve
+ * @return UECC_SUCCESS or UECC_FAILURE or UECC_FAULT_DETECTED
  */
 uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
-					uECC_word_t *private_key, uECC_Curve curve);
+					uECC_word_t *private_key);
 
 /*
  * @brief Point multiplication algorithm using Montgomery's ladder with co-Z
@@ -298,10 +241,10 @@ uECC_word_t EccPoint_compute_public_key(uECC_word_t *result,
  * @param result OUT -- returns scalar*point
  * @param point IN -- elliptic curve point
  * @param scalar IN -- scalar
- * @param curve IN -- elliptic curve
+ * @return UECC_SUCCESS or UECC_FAILURE or UECC_FAULT_DETECTED
  */
 int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
-			const uECC_word_t * scalar, uECC_Curve curve);
+			const uECC_word_t * scalar);
 
 /*
  * @brief Constant-time comparison to zero - secure way to compare long integers
@@ -314,10 +257,9 @@ uECC_word_t uECC_vli_isZero(const uECC_word_t *vli);
 /*
  * @brief Check if 'point' is the point at infinity
  * @param point IN -- elliptic curve point
- * @param curve IN -- elliptic curve
  * @return if 'point' is the point at infinity, 0 otherwise.
  */
-uECC_word_t EccPoint_isZero(const uECC_word_t *point, uECC_Curve curve);
+uECC_word_t EccPoint_isZero(const uECC_word_t *point);
 
 /*
  * @brief computes the sign of left - right, in constant time.
@@ -362,7 +304,7 @@ void uECC_vli_modSub(uECC_word_t *result, const uECC_word_t *left,
  * @param curve IN -- elliptic curve
  */
 void XYcZ_add(uECC_word_t * X1, uECC_word_t * Y1, uECC_word_t * X2,
-	      uECC_word_t * Y2, uECC_Curve curve);
+	      uECC_word_t * Y2);
 
 /*
  * @brief Computes (x1 * z^2, y1 * z^3)
@@ -493,7 +435,7 @@ void uECC_vli_clear(uECC_word_t *vli);
  * @exception returns -2 if x or y is smaller than p,
  * @exception returns -3 if y^2 != x^3 + ax + b.
  */
-int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve);
+int uECC_valid_point(const uECC_word_t *point);
 
 /*
  * @brief Check if a public key is valid.
@@ -509,7 +451,7 @@ int uECC_valid_point(const uECC_word_t *point, uECC_Curve curve);
  * time computing a shared secret or verifying a signature using an invalid
  * public key.
  */
-int uECC_valid_public_key(const uint8_t *public_key, uECC_Curve curve);
+int uECC_valid_public_key(const uint8_t *public_key);
 
  /*
   * @brief Converts an integer in uECC native format to big-endian bytes.

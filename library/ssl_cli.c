@@ -3567,9 +3567,7 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
 
     {
-        const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
         ((void) n);
-        ((void) ret);
 
         if( (size_t)( end - p ) < 2 * NUM_ECC_BYTES + 2 )
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
@@ -3577,11 +3575,11 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
         *p++ = 2 * NUM_ECC_BYTES + 1;
         *p++ = 0x04; /* uncompressed point presentation */
 
-        if( !uECC_make_key( p, ssl->handshake->ecdh_privkey,
-                            uecc_curve ) )
-        {
+        ret = uECC_make_key( p, ssl->handshake->ecdh_privkey );
+        if( ret == UECC_FAULT_DETECTED )
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        if( ret != UECC_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
         p += 2 * NUM_ECC_BYTES;
     }
     else
@@ -3718,9 +3716,7 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
             == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
         {
 #if defined(MBEDTLS_USE_TINYCRYPT)
-            const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
             ((void) n);
-            ((void) ret);
 
             if( (size_t)( end - p ) < 2 * NUM_ECC_BYTES + 2 )
                 return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
@@ -3728,11 +3724,11 @@ static int ssl_out_client_key_exchange_write( mbedtls_ssl_context *ssl,
             *p++ = 2 * NUM_ECC_BYTES + 1;
             *p++ = 0x04; /* uncompressed point presentation */
 
-            if( !uECC_make_key( p, ssl->handshake->ecdh_privkey,
-                                uecc_curve ) )
-            {
+            ret = uECC_make_key( p, ssl->handshake->ecdh_privkey );
+            if( ret == UECC_FAULT_DETECTED )
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+            if( ret != UECC_SUCCESS )
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-            }
             p += 2 * NUM_ECC_BYTES;
 #else /* MBEDTLS_USE_TINYCRYPT */
             /*

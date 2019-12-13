@@ -580,7 +580,6 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     volatile int ret_fi;
     uint8_t signature[2*NUM_ECC_BYTES];
     unsigned char *p;
-    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
     const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
 
     ((void) md_alg);
@@ -591,9 +590,9 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         return( ret );
 
     ret_fi = uECC_verify( keypair->public_key, hash,
-                          (unsigned) hash_len, signature, uecc_curve );
+                          (unsigned) hash_len, signature );
 
-    if( ret_fi == UECC_ATTACK_DETECTED )
+    if( ret_fi == UECC_FAULT_DETECTED )
         return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 
     if( ret_fi == UECC_SUCCESS )
@@ -704,7 +703,6 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     const mbedtls_uecc_keypair *keypair = (const mbedtls_uecc_keypair *) ctx;
-    const struct uECC_Curve_t * uecc_curve = uECC_secp256r1();
     int ret;
 
     /*
@@ -724,9 +722,10 @@ static int uecc_eckey_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
      */
      #define MAX_SECP256R1_ECDSA_SIG_LEN ( 3 + 2 * ( 3 + NUM_ECC_BYTES ) )
 
-    ret = uECC_sign( keypair->private_key, hash, hash_len, sig, uecc_curve );
-    /* TinyCrypt uses 0 to signal errors. */
-    if( ret == 0 )
+    ret = uECC_sign( keypair->private_key, hash, hash_len, sig );
+    if( ret == UECC_FAULT_DETECTED )
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    if( ret != UECC_SUCCESS )
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     *sig_len = 2 * NUM_ECC_BYTES;

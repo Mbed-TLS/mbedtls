@@ -72,9 +72,9 @@
 #include "mbedtls/platform_util.h"
 
 int uECC_make_key_with_d(uint8_t *public_key, uint8_t *private_key,
-			 unsigned int *d, uECC_Curve curve)
+			 unsigned int *d)
 {
-
+	int ret;
 	uECC_word_t _private[NUM_ECC_WORDS];
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 
@@ -84,30 +84,32 @@ int uECC_make_key_with_d(uint8_t *public_key, uint8_t *private_key,
 	mbedtls_platform_memcpy (_private, d, NUM_ECC_BYTES);
 
 	/* Computing public-key from private: */
-	if (EccPoint_compute_public_key(_public, _private, curve)) {
-
-		/* Converting buffers to correct bit order: */
-		uECC_vli_nativeToBytes(private_key,
-				       BITS_TO_BYTES(curve->num_n_bits),
-				       _private);
-		uECC_vli_nativeToBytes(public_key,
-				       curve->num_bytes,
-				       _public);
-		uECC_vli_nativeToBytes(public_key + curve->num_bytes,
-				       curve->num_bytes,
-				       _public + curve->num_words);
-
-		/* erasing temporary buffer used to store secret: */
-		mbedtls_platform_memset(_private, 0, NUM_ECC_BYTES);
-
-		return 1;
+	ret = EccPoint_compute_public_key(_public, _private);
+	if (ret != UECC_SUCCESS) {
+		goto exit;
 	}
-	return 0;
+
+	/* Converting buffers to correct bit order: */
+	uECC_vli_nativeToBytes(private_key,
+			       BITS_TO_BYTES(NUM_ECC_BITS),
+			       _private);
+	uECC_vli_nativeToBytes(public_key,
+			       NUM_ECC_BYTES,
+			       _public);
+	uECC_vli_nativeToBytes(public_key + NUM_ECC_BYTES,
+			       NUM_ECC_BYTES,
+			       _public + NUM_ECC_WORDS);
+
+exit:
+	/* erasing temporary buffer used to store secret: */
+	mbedtls_platform_memset(_private, 0, NUM_ECC_BYTES);
+
+	return ret;
 }
 
-int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve)
+int uECC_make_key(uint8_t *public_key, uint8_t *private_key)
 {
-
+	int ret;
 	uECC_word_t _random[NUM_ECC_WORDS * 2];
 	uECC_word_t _private[NUM_ECC_WORDS];
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
@@ -118,55 +120,54 @@ int uECC_make_key(uint8_t *public_key, uint8_t *private_key, uECC_Curve curve)
 		uECC_RNG_Function rng_function = uECC_get_rng();
 		if (!rng_function ||
 			!rng_function((uint8_t *)_random, 2 * NUM_ECC_WORDS*uECC_WORD_SIZE)) {
-        		return 0;
+        		return UECC_FAILURE;
 		}
 
 		/* computing modular reduction of _random (see FIPS 186.4 B.4.1): */
-		uECC_vli_mmod(_private, _random, curve->n);
+		uECC_vli_mmod(_private, _random, curve_n);
 
 		/* Computing public-key from private: */
-		if (EccPoint_compute_public_key(_public, _private, curve)) {
+		ret = EccPoint_compute_public_key(_public, _private);
+		/* don't try again if a fault was detected */
+		if (ret == UECC_FAULT_DETECTED) {
+			return ret;
+		}
+		if (ret == UECC_SUCCESS) {
 
 			/* Converting buffers to correct bit order: */
 			uECC_vli_nativeToBytes(private_key,
-					       BITS_TO_BYTES(curve->num_n_bits),
+					       BITS_TO_BYTES(NUM_ECC_BITS),
 					       _private);
 			uECC_vli_nativeToBytes(public_key,
-					       curve->num_bytes,
+					       NUM_ECC_BYTES,
 					       _public);
-			uECC_vli_nativeToBytes(public_key + curve->num_bytes,
- 					       curve->num_bytes,
-					       _public + curve->num_words);
+			uECC_vli_nativeToBytes(public_key + NUM_ECC_BYTES,
+ 					       NUM_ECC_BYTES,
+					       _public + NUM_ECC_WORDS);
 
 			/* erasing temporary buffer that stored secret: */
 			mbedtls_platform_memset(_private, 0, NUM_ECC_BYTES);
 
-      			return 1;
+      			return UECC_SUCCESS;
     		}
   	}
-	return 0;
+	return UECC_FAILURE;
 }
 
 int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
-		       uint8_t *secret, uECC_Curve curve)
+		       uint8_t *secret)
 {
 
 	uECC_word_t _public[NUM_ECC_WORDS * 2];
 	uECC_word_t _private[NUM_ECC_WORDS];
-	wordcount_t num_words = curve->num_words;
-	wordcount_t num_bytes = curve->num_bytes;
+	wordcount_t num_words = NUM_ECC_WORDS;
+	wordcount_t num_bytes = NUM_ECC_BYTES;
 	int r;
-
-        /* Protect against invalid curve attacks */
-        if (uECC_valid_public_key(public_key, curve) != 0) {
-            r = 0;
-            goto clear_and_out;
-        }
 
 	/* Converting buffers to correct bit order: */
 	uECC_vli_bytesToNative(_private,
       			       private_key,
-			       BITS_TO_BYTES(curve->num_n_bits));
+			       BITS_TO_BYTES(NUM_ECC_BITS));
 	uECC_vli_bytesToNative(_public,
       			       public_key,
 			       num_bytes);
@@ -174,14 +175,9 @@ int uECC_shared_secret(const uint8_t *public_key, const uint8_t *private_key,
 			       public_key + num_bytes,
 			       num_bytes);
 
-	r = EccPoint_mult_safer(_public, _public, _private, curve);
-        if (r == 0)
-            goto clear_and_out;
-
+	r = EccPoint_mult_safer(_public, _public, _private);
 	uECC_vli_nativeToBytes(secret, num_bytes, _public);
-	r = !EccPoint_isZero(_public, curve);
 
-clear_and_out:
 	/* erasing temporary buffer used to store secret: */
 	mbedtls_platform_zeroize(_private, sizeof(_private));
 

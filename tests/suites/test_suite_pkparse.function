@@ -93,8 +93,7 @@ void pk_parse_public_keyfile_ec( char * key_file, int result )
         TEST_ASSERT( mbedtls_ecp_check_pubkey( &eckey->grp, &eckey->Q ) == 0 );
 #else
         uecckey = mbedtls_pk_uecc( ctx );
-        TEST_ASSERT( uECC_valid_public_key( uecckey->public_key,
-                                            uECC_secp256r1() ) == 0 );
+        TEST_ASSERT( uECC_valid_public_key( uecckey->public_key ) == 0 );
 #endif /* MBEDTLS_USE_TINYCRYPT */
     }
 
@@ -136,11 +135,9 @@ void pk_parse_keyfile_ec( char * key_file, char * password, int result )
         TEST_ASSERT( mbedtls_ecp_check_privkey( &eckey->grp, &eckey->d ) == 0 );
 #else
         uecckey = mbedtls_pk_uecc( ctx );
-        TEST_ASSERT( uECC_valid_public_key( uecckey->public_key,
-                                            uECC_secp256r1() ) == 0 );
+        TEST_ASSERT( uECC_valid_public_key( uecckey->public_key ) == 0 );
         TEST_ASSERT( uECC_compute_public_key( uecckey->private_key,
-                                              tmp_pubkey,
-                                              uECC_secp256r1() ) != 0 );
+                                              tmp_pubkey ) == UECC_SUCCESS );
         TEST_ASSERT( memcmp( tmp_pubkey, uecckey->public_key,
                             sizeof( tmp_pubkey ) ) == 0 );
 #endif /* MBEDTLS_USE_TINYCRYPT */

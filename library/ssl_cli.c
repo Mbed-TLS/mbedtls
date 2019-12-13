@@ -2731,7 +2731,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen )
 {
-    int ret;
+    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     unsigned char *p;
     unsigned char *end;
 
@@ -3031,39 +3031,47 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
             rs_ctx = &ssl->handshake->ecrs_ctx.pk;
 #endif
 
-        if( ( ret = mbedtls_pk_verify_restartable( peer_pk,
-                        md_alg, hash, hashlen, p, sig_len, rs_ctx ) ) != 0 )
+        ret = mbedtls_pk_verify_restartable( peer_pk,
+                        md_alg, hash, hashlen, p, sig_len, rs_ctx );
+
+        if( ret == 0 )
         {
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-            if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
-#endif
+            mbedtls_platform_enforce_volatile_reads();
+
+            if( ret == 0 )
             {
-                mbedtls_ssl_pend_fatal_alert( ssl,
-                                     MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR );
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+                /* We don't need the peer's public key anymore. Free it,
+                * so that more RAM is available for upcoming expensive
+                * operations like ECDHE. */
+                mbedtls_pk_free( peer_pk );
+#else
+                mbedtls_x509_crt_pk_release(
+                    ssl->session_negotiate->peer_cert );
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+                return( ret );
             }
+        }
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+        if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+#endif
+        {
+            mbedtls_ssl_pend_fatal_alert( ssl,
+                MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR );
+        }
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-                ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
 #endif
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
             mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-            return( ret );
-        }
 
-#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-        /* We don't need the peer's public key anymore. Free it,
-         * so that more RAM is available for upcoming expensive
-         * operations like ECDHE. */
-        mbedtls_pk_free( peer_pk );
-#else
-        mbedtls_x509_crt_pk_release( ssl->session_negotiate->peer_cert );
-#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 
-    return( 0 );
+    return( ret );
 }
 
 static int ssl_in_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )

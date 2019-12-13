@@ -1515,6 +1515,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
                const unsigned char *sig, size_t sig_len,
                mbedtls_pk_restart_ctx *rs_ctx )
 {
+    volatile int verify_ret = MBEDTLS_ERR_PK_HW_ACCEL_FAILED;
     PK_VALIDATE_RET( ctx != NULL );
     PK_VALIDATE_RET( ( md_alg == MBEDTLS_MD_NONE && hash_len == 0 ) ||
                      hash != NULL );
@@ -1547,8 +1548,19 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
     (void) rs_ctx;
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
-    return( pk_info_verify_func( MBEDTLS_PK_CTX_INFO( ctx ),
-                ctx->pk_ctx, md_alg, hash, hash_len, sig, sig_len ) );
+    verify_ret = pk_info_verify_func( MBEDTLS_PK_CTX_INFO( ctx ),
+                        ctx->pk_ctx, md_alg, hash, hash_len, sig, sig_len );
+    
+    if( verify_ret == 0 )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( verify_ret == 0 )
+        {
+            return( verify_ret );
+        }
+    }
+
+    return( MBEDTLS_ERR_ECP_HW_ACCEL_FAILED );
 }
 
 /*

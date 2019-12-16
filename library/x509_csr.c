@@ -35,6 +35,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "mbedtls/error.h"
+
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
 
 #include "mbedtls/x509_csr.h"
@@ -68,7 +70,7 @@ static int x509_csr_get_version( unsigned char **p,
                              const unsigned char *end,
                              int *ver )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( ( ret = mbedtls_asn1_get_int( p, end, ver ) ) != 0 )
     {
@@ -90,7 +92,7 @@ static int x509_csr_get_version( unsigned char **p,
 int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
                         const unsigned char *buf, size_t buflen )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
     unsigned char *p, *end;
     mbedtls_x509_buf sig_params;
@@ -262,7 +264,7 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
 int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, size_t buflen )
 {
 #if defined(MBEDTLS_PEM_PARSE_C)
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t use_len;
     mbedtls_pem_context pem;
 #endif
@@ -312,7 +314,7 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
  */
 int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
     unsigned char *buf;
 
@@ -336,7 +338,7 @@ int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path )
 int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
                    const mbedtls_x509_csr *csr )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
     char *p;
     char key_size_str[BEFORE_COLON];

@@ -30,6 +30,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include "mbedtls/error.h"
+
 #if defined(MBEDTLS_X509_CSR_WRITE_C)
 
 #include "mbedtls/x509_csr.h"
@@ -90,7 +92,7 @@ int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned ch
 {
     unsigned char buf[4];
     unsigned char *c;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     c = buf + 4;
 
@@ -112,7 +114,7 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
 {
     unsigned char buf[4];
     unsigned char *c;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     c = buf + 4;
 
@@ -133,7 +135,7 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, s
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const char *sig_oid;
     size_t sig_oid_len = 0;
     unsigned char *c, *c2;
@@ -263,7 +265,7 @@ int mbedtls_x509write_csr_pem( mbedtls_x509write_csr *ctx, unsigned char *buf, s
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen = 0;
 
     if( ( ret = mbedtls_x509write_csr_der( ctx, buf, size,

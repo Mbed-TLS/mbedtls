@@ -1550,7 +1550,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
 
     verify_ret = pk_info_verify_func( MBEDTLS_PK_CTX_INFO( ctx ),
                         ctx->pk_ctx, md_alg, hash, hash_len, sig, sig_len );
-    
+
     if( verify_ret == 0 )
     {
         mbedtls_platform_enforce_volatile_reads();
@@ -1558,9 +1558,13 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
         {
             return( verify_ret );
         }
+        else
+        {
+            verify_ret = MBEDTLS_ERR_PK_HW_ACCEL_FAILED;
+        }
     }
 
-    return( MBEDTLS_ERR_ECP_HW_ACCEL_FAILED );
+    return( verify_ret );
 }
 
 /*

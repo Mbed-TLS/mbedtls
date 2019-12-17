@@ -226,6 +226,9 @@
         : ( MBEDTLS_SSL_IN_CONTENT_LEN )                             \
         )
 
+#define MBEDTLS_SSL_FI_FLAG_UNSET       0x0
+#define MBEDTLS_SSL_FI_FLAG_SET         0x7F
+
 /*
  * Check that we obey the standard's message size bounds
  */
@@ -385,6 +388,11 @@ struct mbedtls_ssl_handshake_params
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     uint8_t got_peer_pubkey;            /*!< Did we store the peer's public key from its certificate? */
 #endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+    volatile uint8_t peer_authenticated;         /*!< Is the peer authenticated? */
+    volatile uint8_t hello_random_set;           /*!< Has the hello random been set? */
+    volatile uint8_t key_derivation_done;        /*!< Has the key derivation been done? */
+    volatile uint8_t premaster_generated;        /*!< Has the PMS been generated? */
+    volatile uint8_t got_proper_keys;            /*!< Has the proper keys been set? */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned char verify_cookie_len;    /*!<  Cli: cookie length
                                               Srv: flag for sending a cookie */

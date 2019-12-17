@@ -687,7 +687,7 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t t;
 #endif
-
+    ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
     /*
      * When responding to a verify request, MUST reuse random (RFC 6347 4.2.1)
      */
@@ -713,13 +713,19 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
     p += 4;
 #endif /* MBEDTLS_HAVE_TIME */
 
-    if( ( ret = mbedtls_ssl_conf_get_frng( ssl->conf )
-          ( mbedtls_ssl_conf_get_prng( ssl->conf ), p, 28 ) ) != 0 )
+    ret = mbedtls_ssl_conf_get_frng( ssl->conf )
+            ( mbedtls_ssl_conf_get_prng( ssl->conf ), p, 28 );
+    if( ret == 0 )
     {
-        return( ret );
+        mbedtls_platform_enforce_volatile_reads();
+        if( ret == 0 )
+        {
+            ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
+            return( 0 );
+        }
     }
 
-    return( 0 );
+    return( ret );
 }
 
 /**
@@ -1719,7 +1725,14 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu",
         (unsigned long)mbedtls_platform_get_uint32_be( &buf[2] ) ) );
 
+    ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
+
     mbedtls_platform_memcpy( ssl->handshake->randbytes + 32, buf + 2, 32 );
+
+    if( mbedtls_platform_memcmp( ssl->handshake->randbytes + 32, buf + 2, 32 ) == 0 )
+    {
+        ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
+    }
 
     n = buf[34];
 

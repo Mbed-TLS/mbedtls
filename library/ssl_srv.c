@@ -1223,8 +1223,14 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     mbedtls_platform_memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->id_len );
 
     p += sess_len;
+
+    ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
     memset( ssl->handshake->randbytes, 0, 64 );
     mbedtls_platform_memcpy( ssl->handshake->randbytes + 32 - chal_len, p, chal_len );
+    if( mbedtls_platform_memcmp( ssl->handshake->randbytes + 32 - chal_len, p, chal_len ) == 0 )
+    {
+        ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
+    }
 
     /*
      * Check for TLS_EMPTY_RENEGOTIATION_INFO_SCSV
@@ -1717,10 +1723,14 @@ read_record_header:
     /*
      * Save client random (inc. Unix time)
      */
+    ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", buf + 2, 32 );
 
     mbedtls_platform_memcpy( ssl->handshake->randbytes, buf + 2, 32 );
-
+    if( mbedtls_platform_memcmp( ssl->handshake->randbytes, buf + 2, 32 ) == 0 )
+    {
+        ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
+    }
     /*
      * Check the session ID length and save session ID
      */
@@ -2814,8 +2824,12 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     }
 
     p += 28;
-
+    ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
     mbedtls_platform_memcpy( ssl->handshake->randbytes + 32, buf + 6, 32 );
+    if( mbedtls_platform_memcmp( ssl->handshake->randbytes + 32, buf + 6, 32 ) == 0 )
+    {
+        ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
+    }
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 

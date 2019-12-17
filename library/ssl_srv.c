@@ -4632,8 +4632,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
             goto exit;
-        } 
-        
+        }
+
     }
 
     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );

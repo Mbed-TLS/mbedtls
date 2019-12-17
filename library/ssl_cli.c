@@ -2731,7 +2731,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen )
 {
-    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    volatile int ret = 0;
     unsigned char *p;
     unsigned char *end;
 

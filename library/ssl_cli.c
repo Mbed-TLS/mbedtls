@@ -3051,6 +3051,10 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
                 return( ret );
             }
+            else
+            {
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
         }
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
         if( ret != MBEDTLS_ERR_ECP_IN_PROGRESS )

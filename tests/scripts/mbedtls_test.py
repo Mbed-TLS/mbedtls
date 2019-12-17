@@ -310,7 +310,10 @@ class MbedTlsTest(BaseHostTest):
 
         param_bytes, length = self.test_vector_to_bytes(function_id,
                                                         dependencies, args)
-        self.send_kv(''.join('{:02x}'.format(x) for x in length), ''.join('{:02x}'.format(x) for x in param_bytes))
+        self.send_kv(
+            ''.join('{:02x}'.format(x) for x in length),
+            ''.join('{:02x}'.format(x) for x in param_bytes)
+        )
 
     @staticmethod
     def get_result(value):

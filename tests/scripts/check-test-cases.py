@@ -26,6 +26,7 @@ import re
 import sys
 
 class Results:
+    """Store file and line information about errors or warnings in test suites."""
     def __init__(self):
         self.errors = 0
         self.warnings = 0
@@ -41,6 +42,7 @@ class Results:
         self.warnings += 1
 
 def collect_test_directories():
+    """Get the relative path for the TLS and Crypto test directories."""
     if os.path.isdir('tests'):
         tests_dir = 'tests'
     elif os.path.isdir('suites'):
@@ -55,6 +57,7 @@ def collect_test_directories():
     return directories
 
 def check_description(results, seen, file_name, line_number, description):
+    """Check test case descriptions for errors."""
     if description in seen:
         results.error(file_name, line_number,
                       'Duplicate description (also line {})',

@@ -10,6 +10,11 @@
 #include <limits.h>
 #include <stdint.h>
 
+/* Needed only for test case data under #if defined(MBEDTLS_USE_PSA_CRYPTO),
+ * but the test code generator requires test case data to be valid C code
+ * unconditionally (https://github.com/ARMmbed/mbedtls/issues/2023). */
+#include "psa/crypto.h"
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
 #include "psa_crypto_helpers.h"
@@ -1230,18 +1235,23 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
-void pk_psa_sign(  )
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_ECDSA_C */
+void pk_psa_sign( int grpid_arg,
+                  int psa_curve_arg, int expected_bits_arg )
 {
-    mbedtls_ecp_group_id grpid = MBEDTLS_ECP_DP_SECP256R1;
+    mbedtls_ecp_group_id grpid = grpid_arg;
     mbedtls_pk_context pk;
-    unsigned char hash[50], sig[100], pkey_legacy[100], pkey_psa[100];
+    unsigned char hash[32];
+    unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
+    unsigned char pkey_legacy[200];
+    unsigned char pkey_psa[200];
     unsigned char *pkey_legacy_start, *pkey_psa_start;
     size_t sig_len, klen_legacy, klen_psa;
     int ret;
     psa_key_handle_t handle;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    size_t expected_bits;
+    psa_key_type_t expected_type = PSA_KEY_TYPE_ECC_KEY_PAIR( psa_curve_arg );
+    size_t expected_bits = expected_bits_arg;
 
     /*
      * This tests making signatures with a wrapped PSA key:
@@ -1274,9 +1284,7 @@ void pk_psa_sign(  )
                                             PSA_ALG_SHA_256 ) == 0 );
 
     PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
-    TEST_EQUAL( psa_get_key_type( &attributes ),
-                PSA_KEY_TYPE_ECC_KEY_PAIR(
-                    mbedtls_ecc_group_to_psa( grpid, &expected_bits ) ) );
+    TEST_EQUAL( psa_get_key_type( &attributes ), expected_type );
     TEST_EQUAL( psa_get_key_bits( &attributes ), expected_bits );
     TEST_EQUAL( psa_get_key_lifetime( &attributes ),
                 PSA_KEY_LIFETIME_VOLATILE );

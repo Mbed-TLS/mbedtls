@@ -2342,8 +2342,9 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
                                          unsigned char* out,
                                          unsigned add_length_tag )
 {
-    int ret;
+    volatile int ret;
 
+    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
     /*
      * Generate (part of) the pre-master secret as
      *  struct {
@@ -2364,14 +2365,21 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
                                mbedtls_ssl_conf_get_max_minor_ver( ssl->conf ),
                                ssl->conf->transport, out );
 
-    if( ( ret = mbedtls_ssl_conf_get_frng( ssl->conf )
-          ( mbedtls_ssl_conf_get_prng( ssl->conf ), out + 2, 46 ) ) != 0 )
+    ret = mbedtls_ssl_conf_get_frng( ssl->conf )
+          ( mbedtls_ssl_conf_get_prng( ssl->conf ), out + 2, 46 );
+
+    if( ret == 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
-        return( ret );
+        mbedtls_platform_enforce_volatile_reads();
+        if( ret == 0 )
+        {
+            ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
+            return( 0 );
+        }
     }
 
-    return( 0 );
+    MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
+    return( ret );
 }
 
 /*
@@ -2383,11 +2391,12 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
                                         unsigned char *out, size_t buflen,
                                         size_t *olen )
 {
-    int ret;
+    volatile int ret;
     size_t len_bytes = mbedtls_ssl_get_minor_ver( ssl ) ==
         MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
     mbedtls_pk_context *peer_pk = NULL;
 
+    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
     if( buflen < len_bytes )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small for encrypted pms" ) );
@@ -2427,15 +2436,26 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
         goto cleanup;
     }
 
-    if( ( ret = mbedtls_pk_encrypt( peer_pk,
+    ret = mbedtls_pk_encrypt( peer_pk,
                             ppms, 48, out + len_bytes,
                             olen, buflen - len_bytes,
                             mbedtls_ssl_conf_get_frng( ssl->conf ),
-                            mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
+                            mbedtls_ssl_conf_get_prng( ssl->conf ) );
+
+    if( ret == 0 )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( ret == 0 )
+        {
+            ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
+        }
+    }
+    else
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_rsa_pkcs1_encrypt", ret );
         goto cleanup;
     }
+
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)

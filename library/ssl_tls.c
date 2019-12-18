@@ -1881,7 +1881,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    volatile int ret;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
 
@@ -1958,11 +1958,11 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
 
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
-
+    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
 #if defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                       ||
@@ -1980,6 +1980,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         if( ret != UECC_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
 
         ssl->handshake->pmslen = NUM_ECC_BYTES;
     }
@@ -1989,12 +1990,26 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_DHE_RSA )
     {
-        if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
+        ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       ssl->handshake->premaster,
                                       MBEDTLS_PREMASTER_SIZE,
                                      &ssl->handshake->pmslen,
                                       mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                      mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
+                                      mbedtls_ssl_conf_get_prng( ssl->conf ) );
+        if( ret == 0 )
+        {
+            mbedtls_platform_enforce_volatile_reads();
+            if( ret == 0 )
+            {
+                ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
+            }
+            else
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
+                return( ret );
+            }
+        }
+        else
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
@@ -2018,12 +2033,26 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
-        if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
+        ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
                                       &ssl->handshake->pmslen,
                                        ssl->handshake->premaster,
                                        MBEDTLS_MPI_MAX_SIZE,
                                        mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                       mbedtls_ssl_conf_get_prng( ssl->conf ) ) ) != 0 )
+                                       mbedtls_ssl_conf_get_prng( ssl->conf ) );
+        if( ret == 0 )
+        {
+            mbedtls_platform_enforce_volatile_reads();
+            if( ret == 0 )
+            {
+                ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
+            }
+            else
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
+                return( ret );
+            }
+        }
+        else
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( ret );
@@ -2039,8 +2068,22 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_psk( ciphersuite_info ) )
     {
-        if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-            mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
+        ret = mbedtls_ssl_psk_derive_premaster( ssl,
+            mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) );
+        if( ret == 0 )
+        {
+            mbedtls_platform_enforce_volatile_reads();
+            if( ret == 0 )
+            {
+                ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
+            }
+            else
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
+                return( ret );
+            }
+        }
+        else
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );
@@ -2056,7 +2099,20 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
                 ssl->handshake->premaster, 32, &ssl->handshake->pmslen,
                 mbedtls_ssl_conf_get_frng( ssl->conf ),
                 mbedtls_ssl_conf_get_prng( ssl->conf ) );
-        if( ret != 0 )
+        if( ret == 0 )
+        {
+            mbedtls_platform_enforce_volatile_reads();
+            if( ret == 0 )
+            {
+                ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
+            }
+            else
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_derive_secret", ret );
+                return( ret );
+            }
+        }
+        else
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_derive_secret", ret );
             return( ret );
@@ -2091,6 +2147,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
     const unsigned char *psk = ssl->conf->psk;
     size_t psk_len = ssl->conf->psk_len;
+    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
 
     /* If the psk callback was called, use its result */
     if( ssl->handshake->psk != NULL )
@@ -2213,6 +2270,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     p += psk_len;
 
     ssl->handshake->pmslen = p - ssl->handshake->premaster;
+
+    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
 
     return( 0 );
 }

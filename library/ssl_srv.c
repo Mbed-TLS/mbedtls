@@ -3978,7 +3978,9 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     unsigned char mask;
     size_t i, peer_pmslen;
     unsigned int diff;
+    volatile unsigned int pmscounter = 0;
 
+    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
     /* In case of a failure in decryption, the decryption may write less than
      * 2 bytes of output, but we always read the first two bytes. It doesn't
      * matter in the end because diff will be nonzero in that case due to
@@ -4056,7 +4058,19 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     /* Set pms to either the true or the fake PMS, without
      * data-dependent branches. */
     for( i = 0; i < ssl->handshake->pmslen; i++ )
+    {
         pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
+        pmscounter++;
+    }
+
+    if( pmscounter == ssl->handshake->pmslen )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( pmscounter == ssl->handshake->pmslen )
+        {
+            ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
+        }
+    }
 
     return( 0 );
 }

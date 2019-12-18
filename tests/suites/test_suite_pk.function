@@ -1233,12 +1233,15 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 void pk_psa_sign(  )
 {
+    mbedtls_ecp_group_id grpid = MBEDTLS_ECP_DP_SECP256R1;
     mbedtls_pk_context pk;
     unsigned char hash[50], sig[100], pkey_legacy[100], pkey_psa[100];
     unsigned char *pkey_legacy_start, *pkey_psa_start;
     size_t sig_len, klen_legacy, klen_psa;
     int ret;
     psa_key_handle_t handle;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    size_t expected_bits;
 
     /*
      * This tests making signatures with a wrapped PSA key:
@@ -1254,7 +1257,7 @@ void pk_psa_sign(  )
     mbedtls_pk_init( &pk );
     TEST_ASSERT( mbedtls_pk_setup( &pk,
                       mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY ) ) == 0 );
-    TEST_ASSERT( mbedtls_ecp_gen_key( MBEDTLS_ECP_DP_SECP256R1,
+    TEST_ASSERT( mbedtls_ecp_gen_key( grpid,
                                       (mbedtls_ecp_keypair*) pk.pk_ctx,
                                       rnd_std_rand, NULL ) == 0 );
 
@@ -1269,6 +1272,14 @@ void pk_psa_sign(  )
     /* Turn PK context into an opaque one. */
     TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &pk, &handle,
                                             PSA_ALG_SHA_256 ) == 0 );
+
+    PSA_ASSERT( psa_get_key_attributes( handle, &attributes ) );
+    TEST_EQUAL( psa_get_key_type( &attributes ),
+                PSA_KEY_TYPE_ECC_KEY_PAIR(
+                    mbedtls_ecc_group_to_psa( grpid, &expected_bits ) ) );
+    TEST_EQUAL( psa_get_key_bits( &attributes ), expected_bits );
+    TEST_EQUAL( psa_get_key_lifetime( &attributes ),
+                PSA_KEY_LIFETIME_VOLATILE );
 
     memset( hash, 0x2a, sizeof hash );
     memset( sig, 0, sizeof sig );

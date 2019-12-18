@@ -366,16 +366,15 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
  * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
  * into a PSA ECC group identifier. */
 #if defined(MBEDTLS_ECP_C)
-static inline psa_ecc_curve_t mbedtls_psa_parse_tls_ecc_group(
-    uint16_t tls_ecc_grp_reg_id )
+static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
+    uint16_t tls_ecc_grp_reg_id, size_t *bits )
 {
-    size_t bits;
     const mbedtls_ecp_curve_info *curve_info =
         mbedtls_ecp_curve_info_from_tls_id( tls_ecc_grp_reg_id );
     if( curve_info == NULL )
         return( 0 );
-    else
-        return( mbedtls_ecc_group_to_psa( curve_info->grp_id, &bits ) );
+    return( PSA_KEY_TYPE_ECC_KEY_PAIR(
+                mbedtls_ecc_group_to_psa( curve_info->grp_id, bits ) ) );
 }
 #endif /* MBEDTLS_ECP_C */
 
@@ -404,15 +403,12 @@ static inline int mbedtls_psa_tls_psa_ec_to_ecpoint( unsigned char *src,
  * exchanges) and converts it into a format that the PSA key
  * agreement API understands.
  */
-static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( psa_ecc_curve_t curve,
-                                                     unsigned char const *src,
+static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( unsigned char const *src,
                                                      size_t srclen,
                                                      unsigned char *dst,
                                                      size_t dstlen,
                                                      size_t *olen )
 {
-    ((void) curve);
-
     if( srclen > dstlen )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 

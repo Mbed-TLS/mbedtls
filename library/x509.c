@@ -35,12 +35,11 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/error.h"
-
 #if defined(MBEDTLS_X509_USE_C)
 
 #include "mbedtls/x509.h"
 #include "mbedtls/asn1.h"
+#include "mbedtls/error.h"
 #include "mbedtls/oid.h"
 
 #include <stdio.h>

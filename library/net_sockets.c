@@ -45,10 +45,9 @@
 #endif
 
 #include "mbedtls/net_sockets.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
-
-#include "mbedtls/error.h"
 
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)

@@ -36,8 +36,8 @@
 #endif
 
 #include "mbedtls/ssl_ticket.h"
-#include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 

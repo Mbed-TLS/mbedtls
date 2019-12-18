@@ -39,12 +39,11 @@
 #endif
 
 #include "mbedtls/debug.h"
+#include "mbedtls/error.h"
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "mbedtls/error.h"
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)

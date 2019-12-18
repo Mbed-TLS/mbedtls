@@ -31,15 +31,14 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/error.h"
-
 #if defined(MBEDTLS_X509_CRT_WRITE_C)
 
 #include "mbedtls/x509_crt.h"
-#include "mbedtls/oid.h"
 #include "mbedtls/asn1write.h"
-#include "mbedtls/sha1.h"
+#include "mbedtls/error.h"
+#include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/sha1.h"
 
 #include <string.h>
 

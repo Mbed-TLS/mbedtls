@@ -43,10 +43,10 @@
 #define mbedtls_free      free
 #endif
 
-#include "mbedtls/error.h"
-#include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
+#include "mbedtls/debug.h"
+#include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
 

@@ -35,11 +35,10 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/error.h"
-
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
 
 #include "mbedtls/x509_crl.h"
+#include "mbedtls/error.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 

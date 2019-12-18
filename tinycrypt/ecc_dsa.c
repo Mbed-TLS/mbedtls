@@ -68,12 +68,6 @@
 #include <tinycrypt/ecc_dsa.h>
 #include "mbedtls/platform_util.h"
 
-#if default_RNG_defined
-static uECC_RNG_Function g_rng_function = &default_CSPRNG;
-#else
-static uECC_RNG_Function g_rng_function = 0;
-#endif
-
 static void bits2int(uECC_word_t *native, const uint8_t *bits,
 		     unsigned bits_size, uECC_Curve curve)
 {
@@ -132,7 +126,7 @@ int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,
 
 	/* If an RNG function was specified, get a random number
 	to prevent side channel analysis of k. */
-	if (!g_rng_function) {
+	if (!uECC_get_rng()) {
 		uECC_vli_clear(tmp);
 		tmp[0] = 1;
 	}

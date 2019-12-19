@@ -33,6 +33,7 @@
 
 #include "mbedtls/chacha20.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <stddef.h>
 #include <string.h>
@@ -325,7 +326,7 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
                             unsigned char* output )
 {
     mbedtls_chacha20_context ctx;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     CHACHA20_VALIDATE_RET( key != NULL );
     CHACHA20_VALIDATE_RET( nonce != NULL );
@@ -536,7 +537,7 @@ int mbedtls_chacha20_self_test( int verbose )
 {
     unsigned char output[381];
     unsigned i;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     for( i = 0U; i < 2U; i++ )
     {

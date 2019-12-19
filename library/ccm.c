@@ -38,6 +38,7 @@
 
 #include "mbedtls/ccm.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -74,7 +75,7 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                         const unsigned char *key,
                         unsigned int keybits )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
 
     CCM_VALIDATE_RET( ctx != NULL );
@@ -156,7 +157,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
                            const unsigned char *input, unsigned char *output,
                            unsigned char *tag, size_t tag_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
     unsigned char q;
     size_t len_left, olen;
@@ -366,7 +367,7 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *input, unsigned char *output,
                       const unsigned char *tag, size_t tag_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char check_tag[16];
     unsigned char i;
     int diff;
@@ -479,7 +480,7 @@ int mbedtls_ccm_self_test( int verbose )
     unsigned char plaintext[CCM_SELFTEST_PT_MAX_LEN];
     unsigned char ciphertext[CCM_SELFTEST_CT_MAX_LEN];
     size_t i;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_ccm_init( &ctx );
 

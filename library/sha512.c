@@ -34,6 +34,7 @@
 
 #include "mbedtls/sha512.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
   #define UL64(x) x##ui64
@@ -323,7 +324,7 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
                                const unsigned char *input,
                                size_t ilen )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t fill;
     unsigned int left;
 
@@ -383,7 +384,7 @@ void mbedtls_sha512_update( mbedtls_sha512_context *ctx,
 int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
                                unsigned char output[64] )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned used;
     uint64_t high, low;
 
@@ -463,7 +464,7 @@ int mbedtls_sha512_ret( const unsigned char *input,
                     unsigned char output[64],
                     int is384 )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_sha512_context ctx;
 
     SHA512_VALIDATE_RET( is384 == 0 || is384 == 1 );

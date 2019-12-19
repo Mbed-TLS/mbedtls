@@ -29,13 +29,14 @@
 #include <string.h>
 #include "mbedtls/hkdf.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 int mbedtls_hkdf( const mbedtls_md_info_t *md, const unsigned char *salt,
                   size_t salt_len, const unsigned char *ikm, size_t ikm_len,
                   const unsigned char *info, size_t info_len,
                   unsigned char *okm, size_t okm_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char prk[MBEDTLS_MD_MAX_SIZE];
 
     ret = mbedtls_hkdf_extract( md, salt, salt_len, ikm, ikm_len, prk );

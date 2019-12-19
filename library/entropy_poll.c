@@ -36,6 +36,7 @@
 
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
+#include "mbedtls/error.h"
 
 #if defined(MBEDTLS_TIMING_C)
 #include "mbedtls/timing.h"
@@ -121,7 +122,7 @@ int mbedtls_platform_entropy_poll( void *data,
 {
     FILE *file;
     size_t read_len;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     ((void) data);
 
 #if defined(HAVE_GETRANDOM)

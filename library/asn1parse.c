@@ -29,6 +29,7 @@
 
 #include "mbedtls/asn1.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -124,7 +125,7 @@ int mbedtls_asn1_get_bool( unsigned char **p,
                    const unsigned char *end,
                    int *val )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_BOOLEAN ) ) != 0 )
@@ -143,7 +144,7 @@ static int asn1_get_tagged_int( unsigned char **p,
                                 const unsigned char *end,
                                 int tag, int *val )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len, tag ) ) != 0 )
@@ -202,7 +203,7 @@ int mbedtls_asn1_get_mpi( unsigned char **p,
                   const unsigned char *end,
                   mbedtls_mpi *X )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
@@ -219,7 +220,7 @@ int mbedtls_asn1_get_mpi( unsigned char **p,
 int mbedtls_asn1_get_bitstring( unsigned char **p, const unsigned char *end,
                         mbedtls_asn1_bitstring *bs)
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Certificate type is a single byte bitstring */
     if( ( ret = mbedtls_asn1_get_tag( p, end, &bs->len, MBEDTLS_ASN1_BIT_STRING ) ) != 0 )
@@ -252,7 +253,7 @@ int mbedtls_asn1_get_bitstring( unsigned char **p, const unsigned char *end,
 int mbedtls_asn1_get_bitstring_null( unsigned char **p, const unsigned char *end,
                              size_t *len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, len, MBEDTLS_ASN1_BIT_STRING ) ) != 0 )
         return( ret );
@@ -278,7 +279,7 @@ int mbedtls_asn1_get_sequence_of( unsigned char **p,
                           mbedtls_asn1_sequence *cur,
                           int tag)
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
     mbedtls_asn1_buf *buf;
 
@@ -327,7 +328,7 @@ int mbedtls_asn1_get_alg( unsigned char **p,
                   const unsigned char *end,
                   mbedtls_asn1_buf *alg, mbedtls_asn1_buf *params )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
@@ -371,7 +372,7 @@ int mbedtls_asn1_get_alg_null( unsigned char **p,
                        const unsigned char *end,
                        mbedtls_asn1_buf *alg )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_asn1_buf params;
 
     memset( &params, 0, sizeof(mbedtls_asn1_buf) );

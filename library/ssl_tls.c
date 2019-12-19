@@ -1880,7 +1880,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
     /* Allocate compression buffer */
 #if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( session->compression == MBEDTLS_SSL_COMPRESS_DEFLATE &&
+    if( ssl->session_negotiate->compression == MBEDTLS_SSL_COMPRESS_DEFLATE &&
         ssl->compress_buf == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "Allocating compression buffer" ) );

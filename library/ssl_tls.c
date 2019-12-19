@@ -4617,10 +4617,10 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             encrypted_fi = 1;
         }
 
-        //Double check to ensure the encryption has been done
+        /* Double check to ensure the encryption has been done */
         if( ssl->transform_out != NULL && encrypted_fi == 0 )
         {
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         }
 
         protected_record_size = len + mbedtls_ssl_out_hdr_len( ssl );

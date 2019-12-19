@@ -1884,7 +1884,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     volatile int ret;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
-
+    ssl->handshake->key_derivation_done = MBEDTLS_SSL_FI_FLAG_UNSET;
     /* Compute master secret if needed */
     ret = ssl_compute_master( ssl->handshake,
                               ssl->session_negotiate->master,
@@ -1925,7 +1925,19 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                   mbedtls_ssl_get_minor_ver( ssl ),
                   mbedtls_ssl_conf_get_endpoint( ssl->conf ),
                   ssl );
-    if( ret != 0 )
+    if( ret == 0 )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( ret == 0 )
+        {
+            ssl->handshake->key_derivation_done = MBEDTLS_SSL_FI_FLAG_SET;
+        }
+        else
+        {
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        }
+    }
+    else
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_populate_transform", ret );
         return( ret );

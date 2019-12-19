@@ -191,10 +191,10 @@
 #define MBEDTLS_SSL_COMPRESS_NULL               0
 #define MBEDTLS_SSL_COMPRESS_DEFLATE            1
 
-#define MBEDTLS_SSL_VERIFY_NONE                 0
-#define MBEDTLS_SSL_VERIFY_OPTIONAL             1
-#define MBEDTLS_SSL_VERIFY_REQUIRED             2
-#define MBEDTLS_SSL_VERIFY_UNSET                3 /* Used only for sni_authmode */
+#define MBEDTLS_SSL_VERIFY_NONE                 0x0
+#define MBEDTLS_SSL_VERIFY_OPTIONAL             0xf
+#define MBEDTLS_SSL_VERIFY_REQUIRED             0x33
+#define MBEDTLS_SSL_VERIFY_UNSET                0x3c /* Used only for sni_authmode */
 
 #define MBEDTLS_SSL_LEGACY_RENEGOTIATION        0
 #define MBEDTLS_SSL_SECURE_RENEGOTIATION        1
@@ -1197,7 +1197,7 @@ struct mbedtls_ssl_config
 #endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
     unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
 #if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
-    unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
+    unsigned int authmode : 6;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
 #endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 #if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */

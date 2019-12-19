@@ -48,6 +48,8 @@
 #include "mbedtls/ssl_internal.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
+#include "mbedtls/platform.h"
+
 
 #include <string.h>
 
@@ -7261,7 +7263,7 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
  * indicating whether a Certificate message is expected or not.
  */
 #define SSL_CERTIFICATE_EXPECTED 0
-#define SSL_CERTIFICATE_SKIP     1
+#define SSL_CERTIFICATE_SKIP     0xff
 static int ssl_parse_certificate_coordinate( mbedtls_ssl_context *ssl,
                                              int authmode )
 {
@@ -7609,7 +7611,6 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     if( crt_expected == SSL_CERTIFICATE_SKIP )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
         goto exit;
     }
 
@@ -7936,6 +7937,10 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 #else
     const int authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
 #endif
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    volatile int crt_expected = SSL_CERTIFICATE_EXPECTED;
+    crt_expected = ssl_parse_certificate_coordinate( ssl, authmode );
+#endif
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -7976,9 +7981,21 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
-    if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+    if( authmode == MBEDTLS_SSL_VERIFY_NONE ||
+        authmode == MBEDTLS_SSL_VERIFY_OPTIONAL ||
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+        crt_expected == SSL_CERTIFICATE_SKIP )
+#else
+        1 )
+#endif
     {
-        if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+        if( authmode == MBEDTLS_SSL_VERIFY_NONE ||
+            authmode == MBEDTLS_SSL_VERIFY_OPTIONAL ||
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+            crt_expected == SSL_CERTIFICATE_SKIP )
+#else
+            1 )
+#endif
         {
             ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
         }

@@ -314,6 +314,7 @@ cleanup:
         {
             return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         }
+
     }
 
     return( MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE );

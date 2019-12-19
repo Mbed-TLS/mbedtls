@@ -4449,7 +4449,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
         ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
@@ -4478,7 +4477,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
         ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
@@ -4507,7 +4505,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( peer_pk == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
         ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }

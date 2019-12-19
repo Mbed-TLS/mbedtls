@@ -43,9 +43,7 @@
 #include <stdio.h>
 #endif
 
-#if defined(MBEDTLS_ENTROPY_NV_SEED)
 #include "mbedtls/platform.h"
-#endif
 
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
@@ -274,12 +272,14 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
     {
         volatile int strong_fi = ctx->source[i].strong;
         if( strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
-            have_one_strong_fi = 1;
+        {
+            mbedtls_platform_enforce_volatile_reads();
 
-        mbedtls_platform_enforce_volatile_reads();
-
-        if( strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
-            have_one_strong_fi = 1;
+            if( strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
+                have_one_strong_fi = 1;
+            else
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        }
 
         olen = 0;
         if( ( ret = ctx->source[i].f_source( ctx->source[i].p_source,
@@ -309,6 +309,10 @@ cleanup:
         if( have_one_strong_fi == 1 )
         {
             return( ret );
+        }
+        else
+        {
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         }
     }
 

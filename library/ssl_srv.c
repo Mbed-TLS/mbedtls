@@ -627,7 +627,7 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
 
-    ssl->handshake->resume = 1;
+    ssl->handshake->resume = MBEDTLS_SSL_FI_FLAG_SET;
 
     /* Don't send a new ticket after all, this one is OK */
     ssl->handshake->new_session_ticket = 0;
@@ -2839,19 +2839,19 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
      * It may be already set to 1 by ssl_parse_session_ticket_ext().
      * If not, try looking up session ID in our cache.
      */
-    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 &&
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == MBEDTLS_SSL_FI_FLAG_UNSET &&
         mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
         ssl->session_negotiate->id_len != 0 &&
         ssl->conf->f_get_cache != NULL &&
         ssl->conf->f_get_cache( ssl->conf->p_cache, ssl->session_negotiate ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
-        ssl->handshake->resume = 1;
+        ssl->handshake->resume = MBEDTLS_SSL_FI_FLAG_SET;
     }
 #endif /* !MBEDTLS_SSL_NO_SESSION_CACHE */
 
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 1 )
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == MBEDTLS_SSL_FI_FLAG_SET )
     {
         /*
          * Resuming a session

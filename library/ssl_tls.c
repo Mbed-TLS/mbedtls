@@ -1825,7 +1825,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         mbedtls_ssl_handshake_get_ciphersuite( handshake );
 
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-    if( handshake->resume != 0 )
+    if( handshake->resume == MBEDTLS_SSL_FI_FLAG_SET )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
         return( 0 );
@@ -7969,7 +7969,7 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
      */
     if( ssl->conf->f_set_cache != NULL &&
         ssl->session->id_len != 0 &&
-        ssl->handshake->resume == 0 )
+        ssl->handshake->resume == MBEDTLS_SSL_FI_FLAG_UNSET )
     {
         if( ssl->conf->f_set_cache( ssl->conf->p_cache, ssl->session ) != 0 )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
@@ -7990,10 +7990,10 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     }
 
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-    if( ssl->handshake->resume )
+    if( ssl->handshake->resume == MBEDTLS_SSL_FI_FLAG_SET )
     {
         mbedtls_platform_enforce_volatile_reads();
-        if( ssl->handshake->resume )
+        if( ssl->handshake->resume == MBEDTLS_SSL_FI_FLAG_SET )
         {
             /* When doing session resume, no premaster or peer authentication */
             ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
@@ -8111,7 +8111,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
      * In case of session resuming, invert the client and server
      * ChangeCipherSpec messages order.
      */
-    if( ssl->handshake->resume != 0 )
+    if( ssl->handshake->resume == MBEDTLS_SSL_FI_FLAG_SET )
     {
 #if defined(MBEDTLS_SSL_CLI_C)
         if( mbedtls_ssl_conf_get_endpoint( ssl->conf ) ==
@@ -8290,7 +8290,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 #endif
 
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-    if( ssl->handshake->resume != 0 )
+    if( ssl->handshake->resume == MBEDTLS_SSL_FI_FLAG_SET )
     {
 #if defined(MBEDTLS_SSL_CLI_C)
         if( mbedtls_ssl_conf_get_endpoint( ssl->conf ) == MBEDTLS_SSL_IS_CLIENT )
@@ -9019,7 +9019,7 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
                                           session ) ) != 0 )
         return( ret );
 
-    ssl->handshake->resume = 1;
+    ssl->handshake->resume = MBEDTLS_SSL_FI_FLAG_SET;
 
     return( 0 );
 }

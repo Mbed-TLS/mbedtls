@@ -868,7 +868,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
      * appropriate length. Otherwise make the length 0 (for now, see next code
      * block for behaviour with tickets).
      */
-    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 ||
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == MBEDTLS_SSL_FI_FLAG_UNSET ||
         mbedtls_ssl_get_renego_status( ssl ) != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
         ssl->session_negotiate->id_len < 16 ||
         ssl->session_negotiate->id_len > 32 )
@@ -1832,11 +1832,11 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         ssl->session_negotiate->id_len != n ||
         mbedtls_platform_memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
     {
-        ssl->handshake->resume = 0;
+        ssl->handshake->resume = MBEDTLS_SSL_FI_FLAG_UNSET;
     }
 #endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
-    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 1 )
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == MBEDTLS_SSL_FI_FLAG_SET )
     {
         /* Resume a session */
         ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;

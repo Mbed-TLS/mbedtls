@@ -7309,7 +7309,6 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
 
     if( authmode == MBEDTLS_SSL_VERIFY_NONE )
     {
-        ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
         return( 0 );
     }
 
@@ -7929,6 +7928,14 @@ static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
     volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
+                       ? ssl->handshake->sni_authmode
+                       : mbedtls_ssl_conf_get_authmode( ssl->conf );
+#else
+    const int authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
+#endif
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -7969,6 +7976,19 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
+    if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+    {
+        if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+        {
+            ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+            goto cleanup;
+        }
+    }
+
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     if( ssl->handshake->resume )
     {
@@ -7982,7 +8002,7 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         else
         {
             ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
-            return( ret );
+            goto cleanup;
         }
     }
 #endif

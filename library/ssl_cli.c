@@ -4296,7 +4296,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
-           mbedtls_ssl_handshake_wrapup( ssl );
+           ret = mbedtls_ssl_handshake_wrapup( ssl );
            break;
 
        case MBEDTLS_SSL_INVALID:

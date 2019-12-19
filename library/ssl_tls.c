@@ -7309,10 +7309,13 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
     mbedtls_x509_crt *ca_chain;
     mbedtls_x509_crl *ca_crl;
 
-    ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_UNSET;
     if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+    {
+        ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
         return( 0 );
+    }
 
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_ca_chain != NULL )
     {
@@ -7456,6 +7459,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         verify_ret = MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED;
         flow_counter++;
     }
+    else
+    {
+        flow_counter++;
+    }
 
     if( verify_ret != 0 )
     {
@@ -7504,12 +7511,15 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
             flow_counter == 4 )
 #endif
         {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> PEER AUTHENTICATED" ) );
             ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
         }
         else
         {
             return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         }
+    } else {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> PEER NOT AUTHENTICATED, %d", flow_counter));
     }
 
 #if defined(MBEDTLS_DEBUG_C)
@@ -7602,6 +7612,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     if( crt_expected == SSL_CERTIFICATE_SKIP )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+        ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
         goto exit;
     }
 
@@ -7917,8 +7928,9 @@ static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup: final free" ) );
 }
 
-void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
+    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -7959,6 +7971,39 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_SRV_C && !MBEDTLS_SSL_NO_SESSION_CACHE */
 
+#if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
+    if( ssl->handshake->resume )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( ssl->handshake->resume )
+        {
+            ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+            return( ret );
+        }
+    }
+#endif
+
+    if( ssl->handshake->peer_authenticated == MBEDTLS_SSL_FI_FLAG_SET )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( ssl->handshake->peer_authenticated == MBEDTLS_SSL_FI_FLAG_SET )
+        {
+            ret = 0;
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+        }
+    }
+    else
+    {
+        ret = MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED;
+    }
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->handshake->flight != NULL )
@@ -7977,6 +8022,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     ssl->state = MBEDTLS_SSL_HANDSHAKE_OVER;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
+    return ret;
 }
 
 int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )

@@ -514,7 +514,7 @@ struct mbedtls_ssl_handshake_params
 #endif /* !MBEDTLS_SSL_CONF_SINGLE_CIPHERSUITE */
 
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-    int resume;                         /*!<  session resume indicator*/
+    volatile int resume;                /*!<  session resume indicator*/
 #endif /* !MBEDTLS_SSL_NO_SESSION_RESUMPTION */
 
 #if defined(MBEDTLS_SSL_SRV_C) &&                        \
@@ -913,7 +913,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
-void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 

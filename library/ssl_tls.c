@@ -1974,7 +1974,6 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
 
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
-    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
 #if defined(MBEDTLS_USE_TINYCRYPT)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                       ||
@@ -2159,7 +2158,6 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
     const unsigned char *psk = ssl->conf->psk;
     size_t psk_len = ssl->conf->psk_len;
-    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
 
     /* If the psk callback was called, use its result */
     if( ssl->handshake->psk != NULL )
@@ -7977,7 +7975,9 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         mbedtls_platform_enforce_volatile_reads();
         if( ssl->handshake->resume )
         {
+            /* When doing session resume, no premaster or peer authentication */
             ssl->handshake->peer_authenticated = MBEDTLS_SSL_FI_FLAG_SET;
+            ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
         }
         else
         {
@@ -7997,13 +7997,41 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         else
         {
             ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+            goto cleanup;
         }
     }
     else
     {
         ret = MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED;
+        goto cleanup;
     }
 
+    if( ssl->handshake->hello_random_set == MBEDTLS_SSL_FI_FLAG_SET &&
+        ssl->handshake->key_derivation_done == MBEDTLS_SSL_FI_FLAG_SET &&
+        ssl->handshake->premaster_generated == MBEDTLS_SSL_FI_FLAG_SET )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( ssl->handshake->hello_random_set == MBEDTLS_SSL_FI_FLAG_SET &&
+            ssl->handshake->key_derivation_done == MBEDTLS_SSL_FI_FLAG_SET &&
+            ssl->handshake->premaster_generated == MBEDTLS_SSL_FI_FLAG_SET )
+        {
+            ret = 0;
+        }
+        else
+        {
+            ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
+            goto cleanup;
+        }
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "hello random %d", ssl->handshake->hello_random_set ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "key_derivation_done %d", ssl->handshake->key_derivation_done ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "premaster_generated %d", ssl->handshake->premaster_generated ) );
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+cleanup:
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) &&
         ssl->handshake->flight != NULL )

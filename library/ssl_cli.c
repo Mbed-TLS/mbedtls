@@ -2344,7 +2344,6 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
 {
     volatile int ret;
 
-    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
     /*
      * Generate (part of) the pre-master secret as
      *  struct {
@@ -2396,7 +2395,6 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
     mbedtls_pk_context *peer_pk = NULL;
 
-    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
     if( buflen < len_bytes )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small for encrypted pms" ) );

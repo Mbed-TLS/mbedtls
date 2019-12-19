@@ -3980,7 +3980,6 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     unsigned int diff;
     volatile unsigned int pmscounter = 0;
 
-    ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_UNSET;
     /* In case of a failure in decryption, the decryption may write less than
      * 2 bytes of output, but we always read the first two bytes. It doesn't
      * matter in the end because diff will be nonzero in that case due to

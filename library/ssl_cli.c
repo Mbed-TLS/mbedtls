@@ -2342,7 +2342,7 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
                                          unsigned char* out,
                                          unsigned add_length_tag )
 {
-    volatile int ret;
+    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
 
     /*
      * Generate (part of) the pre-master secret as
@@ -2390,7 +2390,7 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
                                         unsigned char *out, size_t buflen,
                                         size_t *olen )
 {
-    volatile int ret;
+    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     size_t len_bytes = mbedtls_ssl_get_minor_ver( ssl ) ==
         MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
     mbedtls_pk_context *peer_pk = NULL;
@@ -2762,6 +2762,10 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen )
 {
+    /*
+     * Initialising to an error value would need a significant
+     * structural change to provide default flow assumes failure
+     */
     volatile int ret = 0;
     unsigned char *p;
     unsigned char *end;

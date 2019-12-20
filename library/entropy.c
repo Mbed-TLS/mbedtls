@@ -258,7 +258,7 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
 {
     int i;
     volatile int ret = MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE;
-    volatile int have_one_strong_fi = 0;
+    volatile int have_one_strong_fi = MBEDTLS_ENTROPY_SOURCE_WEAK;
     unsigned char buf[MBEDTLS_ENTROPY_MAX_GATHER];
     size_t olen;
 
@@ -276,7 +276,7 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
             mbedtls_platform_enforce_volatile_reads();
 
             if( strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
-                have_one_strong_fi = 1;
+                have_one_strong_fi = MBEDTLS_ENTROPY_SOURCE_STRONG;
             else
                 return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
         }
@@ -303,10 +303,10 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
 cleanup:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
-    if( have_one_strong_fi == 1 )
+    if( have_one_strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
     {
         mbedtls_platform_enforce_volatile_reads();
-        if( have_one_strong_fi == 1 )
+        if( have_one_strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
         {
             return( ret );
         }

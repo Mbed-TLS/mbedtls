@@ -83,8 +83,8 @@
 #define MBEDTLS_ENTROPY_MAX_SEED_SIZE   1024    /**< Maximum size of seed we read from seed file */
 #define MBEDTLS_ENTROPY_SOURCE_MANUAL   MBEDTLS_ENTROPY_MAX_SOURCES
 
-#define MBEDTLS_ENTROPY_SOURCE_STRONG   1       /**< Entropy source is strong   */
-#define MBEDTLS_ENTROPY_SOURCE_WEAK     0       /**< Entropy source is weak     */
+#define MBEDTLS_ENTROPY_SOURCE_STRONG   0x7F    /**< Entropy source is strong   */
+#define MBEDTLS_ENTROPY_SOURCE_WEAK     0x0     /**< Entropy source is weak     */
 
 #ifdef __cplusplus
 extern "C" {

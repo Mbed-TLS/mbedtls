@@ -1883,7 +1883,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 {
-    volatile int ret;
+    volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
     ssl->handshake->key_derivation_done = MBEDTLS_SSL_FI_FLAG_UNSET;
@@ -2062,7 +2062,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
             else
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
-                return( ret );
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
             }
         }
         else
@@ -2093,7 +2093,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
             else
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
-                return( ret );
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
             }
         }
         else
@@ -2122,7 +2122,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
             else
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_derive_secret", ret );
-                return( ret );
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
             }
         }
         else

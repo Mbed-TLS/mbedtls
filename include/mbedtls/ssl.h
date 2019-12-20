@@ -125,6 +125,11 @@
 #define MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED             -0x6A80  /**< DTLS client must retry for hello verification */
 #define MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                  -0x6A00  /**< A buffer is too small to receive or write a message */
 #define MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6980  /**< None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages). */
+/*
+ * MBEDTLS_ERR_SSL_WANT_READ and MBEDTLS_ERR_SSL_WANT_WRITE are dismissable errors,
+ * therefore the hamming distance to other non-dismissable errors should be
+ * large to prevent bit-flipping a non-dismissable error to dismissable.
+ */
 #define MBEDTLS_ERR_SSL_WANT_READ                         -0xFF6900  /**< No data of requested type currently available on underlying transport. */
 #define MBEDTLS_ERR_SSL_WANT_WRITE                        -0xFF6880  /**< Connection requires a write call. */
 #define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */

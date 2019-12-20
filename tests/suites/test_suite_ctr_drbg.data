@@ -1097,6 +1097,4 @@ CTR_DRBG Special Behaviours
 ctr_drbg_special_behaviours:
 
 CTR_DRBG self test
-depends_on:!MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 ctr_drbg_selftest:
-

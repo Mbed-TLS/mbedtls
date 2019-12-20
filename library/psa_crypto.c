@@ -5343,6 +5343,8 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
         status = PSA_ERROR_CORRUPTION_DETECTED;
 
 exit:
+    if( status != PSA_SUCCESS )
+        mbedtls_platform_zeroize( shared_secret, shared_secret_size );
     mbedtls_ecdh_free( &ecdh );
     mbedtls_ecp_keypair_free( their_key );
     mbedtls_free( their_key );

@@ -7931,11 +7931,11 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     volatile int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
 
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
+    volatile const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
                        ? ssl->handshake->sni_authmode
                        : mbedtls_ssl_conf_get_authmode( ssl->conf );
 #else
-    const int authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
+    volatile const int authmode = mbedtls_ssl_conf_get_authmode( ssl->conf );
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     volatile int crt_expected = SSL_CERTIFICATE_EXPECTED;
@@ -7989,6 +7989,7 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         1 )
 #endif
     {
+        mbedtls_platform_enforce_volatile_reads();
         if( authmode == MBEDTLS_SSL_VERIFY_NONE ||
             authmode == MBEDTLS_SSL_VERIFY_OPTIONAL ||
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)

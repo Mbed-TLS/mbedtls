@@ -627,7 +627,7 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
 
-    ssl->handshake->resume = 1;
+    ssl->handshake->resume = MBEDTLS_SSL_FI_FLAG_SET;
 
     /* Don't send a new ticket after all, this one is OK */
     ssl->handshake->new_session_ticket = 0;
@@ -1223,8 +1223,14 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     mbedtls_platform_memcpy( ssl->session_negotiate->id, p, ssl->session_negotiate->id_len );
 
     p += sess_len;
+
+    ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
     memset( ssl->handshake->randbytes, 0, 64 );
     mbedtls_platform_memcpy( ssl->handshake->randbytes + 32 - chal_len, p, chal_len );
+    if( mbedtls_platform_memcmp( ssl->handshake->randbytes + 32 - chal_len, p, chal_len ) == 0 )
+    {
+        ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
+    }
 
     /*
      * Check for TLS_EMPTY_RENEGOTIATION_INFO_SCSV
@@ -1360,7 +1366,7 @@ have_ciphersuite_v2:
     }
 
     ssl->in_left = 0;
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse client hello v2" ) );
 
@@ -1717,10 +1723,14 @@ read_record_header:
     /*
      * Save client random (inc. Unix time)
      */
+    ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", buf + 2, 32 );
 
     mbedtls_platform_memcpy( ssl->handshake->randbytes, buf + 2, 32 );
-
+    if( mbedtls_platform_memcmp( ssl->handshake->randbytes, buf + 2, 32 ) == 0 )
+    {
+        ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
+    }
     /*
      * Check the session ID length and save session ID
      */
@@ -2298,7 +2308,7 @@ have_ciphersuite:
         mbedtls_ssl_get_ciphersuite_name(
             mbedtls_ssl_session_get_ciphersuite( ssl->session_negotiate ) ) ) );
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
@@ -2814,8 +2824,12 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     }
 
     p += 28;
-
+    ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_UNSET;
     mbedtls_platform_memcpy( ssl->handshake->randbytes + 32, buf + 6, 32 );
+    if( mbedtls_platform_memcmp( ssl->handshake->randbytes + 32, buf + 6, 32 ) == 0 )
+    {
+        ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
+    }
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", buf + 6, 32 );
 
@@ -2825,19 +2839,19 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
      * It may be already set to 1 by ssl_parse_session_ticket_ext().
      * If not, try looking up session ID in our cache.
      */
-    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 0 &&
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == MBEDTLS_SSL_FI_FLAG_UNSET &&
         mbedtls_ssl_get_renego_status( ssl ) == MBEDTLS_SSL_INITIAL_HANDSHAKE &&
         ssl->session_negotiate->id_len != 0 &&
         ssl->conf->f_get_cache != NULL &&
         ssl->conf->f_get_cache( ssl->conf->p_cache, ssl->session_negotiate ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
-        ssl->handshake->resume = 1;
+        ssl->handshake->resume = MBEDTLS_SSL_FI_FLAG_SET;
     }
 #endif /* !MBEDTLS_SSL_NO_SESSION_CACHE */
 
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
-    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == 1 )
+    if( mbedtls_ssl_handshake_get_resume( ssl->handshake ) == MBEDTLS_SSL_FI_FLAG_SET )
     {
         /*
          * Resuming a session
@@ -2858,7 +2872,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
          * New session, create a new session id,
          * unless we're about to issue a session ticket
          */
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_SERVER_CERTIFICATE;
 
 #if defined(MBEDTLS_HAVE_TIME)
         ssl->session_negotiate->start = mbedtls_time( NULL );
@@ -3008,7 +3022,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
         return( 0 );
     }
 
@@ -3030,7 +3044,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
@@ -3693,7 +3707,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
         /* Key exchanges not involving ephemeral keys don't use
          * ServerKeyExchange, so end here. */
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
         return( 0 );
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED */
@@ -3751,7 +3765,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE;
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
 
     if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
     {
@@ -3773,7 +3787,7 @@ static int ssl_write_server_hello_done( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_SERVER_HELLO_DONE;
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( MBEDTLS_SSL_TRANSPORT_IS_DTLS( ssl->conf->transport ) )
@@ -3964,6 +3978,7 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     unsigned char mask;
     size_t i, peer_pmslen;
     unsigned int diff;
+    volatile unsigned int pmscounter = 0;
 
     /* In case of a failure in decryption, the decryption may write less than
      * 2 bytes of output, but we always read the first two bytes. It doesn't
@@ -4042,7 +4057,19 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     /* Set pms to either the true or the fake PMS, without
      * data-dependent branches. */
     for( i = 0; i < ssl->handshake->pmslen; i++ )
+    {
         pms[i] = ( mask & fake_pms[i] ) | ( (~mask) & peer_pms[i] );
+        pmscounter++;
+    }
+
+    if( pmscounter == ssl->handshake->pmslen )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( pmscounter == ssl->handshake->pmslen )
+        {
+            ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
+        }
+    }
 
     return( 0 );
 }
@@ -4422,7 +4449,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
 
@@ -4432,7 +4459,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 #else /* !MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
 static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    volatile int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, sig_len;
     unsigned char hash[48];
     unsigned char *hash_start = hash;
@@ -4450,7 +4477,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
 
@@ -4478,7 +4505,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     if( peer_pk == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
+        ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
         return( 0 );
     }
 
@@ -4490,7 +4517,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         goto exit;
     }
 
-    ssl->state++;
+    ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
 
     /* Process the message contents */
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
@@ -4618,17 +4645,25 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
             md_alg, ssl, hash, &dummy_hlen );
     }
 
-    if( ( ret = mbedtls_pk_verify( peer_pk,
-                           md_alg, hash_start, hashlen,
-                           ssl->in_msg + i, sig_len ) ) != 0 )
+    ret = mbedtls_pk_verify( peer_pk,
+                                      md_alg, hash_start, hashlen,
+                                      ssl->in_msg + i, sig_len );
+
+    if( ret == 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
-        goto exit;
+        mbedtls_platform_enforce_volatile_reads();
+
+        if( ret == 0 )
+        {
+            mbedtls_ssl_update_handshake_status( ssl );
+
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
+            goto exit;
+        }
+
     }
 
-    mbedtls_ssl_update_handshake_status( ssl );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
+    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
 
 exit:
 
@@ -4815,9 +4850,10 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
-            mbedtls_ssl_handshake_wrapup( ssl );
+            ret = mbedtls_ssl_handshake_wrapup( ssl );
             break;
 
+        case MBEDTLS_SSL_INVALID:
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );

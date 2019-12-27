@@ -43,9 +43,7 @@
 #include <stdio.h>
 #endif
 
-#if defined(MBEDTLS_ENTROPY_NV_SEED)
 #include "mbedtls/platform.h"
-#endif
 
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
@@ -258,7 +256,9 @@ int mbedtls_entropy_update_manual( mbedtls_entropy_context *ctx,
  */
 static int entropy_gather_internal( mbedtls_entropy_context *ctx )
 {
-    int ret, i, have_one_strong = 0;
+    int i;
+    volatile int ret = MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE;
+    volatile int have_one_strong_fi = MBEDTLS_ENTROPY_SOURCE_WEAK;
     unsigned char buf[MBEDTLS_ENTROPY_MAX_GATHER];
     size_t olen;
 
@@ -270,8 +270,16 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
      */
     for( i = 0; i < ctx->source_count; i++ )
     {
-        if( ctx->source[i].strong == MBEDTLS_ENTROPY_SOURCE_STRONG )
-            have_one_strong = 1;
+        volatile int strong_fi = ctx->source[i].strong;
+        if( strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
+        {
+            mbedtls_platform_enforce_volatile_reads();
+
+            if( strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
+                have_one_strong_fi = MBEDTLS_ENTROPY_SOURCE_STRONG;
+            else
+                return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        }
 
         olen = 0;
         if( ( ret = ctx->source[i].f_source( ctx->source[i].p_source,
@@ -292,13 +300,24 @@ static int entropy_gather_internal( mbedtls_entropy_context *ctx )
         }
     }
 
-    if( have_one_strong == 0 )
-        ret = MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE;
-
 cleanup:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
-    return( ret );
+    if( have_one_strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
+    {
+        mbedtls_platform_enforce_volatile_reads();
+        if( have_one_strong_fi == MBEDTLS_ENTROPY_SOURCE_STRONG )
+        {
+            return( ret );
+        }
+        else
+        {
+            return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+        }
+
+    }
+
+    return( MBEDTLS_ERR_ENTROPY_NO_STRONG_SOURCE );
 }
 
 /*

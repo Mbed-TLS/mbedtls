@@ -125,8 +125,13 @@
 #define MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED             -0x6A80  /**< DTLS client must retry for hello verification */
 #define MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                  -0x6A00  /**< A buffer is too small to receive or write a message */
 #define MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE             -0x6980  /**< None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages). */
-#define MBEDTLS_ERR_SSL_WANT_READ                         -0x6900  /**< No data of requested type currently available on underlying transport. */
-#define MBEDTLS_ERR_SSL_WANT_WRITE                        -0x6880  /**< Connection requires a write call. */
+/*
+ * MBEDTLS_ERR_SSL_WANT_READ and MBEDTLS_ERR_SSL_WANT_WRITE are dismissable errors,
+ * therefore the hamming distance to other non-dismissable errors should be
+ * large to prevent bit-flipping a non-dismissable error to dismissable.
+ */
+#define MBEDTLS_ERR_SSL_WANT_READ                         -0xFF6900  /**< No data of requested type currently available on underlying transport. */
+#define MBEDTLS_ERR_SSL_WANT_WRITE                        -0xFF6880  /**< Connection requires a write call. */
 #define MBEDTLS_ERR_SSL_TIMEOUT                           -0x6800  /**< The operation timed out. */
 #define MBEDTLS_ERR_SSL_CLIENT_RECONNECT                  -0x6780  /**< The client initiated a reconnect from the same port. */
 #define MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                 -0x6700  /**< Record header looks valid but is not expected. */
@@ -191,10 +196,10 @@
 #define MBEDTLS_SSL_COMPRESS_NULL               0
 #define MBEDTLS_SSL_COMPRESS_DEFLATE            1
 
-#define MBEDTLS_SSL_VERIFY_NONE                 0
-#define MBEDTLS_SSL_VERIFY_OPTIONAL             1
-#define MBEDTLS_SSL_VERIFY_REQUIRED             2
-#define MBEDTLS_SSL_VERIFY_UNSET                3 /* Used only for sni_authmode */
+#define MBEDTLS_SSL_VERIFY_NONE                 0x0
+#define MBEDTLS_SSL_VERIFY_OPTIONAL             0xf
+#define MBEDTLS_SSL_VERIFY_REQUIRED             0x33
+#define MBEDTLS_SSL_VERIFY_UNSET                0x3c /* Used only for sni_authmode */
 
 #define MBEDTLS_SSL_LEGACY_RENEGOTIATION        0
 #define MBEDTLS_SSL_SECURE_RENEGOTIATION        1
@@ -564,25 +569,26 @@ extern "C" {
  */
 typedef enum
 {
-    MBEDTLS_SSL_HELLO_REQUEST,
-    MBEDTLS_SSL_CLIENT_HELLO,
-    MBEDTLS_SSL_SERVER_HELLO,
-    MBEDTLS_SSL_SERVER_CERTIFICATE,
-    MBEDTLS_SSL_SERVER_KEY_EXCHANGE,
-    MBEDTLS_SSL_CERTIFICATE_REQUEST,
-    MBEDTLS_SSL_SERVER_HELLO_DONE,
-    MBEDTLS_SSL_CLIENT_CERTIFICATE,
-    MBEDTLS_SSL_CLIENT_KEY_EXCHANGE,
-    MBEDTLS_SSL_CERTIFICATE_VERIFY,
-    MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC,
-    MBEDTLS_SSL_CLIENT_FINISHED,
-    MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC,
-    MBEDTLS_SSL_SERVER_FINISHED,
-    MBEDTLS_SSL_FLUSH_BUFFERS,
-    MBEDTLS_SSL_HANDSHAKE_WRAPUP,
-    MBEDTLS_SSL_HANDSHAKE_OVER,
-    MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET,
-    MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
+    MBEDTLS_SSL_HELLO_REQUEST                       = 0x0,
+    MBEDTLS_SSL_CLIENT_HELLO                        = 0x0000FFFF,
+    MBEDTLS_SSL_SERVER_HELLO                        = 0x00FF00FF,
+    MBEDTLS_SSL_SERVER_CERTIFICATE                  = 0x00FFFF00,
+    MBEDTLS_SSL_SERVER_KEY_EXCHANGE                 = 0x0F0F0F0F,
+    MBEDTLS_SSL_CERTIFICATE_REQUEST                 = 0x0F0FF0F0,
+    MBEDTLS_SSL_SERVER_HELLO_DONE                   = 0x0FF00FF0,
+    MBEDTLS_SSL_CLIENT_CERTIFICATE                  = 0x0FF0F00F,
+    MBEDTLS_SSL_CLIENT_KEY_EXCHANGE                 = 0x33333333,
+    MBEDTLS_SSL_CERTIFICATE_VERIFY                  = 0x3333CCCC,
+    MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC           = 0x33CC33CC,
+    MBEDTLS_SSL_CLIENT_FINISHED                     = 0x33CCCC33,
+    MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC           = 0x3C3C3C3C,
+    MBEDTLS_SSL_SERVER_FINISHED                     = 0x3C3CC3C3,
+    MBEDTLS_SSL_FLUSH_BUFFERS                       = 0x3CC33CC3,
+    MBEDTLS_SSL_HANDSHAKE_WRAPUP                    = 0x3CC3C33C,
+    MBEDTLS_SSL_HANDSHAKE_OVER                      = 0x55555555,
+    MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET           = 0x5555AAAA,
+    MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT    = 0x55AA55AA,
+    MBEDTLS_SSL_INVALID                             = 0x55AAAA55
 }
 mbedtls_ssl_states;
 
@@ -1196,7 +1202,7 @@ struct mbedtls_ssl_config
 #endif /* !MBEDTLS_SSL_CONF_ENDPOINT */
     unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
 #if !defined(MBEDTLS_SSL_CONF_AUTHMODE)
-    unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
+    unsigned int authmode : 6;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
 #endif /* !MBEDTLS_SSL_CONF_AUTHMODE */
 #if !defined(MBEDTLS_SSL_CONF_ALLOW_LEGACY_RENEGOTIATION)
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */

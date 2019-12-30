@@ -198,12 +198,6 @@ int mbedtls_platform_random_delay( size_t max_rand )
 #endif /* !MBEDTLS_ENTROPY_HARDWARE_ALT */
 }
 
-void mbedtls_platform_enforce_volatile_reads( void )
-{
-    // Add a small random delay as a counter-measure to fault injection attack.
-    mbedtls_platform_random_delay( 50 );
-}
-
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>
 #if !defined(_WIN32) && (defined(unix) || \

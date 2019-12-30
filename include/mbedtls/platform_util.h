@@ -259,16 +259,6 @@ uint32_t mbedtls_platform_random_in_range( size_t num );
  */
 int mbedtls_platform_random_delay( size_t num );
 
-/**
- * \brief       This function can be inserted between successive reads to a
- *              volatile local variable to prevent compilers from optimizing
- *              them away. In addition, this function will spent a small random
- *              time in a busy loop as a counter-measure to fault injection
- *              attack.
- *
- */
-void mbedtls_platform_enforce_volatile_reads( void );
-
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
  * \brief      Platform-specific implementation of gmtime_r()

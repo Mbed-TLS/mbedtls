@@ -171,19 +171,28 @@ int mbedtls_platform_random_delay( size_t max_rand )
     (void) max_rand;
     return -1;
 #else
-    size_t random_number;
+    size_t rn_1, rn_2, rn_3;
     volatile size_t i = 0;
+    uint8_t shift;
     if( max_rand == 0 || max_rand > INT_MAX )
     {
         return( -1 );
     }
 
-    random_number = mbedtls_platform_random_in_range( max_rand );
+    rn_1 = mbedtls_platform_random_in_range( max_rand );
+    rn_2 = mbedtls_platform_random_in_range( 0xffffffff ) + 1;
+    rn_3 = mbedtls_platform_random_in_range( 0xffffffff ) + 1;
 
     do
     {
         i++;
-    } while( i < random_number );
+        shift = rn_2 & 0x07;
+        if ( i % 2 )
+            rn_2 = (uint32_t)( rn_2 >> shift | rn_2 << ( 32 - shift ) );
+        else
+            rn_3 = (uint32_t)( rn_3 << shift | rn_3 >> ( 32 - shift ) );
+        rn_2 ^= rn_3;
+    } while( i < rn_1 || rn_2 == 0 || rn_3 == 0 );
 
     return( (int)i );
 #endif /* !MBEDTLS_ENTROPY_HARDWARE_ALT */

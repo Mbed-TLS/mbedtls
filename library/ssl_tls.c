@@ -791,8 +791,8 @@ int tls_prf_generic( mbedtls_md_type_t md_type,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     nb = strlen( label );
-    mbedtls_platform_memcpy( tmp + md_len, label, nb );
-    mbedtls_platform_memcpy( tmp + md_len + nb, random, rlen );
+    (void)mbedtls_platform_memcpy( tmp + md_len, label, nb );
+    (void)mbedtls_platform_memcpy( tmp + md_len + nb, random, rlen );
     nb += rlen;
 
     /*
@@ -801,19 +801,28 @@ int tls_prf_generic( mbedtls_md_type_t md_type,
     if ( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
 
-    mbedtls_md_hmac_starts( &md_ctx, secret, slen );
-    mbedtls_md_hmac_update( &md_ctx, tmp + md_len, nb );
-    mbedtls_md_hmac_finish( &md_ctx, tmp );
+    if ( ( ret = mbedtls_md_hmac_starts( &md_ctx, secret, slen ) ) != 0 )
+        return( ret );
+    if ( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp + md_len, nb ) ) != 0 )
+        return( ret );
+    if ( ( ret = mbedtls_md_hmac_finish( &md_ctx, tmp ) ) != 0 )
+        return( ret );
 
     for( i = 0; i < dlen; i += md_len )
     {
-        mbedtls_md_hmac_reset ( &md_ctx );
-        mbedtls_md_hmac_update( &md_ctx, tmp, md_len + nb );
-        mbedtls_md_hmac_finish( &md_ctx, h_i );
+        if ( ( ret = mbedtls_md_hmac_reset ( &md_ctx ) ) != 0 )
+            return( ret );
+        if ( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp, md_len + nb ) ) != 0 )
+            return( ret );
+        if ( ( ret = mbedtls_md_hmac_finish( &md_ctx, h_i ) ) != 0 )
+            return( ret );
 
-        mbedtls_md_hmac_reset ( &md_ctx );
-        mbedtls_md_hmac_update( &md_ctx, tmp, md_len );
-        mbedtls_md_hmac_finish( &md_ctx, tmp );
+        if ( ( ret = mbedtls_md_hmac_reset ( &md_ctx ) ) != 0 )
+            return( ret );
+        if ( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp, md_len ) ) != 0 )
+            return( ret );
+        if ( ( ret = mbedtls_md_hmac_finish( &md_ctx, tmp ) ) != 0 )
+            return( ret );
 
         k = ( i + md_len > dlen ) ? dlen % md_len : md_len;
 
@@ -823,8 +832,8 @@ int tls_prf_generic( mbedtls_md_type_t md_type,
 
     mbedtls_md_free( &md_ctx );
 
-    mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
-    mbedtls_platform_zeroize( h_i, sizeof( h_i ) );
+    (void)mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
+    (void)mbedtls_platform_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }

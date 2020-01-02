@@ -1150,6 +1150,18 @@ run_test    "Default, choose highest security suite and hash, DTLS" \
             -s "client hello v3, signature_algorithm ext: 6" \
             -s "ECDHE curve: secp521r1"
 
+requires_config_enabled MBEDTLS_ZLIB_SUPPORT
+run_test    "Default (compression enabled)" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -s "Allocating compression buffer" \
+            -c "Allocating compression buffer" \
+            -s "Record expansion is unknown (compression)" \
+            -c "Record expansion is unknown (compression)" \
+            -S "error" \
+            -C "error"
+
 # Test current time in ServerHello
 requires_config_enabled MBEDTLS_HAVE_TIME
 run_test    "ServerHello contains gmt_unix_time" \

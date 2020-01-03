@@ -717,7 +717,7 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
             ( mbedtls_ssl_conf_get_prng( ssl->conf ), p, 28 );
     if( ret == 0 )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay(50);
         if( ret == 0 )
         {
             ssl->handshake->hello_random_set = MBEDTLS_SSL_FI_FLAG_SET;
@@ -2369,7 +2369,7 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
 
     if( ret == 0 )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay(50);
         if( ret == 0 )
         {
             ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
@@ -2442,7 +2442,7 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
 
     if( ret == 0 )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay(50);
         if( ret == 0 )
         {
             ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
@@ -3071,7 +3071,7 @@ static int ssl_in_server_key_exchange_parse( mbedtls_ssl_context *ssl,
 
         if( ret == 0 )
         {
-            mbedtls_platform_enforce_volatile_reads();
+            mbedtls_platform_random_delay(50);
 
             if( ret == 0 )
             {

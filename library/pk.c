@@ -1553,7 +1553,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
 
     if( verify_ret == 0 )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay(50);
         if( verify_ret == 0 )
         {
             return( verify_ret );

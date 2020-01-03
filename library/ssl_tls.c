@@ -5446,7 +5446,7 @@ static int ssl_check_client_reconnect( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
 
 /*
- * If applicable, decrypt (and decompress) record content
+ * If applicable, decrypt record content
  */
 static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
                                        mbedtls_record *rec )
@@ -5571,18 +5571,6 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
         }
 
     }
-
-#if defined(MBEDTLS_ZLIB_SUPPORT)
-    if( ssl->transform_in != NULL &&
-        ssl->session_in->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
-    {
-        if( ( ret = ssl_decompress_buf( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decompress_buf", ret );
-            return( ret );
-        }
-    }
-#endif /* MBEDTLS_ZLIB_SUPPORT */
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -6468,6 +6456,26 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
     ssl->in_msglen = rec.data_len;
     ssl->in_len[0] = (unsigned char)( rec.data_len >> 8 );
     ssl->in_len[1] = (unsigned char)( rec.data_len      );
+
+#if defined(MBEDTLS_ZLIB_SUPPORT)
+    if( ssl->transform_in != NULL &&
+        ssl->session_in->compression == MBEDTLS_SSL_COMPRESS_DEFLATE )
+    {
+        if( ( ret = ssl_decompress_buf( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_decompress_buf", ret );
+            return( ret );
+        }
+
+        /* Check actual (decompress) record content length against
+         * configured maximum. */
+        if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
+    }
+#endif /* MBEDTLS_ZLIB_SUPPORT */
 
     return( 0 );
 }

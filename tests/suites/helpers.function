@@ -32,6 +32,8 @@
 #include "tinycrypt/ecc.h"
 #endif /* MBEDTLS_USE_TINYCRYPT */
 
+#include "mbedtls/entropy.h"
+
 #ifdef _MSC_VER
 #include <basetsd.h>
 typedef UINT8 uint8_t;
@@ -300,6 +302,10 @@ jmp_buf jmp_tmp;
 #define ENTROPY_HAVE_STRONG
 #endif
 
+/* Set flag if number of entropy sources is more than 2 */
+#if ( MBEDTLS_ENTROPY_MAX_SOURCES > 2 )
+#define ENTROPY_SOURCE_COUNT_MORE_THAN_TWO
+#endif
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */

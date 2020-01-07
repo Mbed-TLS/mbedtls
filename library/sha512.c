@@ -132,7 +132,11 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
 int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
 {
     SHA512_VALIDATE_RET( ctx != NULL );
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
     SHA512_VALIDATE_RET( is384 == 0 || is384 == 1 );
+#else
+    SHA512_VALIDATE_RET( is384 == 0 );
+#endif
 
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -475,7 +479,11 @@ int mbedtls_sha512_ret( const unsigned char *input,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_sha512_context ctx;
 
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
     SHA512_VALIDATE_RET( is384 == 0 || is384 == 1 );
+#else
+    SHA512_VALIDATE_RET( is384 == 0 );
+#endif
     SHA512_VALIDATE_RET( ilen == 0 || input != NULL );
     SHA512_VALIDATE_RET( (unsigned char *)output != NULL );
 

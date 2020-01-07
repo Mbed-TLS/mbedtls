@@ -1039,6 +1039,8 @@
  * Disable the SHA-384 option of the SHA-512 module. Use this to save some
  * code size on devices that don't use SHA-384.
  *
+ * Requires: MBEDTLS_SHA512_C
+ *
  * Uncomment to disable SHA-384
  */
 //#define MBEDTLS_SHA512_NO_SHA384

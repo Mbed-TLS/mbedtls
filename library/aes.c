@@ -541,7 +541,7 @@ static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
     int num;
 #endif
 
-    memset( tbl, 0, tbl_len );
+    mbedtls_platform_memset( tbl, 0, tbl_len );
 
 #if AES_SCA_CM_ROUNDS != 0
     // Randomize SCA CM positions to tbl

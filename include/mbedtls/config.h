@@ -635,6 +635,23 @@
 //#define MBEDTLS_AES_ONLY_ENCRYPT
 
 /**
+ * \def MBEDTLS_AES_SCA_COUNTERMEASURES
+ *
+ * Add countermeasures against possible side-channel-attack to AES calculation.
+ *
+ * Uncommenting this macro adds additional calculation rounds to AES
+ * calculation. Additional rounds are using random data and can occur in any
+ * AES calculation round.
+ *
+ * Tradeoff: Uncommenting this increases ROM footprint by ~100 bytes.
+ * The performance loss is ~50% with 128 bit AES.
+ *
+ * This option is dependent of \c MBEDTLS_ENTROPY_HARDWARE_ALT.
+ *
+ */
+//#define MBEDTLS_AES_SCA_COUNTERMEASURES
+
+/**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
  *
  * Use less ROM for the Camellia implementation (saves about 768 bytes).

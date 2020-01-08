@@ -762,6 +762,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 
+#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
+    if( strcmp( "MBEDTLS_AES_SCA_COUNTERMEASURES", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_AES_SCA_COUNTERMEASURES );
+        return( 0 );
+    }
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
+
 #if defined(MBEDTLS_CAMELLIA_SMALL_MEMORY)
     if( strcmp( "MBEDTLS_CAMELLIA_SMALL_MEMORY", config ) == 0 )
     {

@@ -1294,6 +1294,16 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make test
 }
 
+component_test_aes_sca_countermeasures () {
+    msg "build: default config + MBEDTLS_AES_SCA_COUNTERMEASURES + MBEDTLS_ENTROPY_HARDWARE_ALT + !MBEDTLS_AESNI_C"
+    scripts/config.pl set MBEDTLS_AES_SCA_COUNTERMEASURES
+    scripts/config.pl set MBEDTLS_ENTROPY_HARDWARE_ALT
+    scripts/config.pl unset MBEDTLS_AESNI_C
+
+    msg "test: AES SCA countermeasures"
+    make test
+}
+
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check

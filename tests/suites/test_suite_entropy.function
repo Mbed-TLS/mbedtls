@@ -193,7 +193,7 @@ void entropy_func_len( int len, int ret )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:ENTROPY_SOURCE_COUNT_MORE_THAN_TWO */
 void entropy_source_fail( char * path )
 {
     mbedtls_entropy_context ctx;
@@ -225,7 +225,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:ENTROPY_HAVE_STRONG */
+/* BEGIN_CASE depends_on:ENTROPY_HAVE_STRONG:ENTROPY_SOURCE_COUNT_MORE_THAN_TWO */
 void entropy_threshold( int threshold, int chunk_size, int result )
 {
     mbedtls_entropy_context ctx;

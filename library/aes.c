@@ -522,6 +522,9 @@ static void aes_gen_tables( void )
  *  -4 high bit = table to use, 0x10 for SCA CM data, otherwise real data
  *  -4 low bits = not used
  *
+ *  Return  Number of additional AES rounds
+ *
+ * Example of the control bytes:
  *  Control data when only real data (R) is used:
  *  | R  | R  | R  | R  | R  | R  | R  | R  | Start   | Final   |
  *  |0x04|0x00|0x00|0x04|0x00|0x04|0x00|0x04|0x00|0x00|0x00|0x00|
@@ -530,7 +533,7 @@ static void aes_gen_tables( void )
  *  | R  | F  | R  | F  | F  | R  | R  | R  | R  | R  | R  | START RF| FINAL FR|
  *  |0x04|0x10|0x04|0x10|0x10|0x00|0x04|0x00|0x04|0x00|0x04|0x00|0x10|0x10|0x00|
  */
-static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
+static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
 {
     int i, is_even_pos;
 #if AES_SCA_CM_ROUNDS != 0
@@ -600,6 +603,8 @@ static void aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
             }
         }
     }
+
+    return( AES_SCA_CM_ROUNDS );
 }
 
 #if defined(MBEDTLS_AES_FEWER_TABLES)
@@ -673,7 +678,9 @@ void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx )
 int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits )
 {
-    unsigned int i;
+    unsigned int j = 0;
+    volatile unsigned int i = 0;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     uint32_t *RK;
 
     AES_VALIDATE_RET( ctx != NULL );
@@ -712,9 +719,9 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) );
 #endif
 
-    for( i = 0; i < ( keybits >> 5 ); i++ )
+    for( j = 0; j < ( keybits >> 5 ); j++ )
     {
-        GET_UINT32_LE( RK[i], key, i << 2 );
+        GET_UINT32_LE( RK[j], key, j << 2 );
     }
 
     switch( ctx->nr )
@@ -781,7 +788,20 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 #endif /* !MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH */
     }
 
-    return( 0 );
+    ret = 0;
+
+    /* Validate execution path */
+    if( ( j == keybits >> 5 ) && ( ( ctx->nr == 10 && i == 10 )
+#if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
+        || ( ctx->nr == 12 && i == 8 )
+        || ( ctx->nr == 14 && i == 7 )
+#endif
+    ) )
+    {
+        return ret;
+    }
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* !MBEDTLS_AES_SETKEY_ENC_ALT */
 
@@ -799,7 +819,8 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 
     return MBEDTLS_ERR_AES_INVALID_KEY_LENGTH;
 #else /* */
-    int i, j, ret;
+    volatile unsigned int i = 0, j = 0;
+    volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     mbedtls_aes_context cty;
     uint32_t *RK;
     uint32_t *SK;
@@ -830,6 +851,8 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
     {
         mbedtls_aesni_inverse_key( (unsigned char *) ctx->rk,
                            (const unsigned char *) cty.rk, ctx->nr );
+        i = 0;
+        j = 4;
         goto exit;
     }
 #endif
@@ -860,7 +883,19 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 exit:
     mbedtls_aes_free( &cty );
 
-    return( ret );
+    if( ret != 0 )
+    {
+        return( ret );
+    }
+    else if( ( i == 0 ) && ( j == 4 ) )
+    {
+        return( ret );
+    }
+    else
+    {
+        return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
+    }
+
 #endif /* MBEDTLS_AES_ONLY_ENCRYPT */
 }
 
@@ -1012,6 +1047,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     aes_r_data_t *aes_data_ptr;         // pointer to aes_data_real or aes_data_fake
     aes_r_data_t *aes_data_table[2];    // pointers to real and fake data
     int round_ctrl_table_len = ctx->nr - 1 + AES_SCA_CM_ROUNDS + 2 + 2;
+    volatile int flow_control;
     // control bytes for AES rounds, reserve based on max ctx->nr
     uint8_t round_ctrl_table[ 14 - 1 + AES_SCA_CM_ROUNDS + 2 + 2];
 
@@ -1027,7 +1063,8 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 #endif
 
     // Get randomized AES calculation control bytes
-    aes_sca_cm_data_randomize( round_ctrl_table, round_ctrl_table_len );
+    flow_control = aes_sca_cm_data_randomize( round_ctrl_table,
+        round_ctrl_table_len );
 
     for( i = 0; i < 4; i++ )
     {
@@ -1035,8 +1072,9 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         for( j = 0; j < start_fin_loops; j++ )
         {
             aes_data_ptr =
-                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 4 + j ] >> 4];
+                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 2 + j ] >> 4];
             aes_data_ptr->xy_values[i] ^= *aes_data_ptr->rk_ptr++;
+            flow_control++;
         }
     }
 
@@ -1055,6 +1093,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[5 - offset],
             aes_data_ptr->xy_values[6 - offset],
             aes_data_ptr->xy_values[7 - offset] );
+        flow_control++;
     }
 
     for( j = 0; j < start_fin_loops; j++ )
@@ -1069,14 +1108,23 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[5],
             aes_data_ptr->xy_values[6],
             aes_data_ptr->xy_values[7] );
+        flow_control++;
     }
 
     for( i = 0; i < 4; i++ )
     {
         PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
+        flow_control++;
     }
 
-    return( 0 );
+    if( flow_control == ( AES_SCA_CM_ROUNDS + ( 4 * start_fin_loops ) +
+        ctx->nr - 1 + AES_SCA_CM_ROUNDS + start_fin_loops + 4 )  )
+    {
+        /* Validate control path due possible fault injection */
+        return 0;
+    }
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* !MBEDTLS_AES_ENCRYPT_ALT */
 
@@ -1160,6 +1208,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     aes_r_data_t *aes_data_table[2];    // pointers to real and fake data
     int round_ctrl_table_len = ctx->nr - 1 + AES_SCA_CM_ROUNDS + 2 + 2;
     // control bytes for AES rounds, reserve based on max ctx->nr
+    volatile int flow_control;
     uint8_t round_ctrl_table[ 14 - 1 + AES_SCA_CM_ROUNDS + 2 + 2 ];
 
     aes_data_real.rk_ptr = ctx->rk;
@@ -1174,7 +1223,8 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 #endif
 
     // Get randomized AES calculation control bytes
-    aes_sca_cm_data_randomize( round_ctrl_table, round_ctrl_table_len );
+    flow_control = aes_sca_cm_data_randomize( round_ctrl_table,
+        round_ctrl_table_len );
 
     for( i = 0; i < 4; i++ )
     {
@@ -1184,6 +1234,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
             aes_data_ptr =
                 aes_data_table[round_ctrl_table[ round_ctrl_table_len - 4 + j ] >> 4];
             aes_data_ptr->xy_values[i] ^= *aes_data_ptr->rk_ptr++;
+            flow_control++;
         }
     }
 
@@ -1202,6 +1253,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[5 - offset],
             aes_data_ptr->xy_values[6 - offset],
             aes_data_ptr->xy_values[7 - offset] );
+        flow_control++;
     }
 
     for( j = 0; j < start_fin_loops; j++ )
@@ -1216,14 +1268,23 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[5],
             aes_data_ptr->xy_values[6],
             aes_data_ptr->xy_values[7] );
+        flow_control++;
     }
 
     for( i = 0; i < 4; i++ )
     {
         PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
+        flow_control++;
     }
 
-    return( 0 );
+    if( flow_control == ( AES_SCA_CM_ROUNDS + ( 4 * start_fin_loops ) +
+        ctx->nr - 1 + AES_SCA_CM_ROUNDS + start_fin_loops + 4 )  )
+    {
+        /* Validate control path due possible fault injection */
+        return 0;
+    }
+
+    return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
 #endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
 #endif /* !MBEDTLS_AES_DECRYPT_ALT */
@@ -1274,6 +1335,7 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
         //
     }
 #endif
+
 #if defined(MBEDTLS_AES_ONLY_ENCRYPT)
     return( mbedtls_internal_aes_encrypt( ctx, input, output ) );
 #else /* MBEDTLS_AES_ONLY_ENCRYPT */

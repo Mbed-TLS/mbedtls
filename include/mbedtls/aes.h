@@ -172,7 +172,8 @@ void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx );
  *                 <li>256 bits</li></ul>
  *
  * \return         \c 0 on success.
- * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH or
+ *                 #MBEDTLS_ERR_PLATFORM_FAULT_DETECTED on failure.
  */
 int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );
@@ -190,7 +191,8 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
  *                 <li>256 bits</li></ul>
  *
  * \return         \c 0 on success.
- * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH or
+ *                 #MBEDTLS_ERR_PLATFORM_FAULT_DETECTED on failure.
  */
 int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );
@@ -602,6 +604,7 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
  * \param output    The output (ciphertext) block.
  *
  * \return          \c 0 on success.
+ * \return             #MBEDTLS_ERR_PLATFORM_FAULT_DETECTED in case of error.
  */
 int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
@@ -617,6 +620,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
  * \param output    The output (plaintext) block.
  *
  * \return          \c 0 on success.
+ * \return             #MBEDTLS_ERR_PLATFORM_FAULT_DETECTED in case of error.
  */
 int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],

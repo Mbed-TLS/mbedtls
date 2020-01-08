@@ -72,10 +72,6 @@ static void bits2int(uECC_word_t *native, const uint8_t *bits,
 		     unsigned bits_size)
 {
 	unsigned num_n_bytes = BITS_TO_BYTES(NUM_ECC_BITS);
-	unsigned num_n_words = BITS_TO_WORDS(NUM_ECC_BITS);
-	int shift;
-	uECC_word_t carry;
-	uECC_word_t *ptr;
 
 	if (bits_size > num_n_bytes) {
 		bits_size = num_n_bytes;
@@ -83,22 +79,6 @@ static void bits2int(uECC_word_t *native, const uint8_t *bits,
 
 	uECC_vli_clear(native);
 	uECC_vli_bytesToNative(native, bits, bits_size);
-	if (bits_size * 8 <= (unsigned)NUM_ECC_BITS) {
-		return;
-	}
-	shift = bits_size * 8 - NUM_ECC_BITS;
-	carry = 0;
-	ptr = native + num_n_words;
-	while (ptr-- > native) {
-		uECC_word_t temp = *ptr;
-		*ptr = (temp >> shift) | carry;
-		carry = temp << (uECC_WORD_BITS - shift);
-	}
-
-	/* Reduce mod curve_n */
-	if (uECC_vli_cmp_unsafe(curve_n, native) != 1) {
-		uECC_vli_sub(native, native, curve_n);
-	}
 }
 
 int uECC_sign_with_k(const uint8_t *private_key, const uint8_t *message_hash,

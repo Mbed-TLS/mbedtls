@@ -679,9 +679,11 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits )
 {
     unsigned int j = 0;
+    unsigned int flow_ctrl = 0;
     volatile unsigned int i = 0;
     volatile int ret = MBEDTLS_ERR_PLATFORM_FAULT_DETECTED;
     uint32_t *RK;
+    uint32_t offset = 0;
 
     AES_VALIDATE_RET( ctx != NULL );
     AES_VALIDATE_RET( key != NULL );
@@ -719,9 +721,19 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) );
 #endif
 
-    for( j = 0; j < ( keybits >> 5 ); j++ )
+    mbedtls_platform_memset( RK, 0, ( keybits >> 5 ) * 4 );
+    offset = mbedtls_platform_random_in_range( keybits >> 5 );
+
+    for( j = offset; j < ( keybits >> 5 ); j++ )
     {
         GET_UINT32_LE( RK[j], key, j << 2 );
+        flow_ctrl++;
+    }
+
+    for( j = 0; j < offset; j++ )
+    {
+        GET_UINT32_LE( RK[j], key, j << 2 );
+        flow_ctrl++;
     }
 
     switch( ctx->nr )
@@ -791,7 +803,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     ret = 0;
 
     /* Validate execution path */
-    if( ( j == keybits >> 5 ) && ( ( ctx->nr == 10 && i == 10 )
+    if( ( flow_ctrl == keybits >> 5 ) && ( ( ctx->nr == 10 && i == 10 )
 #if !defined(MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH)
         || ( ctx->nr == 12 && i == 8 )
         || ( ctx->nr == 14 && i == 7 )
@@ -1066,9 +1078,21 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     flow_control = aes_sca_cm_data_randomize( round_ctrl_table,
         round_ctrl_table_len );
 
-    for( i = 0; i < 4; i++ )
+    mbedtls_platform_memset( aes_data_real.xy_values, 0, 16 );
+    offset = mbedtls_platform_random_in_range( 4 );
+
+    for( i = offset; i < 4; i++ )
     {
         GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
+    }
+
+    for( i = 0; i < offset; i++ )
+    {
+        GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
+    }
+
+    for( i = 0; i < 4; i++ )
+    {
         for( j = 0; j < start_fin_loops; j++ )
         {
             aes_data_ptr =
@@ -1111,7 +1135,16 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         flow_control++;
     }
 
-    for( i = 0; i < 4; i++ )
+    mbedtls_platform_memset( output, 0, 16 );
+    offset = mbedtls_platform_random_in_range( 4 );
+
+    for( i = offset; i < 4; i++ )
+    {
+        PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
+        flow_control++;
+    }
+
+    for( i = 0; i < offset; i++ )
     {
         PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
         flow_control++;

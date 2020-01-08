@@ -11128,6 +11128,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
     mbedtls_platform_memcpy( buf, ssl->in_offt, n );
     ssl->in_msglen -= n;
 
+    // clear incoming data after it's copied to buffer
+    mbedtls_platform_memset(ssl->in_offt, 0, n);
+
     if( ssl->in_msglen == 0 )
     {
         /* all bytes consumed */

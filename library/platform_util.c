@@ -46,7 +46,7 @@
 #include <string.h>
 
 /* Max number of loops for mbedtls_platform_random_delay */
-#define MBEDTLS_MAX_RAND_DELAY  100
+#define MAX_RAND_DELAY  100
 
 #if !defined(MBEDTLS_PLATFORM_ZEROIZE_ALT)
 /*
@@ -177,7 +177,7 @@ void mbedtls_platform_random_delay( void )
     volatile size_t i = 0;
     uint8_t shift;
 
-    rn_1 = mbedtls_platform_random_in_range( MBEDTLS_MAX_RAND_DELAY );
+    rn_1 = mbedtls_platform_random_in_range( MAX_RAND_DELAY );
     rn_2 = mbedtls_platform_random_in_range( 0xffffffff ) + 1;
     rn_3 = mbedtls_platform_random_in_range( 0xffffffff ) + 1;
 

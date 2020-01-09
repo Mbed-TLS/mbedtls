@@ -45,6 +45,9 @@
 #include <stddef.h>
 #include <string.h>
 
+/* Max number of loops for mbedtls_platform_random_delay */
+#define MBEDTLS_MAX_RAND_DELAY  100
+
 #if !defined(MBEDTLS_PLATFORM_ZEROIZE_ALT)
 /*
  * This implementation should never be optimized out by the compiler
@@ -165,21 +168,16 @@ uint32_t mbedtls_platform_random_in_range( size_t num )
 #endif
 }
 
-int mbedtls_platform_random_delay( size_t max_rand )
+void mbedtls_platform_random_delay( void )
 {
 #if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
-    (void) max_rand;
-    return -1;
+    return;
 #else
     size_t rn_1, rn_2, rn_3;
     volatile size_t i = 0;
     uint8_t shift;
-    if( max_rand == 0 || max_rand > INT_MAX )
-    {
-        return( -1 );
-    }
 
-    rn_1 = mbedtls_platform_random_in_range( max_rand );
+    rn_1 = mbedtls_platform_random_in_range( MBEDTLS_MAX_RAND_DELAY );
     rn_2 = mbedtls_platform_random_in_range( 0xffffffff ) + 1;
     rn_3 = mbedtls_platform_random_in_range( 0xffffffff ) + 1;
 
@@ -194,7 +192,7 @@ int mbedtls_platform_random_delay( size_t max_rand )
         rn_2 ^= rn_3;
     } while( i < rn_1 || rn_2 == 0 || rn_3 == 0 );
 
-    return( (int)i );
+    return;
 #endif /* !MBEDTLS_ENTROPY_HARDWARE_ALT */
 }
 

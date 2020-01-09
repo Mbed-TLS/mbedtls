@@ -4064,7 +4064,7 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
 
     if( pmscounter == ssl->handshake->pmslen )
     {
-        mbedtls_platform_random_delay(50);
+        mbedtls_platform_random_delay();
         if( pmscounter == ssl->handshake->pmslen )
         {
             ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
@@ -4651,7 +4651,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 
     if( ret == 0 )
     {
-        mbedtls_platform_random_delay(50);
+        mbedtls_platform_random_delay();
 
         if( ret == 0 )
         {

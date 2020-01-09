@@ -299,7 +299,7 @@ int uECC_verify(const uint8_t *public_key, const uint8_t *message_hash,
 	/* Accept only if v == r. */
 	diff = uECC_vli_equal(rx, r);
 	if (diff == 0) {
-	    mbedtls_platform_random_delay( 50 );
+	    mbedtls_platform_random_delay();
 		if (diff == 0) {
 			return UECC_SUCCESS;
 		}

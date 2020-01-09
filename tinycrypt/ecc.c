@@ -168,7 +168,7 @@ static int uECC_check_curve_integrity(void)
 	}
 
 	/* i should be 32 */
-	mbedtls_platform_random_delay( 10 );
+	mbedtls_platform_random_delay();
 	diff |= (unsigned char) i ^ 32;
 
 	return diff;
@@ -296,7 +296,7 @@ uECC_word_t uECC_vli_equal(const uECC_word_t *left, const uECC_word_t *right)
 	}
 
 	/* i should be -1 now */
-	mbedtls_platform_random_delay( 10 );
+	mbedtls_platform_random_delay();
 	diff |= i ^ -1;
 
 	return diff;
@@ -1046,7 +1046,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 	if (problem != 0) {
 		return UECC_FAULT_DETECTED;
 	}
-	mbedtls_platform_random_delay( 50 );
+	mbedtls_platform_random_delay();
 	if (problem != 0) {
 		return UECC_FAULT_DETECTED;
 	}
@@ -1058,7 +1058,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 		/* invalid input, can happen without fault */
 		return UECC_FAILURE;
 	}
-	mbedtls_platform_random_delay( 50 );
+	mbedtls_platform_random_delay();
 	if (problem != 0) {
 		/* failure on second check means fault, though */
 		return UECC_FAULT_DETECTED;
@@ -1088,7 +1088,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 		r = UECC_FAULT_DETECTED;
 		goto clear_and_out;
 	}
-	mbedtls_platform_random_delay( 10 );
+	mbedtls_platform_random_delay();
 	if (problem != 0) {
 		r = UECC_FAULT_DETECTED;
 		goto clear_and_out;
@@ -1101,7 +1101,7 @@ int EccPoint_mult_safer(uECC_word_t * result, const uECC_word_t * point,
 		r = UECC_FAULT_DETECTED;
 		goto clear_and_out;
 	}
-	mbedtls_platform_random_delay( 10 );
+	mbedtls_platform_random_delay();
 	if (problem != 0) {
 		r = UECC_FAULT_DETECTED;
 		goto clear_and_out;
@@ -1198,7 +1198,7 @@ int uECC_valid_point(const uECC_word_t *point)
 	/* Make sure that y^2 == x^3 + ax + b */
 	diff = uECC_vli_equal(tmp1, tmp2);
 	if (diff == 0) {
-	    mbedtls_platform_random_delay( 10 );
+	    mbedtls_platform_random_delay();
 		if (diff == 0) {
 			return 0;
 		}

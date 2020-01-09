@@ -249,15 +249,8 @@ uint32_t mbedtls_platform_random_in_range( size_t num );
  *
  * \note        Currently the function is dependent of hardware providing an
  *              rng with MBEDTLS_ENTROPY_HARDWARE_ALT.
- *
- * \param num   Max-value for the number of local variable increments, must be
- *              less than INT_MAX. Total number of variable increment will be
- *              randomized between 1 and num.
- *
- * \return      In success number of increments made.
- * \return      Negative value in case of errors.
  */
-int mbedtls_platform_random_delay( size_t num );
+void mbedtls_platform_random_delay( void );
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**

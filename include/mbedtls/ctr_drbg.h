@@ -177,7 +177,9 @@ typedef struct mbedtls_ctr_drbg_context
                                  * minus one.
                                  * Before the initial seeding, this field
                                  * contains the amount of entropy in bytes
-                                 * to use as a nonce for the initial seeding.
+                                 * to use as a nonce for the initial seeding,
+                                 * or -1 if no nonce length has been explicitly
+                                 * set (see mbedtls_ctr_drbg_set_nonce_len()).
                                  */
     int prediction_resistance;  /*!< This determines whether prediction
                                      resistance is enabled, that is

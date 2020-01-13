@@ -77,20 +77,33 @@ int mbedtls_test_buffer_put( mbedtls_test_buffer *buf,
         return ( input_len == 0 ) ? 0 : -1;
     }
 
-    /* Calculate the number of bytes that need to be placed at lower memory
-     * address */
-    if( buf->start + buf->content_length + input_len
-        > buf->capacity )
+     /* Check if the buffer has not come full circle and free space is not in
+      * the middle */
+    if( buf->start + buf->content_length < buf->capacity )
     {
-        overflow = ( buf->start + buf->content_length + input_len )
-                    % buf->capacity;
+
+        /* Calculate the number of bytes that need to be placed at lower memory
+        * address */
+        if( buf->start + buf->content_length + input_len
+            > buf->capacity )
+        {
+            overflow = ( buf->start + buf->content_length + input_len )
+                        % buf->capacity;
+        }
+
+        memcpy( buf->buffer + buf->start + buf->content_length, input,
+                    input_len - overflow );
+        memcpy( buf->buffer, input + input_len - overflow, overflow );
+
+    }
+    else
+    {
+        /* The buffer has come full circle and free space is in the middle */
+        memcpy( buf->buffer + buf->start + buf->content_length - buf->capacity,
+                input, input_len );
     }
 
-    memcpy( buf->buffer + buf->start + buf->content_length, input,
-            input_len - overflow );
-    memcpy( buf->buffer, input + input_len - overflow, overflow );
     buf->content_length += input_len;
-
     return input_len;
 }
 
@@ -742,6 +755,16 @@ void test_callback_buffer_sanity()
                     == -1 );
     TEST_ASSERT( mbedtls_test_buffer_put( &buf, NULL, 0 ) == 0 );
     TEST_ASSERT( mbedtls_test_buffer_get( &buf, NULL, 0 ) == 0 );
+
+    /* Make sure calling put several times in the row is safe */
+
+    TEST_ASSERT( mbedtls_test_buffer_put( &buf, input, sizeof( input ) )
+                                          == sizeof( input ) );
+    TEST_ASSERT( mbedtls_test_buffer_get( &buf, output, 2 ) == 2 );
+    TEST_ASSERT( mbedtls_test_buffer_put( &buf, input, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_buffer_put( &buf, input, 2 ) == 1 );
+    TEST_ASSERT( mbedtls_test_buffer_put( &buf, input, 2 ) == 0 );
+
 
 exit:
 

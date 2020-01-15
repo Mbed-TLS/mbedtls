@@ -403,12 +403,6 @@ pre_check_git () {
     fi
 }
 
-pre_check_seedfile () {
-    if [ ! -f "./tests/seedfile" ]; then
-        dd if=/dev/urandom of=./tests/seedfile bs=32 count=1
-    fi
-}
-
 pre_setup_keep_going () {
     failure_summary=
     failure_count=0
@@ -715,6 +709,10 @@ component_build_deprecated () {
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
 
+    msg "test: make, full config + DEPRECATED_WARNING, expect warnings" # ~ 30s
+    make -C tests clean
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -DMBEDTLS_TEST_DEPRECATED' tests
+
     msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
     # No cleanup, just tweak the configuration and rebuild
     make clean
@@ -923,6 +921,43 @@ component_test_aes_fewer_tables_and_rom_tables () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra'
 
     msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
+    make test
+}
+
+component_test_ctr_drbg_aes_256_sha_256 () {
+    msg "build: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_ENTROPY_FORCE_SHA256
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    make test
+}
+
+component_test_ctr_drbg_aes_128_sha_512 () {
+    msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
+    make test
+}
+
+component_test_ctr_drbg_aes_128_sha_256 () {
+    msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    scripts/config.pl set MBEDTLS_ENTROPY_FORCE_SHA256
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
     make test
 }
 
@@ -1272,7 +1307,16 @@ run_component () {
     cp -p "$CONFIG_H" "$CONFIG_BAK"
     current_component="$1"
     export MBEDTLS_TEST_CONFIGURATION="$current_component"
+
+    # Unconditionally create a seedfile that's sufficiently long.
+    # Do this before each component, because a previous component may
+    # have messed it up or shortened it.
+    dd if=/dev/urandom of=./tests/seedfile bs=64 count=1
+
+    # Run the component code.
     "$@"
+
+    # Restore the build tree to a clean state.
     cleanup
 }
 
@@ -1282,7 +1326,6 @@ pre_initialize_variables
 pre_parse_command_line "$@"
 
 pre_check_git
-pre_check_seedfile
 
 build_status=0
 if [ $KEEP_GOING -eq 1 ]; then

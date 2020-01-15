@@ -604,6 +604,7 @@
         (type) == PSA_KEY_TYPE_DES ? 8 :             \
         (type) == PSA_KEY_TYPE_CAMELLIA ? 16 :       \
         (type) == PSA_KEY_TYPE_ARC4 ? 1 :            \
+        (type) == PSA_KEY_TYPE_CHACHA20 ? 1 :            \
         0)
 
 /** Vendor-defined algorithm flag.
@@ -766,17 +767,17 @@
  * Then you may create and use a key as follows:
  * - Set the key usage field using #PSA_ALG_ANY_HASH, for example:
  *   ```
- *   psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN); // or VERIFY
+ *   psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_HASH); // or VERIFY
  *   psa_set_key_algorithm(&attributes, PSA_xxx_SIGNATURE(PSA_ALG_ANY_HASH));
  *   ```
  * - Import or generate key material.
- * - Call psa_asymmetric_sign() or psa_asymmetric_verify(), passing
+ * - Call psa_sign_hash() or psa_verify_hash(), passing
  *   an algorithm built from `PSA_xxx_SIGNATURE` and a specific hash. Each
  *   call to sign or verify a message may use a different hash.
  *   ```
- *   psa_asymmetric_sign(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_256), ...);
- *   psa_asymmetric_sign(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_512), ...);
- *   psa_asymmetric_sign(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA3_256), ...);
+ *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_256), ...);
+ *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_512), ...);
+ *   psa_sign_hash(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA3_256), ...);
  *   ```
  *
  * This value may not be used to build other algorithms that are
@@ -1197,11 +1198,12 @@
  */
 #define PSA_ALG_DETERMINISTIC_ECDSA(hash_alg)                           \
     (PSA_ALG_DETERMINISTIC_ECDSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_ECDSA_DETERMINISTIC_FLAG        ((psa_algorithm_t)0x00010000)
 #define PSA_ALG_IS_ECDSA(alg)                                           \
-    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_DSA_DETERMINISTIC_FLAG) ==  \
+    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_ECDSA_DETERMINISTIC_FLAG) ==  \
      PSA_ALG_ECDSA_BASE)
 #define PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)             \
-    (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
+    (((alg) & PSA_ALG_ECDSA_DETERMINISTIC_FLAG) != 0)
 #define PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)                             \
     (PSA_ALG_IS_ECDSA(alg) && PSA_ALG_ECDSA_IS_DETERMINISTIC(alg))
 #define PSA_ALG_IS_RANDOMIZED_ECDSA(alg)                                \
@@ -1640,7 +1642,7 @@
  *
  * For a key pair, this concerns the private key.
  */
-#define PSA_KEY_USAGE_SIGN                      ((psa_key_usage_t)0x00000400)
+#define PSA_KEY_USAGE_SIGN_HASH                 ((psa_key_usage_t)0x00000400)
 
 /** Whether the key may be used to verify a message signature.
  *
@@ -1650,7 +1652,7 @@
  *
  * For a key pair, this concerns the public key.
  */
-#define PSA_KEY_USAGE_VERIFY                    ((psa_key_usage_t)0x00000800)
+#define PSA_KEY_USAGE_VERIFY_HASH               ((psa_key_usage_t)0x00000800)
 
 /** Whether the key may be used to derive other keys.
  */

@@ -75,6 +75,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/sha1.h"
@@ -351,6 +352,8 @@ static psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
         case MBEDTLS_ERR_ECP_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
+        case MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED:
+            return( PSA_ERROR_CORRUPTION_DETECTED );
 
         default:
             return( PSA_ERROR_GENERIC_ERROR );
@@ -584,6 +587,20 @@ exit:
 #endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C) */
 
 #if defined(MBEDTLS_ECP_C)
+static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
+                                               mbedtls_ecp_keypair **p_ecp )
+{
+    mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
+    *p_ecp = mbedtls_calloc( 1, sizeof( mbedtls_ecp_keypair ) );
+    if( *p_ecp == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    mbedtls_ecp_keypair_init( *p_ecp );
+
+    /* Load the group. */
+    grp_id = mbedtls_ecc_group_of_psa( curve );
+    return( mbedtls_to_psa_error(
+                mbedtls_ecp_group_load( &( *p_ecp )->grp, grp_id ) ) );
+}
 
 /* Import a public key given as the uncompressed representation defined by SEC1
  * 2.3.3 as the content of an ECPoint. */
@@ -594,19 +611,11 @@ static psa_status_t psa_import_ec_public_key( psa_ecc_curve_t curve,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
-    mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
 
-    *p_ecp = NULL;
-    ecp = mbedtls_calloc( 1, sizeof( *ecp ) );
-    if( ecp == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    mbedtls_ecp_keypair_init( ecp );
-
-    /* Load the group. */
-    status = mbedtls_to_psa_error(
-        mbedtls_ecp_group_load( &ecp->grp, grp_id ) );
+    status = psa_prepare_import_ec_key( curve, &ecp );
     if( status != PSA_SUCCESS )
         goto exit;
+
     /* Load the public value. */
     status = mbedtls_to_psa_error(
         mbedtls_ecp_point_read_binary( &ecp->grp, &ecp->Q,
@@ -631,9 +640,7 @@ exit:
     }
     return( status );
 }
-#endif /* defined(MBEDTLS_ECP_C) */
 
-#if defined(MBEDTLS_ECP_C)
 /* Import a private key given as a byte string which is the private value
  * in big-endian order. */
 static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
@@ -643,22 +650,14 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
-    mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
 
     if( PSA_BITS_TO_BYTES( PSA_ECC_CURVE_BITS( curve ) ) != data_length )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    *p_ecp = NULL;
-    ecp = mbedtls_calloc( 1, sizeof( mbedtls_ecp_keypair ) );
-    if( ecp == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    mbedtls_ecp_keypair_init( ecp );
-
-    /* Load the group. */
-    status = mbedtls_to_psa_error(
-        mbedtls_ecp_group_load( &ecp->grp, grp_id ) );
+    status = psa_prepare_import_ec_key( curve, &ecp );
     if( status != PSA_SUCCESS )
         goto exit;
+
     /* Load the secret value. */
     status = mbedtls_to_psa_error(
         mbedtls_mpi_read_binary( &ecp->d, data, data_length ) );
@@ -1145,7 +1144,7 @@ static psa_status_t psa_get_rsa_public_exponent(
     psa_key_attributes_t *attributes )
 {
     mbedtls_mpi mpi;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     uint8_t *buffer = NULL;
     size_t buflen;
     mbedtls_mpi_init( &mpi );
@@ -1249,7 +1248,7 @@ psa_status_t psa_get_key_slot_number(
 static int pk_write_pubkey_simple( mbedtls_pk_context *key,
                                    unsigned char *buf, size_t size )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *c;
     size_t len = 0;
 
@@ -1334,7 +1333,7 @@ static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
             PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
         {
             mbedtls_pk_context pk;
-            int ret;
+            int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
             {
 #if defined(MBEDTLS_RSA_C)
@@ -1462,8 +1461,8 @@ static psa_status_t psa_validate_key_policy( const psa_key_policy_t *policy )
                              PSA_KEY_USAGE_COPY |
                              PSA_KEY_USAGE_ENCRYPT |
                              PSA_KEY_USAGE_DECRYPT |
-                             PSA_KEY_USAGE_SIGN |
-                             PSA_KEY_USAGE_VERIFY |
+                             PSA_KEY_USAGE_SIGN_HASH |
+                             PSA_KEY_USAGE_VERIFY_HASH |
                              PSA_KEY_USAGE_DERIVE ) ) != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -1782,7 +1781,7 @@ static psa_status_t psa_validate_optional_attributes(
         if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
         {
             mbedtls_mpi actual, required;
-            int ret;
+            int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
             mbedtls_mpi_init( &actual );
             mbedtls_mpi_init( &required );
             ret = mbedtls_rsa_export( slot->data.rsa,
@@ -2105,7 +2104,7 @@ psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
 psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
                              psa_algorithm_t alg )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* A context must be freshly initialized before it can be set up. */
     if( operation->alg != 0 )
@@ -2181,7 +2180,7 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
                               const uint8_t *input,
                               size_t input_length )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Don't require hash implementations to behave correctly on a
      * zero-length input, which may have an invalid pointer. */
@@ -2249,7 +2248,7 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
                               size_t *hash_length )
 {
     psa_status_t status;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t actual_hash_length = PSA_HASH_SIZE( operation->alg );
 
     /* Fill the output buffer with something that isn't a valid hash
@@ -2632,7 +2631,7 @@ static int psa_cmac_setup( psa_mac_operation_t *operation,
                            psa_key_slot_t *slot,
                            const mbedtls_cipher_info_t *cipher_info )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     operation->mac_size = cipher_info->block_size;
 
@@ -2726,7 +2725,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_key_slot_t *slot;
     size_t key_bits;
     psa_key_usage_t usage =
-        is_sign ? PSA_KEY_USAGE_SIGN : PSA_KEY_USAGE_VERIFY;
+        is_sign ? PSA_KEY_USAGE_SIGN_HASH : PSA_KEY_USAGE_VERIFY_HASH;
     uint8_t truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
     psa_algorithm_t full_length_alg = PSA_ALG_FULL_LENGTH_MAC( alg );
 
@@ -2753,7 +2752,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
         const mbedtls_cipher_info_t *cipher_info =
             mbedtls_cipher_info_from_psa( full_length_alg,
                                           slot->attr.type, key_bits, NULL );
-        int ret;
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         if( cipher_info == NULL )
         {
             status = PSA_ERROR_NOT_SUPPORTED;
@@ -3105,7 +3104,7 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
                                   size_t *signature_length )
 {
     psa_status_t status;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_alg;
 
     status = psa_rsa_decode_md_type( alg, hash_length, &md_alg );
@@ -3163,7 +3162,7 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
                                     size_t signature_length )
 {
     psa_status_t status;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_alg;
 
     status = psa_rsa_decode_md_type( alg, hash_length, &md_alg );
@@ -3229,7 +3228,7 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
                                     size_t signature_size,
                                     size_t *signature_length )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi r, s;
     size_t curve_bytes = PSA_BITS_TO_BYTES( ecp->grp.pbits );
     mbedtls_mpi_init( &r );
@@ -3284,7 +3283,7 @@ static psa_status_t psa_ecdsa_verify( mbedtls_ecp_keypair *ecp,
                                       const uint8_t *signature,
                                       size_t signature_length )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi r, s;
     size_t curve_bytes = PSA_BITS_TO_BYTES( ecp->grp.pbits );
     mbedtls_mpi_init( &r );
@@ -3310,13 +3309,13 @@ cleanup:
 }
 #endif /* MBEDTLS_ECDSA_C */
 
-psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
-                                  psa_algorithm_t alg,
-                                  const uint8_t *hash,
-                                  size_t hash_length,
-                                  uint8_t *signature,
-                                  size_t signature_size,
-                                  size_t *signature_length )
+psa_status_t psa_sign_hash( psa_key_handle_t handle,
+                            psa_algorithm_t alg,
+                            const uint8_t *hash,
+                            size_t hash_length,
+                            uint8_t *signature,
+                            size_t signature_size,
+                            size_t *signature_length )
 {
     psa_key_slot_t *slot;
     psa_status_t status;
@@ -3333,7 +3332,7 @@ psa_status_t psa_asymmetric_sign( psa_key_handle_t handle,
     if( signature_size == 0 )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN, alg );
+    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_SIGN_HASH, alg );
     if( status != PSA_SUCCESS )
         goto exit;
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
@@ -3414,12 +3413,12 @@ exit:
     return( status );
 }
 
-psa_status_t psa_asymmetric_verify( psa_key_handle_t handle,
-                                    psa_algorithm_t alg,
-                                    const uint8_t *hash,
-                                    size_t hash_length,
-                                    const uint8_t *signature,
-                                    size_t signature_length )
+psa_status_t psa_verify_hash( psa_key_handle_t handle,
+                              psa_algorithm_t alg,
+                              const uint8_t *hash,
+                              size_t hash_length,
+                              const uint8_t *signature,
+                              size_t signature_length )
 {
     psa_key_slot_t *slot;
     psa_status_t status;
@@ -3428,7 +3427,7 @@ psa_status_t psa_asymmetric_verify( psa_key_handle_t handle,
     psa_drv_se_context_t *drv_context;
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_VERIFY, alg );
+    status = psa_get_key_from_slot( handle, &slot, PSA_KEY_USAGE_VERIFY_HASH, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -3523,7 +3522,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_handle_t handle,
     if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
-        int ret;
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         if( output_size < mbedtls_rsa_get_len( rsa ) )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
 #if defined(MBEDTLS_PKCS1_V15)
@@ -3602,7 +3601,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_handle_t handle,
     if( slot->attr.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
-        int ret;
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         if( input_length != mbedtls_rsa_get_len( rsa ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
@@ -3799,7 +3798,7 @@ psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
                                      size_t *iv_length )
 {
     psa_status_t status;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     if( operation->iv_set || ! operation->iv_required )
     {
         return( PSA_ERROR_BAD_STATE );
@@ -3831,7 +3830,7 @@ psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
                                 size_t iv_length )
 {
     psa_status_t status;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     if( operation->iv_set || ! operation->iv_required )
     {
         return( PSA_ERROR_BAD_STATE );
@@ -3859,7 +3858,7 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
                                 size_t *output_length )
 {
     psa_status_t status;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t expected_output_size;
 
     if( operation->alg == 0 )
@@ -5369,7 +5368,7 @@ exit:
 psa_status_t psa_generate_random( uint8_t *output,
                                   size_t output_size )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     GUARD_MODULE_INITIALIZED;
 
     while( output_size > MBEDTLS_CTR_DRBG_MAX_REQUEST )
@@ -5464,7 +5463,7 @@ static psa_status_t psa_generate_key_internal(
     if ( type == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
         mbedtls_rsa_context *rsa;
-        int ret;
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         int exponent;
         psa_status_t status;
         if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
@@ -5506,7 +5505,7 @@ static psa_status_t psa_generate_key_internal(
         const mbedtls_ecp_curve_info *curve_info =
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair *ecp;
-        int ret;
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         if( domain_parameters_size != 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
         if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )

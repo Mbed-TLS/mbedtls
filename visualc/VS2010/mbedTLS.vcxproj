@@ -212,6 +212,7 @@
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
     <ClInclude Include="..\..\include\psa\crypto.h" />
     <ClInclude Include="..\..\include\psa\crypto_accel_driver.h" />
+    <ClInclude Include="..\..\include\psa\crypto_compat.h" />
     <ClInclude Include="..\..\include\psa\crypto_driver_common.h" />
     <ClInclude Include="..\..\include\psa\crypto_entropy_driver.h" />
     <ClInclude Include="..\..\include\psa\crypto_extra.h" />

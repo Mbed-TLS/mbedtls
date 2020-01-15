@@ -34,6 +34,7 @@
 
 #include "mbedtls/sha256.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -275,7 +276,7 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
                                const unsigned char *input,
                                size_t ilen )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t fill;
     uint32_t left;
 
@@ -336,7 +337,7 @@ void mbedtls_sha256_update( mbedtls_sha256_context *ctx,
 int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
                                unsigned char output[32] )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     uint32_t used;
     uint32_t high, low;
 
@@ -414,7 +415,7 @@ int mbedtls_sha256_ret( const unsigned char *input,
                         unsigned char output[32],
                         int is224 )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_sha256_context ctx;
 
     SHA256_VALIDATE_RET( is224 == 0 || is224 == 1 );

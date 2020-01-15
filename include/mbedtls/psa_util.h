@@ -378,24 +378,6 @@ static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group
     }
 }
 
-
-#define MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE( curve )                \
-    ( curve == PSA_ECC_CURVE_SECP192R1        ? 192 :             \
-      curve == PSA_ECC_CURVE_SECP224R1        ? 224 :             \
-      curve == PSA_ECC_CURVE_SECP256R1        ? 256 :             \
-      curve == PSA_ECC_CURVE_SECP384R1        ? 384 :             \
-      curve == PSA_ECC_CURVE_SECP521R1        ? 521 :             \
-      curve == PSA_ECC_CURVE_SECP192K1        ? 192 :             \
-      curve == PSA_ECC_CURVE_SECP224K1        ? 224 :             \
-      curve == PSA_ECC_CURVE_SECP256K1        ? 256 :             \
-      curve == PSA_ECC_CURVE_BRAINPOOL_P256R1 ? 256 :             \
-      curve == PSA_ECC_CURVE_BRAINPOOL_P384R1 ? 384 :             \
-      curve == PSA_ECC_CURVE_BRAINPOOL_P512R1 ? 512 :             \
-      0 )
-
-#define MBEDTLS_PSA_ECC_KEY_BYTES_OF_CURVE( curve )                \
-    ( ( MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE( curve ) + 7 ) / 8 )
-
 /* Translations for PK layer */
 
 static inline int mbedtls_psa_err_translate_pk( psa_status_t status )

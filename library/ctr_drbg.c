@@ -34,6 +34,7 @@
 
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -319,7 +320,7 @@ int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
                                  size_t add_len )
 {
     unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( add_len == 0 )
         return( 0 );
@@ -367,7 +368,7 @@ static int mbedtls_ctr_drbg_reseed_internal( mbedtls_ctr_drbg_context *ctx,
 {
     unsigned char seed[MBEDTLS_CTR_DRBG_MAX_SEED_INPUT];
     size_t seedlen = 0;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( ctx->entropy_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
         return( MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
@@ -452,7 +453,7 @@ int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
                            const unsigned char *custom,
                            size_t len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char key[MBEDTLS_CTR_DRBG_KEYSIZE];
     size_t nonce_len;
 
@@ -590,7 +591,7 @@ exit:
 int mbedtls_ctr_drbg_random( void *p_rng, unsigned char *output,
                              size_t output_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ctr_drbg_context *ctx = (mbedtls_ctr_drbg_context *) p_rng;
 
 #if defined(MBEDTLS_THREADING_C)
@@ -712,6 +713,15 @@ static const unsigned char nonce_pers_nopr[16] =
     { 0x1b, 0x54, 0xb8, 0xff, 0x06, 0x42, 0xbf, 0xf5,
       0x21, 0xf1, 0x5c, 0x1c, 0x0b, 0x66, 0x5f, 0x3f };
 
+#if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
+static const unsigned char result_pr[16] =
+    { 0x95, 0x3c, 0xa5, 0xbd, 0x44, 0x1, 0x34, 0xb7,
+      0x13, 0x58, 0x3e, 0x6a, 0x6c, 0x7e, 0x88, 0x8a };
+
+static const unsigned char result_nopr[16] =
+    { 0x6c, 0x25, 0x27, 0x95, 0xa3, 0x62, 0xd6, 0xdb,
+      0x90, 0xfd, 0x69, 0xb5, 0x42, 0x9, 0x4b, 0x84 };
+#else /* MBEDTLS_CTR_DRBG_USE_128_BIT_KEY */
 static const unsigned char result_pr[16] =
     { 0x34, 0x01, 0x16, 0x56, 0xb4, 0x29, 0x00, 0x8f,
       0x35, 0x63, 0xec, 0xb5, 0xf2, 0x59, 0x07, 0x23 };
@@ -719,6 +729,7 @@ static const unsigned char result_pr[16] =
 static const unsigned char result_nopr[16] =
     { 0xa0, 0x54, 0x30, 0x3d, 0x8a, 0x7e, 0xa9, 0x88,
       0x9d, 0x90, 0x3e, 0x07, 0x7c, 0x6f, 0x21, 0x8f };
+#endif /* MBEDTLS_CTR_DRBG_USE_128_BIT_KEY */
 
 static size_t test_offset;
 static int ctr_drbg_self_test_entropy( void *data, unsigned char *buf,

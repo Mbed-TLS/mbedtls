@@ -411,7 +411,7 @@
 #define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)    \
     (PSA_BITS_TO_BYTES(curve_bits) * 2)
 
-/** Sufficient signature buffer size for psa_asymmetric_sign().
+/** Sufficient signature buffer size for psa_sign_hash().
  *
  * This macro returns a sufficient buffer size for a signature using a key
  * of the specified type and size, with the specified algorithm.
@@ -429,7 +429,7 @@
  *
  * \return If the parameters are valid and supported, return
  *         a buffer size in bytes that guarantees that
- *         psa_asymmetric_sign() will not fail with
+ *         psa_sign_hash() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
  *         If the parameters are a valid combination that is not supported
  *         by the implementation, this macro shall return either a
@@ -437,7 +437,7 @@
  *         If the parameters are not valid, the
  *         return value is unspecified.
  */
-#define PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(key_type, key_bits, alg)        \
+#define PSA_SIGN_OUTPUT_SIZE(key_type, key_bits, alg)        \
     (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void)alg, PSA_BITS_TO_BYTES(key_bits)) : \
      PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_ECDSA_SIGNATURE_SIZE(key_bits) : \
      ((void)alg, 0))
@@ -445,7 +445,7 @@
 #define PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE     \
     PSA_ECDSA_SIGNATURE_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
 
-/** \def PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE
+/** \def PSA_SIGNATURE_MAX_SIZE
  *
  * Maximum size of an asymmetric signature.
  *
@@ -453,7 +453,7 @@
  * should be the maximum size of a signature supported by the implementation,
  * in bytes, and must be no smaller than this maximum.
  */
-#define PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE                               \
+#define PSA_SIGNATURE_MAX_SIZE                               \
     (PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS) > PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE ? \
      PSA_BITS_TO_BYTES(PSA_VENDOR_RSA_MAX_KEY_BITS) :                   \
      PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE)
@@ -682,7 +682,7 @@
  *
  * \return If the parameters are valid and supported, return
  *         a buffer size in bytes that guarantees that
- *         psa_asymmetric_sign() will not fail with
+ *         psa_sign_hash() will not fail with
  *         #PSA_ERROR_BUFFER_TOO_SMALL.
  *         If the parameters are a valid combination that is not supported
  *         by the implementation, this macro shall return either a

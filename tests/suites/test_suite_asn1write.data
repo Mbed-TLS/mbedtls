@@ -49,6 +49,48 @@ mbedtls_asn1_write_int:0x12345678:"020412345678"
 ASN.1 Write int 2147483647
 mbedtls_asn1_write_int:0x7fffffff:"02047fffffff"
 
+ASN.1 Write enum 0
+mbedtls_asn1_write_enum:0:"0A0100"
+
+ASN.1 Write enum 1
+mbedtls_asn1_write_enum:1:"0A0101"
+
+ASN.1 Write enum 127
+mbedtls_asn1_write_enum:0x7f:"0A017f"
+
+ASN.1 Write enum 128
+mbedtls_asn1_write_enum:0x80:"0A020080"
+
+ASN.1 Write enum 255
+mbedtls_asn1_write_enum:0xff:"0A0200ff"
+
+ASN.1 Write enum 256
+mbedtls_asn1_write_enum:0x100:"0A020100"
+
+ASN.1 Write enum 32767
+mbedtls_asn1_write_enum:0x7fff:"0A027fff"
+
+ASN.1 Write enum 32768
+mbedtls_asn1_write_enum:0x8000:"0A03008000"
+
+ASN.1 Write enum 65535
+mbedtls_asn1_write_enum:0xffff:"0A0300ffff"
+
+ASN.1 Write enum 65536
+mbedtls_asn1_write_enum:0x10000:"0A03010000"
+
+ASN.1 Write enum 8388607
+mbedtls_asn1_write_enum:0x7fffff:"0A037fffff"
+
+ASN.1 Write enum 8388608
+mbedtls_asn1_write_enum:0x800000:"0A0400800000"
+
+ASN.1 Write enum 0x12345678
+mbedtls_asn1_write_enum:0x12345678:"0A0412345678"
+
+ASN.1 Write enum 2147483647
+mbedtls_asn1_write_enum:0x7fffffff:"0A047fffffff"
+
 #ASN.1 Write mpi 0
 #mbedtls_asn1_write_mpi:"00":"020100"
 

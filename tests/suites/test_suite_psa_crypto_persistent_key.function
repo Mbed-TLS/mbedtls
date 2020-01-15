@@ -32,8 +32,9 @@ void format_storage_data_check( data_t *key_data,
                                 int key_lifetime, int key_type,
                                 int key_usage, int key_alg, int key_alg2 )
 {
-    uint8_t *file_data;
-    size_t file_data_length;
+    uint8_t *file_data = NULL;
+    size_t file_data_length =
+        key_data->len + sizeof( psa_persistent_key_storage_format );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     psa_set_key_lifetime( &attributes, key_lifetime );
@@ -42,14 +43,15 @@ void format_storage_data_check( data_t *key_data,
     psa_set_key_algorithm( &attributes, key_alg );
     psa_set_key_enrollment_algorithm( &attributes, key_alg2 );
 
-    file_data_length = key_data->len + sizeof( psa_persistent_key_storage_format );
-    file_data = mbedtls_calloc( 1, file_data_length );
+    ASSERT_ALLOC( file_data, file_data_length );
     psa_format_key_data_for_storage( key_data->x, key_data->len,
                                      &attributes.core,
                                      file_data );
 
     ASSERT_COMPARE( expected_file_data->x, expected_file_data->len,
                     file_data, file_data_length );
+
+exit:
     mbedtls_free( file_data );
 }
 /* END_CASE */

@@ -34,6 +34,7 @@
 #include "mbedtls/md5.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -85,7 +86,7 @@ static int pem_pbkdf1( unsigned char *key, size_t keylen,
     mbedtls_md5_context md5_ctx;
     unsigned char md5sum[16];
     size_t use_len;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_md5_init( &md5_ctx );
 
@@ -146,7 +147,7 @@ static int pem_des_decrypt( unsigned char des_iv[8],
 {
     mbedtls_des_context des_ctx;
     unsigned char des_key[8];
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_des_init( &des_ctx );
 
@@ -174,7 +175,7 @@ static int pem_des3_decrypt( unsigned char des3_iv[8],
 {
     mbedtls_des3_context des3_ctx;
     unsigned char des3_key[24];
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_des3_init( &des3_ctx );
 
@@ -204,7 +205,7 @@ static int pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
 {
     mbedtls_aes_context aes_ctx;
     unsigned char aes_key[32];
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_aes_init( &aes_ctx );
 
@@ -439,7 +440,7 @@ int mbedtls_pem_write_buffer( const char *header, const char *footer,
                       const unsigned char *der_data, size_t der_len,
                       unsigned char *buf, size_t buf_len, size_t *olen )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *encode_buf = NULL, *c, *p = buf;
     size_t len = 0, use_len, add_len = 0;
 

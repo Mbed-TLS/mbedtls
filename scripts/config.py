@@ -168,6 +168,7 @@ def include_in_full(name):
             'MBEDTLS_DEPRECATED_REMOVED',
             'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED',
             'MBEDTLS_ECP_RESTARTABLE',
+            'MBEDTLS_ENTROPY_FORCE_SHA256', # Variant toggle, tested separately
             'MBEDTLS_HAVE_SSE2',
             'MBEDTLS_MEMORY_BACKTRACE',
             'MBEDTLS_MEMORY_BUFFER_ALLOC_C',

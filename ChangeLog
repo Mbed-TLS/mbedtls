@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.20.0 branch released xxxx-xx-xx
+= mbed TLS 2.20.0 branch released 2020-01-15
 
 Bugfix
    * Fix an incorrect size in a debugging message. Reported and fix

@@ -1,3 +1,69 @@
+Test calback buffer sanity
+test_callback_buffer_sanity:
+
+Callback buffer test: Exercise simple write/read
+test_callback_buffer:50:25:25:25:25:0:0:0:0
+
+Callback buffer test: Filling up the buffer
+test_callback_buffer:50:50:50:50:50:0:0:0:0
+
+Callback buffer test: Filling up the buffer in two steps
+test_callback_buffer:50:20:20:0:0:30:30:50:50
+
+Callback buffer test: Reading out the buffer in two steps
+test_callback_buffer:50:50:50:30:30:0:0:20:20
+
+Callback buffer test: Data wraps in buffer
+test_callback_buffer:50:45:45:10:10:10:10:45:45
+
+Callback buffer test: Data starts at the end
+test_callback_buffer:50:50:50:49:49:10:10:11:11
+
+Callback buffer test: Can write less than requested
+test_callback_buffer:50:75:50:30:30:25:25:45:45
+
+Callback buffer test: Can read less than requested
+test_callback_buffer:50:25:25:30:25:5:5:5:5
+
+Callback buffer test: Writing to full buffer
+test_callback_buffer:50:50:50:0:0:10:0:60:50
+
+Callback buffer test: Reading from empty buffer
+test_callback_buffer:50:0:0:10:0:0:0:0:0
+
+Test mock socket sanity
+ssl_mock_sanity:
+
+Test mock blocking TCP connection
+ssl_mock_tcp:1:0:0
+
+Test mock non-blocking TCP connection: would not block
+ssl_mock_tcp:0:0:0
+
+Test mock non-blocking TCP connection: client would block
+ssl_mock_tcp:0:0xB509:0
+
+Test mock non-blocking TCP connection: server would block
+ssl_mock_tcp:0:0x0FB1:0
+
+Test mock non-blocking TCP connection: both peers would block
+ssl_mock_tcp:0:0x1111:0xEEEE
+
+Test mock blocking TCP connection (interleaving)
+ssl_mock_tcp_interleaving:1:0:0
+
+Test mock non-blocking TCP connection: would not block (interleaving)
+ssl_mock_tcp_interleaving:0:0:0
+
+Test mock non-blocking TCP connection: client would block (interleaving)
+ssl_mock_tcp_interleaving:0:0xB509:0
+
+Test mock non-blocking TCP connection: server would block (interleaving)
+ssl_mock_tcp_interleaving:0:0x0FB1:0
+
+Test mock non-blocking TCP connection: both peers would block (interleaving)
+ssl_mock_tcp_interleaving:0:0x1111:0xEEEE
+
 SSL DTLS replay: initial state, seqnum 0
 ssl_dtls_replay:"":"000000000000":0
 

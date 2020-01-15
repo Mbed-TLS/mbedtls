@@ -34,10 +34,11 @@
 #if defined(MBEDTLS_X509_CRT_WRITE_C)
 
 #include "mbedtls/x509_crt.h"
-#include "mbedtls/oid.h"
 #include "mbedtls/asn1write.h"
-#include "mbedtls/sha1.h"
+#include "mbedtls/error.h"
+#include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/sha1.h"
 
 #include <string.h>
 
@@ -103,7 +104,7 @@ int mbedtls_x509write_crt_set_issuer_name( mbedtls_x509write_cert *ctx,
 int mbedtls_x509write_crt_set_serial( mbedtls_x509write_cert *ctx,
                                       const mbedtls_mpi *serial )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( ( ret = mbedtls_mpi_copy( &ctx->serial, serial ) ) != 0 )
         return( ret );
@@ -140,7 +141,7 @@ int mbedtls_x509write_crt_set_extension( mbedtls_x509write_cert *ctx,
 int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
                                                  int is_ca, int max_pathlen )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[9];
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
@@ -174,7 +175,7 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
 #if defined(MBEDTLS_SHA1_C)
 int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ctx )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE * 2 + 20]; /* tag, length + 2xMPI */
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
@@ -202,7 +203,7 @@ int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ct
 
 int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *ctx )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE * 2 + 20]; /* tag, length + 2xMPI */
     unsigned char *c = buf + sizeof( buf );
     size_t len = 0;
@@ -240,7 +241,7 @@ int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
 {
     unsigned char buf[5], ku[2];
     unsigned char *c;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned int allowed_bits = MBEDTLS_X509_KU_DIGITAL_SIGNATURE |
         MBEDTLS_X509_KU_NON_REPUDIATION   |
         MBEDTLS_X509_KU_KEY_ENCIPHERMENT  |
@@ -279,7 +280,7 @@ int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
 {
     unsigned char buf[4];
     unsigned char *c;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     c = buf + 4;
 
@@ -299,7 +300,7 @@ int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
 static int x509_write_time( unsigned char **p, unsigned char *start,
                             const char *t, size_t size )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
 
     /*
@@ -332,7 +333,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const char *sig_oid;
     size_t sig_oid_len = 0;
     unsigned char *c, *c2;
@@ -526,7 +527,7 @@ int mbedtls_x509write_crt_pem( mbedtls_x509write_cert *crt,
                                int (*f_rng)(void *, unsigned char *, size_t),
                                void *p_rng )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen;
 
     if( ( ret = mbedtls_x509write_crt_der( crt, buf, size,

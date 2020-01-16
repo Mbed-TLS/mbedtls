@@ -545,18 +545,17 @@ static void aes_gen_tables( void )
  */
 static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
 {
-    int i = 0, j = 0, is_even_pos, dummy_rounds;
+    int i = 0, j, is_even_pos, dummy_rounds;
+
 #if AES_SCA_CM_ROUNDS != 0
     int num;
-#endif
 
     mbedtls_platform_memset( tbl, 0, tbl_len );
-
-#if AES_SCA_CM_ROUNDS != 0
-    num = mbedtls_platform_random_in_range( 0x1f );
+    // get random from 0xfff (each byte will be used separately)
+    num = mbedtls_platform_random_in_range( 0x1000 );
 
     // Randomize execution order of initial round key addition
-    if ( ( num & 0x10 ) == 0 )
+    if ( ( num & 0x0100 ) == 0 )
     {
         tbl[i++] = 0x10;        // dummy data
         tbl[i++] = 0x00 | 0x03; // real data + stop marker
@@ -565,24 +564,28 @@ static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
         tbl[i++] = 0x10 | 0x03; // dummy data + stop marker
     }
 
-    // Randomize AES rounds
-    dummy_rounds = AES_SCA_CM_ROUNDS - ( num & 0x01 );
+    // Randomize number of dummy AES rounds
+    dummy_rounds = AES_SCA_CM_ROUNDS - ( ( num >> 8 ) & 0x01 );
     tbl_len = tbl_len - (AES_SCA_CM_ROUNDS - dummy_rounds);
-    num = num % ( dummy_rounds + 1 );
 
-    // add dummy rounds to the start (if needed)
+    // randomize positions for the dummy rounds
+    num = ( num & 0x00f ) % ( dummy_rounds + 1 );
+
+    // add dummy rounds after initial round key addition (if needed)
     for ( ; i < num + 2; i++ )
     {
         tbl[i] = 0x10;  // dummy data
     }
 
-    // add dummy rounds to the last, (AES_SCA_CM_ROUNDS - num) rounds if needed
+    // add dummy rounds to the end, (AES_SCA_CM_ROUNDS - num) rounds if needed
     for ( j = tbl_len - dummy_rounds + num; j < tbl_len; j++ )
     {
         tbl[j] = 0x10;  // dummy data
     }
 #else /* AES_SCA_CM_ROUNDS != 0 */
+    mbedtls_platform_memset( tbl, 0, tbl_len );
     dummy_rounds = 0;
+    j = 0;
     tbl[i++] = 0x03; // real data + stop marker for the round key addition
 #endif /* AES_SCA_CM_ROUNDS != 0 */
 
@@ -1081,21 +1084,19 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 #endif
 
     // Get AES calculation control bytes
-    dummy_rounds = aes_sca_cm_data_randomize( round_ctrl_table, round_ctrl_table_len );
+    dummy_rounds = aes_sca_cm_data_randomize( round_ctrl_table,
+                                              round_ctrl_table_len );
     flow_control = dummy_rounds;
 
     mbedtls_platform_memset( aes_data_real.xy_values, 0, 16 );
     offset = mbedtls_platform_random_in_range( 4 );
 
-    for( i = offset; i < 4; i++ )
+    i = offset;
+    do
     {
         GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-    }
-
-    for( i = 0; i < offset; i++ )
-    {
-        GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-    }
+        flow_control++;
+    } while( ( i = ( i + 1 ) % 4 ) != offset );
 
     tindex = 0;
     do
@@ -1155,19 +1156,14 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
     mbedtls_platform_memset( output, 0, 16 );
     offset = mbedtls_platform_random_in_range( 4 );
 
-    for( i = offset; i < 4; i++ )
+    i = offset;
+    do
     {
         PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
         flow_control++;
-    }
+    } while( ( i = ( i + 1 ) % 4 ) != offset );
 
-    for( i = 0; i < offset; i++ )
-    {
-        PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
-        flow_control++;
-    }
-
-    if( flow_control == tindex + dummy_rounds + 4 )
+    if( flow_control == tindex + dummy_rounds + 8 )
     {
         /* Validate control path due possible fault injection */
         return 0;
@@ -1274,22 +1270,18 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 
     // Get AES calculation control bytes
     dummy_rounds = aes_sca_cm_data_randomize( round_ctrl_table,
-        round_ctrl_table_len );
-
+                                              round_ctrl_table_len );
     flow_control = dummy_rounds;
 
     mbedtls_platform_memset( aes_data_real.xy_values, 0, 16 );
     offset = mbedtls_platform_random_in_range( 4 );
 
-    for( i = offset; i < 4; i++ )
+    i = offset;
+    do
     {
         GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-    }
-
-    for( i = 0; i < offset; i++ )
-    {
-        GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-    }
+        flow_control++;
+    } while( ( i = ( i + 1 ) % 4 ) != offset );
 
     tindex = 0;
     do
@@ -1349,19 +1341,14 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
     mbedtls_platform_memset( output, 0, 16 );
     offset = mbedtls_platform_random_in_range( 4 );
 
-    for( i = offset; i < 4; i++ )
+    i = offset;
+    do
     {
         PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
         flow_control++;
-    }
+    } while( ( i = ( i + 1 ) % 4 ) != offset );
 
-    for( i = 0; i < offset; i++ )
-    {
-        PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
-        flow_control++;
-    }
-
-    if( flow_control == tindex + dummy_rounds + 4 )
+    if( flow_control == tindex + dummy_rounds + 8 )
     {
         /* Validate control path due possible fault injection */
         return 0;

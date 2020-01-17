@@ -196,11 +196,23 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
         A[i] = ctx->state[i];
 
 #if defined(MBEDTLS_SHA256_SMALLER)
+    {
+        uint32_t offset = mbedtls_platform_random_in_range(16);
+        mbedtls_platform_memset( W, 0, sizeof( W ) );
+
+        for( i = offset; i < 16; i++ )
+        {
+            W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
+        }
+        for( i = 0; i < offset; i++ )
+        {
+            W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
+        }
+    }
+
     for( i = 0; i < 64; i++ )
     {
-        if( i < 16 )
-            W[i] = (uint32_t)mbedtls_platform_get_uint32_be( &data[4 * i] );
-        else
+        if( i >= 16 )
             R( i );
 
         P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i], K[i] );
@@ -323,6 +335,7 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     int ret, s_pos, o_pos;
     uint32_t used;
     uint32_t high, low;
+    uint32_t offset = 0;
 
     SHA256_VALIDATE_RET( ctx != NULL );
     SHA256_VALIDATE_RET( (unsigned char *)output != NULL );
@@ -366,11 +379,15 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     /*
      * Output final state
      */
+    offset = mbedtls_platform_random_in_range(7);
 
-    for( s_pos = 0, o_pos = 0; s_pos < 7; s_pos++, o_pos += 4 )
+    mbedtls_platform_memset( output, 0, 32 );
+
+    for( s_pos = offset, o_pos = offset * 4; s_pos < 7;
+            s_pos++, o_pos += 4 )
     {
         (void)mbedtls_platform_put_uint32_be( &output[o_pos],
-                                              ctx->state[s_pos] );
+                                            ctx->state[s_pos] );
     }
 
 #if !defined(MBEDTLS_SHA256_NO_SHA224)
@@ -378,6 +395,11 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
 #endif
         (void)mbedtls_platform_put_uint32_be( &output[28], ctx->state[7] );
 
+    for( s_pos = 0, o_pos = 0; s_pos < (int)offset; s_pos++, o_pos += 4 )
+    {
+        (void)mbedtls_platform_put_uint32_be( &output[o_pos],
+                                            ctx->state[s_pos] );
+    }
     return( 0 );
 }
 

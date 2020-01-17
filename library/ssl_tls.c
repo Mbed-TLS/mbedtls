@@ -1938,7 +1938,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                   ssl );
     if( ret == 0 )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( ret == 0 )
         {
             ssl->handshake->key_derivation_done = MBEDTLS_SSL_FI_FLAG_SET;
@@ -2020,7 +2020,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
                                       mbedtls_ssl_conf_get_prng( ssl->conf ) );
         if( ret == 0 )
         {
-            mbedtls_platform_enforce_volatile_reads();
+            mbedtls_platform_random_delay();
             if( ret == 0 )
             {
                 ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
@@ -2063,7 +2063,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
                                        mbedtls_ssl_conf_get_prng( ssl->conf ) );
         if( ret == 0 )
         {
-            mbedtls_platform_enforce_volatile_reads();
+            mbedtls_platform_random_delay();
             if( ret == 0 )
             {
                 ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
@@ -2094,7 +2094,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
             mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) );
         if( ret == 0 )
         {
-            mbedtls_platform_enforce_volatile_reads();
+            mbedtls_platform_random_delay();
             if( ret == 0 )
             {
                 ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
@@ -2123,7 +2123,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
                 mbedtls_ssl_conf_get_prng( ssl->conf ) );
         if( ret == 0 )
         {
-            mbedtls_platform_enforce_volatile_reads();
+            mbedtls_platform_random_delay();
             if( ret == 0 )
             {
                 ssl->handshake->premaster_generated = MBEDTLS_SSL_FI_FLAG_SET;
@@ -7355,7 +7355,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
 
     if( verify_ret == 0 )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( verify_ret == 0 )
         {
             flow_counter++;
@@ -7445,7 +7445,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         ( verify_ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
           verify_ret == MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE ) )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL &&
             ( verify_ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
               verify_ret == MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE ) )
@@ -7511,7 +7511,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         flow_counter == 4 )
 #endif
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( verify_ret == 0 &&
 #if defined(MBEDTLS_ECP_C) || defined(MBEDTLS_USE_TINYCRYPT)
             flow_counter == 5 )
@@ -7998,7 +7998,7 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         1 )
 #endif
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( authmode == MBEDTLS_SSL_VERIFY_NONE ||
             authmode == MBEDTLS_SSL_VERIFY_OPTIONAL ||
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
@@ -8019,7 +8019,7 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 #if !defined(MBEDTLS_SSL_NO_SESSION_RESUMPTION)
     if( ssl->handshake->resume == MBEDTLS_SSL_FI_FLAG_SET )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( ssl->handshake->resume == MBEDTLS_SSL_FI_FLAG_SET )
         {
             /* When doing session resume, no premaster or peer authentication */
@@ -8036,7 +8036,7 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 
     if( ssl->handshake->peer_authenticated == MBEDTLS_SSL_FI_FLAG_SET )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( ssl->handshake->peer_authenticated == MBEDTLS_SSL_FI_FLAG_SET )
         {
             ret = 0;
@@ -8057,7 +8057,7 @@ int mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         ssl->handshake->key_derivation_done == MBEDTLS_SSL_FI_FLAG_SET &&
         ssl->handshake->premaster_generated == MBEDTLS_SSL_FI_FLAG_SET )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( ssl->handshake->hello_random_set == MBEDTLS_SSL_FI_FLAG_SET &&
             ssl->handshake->key_derivation_done == MBEDTLS_SSL_FI_FLAG_SET &&
             ssl->handshake->premaster_generated == MBEDTLS_SSL_FI_FLAG_SET )

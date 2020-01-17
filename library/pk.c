@@ -597,7 +597,7 @@ static int uecc_eckey_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     if( ret_fi == UECC_SUCCESS )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( ret_fi == UECC_SUCCESS )
             return( 0 );
         else
@@ -1553,7 +1553,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
 
     if( verify_ret == 0 )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( verify_ret == 0 )
         {
             return( verify_ret );

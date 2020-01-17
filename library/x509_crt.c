@@ -3043,7 +3043,7 @@ check_signature:
 
         if( ret_fi == 0 )
         {
-            mbedtls_platform_enforce_volatile_reads();
+            mbedtls_platform_random_delay();
             if( ret_fi == 0 )
                 signature_is_good = X509_SIGNATURE_IS_GOOD;
         }
@@ -3549,7 +3549,7 @@ find_parent:
         if( signature_is_good_fi != X509_SIGNATURE_IS_GOOD )
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED | X509_BADCERT_FI_EXTRA;
 
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( signature_is_good_fi != X509_SIGNATURE_IS_GOOD )
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED | X509_BADCERT_FI_EXTRA;
 
@@ -3861,7 +3861,7 @@ exit:
     flags_fi = *flags;
     if( flags_fi == 0 )
     {
-        mbedtls_platform_enforce_volatile_reads();
+        mbedtls_platform_random_delay();
         if( flags_fi == 0 )
             return( 0 );
     }

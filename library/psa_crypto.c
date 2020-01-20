@@ -3030,6 +3030,8 @@ psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
 
     status = psa_mac_finish_internal( operation,
                                       actual_mac, sizeof( actual_mac ) );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
 
     if( safer_memcmp( mac, actual_mac, mac_length ) != 0 )
         status = PSA_ERROR_INVALID_SIGNATURE;

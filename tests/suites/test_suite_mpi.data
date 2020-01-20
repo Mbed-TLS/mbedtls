@@ -281,13 +281,82 @@ Base test mbedtls_mpi_cmp_abs (Mix values) #3
 mbedtls_mpi_cmp_abs:10:"-2":10:"1":1
 
 Copy zero (1 limb) to positive (1 limb)
-mbedtls_mpi_copy:0:1500
+mbedtls_mpi_copy_sint:0:1500
+
+Copy zero (1 limb) to negative (1 limb)
+mbedtls_mpi_copy_sint:0:-1500
+
+Copy positive (1 limb) to zero (1 limb)
+mbedtls_mpi_copy_sint:1500:0
+
+Copy negative (1 limb) to zero (1 limb)
+mbedtls_mpi_copy_sint:-1500:0
+
+Copy positive (1 limb) to negative (1 limb)
+mbedtls_mpi_copy_sint:1500:-42
+
+Copy negative (1 limb) to positive (1 limb)
+mbedtls_mpi_copy_sint:-42:1500
+
+Copy zero (null) to zero (null)
+mbedtls_mpi_copy_binary:"":""
+
+Copy zero (null) to positive (1 limb)
+mbedtls_mpi_copy_binary:"":"1234"
+
+Copy positive (1 limb) to zero (null)
+mbedtls_mpi_copy_binary:"1234":""
+
+Copy positive to larger
+mbedtls_mpi_copy_binary:"bead":"ca5cadedb01dfaceacc01ade"
+
+Copy positive to smaller
+mbedtls_mpi_copy_binary:"ca5cadedb01dfaceacc01ade":"bead"
 
 Copy self: positive (1 limb)
 mpi_copy_self:14
 
-Swap 0 with positive (1 limb)
-mbedtls_mpi_swap:0:1500
+Copy self: zero (1 limb)
+mpi_copy_self:0
+
+Swap zero (1 limb) with positive (1 limb)
+mbedtls_mpi_swap_sint:0:1500
+
+Swap zero (1 limb) with negative (1 limb)
+mbedtls_mpi_swap_sint:0:-1500
+
+Swap positive (1 limb) with zero (1 limb)
+mbedtls_mpi_swap_sint:1500:0
+
+Swap negative (1 limb) with zero (1 limb)
+mbedtls_mpi_swap_sint:-1500:0
+
+Swap positive (1 limb) with negative (1 limb)
+mbedtls_mpi_swap_sint:1500:-42
+
+Swap negative (1 limb) with positive (1 limb)
+mbedtls_mpi_swap_sint:-42:1500
+
+Swap zero (null) with zero (null)
+mbedtls_mpi_swap_binary:"":""
+
+Swap zero (null) with positive (1 limb)
+mbedtls_mpi_swap_binary:"":"1234"
+
+Swap positive (1 limb) with zero (null)
+mbedtls_mpi_swap_binary:"1234":""
+
+Swap positive with larger
+mbedtls_mpi_swap_binary:"bead":"ca5cadedb01dfaceacc01ade"
+
+Swap positive with smaller
+mbedtls_mpi_swap_binary:"ca5cadedb01dfaceacc01ade":"bead"
+
+Swap self: 1 limb
+mpi_swap_self:"face"
+
+Swap self: null
+mpi_swap_self:""
 
 Shrink 2 in 2 to 4
 mbedtls_mpi_shrink:2:2:4:4

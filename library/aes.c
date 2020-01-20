@@ -94,7 +94,7 @@ typedef struct {
 } aes_r_data_t;
 
 #if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
-/* Number of additional AES calculation rounds added for SCA CM */
+/* Number of additional AES dummy rounds added for SCA countermeasures */
 #define AES_SCA_CM_ROUNDS  5
 #endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
@@ -512,8 +512,8 @@ static void aes_gen_tables( void )
 
 /**
  * Randomize positions for AES SCA countermeasures if AES countermeasures are
- * enabled. If countermeasures are not enabled then fill given table with real
- * data values.
+ * enabled. If the countermeasures are not enabled then we fill the given table
+ * with only real AES rounds to be executed.
  *
  * Dummy rounds are added as follows:
  * 1. One dummy round added to the initial round key addition (executed in
@@ -533,13 +533,18 @@ static void aes_gen_tables( void )
  *  Return  Number of additional AES rounds
  *
  * Example of the control bytes:
+ *  R = real data in actual AES calculation round
+ *  Ri = Real data in initial round key addition phase
+ *  F = fake data in actual AES calculation round
+ *  Fi = fake data in initial round key addition phase
+ *
  *  1. No countermeasures enabled and AES-128, only real data (R) used:
  *  | Ri  | R  | R  | R  | R  | R  | R  | R  | R  | R  | R  |
  *  |0x03|0x04|0x00|0x04|0x00|0x04|0x00|0x04|0x00|0x07|0x03|
  *
  *  2. Countermeasures enabled, 3 (F) dummy rounds in start and 1 at end:
- *  | Fi | Ri  | F  | F  | F  | R  | R  | ... | R  | R  | R  | R  | F  |
- *  |0x10|0x03 |0x10|0x10|0x10|0x04|0x00| ... |0x04|0x00|0x04|0x03|0x07|
+ *  | Fi | Ri | F  | F  | F  | R  | R  | ... | R  | R  | R  | R  | F  |
+ *  |0x10|0x03|0x10|0x10|0x10|0x04|0x00| ... |0x04|0x00|0x04|0x03|0x07|
  */
 #if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
 static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
@@ -547,7 +552,7 @@ static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
     int i = 0, j, is_even_pos, dummy_rounds, num;
 
     mbedtls_platform_memset( tbl, 0, tbl_len );
-    // get random from 0xfff (each byte will be used separately)
+    // get random from 0x0fff (each f will be used separately)
     num = mbedtls_platform_random_in_range( 0x1000 );
 
     // Randomize execution order of initial round key addition
@@ -561,11 +566,11 @@ static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
     }
 
     // Randomize number of dummy AES rounds
-    dummy_rounds = AES_SCA_CM_ROUNDS - ( ( num >> 8 ) & 0x01 );
+    dummy_rounds = AES_SCA_CM_ROUNDS - ( ( num & 0x0010 ) >> 4 );
     tbl_len = tbl_len - (AES_SCA_CM_ROUNDS - dummy_rounds);
 
     // randomize positions for the dummy rounds
-    num = ( num & 0x00f ) % ( dummy_rounds + 1 );
+    num = ( num & 0x000f ) % ( dummy_rounds + 1 );
 
     // add dummy rounds after initial round key addition (if needed)
     for ( ; i < num + 2; i++ )
@@ -604,7 +609,7 @@ static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
 
     return( dummy_rounds );
 }
-#endif /*MBEDTLS_AES_SCA_COUNTERMEASURES */
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
 #if defined(MBEDTLS_AES_FEWER_TABLES)
 
@@ -1072,9 +1077,13 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
                                               round_ctrl_table_len );
     flow_control = dummy_rounds;
 
+    // SCA countermeasure, safely clear the aes_data_real.xy_values
     mbedtls_platform_memset( aes_data_real.xy_values, 0, 16 );
-    offset = mbedtls_platform_random_in_range( 4 );
 
+    // SCA countermeasure, randomize secret data location by initializing it in
+    // a random order and writing randomized fake data between the real data
+    // writes.
+    offset = mbedtls_platform_random_in_range( 4 );
     i = offset;
     do
     {
@@ -1138,9 +1147,12 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         tindex++;
     } while( stop_mark == 0 );
 
+    // SCA countermeasure, safely clear the output
     mbedtls_platform_memset( output, 0, 16 );
-    offset = mbedtls_platform_random_in_range( 4 );
 
+    // SCA countermeasure, randomize secret data location by writing to it in
+    // a random order.
+    offset = mbedtls_platform_random_in_range( 4 );
     i = offset;
     do
     {
@@ -1332,9 +1344,13 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                               round_ctrl_table_len );
     flow_control = dummy_rounds;
 
+    // SCA countermeasure, safely clear the aes_data_real.xy_values
     mbedtls_platform_memset( aes_data_real.xy_values, 0, 16 );
-    offset = mbedtls_platform_random_in_range( 4 );
 
+    // SCA countermeasure, randomize secret data location by initializing it in
+    // a random order and writing randomized fake data between the real data
+    // writes.
+    offset = mbedtls_platform_random_in_range( 4 );
     i = offset;
     do
     {
@@ -1398,9 +1414,12 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
         tindex++;
     } while( stop_mark == 0 );
 
+    // SCA countermeasure, safely clear the output
     mbedtls_platform_memset( output, 0, 16 );
-    offset = mbedtls_platform_random_in_range( 4 );
 
+    // SCA countermeasure, randomize secret data location by writing to it in
+    // a random order.
+    offset = mbedtls_platform_random_in_range( 4 );
     i = offset;
     do
     {

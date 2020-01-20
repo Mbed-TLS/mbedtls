@@ -646,7 +646,7 @@
  * -before the first AES calculation round
  * -after the last AES calculation round
  *
- * Tradeoff: Uncommenting this macro does not increases ROM footprint.
+ * Tradeoff: Uncommenting this macro does not increase codesize.
  * The performance loss is ~50% with 128 bit AES.
  *
  * This option is dependent of \c MBEDTLS_ENTROPY_HARDWARE_ALT.

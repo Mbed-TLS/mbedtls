@@ -205,37 +205,37 @@ mbedtls_mpi_cmp_abs:10:"2":10:"-3":-1
 Base test mbedtls_mpi_cmp_abs (Mix values) #3
 mbedtls_mpi_cmp_abs:10:"-2":10:"1":1
 
-Base test mbedtls_mpi_copy #1
+Copy zero (1 limb) to positive (1 limb)
 mbedtls_mpi_copy:0:1500
 
-Base test mpi_copy_self #1
+Copy self: positive (1 limb)
 mpi_copy_self:14
 
-Base test mbedtls_mpi_swap #1
+Swap 0 with positive (1 limb)
 mbedtls_mpi_swap:0:1500
 
-Test mbedtls_mpi_shrink #1
+Shrink 2 in 2 to 4
 mbedtls_mpi_shrink:2:2:4:4
 
-Test mbedtls_mpi_shrink #2
+Shrink 2 in 4 to 4
 mbedtls_mpi_shrink:4:2:4:4
 
-Test mbedtls_mpi_shrink #3
+Shrink 2 in 8 to 4
 mbedtls_mpi_shrink:8:2:4:4
 
-Test mbedtls_mpi_shrink #4
+Shrink 4 in 8 to 4
 mbedtls_mpi_shrink:8:4:4:4
 
-Test mbedtls_mpi_shrink #5
+Shrink 6 in 8 to 4 yielding 6
 mbedtls_mpi_shrink:8:6:4:6
 
-Test mbedtls_mpi_shrink #6
+Shrink 2 in 4 to 0 yielding 2
 mbedtls_mpi_shrink:4:2:0:2
 
-Test mbedtls_mpi_shrink #7
+Shrink 1 in 4 to 0 yielding 1
 mbedtls_mpi_shrink:4:1:0:1
 
-Test mbedtls_mpi_shrink #8
+Shrink 0 in 4 to 0 yielding 1
 mbedtls_mpi_shrink:4:0:0:1
 
 Test mbedtls_mpi_safe_cond_assign #1

@@ -190,7 +190,7 @@ int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y )
     if( X == Y )
         return( 0 );
 
-    if( Y->p == NULL )
+    if( Y->n == 0 )
     {
         mbedtls_mpi_free( X );
         return( 0 );

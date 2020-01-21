@@ -154,7 +154,7 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
     /* Actually resize up if there are currently fewer than nblimbs limbs. */
     if( X->n <= nblimbs )
         return( mbedtls_mpi_grow( X, nblimbs ) );
-    /* Now X->n > nblimbs >= 0. */
+    /* After this point, then X->n > nblimbs and in particular X->n > 0. */
 
     for( i = X->n - 1; i > 0; i-- )
         if( X->p[i] != 0 )

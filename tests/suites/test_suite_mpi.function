@@ -550,8 +550,8 @@ void mbedtls_mpi_lt_mpi_ct( int size_X, char * input_X,
     TEST_ASSERT( mbedtls_mpi_read_string( &X, 16, input_X ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &Y, 16, input_Y ) == 0 );
 
-    mbedtls_mpi_grow( &X, size_X );
-    mbedtls_mpi_grow( &Y, size_Y );
+    TEST_ASSERT( mbedtls_mpi_grow( &X, size_X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_grow( &Y, size_Y ) == 0 );
 
     TEST_ASSERT( mbedtls_mpi_lt_mpi_ct( &X, &Y, &ret ) == input_err );
     if( input_err == 0 )

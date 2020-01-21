@@ -121,6 +121,7 @@ int get_len_step( const data_t *input, size_t buffer_size,
 {
     unsigned char *buf = NULL;
     unsigned char *p = NULL;
+    unsigned char *end;
     size_t parsed_length;
     int ret;
 
@@ -130,7 +131,8 @@ int get_len_step( const data_t *input, size_t buffer_size,
     if( buffer_size == 0 )
     {
         ASSERT_ALLOC( buf, 1 );
-        p = buf + 1;
+        end = buf + 1;
+        p = end;
     }
     else
     {
@@ -145,9 +147,10 @@ int get_len_step( const data_t *input, size_t buffer_size,
             memcpy( buf, input->x, buffer_size );
         }
         p = buf;
+        end = buf + buffer_size;
     }
 
-    ret = mbedtls_asn1_get_len( &p, buf + buffer_size, &parsed_length );
+    ret = mbedtls_asn1_get_len( &p, end, &parsed_length );
 
     if( buffer_size >= input->len + actual_length )
     {

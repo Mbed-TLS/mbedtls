@@ -1,56 +1,59 @@
 Empty length
-parse_prefixes:"04":0:MBEDTLS_ERR_ASN1_INVALID_LENGTH
+parse_prefixes:"04":MBEDTLS_ERR_ASN1_OUT_OF_DATA:UNPREDICTABLE_RESULT
+
+Incomplete length
+parse_prefixes:"0481":MBEDTLS_ERR_ASN1_OUT_OF_DATA:UNPREDICTABLE_RESULT
 
 Prefixes of OCTET STRING, length=0
-parse_prefixes:"04007e":2:0
+parse_prefixes:"0400":0:0
 
 Prefixes of OCTET STRING, length=0 (0 length bytes)
-parse_prefixes:"04807e":2:MBEDTLS_ERR_ASN1_INVALID_LENGTH
+parse_prefixes:"0480":MBEDTLS_ERR_ASN1_INVALID_LENGTH:MBEDTLS_ERR_ASN1_INVALID_LENGTH
 
 Prefixes of OCTET STRING, length=1
-parse_prefixes:"0401417e":3:0
+parse_prefixes:"040141":0:0
 
 Prefixes of OCTET STRING, length=2
-parse_prefixes:"040241427e":4:0
+parse_prefixes:"04024142":0:0
 
 Prefixes of BOOLEAN, length=0
-parse_prefixes:"01007e":2:MBEDTLS_ERR_ASN1_INVALID_LENGTH
+parse_prefixes:"0100":MBEDTLS_ERR_ASN1_INVALID_LENGTH:MBEDTLS_ERR_ASN1_INVALID_LENGTH
 
 Prefixes of BOOLEAN, length=1
-parse_prefixes:"0101007e":3:0
+parse_prefixes:"010100":0:0
 
 Prefixes of BOOLEAN, length=2
-parse_prefixes:"010200007e":4:MBEDTLS_ERR_ASN1_INVALID_LENGTH
+parse_prefixes:"01020000":MBEDTLS_ERR_ASN1_INVALID_LENGTH:MBEDTLS_ERR_ASN1_INVALID_LENGTH
 
 Prefixes of INTEGER, length=1
-parse_prefixes:"0201417e":3:0
+parse_prefixes:"020141":0:0
 
 Prefixes of INTEGER, length=2
-parse_prefixes:"020241427e":4:0
+parse_prefixes:"02024142":0:0
 
 Prefixes of INTEGER, length=5
-parse_prefixes:"020541424344457e":7:0
+parse_prefixes:"02054142434445":0:0
 
 Prefixes of empty BIT STRING
-parse_prefixes:"03007e":2:MBEDTLS_ERR_ASN1_OUT_OF_DATA
+parse_prefixes:"0300":MBEDTLS_ERR_ASN1_OUT_OF_DATA:UNPREDICTABLE_RESULT
 
 Prefixes of BIT STRING, unused_bits=0, payload_length=0
-parse_prefixes:"030100":3:0
+parse_prefixes:"030100":0:MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
 
 Prefixes of BIT STRING, unused_bits=0, payload_length=1
-parse_prefixes:"0302002a":4:0
+parse_prefixes:"0302002a":0:MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
 
 Prefixes of BIT STRING, unused_bits=1, payload_length=1
-parse_prefixes:"0302012a":4:0
+parse_prefixes:"0302012a":0:MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
 
 Prefixes of empty SEQUENCE
-parse_prefixes:"30007e":2:0
+parse_prefixes:"3000":0:0
 
 Prefixes of SEQUENCE of BOOLEAN, INTEGER, INTEGER
-parse_prefixes:"300b01010102012a02031234567e":13:0
+parse_prefixes:"300b01010102012a0203123456":0:0
 
 Prefixes of SEQUENCE of (SEQUENCE of INTEGER, INTEGER), INTEGER
-parse_prefixes:"300b30060201410201420201617e":13:0
+parse_prefixes:"300b3006020141020142020161":0:0
 
 length=0 (short form)
 get_len:"00":0

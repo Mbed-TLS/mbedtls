@@ -65,6 +65,11 @@ Changes
 
 = mbed TLS 2.16.x branch released xxxx-xx-xx
 
+Bugfix
+   * Fix an unchecked call to mbedtls_md() in the x509write module.
+
+= mbed TLS 2.16.4 branch released 2020-01-15
+
 Security
    * Fix side channel vulnerability in ECDSA. Our bignum implementation is not
      constant time/constant trace, so side channel attacks can retrieve the

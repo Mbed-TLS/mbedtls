@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include "mbedtls/pk.h"
 
 //4 Kb should be enough for every bug ;-)

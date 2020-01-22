@@ -15,6 +15,7 @@ There are currently three active build systems used within Mbed TLS releases:
 
 -   GNU Make
 -   CMake
+-   VCPKG
 -   Microsoft Visual Studio (Microsoft Visual Studio 2013 or later)
 
 The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
@@ -151,6 +152,19 @@ on the build mode as seen above), it's merely prepended to it.
 Mbed TLS, like Mbed Crypto, supports being built as a CMake subproject. One can
 use `add_subdirectory()` from a parent CMake project to include Mbed TLS as a
 subproject.
+
+### VCPKG
+
+You can download and install mbedtls using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
+
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh
+    ./vcpkg integrate install
+    ./vcpkg install mbedtls
+
+The mbedtls port in vcpkg is kept up to date by Microsoft team members and community contributors.
+If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
 
 ### Microsoft Visual Studio
 

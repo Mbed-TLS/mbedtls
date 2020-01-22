@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix build failure with MBEDTLS_ZLIB_SUPPORT enabled. Reported by
+     Jack Lloyd in #2859. Fix submitted by jiblime in #2963.
+
 = mbed TLS 2.20.0 branch released 2020-01-15
 
 Bugfix

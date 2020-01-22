@@ -172,10 +172,9 @@ class ChangeLog:
             for line in self.trailer:
                 out.write(line)
 
-def finish_output(files_to_remove, changelog, output_file):
+def finish_output(changelog, output_file):
     """Write the changelog to the output file.
 
-    Remove the specified input files.
     """
     if os.path.exists(output_file) and not os.path.isfile(output_file):
         # The output is a non-regular file (e.g. pipe). Write to it directly.
@@ -185,11 +184,12 @@ def finish_output(files_to_remove, changelog, output_file):
         # then move it into place atomically.
         output_temp = output_file + '.tmp'
     changelog.write(output_temp)
-    for filename in files_to_remove:
-        sys.stderr.write('Removing ' + filename + '\n')
-        #os.remove(filename)
     if output_temp != output_file:
         os.rename(output_temp, output_file)
+
+def remove_merged_entries(files_to_remove):
+    for filename in files_to_remove:
+        os.remove(filename)
 
 def merge_entries(options):
     """Merge changelog entries into the changelog file.
@@ -208,8 +208,9 @@ def merge_entries(options):
     for filename in files_to_merge:
         with open(filename, 'rb') as input_file:
             changelog.add_file(input_file)
-    files_to_remove = [] if options.keep_entries else files_to_merge
-    finish_output(files_to_remove, changelog, options.output)
+    finish_output(changelog, options.output)
+    if not options.keep_entries:
+        remove_merged_entries(files_to_merge)
 
 def set_defaults(options):
     """Add default values for missing options."""

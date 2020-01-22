@@ -28,11 +28,9 @@ import sys
 
 class InputFormatError(Exception):
     def __init__(self, filename, line_number, message, *args, **kwargs):
-        self.filename = filename
-        self.line_number = line_number
-        self.message = message.format(*args, **kwargs)
-    def __str__(self):
-        return '{}:{}: {}'.format(self.filename, self.line_number, self.message)
+        message = '{}:{}: {}'.format(filename, line_number,
+                                     message.format(*args, **kwargs))
+        super().__init__(message)
 
 STANDARD_SECTIONS = (
     b'Interface changes',

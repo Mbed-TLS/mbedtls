@@ -88,8 +88,9 @@ class ChangeLog:
     def __init__(self, input_stream):
         """Create a changelog object.
 
-        Read lines from input_stream, which is typically a file opened
-        for reading.
+        Populate the changelog object from the content of the file
+        input_stream. This is typically a file opened for reading, but
+        can be any generator returning the lines to read.
         """
         level_2_seen = 0
         current_section = None
@@ -125,7 +126,9 @@ class ChangeLog:
         Markdown sections with recognized titles. The corresponding
         content is injected into the respective sections in the changelog.
         The section titles must be either one of the hard-coded values
-        in assemble_changelog.py or already present in ChangeLog.md.
+        in STANDARD_SECTIONS in assemble_changelog.py or already present
+        in ChangeLog.md. Section titles must match byte-for-byte except that
+        leading or trailing whitespace is ignored.
         """
         filename = input_stream.name
         current_section = None

@@ -95,16 +95,16 @@ int mbedtls_test_buffer_put( mbedtls_test_buffer *buf,
 }
 
 /*
- * Gets \p output_len bytes from the \p output buffer into the ring buffer
- * \p buf.
+ * Gets \p output_len bytes from the ring buffer \p buf into the
+ * \p output buffer. The output buffer can be NULL, in this case a part of the
+ * ring buffer will be dropped, if the requested length is available.
  *
  * \p buf must have been initialized and set up by calling
  * `mbedtls_test_buffer_init()` and `mbedtls_test_buffer_setup()`.
  *
  * \retval  \p output_len, if the data is available.
  * \retval  0 <= value < \p output_len, if the data is not available.
- * \retval  -1, if \buf is NULL, it hasn't been set up or \p output_len is not
- *          zero and \p output is NULL
+ * \retval  -1, if \buf is NULL or it hasn't been set up.
  */
 int mbedtls_test_buffer_get( mbedtls_test_buffer *buf,
                              unsigned char* output, size_t output_len )
@@ -114,10 +114,8 @@ int mbedtls_test_buffer_get( mbedtls_test_buffer *buf,
     if( ( buf == NULL ) || ( buf->buffer == NULL ) )
         return -1;
 
-    if( output == NULL )
-    {
-        return ( output_len == 0 ) ? 0 : -1;
-    }
+    if( output == NULL && output_len == 0 )
+        return 0;
 
     if( buf->content_length < output_len )
         output_len = buf->content_length;
@@ -129,8 +127,12 @@ int mbedtls_test_buffer_get( mbedtls_test_buffer *buf,
         overflow = ( buf->start + output_len ) % buf->capacity;
     }
 
-    memcpy( output, buf->buffer + buf->start, output_len - overflow );
-    memcpy( output + output_len - overflow, buf->buffer, overflow );
+    if( output != NULL )
+    {
+        memcpy( output, buf->buffer + buf->start, output_len - overflow );
+        memcpy( output + output_len - overflow, buf->buffer, overflow );
+    }
+
     buf->content_length -= output_len;
     buf->start = ( buf->start + output_len ) % buf->capacity;
 
@@ -714,8 +716,7 @@ void test_callback_buffer_sanity()
     TEST_ASSERT( mbedtls_test_buffer_get( NULL, output, sizeof( output ) )
                     == -1 );
     TEST_ASSERT( mbedtls_test_buffer_put( NULL, NULL, sizeof( input ) ) == -1 );
-    TEST_ASSERT( mbedtls_test_buffer_get( NULL, NULL, sizeof( output ) )
-                    == -1 );
+
     TEST_ASSERT( mbedtls_test_buffer_put( NULL, NULL, 0 ) == -1 );
     TEST_ASSERT( mbedtls_test_buffer_get( NULL, NULL, 0 ) == -1 );
 
@@ -727,19 +728,20 @@ void test_callback_buffer_sanity()
     TEST_ASSERT( mbedtls_test_buffer_get( &buf, output, sizeof( output ) )
                     == -1 );
     TEST_ASSERT( mbedtls_test_buffer_put( &buf, NULL, sizeof( input ) ) == -1 );
-    TEST_ASSERT( mbedtls_test_buffer_get( &buf, NULL, sizeof( output ) )
-                    == -1 );
+
     TEST_ASSERT( mbedtls_test_buffer_put( &buf, NULL, 0 ) == -1 );
     TEST_ASSERT( mbedtls_test_buffer_get( &buf, NULL, 0 ) == -1 );
 
-    /* Make sure calling put end get on NULL input and output only results in
-     * error if the length is not zero. */
+    /* Make sure calling put and get on NULL input only results in
+     * error if the length is not zero, and that a NULL output is valid for data
+     * dropping.
+     */
 
     TEST_ASSERT( mbedtls_test_buffer_setup( &buf, sizeof( input ) ) == 0 );
 
     TEST_ASSERT( mbedtls_test_buffer_put( &buf, NULL, sizeof( input ) ) == -1 );
     TEST_ASSERT( mbedtls_test_buffer_get( &buf, NULL, sizeof( output ) )
-                    == -1 );
+                    == 0 );
     TEST_ASSERT( mbedtls_test_buffer_put( &buf, NULL, 0 ) == 0 );
     TEST_ASSERT( mbedtls_test_buffer_get( &buf, NULL, 0 ) == 0 );
 

@@ -92,13 +92,22 @@ class ChangeLog:
         input_stream. This is typically a file opened for reading, but
         can be any generator returning the lines to read.
         """
-        level_2_seen = 0
-        current_section = None
         self.header = []
         self.section_list = []
         self.section_content = {}
         self.add_sections(*STANDARD_SECTIONS)
         self.trailer = []
+        self.read_main_file(input_stream)
+
+    def read_main_file(self, input_stream):
+        """Populate the changelog object from the content of the file.
+
+        This method is only intended to be called as part of the constructor
+        of the class and may not act sensibly on an object that is already
+        partially populated.
+        """
+        level_2_seen = 0
+        current_section = None
         for line in input_stream:
             level, content = self.title_level(line)
             if level == 2:

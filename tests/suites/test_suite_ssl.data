@@ -64,6 +64,21 @@ ssl_mock_tcp_interleaving:0:0x0FB1:0
 Test mock non-blocking TCP connection: both peers would block (interleaving)
 ssl_mock_tcp_interleaving:0:0x1111:0xEEEE
 
+Message queue - sanity
+ssl_message_queue_sanity:
+
+Message queue - basic test
+ssl_message_queue_basic:
+
+Message queue - overflow/underflow
+ssl_message_queue_overflow_underflow:
+
+Message queue - interleaved
+ssl_message_queue_interleaved:
+
+Message queue - insufficient buffer
+ssl_message_queue_insufficient_buffer:
+
 SSL DTLS replay: initial state, seqnum 0
 ssl_dtls_replay:"":"000000000000":0
 

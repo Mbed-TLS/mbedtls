@@ -140,6 +140,136 @@ int mbedtls_test_buffer_get( mbedtls_test_buffer *buf,
 }
 
 /*
+ * Errors used in the message transport mock tests
+ */
+ #define MBEDTLS_TEST_ERROR_ARG_NULL -11
+ #define MBEDTLS_TEST_ERROR_QUEUE_FULL -22
+ #define MBEDTLS_TEST_ERROR_QUEUE_EMPTY -33
+ #define MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED -44
+
+/*
+ * Context for a message metadata queue (fifo) that is on top of the ring buffer.
+ */
+typedef struct mbedtls_test_message_queue
+{
+    size_t *messages;
+    int pos;
+    int num;
+    int capacity;
+} mbedtls_test_message_queue;
+
+/*
+ * Setup and free functions for the message metadata queue.
+ *
+ * \p capacity describes the number of message metadata chunks that can be held
+ *    within the queue.
+ *
+ * \retval  0, if a metadata queue of a given length can be allocated.
+ * \retval  MBEDTLS_ERR_SSL_ALLOC_FAILED, if allocation failed.
+ */
+int mbedtls_test_message_queue_setup( mbedtls_test_message_queue *queue,
+                                      size_t capacity )
+{
+    queue->messages = (size_t*) mbedtls_calloc( capacity, sizeof(size_t) );
+    if( NULL == queue->messages )
+        return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+
+    queue->capacity = capacity;
+    queue->pos = 0;
+    queue->num = 0;
+
+    return 0;
+}
+
+void mbedtls_test_message_queue_free( mbedtls_test_message_queue *queue )
+{
+    if( queue == NULL )
+        return;
+
+    if( queue->messages != NULL )
+        mbedtls_free( queue->messages );
+
+    memset( queue, 0, sizeof( *queue ) );
+}
+
+/*
+ * Push message length information onto the message metadata queue.
+ * This will become the last element to leave it (fifo).
+ *
+ * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
+ * \retval  MBEDTLS_TEST_ERROR_QUEUE_FULL, if the queue is full.
+ * \retval  \p len, if the push was successful.
+ */
+int mbedtls_test_message_queue_push_info( mbedtls_test_message_queue *queue,
+                                          size_t len )
+{
+    int place;
+    if( queue == NULL )
+        return MBEDTLS_TEST_ERROR_ARG_NULL;
+
+    if( queue->num >= queue->capacity )
+        return MBEDTLS_TEST_ERROR_QUEUE_FULL;
+
+    place = ( queue->pos + queue->num ) % queue->capacity;
+    queue->messages[place] = len;
+    queue->num++;
+    return len;
+}
+
+/*
+ * Pop information about the next message length from the queue. This will be
+ * the oldest inserted message length(fifo). \p msg_len can be null, in which
+ * case the data will be popped from the queue but not copied anywhere.
+ *
+ * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
+ * \retval  MBEDTLS_TEST_ERROR_QUEUE_EMPTY, if the queue is empty.
+ * \retval  message length, if the pop was successful, up to the given
+            \p buf_len.
+ */
+int mbedtls_test_message_queue_pop_info( mbedtls_test_message_queue *queue,
+                                         size_t buf_len )
+{
+    size_t message_length;
+    if( queue == NULL )
+        return MBEDTLS_TEST_ERROR_ARG_NULL;
+    if( queue->num == 0 )
+        return MBEDTLS_TEST_ERROR_QUEUE_EMPTY;
+
+    message_length = queue->messages[queue->pos];
+    queue->messages[queue->pos] = 0;
+    queue->num--;
+    queue->pos++;
+    queue->pos %= queue->capacity;
+    if( queue->pos < 0 )
+        queue->pos += queue->capacity;
+
+    return ( message_length > buf_len ) ? buf_len : message_length;
+}
+
+/*
+ * Take a peek on the info about the next message length from the queue.
+ * This will be the oldest inserted message length(fifo).
+ *
+ * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
+ * \retval  MBEDTLS_TEST_ERROR_QUEUE_EMPTY, if the queue is empty.
+ * \retval  0, if the peek was successful.
+ * \retval  MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED, if the given buffer length is
+ *          too small to fit the message. In this case the \p msg_len will be
+ *          set to the full message length so that the
+ *          caller knows what portion of the message can be dropped.
+ */
+int mbedtls_test_message_queue_peek_info( mbedtls_test_message_queue *queue,
+                                          size_t buf_len, size_t* msg_len )
+{
+    if( queue == NULL || msg_len == NULL )
+        return MBEDTLS_TEST_ERROR_ARG_NULL;
+    if( queue->num == 0 )
+        return MBEDTLS_TEST_ERROR_QUEUE_EMPTY;
+
+    *msg_len = queue->messages[queue->pos];
+    return ( *msg_len > buf_len ) ? MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED : 0;
+}
+/*
  * Context for the I/O callbacks simulating network connection.
  */
 
@@ -1131,6 +1261,132 @@ exit:
 
     mbedtls_mock_socket_close( &client );
     mbedtls_mock_socket_close( &server );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_queue_sanity( )
+{
+    mbedtls_test_message_queue queue;
+
+    /* Trying to push/pull to an empty queue */
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( NULL, 1 )
+                 == MBEDTLS_TEST_ERROR_ARG_NULL );
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( NULL, 1 )
+                 == MBEDTLS_TEST_ERROR_ARG_NULL );
+
+    mbedtls_test_message_queue_setup( &queue, 3 );
+    TEST_ASSERT( queue.capacity == 3 );
+    TEST_ASSERT( queue.num == 0 );
+
+exit:
+    mbedtls_test_message_queue_free( &queue );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_queue_basic( )
+{
+    mbedtls_test_message_queue queue;
+
+    mbedtls_test_message_queue_setup( &queue, 3 );
+
+    /* Sanity test - 3 pushes and 3 pops with sufficient space */
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( queue.capacity == 3 );
+    TEST_ASSERT( queue.num == 1 );
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( queue.capacity == 3 );
+    TEST_ASSERT( queue.num == 2 );
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 2 ) == 2 );
+    TEST_ASSERT( queue.capacity == 3 );
+    TEST_ASSERT( queue.num == 3 );
+
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 2 ) == 2 );
+
+exit:
+    mbedtls_test_message_queue_free( &queue );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_queue_overflow_underflow( )
+{
+    mbedtls_test_message_queue queue;
+
+    mbedtls_test_message_queue_setup( &queue, 3 );
+
+    /* 4 pushes (last one with an error), 4 pops (last one with an error) */
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 2 ) == 2 );
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 3 )
+                 == MBEDTLS_TEST_ERROR_QUEUE_FULL );
+
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 2 ) == 2 );
+
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 )
+                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+
+exit:
+    mbedtls_test_message_queue_free( &queue );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_queue_interleaved( )
+{
+    mbedtls_test_message_queue queue;
+
+    mbedtls_test_message_queue_setup( &queue, 3 );
+
+    /* Interleaved test - [2 pushes, 1 pop] twice, and then two pops
+     * (to wrap around the buffer) */
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 1 ) == 1 );
+
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
+
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 2 ) == 2 );
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 3 ) == 3 );
+
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 2 ) == 2 );
+
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 5 ) == 5 );
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 8 ) == 8 );
+
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 3 ) == 3 );
+
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 5 ) == 5 );
+
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 8 ) == 8 );
+
+exit:
+    mbedtls_test_message_queue_free( &queue );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_queue_insufficient_buffer( )
+{
+    mbedtls_test_message_queue queue;
+    size_t message_len = 10;
+    size_t buffer_len = 5;
+
+    mbedtls_test_message_queue_setup( &queue, 1 );
+
+    /* Popping without a sufficient buffer */
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, message_len )
+                 == (int) message_len );
+    TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, buffer_len )
+                 == (int) buffer_len );
+exit:
+    mbedtls_test_message_queue_free( &queue );
 }
 /* END_CASE */
 

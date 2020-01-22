@@ -32,6 +32,11 @@ class InputFormatError(Exception):
                                      message.format(*args, **kwargs))
         super().__init__(message)
 
+class LostContent(Exception):
+    def __init__(self, filename, line):
+        message = ('Lost content from {}: "{}"'.format(filename, line))
+        super().__init__(message)
+
 STANDARD_SECTIONS = (
     b'Interface changes',
     b'Default behavior changes',
@@ -179,9 +184,30 @@ class ChangeLog:
             for line in self.trailer:
                 out.write(line)
 
-def finish_output(changelog, output_file):
+def check_output(generated_output_file, main_input_file, merged_files):
+    """Make sanity checks on the generated output.
+
+    The intent of these sanity checks is to have reasonable confidence
+    that no content has been lost.
+
+    The sanity check is that every line that is present in an input file
+    is also present in an output file. This is not perfect but good enough
+    for now.
+    """
+    generated_output = set(open(generated_output_file, 'rb'))
+    for line in open(main_input_file, 'rb'):
+        if line not in generated_output:
+            raise LostContent('original file', line)
+    for merged_file in merged_files:
+        for line in open(merged_file, 'rb'):
+            if line not in generated_output:
+                raise LostContent(merged_file, line)
+
+def finish_output(changelog, output_file, input_file, merged_files):
     """Write the changelog to the output file.
 
+    The input file and the list of merged files are used only for sanity
+    checks on the output.
     """
     if os.path.exists(output_file) and not os.path.isfile(output_file):
         # The output is a non-regular file (e.g. pipe). Write to it directly.
@@ -191,6 +217,7 @@ def finish_output(changelog, output_file):
         # then move it into place atomically.
         output_temp = output_file + '.tmp'
     changelog.write(output_temp)
+    check_output(output_temp, input_file, merged_files)
     if output_temp != output_file:
         os.rename(output_temp, output_file)
 
@@ -215,7 +242,7 @@ def merge_entries(options):
     for filename in files_to_merge:
         with open(filename, 'rb') as input_file:
             changelog.add_file(input_file)
-    finish_output(changelog, options.output)
+    finish_output(changelog, options.output, options.input, files_to_merge)
     if not options.keep_entries:
         remove_merged_entries(files_to_merge)
 

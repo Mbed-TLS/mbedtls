@@ -18,11 +18,11 @@
 
 ### Performance improvements
 
-* Remove a useless call to mbedtls_ecp_group_free(). Contributed by Alexander Krizhanovsky in #210.
+* Remove a useless call to `mbedtls_ecp_group_free()`. Contributed by Alexander Krizhanovsky in #210.
 * Speed up PBKDF2 by caching the digest calculation. Contributed by Jack Lloyd and Fortanix Inc in #277.
 
 ### Other changes
 
-* Remove the technical possibility to define custom md_info structures, which was exposed only in an internal header.
+* Remove the technical possibility to define custom `mbedtls_md_info` structures, which was exposed only in an internal header.
 
 ## Mbed Crypto 2.0.0

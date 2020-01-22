@@ -471,6 +471,165 @@ int mbedtls_mock_tcp_recv_nb( void *ctx, unsigned char *buf, size_t len )
     return mbedtls_test_buffer_get( socket->input, buf, len );
 }
 
+/* Errors used in the message socket mocks */
+
+#define MBEDTLS_TEST_ERROR_CONTEXT_ERROR -55
+#define MBEDTLS_TEST_ERROR_SEND_FAILED -66
+#define MBEDTLS_TEST_ERROR_RECV_FAILED -77
+
+/*
+ * Structure used as an addon, or a wrapper, around the mocked sockets.
+ * Contains an input queue, to which the other socket pushes metadata,
+ * and an output queue, to which this one pushes metadata. This context is
+ * considered as an owner of the input queue only, which is initialized and
+ * freed in the respective setup and free calls.
+ */
+typedef struct mbedtls_test_message_socket_context
+{
+    mbedtls_test_message_queue* queue_input;
+    mbedtls_test_message_queue* queue_output;
+    mbedtls_mock_socket* socket;
+} mbedtls_test_message_socket_context;
+
+/*
+ * Setup a given mesasge socket context including initialization of
+ * input/output queues to a chosen capacity of messages. Also set the
+ * corresponding mock socket.
+ *
+ * \retval  0, if everything succeeds.
+ * \retval  MBEDTLS_ERR_SSL_ALLOC_FAILED, if allocation of a message
+ *          queue failed.
+ */
+int mbedtls_message_socket_setup( mbedtls_test_message_queue* queue_input,
+                                  mbedtls_test_message_queue* queue_output,
+                                  size_t queue_capacity,
+                                  mbedtls_mock_socket* socket,
+                                  mbedtls_test_message_socket_context* ctx )
+{
+    int ret = mbedtls_test_message_queue_setup( queue_input, queue_capacity );
+    if( ret != 0 )
+        return ret;
+    ctx->queue_input = queue_input;
+    ctx->queue_output = queue_output;
+    ctx->socket = socket;
+    mbedtls_mock_socket_init( socket );
+
+    return 0;
+}
+
+/*
+ * Close a given message socket context, along with the socket itself. Free the
+ * memory allocated by the input queue.
+ */
+void mbedtls_message_socket_close( mbedtls_test_message_socket_context* ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    mbedtls_test_message_queue_free( ctx->queue_input );
+    mbedtls_mock_socket_close( ctx->socket );
+    memset( ctx, 0, sizeof( *ctx ) );
+}
+
+/*
+ * Send one message through a given message socket context.
+ *
+ * \retval  \p len, if everything succeeds.
+ * \retval  MBEDTLS_TEST_ERROR_CONTEXT_ERROR, if any of the needed context
+ *          elements or the context itself is null.
+ * \retval  MBEDTLS_TEST_ERROR_SEND_FAILED if mbedtls_mock_tcp_send_b failed.
+ * \retval  MBEDTLS_TEST_ERROR_QUEUE_FULL, if the output queue is full.
+ *
+ * This function will also return any error from
+ * mbedtls_test_message_queue_push_info.
+ */
+int mbedtls_mock_tcp_send_msg( void *ctx, const unsigned char *buf, size_t len )
+{
+    mbedtls_test_message_queue* queue;
+    mbedtls_mock_socket* socket;
+    mbedtls_test_message_socket_context *context = (mbedtls_test_message_socket_context*) ctx;
+
+    if( context == NULL || context->socket == NULL
+        || context->queue_output == NULL )
+    {
+        return MBEDTLS_TEST_ERROR_CONTEXT_ERROR;
+    }
+
+    queue = context->queue_output;
+    socket = context->socket;
+
+    if( queue->num >= queue->capacity )
+        return MBEDTLS_TEST_ERROR_QUEUE_FULL;
+
+    if( mbedtls_mock_tcp_send_b( socket, buf, len ) != (int) len )
+        return MBEDTLS_TEST_ERROR_SEND_FAILED;
+
+    return mbedtls_test_message_queue_push_info( queue, len );
+}
+
+/*
+ * Receive one message from a given message socket context and return message
+ * length or an error.
+ *
+ * \retval  message length, if everything succeeds.
+ * \retval  MBEDTLS_TEST_ERROR_CONTEXT_ERROR, if any of the needed context
+ *          elements or the context itself is null.
+ * \retval  MBEDTLS_TEST_ERROR_RECV_FAILED if mbedtls_mock_tcp_recv_b failed.
+ *
+ * This function will also return any error other than
+ * MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED from mbedtls_test_message_queue_peek_info.
+ */
+int mbedtls_mock_tcp_recv_msg( void *ctx, unsigned char *buf, size_t buf_len )
+{
+    mbedtls_test_message_queue* queue;
+    mbedtls_mock_socket* socket;
+    mbedtls_test_message_socket_context *context = (mbedtls_test_message_socket_context*) ctx;
+    size_t drop_len;
+    size_t msg_len;
+    int ret;
+
+    if( context == NULL || context->socket == NULL
+        || context->queue_input == NULL )
+    {
+        return MBEDTLS_TEST_ERROR_CONTEXT_ERROR;
+    }
+
+    queue = context->queue_input;
+    socket = context->socket;
+
+    /* Peek first, so that in case of a socket error the data remains in
+     * the queue. */
+    ret = mbedtls_test_message_queue_peek_info( queue, buf_len, &msg_len );
+    if( ret == MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED )
+    {
+        /* Calculate how much to drop */
+        drop_len = msg_len - buf_len;
+
+        /* Set the requested message len to be buffer length */
+        msg_len = buf_len;
+    } else if( ret != 0 )
+    {
+        return ret;
+    }
+
+    if( mbedtls_mock_tcp_recv_b( socket, buf, msg_len ) != (int) msg_len )
+        return MBEDTLS_TEST_ERROR_RECV_FAILED;
+
+    if( ret == MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED )
+    {
+        /* Drop the remaining part of the message */
+        if( mbedtls_mock_tcp_recv_b( socket, NULL, drop_len ) != (int) drop_len )
+        {
+          /* Inconsistent state - part of the message was read,
+           * and a part couldn't. Not much we can do here, but it should not
+           * happen in test environment, unless forced manually. */
+        }
+    }
+    mbedtls_test_message_queue_pop_info( queue, buf_len );
+
+    return msg_len;
+}
+
 /*
  * Helper function setting up inverse record transformations
  * using given cipher, hash, EtM mode, authentication tag length,
@@ -1387,6 +1546,457 @@ void ssl_message_queue_insufficient_buffer( )
                  == (int) buffer_len );
 exit:
     mbedtls_test_message_queue_free( &queue );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_mock_uninitialized( )
+{
+    enum { MSGLEN = 10 };
+    unsigned char message[MSGLEN], received[MSGLEN];
+    mbedtls_mock_socket client, server;
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    /* Send with a NULL context */
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( NULL, message, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_CONTEXT_ERROR );
+
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( NULL, message, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_CONTEXT_ERROR );
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 1,
+                                               &server,
+                                               &server_context ) == 0 );
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &client_queue, &server_queue, 1,
+                                               &client,
+                                               &client_context ) == 0 );
+
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_SEND_FAILED );
+
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+
+    /* Push directly to a queue to later simulate a disconnected behavior */
+    TEST_ASSERT( mbedtls_test_message_queue_push_info( &server_queue, MSGLEN )
+                 == MSGLEN );
+
+    /* Test if there's an error when trying to read from a disconnected
+     * socket */
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_RECV_FAILED );
+    exit:
+    mbedtls_message_socket_close( &server_context );
+    mbedtls_message_socket_close( &client_context );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_mock_basic( )
+{
+    enum { MSGLEN = 10 };
+    unsigned char message[MSGLEN], received[MSGLEN];
+    mbedtls_mock_socket client, server;
+    unsigned i;
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 1,
+                                               &server,
+                                               &server_context ) == 0 );
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &client_queue, &server_queue, 1,
+                                               &client,
+                                               &client_context ) == 0 );
+
+    /* Fill up the buffer with structured data so that unwanted changes
+     * can be detected */
+    for( i = 0; i < MSGLEN; i++ )
+    {
+        message[i] = i & 0xFF;
+    }
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   MSGLEN ) );
+
+    /* Send the message to the server */
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                            MSGLEN ) == MSGLEN );
+
+    /* Read from the server */
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MSGLEN );
+
+    TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+    memset( received, 0, MSGLEN );
+
+    /* Send the message to the client */
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &server_context, message,
+                                            MSGLEN ) == MSGLEN );
+
+    /* Read from the client */
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &client_context, received, MSGLEN )
+                 == MSGLEN );
+    TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+
+    exit:
+    mbedtls_message_socket_close( &server_context );
+    mbedtls_message_socket_close( &client_context );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_mock_queue_overflow_underflow( )
+{
+    enum { MSGLEN = 10 };
+    unsigned char message[MSGLEN], received[MSGLEN];
+    mbedtls_mock_socket client, server;
+    unsigned i;
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 2,
+                                               &server,
+                                               &server_context ) == 0 );
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &client_queue, &server_queue, 2,
+                                               &client,
+                                               &client_context ) == 0 );
+
+    /* Fill up the buffer with structured data so that unwanted changes
+     * can be detected */
+    for( i = 0; i < MSGLEN; i++ )
+    {
+        message[i] = i & 0xFF;
+    }
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   MSGLEN*2 ) );
+
+    /* Send three message to the server, last one with an error */
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                            MSGLEN - 1 ) == MSGLEN - 1 );
+
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                            MSGLEN ) == MSGLEN );
+
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                            MSGLEN )
+                 == MBEDTLS_TEST_ERROR_QUEUE_FULL );
+
+    /* Read three messages from the server, last one with an error */
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received,
+                                            MSGLEN - 1 ) == MSGLEN - 1 );
+
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MSGLEN );
+
+    TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+
+    exit:
+    mbedtls_message_socket_close( &server_context );
+    mbedtls_message_socket_close( &client_context );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_mock_socket_overflow( )
+{
+    enum { MSGLEN = 10 };
+    unsigned char message[MSGLEN], received[MSGLEN];
+    mbedtls_mock_socket client, server;
+    unsigned i;
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 2,
+                                               &server,
+                                               &server_context ) == 0 );
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &client_queue, &server_queue, 2,
+                                               &client,
+                                               &client_context ) == 0 );
+
+    /* Fill up the buffer with structured data so that unwanted changes
+     * can be detected */
+    for( i = 0; i < MSGLEN; i++ )
+    {
+        message[i] = i & 0xFF;
+    }
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   MSGLEN ) );
+
+    /* Send two message to the server, second one with an error */
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                            MSGLEN ) == MSGLEN );
+
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                            MSGLEN )
+                 == MBEDTLS_TEST_ERROR_SEND_FAILED );
+
+    /* Read the only message from the server */
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MSGLEN );
+
+    TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+
+    exit:
+    mbedtls_message_socket_close( &server_context );
+    mbedtls_message_socket_close( &client_context );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_mock_truncated( )
+{
+    enum { MSGLEN = 10 };
+    unsigned char message[MSGLEN], received[MSGLEN];
+    mbedtls_mock_socket client, server;
+    unsigned i;
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 2,
+                                               &server,
+                                               &server_context ) == 0 );
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &client_queue, &server_queue, 2,
+                                               &client,
+                                               &client_context ) == 0 );
+
+    memset( received, 0, MSGLEN );
+    /* Fill up the buffer with structured data so that unwanted changes
+     * can be detected */
+    for( i = 0; i < MSGLEN; i++ )
+    {
+        message[i] = i & 0xFF;
+    }
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   2 * MSGLEN ) );
+
+    /* Send two messages to the server, the second one small enough to fit in the
+     * receiver's buffer. */
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                            MSGLEN ) == MSGLEN );
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                            MSGLEN / 2 ) == MSGLEN / 2 );
+    /* Read a truncated message from the server */
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN/2 )
+                 == MSGLEN/2 );
+
+    /* Test that the first half of the message is valid, and second one isn't */
+    TEST_ASSERT( memcmp( message, received, MSGLEN/2 ) == 0 );
+    TEST_ASSERT( memcmp( message + MSGLEN/2, received + MSGLEN/2, MSGLEN/2 )
+                 != 0 );
+    memset( received, 0, MSGLEN );
+
+    /* Read a full message from the server */
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN/2 )
+                 == MSGLEN / 2 );
+
+    /* Test that the first half of the message is valid */
+    TEST_ASSERT( memcmp( message, received, MSGLEN/2 ) == 0 );
+
+    exit:
+    mbedtls_message_socket_close( &server_context );
+    mbedtls_message_socket_close( &client_context );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_mock_socket_read_error( )
+{
+    enum { MSGLEN = 10 };
+    unsigned char message[MSGLEN], received[MSGLEN];
+    mbedtls_mock_socket client, server;
+    unsigned i;
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 1,
+                                               &server,
+                                               &server_context ) == 0 );
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &client_queue, &server_queue, 1,
+                                               &client,
+                                               &client_context ) == 0 );
+
+    /* Fill up the buffer with structured data so that unwanted changes
+     * can be detected */
+    for( i = 0; i < MSGLEN; i++ )
+    {
+        message[i] = i & 0xFF;
+    }
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   MSGLEN ) );
+
+    TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                            MSGLEN ) == MSGLEN );
+
+    /* Force a read error by disconnecting the socket by hand */
+    server.status = 0;
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_RECV_FAILED );
+    /* Return to a valid state */
+    server.status = MBEDTLS_MOCK_SOCKET_CONNECTED;
+
+    memset( received, 0, sizeof( received ) );
+
+    /* Test that even though the server tried to read once disconnected, the
+     * continuity is preserved */
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MSGLEN );
+
+    TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+
+    exit:
+    mbedtls_message_socket_close( &server_context );
+    mbedtls_message_socket_close( &client_context );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_mock_interleaved_one_way( )
+{
+    enum { MSGLEN = 10 };
+    unsigned char message[MSGLEN], received[MSGLEN];
+    mbedtls_mock_socket client, server;
+    unsigned i;
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 3,
+                                               &server,
+                                               &server_context ) == 0 );
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &client_queue, &server_queue, 3,
+                                               &client,
+                                               &client_context ) == 0 );
+
+    /* Fill up the buffer with structured data so that unwanted changes
+     * can be detected */
+    for( i = 0; i < MSGLEN; i++ )
+    {
+        message[i] = i & 0xFF;
+    }
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   MSGLEN*3 ) );
+
+    /* Interleaved test - [2 sends, 1 read] twice, and then two reads
+     * (to wrap around the buffer) */
+    for( i = 0; i < 2; i++ )
+    {
+        TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                                MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                                MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received,
+                                                MSGLEN ) == MSGLEN );
+        TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+        memset( received, 0, sizeof( received ) );
+    }
+
+    for( i = 0; i < 2; i++ )
+    {
+        TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received,
+                                                MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+    }
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+    exit:
+    mbedtls_message_socket_close( &server_context );
+    mbedtls_message_socket_close( &client_context );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ssl_message_mock_interleaved_two_ways( )
+{
+    enum { MSGLEN = 10 };
+    unsigned char message[MSGLEN], received[MSGLEN];
+    mbedtls_mock_socket client, server;
+    unsigned i;
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 3,
+                                               &server,
+                                               &server_context ) == 0 );
+
+    TEST_ASSERT( mbedtls_message_socket_setup( &client_queue, &server_queue, 3,
+                                               &client,
+                                               &client_context ) == 0 );
+
+    /* Fill up the buffer with structured data so that unwanted changes
+     * can be detected */
+    for( i = 0; i < MSGLEN; i++ )
+    {
+        message[i] = i & 0xFF;
+    }
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
+                                                   MSGLEN*3 ) );
+
+    /* Interleaved test - [2 sends, 1 read] twice, both ways, and then two reads
+     * (to wrap around the buffer) both ways. */
+    for( i = 0; i < 2; i++ )
+    {
+        TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                                MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
+                                                MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( mbedtls_mock_tcp_send_msg( &server_context, message,
+                                                MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( mbedtls_mock_tcp_send_msg( &server_context, message,
+                                                MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received,
+                     MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+
+        memset( received, 0, sizeof( received ) );
+
+        TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &client_context, received,
+                     MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+
+        memset( received, 0, sizeof( received ) );
+    }
+
+    for( i = 0; i < 2; i++ )
+    {
+        TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received,
+                    MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+        memset( received, 0, sizeof( received ) );
+
+        TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &client_context, received,
+                     MSGLEN ) == MSGLEN );
+
+        TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
+        memset( received, 0, sizeof( received ) );
+    }
+
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+
+    TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &client_context, received, MSGLEN )
+                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+    exit:
+    mbedtls_message_socket_close( &server_context );
+    mbedtls_message_socket_close( &client_context );
 }
 /* END_CASE */
 

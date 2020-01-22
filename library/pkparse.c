@@ -769,14 +769,29 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
         goto cleanup;
     p += len;
 
+    /* Import DP */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_binary( &rsa->DP, p, len ) ) != 0 )
+        goto cleanup;
+    p += len;
+
+    /* Import DQ */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_binary( &rsa->DQ, p, len ) ) != 0 )
+        goto cleanup;
+    p += len;
+
+    /* Import QP */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
+                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_binary( &rsa->QP, p, len ) ) != 0 )
+        goto cleanup;
+    p += len;
+
     /* Complete the RSA private key */
     if( ( ret = mbedtls_rsa_complete( rsa ) ) != 0 )
-        goto cleanup;
-
-    /* Check optional parameters */
-    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 ||
-        ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 ||
-        ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 )
         goto cleanup;
 
     if( p != end )

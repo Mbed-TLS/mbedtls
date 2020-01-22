@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.7.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix an unchecked call to mbedtls_md() in the x509write module.
+
 = mbed TLS 2.7.13 branch released 2020-01-15
 
 Security

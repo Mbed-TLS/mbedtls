@@ -232,18 +232,23 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--dir', '-d', metavar='DIR',
                         default='ChangeLog.d',
-                        help='Directory to read entries from (default: ChangeLog.d)')
+                        help='Directory to read entries from'
+                             ' (default: ChangeLog.d)')
     parser.add_argument('--input', '-i', metavar='FILE',
                         default='ChangeLog.md',
-                        help='Existing changelog file to read from and augment (default: ChangeLog.md)')
+                        help='Existing changelog file to read from and augment'
+                             ' (default: ChangeLog.md)')
     parser.add_argument('--keep-entries',
                         action='store_true', dest='keep_entries', default=None,
-                        help='Keep the files containing entries (default: remove them if --output/-o is not specified)')
+                        help='Keep the files containing entries'
+                             ' (default: remove them if --output/-o is not specified)')
     parser.add_argument('--no-keep-entries',
                         action='store_false', dest='keep_entries',
-                        help='Remove the files containing entries after they are merged (default: remove them if --output/-o is not specified)')
+                        help='Remove the files containing entries after they are merged'
+                             ' (default: remove them if --output/-o is not specified)')
     parser.add_argument('--output', '-o', metavar='FILE',
-                        help='Output changelog file (default: overwrite the input)')
+                        help='Output changelog file'
+                             ' (default: overwrite the input)')
     options = parser.parse_args()
     set_defaults(options)
     merge_entries(options)

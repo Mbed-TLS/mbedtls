@@ -2812,7 +2812,7 @@
 /**
  * \def MBEDTLS_PKCS11_C
  *
- * Enable wrapper for PKCS#11 smartcard support.
+ * Enable wrapper for PKCS#11 smartcard support via the pkcs11-helper library.
  *
  * \deprecated This option is deprecated and will be removed in a future
  *             version of Mbed TLS.

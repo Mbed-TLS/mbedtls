@@ -249,7 +249,10 @@ static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
 int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
 {
     int ret = 0;
-    int have_N, have_P, have_Q, have_D, have_E, have_DP, have_DQ, have_QP;
+    int have_N, have_P, have_Q, have_D, have_E;
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    int have_DP, have_DQ, have_QP;
+#endif
     int n_missing, pq_missing, d_missing, is_pub, is_priv;
 
     RSA_VALIDATE_RET( ctx != NULL );
@@ -259,10 +262,12 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
     have_Q = ( mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 );
     have_D = ( mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 );
     have_E = ( mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0 );
+
+#if !defined(MBEDTLS_RSA_NO_CRT)
     have_DP = ( mbedtls_mpi_cmp_int( &ctx->DP, 0 ) != 0 );
     have_DQ = ( mbedtls_mpi_cmp_int( &ctx->DQ, 0 ) != 0 );
     have_QP = ( mbedtls_mpi_cmp_int( &ctx->QP, 0 ) != 0 );
-
+#endif
 
     /*
      * Check whether provided parameters are enough

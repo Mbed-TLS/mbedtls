@@ -105,9 +105,9 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
  * \param is384    Determines which function to use. This must be
  *                 either \c 0 for SHA-512, or \c 1 for SHA-384.
  *
- * \note           When MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must be
- *                 0, or the function will return
- *                 MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.
+ * \note           When \c MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must
+ *                 be \c 0, or the function will return
+ *                 #MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -176,8 +176,8 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
  * \param is384    Determines which function to use. This must be either
  *                 \c 0 for SHA-512 or \c 1 for SHA-384.
  *
- * \note           When MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must be
- *                 0, or the function will fail to work.
+ * \note           When \c MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must
+ *                 be \c 0, or the function will fail to work.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha512_starts( mbedtls_sha512_context *ctx,
                                                int is384 );
@@ -248,9 +248,9 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_process(
  * \param is384    Determines which function to use. This must be either
  *                 \c 0 for SHA-512, or \c 1 for SHA-384.
  *
- * \note           When MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must be
- *                 0, or the function will return
- *                 MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.
+ * \note           When \c MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must
+ *                 be \c 0, or the function will return
+ *                 #MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -287,8 +287,8 @@ int mbedtls_sha512_ret( const unsigned char *input,
  * \param is384    Determines which function to use. This must be either
  *                 \c 0 for SHA-512, or \c 1 for SHA-384.
  *
- * \note           When MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must be
- *                 0, or the function will fail to work.
+ * \note           When \c MBEDTLS_SHA512_NO_SHA384 is defined, \p is384 must
+ *                 be \c 0, or the function will fail to work.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha512( const unsigned char *input,
                                         size_t ilen,

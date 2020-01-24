@@ -63,7 +63,15 @@ Changes
    * Reduce RAM consumption during session renegotiation by not storing
      the peer CRT chain and session ticket twice.
 
-= mbed TLS 2.16.x branch released xxxx-xx-xx
+= mbed TLS 2.16.5 branch released xxxx-xx-xx
+
+Security
+   * Fix potential memory overread when performing an ECDSA signature
+     operation. The overread only happens with cryptographically low
+     probability (of the order of 2^-n where n is the bitsize of the curve)
+     unless the RNG is broken, and could result in information disclosure or
+     denial of service (application crash or extra resource consumption).
+     Reported by Peter and Auke (found using static analysis).
 
 Bugfix
    * Fix an unchecked call to mbedtls_md() in the x509write module.

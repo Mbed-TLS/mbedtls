@@ -2529,10 +2529,8 @@ static size_t psa_get_hash_block_size( psa_algorithm_t alg )
             return( 64 );
         case PSA_ALG_SHA_256:
             return( 64 );
-#if !defined(MBEDTLS_SHA512_NO_SHA384)
         case PSA_ALG_SHA_384:
             return( 128 );
-#endif
         case PSA_ALG_SHA_512:
             return( 128 );
         default:

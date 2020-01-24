@@ -587,7 +587,7 @@ static const unsigned char sha512_test_sum[][64] =
       0x4E, 0xAD, 0xB2, 0x17, 0xAD, 0x8C, 0xC0, 0x9B }
 };
 
-#define ARRAY_LEN(a)    ( sizeof( a ) / sizeof( a[0] ) )
+#define ARRAY_LENGTH(a)    ( sizeof( a ) / sizeof( a[0] ) )
 
 /*
  * Checkup routine
@@ -610,7 +610,7 @@ int mbedtls_sha512_self_test( int verbose )
 
     mbedtls_sha512_init( &ctx );
 
-    for( i = 0; i < (int) ARRAY_LEN(sha512_test_sum); i++ )
+    for( i = 0; i < (int) ARRAY_LENGTH(sha512_test_sum); i++ )
     {
         j = i % 3;
 #if !defined(MBEDTLS_SHA512_NO_SHA384)
@@ -673,7 +673,7 @@ exit:
     return( ret );
 }
 
-#undef ARRAY_LEN
+#undef ARRAY_LENGTH
 
 #endif /* MBEDTLS_SELF_TEST */
 

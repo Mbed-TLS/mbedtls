@@ -708,6 +708,17 @@ component_test_zlib_make() {
     msg "test: ssl-opt.sh (zlib, make)"
     if_build_succeeded tests/ssl-opt.sh
 }
+support_test_zlib_make () {
+    base=support_test_zlib_$$
+    cat <<'EOF' > ${base}.c
+#include "zlib.h"
+int main(void) { return 0; }
+EOF
+    gcc -o ${base}.exe ${base}.c -lz 2>/dev/null
+    ret=$?
+    rm -f ${base}.*
+    return $ret
+}
 
 component_test_zlib_cmake() {
     msg "build: zlib enabled, cmake"
@@ -720,6 +731,9 @@ component_test_zlib_cmake() {
 
     msg "test: ssl-opt.sh (zlib, cmake)"
     if_build_succeeded tests/ssl-opt.sh
+}
+support_test_zlib_cmake () {
+    support_test_zlib_make "$@"
 }
 
 component_test_ref_configs () {

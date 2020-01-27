@@ -16,6 +16,27 @@ Security
      entropy module formerly only grabbed 32 bytes, which is good enough for
      security if the source is genuinely strong, but less than the expected 64
      bytes (size of the entropy accumulator).
+   * Zeroize local variables in mbedtls_internal_aes_encrypt() and
+     mbedtls_internal_aes_decrypt() before exiting the function. The value of
+     these variables can be used to recover the last round key. To follow best
+     practice and to limit the impact of buffer overread vulnerabilities (like
+     Heartbleed) we need to zeroize them before exiting the function.
+     Issue reported by Tuba Yavuz, Farhaan Fowze, Ken (Yihang) Bai,
+     Grant Hernandez, and Kevin Butler (University of Florida) and
+     Dave Tian (Purdue University).
+   * Fix side channel vulnerability in ECDSA. Our bignum implementation is not
+     constant time/constant trace, so side channel attacks can retrieve the
+     blinded value, factor it (as it is smaller than RSA keys and not guaranteed
+     to have only large prime factors), and then, by brute force, recover the
+     key. Reported by Alejandro Cabrera Aldaya and Billy Brumley.
+   * Fix side channel vulnerability in ECDSA key generation. Obtaining precise
+     timings on the comparison in the key generation enabled the attacker to
+     learn leading bits of the ephemeral key used during ECDSA signatures and to
+     recover the private key. Reported by Jeremy Dubeuf.
+   * Catch failure of AES functions in mbedtls_ctr_drbg_random(). Uncaught
+     failures could happen with alternative implementations of AES. Bug
+     reported and fix proposed by Johan Uppman Bruce and Christoffer Lauri,
+     Sectra.
 
 Features
    * Key derivation inputs in the PSA API can now either come from a key object

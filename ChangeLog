@@ -13,6 +13,8 @@ Bugfix
 = mbed TLS 2.19.1 branch released 2019-09-16
 
 Features
+   * Declare include headers as PUBLIC to propagate to CMake project consumers
+     Contributed by Zachary J. Fields in PR #2949.
    * Add nss_keylog to ssl_client2 and ssl_server2, enabling easier analysis of
      TLS sessions with tools like Wireshark.
 

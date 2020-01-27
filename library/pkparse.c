@@ -769,6 +769,7 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
         goto cleanup;
     p += len;
 
+#if !defined(MBEDTLS_RSA_NO_CRT)
     /*
     * The RSA CRT parameters DP, DQ and QP are nominally redundant, in
     * that they can be easily recomputed from D, P and Q. However by
@@ -800,6 +801,13 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
         ( ret = mbedtls_mpi_read_binary( &rsa->QP, p, len ) ) != 0 )
         goto cleanup;
     p += len;
+#else
+    /* Verify existance of the CRT params */
+    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 )
+       goto cleanup;
+#endif
 
     /* Complete the RSA private key */
     if( ( ret = mbedtls_rsa_complete( rsa ) ) != 0 )

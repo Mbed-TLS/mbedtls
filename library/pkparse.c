@@ -782,25 +782,17 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
     */
 
     /* Import DP */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_binary( &rsa->DP, p, len ) ) != 0 )
-        goto cleanup;
-    p += len;
+    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &rsa->DP ) ) != 0)
+       goto cleanup;
 
     /* Import DQ */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_binary( &rsa->DQ, p, len ) ) != 0 )
-        goto cleanup;
-    p += len;
+    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &rsa->DQ ) ) != 0)
+       goto cleanup;
 
     /* Import QP */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_binary( &rsa->QP, p, len ) ) != 0 )
-        goto cleanup;
-    p += len;
+    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &rsa->QP ) ) != 0)
+       goto cleanup;
+
 #else
     /* Verify existance of the CRT params */
     if( ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 ||

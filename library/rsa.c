@@ -334,7 +334,7 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
      */
 
 #if !defined(MBEDTLS_RSA_NO_CRT)
-    if( is_priv && !(have_DP && have_DQ && have_QP))
+    if( is_priv && ! ( have_DP && have_DQ && have_QP ) )
     {
         ret = mbedtls_rsa_deduce_crt( &ctx->P,  &ctx->Q,  &ctx->D,
                                       &ctx->DP, &ctx->DQ, &ctx->QP );

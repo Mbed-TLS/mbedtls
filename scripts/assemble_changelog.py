@@ -113,7 +113,7 @@ class ChangeLog:
             elif level == 3 and level_2_seen == 1:
                 current_section = content
                 self.section_content.setdefault(content, [])
-            elif level_2_seen == 1 and current_section != None:
+            elif level_2_seen == 1 and current_section is not None:
                 if line.strip():
                     self.section_content[current_section].append(line)
             elif level_2_seen <= 1:

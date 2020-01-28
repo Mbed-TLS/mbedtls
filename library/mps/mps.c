@@ -3936,15 +3936,19 @@ MBEDTLS_MPS_STATIC int mps_out_flight_msg_done( mbedtls_mps *mps )
     TRACE_INIT( "mps_out_flight_msg_done" );
 
     MPS_CHK( mps_l3_epoch_usage( mps->conf.l3, mps->out_epoch,
-                                 0, MPS_EPOCH_USAGE_WRITE(
+                                 /* No removal of usage flags. */
+                                 0,
+                                 /* Add usage flag for retransmission. */
+                                 MPS_EPOCH_USAGE_WRITE(
                                      MPS_WRITE_RETRANSMISSION ) ) );
 
     cur_flight_len = mps->dtls.outgoing.flight_len;
     MBEDTLS_MPS_ASSERT( cur_flight_len > 0,
                         "mps_out_flight_msg_done() called with flight length 0" );
-
     MPS_CHK( mps_out_flight_get_retransmission_handle( mps, &hdl,
                                                        cur_flight_len - 1 ) );
+
+    /* Increase handshake sequence number except for the CCS message. */
     if( hdl->handle_type != MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS )
     {
         uint8_t cur_seq_nr;

@@ -342,7 +342,7 @@ mbedtls_mps_l2_in_internal* mps_l2_readers_get_active( mbedtls_mps_l2 *ctx )
 }
 
 MBEDTLS_MPS_INLINE
-void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
+void mps_l2_reader_slots_changed( mbedtls_mps_l2 *ctx )
 {
     mbedtls_mps_transport_type const mode =
         mbedtls_mps_l2_conf_get_mode( &ctx->conf );
@@ -1631,15 +1631,21 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
 
     /*
      * Outline:
-     * 1 If the active reader is set and external, fail with an internal error.
-     * 2 If instead the active reader is set and internal (i.e. a record has
-     *   been opened but not yet fully processed), ensure the its epoch is still
-     *   valid and make it external in this case.
-     * 3 If the active reader is unset, attempt to fetch and decrypt
-     *   a new record from L1. If it succeeds:
+     * 1 If the active reader is set and external (i.e., the user of Layer 2
+     *   has opened a message via mps_l2_read_start() before and not yet closed
+     *   via mps_l2_read_done()), then fail with a state validation error.
+     * 2 If instead the active reader is set and internal (i.e., from the user's
+     *   perspective no data is open for reading, but internally we've got a
+     *   record open with unprocessed content remaining), ensure that its epoch
+     *   is still valid and make it external in this case (i.e., pass it to the
+     *   user).
+     * 3 If the active reader is unset (i.e., no record is buffered at the moment),
+     *   attempt to fetch and decrypt a new record from Layer 1. If it succeeds:
      *   3.1 (TLS only) Check if there is a paused reader for the incoming
-     *       content type and epoch.
-     *        3.1.1 If yes, feed the new record content into the paused reader.
+     *       content type and epoch, that is, a previous record of the same
+     *       type + epoch whose contents haven't been fully processed yet.
+     *        3.1.1 If yes, feed the new record content into the paused reader,
+     *              that is, merge the records.
      *              3.1.1.1 If enough data is ready, activate reader and return.
      *              3.1.1.2 If not, keep the reader paused and return WANT_READ.
      *        3.1.2 If not, fall back to the case 3.2
@@ -1675,10 +1681,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
         mbedtls_mps_transport_type const mode =
             mbedtls_mps_l2_conf_get_mode( &ctx->conf );
 
-        /* The slot we attempt to use to store payload from the new record. */
-        mbedtls_mps_l2_in_internal *slot = NULL;
         mps_rec rec;
-
         ret = l2_in_fetch_record( ctx, &rec );
 
         /* For DTLS, silently discard datagrams containing records
@@ -1710,13 +1713,14 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
          * ignore the early ApplicationData records that the client
          * sends.
          *
-         * This needs the following adaptions to the code:
+         * This needs the following adaptations to the code:
          * - There should be a dynamically configurable option
          *   to silently discard unauthenticated records.
          * - If this option is set and if l2_in_fetch_record()
          *   returns INVALID_MAC, we should not forward this error
          *   here but instead call l2_release_record() and return
-         *   MBEDTLS_ERR_MPS_RETRY.
+         *   MBEDTLS_ERR_MPS_RETRY. Note, however, that we still
+         *   need to update the record counter.
          */
 
         if( ret != 0 )
@@ -1737,7 +1741,6 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
 
         if( rec.buf.data_len == 0 )
         {
-            TRACE( trace_comment, "Record is empty" );
             if( l2_type_empty_allowed( ctx, rec.type ) == 0 )
             {
                 /* As for other kinds of invalid records in DTLS,
@@ -1745,6 +1748,10 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
                 if( MBEDTLS_MPS_IS_DTLS( mode ) )
                 {
+                    TRACE( trace_comment,
+                           "Ignoring empty record of content type %u",
+                           (unsigned) rec.type );
+
                     if( ( ret = mps_l1_skip( ctx->conf.l1 ) ) != 0 )
                         RETURN( ret );
 
@@ -1755,85 +1762,100 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
                 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
+                TRACE( trace_error,
+                       "Empty records are forbidden for content type %u",
+                       (unsigned) rec.type );
                 RETURN( MBEDTLS_ERR_MPS_INVALID_RECORD );
             }
+
+            /* TODO: Should we return WANT_READ here? Is there a reason
+             * why empty records would be forwarded to the user?
+             * Their main practical use is to hide inactivity, and to
+             * that end it's not necessary to make them visible at the
+             * Layer 2 boundary. */
         }
 
-        /* 3.1 */
-        /* Attempt to attach to a paused reader. */
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-        if( MBEDTLS_MPS_IS_TLS( mode ) )
+        /* Feed record content in a suitable slot. */
         {
-            slot = mps_l2_find_paused_slot( ctx, rec.type );
-            if( slot != NULL )
+            /* The slot we attempt to use to store payload from the new record. */
+            mbedtls_mps_l2_in_internal *slot = NULL;
+
+            /* 3.1 */
+            /* Attempt to attach to a paused reader. */
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+            if( MBEDTLS_MPS_IS_TLS( mode ) )
             {
-                /* 3.1.1 */
-                TRACE( trace_comment,
-                       "A reader is being paused for the "
-                       "received record content type." );
+                slot = mps_l2_find_paused_slot( ctx, rec.type );
+                if( slot != NULL )
+                {
+                    /* 3.1.1 */
+                    TRACE( trace_comment,
+                           "A reader is being paused for the "
+                           "received record content type." );
 
-                /* It is not possible to change the incoming epoch when
-                 * a reader is being paused, hence the epoch of the new
-                 * record must match. Double-check this nonetheless. */
-                MBEDTLS_MPS_ASSERT_RAW( ctx->io.in.paused.epoch == rec.epoch,
-                    "The paused epoch doesn't match the incoming epoch" );
+                    /* It is not possible to change the incoming epoch when
+                     * a reader is being paused, hence the epoch of the new
+                     * record must match. Double-check this nonetheless. */
+                    MBEDTLS_MPS_ASSERT_RAW( ctx->io.in.paused.epoch == rec.epoch,
+                                            "The paused epoch doesn't match the incoming epoch" );
+                }
             }
-        }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-        /* In case of DTLS, this is always true, and the compiler
-         * should be able to eliminate this (test?). */
-        if( slot == NULL )
-        {
-            /* 3.2 */
-            /* Feed the payload into a fresh reader. */
-            slot = mps_l2_setup_free_slot( ctx, rec.type, rec.epoch );
+            /* In case of DTLS, this is always true, and the compiler
+             * should be able to eliminate this (test?). */
+            if( slot == NULL )
+            {
+                /* 3.2 */
+                /* Feed the payload into a fresh reader. */
+                slot = mps_l2_setup_free_slot( ctx, rec.type, rec.epoch );
 
-            /* This should never happen with the current implementation,
-             * but it might if we switch the TLS implementation to use
-             * a single pausable slot only. In the latter case, we'd reach
-             * the present code-path in case of interleaving of records of
-             * different content types. */
-            MBEDTLS_MPS_ASSERT_RAW( slot != NULL,
-                "No free slow available to store incoming record payload" );
-        }
+                /* This should never happen with the current implementation,
+                 * but it might if we switch the TLS implementation to use
+                 * a single pausable slot only. In the latter case, we'd reach
+                 * the present code-path in case of interleaving of records of
+                 * different content types. */
+                MBEDTLS_MPS_ASSERT_RAW( slot != NULL,
+                                        "No free slow available to store incoming record payload" );
+            }
 
-        /* 3.1.1 and 3.2 */
-        /* Feed record payload into target slot; might be either
-         * a fresh or a matching paused slot. */
-        ret = mbedtls_reader_feed( &slot->rd,
-                                   rec.buf.buf + rec.buf.data_offset,
-                                   rec.buf.data_len );
+            /* 3.1.1 and 3.2 */
+            /* Feed record payload into target slot; might be either
+             * a fresh or a matching paused slot. */
+            ret = mbedtls_reader_feed( &slot->rd,
+                                       rec.buf.buf + rec.buf.data_offset,
+                                       rec.buf.data_len );
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-        if( MBEDTLS_MPS_IS_TLS( mode ) &&
-            ret == MBEDTLS_ERR_READER_NEED_MORE )
-        {
-            /* 3.1.1.2 */
-            ret = l2_in_release_record( ctx );
-            if( ret != 0 )
-                RETURN( ret );
+            if( MBEDTLS_MPS_IS_TLS( mode ) &&
+                ret == MBEDTLS_ERR_READER_NEED_MORE )
+            {
+                /* 3.1.1.2 */
+                ret = l2_in_release_record( ctx );
+                if( ret != 0 )
+                    RETURN( ret );
 
-            /* As above, it would be ok to return #MBEDTLS_ERR_MPS_WANT_READ here
-             * because the present code-path is TLS-only, and in TLS we never
-             * internally buffer more than one record. As we're done
-             * with the current record, progress can only be made if
-             * the underlying transport signals more incoming data
-             * available, which is precisely what #MBEDTLS_ERR_MPS_WANT_READ
-             * indicates.
-             * However, if Layer 1 ever changes to request and buffer more
-             * data than what we asked for, this would need to be reconsidered,
-             * so it's safer to return MBEDTLS_ERR_MPS_RETRY.
-             */
-            RETURN( MBEDTLS_ERR_MPS_RETRY );
-        }
-        else
+                /* As above, it would be ok to return #MBEDTLS_ERR_MPS_WANT_READ here
+                 * because the present code-path is TLS-only, and in TLS we never
+                 * internally buffer more than one record. As we're done
+                 * with the current record, progress can only be made if
+                 * the underlying transport signals more incoming data
+                 * available, which is precisely what #MBEDTLS_ERR_MPS_WANT_READ
+                 * indicates.
+                 * However, if Layer 1 ever changes to request and buffer more
+                 * data than what we asked for, this would need to be reconsidered,
+                 * so it's safer to return MBEDTLS_ERR_MPS_RETRY.
+                 */
+                RETURN( MBEDTLS_ERR_MPS_RETRY );
+            }
+            else
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-        if( ret != 0 )
-            RETURN( ret );
+                if( ret != 0 )
+                    RETURN( ret );
 
-        /* 3.1.1.1 or 3.2 */
-        slot->state = MBEDTLS_MPS_L2_READER_STATE_INTERNAL;
-        mps_l2_readers_update( ctx );
+            /* 3.1.1.1 or 3.2 */
+            slot->state = MBEDTLS_MPS_L2_READER_STATE_INTERNAL;
+            mps_l2_reader_slots_changed( ctx );
+        }
     }
 
     /* If we end up here, there's data available to be returned to
@@ -1939,14 +1961,16 @@ int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
      * Step 2: Decrypt and authenticate record
      */
 
-    TRACE( trace_comment, "lookup epoch %u", (unsigned) rec->epoch );
+    TRACE( trace_comment, "Decrypt and authenticate record for epoch %u",
+           (unsigned) rec->epoch );
+
     if( ( ret = l2_epoch_lookup( ctx, rec->epoch,
                                  &epoch ) ) != 0 )
     {
+        TRACE( trace_comment, "Epoch lookup failed with: %d", (int) ret );
         RETURN( ret );
     }
 
-    TRACE( trace_comment, "Decrypt record" );
     ret = transform_decrypt( epoch->transform, rec );
     if( ret != 0 )
     {
@@ -2130,13 +2154,15 @@ int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
         RETURN( MBEDTLS_ERR_MPS_INVALID_RECORD );
     }
 
-    /* Initially, the server doesn't know which DTLS version
+    /* Initially, the server doesn't know which TLS version
      * the client will use for its ClientHello message, so
      * Layer 2 must be configurable to allow arbitrary TLS
      * versions. This is done through the initial version
      * value MPS_L2_VERSION_UNSPECIFIED. */
-    if( mbedtls_mps_l2_conf_get_version( &ctx->conf ) != MPS_L2_VERSION_UNSPECIFIED &&
-        mbedtls_mps_l2_conf_get_version( &ctx->conf ) != minor_ver )
+    if( mbedtls_mps_l2_conf_get_version( &ctx->conf )
+          != MPS_L2_VERSION_UNSPECIFIED &&
+        mbedtls_mps_l2_conf_get_version( &ctx->conf )
+          != minor_ver )
     {
         TRACE( trace_error, "Invalid minor record version %u received, expected %u",
                (unsigned) minor_ver,
@@ -2366,7 +2392,7 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     /*
      * Read and validate header fields
      *
-     * We write individual header fields as soon as they have
+     * We store individual header fields as soon as they have
      * been validated, even if the validation of the rest of
      * the header might still fail. This behavior is deliberate
      * and documented, and reduces code size by keeping the
@@ -2702,8 +2728,7 @@ int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     for( offset = 0; offset < ctx->epochs.next; offset++ )
     {
         TRACE( trace_comment, "Checking epoch %u at window offset %u, usage %s",
-               (unsigned)( ctx->epochs.base + offset ),
-               (unsigned) offset,
+               (unsigned)( ctx->epochs.base + offset ), (unsigned) offset,
                l2_epoch_usage_to_string( ctx->epochs.window[offset].usage ) );
         if( ctx->epochs.window[offset].usage == 0 )
         {

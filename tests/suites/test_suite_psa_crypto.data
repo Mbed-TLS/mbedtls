@@ -787,6 +787,35 @@ PSA hash compute: output buffer too small
 depends_on:MBEDTLS_SHA256_C
 hash_compute_fail:PSA_ALG_SHA_256:"":31:PSA_ERROR_BUFFER_TOO_SMALL
 
+PSA hash compare: bad algorithm (unknown hash)
+hash_compare_fail:PSA_ALG_CATEGORY_HASH:"":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855":PSA_ERROR_NOT_SUPPORTED
+
+PSA hash compare: bad algorithm (wildcard)
+hash_compare_fail:PSA_ALG_ANY_HASH:"":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855":PSA_ERROR_NOT_SUPPORTED
+
+PSA hash compare: bad algorithm (not a hash)
+hash_compare_fail:PSA_ALG_HMAC(PSA_ALG_SHA_256):"":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855":PSA_ERROR_INVALID_ARGUMENT
+
+PSA hash compare: hash of a prefix
+depends_on:MBEDTLS_SHA256_C
+hash_compare_fail:PSA_ALG_SHA_256:"00":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855":PSA_ERROR_INVALID_SIGNATURE
+
+PSA hash compare: hash with flipped bit
+depends_on:MBEDTLS_SHA256_C
+hash_compare_fail:PSA_ALG_SHA_256:"":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b854":PSA_ERROR_INVALID_SIGNATURE
+
+PSA hash compare: hash with trailing garbage
+depends_on:MBEDTLS_SHA256_C
+hash_compare_fail:PSA_ALG_SHA_256:"":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85500":PSA_ERROR_INVALID_SIGNATURE
+
+PSA hash compare: truncated hash
+depends_on:MBEDTLS_SHA256_C
+hash_compare_fail:PSA_ALG_SHA_256:"":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8":PSA_ERROR_INVALID_SIGNATURE
+
+PSA hash compare: good
+depends_on:MBEDTLS_SHA256_C
+hash_compare_fail:PSA_ALG_SHA_256:"":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855":PSA_SUCCESS
+
 PSA hash compute: good, SHA-1
 depends_on:MBEDTLS_SHA1_C
 hash_compute_compare:PSA_ALG_SHA_1:"42749e":"a444319e9b6cc1e8464c511ec0969c37d6bb2619"

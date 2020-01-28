@@ -2457,6 +2457,26 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void hash_compare_fail( int alg_arg, data_t *input,
+                        data_t *reference_hash,
+                        int expected_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
+    psa_status_t status;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    status = psa_hash_compare( alg, input->x, input->len,
+                               reference_hash->x, reference_hash->len );
+    TEST_EQUAL( status, expected_status );
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void hash_compute_compare( int alg_arg, data_t *input,
                            data_t *expected_output )
 {

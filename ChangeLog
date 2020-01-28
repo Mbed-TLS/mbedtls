@@ -2,6 +2,59 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.20.0 branch released 2020-01-15
 
+Default behavior changes
+   * The initial seeding of a CTR_DRBG instance makes a second call to the
+     entropy function to obtain entropy for a nonce if the entropy size is less
+     than 3/2 times the key size. In case you want to disable the extra call to
+     grab entropy, you can call mbedtls_ctr_drbg_set_nonce_len() to force the
+     nonce length to 0.
+
+Security
+   * Enforce that mbedtls_entropy_func() gathers a total of
+     MBEDTLS_ENTROPY_BLOCK_SIZE bytes or more from strong sources. In the
+     default configuration, on a platform with a single entropy source, the
+     entropy module formerly only grabbed 32 bytes, which is good enough for
+     security if the source is genuinely strong, but less than the expected 64
+     bytes (size of the entropy accumulator).
+   * Zeroize local variables in mbedtls_internal_aes_encrypt() and
+     mbedtls_internal_aes_decrypt() before exiting the function. The value of
+     these variables can be used to recover the last round key. To follow best
+     practice and to limit the impact of buffer overread vulnerabilities (like
+     Heartbleed) we need to zeroize them before exiting the function.
+     Issue reported by Tuba Yavuz, Farhaan Fowze, Ken (Yihang) Bai,
+     Grant Hernandez, and Kevin Butler (University of Florida) and
+     Dave Tian (Purdue University).
+   * Fix side channel vulnerability in ECDSA. Our bignum implementation is not
+     constant time/constant trace, so side channel attacks can retrieve the
+     blinded value, factor it (as it is smaller than RSA keys and not guaranteed
+     to have only large prime factors), and then, by brute force, recover the
+     key. Reported by Alejandro Cabrera Aldaya and Billy Brumley.
+   * Fix side channel vulnerability in ECDSA key generation. Obtaining precise
+     timings on the comparison in the key generation enabled the attacker to
+     learn leading bits of the ephemeral key used during ECDSA signatures and to
+     recover the private key. Reported by Jeremy Dubeuf.
+   * Catch failure of AES functions in mbedtls_ctr_drbg_random(). Uncaught
+     failures could happen with alternative implementations of AES. Bug
+     reported and fix proposed by Johan Uppman Bruce and Christoffer Lauri,
+     Sectra.
+
+Features
+   * Key derivation inputs in the PSA API can now either come from a key object
+     or from a buffer regardless of the step type.
+   * The CTR_DRBG module can grab a nonce from the entropy source during the
+     initial seeding. The default nonce length is chosen based on the key size
+     to achieve the security strength defined by NIST SP 800-90A. You can
+     change it with mbedtls_ctr_drbg_set_nonce_len().
+   * Add ENUMERATED tag support to the ASN.1 module. Contributed by
+     msopiha-linaro in ARMmbed/mbed-crypto#307.
+
+API changes
+   * In the PSA API, forbid zero-length keys. To pass a zero-length input to a
+     key derivation function, use a buffer instead (this is now always
+     possible).
+   * Rename psa_asymmetric_sign() to psa_sign_hash() and
+     psa_asymmetric_verify() to psa_verify_hash().
+
 Bugfix
    * Fix an incorrect size in a debugging message. Reported and fix
      submitted by irwir. Fixes #2717.
@@ -9,6 +62,34 @@ Bugfix
      Reported and fix submitted by irwir. Fixes #2800.
    * Remove a useless assignment. Reported and fix submitted by irwir.
      Fixes #2801.
+   * Fix a buffer overflow in the PSA HMAC code when using a long key with an
+     unsupported algorithm. Fixes ARMmbed/mbed-crypto#254.
+   * Fix mbedtls_asn1_get_int to support any number of leading zeros. Credit
+     to OSS-Fuzz for finding a bug in an intermediate version of the fix.
+   * Fix mbedtls_asn1_get_bitstring_null to correctly parse bitstrings of at
+     most 2 bytes.
+   * mbedtls_ctr_drbg_set_entropy_len() and
+     mbedtls_hmac_drbg_set_entropy_len() now work if you call them before
+     mbedtls_ctr_drbg_seed() or mbedtls_hmac_drbg_seed().
+   * Fix some false-positive uninitialized variable warnings. Fix contributed
+     by apple-ihack-geek in #2663.
+
+Changes
+   * Remove the technical possibility to define custom mbedtls_md_info
+     structures, which was exposed only in an internal header.
+   * psa_close_key(0) and psa_destroy_key(0) now succeed (doing nothing, as
+     before).
+   * Variables containing error codes are now initialized to an error code
+     rather than success, so that coding mistakes or memory corruption tends to
+     cause functions to return this error code rather than a success. There are
+     no known instances where this changes the behavior of the library: this is
+     merely a robustness improvement. ARMmbed/mbed-crypto#323
+   * Remove a useless call to mbedtls_ecp_group_free(). Contributed by
+     Alexander Krizhanovsky in ARMmbed/mbed-crypto#210.
+   * Speed up PBKDF2 by caching the digest calculation. Contributed by Jack
+     Lloyd and Fortanix Inc in ARMmbed/mbed-crypto#277.
+   * Small performance improvement of mbedtls_mpi_div_mpi(). Contributed by
+     Alexander Krizhanovsky in ARMmbed/mbed-crypto#308.
 
 = mbed TLS 2.19.1 branch released 2019-09-16
 

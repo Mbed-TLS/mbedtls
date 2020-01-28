@@ -86,10 +86,15 @@ class ChangeLog:
         input_stream. This is typically a file opened for reading, but
         can be any generator returning the lines to read.
         """
+        # Content before the level-2 section where the new entries are to be
+        # added.
         self.header = []
+        # Content of the level-3 sections of where the new entries are to
+        # be added.
         self.section_content = OrderedDict()
         for section in STANDARD_SECTIONS:
             self.section_content[section] = []
+        # Content of level-2 sections for already-released versions.
         self.trailer = []
         self.read_main_file(input_stream)
 
@@ -100,21 +105,23 @@ class ChangeLog:
         of the class and may not act sensibly on an object that is already
         partially populated.
         """
+        # Parse the first level-2 section. Everything before the first
+        # level-3 section title ("###...") following the first level-2
+        # section title ("##...") is passed through as the header
+        # and everything after the second level-2 section title is passed
+        # through as the trailer. Inside the first level-2 section,
+        # split out the level-3 sections.
         level_2_seen = 0
         current_section = None
         for line in input_stream:
             level, content = self.title_level(line)
             if level == 2:
                 level_2_seen += 1
-                if level_2_seen <= 1:
-                    self.header.append(line)
-                else:
-                    self.trailer.append(line)
             elif level == 3 and level_2_seen == 1:
                 current_section = content
                 self.section_content.setdefault(content, [])
-            elif level_2_seen == 1 and current_section is not None:
-                if line.strip():
+            if level_2_seen == 1 and current_section is not None:
+                if level != 3 and line.strip():
                     self.section_content[current_section].append(line)
             elif level_2_seen <= 1:
                 self.header.append(line)

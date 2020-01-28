@@ -224,20 +224,7 @@ int mbedtls_mock_socket_connect( mbedtls_mock_socket* peer1,
 {
     int ret = -1;
 
-    peer1->input = peer2->output =
-        (mbedtls_test_buffer*) mbedtls_calloc( 1, sizeof(mbedtls_test_buffer) );
-    if( peer1->input == NULL )
-    {
-        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        goto exit;
-    }
-    mbedtls_test_buffer_init( peer1->input );
-    if( 0 != ( ret = mbedtls_test_buffer_setup( peer1->input, bufsize ) ) )
-    {
-        goto exit;
-    }
-
-    peer1->output = peer2->input =
+    peer1->output =
         (mbedtls_test_buffer*) mbedtls_calloc( 1, sizeof(mbedtls_test_buffer) );
     if( peer1->output == NULL )
     {
@@ -250,8 +237,23 @@ int mbedtls_mock_socket_connect( mbedtls_mock_socket* peer1,
         goto exit;
     }
 
+    peer2->output =
+        (mbedtls_test_buffer*) mbedtls_calloc( 1, sizeof(mbedtls_test_buffer) );
+    if( peer2->output == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
+    mbedtls_test_buffer_init( peer2->output );
+    if( 0 != ( ret = mbedtls_test_buffer_setup( peer2->output, bufsize ) ) )
+    {
+        goto exit;
+    }
+
     peer1->peer = peer2;
     peer2->peer = peer1;
+    peer1->input = peer2->output;
+    peer2->input = peer1->output;
 
     peer1->status = peer2->status = MBEDTLS_MOCK_SOCKET_CONNECTED;
     ret = 0;

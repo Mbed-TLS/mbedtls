@@ -168,10 +168,6 @@ class ChangeLog:
             for line in self.header:
                 out.write(line)
             for section, lines in self.section_content.items():
-                while lines and not lines[0].strip():
-                    del lines[0]
-                while lines and not lines[-1].strip():
-                    del lines[-1]
                 if not lines:
                     continue
                 out.write(b'### ' + section + b'\n\n')

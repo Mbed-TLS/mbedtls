@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS X.X.X branch released XXXX-XX-XX
+
+Bugfix
+   * Allow loading symlinked certificates. Fixes #3005. Reported and fixed
+     by Jonathan Bennett <JBennett@incomsystems.biz> via #3008.
+
 = mbed TLS 2.20.0 branch released 2020-01-15
 
 Default behavior changes

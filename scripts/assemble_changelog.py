@@ -21,6 +21,7 @@
 # This file is part of Mbed Crypto (https://tls.mbed.org)
 
 import argparse
+from collections import OrderedDict
 import glob
 import os
 import re
@@ -78,16 +79,6 @@ class ChangeLog:
         level = re.match(self._title_re, line).end()
         return level, line[level:].strip()
 
-    def add_sections(self, *sections):
-        """Add the specified section titles to the list of known sections.
-
-        Sections will be printed back out in the order they were added.
-        """
-        for section in sections:
-            if section not in self.section_content:
-                self.section_list.append(section)
-                self.section_content[section] = []
-
     def __init__(self, input_stream):
         """Create a changelog object.
 
@@ -96,9 +87,9 @@ class ChangeLog:
         can be any generator returning the lines to read.
         """
         self.header = []
-        self.section_list = []
-        self.section_content = {}
-        self.add_sections(*STANDARD_SECTIONS)
+        self.section_content = OrderedDict()
+        for section in STANDARD_SECTIONS:
+            self.section_content[section] = []
         self.trailer = []
         self.read_main_file(input_stream)
 
@@ -121,7 +112,7 @@ class ChangeLog:
                     self.trailer.append(line)
             elif level == 3 and level_2_seen == 1:
                 current_section = content
-                self.add_sections(current_section)
+                self.section_content.setdefault(content, [])
             elif level_2_seen == 1 and current_section != None:
                 if line.strip():
                     self.section_content[current_section].append(line)
@@ -169,8 +160,7 @@ class ChangeLog:
         with open(filename, 'wb') as out:
             for line in self.header:
                 out.write(line)
-            for section in self.section_list:
-                lines = self.section_content[section]
+            for section, lines in self.section_content.items():
                 while lines and not lines[0].strip():
                     del lines[0]
                 while lines and not lines[-1].strip():

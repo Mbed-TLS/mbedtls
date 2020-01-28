@@ -1207,7 +1207,7 @@ cleanup:
             goto cleanup;
         }
 
-        if( !S_ISREG( sb.st_mode ) )
+        if( !( S_ISREG( sb.st_mode ) || S_ISLNK( sb.st_mode ) ) )
             continue;
 
         // Ignore parse errors

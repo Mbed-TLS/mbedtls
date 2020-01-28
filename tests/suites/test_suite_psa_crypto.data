@@ -775,15 +775,12 @@ PSA hash finish: bad arguments
 hash_finish_bad_args:
 
 PSA hash compute: bad algorithm (unknown hash)
-depends_on:MBEDTLS_SHA256_C
 hash_compute_fail:PSA_ALG_CATEGORY_HASH:"":32:PSA_ERROR_NOT_SUPPORTED
 
 PSA hash compute: bad algorithm (wildcard)
-depends_on:MBEDTLS_SHA256_C
 hash_compute_fail:PSA_ALG_ANY_HASH:"":32:PSA_ERROR_NOT_SUPPORTED
 
 PSA hash compute: bad algorithm (not a hash)
-depends_on:MBEDTLS_SHA256_C
 hash_compute_fail:PSA_ALG_HMAC(PSA_ALG_SHA_256):"":32:PSA_ERROR_INVALID_ARGUMENT
 
 PSA hash compute: output buffer too small

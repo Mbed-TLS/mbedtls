@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
 """Assemble Mbed Crypto change log entries into the change log file.
+
+Add changelog entries to the first level-2 section.
+Create a new level-2 section for unreleased changes if needed.
+Remove the input files unless --keep-entries is specified.
 """
 
 # Copyright (C) 2019, Arm Limited, All Rights Reserved
@@ -79,6 +83,28 @@ class ChangeLog:
         level = re.match(self._title_re, line).end()
         return level, line[level:].strip()
 
+    # Only accept dotted version numbers (e.g. "3.1", not "3").
+    # Refuse ".x" in a version number: this indicates a version that is
+    # not yet released.
+    _version_number_re = re.compile(br'[0-9]\.[0-9][0-9.]+([^.]|\.[^0-9x])')
+
+    def section_is_released_version(self, title):
+        """Whether this section is for a released version.
+
+        True if the given level-2 section title indicates that this section
+        contains released changes, otherwise False.
+        """
+        # Assume that a released version has a numerical version number
+        # that follows a particular pattern. These criteria may be revised
+        # as needed in future versions of this script.
+        version_number = re.search(self._version_number_re, title)
+        return bool(version_number)
+
+    def unreleased_version_title(self):
+        """The title to use if creating a new section for an unreleased version."""
+        # pylint: disable=no-self-use; this method may be overridden
+        return b'Unreleased changes'
+
     def __init__(self, input_stream):
         """Create a changelog object.
 
@@ -105,18 +131,29 @@ class ChangeLog:
         of the class and may not act sensibly on an object that is already
         partially populated.
         """
-        # Parse the first level-2 section. Everything before the first
+        # Parse the first level-2 section, containing changelog entries
+        # for unreleased changes.
+        # If we'll be expanding this section, everything before the first
         # level-3 section title ("###...") following the first level-2
         # section title ("##...") is passed through as the header
         # and everything after the second level-2 section title is passed
         # through as the trailer. Inside the first level-2 section,
         # split out the level-3 sections.
+        # If we'll be creating a new version, the header is everything
+        # before the point where we want to add the level-2 section
+        # for this version, and the trailer is what follows.
         level_2_seen = 0
         current_section = None
         for line in input_stream:
             level, content = self.title_level(line)
             if level == 2:
                 level_2_seen += 1
+                if level_2_seen == 1:
+                    if self.section_is_released_version(content):
+                        self.header.append(b'## ' +
+                                           self.unreleased_version_title() +
+                                           b'\n\n')
+                        level_2_seen = 2
             elif level == 3 and level_2_seen == 1:
                 current_section = content
                 self.section_content.setdefault(content, [])

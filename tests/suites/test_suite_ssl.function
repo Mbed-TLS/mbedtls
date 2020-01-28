@@ -77,20 +77,33 @@ int mbedtls_test_buffer_put( mbedtls_test_buffer *buf,
         return ( input_len == 0 ) ? 0 : -1;
     }
 
-    /* Calculate the number of bytes that need to be placed at lower memory
-     * address */
-    if( buf->start + buf->content_length + input_len
-        > buf->capacity )
+     /* Check if the buffer has not come full circle and free space is not in
+      * the middle */
+    if( buf->start + buf->content_length < buf->capacity )
     {
-        overflow = ( buf->start + buf->content_length + input_len )
-                    % buf->capacity;
+
+        /* Calculate the number of bytes that need to be placed at lower memory
+        * address */
+        if( buf->start + buf->content_length + input_len
+            > buf->capacity )
+        {
+            overflow = ( buf->start + buf->content_length + input_len )
+                        % buf->capacity;
+        }
+
+        memcpy( buf->buffer + buf->start + buf->content_length, input,
+                    input_len - overflow );
+        memcpy( buf->buffer, input + input_len - overflow, overflow );
+
+    }
+    else
+    {
+        /* The buffer has come full circle and free space is in the middle */
+        memcpy( buf->buffer + buf->start + buf->content_length - buf->capacity,
+                input, input_len );
     }
 
-    memcpy( buf->buffer + buf->start + buf->content_length, input,
-            input_len - overflow );
-    memcpy( buf->buffer, input + input_len - overflow, overflow );
     buf->content_length += input_len;
-
     return input_len;
 }
 
@@ -146,7 +159,6 @@ int mbedtls_test_buffer_get( mbedtls_test_buffer *buf,
 typedef struct mbedtls_mock_socket
 {
     int status;
-    uint32_t blocking_pattern;
     mbedtls_test_buffer *input;
     mbedtls_test_buffer *output;
     struct mbedtls_mock_socket *peer;
@@ -212,20 +224,7 @@ int mbedtls_mock_socket_connect( mbedtls_mock_socket* peer1,
 {
     int ret = -1;
 
-    peer1->input = peer2->output =
-        (mbedtls_test_buffer*) mbedtls_calloc( 1, sizeof(mbedtls_test_buffer) );
-    if( peer1->input == NULL )
-    {
-        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        goto exit;
-    }
-    mbedtls_test_buffer_init( peer1->input );
-    if( 0 != ( ret = mbedtls_test_buffer_setup( peer1->input, bufsize ) ) )
-    {
-        goto exit;
-    }
-
-    peer1->output = peer2->input =
+    peer1->output =
         (mbedtls_test_buffer*) mbedtls_calloc( 1, sizeof(mbedtls_test_buffer) );
     if( peer1->output == NULL )
     {
@@ -238,8 +237,23 @@ int mbedtls_mock_socket_connect( mbedtls_mock_socket* peer1,
         goto exit;
     }
 
+    peer2->output =
+        (mbedtls_test_buffer*) mbedtls_calloc( 1, sizeof(mbedtls_test_buffer) );
+    if( peer2->output == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
+    mbedtls_test_buffer_init( peer2->output );
+    if( 0 != ( ret = mbedtls_test_buffer_setup( peer2->output, bufsize ) ) )
+    {
+        goto exit;
+    }
+
     peer1->peer = peer2;
     peer2->peer = peer1;
+    peer1->input = peer2->output;
+    peer2->input = peer1->output;
 
     peer1->status = peer2->status = MBEDTLS_MOCK_SOCKET_CONNECTED;
     ret = 0;
@@ -253,26 +267,6 @@ exit:
     }
 
     return ret;
-}
-
-/*
- * Set the blocking pattern for the socket.
- *
- * For every bit of \p blocking_pattern set to one the socket will simulate a
- * "would block" event. The bits are processed starting with the least
- * significant bit and every call to a non-blocking I/O function consumes one.
- *
- * The behaviour of blocking I/O functions remains unchanged.
- */
-int mbedtls_mock_socket_set_block( mbedtls_mock_socket* socket,
-                                   uint32_t blocking_pattern )
-{
-    if( socket == NULL )
-        return -1;
-
-    socket->blocking_pattern = blocking_pattern;
-
-    return 0;
 }
 
 /*
@@ -310,13 +304,10 @@ int mbedtls_mock_tcp_send_nb( void *ctx, const unsigned char *buf, size_t len )
     if( socket == NULL || socket->status != MBEDTLS_MOCK_SOCKET_CONNECTED )
         return -1;
 
-    if( socket->blocking_pattern & 1 )
+    if( socket->output->capacity == socket->output->content_length )
     {
-        socket->blocking_pattern >>= 1;
         return MBEDTLS_ERR_SSL_WANT_WRITE;
     }
-
-    socket->blocking_pattern >>= 1;
 
     return mbedtls_test_buffer_put( socket->output, buf, len );
 }
@@ -328,13 +319,10 @@ int mbedtls_mock_tcp_recv_nb( void *ctx, unsigned char *buf, size_t len )
     if( socket == NULL || socket->status != MBEDTLS_MOCK_SOCKET_CONNECTED )
         return -1;
 
-    if( socket->blocking_pattern & 1 )
+    if( socket->input->content_length == 0)
     {
-        socket->blocking_pattern >>= 1;
         return MBEDTLS_ERR_SSL_WANT_READ;
     }
-
-    socket->blocking_pattern >>= 1;
 
     return mbedtls_test_buffer_get( socket->input, buf, len );
 }
@@ -743,6 +731,16 @@ void test_callback_buffer_sanity()
     TEST_ASSERT( mbedtls_test_buffer_put( &buf, NULL, 0 ) == 0 );
     TEST_ASSERT( mbedtls_test_buffer_get( &buf, NULL, 0 ) == 0 );
 
+    /* Make sure calling put several times in the row is safe */
+
+    TEST_ASSERT( mbedtls_test_buffer_put( &buf, input, sizeof( input ) )
+                                          == sizeof( input ) );
+    TEST_ASSERT( mbedtls_test_buffer_get( &buf, output, 2 ) == 2 );
+    TEST_ASSERT( mbedtls_test_buffer_put( &buf, input, 1 ) == 1 );
+    TEST_ASSERT( mbedtls_test_buffer_put( &buf, input, 2 ) == 1 );
+    TEST_ASSERT( mbedtls_test_buffer_put( &buf, input, 2 ) == 0 );
+
+
 exit:
 
     mbedtls_test_buffer_free( &buf );
@@ -905,9 +903,10 @@ exit:
  */
 
 /* BEGIN_CASE */
-void ssl_mock_tcp( int blocking, int client_pattern, int server_pattern )
+void ssl_mock_tcp( int blocking )
 {
     enum { MSGLEN = 105 };
+    enum { BUFLEN = MSGLEN / 5 };
     unsigned char message[MSGLEN];
     unsigned char received[MSGLEN];
     mbedtls_mock_socket client;
@@ -916,8 +915,6 @@ void ssl_mock_tcp( int blocking, int client_pattern, int server_pattern )
     int send_ret, recv_ret;
     mbedtls_ssl_send_t *send;
     mbedtls_ssl_recv_t *recv;
-    uint32_t client_block = client_pattern;
-    uint32_t server_block = server_pattern;
     unsigned i;
 
     if( blocking == 0 )
@@ -942,10 +939,7 @@ void ssl_mock_tcp( int blocking, int client_pattern, int server_pattern )
     }
 
     /* Make sure that sending a message takes a few  iterations. */
-    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
-                                                   MSGLEN / 5 ) );
-    TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &client, client_block ) );
-    TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &server, server_block ) );
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server, BUFLEN ) );
 
     /* Send the message to the server */
     send_ret = recv_ret = 1;
@@ -954,28 +948,56 @@ void ssl_mock_tcp( int blocking, int client_pattern, int server_pattern )
     {
         send_ret = send( &client, message + written, MSGLEN - written );
 
-        if( ( blocking == 0 ) && ( client_block & 1 ) )
+        TEST_ASSERT( send_ret >= 0 );
+        TEST_ASSERT( send_ret <= BUFLEN );
+        written += send_ret;
+
+        /* If the buffer is full we can test blocking and non-blocking send */
+        if ( send_ret == BUFLEN )
         {
-            TEST_ASSERT( send_ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+            int blocking_ret = send( &client, message , 1 );
+            if ( blocking )
+            {
+                TEST_ASSERT( blocking_ret == 0 );
+            }
+            else
+            {
+                TEST_ASSERT( blocking_ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+            }
         }
-        else
-        {
-            TEST_ASSERT( send_ret >= 0 );
-            written += send_ret;
-        }
-        client_block >>= 1;
 
         recv_ret = recv( &server, received + read, MSGLEN - read );
-        if( ( blocking == 0 ) && ( server_block & 1 ) )
+
+        /* The result depends on whether any data was sent */
+        if ( send_ret > 0 )
         {
-            TEST_ASSERT( recv_ret == MBEDTLS_ERR_SSL_WANT_READ );
+            TEST_ASSERT( recv_ret > 0 );
+            TEST_ASSERT( recv_ret <= BUFLEN );
+            read += recv_ret;
+        }
+        else if( blocking )
+        {
+            TEST_ASSERT( recv_ret == 0 );
         }
         else
         {
-            TEST_ASSERT( recv_ret >= 0 );
-            read += recv_ret;
+            TEST_ASSERT( recv_ret == MBEDTLS_ERR_SSL_WANT_READ );
+            recv_ret = 0;
         }
-        server_block >>= 1;
+
+        /* If the buffer is empty we can test blocking and non-blocking read */
+        if ( recv_ret == BUFLEN )
+        {
+            int blocking_ret = recv( &server, received, 1 );
+            if ( blocking )
+            {
+                TEST_ASSERT( blocking_ret == 0 );
+            }
+            else
+            {
+                TEST_ASSERT( blocking_ret == MBEDTLS_ERR_SSL_WANT_READ );
+            }
+        }
     }
     TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
 
@@ -993,11 +1015,11 @@ exit:
  */
 
 /* BEGIN_CASE */
-void ssl_mock_tcp_interleaving( int blocking,
-                                int client_pattern, int server_pattern )
+void ssl_mock_tcp_interleaving( int blocking )
 {
     enum { ROUNDS = 2 };
     enum { MSGLEN = 105 };
+    enum { BUFLEN = MSGLEN / 5 };
     unsigned char message[ROUNDS][MSGLEN];
     unsigned char received[ROUNDS][MSGLEN];
     mbedtls_mock_socket client;
@@ -1009,8 +1031,6 @@ void ssl_mock_tcp_interleaving( int blocking,
     unsigned i, j, progress;
     mbedtls_ssl_send_t *send;
     mbedtls_ssl_recv_t *recv;
-    uint32_t client_block = client_pattern;
-    uint32_t server_block = server_pattern;
 
     if( blocking == 0 )
     {
@@ -1037,10 +1057,7 @@ void ssl_mock_tcp_interleaving( int blocking,
     }
 
     /* Make sure that sending a message takes a few  iterations. */
-    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server,
-                                                   MSGLEN / 5 ) );
-    TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &client, client_block ) );
-    TEST_ASSERT( 0 == mbedtls_mock_socket_set_block( &server, server_block ) );
+    TEST_ASSERT( 0 == mbedtls_mock_socket_connect( &client, &server, BUFLEN ) );
 
     /* Send the message from both sides, interleaving. */
     progress = 1;
@@ -1053,72 +1070,80 @@ void ssl_mock_tcp_interleaving( int blocking,
      * of at least one byte on either side. */
     while( progress != 0 )
     {
-        send_ret[0] = send( &client, message[0] + written[0],
-                                               MSGLEN - written[0] );
-        if( ( blocking == 0 ) && ( client_block & 1 ) )
-        {
-            TEST_ASSERT( send_ret[0] == MBEDTLS_ERR_SSL_WANT_WRITE );
-        }
-        else
-        {
-            TEST_ASSERT( send_ret[0] >= 0 );
-            written[0] += send_ret[0];
-        }
-        client_block >>= 1;
+        mbedtls_mock_socket *socket;
 
-        send_ret[1] = send( &server, message[1] + written[1],
-                                               MSGLEN - written[1] );
-        if( ( blocking == 0 ) && ( server_block & 1 ) )
+        for( i = 0; i < ROUNDS; i++ )
         {
-            TEST_ASSERT( send_ret[1] == MBEDTLS_ERR_SSL_WANT_WRITE );
-        }
-        else
-        {
-            TEST_ASSERT( send_ret[1] >= 0 );
-            written[1] += send_ret[1];
-        }
-        server_block >>= 1;
+            /* First sending is from the client */
+            socket = ( i % 2 == 0 ) ? ( &client ) : ( &server );
 
-        recv_ret[0] = recv( &server, received[0] + read[0],
-                                               MSGLEN - read[0] );
-        if( ( blocking == 0 ) && ( server_block & 1 ) )
-        {
-            TEST_ASSERT( recv_ret[0] == MBEDTLS_ERR_SSL_WANT_READ );
-        }
-        else
-        {
-            TEST_ASSERT( recv_ret[0] >= 0 );
-            read[0] += recv_ret[0];
-        }
-        server_block >>= 1;
+            send_ret[i] = send( socket, message[i] + written[i],
+                                               MSGLEN - written[i] );
+            TEST_ASSERT( send_ret[i] >= 0 );
+            TEST_ASSERT( send_ret[i] <= BUFLEN );
+            written[i] += send_ret[i];
 
-        recv_ret[1] = recv( &client, received[1] + read[1],
-                                               MSGLEN - read[1] );
-        if( ( blocking == 0 ) && ( client_block & 1 ) )
-        {
-            TEST_ASSERT( recv_ret[1] == MBEDTLS_ERR_SSL_WANT_READ );
+            /* If the buffer is full we can test blocking and non-blocking
+             * send */
+            if ( send_ret[i] == BUFLEN )
+            {
+                int blocking_ret = send( socket, message[i] , 1 );
+                if ( blocking )
+                {
+                    TEST_ASSERT( blocking_ret == 0 );
+                }
+                else
+                {
+                    TEST_ASSERT( blocking_ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+                }
+            }
         }
-        else
+
+        for( i = 0; i < ROUNDS; i++ )
         {
-            TEST_ASSERT( recv_ret[1] >= 0 );
-            read[1] += recv_ret[1];
+            /* First receiving is from the server */
+            socket = ( i % 2 == 0 ) ? ( &server ) : ( &client );
+
+            recv_ret[i] = recv( socket, received[i] + read[i],
+                                               MSGLEN - read[i] );
+
+            /* The result depends on whether any data was sent */
+            if ( send_ret[i] > 0 )
+            {
+                TEST_ASSERT( recv_ret[i] > 0 );
+                TEST_ASSERT( recv_ret[i] <= BUFLEN );
+                read[i] += recv_ret[i];
+            }
+            else if( blocking )
+            {
+                TEST_ASSERT( recv_ret[i] == 0 );
+            }
+            else
+            {
+                TEST_ASSERT( recv_ret[i] == MBEDTLS_ERR_SSL_WANT_READ );
+                recv_ret[i] = 0;
+            }
+
+            /* If the buffer is empty we can test blocking and non-blocking
+             * read */
+            if ( recv_ret[i] == BUFLEN )
+            {
+                int blocking_ret = recv( socket, received[i], 1 );
+                if ( blocking )
+                {
+                    TEST_ASSERT( blocking_ret == 0 );
+                }
+                else
+                {
+                    TEST_ASSERT( blocking_ret == MBEDTLS_ERR_SSL_WANT_READ );
+                }
+            }
         }
-        client_block >>= 1;
 
         progress = 0;
         for( i = 0; i < ROUNDS; i++ )
         {
-            if( ( send_ret[i] > 0 ) ||
-                    ( send_ret[i] == MBEDTLS_ERR_SSL_WANT_WRITE ) )
-            {
-                progress++;
-            }
-
-            if( ( recv_ret[i] > 0 ) ||
-                    ( recv_ret[i] == MBEDTLS_ERR_SSL_WANT_READ ) )
-            {
-                progress++;
-            }
+            progress += send_ret[i] + recv_ret[i];
         }
     }
 

@@ -525,6 +525,32 @@
 //#define MBEDTLS_ECP_NORMALIZE_MXZ_ALT
 
 /**
+ * \def MBEDTLS_RANDOM_DELAY_MAX_TEST
+ *
+ * Enables testing and use of mbed TLS function mbedtls_platform_random_delay
+ * with maximum delay.
+ *
+ * WARNING! This switch MUST be disabled in production builds, and is suitable
+ * only for testing during development.
+ * Enabling the switch makes some side-channel and fault injections countermeasures
+ * redundant.
+ */
+//#define MBEDTLS_RANDOM_DELAY_MAX_TEST
+
+/**
+ * \def MBEDTLS_RANDOM_DELAY_MIN_TEST
+ *
+ * Enables testing and use of mbed TLS function mbedtls_platform_random_delay
+ * with minimum delay.
+ *
+ * WARNING! This switch MUST be disabled in production builds, and is suitable
+ * only for testing during development.
+ * Enabling the switch makes some side-channel and fault injections countermeasures
+ * redundant.
+ */
+//#define MBEDTLS_RANDOM_DELAY_MIN_TEST
+
+/**
  * \def MBEDTLS_TEST_NULL_ENTROPY
  *
  * Enables testing and use of mbed TLS without any configured entropy sources.

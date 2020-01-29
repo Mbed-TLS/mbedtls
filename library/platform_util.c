@@ -170,6 +170,7 @@ uint32_t mbedtls_platform_random_in_range( size_t num )
 
 void mbedtls_platform_random_delay( void )
 {
+#if !defined(MBEDTLS_RANDOM_DELAY_MIN_TEST)
 #if !defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
     return;
 #else
@@ -178,6 +179,12 @@ void mbedtls_platform_random_delay( void )
     uint8_t shift;
 
     rn_1 = mbedtls_platform_random_in_range( MAX_RAND_DELAY );
+#if defined(MBEDTLS_RANDOM_DELAY_MAX_TEST)
+    if ( rn_1 < (MAX_RAND_DELAY - 1 ) )
+    {
+        rn_1 = MAX_RAND_DELAY - 1;
+    }
+#endif
     rn_2 = mbedtls_platform_random_in_range( 0xffffffff ) + 1;
     rn_3 = mbedtls_platform_random_in_range( 0xffffffff ) + 1;
 
@@ -194,6 +201,7 @@ void mbedtls_platform_random_delay( void )
 
     return;
 #endif /* !MBEDTLS_ENTROPY_HARDWARE_ALT */
+#endif /* !MBEDTLS_RANDOM_DELAY_MIN_TEST */
 }
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)

@@ -714,6 +714,22 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ECP_NORMALIZE_MXZ_ALT */
 
+#if defined(MBEDTLS_RANDOM_DELAY_MAX_TEST)
+    if( strcmp( "MBEDTLS_RANDOM_DELAY_MAX_TEST", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_RANDOM_DELAY_MAX_TEST );
+        return( 0 );
+    }
+#endif /* MBEDTLS_RANDOM_DELAY_MAX_TEST */
+
+#if defined(MBEDTLS_RANDOM_DELAY_MIN_TEST)
+    if( strcmp( "MBEDTLS_RANDOM_DELAY_MIN_TEST", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_RANDOM_DELAY_MIN_TEST );
+        return( 0 );
+    }
+#endif /* MBEDTLS_RANDOM_DELAY_MIN_TEST */
+
 #if defined(MBEDTLS_TEST_NULL_ENTROPY)
     if( strcmp( "MBEDTLS_TEST_NULL_ENTROPY", config ) == 0 )
     {

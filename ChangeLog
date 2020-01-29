@@ -14,7 +14,7 @@ Security
      probability (of the order of 2^-n where n is the bitsize of the curve)
      unless the RNG is broken, and could result in information disclosure or
      denial of service (application crash or extra resource consumption).
-     Reported by Peter and Auke (found using static analysis).
+     Found by Auke Zeilstra and Peter Schwabe, using static analysis.
 
 = mbed TLS 2.16.4 branch released 2020-01-15
 

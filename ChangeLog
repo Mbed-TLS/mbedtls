@@ -5,6 +5,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Allow loading symlinked certificates. Fixes #3005. Reported and fixed
      by Jonathan Bennett <JBennett@incomsystems.biz> via #3008.
+   * Fix an unchecked call to mbedtls_md() in the x509write module.
 
 = mbed TLS 2.20.0 branch released 2020-01-15
 

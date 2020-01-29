@@ -158,11 +158,10 @@ typedef enum
     }                                                             \
     while( 0 )
 
-/** Allocate memory dynamically. Exit the test if this fails, but do
- * not mark the test as failed.
+/** Allocate memory dynamically. If the allocation fails, skip the test case.
  *
  * This macro behaves like #ASSERT_ALLOC, except that if the allocation
- * fails, it jumps to the \c exit label without calling test_fail().
+ * fails, it marks the test as skipped rather than failed.
  */
 #define ASSERT_ALLOC_WEAK( pointer, length )                      \
     do                                                            \
@@ -172,8 +171,7 @@ typedef enum
         {                                                         \
             ( pointer ) = mbedtls_calloc( sizeof( *( pointer ) ), \
                                           ( length ) );           \
-            if( ( pointer ) == NULL )                             \
-                goto exit;                                        \
+            TEST_ASSUME( ( pointer ) != NULL );                   \
         }                                                         \
     }                                                             \
     while( 0 )

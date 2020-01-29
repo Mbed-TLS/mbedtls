@@ -587,7 +587,7 @@ static const unsigned char sha512_test_sum[][64] =
       0x4E, 0xAD, 0xB2, 0x17, 0xAD, 0x8C, 0xC0, 0x9B }
 };
 
-#define ARRAY_LENGTH(a)    ( sizeof( a ) / sizeof( a[0] ) )
+#define ARRAY_LENGTH( a )   ( sizeof( a ) / sizeof( ( a )[0] ) )
 
 /*
  * Checkup routine

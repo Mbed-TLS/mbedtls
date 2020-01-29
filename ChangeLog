@@ -63,8 +63,6 @@ Changes
    * Reduce RAM consumption during session renegotiation by not storing
      the peer CRT chain and session ticket twice.
 
-= mbed TLS 2.16.5 branch released xxxx-xx-xx
-
 Security
    * Fix potential memory overread when performing an ECDSA signature
      operation. The overread only happens with cryptographically low

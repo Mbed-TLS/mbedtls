@@ -712,7 +712,9 @@ void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
     TEST_ASSERT( md_info != NULL );
 
     hlen = mbedtls_md_get_size( md_info );
-    mbedtls_md( md_info, (const unsigned char *) msg, strlen( msg ), hash );
+    TEST_ASSERT( mbedtls_md( md_info,
+                             (const unsigned char *) msg, strlen( msg ),
+                             hash ) == 0 );
 
     mbedtls_ecp_set_max_ops( max_ops );
 

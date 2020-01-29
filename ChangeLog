@@ -5,6 +5,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Allow loading symlinked certificates. Fixes #3005. Reported and fixed
      by Jonathan Bennett <JBennett@incomsystems.biz> via #3008.
+   * Fix an unchecked call to mbedtls_md() in the x509write module.
 
 Security
    * Fix potential memory overread when performing an ECDSA signature
@@ -13,6 +14,8 @@ Security
      unless the RNG is broken, and could result in information disclosure or
      denial of service (application crash or extra resource consumption).
      Found by Auke Zeilstra and Peter Schwabe, using static analysis.
+
+Bugfix
 
 = mbed TLS 2.16.4 branch released 2020-01-15
 

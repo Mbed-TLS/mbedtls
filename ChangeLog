@@ -6,15 +6,13 @@ Bugfix
    * Allow loading symlinked certificates. Fixes #3005. Reported and fixed
      by Jonathan Bennett <JBennett@incomsystems.biz> via #3008.
 
-= mbed TLS 2.16.5 branch released xxxx-xx-xx
-
 Security
    * Fix potential memory overread when performing an ECDSA signature
      operation. The overread only happens with cryptographically low
      probability (of the order of 2^-n where n is the bitsize of the curve)
      unless the RNG is broken, and could result in information disclosure or
      denial of service (application crash or extra resource consumption).
-     Reported by Peter and Auke (found using static analysis).
+     Found by Auke Zeilstra and Peter Schwabe, using static analysis.
 
 = mbed TLS 2.16.4 branch released 2020-01-15
 

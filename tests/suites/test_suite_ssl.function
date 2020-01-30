@@ -670,14 +670,6 @@ int mbedtls_endpoint_certificate_init( mbedtls_endpoint *ep, int pk_alg )
 
     /* Load the trusted CA */
 
-    for( i = 0; mbedtls_test_cas[i] != NULL; i++ )
-    {
-        ret = mbedtls_x509_crt_parse( &( cert->ca_cert ),
-                        (const unsigned char *) mbedtls_test_cas[i],
-                        mbedtls_test_cas_len[i] );
-        TEST_ASSERT( ret == 0 );
-    }
-
     for( i = 0; mbedtls_test_cas_der[i] != NULL; i++ )
     {
         ret = mbedtls_x509_crt_parse_der( &( cert->ca_cert ),
@@ -891,6 +883,34 @@ int mbedtls_move_handshake_to_state( mbedtls_ssl_context *ssl,
 }
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+/*
+ * Write application data. Then increase write and fragments counter
+ */
+int mbedtls_ssl_write_fragment( mbedtls_ssl_context *ssl, unsigned char *buf,
+                                int ln, int *writen, int *fragments )
+{
+    int ret = mbedtls_ssl_write( ssl, buf + *writen, ln - *writen );
+    if( ret >= 0 )
+    {
+        (*fragments)++;
+        *writen += ret;
+    }
+    return ret;
+}
+
+/*
+ * Read application data and increase read counter
+ */
+int mbedtls_ssl_read_fragment( mbedtls_ssl_context *ssl, unsigned char *buf, int ln, int *read )
+{
+    int ret = mbedtls_ssl_read( ssl, buf + *read, ln - *read );
+    if( ret >= 0 )
+    {
+        *read += ret;
+    }
+    return ret;
+}
 
 /*
  * Helper function setting up inverse record transformations
@@ -2963,7 +2983,7 @@ void ssl_session_serialize_version_check( int corrupt_major,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
 void mbedtls_endpoint_sanity( int endpoint_type )
 {
     enum { BUFFSIZE = 1024 };
@@ -3087,5 +3107,126 @@ void handshake( const char *cipher, int version, int pk_alg,
 exit:
     mbedtls_endpoint_free( &client );
     mbedtls_endpoint_free( &server );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
+void send_application_data( int mfl, int cli_msg_len, int srv_msg_len,
+                            const int expected_cli_frames,
+                            const int expected_srv_frames )
+{
+    enum { BUFFSIZE = 2048 };
+    mbedtls_endpoint server, client;
+    unsigned char *cli_msg_buf = malloc( cli_msg_len );
+    unsigned char *cli_in_buf  = malloc( srv_msg_len );
+    unsigned char *srv_msg_buf = malloc( srv_msg_len );
+    unsigned char *srv_in_buf  = malloc( cli_msg_len );
+    int ret = -1;
+
+    ret = mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER, MBEDTLS_PK_RSA );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_PK_RSA );
+    TEST_ASSERT( ret == 0 );
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    ret = mbedtls_ssl_conf_max_frag_len( &(server.conf), (unsigned char) mfl );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_ssl_conf_max_frag_len( &(client.conf), (unsigned char) mfl );
+    TEST_ASSERT( ret == 0 );
+#else
+    TEST_ASSERT( MBEDTLS_SSL_MAX_FRAG_LEN_NONE == mfl );
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+    ret = mbedtls_mock_socket_connect( &(server.socket), &(client.socket),
+                                       BUFFSIZE );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_move_handshake_to_state( &(client.ssl),
+                                           &(server.ssl),
+                                           MBEDTLS_SSL_HANDSHAKE_OVER );
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+    TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+
+    /* Perform this test with two message types. At first use a message
+     * consisting of only 0x00 for the client and only 0xFF for the server.
+     * At the second time use message with generated data */
+    for( int msg_type = 0; msg_type < 2; msg_type++ )
+    {
+        int cli_writen = 0;
+        int srv_writen = 0;
+        int cli_read = 0;
+        int srv_read = 0;
+        int cli_fragments = 0;
+        int srv_fragments = 0;
+
+        if( msg_type == 0 )
+        {
+            memset( cli_msg_buf, 0x00, cli_msg_len );
+            memset( srv_msg_buf, 0xff, srv_msg_len );
+        }
+        else
+        {
+            int j = 0;
+            for( int i = 0; i < cli_msg_len; i++ )
+                cli_msg_buf[i] = j++ & 0xFF;
+            for( int i = 0; i < srv_msg_len; i++ )
+                srv_msg_buf[i] = ( j -= 5 ) & 0xFF;
+        }
+
+        while( cli_read < srv_msg_len || srv_read < cli_msg_len )
+        {
+            /* Client sending */
+            if( cli_msg_len > cli_writen )
+            {
+                ret = mbedtls_ssl_write_fragment( &(client.ssl), cli_msg_buf,
+                                    cli_msg_len, &cli_writen, &cli_fragments );
+                TEST_ASSERT( ( ret >= 0 && ret <= cli_msg_len ) ||
+                               ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+            }
+
+            /* Server sending */
+            if( srv_msg_len > srv_writen )
+            {
+                ret = mbedtls_ssl_write_fragment( &(server.ssl), srv_msg_buf,
+                                    srv_msg_len, &srv_writen, &srv_fragments );
+                TEST_ASSERT( ( ret >= 0 && ret <= srv_msg_len ) ||
+                               ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+            }
+
+            /* Client reading */
+            if( cli_read < srv_msg_len )
+            {
+                ret = mbedtls_ssl_read_fragment( &(client.ssl), cli_in_buf,
+                                                    srv_msg_len, &cli_read );
+                TEST_ASSERT( ( ret >= 0 && ret <= srv_msg_len ) ||
+                               ret == MBEDTLS_ERR_SSL_WANT_READ );
+            }
+
+            /* Server reading */
+            if( srv_read < cli_msg_len )
+            {
+                ret = mbedtls_ssl_read_fragment( &(server.ssl), srv_in_buf,
+                                                    cli_msg_len, &srv_read );
+                TEST_ASSERT( ( ret >= 0 && ret <= cli_msg_len ) ||
+                               ret == MBEDTLS_ERR_SSL_WANT_READ );
+            }
+        }
+
+        TEST_ASSERT( 0 == memcmp( cli_msg_buf, srv_in_buf, cli_msg_len ) );
+        TEST_ASSERT( 0 == memcmp( srv_msg_buf, cli_in_buf, srv_msg_len ) );
+        TEST_ASSERT( cli_fragments == expected_cli_frames );
+        TEST_ASSERT( srv_fragments == expected_srv_frames );
+    }
+
+exit:
+    mbedtls_endpoint_free( &client );
+    mbedtls_endpoint_free( &server );
+    free( cli_msg_buf );
+    free( cli_in_buf );
+    free( srv_msg_buf );
+    free( srv_in_buf );
 }
 /* END_CASE */

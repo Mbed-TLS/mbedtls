@@ -1,5 +1,11 @@
 option(INSTALL_MBEDTLS_HEADERS "Install mbed TLS headers." ON)
 
+# Declare include headers as PUBLIC to propogate to project consumers
+target_include_directories(
+    mbedtls
+    PUBLIC ${CMAKE_CURRENT_LIST_DIR}
+)
+
 if(INSTALL_MBEDTLS_HEADERS)
 
     file(GLOB headers "mbedtls/*.h")

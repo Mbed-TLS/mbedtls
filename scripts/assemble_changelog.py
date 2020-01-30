@@ -84,9 +84,10 @@ class ChangeLog:
         return level, line[level:].strip()
 
     # Only accept dotted version numbers (e.g. "3.1", not "3").
-    # Refuse ".x" in a version number: this indicates a version that is
-    # not yet released.
-    _version_number_re = re.compile(br'[0-9]\.[0-9][0-9.]+([^.]|\.[^0-9x])')
+    # Refuse ".x" in a version number where x is a letter: this indicates
+    # a version that is not yet released. Something like "3.1a" is accepted.
+    _version_number_re = re.compile(br'[0-9]+\.[0-9A-Za-z.]+')
+    _incomplete_version_number_re = re.compile(br'.*\.[A-Za-z]')
 
     def section_is_released_version(self, title):
         """Whether this section is for a released version.
@@ -98,7 +99,11 @@ class ChangeLog:
         # that follows a particular pattern. These criteria may be revised
         # as needed in future versions of this script.
         version_number = re.search(self._version_number_re, title)
-        return bool(version_number)
+        if version_number:
+            return not re.search(self._incomplete_version_number_re,
+                                 version_number.group(0))
+        else:
+            return False
 
     def unreleased_version_title(self):
         """The title to use if creating a new section for an unreleased version."""

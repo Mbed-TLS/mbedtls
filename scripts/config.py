@@ -183,6 +183,7 @@ def include_in_full(name):
             'MBEDTLS_PSA_CRYPTO_SPM',
             'MBEDTLS_PSA_INJECT_ENTROPY',
             'MBEDTLS_RSA_NO_CRT',
+            'MBEDTLS_SHA512_NO_SHA384',
             'MBEDTLS_TEST_NULL_ENTROPY',
     ]:
         return False

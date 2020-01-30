@@ -2037,8 +2037,10 @@ static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
             return( &mbedtls_sha256_info );
 #endif
 #if defined(MBEDTLS_SHA512_C)
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
         case PSA_ALG_SHA_384:
             return( &mbedtls_sha384_info );
+#endif
         case PSA_ALG_SHA_512:
             return( &mbedtls_sha512_info );
 #endif
@@ -2089,7 +2091,9 @@ psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
             break;
 #endif
 #if defined(MBEDTLS_SHA512_C)
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
         case PSA_ALG_SHA_384:
+#endif
         case PSA_ALG_SHA_512:
             mbedtls_sha512_free( &operation->ctx.sha512 );
             break;
@@ -2155,10 +2159,12 @@ psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
             break;
 #endif
 #if defined(MBEDTLS_SHA512_C)
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
         case PSA_ALG_SHA_384:
             mbedtls_sha512_init( &operation->ctx.sha512 );
             ret = mbedtls_sha512_starts_ret( &operation->ctx.sha512, 1 );
             break;
+#endif
         case PSA_ALG_SHA_512:
             mbedtls_sha512_init( &operation->ctx.sha512 );
             ret = mbedtls_sha512_starts_ret( &operation->ctx.sha512, 0 );
@@ -2227,7 +2233,9 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
             break;
 #endif
 #if defined(MBEDTLS_SHA512_C)
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
         case PSA_ALG_SHA_384:
+#endif
         case PSA_ALG_SHA_512:
             ret = mbedtls_sha512_update_ret( &operation->ctx.sha512,
                                              input, input_length );
@@ -2300,7 +2308,9 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
             break;
 #endif
 #if defined(MBEDTLS_SHA512_C)
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
         case PSA_ALG_SHA_384:
+#endif
         case PSA_ALG_SHA_512:
             ret = mbedtls_sha512_finish_ret( &operation->ctx.sha512, hash );
             break;
@@ -2389,7 +2399,9 @@ psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
             break;
 #endif
 #if defined(MBEDTLS_SHA512_C)
+#if !defined(MBEDTLS_SHA512_NO_SHA384)
         case PSA_ALG_SHA_384:
+#endif
         case PSA_ALG_SHA_512:
             mbedtls_sha512_clone( &target_operation->ctx.sha512,
                                   &source_operation->ctx.sha512 );

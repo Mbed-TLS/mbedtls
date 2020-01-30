@@ -1132,6 +1132,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SHA512_SMALLER */
 
+#if defined(MBEDTLS_SHA512_NO_SHA384)
+    if( strcmp( "MBEDTLS_SHA512_NO_SHA384", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA512_NO_SHA384 );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SHA512_NO_SHA384 */
+
 #if defined(MBEDTLS_THREADING_ALT)
     if( strcmp( "MBEDTLS_THREADING_ALT", config ) == 0 )
     {

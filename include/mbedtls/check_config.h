@@ -510,6 +510,10 @@
 #error "MBEDTLS_RSA_C defined, but none of the PKCS1 versions enabled"
 #endif
 
+#if defined(MBEDTLS_SHA512_NO_SHA384) && !defined(MBEDTLS_SHA512_C)
+#error "MBEDTLS_SHA512_NO_SHA384 defined without MBEDTLS_SHA512_C"
+#endif
+
 #if defined(MBEDTLS_THREADING_PTHREAD)
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_PTHREAD defined, but not all prerequisites"

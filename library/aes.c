@@ -94,10 +94,8 @@ typedef struct {
 } aes_r_data_t;
 
 #if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
-/* Number of additional AES calculation rounds added for SCA CM */
-#define AES_SCA_CM_ROUNDS  3
-#else /* MBEDTLS_AES_SCA_COUNTERMEASURES */
-#define AES_SCA_CM_ROUNDS  0
+/* Number of additional AES dummy rounds added for SCA countermeasures */
+#define AES_SCA_CM_ROUNDS  5
 #endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
 #if defined(MBEDTLS_PADLOCK_C) &&                      \
@@ -513,99 +511,105 @@ static void aes_gen_tables( void )
 #endif /* MBEDTLS_AES_ROM_TABLES */
 
 /**
- * Randomize positions when to use AES SCA countermeasures.
- * Each byte indicates one AES round as follows:
- * first ( tbl_len - 4 ) bytes are reserved for middle AES rounds:
- *  -4 high bit = table to use 0x10 for SCA CM data, 0 otherwise
- *  -4 low bits = offset based on order, 4 for even position, 0 otherwise
- * Last 4 bytes for first(2) and final(2) round calculation
- *  -4 high bit = table to use, 0x10 for SCA CM data, otherwise real data
- *  -4 low bits = not used
+ * Randomize positions for AES SCA countermeasures if AES countermeasures are
+ * enabled. If the countermeasures are not enabled then we fill the given table
+ * with only real AES rounds to be executed.
+ *
+ * Dummy rounds are added as follows:
+ * 1. One dummy round added to the initial round key addition (executed in
+ *    random order).
+ * 2. Random number of dummy rounds added as first and/or last AES calculation
+ *    round. Total number of dummy rounds is AES_SCA_CM_ROUNDS.
+ *
+ * Description of the bytes in the table are as follows:
+ * - 2 bytes for initial round key addition
+ * - remaining bytes for AES calculation with real or dummy data
+ *
+ * Each byte indicates one AES calculation round:
+ *  -4 high bit = table to use 0x10 for dummy data, 0x00 real data
+ *  -bit 2 = offset for even/odd rounds
+ *  -bit 0-1: stop mark (0x03) to indicate calculation end
  *
  *  Return  Number of additional AES rounds
  *
  * Example of the control bytes:
- *  Control data when only real data (R) is used:
- *  | R  | R  | R  | R  | R  | R  | R  | R  | Start   | Final   |
- *  |0x04|0x00|0x00|0x04|0x00|0x04|0x00|0x04|0x00|0x00|0x00|0x00|
+ *  R = real data in actual AES calculation round
+ *  Ri = Real data in initial round key addition phase
+ *  F = fake data in actual AES calculation round
+ *  Fi = fake data in initial round key addition phase
  *
- *  Control data with 5 (F) dummy rounds and randomized start and final round:
- *  | R  | F  | R  | F  | F  | R  | R  | R  | R  | R  | R  | START RF| FINAL FR|
- *  |0x04|0x10|0x04|0x10|0x10|0x00|0x04|0x00|0x04|0x00|0x04|0x00|0x10|0x10|0x00|
+ *  1. No countermeasures enabled and AES-128, only real data (R) used:
+ *  | Ri  | R  | R  | R  | R  | R  | R  | R  | R  | R  | R  |
+ *  |0x03|0x04|0x00|0x04|0x00|0x04|0x00|0x04|0x00|0x07|0x03|
+ *
+ *  2. Countermeasures enabled, 3 (F) dummy rounds in start and 1 at end:
+ *  | Fi | Ri | F  | F  | F  | R  | R  | ... | R  | R  | R  | R  | F  |
+ *  |0x10|0x03|0x10|0x10|0x10|0x04|0x00| ... |0x04|0x00|0x04|0x03|0x07|
  */
+#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
 static int aes_sca_cm_data_randomize( uint8_t *tbl, uint8_t tbl_len )
 {
-    int i, is_even_pos;
-#if AES_SCA_CM_ROUNDS != 0
-    int is_unique_number;
-    int num;
-#endif
+    int i = 0, j, is_even_pos, dummy_rounds, num;
 
     mbedtls_platform_memset( tbl, 0, tbl_len );
+    // get random from 0x0fff (each f will be used separately)
+    num = mbedtls_platform_random_in_range( 0x1000 );
 
-#if AES_SCA_CM_ROUNDS != 0
-    // Randomize SCA CM positions to tbl
-    for( i = 0; i < AES_SCA_CM_ROUNDS; i++ )
+    // Randomize execution order of initial round key addition
+    if ( ( num & 0x0100 ) == 0 )
     {
-        is_unique_number = 0;
-        do
-        {
-            is_unique_number++;
-            num = mbedtls_platform_random_in_range( tbl_len - 4 );
-
-            if( is_unique_number > 10 )
-            {
-                // prevent forever loop if random returns constant
-                is_unique_number = 0;
-                tbl[i] = 0x10;    // fake data
-            }
-
-            if( tbl[num] == 0 )
-            {
-                is_unique_number = 0;
-                tbl[num] = 0x10;    // fake data
-            }
-        } while( is_unique_number != 0 );
+        tbl[i++] = 0x10;        // dummy data
+        tbl[i++] = 0x00 | 0x03; // real data + stop marker
+    } else {
+        tbl[i++] = 0x00;        // real data
+        tbl[i++] = 0x10 | 0x03; // dummy data + stop marker
     }
 
-    // randomize control data for start and final round
-    for( i = 1; i <= 2; i++ )
-    {
-        num = mbedtls_platform_random_in_range( 0xff );
-        if( ( num % 2 ) == 0 )
-        {
-            tbl[tbl_len - ( i * 2 - 0 )] = 0x10;    // fake data
-            tbl[tbl_len - ( i * 2 - 1 )] = 0x00;    // real data
-        }
-        else
-        {
-            tbl[tbl_len - ( i * 2 - 0 )] = 0x00;    // real data
-            tbl[tbl_len - ( i * 2 - 1 )] = 0x10;    // fake data
-        }
-    }
-#endif /* AES_SCA_CM_ROUNDS != 0 */
+    // Randomize number of dummy AES rounds
+    dummy_rounds = AES_SCA_CM_ROUNDS - ( ( num & 0x0010 ) >> 4 );
+    tbl_len = tbl_len - (AES_SCA_CM_ROUNDS - dummy_rounds);
 
-    // Fill real AES round data to the remaining places
+    // randomize positions for the dummy rounds
+    num = ( num & 0x000f ) % ( dummy_rounds + 1 );
+
+    // add dummy rounds after initial round key addition (if needed)
+    for ( ; i < num + 2; i++ )
+    {
+        tbl[i] = 0x10;  // dummy data
+    }
+
+    // add dummy rounds to the end, (AES_SCA_CM_ROUNDS - num) rounds if needed
+    for ( j = tbl_len - dummy_rounds + num; j < tbl_len; j++ )
+    {
+        tbl[j] = 0x10;  // dummy data
+    }
+
+    // Fill real AES data to the remaining places
     is_even_pos = 1;
-    for( i = 0; i < tbl_len - 4; i++ )
+    for( ; i < tbl_len; i++ )
     {
         if( tbl[i] == 0 )
         {
             if( is_even_pos == 1 )
             {
-                tbl[i] = 0x04;  // real data, offset 4
+                tbl[i] = 0x04;  // real data, offset for rounds 1,3,5, etc...
                 is_even_pos = 0;
             }
             else
             {
-                tbl[i] = 0x00;  // real data, offset 0
+                tbl[i] = 0x00;  // real data, offset for rounds 2,4,6,...
                 is_even_pos = 1;
             }
+            j = i;  // remember the final round position in table
         }
     }
 
-    return( AES_SCA_CM_ROUNDS );
+    tbl[( tbl_len - 1)] |= 0x03;    // Stop marker for the last item in tbl
+    tbl[( j - 1 )] |= 0x03;         // stop marker for final - 1 real data
+
+    return( dummy_rounds );
 }
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 
 #if defined(MBEDTLS_AES_FEWER_TABLES)
 
@@ -995,6 +999,7 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
  */
 #if !defined(MBEDTLS_AES_ENCRYPT_ALT)
 
+#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
 static uint32_t *aes_fround( uint32_t *R,
     uint32_t *X0, uint32_t *X1, uint32_t *X2, uint32_t *X3,
     uint32_t Y0, uint32_t Y1, uint32_t Y2, uint32_t Y3 )
@@ -1051,62 +1056,65 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
                                   unsigned char output[16] )
 {
-    int i, j, offset, start_fin_loops = 1;
+    int i, tindex, offset, stop_mark, dummy_rounds;
     aes_r_data_t aes_data_real;         // real data
-#if AES_SCA_CM_ROUNDS != 0
     aes_r_data_t aes_data_fake;         // fake data
-#endif /* AES_SCA_CM_ROUNDS != 0 */
-    aes_r_data_t *aes_data_ptr;         // pointer to aes_data_real or aes_data_fake
+    aes_r_data_t *aes_data_ptr;         // pointer to real or fake data
     aes_r_data_t *aes_data_table[2];    // pointers to real and fake data
-    int round_ctrl_table_len = ctx->nr - 1 + AES_SCA_CM_ROUNDS + 2 + 2;
+    int round_ctrl_table_len = ctx->nr + 2 + AES_SCA_CM_ROUNDS;
     volatile int flow_control;
-    // control bytes for AES rounds, reserve based on max ctx->nr
-    uint8_t round_ctrl_table[ 14 - 1 + AES_SCA_CM_ROUNDS + 2 + 2];
+    // control bytes for AES calculation rounds,
+    // reserve based on max rounds + dummy rounds + 2 (for initial key addition)
+    uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
     aes_data_real.rk_ptr = ctx->rk;
-    aes_data_table[0] = &aes_data_real;
-
-#if AES_SCA_CM_ROUNDS != 0
-    aes_data_table[1] = &aes_data_fake;
     aes_data_fake.rk_ptr = ctx->rk;
-    start_fin_loops = 2;
-    for( i = 0; i < 4; i++ )
-        aes_data_fake.xy_values[i] = mbedtls_platform_random_in_range( 0xffffffff );
-#endif
+    aes_data_table[0] = &aes_data_real;
+    aes_data_table[1] = &aes_data_fake;
 
-    // Get randomized AES calculation control bytes
-    flow_control = aes_sca_cm_data_randomize( round_ctrl_table,
-        round_ctrl_table_len );
+    // Get AES calculation control bytes
+    dummy_rounds = aes_sca_cm_data_randomize( round_ctrl_table,
+                                              round_ctrl_table_len );
+    flow_control = dummy_rounds;
 
+    // SCA countermeasure, safely clear the aes_data_real.xy_values
     mbedtls_platform_memset( aes_data_real.xy_values, 0, 16 );
+
+    // SCA countermeasure, randomize secret data location by initializing it in
+    // a random order and writing randomized fake data between the real data
+    // writes.
     offset = mbedtls_platform_random_in_range( 4 );
-
-    for( i = offset; i < 4; i++ )
+    i = offset;
+    do
     {
         GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-    }
+        aes_data_fake.xy_values[i] = mbedtls_platform_random_in_range( 0xffffffff );
+        flow_control++;
+    } while( ( i = ( i + 1 ) % 4 ) != offset );
 
-    for( i = 0; i < offset; i++ )
+    tindex = 0;
+    do
     {
-        GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-    }
+        // Get pointer to the real or fake data
+        aes_data_ptr = aes_data_table[round_ctrl_table[tindex] >> 4];
+        stop_mark = round_ctrl_table[tindex] & 0x03;
 
-    for( i = 0; i < 4; i++ )
-    {
-        for( j = 0; j < start_fin_loops; j++ )
+        // initial round key addition
+        for( i = 0; i < 4; i++ )
         {
-            aes_data_ptr =
-                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 2 + j ] >> 4];
             aes_data_ptr->xy_values[i] ^= *aes_data_ptr->rk_ptr++;
-            flow_control++;
         }
-    }
+        tindex++;
+        flow_control++;
+    } while( stop_mark == 0 );
 
-    for( i = 0; i < ( ctx->nr - 1 + AES_SCA_CM_ROUNDS ); i++ )
+    // Calculate AES rounds (9, 11 or 13 rounds) + dummy rounds
+    do
     {
-        // Read AES control data
-        aes_data_ptr = aes_data_table[round_ctrl_table[i] >> 4];
-        offset = round_ctrl_table[i] & 0x0f;
+        // Get pointer to the real or fake data
+        aes_data_ptr = aes_data_table[round_ctrl_table[tindex] >> 4];
+        offset = round_ctrl_table[tindex] & 0x04;
+        stop_mark = round_ctrl_table[tindex] & 0x03;
 
         aes_data_ptr->rk_ptr = aes_fround( aes_data_ptr->rk_ptr,
             &aes_data_ptr->xy_values[0 + offset],
@@ -1117,12 +1125,15 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[5 - offset],
             aes_data_ptr->xy_values[6 - offset],
             aes_data_ptr->xy_values[7 - offset] );
+        tindex++;
         flow_control++;
-    }
+    } while( stop_mark == 0 );
 
-    for( j = 0; j < start_fin_loops; j++ )
+    // Calculate final AES round + dummy rounds
+    do
     {
-        aes_data_ptr = aes_data_table[round_ctrl_table[ i + j ] >> 4];
+        aes_data_ptr = aes_data_table[round_ctrl_table[tindex] >> 4];
+        stop_mark = round_ctrl_table[tindex] & 0x03;
         aes_fround_final( aes_data_ptr->rk_ptr,
             &aes_data_ptr->xy_values[0],
             &aes_data_ptr->xy_values[1],
@@ -1133,25 +1144,23 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[6],
             aes_data_ptr->xy_values[7] );
         flow_control++;
-    }
+        tindex++;
+    } while( stop_mark == 0 );
 
+    // SCA countermeasure, safely clear the output
     mbedtls_platform_memset( output, 0, 16 );
+
+    // SCA countermeasure, randomize secret data location by writing to it in
+    // a random order.
     offset = mbedtls_platform_random_in_range( 4 );
-
-    for( i = offset; i < 4; i++ )
+    i = offset;
+    do
     {
         PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
         flow_control++;
-    }
+    } while( ( i = ( i + 1 ) % 4 ) != offset );
 
-    for( i = 0; i < offset; i++ )
-    {
-        PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
-        flow_control++;
-    }
-
-    if( flow_control == ( AES_SCA_CM_ROUNDS + ( 4 * start_fin_loops ) +
-        ctx->nr - 1 + AES_SCA_CM_ROUNDS + start_fin_loops + 4 )  )
+    if( flow_control == tindex + dummy_rounds + 8 )
     {
         /* Validate control path due possible fault injection */
         return 0;
@@ -1159,6 +1168,87 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
 
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
+
+#else /* MBEDTLS_AES_SCA_COUNTERMEASURES */
+
+#define AES_FROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                     \
+    do                                                          \
+    {                                                           \
+        (X0) = *RK++ ^ AES_FT0( ( (Y0)       ) & 0xFF ) ^       \
+                       AES_FT1( ( (Y1) >>  8 ) & 0xFF ) ^       \
+                       AES_FT2( ( (Y2) >> 16 ) & 0xFF ) ^       \
+                       AES_FT3( ( (Y3) >> 24 ) & 0xFF );        \
+                                                                \
+        (X1) = *RK++ ^ AES_FT0( ( (Y1)       ) & 0xFF ) ^       \
+                       AES_FT1( ( (Y2) >>  8 ) & 0xFF ) ^       \
+                       AES_FT2( ( (Y3) >> 16 ) & 0xFF ) ^       \
+                       AES_FT3( ( (Y0) >> 24 ) & 0xFF );        \
+                                                                \
+        (X2) = *RK++ ^ AES_FT0( ( (Y2)       ) & 0xFF ) ^       \
+                       AES_FT1( ( (Y3) >>  8 ) & 0xFF ) ^       \
+                       AES_FT2( ( (Y0) >> 16 ) & 0xFF ) ^       \
+                       AES_FT3( ( (Y1) >> 24 ) & 0xFF );        \
+                                                                \
+        (X3) = *RK++ ^ AES_FT0( ( (Y3)       ) & 0xFF ) ^       \
+                       AES_FT1( ( (Y0) >>  8 ) & 0xFF ) ^       \
+                       AES_FT2( ( (Y1) >> 16 ) & 0xFF ) ^       \
+                       AES_FT3( ( (Y2) >> 24 ) & 0xFF );        \
+    } while( 0 )
+
+int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
+                                  const unsigned char input[16],
+                                  unsigned char output[16] )
+{
+    int i;
+    uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
+
+    RK = ctx->rk;
+
+    GET_UINT32_LE( X0, input,  0 ); X0 ^= *RK++;
+    GET_UINT32_LE( X1, input,  4 ); X1 ^= *RK++;
+    GET_UINT32_LE( X2, input,  8 ); X2 ^= *RK++;
+    GET_UINT32_LE( X3, input, 12 ); X3 ^= *RK++;
+
+    for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
+    {
+        AES_FROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+        AES_FROUND( X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+    }
+
+    AES_FROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+
+    X0 = *RK++ ^ \
+            ( (uint32_t) FSb[ ( Y0       ) & 0xFF ]       ) ^
+            ( (uint32_t) FSb[ ( Y1 >>  8 ) & 0xFF ] <<  8 ) ^
+            ( (uint32_t) FSb[ ( Y2 >> 16 ) & 0xFF ] << 16 ) ^
+            ( (uint32_t) FSb[ ( Y3 >> 24 ) & 0xFF ] << 24 );
+
+    X1 = *RK++ ^ \
+            ( (uint32_t) FSb[ ( Y1       ) & 0xFF ]       ) ^
+            ( (uint32_t) FSb[ ( Y2 >>  8 ) & 0xFF ] <<  8 ) ^
+            ( (uint32_t) FSb[ ( Y3 >> 16 ) & 0xFF ] << 16 ) ^
+            ( (uint32_t) FSb[ ( Y0 >> 24 ) & 0xFF ] << 24 );
+
+    X2 = *RK++ ^ \
+            ( (uint32_t) FSb[ ( Y2       ) & 0xFF ]       ) ^
+            ( (uint32_t) FSb[ ( Y3 >>  8 ) & 0xFF ] <<  8 ) ^
+            ( (uint32_t) FSb[ ( Y0 >> 16 ) & 0xFF ] << 16 ) ^
+            ( (uint32_t) FSb[ ( Y1 >> 24 ) & 0xFF ] << 24 );
+
+    X3 = *RK++ ^ \
+            ( (uint32_t) FSb[ ( Y3       ) & 0xFF ]       ) ^
+            ( (uint32_t) FSb[ ( Y0 >>  8 ) & 0xFF ] <<  8 ) ^
+            ( (uint32_t) FSb[ ( Y1 >> 16 ) & 0xFF ] << 16 ) ^
+            ( (uint32_t) FSb[ ( Y2 >> 24 ) & 0xFF ] << 24 );
+
+    PUT_UINT32_LE( X0, output,  0 );
+    PUT_UINT32_LE( X1, output,  4 );
+    PUT_UINT32_LE( X2, output,  8 );
+    PUT_UINT32_LE( X3, output, 12 );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
 #endif /* !MBEDTLS_AES_ENCRYPT_ALT */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -1177,6 +1267,7 @@ void mbedtls_aes_encrypt( mbedtls_aes_context *ctx,
 #if !defined(MBEDTLS_AES_DECRYPT_ALT)
 #if !defined(MBEDTLS_AES_ONLY_ENCRYPT)
 
+#if defined(MBEDTLS_AES_SCA_COUNTERMEASURES)
 static uint32_t *aes_rround( uint32_t *R,
     uint32_t *X0, uint32_t *X1, uint32_t *X2, uint32_t *X3,
     uint32_t Y0, uint32_t Y1, uint32_t Y2, uint32_t Y3 )
@@ -1232,50 +1323,65 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                   const unsigned char input[16],
                                   unsigned char output[16] )
 {
-    int i, j, offset, start_fin_loops = 1;
+    int i, tindex, offset, stop_mark, dummy_rounds;
     aes_r_data_t aes_data_real;         // real data
-#if AES_SCA_CM_ROUNDS != 0
     aes_r_data_t aes_data_fake;         // fake data
-#endif /* AES_SCA_CM_ROUNDS != 0 */
-    aes_r_data_t *aes_data_ptr;         // pointer to aes_data_real or aes_data_fake
+    aes_r_data_t *aes_data_ptr;         // pointer to real or fake data
     aes_r_data_t *aes_data_table[2];    // pointers to real and fake data
-    int round_ctrl_table_len = ctx->nr - 1 + AES_SCA_CM_ROUNDS + 2 + 2;
-    // control bytes for AES rounds, reserve based on max ctx->nr
+    int round_ctrl_table_len = ctx->nr + 2 + AES_SCA_CM_ROUNDS;
     volatile int flow_control;
-    uint8_t round_ctrl_table[ 14 - 1 + AES_SCA_CM_ROUNDS + 2 + 2 ];
+    // control bytes for AES calculation rounds,
+    // reserve based on max rounds + dummy rounds + 2 (for initial key addition)
+    uint8_t round_ctrl_table[( 14 + AES_SCA_CM_ROUNDS + 2 )];
 
     aes_data_real.rk_ptr = ctx->rk;
-    aes_data_table[0] = &aes_data_real;
-
-#if AES_SCA_CM_ROUNDS != 0
-    aes_data_table[1] = &aes_data_fake;
     aes_data_fake.rk_ptr = ctx->rk;
-    start_fin_loops = 2;
-    for( i = 0; i < 4; i++ )
-        aes_data_fake.xy_values[i] = mbedtls_platform_random_in_range( 0xffffffff );
-#endif
+    aes_data_table[0] = &aes_data_real;
+    aes_data_table[1] = &aes_data_fake;
 
-    // Get randomized AES calculation control bytes
-    flow_control = aes_sca_cm_data_randomize( round_ctrl_table,
-        round_ctrl_table_len );
+    // Get AES calculation control bytes
+    dummy_rounds = aes_sca_cm_data_randomize( round_ctrl_table,
+                                              round_ctrl_table_len );
+    flow_control = dummy_rounds;
 
-    for( i = 0; i < 4; i++ )
+    // SCA countermeasure, safely clear the aes_data_real.xy_values
+    mbedtls_platform_memset( aes_data_real.xy_values, 0, 16 );
+
+    // SCA countermeasure, randomize secret data location by initializing it in
+    // a random order and writing randomized fake data between the real data
+    // writes.
+    offset = mbedtls_platform_random_in_range( 4 );
+    i = offset;
+    do
     {
         GET_UINT32_LE( aes_data_real.xy_values[i], input,  ( i * 4 ) );
-        for( j = 0; j < start_fin_loops; j++ )
-        {
-            aes_data_ptr =
-                aes_data_table[round_ctrl_table[ round_ctrl_table_len - 4 + j ] >> 4];
-            aes_data_ptr->xy_values[i] ^= *aes_data_ptr->rk_ptr++;
-            flow_control++;
-        }
-    }
+        aes_data_fake.xy_values[i] = mbedtls_platform_random_in_range( 0xffffffff );
+        flow_control++;
+    } while( ( i = ( i + 1 ) % 4 ) != offset );
 
-    for( i = 0; i < ( ctx->nr - 1 + AES_SCA_CM_ROUNDS ); i++ )
+    tindex = 0;
+    do
     {
-        // Read AES control data
-        aes_data_ptr = aes_data_table[round_ctrl_table[i] >> 4];
-        offset = round_ctrl_table[i] & 0x0f;
+        // Get pointer to the real or fake data
+        aes_data_ptr = aes_data_table[round_ctrl_table[tindex] >> 4];
+        stop_mark = round_ctrl_table[tindex] & 0x03;
+
+        // initial round key addition
+        for( i = 0; i < 4; i++ )
+        {
+            aes_data_ptr->xy_values[i] ^= *aes_data_ptr->rk_ptr++;
+        }
+        tindex++;
+        flow_control++;
+    } while( stop_mark == 0 );
+
+    // Calculate AES rounds (9, 11 or 13 rounds) + dummy rounds
+    do
+    {
+        // Get pointer to the real or fake data
+        aes_data_ptr = aes_data_table[round_ctrl_table[tindex] >> 4];
+        offset = round_ctrl_table[tindex] & 0x04;
+        stop_mark = round_ctrl_table[tindex] & 0x03;
 
         aes_data_ptr->rk_ptr = aes_rround( aes_data_ptr->rk_ptr,
             &aes_data_ptr->xy_values[0 + offset],
@@ -1286,12 +1392,15 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[5 - offset],
             aes_data_ptr->xy_values[6 - offset],
             aes_data_ptr->xy_values[7 - offset] );
+        tindex++;
         flow_control++;
-    }
+    } while( stop_mark == 0 );
 
-    for( j = 0; j < start_fin_loops; j++ )
+    // Calculate final AES round + dummy rounds
+    do
     {
-        aes_data_ptr = aes_data_table[round_ctrl_table[ i + j ] >> 4];
+        aes_data_ptr = aes_data_table[round_ctrl_table[tindex] >> 4];
+        stop_mark = round_ctrl_table[tindex] & 0x03;
         aes_rround_final( aes_data_ptr->rk_ptr,
             &aes_data_ptr->xy_values[0],
             &aes_data_ptr->xy_values[1],
@@ -1302,16 +1411,23 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
             aes_data_ptr->xy_values[6],
             aes_data_ptr->xy_values[7] );
         flow_control++;
-    }
+        tindex++;
+    } while( stop_mark == 0 );
 
-    for( i = 0; i < 4; i++ )
+    // SCA countermeasure, safely clear the output
+    mbedtls_platform_memset( output, 0, 16 );
+
+    // SCA countermeasure, randomize secret data location by writing to it in
+    // a random order.
+    offset = mbedtls_platform_random_in_range( 4 );
+    i = offset;
+    do
     {
         PUT_UINT32_LE( aes_data_real.xy_values[i], output,  ( i * 4 ) );
         flow_control++;
-    }
+    } while( ( i = ( i + 1 ) % 4 ) != offset );
 
-    if( flow_control == ( AES_SCA_CM_ROUNDS + ( 4 * start_fin_loops ) +
-        ctx->nr - 1 + AES_SCA_CM_ROUNDS + start_fin_loops + 4 )  )
+    if( flow_control == tindex + dummy_rounds + 8 )
     {
         /* Validate control path due possible fault injection */
         return 0;
@@ -1319,6 +1435,88 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
 
     return( MBEDTLS_ERR_PLATFORM_FAULT_DETECTED );
 }
+
+#else /* MBEDTLS_AES_SCA_COUNTERMEASURES */
+
+#define AES_RROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)                 \
+    do                                                      \
+    {                                                       \
+        (X0) = *RK++ ^ AES_RT0( ( (Y0)       ) & 0xFF ) ^   \
+                       AES_RT1( ( (Y3) >>  8 ) & 0xFF ) ^   \
+                       AES_RT2( ( (Y2) >> 16 ) & 0xFF ) ^   \
+                       AES_RT3( ( (Y1) >> 24 ) & 0xFF );    \
+                                                            \
+        (X1) = *RK++ ^ AES_RT0( ( (Y1)       ) & 0xFF ) ^   \
+                       AES_RT1( ( (Y0) >>  8 ) & 0xFF ) ^   \
+                       AES_RT2( ( (Y3) >> 16 ) & 0xFF ) ^   \
+                       AES_RT3( ( (Y2) >> 24 ) & 0xFF );    \
+                                                            \
+        (X2) = *RK++ ^ AES_RT0( ( (Y2)       ) & 0xFF ) ^   \
+                       AES_RT1( ( (Y1) >>  8 ) & 0xFF ) ^   \
+                       AES_RT2( ( (Y0) >> 16 ) & 0xFF ) ^   \
+                       AES_RT3( ( (Y3) >> 24 ) & 0xFF );    \
+                                                            \
+        (X3) = *RK++ ^ AES_RT0( ( (Y3)       ) & 0xFF ) ^   \
+                       AES_RT1( ( (Y2) >>  8 ) & 0xFF ) ^   \
+                       AES_RT2( ( (Y1) >> 16 ) & 0xFF ) ^   \
+                       AES_RT3( ( (Y0) >> 24 ) & 0xFF );    \
+    } while( 0 )
+
+int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
+                                  const unsigned char input[16],
+                                  unsigned char output[16] )
+{
+    int i;
+    uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
+
+    RK = ctx->rk;
+
+    GET_UINT32_LE( X0, input,  0 ); X0 ^= *RK++;
+    GET_UINT32_LE( X1, input,  4 ); X1 ^= *RK++;
+    GET_UINT32_LE( X2, input,  8 ); X2 ^= *RK++;
+    GET_UINT32_LE( X3, input, 12 ); X3 ^= *RK++;
+
+    for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
+    {
+        AES_RROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+        AES_RROUND( X0, X1, X2, X3, Y0, Y1, Y2, Y3 );
+    }
+
+    AES_RROUND( Y0, Y1, Y2, Y3, X0, X1, X2, X3 );
+
+    X0 = *RK++ ^ \
+            ( (uint32_t) RSb[ ( Y0       ) & 0xFF ]       ) ^
+            ( (uint32_t) RSb[ ( Y3 >>  8 ) & 0xFF ] <<  8 ) ^
+            ( (uint32_t) RSb[ ( Y2 >> 16 ) & 0xFF ] << 16 ) ^
+            ( (uint32_t) RSb[ ( Y1 >> 24 ) & 0xFF ] << 24 );
+
+    X1 = *RK++ ^ \
+            ( (uint32_t) RSb[ ( Y1       ) & 0xFF ]       ) ^
+            ( (uint32_t) RSb[ ( Y0 >>  8 ) & 0xFF ] <<  8 ) ^
+            ( (uint32_t) RSb[ ( Y3 >> 16 ) & 0xFF ] << 16 ) ^
+            ( (uint32_t) RSb[ ( Y2 >> 24 ) & 0xFF ] << 24 );
+
+    X2 = *RK++ ^ \
+            ( (uint32_t) RSb[ ( Y2       ) & 0xFF ]       ) ^
+            ( (uint32_t) RSb[ ( Y1 >>  8 ) & 0xFF ] <<  8 ) ^
+            ( (uint32_t) RSb[ ( Y0 >> 16 ) & 0xFF ] << 16 ) ^
+            ( (uint32_t) RSb[ ( Y3 >> 24 ) & 0xFF ] << 24 );
+
+    X3 = *RK++ ^ \
+            ( (uint32_t) RSb[ ( Y3       ) & 0xFF ]       ) ^
+            ( (uint32_t) RSb[ ( Y2 >>  8 ) & 0xFF ] <<  8 ) ^
+            ( (uint32_t) RSb[ ( Y1 >> 16 ) & 0xFF ] << 16 ) ^
+            ( (uint32_t) RSb[ ( Y0 >> 24 ) & 0xFF ] << 24 );
+
+    PUT_UINT32_LE( X0, output,  0 );
+    PUT_UINT32_LE( X1, output,  4 );
+    PUT_UINT32_LE( X2, output,  8 );
+    PUT_UINT32_LE( X3, output, 12 );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_AES_SCA_COUNTERMEASURES */
+
 #endif /* !MBEDTLS_AES_ONLY_ENCRYPT */
 #endif /* !MBEDTLS_AES_DECRYPT_ALT */
 

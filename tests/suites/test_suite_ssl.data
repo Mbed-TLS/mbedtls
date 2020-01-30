@@ -46,6 +46,45 @@ ssl_mock_tcp_interleaving:1
 Test mock non-blocking TCP connection (interleaving)
 ssl_mock_tcp_interleaving:0
 
+Message queue - sanity
+ssl_message_queue_sanity:
+
+Message queue - basic test
+ssl_message_queue_basic:
+
+Message queue - overflow/underflow
+ssl_message_queue_overflow_underflow:
+
+Message queue - interleaved
+ssl_message_queue_interleaved:
+
+Message queue - insufficient buffer
+ssl_message_queue_insufficient_buffer:
+
+Message transport mock - uninitialized structures
+ssl_message_mock_uninitialized:
+
+Message transport mock - basic test
+ssl_message_mock_basic:
+
+Message transport mock - queue overflow/underflow
+ssl_message_mock_queue_overflow_underflow:
+
+Message transport mock - socket overflow
+ssl_message_mock_socket_overflow:
+
+Message transport mock - truncated message
+ssl_message_mock_truncated:
+
+Message transport mock - socket read error
+ssl_message_mock_socket_read_error:
+
+Message transport mock - one-way interleaved sends/reads
+ssl_message_mock_interleaved_one_way:
+
+Message transport mock - two-way interleaved sends/reads
+ssl_message_mock_interleaved_two_ways:
+
 SSL DTLS replay: initial state, seqnum 0
 ssl_dtls_replay:"":"000000000000":0
 

@@ -83,6 +83,9 @@ set(src_x509
 set(src_tls
     debug.c
     net_sockets.c
+    ssl_12_cli.c
+    ssl_12_gen.c
+    ssl_12_srv.c
     ssl_cache.c
     ssl_ciphersuites.c
     ssl_cli.c
@@ -90,6 +93,7 @@ set(src_tls
     ssl_srv.c
     ssl_ticket.c
     ssl_tls.c
+    ssl_msg.c
 )
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -174,14 +178,14 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 if(USE_SHARED_MBEDTLS_LIBRARY)
 
     add_library(mbedx509 SHARED ${src_x509})
-    set_target_properties(mbedx509 PROPERTIES VERSION 2.20.0 SOVERSION 1)
+    set_target_properties(mbedx509 PROPERTIES VERSION 2.19.1 SOVERSION 1)
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
     target_include_directories(mbedx509
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${MBEDTLS_DIR}/crypto/include/)
 
     add_library(mbedtls SHARED ${src_tls})
-    set_target_properties(mbedtls PROPERTIES VERSION 2.20.0 SOVERSION 13)
+    set_target_properties(mbedtls PROPERTIES VERSION 2.19.1 SOVERSION 13)
     target_link_libraries(mbedtls ${libs} mbedx509)
     target_include_directories(mbedtls
         PUBLIC ${MBEDTLS_DIR}/include/

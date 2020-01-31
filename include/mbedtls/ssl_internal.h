@@ -1101,4 +1101,8 @@ void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+void mbedtls_ssl_clear_peer_cert( mbedtls_ssl_session *session );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
 #endif /* ssl_internal.h */

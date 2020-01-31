@@ -1,7 +1,9 @@
 /* BEGIN_HEADER */
 #include <mbedtls/ssl.h>
 #include <mbedtls/ssl_internal.h>
-
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/certs.h>
 
 /*
  * Buffer structure for custom I/O callbacks.
@@ -59,7 +61,7 @@ void mbedtls_test_buffer_free( mbedtls_test_buffer *buf )
  *          zero and \p input is NULL.
  */
 int mbedtls_test_buffer_put( mbedtls_test_buffer *buf,
-                             const unsigned char* input, size_t input_len )
+                             const unsigned char *input, size_t input_len )
 {
     size_t overflow = 0;
 
@@ -617,6 +619,271 @@ int mbedtls_mock_tcp_recv_msg( void *ctx, unsigned char *buf, size_t buf_len )
 
     return msg_len;
 }
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+
+/*
+ * Structure with endpoint's certificates for SSL communication tests.
+ */
+typedef struct mbedtls_endpoint_certificate
+{
+    mbedtls_x509_crt ca_cert;
+    mbedtls_x509_crt cert;
+    mbedtls_x509_crt cert2;
+    mbedtls_pk_context pkey;
+    mbedtls_pk_context pkey2;
+} mbedtls_endpoint_certificate;
+
+/*
+ * Endpoint structure for SSL communication tests.
+ */
+typedef struct mbedtls_endpoint
+{
+    const char *name;
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_entropy_context entropy;
+    mbedtls_mock_socket socket;
+    mbedtls_endpoint_certificate cert;
+} mbedtls_endpoint;
+
+/*
+ * Initializes \p ep_cert structure and assigns it to endpoint
+ * represented by \p ep.
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int mbedtls_endpoint_certificate_init( mbedtls_endpoint *ep )
+{
+    int i = 0;
+    int ret = -1;
+    mbedtls_endpoint_certificate *cert;
+
+    if( ep == NULL )
+    {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    cert = &( ep->cert );
+    mbedtls_x509_crt_init( &( cert->ca_cert ) );
+    mbedtls_x509_crt_init( &( cert->cert ) );
+    mbedtls_x509_crt_init( &( cert->cert2 ) );
+    mbedtls_pk_init( &( cert->pkey ) );
+    mbedtls_pk_init( &( cert->pkey2 ) );
+
+    /* Load the trusted CA */
+
+    for( i = 0; mbedtls_test_cas[i] != NULL; i++ )
+    {
+        ret = mbedtls_x509_crt_parse( &( cert->ca_cert ),
+                        (const unsigned char *) mbedtls_test_cas[i],
+                        mbedtls_test_cas_len[i] );
+        TEST_ASSERT( ret == 0 );
+    }
+
+    for( i = 0; mbedtls_test_cas_der[i] != NULL; i++ )
+    {
+        ret = mbedtls_x509_crt_parse_der( &( cert->ca_cert ),
+                        (const unsigned char *) mbedtls_test_cas_der[i],
+                        mbedtls_test_cas_der_len[i] );
+        TEST_ASSERT( ret == 0 );
+    }
+
+    /* Load own certificate and private key */
+
+    if( ep->conf.endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        ret = mbedtls_x509_crt_parse( &( cert->cert ),
+                            (const unsigned char *) mbedtls_test_srv_crt_rsa,
+                            mbedtls_test_srv_crt_rsa_len );
+        TEST_ASSERT( ret == 0 );
+
+        ret = mbedtls_pk_parse_key( &( cert->pkey ),
+                            (const unsigned char *) mbedtls_test_srv_key_rsa,
+                            mbedtls_test_srv_key_rsa_len, NULL, 0 );
+        TEST_ASSERT( ret == 0 );
+
+        ret = mbedtls_x509_crt_parse( &( cert->cert2 ),
+                            (const unsigned char *) mbedtls_test_srv_crt_ec,
+                            mbedtls_test_srv_crt_ec_len );
+        TEST_ASSERT( ret == 0 );
+
+        ret = mbedtls_pk_parse_key( &( cert->pkey2 ),
+                            (const unsigned char *) mbedtls_test_srv_key_ec,
+                            mbedtls_test_srv_key_ec_len, NULL, 0 );
+        TEST_ASSERT( ret == 0 );
+    }
+    else
+    {
+        ret = mbedtls_x509_crt_parse( &( cert->cert ),
+                            (const unsigned char *) mbedtls_test_cli_crt,
+                            mbedtls_test_cli_crt_len );
+        TEST_ASSERT( ret == 0 );
+
+        ret = mbedtls_pk_parse_key( &( cert->pkey ),
+                            (const unsigned char *) mbedtls_test_cli_key,
+                            mbedtls_test_cli_key_len, NULL, 0 );
+        TEST_ASSERT( ret == 0 );
+    }
+
+    mbedtls_ssl_conf_ca_chain( &( ep->conf ), &( cert->ca_cert ), NULL );
+
+    ret = mbedtls_ssl_conf_own_cert( &( ep->conf ), &( cert->cert ), &( cert->pkey ) );
+    TEST_ASSERT( ret == 0 );
+
+    if( ep->conf.endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        ret = mbedtls_ssl_conf_own_cert( &( ep->conf ), &( cert->cert2 ), &( cert->pkey2 ) );
+        TEST_ASSERT( ret == 0 );
+    }
+
+exit:
+    if( ret != 0 )
+    {
+        mbedtls_x509_crt_free( &( cert->ca_cert ) );
+        mbedtls_x509_crt_free( &( cert->cert ) );
+        mbedtls_x509_crt_free( &( cert->cert2 ) );
+        mbedtls_pk_free( &( cert->pkey ) );
+        mbedtls_pk_free( &( cert->pkey2 ) );
+    }
+
+    return ret;
+}
+
+/*
+ * Initializes \p ep structure. It is important to call `mbedtls_endpoint_free()`
+ * after calling this function even if it fails.
+ *
+ * \p endpoint_type must be set as MBEDTLS_SSL_IS_SERVER or
+ * MBEDTLS_SSL_IS_CLIENT.
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type )
+{
+    int ret = -1;
+
+    if( ep == NULL )
+    {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    memset( ep, 0, sizeof( *ep ) );
+
+    ep->name = ( endpoint_type == MBEDTLS_SSL_IS_SERVER ) ? "Server" : "Client";
+
+    mbedtls_ssl_init( &( ep->ssl ) );
+    mbedtls_ssl_config_init( &( ep->conf ) );
+    mbedtls_ctr_drbg_init( &( ep->ctr_drbg ) );
+    mbedtls_ssl_conf_rng( &( ep->conf ),
+        mbedtls_ctr_drbg_random,
+        &( ep->ctr_drbg ) );
+    mbedtls_entropy_init( &( ep->entropy ) );
+    mbedtls_mock_socket_init( &( ep->socket ) );
+
+    ret = mbedtls_ctr_drbg_seed( &( ep->ctr_drbg ), mbedtls_entropy_func,
+                    &( ep->entropy ), (const unsigned char *) ( ep->name ),
+                    strlen( ep->name ) );
+    TEST_ASSERT( ret == 0 );
+
+    /* Non-blocking callbacks without timeout */
+    mbedtls_ssl_set_bio( &( ep->ssl ), &( ep->socket ),
+        mbedtls_mock_tcp_send_nb,
+        mbedtls_mock_tcp_recv_nb,
+        NULL );
+
+    ret = mbedtls_ssl_setup( &( ep->ssl ), &( ep->conf ) );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_ssl_config_defaults( &( ep->conf ), endpoint_type,
+                                        MBEDTLS_SSL_TRANSPORT_STREAM,
+                                        MBEDTLS_SSL_PRESET_DEFAULT );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_endpoint_certificate_init( ep );
+    TEST_ASSERT( ret == 0 );
+
+exit:
+    return ret;
+}
+
+/*
+ * Deinitializes certificates from endpoint represented by \p ep.
+ */
+void mbedtls_endpoint_certificate_free( mbedtls_endpoint *ep )
+{
+    mbedtls_endpoint_certificate *cert = &( ep->cert );
+    mbedtls_x509_crt_free( &( cert->ca_cert ) );
+    mbedtls_x509_crt_free( &( cert->cert ) );
+    mbedtls_x509_crt_free( &( cert->cert2 ) );
+    mbedtls_pk_free( &( cert->pkey ) );
+    mbedtls_pk_free( &( cert->pkey2 ) );
+}
+
+/*
+ * Deinitializes endpoint represented by \p ep.
+ */
+void mbedtls_endpoint_free( mbedtls_endpoint *ep )
+{
+    mbedtls_endpoint_certificate_free( ep );
+
+    mbedtls_ssl_free( &( ep->ssl ) );
+    mbedtls_ssl_config_free( &( ep->conf ) );
+    mbedtls_ctr_drbg_free( &( ep->ctr_drbg ) );
+    mbedtls_entropy_free( &( ep->entropy ) );
+    mbedtls_mock_socket_close( &( ep->socket ) );
+}
+
+/*
+ * This function moves ssl handshake from \p ssl to prescribed \p state.
+ * /p second_ssl is used as second endpoint and their sockets have to be
+ * connected before calling this function.
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int mbedtls_move_handshake_to_state( mbedtls_ssl_context *ssl,
+                                     mbedtls_ssl_context *second_ssl,
+                                     int state )
+{
+    enum { BUFFSIZE = 1024 };
+    int max_steps = 1000;
+    int ret = 0;
+
+    if( ssl == NULL || second_ssl == NULL )
+    {
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
+
+    /* Perform communication via connected sockets */
+    while( ( ssl->state != state ) && ( --max_steps >= 0 ) )
+    {
+        /* If /p second_ssl ends the handshake procedure before /p ssl then
+         * there is no need to call the next step */
+        if( second_ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+        {
+            ret = mbedtls_ssl_handshake_step( second_ssl );
+            if( ret != 0 && ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                            ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+            {
+                return ret;
+            }
+        }
+
+        /* We only care about the \p ssl state and returns, so we call it last,
+         * to leave the iteration as soon as the state is as expected. */
+        ret = mbedtls_ssl_handshake_step( ssl );
+        if( ret != 0 && ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                        ret != MBEDTLS_ERR_SSL_WANT_WRITE )
+        {
+            return ret;
+        }
+    }
+
+    return ( max_steps >= 0 ) ? ret : -1;
+}
+
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /*
  * Helper function setting up inverse record transformations
@@ -2646,5 +2913,66 @@ void ssl_session_serialize_version_check( int corrupt_major,
         }
     }
 
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO */
+void mbedtls_endpoint_sanity( int endpoint_type )
+{
+    enum { BUFFSIZE = 1024 };
+    mbedtls_endpoint ep;
+    int ret = -1;
+
+    ret = mbedtls_endpoint_init( NULL, endpoint_type );
+    TEST_ASSERT( MBEDTLS_ERR_SSL_BAD_INPUT_DATA == ret );
+
+    ret = mbedtls_endpoint_certificate_init( NULL );
+    TEST_ASSERT( MBEDTLS_ERR_SSL_BAD_INPUT_DATA == ret );
+
+    ret = mbedtls_endpoint_init( &ep, endpoint_type );
+    TEST_ASSERT( ret == 0 );
+
+exit:
+    mbedtls_endpoint_free( &ep );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO */
+void move_handshake_to_state(int endpoint_type, int state, int need_pass)
+{
+    enum { BUFFSIZE = 1024 };
+    mbedtls_endpoint base_ep, second_ep;
+    int ret = -1;
+
+    ret = mbedtls_endpoint_init( &base_ep, endpoint_type );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_endpoint_init( &second_ep,
+                            ( endpoint_type == MBEDTLS_SSL_IS_SERVER ) ?
+                            MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_mock_socket_connect( &(base_ep.socket),
+                                       &(second_ep.socket),
+                                       BUFFSIZE );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_move_handshake_to_state( &(base_ep.ssl),
+                                           &(second_ep.ssl),
+                                           state );
+    if( need_pass )
+    {
+        TEST_ASSERT( ret == 0 );
+        TEST_ASSERT( base_ep.ssl.state == state );
+    }
+    else
+    {
+        TEST_ASSERT( ret != 0 );
+        TEST_ASSERT( base_ep.ssl.state != state );
+    }
+
+exit:
+    mbedtls_endpoint_free( &base_ep );
+    mbedtls_endpoint_free( &second_ep );
 }
 /* END_CASE */

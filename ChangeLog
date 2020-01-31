@@ -77,9 +77,9 @@ Security
      ARMmbed/mbed-crypto#352
 
 Bugfix
-   * Fix an unchecked call to mbedtls_md() in the x509write module.
    * Allow loading symlinked certificates. Fixes #3005. Reported and fixed
      by Jonathan Bennett <JBennett@incomsystems.biz> via #3008.
+   * Fix an unchecked call to mbedtls_md() in the x509write module.
 
 = mbed TLS 2.16.4 branch released 2020-01-15
 

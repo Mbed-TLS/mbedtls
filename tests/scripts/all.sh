@@ -899,6 +899,33 @@ component_build_deprecated () {
     make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
 }
 
+# Check that the specified libraries exist and are empty.
+are_empty_libraries () {
+  nm "$@" >/dev/null 2>/dev/null
+  ! nm "$@" 2>/dev/null | grep -v ':$' | grep .
+}
+
+component_build_crypto_default () {
+  msg "build: make, crypto only"
+  scripts/config.py crypto
+  make CFLAGS='-O0'
+  if_build_succeeded are_empty_libraries library/libmbedx509.* library/libmbedtls.*
+}
+
+component_build_crypto_full () {
+  msg "build: make, crypto only, full config"
+  scripts/config.py crypto_full
+  make CFLAGS='-O0'
+  if_build_succeeded are_empty_libraries library/libmbedx509.* library/libmbedtls.*
+}
+
+component_build_crypto_baremetal () {
+  msg "build: make, crypto only, baremetal config"
+  scripts/config.py crypto_baremetal
+  make CFLAGS='-O0 -Werror'
+  if_build_succeeded are_empty_libraries library/libmbedx509.* library/libmbedtls.*
+}
+
 component_test_depends_curves () {
     msg "test/build: curves.pl (gcc)" # ~ 4 min
     record_status tests/scripts/curves.pl

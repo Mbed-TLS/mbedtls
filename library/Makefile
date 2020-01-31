@@ -75,10 +75,12 @@ OBJS_X509=	certs.o		pkcs11.o	x509.o		\
 		x509_csr.o	x509write_crt.o	x509write_csr.o
 
 OBJS_TLS=	debug.o		net_sockets.o		\
+		ssl_12_cli.o    ssl_12_gen.o            \
+		ssl_12_srv.o                            \
 		ssl_cache.o	ssl_ciphersuites.o	\
 		ssl_cli.o	ssl_cookie.o		\
-		ssl_srv.o	ssl_ticket.o		\
-		ssl_tls.o
+		ssl_msg.o	ssl_srv.o		\
+		ssl_ticket.o	ssl_tls.o
 
 INCLUDING_FROM_MBEDTLS:=1
 include ../crypto/3rdparty/Makefile.inc

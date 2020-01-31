@@ -257,10 +257,14 @@
     <ClCompile Include="..\..\library\debug.c" />
     <ClCompile Include="..\..\library\net_sockets.c" />
     <ClCompile Include="..\..\library\pkcs11.c" />
+    <ClCompile Include="..\..\library\ssl_12_cli.c" />
+    <ClCompile Include="..\..\library\ssl_12_gen.c" />
+    <ClCompile Include="..\..\library\ssl_12_srv.c" />
     <ClCompile Include="..\..\library\ssl_cache.c" />
     <ClCompile Include="..\..\library\ssl_ciphersuites.c" />
     <ClCompile Include="..\..\library\ssl_cli.c" />
     <ClCompile Include="..\..\library\ssl_cookie.c" />
+    <ClCompile Include="..\..\library\ssl_msg.c" />
     <ClCompile Include="..\..\library\ssl_srv.c" />
     <ClCompile Include="..\..\library\ssl_ticket.c" />
     <ClCompile Include="..\..\library\ssl_tls.c" />

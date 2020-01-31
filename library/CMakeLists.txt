@@ -83,10 +83,14 @@ set(src_x509
 set(src_tls
     debug.c
     net_sockets.c
+    ssl_12_cli.c
+    ssl_12_gen.c
+    ssl_12_srv.c
     ssl_cache.c
     ssl_ciphersuites.c
     ssl_cli.c
     ssl_cookie.c
+    ssl_msg.c
     ssl_srv.c
     ssl_ticket.c
     ssl_tls.c

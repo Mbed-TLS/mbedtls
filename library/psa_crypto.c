@@ -375,71 +375,118 @@ static inline int psa_key_slot_is_external( const psa_key_slot_t *slot )
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_ECP_C)
-static psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid )
+psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
+                                          size_t *bits )
 {
     switch( grpid )
     {
         case MBEDTLS_ECP_DP_SECP192R1:
-            return( PSA_ECC_CURVE_SECP192R1 );
+            *bits = 192;
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP224R1:
-            return( PSA_ECC_CURVE_SECP224R1 );
+            *bits = 224;
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP256R1:
-            return( PSA_ECC_CURVE_SECP256R1 );
+            *bits = 256;
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP384R1:
-            return( PSA_ECC_CURVE_SECP384R1 );
+            *bits = 384;
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_SECP521R1:
-            return( PSA_ECC_CURVE_SECP521R1 );
+            *bits = 521;
+            return( PSA_ECC_CURVE_SECP_R1 );
         case MBEDTLS_ECP_DP_BP256R1:
-            return( PSA_ECC_CURVE_BRAINPOOL_P256R1 );
+            *bits = 256;
+            return( PSA_ECC_CURVE_BRAINPOOL_P_R1 );
         case MBEDTLS_ECP_DP_BP384R1:
-            return( PSA_ECC_CURVE_BRAINPOOL_P384R1 );
+            *bits = 384;
+            return( PSA_ECC_CURVE_BRAINPOOL_P_R1 );
         case MBEDTLS_ECP_DP_BP512R1:
-            return( PSA_ECC_CURVE_BRAINPOOL_P512R1 );
+            *bits = 512;
+            return( PSA_ECC_CURVE_BRAINPOOL_P_R1 );
         case MBEDTLS_ECP_DP_CURVE25519:
-            return( PSA_ECC_CURVE_CURVE25519 );
+            *bits = 255;
+            return( PSA_ECC_CURVE_MONTGOMERY );
         case MBEDTLS_ECP_DP_SECP192K1:
-            return( PSA_ECC_CURVE_SECP192K1 );
+            *bits = 192;
+            return( PSA_ECC_CURVE_SECP_K1 );
         case MBEDTLS_ECP_DP_SECP224K1:
-            return( PSA_ECC_CURVE_SECP224K1 );
+            *bits = 224;
+            return( PSA_ECC_CURVE_SECP_K1 );
         case MBEDTLS_ECP_DP_SECP256K1:
-            return( PSA_ECC_CURVE_SECP256K1 );
+            *bits = 256;
+            return( PSA_ECC_CURVE_SECP_K1 );
         case MBEDTLS_ECP_DP_CURVE448:
-            return( PSA_ECC_CURVE_CURVE448 );
+            *bits = 448;
+            return( PSA_ECC_CURVE_MONTGOMERY );
         default:
             return( 0 );
     }
 }
 
-static mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve )
+mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
+                                               size_t byte_length )
 {
     switch( curve )
     {
-        case PSA_ECC_CURVE_SECP192R1:
-            return( MBEDTLS_ECP_DP_SECP192R1 );
-        case PSA_ECC_CURVE_SECP224R1:
-            return( MBEDTLS_ECP_DP_SECP224R1 );
-        case PSA_ECC_CURVE_SECP256R1:
-            return( MBEDTLS_ECP_DP_SECP256R1 );
-        case PSA_ECC_CURVE_SECP384R1:
-            return( MBEDTLS_ECP_DP_SECP384R1 );
-        case PSA_ECC_CURVE_SECP521R1:
-            return( MBEDTLS_ECP_DP_SECP521R1 );
-        case PSA_ECC_CURVE_BRAINPOOL_P256R1:
-            return( MBEDTLS_ECP_DP_BP256R1 );
-        case PSA_ECC_CURVE_BRAINPOOL_P384R1:
-            return( MBEDTLS_ECP_DP_BP384R1 );
-        case PSA_ECC_CURVE_BRAINPOOL_P512R1:
-            return( MBEDTLS_ECP_DP_BP512R1 );
-        case PSA_ECC_CURVE_CURVE25519:
-            return( MBEDTLS_ECP_DP_CURVE25519 );
-        case PSA_ECC_CURVE_SECP192K1:
-            return( MBEDTLS_ECP_DP_SECP192K1 );
-        case PSA_ECC_CURVE_SECP224K1:
-            return( MBEDTLS_ECP_DP_SECP224K1 );
-        case PSA_ECC_CURVE_SECP256K1:
-            return( MBEDTLS_ECP_DP_SECP256K1 );
-        case PSA_ECC_CURVE_CURVE448:
-            return( MBEDTLS_ECP_DP_CURVE448 );
+        case PSA_ECC_CURVE_SECP_R1:
+            switch( byte_length )
+            {
+                case PSA_BITS_TO_BYTES( 192 ):
+                    return( MBEDTLS_ECP_DP_SECP192R1 );
+                case PSA_BITS_TO_BYTES( 224 ):
+                    return( MBEDTLS_ECP_DP_SECP224R1 );
+                case PSA_BITS_TO_BYTES( 256 ):
+                    return( MBEDTLS_ECP_DP_SECP256R1 );
+                case PSA_BITS_TO_BYTES( 384 ):
+                    return( MBEDTLS_ECP_DP_SECP384R1 );
+                case PSA_BITS_TO_BYTES( 521 ):
+                    return( MBEDTLS_ECP_DP_SECP521R1 );
+                default:
+                    return( MBEDTLS_ECP_DP_NONE );
+            }
+            break;
+
+        case PSA_ECC_CURVE_BRAINPOOL_P_R1:
+            switch( byte_length )
+            {
+                case PSA_BITS_TO_BYTES( 256 ):
+                    return( MBEDTLS_ECP_DP_BP256R1 );
+                case PSA_BITS_TO_BYTES( 384 ):
+                    return( MBEDTLS_ECP_DP_BP384R1 );
+                case PSA_BITS_TO_BYTES( 512 ):
+                    return( MBEDTLS_ECP_DP_BP512R1 );
+                default:
+                    return( MBEDTLS_ECP_DP_NONE );
+            }
+            break;
+
+        case PSA_ECC_CURVE_MONTGOMERY:
+            switch( byte_length )
+            {
+                case PSA_BITS_TO_BYTES( 255 ):
+                    return( MBEDTLS_ECP_DP_CURVE25519 );
+                case PSA_BITS_TO_BYTES( 448 ):
+                    return( MBEDTLS_ECP_DP_CURVE448 );
+                default:
+                    return( MBEDTLS_ECP_DP_NONE );
+            }
+            break;
+
+        case PSA_ECC_CURVE_SECP_K1:
+            switch( byte_length )
+            {
+                case PSA_BITS_TO_BYTES( 192 ):
+                    return( MBEDTLS_ECP_DP_SECP192K1 );
+                case PSA_BITS_TO_BYTES( 224 ):
+                    return( MBEDTLS_ECP_DP_SECP224K1 );
+                case PSA_BITS_TO_BYTES( 256 ):
+                    return( MBEDTLS_ECP_DP_SECP256K1 );
+                default:
+                    return( MBEDTLS_ECP_DP_NONE );
+            }
+            break;
+
         default:
             return( MBEDTLS_ECP_DP_NONE );
     }
@@ -588,6 +635,8 @@ exit:
 
 #if defined(MBEDTLS_ECP_C)
 static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
+                                               size_t data_length,
+                                               int is_public,
                                                mbedtls_ecp_keypair **p_ecp )
 {
     mbedtls_ecp_group_id grp_id = MBEDTLS_ECP_DP_NONE;
@@ -596,8 +645,23 @@ static psa_status_t psa_prepare_import_ec_key( psa_ecc_curve_t curve,
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
     mbedtls_ecp_keypair_init( *p_ecp );
 
+    if( is_public )
+    {
+        /* A public key is represented as:
+         * - The byte 0x04;
+         * - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+         * - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
+         * So its data length is 2m+1 where n is the key size in bits.
+         */
+        if( ( data_length & 1 ) == 0 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        data_length = data_length / 2;
+    }
+
     /* Load the group. */
-    grp_id = mbedtls_ecc_group_of_psa( curve );
+    grp_id = mbedtls_ecc_group_of_psa( curve, data_length );
+    if( grp_id == MBEDTLS_ECP_DP_NONE )
+        return( PSA_ERROR_INVALID_ARGUMENT );
     return( mbedtls_to_psa_error(
                 mbedtls_ecp_group_load( &( *p_ecp )->grp, grp_id ) ) );
 }
@@ -612,7 +676,7 @@ static psa_status_t psa_import_ec_public_key( psa_ecc_curve_t curve,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
 
-    status = psa_prepare_import_ec_key( curve, &ecp );
+    status = psa_prepare_import_ec_key( curve, data_length, 1, &ecp );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -651,10 +715,7 @@ static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_keypair *ecp = NULL;
 
-    if( PSA_BITS_TO_BYTES( PSA_ECC_CURVE_BITS( curve ) ) != data_length )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    status = psa_prepare_import_ec_key( curve, &ecp );
+    status = psa_prepare_import_ec_key( curve, data_length, 0, &ecp );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -5251,12 +5312,13 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
     mbedtls_ecp_keypair *their_key = NULL;
     mbedtls_ecdh_context ecdh;
     psa_status_t status;
+    size_t bits = 0;
+    psa_ecc_curve_t curve = mbedtls_ecc_group_to_psa( our_key->grp.id, &bits );
     mbedtls_ecdh_init( &ecdh );
 
-    status = psa_import_ec_public_key(
-        mbedtls_ecc_group_to_psa( our_key->grp.id ),
-        peer_key, peer_key_length,
-        &their_key );
+    status = psa_import_ec_public_key( curve,
+                                       peer_key, peer_key_length,
+                                       &their_key );
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -5275,8 +5337,14 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
                                   shared_secret, shared_secret_size,
                                   mbedtls_ctr_drbg_random,
                                   &global_data.ctr_drbg ) );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    if( PSA_BITS_TO_BYTES( bits ) != *shared_secret_length )
+        status = PSA_ERROR_CORRUPTION_DETECTED;
 
 exit:
+    if( status != PSA_SUCCESS )
+        mbedtls_platform_zeroize( shared_secret, shared_secret_size );
     mbedtls_ecdh_free( &ecdh );
     mbedtls_ecp_keypair_free( their_key );
     mbedtls_free( their_key );
@@ -5559,7 +5627,8 @@ static psa_status_t psa_generate_key_internal(
     if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEY_PAIR( type ) )
     {
         psa_ecc_curve_t curve = PSA_KEY_TYPE_GET_CURVE( type );
-        mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
+        mbedtls_ecp_group_id grp_id =
+            mbedtls_ecc_group_of_psa( curve, PSA_BITS_TO_BYTES( bits ) );
         const mbedtls_ecp_curve_info *curve_info =
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair *ecp;

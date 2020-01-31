@@ -56,6 +56,18 @@
 #define TEST_CLASSIFICATION_MACRO( flag, alg, flags )           \
     TEST_ASSERT( PSA_##flag( alg ) == !! ( ( flags ) & flag ) )
 
+/* Check the parity of value.
+ * Return 0 if value has even parity and a nonzero value otherwise. */
+int test_parity( uint32_t value )
+{
+    value ^= value >> 16;
+    value ^= value >> 8;
+    value ^= value >> 4;
+    return( 0x9669 & 1 << ( value & 0xf ) );
+}
+#define TEST_PARITY( value )                    \
+    TEST_ASSERT( test_parity( value ) )
+
 void algorithm_classification( psa_algorithm_t alg, unsigned flags )
 {
     TEST_CLASSIFICATION_MACRO( ALG_IS_VENDOR_DEFINED, alg, flags );
@@ -112,6 +124,8 @@ void key_type_classification( psa_key_type_t type, unsigned flags )
     TEST_EQUAL( PSA_KEY_TYPE_IS_DH_PUBLIC_KEY( type ),
                 ( PSA_KEY_TYPE_IS_DH( type ) &&
                   PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ) );
+
+    TEST_PARITY( type );
 
 exit: ;
 }
@@ -476,40 +490,36 @@ void stream_cipher_key_type( int type_arg )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
-void ecc_key_types( int curve_arg, int curve_bits_arg )
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C */
+void ecc_key_family( int curve_arg )
 {
     psa_ecc_curve_t curve = curve_arg;
-    size_t curve_bits = curve_bits_arg;
     psa_key_type_t public_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
     psa_key_type_t pair_type = PSA_KEY_TYPE_ECC_KEY_PAIR( curve );
+
+    test_parity( curve );
 
     test_key_type( public_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_PUBLIC_KEY );
     test_key_type( pair_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_KEY_PAIR );
 
     TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( public_type ), curve );
     TEST_EQUAL( PSA_KEY_TYPE_GET_CURVE( pair_type ), curve );
-
-    TEST_EQUAL( curve_bits, PSA_ECC_CURVE_BITS( curve ) );
-    TEST_ASSERT( curve_bits <= PSA_VENDOR_ECC_MAX_CURVE_BITS );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_DHM_C */
-void dh_key_types( int group_arg, int group_bits_arg )
+void dh_key_family( int group_arg )
 {
     psa_dh_group_t group = group_arg;
-    size_t group_bits = group_bits_arg;
     psa_key_type_t public_type = PSA_KEY_TYPE_DH_PUBLIC_KEY( group );
     psa_key_type_t pair_type = PSA_KEY_TYPE_DH_KEY_PAIR( group );
+
+    test_parity( group );
 
     test_key_type( public_type, KEY_TYPE_IS_DH | KEY_TYPE_IS_PUBLIC_KEY );
     test_key_type( pair_type, KEY_TYPE_IS_DH | KEY_TYPE_IS_KEY_PAIR );
 
     TEST_EQUAL( PSA_KEY_TYPE_GET_GROUP( public_type ), group );
     TEST_EQUAL( PSA_KEY_TYPE_GET_GROUP( pair_type ), group );
-
-    /* We have nothing to validate about the group size yet. */
-    (void) group_bits;
 }
 /* END_CASE */

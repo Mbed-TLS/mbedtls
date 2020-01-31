@@ -75,9 +75,9 @@ class Inputs:
         # Sets of names per type
         self.statuses = set(['PSA_SUCCESS'])
         self.algorithms = set(['0xffffffff'])
-        self.ecc_curves = set(['0xffff'])
-        self.dh_groups = set(['0xffff'])
-        self.key_types = set(['0xffffffff'])
+        self.ecc_curves = set(['0xff'])
+        self.dh_groups = set(['0xff'])
+        self.key_types = set(['0xffff'])
         self.key_usage_flags = set(['0x80000000'])
         # Hard-coded value for unknown algorithms
         self.hash_algorithms = set(['0x010000fe'])
@@ -104,7 +104,9 @@ class Inputs:
             'key_type': [self.key_types],
             'block_cipher_key_type': [self.key_types],
             'stream_cipher_key_type': [self.key_types],
+            'ecc_key_family': [self.ecc_curves],
             'ecc_key_types': [self.ecc_curves],
+            'dh_key_family': [self.dh_groups],
             'dh_key_types': [self.dh_groups],
             'hash_algorithm': [self.hash_algorithms],
             'mac_algorithm': [self.mac_algorithms],

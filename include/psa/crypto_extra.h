@@ -329,7 +329,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * string. The length of the byte string is the length of the base prime `p`
  * in bytes.
  */
-#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x60020000)
+#define PSA_KEY_TYPE_DSA_PUBLIC_KEY                 ((psa_key_type_t)0x4002)
 
 /** DSA key pair (private and public key).
  *
@@ -347,7 +347,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * Add 1 to the resulting integer and use this as the private key *x*.
  *
  */
-#define PSA_KEY_TYPE_DSA_KEY_PAIR                ((psa_key_type_t)0x70020000)
+#define PSA_KEY_TYPE_DSA_KEY_PAIR                    ((psa_key_type_t)0x7002)
 
 /** Whether a key type is an DSA key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_DSA(type)                                       \
@@ -418,9 +418,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * #PSA_KEY_TYPE_DH_KEY_PAIR(#PSA_DH_GROUP_CUSTOM), the group data comes
  * from domain parameters set by psa_set_key_domain_parameters().
  */
-/* This value is a deprecated value meaning an explicit curve in the IANA
- * registry. */
-#define PSA_DH_GROUP_CUSTOM             ((psa_dh_group_t) 0xff01)
+#define PSA_DH_GROUP_CUSTOM             ((psa_dh_group_t) 0x7e)
 
 
 /**
@@ -557,6 +555,50 @@ psa_status_t psa_get_key_domain_parameters(
     (4 + (PSA_BITS_TO_BYTES(key_bits) + 5) * 3 /*without optional parts*/)
 #define PSA_DSA_KEY_DOMAIN_PARAMETERS_SIZE(key_bits)    \
     (4 + (PSA_BITS_TO_BYTES(key_bits) + 5) * 2 /*p, g*/ + 34 /*q*/)
+
+/**@}*/
+
+/** \defgroup psa_tls_helpers TLS helper functions
+ * @{
+ */
+
+#if defined(MBEDTLS_ECP_C)
+#include <mbedtls/ecp.h>
+
+/** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
+ *
+ * \note This function is provided solely for the convenience of
+ *       Mbed TLS and may be removed at any time without notice.
+ *
+ * \param grpid         An Mbed TLS elliptic curve identifier
+ *                      (`MBEDTLS_ECP_DP_xxx`).
+ * \param[out] bits     On success, the bit size of the curve.
+ *
+ * \return              The corresponding PSA elliptic curve identifier
+ *                      (`PSA_ECC_CURVE_xxx`).
+ * \return              \c 0 on failure (\p grpid is not recognized).
+ */
+psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
+                                          size_t *bits );
+
+/** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
+ *
+ * \note This function is provided solely for the convenience of
+ *       Mbed TLS and may be removed at any time without notice.
+ *
+ * \param curve         A PSA elliptic curve identifier
+ *                      (`PSA_ECC_CURVE_xxx`).
+ * \param byte_length   The byte-length of a private key on \p curve.
+ *
+ * \return              The corresponding Mbed TLS elliptic curve identifier
+ *                      (`MBEDTLS_ECP_DP_xxx`).
+ * \return              #MBEDTLS_ECP_DP_NONE if \c curve is not recognized.
+ * \return              #MBEDTLS_ECP_DP_NONE if \p byte_length is not
+ *                      correct for \p curve.
+ */
+mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve,
+                                               size_t byte_length );
+#endif /* MBEDTLS_ECP_C */
 
 /**@}*/
 

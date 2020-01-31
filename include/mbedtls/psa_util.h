@@ -160,81 +160,96 @@ static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg
 /* Translations for ECC. */
 
 static inline int mbedtls_psa_get_ecc_oid_from_id(
-    psa_ecc_curve_t curve, char const **oid, size_t *oid_len )
+    psa_ecc_curve_t curve, size_t bits,
+    char const **oid, size_t *oid_len )
 {
     switch( curve )
     {
+        case PSA_ECC_CURVE_SECP_R1:
+            switch( bits )
+            {
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
-        case PSA_ECC_CURVE_SECP192R1:
-            *oid = MBEDTLS_OID_EC_GRP_SECP192R1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP192R1 );
-            return( 0 );
+                case 192:
+                    *oid = MBEDTLS_OID_EC_GRP_SECP192R1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP192R1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
 #if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
-        case PSA_ECC_CURVE_SECP224R1:
-            *oid = MBEDTLS_OID_EC_GRP_SECP224R1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP224R1 );
-            return( 0 );
+                case 224:
+                    *oid = MBEDTLS_OID_EC_GRP_SECP224R1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP224R1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-        case PSA_ECC_CURVE_SECP256R1:
-            *oid = MBEDTLS_OID_EC_GRP_SECP256R1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP256R1 );
-            return( 0 );
+                case 256:
+                    *oid = MBEDTLS_OID_EC_GRP_SECP256R1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP256R1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-        case PSA_ECC_CURVE_SECP384R1:
-            *oid = MBEDTLS_OID_EC_GRP_SECP384R1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP384R1 );
-            return( 0 );
+                case 384:
+                    *oid = MBEDTLS_OID_EC_GRP_SECP384R1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP384R1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-        case PSA_ECC_CURVE_SECP521R1:
-            *oid = MBEDTLS_OID_EC_GRP_SECP521R1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP521R1 );
-            return( 0 );
+                case 521:
+                    *oid = MBEDTLS_OID_EC_GRP_SECP521R1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP521R1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+            }
+            break;
+        case PSA_ECC_CURVE_SECP_K1:
+            switch( bits )
+            {
 #if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
-        case PSA_ECC_CURVE_SECP192K1:
-            *oid = MBEDTLS_OID_EC_GRP_SECP192K1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP192K1 );
-            return( 0 );
+                case 192:
+                    *oid = MBEDTLS_OID_EC_GRP_SECP192K1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP192K1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
 #if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
-        case PSA_ECC_CURVE_SECP224K1:
-            *oid = MBEDTLS_OID_EC_GRP_SECP224K1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP224K1 );
-            return( 0 );
+                case 224:
+                    *oid = MBEDTLS_OID_EC_GRP_SECP224K1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP224K1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
 #if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
-        case PSA_ECC_CURVE_SECP256K1:
-            *oid = MBEDTLS_OID_EC_GRP_SECP256K1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP256K1 );
-            return( 0 );
+                case 256:
+                    *oid = MBEDTLS_OID_EC_GRP_SECP256K1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP256K1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+            }
+            break;
+        case PSA_ECC_CURVE_BRAINPOOL_P_R1:
+            switch( bits )
+            {
 #if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
-        case PSA_ECC_CURVE_BRAINPOOL_P256R1:
-            *oid = MBEDTLS_OID_EC_GRP_BP256R1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP256R1 );
-            return( 0 );
+                case 256:
+                    *oid = MBEDTLS_OID_EC_GRP_BP256R1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP256R1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
 #if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
-        case PSA_ECC_CURVE_BRAINPOOL_P384R1:
-            *oid = MBEDTLS_OID_EC_GRP_BP384R1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP384R1 );
-            return( 0 );
+                case 384:
+                    *oid = MBEDTLS_OID_EC_GRP_BP384R1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP384R1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
 #if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
-        case PSA_ECC_CURVE_BRAINPOOL_P512R1:
-            *oid = MBEDTLS_OID_EC_GRP_BP512R1;
-            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP512R1 );
-            return( 0 );
+                case 512:
+                    *oid = MBEDTLS_OID_EC_GRP_BP512R1;
+                    *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP512R1 );
+                    return( 0 );
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
-        default:
-            (void) oid;
-            (void) oid_len;
-            return( -1 );
+            }
+            break;
     }
+    (void) oid;
+    (void) oid_len;
+    return( -1 );
 }
 
 #define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH 1
@@ -317,67 +332,6 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
 
 
-static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group_id grpid )
-{
-    switch( grpid )
-    {
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP192R1:
-            return( PSA_ECC_CURVE_SECP192R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP224R1:
-            return( PSA_ECC_CURVE_SECP224R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP256R1:
-            return( PSA_ECC_CURVE_SECP256R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP384R1:
-            return( PSA_ECC_CURVE_SECP384R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP521R1:
-            return( PSA_ECC_CURVE_SECP521R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
-        case MBEDTLS_ECP_DP_BP256R1:
-            return( PSA_ECC_CURVE_BRAINPOOL_P256R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
-        case MBEDTLS_ECP_DP_BP384R1:
-            return( PSA_ECC_CURVE_BRAINPOOL_P384R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
-        case MBEDTLS_ECP_DP_BP512R1:
-            return( PSA_ECC_CURVE_BRAINPOOL_P512R1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-        case MBEDTLS_ECP_DP_CURVE25519:
-            return( PSA_ECC_CURVE_CURVE25519 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP192K1:
-            return( PSA_ECC_CURVE_SECP192K1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP224K1:
-            return( PSA_ECC_CURVE_SECP224K1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
-        case MBEDTLS_ECP_DP_SECP256K1:
-            return( PSA_ECC_CURVE_SECP256K1 );
-#endif
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
-        case MBEDTLS_ECP_DP_CURVE448:
-            return( PSA_ECC_CURVE_CURVE448 );
-#endif
-        default:
-            return( 0 );
-    }
-}
-
 /* Translations for PK layer */
 
 static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
@@ -411,13 +365,18 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
 /* This function transforms an ECC group identifier from
  * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
  * into a PSA ECC group identifier. */
-static inline psa_ecc_curve_t mbedtls_psa_parse_tls_ecc_group(
-    uint16_t tls_ecc_grp_reg_id )
+#if defined(MBEDTLS_ECP_C)
+static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
+    uint16_t tls_ecc_grp_reg_id, size_t *bits )
 {
-    /* The PSA identifiers are currently aligned with those from
-     * the TLS Supported Groups registry, so no conversion is necessary. */
-    return( (psa_ecc_curve_t) tls_ecc_grp_reg_id );
+    const mbedtls_ecp_curve_info *curve_info =
+        mbedtls_ecp_curve_info_from_tls_id( tls_ecc_grp_reg_id );
+    if( curve_info == NULL )
+        return( 0 );
+    return( PSA_KEY_TYPE_ECC_KEY_PAIR(
+                mbedtls_ecc_group_to_psa( curve_info->grp_id, bits ) ) );
 }
+#endif /* MBEDTLS_ECP_C */
 
 /* This function takes a buffer holding an EC public key
  * exported through psa_export_public_key(), and converts
@@ -444,15 +403,12 @@ static inline int mbedtls_psa_tls_psa_ec_to_ecpoint( unsigned char *src,
  * exchanges) and converts it into a format that the PSA key
  * agreement API understands.
  */
-static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( psa_ecc_curve_t curve,
-                                                     unsigned char const *src,
+static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( unsigned char const *src,
                                                      size_t srclen,
                                                      unsigned char *dst,
                                                      size_t dstlen,
                                                      size_t *olen )
 {
-    ((void) curve);
-
     if( srclen > dstlen )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 

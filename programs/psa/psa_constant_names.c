@@ -80,7 +80,7 @@ static void append_with_curve(char **buffer, size_t buffer_size,
                curve_name, strlen(curve_name));
     } else {
         append_integer(buffer, buffer_size, required_size,
-                       "0x%04x", curve);
+                       "0x%02x", curve);
     }
     append(buffer, buffer_size, required_size, ")", 1);
 }
@@ -98,7 +98,7 @@ static void append_with_group(char **buffer, size_t buffer_size,
                group_name, strlen(group_name));
     } else {
         append_integer(buffer, buffer_size, required_size,
-                       "0x%04x", group);
+                       "0x%02x", group);
     }
     append(buffer, buffer_size, required_size, ")", 1);
 }
@@ -144,7 +144,7 @@ static int psa_snprint_ecc_curve(char *buffer, size_t buffer_size,
 {
     const char *name = psa_ecc_curve_name(curve);
     if (name == NULL) {
-        return snprintf(buffer, buffer_size, "0x%04x", (unsigned) curve);
+        return snprintf(buffer, buffer_size, "0x%02x", (unsigned) curve);
     } else {
         size_t length = strlen(name);
         if (length < buffer_size) {
@@ -161,7 +161,7 @@ static int psa_snprint_dh_group(char *buffer, size_t buffer_size,
 {
     const char *name = psa_dh_group_name(group);
     if (name == NULL) {
-        return snprintf(buffer, buffer_size, "0x%04x", (unsigned) group);
+        return snprintf(buffer, buffer_size, "0x%02x", (unsigned) group);
     } else {
         size_t length = strlen(name);
         if (length < buffer_size) {

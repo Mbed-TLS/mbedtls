@@ -83,6 +83,28 @@
 
 
 /****************************************************************/
+/* Domain support functions */
+/****************************************************************/
+
+/* Return the exact bit size given a curve family and a byte length. */
+static size_t ecc_curve_bits( psa_ecc_curve_t curve, size_t data_length )
+{
+    switch( curve )
+    {
+        case PSA_ECC_CURVE_SECP_R1:
+            if( data_length == PSA_BYTES_TO_BITS( 521 ) )
+                return( 521 );
+            break;
+        case PSA_ECC_CURVE_MONTGOMERY:
+            if( data_length == PSA_BYTES_TO_BITS( 255 ) )
+                return( 255 );
+    }
+    /* If not listed above, assume a multiple of 8 bits. */
+    return( PSA_BYTES_TO_BITS( data_length ) );
+}
+
+
+/****************************************************************/
 /* Miscellaneous driver methods */
 /****************************************************************/
 
@@ -294,7 +316,11 @@ static psa_status_t ram_import( psa_drv_se_context_t *context,
     if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) )
         *bits = PSA_BYTES_TO_BITS( data_length );
     else if ( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( type ) )
-        *bits = PSA_ECC_CURVE_BITS( PSA_KEY_TYPE_GET_CURVE( type ) );
+    {
+        *bits = ecc_curve_bits( PSA_KEY_TYPE_GET_CURVE( type ), data_length );
+        if( *bits == 0 )
+            return( PSA_ERROR_DETECTED_BY_DRIVER );
+    }
     else
     {
         memset( &ram_slots[slot_number], 0, sizeof( ram_slots[slot_number] ) );

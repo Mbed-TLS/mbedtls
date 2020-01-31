@@ -1063,4 +1063,16 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                              mbedtls_ssl_transform *transform,
                              mbedtls_record *rec );
 
+/* Length of the "epoch" field in the record header */
+static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        return( 2 );
+#else
+    ((void) ssl);
+#endif
+    return( 0 );
+}
+
 #endif /* ssl_internal.h */

@@ -70,6 +70,11 @@ Security
      unless the RNG is broken, and could result in information disclosure or
      denial of service (application crash or extra resource consumption).
      Found by Auke Zeilstra and Peter Schwabe, using static analysis.
+   * To avoid a side channel vulnerability when parsing an RSA private key,
+     read all the CRT parameters from the DER structure rather than
+     reconstructing them. Found by Alejandro Cabrera Aldaya and Billy Bob
+     Brumley. Reported and fix contributed by Jack Lloyd.
+     ARMmbed/mbed-crypto#352
 
 Bugfix
    * Fix an unchecked call to mbedtls_md() in the x509write module.

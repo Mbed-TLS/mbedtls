@@ -319,7 +319,8 @@ struct mbedtls_ssl_handshake_params
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_ecc_curve_t ecdh_psa_curve;
+    psa_key_type_t ecdh_psa_type;
+    uint16_t ecdh_bits;
     psa_key_handle_t ecdh_psa_privkey;
     unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t ecdh_psa_peerkey_len;

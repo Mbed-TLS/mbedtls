@@ -2244,6 +2244,7 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
                                              unsigned char *end )
 {
     uint16_t tls_id;
+    size_t ecdh_bits = 0;
     uint8_t ecpoint_len;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
@@ -2264,11 +2265,14 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
     tls_id |= *(*p)++;
 
     /* Convert EC group to PSA key type. */
-    if( ( handshake->ecdh_psa_curve =
-          mbedtls_psa_parse_tls_ecc_group( tls_id ) ) == 0 )
+    if( ( handshake->ecdh_psa_type =
+          mbedtls_psa_parse_tls_ecc_group( tls_id, &ecdh_bits ) ) == 0 )
     {
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
+    if( ecdh_bits > 0xffff )
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    handshake->ecdh_bits = (uint16_t) ecdh_bits;
 
     /*
      * Put peer's ECDH public key in the format understood by PSA.
@@ -2278,7 +2282,7 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
     if( (size_t)( end - *p ) < ecpoint_len )
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
 
-    if( mbedtls_psa_tls_ecpoint_to_psa_ec( handshake->ecdh_psa_curve,
+    if( mbedtls_psa_tls_ecpoint_to_psa_ec(
                                     *p, ecpoint_len,
                                     handshake->ecdh_psa_peerkey,
                                     sizeof( handshake->ecdh_psa_peerkey ),
@@ -3257,11 +3261,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         key_attributes = psa_key_attributes_init();
         psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
         psa_set_key_algorithm( &key_attributes, PSA_ALG_ECDH );
-        psa_set_key_type( &key_attributes,
-                          PSA_KEY_TYPE_ECC_KEY_PAIR( handshake->ecdh_psa_curve )
-                        );
-        psa_set_key_bits( &key_attributes,
-                          PSA_ECC_CURVE_BITS( handshake->ecdh_psa_curve ) );
+        psa_set_key_type( &key_attributes, handshake->ecdh_psa_type );
+        psa_set_key_bits( &key_attributes, handshake->ecdh_bits );
 
         /* Generate ECDH private key. */
         status = psa_generate_key( &key_attributes,

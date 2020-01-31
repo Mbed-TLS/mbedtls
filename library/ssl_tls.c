@@ -1992,7 +1992,7 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 static int ssl_write_hello_request( mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-static int ssl_resend_hello_request( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_resend_hello_request( mbedtls_ssl_context *ssl )
 {
     /* If renegotiation is not enforced, retransmit until we would reach max
      * timeout if we were using the usual handshake doubling scheme */
@@ -3285,7 +3285,7 @@ static void ssl_calc_finished_tls_sha384(
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
+void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup: final free" ) );
 
@@ -3357,7 +3357,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         ssl->handshake->flight != NULL )
     {
         /* Cancel handshake timer */
-        ssl_set_timer( ssl, 0 );
+        mbedtls_ssl_set_timer( ssl, 0 );
 
         /* Keep last flight around in case we need to resend it:
          * we need the handshake and transform structures for that */
@@ -3365,7 +3365,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     }
     else
 #endif
-        ssl_handshake_wrapup_free_hs_transform( ssl );
+        mbedtls_ssl_handshake_wrapup_free_hs_transform( ssl );
 
     ssl->state++;
 
@@ -3378,7 +3378,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
 
-    ssl_update_out_pointers( ssl, ssl->transform_negotiate );
+    mbedtls_ssl_update_out_pointers( ssl, ssl->transform_negotiate );
 
     ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->conf->endpoint );
 
@@ -3722,7 +3722,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         else
             ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
 
-        ssl_set_timer( ssl, 0 );
+        mbedtls_ssl_set_timer( ssl, 0 );
     }
 #endif
 
@@ -3801,7 +3801,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
         goto error;
     }
 
-    ssl_reset_in_out_pointers( ssl );
+    mbedtls_ssl_reset_in_out_pointers( ssl );
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         goto error;
@@ -3839,7 +3839,7 @@ error:
  * If partial is non-zero, keep data in the input buffer and client ID.
  * (Use when a DTLS client reconnects from the same port.)
  */
-static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
+int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -3851,7 +3851,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
 
     /* Cancel any possibly running timer */
-    ssl_set_timer( ssl, 0 );
+    mbedtls_ssl_set_timer( ssl, 0 );
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     ssl->renego_status = MBEDTLS_SSL_INITIAL_HANDSHAKE;
@@ -3864,7 +3864,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->secure_renegotiation = MBEDTLS_SSL_LEGACY_RENEGOTIATION;
 
     ssl->in_offt = NULL;
-    ssl_reset_in_out_pointers( ssl );
+    mbedtls_ssl_reset_in_out_pointers( ssl );
 
     ssl->in_msgtype = 0;
     ssl->in_msglen = 0;
@@ -3873,7 +3873,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->in_epoch = 0;
 #endif
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-    ssl_dtls_replay_reset( ssl );
+    mbedtls_ssl_dtls_replay_reset( ssl );
 #endif
 
     ssl->in_hslen = 0;
@@ -3960,7 +3960,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
  */
 int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
 {
-    return( ssl_session_reset_int( ssl, 0 ) );
+    return( mbedtls_ssl_session_reset_int( ssl, 0 ) );
 }
 
 /*
@@ -4071,7 +4071,7 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
     ssl->f_get_timer    = f_get_timer;
 
     /* Make sure we start with no timer running */
-    ssl_set_timer( ssl, 0 );
+    mbedtls_ssl_set_timer( ssl, 0 );
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)
@@ -4878,7 +4878,7 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl )
+size_t mbedtls_ssl_get_current_mtu( const mbedtls_ssl_context *ssl )
 {
     /* Return unlimited mtu for client hello messages to avoid fragmentation. */
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
@@ -4914,9 +4914,9 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl_get_current_mtu( ssl ) != 0 )
+    if( mbedtls_ssl_get_current_mtu( ssl ) != 0 )
     {
-        const size_t mtu = ssl_get_current_mtu( ssl );
+        const size_t mtu = mbedtls_ssl_get_current_mtu( ssl );
         const int ret = mbedtls_ssl_get_record_expansion( ssl );
         const size_t overhead = (size_t) ret;
 
@@ -5622,7 +5622,7 @@ static int ssl_write_hello_request( mbedtls_ssl_context *ssl )
  * If the handshake doesn't complete due to waiting for I/O, it will continue
  * during the next calls to mbedtls_ssl_renegotiate() or mbedtls_ssl_read() respectively.
  */
-static int ssl_start_renegotiation( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_start_renegotiation( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -5852,8 +5852,8 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_free( handshake->verify_cookie );
-    ssl_flight_free( handshake->flight );
-    ssl_buffering_free( ssl );
+    mbedtls_ssl_flight_free( handshake->flight );
+    mbedtls_ssl_buffering_free( ssl );
 #endif
 
 #if defined(MBEDTLS_ECDH_C) &&                  \
@@ -6199,7 +6199,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "saved context", buf, used );
 
-    return( ssl_session_reset_int( ssl, 0 ) );
+    return( mbedtls_ssl_session_reset_int( ssl, 0 ) );
 }
 
 /*
@@ -6296,7 +6296,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     p += 4;
 
     /* This has been allocated by ssl_handshake_init(), called by
-     * by either ssl_session_reset_int() or mbedtls_ssl_setup(). */
+     * by either mbedtls_ssl_session_reset_int() or mbedtls_ssl_setup(). */
     ssl->session = ssl->session_negotiate;
     ssl->session_in = ssl->session;
     ssl->session_out = ssl->session;
@@ -6319,7 +6319,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
      */
 
     /* This has been allocated by ssl_handshake_init(), called by
-     * by either ssl_session_reset_int() or mbedtls_ssl_setup(). */
+     * by either mbedtls_ssl_session_reset_int() or mbedtls_ssl_setup(). */
     ssl->transform = ssl->transform_negotiate;
     ssl->transform_in = ssl->transform;
     ssl->transform_out = ssl->transform;
@@ -6480,7 +6480,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 
     /* Adjust pointers for header fields of outgoing records to
      * the given transform, accounting for explicit IV and CID. */
-    ssl_update_out_pointers( ssl, ssl->transform );
+    mbedtls_ssl_update_out_pointers( ssl, ssl->transform );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->in_epoch = 1;
@@ -6488,7 +6488,8 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 
     /* mbedtls_ssl_reset() leaves the handshake sub-structure allocated,
      * which we don't want - otherwise we'd end up freeing the wrong transform
-     * by calling ssl_handshake_wrapup_free_hs_transform() inappropriately. */
+     * by calling mbedtls_ssl_handshake_wrapup_free_hs_transform()
+     * inappropriately. */
     if( ssl->handshake != NULL )
     {
         mbedtls_ssl_handshake_free( ssl );

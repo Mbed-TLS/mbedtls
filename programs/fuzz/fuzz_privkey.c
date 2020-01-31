@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include "mbedtls/pk.h"
 
 //4 Kb should be enough for every bug ;-)
@@ -29,8 +30,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
             mbedtls_mpi_init( &DQ ); mbedtls_mpi_init( &QP );
 
             rsa = mbedtls_pk_rsa( pk );
-            mbedtls_rsa_export( rsa, &N, &P, &Q, &D, &E );
-            mbedtls_rsa_export_crt( rsa, &DP, &DQ, &QP );
+            if ( mbedtls_rsa_export( rsa, &N, &P, &Q, &D, &E ) != 0 ) {
+                abort();
+            }
+            if ( mbedtls_rsa_export_crt( rsa, &DP, &DQ, &QP ) != 0 ) {
+                abort();
+            }
 
             mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
             mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );

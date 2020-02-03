@@ -525,15 +525,6 @@ int execute_tests( int argc , const char ** argv )
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof( alloc_buf ) );
 #endif
 
-    if( outcome_file_name != NULL )
-    {
-        outcome_file = fopen( outcome_file_name, "a" );
-        if( outcome_file == NULL )
-        {
-            mbedtls_fprintf( stderr, "Unable to open outcome file. Continuing anyway.\n" );
-        }
-    }
-
     /*
      * The C standard doesn't guarantee that all-bits-0 is the representation
      * of a NULL pointer. We do however use that in our code for initializing
@@ -553,6 +544,15 @@ int execute_tests( int argc , const char ** argv )
     {
         mbedtls_fprintf( stderr, "the snprintf implementation is broken\n" );
         return( 1 );
+    }
+
+    if( outcome_file_name != NULL )
+    {
+        outcome_file = fopen( outcome_file_name, "a" );
+        if( outcome_file == NULL )
+        {
+            mbedtls_fprintf( stderr, "Unable to open outcome file. Continuing anyway.\n" );
+        }
     }
 
     while( arg_index < argc )
@@ -607,6 +607,8 @@ int execute_tests( int argc , const char ** argv )
         {
             mbedtls_fprintf( stderr, "Failed to open test file: %s\n",
                              test_filename );
+            if( outcome_file != NULL )
+                fclose( outcome_file );
             return( 1 );
         }
 

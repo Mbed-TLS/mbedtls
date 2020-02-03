@@ -94,6 +94,11 @@ $(test_ca_crt_cat21): $(test_ca_crt) $(test_ca_crt_file_ec)
 	cat $(test_ca_crt_file_ec) $(test_ca_crt) > $@
 all_final += $(test_ca_crt_cat21)
 
+test_ca_crt_cat12u = test-ca_cat12u.crt
+$(test_ca_crt_cat12u): $(test_ca_crt) $(test_ca_crt_file_ec)
+	cat $(test_ca_crt) $(test_ca_crt_file_ec) test-ca_utf8.crt > $@
+all_final += $(test_ca_crt_cat12u)
+
 test-int-ca.csr: test-int-ca.key $(test_ca_config_file)
 	$(OPENSSL) req -new -config $(test_ca_config_file) -key test-int-ca.key -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test Intermediate CA" -out $@
 all_intermediate += test-int-ca.csr

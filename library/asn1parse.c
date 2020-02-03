@@ -254,8 +254,8 @@ int mbedtls_asn1_get_bitstring( unsigned char **p, const unsigned char *end,
 int mbedtls_asn1_traverse_sequence_of(
     unsigned char **p,
     const unsigned char *end,
-    uint8_t tag_must_mask, uint8_t tag_must_val,
-    uint8_t tag_may_mask, uint8_t tag_may_val,
+    unsigned char tag_must_mask, unsigned char tag_must_val,
+    unsigned char tag_may_mask, unsigned char tag_may_val,
     int (*cb)( void *ctx, int tag,
                unsigned char *start, size_t len ),
     void *ctx )

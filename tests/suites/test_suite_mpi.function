@@ -627,9 +627,9 @@ void mbedtls_mpi_copy_binary( data_t *input_X, data_t *input_Y )
     mbedtls_mpi X, Y, X0;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &X0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_binary_le( &X, input_X->x, input_X->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_binary_le( &Y, input_Y->x, input_Y->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_binary_le( &X0, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &Y, input_Y->x, input_Y->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X0, input_X->x, input_X->len ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &X0 ) == 0 );
 
     TEST_ASSERT( mbedtls_mpi_copy( &Y, &X ) == 0 );
@@ -755,10 +755,10 @@ void mbedtls_mpi_swap_binary( data_t *input_X, data_t *input_Y )
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
     mbedtls_mpi_init( &X0 ); mbedtls_mpi_init( &Y0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_binary_le( &X, input_X->x, input_X->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_binary_le( &Y, input_Y->x, input_Y->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_binary_le( &X0, input_X->x, input_X->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_binary_le( &Y0, input_Y->x, input_Y->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &Y, input_Y->x, input_Y->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X0, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &Y0, input_Y->x, input_Y->len ) == 0 );
 
     mbedtls_mpi_swap( &X, &Y );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &Y0 ) == 0 );
@@ -776,8 +776,8 @@ void mpi_swap_self( data_t *input_X )
     mbedtls_mpi X, X0;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &X0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_binary_le( &X, input_X->x, input_X->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_read_binary_le( &X0, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X0, input_X->x, input_X->len ) == 0 );
 
     mbedtls_mpi_swap( &X, &X );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &X0 ) == 0 );

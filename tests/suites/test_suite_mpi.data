@@ -283,28 +283,28 @@ mpi_swap_self:"face"
 Swap self: null
 mpi_swap_self:""
 
-Shrink 2 in 2 to 4
+Shrink 2 limbs in a buffer of size 2 to 4
 mbedtls_mpi_shrink:2:2:4:4
 
-Shrink 2 in 4 to 4
+Shrink 2 limbs in a buffer of size 4 to 4
 mbedtls_mpi_shrink:4:2:4:4
 
-Shrink 2 in 8 to 4
+Shrink 2 limbs in a buffer of size 8 to 4
 mbedtls_mpi_shrink:8:2:4:4
 
-Shrink 4 in 8 to 4
+Shrink 4 limbs in a buffer of size 8 to 4
 mbedtls_mpi_shrink:8:4:4:4
 
-Shrink 6 in 8 to 4 yielding 6
+Shrink 6 limbs in a buffer of size 8 to 4 yielding 6
 mbedtls_mpi_shrink:8:6:4:6
 
-Shrink 2 in 4 to 0 yielding 2
+Shrink 2 limbs in a buffer of size 4 to 0 yielding 2
 mbedtls_mpi_shrink:4:2:0:2
 
-Shrink 1 in 4 to 0 yielding 1
+Shrink 1 limbs in a buffer of size 4 to 0 yielding 1
 mbedtls_mpi_shrink:4:1:0:1
 
-Shrink 0 in 4 to 0 yielding 1
+Shrink 0 limbs in a buffer of size 4 to 0 yielding 1
 mbedtls_mpi_shrink:4:0:0:1
 
 Test mbedtls_mpi_safe_cond_assign #1

@@ -170,6 +170,53 @@ exit:
     return( 0 );
 }
 
+typedef struct
+{
+    const unsigned char *input_start;
+    const char *description;
+} traverse_state_t;
+
+/* Value returned by traverse_callback if description runs out. */
+#define RET_TRAVERSE_STOP 1
+/* Value returned by traverse_callback if description has an invalid format
+ * (see traverse_sequence_of). */
+#define RET_TRAVERSE_ERROR 2
+
+
+static int traverse_callback( void *ctx, int tag,
+                              unsigned char *content, size_t len )
+{
+    traverse_state_t *state = ctx;
+    size_t offset;
+    const char *rest = state->description;
+    unsigned long n;
+
+    TEST_ASSERT( content > state->input_start );
+    offset = content - state->input_start;
+    test_set_step( offset );
+
+    if( *rest == 0 )
+        return( RET_TRAVERSE_STOP );
+    n = strtoul( rest, (char **) &rest, 0 );
+    TEST_EQUAL( n, offset );
+    TEST_EQUAL( *rest, ',' );
+    ++rest;
+    n = strtoul( rest, (char **) &rest, 0 );
+    TEST_EQUAL( n, (unsigned) tag );
+    TEST_EQUAL( *rest, ',' );
+    ++rest;
+    n = strtoul( rest, (char **) &rest, 0 );
+    TEST_EQUAL( n, len );
+    if( *rest == ',' )
+        ++rest;
+
+    state->description = rest;
+    return( 0 );
+
+exit:
+    return( RET_TRAVERSE_ERROR );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -507,8 +554,15 @@ void get_sequence_of( const data_t *input, int tag,
                       const char *description,
                       int expected_result )
 {
+    /* The description string is a comma-separated list of integers.
+     * For each element in the SEQUENCE in input, description contains
+     * two integers: the offset of the element (offset from the start
+     * of input to the tag of the element) and the length of the
+     * element's contents.
+     * "offset1,length1,..." */
+
     mbedtls_asn1_sequence head = { { 0, 0, NULL }, NULL };
-    mbedtls_asn1_sequence *cur, *next;
+    mbedtls_asn1_sequence *cur;
     unsigned char *p = input->x;
     const char *rest = description;
     unsigned long n;
@@ -549,13 +603,36 @@ void get_sequence_of( const data_t *input, int tag,
     }
 
 exit:
-    cur = head.next;
-    while( cur != NULL )
-    {
-        next = cur->next;
-        mbedtls_free( cur );
-        cur = next;
-    }
+    mbedtls_asn1_sequence_free( head.next );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void traverse_sequence_of( const data_t *input,
+                           int tag_must_mask, int tag_must_val,
+                           int tag_may_mask, int tag_may_val,
+                           const char *description,
+                           int expected_result )
+{
+    /* The description string is a comma-separated list of integers.
+     * For each element in the SEQUENCE in input, description contains
+     * three integers: the offset of the element's content (offset from
+     * the start of input to the content of the element), the element's tag,
+     * and the length of the element's contents.
+     * "offset1,tag1,length1,..." */
+
+    unsigned char *p = input->x;
+    traverse_state_t traverse_state = {input->x, description};
+    int ret;
+
+    ret = mbedtls_asn1_traverse_sequence_of( &p, input->x + input->len,
+                                             (uint8_t) tag_must_mask, (uint8_t) tag_must_val,
+                                             (uint8_t) tag_may_mask, (uint8_t) tag_may_val,
+                                             traverse_callback, &traverse_state );
+    if( ret == RET_TRAVERSE_ERROR )
+        goto exit;
+    TEST_EQUAL( ret, expected_result );
+    TEST_EQUAL( *traverse_state.description, 0 );
 }
 /* END_CASE */
 

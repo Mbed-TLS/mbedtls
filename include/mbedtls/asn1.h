@@ -90,6 +90,18 @@
 #define MBEDTLS_ASN1_CONSTRUCTED             0x20
 #define MBEDTLS_ASN1_CONTEXT_SPECIFIC        0x80
 
+/* Slightly smaller way to check if tag is a string tag
+ * compared to canonical implementation. */
+#define MBEDTLS_ASN1_IS_STRING_TAG( tag )                                     \
+    ( ( tag ) < 32u && (                                                      \
+        ( ( 1u << ( tag ) ) & ( ( 1u << MBEDTLS_ASN1_BMP_STRING )       |     \
+                                ( 1u << MBEDTLS_ASN1_UTF8_STRING )      |     \
+                                ( 1u << MBEDTLS_ASN1_T61_STRING )       |     \
+                                ( 1u << MBEDTLS_ASN1_IA5_STRING )       |     \
+                                ( 1u << MBEDTLS_ASN1_UNIVERSAL_STRING ) |     \
+                                ( 1u << MBEDTLS_ASN1_PRINTABLE_STRING ) |     \
+                                ( 1u << MBEDTLS_ASN1_BIT_STRING ) ) ) != 0 ) )
+
 /*
  * Bit masks for each of the components of an ASN.1 tag as specified in
  * ITU X.690 (08/2015), section 8.1 "General rules for encoding",
@@ -119,6 +131,10 @@
 #define MBEDTLS_OID_CMP(oid_str, oid_buf)                                   \
         ( ( MBEDTLS_OID_SIZE(oid_str) != (oid_buf)->len ) ||                \
           memcmp( (oid_str), (oid_buf)->p, (oid_buf)->len) != 0 )
+
+#define MBEDTLS_OID_CMP_RAW(oid_str, oid_buf, oid_buf_len)              \
+        ( ( MBEDTLS_OID_SIZE(oid_str) != (oid_buf_len) ) ||             \
+          memcmp( (oid_str), (oid_buf), (oid_buf_len) ) != 0 )
 
 #ifdef __cplusplus
 extern "C" {
@@ -327,6 +343,9 @@ int mbedtls_asn1_get_bitstring_null( unsigned char **p,
  * \brief       Parses and splits an ASN.1 "SEQUENCE OF <tag>".
  *              Updates the pointer to immediately behind the full sequence tag.
  *
+ * This function allocates memory for the sequence elements. You can free
+ * the allocated memory with mbedtls_asn1_sequence_free().
+ *
  * \note        On error, this function may return a partial list in \p cur.
  *              You must set `cur->next = NULL` before calling this function!
  *              Otherwise it is impossible to distinguish a previously non-null
@@ -360,14 +379,133 @@ int mbedtls_asn1_get_bitstring_null( unsigned char **p,
  * \return      0 if successful.
  * \return      #MBEDTLS_ERR_ASN1_LENGTH_MISMATCH if the input contains
  *              extra data after a valid SEQUENCE OF \p tag.
+ * \return      #MBEDTLS_ERR_ASN1_UNEXPECTED_TAG if the input starts with
+ *              an ASN.1 SEQUENCE in which an element has a tag that
+ *              is different from \p tag.
  * \return      #MBEDTLS_ERR_ASN1_ALLOC_FAILED if a memory allocation failed.
  * \return      An ASN.1 error code if the input does not start with
- *              a valid ASN.1 BIT STRING.
+ *              a valid ASN.1 SEQUENCE.
  */
 int mbedtls_asn1_get_sequence_of( unsigned char **p,
                                   const unsigned char *end,
                                   mbedtls_asn1_sequence *cur,
                                   int tag );
+/**
+ * \brief          Free a heap-allocated linked list presentation of
+ *                 an ASN.1 sequence, including the first element.
+ *
+ * There are two common ways to manage the memory used for the representation
+ * of a parsed ASN.1 sequence:
+ * - Allocate a head node `mbedtls_asn1_sequence *head` with mbedtls_calloc().
+ *   Pass this node as the `cur` argument to mbedtls_asn1_get_sequence_of().
+ *   When you have finished processing the sequence,
+ *   call mbedtls_asn1_sequence_free() on `head`.
+ * - Allocate a head node `mbedtls_asn1_sequence *head` in any manner,
+ *   for example on the stack. Make sure that `head->next == NULL`.
+ *   Pass `head` as the `cur` argument to mbedtls_asn1_get_sequence_of().
+ *   When you have finished processing the sequence,
+ *   call mbedtls_asn1_sequence_free() on `head->cur`,
+ *   then free `head` itself in the appropriate manner.
+ *
+ * \param seq      The address of the first sequence component. This may
+ *                 be \c NULL, in which case this functions returns
+ *                 immediately.
+ */
+void mbedtls_asn1_sequence_free( mbedtls_asn1_sequence *seq );
+
+/**
+ * \brief                Traverse an ASN.1 SEQUENCE container and
+ *                       call a callback for each entry.
+ *
+ * This function checks that the input is a SEQUENCE of elements that
+ * each have a "must" tag, and calls a callback function on the elements
+ * that have a "may" tag.
+ *
+ * For example, to validate that the input is a SEQUENCE of `tag1` and call
+ * `cb` on each element, use
+ * ```
+ * mbedtls_asn1_traverse_sequence_of(&p, end, 0xff, tag1, 0, 0, cb, ctx);
+ * ```
+ *
+ * To validate that the input is a SEQUENCE of ANY and call `cb` on
+ * each element, use
+ * ```
+ * mbedtls_asn1_traverse_sequence_of(&p, end, 0, 0, 0, 0, cb, ctx);
+ * ```
+ *
+ * To validate that the input is a SEQUENCE of CHOICE {NULL, OCTET STRING}
+ * and call `cb` on each element that is an OCTET STRING, use
+ * ```
+ * mbedtls_asn1_traverse_sequence_of(&p, end, 0xfe, 0x04, 0xff, 0x04, cb, ctx);
+ * ```
+ *
+ * The callback is called on the elements with a "may" tag from left to
+ * right. If the input is not a valid SEQUENCE of elements with a "must" tag,
+ * the callback is called on the elements up to the leftmost point where
+ * the input is invalid.
+ *
+ * \warning              This function is still experimental and may change
+ *                       at any time.
+ *
+ * \param p              The address of the pointer to the beginning of
+ *                       the ASN.1 SEQUENCE header. This is updated to
+ *                       point to the end of the ASN.1 SEQUENCE container
+ *                       on a successful invocation.
+ * \param end            The end of the ASN.1 SEQUENCE container.
+ * \param tag_must_mask  A mask to be applied to the ASN.1 tags found within
+ *                       the SEQUENCE before comparing to \p tag_must_value.
+ * \param tag_must_val   The required value of each ASN.1 tag found in the
+ *                       SEQUENCE, after masking with \p tag_must_mask.
+ *                       Mismatching tags lead to an error.
+ *                       For example, a value of \c 0 for both \p tag_must_mask
+ *                       and \p tag_must_val means that every tag is allowed,
+ *                       while a value of \c 0xFF for \p tag_must_mask means
+ *                       that \p tag_must_val is the only allowed tag.
+ * \param tag_may_mask   A mask to be applied to the ASN.1 tags found within
+ *                       the SEQUENCE before comparing to \p tag_may_value.
+ * \param tag_may_val    The desired value of each ASN.1 tag found in the
+ *                       SEQUENCE, after masking with \p tag_may_mask.
+ *                       Mismatching tags will be silently ignored.
+ *                       For example, a value of \c 0 for \p tag_may_mask and
+ *                       \p tag_may_val means that any tag will be considered,
+ *                       while a value of \c 0xFF for \p tag_may_mask means
+ *                       that all tags with value different from \p tag_may_val
+ *                       will be ignored.
+ * \param cb             The callback to trigger for each component
+ *                       in the ASN.1 SEQUENCE that matches \p tag_may_val.
+ *                       The callback function is called with the following
+ *                       parameters:
+ *                       - \p ctx.
+ *                       - The tag of the current element.
+ *                       - A pointer to the start of the current element's
+ *                         content inside the input.
+ *                       - The length of the content of the current element.
+ *                       If the callback returns a non-zero value,
+ *                       the function stops immediately,
+ *                       forwarding the callback's return value.
+ * \param ctx            The context to be passed to the callback \p cb.
+ *
+ * \return               \c 0 if successful the entire ASN.1 SEQUENCE
+ *                       was traversed without parsing or callback errors.
+ * \return               #MBEDTLS_ERR_ASN1_LENGTH_MISMATCH if the input
+ *                       contains extra data after a valid SEQUENCE
+ *                       of elements with an accepted tag.
+ * \return               #MBEDTLS_ERR_ASN1_UNEXPECTED_TAG if the input starts
+ *                       with an ASN.1 SEQUENCE in which an element has a tag
+ *                       that is not accepted.
+ * \return               An ASN.1 error code if the input does not start with
+ *                       a valid ASN.1 SEQUENCE.
+ * \return               A non-zero error code forwarded from the callback
+ *                       \p cb in case the latter returns a non-zero value.
+ */
+int mbedtls_asn1_traverse_sequence_of(
+    unsigned char **p,
+    const unsigned char *end,
+    unsigned char tag_must_mask, unsigned char tag_must_val,
+    unsigned char tag_may_mask, unsigned char tag_may_val,
+    int (*cb)( void *ctx, int tag,
+               unsigned char* start, size_t len ),
+    void *ctx );
 
 #if defined(MBEDTLS_BIGNUM_C)
 /**

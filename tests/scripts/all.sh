@@ -908,21 +908,21 @@ are_empty_libraries () {
 component_build_crypto_default () {
   msg "build: make, crypto only"
   scripts/config.py crypto
-  make CFLAGS='-O0'
+  make CFLAGS='-O1 -Werror'
   if_build_succeeded are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 
 component_build_crypto_full () {
   msg "build: make, crypto only, full config"
   scripts/config.py crypto_full
-  make CFLAGS='-O0'
+  make CFLAGS='-O1 -Werror'
   if_build_succeeded are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 
 component_build_crypto_baremetal () {
   msg "build: make, crypto only, baremetal config"
   scripts/config.py crypto_baremetal
-  make CFLAGS='-O0 -Werror'
+  make CFLAGS='-O1 -Werror'
   if_build_succeeded are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 

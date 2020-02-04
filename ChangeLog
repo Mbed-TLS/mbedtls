@@ -6,6 +6,9 @@ New deprecations
    * Deprecate MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO that enables parsing
      SSLv2 ClientHello messages.
    * Deprecate MBEDTLS_SSL_PROTO_SSL3 that enables support for SSLv3.
+   * Deprecate for MBEDTLS_PKCS11_C, the wrapper around the pkcs11-helper
+     library which allows TLS authentication to use keys stored in a
+     PKCS#11 token such as a smartcard.
 
 Bugfix
    * Allow loading symlinked certificates. Fixes #3005. Reported and fixed

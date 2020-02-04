@@ -453,7 +453,7 @@ int mbedtls_mock_tcp_recv_nb( void *ctx, unsigned char *buf, size_t len )
     if( socket == NULL || socket->status != MBEDTLS_MOCK_SOCKET_CONNECTED )
         return -1;
 
-    if( socket->input->content_length == 0)
+    if( socket->input->content_length == 0 )
     {
         return MBEDTLS_ERR_SSL_WANT_READ;
     }
@@ -907,6 +907,35 @@ int mbedtls_move_handshake_to_state( mbedtls_ssl_context *ssl,
             goto cleanup;                       \
         }                                       \
     } while( 0 )
+
+void set_ciphersuite( mbedtls_ssl_config *conf, const char *cipher,
+                      int* forced_ciphersuite )
+{
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    forced_ciphersuite[0] = mbedtls_ssl_get_ciphersuite_id( cipher );
+    forced_ciphersuite[1] = 0;
+
+    ciphersuite_info =
+        mbedtls_ssl_ciphersuite_from_id( forced_ciphersuite[0] );
+
+    TEST_ASSERT( ciphersuite_info != NULL );
+    TEST_ASSERT( ciphersuite_info->min_minor_ver <= conf->max_minor_ver );
+    TEST_ASSERT( ciphersuite_info->max_minor_ver >= conf->min_minor_ver );
+
+    if( conf->max_minor_ver > ciphersuite_info->max_minor_ver )
+    {
+        conf->max_minor_ver = ciphersuite_info->max_minor_ver;
+    }
+    if( conf->min_minor_ver < ciphersuite_info->min_minor_ver )
+    {
+        conf->min_minor_ver = ciphersuite_info->min_minor_ver;
+    }
+
+    mbedtls_ssl_conf_ciphersuites( conf, forced_ciphersuite );
+
+exit:
+    return;
+}
 
 #if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
 #define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_IN_LEN_MAX
@@ -2982,5 +3011,50 @@ void move_handshake_to_state(int endpoint_type, int state, int need_pass)
 exit:
     mbedtls_endpoint_free( &base_ep );
     mbedtls_endpoint_free( &second_ep );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
+void handshake( const char *cipher, int version, int pk_alg )
+{
+    /* forced_ciphersuite needs to last until the end of the handshake */
+    int forced_ciphersuite[2];
+    enum { BUFFSIZE = 1024 };
+    mbedtls_endpoint client, server;
+
+    /* Client side */
+    TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
+                                 pk_alg ) == 0 );
+
+    mbedtls_ssl_conf_min_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                      version );
+    mbedtls_ssl_conf_max_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                      version );
+
+    if( strlen( cipher ) > 0 )
+    {
+        set_ciphersuite( &client.conf, cipher, forced_ciphersuite );
+    }
+    /* Server side */
+    TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
+                                 pk_alg ) == 0 );
+
+    mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                      version );
+
+    TEST_ASSERT( mbedtls_mock_socket_connect( &(client.socket),
+                                              &(server.socket),
+                                              BUFFSIZE ) == 0 );
+
+    TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
+                                                  &(server.ssl),
+                                                  MBEDTLS_SSL_HANDSHAKE_OVER )
+                 == 0 );
+    TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+    TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+
+exit:
+    mbedtls_endpoint_free( &client );
+    mbedtls_endpoint_free( &server );
 }
 /* END_CASE */

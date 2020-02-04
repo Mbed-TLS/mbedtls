@@ -937,6 +937,17 @@ exit:
     return;
 }
 
+int psk_dummy_callback( void *p_info, mbedtls_ssl_context *ssl,
+                  const unsigned char *name, size_t name_len )
+{
+    (void) p_info;
+    (void) ssl;
+    (void) name;
+    (void) name_len;
+
+    return ( 0 );
+}
+
 #if MBEDTLS_SSL_CID_OUT_LEN_MAX > MBEDTLS_SSL_CID_IN_LEN_MAX
 #define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_IN_LEN_MAX
 #else
@@ -3015,13 +3026,18 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
-void handshake( const char *cipher, int version, int pk_alg )
+void handshake( const char *cipher, int version, int pk_alg,
+                data_t *psk_str )
 {
     /* forced_ciphersuite needs to last until the end of the handshake */
     int forced_ciphersuite[2];
     enum { BUFFSIZE = 1024 };
     mbedtls_endpoint client, server;
-
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    const char *psk_identity = "foo";
+#else
+    (void) psk_str;
+#endif
     /* Client side */
     TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
                                  pk_alg ) == 0 );
@@ -3041,7 +3057,22 @@ void handshake( const char *cipher, int version, int pk_alg )
 
     mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
                                       version );
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    if( psk_str->len > 0 )
+    {
+        TEST_ASSERT( mbedtls_ssl_conf_psk( &client.conf, psk_str->x,
+                             psk_str->len,
+                             (const unsigned char *) psk_identity,
+                             strlen( psk_identity ) ) == 0 );
 
+        TEST_ASSERT( mbedtls_ssl_conf_psk( &server.conf, psk_str->x,
+                             psk_str->len,
+                             (const unsigned char *) psk_identity,
+                             strlen( psk_identity ) ) == 0 );
+
+        mbedtls_ssl_conf_psk_cb( &server.conf, psk_dummy_callback, NULL );
+    }
+#endif
     TEST_ASSERT( mbedtls_mock_socket_connect( &(client.socket),
                                               &(server.socket),
                                               BUFFSIZE ) == 0 );

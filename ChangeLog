@@ -8,8 +8,6 @@ New deprecations
    * Deprecate MBEDTLS_SSL_PROTO_SSL3 that enables support for SSLv3.
 
 Bugfix
-   * Allow loading symlinked certificates. Fixes #3005. Reported and fixed
-     by Jonathan Bennett <JBennett@incomsystems.biz> via #3008.
    * Fix an unchecked call to mbedtls_md() in the x509write module.
    * Fix build failure with MBEDTLS_ZLIB_SUPPORT enabled. Reported by
      Jack Lloyd in #2859. Fix submitted by jiblime in #2963.

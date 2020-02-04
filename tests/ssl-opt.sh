@@ -37,7 +37,7 @@ ulimit -f 20971520
 O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
-G_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
+G_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_CLI --x509cafile data_files/test-ca_cat12u.crt"
 TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 TESTS=0
@@ -3772,15 +3772,8 @@ run_test    "Per-version suites: TLS 1.2" \
 # Test for ClientHello without extensions
 
 requires_gnutls
-run_test    "ClientHello without extensions, SHA-1 allowed" \
-            "$P_SRV debug_level=3 key_file=data_files/server2.key crt_file=data_files/server2.crt" \
-            "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION" \
-            0 \
-            -s "dumping 'client hello extensions' (0 bytes)"
-
-requires_gnutls
-run_test    "ClientHello without extensions, SHA-1 forbidden in certificates on server" \
-            "$P_SRV debug_level=3 key_file=data_files/server2.key crt_file=data_files/server2.crt allow_sha1=0" \
+run_test    "ClientHello without extensions" \
+            "$P_SRV debug_level=3" \
             "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION" \
             0 \
             -s "dumping 'client hello extensions' (0 bytes)"

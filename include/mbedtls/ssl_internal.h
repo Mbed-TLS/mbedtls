@@ -1063,4 +1063,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                              mbedtls_ssl_transform *transform,
                              mbedtls_record *rec );
 
+
+void mbedtls_ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs );
 #endif /* ssl_internal.h */

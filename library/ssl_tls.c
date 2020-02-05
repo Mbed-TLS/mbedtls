@@ -80,7 +80,7 @@ static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
  * Start a timer.
  * Passing millisecs = 0 cancels a running timer.
  */
-static void ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
+void mbedtls_ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
 {
     if( ssl->f_set_timer == NULL )
         return;
@@ -3727,7 +3727,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
         if( ret == MBEDTLS_ERR_SSL_TIMEOUT )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "timeout" ) );
-            ssl_set_timer( ssl, 0 );
+            mbedtls_ssl_set_timer( ssl, 0 );
 
             if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
             {
@@ -4167,7 +4167,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
     else
     {
         ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
-        ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
+        mbedtls_ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_flight_transmit" ) );
@@ -4195,7 +4195,7 @@ void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl )
     ssl_buffering_free( ssl );
 
     /* Cancel timer */
-    ssl_set_timer( ssl, 0 );
+    mbedtls_ssl_set_timer( ssl, 0 );
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
         ssl->in_msg[0] == MBEDTLS_SSL_HS_FINISHED )
@@ -4212,7 +4212,7 @@ void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl )
 void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
 {
     ssl_reset_retransmit_timeout( ssl );
-    ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
+    mbedtls_ssl_set_timer( ssl, ssl->handshake->retransmit_timeout );
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
         ssl->in_msg[0] == MBEDTLS_SSL_HS_FINISHED )
@@ -8082,7 +8082,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         ssl->handshake->flight != NULL )
     {
         /* Cancel handshake timer */
-        ssl_set_timer( ssl, 0 );
+        mbedtls_ssl_set_timer( ssl, 0 );
 
         /* Keep last flight around in case we need to resend it:
          * we need the handshake and transform structures for that */
@@ -8447,7 +8447,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         else
             ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_WAITING;
 
-        ssl_set_timer( ssl, 0 );
+        mbedtls_ssl_set_timer( ssl, 0 );
     }
 #endif
 
@@ -8693,7 +8693,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
 
     /* Cancel any possibly running timer */
-    ssl_set_timer( ssl, 0 );
+    mbedtls_ssl_set_timer( ssl, 0 );
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     ssl->renego_status = MBEDTLS_SSL_INITIAL_HANDSHAKE;
@@ -8913,7 +8913,7 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
     ssl->f_get_timer    = f_get_timer;
 
     /* Make sure we start with no timer running */
-    ssl_set_timer( ssl, 0 );
+    mbedtls_ssl_set_timer( ssl, 0 );
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)
@@ -10779,7 +10779,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         if( ssl->f_get_timer != NULL &&
             ssl->f_get_timer( ssl->p_timer ) == -1 )
         {
-            ssl_set_timer( ssl, ssl->conf->read_timeout );
+            mbedtls_ssl_set_timer( ssl, ssl->conf->read_timeout );
         }
 
         if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
@@ -10972,7 +10972,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         /* We're going to return something now, cancel timer,
          * except if handshake (renegotiation) is in progress */
         if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
-            ssl_set_timer( ssl, 0 );
+            mbedtls_ssl_set_timer( ssl, 0 );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
         /* If we requested renego but received AppData, resend HelloRequest.

@@ -5567,8 +5567,6 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
-
 /*
  * Read a record.
  *
@@ -6583,7 +6581,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
         if( ssl->handshake != NULL &&
             ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER  )
         {
-            ssl_handshake_wrapup_free_hs_transform( ssl );
+            mbedtls_ssl_handshake_wrapup_free_hs_transform( ssl );
         }
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
@@ -7987,7 +7985,7 @@ static void ssl_calc_finished_tls_sha384(
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
+void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup: final free" ) );
 
@@ -8067,7 +8065,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     }
     else
 #endif
-        ssl_handshake_wrapup_free_hs_transform( ssl );
+        mbedtls_ssl_handshake_wrapup_free_hs_transform( ssl );
 
     ssl->state++;
 
@@ -11984,7 +11982,8 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 
     /* mbedtls_ssl_reset() leaves the handshake sub-structure allocated,
      * which we don't want - otherwise we'd end up freeing the wrong transform
-     * by calling ssl_handshake_wrapup_free_hs_transform() inappropriately. */
+     * by calling mbedtls_ssl_handshake_wrapup_free_hs_transform()
+     * inappropriately. */
     if( ssl->handshake != NULL )
     {
         mbedtls_ssl_handshake_free( ssl );

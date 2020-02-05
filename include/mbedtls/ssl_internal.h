@@ -1091,4 +1091,6 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
 void mbedtls_ssl_dtls_replay_reset( mbedtls_ssl_context *ssl );
 #endif
 
+void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
+
 #endif /* ssl_internal.h */

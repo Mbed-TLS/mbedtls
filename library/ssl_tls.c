@@ -3544,7 +3544,7 @@ static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
 static int ssl_write_hello_request( mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-static int ssl_resend_hello_request( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_resend_hello_request( mbedtls_ssl_context *ssl )
 {
     /* If renegotiation is not enforced, retransmit until we would reach max
      * timeout if we were using the usual handshake doubling scheme */
@@ -3732,9 +3732,10 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
             else if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
                      ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
             {
-                if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
+                if( ( ret = mbedtls_ssl_resend_hello_request( ssl ) ) != 0 )
                 {
-                    MBEDTLS_SSL_DEBUG_RET( 1, "ssl_resend_hello_request", ret );
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_resend_hello_request",
+                                           ret );
                     return( ret );
                 }
 
@@ -10958,9 +10959,10 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
             ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {
-            if( ( ret = ssl_resend_hello_request( ssl ) ) != 0 )
+            if( ( ret = mbedtls_ssl_resend_hello_request( ssl ) ) != 0 )
             {
-                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_resend_hello_request", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_resend_hello_request",
+                                       ret );
                 return( ret );
             }
         }

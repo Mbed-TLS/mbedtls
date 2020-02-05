@@ -1,3 +1,5 @@
+#if 0
+
 /*
  *  SSLv3/TLSv1 shared functions
  *
@@ -12949,3 +12951,5 @@ exit:
           MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #endif /* MBEDTLS_SSL_TLS_C */
+
+#endif /* 0 */

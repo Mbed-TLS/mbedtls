@@ -87,6 +87,7 @@ set(src_tls
     ssl_ciphersuites.c
     ssl_cli.c
     ssl_cookie.c
+    ssl_msg.c
     ssl_srv.c
     ssl_ticket.c
     ssl_tls.c

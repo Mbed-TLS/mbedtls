@@ -80,7 +80,7 @@ void mbedtls_ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs )
 /*
  * Return -1 is timer is expired, 0 if it isn't.
  */
-static int ssl_check_timer( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_check_timer( mbedtls_ssl_context *ssl )
 {
     if( ssl->f_get_timer == NULL )
         return( 0 );
@@ -3684,7 +3684,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
          * This avoids by-passing the timer when repeatedly receiving messages
          * that will end up being dropped.
          */
-        if( ssl_check_timer( ssl ) != 0 )
+        if( mbedtls_ssl_check_timer( ssl ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "timer has expired" ) );
             ret = MBEDTLS_ERR_SSL_TIMEOUT;
@@ -3763,7 +3763,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
         {
             len = nb_want - ssl->in_left;
 
-            if( ssl_check_timer( ssl ) != 0 )
+            if( mbedtls_ssl_check_timer( ssl ) != 0 )
                 ret = MBEDTLS_ERR_SSL_TIMEOUT;
             else
             {

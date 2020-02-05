@@ -64,18 +64,6 @@
 static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 
-/* Length of the "epoch" field in the record header */
-static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
-{
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        return( 2 );
-#else
-    ((void) ssl);
-#endif
-    return( 0 );
-}
-
 /*
  * Start a timer.
  * Passing millisecs = 0 cancels a running timer.
@@ -4539,12 +4527,12 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
         ssl->out_hdr  += protected_record_size;
         ssl_update_out_pointers( ssl, ssl->transform_out );
 
-        for( i = 8; i > ssl_ep_len( ssl ); i-- )
+        for( i = 8; i > mbedtls_ssl_ep_len( ssl ); i-- )
             if( ++ssl->cur_out_ctr[i - 1] != 0 )
                 break;
 
         /* The loop goes to its end iff the counter is wrapping */
-        if( i == ssl_ep_len( ssl ) )
+        if( i == mbedtls_ssl_ep_len( ssl ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "outgoing message counter would wrap" ) );
             return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
@@ -5558,12 +5546,12 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
 #endif
         {
             unsigned i;
-            for( i = 8; i > ssl_ep_len( ssl ); i-- )
+            for( i = 8; i > mbedtls_ssl_ep_len( ssl ); i-- )
                 if( ++ssl->in_ctr[i - 1] != 0 )
                     break;
 
             /* The loop goes to its end iff the counter is wrapping */
-            if( i == ssl_ep_len( ssl ) )
+            if( i == mbedtls_ssl_ep_len( ssl ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "incoming message counter would wrap" ) );
                 return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
@@ -10685,7 +10673,7 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl )
  */
 static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 {
-    size_t ep_len = ssl_ep_len( ssl );
+    size_t ep_len = mbedtls_ssl_ep_len( ssl );
     int in_ctr_cmp;
     int out_ctr_cmp;
 

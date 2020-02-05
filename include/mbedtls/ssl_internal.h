@@ -1084,4 +1084,6 @@ void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
                               mbedtls_ssl_transform *transform );
 void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
+int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
+
 #endif /* ssl_internal.h */

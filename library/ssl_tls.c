@@ -4944,9 +4944,6 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
-/* Forward declaration */
-static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
-
 /*
  * Without any SSL context, check if a datagram looks like a ClientHello with
  * a valid cookie, and if it doesn't, generate a HelloVerifyRequest message.
@@ -5124,7 +5121,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
     if( ret == 0 )
     {
         /* Got a valid cookie, partially reset context */
-        if( ( ret = ssl_session_reset_int( ssl, 1 ) ) != 0 )
+        if( ( ret = mbedtls_ssl_session_reset_int( ssl, 1 ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "reset", ret );
             return( ret );
@@ -8664,7 +8661,7 @@ error:
  * If partial is non-zero, keep data in the input buffer and client ID.
  * (Use when a DTLS client reconnects from the same port.)
  */
-static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
+int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -8785,7 +8782,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
  */
 int mbedtls_ssl_session_reset( mbedtls_ssl_context *ssl )
 {
-    return( ssl_session_reset_int( ssl, 0 ) );
+    return( mbedtls_ssl_session_reset_int( ssl, 0 ) );
 }
 
 /*
@@ -11700,7 +11697,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "saved context", buf, used );
 
-    return( ssl_session_reset_int( ssl, 0 ) );
+    return( mbedtls_ssl_session_reset_int( ssl, 0 ) );
 }
 
 /*
@@ -11797,7 +11794,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     p += 4;
 
     /* This has been allocated by ssl_handshake_init(), called by
-     * by either ssl_session_reset_int() or mbedtls_ssl_setup(). */
+     * by either mbedtls_ssl_session_reset_int() or mbedtls_ssl_setup(). */
     ssl->session = ssl->session_negotiate;
     ssl->session_in = ssl->session;
     ssl->session_out = ssl->session;
@@ -11820,7 +11817,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
      */
 
     /* This has been allocated by ssl_handshake_init(), called by
-     * by either ssl_session_reset_int() or mbedtls_ssl_setup(). */
+     * by either mbedtls_ssl_session_reset_int() or mbedtls_ssl_setup(). */
     ssl->transform = ssl->transform_negotiate;
     ssl->transform_in = ssl->transform;
     ssl->transform_out = ssl->transform;

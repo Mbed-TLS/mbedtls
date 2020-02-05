@@ -10562,7 +10562,7 @@ static int ssl_write_hello_request( mbedtls_ssl_context *ssl )
  * If the handshake doesn't complete due to waiting for I/O, it will continue
  * during the next calls to mbedtls_ssl_renegotiate() or mbedtls_ssl_read() respectively.
  */
-static int ssl_start_renegotiation( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_start_renegotiation( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -10636,9 +10636,9 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl )
         if( ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-        if( ( ret = ssl_start_renegotiation( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_start_renegotiation( ssl ) ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_start_renegotiation", ret );
             return( ret );
         }
     }
@@ -10846,11 +10846,12 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                     ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_PENDING;
                 }
 #endif
-                ret = ssl_start_renegotiation( ssl );
+                ret = mbedtls_ssl_start_renegotiation( ssl );
                 if( ret != MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO &&
                     ret != 0 )
                 {
-                    MBEDTLS_SSL_DEBUG_RET( 1, "ssl_start_renegotiation", ret );
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_start_renegotiation",
+                                           ret );
                     return( ret );
                 }
             }

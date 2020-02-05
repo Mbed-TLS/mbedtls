@@ -268,10 +268,9 @@ static int ssl_buffer_future_record( mbedtls_ssl_context *ssl,
                                      mbedtls_record const *rec );
 static int ssl_next_record_is_in_datagram( mbedtls_ssl_context *ssl );
 
-static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
 static size_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
 {
-    size_t mtu = ssl_get_current_mtu( ssl );
+    size_t mtu = mbedtls_ssl_get_current_mtu( ssl );
 
     if( mtu != 0 && mtu < MBEDTLS_SSL_OUT_BUFFER_LEN )
         return( mtu );
@@ -9817,7 +9816,7 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl )
+size_t mbedtls_ssl_get_current_mtu( const mbedtls_ssl_context *ssl )
 {
     /* Return unlimited mtu for client hello messages to avoid fragmentation. */
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
@@ -9853,9 +9852,9 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl_get_current_mtu( ssl ) != 0 )
+    if( mbedtls_ssl_get_current_mtu( ssl ) != 0 )
     {
-        const size_t mtu = ssl_get_current_mtu( ssl );
+        const size_t mtu = mbedtls_ssl_get_current_mtu( ssl );
         const int ret = mbedtls_ssl_get_record_expansion( ssl );
         const size_t overhead = (size_t) ret;
 

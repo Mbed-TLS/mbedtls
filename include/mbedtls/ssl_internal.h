@@ -1079,4 +1079,9 @@ static inline size_t mbedtls_ssl_ep_len( const mbedtls_ssl_context *ssl )
 void mbedtls_ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs );
 int mbedtls_ssl_check_timer( mbedtls_ssl_context *ssl );
 
+void mbedtls_ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
+void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
+                              mbedtls_ssl_transform *transform );
+void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl );
+
 #endif /* ssl_internal.h */

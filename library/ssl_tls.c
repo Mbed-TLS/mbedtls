@@ -61,7 +61,6 @@
 #include "mbedtls/oid.h"
 #endif
 
-static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 
 /*
@@ -93,10 +92,6 @@ int mbedtls_ssl_check_timer( mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
-
-static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
-                                     mbedtls_ssl_transform *transform );
-static void ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_RECORD_CHECKING)
 static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
@@ -3865,7 +3860,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
     {
         ssl->out_hdr = ssl->out_buf + 8;
     }
-    ssl_update_out_pointers( ssl, ssl->transform_out );
+    mbedtls_ssl_update_out_pointers( ssl, ssl->transform_out );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= flush output" ) );
 
@@ -3972,7 +3967,7 @@ static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
     memcpy( ssl->handshake->alt_out_ctr, tmp_out_ctr,                 8 );
 
     /* Adjust to the newly activated transform */
-    ssl_update_out_pointers( ssl, ssl->transform_out );
+    mbedtls_ssl_update_out_pointers( ssl, ssl->transform_out );
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
@@ -4525,7 +4520,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 
         ssl->out_left += protected_record_size;
         ssl->out_hdr  += protected_record_size;
-        ssl_update_out_pointers( ssl, ssl->transform_out );
+        mbedtls_ssl_update_out_pointers( ssl, ssl->transform_out );
 
         for( i = 8; i > mbedtls_ssl_ep_len( ssl ); i-- )
             if( ++ssl->cur_out_ctr[i - 1] != 0 )
@@ -6289,7 +6284,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
                 /* Reset in pointers to default state for TLS/DTLS records,
                  * assuming no CID and no offset between record content and
                  * record plaintext. */
-                ssl_update_in_pointers( ssl );
+                mbedtls_ssl_update_in_pointers( ssl );
 
                 /* Setup internal message pointers from record structure. */
                 ssl->in_msgtype = rec.type;
@@ -6426,7 +6421,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
     /* Reset in pointers to default state for TLS/DTLS records,
      * assuming no CID and no offset between record content and
      * record plaintext. */
-    ssl_update_in_pointers( ssl );
+    mbedtls_ssl_update_in_pointers( ssl );
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ssl->in_len = ssl->in_cid + rec.cid_len;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -7561,7 +7556,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     memset( ssl->in_ctr, 0, 8 );
 
-    ssl_update_in_pointers( ssl );
+    mbedtls_ssl_update_in_pointers( ssl );
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
@@ -8091,7 +8086,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
 
-    ssl_update_out_pointers( ssl, ssl->transform_negotiate );
+    mbedtls_ssl_update_out_pointers( ssl, ssl->transform_negotiate );
 
     ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->conf->endpoint );
 
@@ -8479,8 +8474,8 @@ static int ssl_cookie_check_dummy( void *ctx,
  *       and the caller has to make sure there's space for this.
  */
 
-static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
-                                     mbedtls_ssl_transform *transform )
+void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
+                                      mbedtls_ssl_transform *transform )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -8525,7 +8520,7 @@ static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
  *       and the caller has to make sure there's space for this.
  */
 
-static void ssl_update_in_pointers( mbedtls_ssl_context *ssl )
+void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl )
 {
     /* This function sets the pointers to match the case
      * of unprotected TLS/DTLS records, with both  ssl->in_iv
@@ -8580,7 +8575,7 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
  * Setup an SSL context
  */
 
-static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl )
+void mbedtls_ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl )
 {
     /* Set the incoming and outgoing record pointers. */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -8597,8 +8592,8 @@ static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl )
     }
 
     /* Derive other internal pointers. */
-    ssl_update_out_pointers( ssl, NULL /* no transform enabled */ );
-    ssl_update_in_pointers ( ssl );
+    mbedtls_ssl_update_out_pointers( ssl, NULL /* no transform enabled */ );
+    mbedtls_ssl_update_in_pointers ( ssl );
 }
 
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
@@ -8631,7 +8626,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
         goto error;
     }
 
-    ssl_reset_in_out_pointers( ssl );
+    mbedtls_ssl_reset_in_out_pointers( ssl );
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         goto error;
@@ -8694,7 +8689,7 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->secure_renegotiation = MBEDTLS_SSL_LEGACY_RENEGOTIATION;
 
     ssl->in_offt = NULL;
-    ssl_reset_in_out_pointers( ssl );
+    mbedtls_ssl_reset_in_out_pointers( ssl );
 
     ssl->in_msgtype = 0;
     ssl->in_msglen = 0;
@@ -11986,7 +11981,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 
     /* Adjust pointers for header fields of outgoing records to
      * the given transform, accounting for explicit IV and CID. */
-    ssl_update_out_pointers( ssl, ssl->transform );
+    mbedtls_ssl_update_out_pointers( ssl, ssl->transform );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->in_epoch = 1;

@@ -261,9 +261,10 @@
     <ClCompile Include="..\..\library\ssl_ciphersuites.c" />
     <ClCompile Include="..\..\library\ssl_cli.c" />
     <ClCompile Include="..\..\library\ssl_cookie.c" />
+    <ClCompile Include="..\..\library\ssl_msg.c" />
     <ClCompile Include="..\..\library\ssl_srv.c" />
     <ClCompile Include="..\..\library\ssl_ticket.c" />
-    <ClCompile Include="..\..\library\ssl_tls.c" />
+    <ClCompile Include="..\..\library\ssl_tls_old.c" />
     <ClCompile Include="..\..\library\x509.c" />
     <ClCompile Include="..\..\library\x509_create.c" />
     <ClCompile Include="..\..\library\x509_crl.c" />

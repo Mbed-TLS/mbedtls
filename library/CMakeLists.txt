@@ -89,7 +89,7 @@ set(src_tls
     ssl_cookie.c
     ssl_srv.c
     ssl_ticket.c
-    ssl_tls.c
+    ssl_tls_old.c
 )
 
 if(CMAKE_COMPILER_IS_GNUCC)

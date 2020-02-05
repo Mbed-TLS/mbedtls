@@ -258,7 +258,6 @@ int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 /* Forward declarations for functions related to message buffering. */
-static void ssl_buffering_free( mbedtls_ssl_context *ssl );
 static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
                                      uint8_t slot );
 static void ssl_free_buffered_record( mbedtls_ssl_context *ssl );
@@ -3921,7 +3920,7 @@ static int ssl_flight_append( mbedtls_ssl_context *ssl )
 /*
  * Free the current flight of handshake messages
  */
-static void ssl_flight_free( mbedtls_ssl_flight_item *flight )
+void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight )
 {
     mbedtls_ssl_flight_item *cur = flight;
     mbedtls_ssl_flight_item *next;
@@ -4161,7 +4160,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl )
 {
     /* We won't need to resend that one any more */
-    ssl_flight_free( ssl->handshake->flight );
+    mbedtls_ssl_flight_free( ssl->handshake->flight );
     ssl->handshake->flight = NULL;
     ssl->handshake->cur_msg = NULL;
 
@@ -4172,7 +4171,7 @@ void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl )
     ssl->handshake->buffering.seen_ccs = 0;
 
     /* Clear future message buffering structure. */
-    ssl_buffering_free( ssl );
+    mbedtls_ssl_buffering_free( ssl );
 
     /* Cancel timer */
     mbedtls_ssl_set_timer( ssl, 0 );
@@ -11212,7 +11211,7 @@ static void ssl_key_cert_free( mbedtls_ssl_key_cert *key_cert )
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
-static void ssl_buffering_free( mbedtls_ssl_context *ssl )
+void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl )
 {
     unsigned offset;
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
@@ -11347,8 +11346,8 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_free( handshake->verify_cookie );
-    ssl_flight_free( handshake->flight );
-    ssl_buffering_free( ssl );
+    mbedtls_ssl_flight_free( handshake->flight );
+    mbedtls_ssl_buffering_free( ssl );
 #endif
 
 #if defined(MBEDTLS_ECDH_C) &&                  \

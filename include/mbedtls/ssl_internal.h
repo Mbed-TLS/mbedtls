@@ -1095,4 +1095,9 @@ void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_start_renegotiation( mbedtls_ssl_context *ssl );
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
+void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
 #endif /* ssl_internal.h */

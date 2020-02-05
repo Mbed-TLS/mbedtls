@@ -9,7 +9,12 @@
 #include "mbedtls/asn1write.h"
 #endif
 
+/* Used internally to report an error that indicates a bug in a parsing function. */
 #define ERR_PARSE_INCONSISTENCY INT_MAX
+
+/* Use this magic value in some tests to indicate that the expected result
+ * should not be checked. */
+#define UNPREDICTABLE_RESULT 0x5552
 
 static int nested_parse( unsigned char **const p,
                          const unsigned char *const end )
@@ -226,16 +231,26 @@ exit:
 
 /* BEGIN_CASE */
 void parse_prefixes( const data_t *input,
-                     int actual_length_arg,
-                     int last_result )
+                     int full_result,
+                     int overfull_result )
 {
-    size_t actual_length = actual_length_arg;
+    /* full_result: expected result from parsing the given string. */
+    /* overfull_result: expected_result from parsing the given string plus
+     * some trailing garbage. This may be UNPREDICTABLE_RESULT to accept
+     * any result: use this for invalid inputs that may or may not become
+     * valid depending on what the trailing garbage is. */
+
     unsigned char *buf = NULL;
     unsigned char *p = NULL;
     size_t buffer_size;
     int ret;
 
-    for( buffer_size = 1; buffer_size <= input->len; buffer_size++ )
+    /* Test every prefix of the input, except the empty string.
+     * The first byte of the string is the tag. Without a tag byte,
+     * we wouldn't know what to parse the input as.
+     * Also test the input followed by an extra byte.
+     */
+    for( buffer_size = 1; buffer_size <= input->len + 1; buffer_size++ )
     {
         test_set_step( buffer_size );
         /* Allocate a new buffer of exactly the length to parse each time.
@@ -244,18 +259,25 @@ void parse_prefixes( const data_t *input,
         memcpy( buf, input->x, buffer_size );
         p = buf;
         ret = nested_parse( &p, buf + buffer_size );
+
         if( ret == ERR_PARSE_INCONSISTENCY )
             goto exit;
-        if( actual_length > 0 && buffer_size >= actual_length )
-        {
-            TEST_EQUAL( ret, last_result );
-            if( ret == 0 )
-                TEST_ASSERT( p == buf + actual_length );
-        }
-        else
+        if( buffer_size < input->len )
         {
             TEST_EQUAL( ret, MBEDTLS_ERR_ASN1_OUT_OF_DATA );
         }
+        else if( buffer_size == input->len )
+        {
+            TEST_EQUAL( ret, full_result );
+        }
+        else /* ( buffer_size > input->len ) */
+        {
+            if( overfull_result != UNPREDICTABLE_RESULT )
+                TEST_EQUAL( ret, overfull_result );
+        }
+        if( ret == 0 )
+            TEST_ASSERT( p == buf + input->len );
+
         mbedtls_free( buf );
         buf = NULL;
     }
@@ -271,6 +293,12 @@ void get_len( const data_t *input, int actual_length_arg )
     size_t actual_length = actual_length_arg;
     size_t buffer_size;
 
+    /* Test prefixes of a buffer containing the given length string
+     * followed by `actual_length` bytes of payload. To save a bit of
+     * time, we skip some "boring" prefixes: we don't test prefixes where
+     * the payload is truncated more than one byte away from either end,
+     * and we only test the empty string on a 1-byte input.
+     */
     for( buffer_size = 1; buffer_size <= input->len + 1; buffer_size++ )
     {
         if( ! get_len_step( input, buffer_size, actual_length ) )

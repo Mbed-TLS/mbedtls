@@ -1539,8 +1539,16 @@
  * @{
  */
 
-/** A volatile key only exists as long as the handle to it is not closed.
+/** The default lifetime for volatile keys.
+ *
+ * A volatile key only exists as long as the handle to it is not closed.
  * The key material is guaranteed to be erased on a power reset.
+ *
+ * A key with this lifetime is typically stored in the RAM area of the
+ * PSA Crypto subsystem. However this is an implementation choice.
+ * If an implementation stores data about the key in a non-volatile memory,
+ * it must release all the resources associated with the key and erase the
+ * key material if the calling application terminates.
  */
 #define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000000)
 
@@ -1555,8 +1563,42 @@
  * This lifetime value is the default storage area for the calling
  * application. Implementations may offer other storage areas designated
  * by other lifetime values as implementation-specific extensions.
+ * See ::psa_key_lifetime_location_t for more information.
  */
 #define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
+
+#define PSA_KEY_LIFETIME_PERSISTENCE_VOLATILE ((psa_key_lifetime_persistence_t)0x00)
+#define PSA_KEY_LIFETIME_PERSISTENCE_PRIMARY ((psa_key_lifetime_persistence_t)0x01)
+#define PSA_KEY_LIFETIME_PERSISTENCE_READ_ONLY ((psa_key_lifetime_persistence_t)0xff)
+
+#define PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime)      \
+    ((psa_key_lifetime_persistence_t)((lifetime) & 0x000000ff)
+
+#define PSA_KEY_LIFETIME_GET_LOCATION(lifetime)      \
+    ((psa_key_lifetime_location_t)((lifetime) >> 8)
+
+/** Whether a key lifetime indicates that the key is volatile.
+ *
+ * A volatile key is automatically destroyed by the implementation when
+ * the application instance terminates. In particular, a volatile key
+ * is automatically destroyed on a power reset of the device.
+ *
+ * A key that is not volatile is persistent. Persistent keys are
+ * preserved until the application explicitly destroys them or until an
+ * implementation-specific device management event occurs (for example,
+ * a factory reset).
+ *
+ * \param lifetime      The lifetime value to query (value of type
+ *                      ::psa_key_lifetime_t).
+ *
+ * \return \c 1 if the key is volatile, otherwise \c 0.
+ */
+#define PSA_KEY_LIFETIME_IS_VOLATILE(lifetime)  \
+    (PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime) == \
+     PSA_KEY_LIFETIME_PERSISTENCE_VOLATILE)
+
+#define PSA_KEY_LIFETIME_LOCATION_BUILT_IN       ((psa_key_lifetime_location_t)0x000000)
+#define PSA_KEY_LIFETIME_LOCATION_VENDOR_FLAG    ((psa_key_lifetime_location_t)0x800000)
 
 /** The minimum value for a key identifier chosen by the application.
  */

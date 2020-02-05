@@ -1086,4 +1086,8 @@ void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
 
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+void mbedtls_ssl_dtls_replay_reset( mbedtls_ssl_context *ssl );
+#endif
+
 #endif /* ssl_internal.h */

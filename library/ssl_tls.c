@@ -3936,10 +3936,6 @@ static void ssl_flight_free( mbedtls_ssl_flight_item *flight )
     }
 }
 
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-static void ssl_dtls_replay_reset( mbedtls_ssl_context *ssl );
-#endif
-
 /*
  * Swap transform_out and out_ctr with the alternative ones
  */
@@ -4847,7 +4843,7 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
  * not seen yet).
  */
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-static void ssl_dtls_replay_reset( mbedtls_ssl_context *ssl )
+void mbedtls_ssl_dtls_replay_reset( mbedtls_ssl_context *ssl )
 {
     ssl->in_window_top = 0;
     ssl->in_window = 0;
@@ -7537,7 +7533,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-        ssl_dtls_replay_reset( ssl );
+        mbedtls_ssl_dtls_replay_reset( ssl );
 #endif
 
         /* Increment epoch */
@@ -8695,7 +8691,7 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->in_epoch = 0;
 #endif
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-    ssl_dtls_replay_reset( ssl );
+    mbedtls_ssl_dtls_replay_reset( ssl );
 #endif
 
     ssl->in_hslen = 0;

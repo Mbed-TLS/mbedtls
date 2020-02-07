@@ -158,8 +158,6 @@ int mbedtls_test_buffer_get( mbedtls_test_buffer *buf,
  * Errors used in the message transport mock tests
  */
  #define MBEDTLS_TEST_ERROR_ARG_NULL -11
- #define MBEDTLS_TEST_ERROR_QUEUE_FULL -22
- #define MBEDTLS_TEST_ERROR_QUEUE_EMPTY -33
  #define MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED -44
 
 /*
@@ -212,7 +210,7 @@ void mbedtls_test_message_queue_free( mbedtls_test_message_queue *queue )
  * This will become the last element to leave it (fifo).
  *
  * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
- * \retval  MBEDTLS_TEST_ERROR_QUEUE_FULL, if the queue is full.
+ * \retval  MBEDTLS_ERR_SSL_WANT_WRITE, if the queue is full.
  * \retval  \p len, if the push was successful.
  */
 int mbedtls_test_message_queue_push_info( mbedtls_test_message_queue *queue,
@@ -223,7 +221,7 @@ int mbedtls_test_message_queue_push_info( mbedtls_test_message_queue *queue,
         return MBEDTLS_TEST_ERROR_ARG_NULL;
 
     if( queue->num >= queue->capacity )
-        return MBEDTLS_TEST_ERROR_QUEUE_FULL;
+        return MBEDTLS_ERR_SSL_WANT_WRITE;
 
     place = ( queue->pos + queue->num ) % queue->capacity;
     queue->messages[place] = len;
@@ -237,7 +235,7 @@ int mbedtls_test_message_queue_push_info( mbedtls_test_message_queue *queue,
  * case the data will be popped from the queue but not copied anywhere.
  *
  * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
- * \retval  MBEDTLS_TEST_ERROR_QUEUE_EMPTY, if the queue is empty.
+ * \retval  MBEDTLS_ERR_SSL_WANT_READ, if the queue is empty.
  * \retval  message length, if the pop was successful, up to the given
             \p buf_len.
  */
@@ -248,7 +246,7 @@ int mbedtls_test_message_queue_pop_info( mbedtls_test_message_queue *queue,
     if( queue == NULL )
         return MBEDTLS_TEST_ERROR_ARG_NULL;
     if( queue->num == 0 )
-        return MBEDTLS_TEST_ERROR_QUEUE_EMPTY;
+        return MBEDTLS_ERR_SSL_WANT_READ;
 
     message_length = queue->messages[queue->pos];
     queue->messages[queue->pos] = 0;
@@ -266,7 +264,7 @@ int mbedtls_test_message_queue_pop_info( mbedtls_test_message_queue *queue,
  * This will be the oldest inserted message length(fifo).
  *
  * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
- * \retval  MBEDTLS_TEST_ERROR_QUEUE_EMPTY, if the queue is empty.
+ * \retval  MBEDTLS_ERR_SSL_WANT_READ, if the queue is empty.
  * \retval  0, if the peek was successful.
  * \retval  MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED, if the given buffer length is
  *          too small to fit the message. In this case the \p msg_len will be
@@ -279,7 +277,7 @@ int mbedtls_test_message_queue_peek_info( mbedtls_test_message_queue *queue,
     if( queue == NULL || msg_len == NULL )
         return MBEDTLS_TEST_ERROR_ARG_NULL;
     if( queue->num == 0 )
-        return MBEDTLS_TEST_ERROR_QUEUE_EMPTY;
+        return MBEDTLS_ERR_SSL_WANT_READ;
 
     *msg_len = queue->messages[queue->pos];
     return ( *msg_len > buf_len ) ? MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED : 0;
@@ -528,7 +526,7 @@ void mbedtls_message_socket_close( mbedtls_test_message_socket_context* ctx )
  * \retval  MBEDTLS_TEST_ERROR_CONTEXT_ERROR, if any of the needed context
  *          elements or the context itself is null.
  * \retval  MBEDTLS_TEST_ERROR_SEND_FAILED if mbedtls_mock_tcp_send_b failed.
- * \retval  MBEDTLS_TEST_ERROR_QUEUE_FULL, if the output queue is full.
+ * \retval  MBEDTLS_ERR_SSL_WANT_WRITE, if the output queue is full.
  *
  * This function will also return any error from
  * mbedtls_test_message_queue_push_info.
@@ -549,7 +547,7 @@ int mbedtls_mock_tcp_send_msg( void *ctx, const unsigned char *buf, size_t len )
     socket = context->socket;
 
     if( queue->num >= queue->capacity )
-        return MBEDTLS_TEST_ERROR_QUEUE_FULL;
+        return MBEDTLS_ERR_SSL_WANT_WRITE;
 
     if( mbedtls_mock_tcp_send_b( socket, buf, len ) != (int) len )
         return MBEDTLS_TEST_ERROR_SEND_FAILED;
@@ -1841,14 +1839,14 @@ void ssl_message_queue_overflow_underflow( )
     TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 1 ) == 1 );
     TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 2 ) == 2 );
     TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 3 )
-                 == MBEDTLS_TEST_ERROR_QUEUE_FULL );
+                 == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
     TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
     TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 2 ) == 2 );
 
     TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
 
 exit:
     mbedtls_test_message_queue_free( &queue );
@@ -1936,7 +1934,7 @@ void ssl_message_mock_uninitialized( )
                  == MBEDTLS_TEST_ERROR_SEND_FAILED );
 
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
 
     /* Push directly to a queue to later simulate a disconnected behavior */
     TEST_ASSERT( mbedtls_test_message_queue_push_info( &server_queue, MSGLEN )
@@ -2041,7 +2039,7 @@ void ssl_message_mock_queue_overflow_underflow( )
 
     TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
                                             MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_FULL );
+                 == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     /* Read three messages from the server, last one with an error */
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received,
@@ -2053,7 +2051,7 @@ void ssl_message_mock_queue_overflow_underflow( )
     TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
 
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
 
     exit:
     mbedtls_message_socket_close( &server_context );
@@ -2268,7 +2266,7 @@ void ssl_message_mock_interleaved_one_way( )
         TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
     }
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
     exit:
     mbedtls_message_socket_close( &server_context );
     mbedtls_message_socket_close( &client_context );
@@ -2349,10 +2347,10 @@ void ssl_message_mock_interleaved_two_ways( )
     }
 
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
 
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &client_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
     exit:
     mbedtls_message_socket_close( &server_context );
     mbedtls_message_socket_close( &client_context );

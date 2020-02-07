@@ -792,14 +792,13 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg )
         mbedtls_mock_tcp_recv_nb,
         NULL );
 
-    ret = mbedtls_ssl_setup( &( ep->ssl ), &( ep->conf ) );
-    TEST_ASSERT( ret == 0 );
-
     ret = mbedtls_ssl_config_defaults( &( ep->conf ), endpoint_type,
                                         MBEDTLS_SSL_TRANSPORT_STREAM,
                                         MBEDTLS_SSL_PRESET_DEFAULT );
     TEST_ASSERT( ret == 0 );
 
+    ret = mbedtls_ssl_setup( &( ep->ssl ), &( ep->conf ) );
+    TEST_ASSERT( ret == 0 );
     ret = mbedtls_endpoint_certificate_init( ep, pk_alg );
     TEST_ASSERT( ret == 0 );
 

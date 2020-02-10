@@ -89,18 +89,28 @@ typedef MBEDTLS_PSA_DEPRECATED psa_dh_group_t mbedtls_deprecated_psa_dh_group_t;
 /*
  * Deprecated PSA Crypto function names (PSA Crypto API  <= 1.0 beta3)
  */
-/* Make these macros and not wrappers so that there is no cost to
- * applications that don't use the deprecated names.
- *
- * Put backslash-newline after "#define" to bypass check-names.sh which
- * would otherwise complain about lowercase macro names.
- */
-#define \
-    psa_asymmetric_sign( key, alg, hash, hash_length, signature, signature_size, signature_length ) \
-    ( (mbedtls_deprecated_psa_status_t) psa_sign_hash( key, alg, hash, hash_length, signature, signature_size, signature_length ) )
-#define \
-    psa_asymmetric_verify( key, alg, hash, hash_length, signature, signature_length ) \
-    ( (mbedtls_deprecated_psa_status_t) psa_verify_hash( key, alg, hash, hash_length, signature, signature_length ) )
+MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_sign( psa_key_handle_t key,
+                            psa_algorithm_t alg,
+                            const uint8_t *hash,
+                            size_t hash_length,
+                            uint8_t *signature,
+                            size_t signature_size,
+                            size_t *signature_length )
+{
+    return psa_sign_hash( key, alg, hash, hash_length, signature, signature_size, signature_length );
+}
+
+MBEDTLS_PSA_DEPRECATED static inline psa_status_t psa_asymmetric_verify( psa_key_handle_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *hash,
+                              size_t hash_length,
+                              const uint8_t *signature,
+                              size_t signature_length )
+{
+    return psa_verify_hash( key, alg, hash, hash_length, signature, signature_length );
+}
+
+
 
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 

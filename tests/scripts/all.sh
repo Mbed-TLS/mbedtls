@@ -831,8 +831,8 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_FS_IO
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0' test
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -Os -D_DEFAULT_SOURCE' lib programs
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os' test
 }
 
 component_build_no_std_function () {
@@ -841,21 +841,21 @@ component_build_no_std_function () {
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
 }
 
 component_build_no_ssl_srv () {
     msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_SSL_SRV_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1'
 }
 
 component_build_no_ssl_cli () {
     msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_SSL_CLI_C
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1'
 }
 
 component_build_no_sockets () {
@@ -865,7 +865,7 @@ component_build_no_sockets () {
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' lib
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O1 -std=c99 -pedantic' lib
 }
 
 component_test_memory_buffer_allocator_backtrace () {
@@ -960,6 +960,30 @@ component_test_cmake_shared () {
     make
     ldd programs/util/strerror | grep libmbedcrypto
     make test
+}
+
+test_build_opt () {
+    info=$1 cc=$2; shift 2
+    for opt in "$@"; do
+          msg "build/test: $cc $opt, $info" # ~ 30s
+          make CC="$cc" CFLAGS="$opt -Wall -Wextra -Werror"
+          # We're confident enough in compilers to not run _all_ the tests,
+          # but at least run the unit tests. In particular, runs with
+          # optimizations use inline assembly whereas runs with -O0
+          # skip inline assembly.
+          make test # ~30s
+          make clean
+    done
+}
+
+component_test_clang_opt () {
+    scripts/config.pl full
+    test_build_opt 'full config' clang -O0 -Os -O2
+}
+
+component_test_gcc_opt () {
+    scripts/config.pl full
+    test_build_opt 'full config' gcc -O0 -Os -O2
 }
 
 component_build_mbedtls_config_file () {

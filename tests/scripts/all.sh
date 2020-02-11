@@ -1196,6 +1196,14 @@ component_test_malloc_0_null () {
     # Just the calloc selftest. "make test" ran the others as part of the
     # test suites.
     if_build_succeeded programs/test/selftest calloc
+
+    msg "test ssl-opt.sh: malloc(0) returns NULL (ASan+UBSan build)"
+    # Run a subset of the tests. The choice is a balance between coverage
+    # and time (including time indirectly wasted due to flaky tests).
+    # The current choice is to skip tests whose description includes
+    # "proxy", which is an approximation of skipping tests that use the
+    # UDP proxy, which tend to be slower and flakier.
+    if_build_succeeded tests/ssl-opt.sh -e 'proxy'
 }
 
 component_test_make_shared () {

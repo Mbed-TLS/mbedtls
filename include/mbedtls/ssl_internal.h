@@ -1075,7 +1075,9 @@ static inline size_t mbedtls_ssl_ep_len( const mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
 int mbedtls_ssl_resend_hello_request( mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 void mbedtls_ssl_set_timer( mbedtls_ssl_context *ssl, uint32_t millisecs );
 int mbedtls_ssl_check_timer( mbedtls_ssl_context *ssl );
@@ -1093,11 +1095,12 @@ void mbedtls_ssl_dtls_replay_reset( mbedtls_ssl_context *ssl );
 
 void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
 
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
 int mbedtls_ssl_start_renegotiation( mbedtls_ssl_context *ssl );
-
-size_t mbedtls_ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+size_t mbedtls_ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
 void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */

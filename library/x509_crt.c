@@ -2538,7 +2538,7 @@ static int x509_crt_find_parent_in(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_x509_crt *parent, *fallback_parent;
-    int signature_is_good, fallback_signature_is_good;
+    int signature_is_good = 0, fallback_signature_is_good;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* did we have something in progress? */

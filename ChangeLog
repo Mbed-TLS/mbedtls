@@ -14,6 +14,8 @@ Bugfix
    * Fix an unchecked call to mbedtls_md() in the x509write module.
    * Fix build failure with MBEDTLS_ZLIB_SUPPORT enabled. Reported by
      Jack Lloyd in #2859. Fix submitted by jiblime in #2963.
+   * Fix some false-positive uninitialized variable warnings in X.509. Fix
+     contributed by apple-ihack-geek in #2663.
 
 = mbed TLS 2.20.0 branch released 2020-01-15
 
@@ -86,8 +88,6 @@ Bugfix
    * mbedtls_ctr_drbg_set_entropy_len() and
      mbedtls_hmac_drbg_set_entropy_len() now work if you call them before
      mbedtls_ctr_drbg_seed() or mbedtls_hmac_drbg_seed().
-   * Fix some false-positive uninitialized variable warnings. Fix contributed
-     by apple-ihack-geek in #2663.
 
 Changes
    * Remove the technical possibility to define custom mbedtls_md_info
@@ -118,6 +118,10 @@ API Changes
    * Make client_random and server_random const in
      mbedtls_ssl_export_keys_ext_t, so that the key exporter is discouraged
      from modifying the client/server hello.
+
+Bugfix
+   * Fix some false-positive uninitialized variable warnings in crypto. Fix
+     contributed by apple-ihack-geek in #2663.
 
 = mbed TLS 2.19.0 branch released 2019-09-06
 

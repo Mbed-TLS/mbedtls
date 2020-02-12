@@ -22,8 +22,18 @@ my $programs_dir = 'programs';
 my $mbedtls_header_dir = 'include/mbedtls';
 my $psa_header_dir = 'include/psa';
 my $source_dir = 'library';
-my $everest_header_dir = '3rdparty/everest/include/everest';
-my @everest_source_dirs = ('3rdparty/everest/library', '3rdparty/everest/library/kremlib', '3rdparty/everest/library/legacy');
+
+my @thirdparty_header_dirs = qw(
+    3rdparty/everest/include/everest
+);
+my @thirdparty_source_dirs = qw(
+    3rdparty/everest/library
+    3rdparty/everest/library/kremlib
+    3rdparty/everest/library/legacy
+);
+my @thirdparty_excluded = qw(
+    3rdparty/everest/library/Hacl_Curve25519.c
+);
 
 # Need windows line endings!
 my $vsx_hdr_tpl = <<EOT;
@@ -55,11 +65,12 @@ EOT
 exit( main() );
 
 sub check_dirs {
-    foreach my $d (@everest_source_dirs) { if (not (-d $d)) { return 0; } }
+    foreach my $d (@thirdparty_header_dirs, @thirdparty_source_dirs) {
+        if (not (-d $d)) { return 0; }
+    }
     return -d $vsx_dir
         && -d $mbedtls_header_dir
         && -d $psa_header_dir
-        && -d $everest_header_dir
         && -d $source_dir
         && -d $programs_dir;
 }
@@ -90,6 +101,11 @@ sub gen_app_guid {
     $guid =~ s/(.{8})(.{4})(.{4})(.{4})(.{12})/\U{$1-$2-$3-$4-$5}/;
 
     return $guid;
+}
+
+sub is_thirdparty_excluded {
+    my ($path) = @_;
+    return grep { $path eq $_ } @thirdparty_excluded;
 }
 
 sub gen_app {
@@ -143,14 +159,14 @@ sub gen_entry_list {
 }
 
 sub gen_main_file {
-    my ($mbedtls_headers, $psa_headers, $source_headers, $everest_headers, $sources, $everest_sources, $hdr_tpl, $src_tpl, $main_tpl, $main_out) = @_;
+    my ($mbedtls_headers, $psa_headers, $source_headers, $thirdparty_headers, $sources, $thirdparty_sources, $hdr_tpl, $src_tpl, $main_tpl, $main_out) = @_;
 
     my $header_entries = gen_entry_list( $hdr_tpl, @$mbedtls_headers );
     $header_entries .= gen_entry_list( $hdr_tpl, @$psa_headers );
     $header_entries .= gen_entry_list( $hdr_tpl, @$source_headers );
-    $header_entries .= gen_entry_list( $hdr_tpl, @$everest_headers );
+    $header_entries .= gen_entry_list( $hdr_tpl, @$thirdparty_headers );
     my $source_entries = gen_entry_list( $src_tpl, @$sources );
-    $source_entries .= gen_entry_list( $src_tpl, @$everest_sources );
+    $source_entries .= gen_entry_list( $src_tpl, @$thirdparty_sources );
 
     my $out = slurp_file( $main_tpl );
     $out =~ s/SOURCE_ENTRIES\r\n/$source_entries/m;
@@ -211,17 +227,16 @@ sub main {
     map { s!/!\\!g } @psa_headers;
     map { s!/!\\!g } @sources;
 
-    my @everest_headers = <$everest_header_dir/*.h>;
-    my @everest_sources = ();
-    foreach my $d (@everest_source_dirs) { push @everest_sources, <$d/*.c>; }
-    @everest_sources = grep !/3rdparty\/everest\/library\/Hacl_Curve25519.c/, @everest_sources;
-    map { s!/!\\!g } @everest_headers;
-    map { s!/!\\!g } @everest_sources;
+    my @thirdparty_headers = map { <$_/*.h> } @thirdparty_header_dirs;
+    my @thirdparty_sources = map { <$_/*.c> } @thirdparty_source_dirs;
+    @thirdparty_sources = grep { ! is_thirdparty_excluded($_) } @thirdparty_sources;
+    map { s!/!\\!g } @thirdparty_headers;
+    map { s!/!\\!g } @thirdparty_sources;
 
     gen_app_files( @app_list );
 
     gen_main_file( \@mbedtls_headers, \@psa_headers, \@source_headers,
-                   \@everest_headers, \@sources, \@everest_sources, $vsx_hdr_tpl,
+                   \@thirdparty_headers, \@sources, \@thirdparty_sources, $vsx_hdr_tpl,
                    $vsx_src_tpl, $vsx_main_tpl_file, $vsx_main_file );
 
     gen_vsx_solution( @app_list );

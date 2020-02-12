@@ -31,9 +31,12 @@ my @thirdparty_source_dirs = qw(
     3rdparty/everest/library/kremlib
     3rdparty/everest/library/legacy
 );
-my @thirdparty_excluded = qw(
+
+my @excluded_files = qw(
     3rdparty/everest/library/Hacl_Curve25519.c
 );
+my %excluded_files = ();
+foreach (@excluded_files) { $excluded_files{$_} = 1 }
 
 # Need windows line endings!
 my $vsx_hdr_tpl = <<EOT;
@@ -103,11 +106,6 @@ sub gen_app_guid {
     return $guid;
 }
 
-sub is_thirdparty_excluded {
-    my ($path) = @_;
-    return grep { $path eq $_ } @thirdparty_excluded;
-}
-
 sub gen_app {
     my ($path, $template, $dir, $ext) = @_;
 
@@ -159,14 +157,12 @@ sub gen_entry_list {
 }
 
 sub gen_main_file {
-    my ($mbedtls_headers, $psa_headers, $source_headers, $thirdparty_headers, $sources, $thirdparty_sources, $hdr_tpl, $src_tpl, $main_tpl, $main_out) = @_;
+    my ($headers, $sources,
+        $hdr_tpl, $src_tpl,
+        $main_tpl, $main_out) = @_;
 
-    my $header_entries = gen_entry_list( $hdr_tpl, @$mbedtls_headers );
-    $header_entries .= gen_entry_list( $hdr_tpl, @$psa_headers );
-    $header_entries .= gen_entry_list( $hdr_tpl, @$source_headers );
-    $header_entries .= gen_entry_list( $hdr_tpl, @$thirdparty_headers );
+    my $header_entries = gen_entry_list( $hdr_tpl, @$headers );
     my $source_entries = gen_entry_list( $src_tpl, @$sources );
-    $source_entries .= gen_entry_list( $src_tpl, @$thirdparty_sources );
 
     my $out = slurp_file( $main_tpl );
     $out =~ s/SOURCE_ENTRIES\r\n/$source_entries/m;
@@ -219,25 +215,29 @@ sub main {
     del_vsx_files();
 
     my @app_list = get_app_list();
-    my @mbedtls_headers = <$mbedtls_header_dir/*.h>;
-    my @psa_headers = <$psa_header_dir/*.h>;
-    my @source_headers = <$source_dir/*.h>;
-    my @sources = <$source_dir/*.c>;
-    map { s!/!\\!g } @mbedtls_headers;
-    map { s!/!\\!g } @psa_headers;
-    map { s!/!\\!g } @sources;
+    my @header_dirs = (
+                       $mbedtls_header_dir,
+                       $psa_header_dir,
+                       $source_dir,
+                       @thirdparty_header_dirs,
+                      );
+    my @headers = (map { <$_/*.h> } @header_dirs);
+    my @source_dirs = (
+                       $source_dir,
+                       @thirdparty_source_dirs,
+                      );
+    my @sources = (map { <$_/*.c> } @source_dirs);
 
-    my @thirdparty_headers = map { <$_/*.h> } @thirdparty_header_dirs;
-    my @thirdparty_sources = map { <$_/*.c> } @thirdparty_source_dirs;
-    @thirdparty_sources = grep { ! is_thirdparty_excluded($_) } @thirdparty_sources;
-    map { s!/!\\!g } @thirdparty_headers;
-    map { s!/!\\!g } @thirdparty_sources;
+    @headers = grep { ! $excluded_files{$_} } @headers;
+    @sources = grep { ! $excluded_files{$_} } @sources;
+    map { s!/!\\!g } @headers;
+    map { s!/!\\!g } @sources;
 
     gen_app_files( @app_list );
 
-    gen_main_file( \@mbedtls_headers, \@psa_headers, \@source_headers,
-                   \@thirdparty_headers, \@sources, \@thirdparty_sources, $vsx_hdr_tpl,
-                   $vsx_src_tpl, $vsx_main_tpl_file, $vsx_main_file );
+    gen_main_file( \@headers, \@sources,
+                   $vsx_hdr_tpl, $vsx_src_tpl,
+                   $vsx_main_tpl_file, $vsx_main_file );
 
     gen_vsx_solution( @app_list );
 

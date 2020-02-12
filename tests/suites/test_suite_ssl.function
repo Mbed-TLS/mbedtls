@@ -3093,7 +3093,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
 void handshake( const char *cipher, int version, int pk_alg,
-                data_t *psk_str, int dtls )
+                data_t *psk_str, int dtls, int serialize )
 {
     /* forced_ciphersuite needs to last until the end of the handshake */
     int forced_ciphersuite[2];
@@ -3107,6 +3107,16 @@ void handshake( const char *cipher, int version, int pk_alg,
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_timing_delay_context timer_client, timer_server;
 #endif
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    enum { MSGLEN = 5 };
+    unsigned char *context_buf = NULL;
+    size_t context_buf_len;
+    unsigned char cli_buf[MSGLEN];
+    unsigned char srv_buf[MSGLEN];
+#else
+    (void) serialize;
+#endif
+
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
 
@@ -3184,9 +3194,69 @@ void handshake( const char *cipher, int version, int pk_alg,
     TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
     TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( dtls == 0 || serialize == 0 )
+    {
+      /* Serialization works with DTLS only.
+       * Skip if these options are misused. */
+        goto exit;
+    }
+
+    memset( cli_buf, 'X', MSGLEN );
+    memset( srv_buf, 'Y', MSGLEN );
+
+    /* Make sure that writing/reading works */
+    TEST_ASSERT( mbedtls_ssl_write( &(client.ssl), cli_buf, MSGLEN ) == MSGLEN );
+    TEST_ASSERT( mbedtls_ssl_read( &(server.ssl), srv_buf, MSGLEN ) == MSGLEN );
+    TEST_ASSERT( memcmp( cli_buf, srv_buf, MSGLEN ) == 0 );
+
+    TEST_ASSERT( mbedtls_ssl_context_save( &(server.ssl), NULL,
+                                           0, &context_buf_len )
+                                         == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    context_buf = mbedtls_calloc( 1, context_buf_len );
+    TEST_ASSERT( context_buf != NULL );
+
+    TEST_ASSERT( mbedtls_ssl_context_save( &(server.ssl), context_buf,
+                                           context_buf_len,
+                                           &context_buf_len ) == 0 );
+
+    mbedtls_ssl_free( &(server.ssl) );
+    mbedtls_ssl_init( &(server.ssl) );
+
+    TEST_ASSERT( mbedtls_ssl_setup( &(server.ssl), &(server.conf) ) == 0 );
+
+    mbedtls_ssl_set_bio( &( server.ssl ), &server_context,
+                         mbedtls_mock_tcp_send_msg,
+                         mbedtls_mock_tcp_recv_msg,
+                         NULL );
+
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
+                              mbedtls_timing_set_delay,
+                              mbedtls_timing_get_delay );
+#endif
+    TEST_ASSERT( mbedtls_ssl_context_load( &( server.ssl ), context_buf,
+                                           context_buf_len ) == 0 );
+
+    /* Retest writing/reading */
+    memset( cli_buf, 'X', MSGLEN );
+    memset( srv_buf, 'Y', MSGLEN );
+
+    TEST_ASSERT( mbedtls_ssl_write( &(client.ssl), cli_buf, MSGLEN ) == MSGLEN );
+    TEST_ASSERT( mbedtls_ssl_read( &(server.ssl), srv_buf, MSGLEN ) == MSGLEN );
+    TEST_ASSERT( memcmp( cli_buf, srv_buf, MSGLEN ) == 0 );
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
 exit:
     mbedtls_endpoint_free( &client, dtls != 0 ? &client_context : NULL );
     mbedtls_endpoint_free( &server, dtls != 0 ? &server_context : NULL );
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( dtls != 0 && serialize != 0 )
+    {
+        mbedtls_free( context_buf );
+    }
+#endif
 }
 /* END_CASE */
 

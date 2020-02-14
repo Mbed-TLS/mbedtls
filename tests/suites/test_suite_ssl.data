@@ -351,6 +351,15 @@ send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16001:16384:1:1
 Sending app data via DTLS, without MFL and with fragmentation
 send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16385:100000:0:0
 
+DTLS renegotiation: no legacy renegotiation
+dtls_renegotiation:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+DTLS renegotiation: legacy renegotiation
+dtls_renegotiation:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+
+DTLS renegotiation: legacy break handshake
+dtls_renegotiation:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+
 SSL DTLS replay: initial state, seqnum 0
 ssl_dtls_replay:"":"000000000000":0
 

@@ -819,9 +819,20 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
        goto cleanup;
 #endif
 
-    /* Complete the RSA private key */
-    if( ( ret = mbedtls_rsa_complete( rsa ) ) != 0 )
+    /* rsa_complete() doesn't complete anything with the default
+     * implementation but is still called:
+     * - for the benefit of alternative implementation that may want to
+     *   pre-compute stuff beyond what's provided (eg Montgomery factors)
+     * - as is also sanity-checks the key
+     *
+     * Furthermore, we also check the public part for consistency with
+     * mbedtls_pk_parse_pubkey(), as it includes size minima for example.
+     */
+    if( ( ret = mbedtls_rsa_complete( rsa ) ) != 0 ||
+        ( ret = mbedtls_rsa_check_pubkey( rsa ) ) != 0 )
+    {
         goto cleanup;
+    }
 
     if( p != end )
     {

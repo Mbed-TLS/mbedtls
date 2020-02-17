@@ -1394,7 +1394,7 @@ run_test    "Session resume using tickets: openssl client" \
 
 run_test    "Session resume using tickets, DTLS: basic" \
             "$P_SRV debug_level=3 dtls=1 tickets=1" \
-            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -1408,7 +1408,7 @@ run_test    "Session resume using tickets, DTLS: basic" \
 
 run_test    "Session resume using tickets, DTLS: cache disabled" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
-            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -1422,7 +1422,7 @@ run_test    "Session resume using tickets, DTLS: cache disabled" \
 
 run_test    "Session resume using tickets, DTLS: timeout" \
             "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0 ticket_timeout=1" \
-            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 reco_delay=2" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 skip_close_notify=1 reco_delay=2" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -1554,7 +1554,7 @@ run_test    "Session resume using cache: openssl server" \
 
 run_test    "Session resume using cache, DTLS: tickets enabled on client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
-            "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1 skip_close_notify=1" \
             0 \
             -c "client hello, adding session ticket extension" \
             -s "found session ticket extension" \
@@ -1568,7 +1568,7 @@ run_test    "Session resume using cache, DTLS: tickets enabled on client" \
 
 run_test    "Session resume using cache, DTLS: tickets enabled on server" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1" \
             0 \
             -C "client hello, adding session ticket extension" \
             -S "found session ticket extension" \
@@ -1582,7 +1582,7 @@ run_test    "Session resume using cache, DTLS: tickets enabled on server" \
 
 run_test    "Session resume using cache, DTLS: cache_max=0" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_max=0" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1" \
             0 \
             -S "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -1591,7 +1591,7 @@ run_test    "Session resume using cache, DTLS: cache_max=0" \
 
 run_test    "Session resume using cache, DTLS: cache_max=1" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_max=1" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -1600,7 +1600,7 @@ run_test    "Session resume using cache, DTLS: cache_max=1" \
 
 run_test    "Session resume using cache, DTLS: timeout > delay" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=0" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1 reco_delay=0" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -1609,7 +1609,7 @@ run_test    "Session resume using cache, DTLS: timeout > delay" \
 
 run_test    "Session resume using cache, DTLS: timeout < delay" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_timeout=1" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1 reco_delay=2" \
             0 \
             -S "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -1618,7 +1618,7 @@ run_test    "Session resume using cache, DTLS: timeout < delay" \
 
 run_test    "Session resume using cache, DTLS: no timeout" \
             "$P_SRV dtls=1 debug_level=3 tickets=0 cache_timeout=0" \
-            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 skip_close_notify=1 reco_delay=2" \
             0 \
             -s "session successfully restored from cache" \
             -S "session successfully restored from ticket" \
@@ -5309,7 +5309,7 @@ run_test    "DTLS proxy: 3d, min handshake, resumption" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
              psk=abc123 debug_level=3" \
             "$P_CLI dtls=1 hs_timeout=250-10000 tickets=0 psk=abc123 \
-             debug_level=3 reconnect=1 read_timeout=1000 max_resend=10 \
+             debug_level=3 reconnect=1 skip_close_notify=1 read_timeout=1000 max_resend=10 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
             -s "a session has been resumed" \
@@ -5323,7 +5323,7 @@ run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             "$P_SRV dtls=1 hs_timeout=250-10000 tickets=0 auth_mode=none \
              psk=abc123 debug_level=3 nbio=2" \
             "$P_CLI dtls=1 hs_timeout=250-10000 tickets=0 psk=abc123 \
-             debug_level=3 reconnect=1 read_timeout=1000 max_resend=10 \
+             debug_level=3 reconnect=1 skip_close_notify=1 read_timeout=1000 max_resend=10 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 nbio=2" \
             0 \
             -s "a session has been resumed" \

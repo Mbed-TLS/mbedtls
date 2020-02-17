@@ -115,6 +115,7 @@ int main( void )
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
+#define DFL_SKIP_CLOSE_NOTIFY   0
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "
 #define GET_REQUEST_END "\r\n\r\n"
@@ -278,6 +279,7 @@ int main( void )
     "                        options: 1 (level-triggered, implies nbio=1),\n" \
     "    read_timeout=%%d     default: 0 ms (no timeout)\n"        \
     "    max_resend=%%d       default: 0 (no resend on timeout)\n" \
+    "    skip_close_notify=%%d default: 0 (send close_notify)\n" \
     "\n"                                                    \
     USAGE_DTLS                                              \
     "\n"                                                    \
@@ -376,6 +378,7 @@ struct options
     int dgram_packing;          /* allow/forbid datagram packing            */
     int extended_ms;            /* negotiate extended master secret?        */
     int etm;                    /* negotiate encrypt then mac?              */
+    int skip_close_notify;      /* skip sending the close_notify alert      */
 } opt;
 
 int query_config( const char *config );
@@ -653,6 +656,7 @@ int main( int argc, char *argv[] )
     opt.extended_ms         = DFL_EXTENDED_MS;
     opt.etm                 = DFL_ETM;
     opt.dgram_packing       = DFL_DGRAM_PACKING;
+    opt.skip_close_notify   = DFL_SKIP_CLOSE_NOTIFY;
 
     for( i = 1; i < argc; i++ )
     {
@@ -992,6 +996,12 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "query_config" ) == 0 )
         {
             return query_config( q );
+        }
+        else if( strcmp( p, "skip_close_notify" ) == 0 )
+        {
+            opt.skip_close_notify = atoi( q );
+            if( opt.skip_close_notify < 0 || opt.skip_close_notify > 1 )
+                goto usage;
         }
         else
             goto usage;
@@ -2032,10 +2042,25 @@ close_notify:
     mbedtls_printf( "  . Closing the connection..." );
     fflush( stdout );
 
-    /* No error checking, the connection might be closed already */
-    do ret = mbedtls_ssl_close_notify( &ssl );
-    while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-    ret = 0;
+    /*
+     * Most of the time sending a close_notify before closing is the right
+     * thing to do. However, when the server already knows how many messages
+     * are expected and closes the connection by itself, this alert becomes
+     * redundant. Sometimes with DTLS this redundancy becomes a problem by
+     * leading to a race condition where the server might close the connection
+     * before seeing the alert, and since UDP is connection-less when the
+     * alert arrives it will be seen as a new connection, which will fail as
+     * the alert is clearly not a valid ClientHello. This may cause spurious
+     * failures in tests that use DTLS and resumption with ssl_server2 in
+     * ssl-opt.sh, avoided by enabling skip_close_notify client-side.
+     */
+    if( opt.skip_close_notify == 0 )
+    {
+        /* No error checking, the connection might be closed already */
+        do ret = mbedtls_ssl_close_notify( &ssl );
+        while( ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+        ret = 0;
+    }
 
     mbedtls_printf( " done\n" );
 

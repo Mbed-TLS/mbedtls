@@ -785,7 +785,7 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
                                         NULL, NULL ) ) != 0 )
         goto cleanup;
 
-#if !defined(MBEDTLS_RSA_NO_CRT)
+#if !defined(MBEDTLS_RSA_NO_CRT) && !defined(MBEDTLS_RSA_ALT)
     /*
     * The RSA CRT parameters DP, DQ and QP are nominally redundant, in
     * that they can be easily recomputed from D, P and Q. However by

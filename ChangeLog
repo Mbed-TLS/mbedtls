@@ -10,12 +10,40 @@ New deprecations
      library which allows TLS authentication to use keys stored in a
      PKCS#11 token such as a smartcard.
 
+Security
+   * Fix potential memory overread when performing an ECDSA signature
+     operation. The overread only happens with cryptographically low
+     probability (of the order of 2^-n where n is the bitsize of the curve)
+     unless the RNG is broken, and could result in information disclosure or
+     denial of service (application crash or extra resource consumption).
+     Found by Auke Zeilstra and Peter Schwabe, using static analysis.
+   * To avoid a side channel vulnerability when parsing an RSA private key,
+     read all the CRT parameters from the DER structure rather than
+     reconstructing them. Found by Alejandro Cabrera Aldaya and Billy Bob
+     Brumley. Reported and fix contributed by Jack Lloyd.
+     ARMmbed/mbed-crypto#352
+
+Features
+   * The new build option MBEDTLS_SHA512_NO_SHA384 allows building SHA-512
+     support without SHA-384.
+
+API changes
+   * Change the encoding of key types and curves in the PSA API. The new
+     values are aligned with the upcoming release of the PSA Crypto API
+     specification version 1.0.0. The main change which may break some
+     existing code is that elliptic curve key types no longer encode the
+     exact curve: a psa_ecc_curve_t or psa_key_type_t value only encodes
+     a curve family and the key size determines the exact curve (for example,
+     PSA_ECC_CURVE_SECP_R1 with 256 bits is P256R1). ARMmbed/mbed-crypto#330
+
 Bugfix
    * Fix an unchecked call to mbedtls_md() in the x509write module.
    * Fix build failure with MBEDTLS_ZLIB_SUPPORT enabled. Reported by
      Jack Lloyd in #2859. Fix submitted by jiblime in #2963.
    * Fix some false-positive uninitialized variable warnings in X.509. Fix
      contributed by apple-ihack-geek in #2663.
+   * Fix a possible error code mangling in psa_mac_verify_finish() when
+     a cryptographic accelerator fails. ARMmbed/mbed-crypto#345
 
 = mbed TLS 2.20.0 branch released 2020-01-15
 

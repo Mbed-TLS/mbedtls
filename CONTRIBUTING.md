@@ -42,18 +42,14 @@ Mbed TLS maintains several LTS (Long Term Support) branches, which are maintaine
 
 When backporting to these branches please observe the following rules:
 
- 1. Any change to the library which changes the API or ABI cannot be backported.
-
- 2. All bug fixes that correct a defect that is also present in an LTS branch must be backported to that LTS branch. If a bug fix introduces a change to the API such as a new function, the fix should be reworked to avoid the API change. API changes without very strong justification are unlikely to be accepted.
-
- 3. If a contribution is a new feature or enhancement, no backporting is required. Exceptions to this may be additional test cases or quality improvements such as changes to build or test scripts.
+1. Any change to the library which changes the API or ABI cannot be backported.
+1. All bug fixes that correct a defect that is also present in an LTS branch must be backported to that LTS branch. If a bug fix introduces a change to the API such as a new function, the fix should be reworked to avoid the API change. API changes without very strong justification are unlikely to be accepted.
+1. If a contribution is a new feature or enhancement, no backporting is required. Exceptions to this may be additional test cases or quality improvements such as changes to build or test scripts.
 
 It would be highly appreciated if contributions are backported to LTS branches in addition to the [development branch](https://github.com/ARMmbed/mbedtls/tree/development) by contributors.
 
 Currently maintained LTS branches are:
-
 1. [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7)
-
 1. [mbedtls-2.16](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
 
 
@@ -80,12 +76,7 @@ Documentation
 Mbed TLS is well documented, but if you think documentation is needed, speak out!
 
 1. All interfaces should be documented through Doxygen. New APIs should introduce Doxygen documentation.
-
-2. Complex parts in the code should include comments.
-
-3. If needed, a Readme file is advised.
-
-4. If a [Knowledge Base (KB)](https://tls.mbed.org/kb) article should be added, write this as a comment in the PR description.
-
-5. A [ChangeLog](https://github.com/ARMmbed/mbedtls/blob/development/ChangeLog) entry should be added for this contribution.
-
+1. Complex parts in the code should include comments.
+1. If needed, a Readme file is advised.
+1. If a [Knowledge Base (KB)](https://tls.mbed.org/kb) article should be added, write this as a comment in the PR description.
+1. A [ChangeLog](https://github.com/ARMmbed/mbedtls/blob/development/ChangeLog) entry should be added for this contribution.

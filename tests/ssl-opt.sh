@@ -296,9 +296,9 @@ requires_not_i686() {
 }
 
 # Calculate the input & output maximum content lengths set in the config
-MAX_CONTENT_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN || echo "16384")
-MAX_IN_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_IN_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
-MAX_OUT_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_OUT_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
+MAX_CONTENT_LEN=$( ../scripts/config.py get MBEDTLS_SSL_MAX_CONTENT_LEN || echo "16384")
+MAX_IN_LEN=$( ../scripts/config.py get MBEDTLS_SSL_IN_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
+MAX_OUT_LEN=$( ../scripts/config.py get MBEDTLS_SSL_OUT_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
 
 if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
     MAX_CONTENT_LEN="$MAX_IN_LEN"
@@ -2846,7 +2846,7 @@ run_test    "Authentication: client no cert, ssl3" \
 # default value (8)
 
 MAX_IM_CA='8'
-MAX_IM_CA_CONFIG=$( ../scripts/config.pl get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
+MAX_IM_CA_CONFIG=$( ../scripts/config.py get MBEDTLS_X509_MAX_INTERMEDIATE_CA)
 
 if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
     printf "The ${CONFIG_H} file contains a value for the configuration of\n"

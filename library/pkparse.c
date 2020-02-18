@@ -679,6 +679,32 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
 
 #if defined(MBEDTLS_RSA_C)
 /*
+ * Wrapper around mbedtls_asn1_get_mpi() that rejects zero.
+ *
+ * The value zero is:
+ * - never a valid value for an RSA parameter
+ * - interpreted as "omitted, please reconstruct" by mbedtls_rsa_complete().
+ *
+ * Since values can't be omitted in PKCS#1, passing a zero value to
+ * rsa_complete() would be incorrect, so reject zero values early.
+ */
+static int asn1_get_nonzero_mpi( unsigned char **p,
+                                 const unsigned char *end,
+                                 mbedtls_mpi *X )
+{
+    int ret;
+
+    ret = mbedtls_asn1_get_mpi( p, end, X );
+    if( ret != 0 )
+        return( ret );
+
+    if( mbedtls_mpi_cmp_int( X, 0 ) == 0 )
+        return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+
+    return( 0 );
+}
+
+/*
  * Parse a PKCS#1 encoded private RSA key
  */
 static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
@@ -730,44 +756,34 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
     }
 
     /* Import N */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
-        ( ret = mbedtls_rsa_import_raw( rsa, p, len, NULL, 0, NULL, 0,
-                                        NULL, 0, NULL, 0 ) ) != 0 )
+    if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_rsa_import( rsa, &T, NULL, NULL,
+                                        NULL, NULL ) ) != 0 )
         goto cleanup;
-    p += len;
 
     /* Import E */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
-        ( ret = mbedtls_rsa_import_raw( rsa, NULL, 0, NULL, 0, NULL, 0,
-                                        NULL, 0, p, len ) ) != 0 )
+    if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_rsa_import( rsa, NULL, NULL, NULL,
+                                        NULL, &T ) ) != 0 )
         goto cleanup;
-    p += len;
 
     /* Import D */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
-        ( ret = mbedtls_rsa_import_raw( rsa, NULL, 0, NULL, 0, NULL, 0,
-                                        p, len, NULL, 0 ) ) != 0 )
+    if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_rsa_import( rsa, NULL, NULL, NULL,
+                                        &T, NULL ) ) != 0 )
         goto cleanup;
-    p += len;
 
     /* Import P */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
-        ( ret = mbedtls_rsa_import_raw( rsa, NULL, 0, p, len, NULL, 0,
-                                        NULL, 0, NULL, 0 ) ) != 0 )
+    if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_rsa_import( rsa, NULL, &T, NULL,
+                                        NULL, NULL ) ) != 0 )
         goto cleanup;
-    p += len;
 
     /* Import Q */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ) ) != 0 ||
-        ( ret = mbedtls_rsa_import_raw( rsa, NULL, 0, NULL, 0, p, len,
-                                        NULL, 0, NULL, 0 ) ) != 0 )
+    if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_rsa_import( rsa, NULL, NULL, &T,
+                                        NULL, NULL ) ) != 0 )
         goto cleanup;
-    p += len;
 
 #if !defined(MBEDTLS_RSA_NO_CRT)
     /*
@@ -782,22 +798,25 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
     */
 
     /* Import DP */
-    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &rsa->DP ) ) != 0)
+    if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &rsa->DP, &T ) ) != 0 )
        goto cleanup;
 
     /* Import DQ */
-    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &rsa->DQ ) ) != 0)
+    if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &rsa->DQ, &T ) ) != 0 )
        goto cleanup;
 
     /* Import QP */
-    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &rsa->QP ) ) != 0)
+    if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &rsa->QP, &T ) ) != 0 )
        goto cleanup;
 
 #else
     /* Verify existance of the CRT params */
-    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 ||
-        ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 ||
-        ( ret = mbedtls_asn1_get_mpi( &p, end, &T ) ) != 0 )
+    if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
+        ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 )
        goto cleanup;
 #endif
 

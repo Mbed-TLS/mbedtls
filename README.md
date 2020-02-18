@@ -2,8 +2,6 @@
 
 The Mbed cryptography library is a reference implementation of the cryptography interface of the Arm Platform Security Architecture (PSA). This is a preview release of Mbed Crypto, provided for evaluation purposes only.
 
-Mbed Crypto is distributed under the Apache License, version 2.0. See the [LICENSE](LICENSE) file for the full text of the license.
-
 ## PSA cryptography API
 
 Arm's [Platform Security Architecture (PSA)](https://developer.arm.com/architectures/security-architectures/platform-security-architecture) is a holistic set of threat models, security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that allows security to be consistently designed in, at both a hardware and firmware level.
@@ -88,6 +86,14 @@ Future releases of this library will include:
 * Support for external keys to be stored and manipulated exclusively in a separate cryptoprocessor.
 * A configuration mechanism to compile only the algorithms you need for your application.
 * A wider set of cryptographic algorithms.
+
+## License
+
+Unless specifically indicated otherwise in a file, Mbed TLS files are provided under the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) license. See the [LICENSE](LICENSE) file for the full text of this license. Contributors must accept that their contributions are made under both the Apache-2.0 AND [GPL-2.0-or-later](https://spdx.org/licenses/GPL-2.0-or-later.html) licenses. This enables LTS (Long Term Support) branches of the software to be provided under either the Apache-2.0 OR GPL-2.0-or-later licenses.
+
+## Contributing
+
+We gratefully accept bug reports and contributions from the community. Please see the [contributing guidelines](CONTRIBUTING.md) for details on how to do this.
 
 ## Feedback welcome
 

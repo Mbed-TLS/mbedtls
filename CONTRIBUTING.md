@@ -5,11 +5,6 @@ We gratefully accept bug reports and contributions from the community. There are
  - As with any open source project, contributions will be reviewed by the project team and community and may need some modifications to be accepted.
  - The contribution should not break API or ABI, unless there is a real justification for that. If there is an API change, the contribution, if accepted, will be merged only when there will be a major release.
 
-Contributor License Agreement (CLA)
------------------------------------
-- All contributions, whether large or small, require a Contributor's License Agreement (CLA) to be accepted. This is because source code can possibly fall under copyright law and we need your consent to share in the ownership of the copyright.
-- To accept the Contributor’s License Agreement (CLA), individual contributors can do this by creating an Mbed account and [accepting the online agreement here with a click through](https://developer.mbed.org/contributor_agreement/). Alternatively, for contributions from corporations, or those that do not wish to create an Mbed account, a slightly different agreement can be found [here](https://www.mbed.com/en/about-mbed/contributor-license-agreements/). This agreement should be signed and returned to Arm as described in the instructions given.
-
 Coding Standards
 ----------------
 - We would ask that contributions conform to [our coding standards](https://tls.mbed.org/kb/development/mbedtls-coding-standards), and that contributions are fully tested before submission, as mentioned in the [Tests](#tests) and [Continuous Integration](#continuous-integration-tests) sections.
@@ -24,7 +19,8 @@ Making a Contribution
 1. Write a test which shows that the bug was fixed or that the feature works as expected.
 1. Send a pull request (PR) and work with us until it gets merged and published. Contributions may need some modifications, so a few rounds of review and fixing may be necessary. We will include your name in the ChangeLog :)
 1. For quick merging, the contribution should be short, and concentrated on a single feature or topic. The larger the contribution is, the longer it would take to review it and merge it.
-1. Mbed TLS is released under the Apache license, and as such, all the added files should include the Apache license header.
+1. All new files should include the [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) standard license header where possible.
+1. Ensure that each commit has at least one `Signed-off-by:` line from the committer. If anyone else contributes to the commit, they should also add their own `Signed-off-by:` line. By adding this line, contributor(s) certify that the contribution is made under the terms of the [Developer Certificate of Origin](dco.txt). The contribution licensing is described in the [License section of the README](README.md#License).
 
 API/ABI Compatibility
 ---------------------

@@ -18,18 +18,18 @@ target_link_libraries(benchmark ${libs})
 
 if(TEST_CPP)
     add_executable(cpp_dummy_build cpp_dummy_build.cpp)
-    target_link_libraries(cpp_dummy_build ${libs})
+    target_link_libraries(cpp_dummy_build mbedcrypto)
 endif()
 
 add_executable(udp_proxy udp_proxy.c)
 target_link_libraries(udp_proxy ${libs})
 
 add_executable(zeroize zeroize.c)
-target_link_libraries(zeroize ${libs})
+target_link_libraries(zeroize mbedcrypto)
 
 add_executable(query_compile_time_config query_compile_time_config.c)
 target_sources(query_compile_time_config PUBLIC query_config.c)
-target_link_libraries(query_compile_time_config ${libs})
+target_link_libraries(query_compile_time_config mbedcrypto)
 
 install(TARGETS selftest benchmark udp_proxy query_compile_time_config
         DESTINATION "bin"

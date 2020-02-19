@@ -123,6 +123,7 @@ void pk_parse_key( char *key_data, int result )
     mbedtls_pk_init( &pk );
 
     memset( buf, 0, sizeof( buf ) );
+    TEST_ASSERT( strlen( key_data ) / 2 <= sizeof( buf ) );
     data_len = unhexify( buf, key_data );
 
     TEST_ASSERT( mbedtls_pk_parse_key( &pk, buf, data_len, NULL, 0 ) == result );

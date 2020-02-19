@@ -44,6 +44,11 @@ Bugfix
      contributed by apple-ihack-geek in #2663.
    * Fix a possible error code mangling in psa_mac_verify_finish() when
      a cryptographic accelerator fails. ARMmbed/mbed-crypto#345
+   * Fix a bug in mbedtls_pk_parse_key() that would cause it to accept some
+     RSA keys that would later be rejected by functions expecting private
+     keys. Found by Catena cyber using oss-fuzz (issue 20467).
+   * Fix a bug in mbedtls_pk_parse_key() that would cause it to
+     accept some RSA keys with invalid values by silently fixing those values.
 
 = mbed TLS 2.20.0 branch released 2020-01-15
 

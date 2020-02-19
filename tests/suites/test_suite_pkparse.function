@@ -114,26 +114,19 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void pk_parse_key( char *key_data, char *result_str, int result )
+void pk_parse_key( char *key_data, int result )
 {
     mbedtls_pk_context pk;
-    unsigned char buf[2000];
-    unsigned char output[2000];
+    unsigned char buf[128];
     int data_len;
-    ((void) result_str);
 
     mbedtls_pk_init( &pk );
 
-    memset( buf, 0, 2000 );
-    memset( output, 0, 2000 );
-
+    memset( buf, 0, sizeof( buf ) );
+    TEST_ASSERT( strlen( key_data ) / 2 <= sizeof( buf ) );
     data_len = unhexify( buf, key_data );
 
-    TEST_ASSERT( mbedtls_pk_parse_key( &pk, buf, data_len, NULL, 0 ) == ( result ) );
-    if( ( result ) == 0 )
-    {
-        TEST_ASSERT( 1 );
-    }
+    TEST_ASSERT( mbedtls_pk_parse_key( &pk, buf, data_len, NULL, 0 ) == result );
 
 exit:
     mbedtls_pk_free( &pk );

@@ -32,6 +32,18 @@ my @thirdparty_source_dirs = qw(
     3rdparty/everest/library/legacy
 );
 
+# Directories to add to the include path.
+# Order matters in case there are files with the same name in more than
+# one directory: the compiler will use the first match.
+my @include_directories = qw(
+    include
+    3rdparty/everest/include/
+    3rdparty/everest/include/everest
+    3rdparty/everest/include/everest/vs2010
+    3rdparty/everest/include/everest/kremlib
+);
+my $include_directories = join(';', map {"../../$_"} @include_directories);
+
 my @excluded_files = qw(
     3rdparty/everest/library/Hacl_Curve25519.c
 );
@@ -123,6 +135,7 @@ sub gen_app {
     $content =~ s/<SOURCES>/$srcs/g;
     $content =~ s/<APPNAME>/$appname/g;
     $content =~ s/<GUID>/$guid/g;
+    $content =~ s/\r\nINCLUDE_DIRECTORIES\r\n +/$include_directories/g;
 
     content_to_file( $content, "$dir/$appname.$ext" );
 }
@@ -167,6 +180,7 @@ sub gen_main_file {
     my $out = slurp_file( $main_tpl );
     $out =~ s/SOURCE_ENTRIES\r\n/$source_entries/m;
     $out =~ s/HEADER_ENTRIES\r\n/$header_entries/m;
+    $out =~ s/\r\nINCLUDE_DIRECTORIES\r\n +/$include_directories/g;
 
     content_to_file( $out, $main_out );
 }

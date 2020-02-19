@@ -17,6 +17,11 @@ Security
 
 Bugfix
    * Fix an unchecked call to mbedtls_md() in the x509write module.
+   * Fix a bug in mbedtls_pk_parse_key() that would cause it to accept some
+     RSA keys that would later be rejected by functions expecting private
+     keys. Found by Catena cyber using oss-fuzz (issue 20467).
+   * Fix a bug in mbedtls_pk_parse_key() that would cause it to accept some
+     RSA keys with invalid values by silently fixing those values.
 
 = mbed TLS 2.16.4 branch released 2020-01-15
 

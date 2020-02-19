@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS X.X.X branch released XXXX-XX-XX
+= mbed TLS 2.21.0 branch released 2020-02-20
 
 New deprecations
    * Deprecate MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO that enables parsing

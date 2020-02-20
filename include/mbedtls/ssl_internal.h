@@ -256,6 +256,22 @@
       + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
 #endif
 
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+static inline uint32_t mbedtls_ssl_get_output_buflen( const mbedtls_ssl_context *ctx )
+{
+    return (uint32_t) mbedtls_ssl_get_max_frag_len( ctx )
+               + MBEDTLS_SSL_HEADER_LEN + MBEDTLS_SSL_PAYLOAD_OVERHEAD
+               + MBEDTLS_SSL_CID_OUT_LEN_MAX;
+}
+
+static inline uint32_t mbedtls_ssl_get_input_buflen( const mbedtls_ssl_context *ctx )
+{
+    return (uint32_t) mbedtls_ssl_get_max_frag_len( ctx )
+               + MBEDTLS_SSL_HEADER_LEN + MBEDTLS_SSL_PAYLOAD_OVERHEAD
+               + MBEDTLS_SSL_CID_IN_LEN_MAX;
+}
+#endif
+
 #ifdef MBEDTLS_ZLIB_SUPPORT
 /* Compression buffer holds both IN and OUT buffers, so should be size of the larger */
 #define MBEDTLS_SSL_COMPRESS_BUFFER_LEN (                               \

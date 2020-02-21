@@ -4,6 +4,7 @@
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/certs.h>
+#include <mbedtls/timing.h>
 
 /*
  * Buffer structure for custom I/O callbacks.
@@ -158,8 +159,6 @@ int mbedtls_test_buffer_get( mbedtls_test_buffer *buf,
  * Errors used in the message transport mock tests
  */
  #define MBEDTLS_TEST_ERROR_ARG_NULL -11
- #define MBEDTLS_TEST_ERROR_QUEUE_FULL -22
- #define MBEDTLS_TEST_ERROR_QUEUE_EMPTY -33
  #define MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED -44
 
 /*
@@ -212,7 +211,7 @@ void mbedtls_test_message_queue_free( mbedtls_test_message_queue *queue )
  * This will become the last element to leave it (fifo).
  *
  * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
- * \retval  MBEDTLS_TEST_ERROR_QUEUE_FULL, if the queue is full.
+ * \retval  MBEDTLS_ERR_SSL_WANT_WRITE, if the queue is full.
  * \retval  \p len, if the push was successful.
  */
 int mbedtls_test_message_queue_push_info( mbedtls_test_message_queue *queue,
@@ -223,7 +222,7 @@ int mbedtls_test_message_queue_push_info( mbedtls_test_message_queue *queue,
         return MBEDTLS_TEST_ERROR_ARG_NULL;
 
     if( queue->num >= queue->capacity )
-        return MBEDTLS_TEST_ERROR_QUEUE_FULL;
+        return MBEDTLS_ERR_SSL_WANT_WRITE;
 
     place = ( queue->pos + queue->num ) % queue->capacity;
     queue->messages[place] = len;
@@ -237,7 +236,7 @@ int mbedtls_test_message_queue_push_info( mbedtls_test_message_queue *queue,
  * case the data will be popped from the queue but not copied anywhere.
  *
  * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
- * \retval  MBEDTLS_TEST_ERROR_QUEUE_EMPTY, if the queue is empty.
+ * \retval  MBEDTLS_ERR_SSL_WANT_READ, if the queue is empty.
  * \retval  message length, if the pop was successful, up to the given
             \p buf_len.
  */
@@ -248,7 +247,7 @@ int mbedtls_test_message_queue_pop_info( mbedtls_test_message_queue *queue,
     if( queue == NULL )
         return MBEDTLS_TEST_ERROR_ARG_NULL;
     if( queue->num == 0 )
-        return MBEDTLS_TEST_ERROR_QUEUE_EMPTY;
+        return MBEDTLS_ERR_SSL_WANT_READ;
 
     message_length = queue->messages[queue->pos];
     queue->messages[queue->pos] = 0;
@@ -266,7 +265,7 @@ int mbedtls_test_message_queue_pop_info( mbedtls_test_message_queue *queue,
  * This will be the oldest inserted message length(fifo).
  *
  * \retval  MBEDTLS_TEST_ERROR_ARG_NULL, if the queue is null.
- * \retval  MBEDTLS_TEST_ERROR_QUEUE_EMPTY, if the queue is empty.
+ * \retval  MBEDTLS_ERR_SSL_WANT_READ, if the queue is empty.
  * \retval  0, if the peek was successful.
  * \retval  MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED, if the given buffer length is
  *          too small to fit the message. In this case the \p msg_len will be
@@ -279,7 +278,7 @@ int mbedtls_test_message_queue_peek_info( mbedtls_test_message_queue *queue,
     if( queue == NULL || msg_len == NULL )
         return MBEDTLS_TEST_ERROR_ARG_NULL;
     if( queue->num == 0 )
-        return MBEDTLS_TEST_ERROR_QUEUE_EMPTY;
+        return MBEDTLS_ERR_SSL_WANT_READ;
 
     *msg_len = queue->messages[queue->pos];
     return ( *msg_len > buf_len ) ? MBEDTLS_TEST_ERROR_MESSAGE_TRUNCATED : 0;
@@ -528,7 +527,7 @@ void mbedtls_message_socket_close( mbedtls_test_message_socket_context* ctx )
  * \retval  MBEDTLS_TEST_ERROR_CONTEXT_ERROR, if any of the needed context
  *          elements or the context itself is null.
  * \retval  MBEDTLS_TEST_ERROR_SEND_FAILED if mbedtls_mock_tcp_send_b failed.
- * \retval  MBEDTLS_TEST_ERROR_QUEUE_FULL, if the output queue is full.
+ * \retval  MBEDTLS_ERR_SSL_WANT_WRITE, if the output queue is full.
  *
  * This function will also return any error from
  * mbedtls_test_message_queue_push_info.
@@ -549,7 +548,7 @@ int mbedtls_mock_tcp_send_msg( void *ctx, const unsigned char *buf, size_t len )
     socket = context->socket;
 
     if( queue->num >= queue->capacity )
-        return MBEDTLS_TEST_ERROR_QUEUE_FULL;
+        return MBEDTLS_ERR_SSL_WANT_WRITE;
 
     if( mbedtls_mock_tcp_send_b( socket, buf, len ) != (int) len )
         return MBEDTLS_TEST_ERROR_SEND_FAILED;
@@ -758,17 +757,26 @@ exit:
  *
  * \p endpoint_type must be set as MBEDTLS_SSL_IS_SERVER or
  * MBEDTLS_SSL_IS_CLIENT.
+ * \p pk_alg the algorithm to use, currently only MBEDTLS_PK_RSA and
+ * MBEDTLS_PK_ECDSA are supported.
+ * \p dtls_context - in case of DTLS - this is the context handling metadata.
+ * \p input_queue - used only in case of DTLS.
+ * \p output_queue - used only in case of DTLS.
  *
  * \retval  0 on success, otherwise error code.
  */
-int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg )
+int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
+                           mbedtls_test_message_socket_context *dtls_context,
+                           mbedtls_test_message_queue *input_queue,
+                           mbedtls_test_message_queue *output_queue )
 {
     int ret = -1;
 
-    if( ep == NULL )
-    {
+    if( dtls_context != NULL && ( input_queue == NULL || output_queue == NULL ) )
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-    }
+
+    if( ep == NULL )
+        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
 
     memset( ep, 0, sizeof( *ep ) );
 
@@ -781,7 +789,16 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg )
         mbedtls_ctr_drbg_random,
         &( ep->ctr_drbg ) );
     mbedtls_entropy_init( &( ep->entropy ) );
-    mbedtls_mock_socket_init( &( ep->socket ) );
+    if( dtls_context != NULL )
+    {
+        TEST_ASSERT( mbedtls_message_socket_setup( input_queue, output_queue,
+                                                   100, &( ep->socket ),
+                                                   dtls_context ) == 0 );
+    }
+    else
+    {
+        mbedtls_mock_socket_init( &( ep->socket ) );
+    }
 
     ret = mbedtls_ctr_drbg_seed( &( ep->ctr_drbg ), mbedtls_entropy_func,
                     &( ep->entropy ), (const unsigned char *) ( ep->name ),
@@ -789,18 +806,35 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg )
     TEST_ASSERT( ret == 0 );
 
     /* Non-blocking callbacks without timeout */
-    mbedtls_ssl_set_bio( &( ep->ssl ), &( ep->socket ),
-        mbedtls_mock_tcp_send_nb,
-        mbedtls_mock_tcp_recv_nb,
-        NULL );
+    if( dtls_context != NULL )
+    {
+        mbedtls_ssl_set_bio( &( ep->ssl ), dtls_context,
+            mbedtls_mock_tcp_send_msg,
+            mbedtls_mock_tcp_recv_msg,
+            NULL );
+    }
+    else
+    {
+        mbedtls_ssl_set_bio( &( ep->ssl ), &( ep->socket ),
+            mbedtls_mock_tcp_send_nb,
+            mbedtls_mock_tcp_recv_nb,
+            NULL );
+    }
+
+    ret = mbedtls_ssl_config_defaults( &( ep->conf ), endpoint_type,
+                                       ( dtls_context != NULL ) ?
+                                           MBEDTLS_SSL_TRANSPORT_DATAGRAM :
+                                           MBEDTLS_SSL_TRANSPORT_STREAM,
+                                       MBEDTLS_SSL_PRESET_DEFAULT );
+    TEST_ASSERT( ret == 0 );
 
     ret = mbedtls_ssl_setup( &( ep->ssl ), &( ep->conf ) );
     TEST_ASSERT( ret == 0 );
 
-    ret = mbedtls_ssl_config_defaults( &( ep->conf ), endpoint_type,
-                                        MBEDTLS_SSL_TRANSPORT_STREAM,
-                                        MBEDTLS_SSL_PRESET_DEFAULT );
-    TEST_ASSERT( ret == 0 );
+#if defined(MBEDTLS_SSL_PROTO_DTLS) && defined(MBEDTLS_SSL_SRV_C)
+    if( endpoint_type == MBEDTLS_SSL_IS_SERVER && dtls_context != NULL )
+         mbedtls_ssl_conf_dtls_cookies( &( ep->conf ), NULL, NULL, NULL );
+#endif
 
     ret = mbedtls_endpoint_certificate_init( ep, pk_alg );
     TEST_ASSERT( ret == 0 );
@@ -823,7 +857,8 @@ void mbedtls_endpoint_certificate_free( mbedtls_endpoint *ep )
 /*
  * Deinitializes endpoint represented by \p ep.
  */
-void mbedtls_endpoint_free( mbedtls_endpoint *ep )
+void mbedtls_endpoint_free( mbedtls_endpoint *ep,
+                            mbedtls_test_message_socket_context *context )
 {
     mbedtls_endpoint_certificate_free( ep );
 
@@ -831,7 +866,15 @@ void mbedtls_endpoint_free( mbedtls_endpoint *ep )
     mbedtls_ssl_config_free( &( ep->conf ) );
     mbedtls_ctr_drbg_free( &( ep->ctr_drbg ) );
     mbedtls_entropy_free( &( ep->entropy ) );
-    mbedtls_mock_socket_close( &( ep->socket ) );
+
+    if( context != NULL )
+    {
+        mbedtls_message_socket_close( context );
+    }
+    else
+    {
+        mbedtls_mock_socket_close( &( ep->socket ) );
+    }
 }
 
 /*
@@ -1841,14 +1884,14 @@ void ssl_message_queue_overflow_underflow( )
     TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 1 ) == 1 );
     TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 2 ) == 2 );
     TEST_ASSERT( mbedtls_test_message_queue_push_info( &queue, 3 )
-                 == MBEDTLS_TEST_ERROR_QUEUE_FULL );
+                 == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
     TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 ) == 1 );
     TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 2 ) == 2 );
 
     TEST_ASSERT( mbedtls_test_message_queue_pop_info( &queue, 1 )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
 
 exit:
     mbedtls_test_message_queue_free( &queue );
@@ -1936,7 +1979,7 @@ void ssl_message_mock_uninitialized( )
                  == MBEDTLS_TEST_ERROR_SEND_FAILED );
 
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
 
     /* Push directly to a queue to later simulate a disconnected behavior */
     TEST_ASSERT( mbedtls_test_message_queue_push_info( &server_queue, MSGLEN )
@@ -2041,7 +2084,7 @@ void ssl_message_mock_queue_overflow_underflow( )
 
     TEST_ASSERT( mbedtls_mock_tcp_send_msg( &client_context, message,
                                             MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_FULL );
+                 == MBEDTLS_ERR_SSL_WANT_WRITE );
 
     /* Read three messages from the server, last one with an error */
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received,
@@ -2053,7 +2096,7 @@ void ssl_message_mock_queue_overflow_underflow( )
     TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
 
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
 
     exit:
     mbedtls_message_socket_close( &server_context );
@@ -2268,7 +2311,7 @@ void ssl_message_mock_interleaved_one_way( )
         TEST_ASSERT( memcmp( message, received, MSGLEN ) == 0 );
     }
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
     exit:
     mbedtls_message_socket_close( &server_context );
     mbedtls_message_socket_close( &client_context );
@@ -2349,10 +2392,10 @@ void ssl_message_mock_interleaved_two_ways( )
     }
 
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &server_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
 
     TEST_ASSERT( mbedtls_mock_tcp_recv_msg( &client_context, received, MSGLEN )
-                 == MBEDTLS_TEST_ERROR_QUEUE_EMPTY );
+                 == MBEDTLS_ERR_SSL_WANT_READ );
     exit:
     mbedtls_message_socket_close( &server_context );
     mbedtls_message_socket_close( &client_context );
@@ -2990,17 +3033,19 @@ void mbedtls_endpoint_sanity( int endpoint_type )
     mbedtls_endpoint ep;
     int ret = -1;
 
-    ret = mbedtls_endpoint_init( NULL, endpoint_type, MBEDTLS_PK_RSA );
+    ret = mbedtls_endpoint_init( NULL, endpoint_type, MBEDTLS_PK_RSA,
+                                 NULL, NULL, NULL );
     TEST_ASSERT( MBEDTLS_ERR_SSL_BAD_INPUT_DATA == ret );
 
     ret = mbedtls_endpoint_certificate_init( NULL, MBEDTLS_PK_RSA );
     TEST_ASSERT( MBEDTLS_ERR_SSL_BAD_INPUT_DATA == ret );
 
-    ret = mbedtls_endpoint_init( &ep, endpoint_type, MBEDTLS_PK_RSA );
+    ret = mbedtls_endpoint_init( &ep, endpoint_type, MBEDTLS_PK_RSA,
+                                 NULL, NULL, NULL );
     TEST_ASSERT( ret == 0 );
 
 exit:
-    mbedtls_endpoint_free( &ep );
+    mbedtls_endpoint_free( &ep, NULL );
 }
 /* END_CASE */
 
@@ -3011,13 +3056,14 @@ void move_handshake_to_state(int endpoint_type, int state, int need_pass)
     mbedtls_endpoint base_ep, second_ep;
     int ret = -1;
 
-    ret = mbedtls_endpoint_init( &base_ep, endpoint_type, MBEDTLS_PK_RSA );
+    ret = mbedtls_endpoint_init( &base_ep, endpoint_type, MBEDTLS_PK_RSA,
+                                 NULL, NULL, NULL );
     TEST_ASSERT( ret == 0 );
 
     ret = mbedtls_endpoint_init( &second_ep,
                             ( endpoint_type == MBEDTLS_SSL_IS_SERVER ) ?
                             MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
-                                 MBEDTLS_PK_RSA );
+                                 MBEDTLS_PK_RSA, NULL, NULL, NULL );
     TEST_ASSERT( ret == 0 );
 
     ret = mbedtls_mock_socket_connect( &(base_ep.socket),
@@ -3040,28 +3086,48 @@ void move_handshake_to_state(int endpoint_type, int state, int need_pass)
     }
 
 exit:
-    mbedtls_endpoint_free( &base_ep );
-    mbedtls_endpoint_free( &second_ep );
+    mbedtls_endpoint_free( &base_ep, NULL );
+    mbedtls_endpoint_free( &second_ep, NULL );
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
 void handshake( const char *cipher, int version, int pk_alg,
-                data_t *psk_str )
+                data_t *psk_str, int dtls )
 {
     /* forced_ciphersuite needs to last until the end of the handshake */
     int forced_ciphersuite[2];
-    enum { BUFFSIZE = 1024 };
+    enum { BUFFSIZE = 16384 };
     mbedtls_endpoint client, server;
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     const char *psk_identity = "foo";
 #else
     (void) psk_str;
 #endif
-    /* Client side */
-    TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
-                                 pk_alg ) == 0 );
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_timing_delay_context timer_client, timer_server;
+#endif
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
 
+    /* Client side */
+    if( dtls != 0 )
+    {
+        TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
+                                            pk_alg, &client_context,
+                                            &client_queue,
+                                            &server_queue ) == 0 );
+#if defined(MBEDTLS_TIMING_C)
+        mbedtls_ssl_set_timer_cb( &client.ssl, &timer_client,
+                                  mbedtls_timing_set_delay,
+                                  mbedtls_timing_get_delay );
+#endif
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
+                                            pk_alg, NULL, NULL, NULL ) == 0 );
+    }
     mbedtls_ssl_conf_min_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
                                       version );
     mbedtls_ssl_conf_max_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
@@ -3072,9 +3138,23 @@ void handshake( const char *cipher, int version, int pk_alg,
         set_ciphersuite( &client.conf, cipher, forced_ciphersuite );
     }
     /* Server side */
-    TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
-                                 pk_alg ) == 0 );
-
+    if( dtls != 0 )
+    {
+        TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
+                                            pk_alg, &server_context,
+                                            &server_queue,
+                                            &client_queue) == 0 );
+#if defined(MBEDTLS_TIMING_C)
+        mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
+                                  mbedtls_timing_set_delay,
+                                  mbedtls_timing_get_delay );
+#endif
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
+                                            pk_alg, NULL, NULL, NULL ) == 0 );
+    }
     mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
                                       version );
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -3105,8 +3185,8 @@ void handshake( const char *cipher, int version, int pk_alg,
     TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
 
 exit:
-    mbedtls_endpoint_free( &client );
-    mbedtls_endpoint_free( &server );
+    mbedtls_endpoint_free( &client, dtls != 0 ? &client_context : NULL );
+    mbedtls_endpoint_free( &server, dtls != 0 ? &server_context : NULL );
 }
 /* END_CASE */
 
@@ -3123,10 +3203,12 @@ void send_application_data( int mfl, int cli_msg_len, int srv_msg_len,
     unsigned char *srv_in_buf  = malloc( cli_msg_len );
     int ret = -1;
 
-    ret = mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER, MBEDTLS_PK_RSA );
+    ret = mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER, MBEDTLS_PK_RSA,
+                                 NULL, NULL, NULL );
     TEST_ASSERT( ret == 0 );
 
-    ret = mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_PK_RSA );
+    ret = mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_PK_RSA,
+                                 NULL, NULL, NULL );
     TEST_ASSERT( ret == 0 );
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
@@ -3222,8 +3304,8 @@ void send_application_data( int mfl, int cli_msg_len, int srv_msg_len,
     }
 
 exit:
-    mbedtls_endpoint_free( &client );
-    mbedtls_endpoint_free( &server );
+    mbedtls_endpoint_free( &client, NULL );
+    mbedtls_endpoint_free( &server, NULL );
     free( cli_msg_buf );
     free( cli_in_buf );
     free( srv_msg_buf );

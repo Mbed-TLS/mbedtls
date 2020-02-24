@@ -132,7 +132,7 @@ done
 [ $VERBOSE ] && echo "Re-generating library/error.c"
 scripts/generate_errors.pl
 
-[ $VERBOSE ] && echo "Re-generating programs/ssl/query_config.c"
+[ $VERBOSE ] && echo "Re-generating programs/test/query_config.c"
 scripts/generate_query_config.pl
 
 [ $VERBOSE ] && echo "Re-generating library/version_features.c"

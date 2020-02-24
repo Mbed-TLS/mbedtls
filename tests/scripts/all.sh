@@ -1183,6 +1183,29 @@ component_test_platform_calloc_macro () {
     make test
 }
 
+component_test_malloc_0_null () {
+    msg "build: malloc(0) returns NULL (ASan+UBSan build)"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    make CC=gcc CFLAGS="'-DMBEDTLS_CONFIG_FILE=\"$PWD/tests/configs/config-wrapper-malloc-0-null.h\"' -O -Werror -Wall -Wextra -fsanitize=address,undefined" LDFLAGS='-fsanitize=address,undefined'
+
+    msg "test: malloc(0) returns NULL (ASan+UBSan build)"
+    make test
+
+    msg "selftest: malloc(0) returns NULL (ASan+UBSan build)"
+    # Just the calloc selftest. "make test" ran the others as part of the
+    # test suites.
+    if_build_succeeded programs/test/selftest calloc
+
+    msg "test ssl-opt.sh: malloc(0) returns NULL (ASan+UBSan build)"
+    # Run a subset of the tests. The choice is a balance between coverage
+    # and time (including time indirectly wasted due to flaky tests).
+    # The current choice is to skip tests whose description includes
+    # "proxy", which is an approximation of skipping tests that use the
+    # UDP proxy, which tend to be slower and flakier.
+    if_build_succeeded tests/ssl-opt.sh -e 'proxy'
+}
+
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check

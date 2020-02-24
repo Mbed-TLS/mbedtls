@@ -1,5 +1,5 @@
 set(libs
-    mbedtls
+    mbedx509
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)
@@ -11,7 +11,7 @@ if(ENABLE_ZLIB_SUPPORT)
 endif(ENABLE_ZLIB_SUPPORT)
 
 add_executable(cert_app cert_app.c)
-target_link_libraries(cert_app ${libs})
+target_link_libraries(cert_app ${libs} mbedtls)
 
 add_executable(crl_app crl_app.c)
 target_link_libraries(crl_app ${libs})

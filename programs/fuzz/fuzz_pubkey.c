@@ -21,7 +21,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
             mbedtls_mpi_init( &DQ ); mbedtls_mpi_init( &QP );
 
             rsa = mbedtls_pk_rsa( pk );
-            if ( mbedtls_rsa_export( rsa, &N, &P, &Q, &D, &E ) != 0 ) {
+            if ( mbedtls_rsa_export( rsa, &N, NULL, NULL, NULL, &E ) != 0 ) {
+                abort();
+            }
+            if ( mbedtls_rsa_export( rsa, &N, &P, &Q, &D, &E ) != MBEDTLS_ERR_RSA_BAD_INPUT_DATA ) {
                 abort();
             }
             if ( mbedtls_rsa_export_crt( rsa, &DP, &DQ, &QP ) != MBEDTLS_ERR_RSA_BAD_INPUT_DATA ) {

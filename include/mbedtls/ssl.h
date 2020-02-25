@@ -3188,7 +3188,7 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  * \warning        Use of RC4 in DTLS/TLS has been prohibited by RFC 7465
  *                 for security reasons. Use at your own risk.
  *
- * \note           This function is deprecated and will likely be removed in
+ * \note           This function is deprecated and will be removed in
  *                 a future version of the library.
  *                 RC4 is disabled by default at compile time and needs to be
  *                 actively enabled for use with legacy systems.

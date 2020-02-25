@@ -1784,8 +1784,8 @@
  *
  * Fallback to old (pre-2.7), non-conforming implementation of the truncated
  * HMAC extension which also truncates the HMAC key. Note that this option is
- * only meant for a transitory upgrade period and is likely to be removed in
- * a future version of the library.
+ * only meant for a transitory upgrade period and will be removed in a future
+ * version of the library.
  *
  * \warning The old implementation is non-compliant and has a security weakness
  *          (2^80 brute force attack on the HMAC key used for a single,
@@ -1794,7 +1794,7 @@
  *          bandwidth, and (2) the peer is an Mbed TLS stack that doesn't use
  *          the fixed implementation yet (pre-2.7).
  *
- * \deprecated This option is deprecated and will likely be removed in a
+ * \deprecated This option is deprecated and will be removed in a
  *             future version of Mbed TLS.
  *
  * Uncomment to fallback to old, non-compliant truncated HMAC implementation.

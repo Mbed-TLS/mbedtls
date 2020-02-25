@@ -8414,6 +8414,10 @@ void mbedtls_ssl_session_init( mbedtls_ssl_session *session )
 
 static int ssl_handshake_init( mbedtls_ssl_context *ssl )
 {
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    unsigned char* resized_buffer = NULL;
+    int modified = 0;
+#endif
     /* Clear old handshake information if present */
     if( ssl->transform_negotiate )
         mbedtls_ssl_transform_free( ssl->transform_negotiate );
@@ -8440,6 +8444,35 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     {
         ssl->handshake = mbedtls_calloc( 1, sizeof(mbedtls_ssl_handshake_params) );
     }
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    /* If the buffers are too small - reallocate */
+    if( ssl->in_buf_len < MBEDTLS_SSL_IN_BUFFER_LEN )
+    {
+        resized_buffer = mbedtls_calloc( 1, MBEDTLS_SSL_IN_BUFFER_LEN );
+        memcpy( resized_buffer, ssl->in_buf, ssl->in_buf_len );
+        mbedtls_platform_zeroize( ssl->in_buf, ssl->in_buf_len );
+        mbedtls_free( ssl->in_buf );
+
+        ssl->in_buf = resized_buffer;
+        ssl->in_buf_len = MBEDTLS_SSL_IN_BUFFER_LEN;
+        modified = 1;
+    }
+    if( ssl->out_buf_len < MBEDTLS_SSL_OUT_BUFFER_LEN )
+    {
+        resized_buffer = mbedtls_calloc( 1, MBEDTLS_SSL_OUT_BUFFER_LEN );
+        memcpy( resized_buffer, ssl->out_buf, ssl->out_buf_len );
+        mbedtls_platform_zeroize( ssl->out_buf, ssl->out_buf_len );
+        mbedtls_free( ssl->out_buf );
+
+        ssl->out_buf = resized_buffer;
+        ssl->out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
+        modified = 1;
+    }
+    if( modified )
+    {
+        ssl_reset_in_out_pointers( ssl );
+    }
+#endif
 
     /* All pointers should exist and can be directly freed without issue */
     if( ssl->handshake == NULL ||
@@ -11318,6 +11351,11 @@ static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    unsigned char* resized_buffer = NULL;
+    uint32_t buf_len;
+    int modified = 0;
+#endif
 
     if( handshake == NULL )
         return;
@@ -11427,6 +11465,39 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 
     mbedtls_platform_zeroize( handshake,
                               sizeof( mbedtls_ssl_handshake_params ) );
+
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    /* If the buffers are too big - reallocate */
+    buf_len = mbedtls_ssl_get_input_buflen( ssl );
+    if( ssl->in_buf != NULL && ssl->in_buf_len > buf_len && ssl->in_left < buf_len )
+    {
+        resized_buffer = mbedtls_calloc( 1,  buf_len );
+        memcpy( resized_buffer, ssl->in_buf, buf_len );
+        mbedtls_platform_zeroize( ssl->in_buf, ssl->in_buf_len );
+        mbedtls_free( ssl->in_buf );
+
+        ssl->in_buf = resized_buffer;
+        ssl->in_buf_len = buf_len;
+        modified = 1;
+    }
+
+    buf_len = mbedtls_ssl_get_output_buflen( ssl );
+    if( ssl->out_buf != NULL && ssl->out_buf_len > mbedtls_ssl_get_output_buflen( ssl ) && ssl->out_left < buf_len )
+    {
+        resized_buffer = mbedtls_calloc( 1, buf_len );
+        memcpy( resized_buffer, ssl->out_buf, buf_len );
+        mbedtls_platform_zeroize( ssl->out_buf, ssl->out_buf_len );
+        mbedtls_free( ssl->out_buf );
+
+        ssl->out_buf = resized_buffer;
+        ssl->out_buf_len = buf_len;
+        modified = 1;
+    }
+    if( modified )
+    {
+        ssl_reset_in_out_pointers( ssl );
+    }
+#endif
 }
 
 void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
@@ -12107,12 +12178,14 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     {
         mbedtls_platform_zeroize( ssl->out_buf, out_buf_len );
         mbedtls_free( ssl->out_buf );
+        ssl->out_buf = NULL;
     }
 
     if( ssl->in_buf != NULL )
     {
         mbedtls_platform_zeroize( ssl->in_buf, in_buf_len );
         mbedtls_free( ssl->in_buf );
+        ssl->in_buf = NULL;
     }
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)

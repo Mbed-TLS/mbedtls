@@ -59,9 +59,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
         }
         else
 #endif
-            {
-                ret = 0;
-            }
+        {
+            /* The key is valid but is not of a supported type.
+             * This should not happen. */
+            abort( );
+        }
     }
     mbedtls_pk_free( &pk );
 #else

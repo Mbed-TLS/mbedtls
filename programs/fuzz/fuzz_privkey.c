@@ -44,7 +44,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
         else
 #endif
 #if defined(MBEDTLS_ECP_C)
-        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY )
+        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY ||
+            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY_DH )
         {
             mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
             mbedtls_ecp_group_id grp_id = ecp->grp.id;

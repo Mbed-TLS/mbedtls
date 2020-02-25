@@ -275,43 +275,81 @@ DTLS Handshake with serialization, tls1_2
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS
 handshake:"":MBEDTLS_SSL_MINOR_VERSION_3:MBEDTLS_PK_RSA:"":1:1
 
-Test sending app data MFL=512 without fragmentation
+Sending app data via TLS, MFL=512 without fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_512:400:512:1:1
 
-Test sending app data MFL=512 with fragmentation
+Sending app data via TLS, MFL=512 with fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_512:513:1536:2:3
 
-Test sending app data MFL=1024 without fragmentation
+Sending app data via TLS, MFL=1024 without fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_1024:1000:1024:1:1
 
-Test sending app data MFL=1024 with fragmentation
+Sending app data via TLS, MFL=1024 with fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_1024:1025:5120:2:5
 
-Test sending app data MFL=2048 without fragmentation
+Sending app data via TLS, MFL=2048 without fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_2048:2000:2048:1:1
 
-Test sending app data MFL=2048 with fragmentation
+Sending app data via TLS, MFL=2048 with fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_2048:2049:8192:2:4
 
-Test sending app data MFL=4096 without fragmentation
+Sending app data via TLS, MFL=4096 without fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_4096:4000:4096:1:1
 
-Test sending app data MFL=4096 with fragmentation
+Sending app data via TLS, MFL=4096 with fragmentation
 depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_4096:4097:12288:2:3
 
-Test sending app data without MFL and without fragmentation
+Sending app data via TLS without MFL and without fragmentation
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16001:16384:1:1
 
-Test sending app data without MFL and with fragmentation
+Sending app data via TLS without MFL and with fragmentation
 send_application_data:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16385:100000:2:7
+
+Sending app data via DTLS, MFL=512 without fragmentation
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_512:400:512:1:1
+
+Sending app data via DTLS, MFL=512 with fragmentation
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_512:513:1536:0:0
+
+Sending app data via DTLS, MFL=1024 without fragmentation
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_1024:1000:1024:1:1
+
+Sending app data via DTLS, MFL=1024 with fragmentation
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_1024:1025:5120:0:0
+
+Sending app data via DTLS, MFL=2048 without fragmentation
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_2048:2000:2048:1:1
+
+Sending app data via DTLS, MFL=2048 with fragmentation
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_2048:2049:8192:0:0
+
+Sending app data via DTLS, MFL=4096 without fragmentation
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_4096:4000:4096:1:1
+
+Sending app data via DTLS, MFL=4096 with fragmentation
+depends_on:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_4096:4097:12288:0:0
+
+Sending app data via DTLS, without MFL and without fragmentation
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16001:16384:1:1
+
+Sending app data via DTLS, without MFL and with fragmentation
+send_application_data_dtls:MBEDTLS_SSL_MAX_FRAG_LEN_NONE:16385:100000:0:0
 
 SSL DTLS replay: initial state, seqnum 0
 ssl_dtls_replay:"":"000000000000":0

@@ -41,13 +41,20 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 #if defined(MBEDTLS_ECP_C)
         if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY )
         {
-            mbedtls_ecp_keypair *ecp;
+            mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
+            mbedtls_ecp_group_id grp_id = ecp->grp.id;
+            const mbedtls_ecp_curve_info *curve_info =
+                mbedtls_ecp_curve_info_from_grp_id( grp_id );
 
-            ecp = mbedtls_pk_ec( pk );
-            //dummy use of value
-            if (ecp) {
-                ret = 0;
-            }
+            /* If the curve is not supported, the key should not have been
+             * accepted. */
+            if( curve_info == NULL )
+                abort( );
+
+            /* It's a public key, so the private value should not have
+             * been changed from its initialization to 0. */
+            if( mbedtls_mpi_cmp_int( &ecp->d, 0 ) != 0 )
+                abort( );
         }
         else
 #endif

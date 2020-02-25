@@ -1543,6 +1543,19 @@ exit:
     return ret;
 }
 
+/*
+ * Perform data exchanging between \p ssl_1 and \p ssl_2. Both of endpoints
+ * must be initialized and connected beforehand.
+ *
+ * \retval  0 on success, otherwise error code.
+ */
+int exchange_data( mbedtls_ssl_context *ssl_1,
+                   mbedtls_ssl_context *ssl_2 )
+{
+    return mbedtls_exchange_data( ssl_1, 256, 1,
+                                  ssl_2, 256, 1 );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -3564,6 +3577,93 @@ void send_application_data_dtls( int mfl, int cli_msg_len, int srv_msg_len,
                                  &(server.ssl), srv_msg_len, expected_srv_fragments );
     TEST_ASSERT( ret == 0 );
 
+
+exit:
+    mbedtls_endpoint_free( &client, &client_context );
+    mbedtls_endpoint_free( &server, &server_context );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_RENEGOTIATION */
+void dtls_renegotiation( int legacy_option )
+{
+enum { BUFFSIZE = 17000 };
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_timing_delay_context timer_client, timer_server;
+#endif
+    mbedtls_endpoint server, client;
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+    int ret = -1;
+
+    /* Initializing endpoints for DTLS */
+    ret = mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER, MBEDTLS_PK_RSA,
+                                 &server_context, &server_queue, &client_queue );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_PK_RSA,
+                                 &client_context, &client_queue, &server_queue );
+    TEST_ASSERT( ret == 0 );
+
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_ssl_set_timer_cb( &client.ssl, &timer_client,
+                              mbedtls_timing_set_delay,
+                              mbedtls_timing_get_delay );
+
+    mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
+                              mbedtls_timing_set_delay,
+                              mbedtls_timing_get_delay );
+#endif /* MBEDTLS_TIMING_C */
+
+    /* Setup renegotiation and perform connection */
+    mbedtls_ssl_conf_renegotiation( &(server.conf), MBEDTLS_SSL_RENEGOTIATION_ENABLED );
+    mbedtls_ssl_conf_renegotiation( &(client.conf), MBEDTLS_SSL_RENEGOTIATION_ENABLED );
+
+    mbedtls_ssl_conf_legacy_renegotiation( &(server.conf), legacy_option );
+    mbedtls_ssl_conf_legacy_renegotiation( &(client.conf), legacy_option );
+
+    ret = mbedtls_mock_socket_connect( &(server.socket), &(client.socket),
+                                       BUFFSIZE );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_move_handshake_to_state( &(client.ssl),
+                                           &(server.ssl),
+                                           MBEDTLS_SSL_HANDSHAKE_OVER );
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+    TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+
+    /* Start test with renegotiation */
+    TEST_ASSERT( server.ssl.renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE );
+    TEST_ASSERT( client.ssl.renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE );
+
+    ret = mbedtls_ssl_renegotiate( &(server.ssl) );
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( server.ssl.renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING );
+    TEST_ASSERT( client.ssl.renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE );
+
+    /* After calling the above function for the server, it only sends a handshake
+     * request. All renegotiation should happen during data exchanging */
+    TEST_ASSERT( 0 == exchange_data( &(client.ssl), &(server.ssl) ) );
+    TEST_ASSERT( server.ssl.renego_status == MBEDTLS_SSL_RENEGOTIATION_DONE );
+    TEST_ASSERT( client.ssl.renego_status == MBEDTLS_SSL_RENEGOTIATION_DONE );
+
+    /* After calling mbedtls_ssl_renegotiate for the client all renegotiation
+     * should happen inside this function. However in this test, we cannot
+     * perform simultaneous communication between client and server so this
+     * function will return waiting error on the socket. The rest of
+     * renegotiation should happen during data exchanging */
+    ret = mbedtls_ssl_renegotiate( &(client.ssl) );
+    TEST_ASSERT( ret == 0 ||
+                 ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                 ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+    TEST_ASSERT( server.ssl.renego_status == MBEDTLS_SSL_RENEGOTIATION_DONE );
+    TEST_ASSERT( client.ssl.renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS );
+
+    ret = exchange_data( &(client.ssl), &(server.ssl) );
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( server.ssl.renego_status == MBEDTLS_SSL_RENEGOTIATION_DONE );
+    TEST_ASSERT( client.ssl.renego_status == MBEDTLS_SSL_RENEGOTIATION_DONE );
 
 exit:
     mbedtls_endpoint_free( &client, &client_context );

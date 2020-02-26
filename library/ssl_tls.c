@@ -804,7 +804,7 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
  * - [in] minor_ver: SSL/TLS minor version
  * - [in] endpoint: client or server
  * - [in] ssl: optionally used for:
- *        - MBEDTLS_SSL_HW_RECORD_ACCEL: whole context
+ *        - MBEDTLS_SSL_HW_RECORD_ACCEL: whole context (non-const)
  *        - MBEDTLS_SSL_EXPORT_KEYS: ssl->conf->{f,p}_export_keys
  *        - MBEDTLS_DEBUG_C: ssl->conf->{f,p}_dbg
  */
@@ -826,7 +826,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                    const unsigned char randbytes[64],
                                    int minor_ver,
                                    unsigned endpoint,
-                                   const mbedtls_ssl_context *ssl )
+                                   mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

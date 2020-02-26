@@ -2032,7 +2032,7 @@ void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight )
 /*
  * Swap transform_out and out_ctr with the alternative ones
  */
-static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
+static int ssl_swap_epochs( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_transform *tmp_transform;
     unsigned char tmp_out_ctr[8];
@@ -2040,7 +2040,7 @@ static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
     if( ssl->transform_out == ssl->handshake->alt_transform_out )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip swap epochs" ) );
-        return;
+        return( 0 );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "swap epochs" ) );
@@ -2061,13 +2061,16 @@ static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
     {
-        if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_OUTBOUND ) ) != 0 )
+        int ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_OUTBOUND );
+        if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
         }
     }
 #endif
+
+    return( 0 );
 }
 
 /*
@@ -2104,7 +2107,9 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 
         ssl->handshake->cur_msg = ssl->handshake->flight;
         ssl->handshake->cur_msg_p = ssl->handshake->flight->p + 12;
-        ssl_swap_epochs( ssl );
+        ret = ssl_swap_epochs( ssl );
+        if( ret != 0 )
+            return( ret );
 
         ssl->handshake->retransmit_state = MBEDTLS_SSL_RETRANS_SENDING;
     }
@@ -2127,7 +2132,9 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         if( is_finished && ssl->handshake->cur_msg_p == ( cur->p + 12 ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "swap epochs to send finished message" ) );
-            ssl_swap_epochs( ssl );
+            ret = ssl_swap_epochs( ssl );
+            if( ret != 0 )
+                return( ret );
         }
 
         ret = ssl_get_remaining_payload_in_datagram( ssl );
@@ -2164,7 +2171,11 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
             if( ( max_frag_len < 12 ) || ( max_frag_len == 12 && hs_len != 0 ) )
             {
                 if( is_finished )
-                    ssl_swap_epochs( ssl );
+                {
+                    ret = ssl_swap_epochs( ssl );
+                    if( ret != 0 )
+                        return( ret );
+                }
 
                 if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
                     return( ret );

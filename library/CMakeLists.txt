@@ -148,6 +148,10 @@ if(HAIKU)
     set(libs ${libs} network)
 endif(HAIKU)
 
+if(USE_PKCS11_HELPER_LIBRARY)
+    set(libs ${libs} pkcs11-helper)
+endif(USE_PKCS11_HELPER_LIBRARY)
+
 if(ENABLE_ZLIB_SUPPORT)
     set(libs ${libs} ${ZLIB_LIBRARIES})
 endif(ENABLE_ZLIB_SUPPORT)

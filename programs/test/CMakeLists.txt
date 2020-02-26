@@ -1,5 +1,5 @@
 set(libs
-    mbedcrypto
+    mbedtls
 )
 
 add_executable(selftest selftest.c)

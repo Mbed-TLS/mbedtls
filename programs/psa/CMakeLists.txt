@@ -1,11 +1,11 @@
 add_executable(crypto_examples crypto_examples.c)
-target_link_libraries(crypto_examples mbedcrypto)
+target_link_libraries(crypto_examples mbedtls)
 
 add_executable(key_ladder_demo key_ladder_demo.c)
-target_link_libraries(key_ladder_demo mbedcrypto)
+target_link_libraries(key_ladder_demo mbedtls)
 
 add_executable(psa_constant_names psa_constant_names.c)
-target_link_libraries(psa_constant_names mbedcrypto)
+target_link_libraries(psa_constant_names mbedtls)
 
 add_custom_target(
     psa_constant_names_generated

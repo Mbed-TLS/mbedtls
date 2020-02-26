@@ -135,7 +135,7 @@ sub gen_app {
     $content =~ s/<SOURCES>/$srcs/g;
     $content =~ s/<APPNAME>/$appname/g;
     $content =~ s/<GUID>/$guid/g;
-    $content =~ s/\r\nINCLUDE_DIRECTORIES\r\n +/$include_directories/g;
+    $content =~ s/INCLUDE_DIRECTORIES\r\n/$include_directories/g;
 
     content_to_file( $content, "$dir/$appname.$ext" );
 }
@@ -180,7 +180,7 @@ sub gen_main_file {
     my $out = slurp_file( $main_tpl );
     $out =~ s/SOURCE_ENTRIES\r\n/$source_entries/m;
     $out =~ s/HEADER_ENTRIES\r\n/$header_entries/m;
-    $out =~ s/\r\nINCLUDE_DIRECTORIES\r\n +/$include_directories/g;
+    $out =~ s/INCLUDE_DIRECTORIES\r\n/$include_directories/g;
 
     content_to_file( $out, $main_out );
 }

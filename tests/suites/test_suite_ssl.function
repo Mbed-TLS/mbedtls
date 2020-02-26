@@ -6,6 +6,39 @@
 #include <mbedtls/certs.h>
 #include <mbedtls/timing.h>
 
+typedef struct handshake_test_options
+{
+    const char *cipher;
+    int version;
+    int pk_alg;
+    data_t *psk_str;
+    int dtls;
+    int serialize;
+    int mfl;
+    int cli_msg_len;
+    int srv_msg_len;
+    int expected_cli_fragments;
+    int expected_srv_fragments;
+    int renegotiate;
+    int legacy_renegotiation;
+} handshake_test_options;
+
+void init_handshake_options( handshake_test_options *opts )
+{
+  opts->cipher = "";
+  opts->version = MBEDTLS_SSL_MINOR_VERSION_3;
+  opts->pk_alg = MBEDTLS_PK_RSA;
+  opts->psk_str = NULL;
+  opts->dtls = 0;
+  opts->serialize = 0;
+  opts->mfl = MBEDTLS_SSL_MAX_FRAG_LEN_NONE;
+  opts->cli_msg_len = 100;
+  opts->srv_msg_len = 100;
+  opts->expected_cli_fragments = 1;
+  opts->expected_srv_fragments = 1;
+  opts->renegotiate = 0;
+  opts->legacy_renegotiation = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
+}
 /*
  * Buffer structure for custom I/O callbacks.
  */
@@ -1555,6 +1588,241 @@ int exchange_data( mbedtls_ssl_context *ssl_1,
     return mbedtls_exchange_data( ssl_1, 256, 1,
                                   ssl_2, 256, 1 );
 }
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+void perform_handshake( handshake_test_options* options )
+{
+    /* forced_ciphersuite needs to last until the end of the handshake */
+    int forced_ciphersuite[2];
+    enum { BUFFSIZE = 17000 };
+    mbedtls_endpoint client, server;
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    const char *psk_identity = "foo";
+#endif
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_timing_delay_context timer_client, timer_server;
+#endif
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    unsigned char *context_buf = NULL;
+    size_t context_buf_len;
+#endif
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    int ret = -1;
+#endif
+
+
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    /* Client side */
+    if( options->dtls != 0 )
+    {
+        TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
+                                            options->pk_alg, &client_context,
+                                            &client_queue,
+                                            &server_queue ) == 0 );
+#if defined(MBEDTLS_TIMING_C)
+        mbedtls_ssl_set_timer_cb( &client.ssl, &timer_client,
+                                  mbedtls_timing_set_delay,
+                                  mbedtls_timing_get_delay );
+#endif
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
+                                            options->pk_alg, NULL, NULL,
+                                            NULL ) == 0 );
+    }
+    mbedtls_ssl_conf_min_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                      options->version );
+    mbedtls_ssl_conf_max_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                      options->version );
+
+    if( strlen( options->cipher ) > 0 )
+    {
+        set_ciphersuite( &client.conf, options->cipher, forced_ciphersuite );
+    }
+    /* Server side */
+    if( options->dtls != 0 )
+    {
+        TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
+                                            options->pk_alg, &server_context,
+                                            &server_queue,
+                                            &client_queue) == 0 );
+#if defined(MBEDTLS_TIMING_C)
+        mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
+                                  mbedtls_timing_set_delay,
+                                  mbedtls_timing_get_delay );
+#endif
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
+                                            options->pk_alg, NULL, NULL, NULL ) == 0 );
+    }
+    mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                      options->version );
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    TEST_ASSERT( mbedtls_ssl_conf_max_frag_len( &(server.conf),
+                                         (unsigned char) options->mfl ) == 0 );
+    TEST_ASSERT( mbedtls_ssl_conf_max_frag_len( &(client.conf),
+                                         (unsigned char) options->mfl ) == 0 );
+#else
+    TEST_ASSERT( MBEDTLS_SSL_MAX_FRAG_LEN_NONE == options->mfl );
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    if( options->psk_str != NULL && options->psk_str->len > 0 )
+    {
+        TEST_ASSERT( mbedtls_ssl_conf_psk( &client.conf, options->psk_str->x,
+                             options->psk_str->len,
+                             (const unsigned char *) psk_identity,
+                             strlen( psk_identity ) ) == 0 );
+
+        TEST_ASSERT( mbedtls_ssl_conf_psk( &server.conf, options->psk_str->x,
+                             options->psk_str->len,
+                             (const unsigned char *) psk_identity,
+                             strlen( psk_identity ) ) == 0 );
+
+        mbedtls_ssl_conf_psk_cb( &server.conf, psk_dummy_callback, NULL );
+    }
+#endif
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( options->renegotiate )
+    {
+        mbedtls_ssl_conf_renegotiation( &(server.conf),
+                                        MBEDTLS_SSL_RENEGOTIATION_ENABLED );
+        mbedtls_ssl_conf_renegotiation( &(client.conf),
+                                        MBEDTLS_SSL_RENEGOTIATION_ENABLED );
+
+        mbedtls_ssl_conf_legacy_renegotiation( &(server.conf),
+                                               options->legacy_renegotiation );
+        mbedtls_ssl_conf_legacy_renegotiation( &(client.conf),
+                                               options->legacy_renegotiation );
+    }
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+    TEST_ASSERT( mbedtls_mock_socket_connect( &(client.socket),
+                                              &(server.socket),
+                                              BUFFSIZE ) == 0 );
+
+    TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
+                                                  &(server.ssl),
+                                                  MBEDTLS_SSL_HANDSHAKE_OVER )
+                 == 0 );
+    TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+    TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+
+    if( options->cli_msg_len != 0 || options->srv_msg_len != 0 )
+    {
+        /* Start data exchanging test */
+        TEST_ASSERT( mbedtls_exchange_data( &(client.ssl), options->cli_msg_len,
+                                            options->expected_cli_fragments,
+                                            &(server.ssl), options->srv_msg_len,
+                                            options->expected_srv_fragments )
+                     == 0 );
+    }
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( options->serialize == 1 )
+    {
+        TEST_ASSERT( options->dtls == 1 );
+
+        TEST_ASSERT( mbedtls_ssl_context_save( &(server.ssl), NULL,
+                                               0, &context_buf_len )
+                                             == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+        context_buf = mbedtls_calloc( 1, context_buf_len );
+        TEST_ASSERT( context_buf != NULL );
+
+        TEST_ASSERT( mbedtls_ssl_context_save( &(server.ssl), context_buf,
+                                               context_buf_len,
+                                               &context_buf_len ) == 0 );
+
+        mbedtls_ssl_free( &(server.ssl) );
+        mbedtls_ssl_init( &(server.ssl) );
+
+        TEST_ASSERT( mbedtls_ssl_setup( &(server.ssl), &(server.conf) ) == 0 );
+
+        mbedtls_ssl_set_bio( &( server.ssl ), &server_context,
+                             mbedtls_mock_tcp_send_msg,
+                             mbedtls_mock_tcp_recv_msg,
+                             NULL );
+
+#if defined(MBEDTLS_TIMING_C)
+        mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
+                                  mbedtls_timing_set_delay,
+                                  mbedtls_timing_get_delay );
+#endif
+        TEST_ASSERT( mbedtls_ssl_context_load( &( server.ssl ), context_buf,
+                                               context_buf_len ) == 0 );
+
+        /* Retest writing/reading */
+        if( options->cli_msg_len != 0 || options->srv_msg_len != 0 )
+        {
+            TEST_ASSERT( mbedtls_exchange_data( &(client.ssl),
+                                                options->cli_msg_len,
+                                                options->expected_cli_fragments,
+                                                &(server.ssl),
+                                                options->srv_msg_len,
+                                                options->expected_srv_fragments )
+                                                == 0 );
+        }
+    }
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( options->renegotiate )
+    {
+        /* Start test with renegotiation */
+        TEST_ASSERT( server.ssl.renego_status ==
+                     MBEDTLS_SSL_INITIAL_HANDSHAKE );
+        TEST_ASSERT( client.ssl.renego_status ==
+                     MBEDTLS_SSL_INITIAL_HANDSHAKE );
+
+        /* After calling this function for the server, it only sends a handshake
+         * request. All renegotiation should happen during data exchanging */
+        TEST_ASSERT( mbedtls_ssl_renegotiate( &(server.ssl) ) == 0 );
+        TEST_ASSERT( server.ssl.renego_status ==
+                     MBEDTLS_SSL_RENEGOTIATION_PENDING );
+        TEST_ASSERT( client.ssl.renego_status ==
+                     MBEDTLS_SSL_INITIAL_HANDSHAKE );
+
+        TEST_ASSERT( exchange_data( &(client.ssl), &(server.ssl) ) == 0 );
+        TEST_ASSERT( server.ssl.renego_status ==
+                     MBEDTLS_SSL_RENEGOTIATION_DONE );
+        TEST_ASSERT( client.ssl.renego_status ==
+                     MBEDTLS_SSL_RENEGOTIATION_DONE );
+
+        /* After calling mbedtls_ssl_renegotiate for the client all renegotiation
+         * should happen inside this function. However in this test, we cannot
+         * perform simultaneous communication betwen client and server so this
+         * function will return waiting error on the socket. All rest of
+         * renegotiation should happen during data exchanging */
+        ret = mbedtls_ssl_renegotiate( &(client.ssl) );
+        TEST_ASSERT( ret == 0 ||
+                     ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                     ret == MBEDTLS_ERR_SSL_WANT_WRITE );
+        TEST_ASSERT( server.ssl.renego_status ==
+                     MBEDTLS_SSL_RENEGOTIATION_DONE );
+        TEST_ASSERT( client.ssl.renego_status ==
+                     MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS );
+
+        TEST_ASSERT( exchange_data( &(client.ssl), &(server.ssl) ) == 0 );
+        TEST_ASSERT( server.ssl.renego_status ==
+                     MBEDTLS_SSL_RENEGOTIATION_DONE );
+        TEST_ASSERT( client.ssl.renego_status ==
+                     MBEDTLS_SSL_RENEGOTIATION_DONE );
+    }
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+exit:
+    mbedtls_endpoint_free( &client, options->dtls != 0 ? &client_context : NULL );
+    mbedtls_endpoint_free( &server, options->dtls != 0 ? &server_context : NULL );
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( context_buf != NULL )
+        mbedtls_free( context_buf );
+#endif
+}
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /* END_HEADER */
 
@@ -3300,245 +3568,129 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
-void handshake( const char *cipher, int version, int pk_alg,
-                data_t *psk_str, int dtls, int serialize, int mfl,
-                int cli_msg_len, int srv_msg_len,
-                const int expected_cli_fragments,
-                const int expected_srv_fragments, const int renegotiate,
-                const int legacy_renegotiation )
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+void handshake_version( int version, int dtls )
 {
-    /* forced_ciphersuite needs to last until the end of the handshake */
-    int forced_ciphersuite[2];
-    enum { BUFFSIZE = 17000 };
-    mbedtls_endpoint client, server;
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    const char *psk_identity = "foo";
-#else
-    (void) psk_str;
-#endif
-#if defined(MBEDTLS_TIMING_C)
-    mbedtls_timing_delay_context timer_client, timer_server;
-#endif
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    unsigned char *context_buf = NULL;
-    size_t context_buf_len;
-#else
-    (void) serialize;
-#endif
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    int ret = -1;
-#else
-    (void) renegotiate;
-    (void) legacy_renegotiation;
-#endif
+    handshake_test_options options;
+    init_handshake_options( &options );
 
-    mbedtls_test_message_queue server_queue, client_queue;
-    mbedtls_test_message_socket_context server_context, client_context;
-
-    /* Client side */
-    if( dtls != 0 )
+    options.version = version;
+    options.dtls = dtls;
+    /* Note - the case below will have to updated, since the test sends no data
+     * due to a 1n-1 split against BEAST, that was not expected when preparing
+     * the fragment counting code. */
+    if( version == MBEDTLS_SSL_MINOR_VERSION_0 ||
+        version == MBEDTLS_SSL_MINOR_VERSION_1 )
     {
-        TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
-                                            pk_alg, &client_context,
-                                            &client_queue,
-                                            &server_queue ) == 0 );
-#if defined(MBEDTLS_TIMING_C)
-        mbedtls_ssl_set_timer_cb( &client.ssl, &timer_client,
-                                  mbedtls_timing_set_delay,
-                                  mbedtls_timing_get_delay );
-#endif
+        options.cli_msg_len = 0;
+        options.srv_msg_len = 0;
     }
-    else
-    {
-        TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
-                                            pk_alg, NULL, NULL, NULL ) == 0 );
-    }
-    mbedtls_ssl_conf_min_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
-                                      version );
-    mbedtls_ssl_conf_max_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
-                                      version );
+    perform_handshake( &options );
 
-    if( strlen( cipher ) > 0 )
-    {
-        set_ciphersuite( &client.conf, cipher, forced_ciphersuite );
-    }
-    /* Server side */
-    if( dtls != 0 )
-    {
-        TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
-                                            pk_alg, &server_context,
-                                            &server_queue,
-                                            &client_queue) == 0 );
-#if defined(MBEDTLS_TIMING_C)
-        mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
-                                  mbedtls_timing_set_delay,
-                                  mbedtls_timing_get_delay );
-#endif
-    }
-    else
-    {
-        TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
-                                            pk_alg, NULL, NULL, NULL ) == 0 );
-    }
-    mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
-                                      version );
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    TEST_ASSERT( mbedtls_ssl_conf_max_frag_len( &(server.conf),
-                                                (unsigned char) mfl ) == 0 );
-    TEST_ASSERT( mbedtls_ssl_conf_max_frag_len( &(client.conf),
-                                                (unsigned char) mfl ) == 0 );
-#else
-    TEST_ASSERT( MBEDTLS_SSL_MAX_FRAG_LEN_NONE == mfl );
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    if( psk_str->len > 0 )
-    {
-        TEST_ASSERT( mbedtls_ssl_conf_psk( &client.conf, psk_str->x,
-                             psk_str->len,
-                             (const unsigned char *) psk_identity,
-                             strlen( psk_identity ) ) == 0 );
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2 */
+void handshake_psk_cipher( char* cipher, int pk_alg, data_t *psk_str, int dtls )
+{
+    handshake_test_options options;
+    init_handshake_options( &options );
 
-        TEST_ASSERT( mbedtls_ssl_conf_psk( &server.conf, psk_str->x,
-                             psk_str->len,
-                             (const unsigned char *) psk_identity,
-                             strlen( psk_identity ) ) == 0 );
+    options.cipher = cipher;
+    options.dtls = dtls;
+    options.psk_str = psk_str;
+    options.pk_alg = pk_alg;
 
-        mbedtls_ssl_conf_psk_cb( &server.conf, psk_dummy_callback, NULL );
-    }
-#endif
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( renegotiate )
-    {
-        mbedtls_ssl_conf_renegotiation( &(server.conf),
-                                        MBEDTLS_SSL_RENEGOTIATION_ENABLED );
-        mbedtls_ssl_conf_renegotiation( &(client.conf),
-                                        MBEDTLS_SSL_RENEGOTIATION_ENABLED );
+    perform_handshake( &options );
 
-        mbedtls_ssl_conf_legacy_renegotiation( &(server.conf),
-                                               legacy_renegotiation );
-        mbedtls_ssl_conf_legacy_renegotiation( &(client.conf),
-                                               legacy_renegotiation );
-    }
-#endif /* MBEDTLS_SSL_RENEGOTIATION */
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
 
-    TEST_ASSERT( mbedtls_mock_socket_connect( &(client.socket),
-                                              &(server.socket),
-                                              BUFFSIZE ) == 0 );
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2 */
+void handshake_cipher( char* cipher, int pk_alg, int dtls )
+{
+    test_handshake_psk_cipher( cipher, pk_alg, NULL, dtls );
 
-    TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
-                                                  &(server.ssl),
-                                                  MBEDTLS_SSL_HANDSHAKE_OVER )
-                 == 0 );
-    TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
-    TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
 
-    if( cli_msg_len != 0 || srv_msg_len != 0 )
-    {
-        /* Start data exchanging test */
-        TEST_ASSERT( mbedtls_exchange_data( &(client.ssl), cli_msg_len,
-                                            expected_cli_fragments,
-                                            &(server.ssl), srv_msg_len,
-                                            expected_srv_fragments ) == 0 );
-    }
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    if( serialize == 1 )
-    {
-        TEST_ASSERT( dtls == 1 );
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+void app_data( int mfl, int cli_msg_len, int srv_msg_len,
+               int expected_cli_fragments,
+               int expected_srv_fragments, int dtls )
+{
+    handshake_test_options options;
+    init_handshake_options( &options );
 
-        TEST_ASSERT( mbedtls_ssl_context_save( &(server.ssl), NULL,
-                                               0, &context_buf_len )
-                                             == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    options.mfl = mfl;
+    options.cli_msg_len = cli_msg_len;
+    options.srv_msg_len = srv_msg_len;
+    options.expected_cli_fragments = expected_cli_fragments;
+    options.expected_srv_fragments = expected_srv_fragments;
+    options.dtls = dtls;
 
-        context_buf = mbedtls_calloc( 1, context_buf_len );
-        TEST_ASSERT( context_buf != NULL );
+    perform_handshake( &options );
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
 
-        TEST_ASSERT( mbedtls_ssl_context_save( &(server.ssl), context_buf,
-                                               context_buf_len,
-                                               &context_buf_len ) == 0 );
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+void app_data_tls( int mfl, int cli_msg_len, int srv_msg_len,
+                   int expected_cli_fragments,
+                   int expected_srv_fragments )
+{
+    test_app_data( mfl, cli_msg_len, srv_msg_len, expected_cli_fragments,
+                   expected_srv_fragments, 0 );
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
 
-        mbedtls_ssl_free( &(server.ssl) );
-        mbedtls_ssl_init( &(server.ssl) );
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS */
+void app_data_dtls( int mfl, int cli_msg_len, int srv_msg_len,
+                    int expected_cli_fragments,
+                    int expected_srv_fragments )
+{
+    test_app_data( mfl, cli_msg_len, srv_msg_len, expected_cli_fragments,
+                   expected_srv_fragments, 1 );
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
 
-        TEST_ASSERT( mbedtls_ssl_setup( &(server.ssl), &(server.conf) ) == 0 );
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+void handshake_serialization( )
+{
+    handshake_test_options options;
+    init_handshake_options( &options );
 
-        mbedtls_ssl_set_bio( &( server.ssl ), &server_context,
-                             mbedtls_mock_tcp_send_msg,
-                             mbedtls_mock_tcp_recv_msg,
-                             NULL );
+    options.serialize = 1;
+    options.dtls = 1;
+    perform_handshake( &options );
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
 
-#if defined(MBEDTLS_TIMING_C)
-        mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
-                                  mbedtls_timing_set_delay,
-                                  mbedtls_timing_get_delay );
-#endif
-        TEST_ASSERT( mbedtls_ssl_context_load( &( server.ssl ), context_buf,
-                                               context_buf_len ) == 0 );
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION */
+void renegotiation( int legacy_renegotiation )
+{
+    handshake_test_options options;
+    init_handshake_options( &options );
 
-        /* Retest writing/reading */
-        if( cli_msg_len != 0 || srv_msg_len != 0 )
-        {
-            TEST_ASSERT( mbedtls_exchange_data( &(client.ssl), cli_msg_len,
-                                                expected_cli_fragments,
-                                                &(server.ssl), srv_msg_len,
-                                                expected_srv_fragments ) == 0 );
-        }
-    }
-#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( renegotiate )
-    {
-        /* Start test with renegotiation */
-        TEST_ASSERT( server.ssl.renego_status ==
-                     MBEDTLS_SSL_INITIAL_HANDSHAKE );
-        TEST_ASSERT( client.ssl.renego_status ==
-                     MBEDTLS_SSL_INITIAL_HANDSHAKE );
+    options.renegotiate = 1;
+    options.legacy_renegotiation = legacy_renegotiation;
+    options.dtls = 1;
 
-        /* After calling this function for the server, it only sends a handshake
-         * request. All renegotiation should happen during data exchanging */
-        TEST_ASSERT( mbedtls_ssl_renegotiate( &(server.ssl) ) == 0 );
-        TEST_ASSERT( server.ssl.renego_status ==
-                     MBEDTLS_SSL_RENEGOTIATION_PENDING );
-        TEST_ASSERT( client.ssl.renego_status ==
-                     MBEDTLS_SSL_INITIAL_HANDSHAKE );
-
-        TEST_ASSERT( exchange_data( &(client.ssl), &(server.ssl) ) == 0 );
-        TEST_ASSERT( server.ssl.renego_status ==
-                     MBEDTLS_SSL_RENEGOTIATION_DONE );
-        TEST_ASSERT( client.ssl.renego_status ==
-                     MBEDTLS_SSL_RENEGOTIATION_DONE );
-
-        /* After calling mbedtls_ssl_renegotiate for the client all renegotiation
-         * should happen inside this function. However in this test, we cannot
-         * perform simultaneous communication betwen client and server so this
-         * function will return waiting error on the socket. All rest of
-         * renegotiation should happen during data exchanging */
-        ret = mbedtls_ssl_renegotiate( &(client.ssl) );
-        TEST_ASSERT( ret == 0 ||
-                     ret == MBEDTLS_ERR_SSL_WANT_READ ||
-                     ret == MBEDTLS_ERR_SSL_WANT_WRITE );
-        TEST_ASSERT( server.ssl.renego_status ==
-                     MBEDTLS_SSL_RENEGOTIATION_DONE );
-        TEST_ASSERT( client.ssl.renego_status ==
-                     MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS );
-
-        TEST_ASSERT( exchange_data( &(client.ssl), &(server.ssl) ) == 0 );
-        TEST_ASSERT( server.ssl.renego_status ==
-                     MBEDTLS_SSL_RENEGOTIATION_DONE );
-        TEST_ASSERT( client.ssl.renego_status ==
-                     MBEDTLS_SSL_RENEGOTIATION_DONE );
-    }
-#endif /* MBEDTLS_SSL_RENEGOTIATION */
-
-exit:
-    mbedtls_endpoint_free( &client, dtls != 0 ? &client_context : NULL );
-    mbedtls_endpoint_free( &server, dtls != 0 ? &server_context : NULL );
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    if( dtls != 0 && serialize != 0 )
-    {
-        mbedtls_free( context_buf );
-    }
-#endif
+    perform_handshake( &options );
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
 }
 /* END_CASE */

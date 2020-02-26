@@ -47,25 +47,18 @@ function(add_test_suite suite_name)
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py mbedtls ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data
     )
 
-    set(exe_name test_suite_${data_name})
-    # Add a prefix to differentiate these tests from those of the parent
-    # module, when this project is built as a submodule.
-    if(USE_CRYPTO_SUBMODULE)
-        set(exe_name crypto.${exe_name})
-    endif()
-
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-    add_executable(${exe_name} test_suite_${data_name}.c)
-    target_link_libraries(${exe_name} ${libs})
-    target_include_directories(${exe_name}
-        PUBLIC ${MBEDTLS_DIR}/include/
-        PUBLIC ${MBEDTLS_DIR}/crypto/include/
-        PUBLIC ${MBEDTLS_DIR}/crypto/library/)
+    add_executable(test_suite_${data_name} test_suite_${data_name}.c)
+    target_link_libraries(test_suite_${data_name} ${libs})
+    target_include_directories(test_suite_${data_name}
+        PUBLIC ${CMAKE_SOURCE_DIR}/include/
+        PUBLIC ${CMAKE_SOURCE_DIR}/crypto/include/)
+        PUBLIC ${CMAKE_SOURCE_DIR}/crypto/library/)
 
     if(${data_name} MATCHES ${SKIP_TEST_SUITES_REGEX})
         message(STATUS "The test suite ${data_name} will not be executed.")
     else()
-        add_test(${data_name}-suite ${exe_name} --verbose)
+        add_test(${data_name}-suite test_suite_${data_name} --verbose)
     endif()
 endfunction(add_test_suite)
 

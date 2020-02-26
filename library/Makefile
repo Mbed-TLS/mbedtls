@@ -36,6 +36,8 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
+SOEXT_TLS=so.12
+SOEXT_X509=so.0
 SOEXT_CRYPTO=so.4
 
 # Set AR_DASH= (empty string) to use an ar implementation that does not accept
@@ -105,6 +107,16 @@ include ../3rdparty/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
 
+OBJS_X509=	certs.o		pkcs11.o	x509.o		\
+		x509_create.o	x509_crl.o	x509_crt.o	\
+		x509_csr.o	x509write_crt.o	x509write_csr.o
+
+OBJS_TLS=	debug.o		net_sockets.o		\
+		ssl_cache.o	ssl_ciphersuites.o	\
+		ssl_cli.o	ssl_cookie.o		\
+		ssl_srv.o	ssl_ticket.o		\
+		ssl_tls.o
+
 .SILENT:
 
 .PHONY: all static shared clean
@@ -115,9 +127,63 @@ else
 all: shared static
 endif
 
-static: libmbedcrypto.a
+static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 
-shared: libmbedcrypto.$(DLEXT)
+shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
+
+# tls
+libmbedtls.a: $(OBJS_TLS)
+	echo "  AR    $@"
+	$(AR) $(ARFLAGS) $@ $(OBJS_TLS)
+ifdef APPLE_BUILD
+ifneq ($(APPLE_BUILD),0)
+	echo "  RL    $@"
+	$(RL) $(RLFLAGS) $@
+endif
+endif
+
+libmbedtls.$(SOEXT_TLS): $(OBJS_TLS) libmbedx509.so
+	echo "  LD    $@"
+	$(CC) -shared -Wl,-soname,$@ -L. -lmbedcrypto -lmbedx509 $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
+
+libmbedtls.so: libmbedtls.$(SOEXT_TLS)
+	echo "  LN    $@ -> $<"
+	ln -sf $< $@
+
+libmbedtls.dylib: $(OBJS_TLS) libmbedx509.dylib
+	echo "  LD    $@"
+	$(CC) -dynamiclib -L. -lmbedcrypto -lmbedx509 $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
+
+libmbedtls.dll: $(OBJS_TLS) libmbedx509.dll
+	echo "  LD    $@"
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_TLS) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -lmbedx509 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+
+# x509
+libmbedx509.a: $(OBJS_X509)
+	echo "  AR    $@"
+	$(AR) $(ARFLAGS) $@ $(OBJS_X509)
+ifdef APPLE_BUILD
+ifneq ($(APPLE_BUILD),0)
+	echo "  RL    $@"
+	$(RL) $(RLFLAGS) $@
+endif
+endif
+
+libmbedx509.$(SOEXT_X509): $(OBJS_X509) libmbedcrypto.so
+	echo "  LD    $@"
+	$(CC) -shared -Wl,-soname,$@ -L. -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
+
+libmbedx509.so: libmbedx509.$(SOEXT_X509)
+	echo "  LN    $@ -> $<"
+	ln -sf $< $@
+
+libmbedx509.dylib: $(OBJS_X509) libmbedcrypto.dylib
+	echo "  LD    $@"
+	$(CC) -dynamiclib -L. -lmbedcrypto  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
+
+libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
+	echo "  LD    $@"
+	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_X509) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # crypto
 libmbedcrypto.a: $(OBJS_CRYPTO)

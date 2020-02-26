@@ -9,7 +9,9 @@ hash/hello
 hash/md5sum
 hash/sha1sum
 hash/sha2sum
+pkey/dh_client
 pkey/dh_genprime
+pkey/dh_server
 pkey/ecdsa
 pkey/ecdh_curve25519
 pkey/gen_key

@@ -44,6 +44,8 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 ### Diffie-Hellman key exchange examples
 
+* [`pkey/dh_client.c`](pkey/dh_client.c), [`pkey/dh_server.c`](pkey/dh_server.c): secure channel demonstrators (client, server). This pair of programs illustrates how to set up a secure channel using RSA for authentication and Diffie-Hellman to generate a shared AES session key.
+
 * [`pkey/ecdh_curve25519.c`](pkey/ecdh_curve25519.c): demonstration of a elliptic curve Diffie-Hellman (ECDH) key agreement.
 
 ### Bignum (`mpi`) usage examples

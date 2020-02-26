@@ -1,5 +1,5 @@
 set(libs
-    mbedcrypto
+    mbedtls
 )
 
 add_executable(strerror strerror.c)

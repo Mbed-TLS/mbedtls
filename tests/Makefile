@@ -6,8 +6,7 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra
 LDFLAGS ?=
 
-CRYPTO_INCLUDES ?= -I../include
-LOCAL_CFLAGS = $(WARNING_CFLAGS) $(CRYPTO_INCLUDES) -I../library -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -I../library -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\

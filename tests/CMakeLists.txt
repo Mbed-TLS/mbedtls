@@ -9,6 +9,10 @@ if(NOT DEFINED MBEDTLS_DIR)
     set(MBEDTLS_DIR ${CMAKE_SOURCE_DIR})
 endif()
 
+if(ENABLE_ZLIB_SUPPORT)
+    set(libs ${libs} ${ZLIB_LIBRARIES})
+endif(ENABLE_ZLIB_SUPPORT)
+
 find_package(PythonInterp)
 if(NOT PYTHONINTERP_FOUND)
     message(FATAL_ERROR "Cannot build test suites without Python 2 or 3")

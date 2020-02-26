@@ -177,6 +177,7 @@ def include_in_full(name):
             'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES',
             'MBEDTLS_NO_PLATFORM_ENTROPY',
             'MBEDTLS_NO_UDBL_DIVISION',
+            'MBEDTLS_PKCS11_C',
             'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
             'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER',
             'MBEDTLS_PSA_CRYPTO_SE_C',
@@ -185,6 +186,8 @@ def include_in_full(name):
             'MBEDTLS_RSA_NO_CRT',
             'MBEDTLS_SHA512_NO_SHA384',
             'MBEDTLS_TEST_NULL_ENTROPY',
+            'MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3',
+            'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION',
     ]:
         return False
     if name.endswith('_ALT'):

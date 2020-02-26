@@ -55,7 +55,9 @@ APPS = \
 	aes/crypt_and_hash$(EXEXT) \
 	hash/hello$(EXEXT) \
 	hash/generic_sum$(EXEXT) \
+	pkey/dh_client$(EXEXT) \
 	pkey/dh_genprime$(EXEXT) \
+	pkey/dh_server$(EXEXT) \
 	pkey/ecdh_curve25519$(EXEXT) \
 	pkey/ecdsa$(EXEXT) \
 	pkey/gen_key$(EXEXT) \
@@ -147,9 +149,17 @@ hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
 	echo "  CC    hash/generic_sum.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/generic_sum.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP)
+	echo "  CC    pkey/dh_client.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 pkey/dh_genprime$(EXEXT): pkey/dh_genprime.c $(DEP)
 	echo "  CC    pkey/dh_genprime.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_genprime.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+pkey/dh_server$(EXEXT): pkey/dh_server.c $(DEP)
+	echo "  CC    pkey/dh_server.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/dh_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 pkey/ecdh_curve25519$(EXEXT): pkey/ecdh_curve25519.c $(DEP)
 	echo "  CC    pkey/ecdh_curve25519.c"

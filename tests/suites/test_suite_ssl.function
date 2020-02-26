@@ -3302,11 +3302,14 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
 void handshake( const char *cipher, int version, int pk_alg,
-                data_t *psk_str, int dtls, int serialize )
+                data_t *psk_str, int dtls, int serialize, int mfl,
+                int cli_msg_len, int srv_msg_len,
+                const int expected_cli_fragments,
+                const int expected_srv_fragments )
 {
     /* forced_ciphersuite needs to last until the end of the handshake */
     int forced_ciphersuite[2];
-    enum { BUFFSIZE = 16384 };
+    enum { BUFFSIZE = 17000 };
     mbedtls_endpoint client, server;
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     const char *psk_identity = "foo";
@@ -3317,11 +3320,8 @@ void handshake( const char *cipher, int version, int pk_alg,
     mbedtls_timing_delay_context timer_client, timer_server;
 #endif
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    enum { MSGLEN = 5 };
     unsigned char *context_buf = NULL;
     size_t context_buf_len;
-    unsigned char cli_buf[MSGLEN];
-    unsigned char srv_buf[MSGLEN];
 #else
     (void) serialize;
 #endif
@@ -3376,6 +3376,15 @@ void handshake( const char *cipher, int version, int pk_alg,
     }
     mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
                                       version );
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    TEST_ASSERT( mbedtls_ssl_conf_max_frag_len( &(server.conf),
+                                                (unsigned char) mfl ) == 0 );
+    TEST_ASSERT( mbedtls_ssl_conf_max_frag_len( &(client.conf),
+                                                (unsigned char) mfl ) == 0 );
+#else
+    TEST_ASSERT( MBEDTLS_SSL_MAX_FRAG_LEN_NONE == mfl );
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( psk_str->len > 0 )
     {
@@ -3403,6 +3412,14 @@ void handshake( const char *cipher, int version, int pk_alg,
     TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
     TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
 
+    if( cli_msg_len != 0 || srv_msg_len != 0 )
+    {
+        /* Start data exchanging test */
+        TEST_ASSERT( mbedtls_exchange_data( &(client.ssl), cli_msg_len,
+                                            expected_cli_fragments,
+                                            &(server.ssl), srv_msg_len,
+                                            expected_srv_fragments ) == 0 );
+    }
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     if( dtls == 0 || serialize == 0 )
     {
@@ -3410,14 +3427,6 @@ void handshake( const char *cipher, int version, int pk_alg,
        * Skip if these options are misused. */
         goto exit;
     }
-
-    memset( cli_buf, 'X', MSGLEN );
-    memset( srv_buf, 'Y', MSGLEN );
-
-    /* Make sure that writing/reading works */
-    TEST_ASSERT( mbedtls_ssl_write( &(client.ssl), cli_buf, MSGLEN ) == MSGLEN );
-    TEST_ASSERT( mbedtls_ssl_read( &(server.ssl), srv_buf, MSGLEN ) == MSGLEN );
-    TEST_ASSERT( memcmp( cli_buf, srv_buf, MSGLEN ) == 0 );
 
     TEST_ASSERT( mbedtls_ssl_context_save( &(server.ssl), NULL,
                                            0, &context_buf_len )
@@ -3449,12 +3458,13 @@ void handshake( const char *cipher, int version, int pk_alg,
                                            context_buf_len ) == 0 );
 
     /* Retest writing/reading */
-    memset( cli_buf, 'X', MSGLEN );
-    memset( srv_buf, 'Y', MSGLEN );
-
-    TEST_ASSERT( mbedtls_ssl_write( &(client.ssl), cli_buf, MSGLEN ) == MSGLEN );
-    TEST_ASSERT( mbedtls_ssl_read( &(server.ssl), srv_buf, MSGLEN ) == MSGLEN );
-    TEST_ASSERT( memcmp( cli_buf, srv_buf, MSGLEN ) == 0 );
+    if( cli_msg_len != 0 || srv_msg_len != 0 )
+    {
+        TEST_ASSERT( mbedtls_exchange_data( &(client.ssl), cli_msg_len,
+                                            expected_cli_fragments,
+                                            &(server.ssl), srv_msg_len,
+                                            expected_srv_fragments ) == 0 );
+    }
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
 exit:
@@ -3466,121 +3476,6 @@ exit:
         mbedtls_free( context_buf );
     }
 #endif
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
-void send_application_data( int mfl, int cli_msg_len, int srv_msg_len,
-                            const int expected_cli_fragments,
-                            const int expected_srv_fragments )
-{
-    enum { BUFFSIZE = 2048 };
-    mbedtls_endpoint server, client;
-    int ret = -1;
-
-    ret = mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER, MBEDTLS_PK_RSA,
-                                 NULL, NULL, NULL );
-    TEST_ASSERT( ret == 0 );
-
-    ret = mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_PK_RSA,
-                                 NULL, NULL, NULL );
-    TEST_ASSERT( ret == 0 );
-
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    ret = mbedtls_ssl_conf_max_frag_len( &(server.conf), (unsigned char) mfl );
-    TEST_ASSERT( ret == 0 );
-
-    ret = mbedtls_ssl_conf_max_frag_len( &(client.conf), (unsigned char) mfl );
-    TEST_ASSERT( ret == 0 );
-#else
-    TEST_ASSERT( MBEDTLS_SSL_MAX_FRAG_LEN_NONE == mfl );
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
-
-    ret = mbedtls_mock_socket_connect( &(server.socket), &(client.socket),
-                                       BUFFSIZE );
-    TEST_ASSERT( ret == 0 );
-
-    ret = mbedtls_move_handshake_to_state( &(client.ssl),
-                                           &(server.ssl),
-                                           MBEDTLS_SSL_HANDSHAKE_OVER );
-    TEST_ASSERT( ret == 0 );
-    TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
-    TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
-
-    /* Start data exchanging test */
-    ret = mbedtls_exchange_data( &(client.ssl), cli_msg_len, expected_cli_fragments,
-                                 &(server.ssl), srv_msg_len, expected_srv_fragments );
-    TEST_ASSERT( ret == 0 );
-
-exit:
-    mbedtls_endpoint_free( &client, NULL );
-    mbedtls_endpoint_free( &server, NULL );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15 */
-void send_application_data_dtls( int mfl, int cli_msg_len, int srv_msg_len,
-                                 const int expected_cli_fragments,
-                                 const int expected_srv_fragments )
-{
-    enum { BUFFSIZE = 17000 };
-#if defined(MBEDTLS_TIMING_C)
-    mbedtls_timing_delay_context timer_client, timer_server;
-#endif
-    mbedtls_endpoint server, client;
-    mbedtls_test_message_queue server_queue, client_queue;
-    mbedtls_test_message_socket_context server_context, client_context;
-    int ret = -1;
-
-    /* Initializing endpoints and communication */
-    ret = mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER, MBEDTLS_PK_RSA,
-                                 &server_context, &server_queue, &client_queue );
-    TEST_ASSERT( ret == 0 );
-
-    ret = mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_PK_RSA,
-                                 &client_context, &client_queue, &server_queue );
-    TEST_ASSERT( ret == 0 );
-
-#if defined(MBEDTLS_TIMING_C)
-    mbedtls_ssl_set_timer_cb( &client.ssl, &timer_client,
-                              mbedtls_timing_set_delay,
-                              mbedtls_timing_get_delay );
-
-    mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
-                              mbedtls_timing_set_delay,
-                              mbedtls_timing_get_delay );
-#endif /* MBEDTLS_TIMING_C */
-
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    ret = mbedtls_ssl_conf_max_frag_len( &(server.conf), (unsigned char) mfl );
-    TEST_ASSERT( ret == 0 );
-
-    ret = mbedtls_ssl_conf_max_frag_len( &(client.conf), (unsigned char) mfl );
-    TEST_ASSERT( ret == 0 );
-#else
-    TEST_ASSERT( MBEDTLS_SSL_MAX_FRAG_LEN_NONE == mfl );
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
-
-    ret = mbedtls_mock_socket_connect( &(server.socket), &(client.socket),
-                                       BUFFSIZE );
-    TEST_ASSERT( ret == 0 );
-
-    ret = mbedtls_move_handshake_to_state( &(client.ssl),
-                                           &(server.ssl),
-                                           MBEDTLS_SSL_HANDSHAKE_OVER );
-    TEST_ASSERT( ret == 0 );
-    TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
-    TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
-
-    /* Start data exchanging test */
-    ret = mbedtls_exchange_data( &(client.ssl), cli_msg_len, expected_cli_fragments,
-                                 &(server.ssl), srv_msg_len, expected_srv_fragments );
-    TEST_ASSERT( ret == 0 );
-
-
-exit:
-    mbedtls_endpoint_free( &client, &client_context );
-    mbedtls_endpoint_free( &server, &server_context );
 }
 /* END_CASE */
 

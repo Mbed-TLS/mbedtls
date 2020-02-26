@@ -151,10 +151,8 @@ add_test_suite(psa_its)
 add_test_suite(shax)
 add_test_suite(timing)
 add_test_suite(rsa)
+add_test_suite(version)
 add_test_suite(xtea)
-if (NOT USE_CRYPTO_SUBMODULE)
-    add_test_suite(version)
-endif()
 
 # Make scripts and data files needed for testing available in an
 # out-of-source build.

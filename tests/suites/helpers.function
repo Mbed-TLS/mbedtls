@@ -260,7 +260,7 @@ typedef enum
     do                                                            \
     {                                                             \
         TEST_ASSERT( ( pointer ) == NULL );                       \
-        if( ( length ) != 0 )                                     \
+        if( ( length ) != 0 && ( length ) < SIZE_MAX )             \
         {                                                         \
             ( pointer ) = mbedtls_calloc( sizeof( *( pointer ) ), \
                                           ( length ) );           \

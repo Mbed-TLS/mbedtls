@@ -16,8 +16,13 @@ script:
 - make
 - make test
 - programs/test/selftest
+- OSSL_NO_DTLS=1 tests/compat.sh
+- tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl' --seed 4
 - tests/scripts/test-ref-configs.pl
 - tests/scripts/curves.pl
+- tests/scripts/key-exchanges.pl
+after_failure:
+- tests/scripts/travis-log-failure.sh
 env:
   global:
     - SEED=1

@@ -798,6 +798,14 @@
 #endif
 #endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
 
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+#error "MBEDTLS_SSL_HW_RECORD_ACCEL is deprecated and will be removed in a future version of Mbed TLS"
+#elif defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "MBEDTLS_SSL_HW_RECORD_ACCEL is deprecated and will be removed in a future version of Mbed TLS"
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+#endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
+
 /*
  * Avoid warning from -pedantic. This is a convenient place for this
  * workaround since this is included by every single file before the

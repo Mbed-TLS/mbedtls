@@ -1323,21 +1323,40 @@ struct mbedtls_ssl_context
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
 
-#define MBEDTLS_SSL_CHANNEL_OUTBOUND    0
-#define MBEDTLS_SSL_CHANNEL_INBOUND     1
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 
-extern int (*mbedtls_ssl_hw_record_init)(mbedtls_ssl_context *ssl,
-                const unsigned char *key_enc, const unsigned char *key_dec,
-                size_t keylen,
-                const unsigned char *iv_enc,  const unsigned char *iv_dec,
-                size_t ivlen,
-                const unsigned char *mac_enc, const unsigned char *mac_dec,
-                size_t maclen);
-extern int (*mbedtls_ssl_hw_record_activate)(mbedtls_ssl_context *ssl, int direction);
-extern int (*mbedtls_ssl_hw_record_reset)(mbedtls_ssl_context *ssl);
-extern int (*mbedtls_ssl_hw_record_write)(mbedtls_ssl_context *ssl);
-extern int (*mbedtls_ssl_hw_record_read)(mbedtls_ssl_context *ssl);
-extern int (*mbedtls_ssl_hw_record_finish)(mbedtls_ssl_context *ssl);
+#define MBEDTLS_SSL_CHANNEL_OUTBOUND   MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 0 )
+#define MBEDTLS_SSL_CHANNEL_INBOUND    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 1 )
+
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif /* MBEDTLS_DEPRECATED_WARNING */
+
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_init)(
+                    mbedtls_ssl_context *ssl,
+                    const unsigned char *key_enc, const unsigned char *key_dec,
+                    size_t keylen,
+                    const unsigned char *iv_enc,  const unsigned char *iv_dec,
+                    size_t ivlen,
+                    const unsigned char *mac_enc, const unsigned char *mac_dec,
+                    size_t maclen);
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_activate)(
+                                                    mbedtls_ssl_context *ssl,
+                                                    int direction );
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_reset)(
+                                                    mbedtls_ssl_context *ssl );
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_write)(
+                                                    mbedtls_ssl_context *ssl );
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_read)(
+                                                    mbedtls_ssl_context *ssl );
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_finish)(
+                                                    mbedtls_ssl_context *ssl );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
 /**
@@ -3169,7 +3188,7 @@ void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems
  * \warning        Use of RC4 in DTLS/TLS has been prohibited by RFC 7465
  *                 for security reasons. Use at your own risk.
  *
- * \note           This function is deprecated and will likely be removed in
+ * \note           This function is deprecated and will be removed in
  *                 a future version of the library.
  *                 RC4 is disabled by default at compile time and needs to be
  *                 actively enabled for use with legacy systems.

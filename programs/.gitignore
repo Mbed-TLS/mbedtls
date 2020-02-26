@@ -34,14 +34,31 @@ psa/key_ladder_demo
 random/gen_entropy
 random/gen_random_ctr_drbg
 random/gen_random_havege
+ssl/dtls_client
+ssl/dtls_server
+ssl/ssl_client1
+ssl/ssl_client2
+ssl/ssl_fork_server
+ssl/ssl_mail_client
+ssl/ssl_pthread_server
+ssl/ssl_server
+ssl/ssl_server2
+ssl/mini_client
 test/benchmark
 test/ecp-bench
 test/selftest
 test/cpp_dummy_build
+test/ssl_cert_test
+test/udp_proxy
 test/zeroize
 test/query_compile_time_config
 util/pem2der
 util/strerror
+x509/cert_app
+x509/cert_req
+x509/crl_app
+x509/cert_write
+x509/req_app
 
 # generated files
 pkey/keyfile.key

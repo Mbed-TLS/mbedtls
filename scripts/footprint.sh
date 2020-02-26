@@ -62,6 +62,7 @@ doit()
     fi
 
     {
+        scripts/config.py unset MBEDTLS_NET_C || true
         scripts/config.py unset MBEDTLS_TIMING_C || true
         scripts/config.py unset MBEDTLS_FS_IO || true
         scripts/config.py --force set MBEDTLS_NO_PLATFORM_ENTROPY || true

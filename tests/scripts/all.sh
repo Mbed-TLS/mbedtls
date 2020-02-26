@@ -805,6 +805,7 @@ component_test_no_platform () {
     msg "build: full config except platform/fsio/net, make, gcc, C99" # ~ 30s
     scripts/config.py full
     scripts/config.py unset MBEDTLS_PLATFORM_C
+    scripts/config.py unset MBEDTLS_NET_C
     scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
     scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT

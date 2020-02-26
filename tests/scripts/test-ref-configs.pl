@@ -17,9 +17,17 @@ use warnings;
 use strict;
 
 my %configs = (
-    'config-symmetric-only.h' => {
+    'config-default.h' => {
+    },
+    'config-mini-tls1_1.h' => {
     },
     'config-suite-b.h' => {
+    },
+    'config-symmetric-only.h' => {
+    },
+    'config-ccm-psk-tls1_2.h' => {
+    },
+    'config-thread.h' => {
     },
 );
 

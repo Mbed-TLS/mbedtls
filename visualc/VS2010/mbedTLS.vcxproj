@@ -162,6 +162,7 @@
     <ClInclude Include="..\..\include\mbedtls\bn_mul.h" />
     <ClInclude Include="..\..\include\mbedtls\camellia.h" />
     <ClInclude Include="..\..\include\mbedtls\ccm.h" />
+    <ClInclude Include="..\..\include\mbedtls\certs.h" />
     <ClInclude Include="..\..\include\mbedtls\chacha20.h" />
     <ClInclude Include="..\..\include\mbedtls\chachapoly.h" />
     <ClInclude Include="..\..\include\mbedtls\check_config.h" />

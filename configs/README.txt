@@ -1,8 +1,8 @@
 This directory contains example configuration files.
 
 The examples are generally focused on a particular usage case (eg, support for
-a restricted number of TLS ciphersuites) and aim at minimizing resource usage
-for this target. They can be used as a basis for custom configurations.
+a restricted number of ciphersuites) and aim at minimizing resource usage for
+this target. They can be used as a basis for custom configurations.
 
 These files are complete replacements for the default config.h. To use one of
 them, you can pick one of the following methods:

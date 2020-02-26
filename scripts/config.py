@@ -183,11 +183,15 @@ def include_in_full(name):
             'MBEDTLS_PSA_CRYPTO_SE_C',
             'MBEDTLS_PSA_CRYPTO_SPM',
             'MBEDTLS_PSA_INJECT_ENTROPY',
+            'MBEDTLS_REMOVE_ARC4_CIPHERSUITES',
+            'MBEDTLS_REMOVE_3DES_CIPHERSUITES',
+            'MBEDTLS_SSL_HW_RECORD_ACCEL',
             'MBEDTLS_RSA_NO_CRT',
             'MBEDTLS_SHA512_NO_SHA384',
             'MBEDTLS_TEST_NULL_ENTROPY',
             'MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3',
             'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION',
+            'MBEDTLS_ZLIB_SUPPORT',
     ]:
         return False
     if name.endswith('_ALT'):
@@ -209,6 +213,7 @@ def keep_in_baremetal(name):
             'MBEDTLS_HAVEGE_C',
             'MBEDTLS_HAVE_TIME',
             'MBEDTLS_HAVE_TIME_DATE',
+            'MBEDTLS_NET_C',
             'MBEDTLS_PLATFORM_FPRINTF_ALT',
             'MBEDTLS_PLATFORM_TIME_ALT',
             'MBEDTLS_PSA_CRYPTO_SE_C',

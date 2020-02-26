@@ -374,7 +374,7 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
  * Curves are listed in order: largest curves first, and for a given size,
  * fastest curves first. This provides the default order for the SSL module.
  *
- * Reminder: update profiles in Mbed TLS's x509_crt.c when adding new curves!
+ * Reminder: update profiles in x509_crt.c when adding a new curves!
  */
 static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 {

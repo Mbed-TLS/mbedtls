@@ -26,11 +26,11 @@ print_version()
     VARIANT=$1
     shift
 
-    if [ ! -z $VARIANT ]; then
+    if [ -n "$VARIANT" ]; then
         VARIANT=" ($VARIANT)"
     fi
 
-    if ! `type "$BIN" > /dev/null 2>&1`; then
+    if ! type "$BIN" > /dev/null 2>&1; then
         echo " * ${BIN##*/}$VARIANT: Not found."
         return 0
     fi
@@ -48,8 +48,10 @@ print_version()
     echo " * ${BIN##*/}$VARIANT: ${BIN} : ${VERSION_STR} "
 }
 
-echo "Platform:\n"
-if `type "lsb_release" > /dev/null 2>&1`; then
+echo "** Platform:"
+echo
+
+if [ `uname -s` = "Linux" ]; then
     echo "Linux variant"
     lsb_release -d -c
 else
@@ -59,8 +61,10 @@ fi
 echo
 
 print_version "uname" "-a" ""
-echo "\n"
-echo "Tool Versions:\n"
+echo
+echo
+echo "** Tool Versions:"
+echo
 
 if [ "${RUN_ARMCC:-1}" -ne 0 ]; then
     : "${ARMC5_CC:=armcc}"
@@ -124,14 +128,14 @@ fi
 echo
 
 echo " * Installed asan versions:"
-if `hash dpkg > /dev/null 2>&1` && `dpkg --get-selections|grep libasan > /dev/null` ; then
-    dpkg -s libasan5 2> /dev/null | grep -i version
-    dpkg -s libasan4 2> /dev/null | grep -i version
-    dpkg -s libasan3 2> /dev/null | grep -i version
-    dpkg -s libasan2 2> /dev/null | grep -i version
-    dpkg -s libasan1 2> /dev/null | grep -i version
-    dpkg -s libasan0 2> /dev/null | grep -i version
+if type dpkg-query >/dev/null 2>/dev/null; then
+    if ! dpkg-query -f '${Status} ${Package}: ${Version}\n' -W 'libasan*' |
+         awk '$3 == "installed" && $4 !~ /-/ {print $4, $5}' |
+         grep .
+    then
+        echo "   No asan versions installed."
+    fi
 else
-    echo "   Either dpkg not present or no asan versions installed."
+    echo "  Unable to determine the asan version without dpkg."
 fi
 echo

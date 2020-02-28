@@ -5,6 +5,35 @@
 #include <mbedtls/entropy.h>
 #include <mbedtls/certs.h>
 #include <mbedtls/timing.h>
+#include <mbedtls/debug.h>
+
+typedef struct log_pattern
+{
+    const char *pattern;
+    size_t counter;
+} log_pattern;
+
+/* This function can be passed to mbedtls to receive output logs from it. In
+ * this case, it will count the instances of a log_pattern in the received
+ * logged messages.
+ */
+void log_analyzer( void *ctx, int level,
+                   const char *file, int line,
+                   const char *str )
+{
+    log_pattern *p = (log_pattern *) ctx;
+
+    (void) level;
+    (void) line;
+    (void) file;
+
+    if( NULL != p &&
+        NULL != p->pattern &&
+        NULL != strstr( str, p->pattern ) )
+    {
+        p->counter++;
+    }
+}
 
 typedef struct handshake_test_options
 {
@@ -13,6 +42,7 @@ typedef struct handshake_test_options
     int pk_alg;
     data_t *psk_str;
     int dtls;
+    int srv_auth_mode;
     int serialize;
     int mfl;
     int cli_msg_len;
@@ -21,6 +51,10 @@ typedef struct handshake_test_options
     int expected_srv_fragments;
     int renegotiate;
     int legacy_renegotiation;
+    void *srv_log_obj;
+    void *cli_log_obj;
+    void (*srv_log_fun)(void *, int, const char *, int, const char *);
+    void (*cli_log_fun)(void *, int, const char *, int, const char *);
 } handshake_test_options;
 
 void init_handshake_options( handshake_test_options *opts )
@@ -30,6 +64,7 @@ void init_handshake_options( handshake_test_options *opts )
   opts->pk_alg = MBEDTLS_PK_RSA;
   opts->psk_str = NULL;
   opts->dtls = 0;
+  opts->srv_auth_mode = MBEDTLS_SSL_VERIFY_NONE;
   opts->serialize = 0;
   opts->mfl = MBEDTLS_SSL_MAX_FRAG_LEN_NONE;
   opts->cli_msg_len = 100;
@@ -38,6 +73,10 @@ void init_handshake_options( handshake_test_options *opts )
   opts->expected_srv_fragments = 1;
   opts->renegotiate = 0;
   opts->legacy_renegotiation = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
+  opts->srv_log_obj = NULL;
+  opts->srv_log_obj = NULL;
+  opts->srv_log_fun = NULL;
+  opts->cli_log_fun = NULL;
 }
 /*
  * Buffer structure for custom I/O callbacks.
@@ -1642,6 +1681,16 @@ void perform_handshake( handshake_test_options* options )
     {
         set_ciphersuite( &client.conf, options->cipher, forced_ciphersuite );
     }
+
+#if defined (MBEDTLS_DEBUG_C)
+    if( options->cli_log_fun )
+    {
+        mbedtls_debug_set_threshold( 4 );
+        mbedtls_ssl_conf_dbg( &client.conf, options->cli_log_fun,
+                                            options->cli_log_obj );
+    }
+#endif
+
     /* Server side */
     if( options->dtls != 0 )
     {
@@ -1660,6 +1709,9 @@ void perform_handshake( handshake_test_options* options )
         TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
                                             options->pk_alg, NULL, NULL, NULL ) == 0 );
     }
+
+    mbedtls_ssl_conf_authmode( &server.conf, options->srv_auth_mode );
+
     mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
                                       options->version );
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
@@ -1701,6 +1753,15 @@ void perform_handshake( handshake_test_options* options )
                                                options->legacy_renegotiation );
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+#if defined (MBEDTLS_DEBUG_C)
+    if( options->srv_log_fun )
+    {
+        mbedtls_debug_set_threshold( 4 );
+        mbedtls_ssl_conf_dbg( &server.conf, options->srv_log_fun,
+                                            options->srv_log_obj );
+    }
+#endif
 
     TEST_ASSERT( mbedtls_mock_socket_connect( &(client.socket),
                                               &(server.socket),
@@ -1817,6 +1878,12 @@ void perform_handshake( handshake_test_options* options )
 exit:
     mbedtls_endpoint_free( &client, options->dtls != 0 ? &client_context : NULL );
     mbedtls_endpoint_free( &server, options->dtls != 0 ? &server_context : NULL );
+#if defined (MBEDTLS_DEBUG_C)
+    if( options->cli_log_fun || options->srv_log_fun )
+    {
+        mbedtls_debug_set_threshold( 0 );
+    }
+#endif
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     if( context_buf != NULL )
         mbedtls_free( context_buf );
@@ -3676,6 +3743,40 @@ void handshake_serialization( )
     perform_handshake( &options );
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+void handshake_fragmentation( int mfl, int expected_srv_hs_fragmentation, int expected_cli_hs_fragmentation)
+{
+    handshake_test_options options;
+    log_pattern srv_pattern, cli_pattern;
+
+    srv_pattern.pattern = cli_pattern.pattern = "found fragmented DTLS handshake";
+    srv_pattern.counter = 0;
+    cli_pattern.counter = 0;
+
+    init_handshake_options( &options );
+    options.dtls = 1;
+    options.mfl = mfl;
+    options.srv_auth_mode = MBEDTLS_SSL_VERIFY_REQUIRED;
+    options.srv_log_obj = &srv_pattern;
+    options.cli_log_obj = &cli_pattern;
+    options.srv_log_fun = log_analyzer;
+    options.cli_log_fun = log_analyzer;
+
+    perform_handshake( &options );
+
+    /* Test if the server received a fragmented handshake */
+    if( expected_srv_hs_fragmentation )
+    {
+        TEST_ASSERT( srv_pattern.counter >= 1 );
+    }
+    /* Test if the client received a fragmented handshake */
+    if( expected_cli_hs_fragmentation )
+    {
+        TEST_ASSERT( cli_pattern.counter >= 1 );
+    }
 }
 /* END_CASE */
 

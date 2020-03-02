@@ -20,6 +20,7 @@
 #
 # This file is part of Mbed TLS (https://tls.mbed.org)
 
+import argparse
 import glob
 import os
 import re
@@ -27,9 +28,11 @@ import sys
 
 class Results:
     """Store file and line information about errors or warnings in test suites."""
-    def __init__(self):
+
+    def __init__(self, options):
         self.errors = 0
         self.warnings = 0
+        self.ignore_warnings = options.quiet
 
     def error(self, file_name, line_number, fmt, *args):
         sys.stderr.write(('{}:{}:ERROR:' + fmt + '\n').
@@ -37,9 +40,10 @@ class Results:
         self.errors += 1
 
     def warning(self, file_name, line_number, fmt, *args):
-        sys.stderr.write(('{}:{}:Warning:' + fmt + '\n')
-                         .format(file_name, line_number, *args))
-        self.warnings += 1
+        if not self.ignore_warnings:
+            sys.stderr.write(('{}:{}:Warning:' + fmt + '\n')
+                             .format(file_name, line_number, *args))
+            self.warnings += 1
 
 def collect_test_directories():
     """Get the relative path for the TLS and Crypto test directories."""
@@ -108,8 +112,16 @@ def check_ssl_opt_sh(results, file_name):
                               file_name, line_number, description)
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--quiet', '-q',
+                        action='store_true',
+                        help='Hide warnings')
+    parser.add_argument('--verbose', '-v',
+                        action='store_false', dest='quiet',
+                        help='Show warnings (default: on; undoes --quiet)')
+    options = parser.parse_args()
     test_directories = collect_test_directories()
-    results = Results()
+    results = Results(options)
     for directory in test_directories:
         for data_file_name in glob.glob(os.path.join(directory, 'suites',
                                                      '*.data')):
@@ -117,7 +129,7 @@ def main():
         ssl_opt_sh = os.path.join(directory, 'ssl-opt.sh')
         if os.path.exists(ssl_opt_sh):
             check_ssl_opt_sh(results, ssl_opt_sh)
-    if results.warnings or results.errors:
+    if (results.warnings or results.errors) and not options.quiet:
         sys.stderr.write('{}: {} errors, {} warnings\n'
                          .format(sys.argv[0], results.errors, results.warnings))
     sys.exit(1 if results.errors else 0)

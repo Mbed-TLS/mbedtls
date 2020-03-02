@@ -831,6 +831,30 @@ component_build_no_std_function () {
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
 }
 
+component_test_memory_buffer_allocator_backtrace () {
+    msg "build: default config with memory buffer allocator and backtrace enabled"
+    scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py set MBEDTLS_MEMORY_BACKTRACE
+    scripts/config.py set MBEDTLS_MEMORY_DEBUG
+    CC=gcc cmake .
+    make
+
+    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
+    make test
+}
+
+component_test_memory_buffer_allocator () {
+    msg "build: default config with memory buffer allocator"
+    scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
+    CC=gcc cmake .
+    make
+
+    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
+    make test
+}
+
 component_test_null_entropy () {
     msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
     scripts/config.py set MBEDTLS_TEST_NULL_ENTROPY
@@ -870,30 +894,6 @@ component_test_malloc_0_null () {
     # Just the calloc selftest. "make test" ran the others as part of the
     # test suites.
     if_build_succeeded programs/test/selftest calloc
-}
-
-component_test_memory_buffer_allocator_backtrace () {
-    msg "build: default config with memory buffer allocator and backtrace enabled"
-    scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
-    scripts/config.py set MBEDTLS_MEMORY_BACKTRACE
-    scripts/config.py set MBEDTLS_MEMORY_DEBUG
-    CC=gcc cmake .
-    make
-
-    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
-    make test
-}
-
-component_test_memory_buffer_allocator () {
-    msg "build: default config with memory buffer allocator"
-    scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
-    scripts/config.py set MBEDTLS_PLATFORM_MEMORY
-    CC=gcc cmake .
-    make
-
-    msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
-    make test
 }
 
 component_test_aes_fewer_tables () {

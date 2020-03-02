@@ -6,6 +6,10 @@ New deprecations
    * Deprecate MBEDTLS_SSL_HW_RECORD_ACCEL that enables function hooks in the
      SSL module for hardware acceleration of individual records.
 
+Changes
+   * Mbed Crypto is no longer a Git submodule. The crypto part of the library
+     is back directly in the .
+
 = mbed TLS 2.21.0 branch released 2020-02-20
 
 New deprecations
@@ -273,6 +277,9 @@ Changes
    * Extended .gitignore to ignore Visual Studio artifacts. Fixed by ConfusedSushi.
    * Adds fuzz targets, especially for continuous fuzzing with OSS-Fuzz.
      Contributed by Philippe Antoine (Catena cyber).
+   * Remove the crypto part of the library from Mbed TLS. The crypto
+     code and tests are now only available via Mbed Crypto, which
+     Mbed TLS references as a Git submodule.
 
 = mbed TLS 2.18.1 branch released 2019-07-12
 

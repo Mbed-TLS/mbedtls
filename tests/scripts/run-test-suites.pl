@@ -58,8 +58,8 @@ my $skip_re =
       ')(\z|\.)' );
 
 # in case test suites are linked dynamically
-$ENV{'LD_LIBRARY_PATH'} = '../library:../crypto/library';
-$ENV{'DYLD_LIBRARY_PATH'} = '../library:../crypto/library';
+$ENV{'LD_LIBRARY_PATH'} = '../library';
+$ENV{'DYLD_LIBRARY_PATH'} = '../library';
 
 my $prefix = $^O eq "MSWin32" ? '' : './';
 

@@ -418,10 +418,6 @@ pre_check_git () {
             exit 1
         fi
     fi
-    if ! [ -f crypto/Makefile ]; then
-        echo "Please initialize the crypto submodule" >&2
-        exit 1
-    fi
 }
 
 pre_check_seedfile () {

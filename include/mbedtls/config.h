@@ -2891,7 +2891,7 @@
  * experiment using it, incompatible API changes are still possible, and some
  * parts may not have reached the same quality as the rest of Mbed TLS yet.
  *
- * Module:  crypto/library/psa_crypto.c
+ * Module:  library/psa_crypto.c
  *
  * Requires: MBEDTLS_CTR_DRBG_C, MBEDTLS_ENTROPY_C
  *
@@ -2903,7 +2903,7 @@
  *
  * Enable the Platform Security Architecture persistent key storage.
  *
- * Module:  crypto/library/psa_crypto_storage.c
+ * Module:  library/psa_crypto_storage.c
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C,
  *           either MBEDTLS_PSA_ITS_FILE_C or a native implementation of
@@ -2917,7 +2917,7 @@
  * Enable the emulation of the Platform Security Architecture
  * Internal Trusted Storage (PSA ITS) over files.
  *
- * Module:  crypto/library/psa_its_file.c
+ * Module:  library/psa_its_file.c
  *
  * Requires: MBEDTLS_FS_IO
  *

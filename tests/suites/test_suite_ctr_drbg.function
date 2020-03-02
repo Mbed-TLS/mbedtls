@@ -145,13 +145,16 @@ void ctr_drbg_entropy_usage( )
     memset( out, 0, sizeof( out ) );
     memset( add, 0, sizeof( add ) );
 
+    /* Set reseed interval before seed */
+    mbedtls_ctr_drbg_set_reseed_interval( &ctx, 2 * reps );
+
     /* Init must use entropy */
     last_idx = test_offset_idx;
     TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx, mbedtls_test_entropy_func, entropy, NULL, 0 ) == 0 );
     TEST_ASSERT( last_idx < test_offset_idx );
 
-    /* By default, PR is off and reseed_interval is large,
-     * so the next few calls should not use entropy */
+    /* By default, PR is off, and reseed interval was set to
+     * 2 * reps so the next few calls should not use entropy */
     last_idx = test_offset_idx;
     for( i = 0; i < reps; i++ )
     {
@@ -167,15 +170,16 @@ void ctr_drbg_entropy_usage( )
     TEST_ASSERT( out[sizeof( out ) - 2] == 0 );
     TEST_ASSERT( out[sizeof( out ) - 1] == 0 );
 
-    /* Set reseed_interval to the number of calls done,
-     * so the next call should reseed */
-    mbedtls_ctr_drbg_set_reseed_interval( &ctx, 2 * reps );
+    /* There have been 2 * reps calls to random. The next call should reseed */
     TEST_ASSERT( mbedtls_ctr_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
     TEST_ASSERT( last_idx < test_offset_idx );
 
-    /* The new few calls should not reseed */
+    /* Set reseed interval after seed */
+    mbedtls_ctr_drbg_set_reseed_interval( &ctx, 4 * reps + 1 );
+
+    /* The next few calls should not reseed */
     last_idx = test_offset_idx;
-    for( i = 0; i < reps / 2; i++ )
+    for( i = 0; i < (2 * reps); i++ )
     {
         TEST_ASSERT( mbedtls_ctr_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
         TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, out, sizeof( out ) ,

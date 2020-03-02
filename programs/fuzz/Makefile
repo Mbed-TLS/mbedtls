@@ -5,15 +5,10 @@ LOCAL_LDFLAGS = -L../../library			\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
-LOCAL_LDFLAGS += -L../../crypto/library
-LOCAL_CFLAGS += -I../../crypto/include
-CRYPTO := ../../crypto/library/
-LOCAL_CFLAGS += $(patsubst -I../3rdparty/%, -I../../crypto/3rdparty/%, $(THIRDPARTY_INCLUDES))
-
 ifndef SHARED
-DEP=$(CRYPTO)libmbedcrypto.a ../../library/libmbedx509.a ../../library/libmbedtls.a
+DEP=../../library/libmbedcrypto.a ../../library/libmbedx509.a ../../library/libmbedtls.a
 else
-DEP=$(CRYPTO)libmbedcrypto.$(DLEXT) ../../library/libmbedx509.$(DLEXT) ../../library/libmbedtls.$(DLEXT)
+DEP=../../library/libmbedcrypto.$(DLEXT) ../../library/libmbedx509.$(DLEXT) ../../library/libmbedtls.$(DLEXT)
 endif
 
 

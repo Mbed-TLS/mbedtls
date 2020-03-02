@@ -114,46 +114,11 @@ class AbiChecker(object):
         self.log.debug("Commit is {}".format(version.commit))
         return git_worktree_path
 
-    def _update_git_submodules(self, git_worktree_path, version):
-        """If the crypto submodule is present, initialize it.
-        if version.crypto_revision exists, update it to that revision,
-        otherwise update it to the default revision"""
-        update_output = subprocess.check_output(
-            [self.git_command, "submodule", "update", "--init", '--recursive'],
-            cwd=git_worktree_path,
-            stderr=subprocess.STDOUT
-        )
-        self.log.debug(update_output.decode("utf-8"))
-        if not (os.path.exists(os.path.join(git_worktree_path, "crypto"))
-                and version.crypto_revision):
-            return
-
-        if version.crypto_repository:
-            fetch_output = subprocess.check_output(
-                [self.git_command, "fetch", version.crypto_repository,
-                 version.crypto_revision],
-                cwd=os.path.join(git_worktree_path, "crypto"),
-                stderr=subprocess.STDOUT
-            )
-            self.log.debug(fetch_output.decode("utf-8"))
-            crypto_rev = "FETCH_HEAD"
-        else:
-            crypto_rev = version.crypto_revision
-
-        checkout_output = subprocess.check_output(
-            [self.git_command, "checkout", crypto_rev],
-            cwd=os.path.join(git_worktree_path, "crypto"),
-            stderr=subprocess.STDOUT
-        )
-        self.log.debug(checkout_output.decode("utf-8"))
-
     def _build_shared_libraries(self, git_worktree_path, version):
         """Build the shared libraries in the specified worktree."""
         my_environment = os.environ.copy()
         my_environment["CFLAGS"] = "-g -Og"
         my_environment["SHARED"] = "1"
-        if os.path.exists(os.path.join(git_worktree_path, "crypto")):
-            my_environment["USE_CRYPTO_SUBMODULE"] = "1"
         make_output = subprocess.check_output(
             [self.make_command, "lib"],
             env=my_environment,
@@ -210,7 +175,6 @@ class AbiChecker(object):
     def _get_abi_dump_for_ref(self, version):
         """Generate the ABI dumps for the specified git revision."""
         git_worktree_path = self._get_clean_worktree_for_git_revision(version)
-        self._update_git_submodules(git_worktree_path, version)
         self._build_shared_libraries(git_worktree_path, version)
         self._get_abi_dumps_from_shared_libraries(version)
         self._cleanup_worktree(git_worktree_path)

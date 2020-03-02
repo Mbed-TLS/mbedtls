@@ -144,6 +144,9 @@ pre_initialize_variables () {
         export MAKEFLAGS="-j"
     fi
 
+    # Include more verbose output for failing tests run by CMake
+    export CTEST_OUTPUT_ON_FAILURE=1
+
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake
     ASAN_CFLAGS='-Werror -Wall -Wextra -fsanitize=address,undefined -fno-sanitize-recover=all'
 
@@ -329,6 +332,9 @@ pre_parse_command_line () {
     all_except=0
     no_armcc=
 
+    # Note that legacy options are ignored instead of being omitted from this
+    # list of options, so invocations that worked with previous version of
+    # all.sh will still run and work properly.
     while [ $# -gt 0 ]; do
         case "$1" in
             --append-outcome) append_outcome=1;;
@@ -853,6 +859,15 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
     if_build_succeeded tests/ssl-opt.sh -f "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket"
 }
 
+component_test_psa_collect_statuses () {
+  msg "build+test: psa_collect_statuses" # ~30s
+  scripts/config.py full
+  record_status tests/scripts/psa_collect_statuses.py
+  # Check that psa_crypto_init() succeeded at least once
+  record_status grep -q '^0:psa_crypto_init:' tests/statuses.log
+  rm -f tests/statuses.log
+}
+
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.py full
@@ -872,6 +887,15 @@ component_test_full_cmake_clang () {
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
+component_test_full_make_gcc_o0 () {
+    msg "build: make, full config, gcc -O0" # ~ 50s
+    scripts/config.py full
+    make CC=gcc CFLAGS='-O0'
+
+    msg "test: main suites (full config, gcc -O0)" # ~ 5s
+    make test
+}
+
 component_build_deprecated () {
     msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
     scripts/config.py full
@@ -879,6 +903,10 @@ component_build_deprecated () {
     # Build with -O -Wextra to catch a maximum of issues.
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+
+    msg "test: make, full config + DEPRECATED_WARNING, expect warnings" # ~ 30s
+    make -C tests clean
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -DMBEDTLS_TEST_DEPRECATED' tests
 
     msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
     # No cleanup, just tweak the configuration and rebuild
@@ -968,6 +996,9 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
 
     msg "test: compat.sh default (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded tests/compat.sh
+
+    msg "test: compat.sh ssl3 (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
     msg "test: compat.sh RC4, DES & NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
@@ -1197,6 +1228,90 @@ component_test_malloc_0_null () {
     if_build_succeeded tests/ssl-opt.sh -e 'proxy'
 }
 
+component_test_aes_fewer_tables () {
+    msg "build: default config with AES_FEWER_TABLES enabled"
+    scripts/config.py set MBEDTLS_AES_FEWER_TABLES
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: AES_FEWER_TABLES"
+    make test
+}
+
+component_test_aes_rom_tables () {
+    msg "build: default config with AES_ROM_TABLES enabled"
+    scripts/config.py set MBEDTLS_AES_ROM_TABLES
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: AES_ROM_TABLES"
+    make test
+}
+
+component_test_aes_fewer_tables_and_rom_tables () {
+    msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
+    scripts/config.py set MBEDTLS_AES_FEWER_TABLES
+    scripts/config.py set MBEDTLS_AES_ROM_TABLES
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+    msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
+    make test
+}
+
+component_test_ctr_drbg_aes_256_sha_256 () {
+    msg "build: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_ENTROPY_FORCE_SHA256
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    make test
+}
+
+component_test_ctr_drbg_aes_128_sha_512 () {
+    msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY (ASan build)"
+    make test
+}
+
+component_test_ctr_drbg_aes_128_sha_256 () {
+    msg "build: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl set MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    scripts/config.pl set MBEDTLS_ENTROPY_FORCE_SHA256
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: full + MBEDTLS_CTR_DRBG_USE_128_BIT_KEY + MBEDTLS_ENTROPY_FORCE_SHA256 (ASan build)"
+    make test
+}
+
+component_test_se_default () {
+    msg "build: default config + MBEDTLS_PSA_CRYPTO_SE_C"
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_SE_C
+    make CC=clang CFLAGS="$ASAN_CFLAGS -Os" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: default config + MBEDTLS_PSA_CRYPTO_SE_C"
+    make test
+}
+
+component_test_se_full () {
+    msg "build: full config + MBEDTLS_PSA_CRYPTO_SE_C"
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_SE_C
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
+
+    msg "test: full config + MBEDTLS_PSA_CRYPTO_SE_C"
+    make test
+}
+
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check
@@ -1311,6 +1426,58 @@ support_test_mx32 () {
         amd64|x86_64) true;;
         *) false;;
     esac
+}
+
+component_test_min_mpi_window_size () {
+    msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
+    scripts/config.py set MBEDTLS_MPI_WINDOW_SIZE 1
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
+    make test
+}
+
+component_test_have_int32 () {
+    msg "build: gcc, force 32-bit bignum limbs"
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
+
+    msg "test: gcc, force 32-bit bignum limbs"
+    make test
+}
+
+component_test_have_int64 () {
+    msg "build: gcc, force 64-bit bignum limbs"
+    scripts/config.py unset MBEDTLS_HAVE_ASM
+    scripts/config.py unset MBEDTLS_AESNI_C
+    scripts/config.py unset MBEDTLS_PADLOCK_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
+
+    msg "test: gcc, force 64-bit bignum limbs"
+    make test
+}
+
+component_test_no_udbl_division () {
+    msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_NO_UDBL_DIVISION
+    make CFLAGS='-Werror -O1'
+
+    msg "test: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
+    make test
+}
+
+component_test_no_64bit_multiplication () {
+    msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_NO_64BIT_MULTIPLICATION
+    make CFLAGS='-Werror -O1'
+
+    msg "test: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
+    make test
 }
 
 component_build_arm_none_eabi_gcc () {
@@ -1547,7 +1714,16 @@ run_component () {
     cp -p "$CONFIG_H" "$CONFIG_BAK"
     current_component="$1"
     export MBEDTLS_TEST_CONFIGURATION="$current_component"
+
+    # Unconditionally create a seedfile that's sufficiently long.
+    # Do this before each component, because a previous component may
+    # have messed it up or shortened it.
+    dd if=/dev/urandom of=./tests/seedfile bs=64 count=1
+
+    # Run the component code.
     "$@"
+
+    # Restore the build tree to a clean state.
     cleanup
 }
 

@@ -441,6 +441,16 @@
  *            dependencies on them, and considering stronger message digests
  *            and ciphers instead.
  *
+ * \warning   If both MBEDTLS_ECDSA_SIGN_ALT and MBEDTLS_ECDSA_DETERMINISTIC are
+ *            enabled, then the deterministic ECDH signature functions pass the
+ *            the static HMAC-DRBG as RNG to mbedtls_ecdsa_sign(). Therefore
+ *            alternative implementations should use the RNG only for generating
+ *            the ephemeral key and nothing else. If this is not possible, then
+ *            MBEDTLS_ECDSA_DETERMINISTIC should be disabled and an alternative
+ *            implementation should be provided for mbedtls_ecdsa_sign_det_ext()
+ *            (and for mbedtls_ecdsa_sign_det() too if backward compatibility is
+ *            desirable).
+ *
  */
 //#define MBEDTLS_MD2_PROCESS_ALT
 //#define MBEDTLS_MD4_PROCESS_ALT
@@ -1226,6 +1236,21 @@
  */
 //#define MBEDTLS_ENTROPY_NV_SEED
 
+/* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+ *
+ * In PSA key storage, encode the owner of the key.
+ *
+ * This is only meaningful when building the library as part of a
+ * multi-client service. When you activate this option, you must provide
+ * an implementation of the type psa_key_owner_id_t and a translation
+ * from psa_key_file_id_t to file name in all the storage backends that
+ * you wish to support.
+ *
+ * Note that this option is meant for internal use only and may be removed
+ * without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+
 /**
  * \def MBEDTLS_MEMORY_DEBUG
  *
@@ -1342,6 +1367,28 @@
  * Uncomment to enable the smaller implementation of SHA256.
  */
 //#define MBEDTLS_SHA256_SMALLER
+
+/**
+ * \def MBEDTLS_SHA512_SMALLER
+ *
+ * Enable an implementation of SHA-512 that has lower ROM footprint but also
+ * lower performance.
+ *
+ * Uncomment to enable the smaller implementation of SHA512.
+ */
+//#define MBEDTLS_SHA512_SMALLER
+
+/**
+ * \def MBEDTLS_SHA512_NO_SHA384
+ *
+ * Disable the SHA-384 option of the SHA-512 module. Use this to save some
+ * code size on devices that don't use SHA-384.
+ *
+ * Requires: MBEDTLS_SHA512_C
+ *
+ * Uncomment to disable SHA-384
+ */
+//#define MBEDTLS_SHA512_NO_SHA384
 
 /**
  * \def MBEDTLS_SSL_ALL_ALERT_MESSAGES
@@ -2910,6 +2957,22 @@
 #define MBEDTLS_PSA_CRYPTO_C
 
 /**
+ * \def MBEDTLS_PSA_CRYPTO_SE_C
+ *
+ * Enable secure element support in the Platform Security Architecture
+ * cryptography API.
+ *
+ * \warning This feature is not yet suitable for production. It is provided
+ *          for API evaluation and testing purposes only.
+ *
+ * Module:  library/psa_crypto_se.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_C
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_SE_C
+
+/**
  * \def MBEDTLS_PSA_CRYPTO_STORAGE_C
  *
  * Enable the Platform Security Architecture persistent key storage.
@@ -3364,6 +3427,36 @@
  *              If you define this macro to call `assert`, also define
  *              #MBEDTLS_CHECK_PARAMS_ASSERT so that library source files
  *              include `<assert.h>`.
+ *
+ *              Note that you may define this macro to expand to nothing, in
+ *              which case you don't have to worry about declarations or
+ *              definitions. However, you will then be notified about invalid
+ *              parameters only in non-void functions, and void function will
+ *              just silently return early on invalid parameters, which
+ *              partially negates the benefits of enabling
+ *              #MBEDTLS_CHECK_PARAMS in the first place, so is discouraged.
+ *
+ * \param cond  The expression that should evaluate to true, but doesn't.
+ */
+//#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
+
+/**
+ * \brief       This macro is invoked by the library when an invalid parameter
+ *              is detected that is only checked with MBEDTLS_CHECK_PARAMS
+ *              (see the documentation of that option for context).
+ *
+ *              When you leave this undefined here, a default definition is
+ *              provided that invokes the function mbedtls_param_failed(),
+ *              which is declared in platform_util.h for the benefit of the
+ *              library, but that you need to define in your application.
+ *
+ *              When you define this here, this replaces the default
+ *              definition in platform_util.h (which no longer declares the
+ *              function mbedtls_param_failed()) and it is your responsibility
+ *              to make sure this macro expands to something suitable (in
+ *              particular, that all the necessary declarations are visible
+ *              from within the library - you can ensure that by providing
+ *              them in this file next to the macro definition).
  *
  *              Note that you may define this macro to expand to nothing, in
  *              which case you don't have to worry about declarations or

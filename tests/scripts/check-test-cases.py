@@ -54,10 +54,6 @@ def collect_test_directories():
     elif os.path.isdir('../suites'):
         tests_dir = '..'
     directories = [tests_dir]
-    crypto_tests_dir = os.path.normpath(os.path.join(tests_dir,
-                                                     '../crypto/tests'))
-    if os.path.isdir(crypto_tests_dir):
-        directories.append(crypto_tests_dir)
     return directories
 
 def check_description(results, seen, file_name, line_number, description):

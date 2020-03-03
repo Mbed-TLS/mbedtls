@@ -55,6 +55,7 @@ typedef struct handshake_test_options
     void *cli_log_obj;
     void (*srv_log_fun)(void *, int, const char *, int, const char *);
     void (*cli_log_fun)(void *, int, const char *, int, const char *);
+    int resize_buffers;
 } handshake_test_options;
 
 void init_handshake_options( handshake_test_options *opts )
@@ -77,6 +78,7 @@ void init_handshake_options( handshake_test_options *opts )
   opts->srv_log_obj = NULL;
   opts->srv_log_fun = NULL;
   opts->cli_log_fun = NULL;
+  opts->resize_buffers = 1;
 }
 /*
  * Buffer structure for custom I/O callbacks.
@@ -1767,12 +1769,48 @@ void perform_handshake( handshake_test_options* options )
                                               &(server.socket),
                                               BUFFSIZE ) == 0 );
 
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    if( options->resize_buffers != 0 )
+    {
+        /* Ensure that the buffer sizes are appropriate before resizes */
+        TEST_ASSERT( client.ssl.out_buf_len == MBEDTLS_SSL_OUT_BUFFER_LEN );
+        TEST_ASSERT( client.ssl.in_buf_len == MBEDTLS_SSL_IN_BUFFER_LEN );
+        TEST_ASSERT( server.ssl.out_buf_len == MBEDTLS_SSL_OUT_BUFFER_LEN );
+        TEST_ASSERT( server.ssl.in_buf_len == MBEDTLS_SSL_IN_BUFFER_LEN );
+    }
+#endif
+
     TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
                                                   &(server.ssl),
                                                   MBEDTLS_SSL_HANDSHAKE_OVER )
                  == 0 );
     TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
     TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+    if( options->resize_buffers != 0 )
+    {
+        /* Note - the case below will have to updated, since due to a 1n-1
+         * split against BEAST the fragment count is different
+         * than expected when preparing the fragment counting code. */
+        if( options->version != MBEDTLS_SSL_MINOR_VERSION_0 &&
+            options->version != MBEDTLS_SSL_MINOR_VERSION_1 )
+        {
+            /* A server, when using DTLS, might delay a buffer resize to happen
+             * after it receives a message, so we force it. */
+            TEST_ASSERT( exchange_data( &(client.ssl), &(server.ssl) ) == 0 );
+
+            TEST_ASSERT( client.ssl.out_buf_len ==
+                         mbedtls_ssl_get_output_buflen( &client.ssl ) );
+            TEST_ASSERT( client.ssl.in_buf_len ==
+                         mbedtls_ssl_get_input_buflen( &client.ssl ) );
+            TEST_ASSERT( server.ssl.out_buf_len ==
+                         mbedtls_ssl_get_output_buflen( &server.ssl ) );
+            TEST_ASSERT( server.ssl.in_buf_len ==
+                         mbedtls_ssl_get_input_buflen( &server.ssl ) );
+        }
+    }
+#endif
 
     if( options->cli_msg_len != 0 || options->srv_msg_len != 0 )
     {
@@ -1814,9 +1852,27 @@ void perform_handshake( handshake_test_options* options )
                                   mbedtls_timing_set_delay,
                                   mbedtls_timing_get_delay );
 #endif
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+        if( options->resize_buffers != 0 )
+        {
+            /* Ensure that the buffer sizes are appropriate before resizes */
+            TEST_ASSERT( server.ssl.out_buf_len == MBEDTLS_SSL_OUT_BUFFER_LEN );
+            TEST_ASSERT( server.ssl.in_buf_len == MBEDTLS_SSL_IN_BUFFER_LEN );
+        }
+#endif
         TEST_ASSERT( mbedtls_ssl_context_load( &( server.ssl ), context_buf,
                                                context_buf_len ) == 0 );
 
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+        /* Validate buffer sizes after context deserialization */
+        if( options->resize_buffers != 0 )
+        {
+            TEST_ASSERT( server.ssl.out_buf_len ==
+                         mbedtls_ssl_get_output_buflen( &server.ssl ) );
+            TEST_ASSERT( server.ssl.in_buf_len ==
+                         mbedtls_ssl_get_input_buflen( &server.ssl ) );
+        }
+#endif
         /* Retest writing/reading */
         if( options->cli_msg_len != 0 || options->srv_msg_len != 0 )
         {
@@ -1830,6 +1886,7 @@ void perform_handshake( handshake_test_options* options )
         }
     }
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( options->renegotiate )
     {
@@ -1859,6 +1916,14 @@ void perform_handshake( handshake_test_options* options )
          * function will return waiting error on the socket. All rest of
          * renegotiation should happen during data exchanging */
         ret = mbedtls_ssl_renegotiate( &(client.ssl) );
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+        if( options->resize_buffers != 0 )
+        {
+            /* Ensure that the buffer sizes are appropriate before resizes */
+            TEST_ASSERT( client.ssl.out_buf_len == MBEDTLS_SSL_OUT_BUFFER_LEN );
+            TEST_ASSERT( client.ssl.in_buf_len == MBEDTLS_SSL_IN_BUFFER_LEN );
+        }
+#endif
         TEST_ASSERT( ret == 0 ||
                      ret == MBEDTLS_ERR_SSL_WANT_READ ||
                      ret == MBEDTLS_ERR_SSL_WANT_WRITE );
@@ -1872,6 +1937,20 @@ void perform_handshake( handshake_test_options* options )
                      MBEDTLS_SSL_RENEGOTIATION_DONE );
         TEST_ASSERT( client.ssl.renego_status ==
                      MBEDTLS_SSL_RENEGOTIATION_DONE );
+#if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
+        /* Validate buffer sizes after renegotiation */
+        if( options->resize_buffers != 0 )
+        {
+            TEST_ASSERT( client.ssl.out_buf_len ==
+                         mbedtls_ssl_get_output_buflen( &client.ssl ) );
+            TEST_ASSERT( client.ssl.in_buf_len ==
+                         mbedtls_ssl_get_input_buflen( &client.ssl ) );
+            TEST_ASSERT( server.ssl.out_buf_len ==
+                         mbedtls_ssl_get_output_buflen( &server.ssl ) );
+            TEST_ASSERT( server.ssl.in_buf_len ==
+                         mbedtls_ssl_get_input_buflen( &server.ssl ) );
+        }
+#endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
@@ -3793,6 +3872,46 @@ void renegotiation( int legacy_renegotiation )
     options.dtls = 1;
 
     perform_handshake( &options );
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+void resize_buffers( int mfl, int renegotiation, int legacy_renegotiation,
+                     int serialize, int dtls )
+{
+    handshake_test_options options;
+    init_handshake_options( &options );
+
+    options.mfl = mfl;
+    options.renegotiate = renegotiation;
+    options.legacy_renegotiation = legacy_renegotiation;
+    options.serialize = serialize;
+    options.dtls = dtls;
+    options.resize_buffers = 1;
+
+    perform_handshake( &options );
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS */
+void resize_buffers_serialize_mfl( int mfl )
+{
+    test_resize_buffers( mfl, 0, MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION, 1, 1 );
+
+    /* The goto below is used to avoid an "unused label" warning.*/
+    goto exit;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+void resize_buffers_renegotiate_mfl( int mfl, int legacy_renegotiation )
+{
+    test_resize_buffers( mfl, 1, legacy_renegotiation, 0, 1 );
+
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
 }

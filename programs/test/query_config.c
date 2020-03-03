@@ -842,6 +842,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_CIPHER_PADDING_ZEROS */
 
+#if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
+    if( strcmp( "MBEDTLS_CTR_DRBG_USE_128_BIT_KEY", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_CTR_DRBG_USE_128_BIT_KEY );
+        return( 0 );
+    }
+#endif /* MBEDTLS_CTR_DRBG_USE_128_BIT_KEY */
+
 #if defined(MBEDTLS_ENABLE_WEAK_CIPHERSUITES)
     if( strcmp( "MBEDTLS_ENABLE_WEAK_CIPHERSUITES", config ) == 0 )
     {
@@ -1154,6 +1162,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
+#if defined(MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER)
+    if( strcmp( "MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER */
+
 #if defined(MBEDTLS_MEMORY_DEBUG)
     if( strcmp( "MBEDTLS_MEMORY_DEBUG", config ) == 0 )
     {
@@ -1233,6 +1249,22 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_SHA256_SMALLER */
+
+#if defined(MBEDTLS_SHA512_SMALLER)
+    if( strcmp( "MBEDTLS_SHA512_SMALLER", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA512_SMALLER );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SHA512_SMALLER */
+
+#if defined(MBEDTLS_SHA512_NO_SHA384)
+    if( strcmp( "MBEDTLS_SHA512_NO_SHA384", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_SHA512_NO_SHA384 );
+        return( 0 );
+    }
+#endif /* MBEDTLS_SHA512_NO_SHA384 */
 
 #if defined(MBEDTLS_SSL_ALL_ALERT_MESSAGES)
     if( strcmp( "MBEDTLS_SSL_ALL_ALERT_MESSAGES", config ) == 0 )
@@ -1970,6 +2002,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( strcmp( "MBEDTLS_PSA_CRYPTO_SE_C", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_SE_C );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( strcmp( "MBEDTLS_PSA_CRYPTO_STORAGE_C", config ) == 0 )
     {
@@ -2217,14 +2257,6 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_CTR_DRBG_MAX_SEED_INPUT */
-
-#if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
-    if( strcmp( "MBEDTLS_CTR_DRBG_USE_128_BIT_KEY", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_CTR_DRBG_USE_128_BIT_KEY );
-        return( 0 );
-    }
-#endif /* MBEDTLS_CTR_DRBG_USE_128_BIT_KEY */
 
 #if defined(MBEDTLS_HMAC_DRBG_RESEED_INTERVAL)
     if( strcmp( "MBEDTLS_HMAC_DRBG_RESEED_INTERVAL", config ) == 0 )

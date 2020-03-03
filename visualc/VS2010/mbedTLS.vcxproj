@@ -167,7 +167,6 @@
     <ClInclude Include="..\..\include\mbedtls\ssl_cache.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_ciphersuites.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_cookie.h" />
-    <ClInclude Include="..\..\include\mbedtls\ssl_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_ticket.h" />
     <ClInclude Include="..\..\include\mbedtls\version.h" />
     <ClInclude Include="..\..\include\mbedtls\x509.h" />

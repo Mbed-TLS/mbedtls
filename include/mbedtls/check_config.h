@@ -674,6 +674,23 @@
 #error "MBEDTLS_SSL_DTLS_ANTI_REPLAY  defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) &&                              \
+    ( !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
+#error "MBEDTLS_SSL_DTLS_CONNECTION_ID  defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)            &&                 \
+    defined(MBEDTLS_SSL_CID_IN_LEN_MAX) &&                 \
+    MBEDTLS_SSL_CID_IN_LEN_MAX > 255
+#error "MBEDTLS_SSL_CID_IN_LEN_MAX too large (max 255)"
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)            &&                  \
+    defined(MBEDTLS_SSL_CID_OUT_LEN_MAX) &&                 \
+    MBEDTLS_SSL_CID_OUT_LEN_MAX > 255
+#error "MBEDTLS_SSL_CID_OUT_LEN_MAX too large (max 255)"
+#endif
+
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT) &&                              \
     ( !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_PROTO_DTLS) )
 #error "MBEDTLS_SSL_DTLS_BADMAC_LIMIT  defined, but not all prerequisites"

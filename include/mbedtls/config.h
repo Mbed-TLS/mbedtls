@@ -1405,6 +1405,48 @@
 #define MBEDTLS_SSL_ALL_ALERT_MESSAGES
 
 /**
+ * \def MBEDTLS_SSL_RECORD_CHECKING
+ *
+ * Enable the function mbedtls_ssl_check_record() which can be used to check
+ * the validity and authenticity of an incoming record, to verify that it has
+ * not been seen before. These checks are performed without modifying the
+ * externally visible state of the SSL context.
+ *
+ * See mbedtls_ssl_check_record() for more information.
+ *
+ * Uncomment to enable support for record checking.
+ */
+#define MBEDTLS_SSL_RECORD_CHECKING
+
+/**
+ * \def MBEDTLS_SSL_DTLS_CONNECTION_ID
+ *
+ * Enable support for the DTLS Connection ID extension
+ * (version draft-ietf-tls-dtls-connection-id-05,
+ * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05)
+ * which allows to identify DTLS connections across changes
+ * in the underlying transport.
+ *
+ * Setting this option enables the SSL APIs `mbedtls_ssl_set_cid()`,
+ * `mbedtls_ssl_get_peer_cid()` and `mbedtls_ssl_conf_cid()`.
+ * See the corresponding documentation for more information.
+ *
+ * \warning The Connection ID extension is still in draft state.
+ *          We make no stability promises for the availability
+ *          or the shape of the API controlled by this option.
+ *
+ * The maximum lengths of outgoing and incoming CIDs can be configured
+ * through the options
+ * - MBEDTLS_SSL_CID_OUT_LEN_MAX
+ * - MBEDTLS_SSL_CID_IN_LEN_MAX.
+ *
+ * Requires: MBEDTLS_SSL_PROTO_DTLS
+ *
+ * Uncomment to enable the Connection ID extension.
+ */
+//#define MBEDTLS_SSL_DTLS_CONNECTION_ID
+
+/**
  * \def MBEDTLS_SSL_ASYNC_PRIVATE
  *
  * Enable asynchronous external private key operations in SSL. This allows
@@ -1414,6 +1456,33 @@
  *
  */
 //#define MBEDTLS_SSL_ASYNC_PRIVATE
+
+/**
+ * \def MBEDTLS_SSL_CONTEXT_SERIALIZATION
+ *
+ * Enable serialization of the TLS context structures, through use of the
+ * functions mbedtls_ssl_context_save() and mbedtls_ssl_context_load().
+ *
+ * This pair of functions allows one side of a connection to serialize the
+ * context associated with the connection, then free or re-use that context
+ * while the serialized state is persisted elsewhere, and finally deserialize
+ * that state to a live context for resuming read/write operations on the
+ * connection. From a protocol perspective, the state of the connection is
+ * unaffected, in particular this is entirely transparent to the peer.
+ *
+ * Note: this is distinct from TLS session resumption, which is part of the
+ * protocol and fully visible by the peer. TLS session resumption enables
+ * establishing new connections associated to a saved session with shorter,
+ * lighter handshakes, while context serialization is a local optimization in
+ * handling a single, potentially long-lived connection.
+ *
+ * Enabling these APIs makes some SSL structures larger, as 64 extra bytes are
+ * saved after the handshake to allow for more efficient serialization, so if
+ * you don't need this feature you'll save RAM by disabling it.
+ *
+ * Comment to disable the context serialization APIs.
+ */
+#define MBEDTLS_SSL_CONTEXT_SERIALIZATION
 
 /**
  * \def MBEDTLS_SSL_DEBUG_ALL
@@ -1821,9 +1890,9 @@
  * will still continue to work as usual, so enabling this option should not
  * break backwards compatibility.
  *
- * \warning Support for PSA is still an experimental feature.
- *          Any public API that depends on this option may change
- *          at any time until this warning is removed.
+ * \warning The PSA Crypto API is in beta stage. While you're welcome to
+ * experiment using it, incompatible API changes are still possible, and some
+ * parts may not have reached the same quality as the rest of Mbed TLS yet.
  *
  * \warning This option enables new Mbed TLS APIs that are dependent on the
  * PSA Crypto API, so can't come with the same stability guarantees as the
@@ -2320,7 +2389,7 @@
  * Requires: MBEDTLS_AES_C or MBEDTLS_DES_C
  *
  */
-#define MBEDTLS_CMAC_C
+//#define MBEDTLS_CMAC_C
 
 /**
  * \def MBEDTLS_CTR_DRBG_C
@@ -3427,6 +3496,37 @@
  */
 //#define MBEDTLS_SSL_IN_CONTENT_LEN              16384
 
+/** \def MBEDTLS_SSL_CID_IN_LEN_MAX
+ *
+ * The maximum length of CIDs used for incoming DTLS messages.
+ *
+ */
+//#define MBEDTLS_SSL_CID_IN_LEN_MAX 32
+
+/** \def MBEDTLS_SSL_CID_OUT_LEN_MAX
+ *
+ * The maximum length of CIDs used for outgoing DTLS messages.
+ *
+ */
+//#define MBEDTLS_SSL_CID_OUT_LEN_MAX 32
+
+/** \def MBEDTLS_SSL_CID_PADDING_GRANULARITY
+ *
+ * This option controls the use of record plaintext padding
+ * when using the Connection ID extension in DTLS 1.2.
+ *
+ * The padding will always be chosen so that the length of the
+ * padded plaintext is a multiple of the value of this option.
+ *
+ * Note: A value of \c 1 means that no padding will be used
+ *       for outgoing records.
+ *
+ * Note: On systems lacking division instructions,
+ *       a power of two should be preferred.
+ *
+ */
+//#define MBEDTLS_SSL_CID_PADDING_GRANULARITY 16
+
 /** \def MBEDTLS_SSL_OUT_CONTENT_LEN
  *
  * Maximum length (in bytes) of outgoing plaintext fragments.
@@ -3502,7 +3602,7 @@
  *            on it, and considering stronger message digests instead.
  *
  */
-// #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+//#define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 
 /**
  * Allow SHA-1 in the default TLS configuration for TLS 1.2 handshake

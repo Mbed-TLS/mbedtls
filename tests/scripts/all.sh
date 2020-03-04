@@ -1185,8 +1185,8 @@ component_test_platform_calloc_macro () {
 
 component_test_malloc_0_null () {
     msg "build: malloc(0) returns NULL (ASan+UBSan build)"
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.py full
+    scripts/config.py unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
     make CC=gcc CFLAGS="'-DMBEDTLS_CONFIG_FILE=\"$PWD/tests/configs/config-wrapper-malloc-0-null.h\"' -O -Werror -Wall -Wextra -fsanitize=address,undefined" LDFLAGS='-fsanitize=address,undefined'
 
     msg "test: malloc(0) returns NULL (ASan+UBSan build)"
@@ -1235,12 +1235,12 @@ test_build_opt () {
 }
 
 component_test_clang_opt () {
-    scripts/config.pl full
+    scripts/config.py full
     test_build_opt 'full config' clang -O0 -Os -O2
 }
 
 component_test_gcc_opt () {
-    scripts/config.pl full
+    scripts/config.py full
     test_build_opt 'full config' gcc -O0 -Os -O2
 }
 

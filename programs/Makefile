@@ -246,7 +246,8 @@ psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
 
 clean:
 ifndef WINDOWS
-	rm -f $(APPS) $(EXTRA_GENERATED)
+	rm -f $(APPS)
+	rm -f $(EXTRA_GENERATED)
 	-rm -f test/cpp_dummy_build$(EXEXT)
 else
 	if exist *.o del /Q /F *.o

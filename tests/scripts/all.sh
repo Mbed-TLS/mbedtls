@@ -24,7 +24,8 @@
 # configurations, and can and will arbitrarily change the current CMake
 # configuration. The following files must be committed into git:
 #    * include/mbedtls/config.h
-#    * Makefile, library/Makefile, programs/Makefile, tests/Makefile
+#    * Makefile, library/Makefile, programs/Makefile, tests/Makefile,
+#      programs/fuzz/Makefile
 # After running this script, the CMake cache will be lost and CMake
 # will no longer be initialised.
 #
@@ -75,9 +76,9 @@
 # * Run `make clean`.
 # * Restore `include/mbedtks/config.h` from a backup made before running
 #   the component.
-# * Check out `Makefile`, `library/Makefile`, `programs/Makefile` and
-#   `tests/Makefile` from git. This cleans up after an in-tree use of
-#   CMake.
+# * Check out `Makefile`, `library/Makefile`, `programs/Makefile`,
+#   `tests/Makefile` and `programs/fuzz/Makefile` from git.
+#   This cleans up after an in-tree use of CMake.
 #
 # Any command that is expected to fail must be protected so that the
 # script keeps running in --keep-going mode despite `set -e`. In keep-going
@@ -247,13 +248,8 @@ cleanup()
               -iname CMakeCache.txt \) -exec rm {} \+
     # Recover files overwritten by in-tree CMake builds
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
-    git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
-    git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
-
-    # Remove any artifacts from the component_test_cmake_as_subdirectory test.
-    rm -rf programs/test/cmake_subproject/build
-    rm -f programs/test/cmake_subproject/Makefile
-    rm -f programs/test/cmake_subproject/cmake_subproject
+    git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile
+    git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile programs/fuzz/Makefile
 
     # Remove any artifacts from the component_test_cmake_as_subdirectory test.
     rm -rf programs/test/cmake_subproject/build
@@ -505,6 +501,7 @@ pre_print_configuration () {
     echo "FORCE: $FORCE"
     echo "MBEDTLS_TEST_OUTCOME_FILE: ${MBEDTLS_TEST_OUTCOME_FILE:-(none)}"
     echo "SEED: ${SEED-"UNSET"}"
+    echo
     echo "OPENSSL: $OPENSSL"
     echo "OPENSSL_LEGACY: $OPENSSL_LEGACY"
     echo "OPENSSL_NEXT: $OPENSSL_NEXT"
@@ -632,6 +629,7 @@ component_check_doxygen_warnings () {
 }
 
 
+
 ################################################################
 #### Build and test many configurations and targets
 ################################################################
@@ -676,25 +674,57 @@ component_test_full_cmake_gcc_asan () {
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test
+
+    msg "test: ssl-opt.sh (full config, ASan build)"
+    if_build_succeeded tests/ssl-opt.sh
+
+    msg "test: compat.sh (full config, ASan build)"
+    if_build_succeeded tests/compat.sh
+}
+
+component_test_zlib_make() {
+    msg "build: zlib enabled, make"
+    scripts/config.py set MBEDTLS_ZLIB_SUPPORT
+    make ZLIB=1 CFLAGS='-Werror -O1'
+
+    msg "test: main suites (zlib, make)"
+    make test
+
+    msg "test: ssl-opt.sh (zlib, make)"
+    if_build_succeeded tests/ssl-opt.sh
+}
+support_test_zlib_make () {
+    base=support_test_zlib_$$
+    cat <<'EOF' > ${base}.c
+#include "zlib.h"
+int main(void) { return 0; }
+EOF
+    gcc -o ${base}.exe ${base}.c -lz 2>/dev/null
+    ret=$?
+    rm -f ${base}.*
+    return $ret
+}
+
+component_test_zlib_cmake() {
+    msg "build: zlib enabled, cmake"
+    scripts/config.py set MBEDTLS_ZLIB_SUPPORT
+    cmake -D ENABLE_ZLIB_SUPPORT=On -D CMAKE_BUILD_TYPE:String=Check .
+    make
+
+    msg "test: main suites (zlib, cmake)"
+    make test
+
+    msg "test: ssl-opt.sh (zlib, cmake)"
+    if_build_succeeded tests/ssl-opt.sh
+}
+support_test_zlib_cmake () {
+    support_test_zlib_make "$@"
 }
 
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     record_status tests/scripts/test-ref-configs.pl
-}
-
-component_test_no_pem_no_fs () {
-    msg "build: Default + !MBEDTLS_PEM_PARSE_C + !MBEDTLS_FS_IO (ASan build)"
-    scripts/config.py unset MBEDTLS_PEM_PARSE_C
-    scripts/config.py unset MBEDTLS_FS_IO
-    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C # requires a filesystem
-    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA ITS
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - main suites (inc. selftests) (ASan build)" # ~ 50s
-    make test
 }
 
 component_test_sslv3 () {
@@ -727,6 +757,22 @@ component_test_no_renegotiation () {
     if_build_succeeded tests/ssl-opt.sh
 }
 
+component_test_no_pem_no_fs () {
+    msg "build: Default + !MBEDTLS_PEM_PARSE_C + !MBEDTLS_FS_IO (ASan build)"
+    scripts/config.py unset MBEDTLS_PEM_PARSE_C
+    scripts/config.py unset MBEDTLS_FS_IO
+    scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C # requires a filesystem
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C # requires PSA ITS
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: !MBEDTLS_PEM_PARSE_C !MBEDTLS_FS_IO - ssl-opt.sh (ASan build)" # ~ 6 min
+    if_build_succeeded tests/ssl-opt.sh
+}
+
 component_test_rsa_no_crt () {
     msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
     scripts/config.py set MBEDTLS_RSA_NO_CRT
@@ -741,6 +787,41 @@ component_test_rsa_no_crt () {
 
     msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
     if_build_succeeded tests/compat.sh -t RSA
+}
+
+component_test_new_ecdh_context () {
+    msg "build: new ECDH context (ASan build)" # ~ 6 min
+    scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: new ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: new ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f ECDH
+
+    msg "test: new ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
+    # Exclude some symmetric ciphers that are redundant here to gain time.
+    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
+}
+
+component_test_everest () {
+    msg "build: Everest ECDH context (ASan build)" # ~ 6 min
+    scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
+    scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
+
+    msg "test: Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f ECDH
+
+    msg "test: Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
+    # Exclude some symmetric ciphers that are redundant here to gain time.
+    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
 }
 
 component_test_small_ssl_out_content_len () {
@@ -777,33 +858,12 @@ component_test_small_ssl_dtls_max_buffering () {
 
 component_test_small_mbedtls_ssl_dtls_max_buffering () {
     msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1"
-    scripts/config.py set MBEDTLS_SSL_DTLS_MAX_BUFFERING 240
+    scripts/config.py set MBEDTLS_SSL_DTLS_MAX_BUFFERING 190
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1 - ssl-opt.sh specific reordering test"
     if_build_succeeded tests/ssl-opt.sh -f "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket"
-}
-
-component_test_new_ecdh_context () {
-    msg "build: new ECDH context (ASan build)" # ~ 6 min
-    scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: new ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
-    make test
-}
-
-component_test_everest () {
-    msg "build: Everest ECDH context (ASan build)" # ~ 6 min
-    scripts/config.py unset MBEDTLS_ECDH_LEGACY_CONTEXT
-    scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    make
-
-    msg "test: Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
-    make test
 }
 
 component_test_psa_collect_statuses () {
@@ -835,15 +895,6 @@ component_test_full_cmake_clang () {
 
     msg "test: compat.sh ARIA + ChachaPoly"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
-}
-
-component_test_full_make_gcc_o0 () {
-    msg "build: make, full config, gcc -O0" # ~ 50s
-    scripts/config.py full
-    make CC=gcc CFLAGS='-O0'
-
-    msg "test: main suites (full config, gcc -O0)" # ~ 5s
-    make test
 }
 
 component_build_deprecated () {
@@ -1067,6 +1118,10 @@ component_test_memory_buffer_allocator () {
 
     msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
     make test
+
+    msg "test: ssl-opt.sh, MBEDTLS_MEMORY_BUFFER_ALLOC_C"
+    # MBEDTLS_MEMORY_BUFFER_ALLOC is slow. Skip tests that tend to time out.
+    if_build_succeeded tests/ssl-opt.sh -e '^DTLS proxy'
 }
 
 component_test_no_max_fragment_length () {
@@ -1106,6 +1161,20 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
 
     msg "test: MFL tests (disabled MFL extension case) & large packet tests"
     if_build_succeeded tests/ssl-opt.sh -f "Max fragment length\|Large buffer"
+}
+
+component_test_when_no_ciphersuites_have_mac () {
+    msg "build: when no ciphersuites have MAC"
+    scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
+    scripts/config.py unset MBEDTLS_ARC4_C
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    make
+
+    msg "test: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
+    make test
+
+    msg "test ssl-opt.sh: !MBEDTLS_SSL_SOME_MODES_USE_MAC"
+    if_build_succeeded tests/ssl-opt.sh -f 'Default\|EtM' -e 'without EtM'
 }
 
 component_test_null_entropy () {
@@ -1314,6 +1383,9 @@ component_test_m32_o1 () {
 
     msg "test: i386, make, gcc -O1 (ASan build)"
     make test
+
+    msg "test ssl-opt.sh, i386, make, gcc-O1"
+    if_build_succeeded tests/ssl-opt.sh
 }
 support_test_m32_o1 () {
     support_test_m32_o0 "$@"
@@ -1327,6 +1399,13 @@ component_test_m32_everest () {
 
     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
+
+    msg "test: i386, Everest ECDH context - ECDH-related part of ssl-opt.sh (ASan build)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f ECDH
+
+    msg "test: i386, Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
+    # Exclude some symmetric ciphers that are redundant here to gain time.
+    if_build_succeeded tests/compat.sh -f ECDH -V NO -e 'ARCFOUR\|ARIA\|CAMELLIA\|CHACHA\|DES\|RC4'
 }
 support_test_m32_everest () {
     support_test_m32_o0 "$@"
@@ -1514,10 +1593,8 @@ component_test_valgrind () {
     msg "test: main suites valgrind (Release)"
     make memcheck
 
-    # Optional part(s)
-    # Currently broken, programs don't seem to receive signals
-    # under valgrind on OS X
-
+    # Optional parts (slow; currently broken on OS X because programs don't
+    # seem to receive signals under valgrind on OS X).
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: ssl-opt.sh --memcheck (Release)"
         if_build_succeeded tests/ssl-opt.sh --memcheck

@@ -23,7 +23,7 @@ print_version()
     shift
     ARGS="$1"
     shift
-    VARIANT=$1
+    VARIANT="$1"
     shift
 
     if [ -n "$VARIANT" ]; then
@@ -45,6 +45,10 @@ print_version()
         VERSION_STR=`echo "$VERSION_STR" | $FILTER`
     done
 
+    if [ -z "$VERSION_STR" ]; then
+        VERSION_STR="Version could not be determined."
+    fi
+
     echo " * ${BIN##*/}$VARIANT: ${BIN} : ${VERSION_STR} "
 }
 
@@ -61,6 +65,7 @@ fi
 echo
 
 print_version "uname" "-a" ""
+
 echo
 echo
 echo "** Tool Versions:"
@@ -92,6 +97,15 @@ print_version "valgrind" "--version" ""
 echo
 
 print_version "gdb" "--version" "" "head -n 1"
+echo
+
+print_version "perl" "--version" "" "head -n 2" "grep ."
+echo
+
+print_version "python" "--version" "" "head -n 1"
+echo
+
+print_version "pylint3" "--version" "" "head -n 2" "tail -n 1"
 echo
 
 : ${OPENSSL:=openssl}

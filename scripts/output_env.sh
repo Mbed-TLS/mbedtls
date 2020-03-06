@@ -105,7 +105,7 @@ echo
 print_version "python" "--version" "" "head -n 1"
 echo
 
-print_version "pylint3" "--version" "" "head -n 2" "tail -n 1"
+print_version "pylint3" "--version" "" "sed /^.*config/d" "grep pylint"
 echo
 
 : ${OPENSSL:=openssl}

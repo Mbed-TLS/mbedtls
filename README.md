@@ -12,6 +12,19 @@ Mbed TLS should build out of the box on most systems. Some platform specific opt
 
 Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
 
+Documentation
+-------------
+
+Documentation for the Mbed TLS interfaces in the default library configuration is available as part of the [Mbed TLS documentation](https://tls.mbed.org/api/).
+
+To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
+
+1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed. We use version 1.8.11 but slightly older or more recent versions should work.
+1. Run `make apidoc`.
+1. Browse `apidoc/index.html` or `apidoc/modules.html`.
+
+For the PSA cryptography interfaces, please refer to the PSA Cryptography API documents linked from the [PSA cryptography interfaces documentation portal](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) for an overview of the library's interfaces and a detailed description of the types, macros and functions that it provides. The API reference is available in [PDF](https://armmbed.github.io/mbed-crypto/PSA_Cryptography_API_Specification.pdf) and [HTML](https://armmbed.github.io/mbed-crypto/html/index.html) formats.
+
 Compiling
 ---------
 

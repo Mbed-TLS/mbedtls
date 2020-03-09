@@ -552,6 +552,13 @@ typedef struct mbedtls_test_message_socket_context
     mbedtls_mock_socket* socket;
 } mbedtls_test_message_socket_context;
 
+void mbedtls_message_socket_init( mbedtls_test_message_socket_context *ctx )
+{
+    ctx->queue_input = NULL;
+    ctx->queue_output = NULL;
+    ctx->socket = NULL;
+}
+
 /*
  * Setup a given mesasge socket context including initialization of
  * input/output queues to a chosen capacity of messages. Also set the
@@ -1652,6 +1659,8 @@ void perform_handshake( handshake_test_options* options )
 
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
 
     /* Client side */
     if( options->dtls != 0 )
@@ -2503,6 +2512,8 @@ void ssl_message_mock_uninitialized( )
     mbedtls_mock_socket client, server;
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
 
     /* Send with a NULL context */
     TEST_ASSERT( mbedtls_mock_tcp_send_msg( NULL, message, MSGLEN )
@@ -2548,6 +2559,8 @@ void ssl_message_mock_basic( )
     unsigned i;
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
 
     TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 1,
                                                &server,
@@ -2601,6 +2614,8 @@ void ssl_message_mock_queue_overflow_underflow( )
     unsigned i;
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
 
     TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 2,
                                                &server,
@@ -2657,6 +2672,8 @@ void ssl_message_mock_socket_overflow( )
     unsigned i;
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
 
     TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 2,
                                                &server,
@@ -2704,6 +2721,8 @@ void ssl_message_mock_truncated( )
     unsigned i;
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
 
     TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 2,
                                                &server,
@@ -2761,6 +2780,8 @@ void ssl_message_mock_socket_read_error( )
     unsigned i;
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
 
     TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 1,
                                                &server,
@@ -2813,6 +2834,8 @@ void ssl_message_mock_interleaved_one_way( )
     unsigned i;
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
 
     TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 3,
                                                &server,
@@ -2871,6 +2894,8 @@ void ssl_message_mock_interleaved_two_ways( )
     unsigned i;
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
 
     TEST_ASSERT( mbedtls_message_socket_setup( &server_queue, &client_queue, 3,
                                                &server,

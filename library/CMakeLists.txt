@@ -169,8 +169,7 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
     target_link_libraries(${mbedcrypto_static_target} ${libs})
     target_include_directories(${mbedcrypto_static_target}
-        PUBLIC ${MBEDTLS_DIR}/include/
-        PUBLIC ${MBEDTLS_DIR}/crypto/include/)
+        PUBLIC ${MBEDTLS_DIR}/include/)
 
     if(USE_CRYPTO_SUBMODULE)
         install(TARGETS ${mbedcrypto_static_target}
@@ -197,22 +196,19 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     set_target_properties(mbedcrypto PROPERTIES VERSION 2.21.0 SOVERSION 4)
     target_link_libraries(mbedcrypto ${libs})
     target_include_directories(mbedcrypto
-        PUBLIC ${MBEDTLS_DIR}/include/
-        PUBLIC ${MBEDTLS_DIR}/crypto/include/)
+        PUBLIC ${MBEDTLS_DIR}/include/)
 
     add_library(mbedx509 SHARED ${src_x509})
     set_target_properties(mbedx509 PROPERTIES VERSION 2.21.0 SOVERSION 1)
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
     target_include_directories(mbedx509
-        PUBLIC ${MBEDTLS_DIR}/include/
-        PUBLIC ${MBEDTLS_DIR}/crypto/include/)
+        PUBLIC ${MBEDTLS_DIR}/include/)
 
     add_library(mbedtls SHARED ${src_tls})
     set_target_properties(mbedtls PROPERTIES VERSION 2.21.0 SOVERSION 13)
     target_link_libraries(mbedtls ${libs} mbedx509)
     target_include_directories(mbedtls
-        PUBLIC ${MBEDTLS_DIR}/include/
-        PUBLIC ${MBEDTLS_DIR}/crypto/include/)
+        PUBLIC ${MBEDTLS_DIR}/include/)
 
     if(USE_CRYPTO_SUBMODULE)
         install(TARGETS mbedcrypto

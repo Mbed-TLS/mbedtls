@@ -645,7 +645,7 @@ int mbedtls_mock_tcp_recv_msg( void *ctx, unsigned char *buf, size_t buf_len )
     mbedtls_test_message_queue* queue;
     mbedtls_mock_socket* socket;
     mbedtls_test_message_socket_context *context = (mbedtls_test_message_socket_context*) ctx;
-    size_t drop_len;
+    size_t drop_len = 0;
     size_t msg_len;
     int ret;
 

@@ -3,6 +3,8 @@ README for Mbed TLS
 
 Mbed TLS is a C library that implements cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols. Its small code footprint makes it suitable for embedded systems.
 
+Mbed TLS includes a reference implementation of the [PSA Cryptography API](#psa-cryptography-api).
+
 Configuration
 -------------
 
@@ -192,6 +194,40 @@ Mbed TLS can be ported to many different architectures, OS's and platforms. Befo
 -   [Porting Mbed TLS to a new environment or OS](https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS)
 -   [What external dependencies does Mbed TLS rely on?](https://tls.mbed.org/kb/development/what-external-dependencies-does-mbedtls-rely-on)
 -   [How do I configure Mbed TLS](https://tls.mbed.org/kb/compiling-and-building/how-do-i-configure-mbedtls)
+
+PSA cryptography API
+--------------------
+
+### PSA API design
+
+Arm's [Platform Security Architecture (PSA)](https://developer.arm.com/architectures/security-architectures/platform-security-architecture) is a holistic set of threat models, security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that allows security to be consistently designed in, at both a hardware and firmware level.
+
+The [PSA cryptography API](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) provides access to a set of cryptographic primitives. It has a dual purpose. First, it can be used in a PSA-compliant platform to build services, such as secure boot, secure storage and secure communication. Second, it can also be used independently of other PSA components on any platform.
+
+The design goals of the PSA cryptography API include:
+
+* The API distinguishes caller memory from internal memory, which allows the library to be implemented in an isolated space for additional security. Library calls can be implemented as direct function calls if isolation is not desired, and as remote procedure calls if isolation is desired.
+* The structure of internal data is hidden to the application, which allows substituting alternative implementations at build time or run time, for example, in order to take advantage of hardware accelerators.
+* All access to the keys happens through handles, which allows support for external cryptoprocessors that is transparent to applications.
+* The interface to algorithms is generic, favoring algorithm agility.
+* The interface is designed to be easy to use and hard to accidentally misuse.
+
+Arm welcomes feedback on the design of the API. If you think something could be improved, please open an issue on our Github repository. Alternatively, if you prefer to provide your feedback privately, please email us at [`mbed-crypto@arm.com`](mailto:mbed-crypto@arm.com). All feedback received by email is treated confidentially.
+
+### PSA implementation in Mbed TLS
+
+Mbed TLS includes a reference implementation of the PSA Cryptography API.
+
+There are currently a few deviations where the library does not yet implement the latest version of the specification. Please refer to the [compliance issues on Github](https://github.com/ARMmbed/mbed-crypto/labels/compliance) for an up-to-date list.
+
+### Upcoming features
+
+Future releases of this library will include:
+
+* A driver programming interface, which makes it possible to use hardware accelerators instead of the default software implementation for chosen algorithms.
+* Support for external keys to be stored and manipulated exclusively in a separate cryptoprocessor.
+* A configuration mechanism to compile only the algorithms you need for your application.
+* A wider set of cryptographic algorithms.
 
 License
 -------

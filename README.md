@@ -12,6 +12,8 @@ Mbed TLS should build out of the box on most systems. Some platform specific opt
 
 Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
 
+We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`
+
 Documentation
 -------------
 
@@ -175,12 +177,6 @@ For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, ad
 -   `tests/scripts/test-ref-configs.pl` test builds in various reduced configurations.
 -   `tests/scripts/key-exchanges.pl` test builds in configurations with a single key exchange enabled
 -   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `config.h`, etc).
-
-Configurations
---------------
-
-We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`
-
 
 Porting Mbed TLS
 ----------------

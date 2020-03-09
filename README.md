@@ -25,23 +25,6 @@ The main systems used for development are CMake and GNU Make. Those systems are 
 
 The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`. Also, when loading shared libraries using dlopen(), you'll need to load libmbedcrypto first, then libmbedx509, before you can load libmbedtls.
 
-### Getting files form git: the Crypto submodule
-
-The Mbed Crypto library now has its own git repository, which the Mbed TLS build systems are using as a git submodule in order to build libmbedcrypto as a subproject of Mbed TLS. When cloning the Mbed TLS repository, you need to make sure you're getting the submodule as well:
-
-        git clone --recursive https://github.com/ARMmbed/mbedtls.git
-
-Alternatively, if you already have an existing clone of the Mbed TLS
-repository, you can initialise and update the submodule with:
-
-        git submodule update --init crypto
-
-After these steps, your clone is now ready for building the libraries as detailed in the following sections.
-
-Note that building libmbedcrypto as a subproject of Mbed TLS does not enable the PSA-specific tests and utility programs. To use these programs, build Mbed Crypto as a standalone project.
-
-Please note that for now, Mbed TLS can only use versions of libmbedcrypto that were built as a subproject of Mbed TLS, not versions that were built standalone from the Mbed Crypto repository. This restriction will be removed in the future.
-
 ### Make
 
 We require GNU Make. To build the library and the sample programs, GNU Make and a C compiler are sufficient. Some of the more advanced build targets require some Unix/Linux tools.
@@ -152,7 +135,7 @@ on the build mode as seen above), it's merely prepended to it.
 
 #### Mbed TLS as a subproject
 
-Mbed TLS, like Mbed Crypto, supports being built as a CMake subproject. One can
+Mbed TLS, supports being built as a CMake subproject. One can
 use `add_subdirectory()` from a parent CMake project to include Mbed TLS as a
 subproject.
 

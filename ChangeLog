@@ -2,6 +2,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS "baremetal" branch
 
+Bugfix
+   * Fix build failure with MBEDTLS_ZLIB_SUPPORT enabled. Reported by
+     Jack Lloyd in #2859. Fix submitted by jiblime in #2963.
+
 Features
    * Add new configuration option MBEDTLS_SSL_NO_SESSION_CACHE that enables
      code size savings in configurations where cache-based session resumption is

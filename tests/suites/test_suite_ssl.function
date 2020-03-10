@@ -13,7 +13,8 @@ typedef struct log_pattern
     size_t counter;
 } log_pattern;
 
-/* This function can be passed to mbedtls to receive output logs from it. In
+/*
+ * This function can be passed to mbedtls to receive output logs from it. In
  * this case, it will count the instances of a log_pattern in the received
  * logged messages.
  */
@@ -1009,17 +1010,15 @@ int mbedtls_move_handshake_to_state( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /*
- * Write application data. Increase write counter and fragments counter if
- * necessary.
+ * Write application data. Increase write counter if necessary.
  */
 int mbedtls_ssl_write_fragment( mbedtls_ssl_context *ssl, unsigned char *buf,
                                 int buf_len, int *written,
-                                int *fragments, const int expected_fragments )
+                                const int expected_fragments )
 {
     int ret = mbedtls_ssl_write( ssl, buf + *written, buf_len - *written );
     if( ret > 0 )
     {
-        (*fragments)++;
         *written += ret;
     }
 
@@ -1055,15 +1054,16 @@ exit:
 }
 
 /*
- * Read application data and increase read counter if necessary.
+ * Read application data and increase read counter and fragments counter if necessary.
  */
 int mbedtls_ssl_read_fragment( mbedtls_ssl_context *ssl, unsigned char *buf,
                                int buf_len, int *read,
-                               const int expected_fragments )
+                               int *fragments, const int expected_fragments )
 {
     int ret = mbedtls_ssl_read( ssl, buf + *read, buf_len - *read );
     if( ret > 0 )
     {
+        ( *fragments )++;
         *read += ret;
     }
 
@@ -1552,7 +1552,6 @@ int mbedtls_exchange_data( mbedtls_ssl_context *ssl_1,
             {
                 ret = mbedtls_ssl_write_fragment( ssl_1, msg_buf_1,
                                                   msg_len_1, &written_1,
-                                                  &fragments_1,
                                                   expected_fragments_1 );
                 if( expected_fragments_1 == 0 )
                 {
@@ -1572,7 +1571,6 @@ int mbedtls_exchange_data( mbedtls_ssl_context *ssl_1,
             {
                 ret = mbedtls_ssl_write_fragment( ssl_2, msg_buf_2,
                                                   msg_len_2, &written_2,
-                                                  &fragments_2,
                                                   expected_fragments_2 );
                 if( expected_fragments_2 == 0 )
                 {
@@ -1592,7 +1590,8 @@ int mbedtls_exchange_data( mbedtls_ssl_context *ssl_1,
             {
                 ret = mbedtls_ssl_read_fragment( ssl_1, in_buf_1,
                                                  msg_len_2, &read_1,
-                                                 expected_fragments_1 );
+                                                 &fragments_2,
+                                                 expected_fragments_2 );
                 TEST_ASSERT( ret == 0 );
             }
 
@@ -1601,7 +1600,8 @@ int mbedtls_exchange_data( mbedtls_ssl_context *ssl_1,
             {
                 ret = mbedtls_ssl_read_fragment( ssl_2, in_buf_2,
                                                  msg_len_1, &read_2,
-                                                 expected_fragments_2 );
+                                                 &fragments_1,
+                                                 expected_fragments_1 );
                 TEST_ASSERT( ret == 0 );
             }
         }
@@ -1799,9 +1799,6 @@ void perform_handshake( handshake_test_options* options )
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     if( options->resize_buffers != 0 )
     {
-        /* Note - the case below will have to updated, since due to a 1n-1
-         * split against BEAST the fragment count is different
-         * than expected when preparing the fragment counting code. */
         if( options->version != MBEDTLS_SSL_MINOR_VERSION_0 &&
             options->version != MBEDTLS_SSL_MINOR_VERSION_1 )
         {
@@ -3747,14 +3744,13 @@ void handshake_version( int version, int dtls )
 
     options.version = version;
     options.dtls = dtls;
-    /* Note - the case below will have to updated, since the test sends no data
-     * due to a 1n-1 split against BEAST, that was not expected when preparing
-     * the fragment counting code. */
+    /* By default, SSLv3.0 and TLSv1.0 use 1/n-1 splitting when sending data, so
+     * the number of fragments will be twice as big. */
     if( version == MBEDTLS_SSL_MINOR_VERSION_0 ||
         version == MBEDTLS_SSL_MINOR_VERSION_1 )
     {
-        options.cli_msg_len = 0;
-        options.srv_msg_len = 0;
+        options.expected_cli_fragments = 2;
+        options.expected_srv_fragments = 2;
     }
     perform_handshake( &options );
 

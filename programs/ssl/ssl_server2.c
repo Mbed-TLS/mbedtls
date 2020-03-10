@@ -257,7 +257,7 @@ int main( void )
 #define USAGE_CID ""
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 #define USAGE_PSK_RAW                                               \
     "    psk=%%s              default: \"\" (disabled)\n"     \
     "                          The PSK values are in hex, without 0x.\n" \
@@ -292,7 +292,7 @@ int main( void )
 #define USAGE_PSK USAGE_PSK_RAW USAGE_PSK_SLOT
 #else
 #define USAGE_PSK ""
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 #define USAGE_CA_CALLBACK                       \
     "   ca_callback=%%d       default: 0 (disabled)\n"      \
@@ -1187,7 +1187,7 @@ int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
 
 #endif /* SNI_OPTION */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) || \
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) || \
     defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 
 #define HEX2NUM( c )                        \
@@ -1233,7 +1233,7 @@ int unhexify( unsigned char *output, const char *input, size_t *olen )
 
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 
 typedef struct _psk_entry psk_entry;
 
@@ -1345,7 +1345,7 @@ int psk_callback( void *p_info, mbedtls_ssl_context *ssl,
 
     return( -1 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 static mbedtls_net_context listen_fd, client_fd;
 
@@ -1748,7 +1748,7 @@ int main( int argc, char *argv[] )
     int version_suites[4][2];
     io_ctx_t io_ctx;
     unsigned char* buf = 0;
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t alg = 0;
     psa_key_handle_t psk_slot = 0;
@@ -2626,7 +2626,7 @@ int main( int argc, char *argv[] )
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     /*
      * Unhexify the pre-shared key and parse the list if any given
      */
@@ -2644,7 +2644,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
     }
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_ECP_C)
     if( opt.curves != NULL )
@@ -3339,7 +3339,7 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 
     if( strlen( opt.psk ) != 0 && strlen( opt.psk_identity ) != 0 )
     {
@@ -4232,7 +4232,7 @@ exit:
 #if defined(SNI_OPTION)
     sni_free( sni_info );
 #endif
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if( ( ret = psk_free( psk_info ) ) != 0 )
         mbedtls_printf( "Failed to list of opaque PSKs - error was %d\n", ret );
 #endif
@@ -4240,7 +4240,7 @@ exit:
     mbedtls_dhm_free( &dhm );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) && \
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.psk_opaque != 0 )
     {
@@ -4255,7 +4255,7 @@ exit:
                             (unsigned) psk_slot, (int) status );
         }
     }
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED &&
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_ssl_free( &ssl );

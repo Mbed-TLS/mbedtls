@@ -292,7 +292,7 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) &&        \
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) &&        \
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) &&              \
     ( !defined(MBEDTLS_SHA256_C) &&                             \
       !defined(MBEDTLS_SHA512_C) &&                             \

@@ -1819,7 +1819,7 @@ void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex )
 {
     unsigned char *p = ssl->handshake->premaster;
@@ -1941,7 +1941,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 
     return( 0 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
 static int ssl_write_hello_request( mbedtls_ssl_context *ssl );
@@ -2000,7 +2000,7 @@ static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
 /*
  * Handshake functions
  */
-#if !defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if !defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /* No certificate support -> dummy functions */
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
@@ -2038,7 +2038,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
-#else /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+#else /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 /* Some certificate support -> implement write and parse */
 
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
@@ -2518,7 +2518,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
     }
 
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
         return( MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS );
 #endif
@@ -2696,7 +2696,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         goto exit;
     }
 
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     if( ssl->handshake->ecrs_enabled &&
         ssl->handshake->ecrs_state == ssl_ecrs_crt_verify )
     {
@@ -2750,7 +2750,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     if( ret != 0 )
         goto exit;
 
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     if( ssl->handshake->ecrs_enabled)
         ssl->handshake->ecrs_state = ssl_ecrs_crt_verify;
 
@@ -2807,7 +2807,7 @@ exit:
     if( ret == 0 )
         ssl->state++;
 
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
     {
         ssl->handshake->ecrs_peer_cert = chain;
@@ -2823,7 +2823,7 @@ exit:
 
     return( ret );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
                             const mbedtls_ssl_ciphersuite_t *ciphersuite_info )
@@ -3565,7 +3565,7 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
     handshake->update_checksum = ssl_update_checksum_start;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_ssl_sig_hash_set_init( &handshake->hash_algs );
 #endif
 
@@ -3583,7 +3583,7 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #endif
 #endif
 
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     mbedtls_x509_crt_restart_init( &handshake->ecrs_ctx );
 #endif
 
@@ -4221,7 +4221,7 @@ int mbedtls_ssl_set_hs_ecjpake_password( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 
 static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
 {
@@ -4394,7 +4394,7 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
     conf->f_psk = f_psk;
     conf->p_psk = p_psk;
 }
-#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
 
@@ -4459,7 +4459,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Set allowed/preferred hashes for handshake signatures
  */
@@ -4468,7 +4468,7 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
 {
     conf->sig_hashes = hashes;
 }
-#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C)
 /*
@@ -5745,7 +5745,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     mbedtls_free( (void *) handshake->curves );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if( handshake->psk != NULL )
     {
         mbedtls_platform_zeroize( handshake->psk, handshake->psk_len );
@@ -5772,7 +5772,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     mbedtls_x509_crt_restart_free( &handshake->ecrs_ctx );
     if( handshake->ecrs_peer_cert != NULL )
     {
@@ -6545,7 +6545,7 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
     memset( conf, 0, sizeof( mbedtls_ssl_config ) );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 static int ssl_preset_default_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
@@ -6568,7 +6568,7 @@ static int ssl_preset_suiteb_ciphersuites[] = {
     0
 };
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 static int ssl_preset_suiteb_hashes[] = {
     MBEDTLS_MD_SHA256,
     MBEDTLS_MD_SHA384,
@@ -6697,7 +6697,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             conf->cert_profile = &mbedtls_x509_crt_profile_suiteb;
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
             conf->sig_hashes = ssl_preset_suiteb_hashes;
 #endif
 
@@ -6736,7 +6736,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             conf->cert_profile = &mbedtls_x509_crt_profile_default;
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
             conf->sig_hashes = ssl_preset_default_hashes;
 #endif
 
@@ -6762,7 +6762,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
     mbedtls_mpi_free( &conf->dhm_G );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if( conf->psk != NULL )
     {
         mbedtls_platform_zeroize( conf->psk, conf->psk_len );
@@ -6837,7 +6837,7 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig )
 #endif /* MBEDTLS_PK_C && ( MBEDTLS_RSA_C || MBEDTLS_ECDSA_C ) */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 /* Find an entry in a signature-hash set matching a given hash algorithm. */
 mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_sig_hash_set_t *set,
@@ -6885,7 +6885,7 @@ void mbedtls_ssl_sig_hash_set_const_hash( mbedtls_ssl_sig_hash_set_t *set,
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2) &&
-          MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
  * Convert from MBEDTLS_SSL_HASH_XXX to MBEDTLS_MD_XXX
@@ -6971,7 +6971,7 @@ int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_i
 }
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Check if a hash proposed by the peer is in our list.
  * Return 0 if we're willing to use it, -1 otherwise.
@@ -6990,7 +6990,7 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
 
     return( -1 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,

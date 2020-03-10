@@ -1635,7 +1635,7 @@ void perform_handshake( handshake_test_options* options )
     int forced_ciphersuite[2];
     enum { BUFFSIZE = 17000 };
     mbedtls_endpoint client, server;
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     const char *psk_identity = "foo";
 #endif
 #if defined(MBEDTLS_TIMING_C)
@@ -1723,7 +1723,7 @@ void perform_handshake( handshake_test_options* options )
     TEST_ASSERT( MBEDTLS_SSL_MAX_FRAG_LEN_NONE == options->mfl );
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if( options->psk_str != NULL && options->psk_str->len > 0 )
     {
         TEST_ASSERT( mbedtls_ssl_conf_psk( &client.conf, options->psk_str->x,

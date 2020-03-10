@@ -363,7 +363,7 @@ ifndef WINDOWS
 else
 	if exist *.o del /Q /F *.o
 	if exist *.exe del /Q /F *.exe
-	if exist $(EXTRA_GENERATED) del /S /Q /F $(EXTRA_GENERATED)
+	del /S /Q /F $(EXTRA_GENERATED)
 endif
 	$(MAKE) -C fuzz clean
 

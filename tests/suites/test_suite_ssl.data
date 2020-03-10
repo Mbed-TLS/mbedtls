@@ -368,6 +368,54 @@ renegotiation:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
 DTLS renegotiation: legacy break handshake
 renegotiation:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
 
+DTLS serialization with MFL=512
+resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512
+
+DTLS serialization with MFL=1024
+resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024
+
+DTLS serialization with MFL=2048
+resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048
+
+DTLS serialization with MFL=4096
+resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096
+
+DTLS no legacy renegotiation with MFL=512
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+DTLS no legacy renegotiation with MFL=1024
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+DTLS no legacy renegotiation with MFL=2048
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+DTLS no legacy renegotiation with MFL=4096
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+DTLS legacy allow renegotiation with MFL=512
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+
+DTLS legacy allow renegotiation with MFL=1024
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+
+DTLS legacy allow renegotiation with MFL=2048
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+
+DTLS legacy allow renegotiation with MFL=4096
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+
+DTLS legacy break handshake renegotiation with MFL=512
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+
+DTLS legacy break handshake renegotiation with MFL=1024
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+
+DTLS legacy break handshake renegotiation with MFL=2048
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+
+DTLS legacy break handshake renegotiation with MFL=4096
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+
 SSL DTLS replay: initial state, seqnum 0
 ssl_dtls_replay:"":"000000000000":0
 

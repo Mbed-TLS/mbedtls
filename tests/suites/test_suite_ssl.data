@@ -199,12 +199,10 @@ move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_HELLO_VERIFY_RE
 Negative test moving servers ssl to state: NEW_SESSION_TICKET
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET:0
 
-# Note - the case below will have to updated, since the test sends no data due to a 1n-1 split against BEAST, that was not expected when preparing the fragment counting code.
 Handshake, SSL3
 depends_on:MBEDTLS_SSL_PROTO_SSL3:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 handshake_version:MBEDTLS_SSL_MINOR_VERSION_0:0
 
-# Note - the case below will have to updated, since the test sends no data due to a 1n-1 split against BEAST, that was not expected when preparing the fragment counting code.
 Handshake, tls1
 depends_on:MBEDTLS_SSL_PROTO_TLS1:MBEDTLS_CIPHER_MODE_CBC
 handshake_version:MBEDTLS_SSL_MINOR_VERSION_1:0

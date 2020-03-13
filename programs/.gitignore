@@ -45,6 +45,7 @@ ssl/ssl_mail_client
 ssl/ssl_pthread_server
 ssl/ssl_server
 ssl/ssl_server2
+ssl/ssl_base64_dump
 ssl/mini_client
 test/benchmark
 test/ecp-bench

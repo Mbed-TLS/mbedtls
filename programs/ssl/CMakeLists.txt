@@ -44,6 +44,9 @@ add_executable(ssl_server2 ssl_server2.c)
 target_sources(ssl_server2 PUBLIC ../test/query_config.c)
 target_link_libraries(ssl_server2 ${libs})
 
+add_executable(ssl_base64_dump ssl_base64_dump.c)
+target_link_libraries(ssl_base64_dump ${libs})
+
 add_executable(ssl_fork_server ssl_fork_server.c)
 target_link_libraries(ssl_fork_server ${libs})
 

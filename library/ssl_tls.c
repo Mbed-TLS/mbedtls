@@ -1253,7 +1253,10 @@ int ssl_populate_transform( mbedtls_ssl_transform *transform,
                                    const unsigned char randbytes[64],
                                    int minor_ver,
                                    unsigned endpoint,
-                                   const mbedtls_ssl_context *ssl )
+#if !defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
+                                   const
+#endif
+                                   mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     unsigned char keyblk[256];

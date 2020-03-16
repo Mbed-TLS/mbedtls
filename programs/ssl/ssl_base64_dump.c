@@ -146,6 +146,26 @@ void parse_arguments( int argc, char *argv[] )
 }
 
 /*
+ * This function prints base64 code to the stdout
+ */
+void print_b64( const char *b, const size_t len )
+{
+    size_t i = 0;
+    const char *end = b + len;
+    while( b < end )
+    {
+        if( ++i > 70 )
+        {
+            printf( "\n" );
+            i = 0;
+        }
+        printf( "%c", *b++ );
+    }
+    printf( "\n" );
+    fflush( stdout );
+}
+
+/*
  * Read next base64 code from the 'b64_file'. The 'b64_file' must be opened
  * previously. After each call to this function, the internal file position
  * indicator of the global b64_file is advanced.
@@ -229,6 +249,8 @@ int main( int argc, char *argv[] )
 {
     enum { B64BUF_LEN = 4 * 1024 };
     char b64[ B64BUF_LEN ];
+    uint32_t b64_counter = 0;
+
     parse_arguments( argc, argv );
 
     while( NULL != b64_file )
@@ -236,8 +258,17 @@ int main( int argc, char *argv[] )
         size_t len = read_next_b64_code( b64, B64BUF_LEN );
         if( len > 0)
         {
+            b64_counter++;
+
+            if( debug )
+            {
+                printf( "%u.\n", b64_counter );
+                print_b64( b64, len );
+            }
 
             /* TODO: deserializing */
+
+            printf( "\n" );
         }
         else
         {
@@ -245,6 +276,8 @@ int main( int argc, char *argv[] )
             b64_file = NULL;
         }
     }
+
+    printf( "Finish. Found %u base64 codes\n", b64_counter );
 
     return 0;
 }

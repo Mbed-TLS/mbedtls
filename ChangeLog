@@ -6,6 +6,10 @@ New deprecations
    * Deprecate MBEDTLS_SSL_HW_RECORD_ACCEL that enables function hooks in the
      SSL module for hardware acceleration of individual records.
 
+Bugfix
+   * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
+     MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.
+
 = mbed TLS 2.21.0 branch released 2020-02-20
 
 New deprecations

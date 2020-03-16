@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -144,9 +145,106 @@ void parse_arguments( int argc, char *argv[] )
     }
 }
 
+/*
+ * Read next base64 code from the 'b64_file'. The 'b64_file' must be opened
+ * previously. After each call to this function, the internal file position
+ * indicator of the global b64_file is advanced.
+ *
+ * /p b64       buffer for input data
+ * /p max_len   the maximum number of bytes to write
+ *
+ * \retval      number of bytes written in to the b64 buffer or 0 in case no more
+ *              data was found
+ */
+size_t read_next_b64_code( char *b64, const size_t max_len )
+{
+    size_t len = 0;
+    uint32_t missed = 0;
+    char pad = 0;
+    char c = 0;
+
+    while( EOF != c )
+    {
+        char c_valid = 0;
+
+        c = (char) fgetc( b64_file );
+
+        if( pad == 1 )
+        {
+            if( c == '=' )
+            {
+                c_valid = 1;
+                pad = 2;
+            }
+        }
+        else if( ( c >= 'A' && c <= 'Z' ) ||
+                 ( c >= 'a' && c <= 'z' ) ||
+                 ( c >= '0' && c <= '9' ) ||
+                   c == '+' || c == '/' )
+        {
+            c_valid = 1;
+        }
+        else if( c == '=' )
+        {
+            c_valid = 1;
+            pad = 1;
+        }
+        else if( c == '-' )
+        {
+            c = '+';
+            c_valid = 1;
+        }
+        else if( c == '_' )
+        {
+            c = '/';
+            c_valid = 1;
+        }
+
+        if( c_valid )
+        {
+            if( len < max_len )
+            {
+                b64[ len++ ] = c;
+            }
+            else
+            {
+                missed++;
+            }
+        }
+        else if( len > 0 )
+        {
+            if( missed > 0 )
+            {
+                printf_err( "Buffer for the base64 code is too small. Missed %u characters\n", missed );
+            }
+            return len;
+        }
+    }
+
+    printf_dbg( "End of file\n" );
+    return 0;
+}
+
 int main( int argc, char *argv[] )
 {
+    enum { B64BUF_LEN = 4 * 1024 };
+    char b64[ B64BUF_LEN ];
     parse_arguments( argc, argv );
+
+    while( NULL != b64_file )
+    {
+        size_t len = read_next_b64_code( b64, B64BUF_LEN );
+        if( len > 0)
+        {
+
+            /* TODO: deserializing */
+        }
+        else
+        {
+            fclose( b64_file );
+            b64_file = NULL;
+        }
+    }
 
     return 0;
 }

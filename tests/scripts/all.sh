@@ -1595,7 +1595,13 @@ component_test_zeroize () {
 }
 
 support_check_python_files () {
-    type pylint3 >/dev/null 2>/dev/null
+    # Find the installed version of Pylint. Installed as a distro package this can
+    # be pylint3 and as a PEP egg, pylint.
+    if type pylint >/dev/null 2>/dev/null || type pylint3 >/dev/null 2>/dev/null; then
+        true;
+    else
+        false;
+    fi
 }
 component_check_python_files () {
     msg "Lint: Python scripts"

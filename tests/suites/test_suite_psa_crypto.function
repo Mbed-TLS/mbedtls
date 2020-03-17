@@ -5297,6 +5297,8 @@ void generate_random( int bytes_arg )
     size_t i;
     unsigned run;
 
+    TEST_ASSERT( bytes_arg >= 0 );
+
     ASSERT_ALLOC( output, bytes + sizeof( trail ) );
     ASSERT_ALLOC( changed, bytes );
     memcpy( output + bytes, trail, sizeof( trail ) );

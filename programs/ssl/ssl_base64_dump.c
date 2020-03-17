@@ -24,6 +24,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+#include "mbedtls/error.h"
+#include "mbedtls/base64.h"
 
 /*
  * This program version
@@ -148,21 +150,43 @@ void parse_arguments( int argc, char *argv[] )
 /*
  * This function prints base64 code to the stdout
  */
-void print_b64( const char *b, const size_t len )
+void print_b64( const unsigned char *b, size_t len )
 {
     size_t i = 0;
-    const char *end = b + len;
+    const unsigned char *end = b + len;
+    printf("\t");
     while( b < end )
     {
-        if( ++i > 70 )
+        if( ++i > 75 )
         {
-            printf( "\n" );
+            printf( "\n\t" );
             i = 0;
         }
         printf( "%c", *b++ );
     }
     printf( "\n" );
     fflush( stdout );
+}
+
+/*
+ * This function prints hex code from the buffer to the stdout.
+ */
+void print_hex( const unsigned char *b, size_t len )
+{
+    size_t i = 0;
+    const unsigned char *end = b + len;
+    printf("\t");
+    while( b < end )
+    {
+        printf( "%02X ", (unsigned char) *b++ );
+            if( ++i > 25 )
+        {
+            printf("\n\t");
+            i = 0;
+        }
+    }
+    printf("\n");
+    fflush(stdout);
 }
 
 /*
@@ -176,7 +200,7 @@ void print_b64( const char *b, const size_t len )
  * \retval      number of bytes written in to the b64 buffer or 0 in case no more
  *              data was found
  */
-size_t read_next_b64_code( char *b64, const size_t max_len )
+size_t read_next_b64_code( unsigned char *b64, size_t max_len )
 {
     size_t len = 0;
     uint32_t missed = 0;
@@ -248,22 +272,42 @@ size_t read_next_b64_code( char *b64, const size_t max_len )
 int main( int argc, char *argv[] )
 {
     enum { B64BUF_LEN = 4 * 1024 };
-    char b64[ B64BUF_LEN ];
+    enum { SSLBUF_LEN = B64BUF_LEN * 3 / 4 + 1 };
+
+    unsigned char b64[ B64BUF_LEN ];
+    unsigned char ssl[ SSLBUF_LEN ];
     uint32_t b64_counter = 0;
 
     parse_arguments( argc, argv );
 
     while( NULL != b64_file )
     {
-        size_t len = read_next_b64_code( b64, B64BUF_LEN );
-        if( len > 0)
+        size_t ssl_len;
+        size_t b64_len = read_next_b64_code( b64, B64BUF_LEN );
+        if( b64_len > 0)
         {
+            int ret;
+
             b64_counter++;
 
             if( debug )
             {
-                printf( "%u.\n", b64_counter );
-                print_b64( b64, len );
+                printf( "%u. Base64 code:\n", b64_counter );
+                print_b64( b64, b64_len );
+            }
+
+            ret = mbedtls_base64_decode( ssl, SSLBUF_LEN, &ssl_len, b64, b64_len );
+            if( ret != 0)
+            {
+                mbedtls_strerror( ret, (char*) b64, B64BUF_LEN );
+                printf_err( "base64 code cannot be decoded - %s\n", b64 );
+                continue;
+            }
+
+            if( debug )
+            {
+                printf( "\n   Decoded data in hex:\n");
+                print_hex( ssl, ssl_len );
             }
 
             /* TODO: deserializing */

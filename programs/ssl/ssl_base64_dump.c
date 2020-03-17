@@ -35,6 +35,22 @@
 #define VER_MINOR 1
 
 /*
+ * Flags copied from the mbedTLS library.
+ */
+#define SESSION_CONFIG_TIME_BIT          ( 1 << 0 )
+#define SESSION_CONFIG_CRT_BIT           ( 1 << 1 )
+#define SESSION_CONFIG_CLIENT_TICKET_BIT ( 1 << 2 )
+#define SESSION_CONFIG_MFL_BIT           ( 1 << 3 )
+#define SESSION_CONFIG_TRUNC_HMAC_BIT    ( 1 << 4 )
+#define SESSION_CONFIG_ETM_BIT           ( 1 << 5 )
+#define SESSION_CONFIG_TICKET_BIT        ( 1 << 6 )
+
+#define CONTEXT_CONFIG_DTLS_CONNECTION_ID_BIT    ( 1 << 0 )
+#define CONTEXT_CONFIG_DTLS_BADMAC_LIMIT_BIT     ( 1 << 1 )
+#define CONTEXT_CONFIG_DTLS_ANTI_REPLAY_BIT      ( 1 << 2 )
+#define CONTEXT_CONFIG_ALPN_BIT                  ( 1 << 3 )
+
+/*
  * Global values
  */
 FILE *b64_file = NULL;      /* file with base64 codes to deserialize */
@@ -190,6 +206,17 @@ void print_hex( const unsigned char *b, size_t len )
 }
 
 /*
+ * Print the input string if the bit is set in the value
+ */
+void print_if_bit( const char *str, int bit, int val )
+{
+    if( bit & val )
+    {
+        printf( "\t%s\n", str );
+    }
+}
+
+/*
  * Read next base64 code from the 'b64_file'. The 'b64_file' must be opened
  * previously. After each call to this function, the internal file position
  * indicator of the global b64_file is advanced.
@@ -269,6 +296,82 @@ size_t read_next_b64_code( unsigned char *b64, size_t max_len )
     return 0;
 }
 
+/*
+ * This function deserializes and prints to the stdout all obtained information
+ * about the context from provided data. This function was built based on
+ * mbedtls_ssl_context_load(). mbedtls_ssl_context_load() could not be used
+ * due to dependencies on the mbedTLS configuration and the configuration of
+ * the context when serialization was created.
+ *
+ * The data structure in the buffer:
+ *  // session sub-structure
+ *  opaque session<1..2^32-1>;  // see mbedtls_ssl_session_save()
+ *  // transform sub-structure
+ *  uint8 random[64];           // ServerHello.random+ClientHello.random
+ *  uint8 in_cid<0..2^8-1>      // Connection ID: expected incoming value
+ *  uint8 out_cid<0..2^8-1>     // Connection ID: outgoing value to use
+ *  // fields from ssl_context
+ *  uint32 badmac_seen;         // DTLS: number of records with failing MAC
+ *  uint64 in_window_top;       // DTLS: last validated record seq_num
+ *  uint64 in_window;           // DTLS: bitmask for replay protection
+ *  uint8 disable_datagram_packing; // DTLS: only one record per datagram
+ *  uint64 cur_out_ctr;         // Record layer: outgoing sequence number
+ *  uint16 mtu;                 // DTLS: path mtu (max outgoing fragment size)
+ *  uint8 alpn_chosen<0..2^8-1> // ALPN: negotiated application protocol
+ *
+ * /p ssl   pointer to serialized session
+ * /p len   number of bytes in the buffer
+ */
+void print_deserialized_ssl( const unsigned char *ssl, size_t len )
+{
+    /* TODO: which versions are compatible */
+    /* TODO: add checking len */
+    const unsigned char *end = ssl + len;
+    int session_cfg_flag;
+    int context_cfg_flag;
+    uint32_t session_len;
+
+    printf( "\nMbed TLS version:\n" );
+
+    printf( "\tmajor:\t%u\n", (unsigned int) *ssl++ );
+    printf( "\tminor:\t%u\n", (unsigned int) *ssl++ );
+    printf( "\tpath:\t%u\n", (unsigned int) *ssl++ );
+
+    session_cfg_flag = ( (int) ssl[0] << 8 ) | ( (int) ssl[1] );
+    ssl += 2;
+
+    context_cfg_flag = ( (int) ssl[0] << 16 ) |
+                       ( (int) ssl[1] <<  8 ) |
+                       ( (int) ssl[2] ) ;
+    ssl += 3;
+
+    printf( "\nEnabled session and context configuration:\n" );
+    printf_dbg( "Session config flags 0x%04X\n", session_cfg_flag );
+    printf_dbg( "Context config flags 0x%06X\n", context_cfg_flag );
+
+    print_if_bit( "MBEDTLS_HAVE_TIME", SESSION_CONFIG_TIME_BIT, session_cfg_flag );
+    print_if_bit( "MBEDTLS_X509_CRT_PARSE_C", SESSION_CONFIG_CRT_BIT, session_cfg_flag );
+    print_if_bit( "MBEDTLS_SSL_MAX_FRAGMENT_LENGTH", SESSION_CONFIG_MFL_BIT, session_cfg_flag );
+    print_if_bit( "MBEDTLS_SSL_TRUNCATED_HMAC", SESSION_CONFIG_TRUNC_HMAC_BIT, session_cfg_flag );
+    print_if_bit( "MBEDTLS_SSL_ENCRYPT_THEN_MAC", SESSION_CONFIG_ETM_BIT, session_cfg_flag );
+    print_if_bit( "MBEDTLS_SSL_SESSION_TICKETS", SESSION_CONFIG_TICKET_BIT, session_cfg_flag );
+    print_if_bit( "MBEDTLS_SSL_SESSION_TICKETS and client", SESSION_CONFIG_CLIENT_TICKET_BIT, session_cfg_flag );
+
+    print_if_bit( "MBEDTLS_SSL_DTLS_CONNECTION_ID", CONTEXT_CONFIG_DTLS_CONNECTION_ID_BIT, context_cfg_flag );
+    print_if_bit( "MBEDTLS_SSL_DTLS_BADMAC_LIMIT", CONTEXT_CONFIG_DTLS_BADMAC_LIMIT_BIT, context_cfg_flag );
+    print_if_bit( "MBEDTLS_SSL_DTLS_ANTI_REPLAY", CONTEXT_CONFIG_DTLS_ANTI_REPLAY_BIT, context_cfg_flag );
+    print_if_bit( "MBEDTLS_SSL_ALPN", CONTEXT_CONFIG_ALPN_BIT, context_cfg_flag );
+
+    session_len = ( (uint32_t) ssl[0] << 24 ) |
+                  ( (uint32_t) ssl[1] << 16 ) |
+                  ( (uint32_t) ssl[2] <<  8 ) |
+                  ( (uint32_t) ssl[3] );
+    ssl += 4;
+    printf_dbg( "session length %u\n", session_len );
+
+    printf( "\n" );
+}
+
 int main( int argc, char *argv[] )
 {
     enum { B64BUF_LEN = 4 * 1024 };
@@ -288,11 +391,11 @@ int main( int argc, char *argv[] )
         {
             int ret;
 
-            b64_counter++;
+            printf( "%u. Desierializing:\n", ++b64_counter );
 
             if( debug )
             {
-                printf( "%u. Base64 code:\n", b64_counter );
+                printf( "\nBase64 code:\n" );
                 print_b64( b64, b64_len );
             }
 
@@ -306,13 +409,12 @@ int main( int argc, char *argv[] )
 
             if( debug )
             {
-                printf( "\n   Decoded data in hex:\n");
+                printf( "\nDecoded data in hex:\n");
                 print_hex( ssl, ssl_len );
             }
 
-            /* TODO: deserializing */
+            print_deserialized_ssl( ssl, ssl_len );
 
-            printf( "\n" );
         }
         else
         {
@@ -321,7 +423,7 @@ int main( int argc, char *argv[] )
         }
     }
 
-    printf( "Finish. Found %u base64 codes\n", b64_counter );
+    printf_dbg( "Finish. Found %u base64 codes\n", b64_counter );
 
     return 0;
 }

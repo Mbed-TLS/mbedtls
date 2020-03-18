@@ -50,6 +50,8 @@
 #define CONTEXT_CONFIG_DTLS_ANTI_REPLAY_BIT      ( 1 << 2 )
 #define CONTEXT_CONFIG_ALPN_BIT                  ( 1 << 3 )
 
+#define TRANSFORM_RANDBYTE_LEN  64
+
 /*
  * Global values
  */
@@ -166,10 +168,10 @@ void parse_arguments( int argc, char *argv[] )
 /*
  * This function prints base64 code to the stdout
  */
-void print_b64( const unsigned char *b, size_t len )
+void print_b64( const uint8_t *b, size_t len )
 {
     size_t i = 0;
-    const unsigned char *end = b + len;
+    const uint8_t *end = b + len;
     printf("\t");
     while( b < end )
     {
@@ -187,14 +189,14 @@ void print_b64( const unsigned char *b, size_t len )
 /*
  * This function prints hex code from the buffer to the stdout.
  */
-void print_hex( const unsigned char *b, size_t len )
+void print_hex( const uint8_t *b, size_t len )
 {
     size_t i = 0;
-    const unsigned char *end = b + len;
+    const uint8_t *end = b + len;
     printf("\t");
     while( b < end )
     {
-        printf( "%02X ", (unsigned char) *b++ );
+        printf( "%02X ", (uint8_t) *b++ );
             if( ++i > 25 )
         {
             printf("\n\t");
@@ -227,7 +229,7 @@ void print_if_bit( const char *str, int bit, int val )
  * \retval      number of bytes written in to the b64 buffer or 0 in case no more
  *              data was found
  */
-size_t read_next_b64_code( unsigned char *b64, size_t max_len )
+size_t read_next_b64_code( uint8_t *b64, size_t max_len )
 {
     size_t len = 0;
     uint32_t missed = 0;
@@ -298,6 +300,38 @@ size_t read_next_b64_code( unsigned char *b64, size_t max_len )
 
 /*
  * This function deserializes and prints to the stdout all obtained information
+ * about the session from provided data. This function was built based on
+ * mbedtls_ssl_session_load(). mbedtls_ssl_session_load() could not be used
+ * due to dependencies on the mbedTLS configuration.
+ *
+ * The data structure in the buffer:
+ *  uint64 start_time;
+ *  uint8 ciphersuite[2];        // defined by the standard
+ *  uint8 compression;           // 0 or 1
+ *  uint8 session_id_len;        // at most 32
+ *  opaque session_id[32];
+ *  opaque master[48];           // fixed length in the standard
+ *  uint32 verify_result;
+ *  opaque peer_cert<0..2^24-1>; // length 0 means no peer cert
+ *  opaque ticket<0..2^24-1>;    // length 0 means no ticket
+ *  uint32 ticket_lifetime;
+ *  uint8 mfl_code;              // up to 255 according to standard
+ *  uint8 trunc_hmac;            // 0 or 1
+ *  uint8 encrypt_then_mac;      // 0 or 1
+ *
+ * /p ssl               pointer to serialized session
+ * /p len               number of bytes in the buffer
+ * /p session_cfg_flag  session configuration flags
+ */
+void print_deserialized_ssl_session( const uint8_t *ssl, uint32_t len,
+                                     int session_cfg_flag )
+{
+    const uint8_t *end = ssl + len;
+    printf( "TODO\n" );
+}
+
+/*
+ * This function deserializes and prints to the stdout all obtained information
  * about the context from provided data. This function was built based on
  * mbedtls_ssl_context_load(). mbedtls_ssl_context_load() could not be used
  * due to dependencies on the mbedTLS configuration and the configuration of
@@ -322,20 +356,24 @@ size_t read_next_b64_code( unsigned char *b64, size_t max_len )
  * /p ssl   pointer to serialized session
  * /p len   number of bytes in the buffer
  */
-void print_deserialized_ssl( const unsigned char *ssl, size_t len )
+void print_deserialized_ssl_context( const uint8_t *ssl, size_t len )
 {
     /* TODO: which versions are compatible */
     /* TODO: add checking len */
-    const unsigned char *end = ssl + len;
+    const uint8_t *end = ssl + len;
     int session_cfg_flag;
     int context_cfg_flag;
     uint32_t session_len;
+    /* TODO is DTLS compiled? */
+    char dtls_used = 1;
 
     printf( "\nMbed TLS version:\n" );
 
-    printf( "\tmajor:\t%u\n", (unsigned int) *ssl++ );
-    printf( "\tminor:\t%u\n", (unsigned int) *ssl++ );
-    printf( "\tpath:\t%u\n", (unsigned int) *ssl++ );
+    printf( "\tmajor:\t%u\n", (uint32_t) *ssl++ );
+    printf( "\tminor:\t%u\n", (uint32_t) *ssl++ );
+    printf( "\tpath:\t%u\n",  (uint32_t) *ssl++ );
+
+    printf( "\nEnabled session and context configuration:\n" );
 
     session_cfg_flag = ( (int) ssl[0] << 8 ) | ( (int) ssl[1] );
     ssl += 2;
@@ -345,7 +383,6 @@ void print_deserialized_ssl( const unsigned char *ssl, size_t len )
                        ( (int) ssl[2] ) ;
     ssl += 3;
 
-    printf( "\nEnabled session and context configuration:\n" );
     printf_dbg( "Session config flags 0x%04X\n", session_cfg_flag );
     printf_dbg( "Context config flags 0x%06X\n", context_cfg_flag );
 
@@ -369,6 +406,100 @@ void print_deserialized_ssl( const unsigned char *ssl, size_t len )
     ssl += 4;
     printf_dbg( "session length %u\n", session_len );
 
+    print_deserialized_ssl_session( ssl, session_len, session_cfg_flag );
+    ssl += session_len;
+
+    /* TODO ssl_populate_transform */
+    printf( "\nRandom bytes: \n");
+    print_hex( ssl, TRANSFORM_RANDBYTE_LEN );
+    printf( "TODO: ssl_populate_transform\n");
+    ssl += TRANSFORM_RANDBYTE_LEN;
+
+    if( CONTEXT_CONFIG_DTLS_CONNECTION_ID_BIT & context_cfg_flag )
+    {
+        uint8_t cid_len;
+        printf( "\nDTLS connection ID:\n" );
+
+        cid_len = *ssl++;
+        printf_dbg( "in_cid_len %u\n", (uint32_t) cid_len );
+
+        printf( "\tin_cid:" );
+        print_hex( ssl, cid_len );
+        ssl += cid_len;
+
+        cid_len = *ssl++;
+        printf_dbg( "out_cid_len %u\n", (uint32_t) cid_len );
+
+        printf( "\tout_cid:" );
+        print_hex( ssl, cid_len );
+        ssl += cid_len;
+    }
+
+    if( CONTEXT_CONFIG_DTLS_BADMAC_LIMIT_BIT & context_cfg_flag )
+    {
+        uint32_t badmac_seen = ( (uint32_t) ssl[0] << 24 ) |
+                               ( (uint32_t) ssl[1] << 16 ) |
+                               ( (uint32_t) ssl[2] <<  8 ) |
+                               ( (uint32_t) ssl[3] );
+        ssl += 4;
+        printf( "\tibadmac_seen: %d\n", badmac_seen );
+
+        printf( "\tin_window_top: " );
+        print_hex( ssl, 8 );
+        ssl += 8;
+
+        printf( "\twindow_top: " );
+        print_hex( ssl, 8 );
+        ssl += 8;
+    }
+
+    if( dtls_used )
+    {
+        printf( "\tDTLS datagram packing: %s\n",
+                ( ( *ssl++ ) == 0 ) ?
+                "enabled" : "disabled" );
+    }
+
+    printf( "\tcur_out_ctr: ");
+    print_hex( ssl, 8 );
+    ssl += 8;
+
+    if( dtls_used )
+    {
+        uint16_t mtu = ( ssl[0] << 8 ) | ssl[1];
+        ssl += 2;
+        printf( "\tMTU: %u\n", mtu );
+    }
+
+
+    if( CONTEXT_CONFIG_ALPN_BIT & context_cfg_flag )
+    {
+        uint8_t alpn_len = *ssl++;
+        if( alpn_len > 0 )
+        {
+            if( strlen( (const char*) ssl ) == alpn_len )
+            {
+                printf( "\talpn_chosen: %s\n", ssl );
+            }
+            else
+            {
+                printf_err( "\talpn_len is incorrect\n" );
+            }
+            ssl += alpn_len;
+        }
+        else
+        {
+            printf( "\talpn_chosen: not selected\n" );
+        }
+    }
+
+    /* TODO: check mbedtls_ssl_update_out_pointers( ssl, ssl->transform ); */
+    printf( "TODO: check mbedtls_ssl_update_out_pointers( ssl, ssl->transform );\n" );
+
+    if( 0 < ( end - ssl ) )
+    {
+        printf_dbg( "Left to analyze %u\n", (uint32_t)( end - ssl ) );
+    }
     printf( "\n" );
 }
 
@@ -377,8 +508,8 @@ int main( int argc, char *argv[] )
     enum { B64BUF_LEN = 4 * 1024 };
     enum { SSLBUF_LEN = B64BUF_LEN * 3 / 4 + 1 };
 
-    unsigned char b64[ B64BUF_LEN ];
-    unsigned char ssl[ SSLBUF_LEN ];
+    uint8_t b64[ B64BUF_LEN ];
+    uint8_t ssl[ SSLBUF_LEN ];
     uint32_t b64_counter = 0;
 
     parse_arguments( argc, argv );
@@ -413,7 +544,7 @@ int main( int argc, char *argv[] )
                 print_hex( ssl, ssl_len );
             }
 
-            print_deserialized_ssl( ssl, ssl_len );
+            print_deserialized_ssl_context( ssl, ssl_len );
 
         }
         else

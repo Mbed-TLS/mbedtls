@@ -675,6 +675,7 @@ int execute_tests( int argc , const char ** argv )
             {
                 test_info.result = TEST_RESULT_SUCCESS;
                 test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_IDLE;
+                test_info.step = (unsigned long)( -1 );
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
                 /* Suppress all output from the library unless we're verbose
@@ -754,9 +755,15 @@ int execute_tests( int argc , const char ** argv )
                 {
                     total_errors++;
                     mbedtls_fprintf( stdout, "FAILED\n" );
-                    mbedtls_fprintf( stdout, "  %s\n  at line %d, %s\n",
-                                     test_info.test, test_info.line_no,
-                                     test_info.filename );
+                    mbedtls_fprintf( stdout, "  %s\n  at ",
+                                     test_info.test );
+                    if( test_info.step != (unsigned long)( -1 ) )
+                    {
+                        mbedtls_fprintf( stdout, "step %lu, ",
+                                         test_info.step );
+                    }
+                    mbedtls_fprintf( stdout, "line %d, %s",
+                                     test_info.line_no, test_info.filename );
                 }
                 fflush( stdout );
             }

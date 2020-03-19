@@ -32,16 +32,17 @@ done
 
 if [ $INTERNAL ]
 then
-    HEADERS=$( ls include/mbedtls/*_internal.h crypto/include/mbedtls/*_internal.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+    HEADERS=$( ls include/mbedtls/*_internal.h library/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
 else
-    HEADERS=$( ls include/mbedtls/*.h crypto/include/mbedtls/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+    HEADERS=$( ls include/mbedtls/*.h include/psa/*.h library/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+    HEADERS="$HEADERS 3rdparty/everest/include/everest/everest.h 3rdparty/everest/include/everest/x25519.h"
 fi
 
 rm -f identifiers
 
 grep '^[^ /#{]' $HEADERS | \
     sed -e 's/^[^:]*://' | \
-    egrep -v '^(extern "C"|(typedef )?(struct|enum)( {)?$|};?$)' \
+    egrep -v '^(extern "C"|(typedef )?(struct|union|enum)( {)?$|};?$)' \
     > _decls
 
 if true; then

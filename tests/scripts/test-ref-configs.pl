@@ -17,11 +17,17 @@ use warnings;
 use strict;
 
 my %configs = (
+    'config-default.h' => {
+        'opt' => '-f Default',
+        'compat' => '-m tls1_2 -V NO',
+    },
     'config-mini-tls1_1.h' => {
-        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'', #'
+        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
     },
     'config-suite-b.h' => {
         'compat' => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
+    },
+    'config-symmetric-only.h' => {
     },
     'config-ccm-psk-tls1_2.h' => {
         'compat' => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
@@ -56,6 +62,15 @@ sub abort {
     # use an exit code between 1 and 124 for git bisect (die returns 255)
     warn $_[0];
     exit 1;
+}
+
+# Create a seedfile for configurations that enable MBEDTLS_ENTROPY_NV_SEED.
+# For test purposes, this doesn't have to be cryptographically random.
+if (!-e "tests/seedfile" || -s "tests/seedfile" < 64) {
+    local *SEEDFILE;
+    open SEEDFILE, ">tests/seedfile" or die;
+    print SEEDFILE "*" x 64 or die;
+    close SEEDFILE or die;
 }
 
 while( my ($conf, $data) = each %configs ) {

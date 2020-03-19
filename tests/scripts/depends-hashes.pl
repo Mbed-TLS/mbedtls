@@ -40,8 +40,18 @@ my @ssl = split( /\s+/, `sed -n -e '$ssl_sed_cmd' $config_h` );
 # for md we want to catch MD5_C but not MD_C, hence the extra dot
 my $mdx_sed_cmd = 's/^#define \(MBEDTLS_MD..*_C\)/\1/p';
 my $sha_sed_cmd = 's/^#define \(MBEDTLS_SHA.*_C\)/\1/p';
-my @hashes = split( /\s+/,
+my @hash_modules = split( /\s+/,
                     `sed -n -e '$mdx_sed_cmd' -e '$sha_sed_cmd' $config_h` );
+
+# there are also negative options for truncated variants, disabled by default
+my $sha_trunc_sed_cmd = 's/^\/\/#define \(MBEDTLS_SHA..._NO_.*\)/\1/p';
+my @hash_negatives = split( /\s+/,
+                    `sed -n -e '$sha_trunc_sed_cmd' $config_h` );
+
+# list hash options with corresponding actions
+my @hashes = ((map { "unset $_" } @hash_modules),
+              (map { "set $_" } @hash_negatives));
+
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {
     system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";
@@ -55,12 +65,12 @@ for my $hash (@hashes) {
     system( "make clean" ) and die;
 
     print "\n******************************************\n";
-    print "* Testing without hash: $hash\n";
+    print "* Testing hash option: $hash\n";
     print "******************************************\n";
     $ENV{MBEDTLS_TEST_CONFIGURATION} = "-$hash";
 
-    system( "scripts/config.py unset $hash" )
-        and abort "Failed to disable $hash\n";
+    system( "scripts/config.py $hash" )
+        and abort "Failed to $hash\n";
 
     for my $opt (@ssl) {
         system( "scripts/config.py unset $opt" )

@@ -157,7 +157,7 @@ on the build mode as seen above), it's merely prepended to it.
 
 #### Mbed TLS as a subproject
 
-Mbed TLS, supports being built as a CMake subproject. One can
+Mbed TLS supports being built as a CMake subproject. One can
 use `add_subdirectory()` from a parent CMake project to include Mbed TLS as a
 subproject.
 

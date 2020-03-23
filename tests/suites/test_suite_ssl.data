@@ -199,12 +199,10 @@ move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_HELLO_VERIFY_RE
 Negative test moving servers ssl to state: NEW_SESSION_TICKET
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET:0
 
-# Note - the case below will have to updated, since the test sends no data due to a 1n-1 split against BEAST, that was not expected when preparing the fragment counting code.
 Handshake, SSL3
 depends_on:MBEDTLS_SSL_PROTO_SSL3:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED
 handshake_version:MBEDTLS_SSL_MINOR_VERSION_0:0
 
-# Note - the case below will have to updated, since the test sends no data due to a 1n-1 split against BEAST, that was not expected when preparing the fragment counting code.
 Handshake, tls1
 depends_on:MBEDTLS_SSL_PROTO_TLS1:MBEDTLS_CIPHER_MODE_CBC
 handshake_version:MBEDTLS_SSL_MINOR_VERSION_1:0
@@ -367,6 +365,54 @@ renegotiation:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
 
 DTLS renegotiation: legacy break handshake
 renegotiation:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+
+DTLS serialization with MFL=512
+resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512
+
+DTLS serialization with MFL=1024
+resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024
+
+DTLS serialization with MFL=2048
+resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048
+
+DTLS serialization with MFL=4096
+resize_buffers_serialize_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096
+
+DTLS no legacy renegotiation with MFL=512
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+DTLS no legacy renegotiation with MFL=1024
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+DTLS no legacy renegotiation with MFL=2048
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+DTLS no legacy renegotiation with MFL=4096
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096:MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION
+
+DTLS legacy allow renegotiation with MFL=512
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+
+DTLS legacy allow renegotiation with MFL=1024
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+
+DTLS legacy allow renegotiation with MFL=2048
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+
+DTLS legacy allow renegotiation with MFL=4096
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096:MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION
+
+DTLS legacy break handshake renegotiation with MFL=512
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_512:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+
+DTLS legacy break handshake renegotiation with MFL=1024
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_1024:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+
+DTLS legacy break handshake renegotiation with MFL=2048
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_2048:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
+
+DTLS legacy break handshake renegotiation with MFL=4096
+resize_buffers_renegotiate_mfl:MBEDTLS_SSL_MAX_FRAG_LEN_4096:MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
 
 SSL DTLS replay: initial state, seqnum 0
 ssl_dtls_replay:"":"000000000000":0

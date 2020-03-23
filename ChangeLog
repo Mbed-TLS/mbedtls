@@ -6,6 +6,10 @@ New deprecations
    * Deprecate MBEDTLS_SSL_HW_RECORD_ACCEL that enables function hooks in the
      SSL module for hardware acceleration of individual records.
 
+Bugfix
+   * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
+     MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.
+
 Changes
    * Mbed Crypto is no longer a Git submodule. The crypto part of the library
      is back directly in the present repository.

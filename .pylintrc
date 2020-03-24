@@ -55,7 +55,9 @@ max-module-lines=2000
 #        return value1
 #    else:
 #        return value2
-disable=logging-format-interpolation,no-else-return
+# * unnecessary-pass: If we take the trouble of adding a line with "pass",
+#   it's because we think the code is clearer that way.
+disable=logging-format-interpolation,no-else-return,unnecessary-pass
 
 [REPORTS]
 # Don't diplay statistics. Just the facts.

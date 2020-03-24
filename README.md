@@ -3,12 +3,27 @@ README for Mbed TLS
 
 Mbed TLS is a C library that implements cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols. Its small code footprint makes it suitable for embedded systems.
 
+Mbed TLS includes a reference implementation of the [PSA Cryptography API](#psa-cryptography-api). This is currently a preview for evaluation purposes only.
+
 Configuration
 -------------
 
-Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Perl script `scripts/config.py` (use `--help` for usage instructions).
+Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Python 3 script `scripts/config.py` (use `--help` for usage instructions).
 
 Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
+
+We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`
+
+Documentation
+-------------
+
+Documentation for the Mbed TLS interfaces in the default library configuration is available as part of the [Mbed TLS documentation](https://tls.mbed.org/api/).
+
+To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
+
+1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed. We use version 1.8.11 but slightly older or more recent versions should work.
+1. Run `make apidoc`.
+1. Browse `apidoc/index.html` or `apidoc/modules.html`.
 
 Compiling
 ---------
@@ -23,22 +38,14 @@ The main systems used for development are CMake and GNU Make. Those systems are 
 
 The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`. Also, when loading shared libraries using dlopen(), you'll need to load libmbedcrypto first, then libmbedx509, before you can load libmbedtls.
 
-### Getting files form git: the Crypto submodule
+### Tool versions
 
-The Mbed Crypto library now has its own git repository, which the Mbed TLS build systems are using as a git submodule in order to build libmbedcrypto as a subproject of Mbed TLS. When cloning the Mbed TLS repository, you need to make sure you're getting the submodule as well:
+You need the following tools to build the library with the provided makefiles:
 
-        git clone --recursive https://github.com/ARMmbed/mbedtls.git
-
-Alternatively, if you already have an existing clone of the Mbed TLS
-repository, you can initialise and update the submodule with:
-
-        git submodule update --init crypto
-
-After these steps, your clone is now ready for building the libraries as detailed in the following sections.
-
-Note that building libmbedcrypto as a subproject of Mbed TLS does not enable the PSA-specific tests and utility programs. To use these programs, build Mbed Crypto as a standalone project.
-
-Please note that for now, Mbed TLS can only use versions of libmbedcrypto that were built as a subproject of Mbed TLS, not versions that were built standalone from the Mbed Crypto repository. This restriction will be removed in the future.
+* GNU Make or a build tool that CMake supports.
+* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, IAR8 and Visual Studio 2013. More recent versions should work. Slightly older versions may work.
+* Python 3 to generate the test code.
+* Perl to run the tests.
 
 ### Make
 
@@ -150,7 +157,7 @@ on the build mode as seen above), it's merely prepended to it.
 
 #### Mbed TLS as a subproject
 
-Mbed TLS, like Mbed Crypto, supports being built as a CMake subproject. One can
+Mbed TLS supports being built as a CMake subproject. One can
 use `add_subdirectory()` from a parent CMake project to include Mbed TLS as a
 subproject.
 
@@ -163,7 +170,8 @@ The solution file `mbedTLS.sln` contains all the basic projects needed to build 
 Example programs
 ----------------
 
-We've included example programs for a lot of different features and uses in [`programs/`](programs/README.md). Most programs only focus on a single feature or usage scenario, so keep that in mind when copying parts of the code.
+We've included example programs for a lot of different features and uses in [`programs/`](programs/README.md).
+Please note that the goal of these sample programs is to demonstrate specific features of the library, and the code may need to be adapted to build a real-world application.
 
 Tests
 -----
@@ -178,12 +186,6 @@ For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, ad
 -   `tests/scripts/key-exchanges.pl` test builds in configurations with a single key exchange enabled
 -   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `config.h`, etc).
 
-Configurations
---------------
-
-We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`
-
-
 Porting Mbed TLS
 ----------------
 
@@ -192,6 +194,47 @@ Mbed TLS can be ported to many different architectures, OS's and platforms. Befo
 -   [Porting Mbed TLS to a new environment or OS](https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS)
 -   [What external dependencies does Mbed TLS rely on?](https://tls.mbed.org/kb/development/what-external-dependencies-does-mbedtls-rely-on)
 -   [How do I configure Mbed TLS](https://tls.mbed.org/kb/compiling-and-building/how-do-i-configure-mbedtls)
+
+PSA cryptography API
+--------------------
+
+### PSA API design
+
+Arm's [Platform Security Architecture (PSA)](https://developer.arm.com/architectures/security-architectures/platform-security-architecture) is a holistic set of threat models, security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that allows security to be consistently designed in, at both a hardware and firmware level.
+
+The [PSA cryptography API](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) provides access to a set of cryptographic primitives. It has a dual purpose. First, it can be used in a PSA-compliant platform to build services, such as secure boot, secure storage and secure communication. Second, it can also be used independently of other PSA components on any platform.
+
+The design goals of the PSA cryptography API include:
+
+* The API distinguishes caller memory from internal memory, which allows the library to be implemented in an isolated space for additional security. Library calls can be implemented as direct function calls if isolation is not desired, and as remote procedure calls if isolation is desired.
+* The structure of internal data is hidden to the application, which allows substituting alternative implementations at build time or run time, for example, in order to take advantage of hardware accelerators.
+* All access to the keys happens through handles, which allows support for external cryptoprocessors that is transparent to applications.
+* The interface to algorithms is generic, favoring algorithm agility.
+* The interface is designed to be easy to use and hard to accidentally misuse.
+
+Arm welcomes feedback on the design of the API. If you think something could be improved, please open an issue on our Github repository. Alternatively, if you prefer to provide your feedback privately, please email us at [`mbed-crypto@arm.com`](mailto:mbed-crypto@arm.com). All feedback received by email is treated confidentially.
+
+### PSA API documentation
+
+A browsable copy of the PSA Cryptography API documents is available on the [PSA cryptography interfaces documentation portal](https://armmbed.github.io/mbed-crypto/psa/#application-programming-interface) in [PDF](https://armmbed.github.io/mbed-crypto/PSA_Cryptography_API_Specification.pdf) and [HTML](https://armmbed.github.io/mbed-crypto/html/index.html) formats.
+
+### PSA implementation in Mbed TLS
+
+Mbed TLS includes a reference implementation of the PSA Cryptography API.
+This implementation is not yet as mature as the rest of the library. Some parts of the code have not been reviewed as thoroughly, and some parts of the PSA implementation are not yet well optimized for code size.
+
+The X.509 and TLS code can use PSA cryptography for a limited subset of operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `config.h`.
+
+There are currently a few deviations where the library does not yet implement the latest version of the specification. Please refer to the [compliance issues on Github](https://github.com/ARMmbed/mbed-crypto/labels/compliance) for an up-to-date list.
+
+### Upcoming features
+
+Future releases of this library will include:
+
+* A driver programming interface, which makes it possible to use hardware accelerators instead of the default software implementation for chosen algorithms.
+* Support for external keys to be stored and manipulated exclusively in a separate cryptoprocessor.
+* A configuration mechanism to compile only the algorithms you need for your application.
+* A wider set of cryptographic algorithms.
 
 License
 -------

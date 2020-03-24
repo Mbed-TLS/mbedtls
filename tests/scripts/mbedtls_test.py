@@ -262,7 +262,7 @@ class MbedTlsTest(BaseHostTest):
             data_bytes += bytearray(dependencies)
         data_bytes += bytearray([function_id, len(parameters)])
         for typ, param in parameters:
-            if typ == 'int' or typ == 'exp':
+            if typ in ('int', 'exp'):
                 i = int(param, 0)
                 data_bytes += b'I' if typ == 'int' else b'E'
                 self.align_32bit(data_bytes)

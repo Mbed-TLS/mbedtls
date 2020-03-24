@@ -1127,9 +1127,8 @@ Diffie-Hellman selftest
 dhm_selftest:
 """
         stream = StringIOWrapper('test_suite_ut.function', data)
-        tests = [(name, test_function, dependencies, args)
-                 for name, test_function, dependencies, args in
-                 parse_test_data(stream)]
+        # List of (name, function_name, dependencies, args)
+        tests = list(parse_test_data(stream))
         test1, test2, test3, test4 = tests
         self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
         self.assertEqual(test1[1], 'dhm_do_dhm')
@@ -1170,9 +1169,8 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
 
 """
         stream = StringIOWrapper('test_suite_ut.function', data)
-        tests = [(name, function_name, dependencies, args)
-                 for name, function_name, dependencies, args in
-                 parse_test_data(stream)]
+        # List of (name, function_name, dependencies, args)
+        tests = list(parse_test_data(stream))
         test1, test2 = tests
         self.assertEqual(test1[0], 'Diffie-Hellman full exchange #1')
         self.assertEqual(test1[1], 'dhm_do_dhm')

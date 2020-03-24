@@ -37,20 +37,31 @@ class FileIssueTracker(object):
         self.files_with_issues = {}
 
     def should_check_file(self, filepath):
+        """Whether the given file name should be checked.
+
+        Files whose name ends with a string listed in ``self.files_exemptions``
+        will not be checked.
+        """
         for files_exemption in self.files_exemptions:
             if filepath.endswith(files_exemption):
                 return False
         return True
 
     def check_file_for_issue(self, filepath):
+        """Check the specified file for the issue that this class is for.
+
+        Subclasses must implement this method.
+        """
         raise NotImplementedError
 
     def record_issue(self, filepath, line_number):
+        """Record that an issue was found at the specified location."""
         if filepath not in self.files_with_issues.keys():
             self.files_with_issues[filepath] = []
         self.files_with_issues[filepath].append(line_number)
 
     def output_file_issues(self, logger):
+        """Log all the locations where the issue was found."""
         if self.files_with_issues.values():
             logger.info(self.heading)
             for filename, lines in sorted(self.files_with_issues.items()):
@@ -70,6 +81,10 @@ class LineIssueTracker(FileIssueTracker):
     """
 
     def issue_with_line(self, line, filepath):
+        """Check the specified line for the issue that this class is for.
+
+        Subclasses must implement this method.
+        """
         raise NotImplementedError
 
     def check_file_line(self, filepath, line, line_number):
@@ -77,6 +92,10 @@ class LineIssueTracker(FileIssueTracker):
             self.record_issue(filepath, line_number)
 
     def check_file_for_issue(self, filepath):
+        """Check the lines of the specified file.
+
+        Subclasses must implement the ``issue_with_line`` method.
+        """
         with open(filepath, "rb") as f:
             for i, line in enumerate(iter(f.readline, b"")):
                 self.check_file_line(filepath, line, i + 1)

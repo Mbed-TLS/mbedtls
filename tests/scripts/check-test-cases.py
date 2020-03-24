@@ -77,6 +77,7 @@ def check_description(results, seen, file_name, line_number, description):
     seen[description] = line_number
 
 def check_test_suite(results, data_file_name):
+    """Check the test cases in the given unit test data file."""
     in_paragraph = False
     descriptions = {}
     with open(data_file_name, 'rb') as data_file:
@@ -94,6 +95,7 @@ def check_test_suite(results, data_file_name):
             in_paragraph = True
 
 def check_ssl_opt_sh(results, file_name):
+    """Check the test cases in ssl-opt.sh or a file with a similar format."""
     descriptions = {}
     with open(file_name, 'rb') as file_contents:
         for line_number, line in enumerate(file_contents, 1):

@@ -208,7 +208,7 @@ class GeneratorInputError(Exception):
     pass
 
 
-class FileWrapper(io.FileIO, object):
+class FileWrapper(io.FileIO):
     """
     This class extends built-in io.FileIO class with attribute line_no,
     that indicates line number for the line that is read.

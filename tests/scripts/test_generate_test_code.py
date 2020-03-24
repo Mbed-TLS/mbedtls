@@ -294,7 +294,7 @@ class GenDispatch(TestCase):
         self.assertEqual(code, expected)
 
 
-class StringIOWrapper(StringIO, object):
+class StringIOWrapper(StringIO):
     """
     file like class to mock file object in tests.
     """

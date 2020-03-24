@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Greentea host test script for Mbed TLS on-target test suite testing.
 #
 # Copyright (C) 2018, Arm Limited, All Rights Reserved
@@ -46,7 +48,7 @@ class TestDataParserError(Exception):
     pass
 
 
-class TestDataParser(object):
+class TestDataParser:
     """
     Parses test name, dependencies, test function name and test parameters
     from the data file.

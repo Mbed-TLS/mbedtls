@@ -4,8 +4,7 @@
 # 2010
 #
 # Must be run from mbedTLS root or scripts directory.
-# Takes "include_crypto" as an argument that can be either 0 (don't include) or
-# 1 (include). On by default.
+# Takes no argument.
 
 use warnings;
 use strict;
@@ -19,29 +18,39 @@ my $vsx_main_file = "$vsx_dir/mbedTLS.$vsx_ext";
 my $vsx_sln_tpl_file = "scripts/data_files/vs2010-sln-template.sln";
 my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
-my $include_crypto = 1;
-if( @ARGV ) {
-    die "Invalid number of arguments" if scalar @ARGV != 1;
-    ($include_crypto) = @ARGV;
-}
-
 my $programs_dir = 'programs';
-my $header_dir = 'include/mbedtls';
-my $crypto_headers_dir = 'include/psa';
+my $mbedtls_header_dir = 'include/mbedtls';
+my $psa_header_dir = 'include/psa';
 my $source_dir = 'library';
-my $crypto_dir = 'crypto';
+
+my @thirdparty_header_dirs = qw(
+    3rdparty/everest/include/everest
+);
+my @thirdparty_source_dirs = qw(
+    3rdparty/everest/library
+    3rdparty/everest/library/kremlib
+    3rdparty/everest/library/legacy
+);
+
+# Directories to add to the include path.
+# Order matters in case there are files with the same name in more than
+# one directory: the compiler will use the first match.
+my @include_directories = qw(
+    include
+    3rdparty/everest/include/
+    3rdparty/everest/include/everest
+    3rdparty/everest/include/everest/vs2010
+    3rdparty/everest/include/everest/kremlib
+);
+my $include_directories = join(';', map {"../../$_"} @include_directories);
+
+my @excluded_files = qw(
+    3rdparty/everest/library/Hacl_Curve25519.c
+);
+my %excluded_files = ();
+foreach (@excluded_files) { $excluded_files{$_} = 1 }
 
 # Need windows line endings!
-my $include_directories = <<EOT;
-../../include\r
-EOT
-
-if ($include_crypto) {
-  $include_directories = <<EOT;
-../../include;../../crypto/include;../../crypto/3rdparty/everest/include/;../../crypto/3rdparty/everest/include/everest;../../crypto/3rdparty/everest/include/everest/vs2010;../../crypto/3rdparty/everest/include/everest/kremlib\r
-EOT
-}
-
 my $vsx_hdr_tpl = <<EOT;
     <ClInclude Include="..\\..\\{NAME}" />\r
 EOT
@@ -71,12 +80,14 @@ EOT
 exit( main() );
 
 sub check_dirs {
+    foreach my $d (@thirdparty_header_dirs, @thirdparty_source_dirs) {
+        if (not (-d $d)) { return 0; }
+    }
     return -d $vsx_dir
-        && -d $header_dir
+        && -d $mbedtls_header_dir
+        && -d $psa_header_dir
         && -d $source_dir
-        && -d $programs_dir
-        && -d $crypto_dir
-        && -d "$crypto_dir/$crypto_headers_dir";
+        && -d $programs_dir;
 }
 
 sub slurp_file {
@@ -159,7 +170,9 @@ sub gen_entry_list {
 }
 
 sub gen_main_file {
-    my ($headers, $sources, $hdr_tpl, $src_tpl, $main_tpl, $main_out) = @_;
+    my ($headers, $sources,
+        $hdr_tpl, $src_tpl,
+        $main_tpl, $main_out) = @_;
 
     my $header_entries = gen_entry_list( $hdr_tpl, @$headers );
     my $source_entries = gen_entry_list( $src_tpl, @$sources );
@@ -216,20 +229,21 @@ sub main {
     del_vsx_files();
 
     my @app_list = get_app_list();
-    my @headers = <$header_dir/*.h>;
+    my @header_dirs = (
+                       $mbedtls_header_dir,
+                       $psa_header_dir,
+                       $source_dir,
+                       @thirdparty_header_dirs,
+                      );
+    my @headers = (map { <$_/*.h> } @header_dirs);
+    my @source_dirs = (
+                       $source_dir,
+                       @thirdparty_source_dirs,
+                      );
+    my @sources = (map { <$_/*.c> } @source_dirs);
 
-    my @sources = ();
-    if ($include_crypto) {
-        @sources = <$crypto_dir/$source_dir/*.c>;
-        foreach my $file (<$source_dir/*.c>) {
-            my $basename = $file; $basename =~ s!.*/!!;
-            push @sources, $file unless -e "$crypto_dir/$source_dir/$basename";
-        }
-        push @headers, <$crypto_dir/$crypto_headers_dir/*.h>;
-    } else {
-         @sources = <$source_dir/*.c>;
-    }
-
+    @headers = grep { ! $excluded_files{$_} } @headers;
+    @sources = grep { ! $excluded_files{$_} } @sources;
     map { s!/!\\!g } @headers;
     map { s!/!\\!g } @sources;
 

@@ -189,7 +189,7 @@
 #endif
 
 #if defined(MBEDTLS_GCM_C) && (                                        \
-        !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_CAMELLIA_C) )
+        !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_CAMELLIA_C) && !defined(MBEDTLS_ARIA_C) )
 #error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 
@@ -292,7 +292,7 @@
 #error "MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED) &&        \
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) &&        \
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE) &&              \
     ( !defined(MBEDTLS_SHA256_C) &&                             \
       !defined(MBEDTLS_SHA512_C) &&                             \
@@ -553,6 +553,12 @@
 #error "MBEDTLS_PSA_CRYPTO_SPM defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C) &&    \
+    ! ( defined(MBEDTLS_PSA_CRYPTO_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) )
+#error "MBEDTLS_PSA_CRYPTO_SE_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&            \
     ! defined(MBEDTLS_PSA_CRYPTO_C)
 #error "MBEDTLS_PSA_CRYPTO_STORAGE_C defined, but not all prerequisites"
@@ -587,6 +593,10 @@
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) &&                        \
     ( !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_PKCS1_V21) )
 #error "MBEDTLS_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_SHA512_NO_SHA384) && !defined(MBEDTLS_SHA512_C)
+#error "MBEDTLS_SHA512_NO_SHA384 defined without MBEDTLS_SHA512_C"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) && ( !defined(MBEDTLS_MD5_C) ||     \

@@ -441,6 +441,16 @@
  *            dependencies on them, and considering stronger message digests
  *            and ciphers instead.
  *
+ * \warning   If both MBEDTLS_ECDSA_SIGN_ALT and MBEDTLS_ECDSA_DETERMINISTIC are
+ *            enabled, then the deterministic ECDH signature functions pass the
+ *            the static HMAC-DRBG as RNG to mbedtls_ecdsa_sign(). Therefore
+ *            alternative implementations should use the RNG only for generating
+ *            the ephemeral key and nothing else. If this is not possible, then
+ *            MBEDTLS_ECDSA_DETERMINISTIC should be disabled and an alternative
+ *            implementation should be provided for mbedtls_ecdsa_sign_det_ext()
+ *            (and for mbedtls_ecdsa_sign_det() too if backward compatibility is
+ *            desirable).
+ *
  */
 //#define MBEDTLS_MD2_PROCESS_ALT
 //#define MBEDTLS_MD4_PROCESS_ALT
@@ -679,6 +689,13 @@
 #define MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 #define MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 #define MBEDTLS_CIPHER_PADDING_ZEROS
+
+/** \def MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+ *
+ * Uncomment this macro to use a 128-bit key in the CTR_DRBG module.
+ * By default, CTR_DRBG uses a 256-bit key.
+ */
+//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 
 /**
  * \def MBEDTLS_ENABLE_WEAK_CIPHERSUITES
@@ -1219,6 +1236,21 @@
  */
 //#define MBEDTLS_ENTROPY_NV_SEED
 
+/* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+ *
+ * In PSA key storage, encode the owner of the key.
+ *
+ * This is only meaningful when building the library as part of a
+ * multi-client service. When you activate this option, you must provide
+ * an implementation of the type psa_key_owner_id_t and a translation
+ * from psa_key_file_id_t to file name in all the storage backends that
+ * you wish to support.
+ *
+ * Note that this option is meant for internal use only and may be removed
+ * without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+
 /**
  * \def MBEDTLS_MEMORY_DEBUG
  *
@@ -1335,6 +1367,28 @@
  * Uncomment to enable the smaller implementation of SHA256.
  */
 //#define MBEDTLS_SHA256_SMALLER
+
+/**
+ * \def MBEDTLS_SHA512_SMALLER
+ *
+ * Enable an implementation of SHA-512 that has lower ROM footprint but also
+ * lower performance.
+ *
+ * Uncomment to enable the smaller implementation of SHA512.
+ */
+//#define MBEDTLS_SHA512_SMALLER
+
+/**
+ * \def MBEDTLS_SHA512_NO_SHA384
+ *
+ * Disable the SHA-384 option of the SHA-512 module. Use this to save some
+ * code size on devices that don't use SHA-384.
+ *
+ * Requires: MBEDTLS_SHA512_C
+ *
+ * Uncomment to disable SHA-384
+ */
+//#define MBEDTLS_SHA512_NO_SHA384
 
 /**
  * \def MBEDTLS_SSL_ALL_ALERT_MESSAGES
@@ -1780,13 +1834,6 @@
 #define MBEDTLS_SSL_TRUNCATED_HMAC
 
 /**
- * \def MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
- *
- * Enable modifying the maximum I/O buffer size.
- */
-//#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-
-/**
  * \def MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
  *
  * Fallback to old (pre-2.7), non-conforming implementation of the truncated
@@ -1809,6 +1856,13 @@
  * Requires: MBEDTLS_SSL_TRUNCATED_HMAC
  */
 //#define MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
+
+/**
+ * \def MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+ *
+ * Enable modifying the maximum I/O buffer size.
+ */
+//#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 
 /**
  * \def MBEDTLS_THREADING_ALT
@@ -1838,8 +1892,8 @@
  * Make the X.509 and TLS library use PSA for cryptographic operations, and
  * enable new APIs for using keys handled by PSA Crypto.
  *
- * \note Development of this option is currently in progress, and parts
- * of the X.509 and TLS modules are not ported to PSA yet. However, these parts
+ * \note Development of this option is currently in progress, and parts of Mbed
+ * TLS's X.509 and TLS modules are not ported to PSA yet. However, these parts
  * will still continue to work as usual, so enabling this option should not
  * break backwards compatibility.
  *
@@ -2349,7 +2403,11 @@
  *
  * Enable the CTR_DRBG AES-based random generator.
  * The CTR_DRBG generator uses AES-256 by default.
- * To use AES-128 instead, enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY below.
+ * To use AES-128 instead, enable \c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY above.
+ *
+ * \note To achieve a 256-bit security strength with CTR_DRBG,
+ *       you must use AES-256 *and* use sufficient entropy.
+ *       See ctr_drbg.h for more details.
  *
  * Module:  library/ctr_drbg.c
  * Caller:
@@ -2517,11 +2575,11 @@
 /**
  * \def MBEDTLS_GCM_C
  *
- * Enable the Galois/Counter Mode (GCM) for AES.
+ * Enable the Galois/Counter Mode (GCM).
  *
  * Module:  library/gcm.c
  *
- * Requires: MBEDTLS_AES_C or MBEDTLS_CAMELLIA_C
+ * Requires: MBEDTLS_AES_C or MBEDTLS_CAMELLIA_C or MBEDTLS_ARIA_C
  *
  * This module enables the AES-GCM and CAMELLIA-GCM ciphersuites, if other
  * requisites are enabled as well.
@@ -2898,7 +2956,7 @@
  * experiment using it, incompatible API changes are still possible, and some
  * parts may not have reached the same quality as the rest of Mbed TLS yet.
  *
- * Module:  crypto/library/psa_crypto.c
+ * Module:  library/psa_crypto.c
  *
  * Requires: MBEDTLS_CTR_DRBG_C, MBEDTLS_ENTROPY_C
  *
@@ -2906,17 +2964,33 @@
 #define MBEDTLS_PSA_CRYPTO_C
 
 /**
+ * \def MBEDTLS_PSA_CRYPTO_SE_C
+ *
+ * Enable secure element support in the Platform Security Architecture
+ * cryptography API.
+ *
+ * \warning This feature is not yet suitable for production. It is provided
+ *          for API evaluation and testing purposes only.
+ *
+ * Module:  library/psa_crypto_se.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_C
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_SE_C
+
+/**
  * \def MBEDTLS_PSA_CRYPTO_STORAGE_C
  *
  * Enable the Platform Security Architecture persistent key storage.
  *
- * Module:  crypto/library/psa_crypto_storage.c
+ * Module:  library/psa_crypto_storage.c
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C,
  *           either MBEDTLS_PSA_ITS_FILE_C or a native implementation of
  *           the PSA ITS interface
  */
-//#define MBEDTLS_PSA_CRYPTO_STORAGE_C
+#define MBEDTLS_PSA_CRYPTO_STORAGE_C
 
 /**
  * \def MBEDTLS_PSA_ITS_FILE_C
@@ -2924,12 +2998,11 @@
  * Enable the emulation of the Platform Security Architecture
  * Internal Trusted Storage (PSA ITS) over files.
  *
- * Module:  crypto/library/psa_its_file.c
+ * Module:  library/psa_its_file.c
  *
  * Requires: MBEDTLS_FS_IO
- *
  */
-//#define MBEDTLS_PSA_ITS_FILE_C
+#define MBEDTLS_PSA_ITS_FILE_C
 
 /**
  * \def MBEDTLS_RIPEMD160_C
@@ -3286,7 +3359,6 @@
 //#define MBEDTLS_CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
 //#define MBEDTLS_CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
 //#define MBEDTLS_CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
-//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY              /**< Use 128-bit key for CTR_DRBG - may reduce security (see ctr_drbg.h) */
 
 /* HMAC_DRBG options */
 //#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000 /**< Interval before reseed is performed by default */

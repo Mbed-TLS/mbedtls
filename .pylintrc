@@ -40,7 +40,12 @@ max-attributes=15
 max-module-lines=2000
 
 [MESSAGES CONTROL]
-disable=
+# * no-else-return: Allow the perfectly reasonable idiom
+#    if condition1:
+#        return value1
+#    else:
+#        return value2
+disable=no-else-return
 
 [REPORTS]
 # Don't diplay statistics. Just the facts.

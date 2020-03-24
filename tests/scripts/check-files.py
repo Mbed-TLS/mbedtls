@@ -181,16 +181,16 @@ class IntegrityChecker(object):
         self.setup_logger(log_file)
         self.extensions_to_check = (
             ".c",
+            ".data",
+            ".function",
             ".h",
-            ".sh",
+            ".md",
             ".pl",
             ".py",
-            ".md",
-            ".function",
-            ".data",
-            "/Makefile",
+            ".sh",
             "/CMakeLists.txt",
             "/ChangeLog",
+            "/Makefile",
         )
         self.excluded_directories = [
             '.git',

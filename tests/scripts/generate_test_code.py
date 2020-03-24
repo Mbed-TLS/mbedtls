@@ -402,8 +402,7 @@ def parse_dependencies(inp_str):
     :param inp_str: Input string with macros delimited by ':'.
     :return: list of dependencies
     """
-    dependencies = [dep for dep in map(validate_dependency,
-                                       inp_str.split(':'))]
+    dependencies = list(map(validate_dependency, inp_str.split(':')))
     return dependencies
 
 

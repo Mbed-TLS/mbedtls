@@ -143,9 +143,9 @@ class TabIssueTracker(LineIssueTracker):
 
     heading = "Tabs present:"
     files_exemptions = frozenset([
-        "Makefile",
-        "Makefile.inc",
-        "generate_visualc_files.pl",
+        "/Makefile",
+        "/Makefile.inc",
+        "/generate_visualc_files.pl",
     ])
 
     def issue_with_line(self, line, _filepath):
@@ -180,9 +180,9 @@ class IntegrityChecker(object):
         self.check_repo_path()
         self.logger = None
         self.setup_logger(log_file)
-        self.files_to_check = (
+        self.extensions_to_check = (
             ".c", ".h", ".sh", ".pl", ".py", ".md", ".function", ".data",
-            "Makefile", "Makefile.inc", "CMakeLists.txt", "ChangeLog"
+            "/Makefile", "/Makefile.inc", "/CMakeLists.txt", "/ChangeLog"
         )
         self.excluded_directories = ['.git', 'mbed-os']
         self.excluded_paths = list(map(os.path.normpath, [
@@ -226,7 +226,7 @@ class IntegrityChecker(object):
             dirs[:] = sorted(d for d in dirs if not self.prune_branch(root, d))
             for filename in sorted(files):
                 filepath = os.path.join(root, filename)
-                if not filepath.endswith(self.files_to_check):
+                if not filepath.endswith(self.extensions_to_check):
                     continue
                 for issue_to_check in self.issues_to_check:
                     if issue_to_check.should_check_file(filepath):

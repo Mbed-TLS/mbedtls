@@ -139,6 +139,18 @@ class UnixLineEndingIssueTracker(LineIssueTracker):
         return b"\r" in line
 
 
+class WindowsLineEndingIssueTracker(LineIssueTracker):
+    """Track files with non-Windows line endings (i.e. files without CR)."""
+
+    heading = "Non-Windows line endings:"
+
+    def should_check_file(self, filepath):
+        return is_windows_file(filepath)
+
+    def issue_with_line(self, line, _filepath):
+        return not line.endswith(b"\r\n")
+
+
 class TrailingWhitespaceIssueTracker(LineIssueTracker):
     """Track lines with trailing whitespace."""
 
@@ -222,6 +234,7 @@ class IntegrityChecker(object):
             EndOfFileNewlineIssueTracker(),
             Utf8BomIssueTracker(),
             UnixLineEndingIssueTracker(),
+            WindowsLineEndingIssueTracker(),
             TrailingWhitespaceIssueTracker(),
             TabIssueTracker(),
             MergeArtifactIssueTracker(),

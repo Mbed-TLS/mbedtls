@@ -81,6 +81,12 @@ class LineIssueTracker(FileIssueTracker):
             for i, line in enumerate(iter(f.readline, b"")):
                 self.check_file_line(filepath, line, i + 1)
 
+
+def is_windows_file(filepath):
+    _root, ext = os.path.splitext(filepath)
+    return ext in ('.dsp', '.sln', '.vcxproj')
+
+
 class PermissionIssueTracker(FileIssueTracker):
     """Track files with bad permissions.
 
@@ -113,16 +119,21 @@ class Utf8BomIssueTracker(FileIssueTracker):
 
     heading = "UTF-8 BOM present:"
 
+    files_exemptions = frozenset([".vcxproj", ".sln"])
+
     def check_file_for_issue(self, filepath):
         with open(filepath, "rb") as f:
             if f.read().startswith(codecs.BOM_UTF8):
                 self.files_with_issues[filepath] = None
 
 
-class LineEndingIssueTracker(LineIssueTracker):
+class UnixLineEndingIssueTracker(LineIssueTracker):
     """Track files with non-Unix line endings (i.e. files with CR)."""
 
-    heading = "Non Unix line endings:"
+    heading = "Non-Unix line endings:"
+
+    def should_check_file(self, filepath):
+        return not is_windows_file(filepath)
 
     def issue_with_line(self, line, _filepath):
         return b"\r" in line
@@ -132,7 +143,7 @@ class TrailingWhitespaceIssueTracker(LineIssueTracker):
     """Track lines with trailing whitespace."""
 
     heading = "Trailing whitespace:"
-    files_exemptions = frozenset(".md")
+    files_exemptions = frozenset([".dsp", ".md"])
 
     def issue_with_line(self, line, _filepath):
         return line.rstrip(b"\r\n") != line.rstrip()
@@ -143,6 +154,7 @@ class TabIssueTracker(LineIssueTracker):
 
     heading = "Tabs present:"
     files_exemptions = frozenset([
+        ".sln",
         "/Makefile",
         "/Makefile.inc",
         "/generate_visualc_files.pl",
@@ -183,12 +195,15 @@ class IntegrityChecker(object):
         self.extensions_to_check = (
             ".c",
             ".data",
+            ".dsp",
             ".function",
             ".h",
             ".md",
             ".pl",
             ".py",
             ".sh",
+            ".sln",
+            ".vcxproj",
             "/CMakeLists.txt",
             "/ChangeLog",
             "/Makefile",
@@ -206,7 +221,7 @@ class IntegrityChecker(object):
             PermissionIssueTracker(),
             EndOfFileNewlineIssueTracker(),
             Utf8BomIssueTracker(),
-            LineEndingIssueTracker(),
+            UnixLineEndingIssueTracker(),
             TrailingWhitespaceIssueTracker(),
             TabIssueTracker(),
             MergeArtifactIssueTracker(),

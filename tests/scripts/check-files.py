@@ -180,10 +180,22 @@ class IntegrityChecker(object):
         self.logger = None
         self.setup_logger(log_file)
         self.extensions_to_check = (
-            ".c", ".h", ".sh", ".pl", ".py", ".md", ".function", ".data",
-            "/Makefile", "/CMakeLists.txt", "/ChangeLog"
+            ".c",
+            ".h",
+            ".sh",
+            ".pl",
+            ".py",
+            ".md",
+            ".function",
+            ".data",
+            "/Makefile",
+            "/CMakeLists.txt",
+            "/ChangeLog",
         )
-        self.excluded_directories = ['.git', 'mbed-os']
+        self.excluded_directories = [
+            '.git',
+            'mbed-os',
+        ]
         self.excluded_paths = list(map(os.path.normpath, [
             'cov-int',
             'examples',

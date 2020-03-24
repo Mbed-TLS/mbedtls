@@ -29,7 +29,7 @@ from types import SimpleNamespace
 import xml.etree.ElementTree as ET
 
 
-class AbiChecker(object):
+class AbiChecker:
     """API and ABI checker."""
 
     def __init__(self, old_version, new_version, configuration):

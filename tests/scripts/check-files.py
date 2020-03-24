@@ -17,7 +17,7 @@ import codecs
 import sys
 
 
-class FileIssueTracker(object):
+class FileIssueTracker:
     """Base class for file-wide issue tracking.
 
     To implement a checker that processes a file as a whole, inherit from
@@ -189,7 +189,7 @@ class MergeArtifactIssueTracker(LineIssueTracker):
         return False
 
 
-class IntegrityChecker(object):
+class IntegrityChecker:
     """Sanity-check files under the current directory."""
 
     def __init__(self, log_file):

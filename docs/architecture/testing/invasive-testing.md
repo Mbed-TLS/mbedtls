@@ -1,12 +1,16 @@
-# Mbed Crypto invasive testing strategy
+# Mbed TLS invasive testing strategy
 
 ## Introduction
 
-In Mbed Crypto and Mbed TLS, we use black-box testing as much as possible: test the documented behavior of the product, in a realistic environment. However this is not always sufficient.
+In Mbed TLS, we use black-box testing as much as possible: test the documented behavior of the product, in a realistic environment. However this is not always sufficient.
 
 The goal of this document is to identify areas where black-box testing is insufficient and to propose solutions.
 
 This is a test strategy document, not a test plan. A description of exactly what is tested is out of scope.
+
+### TLS
+
+This document currently focuses on data structure manipulation and storage, which is what the crypto/keystore and X.509 parts of the library are about. More work is needed to fully take TLS into account.
 
 ## Rules
 

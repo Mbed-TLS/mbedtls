@@ -283,9 +283,13 @@ class ConfigFile(Config):
     def __init__(self, filename=None):
         """Read the Mbed TLS configuration file."""
         if filename is None:
-            for filename in self.default_path:
-                if os.path.lexists(filename):
+            for candidate in self.default_path:
+                if os.path.lexists(candidate):
+                    filename = candidate
                     break
+            else:
+                raise Exception('Mbed TLS configuration file not found',
+                                self.default_path)
         super().__init__()
         self.filename = filename
         self.current_section = 'header'

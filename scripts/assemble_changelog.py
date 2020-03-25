@@ -26,9 +26,12 @@ Remove the input files unless --keep-entries is specified.
 
 import argparse
 from collections import OrderedDict
+import datetime
+import functools
 import glob
 import os
 import re
+import subprocess
 import sys
 
 class InputFormatError(Exception):
@@ -219,6 +222,115 @@ class ChangeLog:
             for line in self.trailer:
                 out.write(line)
 
+
+@functools.total_ordering
+class FileMergeTimestamp:
+    """A timestamp indicating when a file was merged.
+
+    If file1 was merged before file2, then
+    FileMergeTimestamp(file1) <= FileMergeTimestamp(file2).
+    """
+
+    # Categories of files. A lower number is considered older.
+    MERGED = 0
+    COMMITTED = 1
+    LOCAL = 2
+
+    @staticmethod
+    def creation_hash(filename):
+        """Return the git commit id at which the given file was created.
+
+        Return None if the file was never checked into git.
+        """
+        hashes = subprocess.check_output(['git', 'log', '--format=%H', '--', filename])
+        if not hashes:
+            # The file was never checked in.
+            return None
+        hashes = hashes.rstrip(b'\n')
+        last_hash = hashes[hashes.rfind(b'\n')+1:]
+        return last_hash
+
+    @staticmethod
+    def list_merges(some_hash, target, *options):
+        """List merge commits from some_hash to target.
+
+        Pass options to git to select which commits are included.
+        """
+        text = subprocess.check_output(['git', 'rev-list',
+                                        '--merges', *options,
+                                        b'..'.join([some_hash, target])])
+        return text.rstrip(b'\n').split(b'\n')
+
+    @classmethod
+    def merge_hash(cls, some_hash):
+        """Return the git commit id at which the given commit was merged.
+
+        Return None if the given commit was never merged.
+        """
+        target = b'HEAD'
+        # List the merges from some_hash to the target in two ways.
+        # The ancestry list is the ones that are both descendants of
+        # some_hash and ancestors of the target.
+        ancestry = frozenset(cls.list_merges(some_hash, target,
+                                             '--ancestry-path'))
+        # The first_parents list only contains merges that are directly
+        # on the target branch. We want it in reverse order (oldest first).
+        first_parents = cls.list_merges(some_hash, target,
+                                        '--first-parent', '--reverse')
+        # Look for the oldest merge commit that's both on the direct path
+        # and directly on the target branch. That's the place where some_hash
+        # was merged on the target branch. See
+        # https://stackoverflow.com/questions/8475448/find-merge-commit-which-include-a-specific-commit
+        for commit in first_parents:
+            if commit in ancestry:
+                return commit
+        return None
+
+    @staticmethod
+    def commit_timestamp(commit_id):
+         """Return the timestamp of the given commit."""
+         text = subprocess.check_output(['git', 'show', '-s',
+                                         '--format=%ct',
+                                         commit_id])
+         return datetime.datetime.utcfromtimestamp(int(text))
+
+    @staticmethod
+    def file_timestamp(filename):
+        """Return the modification timestamp of the given file."""
+        mtime = os.stat(filename).st_mtime
+        return datetime.datetime.fromtimestamp(mtime)
+
+    def __init__(self, filename):
+        """Determine the timestamp at which the file was merged."""
+        self.filename = filename
+        creation_hash = self.creation_hash(filename)
+        if not creation_hash:
+            self.category = self.LOCAL
+            self.datetime = self.file_timestamp(filename)
+            return
+        merge_hash = self.merge_hash(creation_hash)
+        if not merge_hash:
+            self.category = self.COMMITTED
+            self.datetime = self.commit_timestamp(creation_hash)
+            return
+        self.category = self.MERGED
+        self.datetime = self.commit_timestamp(merge_hash)
+
+    def sort_key(self):
+        """"Return a sort key for this merge timestamp object.
+
+        ts1.sort_key() < ts2.sort_key() if and only if ts1 is
+        considered to be older than ts2.
+        """
+        return (self.category, self.datetime, self.filename)
+
+    def __eq__(self, other):
+        return self.sort_key() == other.sort_key()
+
+    def __lt__(self, other):
+        return self.sort_key() < other.sort_key()
+
+
 def check_output(generated_output_file, main_input_file, merged_files):
     """Make sanity checks on the generated output.
 
@@ -267,6 +379,7 @@ def list_files_to_merge(options):
     `FileMergeTimestamp` for details.
     """
     files_to_merge = glob.glob(os.path.join(options.dir, '*.md'))
+    files_to_merge.sort(key=lambda f: FileMergeTimestamp(f).sort_key())
     return files_to_merge
 
 def merge_entries(options):
@@ -289,6 +402,16 @@ def merge_entries(options):
     finish_output(changelog, options.output, options.input, files_to_merge)
     if not options.keep_entries:
         remove_merged_entries(files_to_merge)
+
+def show_file_timestamps(options):
+    """List the files to merge and their timestamp.
+
+    This is only intended for debugging purposes.
+    """
+    files = list_files_to_merge(options)
+    for filename in files:
+        ts = FileMergeTimestamp(filename)
+        print(ts.category, ts.datetime, filename)
 
 def set_defaults(options):
     """Add default values for missing options."""
@@ -320,8 +443,14 @@ def main():
     parser.add_argument('--output', '-o', metavar='FILE',
                         help='Output changelog file'
                              ' (default: overwrite the input)')
+    parser.add_argument('--list-files-only',
+                        action='store_true',
+                        help='Only list the files that would be processed (with some debugging information)')
     options = parser.parse_args()
     set_defaults(options)
+    if options.list_files_only:
+        show_file_timestamps(options)
+        return
     merge_entries(options)
 
 if __name__ == '__main__':

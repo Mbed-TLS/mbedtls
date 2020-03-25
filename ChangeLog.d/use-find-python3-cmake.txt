@@ -1,0 +1,2 @@
+Changes
+  * Use FindPython3 when cmake version >= 3.15.0

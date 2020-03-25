@@ -260,6 +260,15 @@ def remove_merged_entries(files_to_remove):
     for filename in files_to_remove:
         os.remove(filename)
 
+def list_files_to_merge(options):
+    """List the entry files to merge, oldest first.
+
+    A file is considered older if it was merged earlier. See
+    `FileMergeTimestamp` for details.
+    """
+    files_to_merge = glob.glob(os.path.join(options.dir, '*.md'))
+    return files_to_merge
+
 def merge_entries(options):
     """Merge changelog entries into the changelog file.
 
@@ -270,7 +279,7 @@ def merge_entries(options):
     """
     with open(options.input, 'rb') as input_file:
         changelog = ChangeLog(input_file)
-    files_to_merge = glob.glob(os.path.join(options.dir, '*.md'))
+    files_to_merge = list_files_to_merge(options)
     if not files_to_merge:
         sys.stderr.write('There are no pending changelog entries.\n')
         return

@@ -5,6 +5,17 @@
 Add changelog entries to the first level-2 section.
 Create a new level-2 section for unreleased changes if needed.
 Remove the input files unless --keep-entries is specified.
+
+In each level-3 section, entries are sorted in chronological order
+(oldest first). From oldest to newest:
+* Merged entry files are sorted according to their merge date (date of
+  the merge commit that brought the commit that created the file into
+  the target branch).
+* Committed but unmerged entry files are sorted according to the date
+  of the commit that adds them.
+* Uncommitted entry files are sorted according to their modification time.
+
+You must run this program from within a git working directory.
 """
 
 # Copyright (C) 2019, Arm Limited, All Rights Reserved
@@ -224,11 +235,18 @@ class ChangeLog:
 
 
 @functools.total_ordering
-class FileMergeTimestamp:
-    """A timestamp indicating when a file was merged.
+class EntryFileSortKey:
+    """This classes defines an ordering on changelog entry files: older < newer.
 
-    If file1 was merged before file2, then
-    FileMergeTimestamp(file1) <= FileMergeTimestamp(file2).
+    * Merged entry files are sorted according to their merge date (date of
+      the merge commit that brought the commit that created the file into
+      the target branch).
+    * Committed but unmerged entry files are sorted according to the date
+      of the commit that adds them.
+    * Uncommitted entry files are sorted according to their modification time.
+
+    This class assumes that the file is in a git working directory with
+    the target branch checked out.
     """
 
     # Categories of files. A lower number is considered older.
@@ -301,7 +319,12 @@ class FileMergeTimestamp:
         return datetime.datetime.fromtimestamp(mtime)
 
     def __init__(self, filename):
-        """Determine the timestamp at which the file was merged."""
+        """Determine position of the file in the changelog entry order.
+
+        This constructor returns an object that can be used with comparison
+        operators, with `sort` and `sorted`, etc. Older entries are sorted
+        before newer entries.
+        """
         self.filename = filename
         creation_hash = self.creation_hash(filename)
         if not creation_hash:
@@ -317,10 +340,9 @@ class FileMergeTimestamp:
         self.datetime = self.commit_timestamp(merge_hash)
 
     def sort_key(self):
-        """"Return a sort key for this merge timestamp object.
+        """"Return a concrete sort key for this entry file sort key object.
 
-        ts1.sort_key() < ts2.sort_key() if and only if ts1 is
-        considered to be older than ts2.
+        ``ts1 < ts2`` is implemented as ``ts1.sort_key() < ts2.sort_key()``.
         """
         return (self.category, self.datetime, self.filename)
 
@@ -375,11 +397,10 @@ def remove_merged_entries(files_to_remove):
 def list_files_to_merge(options):
     """List the entry files to merge, oldest first.
 
-    A file is considered older if it was merged earlier. See
-    `FileMergeTimestamp` for details.
+    "Oldest" is defined by `EntryFileSortKey`.
     """
     files_to_merge = glob.glob(os.path.join(options.dir, '*.md'))
-    files_to_merge.sort(key=lambda f: FileMergeTimestamp(f).sort_key())
+    files_to_merge.sort(key=lambda f: EntryFileSortKey(f).sort_key())
     return files_to_merge
 
 def merge_entries(options):
@@ -410,7 +431,7 @@ def show_file_timestamps(options):
     """
     files = list_files_to_merge(options)
     for filename in files:
-        ts = FileMergeTimestamp(filename)
+        ts = EntryFileSortKey(filename)
         print(ts.category, ts.datetime, filename)
 
 def set_defaults(options):

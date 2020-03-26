@@ -40,12 +40,12 @@ ssl/dtls_client
 ssl/dtls_server
 ssl/ssl_client1
 ssl/ssl_client2
+ssl/ssl_context_info
 ssl/ssl_fork_server
 ssl/ssl_mail_client
 ssl/ssl_pthread_server
 ssl/ssl_server
 ssl/ssl_server2
-ssl/ssl_base64_dump
 ssl/mini_client
 test/benchmark
 test/ecp-bench

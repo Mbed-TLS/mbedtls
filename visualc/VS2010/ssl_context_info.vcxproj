@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\programs\ssl\ssl_base64_dump.c" />
+    <ClCompile Include="..\..\programs\ssl\ssl_context_info.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="mbedTLS.vcxproj">
@@ -28,9 +28,9 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5B8122A8-D506-B642-BAA1-6030EEBA7446}</ProjectGuid>
+    <ProjectGuid>{017ECC7D-FB6D-46D8-076B-F64172E8E3BC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ssl_base64_dump</RootNamespace>
+    <RootNamespace>ssl_context_info</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

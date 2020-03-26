@@ -40,7 +40,7 @@
 /*
  * This program version
  */
-#define PROG_NAME "ssl_base64_dump"
+#define PROG_NAME "ssl_context_info"
 #define VER_MAJOR 0
 #define VER_MINOR 1
 

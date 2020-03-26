@@ -400,7 +400,7 @@ def list_files_to_merge(options):
     "Oldest" is defined by `EntryFileSortKey`.
     """
     files_to_merge = glob.glob(os.path.join(options.dir, '*.md'))
-    files_to_merge.sort(key=lambda f: EntryFileSortKey(f).sort_key())
+    files_to_merge.sort(key=EntryFileSortKey)
     return files_to_merge
 
 def merge_entries(options):

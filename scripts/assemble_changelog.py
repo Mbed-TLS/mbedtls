@@ -260,7 +260,9 @@ class EntryFileSortKey:
 
         Return None if the file was never checked into git.
         """
-        hashes = subprocess.check_output(['git', 'log', '--format=%H', '--', filename])
+        hashes = subprocess.check_output(['git', 'log', '--format=%H',
+                                          '--follow',
+                                          '--', filename])
         m = re.search(b'(.+)$', hashes)
         if not m:
             # The git output is empty. This means that the file was

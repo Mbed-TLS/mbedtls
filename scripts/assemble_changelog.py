@@ -261,12 +261,14 @@ class EntryFileSortKey:
         Return None if the file was never checked into git.
         """
         hashes = subprocess.check_output(['git', 'log', '--format=%H', '--', filename])
-        if not hashes:
-            # The file was never checked in.
+        m = re.search(b'(.+)$', hashes)
+        if not m:
+            # The git output is empty. This means that the file was
+            # never checked in.
             return None
-        hashes = hashes.rstrip(b'\n')
-        last_hash = hashes[hashes.rfind(b'\n')+1:]
-        return last_hash
+        # The last commit in the log is the oldest one, which is when the
+        # file was created.
+        return m.group(0)
 
     @staticmethod
     def list_merges(some_hash, target, *options):

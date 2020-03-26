@@ -19,6 +19,10 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
+#define _CRT_SECURE_NO_DEPRECATE 1
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

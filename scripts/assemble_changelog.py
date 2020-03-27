@@ -51,6 +51,12 @@ class InputFormatError(Exception):
                                      message.format(*args, **kwargs))
         super().__init__(message)
 
+class CategoryParseError(Exception):
+    def __init__(self, line_offset, error_message):
+        self.line_offset = line_offset
+        self.error_message = error_message
+        super().__init__('{}: {}'.format(line_offset, error_message))
+
 class LostContent(Exception):
     def __init__(self, filename, line):
         message = ('Lost content from {}: "{}"'.format(filename, line))
@@ -143,9 +149,12 @@ class TextChangelogFormat(ChangelogFormat):
     @classmethod
     def split_categories(cls, version_body):
         """A category title is a line with the title in column 0."""
-        title_matches = list(re.finditer(cls._category_title_re, version_body))
-        if not title_matches:
+        if not version_body:
             return []
+        title_matches = list(re.finditer(cls._category_title_re, version_body))
+        if not title_matches or title_matches[0].start() != 0:
+            # There is junk before the first category.
+            raise CategoryParseError(0, 'Junk found where category expected')
         title_starts = [m.start(1) for m in title_matches]
         body_starts = [m.end(0) for m in title_matches]
         body_ends = title_starts[1:] + [len(version_body)]
@@ -191,7 +200,11 @@ class ChangeLog:
     def add_categories_from_text(self, filename, line_offset,
                                  text, allow_unknown_category):
         """Parse a version section or entry file."""
-        categories = self.format.split_categories(text)
+        try:
+            categories = self.format.split_categories(text)
+        except CategoryParseError as e:
+            raise InputFormatError(filename, line_offset + e.line_offset,
+                                   e.error_message)
         for category in categories:
             if not allow_unknown_category and \
                category.name not in self.categories:

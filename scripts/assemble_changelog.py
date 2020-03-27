@@ -83,6 +83,9 @@ class ChangelogFormat:
         Return ``(header, top_version_title, top_version_body, trailer)``
         where ``changelog_file_content == header + top_version_title +
                                           top_version_body + trailer``.
+
+        If the top version is already released, create a new top
+        version section for an unreleased version.
         """
         raise NotImplementedError
 
@@ -108,6 +111,12 @@ class ChangelogFormat:
 class TextChangelogFormat(ChangelogFormat):
     """The traditional Mbed TLS changelog format."""
 
+    _unreleased_version_text = b'= mbed TLS x.x.x branch released xxxx-xx-xx'
+    @classmethod
+    def is_released_version(cls, title):
+        # Look for an incomplete release date
+        return not re.search(br'[0-9x]{4}-[0-9x]{2}-[0-9x]?x', title)
+
     _top_version_re = re.compile(br'(?:\A|\n)(=[^\n]*\n+)(.*?\n)(?:=|$)',
                                  re.DOTALL)
     @classmethod
@@ -116,8 +125,14 @@ class TextChangelogFormat(ChangelogFormat):
         m = re.search(cls._top_version_re, changelog_file_content)
         top_version_start = m.start(1)
         top_version_end = m.end(2)
+        top_version_title = m.group(1)
+        top_version_body = m.group(2)
+        if cls.is_released_version(top_version_title):
+            top_version_end = top_version_start
+            top_version_title = cls._unreleased_version_text + b'\n\n'
+            top_version_body = b''
         return (changelog_file_content[:top_version_start],
-                m.group(1), m.group(2),
+                top_version_title, top_version_body,
                 changelog_file_content[top_version_end:])
 
     @classmethod
@@ -172,27 +187,6 @@ class ChangeLog:
     # a version that is not yet released. Something like "3.1a" is accepted.
     _version_number_re = re.compile(br'[0-9]+\.[0-9A-Za-z.]+')
     _incomplete_version_number_re = re.compile(br'.*\.[A-Za-z]')
-
-    def section_is_released_version(self, title):
-        """Whether this section is for a released version.
-
-        True if the given level-2 section title indicates that this section
-        contains released changes, otherwise False.
-        """
-        # Assume that a released version has a numerical version number
-        # that follows a particular pattern. These criteria may be revised
-        # as needed in future versions of this script.
-        version_number = re.search(self._version_number_re, title)
-        if version_number:
-            return not re.search(self._incomplete_version_number_re,
-                                 version_number.group(0))
-        else:
-            return False
-
-    def unreleased_version_title(self):
-        """The title to use if creating a new section for an unreleased version."""
-        # pylint: disable=no-self-use; this method may be overridden
-        return b'Unreleased changes'
 
     def add_categories_from_text(self, filename, line_offset,
                                  text, allow_unknown_category):

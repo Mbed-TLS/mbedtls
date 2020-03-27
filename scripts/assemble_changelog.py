@@ -470,7 +470,7 @@ def main():
                              ' (default: overwrite the input)')
     parser.add_argument('--list-files-only',
                         action='store_true',
-                        help=('Only list the files that would be processed'
+                        help=('Only list the files that would be processed '
                               '(with some debugging information)'))
     options = parser.parse_args()
     set_defaults(options)

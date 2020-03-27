@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Assemble Mbed Crypto change log entries into the change log file.
+"""Assemble Mbed TLS change log entries into the change log file.
 
 Add changelog entries to the first level-2 section.
 Create a new level-2 section for unreleased changes if needed.
@@ -33,7 +33,7 @@ You must run this program from within a git working directory.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# This file is part of Mbed Crypto (https://tls.mbed.org)
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 import argparse
 from collections import OrderedDict
@@ -70,7 +70,7 @@ STANDARD_SECTIONS = (
 )
 
 class ChangeLog:
-    """An Mbed Crypto changelog.
+    """An Mbed TLS changelog.
 
     A changelog is a file in Markdown format. Each level 2 section title
     starts a version, and versions are sorted in reverse chronological

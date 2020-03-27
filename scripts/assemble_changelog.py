@@ -310,11 +310,11 @@ class EntryFileSortKey:
 
     @staticmethod
     def commit_timestamp(commit_id):
-         """Return the timestamp of the given commit."""
-         text = subprocess.check_output(['git', 'show', '-s',
-                                         '--format=%ct',
-                                         commit_id])
-         return datetime.datetime.utcfromtimestamp(int(text))
+        """Return the timestamp of the given commit."""
+        text = subprocess.check_output(['git', 'show', '-s',
+                                        '--format=%ct',
+                                        commit_id])
+        return datetime.datetime.utcfromtimestamp(int(text))
 
     @staticmethod
     def file_timestamp(filename):
@@ -470,7 +470,8 @@ def main():
                              ' (default: overwrite the input)')
     parser.add_argument('--list-files-only',
                         action='store_true',
-                        help='Only list the files that would be processed (with some debugging information)')
+                        help=('Only list the files that would be processed'
+                              '(with some debugging information)'))
     options = parser.parse_args()
     set_defaults(options)
     if options.list_files_only:

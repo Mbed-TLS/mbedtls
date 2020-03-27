@@ -62,6 +62,8 @@ class LostContent(Exception):
         message = ('Lost content from {}: "{}"'.format(filename, line))
         super().__init__(message)
 
+# The category names we use in the changelog.
+# If you edit this, update ChangeLog.d/README.md.
 STANDARD_CATEGORIES = (
     b'API changes',
     b'Default behavior changes',

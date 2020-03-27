@@ -1,7 +1,7 @@
 This directory contains changelog entries that have not yet been merged
-to the changelog file (../ChangeLog).
+to the changelog file ([`../ChangeLog`](../ChangeLog)).
 
-A changelog entry file must have the extension *.txt and must have the
+A changelog entry file must have the extension `*.txt` and must have the
 following format:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,5 +15,6 @@ Features
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See STANDARD_SECTIONS in ../scripts/assemble_changelog.py for
-recognized section titles.
+See `STANDARD_CATEGORIES` in
+[`../scripts/assemble_changelog.py`](../scripts/assemble_changelog.py)
+for recognized section titles.

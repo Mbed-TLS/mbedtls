@@ -922,7 +922,7 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex );
 
-/*
+/**
  * Get the first defined PSK by order of precedence:
  * 1. handshake PSK set by \c mbedtls_ssl_set_hs_psk() in the PSK callback
  * 2. static PSK configured by \c mbedtls_ssl_conf_psk()
@@ -952,7 +952,7 @@ static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-/*
+/**
  * Get the first defined opaque PSK by order of precedence:
  * 1. handshake PSK set by \c mbedtls_ssl_set_hs_psk_opaque() in the PSK
  *    callback

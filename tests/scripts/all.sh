@@ -1,10 +1,10 @@
-#! /usr/bin/env sh
+#! /usr/bin/env bash
 
 # all.sh
 #
 # This file is part of mbed TLS (https://tls.mbed.org)
 #
-# Copyright (c) 2014-2017, ARM Limited, All Rights Reserved
+# Copyright (c) 2014-2020, ARM Limited, All Rights Reserved
 
 
 
@@ -142,8 +142,8 @@ pre_initialize_variables () {
 
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
-    # Parse the script with sed, because in sh there is no way to list
-    # defined functions.
+    # Parse the script with sed. This way we get the functions in the order
+    # they are defined.
     ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
 
     # Exclude components that are not supported on this platform.

@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
 
-"""Assemble Mbed Crypto change log entries into the change log file.
+"""Assemble Mbed TLS change log entries into the change log file.
 
 Add changelog entries to the first level-2 section.
 Create a new level-2 section for unreleased changes if needed.
 Remove the input files unless --keep-entries is specified.
+
+In each level-3 section, entries are sorted in chronological order
+(oldest first). From oldest to newest:
+* Merged entry files are sorted according to their merge date (date of
+  the merge commit that brought the commit that created the file into
+  the target branch).
+* Committed but unmerged entry files are sorted according to the date
+  of the commit that adds them.
+* Uncommitted entry files are sorted according to their modification time.
+
+You must run this program from within a git working directory.
 """
 
 # Copyright (C) 2019, Arm Limited, All Rights Reserved
@@ -22,13 +33,16 @@ Remove the input files unless --keep-entries is specified.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# This file is part of Mbed Crypto (https://tls.mbed.org)
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 import argparse
 from collections import OrderedDict
+import datetime
+import functools
 import glob
 import os
 import re
+import subprocess
 import sys
 
 class InputFormatError(Exception):
@@ -56,7 +70,7 @@ STANDARD_SECTIONS = (
 )
 
 class ChangeLog:
-    """An Mbed Crypto changelog.
+    """An Mbed TLS changelog.
 
     A changelog is a file in Markdown format. Each level 2 section title
     starts a version, and versions are sorted in reverse chronological
@@ -219,6 +233,130 @@ class ChangeLog:
             for line in self.trailer:
                 out.write(line)
 
+
+@functools.total_ordering
+class EntryFileSortKey:
+    """This classes defines an ordering on changelog entry files: older < newer.
+
+    * Merged entry files are sorted according to their merge date (date of
+      the merge commit that brought the commit that created the file into
+      the target branch).
+    * Committed but unmerged entry files are sorted according to the date
+      of the commit that adds them.
+    * Uncommitted entry files are sorted according to their modification time.
+
+    This class assumes that the file is in a git working directory with
+    the target branch checked out.
+    """
+
+    # Categories of files. A lower number is considered older.
+    MERGED = 0
+    COMMITTED = 1
+    LOCAL = 2
+
+    @staticmethod
+    def creation_hash(filename):
+        """Return the git commit id at which the given file was created.
+
+        Return None if the file was never checked into git.
+        """
+        hashes = subprocess.check_output(['git', 'log', '--format=%H',
+                                          '--follow',
+                                          '--', filename])
+        m = re.search(b'(.+)$', hashes)
+        if not m:
+            # The git output is empty. This means that the file was
+            # never checked in.
+            return None
+        # The last commit in the log is the oldest one, which is when the
+        # file was created.
+        return m.group(0)
+
+    @staticmethod
+    def list_merges(some_hash, target, *options):
+        """List merge commits from some_hash to target.
+
+        Pass options to git to select which commits are included.
+        """
+        text = subprocess.check_output(['git', 'rev-list',
+                                        '--merges', *options,
+                                        b'..'.join([some_hash, target])])
+        return text.rstrip(b'\n').split(b'\n')
+
+    @classmethod
+    def merge_hash(cls, some_hash):
+        """Return the git commit id at which the given commit was merged.
+
+        Return None if the given commit was never merged.
+        """
+        target = b'HEAD'
+        # List the merges from some_hash to the target in two ways.
+        # The ancestry list is the ones that are both descendants of
+        # some_hash and ancestors of the target.
+        ancestry = frozenset(cls.list_merges(some_hash, target,
+                                             '--ancestry-path'))
+        # The first_parents list only contains merges that are directly
+        # on the target branch. We want it in reverse order (oldest first).
+        first_parents = cls.list_merges(some_hash, target,
+                                        '--first-parent', '--reverse')
+        # Look for the oldest merge commit that's both on the direct path
+        # and directly on the target branch. That's the place where some_hash
+        # was merged on the target branch. See
+        # https://stackoverflow.com/questions/8475448/find-merge-commit-which-include-a-specific-commit
+        for commit in first_parents:
+            if commit in ancestry:
+                return commit
+        return None
+
+    @staticmethod
+    def commit_timestamp(commit_id):
+         """Return the timestamp of the given commit."""
+         text = subprocess.check_output(['git', 'show', '-s',
+                                         '--format=%ct',
+                                         commit_id])
+         return datetime.datetime.utcfromtimestamp(int(text))
+
+    @staticmethod
+    def file_timestamp(filename):
+        """Return the modification timestamp of the given file."""
+        mtime = os.stat(filename).st_mtime
+        return datetime.datetime.fromtimestamp(mtime)
+
+    def __init__(self, filename):
+        """Determine position of the file in the changelog entry order.
+
+        This constructor returns an object that can be used with comparison
+        operators, with `sort` and `sorted`, etc. Older entries are sorted
+        before newer entries.
+        """
+        self.filename = filename
+        creation_hash = self.creation_hash(filename)
+        if not creation_hash:
+            self.category = self.LOCAL
+            self.datetime = self.file_timestamp(filename)
+            return
+        merge_hash = self.merge_hash(creation_hash)
+        if not merge_hash:
+            self.category = self.COMMITTED
+            self.datetime = self.commit_timestamp(creation_hash)
+            return
+        self.category = self.MERGED
+        self.datetime = self.commit_timestamp(merge_hash)
+
+    def sort_key(self):
+        """"Return a concrete sort key for this entry file sort key object.
+
+        ``ts1 < ts2`` is implemented as ``ts1.sort_key() < ts2.sort_key()``.
+        """
+        return (self.category, self.datetime, self.filename)
+
+    def __eq__(self, other):
+        return self.sort_key() == other.sort_key()
+
+    def __lt__(self, other):
+        return self.sort_key() < other.sort_key()
+
+
 def check_output(generated_output_file, main_input_file, merged_files):
     """Make sanity checks on the generated output.
 
@@ -260,6 +398,15 @@ def remove_merged_entries(files_to_remove):
     for filename in files_to_remove:
         os.remove(filename)
 
+def list_files_to_merge(options):
+    """List the entry files to merge, oldest first.
+
+    "Oldest" is defined by `EntryFileSortKey`.
+    """
+    files_to_merge = glob.glob(os.path.join(options.dir, '*.md'))
+    files_to_merge.sort(key=EntryFileSortKey)
+    return files_to_merge
+
 def merge_entries(options):
     """Merge changelog entries into the changelog file.
 
@@ -270,7 +417,7 @@ def merge_entries(options):
     """
     with open(options.input, 'rb') as input_file:
         changelog = ChangeLog(input_file)
-    files_to_merge = glob.glob(os.path.join(options.dir, '*.md'))
+    files_to_merge = list_files_to_merge(options)
     if not files_to_merge:
         sys.stderr.write('There are no pending changelog entries.\n')
         return
@@ -280,6 +427,16 @@ def merge_entries(options):
     finish_output(changelog, options.output, options.input, files_to_merge)
     if not options.keep_entries:
         remove_merged_entries(files_to_merge)
+
+def show_file_timestamps(options):
+    """List the files to merge and their timestamp.
+
+    This is only intended for debugging purposes.
+    """
+    files = list_files_to_merge(options)
+    for filename in files:
+        ts = EntryFileSortKey(filename)
+        print(ts.category, ts.datetime, filename)
 
 def set_defaults(options):
     """Add default values for missing options."""
@@ -311,8 +468,14 @@ def main():
     parser.add_argument('--output', '-o', metavar='FILE',
                         help='Output changelog file'
                              ' (default: overwrite the input)')
+    parser.add_argument('--list-files-only',
+                        action='store_true',
+                        help='Only list the files that would be processed (with some debugging information)')
     options = parser.parse_args()
     set_defaults(options)
+    if options.list_files_only:
+        show_file_timestamps(options)
+        return
     merge_entries(options)
 
 if __name__ == '__main__':

@@ -1,19 +1,17 @@
 This directory contains changelog entries that have not yet been merged
-to the changelog file (../ChangeLog.md).
+to the changelog file (../ChangeLog).
 
-A changelog entry file must have the extension *.md and must have the
+A changelog entry file must have the extension *.txt and must have the
 following format:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-### Section title
+Security
+   * Change description.
+   * Another change description.
 
-* Change descritpion.
-* Another change description.
-
-### Another section title
-
-* Yet another change description.
-* Yet again another change description.
+Features
+   * Yet another change description.
+   * Yet again another change description.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

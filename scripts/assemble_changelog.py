@@ -216,14 +216,14 @@ class ChangeLog:
         self.categories = OrderedDict()
         for category in STANDARD_CATEGORIES:
             self.categories[category] = b''
-        offset = (self.header + self.top_version_title).count(b'\n')
+        offset = (self.header + self.top_version_title).count(b'\n') + 1
         self.add_categories_from_text(input_stream.name, offset,
                                       top_version_body, True)
 
     def add_file(self, input_stream):
         """Add changelog entries from a file.
         """
-        self.add_categories_from_text(input_stream.name, 0,
+        self.add_categories_from_text(input_stream.name, 1,
                                       input_stream.read(), False)
 
     def write(self, filename):

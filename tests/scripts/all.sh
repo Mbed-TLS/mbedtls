@@ -235,6 +235,8 @@ General options:
                         Prefix for a cross-compiler for arm-linux-gnueabi
                         (default: "${ARM_LINUX_GNUEABI_GCC_PREFIX}")
      --armcc            Run ARM Compiler builds (on by default).
+     --error-test       Error test mode: run a failing function in addition
+                        to any specified component.
      --except           Exclude the COMPONENTs listed on the command line,
                         instead of running only those.
      --no-append-outcome    Write a new outcome file and analyze it (default).
@@ -372,6 +374,7 @@ check_headers_in_cpp () {
 pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
     all_except=0
+    error_test=0
     no_armcc=
 
     # Note that legacy options are ignored instead of being omitted from this
@@ -385,6 +388,7 @@ pre_parse_command_line () {
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+            --error-test) error_test=$((error_test + 1));;
             --except) all_except=1;;
             --force|-f) FORCE=1;;
             --gnutls-cli) shift; GNUTLS_CLI="$1";;
@@ -2799,6 +2803,19 @@ post_report () {
 #### Run all the things
 ################################################################
 
+# Function invoked by --error-test to test error reporting.
+pseudo_component_error_test () {
+    msg "Testing error reporting $error_test"
+    if [ $KEEP_GOING -ne 0 ]; then
+        echo "Expect three failing commands."
+    fi
+    error_test='this should not be used since the component runs in a subshell'
+    grep non_existent /dev/null
+    not grep -q . "$0"
+    make unknown_target
+    false "this should not be executed"
+}
+
 # Run one component and clean up afterwards.
 run_component () {
     # Back up the configuration in case the component modifies it.
@@ -2847,6 +2864,10 @@ pre_check_tools
 cleanup
 
 # Run the requested tests.
+while [ $error_test -gt 0 ]; do
+    run_component pseudo_component_error_test
+    error_test=$((error_test - 1))
+done
 for component in $RUN_COMPONENTS; do
     run_component "component_$component"
 done

@@ -78,6 +78,9 @@
 #
 # Each component must start by invoking `msg` with a short informative message.
 #
+# Warning: due to the way bash detects errors, the failure of a command
+# inside 'if' or '!' is not detected. Use the 'not' function instead of '!'.
+#
 # Each component is executed in a separate shell process. The component
 # fails if any command in it returns a non-zero status.
 #
@@ -411,6 +414,7 @@ pre_setup_keep_going () {
     previous_failure_status=0
     previous_failed_command=
     previous_failure_funcall_depth=0
+    unset report_failed_command
 
     start_red=
     end_color=
@@ -435,7 +439,7 @@ pre_setup_keep_going () {
             "msg "*) false;;
             *[!A-Za-z]"test"|*[!A-Za-z]"test"[!A-Za-z]*) true;;
             "tests/"*) true;;
-            "grep "*|"not grep "*) true;;
+            "grep "*|"! grep "*) true;;
             *) false;;
         esac
     }
@@ -447,7 +451,7 @@ pre_setup_keep_going () {
         # Save $? (status of the failing command). This must be the very
         # first thing, before $? is overridden.
         last_failure_status=$?
-        failed_command=$BASH_COMMAND
+        failed_command=${report_failed_command-$BASH_COMMAND}
 
         if [[ $last_failure_status -eq $previous_failure_status &&
               "$failed_command" == "$previous_failed_command" &&
@@ -496,10 +500,14 @@ pre_setup_keep_going () {
     }
 }
 
-# These functions are kept temporarily for backward compatibility.
-# Don't use them in new components.
-not() {
-    ! "$@"
+# '! true' does not trigger the ERR trap. Arrange to trigger it, with
+# a reasonably informative error message (not just "$@").
+not () {
+    if "$@"; then
+        report_failed_command="! $*"
+        false
+        unset report_failed_command
+    fi
 }
 
 

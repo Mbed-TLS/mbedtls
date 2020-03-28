@@ -478,12 +478,6 @@ pre_setup_keep_going () {
 
 # These functions are kept temporarily for backward compatibility.
 # Don't use them in new components.
-record_status () {
-    "$@"
-}
-if_build_succeeded () {
-    "$@"
-}
 not() {
     ! "$@"
 }
@@ -582,32 +576,32 @@ pre_check_tools () {
 
 component_check_recursion () {
     msg "test: recursion.pl" # < 1s
-    record_status tests/scripts/recursion.pl library/*.c
+    tests/scripts/recursion.pl library/*.c
 }
 
 component_check_generated_files () {
     msg "test: freshness of generated source files" # < 1s
-    record_status tests/scripts/check-generated-files.sh
+    tests/scripts/check-generated-files.sh
 }
 
 component_check_doxy_blocks () {
     msg "test: doxygen markup outside doxygen blocks" # < 1s
-    record_status tests/scripts/check-doxy-blocks.pl
+    tests/scripts/check-doxy-blocks.pl
 }
 
 component_check_files () {
     msg "test: check-files.py" # < 1s
-    record_status tests/scripts/check-files.py
+    tests/scripts/check-files.py
 }
 
 component_check_names () {
     msg "test/build: declared and exported names" # < 3s
-    record_status tests/scripts/check-names.sh -v
+    tests/scripts/check-names.sh -v
 }
 
 component_check_doxygen_warnings () {
     msg "test: doxygen warnings" # ~ 3s
-    record_status tests/scripts/doxygen.sh
+    tests/scripts/doxygen.sh
 }
 
 
@@ -628,7 +622,7 @@ component_test_large_ecdsa_key_signature () {
     SIGNATURE_FILE="${INEVITABLY_PRESENT_FILE}.sig" # Warning, this is rm -f'ed below
 
     msg "test: pk_sign secp521r1_prv.der for MBEDTLS_MPI_MAX_SIZE=${SMALL_MPI_MAX_SIZE} (ASan build)" # ~ 5s
-    if_build_succeeded programs/pkey/pk_sign tests/data_files/secp521r1_prv.der $INEVITABLY_PRESENT_FILE
+    programs/pkey/pk_sign tests/data_files/secp521r1_prv.der $INEVITABLY_PRESENT_FILE
     rm -f $SIGNATURE_FILE
 }
 
@@ -647,7 +641,7 @@ component_build_yotta () {
     # Note - use of yotta is deprecated, and yotta also requires armcc to be on the
     # path, and uses whatever version of armcc it finds there.
     msg "build: create and build yotta module" # ~ 30s
-    record_status tests/scripts/yotta-build.sh
+    tests/scripts/yotta-build.sh
 }
 support_build_yotta () {
     [ $YOTTA -ne 0 ]
@@ -662,10 +656,10 @@ component_test_default_cmake_gcc_asan () {
     make test
 
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "test: compat.sh (ASan build)" # ~ 6 min
-    if_build_succeeded tests/compat.sh
+    tests/compat.sh
 }
 
 component_test_full_cmake_gcc_asan () {
@@ -678,10 +672,10 @@ component_test_full_cmake_gcc_asan () {
     make test
 
     msg "test: ssl-opt.sh (full config, ASan build)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     msg "test: compat.sh (full config, ASan build)"
-    if_build_succeeded tests/compat.sh
+    tests/compat.sh
 }
 
 component_test_zlib_make() {
@@ -693,7 +687,7 @@ component_test_zlib_make() {
     make test
 
     msg "test: ssl-opt.sh (zlib, make)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 support_test_zlib_make () {
     base=support_test_zlib_$$
@@ -717,7 +711,7 @@ component_test_zlib_cmake() {
     make test
 
     msg "test: ssl-opt.sh (zlib, cmake)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 support_test_zlib_cmake () {
     support_test_zlib_make "$@"
@@ -726,7 +720,7 @@ support_test_zlib_cmake () {
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-    record_status tests/scripts/test-ref-configs.pl
+    tests/scripts/test-ref-configs.pl
 }
 
 component_test_sslv3 () {
@@ -739,11 +733,11 @@ component_test_sslv3 () {
     make test
 
     msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
-    if_build_succeeded tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
-    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
+    tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+    env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
     msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_no_renegotiation () {
@@ -756,7 +750,7 @@ component_test_no_renegotiation () {
     make test
 
     msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_rsa_no_crt () {
@@ -769,10 +763,10 @@ component_test_rsa_no_crt () {
     make test
 
     msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
-    if_build_succeeded tests/ssl-opt.sh -f RSA
+    tests/ssl-opt.sh -f RSA
 
     msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
-    if_build_succeeded tests/compat.sh -t RSA
+    tests/compat.sh -t RSA
 }
 
 component_test_full_cmake_clang () {
@@ -785,10 +779,10 @@ component_test_full_cmake_clang () {
     make test
 
     msg "test: ssl-opt.sh default (full config)" # ~ 1s
-    if_build_succeeded tests/ssl-opt.sh -f Default
+    tests/ssl-opt.sh -f Default
 
     msg "test: compat.sh RC4, DES, 3DES & NULL (full config)" # ~ 2 min
-    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
 }
 
 component_build_deprecated () {
@@ -811,22 +805,22 @@ component_build_deprecated () {
 
 component_test_depends_curves () {
     msg "test/build: curves.pl (gcc)" # ~ 4 min
-    record_status tests/scripts/curves.pl
+    tests/scripts/curves.pl
 }
 
 component_test_depends_hashes () {
     msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
-    record_status tests/scripts/depends-hashes.pl
+    tests/scripts/depends-hashes.pl
 }
 
 component_test_depends_pkalgs () {
     msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
-    record_status tests/scripts/depends-pkalgs.pl
+    tests/scripts/depends-pkalgs.pl
 }
 
 component_build_key_exchanges () {
     msg "test/build: key-exchanges (gcc)" # ~ 1 min
-    record_status tests/scripts/key-exchanges.pl
+    tests/scripts/key-exchanges.pl
 }
 
 component_build_default_make_gcc () {
@@ -914,7 +908,7 @@ component_test_memory_buffer_allocator () {
 
     msg "test: ssl-opt.sh, MBEDTLS_MEMORY_BUFFER_ALLOC_C"
     # MBEDTLS_MEMORY_BUFFER_ALLOC is slow. Skip tests that tend to time out.
-    if_build_succeeded tests/ssl-opt.sh -e '^DTLS proxy'
+    tests/ssl-opt.sh -e '^DTLS proxy'
 }
 
 component_test_no_max_fragment_length () {
@@ -924,7 +918,7 @@ component_test_no_max_fragment_length () {
     make
 
     msg "test: ssl-opt.sh, MFL-related tests"
-    if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
+    tests/ssl-opt.sh -f "Max fragment length"
 }
 
 component_test_null_entropy () {
@@ -966,7 +960,7 @@ component_test_malloc_0_null () {
     msg "selftest: malloc(0) returns NULL (ASan+UBSan build)"
     # Just the calloc selftest. "make test" ran the others as part of the
     # test suites.
-    if_build_succeeded programs/test/selftest calloc
+    programs/test/selftest calloc
 }
 
 component_test_make_shared () {
@@ -1044,7 +1038,7 @@ component_test_m32_o1 () {
     make test
 
     msg "test ssl-opt.sh, i386, make, gcc-O1"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 support_test_m32_o1 () {
     support_test_m32_o0 "$@"
@@ -1109,7 +1103,7 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
     scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
-    if_build_succeeded not grep __aeabi_uldiv library/*.o
+    not grep __aeabi_uldiv library/*.o
 }
 
 component_build_armcc () {
@@ -1147,7 +1141,7 @@ component_test_allow_sha1 () {
     make CFLAGS='-Werror -Wall -Wextra'
     msg "test: allow SHA1 in certificates by default"
     make test
-    if_build_succeeded tests/ssl-opt.sh -f SHA-1
+    tests/ssl-opt.sh -f SHA-1
 }
 
 component_build_mingw () {
@@ -1174,13 +1168,13 @@ component_test_memsan () {
     make test
 
     msg "test: ssl-opt.sh (MSan)" # ~ 1 min
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 
     # Optional part(s)
 
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: compat.sh (MSan)" # ~ 6 min 20s
-        if_build_succeeded tests/compat.sh
+        tests/compat.sh
     fi
 }
 
@@ -1196,12 +1190,12 @@ component_test_valgrind () {
     # seem to receive signals under valgrind on OS X).
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: ssl-opt.sh --memcheck (Release)"
-        if_build_succeeded tests/ssl-opt.sh --memcheck
+        tests/ssl-opt.sh --memcheck
     fi
 
     if [ "$MEMORY" -gt 1 ]; then
         msg "test: compat.sh --memcheck (Release)"
-        if_build_succeeded tests/compat.sh --memcheck
+        tests/compat.sh --memcheck
     fi
 }
 
@@ -1220,10 +1214,10 @@ component_test_cmake_out_of_source () {
     # "No such file or directory", which would indicate that some required
     # file is missing (ssl-opt.sh tolerates the absence of some files so
     # may exit with status 0 but emit errors).
-    if_build_succeeded ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
+    ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
     cat ssl-opt.err >&2
     # If ssl-opt.err is non-empty, record an error and keep going.
-    record_status [ ! -s ssl-opt.err ]
+    [ ! -s ssl-opt.err ]
     rm ssl-opt.err
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"

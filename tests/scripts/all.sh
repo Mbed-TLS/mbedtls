@@ -101,8 +101,9 @@
 #### Initialization and command line parsing
 ################################################################
 
-# Abort on errors (and uninitialised variables)
-set -eu
+# Abort on errors (even on the left-hand side of a pipe).
+# Treat uninitialised variables as errors.
+set -e -o pipefail -u
 
 pre_check_environment () {
     if [ -d library -a -d include -a -d tests ]; then :; else

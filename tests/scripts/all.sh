@@ -1221,11 +1221,10 @@ component_test_cmake_out_of_source () {
     # file is missing (ssl-opt.sh tolerates the absence of some files so
     # may exit with status 0 but emit errors).
     if_build_succeeded ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
-    if [ -s ssl-opt.err ]; then
-        cat ssl-opt.err >&2
-        record_status [ ! -s ssl-opt.err ]
-        rm ssl-opt.err
-    fi
+    cat ssl-opt.err >&2
+    # If ssl-opt.err is non-empty, record an error and keep going.
+    record_status [ ! -s ssl-opt.err ]
+    rm ssl-opt.err
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
     unset MBEDTLS_ROOT_DIR

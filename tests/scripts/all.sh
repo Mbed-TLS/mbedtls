@@ -407,6 +407,11 @@ pre_setup_keep_going () {
     failure_count=0 # Number of failed components
     last_failure_status=0 # Last failure status in this component
 
+    # See err_trap
+    previous_failure_status=0
+    previous_failed_command=
+    previous_failure_funcall_depth=0
+
     start_red=
     end_color=
     if [ -t 1 ]; then
@@ -443,6 +448,21 @@ pre_setup_keep_going () {
         # first thing, before $? is overridden.
         last_failure_status=$?
         failed_command=$BASH_COMMAND
+
+        if [[ $last_failure_status -eq $previous_failure_status &&
+              "$failed_command" == "$previous_failed_command" &&
+              ${#FUNCNAME[@]} == $((previous_failure_funcall_depth - 1)) ]]
+        then
+            # The same command failed twice in a row, but this time one level
+            # less deep in the function call stack. This happens when the last
+            # command of a function returns a nonzero status, and the function
+            # returns that same status. Ignore the second failure.
+            previous_failure_funcall_depth=${#FUNCNAME[@]}
+            return
+        fi
+        previous_failure_status=$last_failure_status
+        previous_failed_command=$failed_command
+        previous_failure_funcall_depth=${#FUNCNAME[@]}
 
         text="$current_section: $failed_command -> $last_failure_status"
         echo "${start_red}^^^^$text^^^^${end_color}" >&2

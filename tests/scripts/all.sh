@@ -361,6 +361,24 @@ pre_parse_command_line () {
         COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS *_yotta*"
     fi
 
+    if [ $all_except -eq 0 ]; then
+        unsupported=0
+        for component in $COMMAND_LINE_COMPONENTS; do
+            case $component in
+                *[*?\[]*) continue;;
+            esac
+            case " $SUPPORTED_COMPONENTS " in
+                *" $component "*) :;;
+                *)
+                    echo >&2 "Component $component was explicitly requested, but is not known or not supported."
+                    unsupported=$((unsupported + 1));;
+            esac
+        done
+        if [ $unsupported -ne 0 ]; then
+            exit 2
+        fi
+    fi
+
     # Build the list of components to run.
     RUN_COMPONENTS=
     for component in $SUPPORTED_COMPONENTS; do

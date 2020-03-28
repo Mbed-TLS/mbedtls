@@ -47,6 +47,15 @@
 # This script must be invoked from the toplevel directory of a git
 # working copy of Mbed TLS.
 #
+# The behavior on an error depends on whether --keep-going (alias -k)
+# is in effect.
+#  * Without --keep-going: the script stops on the first error without
+#    cleaning up. This lets you work in the configuration of the failing
+#    component.
+#  * With --keep-going: the script runs all requested components and
+#    reports failures at the end. In particular the script always cleans
+#    up on exit.
+#
 # Note that the output is not saved. You may want to run
 #   script -c tests/scripts/all.sh
 # or
@@ -69,6 +78,9 @@
 #
 # Each component must start by invoking `msg` with a short informative message.
 #
+# Each component is executed in a separate shell process. The component
+# fails if any command in it returns a non-zero status.
+#
 # The framework performs some cleanup tasks after each component. This
 # means that components can assume that the working directory is in a
 # cleaned-up state, and don't need to perform the cleanup themselves.
@@ -78,19 +90,6 @@
 # * Check out `Makefile`, `library/Makefile`, `programs/Makefile` and
 #   `tests/Makefile` from git. This cleans up after an in-tree use of
 #   CMake.
-#
-# Any command that is expected to fail must be protected so that the
-# script keeps running in --keep-going mode despite `set -e`. In keep-going
-# mode, if a protected command fails, this is logged as a failure and the
-# script will exit with a failure status once it has run all components.
-# Commands can be protected in any of the following ways:
-# * `make` is a function which runs the `make` command with protection.
-#   Note that you must write `make VAR=value`, not `VAR=value make`,
-#   because the `VAR=value make` syntax doesn't work with functions.
-# * Put `report_status` before the command to protect it.
-# * Put `if_build_successful` before a command. This protects it, and
-#   additionally skips it if a prior invocation of `make` in the same
-#   component failed.
 #
 # The tests are roughly in order from fastest to slowest. This doesn't
 # have to be exact, but in general you should add slower tests towards
@@ -404,8 +403,9 @@ pre_check_git () {
 }
 
 pre_setup_keep_going () {
-    failure_summary=
-    failure_count=0
+    failure_count=0 # Number of failed components
+    last_failure_status=0 # Last failure status in this component
+
     start_red=
     end_color=
     if [ -t 1 ]; then
@@ -416,57 +416,73 @@ pre_setup_keep_going () {
                 ;;
         esac
     fi
-    record_status () {
-        if "$@"; then
-            last_status=0
-        else
-            last_status=$?
-            text="$current_section: $* -> $last_status"
-            failure_summary="$failure_summary
-$text"
-            failure_count=$((failure_count + 1))
-            echo "${start_red}^^^^$text^^^^${end_color}"
-        fi
-    }
-    make () {
-        case "$*" in
-            *test|*check)
-                if [ $build_status -eq 0 ]; then
-                    record_status command make "$@"
-                else
-                    echo "(skipped because the build failed)"
-                fi
-                ;;
-            *)
-                record_status command make "$@"
-                build_status=$last_status
-                ;;
+
+    # Keep a summary of failures in a file. We'll print it out at the end.
+    failure_summary_file=$PWD/all-sh-failures-$$.log
+    : >"$failure_summary_file"
+
+    # Whether it makes sense to keep a component going after the specified
+    # command fails (test command) or not (configure or build).
+    # This doesn't have to be 100% accurate: all failures are recorded anyway.
+    can_keep_going_after_failure () {
+        case "$1" in
+            "msg "*) false;;
+            *[!A-Za-z]"test"|*[!A-Za-z]"test"[!A-Za-z]*) true;;
+            "tests/"*) true;;
+            "grep "*|"not grep "*) true;;
+            *) false;;
         esac
     }
+
+    # This function runs if there is any error in a component.
+    # It must either exit with a nonzero status, or set
+    # last_failure_status to a nonzero value.
+    err_trap () {
+        # Save $? (status of the failing command). This must be the very
+        # first thing, before $? is overridden.
+        last_failure_status=$?
+        failed_command=$BASH_COMMAND
+
+        text="$current_section: $failed_command -> $last_failure_status"
+        echo "${start_red}^^^^$text^^^^${end_color}" >&2
+        echo "$text" >>"$failure_summary_file"
+
+        # If the command is fatal (configure or build command), stop this
+        # component. Otherwise (test command) keep the component running
+        # (run more tests from the same build).
+        if ! can_keep_going_after_failure "$failed_command"; then
+            exit $last_failure_status
+        fi
+    }
+
     final_report () {
         if [ $failure_count -gt 0 ]; then
             echo
             echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            echo "${start_red}FAILED: $failure_count${end_color}$failure_summary"
+            echo "${start_red}FAILED: $failure_count components${end_color}"
+            cat "$failure_summary_file"
             echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            exit 1
         elif [ -z "${1-}" ]; then
             echo "SUCCESS :)"
         fi
         if [ -n "${1-}" ]; then
             echo "Killed by SIG$1."
         fi
+        rm -f "$failure_summary_file"
+        if [ $failure_count -gt 0 ]; then
+            exit 1
+        fi
     }
 }
 
-if_build_succeeded () {
-    if [ $build_status -eq 0 ]; then
-        record_status "$@"
-    fi
+# These functions are kept temporarily for backward compatibility.
+# Don't use them in new components.
+record_status () {
+    "$@"
 }
-
-# to be used instead of ! for commands run with
-# record_status or if_build_succeeded
+if_build_succeeded () {
+    "$@"
+}
 not() {
     ! "$@"
 }
@@ -1252,7 +1268,30 @@ run_component () {
     # The cleanup function will restore it.
     cp -p "$CONFIG_H" "$CONFIG_BAK"
     current_component="$1"
-    "$@"
+
+    if [ $KEEP_GOING -eq 1 ]; then
+        set +e
+    fi
+    # Run the component in a subshell
+    (
+        if [ $KEEP_GOING -eq 1 ]; then
+            # Keep "set -e" off, and run an ERR trap instead to record failures.
+            set -E
+            trap err_trap ERR
+        fi
+        "$@"
+        if [ $KEEP_GOING -eq 1 ]; then
+            trap - ERR
+            exit $last_failure_status
+        fi
+    )
+    component_status=$?
+    if [ $KEEP_GOING -eq 1 ]; then
+        set -e
+        if [ $component_status -ne 0 ]; then
+            failure_count=$((failure_count + 1))
+        fi
+    fi
     cleanup
 }
 
@@ -1265,10 +1304,6 @@ pre_check_git
 build_status=0
 if [ $KEEP_GOING -eq 1 ]; then
     pre_setup_keep_going
-else
-    record_status () {
-        "$@"
-    }
 fi
 pre_print_configuration
 pre_check_tools

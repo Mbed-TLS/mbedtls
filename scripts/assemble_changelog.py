@@ -88,12 +88,14 @@ class ChangelogFormat:
     def extract_top_version(cls, changelog_file_content):
         """Split out the top version section.
 
-        Return ``(header, top_version_title, top_version_body, trailer)``
-        where ``changelog_file_content == header + top_version_title +
-                                          top_version_body + trailer``.
-
         If the top version is already released, create a new top
         version section for an unreleased version.
+
+        Return ``(header, top_version_title, top_version_body, trailer)``
+        where the "top version" is the existing top version section if it's
+        for unreleased changes, and a newly created section otherwise.
+        To assemble the changelog after modifying top_version_body,
+        concatenate the four pieces.
         """
         raise NotImplementedError
 

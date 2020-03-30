@@ -63,6 +63,27 @@
 #define TRANSFORM_RANDBYTE_LEN  64
 
 /*
+ * Minimum and maximum number of bytes for specific data: context, sessions,
+ * certificates, tickets and buffers in the program. The context and session
+ * size values have been calculated based on the 'print_deserialized_ssl_context()'
+ * and 'print_deserialized_ssl_session()' content.
+ */
+#define MIN_CONTEXT_LEN     84
+#define MIN_SESSION_LEN     88
+
+#define MAX_CONTEXT_LEN     875     /* without session data */
+#define MAX_SESSION_LEN     109     /* without certificate and ticket data */
+#define MAX_CERTIFICATE_LEN ( ( 1 << 24 ) - 1 )
+#define MAX_TICKET_LEN      ( ( 1 << 24 ) - 1 )
+
+#define MIN_SERIALIZED_DATA ( MIN_CONTEXT_LEN + MIN_SESSION_LEN )
+#define MAX_SERIALIZED_DATA ( MAX_CONTEXT_LEN + MAX_SESSION_LEN + \
+                              MAX_CERTIFICATE_LEN + MAX_TICKET_LEN )
+
+#define MIN_BASE64_LEN      ( MIN_SERIALIZED_DATA * 4 / 3 )
+#define MAX_BASE64_LEN      ( MAX_SERIALIZED_DATA * 4 / 3 + 3 )
+
+/*
  * A macro that prevents from reading out of the ssl buffer range.
  */
 #define CHECK_SSL_END( LEN )            \
@@ -82,6 +103,7 @@ FILE *b64_file = NULL;                  /* file with base64 codes to deserialize
 char conf_keep_peer_certificate = 1;    /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE from mbedTLS configuration */
 char conf_dtls_proto = 1;               /* MBEDTLS_SSL_PROTO_DTLS from mbedTLS configuration */
 char debug = 0;                         /* flag for debug messages */
+const char alloc_err[] = "Cannot allocate memory\n";
 const char buf_ln_err[] = "Buffer does not have enough data to complete the parsing\n";
 
 /*
@@ -327,16 +349,20 @@ const char * get_mfl_str( int mfl_code )
  * previously. After each call to this function, the internal file position
  * indicator of the global b64_file is advanced.
  *
- * /p b64       buffer for input data
- * /p max_len   the maximum number of bytes to write
+ * Note - This function checks the size of the input buffer and if necessary,
+ *        increases it to the maximum MAX_BASE64_LEN
+ *
+ * /p b64       pointer to the pointer of the buffer for input data
+ * /p max_len   pointer to the current buffer capacity. It can be changed if
+ *              the buffer needs to be increased
  *
  * \retval      number of bytes written in to the b64 buffer or 0 in case no more
  *              data was found
  */
-size_t read_next_b64_code( uint8_t *b64, size_t max_len )
+size_t read_next_b64_code( uint8_t **b64, size_t *max_len )
 {
+    int valid_balance = 0;  /* balance between valid and invalid characters */
     size_t len = 0;
-    uint32_t missed = 0;
     char pad = 0;
     char c = 0;
 
@@ -346,9 +372,9 @@ size_t read_next_b64_code( uint8_t *b64, size_t max_len )
 
         c = (char) fgetc( b64_file );
 
-        if( pad == 1 )
+        if( pad > 0 )
         {
-            if( c == '=' )
+            if( c == '=' && pad == 1 )
             {
                 c_valid = 1;
                 pad = 2;
@@ -379,22 +405,74 @@ size_t read_next_b64_code( uint8_t *b64, size_t max_len )
 
         if( c_valid )
         {
-            if( len < max_len )
+            /* A string of characters that could be a base64 code. */
+            valid_balance++;
+
+            if( len < *max_len )
             {
-                b64[ len++ ] = c;
+                ( *b64 )[ len++ ] = c;
+            }
+            else if( *max_len < MAX_BASE64_LEN )
+            {
+                /* Current buffer is too small, but can be resized. */
+                void *ptr;
+                size_t new_size = ( MAX_BASE64_LEN - 4096 > *max_len ) ?
+                                  *max_len + 4096 : MAX_BASE64_LEN;
+
+                ptr = realloc( *b64, new_size );
+                if( NULL == ptr )
+                {
+                    printf_err( alloc_err );
+                    return 0;
+                }
+                *b64 = ptr;
+                *max_len = new_size;
+                ( *b64 )[ len++ ] = c;
             }
             else
             {
-                missed++;
+                /* Too much data so it will be treated as invalid */
+                len++;
             }
         }
         else if( len > 0 )
         {
-            if( missed > 0 )
+            /* End of a string that could be a base64 code, but need to check
+             * that the length of the characters is correct. */
+
+            valid_balance--;
+
+            if( len < MIN_CONTEXT_LEN )
             {
-                printf_err( "Buffer for the base64 code is too small. Missed %u characters\n", missed );
+                printf_dbg( "The code found is too small to be a SSL context.\n" );
+                len = pad = 0;
             }
-            return len;
+            else if( len > *max_len )
+            {
+                printf_err( "The code found is too large by %u bytes.\n", len - *max_len );
+                len = pad = 0;
+            }
+            else if( len % 4 != 0 )
+            {
+                printf_err( "The length of the base64 code found should be a multiple of 4.\n" );
+                len = pad = 0;
+            }
+            else
+            {
+                /* Base64 code with valid character length. */
+                return len;
+            }
+        }
+        else
+        {
+            valid_balance--;
+        }
+
+        /* Detection of potentially wrong file format like: binary, zip, ISO, etc. */
+        if( valid_balance < -100 )
+        {
+            printf_err( "Too many bad symbols detected. File check aborted.\n" );
+            return 0;
         }
     }
 
@@ -714,11 +792,17 @@ void print_deserialized_ssl_session( const uint8_t *ssl, uint32_t len,
  * the context when serialization was created.
  *
  * The data structure in the buffer:
+ *  // header
+ *  uint8 version[3];
+ *  uint8 configuration[5];
  *  // session sub-structure
+ *  uint32_t session_len;
  *  opaque session<1..2^32-1>;  // see mbedtls_ssl_session_save()
  *  // transform sub-structure
  *  uint8 random[64];           // ServerHello.random+ClientHello.random
+ *  uint8 in_cid_len;
  *  uint8 in_cid<0..2^8-1>      // Connection ID: expected incoming value
+ *  uint8 out_cid_len;
  *  uint8 out_cid<0..2^8-1>     // Connection ID: outgoing value to use
  *  // fields from ssl_context
  *  uint32 badmac_seen;         // DTLS: number of records with failing MAC
@@ -727,6 +811,7 @@ void print_deserialized_ssl_session( const uint8_t *ssl, uint32_t len,
  *  uint8 disable_datagram_packing; // DTLS: only one record per datagram
  *  uint64 cur_out_ctr;         // Record layer: outgoing sequence number
  *  uint16 mtu;                 // DTLS: path mtu (max outgoing fragment size)
+ *  uint8 alpn_chosen_len;
  *  uint8 alpn_chosen<0..2^8-1> // ALPN: negotiated application protocol
  *
  * /p ssl   pointer to serialized session
@@ -916,43 +1001,75 @@ void print_deserialized_ssl_context( const uint8_t *ssl, size_t len )
 
 int main( int argc, char *argv[] )
 {
-    enum { B64BUF_LEN = 4 * 1024 };
-    enum { SSLBUF_LEN = B64BUF_LEN * 3 / 4 + 1 };
+    enum { SSL_INIT_LEN = 4096 };
 
-    uint8_t b64[ B64BUF_LEN ];
-    uint8_t ssl[ SSLBUF_LEN ];
     uint32_t b64_counter = 0;
+    uint8_t *b64_buf = NULL;
+    uint8_t *ssl_buf = NULL;
+    size_t b64_max_len = SSL_INIT_LEN;
+    size_t ssl_max_len = SSL_INIT_LEN;
+    size_t ssl_len = 0;
 
+     /* The 'b64_file' is opened when parsing arguments to check that the
+      * file name is correct */
     parse_arguments( argc, argv );
+
+    if( NULL != b64_file )
+    {
+        b64_buf = malloc( SSL_INIT_LEN );
+        ssl_buf = malloc( SSL_INIT_LEN );
+
+        if( NULL == b64_buf || NULL == ssl_buf )
+        {
+            printf_err( alloc_err );
+            fclose( b64_file );
+            b64_file = NULL;
+        }
+    }
 
     while( NULL != b64_file )
     {
-        size_t ssl_len;
-        size_t b64_len = read_next_b64_code( b64, B64BUF_LEN );
+        size_t b64_len = read_next_b64_code( &b64_buf, &b64_max_len );
         if( b64_len > 0)
         {
             int ret;
+            size_t ssl_required_len = b64_len * 3 / 4 + 1;
+
+            /* Allocate more memory if necessary. */
+            if( ssl_required_len > ssl_max_len )
+            {
+                void *ptr = realloc( ssl_buf, ssl_required_len );
+                if( NULL == ptr )
+                {
+                    printf_err( alloc_err );
+                    fclose( b64_file );
+                    b64_file = NULL;
+                    break;
+                }
+                ssl_buf = ptr;
+                ssl_max_len = ssl_required_len;
+            }
 
             printf( "\nDeserializing number %u:\n",  ++b64_counter );
 
             printf( "\nBase64 code:\n" );
-            print_b64( b64, b64_len );
+            print_b64( b64_buf, b64_len );
 
-            ret = mbedtls_base64_decode( ssl, SSLBUF_LEN, &ssl_len, b64, b64_len );
+            ret = mbedtls_base64_decode( ssl_buf, ssl_max_len, &ssl_len, b64_buf, b64_len );
             if( ret != 0)
             {
-                mbedtls_strerror( ret, (char*) b64, B64BUF_LEN );
-                printf_err( "base64 code cannot be decoded - %s\n", b64 );
+                mbedtls_strerror( ret, (char*) b64_buf, b64_max_len );
+                printf_err( "base64 code cannot be decoded - %s\n", b64_buf );
                 continue;
             }
 
             if( debug )
             {
                 printf( "\nDecoded data in hex:\n\t");
-                print_hex( ssl, ssl_len, 25, "\t" );
+                print_hex( ssl_buf, ssl_len, 25, "\t" );
             }
 
-            print_deserialized_ssl_context( ssl, ssl_len );
+            print_deserialized_ssl_context( ssl_buf, ssl_len );
 
         }
         else
@@ -962,7 +1079,17 @@ int main( int argc, char *argv[] )
         }
     }
 
-    printf_dbg( "Finish. Found %u base64 codes\n", b64_counter );
+    free( b64_buf );
+    free( ssl_buf );
+
+    if( b64_counter > 0 )
+    {
+        printf_dbg( "Finished. Found %u base64 codes\n", b64_counter );
+    }
+    else
+    {
+        printf( "Finished. No valid base64 code found\n" );
+    }
 
     return 0;
 }

@@ -543,12 +543,13 @@ void print_packet( const packet *p, const char *why )
  *
  * We want an explicit state and a place to store the packet.
  */
-static enum {
-    ich_init,       /* haven't seen the first ClientHello yet */
-    ich_cached,     /* cached the initial ClientHello */
-    ich_injected,   /* ClientHello already injected, done */
-} inject_clihlo_state;
+typedef enum {
+    ICH_INIT,       /* haven't seen the first ClientHello yet */
+    ICH_CACHED,     /* cached the initial ClientHello */
+    ICH_INJECTED,   /* ClientHello already injected, done */
+} inject_clihlo_state_t;
 
+static inject_clihlo_state_t inject_clihlo_state;
 static packet initial_clihlo;
 
 int send_packet( const packet *p, const char *why )
@@ -558,11 +559,11 @@ int send_packet( const packet *p, const char *why )
 
     /* save initial ClientHello? */
     if( opt.inject_clihlo != 0 &&
-        inject_clihlo_state == ich_init &&
+        inject_clihlo_state == ICH_INIT &&
         strcmp( p->type, "ClientHello" ) == 0 )
     {
         memcpy( &initial_clihlo, p, sizeof( packet ) );
-        inject_clihlo_state = ich_cached;
+        inject_clihlo_state = ICH_CACHED;
     }
 
     /* insert corrupted CID record? */
@@ -631,7 +632,7 @@ int send_packet( const packet *p, const char *why )
 
     /* Inject ClientHello after first ApplicationData */
     if( opt.inject_clihlo != 0 &&
-        inject_clihlo_state == ich_cached &&
+        inject_clihlo_state == ICH_CACHED &&
         strcmp( p->type, "ApplicationData" ) == 0 )
     {
         print_packet( &initial_clihlo, "injected" );
@@ -643,7 +644,7 @@ int send_packet( const packet *p, const char *why )
             return( ret );
         }
 
-        inject_clihlo_state = ich_injected;
+        inject_clihlo_state = ICH_INJECTED;
     }
 
     return( 0 );

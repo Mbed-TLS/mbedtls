@@ -129,9 +129,14 @@ pre_check_environment () {
 
 pre_initialize_variables () {
     CONFIG_H='include/mbedtls/config.h'
-    CONFIG_BAK="$CONFIG_H.bak"
     CRYPTO_CONFIG_H='include/psa/crypto_config.h'
-    CRYPTO_CONFIG_BAK="$CRYPTO_CONFIG_H.bak"
+
+    # Files that are clobbered by some jobs will be backed up. Use a different
+    # suffix from auxiliary scripts so that all.sh and auxiliary scripts can
+    # independently decide when to remove the backup file.
+    backup_suffix='.all.bak'
+    # Files clobbered by config.py
+    files_to_back_up="$CONFIG_H $CRYPTO_CONFIG_H"
 
     append_outcome=0
     MEMORY=0
@@ -289,13 +294,18 @@ cleanup()
     rm -f programs/test/cmake_subproject/Makefile
     rm -f programs/test/cmake_subproject/cmake_subproject
 
-    if [ -f "$CONFIG_BAK" ]; then
-        mv "$CONFIG_BAK" "$CONFIG_H"
-    fi
+    # Restore files that may have been clobbered by the job
+    for x in $files_to_back_up; do
+        cp -p "$x$backup_suffix" "$x"
+    done
+}
 
-    if [ -f "$CRYPTO_CONFIG_BAK" ]; then
-        mv "$CRYPTO_CONFIG_BAK" "$CRYPTO_CONFIG_H"
-    fi
+final_cleanup () {
+    cleanup
+
+    for x in $files_to_back_up; do
+        rm -f "$x$backup_suffix"
+    done
 }
 
 # Executed on exit. May be redefined depending on command line options.
@@ -304,7 +314,7 @@ final_report () {
 }
 
 fatal_signal () {
-    cleanup
+    final_cleanup
     final_report $1
     trap - $1
     kill -$1 $$
@@ -478,6 +488,12 @@ pre_check_git () {
             exit 1
         fi
     fi
+}
+
+pre_back_up () {
+    for x in $files_to_back_up; do
+        cp -p "$x" "$x$backup_suffix"
+    done
 }
 
 pre_setup_keep_going () {
@@ -2825,7 +2841,7 @@ component_check_generate_test_code () {
 
 post_report () {
     msg "Done, cleaning up"
-    cleanup
+    final_cleanup
 
     final_report
 }
@@ -2851,10 +2867,6 @@ pseudo_component_error_test () {
 
 # Run one component and clean up afterwards.
 run_component () {
-    # Back up the configuration in case the component modifies it.
-    # The cleanup function will restore it.
-    cp -p "$CONFIG_H" "$CONFIG_BAK"
-    cp -p "$CRYPTO_CONFIG_H" "$CRYPTO_CONFIG_BAK"
     current_component="$1"
     export MBEDTLS_TEST_CONFIGURATION="$current_component"
 
@@ -2909,6 +2921,7 @@ pre_initialize_variables
 pre_parse_command_line "$@"
 
 pre_check_git
+pre_back_up
 
 build_status=0
 if [ $KEEP_GOING -eq 1 ]; then

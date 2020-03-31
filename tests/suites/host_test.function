@@ -474,7 +474,7 @@ int execute_tests( int argc , const char ** argv )
           testfile_index++ )
     {
         int unmet_dep_count = 0;
-        char *unmet_dependencies[20];
+        int unmet_dependencies[20];
 
         test_filename = test_files[ testfile_index ];
 
@@ -520,19 +520,7 @@ int execute_tests( int argc , const char ** argv )
                     int dep_id = strtol( params[i], NULL, 10 );
                     if( dep_check( dep_id ) != DEPENDENCY_SUPPORTED )
                     {
-                        if( 0 == option_verbose )
-                        {
-                            /* Only one count is needed if not verbose */
-                            unmet_dep_count++;
-                            break;
-                        }
-
-                        unmet_dependencies[ unmet_dep_count ] = strdup( params[i] );
-                        if(  unmet_dependencies[ unmet_dep_count ] == NULL )
-                        {
-                            mbedtls_fprintf( stderr, "FATAL: Out of memory\n" );
-                            mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-                        }
+                        unmet_dependencies[unmet_dep_count] = dep_id;
                         unmet_dep_count++;
                     }
                 }
@@ -599,9 +587,8 @@ int execute_tests( int argc , const char ** argv )
                     mbedtls_fprintf( stdout, "\n   Unmet dependencies: " );
                     for( i = 0; i < unmet_dep_count; i++ )
                     {
-                        mbedtls_fprintf( stdout, "%s  ",
+                        mbedtls_fprintf( stdout, "%d ",
                                         unmet_dependencies[i] );
-                        free( unmet_dependencies[i] );
                     }
                 }
                 mbedtls_fprintf( stdout, "\n" );
@@ -646,10 +633,6 @@ int execute_tests( int argc , const char ** argv )
                 total_errors++;
         }
         fclose( file );
-
-        /* In case we encounter early end of file */
-        for( i = 0; i < unmet_dep_count; i++ )
-            free( unmet_dependencies[i] );
     }
 
     mbedtls_fprintf( stdout, "\n----------------------------------------------------------------------------\n\n");

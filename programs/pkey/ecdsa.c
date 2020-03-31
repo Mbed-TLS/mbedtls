@@ -189,7 +189,7 @@ int main( int argc, char *argv[] )
                                        sig, &sig_len,
                                        mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdsa_genkey returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ecdsa_write_signature returned %d\n", ret );
         goto exit;
     }
     mbedtls_printf( " ok (signature length = %u)\n", (unsigned int) sig_len );

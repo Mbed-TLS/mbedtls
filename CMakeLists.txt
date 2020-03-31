@@ -162,7 +162,7 @@ if(CMAKE_COMPILER_IS_IAR)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts --warnings_are_errors -Ohz")
 endif(CMAKE_COMPILER_IS_IAR)
 
-if(CMAKE_COMPILER_IS_MSVC)
+if(CMAKE_COMPILER_IS_MSVC AND NOT UNSAFE_BUILD)
     # Strictest warnings, and treat as errors
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")

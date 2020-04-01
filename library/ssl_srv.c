@@ -2841,7 +2841,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
-    size_t dn_size, total_dn_size; /* excluding length bytes */
+    uint16_t dn_size, total_dn_size; /* excluding length bytes */
     size_t ct_len, sa_len; /* including length bytes */
     unsigned char *buf, *p;
     const unsigned char * const end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
@@ -2969,11 +2969,11 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
         while( crt != NULL && crt->version != 0 )
         {
-            dn_size = crt->subject_raw.len;
+            /* It follows from RFC 5280 A.1 that this length
+             * can be represented in at most 11 bits. */
+            dn_size = (uint16_t) crt->subject_raw.len;
 
-            if( end < p ||
-                (size_t)( end - p ) < dn_size ||
-                (size_t)( end - p ) < 2 + dn_size )
+            if( end < p || (size_t)( end - p ) < 2 + (size_t) dn_size )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "skipping CAs: buffer too short" ) );
                 break;

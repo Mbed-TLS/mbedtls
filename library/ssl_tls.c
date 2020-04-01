@@ -5235,16 +5235,17 @@ static int ssl_check_dtls_clihlo_cookie(
  * that looks like a ClientHello.
  *
  * - if the input looks like a ClientHello without cookies,
- *   send back HelloVerifyRequest, then
- *   return MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED
+ *   send back HelloVerifyRequest, then return 0
  * - if the input looks like a ClientHello with a valid cookie,
  *   reset the session of the current context, and
  *   return MBEDTLS_ERR_SSL_CLIENT_RECONNECT
  * - if anything goes wrong, return a specific error code
  *
- * mbedtls_ssl_read_record() will ignore the record if anything else than
- * MBEDTLS_ERR_SSL_CLIENT_RECONNECT or 0 is returned, although this function
- * cannot not return 0.
+ * This function is called (through ssl_check_client_reconnect()) when an
+ * unexpected record is found in ssl_get_next_record(), which will discard the
+ * record if we return 0, and bubble up the return value otherwise (this
+ * includes the case of MBEDTLS_ERR_SSL_CLIENT_RECONNECT and of unexpected
+ * errors, and is the right thing to do in both cases).
  */
 static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
 {
@@ -5256,6 +5257,8 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
     {
         /* If we can't use cookies to verify reachability of the peer,
          * drop the record. */
+         MBEDTLS_SSL_DEBUG_MSG( 1, ( "no cookie callbacks, "
+                                     "can't check reconnect validity" ) );
         return( 0 );
     }
 
@@ -5281,7 +5284,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
         send_ret = mbedtls_ssl_get_send( ssl )( ssl->p_bio, ssl->out_buf, len );
         MBEDTLS_SSL_DEBUG_RET( 2, "mbedtls_ssl_get_send", send_ret );
         (void) send_ret;
-        ret = 0;
+        return( 0 );
     }
 
     if( ret == 0 )
@@ -6465,6 +6468,7 @@ static int ssl_get_next_record( mbedtls_ssl_context *ssl )
                 ssl->in_msglen = rec.data_len;
 
                 ret = ssl_check_client_reconnect( ssl );
+                MBEDTLS_SSL_DEBUG_RET( 2, "ssl_check_client_reconnect", ret );
                 if( ret != 0 )
                     return( ret );
 #endif

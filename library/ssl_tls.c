@@ -5227,16 +5227,17 @@ static int ssl_check_dtls_clihlo_cookie(
  * that looks like a ClientHello.
  *
  * - if the input looks like a ClientHello without cookies,
- *   send back HelloVerifyRequest, then
- *   return MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED
+ *   send back HelloVerifyRequest, then return 0
  * - if the input looks like a ClientHello with a valid cookie,
  *   reset the session of the current context, and
  *   return MBEDTLS_ERR_SSL_CLIENT_RECONNECT
  * - if anything goes wrong, return a specific error code
  *
- * mbedtls_ssl_read_record() will ignore the record if anything else than
- * MBEDTLS_ERR_SSL_CLIENT_RECONNECT or 0 is returned, although this function
- * cannot not return 0.
+ * This function is called (through ssl_check_client_reconnect()) when an
+ * unexpected record is found in ssl_get_next_record(), which will discard the
+ * record if we return 0, and bubble up the return value otherwise (this
+ * includes the case of MBEDTLS_ERR_SSL_CLIENT_RECONNECT and of unexpected
+ * errors, and is the right thing to do in both cases).
  */
 static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
 {
@@ -5267,7 +5268,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
          * If the error is permanent we'll catch it later,
          * if it's not, then hopefully it'll work next time. */
         (void) mbedtls_ssl_get_send( ssl )( ssl->p_bio, ssl->out_buf, len );
-        ret = 0;
+        return( 0 );
     }
 
     if( ret == 0 )

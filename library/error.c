@@ -1171,7 +1171,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         high_level_error_description = mbedtls_high_level_strerr( ret );
 
         if( high_level_error_description == NULL )
-            mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+            mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", (unsigned int) use_ret );
         else
             mbedtls_snprintf( buf, buflen, "%s", high_level_error_description );
 
@@ -1208,7 +1208,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     low_level_error_description = mbedtls_low_level_strerr( ret );
 
     if( low_level_error_description == NULL )
-        mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+        mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", (unsigned int) use_ret );
     else
         mbedtls_snprintf( buf, buflen, "%s", low_level_error_description );
 }

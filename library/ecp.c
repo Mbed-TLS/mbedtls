@@ -3156,7 +3156,7 @@ int mbedtls_ecp_self_test( int verbose )
 cleanup:
 
     if( ret < 0 && verbose != 0 )
-        mbedtls_printf( "Unexpected error, return code = %08X\n", ret );
+        mbedtls_printf( "Unexpected error, return code = %08X\n", (unsigned int) ret );
 
     mbedtls_ecp_group_free( &grp );
     mbedtls_ecp_point_free( &R );

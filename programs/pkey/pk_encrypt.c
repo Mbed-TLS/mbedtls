@@ -98,7 +98,7 @@ int main( int argc, char *argv[] )
                                        strlen( pers ) ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n",
-                        -ret );
+                        (unsigned int) -ret );
         goto exit;
     }
 
@@ -107,7 +107,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_pk_parse_public_keyfile( &pk, argv[1] ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_pk_parse_public_keyfile returned -0x%04x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_pk_parse_public_keyfile returned -0x%04x\n", (unsigned int) -ret );
         goto exit;
     }
 
@@ -130,7 +130,7 @@ int main( int argc, char *argv[] )
                             mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_pk_encrypt returned -0x%04x\n",
-                        -ret );
+                        (unsigned int) -ret );
         goto exit;
     }
 

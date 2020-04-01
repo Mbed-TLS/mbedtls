@@ -784,7 +784,7 @@ static int cmac_test_subkeys( int verbose,
     for( i = 0; i < num_tests; i++ )
     {
         if( verbose != 0 )
-            mbedtls_printf( "  %s CMAC subkey #%u: ", testname, i + 1 );
+            mbedtls_printf( "  %s CMAC subkey #%d: ", testname, i + 1 );
 
         mbedtls_cipher_init( &ctx );
 
@@ -865,7 +865,7 @@ static int cmac_test_wth_cipher( int verbose,
     for( i = 0; i < num_tests; i++ )
     {
         if( verbose != 0 )
-            mbedtls_printf( "  %s CMAC #%u: ", testname, i + 1 );
+            mbedtls_printf( "  %s CMAC #%d: ", testname, i + 1 );
 
         if( ( ret = mbedtls_cipher_cmac( cipher_info, key, keybits, messages,
                                          message_lengths[i], output ) ) != 0 )
@@ -900,7 +900,7 @@ static int test_aes128_cmac_prf( int verbose )
 
     for( i = 0; i < NB_PRF_TESTS; i++ )
     {
-        mbedtls_printf( "  AES CMAC 128 PRF #%u: ", i );
+        mbedtls_printf( "  AES CMAC 128 PRF #%d: ", i );
         ret = mbedtls_aes_cmac_prf_128( PRFK, PRFKlen[i], PRFM, 20, output );
         if( ret != 0 ||
             memcmp( output, PRFT[i], MBEDTLS_AES_BLOCK_SIZE ) != 0 )

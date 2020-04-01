@@ -291,7 +291,7 @@ reset:
                     client_ip, cliip_len ) ) != 0 )
     {
         printf( " failed\n  ! "
-                "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", -ret );
+                "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", (unsigned int) -ret );
         goto exit;
     }
 
@@ -318,7 +318,7 @@ reset:
     }
     else if( ret != 0 )
     {
-        printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -ret );
+        printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", (unsigned int) -ret );
         goto reset;
     }
 
@@ -351,7 +351,7 @@ reset:
                 goto close_notify;
 
             default:
-                printf( " mbedtls_ssl_read returned -0x%x\n\n", -ret );
+                printf( " mbedtls_ssl_read returned -0x%x\n\n", (unsigned int) -ret );
                 goto reset;
         }
     }

@@ -112,7 +112,7 @@ int main( void )
         mbedtls_printf( "FAILED: %s\n", tmp );
 #else
 #define PRINT_ERROR                                                     \
-        mbedtls_printf( "FAILED: -0x%04x\n", -ret );
+        mbedtls_printf( "FAILED: -0x%04x\n", (unsigned int) -ret );
 #endif
 
 #define TIME_AND_TSC( TITLE, CODE )                                     \

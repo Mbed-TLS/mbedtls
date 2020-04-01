@@ -219,7 +219,7 @@ int main( int argc, char *argv[] )
             p = &argv[6][4];
             keylen = 0;
 
-            while( sscanf( p, "%02X", &n ) > 0 &&
+            while( sscanf( p, "%02X", (unsigned int*) &n ) > 0 &&
                    keylen < (int) sizeof( key ) )
             {
                 key[keylen++] = (unsigned char) n;
@@ -417,7 +417,7 @@ int main( int argc, char *argv[] )
             ( ( filesize - mbedtls_md_get_size( md_info ) ) %
                 mbedtls_cipher_get_block_size( &cipher_ctx ) ) != 0 )
         {
-            mbedtls_fprintf( stderr, "File content not a multiple of the block size (%d).\n",
+            mbedtls_fprintf( stderr, "File content not a multiple of the block size (%u).\n",
                      mbedtls_cipher_get_block_size( &cipher_ctx ));
             goto exit;
         }
@@ -484,7 +484,7 @@ int main( int argc, char *argv[] )
 
             if( fread( buffer, 1, ilen, fin ) != ilen )
             {
-                mbedtls_fprintf( stderr, "fread(%d bytes) failed\n",
+                mbedtls_fprintf( stderr, "fread(%u bytes) failed\n",
                     mbedtls_cipher_get_block_size( &cipher_ctx ) );
                 goto exit;
             }

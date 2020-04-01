@@ -647,8 +647,12 @@ int execute_tests( int argc , const char ** argv )
                     int dep_id = strtol( params[i], NULL, 10 );
                     if( dep_check( dep_id ) != DEPENDENCY_SUPPORTED )
                     {
-                        unmet_dependencies[unmet_dep_count] = dep_id;
-                        unmet_dep_count++;
+                        if( unmet_dep_count <
+                            ARRAY_LENGTH( unmet_dependencies ) )
+                        {
+                            unmet_dependencies[unmet_dep_count] = dep_id;
+                            unmet_dep_count++;
+                        }
                     }
                 }
 

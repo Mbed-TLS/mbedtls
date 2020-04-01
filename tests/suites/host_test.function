@@ -476,6 +476,7 @@ int execute_tests( int argc , const char ** argv )
     {
         size_t unmet_dep_count = 0;
         int unmet_dependencies[20];
+        int missing_unmet_dependencies = 0;
 
         test_filename = test_files[ testfile_index ];
 
@@ -496,6 +497,7 @@ int execute_tests( int argc , const char ** argv )
                 mbedtls_exit( MBEDTLS_EXIT_FAILURE );
             }
             unmet_dep_count = 0;
+            missing_unmet_dependencies = 0;
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
@@ -526,6 +528,10 @@ int execute_tests( int argc , const char ** argv )
                         {
                             unmet_dependencies[unmet_dep_count] = dep_id;
                             unmet_dep_count++;
+                        }
+                        else
+                        {
+                            missing_unmet_dependencies = 1;
                         }
                     }
                 }
@@ -595,11 +601,14 @@ int execute_tests( int argc , const char ** argv )
                         mbedtls_fprintf( stdout, "%d ",
                                         unmet_dependencies[i] );
                     }
+                    if( missing_unmet_dependencies )
+                        mbedtls_fprintf( stdout, "..." );
                 }
                 mbedtls_fprintf( stdout, "\n" );
                 fflush( stdout );
 
                 unmet_dep_count = 0;
+                missing_unmet_dependencies = 0;
             }
             else if( ret == DISPATCH_TEST_SUCCESS )
             {

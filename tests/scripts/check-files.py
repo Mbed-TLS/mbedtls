@@ -140,7 +140,7 @@ class UnixLineEndingIssueTracker(LineIssueTracker):
 
 
 class WindowsLineEndingIssueTracker(LineIssueTracker):
-    """Track files with non-Windows line endings (i.e. files without CR)."""
+    """Track files with non-Windows line endings (i.e. CR or LF not in CRLF)."""
 
     heading = "Non-Windows line endings:"
 
@@ -148,7 +148,7 @@ class WindowsLineEndingIssueTracker(LineIssueTracker):
         return is_windows_file(filepath)
 
     def issue_with_line(self, line, _filepath):
-        return not line.endswith(b"\r\n")
+        return not line.endswith(b"\r\n") or b"\r" in line[:-2]
 
 
 class TrailingWhitespaceIssueTracker(LineIssueTracker):

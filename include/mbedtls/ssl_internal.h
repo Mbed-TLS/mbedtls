@@ -945,6 +945,8 @@ static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
 
     else
     {
+        *psk = NULL;
+        *psk_len = 0;
         return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
 

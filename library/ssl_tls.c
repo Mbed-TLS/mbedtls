@@ -1848,7 +1848,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 {
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
-    const unsigned char *psk;
+    const unsigned char *psk = NULL;
     size_t psk_len = 0;
 
     if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )

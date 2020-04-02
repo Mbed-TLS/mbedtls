@@ -6,6 +6,14 @@ New deprecations
    * Deprecate MBEDTLS_SSL_HW_RECORD_ACCEL that enables function hooks in the
      SSL module for hardware acceleration of individual records.
 
+Security
+   * Fix issue in DTLS handling of new associations with the same parameters
+     (RFC 6347 section 4.2.8): an attacker able to send forged UDP packets to
+     the server could cause it to drop established associations with
+     legitimate clients, resulting in a Denial of Service. This could only
+     happen when MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE was enabled in config.h
+     (which it is by default).
+
 Bugfix
    * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
      MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.

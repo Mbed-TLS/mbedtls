@@ -7279,8 +7279,8 @@ run_test    "DTLS cookie: enabled, nbio" \
 
 not_with_valgrind # spurious resend
 run_test    "DTLS client reconnect from same port: reference" \
-            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=20000 hs_timeout=10000-20000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=10000-20000" \
             0 \
             -C "resend" \
             -S "The operation timed out" \
@@ -7288,8 +7288,8 @@ run_test    "DTLS client reconnect from same port: reference" \
 
 not_with_valgrind # spurious resend
 run_test    "DTLS client reconnect from same port: reconnect" \
-            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
+            "$P_SRV dtls=1 exchanges=2 read_timeout=20000 hs_timeout=10000-20000" \
+            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=10000-20000 reconnect_hard=1" \
             0 \
             -C "resend" \
             -S "The operation timed out" \
@@ -7316,6 +7316,14 @@ run_test    "DTLS client reconnect from same port: no cookies" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-8000 reconnect_hard=1" \
             0 \
             -s "The operation timed out" \
+            -S "Client initiated reconnection from same port"
+
+run_test    "DTLS client reconnect from same port: attacker-injected" \
+            -p "$P_PXY inject_clihlo=1" \
+            "$P_SRV dtls=1 exchanges=2 debug_level=1" \
+            "$P_CLI dtls=1 exchanges=2" \
+            0 \
+            -s "possible client reconnect from the same port" \
             -S "Client initiated reconnection from same port"
 
 # Tests for various cases of client authentication with DTLS
@@ -8387,8 +8395,8 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
 not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: reference" \
             -p "$P_PXY" \
-            "$P_SRV dtls=1 debug_level=2" \
-            "$P_CLI dtls=1 debug_level=2" \
+            "$P_SRV dtls=1 debug_level=2 hs_timeout=10000-20000" \
+            "$P_CLI dtls=1 debug_level=2 hs_timeout=10000-20000" \
             0 \
             -C "replayed record" \
             -S "replayed record" \
@@ -8405,8 +8413,8 @@ run_test    "DTLS proxy: reference" \
 not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: duplicate every packet" \
             -p "$P_PXY duplicate=1" \
-            "$P_SRV dtls=1 dgram_packing=0 debug_level=2" \
-            "$P_CLI dtls=1 dgram_packing=0 debug_level=2" \
+            "$P_SRV dtls=1 dgram_packing=0 debug_level=2 hs_timeout=10000-20000" \
+            "$P_CLI dtls=1 dgram_packing=0 debug_level=2 hs_timeout=10000-20000" \
             0 \
             -c "replayed record" \
             -s "replayed record" \

@@ -130,6 +130,7 @@ int main( void )
     "    bad_ad=0/1          default: 0 (don't add bad ApplicationData)\n"  \
     "    protect_hvr=0/1     default: 0 (don't protect HelloVerifyRequest)\n" \
     "    protect_len=%%d      default: (don't protect packets of this size)\n" \
+    "    inject_clihlo=0/1   default: 0 (don't inject fake ClientHello)\n"  \
     "\n"                                                                    \
     "    seed=%%d             default: (use current time)\n"                \
     USAGE_PACK                                                              \
@@ -162,6 +163,7 @@ static struct options
     int bad_ad;                 /* inject corrupted ApplicationData record  */
     int protect_hvr;            /* never drop or delay HelloVerifyRequest   */
     int protect_len;            /* never drop/delay packet of the given size*/
+    int inject_clihlo;          /* inject fake ClientHello after handshake  */
     unsigned pack;              /* merge packets into single datagram for
                                  * at most \c merge milliseconds if > 0     */
     unsigned int seed;          /* seed for "random" events                 */
@@ -302,6 +304,12 @@ static void get_options( int argc, char *argv[] )
         {
             opt.protect_len = atoi( q );
             if( opt.protect_len < 0 )
+                exit_usage( p, q );
+        }
+        else if( strcmp( p, "inject_clihlo" ) == 0 )
+        {
+            opt.inject_clihlo = atoi( q );
+            if( opt.inject_clihlo < 0 || opt.inject_clihlo > 1 )
                 exit_usage( p, q );
         }
         else if( strcmp( p, "seed" ) == 0 )
@@ -503,10 +511,40 @@ void print_packet( const packet *p, const char *why )
     fflush( stdout );
 }
 
+/*
+ * In order to test the server's behaviour when receiving a ClientHello after
+ * the connection is established (this could be a hard reset from the client,
+ * but the server must not drop the existing connection before establishing
+ * client reachability, see RFC 6347 Section 4.2.8), we memorize the first
+ * ClientHello we see (which can't have a cookie), then replay it after the
+ * first ApplicationData record - then we're done.
+ *
+ * This is controlled by the inject_clihlo option.
+ *
+ * We want an explicit state and a place to store the packet.
+ */
+typedef enum {
+    ICH_INIT,       /* haven't seen the first ClientHello yet */
+    ICH_CACHED,     /* cached the initial ClientHello */
+    ICH_INJECTED,   /* ClientHello already injected, done */
+} inject_clihlo_state_t;
+
+static inject_clihlo_state_t inject_clihlo_state;
+static packet initial_clihlo;
+
 int send_packet( const packet *p, const char *why )
 {
     int ret;
     mbedtls_net_context *dst = p->dst;
+
+    /* save initial ClientHello? */
+    if( opt.inject_clihlo != 0 &&
+        inject_clihlo_state == ICH_INIT &&
+        strcmp( p->type, "ClientHello" ) == 0 )
+    {
+        memcpy( &initial_clihlo, p, sizeof( packet ) );
+        inject_clihlo_state = ICH_CACHED;
+    }
 
     /* insert corrupted ApplicationData record? */
     if( opt.bad_ad &&
@@ -551,6 +589,23 @@ int send_packet( const packet *p, const char *why )
             mbedtls_printf( "  ! dispatch returned %d\n", ret );
             return( ret );
         }
+    }
+
+    /* Inject ClientHello after first ApplicationData */
+    if( opt.inject_clihlo != 0 &&
+        inject_clihlo_state == ICH_CACHED &&
+        strcmp( p->type, "ApplicationData" ) == 0 )
+    {
+        print_packet( &initial_clihlo, "injected" );
+
+        if( ( ret = dispatch_data( dst, initial_clihlo.buf,
+                                        initial_clihlo.len ) ) <= 0 )
+        {
+            mbedtls_printf( "  ! dispatch returned %d\n", ret );
+            return( ret );
+        }
+
+        inject_clihlo_state = ICH_INJECTED;
     }
 
     return( 0 );

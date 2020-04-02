@@ -136,6 +136,8 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
         goto exit;
     }
 
+    memset( t, 0, hash_len );
+
     /*
      * Compute T = T(1) | T(2) | T(3) | ... | T(N)
      * Where T(N) is defined in RFC 5869 Section 2.3

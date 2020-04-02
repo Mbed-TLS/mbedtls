@@ -2,6 +2,15 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix bug in DTLS handling of new associations with the same parameters
+     (RFC 6347 section 4.2.8): after sending its HelloVerifyRequest, the
+     server would end up with corrupted state and only send invalid records to
+     the client. An attacker able to send forged UDP packets to the server
+     could use that to obtain a Denial of Service. This could only happen when
+     MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE was enabled in config.h (which it is
+     by default).
+
 Bugfix
    * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
      MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.

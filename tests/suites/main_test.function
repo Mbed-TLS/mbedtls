@@ -393,18 +393,22 @@ int main(int argc, const char *argv[])
                 {
                     if( dep_check( params[i] ) != DEPENDENCY_SUPPORTED )
                     {
-                        if( 0 != option_verbose )
+                        if( unmet_dep_count <
+                            ARRAY_LENGTH( unmet_dependencies ) )
                         {
-                            unmet_dependencies[unmet_dep_count] =
-                                strdup( params[i] );
-                            if(  unmet_dependencies[unmet_dep_count] == NULL )
+                            if( 0 != option_verbose )
                             {
-                                mbedtls_fprintf( stderr,
-                                                 "FATAL: Out of memory\n" );
-                                mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+                                unmet_dependencies[unmet_dep_count] =
+                                    strdup( params[i] );
+                                if( unmet_dependencies[unmet_dep_count] == NULL )
+                                {
+                                    mbedtls_fprintf( stderr,
+                                                     "FATAL: Out of memory\n" );
+                                    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+                                }
                             }
+                            unmet_dep_count++;
                         }
-                        unmet_dep_count++;
                     }
                 }
 

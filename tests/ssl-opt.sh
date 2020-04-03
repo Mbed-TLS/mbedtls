@@ -7097,6 +7097,7 @@ run_test    "DTLS cookie: enabled, nbio" \
 
 not_with_valgrind # spurious resend
 requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
+requires_config_enabled MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
 run_test    "DTLS client reconnect from same port: reference" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=20000 hs_timeout=10000-20000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=10000-20000" \
@@ -7107,6 +7108,7 @@ run_test    "DTLS client reconnect from same port: reference" \
 
 not_with_valgrind # spurious resend
 requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
+requires_config_enabled MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
 run_test    "DTLS client reconnect from same port: reconnect" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=20000 hs_timeout=10000-20000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=10000-20000 reconnect_hard=1" \
@@ -7117,6 +7119,7 @@ run_test    "DTLS client reconnect from same port: reconnect" \
 
 not_with_valgrind # server/client too slow to respond in time (next test has higher timeouts)
 requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
+requires_config_enabled MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
 run_test    "DTLS client reconnect from same port: reconnect, nbio, no valgrind" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000 nbio=2" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
@@ -7126,6 +7129,7 @@ run_test    "DTLS client reconnect from same port: reconnect, nbio, no valgrind"
 
 only_with_valgrind # Only with valgrind, do previous test but with higher read_timeout and hs_timeout
 requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
+requires_config_enabled MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
 run_test    "DTLS client reconnect from same port: reconnect, nbio, valgrind" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=2000 nbio=2 hs_timeout=1500-6000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=1500-3000 reconnect_hard=1" \
@@ -7134,6 +7138,7 @@ run_test    "DTLS client reconnect from same port: reconnect, nbio, valgrind" \
             -s "Client initiated reconnection from same port"
 
 requires_config_disabled MBEDTLS_SSL_CONF_READ_TIMEOUT
+requires_config_enabled MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
 run_test    "DTLS client reconnect from same port: no cookies" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000 cookies=0" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-8000 reconnect_hard=1" \
@@ -7141,6 +7146,7 @@ run_test    "DTLS client reconnect from same port: no cookies" \
             -s "The operation timed out" \
             -S "Client initiated reconnection from same port"
 
+requires_config_enabled MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
 run_test    "DTLS client reconnect from same port: attacker-injected" \
             -p "$P_PXY inject_clihlo=1" \
             "$P_SRV dtls=1 exchanges=2 debug_level=1" \

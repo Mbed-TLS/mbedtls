@@ -36,7 +36,7 @@ You must run this program from within a git working directory.
 # This file is part of Mbed TLS (https://tls.mbed.org)
 
 import argparse
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import datetime
 import functools
 import glob
@@ -51,51 +51,149 @@ class InputFormatError(Exception):
                                      message.format(*args, **kwargs))
         super().__init__(message)
 
+class CategoryParseError(Exception):
+    def __init__(self, line_offset, error_message):
+        self.line_offset = line_offset
+        self.error_message = error_message
+        super().__init__('{}: {}'.format(line_offset, error_message))
+
 class LostContent(Exception):
     def __init__(self, filename, line):
         message = ('Lost content from {}: "{}"'.format(filename, line))
         super().__init__(message)
 
-STANDARD_SECTIONS = (
-    b'Interface changes',
+# The category names we use in the changelog.
+# If you edit this, update ChangeLog.d/README.md.
+STANDARD_CATEGORIES = (
+    b'API changes',
     b'Default behavior changes',
     b'Requirement changes',
     b'New deprecations',
     b'Removals',
-    b'New features',
+    b'Features',
     b'Security',
-    b'Bug fixes',
-    b'Performance improvements',
-    b'Other changes',
+    b'Bugfix',
+    b'Changes',
 )
+
+CategoryContent = namedtuple('CategoryContent', [
+    'name', 'title_line', # Title text and line number of the title
+    'body', 'body_line', # Body text and starting line number of the body
+])
+
+class ChangelogFormat:
+    """Virtual class documenting how to write a changelog format class."""
+
+    @classmethod
+    def extract_top_version(cls, changelog_file_content):
+        """Split out the top version section.
+
+        If the top version is already released, create a new top
+        version section for an unreleased version.
+
+        Return ``(header, top_version_title, top_version_body, trailer)``
+        where the "top version" is the existing top version section if it's
+        for unreleased changes, and a newly created section otherwise.
+        To assemble the changelog after modifying top_version_body,
+        concatenate the four pieces.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def version_title_text(cls, version_title):
+        """Return the text of a formatted version section title."""
+        raise NotImplementedError
+
+    @classmethod
+    def split_categories(cls, version_body):
+        """Split a changelog version section body into categories.
+
+        Return a list of `CategoryContent` the name is category title
+        without any formatting.
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def format_category(cls, title, body):
+        """Construct the text of a category section from its title and body."""
+        raise NotImplementedError
+
+class TextChangelogFormat(ChangelogFormat):
+    """The traditional Mbed TLS changelog format."""
+
+    _unreleased_version_text = b'= mbed TLS x.x.x branch released xxxx-xx-xx'
+    @classmethod
+    def is_released_version(cls, title):
+        # Look for an incomplete release date
+        return not re.search(br'[0-9x]{4}-[0-9x]{2}-[0-9x]?x', title)
+
+    _top_version_re = re.compile(br'(?:\A|\n)(=[^\n]*\n+)(.*?\n)(?:=|$)',
+                                 re.DOTALL)
+    @classmethod
+    def extract_top_version(cls, changelog_file_content):
+        """A version section starts with a line starting with '='."""
+        m = re.search(cls._top_version_re, changelog_file_content)
+        top_version_start = m.start(1)
+        top_version_end = m.end(2)
+        top_version_title = m.group(1)
+        top_version_body = m.group(2)
+        if cls.is_released_version(top_version_title):
+            top_version_end = top_version_start
+            top_version_title = cls._unreleased_version_text + b'\n\n'
+            top_version_body = b''
+        return (changelog_file_content[:top_version_start],
+                top_version_title, top_version_body,
+                changelog_file_content[top_version_end:])
+
+    @classmethod
+    def version_title_text(cls, version_title):
+        return re.sub(br'\n.*', version_title, re.DOTALL)
+
+    _category_title_re = re.compile(br'(^\w.*)\n+', re.MULTILINE)
+    @classmethod
+    def split_categories(cls, version_body):
+        """A category title is a line with the title in column 0."""
+        if not version_body:
+            return []
+        title_matches = list(re.finditer(cls._category_title_re, version_body))
+        if not title_matches or title_matches[0].start() != 0:
+            # There is junk before the first category.
+            raise CategoryParseError(0, 'Junk found where category expected')
+        title_starts = [m.start(1) for m in title_matches]
+        body_starts = [m.end(0) for m in title_matches]
+        body_ends = title_starts[1:] + [len(version_body)]
+        bodies = [version_body[body_start:body_end].rstrip(b'\n') + b'\n'
+                  for (body_start, body_end) in zip(body_starts, body_ends)]
+        title_lines = [version_body[:pos].count(b'\n') for pos in title_starts]
+        body_lines = [version_body[:pos].count(b'\n') for pos in body_starts]
+        return [CategoryContent(title_match.group(1), title_line,
+                                body, body_line)
+                for title_match, title_line, body, body_line
+                in zip(title_matches, title_lines, bodies, body_lines)]
+
+    @classmethod
+    def format_category(cls, title, body):
+        # `split_categories` ensures that each body ends with a newline.
+        # Make sure that there is additionally a blank line between categories.
+        if not body.endswith(b'\n\n'):
+            body += b'\n'
+        return title + b'\n' + body
 
 class ChangeLog:
     """An Mbed TLS changelog.
 
-    A changelog is a file in Markdown format. Each level 2 section title
-    starts a version, and versions are sorted in reverse chronological
-    order. Lines with a level 2 section title must start with '##'.
+    A changelog file consists of some header text followed by one or
+    more version sections. The version sections are in reverse
+    chronological order. Each version section consists of a title and a body.
 
-    Within a version, there are multiple sections, each devoted to a kind
-    of change: bug fix, feature request, etc. Section titles should match
-    entries in STANDARD_SECTIONS exactly.
+    The body of a version section consists of zero or more category
+    subsections. Each category subsection consists of a title and a body.
 
-    Within each section, each separate change should be on a line starting
-    with a '*' bullet. There may be blank lines surrounding titles, but
-    there should not be any blank line inside a section.
+    A changelog entry file has the same format as the body of a version section.
+
+    A `ChangelogFormat` object defines the concrete syntax of the changelog.
+    Entry files must have the same format as the changelog file.
     """
-
-    _title_re = re.compile(br'#*')
-    def title_level(self, line):
-        """Determine whether the line is a title.
-
-        Return (level, content) where level is the Markdown section level
-        (1 for '#', 2 for '##', etc.) and content is the section title
-        without leading or trailing whitespace. For a non-title line,
-        the level is 0.
-        """
-        level = re.match(self._title_re, line).end()
-        return level, line[level:].strip()
 
     # Only accept dotted version numbers (e.g. "3.1", not "3").
     # Refuse ".x" in a version number where x is a letter: this indicates
@@ -103,135 +201,59 @@ class ChangeLog:
     _version_number_re = re.compile(br'[0-9]+\.[0-9A-Za-z.]+')
     _incomplete_version_number_re = re.compile(br'.*\.[A-Za-z]')
 
-    def section_is_released_version(self, title):
-        """Whether this section is for a released version.
+    def add_categories_from_text(self, filename, line_offset,
+                                 text, allow_unknown_category):
+        """Parse a version section or entry file."""
+        try:
+            categories = self.format.split_categories(text)
+        except CategoryParseError as e:
+            raise InputFormatError(filename, line_offset + e.line_offset,
+                                   e.error_message)
+        for category in categories:
+            if not allow_unknown_category and \
+               category.name not in self.categories:
+                raise InputFormatError(filename,
+                                       line_offset + category.title_line,
+                                       'Unknown category: "{}"',
+                                       category.name.decode('utf8'))
+            self.categories[category.name] += category.body
 
-        True if the given level-2 section title indicates that this section
-        contains released changes, otherwise False.
-        """
-        # Assume that a released version has a numerical version number
-        # that follows a particular pattern. These criteria may be revised
-        # as needed in future versions of this script.
-        version_number = re.search(self._version_number_re, title)
-        if version_number:
-            return not re.search(self._incomplete_version_number_re,
-                                 version_number.group(0))
-        else:
-            return False
-
-    def unreleased_version_title(self):
-        """The title to use if creating a new section for an unreleased version."""
-        # pylint: disable=no-self-use; this method may be overridden
-        return b'Unreleased changes'
-
-    def __init__(self, input_stream):
+    def __init__(self, input_stream, changelog_format):
         """Create a changelog object.
 
         Populate the changelog object from the content of the file
-        input_stream. This is typically a file opened for reading, but
-        can be any generator returning the lines to read.
+        input_stream.
         """
-        # Content before the level-2 section where the new entries are to be
-        # added.
-        self.header = []
-        # Content of the level-3 sections of where the new entries are to
-        # be added.
-        self.section_content = OrderedDict()
-        for section in STANDARD_SECTIONS:
-            self.section_content[section] = []
-        # Content of level-2 sections for already-released versions.
-        self.trailer = []
-        self.read_main_file(input_stream)
-
-    def read_main_file(self, input_stream):
-        """Populate the changelog object from the content of the file.
-
-        This method is only intended to be called as part of the constructor
-        of the class and may not act sensibly on an object that is already
-        partially populated.
-        """
-        # Parse the first level-2 section, containing changelog entries
-        # for unreleased changes.
-        # If we'll be expanding this section, everything before the first
-        # level-3 section title ("###...") following the first level-2
-        # section title ("##...") is passed through as the header
-        # and everything after the second level-2 section title is passed
-        # through as the trailer. Inside the first level-2 section,
-        # split out the level-3 sections.
-        # If we'll be creating a new version, the header is everything
-        # before the point where we want to add the level-2 section
-        # for this version, and the trailer is what follows.
-        level_2_seen = 0
-        current_section = None
-        for line in input_stream:
-            level, content = self.title_level(line)
-            if level == 2:
-                level_2_seen += 1
-                if level_2_seen == 1:
-                    if self.section_is_released_version(content):
-                        self.header.append(b'## ' +
-                                           self.unreleased_version_title() +
-                                           b'\n\n')
-                        level_2_seen = 2
-            elif level == 3 and level_2_seen == 1:
-                current_section = content
-                self.section_content.setdefault(content, [])
-            if level_2_seen == 1 and current_section is not None:
-                if level != 3 and line.strip():
-                    self.section_content[current_section].append(line)
-            elif level_2_seen <= 1:
-                self.header.append(line)
-            else:
-                self.trailer.append(line)
+        self.format = changelog_format
+        whole_file = input_stream.read()
+        (self.header,
+         self.top_version_title, top_version_body,
+         self.trailer) = self.format.extract_top_version(whole_file)
+        # Split the top version section into categories.
+        self.categories = OrderedDict()
+        for category in STANDARD_CATEGORIES:
+            self.categories[category] = b''
+        offset = (self.header + self.top_version_title).count(b'\n') + 1
+        self.add_categories_from_text(input_stream.name, offset,
+                                      top_version_body, True)
 
     def add_file(self, input_stream):
         """Add changelog entries from a file.
-
-        Read lines from input_stream, which is typically a file opened
-        for reading. These lines must contain a series of level 3
-        Markdown sections with recognized titles. The corresponding
-        content is injected into the respective sections in the changelog.
-        The section titles must be either one of the hard-coded values
-        in STANDARD_SECTIONS in assemble_changelog.py or already present
-        in ChangeLog.md. Section titles must match byte-for-byte except that
-        leading or trailing whitespace is ignored.
         """
-        filename = input_stream.name
-        current_section = None
-        for line_number, line in enumerate(input_stream, 1):
-            if not line.strip():
-                continue
-            level, content = self.title_level(line)
-            if level == 3:
-                current_section = content
-                if current_section not in self.section_content:
-                    raise InputFormatError(filename, line_number,
-                                           'Section {} is not recognized',
-                                           str(current_section)[1:])
-            elif level == 0:
-                if current_section is None:
-                    raise InputFormatError(filename, line_number,
-                                           'Missing section title at the beginning of the file')
-                self.section_content[current_section].append(line)
-            else:
-                raise InputFormatError(filename, line_number,
-                                       'Only level 3 headers (###) are permitted')
+        self.add_categories_from_text(input_stream.name, 1,
+                                      input_stream.read(), False)
 
     def write(self, filename):
         """Write the changelog to the specified file.
         """
         with open(filename, 'wb') as out:
-            for line in self.header:
-                out.write(line)
-            for section, lines in self.section_content.items():
-                if not lines:
+            out.write(self.header)
+            out.write(self.top_version_title)
+            for title, body in self.categories.items():
+                if not body:
                     continue
-                out.write(b'### ' + section + b'\n\n')
-                for line in lines:
-                    out.write(line)
-                out.write(b'\n')
-            for line in self.trailer:
-                out.write(line)
+                out.write(self.format.format_category(title, body))
+            out.write(self.trailer)
 
 
 @functools.total_ordering
@@ -403,7 +425,7 @@ def list_files_to_merge(options):
 
     "Oldest" is defined by `EntryFileSortKey`.
     """
-    files_to_merge = glob.glob(os.path.join(options.dir, '*.md'))
+    files_to_merge = glob.glob(os.path.join(options.dir, '*.txt'))
     files_to_merge.sort(key=EntryFileSortKey)
     return files_to_merge
 
@@ -416,7 +438,7 @@ def merge_entries(options):
     Remove the merged entries if options.keep_entries is false.
     """
     with open(options.input, 'rb') as input_file:
-        changelog = ChangeLog(input_file)
+        changelog = ChangeLog(input_file, TextChangelogFormat)
     files_to_merge = list_files_to_merge(options)
     if not files_to_merge:
         sys.stderr.write('There are no pending changelog entries.\n')
@@ -454,9 +476,9 @@ def main():
                         help='Directory to read entries from'
                              ' (default: ChangeLog.d)')
     parser.add_argument('--input', '-i', metavar='FILE',
-                        default='ChangeLog.md',
+                        default='ChangeLog',
                         help='Existing changelog file to read from and augment'
-                             ' (default: ChangeLog.md)')
+                             ' (default: ChangeLog)')
     parser.add_argument('--keep-entries',
                         action='store_true', dest='keep_entries', default=None,
                         help='Keep the files containing entries'
@@ -470,7 +492,7 @@ def main():
                              ' (default: overwrite the input)')
     parser.add_argument('--list-files-only',
                         action='store_true',
-                        help=('Only list the files that would be processed'
+                        help=('Only list the files that would be processed '
                               '(with some debugging information)'))
     options = parser.parse_args()
     set_defaults(options)

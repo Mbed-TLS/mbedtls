@@ -538,6 +538,31 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_mpi_lt_mpi_ct( int size_X, char * input_X,
+                            int size_Y, char * input_Y,
+                            int input_ret, int input_err )
+{
+    unsigned ret;
+    unsigned input_uret = input_ret;
+    mbedtls_mpi X, Y;
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &X, 16, input_X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &Y, 16, input_Y ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_grow( &X, size_X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_grow( &Y, size_Y ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_lt_mpi_ct( &X, &Y, &ret ) == input_err );
+    if( input_err == 0 )
+        TEST_ASSERT( ret == input_uret );
+
+exit:
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_mpi_cmp_abs( int radix_X, char * input_X, int radix_Y,
                           char * input_Y, int input_A )
 {
@@ -554,22 +579,40 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_copy( int input_X, int input_A )
+void mbedtls_mpi_copy_sint( int input_X, int input_Y )
 {
-    mbedtls_mpi X, Y, A;
-    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &A );
+    mbedtls_mpi X, Y;
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
 
     TEST_ASSERT( mbedtls_mpi_lset( &X, input_X ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_lset( &Y, input_A ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_lset( &A, input_A ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &Y ) != 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Y, &A ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &Y, input_Y ) == 0 );
+
     TEST_ASSERT( mbedtls_mpi_copy( &Y, &X ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &Y ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Y, &A ) != 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &X, input_X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &Y, input_X ) == 0 );
 
 exit:
-    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &A );
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_mpi_copy_binary( data_t *input_X, data_t *input_Y )
+{
+    mbedtls_mpi X, Y, X0;
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &X0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &Y, input_Y->x, input_Y->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X0, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &X0 ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_copy( &Y, &X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &X0 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Y, &X0 ) == 0 );
+
+exit:
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &X0 );
 }
 /* END_CASE */
 
@@ -661,22 +704,61 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_swap( int input_X, int input_Y )
+void mbedtls_mpi_swap_sint( int input_X, int input_Y )
 {
-    mbedtls_mpi X, Y, A;
-    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &A );
+    mbedtls_mpi X, Y;
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
 
     TEST_ASSERT( mbedtls_mpi_lset( &X, input_X ) == 0 );
     TEST_ASSERT( mbedtls_mpi_lset( &Y, input_Y ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_lset( &A, input_X ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &Y ) != 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &X, input_X ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &Y, input_Y ) == 0 );
+
     mbedtls_mpi_swap( &X, &Y );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &Y ) != 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Y, &A ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &X, input_Y ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &Y, input_X ) == 0 );
 
 exit:
-    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &A );
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_mpi_swap_binary( data_t *input_X, data_t *input_Y )
+{
+    mbedtls_mpi X, Y, X0, Y0;
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
+    mbedtls_mpi_init( &X0 ); mbedtls_mpi_init( &Y0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &Y, input_Y->x, input_Y->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X0, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &Y0, input_Y->x, input_Y->len ) == 0 );
+
+    mbedtls_mpi_swap( &X, &Y );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &Y0 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &Y, &X0 ) == 0 );
+
+exit:
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y );
+    mbedtls_mpi_free( &X0 ); mbedtls_mpi_free( &Y0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_swap_self( data_t *input_X )
+{
+    mbedtls_mpi X, X0;
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &X0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_X->x, input_X->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X0, input_X->x, input_X->len ) == 0 );
+
+    mbedtls_mpi_swap( &X, &X );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &X0 ) == 0 );
+
+exit:
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &X0 );
 }
 /* END_CASE */
 

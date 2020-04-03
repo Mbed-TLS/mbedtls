@@ -29,7 +29,7 @@ void mbedtls_memory_buffer_alloc_self_test(  )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
+/* BEGIN_CASE */
 void memory_buffer_alloc_free_alloc( int a_bytes, int b_bytes, int c_bytes,
                                      int d_bytes, int free_a, int free_b,
                                      int free_c, int free_d, int e_bytes,
@@ -39,8 +39,11 @@ void memory_buffer_alloc_free_alloc( int a_bytes, int b_bytes, int c_bytes,
     unsigned char *ptr_a = NULL, *ptr_b = NULL, *ptr_c = NULL, *ptr_d = NULL,
                     *ptr_e = NULL, *ptr_f = NULL;
 
+#if defined(MBEDTLS_MEMORY_DEBUG)
     size_t reported_blocks;
-    size_t allocated_bytes = 0, reported_bytes;
+    size_t reported_bytes;
+#endif
+    size_t allocated_bytes = 0;
 
     mbedtls_memory_buffer_alloc_init( buf, sizeof( buf ) );
 
@@ -78,8 +81,10 @@ void memory_buffer_alloc_free_alloc( int a_bytes, int b_bytes, int c_bytes,
         allocated_bytes += d_bytes * sizeof(char);
     }
 
+#if defined(MBEDTLS_MEMORY_DEBUG)
     mbedtls_memory_buffer_alloc_cur_get( &reported_bytes, &reported_blocks );
     TEST_ASSERT( reported_bytes == allocated_bytes );
+#endif
 
     if( free_a )
     {
@@ -117,8 +122,10 @@ void memory_buffer_alloc_free_alloc( int a_bytes, int b_bytes, int c_bytes,
         allocated_bytes -= d_bytes * sizeof(char);
     }
 
+#if defined(MBEDTLS_MEMORY_DEBUG)
     mbedtls_memory_buffer_alloc_cur_get( &reported_bytes, &reported_blocks );
     TEST_ASSERT( reported_bytes == allocated_bytes );
+#endif
 
     if( e_bytes > 0 )
     {
@@ -178,8 +185,10 @@ void memory_buffer_alloc_free_alloc( int a_bytes, int b_bytes, int c_bytes,
         ptr_f = NULL;
     }
 
+#if defined(MBEDTLS_MEMORY_DEBUG)
     mbedtls_memory_buffer_alloc_cur_get( &reported_bytes, &reported_blocks );
     TEST_ASSERT( reported_bytes == 0 );
+#endif
 
     TEST_ASSERT( mbedtls_memory_buffer_alloc_verify() == 0 );
 
@@ -188,12 +197,14 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
+/* BEGIN_CASE */
 void memory_buffer_alloc_oom_test(  )
 {
     unsigned char buf[1024];
     unsigned char *ptr_a = NULL, *ptr_b = NULL, *ptr_c = NULL;
+#if defined(MBEDTLS_MEMORY_DEBUG)
     size_t reported_blocks, reported_bytes;
+#endif
 
     (void)ptr_c;
 
@@ -210,8 +221,10 @@ void memory_buffer_alloc_oom_test(  )
     ptr_c = mbedtls_calloc( 431, sizeof(char) );
     TEST_ASSERT( ptr_c == NULL );
 
+#if defined(MBEDTLS_MEMORY_DEBUG)
     mbedtls_memory_buffer_alloc_cur_get( &reported_bytes, &reported_blocks );
     TEST_ASSERT( reported_bytes >= 864 && reported_bytes <= sizeof(buf) );
+#endif
 
     mbedtls_free( ptr_a );
     ptr_a = NULL;
@@ -221,8 +234,10 @@ void memory_buffer_alloc_oom_test(  )
     ptr_b = NULL;
     TEST_ASSERT( mbedtls_memory_buffer_alloc_verify() == 0 );
 
+#if defined(MBEDTLS_MEMORY_DEBUG)
     mbedtls_memory_buffer_alloc_cur_get( &reported_bytes, &reported_blocks );
     TEST_ASSERT( reported_bytes == 0 );
+#endif
 
     TEST_ASSERT( mbedtls_memory_buffer_alloc_verify() == 0 );
 
@@ -231,17 +246,20 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
-void memory_buffer_small_buffer( )
+/* BEGIN_CASE */
+void memory_buffer_heap_too_small( )
 {
     unsigned char buf[1];
 
     mbedtls_memory_buffer_alloc_init( buf, sizeof( buf ) );
+    /* With MBEDTLS_MEMORY_DEBUG enabled, this prints a message
+     * "FATAL: verification of first header failed".
+     */
     TEST_ASSERT( mbedtls_memory_buffer_alloc_verify() != 0 );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
+/* BEGIN_CASE */
 void memory_buffer_underalloc( )
 {
     unsigned char buf[100];

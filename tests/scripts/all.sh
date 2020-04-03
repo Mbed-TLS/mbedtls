@@ -137,6 +137,9 @@ pre_initialize_variables () {
         export MAKEFLAGS="-j"
     fi
 
+    # CFLAGS and LDFLAGS for Asan builds that don't use CMake
+    ASAN_CFLAGS='-Werror -Wall -Wextra -fsanitize=address,undefined -fno-sanitize-recover=all'
+
     # Gather the list of available components. These are the functions
     # defined in this script whose name starts with "component_".
     # Parse the script with sed, because in sh there is no way to list
@@ -1106,8 +1109,8 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_FS_IO
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
     # to re-enable platform integration features otherwise disabled in C99 builds
-    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
-    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -O0' test
+    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -Os -D_DEFAULT_SOURCE' lib programs
+    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -Os' test
 }
 
 component_build_no_std_function () {
@@ -1116,21 +1119,21 @@ component_build_no_std_function () {
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -O0'
+    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -Os'
 }
 
 component_build_no_ssl_srv () {
     msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_SSL_SRV_C
-    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -O0'
+    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -O1'
 }
 
 component_build_no_ssl_cli () {
     msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_SSL_CLI_C
-    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -O0'
+    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -O1'
 }
 
 component_build_no_sockets () {
@@ -1140,7 +1143,7 @@ component_build_no_sockets () {
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
-    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' lib
+    make CC=gcc PTHREAD=1 CFLAGS='-Werror -Wall -Wextra -O1 -std=c99 -pedantic' lib
 }
 
 component_test_memory_buffer_allocator_backtrace () {
@@ -1284,6 +1287,21 @@ component_test_platform_calloc_macro () {
     make test
 }
 
+component_test_malloc_0_null () {
+    msg "build: malloc(0) returns NULL (ASan+UBSan build)"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    make CC=gcc CFLAGS="'-DMBEDTLS_CONFIG_FILE=\"$PWD/tests/configs/config-wrapper-malloc-0-null.h\"' -O -Werror -Wall -Wextra -fsanitize=address,undefined" LDFLAGS='-fsanitize=address,undefined'
+
+    msg "test: malloc(0) returns NULL (ASan+UBSan build)"
+    make test
+
+    msg "selftest: malloc(0) returns NULL (ASan+UBSan build)"
+    # Just the calloc selftest. "make test" ran the others as part of the
+    # test suites.
+    if_build_succeeded programs/test/selftest calloc
+}
+
 component_test_aes_fewer_tables () {
     msg "build: default config with AES_FEWER_TABLES enabled"
     scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
@@ -1357,6 +1375,30 @@ component_test_cmake_shared () {
     make test
 }
 
+test_build_opt () {
+    info=$1 cc=$2; shift 2
+    for opt in "$@"; do
+          msg "build/test: $cc $opt, $info" # ~ 30s
+          make CC="$cc" CFLAGS="$opt -Wall -Wextra -Werror"
+          # We're confident enough in compilers to not run _all_ the tests,
+          # but at least run the unit tests. In particular, runs with
+          # optimizations use inline assembly whereas runs with -O0
+          # skip inline assembly.
+          make test # ~30s
+          make clean
+    done
+}
+
+component_test_clang_opt () {
+    scripts/config.pl full
+    test_build_opt 'full config' clang -O0 -Os -O2
+}
+
+component_test_gcc_opt () {
+    scripts/config.pl full
+    test_build_opt 'full config' gcc -O0 -Os -O2
+}
+
 component_build_mbedtls_config_file () {
     msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
     # Use the full config so as to catch a maximum of places where
@@ -1372,7 +1414,7 @@ component_test_m32_o0 () {
     # Build once with -O0, to compile out the i386 specific inline assembly
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.pl full
-    make CC=gcc PTHREAD=1 CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32'
+    make CC=gcc PTHREAD=1 CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O0 (ASan build)"
     make test
@@ -1388,7 +1430,7 @@ component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
     scripts/config.pl full
-    make CC=gcc PTHREAD=1 CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address' LDFLAGS='-m32'
+    make CC=gcc PTHREAD=1 CFLAGS="$ASAN_CFLAGS -m32 -O1" LDFLAGS="-m32 $ASAN_CFLAGS"
 
     msg "test: i386, make, gcc -O1 (ASan build)"
     make test

@@ -1162,6 +1162,18 @@ run_test    "Default (compression enabled)" \
             -S "error" \
             -C "error"
 
+requires_config_enabled MBEDTLS_ZLIB_SUPPORT
+run_test    "Default (compression enabled)" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -s "Allocating compression buffer" \
+            -c "Allocating compression buffer" \
+            -s "Record expansion is unknown (compression)" \
+            -c "Record expansion is unknown (compression)" \
+            -S "error" \
+            -C "error"
+
 # Test current time in ServerHello
 requires_config_enabled MBEDTLS_HAVE_TIME
 run_test    "ServerHello contains gmt_unix_time" \
@@ -5380,15 +5392,8 @@ run_test    "Per-version suites: TLS 1.2" \
 # Test for ClientHello without extensions
 
 requires_gnutls
-run_test    "ClientHello without extensions, SHA-1 allowed" \
-            "$P_SRV debug_level=3 key_file=data_files/server2.key crt_file=data_files/server2.crt" \
-            "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
-            0 \
-            -s "dumping 'client hello extensions' (0 bytes)"
-
-requires_gnutls
-run_test    "ClientHello without extensions, SHA-1 forbidden in certificates on server" \
-            "$P_SRV debug_level=3 key_file=data_files/server2.key crt_file=data_files/server2.crt allow_sha1=0" \
+run_test    "ClientHello without extensions" \
+            "$P_SRV debug_level=3" \
             "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
             -s "dumping 'client hello extensions' (0 bytes)"

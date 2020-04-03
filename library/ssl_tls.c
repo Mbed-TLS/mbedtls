@@ -4889,7 +4889,42 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 }
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
+size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl )
+{
+    size_t max_len = MBEDTLS_SSL_MAX_CONTENT_LEN;
+    size_t read_mfl;
+
+    /* Use the configured MFL for the client if we're past SERVER_HELLO_DONE */
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+        ssl->state >= MBEDTLS_SSL_SERVER_HELLO_DONE )
+    {
+        return ssl_mfl_code_to_length( ssl->conf->mfl_code );
+    }
+
+    /* Check if a smaller max length was negotiated */
+    if( ssl->session_out != NULL )
+    {
+        read_mfl = ssl_mfl_code_to_length( ssl->session_out->mfl_code );
+        if( read_mfl < max_len )
+        {
+            max_len = read_mfl;
+        }
+    }
+
+    // During a handshake, use the value being negotiated
+    if( ssl->session_negotiate != NULL )
+    {
+        read_mfl = ssl_mfl_code_to_length( ssl->session_negotiate->mfl_code );
+        if( read_mfl < max_len )
+        {
+            max_len = read_mfl;
+        }
+    }
+
+    return( max_len );
+}
+
+size_t mbedtls_ssl_get_output_max_frag_len( const mbedtls_ssl_context *ssl )
 {
     size_t max_len;
 
@@ -4914,6 +4949,13 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 
     return( max_len );
 }
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
+{
+    return mbedtls_ssl_get_output_max_frag_len( ssl );
+}
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -4946,7 +4988,7 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    const size_t mfl = mbedtls_ssl_get_max_frag_len( ssl );
+    const size_t mfl = mbedtls_ssl_get_output_max_frag_len( ssl );
 
     if( max_len > mfl )
         max_len = mfl;

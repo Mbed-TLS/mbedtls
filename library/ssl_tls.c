@@ -1853,11 +1853,13 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 
     if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
             == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
+    {
         /*
          * This should never happen because the existence of a PSK is always
          * checked before calling this function
          */
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    }
 
     /*
      * PMS = struct {

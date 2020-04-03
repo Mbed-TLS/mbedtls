@@ -5273,7 +5273,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
         /* Don't check write errors as we can't do anything here.
          * If the error is permanent we'll catch it later,
          * if it's not, then hopefully it'll work next time. */
-        send_ret = ssl->f_send( ssl->p_bio, ssl->out_buf, len );
+        send_ret = mbedtls_ssl_get_send( ssl )( ssl->p_bio, ssl->out_buf, len );
         MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_send", send_ret );
         (void) send_ret;
 

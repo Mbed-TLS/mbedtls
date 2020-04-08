@@ -19,6 +19,11 @@ Security
      an ECDSA private key. Found and reported by Alejandro Cabrera Aldaya,
      Billy Brumley and Cesar Pereida Garcia. CVE-2020-10932
 
+Features
+   * The new build option MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH automatically
+     resizes the I/O buffers before and after handshakes, reducing the memory
+     consumption during application data transfer.
+
 Bugfix
    * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
      MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.

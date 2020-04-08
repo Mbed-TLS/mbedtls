@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.16.6 branch released 2020-04-14
 
 Security
    * Fix side channel in ECC code that allowed an adversary with access to

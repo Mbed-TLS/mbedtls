@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.22.0 branch released 2020-04-14
 
 New deprecations
    * Deprecate MBEDTLS_SSL_HW_RECORD_ACCEL that enables function hooks in the

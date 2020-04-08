@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.7.15 branch released 2020-04-14
 
 Security
    * Fix bug in DTLS handling of new associations with the same parameters

@@ -898,9 +898,12 @@ component_test_full_cmake_clang () {
 }
 
 component_build_deprecated () {
-    msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
+    msg "build: make, full config - deprecated + DEPRECATED_WARNING, gcc -O" # ~ 30s
     scripts/config.py full
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
+    scripts/config.py unset MBEDTLS_SSL_PROTO_SSL3
+    scripts/config.py unset MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
+
     # Build with -O -Wextra to catch a maximum of issues.
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
@@ -909,7 +912,7 @@ component_build_deprecated () {
     make -C tests clean
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -DMBEDTLS_TEST_DEPRECATED' tests
 
-    msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
+    msg "build: make, full config - deprecated + DEPRECATED_REMOVED, clang -O" # ~ 30s
     # No cleanup, just tweak the configuration and rebuild
     make clean
     scripts/config.py unset MBEDTLS_DEPRECATED_WARNING

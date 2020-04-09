@@ -75,15 +75,15 @@ make -j
 TEST_OUTPUT=out_${PPID}
 cd tests
 
-# Step 2a - Unit Tests
+# Step 2a - Unit Tests (keep going even if some tests fail)
 perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT
 echo
 
-# Step 2b - System Tests
+# Step 2b - System Tests (keep going even if some tests fail)
 sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT
 echo
 
-# Step 2c - Compatibility tests
+# Step 2c - Compatibility tests (keep going even if some tests fail)
 sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2' | \
     tee compat-test-$TEST_OUTPUT
 OPENSSL_CMD="$OPENSSL_LEGACY"                               \

@@ -125,7 +125,7 @@ foreach my $line (@matches)
     {
         $code_check = \$hl_code_check;
         $old_define = \$hl_old_define;
-        $white_space = '        ';
+        $white_space = '    ';
     }
 
     if ($define_name ne ${$old_define})
@@ -160,19 +160,7 @@ foreach my $line (@matches)
         ${$old_define} = $define_name;
     }
 
-    if ($error_name eq "MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE")
-    {
-        ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
-                          "${white_space}\{\n".
-                          "${white_space}    mbedtls_snprintf( buf, buflen, \"$module_name - $description\" );\n".
-                          "${white_space}    return;\n".
-                          "${white_space}}\n"
-    }
-    else
-    {
-        ${$code_check} .= "${white_space}if( use_ret == -($error_name) )\n".
-                          "${white_space}    mbedtls_snprintf( buf, buflen, \"$module_name - $description\" );\n"
-    }
+    ${$code_check} .= "${white_space}\{.code = -($error_name), .description=\"$module_name - $description\"},\n";
 };
 
 if ($ll_old_define ne "")

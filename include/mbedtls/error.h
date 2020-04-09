@@ -127,6 +127,32 @@ extern "C" {
  */
 void mbedtls_strerror( int errnum, char *buffer, size_t buflen );
 
+/**
+ * \brief Translate high level part of a mbed TLS error code into a string
+ *        representation.
+ *
+ * This function returns a const pointer to an un-modifiable string. The caller
+ * must not try to modify the string use it only for logging purposes.
+ *
+ * \param error_code    error code
+ *
+ * \return The string representation of the error code.
+ */
+const char * mbedtls_high_level_strerr( int error_code );
+
+/**
+ * \brief Translate low level part of a mbed TLS error code into a string
+ *        representation.
+ *
+ * This function returns a const pointer to an un-modifiable string. The caller
+ * must not try to modify the string and use it only for logging purposes.
+ *
+ * \param error_code    error code
+ *
+ * \return The string representation of the error code.
+ */
+const char * mbedtls_low_level_strerr( int error_code );
+
 #ifdef __cplusplus
 }
 #endif

@@ -76,7 +76,7 @@ make -j
 TEST_OUTPUT=out_${PPID}
 cd tests
 if [ ! -f "seedfile" ]; then
-    dd if=/dev/urandom of="seedfile" bs=32 count=1
+    dd if=/dev/urandom of="seedfile" bs=64 count=1
 fi
 
 # Step 2a - Unit Tests (keep going even if some tests fail)

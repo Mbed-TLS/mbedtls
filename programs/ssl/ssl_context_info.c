@@ -19,12 +19,27 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
-#define _CRT_SECURE_NO_DEPRECATE 1
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "mbedtls/config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#if !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_ERROR_C)
+int main( void )
+{
+    printf("MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_ERROR_C not defined.\n");
+    return( 0 );
+}
+#else
+
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
+#define _CRT_SECURE_NO_DEPRECATE 1
+#endif
+
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
@@ -45,7 +60,7 @@
 #define VER_MINOR 1
 
 /*
- * Flags copied from the mbedTLS library.
+ * Flags copied from the Mbed TLS library.
  */
 #define SESSION_CONFIG_TIME_BIT          ( 1 << 0 )
 #define SESSION_CONFIG_CRT_BIT           ( 1 << 1 )
@@ -117,7 +132,7 @@ void print_version( )
 void print_usage( )
 {
     print_version();
-    printf( "\nThis program is used to deserialize an mbedTLS SSL session from the base64 code provided\n"
+    printf( "\nThis program is used to deserialize an Mbed TLS SSL session from the base64 code provided\n"
             "in the text file. The program can deserialize many codes from one file, but they must be\n"
             "separated, e.g. by a newline.\n\n" );
     printf(
@@ -126,11 +141,11 @@ void print_usage( )
         "\t-v                 - Show version\n"
         "\t-h                 - Show this usage\n"
         "\t-d                 - Print more information\n"
-        "\t--keep-peer-cert=0 - Use this option if you know that the mbedTLS library\n"
+        "\t--keep-peer-cert=0 - Use this option if you know that the Mbed TLS library\n"
         "\t                     has been compiled with the MBEDTLS_SSL_KEEP_PEER_CERTIFICATE\n"
         "\t                     flag. You can also use it if there are some problems with reading\n"
         "\t                     the information about certificate\n"
-        "\t--dtls-protocol=0  - Use this option if you know that the mbedTLS library\n"
+        "\t--dtls-protocol=0  - Use this option if you know that the Mbed TLS library\n"
         "\t                     has been compiled without the MBEDTLS_SSL_PROTO_DTLS flag\n"
         "\n"
     );
@@ -1093,3 +1108,5 @@ int main( int argc, char *argv[] )
 
     return 0;
 }
+
+#endif /* MBEDTLS_X509_CRT_PARSE_C */

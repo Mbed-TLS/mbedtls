@@ -141,7 +141,8 @@ do {                                                                    \
 
 #define MEMORY_MEASURE_PRINT( title_len )                               \
     mbedtls_memory_buffer_alloc_max_get( &max_used, &max_blocks );      \
-    for( ii = 12 - title_len; ii != 0; ii-- ) mbedtls_printf( " " );    \
+    for( ii = 12 > (title_len) ? 12 - (title_len) : 1; ii !=0; ii--)    \
+        mbedtls_printf( " " );                                          \
     max_used -= prv_used;                                               \
     max_blocks -= prv_blocks;                                           \
     max_bytes = max_used + MEM_BLOCK_OVERHEAD * max_blocks;             \

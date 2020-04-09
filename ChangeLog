@@ -5,6 +5,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 New deprecations
    * Deprecate MBEDTLS_SSL_HW_RECORD_ACCEL that enables function hooks in the
      SSL module for hardware acceleration of individual records.
+   * Deprecate mbedtls_ssl_get_max_frag_len() in favour of
+     mbedtls_ssl_get_output_max_frag_len() and
+     mbedtls_ssl_get_input_max_frag_len() to be more precise about which max
+     fragment length is desired.
 
 Security
    * Fix issue in DTLS handling of new associations with the same parameters
@@ -23,6 +27,11 @@ Bugfix
 Changes
    * Mbed Crypto is no longer a Git submodule. The crypto part of the library
      is back directly in the present repository.
+   * Split mbedtls_ssl_get_max_frag_len() into
+     mbedtls_ssl_get_output_max_frag_len() and
+     mbedtls_ssl_get_input_max_frag_len() to ensure that a sufficient input
+     buffer is allocated by the server (if MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+     is defined), regardless of what MFL was configured for it.
 
 = mbed TLS 2.21.0 branch released 2020-02-20
 

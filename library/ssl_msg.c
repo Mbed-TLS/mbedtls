@@ -214,7 +214,7 @@ static int ssl_get_remaining_payload_in_datagram( mbedtls_ssl_context const *ssl
     size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    const size_t mfl = mbedtls_ssl_get_max_frag_len( ssl );
+    const size_t mfl = mbedtls_ssl_get_output_max_frag_len( ssl );
 
     if( max_len > mfl )
         max_len = mfl;

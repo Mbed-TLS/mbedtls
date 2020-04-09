@@ -78,28 +78,43 @@ cd tests
 if [ ! -f "seedfile" ]; then
     dd if=/dev/urandom of="seedfile" bs=64 count=1
 fi
+echo
 
 # Step 2a - Unit Tests (keep going even if some tests fail)
+echo '################ Unit tests ################'
 perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT
+echo '^^^^^^^^^^^^^^^^ Unit tests ^^^^^^^^^^^^^^^^'
 echo
 
 # Step 2b - System Tests (keep going even if some tests fail)
+echo
+echo '################ ssl-opt.sh ################'
 sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT
+echo '^^^^^^^^^^^^^^^^ ssl-opt.sh ^^^^^^^^^^^^^^^^'
 echo
 
 # Step 2c - Compatibility tests (keep going even if some tests fail)
-sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2' | \
-    tee compat-test-$TEST_OUTPUT
-OPENSSL_CMD="$OPENSSL_LEGACY"                               \
-    sh compat.sh -m 'ssl3' |tee -a compat-test-$TEST_OUTPUT
-OPENSSL_CMD="$OPENSSL_LEGACY"                                       \
-    GNUTLS_CLI="$GNUTLS_LEGACY_CLI"                                 \
-    GNUTLS_SERV="$GNUTLS_LEGACY_SERV"                               \
-    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR' |             \
-    tee -a compat-test-$TEST_OUTPUT
-OPENSSL_CMD="$OPENSSL_NEXT"                     \
-    sh compat.sh -e '^$' -f 'ARIA\|CHACHA' |    \
-    tee -a compat-test-$TEST_OUTPUT
+echo '################ compat.sh ################'
+{
+    echo '#### compat.sh: Default versions'
+    sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+    echo
+
+    echo '#### compat.sh: legacy (SSLv3)'
+    OPENSSL_CMD="$OPENSSL_LEGACY" sh compat.sh -m 'ssl3'
+    echo
+
+    echo '#### compat.sh: legacy (null, DES, RC4)'
+    OPENSSL_CMD="$OPENSSL_LEGACY" \
+    GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
+    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    echo
+
+    echo '#### compat.sh: next (ARIA, ChaCha)'
+    OPENSSL_CMD="$OPENSSL_NEXT" sh compat.sh -e '^$' -f 'ARIA\|CHACHA'
+    echo
+} | tee compat-test-$TEST_OUTPUT
+echo '^^^^^^^^^^^^^^^^ compat.sh ^^^^^^^^^^^^^^^^'
 echo
 
 # Step 3 - Process the coverage report

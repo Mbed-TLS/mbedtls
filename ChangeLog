@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.7.15 branch released 2020-04-14
 
 Security
    * Fix bug in DTLS handling of new associations with the same parameters
@@ -10,10 +10,19 @@ Security
      could use that to obtain a Denial of Service. This could only happen when
      MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE was enabled in config.h (which it is
      by default).
+   * Fix side channel in ECC code that allowed an adversary with access to
+     precise enough timing and memory access information (typically an
+     untrusted operating system attacking a secure enclave) to fully recover
+     an ECDSA private key. Found and reported by Alejandro Cabrera Aldaya,
+     Billy Brumley and Cesar Pereida Garcia. CVE-2020-10932
+   * Fix a potentially remotely exploitable buffer overread in a
+     DTLS client when parsing the Hello Verify Request message.
 
 Bugfix
    * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
      MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.
+   * Fix a function name in a debug message. Contributed by Ercan Ozturk in
+     #3013.
 
 = mbed TLS 2.7.14 branch released 2020-02-20
 

@@ -8,6 +8,8 @@ Security
      untrusted operating system attacking a secure enclave) to fully recover
      an ECDSA private key. Found and reported by Alejandro Cabrera Aldaya,
      Billy Brumley and Cesar Pereida Garcia. CVE-2020-10932
+   * Fix a potentially remotely exploitable buffer overread in a
+     DTLS client when parsing the Hello Verify Request message.
 
 Bugfix
    * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and

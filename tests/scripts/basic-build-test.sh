@@ -104,7 +104,14 @@ echo
 
 # Step 3 - Process the coverage report
 cd ..
-make lcov |tee tests/cov-$TEST_OUTPUT
+{
+    make lcov
+    echo SUCCESS
+} | tee tests/cov-$TEST_OUTPUT
+
+if [ "$(tail -n1 tests/cov-$TEST_OUTPUT)" != "SUCCESS" ]; then
+    echo >&2 "Fatal: 'make lcov' failed"
+fi
 
 
 # Step 4 - Summarise the test report

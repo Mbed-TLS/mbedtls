@@ -67,7 +67,6 @@ export CFLAGS=' --coverage -g3 -O0 '
 make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE
 make -j
 
 

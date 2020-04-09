@@ -42,38 +42,16 @@
 
 HEADER_INCLUDED
 
-typedef struct mbedtls_error
-{
-    int code;                   /* Error code. */
-    const char * description;   /* Error description. */
-} mbedtls_error_t;
-
-static mbedtls_error_t high_level_errors[] =
-{
-HIGH_LEVEL_CODE_CHECKS
-};
-
-#define NUM_HIGH_LEVEL_ERRORS ( sizeof(high_level_errors)/sizeof(mbedtls_error_t) )
-
-static mbedtls_error_t low_level_errors[] =
-{
-LOW_LEVEL_CODE_CHECKS
-};
-
-#define NUM_LOW_LEVEL_ERRORS  ( sizeof(low_level_errors)/sizeof(mbedtls_error_t) )
-
 const char * mbedtls_high_level_strerr( int error_code )
 {
-    size_t i;
     const char *error_description = NULL;
 
-    for(i = 0; i < NUM_HIGH_LEVEL_ERRORS; i++ )
+    switch( error_code )
     {
-        if( high_level_errors[i].code == error_code )
-        {
-            error_description = high_level_errors[i].description;
+HIGH_LEVEL_CODE_CHECKS
+
+        default:
             break;
-        }
     }
 
     return error_description;
@@ -81,16 +59,14 @@ const char * mbedtls_high_level_strerr( int error_code )
 
 const char * mbedtls_low_level_strerr( int error_code )
 {
-    size_t i;
     const char *error_description = NULL;
 
-    for(i = 0; i < NUM_LOW_LEVEL_ERRORS; i++ )
+    switch( error_code )
     {
-        if( low_level_errors[i].code == error_code )
-        {
-            error_description = low_level_errors[i].description;
+LOW_LEVEL_CODE_CHECKS
+
+        default:
             break;
-        }
     }
 
     return error_description;
@@ -123,10 +99,12 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         else
             mbedtls_snprintf( buf, buflen, "%s", high_level_error_description );
 
+#if defined(MBEDTLS_SSL_TLS_C)
         // Early return in case of a fatal error - do not try to translate low
         // level code.
         if(use_ret == -(MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE))
             return;
+#endif /* MBEDTLS_SSL_TLS_C */
     }
 
     use_ret = ret & ~0xFF80;

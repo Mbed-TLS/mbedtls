@@ -119,13 +119,13 @@ foreach my $line (@matches)
     {
         $code_check = \$ll_code_check;
         $old_define = \$ll_old_define;
-        $white_space = '    ';
+        $white_space = '        ';
     }
     else
     {
         $code_check = \$hl_code_check;
         $old_define = \$hl_old_define;
-        $white_space = '    ';
+        $white_space = '        ';
     }
 
     if ($define_name ne ${$old_define})
@@ -160,7 +160,9 @@ foreach my $line (@matches)
         ${$old_define} = $define_name;
     }
 
-    ${$code_check} .= "${white_space}\{.code = -($error_name), .description=\"$module_name - $description\"},\n";
+    ${$code_check} .= "${white_space}case -($error_name):\n".
+                      "${white_space}    error_description = \"$module_name - $description\";\n".
+                      "${white_space}    break;\n"
 };
 
 if ($ll_old_define ne "")

@@ -220,3 +220,7 @@ make clean
 if [ -f "$CONFIG_BAK" ]; then
     mv "$CONFIG_BAK" "$CONFIG_H"
 fi
+
+if [ $TOTAL_FAIL -ne 0 ]; then
+    exit 1
+fi

@@ -166,6 +166,7 @@ def include_in_full(name):
     if name in [
             'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY',
             'MBEDTLS_DEPRECATED_REMOVED',
+            'MBEDTLS_DEPRECATED_WARNING',
             'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED',
             'MBEDTLS_ECP_RESTARTABLE',
             'MBEDTLS_ENTROPY_FORCE_SHA256', # Variant toggle, tested separately

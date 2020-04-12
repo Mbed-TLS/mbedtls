@@ -985,6 +985,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -1370,16 +1371,6 @@ component_test_se_default () {
     make CC=clang CFLAGS="$ASAN_CFLAGS -Os" LDFLAGS="$ASAN_CFLAGS"
 
     msg "test: default config + MBEDTLS_PSA_CRYPTO_SE_C"
-    make test
-}
-
-component_test_se_full () {
-    msg "build: full config + MBEDTLS_PSA_CRYPTO_SE_C"
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_SE_C
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
-
-    msg "test: full config + MBEDTLS_PSA_CRYPTO_SE_C"
     make test
 }
 

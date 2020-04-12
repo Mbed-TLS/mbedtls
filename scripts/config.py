@@ -185,7 +185,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
     'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT', # similar to non-platform xxx_ALT, requires platform_alt.h
     'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER', # variant toggle
-    'MBEDTLS_PSA_CRYPTO_SE_C',
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_PSA_INJECT_ENTROPY', # build dependency (hook functions)
     'MBEDTLS_REMOVE_3DES_CIPHERSUITES', # removes a feature

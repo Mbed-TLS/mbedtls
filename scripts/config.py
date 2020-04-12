@@ -193,8 +193,6 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_RSA_NO_CRT', # variant toggle
     'MBEDTLS_SHA512_NO_SHA384', # removes a feature
     'MBEDTLS_SSL_HW_RECORD_ACCEL', # build dependency (hook functions)
-    'MBEDTLS_SSL_PROTO_SSL3',
-    'MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO',
     'MBEDTLS_TEST_NULL_ENTROPY', # removes a feature
     'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION', # variant toggle
     'MBEDTLS_ZLIB_SUPPORT', # build dependency (libz)

@@ -68,9 +68,6 @@ export LDFLAGS=' --coverage'
 make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.py full
-# Enable some deprecated features that are not in the
-# full config, but are compatible with it and have tests.
-scripts/config.py set MBEDTLS_SSL_PROTO_SSL3
 make -j
 
 

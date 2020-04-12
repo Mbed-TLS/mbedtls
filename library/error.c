@@ -219,6 +219,7 @@ const char * mbedtls_high_level_strerr( int error_code )
 
     switch( error_code )
     {
+        /* Begin Auto-Generated Code. */
 #if defined(MBEDTLS_CIPHER_C)
         case -(MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE):
             error_description = "CIPHER - The selected feature is not available";
@@ -713,6 +714,7 @@ const char * mbedtls_high_level_strerr( int error_code )
             error_description = "X509 - A fatal error occurred, eg the chain is too long or the vrfy callback failed";
             break;
 #endif /* MBEDTLS_X509_USE_C || MBEDTLS_X509_CREATE_C */
+        /* End Auto-Generated Code. */
 
         default:
             break;
@@ -727,6 +729,7 @@ const char * mbedtls_low_level_strerr( int error_code )
 
     switch( error_code )
     {
+        /* Begin Auto-Generated Code. */
 #if defined(MBEDTLS_AES_C)
         case -(MBEDTLS_ERR_AES_INVALID_KEY_LENGTH):
             error_description = "AES - Invalid key length";
@@ -1122,6 +1125,7 @@ const char * mbedtls_low_level_strerr( int error_code )
             error_description = "XTEA - XTEA hardware accelerator failed";
             break;
 #endif /* MBEDTLS_XTEA_C */
+        /* End Auto-Generated Code. */
 
         default:
             break;

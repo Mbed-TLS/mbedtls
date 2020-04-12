@@ -132,7 +132,7 @@ void mbedtls_strerror( int errnum, char *buffer, size_t buflen );
  *        representation.
  *
  * This function returns a const pointer to an un-modifiable string. The caller
- * must not try to modify the string use it only for logging purposes.
+ * must not try to modify the string and use it only for logging purposes.
  *
  * \param error_code    error code
  *

@@ -159,46 +159,58 @@ def realfull_adapter(_name, active, section):
         return active
     return True
 
+# The goal of the full configuration is to have everything that can be tested
+# together. This includes deprecated or insecure options. It excludes:
+# * Options that require additional build dependencies or unusual hardware.
+# * Options that make testing less effective.
+# * Options that are incompatible with other options.
+# * Options that remove features.
+# * Options that are variants, so that we need to test both with and without.
 EXCLUDE_FROM_FULL = frozenset([
-    'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY',
-    'MBEDTLS_DEPRECATED_REMOVED',
-    'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED',
-    'MBEDTLS_ECP_RESTARTABLE',
-    'MBEDTLS_ENTROPY_FORCE_SHA256', # Variant toggle, tested separately
-    'MBEDTLS_HAVE_SSE2',
-    'MBEDTLS_MEMORY_BACKTRACE',
-    'MBEDTLS_MEMORY_BUFFER_ALLOC_C',
-    'MBEDTLS_MEMORY_DEBUG',
-    'MBEDTLS_NO_64BIT_MULTIPLICATION',
-    'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES',
-    'MBEDTLS_NO_PLATFORM_ENTROPY',
-    'MBEDTLS_NO_UDBL_DIVISION',
-    'MBEDTLS_PKCS11_C',
-    'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS',
-    'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER',
+    #pylint: disable=line-too-long
+    'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # variant toggle
+    'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
+    'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED', # variant toggle
+    'MBEDTLS_ECP_RESTARTABLE', # incompatible with USE_PSA_CRYPTO
+    'MBEDTLS_ENTROPY_FORCE_SHA256', # variant toggle
+    'MBEDTLS_HAVE_SSE2', # hardware dependency
+    'MBEDTLS_MEMORY_BACKTRACE', # depends on MEMORY_BUFFER_ALLOC_C
+    'MBEDTLS_MEMORY_BUFFER_ALLOC_C', # makes sanitizers (e.g. ASan) less effective
+    'MBEDTLS_MEMORY_DEBUG', # depends on MEMORY_BUFFER_ALLOC_C
+    'MBEDTLS_NO_64BIT_MULTIPLICATION', # variant toggle
+    'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES', # removes a feature
+    'MBEDTLS_NO_PLATFORM_ENTROPY', # removes a feature
+    'MBEDTLS_NO_UDBL_DIVISION', # variant toggle
+    'MBEDTLS_PKCS11_C', # build dependecy (libpkcs11-helper)
+    'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
+    'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER', # variant toggle
     'MBEDTLS_PSA_CRYPTO_SE_C',
-    'MBEDTLS_PSA_CRYPTO_SPM',
-    'MBEDTLS_PSA_INJECT_ENTROPY',
-    'MBEDTLS_REMOVE_3DES_CIPHERSUITES',
-    'MBEDTLS_REMOVE_ARC4_CIPHERSUITES',
-    'MBEDTLS_RSA_NO_CRT',
-    'MBEDTLS_SHA512_NO_SHA384',
-    'MBEDTLS_SSL_HW_RECORD_ACCEL',
+    'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
+    'MBEDTLS_PSA_INJECT_ENTROPY', # build dependency (hook functions)
+    'MBEDTLS_REMOVE_3DES_CIPHERSUITES', # removes a feature
+    'MBEDTLS_REMOVE_ARC4_CIPHERSUITES', # removes a feature
+    'MBEDTLS_RSA_NO_CRT', # variant toggle
+    'MBEDTLS_SHA512_NO_SHA384', # removes a feature
+    'MBEDTLS_SSL_HW_RECORD_ACCEL', # build dependency (hook functions)
     'MBEDTLS_SSL_PROTO_SSL3',
     'MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO',
-    'MBEDTLS_TEST_NULL_ENTROPY',
+    'MBEDTLS_TEST_NULL_ENTROPY', # removes a feature
     'MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3',
-    'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION',
-    'MBEDTLS_ZLIB_SUPPORT',
+    'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION', # variant toggle
+    'MBEDTLS_ZLIB_SUPPORT', # build dependency (libz)
 ])
 
 def include_in_full(name):
     """Rules for symbols in the "full" configuration."""
     if re.search(r'PLATFORM_[A-Z0-9]+_ALT', name):
+        # Include configurable functions that default to the built-in function.
+        # This way we test that they're in place without changing the behavior.
         return True
     if name in EXCLUDE_FROM_FULL:
         return False
     if name.endswith('_ALT'):
+        # Exclude alt implementations since they require an implementation
+        # of the relevant functions.
         return False
     return True
 
@@ -208,22 +220,28 @@ def full_adapter(name, active, section):
         return active
     return include_in_full(name)
 
+# The baremetal configuration excludes options that require a library or
+# operating system feature that is typically not present on bare metal
+# systems. Features that are excluded from "full" won't be in "baremetal"
+# either (unless explicitly turned on in baremetal_adapter) so they don't
+# need to be repeated here.
 EXCLUDE_FROM_BAREMETAL = frozenset([
+    #pylint: disable=line-too-long
     'MBEDTLS_DEPRECATED_WARNING',
-    'MBEDTLS_ENTROPY_NV_SEED',
-    'MBEDTLS_FS_IO',
-    'MBEDTLS_HAVEGE_C',
-    'MBEDTLS_HAVE_TIME',
-    'MBEDTLS_HAVE_TIME_DATE',
-    'MBEDTLS_NET_C',
-    'MBEDTLS_PLATFORM_FPRINTF_ALT',
-    'MBEDTLS_PLATFORM_TIME_ALT',
-    'MBEDTLS_PSA_CRYPTO_SE_C',
-    'MBEDTLS_PSA_CRYPTO_STORAGE_C',
-    'MBEDTLS_PSA_ITS_FILE_C',
-    'MBEDTLS_THREADING_C',
-    'MBEDTLS_THREADING_PTHREAD',
-    'MBEDTLS_TIMING_C',
+    'MBEDTLS_ENTROPY_NV_SEED', # requires FS_IO or alternate NV seed hooks
+    'MBEDTLS_FS_IO', # requires a filesystem
+    'MBEDTLS_HAVEGE_C', # requires a clock
+    'MBEDTLS_HAVE_TIME', # requires a clock
+    'MBEDTLS_HAVE_TIME_DATE', # requires a clock
+    'MBEDTLS_NET_C', # requires POSIX-like networking
+    'MBEDTLS_PLATFORM_FPRINTF_ALT', # requires FILE* from stdio.h
+    'MBEDTLS_PLATFORM_TIME_ALT', # requires timing
+    'MBEDTLS_PSA_CRYPTO_SE_C', # requires a filesystem
+    'MBEDTLS_PSA_CRYPTO_STORAGE_C', # requires a filesystem
+    'MBEDTLS_PSA_ITS_FILE_C', # requires a filesystem
+    'MBEDTLS_THREADING_C', # requires a threading interface
+    'MBEDTLS_THREADING_PTHREAD', # requires pthread
+    'MBEDTLS_TIMING_C', # requires a clock
 ])
 
 def keep_in_baremetal(name):
@@ -237,6 +255,7 @@ def baremetal_adapter(name, active, section):
     if not is_full_section(section):
         return active
     if name == 'MBEDTLS_NO_PLATFORM_ENTROPY':
+        # No OS-provided entropy source
         return True
     return include_in_full(name) and keep_in_baremetal(name)
 
@@ -247,10 +266,10 @@ def include_in_crypto(name):
        name.startswith('MBEDTLS_KEY_EXCHANGE_'):
         return False
     if name in [
-            'MBEDTLS_CERTS_C',
-            'MBEDTLS_DEBUG_C',
-            'MBEDTLS_NET_C',
-            'MBEDTLS_PKCS11_C',
+            'MBEDTLS_CERTS_C', # part of libmbedx509
+            'MBEDTLS_DEBUG_C', # part of libmbedtls
+            'MBEDTLS_NET_C', # part of libmbedtls
+            'MBEDTLS_PKCS11_C', # part of libmbedx509
     ]:
         return False
     return True

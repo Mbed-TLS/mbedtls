@@ -170,6 +170,7 @@ EXCLUDE_FROM_FULL = frozenset([
     #pylint: disable=line-too-long
     'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # variant toggle
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
+    'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
     'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED', # variant toggle
     'MBEDTLS_ECP_RESTARTABLE', # incompatible with USE_PSA_CRYPTO
     'MBEDTLS_ENTROPY_FORCE_SHA256', # variant toggle
@@ -234,7 +235,6 @@ def full_adapter(name, active, section):
 # need to be repeated here.
 EXCLUDE_FROM_BAREMETAL = frozenset([
     #pylint: disable=line-too-long
-    'MBEDTLS_DEPRECATED_WARNING',
     'MBEDTLS_ENTROPY_NV_SEED', # requires FS_IO or alternate NV seed hooks
     'MBEDTLS_FS_IO', # requires a filesystem
     'MBEDTLS_HAVEGE_C', # requires a clock

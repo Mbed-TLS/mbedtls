@@ -296,6 +296,28 @@ def crypto_adapter(adapter):
         return adapter(name, active, section)
     return continuation
 
+DEPRECATED = frozenset([
+    'MBEDTLS_SSL_PROTO_SSL3',
+    'MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO',
+])
+
+def non_deprecated_adapter(adapter):
+    """Modify an adapter to disable deprecated symbols.
+
+    ``non_deprecated_adapter(adapter)(name, active, section)`` is like
+    ``adapter(name, active, section)``, but unsets all deprecated symbols
+    and sets ``MBEDTLS_DEPRECATED_REMOVED``.
+    """
+    def continuation(name, active, section):
+        if name == 'MBEDTLS_DEPRECATED_REMOVED':
+            return True
+        if name in DEPRECATED:
+            return False
+        if adapter is None:
+            return active
+        return adapter(name, active, section)
+    return continuation
+
 class ConfigFile(Config):
     """Representation of the Mbed TLS configuration read for a file.
 
@@ -456,6 +478,10 @@ if __name__ == '__main__':
                     """Uncomment most features.
                     Exclude alternative implementations and platform support
                     options, as well as some options that are awkward to test.
+                    """)
+        add_adapter('full_non_deprecated', non_deprecated_adapter(full_adapter),
+                    """Uncomment most non-deprecated features.
+                    Like "full", but without deprecated features.
                     """)
         add_adapter('realfull', realfull_adapter,
                     """Uncomment all boolean #defines.

@@ -276,6 +276,7 @@ int mbedtls_asn1_get_int( unsigned char **p,
                           const unsigned char *end,
                           int *val );
 
+#ifdef MBEDTLS_HAVE_INT64
 /**
  * \brief       Retrieve an integer ASN.1 tag and its value as an
  *              unsigned 64 bit integer. 
@@ -300,6 +301,7 @@ int mbedtls_asn1_get_int( unsigned char **p,
 int mbedtls_asn1_get_uint64( unsigned char **p,
                                     const unsigned char *end,
                                     uint64_t *val );
+#endif
 
 /**
  * \brief       Retrieve an enumerated ASN.1 tag and its value.

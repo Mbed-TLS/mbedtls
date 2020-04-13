@@ -511,6 +511,7 @@ int mbedtls_asn1_get_serial_bitstring( unsigned char **p,
     return ( 0 );
 }
 
+#ifdef MBEDTLS_HAVE_INT64
 int mbedtls_asn1_get_uint64( unsigned char **p,
                                     const unsigned char *end,
                                     uint64_t *val )
@@ -540,6 +541,7 @@ int mbedtls_asn1_get_uint64( unsigned char **p,
 
   return ( 0 );
 }
+#endif
 
 void mbedtls_asn1_free_named_data( mbedtls_asn1_named_data *cur )
 {

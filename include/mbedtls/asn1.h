@@ -277,6 +277,31 @@ int mbedtls_asn1_get_int( unsigned char **p,
                           int *val );
 
 /**
+ * \brief       Retrieve an integer ASN.1 tag and its value as an
+ *              unsigned 64 bit integer. 
+ *     
+ *              Updates the pointer to immediately behind the full tag.
+ *
+ * \param p     On entry, \c *p points to the start of the ASN.1 element.
+ *              On successful completion, \c *p points to the first byte
+ *              beyond the ASN.1 element.
+ *              On error, the value of \c *p is undefined.
+ * \param end   End of data.
+ * \param val   On success, the parsed value.
+ *
+ * \return      0 if successful.
+ * \return      An ASN.1 error code if the input does not start with
+ *              a valid ASN.1 INTEGER.
+ * \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the parsed value does
+ *              not fit in an \c int. 
+ *              #MBEDTLS_ERR_ASN1_INVALID_DATA is returned if the parsed
+ *              value is negative.
+ */
+int mbedtls_asn1_get_uint64( unsigned char **p,
+                                    const unsigned char *end,
+                                    uint64_t *val );
+
+/**
  * \brief       Retrieve an enumerated ASN.1 tag and its value.
  *              Updates the pointer to immediately behind the full tag.
  *
@@ -569,6 +594,41 @@ int mbedtls_asn1_get_alg( unsigned char **p,
 int mbedtls_asn1_get_alg_null( unsigned char **p,
                        const unsigned char *end,
                        mbedtls_asn1_buf *alg );
+
+/**
+ * \brief       Retrieve an ASN1_INTEGER of arbitrary size as often used
+ *              for (certificate) serial numbers as a bitstring (which
+ *              commonly run to 130-160 bits).
+ *
+ * \param p     On entry, \c *p points to the start of the ASN.1 element.
+ *              On successful completion, \c *p points to the first byte
+ *              beyond the AlgorithmIdentifier element.
+ *              On error, the value of \c *p is undefined.
+ * \param end   End of data.
+ * \param alg   The buffer to receive the bitstring.
+ *
+ * \return      0 if successful or a specific ASN.1 or MPI error code.
+ */
+int mbedtls_asn1_get_serial_bitstring( unsigned char **p,
+    const unsigned char *end,
+    mbedtls_asn1_bitstring *val );
+
+/**
+ * \brief       Retrieve an ASN1_INTEGER of arbitrary size as often used
+ *              for (certificate) serial numbers as a a bignum.
+ *
+ * \param p     On entry, \c *p points to the start of the ASN.1 element.
+ *              On successful completion, \c *p points to the first byte
+ *              beyond the AlgorithmIdentifier element.
+ *              On error, the value of \c *p is undefined.
+ * \param end   End of data.
+ * \param alg   The buffer to receive the bitstring.
+ *
+ * \return      0 if successful or a specific ASN.1 or MPI error code.
+ */
+int mbedtls_asn1_get_serial_mpi( unsigned char **p,
+                                        const unsigned char *end,
+                                        mbedtls_mpi *val );
 
 /**
  * \brief       Find a specific named_data entry in a sequence or list based on

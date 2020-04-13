@@ -310,6 +310,8 @@ int mbedtls_x509_self_test( int verbose );
  */
 int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
                    mbedtls_x509_name *cur );
+int mbedtls_x509_get_names( unsigned char **p, const unsigned char *end,
+                            mbedtls_x509_name *cur );
 int mbedtls_x509_get_alg_null( unsigned char **p, const unsigned char *end,
                        mbedtls_x509_buf *alg );
 int mbedtls_x509_get_alg( unsigned char **p, const unsigned char *end,

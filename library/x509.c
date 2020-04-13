@@ -802,6 +802,22 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
     return( (int) ( size - n ) );
 }
 
+int mbedtls_x509_get_names( unsigned char **p, const unsigned char *end,
+                            mbedtls_x509_name *cur )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t set_len = 0;
+
+    if (0 != (ret = mbedtls_asn1_get_tag(p, end, &set_len,
+                                         MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE)))
+         return ( ret );
+
+    if (0 != (ret = mbedtls_x509_get_name(p, *p + set_len, cur)))
+         return ( ret );
+
+    return ( 0 );
+};
+
 /*
  * Store the serial in printable form into buf; no more
  * than size characters will be written

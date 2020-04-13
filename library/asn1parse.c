@@ -444,6 +444,103 @@ int mbedtls_asn1_get_alg_null( unsigned char **p,
     return( 0 );
 }
 
+int mbedtls_asn1_get_serial_mpi( unsigned char **p,
+                                 const unsigned char *end,
+                                 mbedtls_mpi *val )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len;
+    mbedtls_mpi_init(val);
+
+    if ( ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
+        return ( ret );
+
+    /* len==0 is malformed (0 must be represented as 020100 for INTEGER,
+     *  or 0A0100 for ENUMERATED tags
+     */
+    if ( len == 0 )
+        return ( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+
+    /* Serials cannot be negative.. */
+    if ( ( **p & 0x80 ) != 0 )
+        return ( MBEDTLS_ERR_ASN1_INVALID_DATA );
+    val->s = 1;
+  
+    /* Skip leading zeros. */
+    while ( len > 0 && **p == 0 ) { ++( *p ); --len; }
+
+    while ( len-- > 0 )
+    {
+        if ((ret = mbedtls_mpi_lset(val, **p)) != 0)
+            return ret;
+        if ((ret = mbedtls_mpi_shift_l(val, 8)) != 0)
+            return ret;
+        (*p)++;
+    }
+
+    return ( 0 );
+}
+
+int mbedtls_asn1_get_serial_bitstring( unsigned char **p,
+                                       const unsigned char *end,
+                                       mbedtls_asn1_bitstring *val )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len;
+  
+    if ( ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
+        return ( ret );
+  
+    /* len==0 is malformed (0 must be represented as 020100 for INTEGER,
+     * or 0A0100 for ENUMERATED tags
+     */
+    if ( len == 0 )
+        return ( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+
+    /* Serials cannot be negative.. */
+    if ( ( **p & 0x80 ) != 0 )
+        return ( MBEDTLS_ERR_ASN1_INVALID_DATA );
+
+    /* Skip leading zeros - as per specification (also in comparison) */
+    while ( len > 0 && **p == 0 ) { ++( *p ); --len; }
+
+    val->unused_bits = 0;
+    val->len = len;
+    val->p = *p;
+
+    return ( 0 );
+}
+
+int mbedtls_asn1_get_uint64( unsigned char **p,
+                                    const unsigned char *end,
+                                    uint64_t *val )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len;
+
+    if (0 != ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_INTEGER )))
+         return ( ret );
+
+    if ( len == 0 )
+        return ( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+
+    if ( ( **p & 0x80 ) != 0 ) 
+        return ( MBEDTLS_ERR_ASN1_INVALID_DATA );
+
+    while ( len > 0 && **p == 0 ) { ++( *p ); --len; }
+
+    if ( len > sizeof( uint64_t ) )
+        return ( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
+
+    *val = 0;
+    while ( len-- > 0 ) {
+        *val = ( *val << 8 ) | **p;
+        (*p)++;
+    }
+
+  return ( 0 );
+}
+
 void mbedtls_asn1_free_named_data( mbedtls_asn1_named_data *cur )
 {
     if( cur == NULL )

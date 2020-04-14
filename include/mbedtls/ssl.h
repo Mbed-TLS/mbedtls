@@ -2682,6 +2682,9 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
  * \note           This is mainly useful for clients. Servers will usually
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
  *
+ * \note           A PSK set by \c mbedtls_ssl_set_hs_psk() in the PSK callback
+ *                 takes precedence over a PSK configured by this function.
+ *
  * \warning        Currently, clients can only register a single pre-shared key.
  *                 Calling this function or mbedtls_ssl_conf_psk_opaque() more
  *                 than once will overwrite values configured in previous calls.
@@ -2714,6 +2717,10 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  *
  * \note           This is mainly useful for clients. Servers will usually
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
+ *
+ * \note           An opaque PSK set by \c mbedtls_ssl_set_hs_psk_opaque() in
+ *                 the PSK callback takes precedence over an opaque PSK
+ *                 configured by this function.
  *
  * \warning        Currently, clients can only register a single pre-shared key.
  *                 Calling this function or mbedtls_ssl_conf_psk() more than
@@ -2752,6 +2759,9 @@ int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
  * \note           This should only be called inside the PSK callback,
  *                 i.e. the function passed to \c mbedtls_ssl_conf_psk_cb().
  *
+ * \note           A PSK set by this function takes precedence over a PSK
+ *                 configured by \c mbedtls_ssl_conf_psk().
+ *
  * \param ssl      The SSL context to configure a PSK for.
  * \param psk      The pointer to the pre-shared key.
  * \param psk_len  The length of the pre-shared key in bytes.
@@ -2768,6 +2778,9 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
  *
  * \note           This should only be called inside the PSK callback,
  *                 i.e. the function passed to \c mbedtls_ssl_conf_psk_cb().
+ *
+ * \note           An opaque PSK set by this function takes precedence over an
+ *                 opaque PSK configured by \c mbedtls_ssl_conf_psk_opaque().
  *
  * \param ssl      The SSL context to configure a PSK for.
  * \param psk      The identifier of the key slot holding the PSK.
@@ -2807,9 +2820,14 @@ int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
  *                 on the SSL context to set the correct PSK and return \c 0.
  *                 Any other return value will result in a denied PSK identity.
  *
- * \note           If you set a PSK callback using this function, then you
- *                 don't need to set a PSK key and identity using
- *                 \c mbedtls_ssl_conf_psk().
+ * \note           A dynamic PSK (i.e. set by the PSK callback) takes
+ *                 precedence over a static PSK (i.e. set by
+ *                 \c mbedtls_ssl_conf_psk() or
+ *                 \c mbedtls_ssl_conf_psk_opaque()).
+ *                 This means that if you set a PSK callback using this
+ *                 function, you don't need to set a PSK using
+ *                 \c mbedtls_ssl_conf_psk() or
+ *                 \c mbedtls_ssl_conf_psk_opaque()).
  *
  * \param conf     The SSL configuration to register the callback with.
  * \param f_psk    The callback for selecting and setting the PSK based

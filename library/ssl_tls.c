@@ -1514,9 +1514,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "perform PSA-based PSK-to-MS expansion" ) );
 
-        psk = ssl->conf->psk_opaque;
-        if( handshake->psk_opaque != 0 )
-            psk = handshake->psk_opaque;
+        psk = mbedtls_ssl_get_opaque_psk( ssl );
 
         if( hash_alg == MBEDTLS_MD_SHA384 )
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
@@ -1850,14 +1848,18 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 {
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
-    const unsigned char *psk = ssl->conf->psk;
-    size_t psk_len = ssl->conf->psk_len;
+    const unsigned char *psk = NULL;
+    size_t psk_len = 0;
 
-    /* If the psk callback was called, use its result */
-    if( ssl->handshake->psk != NULL )
+    if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
+            == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
     {
-        psk = ssl->handshake->psk;
-        psk_len = ssl->handshake->psk_len;
+        /*
+         * This should never happen because the existence of a PSK is always
+         * checked before calling this function
+         */
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     /*

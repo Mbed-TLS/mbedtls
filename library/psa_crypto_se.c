@@ -72,7 +72,7 @@ struct psa_se_drv_table_entry_s
     {
         psa_drv_se_internal_context_t internal;
         psa_drv_se_context_t context;
-    };
+    } u;
 };
 
 static psa_se_drv_table_entry_t driver_table[PSA_MAX_SE_DRIVERS];
@@ -104,7 +104,7 @@ const psa_drv_se_t *psa_get_se_driver_methods(
 psa_drv_se_context_t *psa_get_se_driver_context(
     psa_se_drv_table_entry_t *driver )
 {
-    return( &driver->context );
+    return( &driver->u.context );
 }
 
 int psa_get_se_driver( psa_key_lifetime_t lifetime,
@@ -115,7 +115,7 @@ int psa_get_se_driver( psa_key_lifetime_t lifetime,
     if( p_methods != NULL )
         *p_methods = ( driver ? driver->methods : NULL );
     if( p_drv_context != NULL )
-        *p_drv_context = ( driver ? &driver->context : NULL );
+        *p_drv_context = ( driver ? &driver->u.context : NULL );
     return( driver != NULL );
 }
 
@@ -134,7 +134,7 @@ static psa_status_t psa_get_se_driver_its_file_uid(
 
 #if SIZE_MAX > UINT32_MAX
     /* ITS file sizes are limited to 32 bits. */
-    if( driver->internal.persistent_data_size > UINT32_MAX )
+    if( driver->u.internal.persistent_data_size > UINT32_MAX )
         return( PSA_ERROR_NOT_SUPPORTED );
 #endif
 
@@ -162,8 +162,8 @@ psa_status_t psa_load_se_persistent_data(
      * persistent_data_size is in range, but compilers don't know that,
      * so cast to reassure them. */
     return( psa_its_get( uid, 0,
-                         (uint32_t) driver->internal.persistent_data_size,
-                         driver->internal.persistent_data,
+                         (uint32_t) driver->u.internal.persistent_data_size,
+                         driver->u.internal.persistent_data,
                          &length ) );
 }
 
@@ -181,8 +181,8 @@ psa_status_t psa_save_se_persistent_data(
      * persistent_data_size is in range, but compilers don't know that,
      * so cast to reassure them. */
     return( psa_its_set( uid,
-                         (uint32_t) driver->internal.persistent_data_size,
-                         driver->internal.persistent_data,
+                         (uint32_t) driver->u.internal.persistent_data_size,
+                         driver->u.internal.persistent_data,
                          0 ) );
 }
 
@@ -221,8 +221,8 @@ psa_status_t psa_find_se_slot_for_key(
             driver->methods->key_management->p_validate_slot_number;
         if( p_validate_slot_number == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
-        status = p_validate_slot_number( &driver->context,
-                                         driver->internal.persistent_data,
+        status = p_validate_slot_number( &driver->u.context,
+                                         driver->u.internal.persistent_data,
                                          attributes, method,
                                          *slot_number );
     }
@@ -240,8 +240,8 @@ psa_status_t psa_find_se_slot_for_key(
             driver->methods->key_management->p_allocate;
         if( p_allocate == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
-        status = p_allocate( &driver->context,
-                             driver->internal.persistent_data,
+        status = p_allocate( &driver->u.context,
+                             driver->u.internal.persistent_data,
                              attributes, method,
                              slot_number );
     }
@@ -265,8 +265,8 @@ psa_status_t psa_destroy_se_key( psa_se_drv_table_entry_t *driver,
         driver->methods->key_management->p_destroy == NULL )
         return( PSA_ERROR_NOT_PERMITTED );
     status = driver->methods->key_management->p_destroy(
-        &driver->context,
-        driver->internal.persistent_data,
+        &driver->u.context,
+        driver->u.internal.persistent_data,
         slot_number );
     storage_status = psa_save_se_persistent_data( driver );
     return( status == PSA_SUCCESS ? storage_status : status );
@@ -284,8 +284,8 @@ psa_status_t psa_init_all_se_drivers( void )
         if( methods->p_init != NULL )
         {
             psa_status_t status = methods->p_init(
-                &driver->context,
-                driver->internal.persistent_data,
+                &driver->u.context,
+                driver->u.internal.persistent_data,
                 driver->lifetime );
             if( status != PSA_SUCCESS )
                 return( status );
@@ -341,14 +341,14 @@ psa_status_t psa_register_se_driver(
 
     driver_table[i].lifetime = lifetime;
     driver_table[i].methods = methods;
-    driver_table[i].internal.persistent_data_size =
+    driver_table[i].u.internal.persistent_data_size =
         methods->persistent_data_size;
 
     if( methods->persistent_data_size != 0 )
     {
-        driver_table[i].internal.persistent_data =
+        driver_table[i].u.internal.persistent_data =
             mbedtls_calloc( 1, methods->persistent_data_size );
-        if( driver_table[i].internal.persistent_data == NULL )
+        if( driver_table[i].u.internal.persistent_data == NULL )
         {
             status = PSA_ERROR_INSUFFICIENT_MEMORY;
             goto error;
@@ -373,8 +373,8 @@ void psa_unregister_all_se_drivers( void )
     size_t i;
     for( i = 0; i < PSA_MAX_SE_DRIVERS; i++ )
     {
-        if( driver_table[i].internal.persistent_data != NULL )
-            mbedtls_free( driver_table[i].internal.persistent_data );
+        if( driver_table[i].u.internal.persistent_data != NULL )
+            mbedtls_free( driver_table[i].u.internal.persistent_data );
     }
     memset( driver_table, 0, sizeof( driver_table ) );
 }

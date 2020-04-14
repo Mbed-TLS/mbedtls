@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.22.0 branch released 2020-04-14
 
 New deprecations
    * Deprecate MBEDTLS_SSL_HW_RECORD_ACCEL that enables function hooks in the
@@ -17,12 +17,26 @@ Security
      legitimate clients, resulting in a Denial of Service. This could only
      happen when MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE was enabled in config.h
      (which it is by default).
+   * Fix side channel in ECC code that allowed an adversary with access to
+     precise enough timing and memory access information (typically an
+     untrusted operating system attacking a secure enclave) to fully recover
+     an ECDSA private key. Found and reported by Alejandro Cabrera Aldaya,
+     Billy Brumley and Cesar Pereida Garcia. CVE-2020-10932
+   * Fix a potentially remotely exploitable buffer overread in a
+     DTLS client when parsing the Hello Verify Request message.
+
+Features
+   * The new build option MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH automatically
+     resizes the I/O buffers before and after handshakes, reducing the memory
+     consumption during application data transfer.
 
 Bugfix
    * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
      MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.
    * Remove a spurious check in ssl_parse_client_psk_identity that triggered
      a warning with some compilers. Fix contributed by irwir in #2856.
+   * Fix a function name in a debug message. Contributed by Ercan Ozturk in
+     #3013.
 
 Changes
    * Mbed Crypto is no longer a Git submodule. The crypto part of the library

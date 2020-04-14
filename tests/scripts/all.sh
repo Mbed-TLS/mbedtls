@@ -1392,7 +1392,7 @@ test_build_opt () {
     info=$1 cc=$2; shift 2
     for opt in "$@"; do
           msg "build/test: $cc $opt, $info" # ~ 30s
-          make CC="$cc" CFLAGS="$opt -Wall -Wextra -Werror"
+          make CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
           # We're confident enough in compilers to not run _all_ the tests,
           # but at least run the unit tests. In particular, runs with
           # optimizations use inline assembly whereas runs with -O0

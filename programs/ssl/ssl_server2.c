@@ -366,7 +366,9 @@ int main( void )
 #define USAGE_CURVES ""
 #endif
 
-#define USAGE \
+/* USAGE is arbitrarily split to stay under the portable string literal
+ * length limit: 4095 bytes in C99. */
+#define USAGE1 \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
     "    server_addr=%%s      default: (all interfaces)\n"  \
@@ -387,7 +389,8 @@ int main( void )
     USAGE_COOKIES                                           \
     USAGE_ANTI_REPLAY                                       \
     USAGE_BADMAC_LIMIT                                      \
-    "\n"                                                    \
+    "\n"
+#define USAGE2 \
     "    auth_mode=%%s        default: (library default: none)\n"      \
     "                        options: none, optional, required\n" \
     "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
@@ -398,7 +401,8 @@ int main( void )
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
-    "\n"                                                    \
+    "\n"
+#define USAGE3 \
     "    allow_legacy=%%d     default: (library default: no)\n"      \
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
@@ -411,7 +415,8 @@ int main( void )
     USAGE_EMS                                               \
     USAGE_ETM                                               \
     USAGE_CURVES                                            \
-    "\n"                                                    \
+    "\n"
+#define USAGE4 \
     "    arc4=%%d             default: (library default: 0)\n" \
     "    allow_sha1=%%d       default: 0\n"                             \
     "    min_version=%%s      default: (library default: tls1)\n"       \
@@ -1323,7 +1328,10 @@ int main( int argc, char *argv[] )
         if( ret == 0 )
             ret = 1;
 
-        mbedtls_printf( USAGE );
+        mbedtls_printf( USAGE1 );
+        mbedtls_printf( USAGE2 );
+        mbedtls_printf( USAGE3 );
+        mbedtls_printf( USAGE4 );
 
         list = mbedtls_ssl_list_ciphersuites();
         while( *list )

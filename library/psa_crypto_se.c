@@ -64,7 +64,7 @@ typedef struct
     uintptr_t transient_data;
 } psa_drv_se_internal_context_t;
 
-typedef struct psa_se_drv_table_entry_s
+struct psa_se_drv_table_entry_s
 {
     psa_key_lifetime_t lifetime;
     const psa_drv_se_t *methods;
@@ -73,7 +73,7 @@ typedef struct psa_se_drv_table_entry_s
         psa_drv_se_internal_context_t internal;
         psa_drv_se_context_t context;
     };
-} psa_se_drv_table_entry_t;
+};
 
 static psa_se_drv_table_entry_t driver_table[PSA_MAX_SE_DRIVERS];
 

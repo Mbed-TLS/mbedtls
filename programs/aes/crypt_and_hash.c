@@ -82,7 +82,8 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 
 int main( int argc, char *argv[] )
 {
-    int ret = 1, i, n;
+    int ret = 1, i;
+    unsigned n;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     int mode;
     size_t keylen, ilen, olen;

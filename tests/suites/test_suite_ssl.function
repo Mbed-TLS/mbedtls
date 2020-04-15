@@ -36,10 +36,17 @@ void log_analyzer( void *ctx, int level,
     }
 }
 
+/* Invalid minor version used when not specifying a min/max version or expecting a test to fail */
+#define TEST_SSL_MINOR_VERSION_NONE -1
+
 typedef struct handshake_test_options
 {
     const char *cipher;
-    int version;
+    int client_min_version;
+    int client_max_version;
+    int server_min_version;
+    int server_max_version;
+    int expected_negotiated_version;
     int pk_alg;
     data_t *psk_str;
     int dtls;
@@ -62,7 +69,11 @@ typedef struct handshake_test_options
 void init_handshake_options( handshake_test_options *opts )
 {
   opts->cipher = "";
-  opts->version = MBEDTLS_SSL_MINOR_VERSION_3;
+  opts->client_min_version = TEST_SSL_MINOR_VERSION_NONE;
+  opts->client_max_version = TEST_SSL_MINOR_VERSION_NONE;
+  opts->server_min_version = TEST_SSL_MINOR_VERSION_NONE;
+  opts->server_max_version = TEST_SSL_MINOR_VERSION_NONE;
+  opts->expected_negotiated_version = MBEDTLS_SSL_MINOR_VERSION_3;
   opts->pk_alg = MBEDTLS_PK_RSA;
   opts->psk_str = NULL;
   opts->dtls = 0;
@@ -1671,7 +1682,7 @@ void perform_handshake( handshake_test_options* options )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int ret = -1;
 #endif
-
+    int expected_handshake_result = 0;
 
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;
@@ -1697,10 +1708,18 @@ void perform_handshake( handshake_test_options* options )
                                             options->pk_alg, NULL, NULL,
                                             NULL ) == 0 );
     }
-    mbedtls_ssl_conf_min_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
-                                      options->version );
-    mbedtls_ssl_conf_max_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
-                                      options->version );
+
+    if( options->client_min_version != TEST_SSL_MINOR_VERSION_NONE )
+    {
+        mbedtls_ssl_conf_min_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                          options->client_min_version );
+    }
+
+    if( options->client_max_version != TEST_SSL_MINOR_VERSION_NONE )
+    {
+        mbedtls_ssl_conf_max_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                          options->client_max_version );
+    }
 
     if( strlen( options->cipher ) > 0 )
     {
@@ -1737,8 +1756,18 @@ void perform_handshake( handshake_test_options* options )
 
     mbedtls_ssl_conf_authmode( &server.conf, options->srv_auth_mode );
 
-    mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
-                                      options->version );
+    if( options->server_min_version != TEST_SSL_MINOR_VERSION_NONE )
+    {
+        mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                          options->server_min_version );
+    }
+
+    if( options->server_max_version != TEST_SSL_MINOR_VERSION_NONE )
+    {
+        mbedtls_ssl_conf_max_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+                                          options->server_max_version );
+    }
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     TEST_ASSERT( mbedtls_ssl_conf_max_frag_len( &(server.conf),
                                          (unsigned char) options->mfl ) == 0 );
@@ -1803,18 +1832,36 @@ void perform_handshake( handshake_test_options* options )
     }
 #endif
 
+    if( options->expected_negotiated_version == TEST_SSL_MINOR_VERSION_NONE )
+    {
+        expected_handshake_result = MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION;
+    }
+
     TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
                                                   &(server.ssl),
                                                   MBEDTLS_SSL_HANDSHAKE_OVER )
-                 == 0 );
+                 ==  expected_handshake_result );
+
+    if( expected_handshake_result != 0 )
+    {
+        /* Connection will have failed by this point, skip to cleanup */
+        goto exit;
+    }
+
     TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
     TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+
+    /* Check that we agree on the version... */
+    TEST_ASSERT( client.ssl.minor_ver == server.ssl.minor_ver );
+
+    /* And check that the version negotiated is the expected one. */
+    TEST_EQUAL( client.ssl.minor_ver, options->expected_negotiated_version );
 
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     if( options->resize_buffers != 0 )
     {
-        if( options->version != MBEDTLS_SSL_MINOR_VERSION_0 &&
-            options->version != MBEDTLS_SSL_MINOR_VERSION_1 )
+        if( options->expected_negotiated_version != MBEDTLS_SSL_MINOR_VERSION_0 &&
+            options->expected_negotiated_version != MBEDTLS_SSL_MINOR_VERSION_1 )
         {
             /* A server, when using DTLS, might delay a buffer resize to happen
              * after it receives a message, so we force it. */
@@ -3791,17 +3838,25 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
-void handshake_version( int version, int dtls )
+void handshake_version( int dtls, int client_min_version, int client_max_version,
+                        int server_min_version, int server_max_version,
+                        int expected_negotiated_version )
 {
     handshake_test_options options;
     init_handshake_options( &options );
 
-    options.version = version;
+    options.client_min_version = client_min_version;
+    options.client_max_version = client_max_version;
+    options.server_min_version = server_min_version;
+    options.server_max_version = server_max_version;
+
+    options.expected_negotiated_version = expected_negotiated_version;
+
     options.dtls = dtls;
     /* By default, SSLv3.0 and TLSv1.0 use 1/n-1 splitting when sending data, so
      * the number of fragments will be twice as big. */
-    if( version == MBEDTLS_SSL_MINOR_VERSION_0 ||
-        version == MBEDTLS_SSL_MINOR_VERSION_1 )
+    if( expected_negotiated_version == MBEDTLS_SSL_MINOR_VERSION_0 ||
+        expected_negotiated_version == MBEDTLS_SSL_MINOR_VERSION_1 )
     {
         options.expected_cli_fragments = 2;
         options.expected_srv_fragments = 2;

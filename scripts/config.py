@@ -163,38 +163,39 @@ def realfull_adapter(_name, active, section):
 # together. This includes deprecated or insecure options. It excludes:
 # * Options that require additional build dependencies or unusual hardware.
 # * Options that make testing less effective.
-# * Options that are incompatible with other options.
+# * Options that are incompatible with other options, or more generally that
+#   interact with other parts of the code in such a way that a bulk enabling
+#   is not a good way to test them.
 # * Options that remove features.
-# * Options that are variants, so that we need to test both with and without.
 EXCLUDE_FROM_FULL = frozenset([
     #pylint: disable=line-too-long
-    'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # variant toggle
+    'MBEDTLS_CTR_DRBG_USE_128_BIT_KEY', # interacts with ENTROPY_FORCE_SHA256
     'MBEDTLS_DEPRECATED_REMOVED', # conflicts with deprecated options
     'MBEDTLS_DEPRECATED_WARNING', # conflicts with deprecated options
-    'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED', # variant toggle
+    'MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED', # influences the use of ECDH in TLS
     'MBEDTLS_ECP_RESTARTABLE', # incompatible with USE_PSA_CRYPTO
-    'MBEDTLS_ENTROPY_FORCE_SHA256', # variant toggle
+    'MBEDTLS_ENTROPY_FORCE_SHA256', # interacts with CTR_DRBG_128_BIT_KEY
     'MBEDTLS_HAVE_SSE2', # hardware dependency
     'MBEDTLS_MEMORY_BACKTRACE', # depends on MEMORY_BUFFER_ALLOC_C
     'MBEDTLS_MEMORY_BUFFER_ALLOC_C', # makes sanitizers (e.g. ASan) less effective
     'MBEDTLS_MEMORY_DEBUG', # depends on MEMORY_BUFFER_ALLOC_C
-    'MBEDTLS_NO_64BIT_MULTIPLICATION', # variant toggle
+    'MBEDTLS_NO_64BIT_MULTIPLICATION', # influences anything that uses bignum
     'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES', # removes a feature
     'MBEDTLS_NO_PLATFORM_ENTROPY', # removes a feature
-    'MBEDTLS_NO_UDBL_DIVISION', # variant toggle
+    'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
     'MBEDTLS_PKCS11_C', # build dependecy (libpkcs11-helper)
     'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
     'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT', # similar to non-platform xxx_ALT, requires platform_alt.h
-    'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER', # variant toggle
+    'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER', # platform dependency (PSA SPM) (at this time)
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_PSA_INJECT_ENTROPY', # build dependency (hook functions)
     'MBEDTLS_REMOVE_3DES_CIPHERSUITES', # removes a feature
     'MBEDTLS_REMOVE_ARC4_CIPHERSUITES', # removes a feature
-    'MBEDTLS_RSA_NO_CRT', # variant toggle
+    'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
     'MBEDTLS_SHA512_NO_SHA384', # removes a feature
     'MBEDTLS_SSL_HW_RECORD_ACCEL', # build dependency (hook functions)
     'MBEDTLS_TEST_NULL_ENTROPY', # removes a feature
-    'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION', # variant toggle
+    'MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION', # influences the use of X.509 in TLS
     'MBEDTLS_ZLIB_SUPPORT', # build dependency (libz)
 ])
 

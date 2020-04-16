@@ -210,6 +210,9 @@ def is_seamless_alt(name):
 
     Exclude alternative implementations of library functions since they require
     an implementation of the relevant functions and an xxx_alt.h header.
+
+    If a symbol matches this naming pattern but doesn't behave like the others,
+    list it in EXCLUDE_FROM_FULL.
     """
     return name.startswith('MBEDTLS_PLATFORM_')
 

@@ -4948,8 +4948,13 @@ static psa_status_t psa_key_agreement_internal(psa_key_derivation_operation_t *o
                                                size_t peer_key_length)
 {
     psa_status_t status;
+#if PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE != 0
     uint8_t shared_secret[PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE];
+    size_t shared_secret_length = sizeof(shared_secret);
+#else
+    uint8_t *shared_secret = NULL;
     size_t shared_secret_length = 0;
+#endif
     psa_algorithm_t ka_alg = PSA_ALG_KEY_AGREEMENT_GET_BASE(operation->alg);
 
     /* Step 1: run the secret agreement algorithm to generate the shared
@@ -4958,7 +4963,7 @@ static psa_status_t psa_key_agreement_internal(psa_key_derivation_operation_t *o
                                             private_key,
                                             peer_key, peer_key_length,
                                             shared_secret,
-                                            sizeof(shared_secret),
+                                            shared_secret_length,
                                             &shared_secret_length);
     if (status != PSA_SUCCESS) {
         goto exit;

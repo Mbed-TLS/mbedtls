@@ -664,6 +664,9 @@ component_test_default_cmake_gcc_asan () {
 
     msg "test: compat.sh (ASan build)" # ~ 6 min
     if_build_succeeded tests/compat.sh
+
+    msg "test: context-info.sh (ASan build)" # ~ 15 sec
+    if_build_succeeded tests/context-info.sh
 }
 
 component_test_full_cmake_gcc_asan () {
@@ -680,6 +683,9 @@ component_test_full_cmake_gcc_asan () {
 
     msg "test: compat.sh (full config, ASan build)"
     if_build_succeeded tests/compat.sh
+
+    msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
+    if_build_succeeded tests/context-info.sh
 }
 
 component_test_zlib_make() {
@@ -742,6 +748,9 @@ component_test_sslv3 () {
 
     msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
     if_build_succeeded tests/ssl-opt.sh
+
+    msg "build: SSLv3 - context-info.sh (ASan build)" # ~ 15 sec
+    if_build_succeeded tests/context-info.sh
 }
 
 component_test_no_renegotiation () {
@@ -787,6 +796,9 @@ component_test_rsa_no_crt () {
 
     msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
     if_build_succeeded tests/compat.sh -t RSA
+
+    msg "test: RSA_NO_CRT - RSA-related part of context-info.sh (ASan build)" # ~ 15 sec
+    if_build_succeeded tests/context-info.sh
 }
 
 component_test_new_ecdh_context () {
@@ -1149,6 +1161,9 @@ component_test_asan_remove_peer_certificate () {
 
     msg "test: compat.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
     if_build_succeeded tests/compat.sh
+
+    msg "test: context-info.sh, !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+    if_build_succeeded tests/context-info.sh
 }
 
 component_test_no_max_fragment_length_small_ssl_out_content_len () {
@@ -1161,6 +1176,9 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
 
     msg "test: MFL tests (disabled MFL extension case) & large packet tests"
     if_build_succeeded tests/ssl-opt.sh -f "Max fragment length\|Large buffer"
+
+    msg "test: context-info.sh (disabled MFL extension case)"
+    if_build_succeeded tests/context-info.sh
 }
 
 component_test_variable_ssl_in_out_buffer_len () {
@@ -1678,6 +1696,11 @@ component_test_valgrind () {
     if [ "$MEMORY" -gt 1 ]; then
         msg "test: compat.sh --memcheck (Release)"
         if_build_succeeded tests/compat.sh --memcheck
+    fi
+
+    if [ "$MEMORY" -gt 0 ]; then
+        msg "test: context-info.sh --memcheck (Release)"
+        if_build_succeeded tests/context-info.sh --memcheck
     fi
 }
 

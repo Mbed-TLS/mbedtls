@@ -958,6 +958,8 @@ run_tests_memory_after_hanshake()
 
 cleanup() {
     rm -f $CLI_OUT $SRV_OUT $PXY_OUT $SESSION
+    rm -f context_srv.txt
+    rm -f context_cli.txt
     test -n "${SRV_PID:-}" && kill $SRV_PID >/dev/null 2>&1
     test -n "${PXY_PID:-}" && kill $PXY_PID >/dev/null 2>&1
     test -n "${CLI_PID:-}" && kill $CLI_PID >/dev/null 2>&1
@@ -1627,6 +1629,16 @@ run_test    "Context serialization, re-init, both serialize, with CID" \
             0 \
             -c "Deserializing connection..." \
             -s "Deserializing connection..."
+
+requires_config_enabled MBEDTLS_SSL_CONTEXT_SERIALIZATION
+run_test    "Saving the serialized context to a file" \
+            "$P_SRV dtls=1 serialize=1 context_file=context_srv.txt" \
+            "$P_CLI dtls=1 serialize=1 context_file=context_cli.txt" \
+            0 \
+            -s "Save serialized context to a file... ok" \
+            -c "Save serialized context to a file... ok"
+rm -f context_srv.txt
+rm -f context_cli.txt
 
 # Tests for DTLS Connection ID extension
 

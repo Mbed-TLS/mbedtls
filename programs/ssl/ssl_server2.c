@@ -4112,7 +4112,7 @@ data_exchange:
         if( opt.serialize == 1 )
         {
             /* nothing to do here, done by context_save() already */
-            mbedtls_printf( "  . Context has been reset... ok" );
+            mbedtls_printf( "  . Context has been reset... ok\n" );
         }
 
         /*

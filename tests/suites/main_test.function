@@ -262,14 +262,15 @@ int main(int argc, const char *argv[])
     const char *default_filename = "TESTCASE_FILENAME";
     const char *test_filename = NULL;
     const char **test_files = NULL;
-    int testfile_count = 0;
+    size_t testfile_count = 0;
     int option_verbose = 0;
 
     /* Other Local variables */
     int arg_index = 1;
     const char *next_arg;
-    int testfile_index, ret, i, cnt;
-    int total_errors = 0, total_tests = 0, total_skipped = 0;
+    size_t testfile_index, i, cnt;
+    int ret;
+    unsigned total_errors = 0, total_tests = 0, total_skipped = 0;
     FILE *file;
     char buf[5000];
     char *params[50];
@@ -347,8 +348,9 @@ int main(int argc, const char *argv[])
           testfile_index < testfile_count;
           testfile_index++ )
     {
-        int unmet_dep_count = 0;
+        size_t unmet_dep_count = 0;
         char *unmet_dependencies[20]; /* only filled when verbose != 0 */
+        int missing_unmet_dependencies = 0;
 
         test_filename = test_files[ testfile_index ];
 
@@ -370,6 +372,7 @@ int main(int argc, const char *argv[])
             }
             unmet_dep_count = 0;
             memset( unmet_dependencies, 0, sizeof( unmet_dependencies ) );
+            missing_unmet_dependencies = 0;
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
@@ -392,18 +395,26 @@ int main(int argc, const char *argv[])
                 {
                     if( dep_check( params[i] ) != DEPENDENCY_SUPPORTED )
                     {
-                        if( 0 != option_verbose )
+                        if( unmet_dep_count <
+                            ARRAY_LENGTH( unmet_dependencies ) )
                         {
-                            unmet_dependencies[unmet_dep_count] =
-                                strdup( params[i] );
-                            if(  unmet_dependencies[unmet_dep_count] == NULL )
+                            if( 0 != option_verbose )
                             {
-                                mbedtls_fprintf( stderr,
-                                                 "FATAL: Out of memory\n" );
-                                mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+                                unmet_dependencies[unmet_dep_count] =
+                                    strdup( params[i] );
+                                if( unmet_dependencies[unmet_dep_count] == NULL )
+                                {
+                                    mbedtls_fprintf( stderr,
+                                                     "FATAL: Out of memory\n" );
+                                    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+                                }
                             }
+                            unmet_dep_count++;
                         }
-                        unmet_dep_count++;
+                        else
+                        {
+                            missing_unmet_dependencies = 1;
+                        }
                     }
                 }
 
@@ -463,11 +474,14 @@ int main(int argc, const char *argv[])
                                         unmet_dependencies[i]);
                         free(unmet_dependencies[i]);
                     }
+                    if( missing_unmet_dependencies )
+                        mbedtls_fprintf( stdout, "..." );
                 }
                 mbedtls_fprintf( stdout, "\n" );
                 fflush( stdout );
 
                 unmet_dep_count = 0;
+                missing_unmet_dependencies = 0;
             }
             else if( ret == DISPATCH_TEST_SUCCESS )
             {
@@ -516,7 +530,7 @@ int main(int argc, const char *argv[])
     else
         mbedtls_fprintf( stdout, "FAILED" );
 
-    mbedtls_fprintf( stdout, " (%d / %d tests (%d skipped))\n",
+    mbedtls_fprintf( stdout, " (%u / %u tests (%u skipped))\n",
              total_tests - total_errors, total_tests, total_skipped );
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \

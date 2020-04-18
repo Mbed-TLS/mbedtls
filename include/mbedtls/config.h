@@ -233,27 +233,27 @@
 /**
  * \def MBEDTLS_DEPRECATED_WARNING
  *
- * Mark deprecated functions so that they generate a warning if used.
- * Functions deprecated in one version will usually be removed in the next
- * version. You can enable this to help you prepare the transition to a new
- * major version by making sure your code is not using these functions.
+ * Mark deprecated functions and features so that they generate a warning if
+ * used. Functionality deprecated in one version will usually be removed in the
+ * next version. You can enable this to help you prepare the transition to a
+ * new major version by making sure your code is not using this functionality.
  *
  * This only works with GCC and Clang. With other compilers, you may want to
  * use MBEDTLS_DEPRECATED_REMOVED
  *
- * Uncomment to get warnings on using deprecated functions.
+ * Uncomment to get warnings on using deprecated functions and features.
  */
 //#define MBEDTLS_DEPRECATED_WARNING
 
 /**
  * \def MBEDTLS_DEPRECATED_REMOVED
  *
- * Remove deprecated functions so that they generate an error if used.
- * Functions deprecated in one version will usually be removed in the next
- * version. You can enable this to help you prepare the transition to a new
- * major version by making sure your code is not using these functions.
+ * Remove deprecated functions and features so that they generate an error if
+ * used. Functionality deprecated in one version will usually be removed in the
+ * next version. You can enable this to help you prepare the transition to a
+ * new major version by making sure your code is not using this functionality.
  *
- * Uncomment to get errors on using deprecated functions.
+ * Uncomment to get errors on using deprecated functions and features.
  */
 //#define MBEDTLS_DEPRECATED_REMOVED
 
@@ -440,6 +440,16 @@
  *            constitutes a security risk. If possible, we recommend avoiding
  *            dependencies on them, and considering stronger message digests
  *            and ciphers instead.
+ *
+ * \warning   If both MBEDTLS_ECDSA_SIGN_ALT and MBEDTLS_ECDSA_DETERMINISTIC are
+ *            enabled, then the deterministic ECDH signature functions pass the
+ *            the static HMAC-DRBG as RNG to mbedtls_ecdsa_sign(). Therefore
+ *            alternative implementations should use the RNG only for generating
+ *            the ephemeral key and nothing else. If this is not possible, then
+ *            MBEDTLS_ECDSA_DETERMINISTIC should be disabled and an alternative
+ *            implementation should be provided for mbedtls_ecdsa_sign_det_ext()
+ *            (and for mbedtls_ecdsa_sign_det() too if backward compatibility is
+ *            desirable).
  *
  */
 //#define MBEDTLS_MD2_PROCESS_ALT
@@ -679,6 +689,13 @@
 #define MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 #define MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 #define MBEDTLS_CIPHER_PADDING_ZEROS
+
+/** \def MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+ *
+ * Uncomment this macro to use a 128-bit key in the CTR_DRBG module.
+ * By default, CTR_DRBG uses a 256-bit key.
+ */
+//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
 
 /**
  * \def MBEDTLS_ENABLE_WEAK_CIPHERSUITES
@@ -1219,6 +1236,21 @@
  */
 //#define MBEDTLS_ENTROPY_NV_SEED
 
+/* MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+ *
+ * In PSA key storage, encode the owner of the key.
+ *
+ * This is only meaningful when building the library as part of a
+ * multi-client service. When you activate this option, you must provide
+ * an implementation of the type psa_key_owner_id_t and a translation
+ * from psa_key_file_id_t to file name in all the storage backends that
+ * you wish to support.
+ *
+ * Note that this option is meant for internal use only and may be removed
+ * without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER
+
 /**
  * \def MBEDTLS_MEMORY_DEBUG
  *
@@ -1335,6 +1367,28 @@
  * Uncomment to enable the smaller implementation of SHA256.
  */
 //#define MBEDTLS_SHA256_SMALLER
+
+/**
+ * \def MBEDTLS_SHA512_SMALLER
+ *
+ * Enable an implementation of SHA-512 that has lower ROM footprint but also
+ * lower performance.
+ *
+ * Uncomment to enable the smaller implementation of SHA512.
+ */
+//#define MBEDTLS_SHA512_SMALLER
+
+/**
+ * \def MBEDTLS_SHA512_NO_SHA384
+ *
+ * Disable the SHA-384 option of the SHA-512 module. Use this to save some
+ * code size on devices that don't use SHA-384.
+ *
+ * Requires: MBEDTLS_SHA512_C
+ *
+ * Uncomment to disable SHA-384
+ */
+//#define MBEDTLS_SHA512_NO_SHA384
 
 /**
  * \def MBEDTLS_SSL_ALL_ALERT_MESSAGES
@@ -1466,8 +1520,8 @@
 
 /** \def MBEDTLS_SSL_EXTENDED_MASTER_SECRET
  *
- * Enable support for Extended Master Secret, aka Session Hash
- * (draft-ietf-tls-session-hash-02).
+ * Enable support for RFC 7627: Session Hash and Extended Master Secret
+ * Extension.
  *
  * This was introduced as "the proper fix" to the Triple Handshake familiy of
  * attacks, but it is recommended to always use it (even if you disable
@@ -1485,7 +1539,8 @@
 /**
  * \def MBEDTLS_SSL_FALLBACK_SCSV
  *
- * Enable support for FALLBACK_SCSV (draft-ietf-tls-downgrade-scsv-00).
+ * Enable support for RFC 7507: Fallback Signaling Cipher Suite Value (SCSV)
+ * for Preventing Protocol Downgrade Attacks.
  *
  * For servers, it is recommended to always enable this, unless you support
  * only one version of TLS, or know for sure that none of your clients
@@ -1526,6 +1581,9 @@
  *
  * Enable hooking functions in SSL module for hardware acceleration of
  * individual records.
+ *
+ * \deprecated This option is deprecated and will be removed in a future
+ *             version of Mbed TLS.
  *
  * Uncomment this macro to enable hooking functions.
  */
@@ -1571,6 +1629,9 @@
  * Enable support for receiving and parsing SSLv2 Client Hello messages for the
  * SSL Server module (MBEDTLS_SSL_SRV_C).
  *
+ * \deprecated This option is deprecated and will be removed in a future
+ *             version of Mbed TLS.
+ *
  * Uncomment this macro to enable support for SSLv2 Client Hello messages.
  */
 //#define MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO
@@ -1601,6 +1662,9 @@
  *
  * Requires: MBEDTLS_MD5_C
  *           MBEDTLS_SHA1_C
+ *
+ * \deprecated This option is deprecated and will be removed in a future
+ *             version of Mbed TLS.
  *
  * Comment this macro to disable support for SSL 3.0
  */
@@ -1775,8 +1839,8 @@
  *
  * Fallback to old (pre-2.7), non-conforming implementation of the truncated
  * HMAC extension which also truncates the HMAC key. Note that this option is
- * only meant for a transitory upgrade period and is likely to be removed in
- * a future version of the library.
+ * only meant for a transitory upgrade period and will be removed in a future
+ * version of the library.
  *
  * \warning The old implementation is non-compliant and has a security weakness
  *          (2^80 brute force attack on the HMAC key used for a single,
@@ -1785,7 +1849,7 @@
  *          bandwidth, and (2) the peer is an Mbed TLS stack that doesn't use
  *          the fixed implementation yet (pre-2.7).
  *
- * \deprecated This option is deprecated and will likely be removed in a
+ * \deprecated This option is deprecated and will be removed in a
  *             future version of Mbed TLS.
  *
  * Uncomment to fallback to old, non-compliant truncated HMAC implementation.
@@ -1793,6 +1857,13 @@
  * Requires: MBEDTLS_SSL_TRUNCATED_HMAC
  */
 //#define MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT
+
+/**
+ * \def MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+ *
+ * Enable modifying the maximum I/O buffer size.
+ */
+//#define MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
 
 /**
  * \def MBEDTLS_THREADING_ALT
@@ -1822,8 +1893,8 @@
  * Make the X.509 and TLS library use PSA for cryptographic operations, and
  * enable new APIs for using keys handled by PSA Crypto.
  *
- * \note Development of this option is currently in progress, and parts
- * of the X.509 and TLS modules are not ported to PSA yet. However, these parts
+ * \note Development of this option is currently in progress, and parts of Mbed
+ * TLS's X.509 and TLS modules are not ported to PSA yet. However, these parts
  * will still continue to work as usual, so enabling this option should not
  * break backwards compatibility.
  *
@@ -2333,7 +2404,11 @@
  *
  * Enable the CTR_DRBG AES-based random generator.
  * The CTR_DRBG generator uses AES-256 by default.
- * To use AES-128 instead, enable MBEDTLS_CTR_DRBG_USE_128_BIT_KEY below.
+ * To use AES-128 instead, enable \c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY above.
+ *
+ * \note To achieve a 256-bit security strength with CTR_DRBG,
+ *       you must use AES-256 *and* use sufficient entropy.
+ *       See ctr_drbg.h for more details.
  *
  * Module:  library/ctr_drbg.c
  * Caller:
@@ -2501,11 +2576,11 @@
 /**
  * \def MBEDTLS_GCM_C
  *
- * Enable the Galois/Counter Mode (GCM) for AES.
+ * Enable the Galois/Counter Mode (GCM).
  *
  * Module:  library/gcm.c
  *
- * Requires: MBEDTLS_AES_C or MBEDTLS_CAMELLIA_C
+ * Requires: MBEDTLS_AES_C or MBEDTLS_CAMELLIA_C or MBEDTLS_ARIA_C
  *
  * This module enables the AES-GCM and CAMELLIA-GCM ciphersuites, if other
  * requisites are enabled as well.
@@ -2812,7 +2887,10 @@
 /**
  * \def MBEDTLS_PKCS11_C
  *
- * Enable wrapper for PKCS#11 smartcard support.
+ * Enable wrapper for PKCS#11 smartcard support via the pkcs11-helper library.
+ *
+ * \deprecated This option is deprecated and will be removed in a future
+ *             version of Mbed TLS.
  *
  * Module:  library/pkcs11.c
  * Caller:  library/pk.c
@@ -2879,7 +2957,7 @@
  * experiment using it, incompatible API changes are still possible, and some
  * parts may not have reached the same quality as the rest of Mbed TLS yet.
  *
- * Module:  crypto/library/psa_crypto.c
+ * Module:  library/psa_crypto.c
  *
  * Requires: MBEDTLS_CTR_DRBG_C, MBEDTLS_ENTROPY_C
  *
@@ -2887,17 +2965,33 @@
 #define MBEDTLS_PSA_CRYPTO_C
 
 /**
+ * \def MBEDTLS_PSA_CRYPTO_SE_C
+ *
+ * Enable secure element support in the Platform Security Architecture
+ * cryptography API.
+ *
+ * \warning This feature is not yet suitable for production. It is provided
+ *          for API evaluation and testing purposes only.
+ *
+ * Module:  library/psa_crypto_se.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_C
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_SE_C
+
+/**
  * \def MBEDTLS_PSA_CRYPTO_STORAGE_C
  *
  * Enable the Platform Security Architecture persistent key storage.
  *
- * Module:  crypto/library/psa_crypto_storage.c
+ * Module:  library/psa_crypto_storage.c
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C,
  *           either MBEDTLS_PSA_ITS_FILE_C or a native implementation of
  *           the PSA ITS interface
  */
-//#define MBEDTLS_PSA_CRYPTO_STORAGE_C
+#define MBEDTLS_PSA_CRYPTO_STORAGE_C
 
 /**
  * \def MBEDTLS_PSA_ITS_FILE_C
@@ -2905,12 +2999,11 @@
  * Enable the emulation of the Platform Security Architecture
  * Internal Trusted Storage (PSA ITS) over files.
  *
- * Module:  crypto/library/psa_its_file.c
+ * Module:  library/psa_its_file.c
  *
  * Requires: MBEDTLS_FS_IO
- *
  */
-//#define MBEDTLS_PSA_ITS_FILE_C
+#define MBEDTLS_PSA_ITS_FILE_C
 
 /**
  * \def MBEDTLS_RIPEMD160_C
@@ -3267,7 +3360,6 @@
 //#define MBEDTLS_CTR_DRBG_MAX_INPUT                256 /**< Maximum number of additional input bytes */
 //#define MBEDTLS_CTR_DRBG_MAX_REQUEST             1024 /**< Maximum number of requested bytes per call */
 //#define MBEDTLS_CTR_DRBG_MAX_SEED_INPUT           384 /**< Maximum size of (re)seed buffer */
-//#define MBEDTLS_CTR_DRBG_USE_128_BIT_KEY              /**< Use 128-bit key for CTR_DRBG - may reduce security (see ctr_drbg.h) */
 
 /* HMAC_DRBG options */
 //#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000 /**< Interval before reseed is performed by default */
@@ -3518,7 +3610,7 @@
  *            on it, and considering stronger message digests instead.
  *
  */
-// #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+//#define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
 
 /**
  * Allow SHA-1 in the default TLS configuration for TLS 1.2 handshake

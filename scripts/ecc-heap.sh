@@ -59,8 +59,8 @@ EOF
 
 for F in 0 1; do
     for W in 2 3 4 5 6; do
-        scripts/config.pl set MBEDTLS_ECP_WINDOW_SIZE $W
-        scripts/config.pl set MBEDTLS_ECP_FIXED_POINT_OPTIM $F
+        scripts/config.py set MBEDTLS_ECP_WINDOW_SIZE $W
+        scripts/config.py set MBEDTLS_ECP_FIXED_POINT_OPTIM $F
         make benchmark >/dev/null 2>&1
         echo "fixed point optim = $F, max window size = $W"
         echo "--------------------------------------------"

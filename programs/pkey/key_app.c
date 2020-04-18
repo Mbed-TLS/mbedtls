@@ -40,7 +40,7 @@
     defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_FS_IO)
 #include "mbedtls/error.h"
 #include "mbedtls/rsa.h"
-#include "mbedtls/x509.h"
+#include "mbedtls/pk.h"
 
 #include <string.h>
 #endif

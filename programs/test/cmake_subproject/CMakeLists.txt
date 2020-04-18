@@ -10,9 +10,9 @@ add_subdirectory(${MBEDTLS_DIR} build)
 
 # Link against all the Mbed TLS libraries.
 set(libs
-    mbedtls
     mbedcrypto
     mbedx509
+    mbedtls
 )
 
 add_executable(cmake_subproject cmake_subproject.c)

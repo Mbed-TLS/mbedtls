@@ -36,6 +36,7 @@
 #endif
 
 #include "mbedtls/ssl_ticket.h"
+#include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
 #include <string.h>
@@ -73,7 +74,7 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx )
 static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
                                unsigned char index )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[MAX_KEY_BYTES];
     mbedtls_ssl_ticket_key *key = ctx->keys + index;
 
@@ -133,7 +134,7 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
     mbedtls_cipher_type_t cipher,
     uint32_t lifetime )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
 
     ctx->f_rng = f_rng;
@@ -206,7 +207,7 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
                               size_t *tlen,
                               uint32_t *ticket_lifetime )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_ticket_context *ctx = p_ticket;
     mbedtls_ssl_ticket_key *key;
     unsigned char *key_name = start;
@@ -306,7 +307,7 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
                               unsigned char *buf,
                               size_t len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_ticket_context *ctx = p_ticket;
     mbedtls_ssl_ticket_key *key;
     unsigned char *key_name = buf;

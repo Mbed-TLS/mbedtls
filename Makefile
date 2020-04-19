@@ -1,5 +1,3 @@
-# export the submodule flag so that crypto knows it's being built as a submodule
-export USE_CRYPTO_SUBMODULE=1
 DESTDIR=/usr/local
 PREFIX=mbedtls_
 
@@ -20,20 +18,18 @@ lib:
 
 tests: lib
 	$(MAKE) -C tests
-	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C crypto/tests
 
 ifndef WINDOWS
 install: no_test
 	mkdir -p $(DESTDIR)/include/mbedtls
 	cp -rp include/mbedtls $(DESTDIR)/include
+	mkdir -p $(DESTDIR)/include/psa
+	cp -rp include/psa $(DESTDIR)/include
 
 	mkdir -p $(DESTDIR)/lib
 	cp -RP library/libmbedtls.*    $(DESTDIR)/lib
 	cp -RP library/libmbedx509.*   $(DESTDIR)/lib
-
-	mkdir -p $(DESTDIR)/include/psa
-	cp -rp crypto/include/psa $(DESTDIR)/include
-	cp -RP crypto/library/libmbedcrypto.* $(DESTDIR)/lib
+	cp -RP library/libmbedcrypto.* $(DESTDIR)/lib
 
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \
@@ -49,8 +45,6 @@ uninstall:
 	rm -f $(DESTDIR)/lib/libmbedtls.*
 	rm -f $(DESTDIR)/lib/libmbedx509.*
 	rm -f $(DESTDIR)/lib/libmbedcrypto.*
-	$(MAKE) -C crypto uninstall
-
 
 	for p in programs/*/* ; do              \
 	    if [ -x $$p ] && [ ! -d $$p ] ;     \
@@ -80,11 +74,11 @@ post_build:
 ifndef WINDOWS
 
 	# If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-	-scripts/config.pl get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY && ([ $$? -eq 0 ]) && \
+	-scripts/config.py get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY && ([ $$? -eq 0 ]) && \
 	    echo '$(CTR_DRBG_128_BIT_KEY_WARNING)'
 
 	# If NULL Entropy is configured, display an appropriate warning
-	-scripts/config.pl get MBEDTLS_TEST_NULL_ENTROPY && ([ $$? -eq 0 ]) && \
+	-scripts/config.py get MBEDTLS_TEST_NULL_ENTROPY && ([ $$? -eq 0 ]) && \
 	    echo '$(NULL_ENTROPY_WARNING)'
 endif
 
@@ -92,14 +86,12 @@ clean:
 	$(MAKE) -C library clean
 	$(MAKE) -C programs clean
 	$(MAKE) -C tests clean
-	$(MAKE) -C crypto clean
 ifndef WINDOWS
 	find . \( -name \*.gcno -o -name \*.gcda -o -name \*.info \) -exec rm {} +
 endif
 
 check: lib tests
 	$(MAKE) -C tests check
-	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C crypto/tests check
 
 test: check
 
@@ -132,8 +124,10 @@ endif
 
 ## Editor navigation files
 C_SOURCE_FILES = $(wildcard include/*/*.h library/*.[hc] programs/*/*.[hc] tests/suites/*.function)
+# Exuberant-ctags invocation. Other ctags implementations may require different options.
+CTAGS = ctags --langmap=c:+.h.function -o
 tags: $(C_SOURCE_FILES)
-	ctags -o $@ $(C_SOURCE_FILES)
+	$(CTAGS) $@ $(C_SOURCE_FILES)
 TAGS: $(C_SOURCE_FILES)
 	etags -o $@ $(C_SOURCE_FILES)
 GPATH GRTAGS GSYMS GTAGS: $(C_SOURCE_FILES)

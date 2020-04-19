@@ -18,7 +18,7 @@ static mbedtls_pk_context pkey;
 #endif
 const char *alpn_list[3];
 
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 const unsigned char psk[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
@@ -130,7 +130,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     mbedtls_ssl_conf_encrypt_then_mac( &conf, (options & 0x20) ? MBEDTLS_SSL_ETM_ENABLED : MBEDTLS_SSL_ETM_DISABLED);
 #endif
-#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if (options & 0x40) {
         mbedtls_ssl_conf_psk( &conf, psk, sizeof( psk ),
                              (const unsigned char *) psk_id, sizeof( psk_id ) - 1 );

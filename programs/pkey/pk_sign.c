@@ -60,17 +60,6 @@ int main( void )
 #include <stdio.h>
 #include <string.h>
 
-
-/*
- * For the currently used signature algorithms the buffer to store any signature
- * must be at least of size MAX(MBEDTLS_ECDSA_MAX_LEN, MBEDTLS_MPI_MAX_SIZE)
- */
-#if MBEDTLS_ECDSA_MAX_LEN > MBEDTLS_MPI_MAX_SIZE
-#define SIGNATURE_MAX_SIZE MBEDTLS_ECDSA_MAX_LEN
-#else
-#define SIGNATURE_MAX_SIZE MBEDTLS_MPI_MAX_SIZE
-#endif
-
 int main( int argc, char *argv[] )
 {
     FILE *f;
@@ -80,7 +69,7 @@ int main( int argc, char *argv[] )
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     unsigned char hash[32];
-    unsigned char buf[SIGNATURE_MAX_SIZE];
+    unsigned char buf[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     char filename[512];
     const char *pers = "mbedtls_pk_sign";
     size_t olen = 0;

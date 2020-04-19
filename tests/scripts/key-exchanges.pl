@@ -45,12 +45,13 @@ for my $kex (@kexes) {
     print "\n******************************************\n";
     print "* Testing with key exchange: $kex\n";
     print "******************************************\n";
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = $kex;
 
     # full config with all key exchanges disabled except one
-    system( "scripts/config.pl full" ) and abort "Failed config full\n";
+    system( "scripts/config.py full" ) and abort "Failed config full\n";
     for my $k (@kexes) {
         next if $k eq $kex;
-        system( "scripts/config.pl unset $k" )
+        system( "scripts/config.py unset $k" )
             and abort "Failed to disable $k\n";
     }
 

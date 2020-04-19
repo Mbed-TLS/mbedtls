@@ -96,7 +96,7 @@ int main( int argc, char *argv[] )
     unsigned char IV[16];
     unsigned char tmp[16];
     unsigned char key[512];
-    unsigned char digest[32];
+    unsigned char digest[64];
     unsigned char buffer[1024];
     unsigned char diff;
 

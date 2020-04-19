@@ -55,7 +55,6 @@ int main( void )
 #include "mbedtls/pem.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/md.h"
-#include "mbedtls/x509.h"
 
 #include <stdio.h>
 #include <string.h>

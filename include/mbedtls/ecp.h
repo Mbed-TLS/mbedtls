@@ -91,6 +91,7 @@ typedef enum
     MBEDTLS_ECP_DP_SECP256K1,      /*!< Domain parameters for 256-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_CURVE448,       /*!< Domain parameters for Curve448. */
     MBEDTLS_ECP_DP_ED25519,        /*!< Domain parameters for Ed25519. */
+    MBEDTLS_ECP_DP_ED448,          /*!< Domain parameters for Ed448. */
 } mbedtls_ecp_group_id;
 
 /**

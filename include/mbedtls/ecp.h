@@ -835,6 +835,28 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
                                  unsigned char *buf, size_t blen );
 
 /**
+ * \brief           This function performs a point addition: \p R = \p P + \p Q.
+ *
+ *                  It is not thread-safe to use same group in multiple threads.
+ *
+ * \param grp       The ECP group to use.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param R         The point in which to store the result of the calculation.
+ *                  This must be initialized.
+ * \param P         The first point to add. This must be initialized.
+ * \param Q         The second point to add. This must be initialized.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the operation for
+ *                  the group is not implemented.
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          Another negative error code on other kinds of failure.
+ */
+int mbedtls_ecp_add( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+                     const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
+
+/**
  * \brief           This function performs a scalar multiplication of a point
  *                  by an integer: \p R = \p m * \p P.
  *

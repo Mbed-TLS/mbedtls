@@ -523,6 +523,9 @@ mbedtls_ecp_curve_type mbedtls_ecp_get_type( const mbedtls_ecp_group *grp )
 
     if( grp->G.Y.p == NULL )
         return( MBEDTLS_ECP_TYPE_MONTGOMERY );
+    /* FIXME: there is probably a cleaner way of doing that. */
+    else if ( grp->id == MBEDTLS_ECP_DP_ED25519 || grp->id == MBEDTLS_ECP_DP_ED448)
+        return ( MBEDTLS_ECP_TYPE_EDWARDS );
     else
         return( MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS );
 }

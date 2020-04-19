@@ -109,6 +109,7 @@ typedef enum
     MBEDTLS_ECP_TYPE_NONE = 0,
     MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS,    /* y^2 = x^3 + a x + b      */
     MBEDTLS_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
+    MBEDTLS_ECP_TYPE_EDWARDS,              /* a x^2 + y^2 = 1 + d x^2 y^2 */
 } mbedtls_ecp_curve_type;
 
 /**

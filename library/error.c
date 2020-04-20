@@ -215,9 +215,16 @@
 
 const char * mbedtls_high_level_strerr( int error_code )
 {
+    int high_level_error_code;
     const char *error_description = NULL;
 
-    switch( error_code )
+    if( error_code < 0 )
+        error_code = -error_code;
+
+    /* Extract the high-level part from the error code. */
+    high_level_error_code = error_code & 0xFF80;
+
+    switch( high_level_error_code )
     {
         /* Begin Auto-Generated Code. */
 #if defined(MBEDTLS_CIPHER_C)
@@ -725,9 +732,16 @@ const char * mbedtls_high_level_strerr( int error_code )
 
 const char * mbedtls_low_level_strerr( int error_code )
 {
+    int low_level_error_code;
     const char *error_description = NULL;
 
-    switch( error_code )
+    if( error_code < 0 )
+        error_code = -error_code;
+
+    /* Extract the low-level part from the error code. */
+    low_level_error_code = error_code & ~0xFF80;
+
+    switch( low_level_error_code )
     {
         /* Begin Auto-Generated Code. */
 #if defined(MBEDTLS_AES_C)
@@ -1154,7 +1168,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         use_ret = ret & 0xFF80;
 
         // Translate high level error code.
-        high_level_error_description = mbedtls_high_level_strerr(use_ret);
+        high_level_error_description = mbedtls_high_level_strerr( ret );
 
         if( high_level_error_description == NULL )
             mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
@@ -1191,7 +1205,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     }
 
     // Translate low level error code.
-    low_level_error_description = mbedtls_low_level_strerr( use_ret );
+    low_level_error_description = mbedtls_low_level_strerr( ret );
 
     if( low_level_error_description == NULL )
         mbedtls_snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );

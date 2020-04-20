@@ -8,12 +8,12 @@ set(libs
 set(targets
     dtls_client
     dtls_server
+    mini_client
     ssl_client1
     ssl_client2
-    ssl_server
     ssl_fork_server
     ssl_mail_client
-    mini_client
+    ssl_server
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)

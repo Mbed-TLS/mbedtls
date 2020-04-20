@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Greentea host test script for Mbed TLS on-target test suite testing.
 #
 # Copyright (C) 2018, Arm Limited, All Rights Reserved
@@ -46,7 +48,7 @@ class TestDataParserError(Exception):
     pass
 
 
-class TestDataParser(object):
+class TestDataParser:
     """
     Parses test name, dependencies, test function name and test parameters
     from the data file.
@@ -260,7 +262,7 @@ class MbedTlsTest(BaseHostTest):
             data_bytes += bytearray(dependencies)
         data_bytes += bytearray([function_id, len(parameters)])
         for typ, param in parameters:
-            if typ == 'int' or typ == 'exp':
+            if typ in ('int', 'exp'):
                 i = int(param, 0)
                 data_bytes += b'I' if typ == 'int' else b'E'
                 self.align_32bit(data_bytes)

@@ -799,10 +799,43 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
         }
     }
 #endif
+#if defined(ECP_EDWARDS)
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
+    {
+        /* Only the compressed format is defined for Edwards curves. */
+        ECP_VALIDATE_RET( format == MBEDTLS_ECP_PF_COMPRESSED );
+
+        /* We need to add an extra bit to store the least significant bit of X. */
+        plen = ( mbedtls_mpi_bitlen( &grp->P ) + 1 + 7 ) >> 3;
+
+        *olen = plen;
+        if( buflen < *olen )
+            return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+        if( mbedtls_mpi_cmp_int( &P->Z, 1 ) != 0 )
+            return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->Y, buf, plen ) );
+
+        /* Store the least significant bit of X into the most significant
+         * bit of the final octet. */
+        if( mbedtls_mpi_get_bit( &P->X, 0 ))
+            buf[plen - 1] |= 0x80;
+    }
+#endif
 
 cleanup:
     return( ret );
 }
+
+#if defined(ECP_EDWARDS)
+/* FIXME: The function is defined later in this file as reading a binary
+   point on an Edwards curve needs computation and thus access to the
+   mbedtls_mpi_xxx_mod functions. */
+static int mbedtls_ecp_point_read_binary_ed( const mbedtls_ecp_group *grp,
+                                             mbedtls_ecp_point *pt,
+                                             const unsigned char *buf, size_t ilen );
+#endif
 
 /*
  * Import a point from unsigned binary data (SEC1 2.3.4 and RFC7748)
@@ -859,6 +892,12 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->Y,
                                                   buf + 1 + plen, plen ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
+    }
+#endif
+#if defined(ECP_EDWARDS)
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary_ed( grp, pt, buf, ilen ) );
     }
 #endif
 
@@ -1155,6 +1194,131 @@ static inline int mbedtls_mpi_shift_l_mod( const mbedtls_ecp_group *grp,
 cleanup:
     return( ret );
 }
+
+#if defined(ECP_EDWARDS)
+/*
+ * Import and Edward point from binary data (RFC8032)
+ */
+static int mbedtls_ecp_point_read_binary_ed( const mbedtls_ecp_group *grp,
+                                             mbedtls_ecp_point *pt,
+                                             const unsigned char *buf, size_t ilen )
+{
+    int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    mbedtls_mpi u, v, t;
+    mbedtls_mpi_uint r;
+    size_t plen;
+    int x_0;
+
+    /* We need to add an extra bit to store the least significant bit of X. */
+    plen = ( mbedtls_mpi_bitlen( &grp->P ) + 1 + 7 ) >> 3;
+
+    if( plen != ilen )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    mbedtls_mpi_init( &u ); mbedtls_mpi_init( &v ); mbedtls_mpi_init( &t );
+
+    /* Interpret the string as an integer in little-endian representation. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &pt->Y, buf, plen ) );
+
+    /* High bit of last digit is the least significant bit of the
+     * x-coordinate. Save it and clear it. */
+    x_0 = mbedtls_mpi_get_bit ( &pt->Y, (plen * 8) - 1 );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &pt->Y, (plen * 8) - 1, 0 ) );
+
+    /* If the resulting y-coordinate is >= p, decoding fails. */
+    if( mbedtls_mpi_cmp_mpi( &pt->Y, &grp->P ) >= 0 )
+    {
+        ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    /* To recover the x-coordinates, the curve equation implies
+       x^2 = (y^2 - 1) / (d y^2 - a) (mod p). The denominator is always
+       non-zero mod p. Let u = y^2 - 1 and v = d y^2 - a. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &u, &pt->Y,  &pt->Y  ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &v, &grp->B, &u      ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &v, &v,      &grp->A ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &u, &u, 1 ) ); MOD_SUB( u );
+
+    /* We use different algorithm to compute the square root of (u/v)
+     * depending on p (mod 8). */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_int( &r, &grp->P, 8 ) );
+
+    if( r == 3 || r == 7 )
+    {
+        /* This corresponds to p = 3 (mod 4) and for instance Ed448. *
+         * The candidate root is x = sqrt(u/v) = u (u v)^((p-3)/4) */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X,  &u, &v ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &t, &grp->P, 3 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &t, 2 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &pt->X, &pt->X, &t, &grp->P, NULL ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X, &pt->X, &u ) );
+
+        /* If v * x^2 = u (mod p), the recovered x-coordinate is x. Otherwise,
+         * no square root exists, and the decoding fails. */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &t,   &pt->X,   &pt->X ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &t,   &t,      &v    ) );
+        if( mbedtls_mpi_cmp_mpi( &t, &u ) != 0 )
+        {
+            ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+            goto cleanup;
+        }
+    }
+    else if( r == 5 )
+    {
+        /* This corresponds for instance to Ed25519. The candidate root is
+         * x = sqrt(u/v) = u (u v)^((p-5)/8) */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X,  &u, &v ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &t, &grp->P, 5 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &t, 3 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &pt->X, &pt->X, &t, &grp->P, NULL ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X, &pt->X, &u ) );
+
+        /* If v * x^2 = u (mod p), x is a square root. */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &t,   &pt->X,   &pt->X ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &t,   &t,      &v    ) );
+        if( mbedtls_mpi_cmp_mpi( &t, &u ) != 0 )
+        {
+            /* Otherwise if v x^2 = -u (mod p), x * 2^((p-1)/4) is a square
+             * root. */
+            MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &t, &grp->P, &t ) );
+            if( mbedtls_mpi_cmp_mpi( &t, &u ) != 0 )
+            {
+                /* Otherwise decoding fails. */
+                ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+                goto cleanup;
+            }
+
+            /* x *= 2^((p-1)/4) */
+            MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &t, 16, "2B8324804FC1DF0B2B4D00993DFBD7A72F431806AD2FE478C4EE1B274A0EA0B0" ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X, &pt->X, &t ) );
+        }
+    }
+    else
+    {
+        /* Not implemented for p = 1 (mod 8). */
+        ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+        goto cleanup;
+    }
+
+    /* Use the x_0 bit to select the right square root. */
+    if( mbedtls_mpi_cmp_int( &pt->X, 0 ) == 0 && x_0 == 1 )
+    {
+        ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+    if( mbedtls_mpi_get_bit( &pt->X, 0 ) != x_0 )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &pt->X, &grp->P, &pt->X ) );
+
+    /* Set Z to 1 in projective coordinates. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
+
+cleanup:
+    mbedtls_mpi_free( &u ); mbedtls_mpi_free( &v ); mbedtls_mpi_free( &t );
+
+    return( ret );
+}
+#endif
 
 #if defined(ECP_SHORTWEIERSTRASS)
 /*

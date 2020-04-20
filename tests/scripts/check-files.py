@@ -100,6 +100,12 @@ class LineIssueTracker(FileIssueTracker):
             for i, line in enumerate(iter(f.readline, b"")):
                 self.check_file_line(filepath, line, i + 1)
 
+
+def is_windows_file(filepath):
+    _root, ext = os.path.splitext(filepath)
+    return ext in ('.dsp', '.sln', '.vcxproj')
+
+
 class PermissionIssueTracker(FileIssueTracker):
     """Track files with bad permissions.
 
@@ -132,26 +138,43 @@ class Utf8BomIssueTracker(FileIssueTracker):
 
     heading = "UTF-8 BOM present:"
 
+    files_exemptions = frozenset([".vcxproj", ".sln"])
+
     def check_file_for_issue(self, filepath):
         with open(filepath, "rb") as f:
             if f.read().startswith(codecs.BOM_UTF8):
                 self.files_with_issues[filepath] = None
 
 
-class LineEndingIssueTracker(LineIssueTracker):
+class UnixLineEndingIssueTracker(LineIssueTracker):
     """Track files with non-Unix line endings (i.e. files with CR)."""
 
-    heading = "Non Unix line endings:"
+    heading = "Non-Unix line endings:"
+
+    def should_check_file(self, filepath):
+        return not is_windows_file(filepath)
 
     def issue_with_line(self, line, _filepath):
         return b"\r" in line
+
+
+class WindowsLineEndingIssueTracker(LineIssueTracker):
+    """Track files with non-Windows line endings (i.e. CR or LF not in CRLF)."""
+
+    heading = "Non-Windows line endings:"
+
+    def should_check_file(self, filepath):
+        return is_windows_file(filepath)
+
+    def issue_with_line(self, line, _filepath):
+        return not line.endswith(b"\r\n") or b"\r" in line[:-2]
 
 
 class TrailingWhitespaceIssueTracker(LineIssueTracker):
     """Track lines with trailing whitespace."""
 
     heading = "Trailing whitespace:"
-    files_exemptions = frozenset(".md")
+    files_exemptions = frozenset([".dsp", ".md"])
 
     def issue_with_line(self, line, _filepath):
         return line.rstrip(b"\r\n") != line.rstrip()
@@ -162,8 +185,9 @@ class TabIssueTracker(LineIssueTracker):
 
     heading = "Tabs present:"
     files_exemptions = frozenset([
-        "Makefile",
-        "generate_visualc_files.pl",
+        ".sln",
+        "/Makefile",
+        "/generate_visualc_files.pl",
     ])
 
     def issue_with_line(self, line, _filepath):
@@ -198,11 +222,26 @@ class IntegrityChecker:
         self.check_repo_path()
         self.logger = None
         self.setup_logger(log_file)
-        self.files_to_check = (
-            ".c", ".h", ".sh", ".pl", ".py", ".md", ".function", ".data",
-            "Makefile", "CMakeLists.txt", "ChangeLog"
+        self.extensions_to_check = (
+            ".c",
+            ".data",
+            ".dsp",
+            ".function",
+            ".h",
+            ".md",
+            ".pl",
+            ".py",
+            ".sh",
+            ".sln",
+            ".vcxproj",
+            "/CMakeLists.txt",
+            "/ChangeLog",
+            "/Makefile",
         )
-        self.excluded_directories = ['.git', 'mbed-os']
+        self.excluded_directories = [
+            '.git',
+            'mbed-os',
+        ]
         self.excluded_paths = list(map(os.path.normpath, [
             'cov-int',
             'examples',
@@ -211,7 +250,8 @@ class IntegrityChecker:
             PermissionIssueTracker(),
             EndOfFileNewlineIssueTracker(),
             Utf8BomIssueTracker(),
-            LineEndingIssueTracker(),
+            UnixLineEndingIssueTracker(),
+            WindowsLineEndingIssueTracker(),
             TrailingWhitespaceIssueTracker(),
             TabIssueTracker(),
             MergeArtifactIssueTracker(),
@@ -244,7 +284,7 @@ class IntegrityChecker:
             dirs[:] = sorted(d for d in dirs if not self.prune_branch(root, d))
             for filename in sorted(files):
                 filepath = os.path.join(root, filename)
-                if not filepath.endswith(self.files_to_check):
+                if not filepath.endswith(self.extensions_to_check):
                     continue
                 for issue_to_check in self.issues_to_check:
                     if issue_to_check.should_check_file(filepath):

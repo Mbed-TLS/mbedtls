@@ -92,6 +92,7 @@ def list_presets(options):
         return re.split(r'[ ,]+', options.presets)
     else:
         help_text = subprocess.run([options.script, '--help'],
+                                   check=False, # config.pl --help returns 255
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT).stdout
         return guess_presets_from_help(help_text.decode('ascii'))

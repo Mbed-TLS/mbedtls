@@ -1,0 +1,4 @@
+Bugfix
+   * Fix the Visual Studio Release x64 build configuration for mbedtls itself.
+     Completes a previous fix in Mbed TLS 2.19 that only fixed the build for
+     the example programs. Reported in #1430 and fix contributed by irwir.

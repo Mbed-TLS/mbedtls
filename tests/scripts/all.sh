@@ -907,22 +907,22 @@ component_test_default_no_deprecated () {
 }
 
 component_test_full_no_deprecated () {
-    msg "build: make, full_non_deprecated config" # ~ 30s
-    scripts/config.py full_non_deprecated
+    msg "build: make, full_no_deprecated config" # ~ 30s
+    scripts/config.py full_no_deprecated
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
 
-    msg "test: make, full_non_deprecated config" # ~ 5s
+    msg "test: make, full_no_deprecated config" # ~ 5s
     make test
 }
 
-component_test_no_deprecated_warning () {
-    msg "build: make, full_non_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 30s
-    scripts/config.py full_non_deprecated
+component_test_full_no_deprecated_warning () {
+    msg "build: make, full_no_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 30s
+    scripts/config.py full_no_deprecated
     scripts/config.py unset MBEDTLS_DEPRECATED_REMOVED
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
 
-    msg "test: make, full_non_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 5s
+    msg "test: make, full_no_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 5s
     make test
 }
 

@@ -302,10 +302,10 @@ DEPRECATED = frozenset([
     'MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO',
 ])
 
-def non_deprecated_adapter(adapter):
+def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.
 
-    ``non_deprecated_adapter(adapter)(name, active, section)`` is like
+    ``no_deprecated_adapter(adapter)(name, active, section)`` is like
     ``adapter(name, active, section)``, but unsets all deprecated symbols
     and sets ``MBEDTLS_DEPRECATED_REMOVED``.
     """
@@ -480,7 +480,7 @@ if __name__ == '__main__':
                     Exclude alternative implementations and platform support
                     options, as well as some options that are awkward to test.
                     """)
-        add_adapter('full_non_deprecated', non_deprecated_adapter(full_adapter),
+        add_adapter('full_no_deprecated', no_deprecated_adapter(full_adapter),
                     """Uncomment most non-deprecated features.
                     Like "full", but without deprecated features.
                     """)

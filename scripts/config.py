@@ -183,7 +183,7 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES', # removes a feature
     'MBEDTLS_NO_PLATFORM_ENTROPY', # removes a feature
     'MBEDTLS_NO_UDBL_DIVISION', # influences anything that uses bignum
-    'MBEDTLS_PKCS11_C', # build dependecy (libpkcs11-helper)
+    'MBEDTLS_PKCS11_C', # build dependency (libpkcs11-helper)
     'MBEDTLS_PLATFORM_NO_STD_FUNCTIONS', # removes a feature
     'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT', # similar to non-platform xxx_ALT, requires platform_alt.h
     'MBEDTLS_PSA_CRYPTO_KEY_FILE_ID_ENCODES_OWNER', # platform dependency (PSA SPM) (at this time)
@@ -237,16 +237,16 @@ def full_adapter(name, active, section):
 # need to be repeated here.
 EXCLUDE_FROM_BAREMETAL = frozenset([
     #pylint: disable=line-too-long
-    'MBEDTLS_ENTROPY_NV_SEED', # requires FS_IO or alternate NV seed hooks
+    'MBEDTLS_ENTROPY_NV_SEED', # requires a filesystem and FS_IO or alternate NV seed hooks
     'MBEDTLS_FS_IO', # requires a filesystem
     'MBEDTLS_HAVEGE_C', # requires a clock
     'MBEDTLS_HAVE_TIME', # requires a clock
     'MBEDTLS_HAVE_TIME_DATE', # requires a clock
     'MBEDTLS_NET_C', # requires POSIX-like networking
     'MBEDTLS_PLATFORM_FPRINTF_ALT', # requires FILE* from stdio.h
-    'MBEDTLS_PLATFORM_NV_SEED_ALT', # requires a filesystem
-    'MBEDTLS_PLATFORM_TIME_ALT', # requires timing
-    'MBEDTLS_PSA_CRYPTO_SE_C', # requires a filesystem
+    'MBEDTLS_PLATFORM_NV_SEED_ALT', # requires a filesystem and ENTROPY_NV_SEED
+    'MBEDTLS_PLATFORM_TIME_ALT', # requires a clock and HAVE_TIME
+    'MBEDTLS_PSA_CRYPTO_SE_C', # requires a filesystem and PSA_CRYPTO_STORAGE_C
     'MBEDTLS_PSA_CRYPTO_STORAGE_C', # requires a filesystem
     'MBEDTLS_PSA_ITS_FILE_C', # requires a filesystem
     'MBEDTLS_THREADING_C', # requires a threading interface

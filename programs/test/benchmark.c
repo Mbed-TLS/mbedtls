@@ -155,6 +155,16 @@ do {                                                                    \
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_MEMORY_DEBUG)
 
+/* How much space to reserve for the title when printing heap usage results.
+ * Updated manually as the output of the following command:
+ *
+ *  sed -n 's/.*[T]IME_PUBLIC.*"\(.*\)",/\1/p' programs/test/benchmark.c |
+ *      awk '{print length+2}' | sort -rn | head -n1
+ *
+ * This computes the maximum length of a title +2 (because we appends "/s").
+ * (If the value is too small, the only consequence is poor alignement.) */
+#define TITLE_SPACE 11
+
 #define MEMORY_MEASURE_INIT                                             \
     size_t max_used, max_blocks, max_bytes;                             \
     size_t prv_used, prv_blocks;                                        \
@@ -163,7 +173,8 @@ do {                                                                    \
 
 #define MEMORY_MEASURE_PRINT( title_len )                               \
     mbedtls_memory_buffer_alloc_max_get( &max_used, &max_blocks );      \
-    for( ii = 12 - (title_len); ii != 0; ii-- ) mbedtls_printf( " " );  \
+    ii = TITLE_SPACE > (title_len) ? TITLE_SPACE - (title_len) : 1;     \
+    while( ii-- ) mbedtls_printf( " " );                                \
     max_used -= prv_used;                                               \
     max_blocks -= prv_blocks;                                           \
     max_bytes = max_used + MEM_BLOCK_OVERHEAD * max_blocks;             \

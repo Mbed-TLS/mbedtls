@@ -522,6 +522,7 @@ pre_setup_keep_going () {
             *[!A-Za-z]"test"|*[!A-Za-z]"test"[!A-Za-z]*) true;;
             "tests/"*) true;;
             "grep "*|"! grep "*) true;;
+            "test "*|"[ "*) true;;
             *) false;;
         esac
     }

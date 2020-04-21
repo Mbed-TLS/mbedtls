@@ -1,0 +1,3 @@
+Features
+   * The new utility programs/ssl/ssl_context_info prints a human-readable
+     dump of an SSL context saved with mbedtls_ssl_context_save().

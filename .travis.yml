@@ -3,24 +3,35 @@ compiler: gcc
 sudo: false
 cache: ccache
 
-script:
-- tests/scripts/recursion.pl library/*.c
-- tests/scripts/check-generated-files.sh
-- tests/scripts/check-doxy-blocks.pl
-- tests/scripts/check-names.sh
-- tests/scripts/check-files.py
-- tests/scripts/doxygen.sh
-- cmake -D CMAKE_BUILD_TYPE:String="Check" .
-- make
-- make test
-- programs/test/selftest
-- OSSL_NO_DTLS=1 tests/compat.sh
-- tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl'
-- tests/scripts/test-ref-configs.pl
-- tests/scripts/curves.pl
-- tests/scripts/key-exchanges.pl
+jobs:
+  include:
+    - name: basic checks
+      script:
+        - tests/scripts/recursion.pl library/*.c
+        - tests/scripts/check-generated-files.sh
+        - tests/scripts/check-doxy-blocks.pl
+        - tests/scripts/check-names.sh
+        - tests/scripts/check-files.py
+        - tests/scripts/doxygen.sh
+
+    - name: default configuration
+      script:
+        - cmake -D CMAKE_BUILD_TYPE:String="Check" .
+        - make
+        - make test
+        - programs/test/selftest
+        - OSSL_NO_DTLS=1 tests/compat.sh
+        - tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl'
+
+    - name: enumerated configurations
+      script:
+        - tests/scripts/test-ref-configs.pl
+        - tests/scripts/curves.pl
+        - tests/scripts/key-exchanges.pl
+
 after_failure:
 - tests/scripts/travis-log-failure.sh
+
 env:
   global:
     - SEED=1

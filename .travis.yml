@@ -16,13 +16,7 @@ jobs:
       install:
         - pip install pylint==2.4.4
       script:
-        - tests/scripts/recursion.pl library/*.c
-        - tests/scripts/check-generated-files.sh
-        - tests/scripts/check-doxy-blocks.pl
-        - tests/scripts/check-names.sh
-        - tests/scripts/check-files.py
-        - tests/scripts/doxygen.sh
-        - tests/scripts/check-python-files.sh
+        - tests/scripts/all.sh -k 'check_*'
 
     - name: default configuration
       script:

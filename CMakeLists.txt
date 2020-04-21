@@ -175,6 +175,11 @@ if(MBEDTLS_FATAL_WARNINGS)
 
     if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+        if(UNSAFE_BUILD)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=cpp")
+            set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_ASAN} -Wno-error=cpp")
+            set(CMAKE_C_FLAGS_ASANDBG "${CMAKE_C_FLAGS_ASANDBG} -Wno-error=cpp")
+        endif(UNSAFE_BUILD)
     endif(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
 endif(MBEDTLS_FATAL_WARNINGS)
 

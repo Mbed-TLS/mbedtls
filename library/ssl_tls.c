@@ -2747,9 +2747,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     {
         ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
 
-        if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
-            ret = 0;
-        else
+        if( authmode != MBEDTLS_SSL_VERIFY_OPTIONAL )
             ret = MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE;
 
         goto exit;

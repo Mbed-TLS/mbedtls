@@ -45,7 +45,6 @@ HEADER_INCLUDED
 const char * mbedtls_high_level_strerr( int error_code )
 {
     int high_level_error_code;
-    const char *error_description = NULL;
 
     if( error_code < 0 )
         error_code = -error_code;
@@ -63,13 +62,12 @@ HIGH_LEVEL_CODE_CHECKS
             break;
     }
 
-    return error_description;
+    return NULL;
 }
 
 const char * mbedtls_low_level_strerr( int error_code )
 {
     int low_level_error_code;
-    const char *error_description = NULL;
 
     if( error_code < 0 )
         error_code = -error_code;
@@ -87,7 +85,7 @@ LOW_LEVEL_CODE_CHECKS
             break;
     }
 
-    return error_description;
+    return NULL;
 }
 
 void mbedtls_strerror( int ret, char *buf, size_t buflen )

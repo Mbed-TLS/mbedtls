@@ -8,6 +8,8 @@ the case of a certificate signed by a different key using a certificate
 signing request.
 EOF
 
+depends_on MBEDTLS_CTR_DRBG_C MBEDTLS_ENTROPY_C MBEDTLS_ERROR_C MBEDTLS_FS_IO MBEDTLS_PEM_WRITE_C MBEDTLS_PK_PARSE_C MBEDTLS_PK_WRITE_C MBEDTLS_SHA256_C MBEDTLS_X509_CRT_PARSE_C MBEDTLS_X509_CRT_WRITE_C MBEDTLS_X509_CSR_PARSE_C MBEDTLS_X509_CSR_WRITE_C
+
 ca_key="demo_ca.key"
 server_key="demo_server.key"
 csr="demo_csr.req"

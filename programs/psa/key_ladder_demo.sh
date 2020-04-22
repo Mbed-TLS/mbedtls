@@ -7,6 +7,8 @@ create a master key, derive a key from it and use that key to wrap
 the derived key using an AEAD algorithm.
 EOF
 
+depends_on MBEDTLS_SHA256_C MBEDTLS_MD_C MBEDTLS_AES_C MBEDTLS_CCM_C MBEDTLS_PSA_CRYPTO_C MBEDTLS_FS_IO
+
 program="${0%/*}"/key_ladder_demo
 
 if [ -e master.key ]; then

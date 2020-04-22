@@ -62,7 +62,7 @@ HIGH_LEVEL_CODE_CHECKS
             break;
     }
 
-    return NULL;
+    return( NULL );
 }
 
 const char * mbedtls_low_level_strerr( int error_code )
@@ -85,7 +85,7 @@ LOW_LEVEL_CODE_CHECKS
             break;
     }
 
-    return NULL;
+    return( NULL );
 }
 
 void mbedtls_strerror( int ret, char *buf, size_t buflen )

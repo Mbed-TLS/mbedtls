@@ -551,7 +551,7 @@ int execute_tests( int argc , const char ** argv )
         return( 1 );
     }
 
-    if( outcome_file_name != NULL )
+    if( outcome_file_name != NULL && *outcome_file_name != '\0' )
     {
         outcome_file = fopen( outcome_file_name, "a" );
         if( outcome_file == NULL )

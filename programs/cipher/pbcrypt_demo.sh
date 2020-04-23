@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e -u
 
+# depends_on:MBEDTLS_CIPHER_C:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C:MBEDTLS_FS_IO:MBEDTLS_MD_C:MBEDTLS_PKCS12_C
+
 program="${0%/*}"/pbcrypt
 plaintext_file=sample-text.txt
 decrypted_file=sample-text.decrypted

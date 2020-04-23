@@ -1847,7 +1847,7 @@ int mbedtls_aes_self_test( int verbose )
         mode = i & 1;
 
         if( verbose != 0 )
-            mbedtls_printf( "  AES-ECB-%3d (%s): ", keybits,
+            mbedtls_printf( "  AES-ECB-%3u (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
         memset( buf, 0, 16 );
@@ -1909,7 +1909,7 @@ int mbedtls_aes_self_test( int verbose )
         mode = i & 1;
 
         if( verbose != 0 )
-            mbedtls_printf( "  AES-CBC-%3d (%s): ", keybits,
+            mbedtls_printf( "  AES-CBC-%3u (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
         memset( iv , 0, 16 );
@@ -1984,7 +1984,7 @@ int mbedtls_aes_self_test( int verbose )
         mode = i & 1;
 
         if( verbose != 0 )
-            mbedtls_printf( "  AES-CFB128-%3d (%s): ", keybits,
+            mbedtls_printf( "  AES-CFB128-%3u (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
         memcpy( iv,  aes_test_cfb128_iv, 16 );
@@ -2047,7 +2047,7 @@ int mbedtls_aes_self_test( int verbose )
         mode = i & 1;
 
         if( verbose != 0 )
-            mbedtls_printf( "  AES-OFB-%3d (%s): ", keybits,
+            mbedtls_printf( "  AES-OFB-%3u (%s): ", keybits,
                             ( mode == MBEDTLS_AES_DECRYPT ) ? "dec" : "enc" );
 
         memcpy( iv,  aes_test_ofb_iv, 16 );

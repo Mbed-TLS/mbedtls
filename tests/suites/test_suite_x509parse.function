@@ -237,7 +237,7 @@ int verify_parse_san( mbedtls_x509_subject_alternative_name *san,
     char *p = *buf;
     size_t n = *size;
 
-    ret = mbedtls_snprintf( p, n, "type : %u", san->type );
+    ret = mbedtls_snprintf( p, n, "type : %d", san->type );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     switch( san->type )

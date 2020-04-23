@@ -132,7 +132,7 @@ void mbedtls_debug_print_ret( const mbedtls_ssl_context *ssl, int level,
         return;
 
     mbedtls_snprintf( str, sizeof( str ), "%s() returned %d (-0x%04x)\n",
-              text, ret, -ret );
+              text, ret, (unsigned int) -ret );
 
     debug_send_line( ssl, level, file, line, str );
 }

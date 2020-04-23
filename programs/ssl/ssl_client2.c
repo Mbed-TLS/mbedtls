@@ -833,7 +833,7 @@ static int ssl_check_record( mbedtls_ssl_context const *ssl,
                 break;
 
             default:
-                mbedtls_printf( "mbedtls_ssl_check_record() failed fatally with -%#04x.\n", -ret );
+                mbedtls_printf( "mbedtls_ssl_check_record() failed fatally with -%#04x.\n", (unsigned int) -ret );
                 return( -1 );
         }
 
@@ -1077,7 +1077,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
-                        -ret );
+                        (unsigned int) -ret );
         return( ret );
     }
 
@@ -1101,7 +1101,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             return( ret );
         }
 
@@ -1111,7 +1111,7 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_get_peer_cid returned -0x%x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             return( ret );
         }
         mbedtls_printf( "(%s) Peer CID (length %u Bytes): ",
@@ -2013,7 +2013,7 @@ int main( int argc, char *argv[] )
                                            strlen( pers ) ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
     }
@@ -2024,7 +2024,7 @@ int main( int argc, char *argv[] )
                                            strlen( pers ) ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%x\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
     }
@@ -2082,7 +2082,7 @@ int main( int argc, char *argv[] )
     if( ret < 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
-                        -ret );
+                        (unsigned int) -ret );
         goto exit;
     }
 
@@ -2117,7 +2117,7 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
-                        -ret );
+                        (unsigned int) -ret );
         goto exit;
     }
 
@@ -2142,7 +2142,7 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
-                        -ret );
+                        (unsigned int) -ret );
         goto exit;
     }
 
@@ -2179,7 +2179,7 @@ int main( int argc, char *argv[] )
                        MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_connect returned -0x%x\n\n",
-                        -ret );
+                        (unsigned int) -ret );
         goto exit;
     }
 
@@ -2190,7 +2190,7 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
-                        -ret );
+                        (unsigned int) -ret );
         goto exit;
     }
 
@@ -2208,7 +2208,7 @@ int main( int argc, char *argv[] )
                     MBEDTLS_SSL_PRESET_DEFAULT ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_config_defaults returned -0x%x\n\n",
-                        -ret );
+                        (unsigned int) -ret );
         goto exit;
     }
 
@@ -2249,7 +2249,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_cid_len returned -%#04x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
     }
@@ -2447,7 +2447,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned -0x%x\n\n",
-                        -ret );
+                        (unsigned int) -ret );
         goto exit;
     }
 
@@ -2527,7 +2527,7 @@ int main( int argc, char *argv[] )
             ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n",
-                            -ret );
+                            (unsigned int) -ret );
             if( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED )
                 mbedtls_printf(
                     "    Unable to verify the server's certificate. "
@@ -2599,7 +2599,7 @@ int main( int argc, char *argv[] )
                                          != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
 
@@ -2620,7 +2620,7 @@ int main( int argc, char *argv[] )
                                          sizeof( eap_tls_iv ) ) ) != 0 )
          {
              mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
-                             -ret );
+                             (unsigned int) -ret );
              goto exit;
          }
 
@@ -2667,7 +2667,7 @@ int main( int argc, char *argv[] )
                                                   &session_data_len ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_session_saved returned -0x%04x\n\n",
-                                -ret );
+                                (unsigned int) -ret );
                 goto exit;
             }
         }
@@ -2676,7 +2676,7 @@ int main( int argc, char *argv[] )
             if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_get_session returned -0x%x\n\n",
-                                -ret );
+                                (unsigned int) -ret );
                 goto exit;
             }
         }
@@ -2827,7 +2827,7 @@ send_request:
                     ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
                 {
                     mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned -0x%x\n\n",
-                                    -ret );
+                                    (unsigned int) -ret );
                     goto exit;
                 }
 
@@ -2955,7 +2955,7 @@ send_request:
 
                     default:
                         mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n",
-                                        -ret );
+                                        (unsigned int) -ret );
                         goto exit;
                 }
             }
@@ -3019,7 +3019,7 @@ send_request:
                     goto close_notify;
 
                 default:
-                    mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n", -ret );
+                    mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n", (unsigned int) -ret );
                     goto exit;
             }
         }
@@ -3047,7 +3047,7 @@ send_request:
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
 
@@ -3058,7 +3058,7 @@ send_request:
                 ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n",
-                                -ret );
+                                (unsigned int) -ret );
                 goto exit;
             }
 
@@ -3092,7 +3092,7 @@ send_request:
         if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
-                            "-0x%x\n\n", -ret );
+                            "-0x%x\n\n", (unsigned int) -ret );
 
             goto exit;
         }
@@ -3110,7 +3110,7 @@ send_request:
                                               buf_len, &buf_len ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_context_save returned "
-                            "-0x%x\n\n", -ret );
+                            "-0x%x\n\n", (unsigned int) -ret );
 
             goto exit;
         }
@@ -3139,7 +3139,7 @@ send_request:
                                                context_buf, buf_len ) ) != 0 )
             {
                 mbedtls_printf( "failed\n  ! mbedtls_base64_encode returned "
-                            "-0x%x\n", -ret );
+                            "-0x%x\n", (unsigned int) -ret );
                 mbedtls_free( b64_buf );
                 goto exit;
             }
@@ -3184,7 +3184,7 @@ send_request:
             if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_setup returned "
-                                "-0x%x\n\n", -ret );
+                                "-0x%x\n\n", (unsigned int) -ret );
                 goto exit;
             }
 
@@ -3211,7 +3211,7 @@ send_request:
                                               buf_len ) ) != 0 )
         {
             mbedtls_printf( "failed\n  ! mbedtls_ssl_context_load returned "
-                            "-0x%x\n\n", -ret );
+                            "-0x%x\n\n", (unsigned int) -ret );
 
             goto exit;
         }
@@ -3283,7 +3283,7 @@ reconnect:
         if( ( ret = mbedtls_ssl_session_reset( &ssl ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_session_reset returned -0x%x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
 
@@ -3294,7 +3294,7 @@ reconnect:
                                                   session_data_len ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_session_load returned -0x%x\n\n",
-                                -ret );
+                                (unsigned int) -ret );
                 goto exit;
             }
         }
@@ -3302,7 +3302,7 @@ reconnect:
         if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session returned -0x%x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
 
@@ -3312,7 +3312,7 @@ reconnect:
                         MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_net_connect returned -0x%x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
 
@@ -3323,7 +3323,7 @@ reconnect:
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
 
@@ -3334,7 +3334,7 @@ reconnect:
                 ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n",
-                                -ret );
+                                (unsigned int) -ret );
                 goto exit;
             }
         }
@@ -3353,7 +3353,7 @@ exit:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
+        mbedtls_printf("Last error was: -0x%X - %s\n\n", (unsigned int) -ret, error_buf );
     }
 #endif
 

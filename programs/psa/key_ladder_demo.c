@@ -101,7 +101,7 @@ int main( void )
         status = ( expr );                                      \
         if( status != PSA_SUCCESS )                             \
         {                                                       \
-            printf( "Error %d at line %u: %s\n",                \
+            printf( "Error %d at line %d: %s\n",                \
                     (int) status,                               \
                     __LINE__,                                   \
                     #expr );                                    \

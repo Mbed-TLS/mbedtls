@@ -114,7 +114,7 @@ int main( int argc, char *argv[] )
     }
 
     i = 0;
-    while( fscanf( f, "%02X", &c ) > 0 &&
+    while( fscanf( f, "%02X", (unsigned int*) &c ) > 0 &&
            i < (int) sizeof( buf ) )
         buf[i++] = (unsigned char) c;
 
@@ -144,7 +144,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_rsa_pkcs1_verify( &rsa, NULL, NULL, MBEDTLS_RSA_PUBLIC,
                                   MBEDTLS_MD_SHA256, 20, hash, buf ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_verify returned -0x%0x\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_verify returned -0x%0x\n\n", (unsigned int) -ret );
         goto exit;
     }
 

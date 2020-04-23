@@ -80,7 +80,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_printf( "  failed\n  !  mbedtls_entropy_func returned -%04X\n",
-                            ret );
+                            (unsigned int) ret );
             goto cleanup;
         }
 

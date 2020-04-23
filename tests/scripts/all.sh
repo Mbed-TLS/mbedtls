@@ -619,7 +619,7 @@ component_test_default_out_of_box () {
     make test
 
     msg "selftest: make, default config (out-of-box)" # ~10s
-    programs/test/selftest
+    if_build_succeeded programs/test/selftest
 }
 
 component_build_yotta () {
@@ -640,6 +640,9 @@ component_test_default_cmake_gcc_asan () {
     msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
 
+    msg "test: selftest (ASan build)" # ~ 10s
+    if_build_succeeded programs/test/selftest
+
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
     if_build_succeeded tests/ssl-opt.sh
 
@@ -655,6 +658,9 @@ component_test_full_cmake_gcc_asan () {
 
     msg "test: main suites (inc. selftests) (full config, ASan build)"
     make test
+
+    msg "test: selftest (ASan build)" # ~ 10s
+    if_build_succeeded programs/test/selftest
 
     msg "test: ssl-opt.sh (full config, ASan build)"
     if_build_succeeded tests/ssl-opt.sh

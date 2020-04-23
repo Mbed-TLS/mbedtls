@@ -19,13 +19,12 @@ jobs:
         - tests/scripts/all.sh -k 'check_*'
 
     - name: default configuration
+      addons:
+        apt:
+          packages:
+          - gnutls-bin
       script:
-        - cmake -D CMAKE_BUILD_TYPE:String="Check" .
-        - make
-        - make test
-        - programs/test/selftest
-        - OSSL_NO_DTLS=1 tests/compat.sh
-        - tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl'
+        - tests/scripts/all.sh -k test_default_cmake_gcc_asan
 
     - name: enumerated configurations
       script:

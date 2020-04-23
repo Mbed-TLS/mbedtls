@@ -6,6 +6,10 @@
 ## Include this file near the top of each demo script:
 ##   . "${0%/*}/../demo_common.sh"
 ##
+## Start with a "msg" call that explains the purpose of the script.
+## Then call the "depends_on" function to ensure that all config
+## dependencies are met.
+##
 ## As the last thing in the script, call the cleanup function.
 ##
 ## You can use the functions and variables described below.
@@ -77,6 +81,20 @@ config_has () {
   for x in "$@"; do
     "$programs_dir/test/query_compile_time_config" "$x"
   done
+}
+
+## depends_on SYMBOL...
+## Exit if the library configuration does not have all SYMBOLs set.
+depends_on () {
+  if ! config_has "$@"; then
+    cat >&2 <<EOF
+This demo script requires the following configuration options to be enabled
+at compile time:
+  $@
+EOF
+    # Exit with a success status so that this counts as a pass for run_demos.py.
+    exit
+  fi
 }
 
 ## Add the names of files to clean up to this whitespace-separated variable.

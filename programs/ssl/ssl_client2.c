@@ -1800,7 +1800,7 @@ int main( int argc, char *argv[] )
             opt.skip_close_notify = atoi( q );
             if( opt.skip_close_notify < 0 || opt.skip_close_notify > 1 )
                 goto usage;
-	}
+        }
         else if( strcmp( p, "use_srtp" ) == 0 )
         {
             opt.use_srtp = atoi ( q );

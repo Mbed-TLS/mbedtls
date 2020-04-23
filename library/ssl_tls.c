@@ -2091,7 +2091,7 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
         /* check if we have a chosen srtp protection profile */
         if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE )
-	{
+        {
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
         else

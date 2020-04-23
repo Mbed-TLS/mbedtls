@@ -730,10 +730,6 @@ Changes
    * Ciphersuites based on 3DES now have the lowest priority by default when
      they are enabled.
 
-Features
-   * Add support for DTLS-SRTP as defined in RFC 5764. Based on #361 contributed
-     by Johan Pascal.
-
 = mbed TLS 2.16.0 branch released 2018-12-21
 
 Features

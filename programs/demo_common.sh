@@ -71,6 +71,14 @@ run_bad () {
   not "$@"
 }
 
+## config_has SYMBOL...
+## Succeeds if the library configuration has all SYMBOLs set.
+config_has () {
+  for x in "$@"; do
+    "$programs_dir/test/query_compile_time_config" "$x"
+  done
+}
+
 ## Add the names of files to clean up to this whitespace-separated variable.
 ## The file names must not contain whitespace characters.
 files_to_clean=
@@ -87,3 +95,11 @@ cleanup () {
 trap 'cleanup; trap - HUP; kill -HUP $$' HUP
 trap 'cleanup; trap - INT; kill -INT $$' INT
 trap 'cleanup; trap - TERM; kill -TERM $$' TERM
+
+if config_has MBEDTLS_ENTROPY_NV_SEED; then
+  # Create a seedfile that's sufficiently long in all library configurations.
+  # This is necessary for programs that use randomness.
+  # Assume that the name of the seedfile is the default name.
+  files_to_clean="$files_to_clean seedfile"
+  dd if=/dev/urandom of=seedfile ibs=64 obs=64 count=1
+fi

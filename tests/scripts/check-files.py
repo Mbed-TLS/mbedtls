@@ -113,10 +113,16 @@ class PermissionIssueTracker(FileIssueTracker):
 
     heading = "Incorrect permissions:"
 
+    @staticmethod
+    def has_shebang(filepath):
+        with open(filepath, 'rb') as content:
+            header = content.read(2)
+        return header == b'#!'
+
     def check_file_for_issue(self, filepath):
         is_executable = os.access(filepath, os.X_OK)
-        should_be_executable = filepath.endswith((".sh", ".pl", ".py"))
-        if is_executable != should_be_executable:
+        may_be_executable = filepath.endswith((".sh", ".pl", ".py"))
+        if is_executable != (may_be_executable and self.has_shebang(filepath)):
             self.files_with_issues[filepath] = None
 
 

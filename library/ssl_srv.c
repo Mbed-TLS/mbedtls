@@ -87,7 +87,7 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
                                      size_t len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t servername_list_size, hostname_len;
+    uint16_t servername_list_size, hostname_len;
     const unsigned char *p;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "parse ServerName extension" ) );
@@ -100,7 +100,7 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
     servername_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
-    if( servername_list_size + 2 != len )
+    if( (size_t) servername_list_size + 2 != len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -247,7 +247,7 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
                                                const unsigned char *buf,
                                                size_t len )
 {
-    size_t sig_alg_list_size;
+    uint16_t sig_alg_list_size;
 
     const unsigned char *p;
     const unsigned char *end = buf + len;
@@ -262,7 +262,7 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
     sig_alg_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
-    if( sig_alg_list_size + 2 != len ||
+    if( (size_t) sig_alg_list_size + 2 != len ||
         sig_alg_list_size % 2 != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -325,7 +325,7 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
                                                 const unsigned char *buf,
                                                 size_t len )
 {
-    size_t list_size, our_size;
+    uint16_t list_size, our_size;
     const unsigned char *p;
     const mbedtls_ecp_curve_info *curve_info, **curves;
 
@@ -336,7 +336,7 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
     list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
-    if( list_size + 2 != len ||
+    if( (size_t) list_size + 2 != len ||
         list_size % 2 != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -698,7 +698,9 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
 static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
                                const unsigned char *buf, size_t len )
 {
-    size_t list_len, cur_len, ours_len;
+    uint16_t list_len;
+    unsigned char cur_len;
+    size_t ours_len;
     const unsigned char *theirs, *start, *end;
     const char **ours;
 
@@ -1035,7 +1037,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     int ret, got_common_suite;
     unsigned int i, j;
     size_t n;
-    unsigned int ciph_len, sess_len, chal_len;
+    uint16_t ciph_len, sess_len, chal_len;
     unsigned char *buf, *p;
     const int *ciphersuites;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
@@ -1300,7 +1302,8 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
     int ret, got_common_suite;
     size_t i, j;
     size_t ciph_offset, comp_offset, ext_offset;
-    size_t msg_len, ciph_len, sess_len, comp_len, ext_len;
+    uint16_t ciph_len, ext_len;
+    size_t msg_len, sess_len, comp_len;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     size_t cookie_offset, cookie_len;
 #endif
@@ -1425,8 +1428,6 @@ read_record_header:
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    msg_len = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
-
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
@@ -1436,6 +1437,7 @@ read_record_header:
     else
 #endif
     {
+        msg_len = (ssl->in_len[0] << 8) | ssl->in_len[1];
         if( msg_len > MBEDTLS_SSL_IN_CONTENT_LEN )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -1504,13 +1506,13 @@ read_record_header:
          * Copy the client's handshake message_seq on initial handshakes,
          * check sequence number on renego.
          */
+        unsigned int cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
+                                     ssl->in_msg[5];
+
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
         {
             /* This couldn't be done in ssl_prepare_handshake_record() */
-            unsigned int cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
-                                         ssl->in_msg[5];
-
             if( cli_msg_seq != ssl->handshake->in_msg_seq )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message_seq: "
@@ -1524,8 +1526,6 @@ read_record_header:
         else
 #endif
         {
-            unsigned int cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
-                                         ssl->in_msg[5];
             ssl->handshake->out_msg_seq = cli_msg_seq;
             ssl->handshake->in_msg_seq  = cli_msg_seq + 1;
         }
@@ -1700,8 +1700,8 @@ read_record_header:
              | ( buf[ciph_offset + 1]      );
 
     if( ciph_len < 2 ||
-        ciph_len + 2 + ciph_offset + 1 > msg_len || /* 1 for comp. alg. len */
-        ( ciph_len % 2 ) != 0 )
+        (size_t) ciph_len + 2 + ciph_offset + 1 > msg_len || /* 1 for comp. alg. len */
+        ciph_len % 2 != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -1789,8 +1789,8 @@ read_record_header:
 
         while( ext_len != 0 )
         {
-            unsigned int ext_id;
-            unsigned int ext_size;
+            uint16_t ext_id;
+            uint16_t ext_size;
             if ( ext_len < 4 ) {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
                 mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -2190,7 +2190,7 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
                                size_t *olen )
 {
     unsigned char *p = buf;
-    size_t ext_len;
+    uint16_t ext_len;
     const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
 
     *olen = 0;
@@ -2221,11 +2221,11 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
 
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CID >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CID      ) & 0xFF );
-    ext_len = (size_t) ssl->own_cid_len + 1;
+    ext_len = (uint16_t) ssl->own_cid_len + 1;
     *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
 
-    *p++ = (uint8_t) ssl->own_cid_len;
+    *p++ = (unsigned char) ssl->own_cid_len;
     memcpy( p, ssl->own_cid, ssl->own_cid_len );
 
     *olen = ssl->own_cid_len + 5;
@@ -3564,7 +3564,7 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
                                        const unsigned char *end )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t n;
+    uint16_t n;
 
     /*
      * Receive G^Y mod P, premaster = (G^Y)^X mod P
@@ -3630,7 +3630,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_pk_context *private_key = mbedtls_ssl_own_key( ssl );
     mbedtls_pk_context *public_key = &mbedtls_ssl_own_cert( ssl )->pk;
-    size_t len = mbedtls_pk_get_len( public_key );
+    uint16_t len = (uint16_t) mbedtls_pk_get_len( public_key );
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /* If we have already started decoding the message and there is an ongoing
@@ -4195,7 +4195,8 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t i, sig_len;
+    uint16_t sig_len;
+    size_t i;
     unsigned char hash[48];
     unsigned char *hash_start = hash;
     size_t hashlen;

@@ -1,0 +1,56 @@
+# Steps to import a volatile key
+#
+# Resources involved:
+# - one RAM slot: one entry in the RAM table of open keys
+# - one RAM heap allocation to store the key data
+#
+# S_VALIDATE_KEY_ATTRIBUTES: Validate key attributes.
+# S_ALLOCATE_RAM_SLOT: Allocate a RAM slot.
+# S_VALIDATE_KEY_DATA: Validate key data and its size. The processing in
+#     this step is highly dependent of the key type.
+# S_STORE_IN_RAM_KEY_DATA: Store key data in RAM (heap).
+# S_VALIDATE_KEY_OPTIONAL_ATTRIBUTES: Validate key optional attributes.
+#
+
+# Steps to import a persistent key (not SE case)
+#
+# Resources involved:
+# - one RAM slot: one entry in the RAM table of open keys
+# - one RAM heap allocation to store the key data
+# - one RAM heap allocation to store the key storage data
+# - one file in internal storage
+#
+# Same steps as for volatile keys followed by two additional steps:
+# S_STORE_IN_RAM_KEY_STORAGE_DATA: Store key storage data in RAM (temporary
+#     storage in heap).
+# S_STORE_IN_ITS_KEY_STORAGE_DATA: Store key storage data in internal storage.
+#
+
+# Steps to import a key in a secure element
+#
+# Resources involved:
+# - one RAM slot: one entry in the RAM table of open keys
+# - one SE key slot
+# - one transaction temporary file in internal storage
+# - one RAM heap allocation to store key storage data
+# - one file in internal storage for key storage data
+# - SE driver persistent data
+#
+# S_VALIDATE_KEY_ATTRIBUTES: Validate key attributes.
+# S_ALLOCATE_RAM_SLOT: Allocate a RAM slot.
+#
+# S_ALLOCATE_SE_KEY_SLOT: Allocate an SE key slot.
+# S_STORE_IN_ITS_TRANSACTION_FILE: Store in internal storage the transaction
+#     file indicating that the import of a key into the SE is in progress.
+# S_IMPORT_KEY_IN_SE: Import the key into the allocated SE key slot.
+#
+# S_VALIDATE_KEY_OPTIONAL_ATTRIBUTES: Validate key optional attributes.
+#
+# S_STORE_IN_RAM_KEY_STORAGE_DATA: Store key storage data in RAM (temporary
+#     storage in heap).
+# S_STORE_IN_ITS_KEY_STORAGE_DATA: Store key storage data in internal storage.
+# S_STORE_IN_ITS_DRIVER_PERSISTENT_DATA: Store new driver persistent data in
+#     internal storage.
+#
+# S_DELETE_IN_ITS_TRANSACTION_FILE: Delete in internal storage the transaction
+#     file indicating that the import of a key into the SE is in progress.

@@ -54,3 +54,134 @@
 #
 # S_DELETE_IN_ITS_TRANSACTION_FILE: Delete in internal storage the transaction
 #     file indicating that the import of a key into the SE is in progress.
+
+#
+# Tested function: psa_import_key
+#
+# Targeted step: S_VALIDATE_KEY_ATTRIBUTES
+#
+# Description: Invalid values for the key type
+#
+# Test that when passing an invalid key type, psa_import_key returns
+# in error with the appropriate error code.
+#
+# A key type is coded as an uint32_t integer.
+# The value PSA_KEY_TYPE_NONE is defined as invalid.
+#
+# TODO What other invalid values do we need to test ?
+# TODO Why not INVALID_ARGUMENT as error code instead of NOT_SUPPORTED ?
+#
+
+PSA import key: valid key type
+import_with_attributes:PSA_KEY_TYPE_AES:PSA_KEY_LIFETIME_VOLATILE:0:INVALID_SLOT_NUM:PSA_KEY_USAGE_ENCRYPT:PSA_ALG_CMAC:128:PSA_SUCCESS
+
+PSA import key: invalid key type (TYPE_NONE)
+import_with_attributes:PSA_KEY_TYPE_NONE:PSA_KEY_LIFETIME_VOLATILE:0:INVALID_SLOT_NUM:PSA_KEY_USAGE_ENCRYPT:PSA_ALG_CMAC:128:PSA_ERROR_NOT_SUPPORTED
+
+PSA import key: invalid key type (TYPE_CATEGORY_MASK)
+import_with_attributes:PSA_KEY_TYPE_CATEGORY_MASK:PSA_KEY_LIFETIME_VOLATILE:0:INVALID_SLOT_NUM:PSA_KEY_USAGE_ENCRYPT:PSA_ALG_CMAC:128:PSA_ERROR_NOT_SUPPORTED
+
+PSA import key: invalid key type (TYPE_CATEGORY_SYMMETRIC)
+import_with_attributes:PSA_KEY_TYPE_CATEGORY_SYMMETRIC:PSA_KEY_LIFETIME_VOLATILE:0:INVALID_SLOT_NUM:PSA_KEY_USAGE_ENCRYPT:PSA_ALG_CMAC:128:PSA_ERROR_NOT_SUPPORTED
+
+#
+# Tested function: psa_import_key
+#
+# Targeted step: S_VALIDATE_KEY_ATTRIBUTES
+#
+# Description: Invalid values for the key lifetime
+#
+# Test that when passing an invalid key lifetime, psa_import_key returns
+# in error with the appropriate error code.
+#
+# In the absence of any SE the library relies on, only values
+# PSA_KEY_LIFETIME_VOLATILE and PSA_KEY_LIFETIME_PERSISTENT are valid.
+#
+# The implementation limits the lifetime of SEs to PSA_MAX_SE_LIFETIME.
+#
+
+PSA import key: valid lifetime no SE
+depends_on:!MBEDTLS_PSA_CRYPTO_SE_C
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:128:PSA_SUCCESS
+
+PSA import key: invalid lifetime no SE
+depends_on:!MBEDTLS_PSA_CRYPTO_SE_C
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_KEY_LIFETIME_PERSISTENT+PSA_KEY_LIFETIME_VOLATILE+1:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_ERROR_INVALID_ARGUMENT
+
+PSA import key: valid SE lifetime
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_KEY_LIFETIME_PERSISTENT+1:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_SUCCESS
+
+PSA import key: invalid SE lifetime (> PSA_MAX_SE_LIFETIME)
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME+1:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_ERROR_INVALID_ARGUMENT
+
+PSA import key: invalid SE lifetime, no SE with specified lifetime
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME-1:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_ERROR_INVALID_ARGUMENT
+
+#
+# Tested function: psa_import_key
+#
+# Targeted step: S_VALIDATE_KEY_ATTRIBUTES
+#
+# Description: Invalid values for the key identifier
+#
+# Key identifier layout:
+# - 0 : Invalid
+# - 0x00000001 - 0x3fffffff ( PSA_KEY_ID_USER_MIN - PSA_KEY_ID_USER_MAX )
+#   Range of identifiers reserved for applications.
+# - 0x40000000 - 0x7fffffff ( PSA_KEY_ID_VENDOR_MIN - PSA_KEY_ID_VENDOR_MAX )
+#   Range of identifiers reserved for vendors.
+# - 0x80000000 - 0xffffffff : Invalid.
+#
+# Vendor identifiers are not allowed to import a key (only for pre-provisioned
+# keys).
+#
+
+PSA import key: valid key identifier
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:128:PSA_SUCCESS
+
+PSA import key: invalid key identifier (0)
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_KEY_LIFETIME_PERSISTENT:0:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:128:PSA_ERROR_INVALID_ARGUMENT
+
+PSA import key: invalid key identifier (PSA_KEY_ID_VENDOR_MIN)
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_VENDOR_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:128:PSA_ERROR_INVALID_ARGUMENT
+
+PSA import key: invalid key identifier (PSA_KEY_ID_VENDOR_MAX)
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_KEY_LIFETIME_PERSISTENT:PSA_KEY_ID_VENDOR_MAX:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:128:PSA_ERROR_INVALID_ARGUMENT
+
+#
+# Tested function: psa_import_key
+#
+# Targeted step: S_VALIDATE_KEY_ATTRIBUTES
+#
+# Description: Invalid values for the key usage flags
+#
+# As per PSA crypto specifiction, the valid usage flags are:
+# PSA_KEY_USAGE_EXPORT
+# PSA_KEY_USAGE_COPY
+# PSA_KEY_USAGE_ENCRYPT
+# PSA_KEY_USAGE_DECRYPT
+# PSA_KEY_USAGE_SIGN(_HASH)
+# PSA_KEY_USAGE_VERIFY(_HASH)
+# PSA_KEY_USAGE_DERIVE
+#
+# import_with_invalid_usage_flags test, checks that when setting an invalid
+# usage flag, psa_import_key() returns in error with the
+# PSA_ERROR_INVALID_ARGUMENT error code.
+#
+
+PSA import key: invalid usage flags
+import_with_invalid_usage_flags:PSA_KEY_TYPE_RAW_DATA:PSA_KEY_LIFETIME_VOLATILE:0:INVALID_SLOT_NUM:PSA_ALG_ECDH:0
+
+#
+# Tested function: psa_import_key
+#
+# Targeted step: S_VALIDATE_KEY_ATTRIBUTES
+#
+# Description: Invalid values for the key algorithm type
+#
+# The key algorithm type is not checked when importing the key but
+# at usage thus there is no failure to test here.
+#

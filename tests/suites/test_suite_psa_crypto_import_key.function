@@ -1,0 +1,228 @@
+/* BEGIN_HEADER */
+#include <stdint.h>
+
+#include "psa_crypto_helpers.h"
+#include <psa_crypto_se.h>
+
+#include "psa/crypto.h"
+#include "psa/crypto_values.h"
+
+#include "suites/mock_psa_crypto_se_driver.function"
+
+/* Invalid slot number, test scope only */
+#define INVALID_SLOT_NUM ( (psa_key_slot_number_t)0x0fffffff )
+
+static int test_operations_on_invalid_handle( psa_key_handle_t handle )
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t buffer[1];
+    size_t length;
+    int ok = 0;
+
+    psa_set_key_id( &attributes, 0x6964 );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+    psa_set_key_algorithm( &attributes, PSA_ALG_CTR );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_AES );
+    TEST_EQUAL( psa_get_key_attributes( handle, &attributes ),
+                PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_get_key_id( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_lifetime( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_type( &attributes ), 0 );
+    TEST_EQUAL( psa_get_key_bits( &attributes ), 0 );
+
+    TEST_EQUAL( psa_export_key( handle,
+                                buffer, sizeof( buffer ), &length ),
+                PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_export_public_key( handle,
+                                       buffer, sizeof( buffer ), &length ),
+                PSA_ERROR_INVALID_HANDLE );
+
+    ok = 1;
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    return( ok );
+}
+
+int do_import_with_attributes( int type_arg,
+                               int lifetime_arg, int id_arg,
+                               int slot_number_arg,
+                               int usage_flags_arg,
+                               int alg_arg,
+                               int bits_arg,
+                               int expected_status_arg )
+{
+    int status = -1;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t key_material[16] = {0};
+    psa_status_t psa_status;
+    psa_key_handle_t handle = 0;
+    psa_key_attributes_t got_attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_type( &attributes, type_arg );
+    psa_set_key_lifetime( &attributes, lifetime_arg );
+
+    if( lifetime_arg != PSA_KEY_LIFETIME_VOLATILE )
+    {
+        psa_set_key_id( &attributes, id_arg );
+    }
+
+    #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    psa_key_slot_number_t slot_number = (psa_key_slot_number_t)slot_number_arg;
+
+    if( slot_number != INVALID_SLOT_NUM )
+    {
+        psa_set_key_slot_number( &attributes, slot_number );
+    }
+    #else
+    (void)slot_number_arg;
+    #endif
+
+    psa_set_key_usage_flags( &attributes, usage_flags_arg );
+    psa_set_key_algorithm( &attributes, alg_arg );
+    psa_set_key_bits( &attributes, bits_arg );
+
+    psa_status = psa_import_key( &attributes,
+                                 key_material, sizeof( key_material ),
+                                 &handle );
+
+    TEST_EQUAL( psa_status, expected_status_arg );
+    if ( psa_status != PSA_SUCCESS )
+        goto exit;
+
+    PSA_ASSERT( psa_get_key_attributes( handle, &got_attributes ) );
+    TEST_EQUAL( psa_get_key_type( &got_attributes ),(psa_key_type_t)type_arg );
+    TEST_EQUAL( psa_get_key_lifetime( &got_attributes ),
+                (psa_key_lifetime_t)lifetime_arg );
+    TEST_EQUAL( psa_get_key_id( &got_attributes ), (psa_key_id_t)id_arg );
+    TEST_EQUAL( psa_get_key_usage_flags( &got_attributes ),
+                (psa_key_usage_t)usage_flags_arg );
+    TEST_EQUAL( psa_get_key_algorithm( &got_attributes ),
+                (psa_algorithm_t)alg_arg );
+    TEST_EQUAL( psa_get_key_bits( &got_attributes ),(size_t)bits_arg );
+
+    #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    if( ( lifetime_arg == PSA_KEY_LIFETIME_VOLATILE ) ||
+        ( lifetime_arg == PSA_KEY_LIFETIME_PERSISTENT ) )
+    {
+        TEST_ASSERT( mock_allocate_data.called == 0 );
+        TEST_ASSERT( mock_validate_slot_number_data.called == 0 );
+        TEST_ASSERT( mock_import_data.called == 0 );
+    }
+    else
+    {
+        psa_key_slot_number_t got_slot_number;
+        PSA_ASSERT( psa_get_key_slot_number( &got_attributes,
+                                             &got_slot_number ) );
+
+        if ( slot_number == INVALID_SLOT_NUM )
+        {
+            TEST_ASSERT( mock_allocate_data.called == 1 );
+            TEST_ASSERT( mock_validate_slot_number_data.called == 0 );
+        }
+        else
+        {
+            TEST_ASSERT( got_slot_number == slot_number );
+            TEST_ASSERT( mock_allocate_data.called == 0 );
+            TEST_ASSERT( mock_validate_slot_number_data.called == 1 );
+        }
+
+        TEST_ASSERT( mock_import_data.called == 1 );
+    }
+    #endif
+
+    PSA_ASSERT( psa_destroy_key( handle ) );
+    test_operations_on_invalid_handle( handle );
+
+    status = 0;
+
+exit:
+    psa_destroy_key( handle );
+    psa_reset_key_attributes( &got_attributes );
+    return( status );
+}
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void import_with_attributes( int type_arg,
+                             int lifetime_arg, int id_arg,
+                             int slot_number_arg,
+                             int usage_flags_arg,
+                             int alg_arg,
+                             int bits_arg,
+                             int expected_status_arg )
+{
+    #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    PSA_ASSERT( psa_register_se_driver( PSA_KEY_LIFETIME_PERSISTENT + 1,
+                                        &mock_psa_drv_se ) );
+    PSA_ASSERT( psa_register_se_driver( PSA_MAX_SE_LIFETIME,
+                                        &mock_psa_drv_se ) );
+    #endif
+
+    do_import_with_attributes( type_arg, lifetime_arg, id_arg,
+                               slot_number_arg, usage_flags_arg,
+                               alg_arg, bits_arg, expected_status_arg );
+
+    /* To make compiler happy */
+    goto exit;
+
+exit:
+    PSA_DONE( );
+    #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    mock_teardown( );
+    #endif
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void import_with_invalid_usage_flags( int type_arg,
+                                      int lifetime_arg, int id_arg,
+                                      int slot_number_arg,
+                                      int alg_arg, int bits_arg )
+{
+    size_t i;
+    uint32_t usage_flag;
+    uint32_t allowed_usage_flags = PSA_KEY_USAGE_EXPORT      |
+                                   PSA_KEY_USAGE_COPY        |
+                                   PSA_KEY_USAGE_ENCRYPT     |
+                                   PSA_KEY_USAGE_DECRYPT     |
+                                   PSA_KEY_USAGE_SIGN_HASH   |
+                                   PSA_KEY_USAGE_VERIFY_HASH |
+                                   PSA_KEY_USAGE_DERIVE;
+
+    #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    PSA_ASSERT( psa_register_se_driver( PSA_KEY_LIFETIME_PERSISTENT + 1,
+                                        &mock_psa_drv_se ) );
+    PSA_ASSERT( psa_register_se_driver( PSA_MAX_SE_LIFETIME,
+                                        &mock_psa_drv_se ) );
+    #endif
+
+    for ( i = 0; i < 32; i++ )
+    {
+        usage_flag = 1 << i;
+        if ( ! (usage_flag & allowed_usage_flags) )
+        {
+            if ( do_import_with_attributes(
+                 type_arg, lifetime_arg, id_arg,
+                 slot_number_arg, usage_flag,
+                 alg_arg, bits_arg, PSA_ERROR_INVALID_ARGUMENT) )
+                goto exit;
+        }
+    }
+
+exit:
+    PSA_DONE( );
+    #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    mock_teardown( );
+    #endif
+}
+/* END_CASE */

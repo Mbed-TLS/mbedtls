@@ -1,0 +1,217 @@
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+
+#include "psa/crypto_se_driver.h"
+
+#include "psa_crypto_se.h"
+#include "psa_crypto_storage.h"
+
+static struct
+{
+    uint16_t called;
+
+    /* Input parameters */
+    psa_drv_se_context_t *drv_context;
+    void *persistent_data;
+    psa_key_lifetime_t lifetime;
+
+    /* Output parameter */
+    psa_status_t return_value;
+} mock_init_data;
+
+static struct
+{
+    uint16_t called;
+
+    /* Input parameters */
+    psa_drv_se_context_t *drv_context;
+    void *persistent_data;
+    const psa_key_attributes_t *attributes;
+    psa_key_creation_method_t method;
+
+    /* Output parameter */
+    psa_key_slot_number_t key_slot;
+    psa_status_t return_value;
+} mock_allocate_data;
+
+static struct
+{
+    uint16_t called;
+
+    /* Input parameters */
+    psa_drv_se_context_t *drv_context;
+    void *persistent_data;
+    const psa_key_attributes_t *attributes;
+    psa_key_creation_method_t method;
+    psa_key_slot_number_t key_slot;
+
+    /* Output parameter */
+    psa_status_t return_value;
+} mock_validate_slot_number_data;
+
+static struct
+{
+    uint16_t called;
+
+    /* Input parameters */
+    psa_drv_se_context_t *drv_context;
+    psa_key_slot_number_t key_slot;
+    const psa_key_attributes_t *attributes;
+    const uint8_t *data;
+    size_t data_length;
+
+    /* Output parameters */
+    size_t bits;
+    psa_status_t return_value;
+} mock_import_data;
+
+static struct
+{
+    uint16_t called;
+
+    /* Input parameters */
+    psa_drv_se_context_t *drv_context;
+    void *persistent_data;
+    psa_key_slot_number_t key_slot;
+
+    /* Output parameters */
+    psa_status_t return_value;
+} mock_destroy_data;
+
+#define MAX_KEY_ID_FOR_TEST 10
+static void psa_purge_storage( void )
+{
+    psa_key_id_t id;
+    psa_key_lifetime_t lifetime;
+    /* The tests may have potentially created key ids from 1 to
+     * MAX_KEY_ID_FOR_TEST. In addition, run the destroy function on key id
+     * 0, which file-based storage uses as a temporary file. */
+    for( id = 0; id <= MAX_KEY_ID_FOR_TEST; id++ )
+        psa_destroy_persistent_key( id );
+
+    /* Purge the transaction file. */
+    psa_crypto_stop_transaction( );
+
+    /* Purge driver persistent data. */
+    for( lifetime = 0; lifetime < PSA_MAX_SE_LIFETIME; lifetime++ )
+        psa_destroy_se_persistent_data( lifetime );
+}
+
+static void mock_teardown( void )
+{
+    memset( &mock_init_data, 0, sizeof( mock_init_data ) );
+    memset( &mock_allocate_data, 0, sizeof( mock_allocate_data ) );
+    memset( &mock_validate_slot_number_data, 0, sizeof( mock_validate_slot_number_data ) );
+    memset( &mock_import_data, 0, sizeof( mock_import_data ) );
+    psa_purge_storage( );
+}
+
+static psa_status_t mock_init( psa_drv_se_context_t *drv_context,
+                               void *persistent_data,
+                               psa_key_lifetime_t lifetime )
+{
+    mock_init_data.called++;
+
+    mock_init_data.drv_context = drv_context;
+    mock_init_data.persistent_data = persistent_data;
+    mock_init_data.lifetime = lifetime;
+
+    return( mock_init_data.return_value );
+}
+
+/*
+ * Mock key management SE driver
+ */
+
+static psa_status_t mock_allocate( psa_drv_se_context_t *drv_context,
+                                   void *persistent_data,
+                                   const psa_key_attributes_t *attributes,
+                                   psa_key_creation_method_t method,
+                                   psa_key_slot_number_t *key_slot )
+{
+    mock_allocate_data.called++;
+
+    mock_allocate_data.drv_context = drv_context;
+    mock_allocate_data.persistent_data = persistent_data;
+    mock_allocate_data.attributes = attributes;
+    mock_allocate_data.method = method;
+
+    *key_slot = mock_allocate_data.key_slot;
+
+    return( mock_allocate_data.return_value );
+}
+
+static psa_status_t mock_validate_slot_number( psa_drv_se_context_t *drv_context,
+                                               void *persistent_data,
+                                               const psa_key_attributes_t *attributes,
+                                               psa_key_creation_method_t method,
+                                               psa_key_slot_number_t key_slot )
+{
+    mock_validate_slot_number_data.drv_context = drv_context;
+    mock_validate_slot_number_data.persistent_data = persistent_data;
+    mock_validate_slot_number_data.attributes = attributes;
+    mock_validate_slot_number_data.method = method;
+    mock_validate_slot_number_data.key_slot = key_slot;
+
+    mock_validate_slot_number_data.called++;
+
+    return( mock_validate_slot_number_data.return_value );
+}
+
+
+static psa_status_t mock_import( psa_drv_se_context_t *drv_context,
+                                 psa_key_slot_number_t key_slot,
+                                 const psa_key_attributes_t *attributes,
+                                 const uint8_t *data,
+                                 size_t data_length,
+                                 size_t *bits )
+{
+
+    mock_import_data.called++;
+
+    mock_import_data.drv_context = drv_context;
+    mock_import_data.key_slot = key_slot;
+    mock_import_data.attributes = attributes;
+    mock_import_data.data = data;
+    mock_import_data.data_length = data_length;
+
+    *bits = mock_import_data.bits;
+
+    return( mock_import_data.return_value );
+}
+
+typedef psa_status_t (*psa_drv_se_destroy_key_t)(
+    psa_drv_se_context_t *drv_context,
+    void *persistent_data,
+    psa_key_slot_number_t key_slot);
+
+static psa_status_t mock_destroy( psa_drv_se_context_t *drv_context,
+                                  void *persistent_data,
+                                  psa_key_slot_number_t key_slot )
+{
+    mock_destroy_data.called++;
+
+    mock_destroy_data.drv_context = drv_context;
+    mock_destroy_data.persistent_data = persistent_data;
+    mock_destroy_data.key_slot = key_slot;
+
+    return( mock_destroy_data.return_value );
+}
+
+psa_drv_se_key_management_t mock_psa_drv_se_key_management =
+{
+    .p_allocate = mock_allocate,
+    .p_validate_slot_number = mock_validate_slot_number,
+    .p_import = mock_import,
+    .p_destroy = mock_destroy,
+};
+
+psa_drv_se_t mock_psa_drv_se =
+{
+    .hal_version = PSA_DRV_SE_HAL_VERSION,
+
+    .p_init = mock_init,
+
+    .key_management = &mock_psa_drv_se_key_management,
+};
+
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */

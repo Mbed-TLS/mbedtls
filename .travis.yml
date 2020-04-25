@@ -27,8 +27,7 @@ jobs:
     - name: enumerated configurations
       script:
         - tests/scripts/test-ref-configs.pl
-        - tests/scripts/curves.pl
-        - tests/scripts/key-exchanges.pl
+        - tests/scripts/all.sh -k 'test_depends_*' 'build_key_exchanges'
 
 after_failure:
 - tests/scripts/travis-log-failure.sh

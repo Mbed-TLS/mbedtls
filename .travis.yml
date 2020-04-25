@@ -12,6 +12,8 @@ jobs:
           - gnutls-bin
           - doxygen
           - graphviz
+          - gcc-arm-none-eabi
+          - libnewlib-arm-none-eabi
       language: python # Needed to get pip for Python 3
       python: 3.5 # version from Ubuntu 16.04
       install:
@@ -19,6 +21,7 @@ jobs:
       script:
         - tests/scripts/all.sh -k 'check_*'
         - tests/scripts/all.sh -k test_default_out_of_box
+        - tests/scripts/all.sh -k build_arm_none_eabi_gcc_arm5vte
 
     - name: full configuration
       script:

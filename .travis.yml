@@ -17,14 +17,15 @@ jobs:
         - pip install pylint==2.4.4
       script:
         - tests/scripts/all.sh -k 'check_*'
+        - tests/scripts/all.sh -k test_default_out_of_box
 
-    - name: default configuration
+    - name: full configuration
       addons:
         apt:
           packages:
           - gnutls-bin
       script:
-        - tests/scripts/all.sh -k test_default_cmake_gcc_asan
+        - tests/scripts/all.sh -k test_full_cmake_gcc_asan
 
     - name: enumerated configurations
       script:

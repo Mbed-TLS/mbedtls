@@ -159,7 +159,18 @@ void pkcs1_rsassa_pss_sign( int mod, int radix_P, char * input_P, int radix_Q,
                                          hash_result, output ) == result );
     if( result == 0 )
     {
+        TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
+                                          ctx.len, result_str->len ) == 0 );
+    }
 
+    info.buf = rnd_buf->x;
+    info.length = rnd_buf->len;
+
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign_ext( &ctx, &mbedtls_test_rnd_buffer_rand,
+                                                  &info, digest, 0, hash_result,
+                                                  MBEDTLS_RSA_SALT_LEN_ANY, output ) == result );
+    if( result == 0 )
+    {
         TEST_ASSERT( mbedtls_test_hexcmp( output, result_str->x,
                                           ctx.len, result_str->len ) == 0 );
     }

@@ -1812,6 +1812,8 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                         hashlen == 0 ) ||
                       hash != NULL );
     RSA_VALIDATE_RET( sig != NULL );
+    RSA_VALIDATE_RET( saltlen == MBEDTLS_RSA_SALT_LEN_ANY ||
+                      saltlen > 0 );
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1854,7 +1856,7 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
         else
             slen = olen - hlen - 2;
     }
-    else if ( (saltlen < 0) || ((size_t) saltlen > olen - hlen - 2) )
+    else if ( ( (size_t) saltlen ) > olen - hlen - 2 )
     {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }

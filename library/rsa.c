@@ -1787,11 +1787,7 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
 }
 
 #if defined(MBEDTLS_PKCS1_V21)
-/*
- * Implementation of the PKCS#1 v2.1 RSASSA-PSS-SIGN function with
- * the option to pass in the salt length.
- */
-int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
+static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng,
                          int mode,
@@ -1925,6 +1921,24 @@ exit:
 }
 
 /*
+ * Implementation of the PKCS#1 v2.1 RSASSA-PSS-SIGN function with
+ * the option to pass in the salt length.
+ */
+int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng,
+                         mbedtls_md_type_t md_alg,
+                         unsigned int hashlen,
+                         const unsigned char *hash,
+                         int saltlen,
+                         unsigned char *sig )
+{
+    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, MBEDTLS_RSA_PRIVATE, md_alg,
+                                hashlen, hash, saltlen, sig );
+}
+
+
+/*
  * Implementation of the PKCS#1 v2.1 RSASSA-PSS-SIGN function
  */
 int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
@@ -1936,8 +1950,8 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
                          const unsigned char *hash,
                          unsigned char *sig )
 {
-    return mbedtls_rsa_rsassa_pss_sign_ext( ctx, f_rng, p_rng, mode, md_alg,
-                                                hashlen, hash, MBEDTLS_RSA_SALT_LEN_ANY, sig );
+    return rsa_rsassa_pss_sign( ctx, f_rng, p_rng, mode, md_alg,
+                                hashlen, hash, MBEDTLS_RSA_SALT_LEN_ANY, sig );
 }
 #endif /* MBEDTLS_PKCS1_V21 */
 

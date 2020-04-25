@@ -1843,8 +1843,9 @@ int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
 
     if (saltlen == MBEDTLS_RSA_SALT_LEN_ANY)
     {
-        /* Calculate the largest possible salt length. Normally this is the hash
-        * length, which is the maximum length the salt can have. If there is not
+       /* Calculate the largest possible salt length, up to the hash size.
+        * Normally this is the hash length, which is the maximum salt length
+        * according to FIPS 185-4 §5.5 (e) and common practice. If there is not
         * enough room, use the maximum salt length that fits. The constraint is
         * that the hash length plus the salt length plus 2 bytes must be at most
         * the key length. This complies with FIPS 186-4 §5.5 (e) and RFC 8017
@@ -1857,9 +1858,13 @@ int mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_rsa_context *ctx,
         else
             slen = olen - hlen - 2;
     }
+    else if ( (saltlen < 0) || ((size_t) saltlen > olen - hlen - 2) )
+    {
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    }
     else
     {
-        slen = (size_t)saltlen;
+        slen = (size_t) saltlen;
     }
 
     memset( sig, 0, olen );

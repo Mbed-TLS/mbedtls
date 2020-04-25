@@ -979,14 +979,11 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 Specifications</em> it is advised to keep both hashes the
  *                 same.
  *
- * \note           This function always uses the maximum possible salt size,
- *                 up to the length of the payload hash. This choice of salt
- *                 size complies with FIPS 186-4 §5.5 (e) and RFC 8017 (PKCS#1
- *                 v2.2) §9.1.1 step 3. Furthermore this function enforces a
- *                 minimum salt size which is the hash size minus 2 bytes. If
- *                 this minimum size is too large given the key size (the salt
- *                 size, plus the hash size, plus 2 bytes must be no more than
- *                 the key size in bytes), this function returns
+ * \note           This function enforces that the provided salt length complies
+ *                 with FIPS 186-4 §5.5 (e) and RFC 8017 (PKCS#1 v2.2) §9.1.1
+ *                 step 3. The constraint is that the hash length plus the salt
+ *                 length plus 2 bytes must be at most the key length. If this
+ *                 constraint is not met, this function returns
  *                 #MBEDTLS_ERR_RSA_BAD_INPUT_DATA.
  *
  * \deprecated     It is deprecated and discouraged to call this function
@@ -1014,8 +1011,10 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
  *                 the size of the hash corresponding to \p md_alg.
  * \param saltlen  The length of the salt that should be used.
- *                 If passed MBEDTLS_RSA_SALT_LEN_ANY, the function will use
- *                 the largest possible salt length.
+ *                 If passed #MBEDTLS_RSA_SALT_LEN_ANY, the function will use
+ *                 the largest possible salt length up to the hash length,
+ *                 which is the largest permitted by some standards including
+ *                 FIPS 186-4 §5.5.
  * \param sig      The buffer to hold the signature. This must be a writable
  *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
  *                 for an 2048-bit RSA modulus. A buffer length of

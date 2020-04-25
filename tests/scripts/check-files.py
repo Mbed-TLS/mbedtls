@@ -103,7 +103,7 @@ class LineIssueTracker(FileIssueTracker):
 
 def is_windows_file(filepath):
     _root, ext = os.path.splitext(filepath)
-    return ext in ('.dsp', '.sln', '.vcxproj')
+    return ext in ('.bat', '.dsp', '.sln', '.vcxproj')
 
 
 class PermissionIssueTracker(FileIssueTracker):
@@ -224,6 +224,7 @@ class IntegrityChecker:
         self.logger = None
         self.setup_logger(log_file)
         self.extensions_to_check = (
+            ".bat",
             ".c",
             ".data",
             ".dsp",

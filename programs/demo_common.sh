@@ -101,15 +101,18 @@ EOF
 ## The file names must not contain whitespace characters.
 files_to_clean=
 
+## Call this function at the end of each script.
+## It is called automatically if the script is killed by a signal.
+cleanup () {
+  rm -f -- $files_to_clean
+}
+
 
 
 ################################################################
 ## End of the public interfaces. Code beyond this point is not
 ## meant to be called directly from a demo script.
 
-cleanup () {
-  rm -f -- $files_to_clean
-}
 trap 'cleanup; trap - HUP; kill -HUP $$' HUP
 trap 'cleanup; trap - INT; kill -INT $$' INT
 trap 'cleanup; trap - TERM; kill -TERM $$' TERM

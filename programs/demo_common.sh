@@ -18,6 +18,10 @@ set -e -u
 
 ## $root_dir is the root directory of the Mbed TLS source tree.
 root_dir="${0%/*}"
+# Find a nice path to the root directory, avoiding unnecessary "../".
+# The code supports demo scripts nested up to 4 levels deep.
+# The code works no matter where the demo script is relative to the current
+# directory, even if it is called with a relative path.
 n=4 # limit the search depth
 while ! [ -d "$root_dir/programs" ] || ! [ -d "$root_dir/library" ]; do
   if [ $n -eq 0 ]; then
@@ -35,6 +39,7 @@ while ! [ -d "$root_dir/programs" ] || ! [ -d "$root_dir/library" ]; do
 done
 
 ## $programs_dir is the directory containing the sample programs.
+# Assume an in-tree build.
 programs_dir="$root_dir/programs"
 
 ## msg LINE...

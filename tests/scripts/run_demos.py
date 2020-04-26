@@ -18,7 +18,8 @@ def run_demos(demos):
     failures = []
     for demo in demos:
         print('#### {} ####'.format(demo))
-        if not run_demo(demo):
+        success = run_demo(demo)
+        if not success:
             failures.append(demo)
             print('{}: FAIL'.format(demo))
         print('')
@@ -36,6 +37,9 @@ def run_all_demos():
     all_demos = glob.glob('programs/*/*_demo.sh')
     return run_demos(all_demos)
 
+def main():
+    success = run_all_demos()
+    sys.exit(0 if success else 1)
+
 if __name__ == '__main__':
-    if not run_all_demos():
-        sys.exit(1)
+    main()

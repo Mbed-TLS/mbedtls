@@ -41,7 +41,7 @@ jobs:
     - name: Windows
       os: windows
       script:
-        - scripts/windows_msbuild.bat
+        - scripts/windows_msbuild.bat v141 # Visual Studio 2017
 
 after_failure:
 - tests/scripts/travis-log-failure.sh

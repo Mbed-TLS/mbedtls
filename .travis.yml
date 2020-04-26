@@ -8,15 +8,11 @@ jobs:
     - name: Windows
       os: windows
       before_install:
-        - choco install python3
+        - choco install python --version=3.5.4
+      env:
+        - PATH=/c/Python35:/c/Python35/Scripts:$PATH
       script:
-        - export
-        - (IFS=:; for x in $PATH; do echo "$x"; ls -l "$x"; echo; done)
-        - type python; python --version
-        - type python3; python3 --version
-        - ls -l /c
-        - ls -l /c/[Pp]ython*
-        - python scripts/generate_psa_constants.py
+        - python3 scripts/generate_psa_constants.py
         - scripts/windows_msbuild.bat v141 # Visual Studio 2017
 
 after_failure:

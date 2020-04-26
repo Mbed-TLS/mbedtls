@@ -114,15 +114,25 @@ class PermissionIssueTracker(FileIssueTracker):
     heading = "Incorrect permissions:"
 
     @staticmethod
-    def has_shebang(filepath):
+    def should_be_executable(filepath):
+        """Whether the file should be executable.
+
+        Only files in a known scripting language should be executable.
+        Of those, only files that start with a shebang should be executable.
+        Files that don't start with a shebang are libraries, not standalone
+        executables.
+        """
+        if not filepath.endswith((".sh", ".pl", ".py")):
+            return False
         with open(filepath, 'rb') as content:
             header = content.read(2)
-        return header == b'#!'
+        if header != b'#!':
+            return False
+        return True
 
     def check_file_for_issue(self, filepath):
         is_executable = os.access(filepath, os.X_OK)
-        may_be_executable = filepath.endswith((".sh", ".pl", ".py"))
-        if is_executable != (may_be_executable and self.has_shebang(filepath)):
+        if is_executable != self.should_be_executable(filepath):
             self.files_with_issues[filepath] = None
 
 

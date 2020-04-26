@@ -16,13 +16,6 @@ csr="demo_csr.req"
 ca_crt="demo_ca.crt"
 server_crt="demo_server.crt"
 
-run_openssl () {
-  if type openssl >/dev/null 2>/dev/null; then
-    msg="$1"; shift; set -- "$msg" openssl "$@"
-    run "$@"
-  fi
-}
-
 files_to_clean="$ca_key $server_key $csr $ca_crt $server_crt"
 
 run 'Generate a CA (certificate authority) key.' \
@@ -36,8 +29,8 @@ run 'Self-sign the CA certificate.' \
 run 'The CA certificate is:' \
     cat "$ca_crt"
 
-run_openssl 'Full dump of the CA certificate:' \
-            x509 -text -inform PEM -in "$ca_crt"
+run 'Dump of the CA certificate:' \
+    "$programs_dir/x509/cert_app" mode=file filename="$ca_crt"
 
 run 'Generate a server key.' \
     "$programs_dir/pkey/gen_key" filename="$server_key" type=ec
@@ -56,7 +49,7 @@ run 'The CA signs the server key.' \
 run 'The server certificate is:' \
     cat "$server_crt"
 
-run_openssl 'Full dump of the server certificate:' \
-            x509 -text -inform PEM -in "$server_crt"
+run 'Dump of the server certificate:' \
+    "$programs_dir/x509/cert_app" mode=file filename="$server_crt"
 
 cleanup

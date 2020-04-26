@@ -5,7 +5,7 @@ cache: ccache
 
 jobs:
   include:
-    - name: basic checks
+    - name: basic checks and reference configurations
       addons:
         apt:
           packages:
@@ -21,15 +21,15 @@ jobs:
       script:
         - tests/scripts/all.sh -k 'check_*'
         - tests/scripts/all.sh -k test_default_out_of_box
-        - tests/scripts/all.sh -k build_arm_none_eabi_gcc_arm5vte
+        - tests/scripts/all.sh -k build_arm_none_eabi_gcc_arm5vte # baremetal
+        - tests/scripts/test-ref-configs.pl
 
     - name: full configuration
       script:
         - tests/scripts/all.sh -k test_full_cmake_gcc_asan
 
-    - name: enumerated configurations
+    - name: check compilation guards
       script:
-        - tests/scripts/test-ref-configs.pl
         - tests/scripts/all.sh -k 'test_depends_*' 'build_key_exchanges'
 
     - name: macOS

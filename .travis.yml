@@ -11,9 +11,10 @@ jobs:
         - choco install python3
       script:
         - export
-        - PATH=$PATH:/c/ProgramData/chocolatey/bin
-        - (IFS=:; for x in $PATH; do ls -l $x; done)
-        - python3 scripts/generate_psa_constants.py
+        - (IFS=:; for x in $PATH; do echo "$x"; ls -l "$x"; echo; done)
+        - type python; python --version
+        - type python3; python3 --version
+        - python scripts/generate_psa_constants.py
         - scripts/windows_msbuild.bat v141 # Visual Studio 2017
 
 after_failure:

@@ -36,6 +36,8 @@
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
 
+#include "mbedtls/ecdh.h"
+
 #if !defined(MBEDTLS_ECDH_C) || !defined(MBEDTLS_ECDH_LEGACY_CONTEXT) || \
     !defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C)
@@ -51,7 +53,6 @@ int main( void )
 
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
-#include "mbedtls/ecdh.h"
 
 
 int main( int argc, char *argv[] )

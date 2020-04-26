@@ -15,8 +15,8 @@ jobs:
         - echo "$PATH"
         - ls -l /c/Python35 /c/Python35/Scripts
         - type python; type python3; type python.exe; type python3.exe
-        - python3 scripts/generate_psa_constants.py
-        - sleep 2 # Give time for logs to catch up
+        - python scripts/generate_psa_constants.py
+        - sleep 5 # Give time for logs to catch up
         - scripts/windows_msbuild.bat v141 # Visual Studio 2017
 
 after_failure:

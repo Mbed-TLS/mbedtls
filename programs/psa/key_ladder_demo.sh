@@ -3,8 +3,8 @@
 
 msg <<'EOF'
 This script demonstrates the use of the PSA cryptography interface to
-create a master key, derive a key from it and use that key to wrap
-the derived key using an AEAD algorithm.
+create a master key, derive a key from it and use that derived key to
+wrap some data using an AEAD algorithm.
 EOF
 
 depends_on MBEDTLS_SHA256_C MBEDTLS_MD_C MBEDTLS_AES_C MBEDTLS_CCM_C MBEDTLS_PSA_CRYPTO_C MBEDTLS_FS_IO
@@ -33,7 +33,7 @@ run "Compare the unwrapped data with the original input." \
     cmp input.txt hello_world.txt
 
 files_to_clean="$files_to_clean hellow_orld.txt"
-run_bad "Derive a different key and attempt to unwrap the data. This must fail." \
+run_bad "Derive a different key and attempt to unwrap the data." \
   "$program" unwrap master=master.key input=hello_world.wrap output=hellow_orld.txt label=hellow label=orld
 
 files_to_clean="$files_to_clean hello.key"

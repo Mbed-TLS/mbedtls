@@ -40,7 +40,12 @@ jobs:
 
     - name: Windows
       os: windows
+      before_install:
+        - choco install python3
       script:
+        - export
+        - PATH=$PATH:'C:\ProgramData\chocolatey\bin'
+        - python3 scripts/generate_psa_constants.py
         - scripts/windows_msbuild.bat v141 # Visual Studio 2017
 
 after_failure:

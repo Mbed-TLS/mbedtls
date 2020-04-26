@@ -86,11 +86,17 @@ config_has () {
 ## depends_on SYMBOL...
 ## Exit if the library configuration does not have all SYMBOLs set.
 depends_on () {
-  if ! config_has "$@"; then
+  m=
+  for x in "$@"; do
+    if ! config_has "$x"; then
+      m="$m $x"
+    fi
+  done
+  if [ -n "$m" ]; then
     cat >&2 <<EOF
-This demo script requires the following configuration options to be enabled
-at compile time:
-  $@
+$0: this demo requires the following
+configuration options to be enabled at compile time:
+ $m
 EOF
     # Exit with a success status so that this counts as a pass for run_demos.py.
     exit

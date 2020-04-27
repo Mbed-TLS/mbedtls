@@ -226,3 +226,86 @@ exit:
     #endif
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_SE_C */
+void import_no_key_management_driver( int type_arg,
+                                      int lifetime_arg, int id_arg,
+                                      int slot_number_arg,
+                                      int usage_flag_arg,
+                                      int alg_arg, int bits_arg,
+                                      int expected_status_arg )
+{
+    psa_drv_se_t driver = mock_psa_drv_se;
+
+    driver.key_management = NULL;
+    PSA_ASSERT( psa_register_se_driver( PSA_MAX_SE_LIFETIME, &driver ) );
+
+    if ( do_import_with_attributes( type_arg, lifetime_arg, id_arg,
+             slot_number_arg, usage_flag_arg,
+             alg_arg, bits_arg, expected_status_arg ) )
+        goto exit;
+
+exit:
+    PSA_DONE( );
+    mock_teardown( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_SE_C */
+void import_no_allocate( int type_arg,
+                         int lifetime_arg, int id_arg,
+                         int slot_number_arg,
+                         int usage_flag_arg,
+                         int alg_arg, int bits_arg,
+                         int expected_status_arg )
+{
+    psa_drv_se_t driver = mock_psa_drv_se;
+    psa_drv_se_key_management_t key_management;
+
+    key_management = mock_psa_drv_se_key_management;
+
+    if ( (psa_key_slot_number_t)slot_number_arg == INVALID_SLOT_NUM )
+        key_management.p_allocate = NULL;
+    else
+        key_management.p_validate_slot_number = NULL;
+    driver.key_management = &key_management;
+
+    PSA_ASSERT( psa_register_se_driver( PSA_MAX_SE_LIFETIME, &driver ) );
+
+    if ( do_import_with_attributes( type_arg, lifetime_arg, id_arg,
+             slot_number_arg, usage_flag_arg,
+             alg_arg, bits_arg, expected_status_arg ) )
+        goto exit;
+
+exit:
+    PSA_DONE( );
+    mock_teardown( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_SE_C */
+void import_allocate_fail( int type_arg,
+                           int lifetime_arg, int id_arg,
+                           int slot_number_arg,
+                           int usage_flag_arg,
+                           int alg_arg, int bits_arg,
+                           int expected_status_arg )
+{
+    PSA_ASSERT( psa_register_se_driver( PSA_MAX_SE_LIFETIME,
+                                        &mock_psa_drv_se ) );
+
+    if ( (psa_key_slot_number_t)slot_number_arg == INVALID_SLOT_NUM )
+        mock_allocate_data.return_value = expected_status_arg;
+    else
+        mock_validate_slot_number_data.return_value = expected_status_arg;
+
+    if ( do_import_with_attributes( type_arg, lifetime_arg, id_arg,
+             slot_number_arg, usage_flag_arg,
+             alg_arg, bits_arg, expected_status_arg ) )
+        goto exit;
+
+exit:
+    PSA_DONE( );
+    mock_teardown( );
+}
+/* END_CASE */

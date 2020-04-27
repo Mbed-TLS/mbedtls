@@ -185,3 +185,66 @@ import_with_invalid_usage_flags:PSA_KEY_TYPE_RAW_DATA:PSA_KEY_LIFETIME_VOLATILE:
 # The key algorithm type is not checked when importing the key but
 # at usage thus there is no failure to test here.
 #
+
+#
+# Tested function: psa_import_key
+#
+# Targeted step: S_ALLOCATE_SE_KEY_SLOT
+#
+# Description: Failure in allocating a SE key slot
+#
+# If the key is to be imported into an SE, an SE key slot needs to be allocated.
+# The library relies on p_allocate or p_validate_slot_number API of the SE
+# key management driver to allocate the SE key slot. The library relies on
+# p_validate_slot_number if a given SE slot is asked for the key, on
+# p_allocate otherwise.
+#
+# Test that the allocation of an SE key slot fails if:
+# 1) The driver of the targeted SE (defined by the key lifetime) does not
+#    support at all key management.
+#
+# 2) The library relies on the p_allocate driver API for the allocation but
+#    the SE key management driver does not provide it.
+#
+# 3) The library relies on the p_allocate driver API for the allocation, the
+#    SE key management driver provides it but its call returns in error.
+#
+# 4) The library relies on the p_validate_slot_number driver API for the
+#    allocation but the SE key management driver does not provide it.
+#
+# 5) The library relies on the p_validate_slot_number driver API for the
+#    allocation, the SE key management driver provides it but its call
+#    returns in error.
+#
+
+PSA import key: valid SE driver, no specific slot number
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_SUCCESS
+
+PSA import key: no key management driver, no specific slot number
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_no_key_management_driver:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_ERROR_NOT_SUPPORTED
+
+PSA import key: valid SE driver, specific slot number
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_with_attributes:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME:PSA_KEY_ID_USER_MIN:3:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_SUCCESS
+
+PSA import key: no key management driver, specific slot number
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_no_key_management_driver:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME:PSA_KEY_ID_USER_MIN:3:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_ERROR_NOT_SUPPORTED
+
+PSA import key: no allocate driver API
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_no_allocate:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_ERROR_NOT_SUPPORTED
+
+PSA import key: no validate_slot_number API
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_no_allocate:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME:PSA_KEY_ID_USER_MIN:3:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:PSA_ERROR_NOT_SUPPORTED
+
+PSA import key: se allocate failure
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_allocate_fail:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME:PSA_KEY_ID_USER_MIN:INVALID_SLOT_NUM:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:-1
+
+PSA import key: se allocate failure, specific se slot
+depends_on:MBEDTLS_PSA_CRYPTO_SE_C
+import_allocate_fail:PSA_KEY_TYPE_RAW_DATA:PSA_MAX_SE_LIFETIME:PSA_KEY_ID_USER_MIN:3:PSA_KEY_USAGE_EXPORT:PSA_ALG_ECDH:0:-1

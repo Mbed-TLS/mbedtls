@@ -1,0 +1,3 @@
+Changes
+   * Use uint8_t and uint16_t integers in ssl_srv.c where size_t is too wide.
+     Contributed by irwir in #3238.

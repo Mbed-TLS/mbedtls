@@ -351,11 +351,12 @@ static int pbcrypt_cipher( const mbedtls_cipher_info_t *info,
     unsigned char output[256];
     size_t offset = 0;
     int ret;
+    int key_bits = (int) ( key_size * 8 );
 
     /* Set up the cipher operation. */
     mbedtls_cipher_init( &ctx );
     CHECK( mbedtls_cipher_setup( &ctx, info ) );
-    CHECK( mbedtls_cipher_setkey( &ctx, key, key_size * 8, operation ) );
+    CHECK( mbedtls_cipher_setkey( &ctx, key, key_bits, operation ) );
     block_size = mbedtls_cipher_get_block_size( &ctx );
     ASSERT( block_size < sizeof( input ) );
     ASSERT( block_size < sizeof( output ) );

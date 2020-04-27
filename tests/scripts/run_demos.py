@@ -29,11 +29,13 @@ def run_demos(demos, quiet=False):
             failures.append(demo)
             if not quiet:
                 print('{}: FAIL'.format(demo))
-        if not quiet:
+        if quiet:
+            print('{}: {}'.format(demo, 'PASS' if success else 'FAIL'))
+        else:
             print('')
     successes = len(demos) - len(failures)
     print('{}/{} demos passed'.format(successes, len(demos)))
-    if failures:
+    if failures and not quiet:
         print('Failures:', *failures)
     return not failures
 

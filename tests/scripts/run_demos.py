@@ -46,6 +46,7 @@ def run_all_demos(quiet=False):
     """
     all_demos = glob.glob('programs/*/*_demo.sh')
     if not all_demos:
+        # Keep the message on one line. pylint: disable=line-too-long
         raise Exception('No demos found. run_demos needs to operate from the Mbed TLS toplevel directory.')
     return run_demos(all_demos, quiet=quiet)
 

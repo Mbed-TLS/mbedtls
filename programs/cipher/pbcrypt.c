@@ -305,7 +305,7 @@ static int pbcrypt_deserialize_header( pbcrypt_metadata_t *metadata,
                                         (unsigned long long) header[7] ),
                        payload_size <= SIZE_MAX,
                        "Payload too large" );
-    metadata->payload_size = payload_size;
+    metadata->payload_size = (size_t) payload_size;
     return( 0 );
 }
 

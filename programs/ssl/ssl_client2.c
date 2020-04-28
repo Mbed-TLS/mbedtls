@@ -1692,7 +1692,7 @@ int main( int argc, char *argv[] )
         {
             opt.query_config_mode = 1;
             query_config_ret = query_config( q );
-            mbedtls_exit( ret );
+            goto exit;
         }
         else if( strcmp( p, "serialize") == 0 )
         {
@@ -2691,7 +2691,7 @@ int main( int argc, char *argv[] )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_set_cid returned %d\n\n",
                             ret );
-            return( ret );
+            goto exit;
         }
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */

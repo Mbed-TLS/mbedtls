@@ -2392,7 +2392,7 @@ int main( int argc, char *argv[] )
         {
             opt.query_config_mode = 1;
             query_config_ret = query_config( q );
-            mbedtls_exit( ret );
+            goto exit;
         }
         else if( strcmp( p, "serialize") == 0 )
         {

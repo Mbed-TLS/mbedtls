@@ -19,26 +19,17 @@
 #
 # The following options are disabled instead of enabled with "full".
 #
-#   MBEDTLS_TEST_NULL_ENTROPY
-#   MBEDTLS_DEPRECATED_REMOVED
-#   MBEDTLS_HAVE_SSE2
-#   MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
-#   MBEDTLS_MEMORY_BACKTRACE
-#   MBEDTLS_MEMORY_BUFFER_ALLOC_C
-#   MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-#   MBEDTLS_NO_PLATFORM_ENTROPY
-#   MBEDTLS_REMOVE_ARC4_CIPHERSUITES
-#   MBEDTLS_REMOVE_3DES_CIPHERSUITES
-#   MBEDTLS_SSL_HW_RECORD_ACCEL
-#   MBEDTLS_RSA_NO_CRT
-#   MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
-#       - this could be enabled if the respective tests were adapted
-#   MBEDTLS_ZLIB_SUPPORT
-#   MBEDTLS_PKCS11_C
-#   MBEDTLS_NO_UDBL_DIVISION
-#   MBEDTLS_NO_64BIT_MULTIPLICATION
-#   and any symbol beginning _ALT
+# * Options that require additional build dependencies or unusual hardware.
+# * Options that make testing less effective.
+# * Options that are incompatible with other options, or more generally that
+#   interact with other parts of the code in such a way that a bulk enabling
+#   is not a good way to test them.
+# * Options that remove features.
 #
+# The baremetal configuration excludes options that require a library or
+# operating system feature that is typically not present on bare metal
+# systems. Features that are excluded from "full" won't be in "baremetal"
+# either.
 
 use warnings;
 use strict;

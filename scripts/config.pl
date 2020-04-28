@@ -104,15 +104,20 @@ MBEDTLS_MEMORY_BACKTRACE
 MBEDTLS_MEMORY_BUFFER_ALLOC_C
 MBEDTLS_NET_C
 MBEDTLS_PLATFORM_FPRINTF_ALT
+MBEDTLS_PLATFORM_NV_SEED_ALT
 MBEDTLS_PLATFORM_TIME_ALT
 MBEDTLS_THREADING_C
 MBEDTLS_THREADING_PTHREAD
 MBEDTLS_TIMING_C
 );
 
-# Things that should be enabled in "full" even if they match @excluded
+# Things that should be enabled in "full" even if they match @excluded.
+# Platform ALTs enable global variables that allow configuring the behavior
+# but default to the default behavior, except for PLATFORM_SETUP_TEARDOWN_ALT
+# which requires the application to provide relevant functions like
+# non-platform ALTs.
 my @non_excluded = qw(
-PLATFORM_[A-Z0-9]+_ALT
+PLATFORM_(?!SETUP_TEARDOWN_)[A-Z_0-9]+_ALT
 );
 
 # Things that should be enabled in "baremetal"

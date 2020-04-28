@@ -827,6 +827,7 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl unset MBEDTLS_FS_IO
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
@@ -841,6 +842,7 @@ component_build_no_std_function () {
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
 }
 
@@ -912,6 +914,7 @@ component_test_null_entropy () {
     scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
     scripts/config.pl set MBEDTLS_ENTROPY_C
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
     scripts/config.pl unset MBEDTLS_HAVEGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan -D UNSAFE_BUILD=ON .

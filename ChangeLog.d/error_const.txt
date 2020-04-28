@@ -1,0 +1,6 @@
+Features
+   * New functions in the error module return constant strings for
+     high- and low-level error codes, complementing mbedtls_strerror()
+     which constructs a string for any error code, including compound
+     ones, but requires a writable buffer. Contributed by Gaurav Aggarwal
+     in #3176.

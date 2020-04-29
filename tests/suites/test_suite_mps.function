@@ -4554,7 +4554,11 @@ void mbedtls_mps_l2_bad_record( int mode,
     mps_l0_send_t *cli_wr,  *srv_wr;
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
-    build_mock_transforms( dummy_s, dummy_c, 1, 5 );
+    build_mock_transforms( dummy_s, dummy_c,
+                           /* Use ID transform in case we want to test corrupted content
+                            * type since we only check it after decryption at the moment. */
+                           ( failure_type != 0 ),
+                           5 /* Padding */ );
 
     /* Initialize Layer 0 mock objects */
     if( mode == MBEDTLS_MPS_MODE_STREAM )

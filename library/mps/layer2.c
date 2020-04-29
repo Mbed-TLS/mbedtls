@@ -1995,6 +1995,19 @@ int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
      * Step 3: Unpack TLSInnerPlaintext
      */
 
+    /*
+     * Validate record content type
+     *
+     * This happens after record decryption since the
+     * record content type is protected in (D)TLS 1.3.
+     */
+    if( l2_type_is_valid( ctx, rec->type ) == 0 )
+    {
+        TRACE( trace_error, "Invalid record type received" );
+        /* TODO: Release the record? */
+        RETURN( MBEDTLS_ERR_MPS_INVALID_RECORD );
+    }
+
     RETURN( 0 );
 }
 
@@ -2163,16 +2176,19 @@ int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
         RETURN( ret );
 
     /*
-     * Read and validate header fields
+     * Read header fields
      */
 
-    /* Record content type */
+    /* Record content type
+     *
+     * We validate the record content type only after deprotection
+     * since it's protected in TLS 1.3.
+     *
+     * TODO: Strictly speaking we need to check that the content type
+     *       is ApplicationData in the case of TLS 1.3.
+     */
+
     MPS_READ_UINT8_BE( buf + tls_rec_type_offset, &type );
-    if( l2_type_is_valid( ctx, type ) == 0 )
-    {
-        TRACE( trace_error, "Invalid record type received" );
-        RETURN( MBEDTLS_ERR_MPS_INVALID_RECORD );
-    }
 
     /* Version */
     l2_read_version_tls( &major_ver, &minor_ver,

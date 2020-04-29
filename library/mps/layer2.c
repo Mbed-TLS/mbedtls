@@ -2079,6 +2079,33 @@ size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
+/* This function converts an internal TLS version identifier to
+ * the version byte used within the record header on the wire.  */
+MBEDTLS_MPS_ALWAYS_INLINE
+int l2_version_wire_matches_logical( uint8_t wire_version,
+                                     int logical_version )
+{
+    switch( logical_version )
+    {
+        case MBEDTLS_L2_VERSION_UNSPECIFIED:
+            return( 1 );
+        case MBEDTLS_SSL_MINOR_VERSION_0:
+            return( wire_version == 0 );
+        case MBEDTLS_SSL_MINOR_VERSION_1:
+            return( wire_version == 1 );
+        case MBEDTLS_SSL_MINOR_VERSION_2:
+            return( wire_version == 2 );
+        case MBEDTLS_SSL_MINOR_VERSION_3:
+            return( wire_version == 3 );
+        /* TLS 1.3 and TLS 1.2 use the same wire-version. */
+        case MBEDTLS_SSL_MINOR_VERSION_4:
+            return( wire_version == 3 );
+
+        default:
+            return( 0 );
+    }
+}
+
 MBEDTLS_MPS_STATIC
 int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
@@ -2158,11 +2185,16 @@ int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
      * the client will use for its ClientHello message, so
      * Layer 2 must be configurable to allow arbitrary TLS
      * versions. This is done through the initial version
-     * value MPS_L2_VERSION_UNSPECIFIED. */
-    if( mbedtls_mps_l2_conf_get_version( &ctx->conf )
-          != MPS_L2_VERSION_UNSPECIFIED &&
-        mbedtls_mps_l2_conf_get_version( &ctx->conf )
-          != minor_ver )
+     * value MBEDTLS_MPS_L2_VERSION_UNSPECIFIED.
+     *
+     * Also, for TLS 1.3, the wire-version is still TLS 1.2.
+     *
+     * We capture both special cases in a helper function
+     * checking whether the wire-version matches the configured
+     * logical version.
+     */
+    if( l2_version_wire_matches_logical( minor_ver,
+                  mbedtls_mps_l2_conf_get_version( &ctx->conf ) ) != 1 )
     {
         TRACE( trace_error, "Invalid minor record version %u received, expected %u",
                (unsigned) minor_ver,

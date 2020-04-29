@@ -2332,7 +2332,7 @@ static int ecp_double_add_mxz( const mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &D,    &Q->X,   &Q->Z ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &DA,   &D,      &A    ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &CB,   &C,      &B    ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &S->X, &DA,     &CB   ) ); MOD_MUL( S->X );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mod( grp, &S->X, &DA,     &CB   ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &S->X, &S->X,   &S->X ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &S->Z, &DA,     &CB   ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &S->Z, &S->Z,   &S->Z ) );
@@ -3156,7 +3156,7 @@ int mbedtls_ecp_self_test( int verbose )
 cleanup:
 
     if( ret < 0 && verbose != 0 )
-        mbedtls_printf( "Unexpected error, return code = %08X\n", ret );
+        mbedtls_printf( "Unexpected error, return code = %08X\n", (unsigned int) ret );
 
     mbedtls_ecp_group_free( &grp );
     mbedtls_ecp_point_free( &R );

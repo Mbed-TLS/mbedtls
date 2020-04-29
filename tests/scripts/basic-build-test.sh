@@ -68,7 +68,10 @@ export LDFLAGS=' --coverage'
 make clean
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.py full
-scripts/config.py unset MBEDTLS_MEMORY_BACKTRACE
+# Enable some deprecated or experimental features that are not in the
+# full config, but are compatible with it and have tests.
+scripts/config.py set MBEDTLS_SSL_PROTO_SSL3
+scripts/config.py set MBEDTLS_PSA_CRYPTO_SE_C
 make -j
 
 
@@ -76,35 +79,58 @@ make -j
 TEST_OUTPUT=out_${PPID}
 cd tests
 if [ ! -f "seedfile" ]; then
-    dd if=/dev/urandom of="seedfile" bs=32 count=1
+    dd if=/dev/urandom of="seedfile" bs=64 count=1
 fi
+echo
 
-# Step 2a - Unit Tests
+# Step 2a - Unit Tests (keep going even if some tests fail)
+echo '################ Unit tests ################'
 perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT
+echo '^^^^^^^^^^^^^^^^ Unit tests ^^^^^^^^^^^^^^^^'
 echo
 
-# Step 2b - System Tests
+# Step 2b - System Tests (keep going even if some tests fail)
+echo
+echo '################ ssl-opt.sh ################'
 sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT
+echo '^^^^^^^^^^^^^^^^ ssl-opt.sh ^^^^^^^^^^^^^^^^'
 echo
 
-# Step 2c - Compatibility tests
-sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2' | \
-    tee compat-test-$TEST_OUTPUT
-OPENSSL_CMD="$OPENSSL_LEGACY"                               \
-    sh compat.sh -m 'ssl3' |tee -a compat-test-$TEST_OUTPUT
-OPENSSL_CMD="$OPENSSL_LEGACY"                                       \
-    GNUTLS_CLI="$GNUTLS_LEGACY_CLI"                                 \
-    GNUTLS_SERV="$GNUTLS_LEGACY_SERV"                               \
-    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR' |             \
-    tee -a compat-test-$TEST_OUTPUT
-OPENSSL_CMD="$OPENSSL_NEXT"                     \
-    sh compat.sh -e '^$' -f 'ARIA\|CHACHA' |    \
-    tee -a compat-test-$TEST_OUTPUT
+# Step 2c - Compatibility tests (keep going even if some tests fail)
+echo '################ compat.sh ################'
+{
+    echo '#### compat.sh: Default versions'
+    sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+    echo
+
+    echo '#### compat.sh: legacy (SSLv3)'
+    OPENSSL_CMD="$OPENSSL_LEGACY" sh compat.sh -m 'ssl3'
+    echo
+
+    echo '#### compat.sh: legacy (null, DES, RC4)'
+    OPENSSL_CMD="$OPENSSL_LEGACY" \
+    GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
+    sh compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    echo
+
+    echo '#### compat.sh: next (ARIA, ChaCha)'
+    OPENSSL_CMD="$OPENSSL_NEXT" sh compat.sh -e '^$' -f 'ARIA\|CHACHA'
+    echo
+} | tee compat-test-$TEST_OUTPUT
+echo '^^^^^^^^^^^^^^^^ compat.sh ^^^^^^^^^^^^^^^^'
 echo
 
 # Step 3 - Process the coverage report
 cd ..
-make lcov |tee tests/cov-$TEST_OUTPUT
+{
+    make lcov
+    echo SUCCESS
+} | tee tests/cov-$TEST_OUTPUT
+
+if [ "$(tail -n1 tests/cov-$TEST_OUTPUT)" != "SUCCESS" ]; then
+    echo >&2 "Fatal: 'make lcov' failed"
+    exit 2
+fi
 
 
 # Step 4 - Summarise the test report
@@ -223,4 +249,8 @@ make clean
 
 if [ -f "$CONFIG_BAK" ]; then
     mv "$CONFIG_BAK" "$CONFIG_H"
+fi
+
+if [ $TOTAL_FAIL -ne 0 ]; then
+    exit 1
 fi

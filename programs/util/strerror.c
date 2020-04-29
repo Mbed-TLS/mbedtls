@@ -79,7 +79,7 @@ int main( int argc, char *argv[] )
     {
         char error_buf[200];
         mbedtls_strerror( val, error_buf, 200 );
-        mbedtls_printf("Last error was: -0x%04x - %s\n\n", (int) -val, error_buf );
+        mbedtls_printf("Last error was: -0x%04x - %s\n\n", (unsigned int) -val, error_buf );
     }
 
 #if defined(_WIN32)

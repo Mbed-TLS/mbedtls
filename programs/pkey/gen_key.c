@@ -302,7 +302,7 @@ int main( int argc, char *argv[] )
                                         NULL, DEV_RANDOM_THRESHOLD,
                                         MBEDTLS_ENTROPY_SOURCE_STRONG ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_entropy_add_source returned -0x%04x\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_entropy_add_source returned -0x%04x\n", (unsigned int) -ret );
             goto exit;
         }
 
@@ -315,7 +315,7 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int) -ret );
         goto exit;
     }
 
@@ -328,7 +328,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_pk_setup( &key,
             mbedtls_pk_info_from_type( (mbedtls_pk_type_t) opt.type ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_pk_setup returned -0x%04x", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_pk_setup returned -0x%04x", (unsigned int) -ret );
         goto exit;
     }
 
@@ -339,7 +339,7 @@ int main( int argc, char *argv[] )
                                    opt.rsa_keysize, 65537 );
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", -ret );
+            mbedtls_printf( " failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", (unsigned int) -ret );
             goto exit;
         }
     }
@@ -353,7 +353,7 @@ int main( int argc, char *argv[] )
                                    mbedtls_ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_ecp_gen_key returned -0x%04x", -ret );
+            mbedtls_printf( " failed\n  !  mbedtls_ecp_gen_key returned -0x%04x", (unsigned int) -ret );
             goto exit;
         }
     }

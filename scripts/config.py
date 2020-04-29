@@ -283,9 +283,13 @@ class ConfigFile(Config):
     def __init__(self, filename=None):
         """Read the Mbed TLS configuration file."""
         if filename is None:
-            for filename in self.default_path:
-                if os.path.lexists(filename):
+            for candidate in self.default_path:
+                if os.path.lexists(candidate):
+                    filename = candidate
                     break
+            else:
+                raise Exception('Mbed TLS configuration file not found',
+                                self.default_path)
         super().__init__()
         self.filename = filename
         self.current_section = 'header'
@@ -448,7 +452,7 @@ if __name__ == '__main__':
                 value = config[args.symbol]
                 if value:
                     sys.stdout.write(value + '\n')
-            return args.symbol not in config
+            return 0 if args.symbol in config else 1
         elif args.command == 'set':
             if not args.force and args.symbol not in config.settings:
                 sys.stderr.write("A #define for the symbol {} "
@@ -461,6 +465,7 @@ if __name__ == '__main__':
         else:
             config.adapt(args.adapter)
         config.write(args.write)
+        return 0
 
     # Import modules only used by main only if main is defined and called.
     # pylint: disable=wrong-import-position

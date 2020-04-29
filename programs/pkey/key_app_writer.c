@@ -299,7 +299,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 
@@ -360,7 +360,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_key returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 

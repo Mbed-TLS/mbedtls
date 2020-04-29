@@ -115,7 +115,7 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
 
     n = okm_len / hash_len;
 
-    if( (okm_len % hash_len) != 0 )
+    if( okm_len % hash_len != 0 )
     {
         n++;
     }
@@ -131,10 +131,12 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
 
     mbedtls_md_init( &ctx );
 
-    if( (ret = mbedtls_md_setup( &ctx, md, 1) ) != 0 )
+    if( ( ret = mbedtls_md_setup( &ctx, md, 1 ) ) != 0 )
     {
         goto exit;
     }
+
+    memset( t, 0, hash_len );
 
     /*
      * Compute T = T(1) | T(2) | T(3) | ... | T(N)

@@ -1,0 +1,4 @@
+Changes
+   * Fix minor performance issue in operations on Curve25519 caused by using a
+     suboptimal modular reduction in one place. Found and fix contributed by
+     Aurelien Jarno in #3209.

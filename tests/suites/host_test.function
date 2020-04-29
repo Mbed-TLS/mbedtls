@@ -418,14 +418,17 @@ static void write_outcome_entry( FILE *outcome_file,
  *
  * \param outcome_file  The file to write to.
  *                      If this is \c NULL, this function does nothing.
- * \param unmet_dep_count       The number of unmet dependencies.
- * \param unmet_dependencies    The array of unmet dependencies.
+ * \param unmet_dep_count            The number of unmet dependencies.
+ * \param unmet_dependencies         The array of unmet dependencies.
+ * \param missing_unmet_dependencies Non-zero if there was a problem tracking
+ *                                   all unmet dependencies, 0 otherwise.
  * \param ret           The test dispatch status (DISPATCH_xxx).
  * \param test_info     A pointer to the test info structure.
  */
 static void write_outcome_result( FILE *outcome_file,
                                   size_t unmet_dep_count,
-                                  char *unmet_dependencies[],
+                                  int unmet_dependencies[],
+                                  int missing_unmet_dependencies,
                                   int ret,
                                   const test_info_t *info )
 {
@@ -443,10 +446,12 @@ static void write_outcome_result( FILE *outcome_file,
                 mbedtls_fprintf( outcome_file, "SKIP" );
                 for( i = 0; i < unmet_dep_count; i++ )
                 {
-                    mbedtls_fprintf( outcome_file, "%c%s",
+                    mbedtls_fprintf( outcome_file, "%c%d",
                                      i == 0 ? ';' : ':',
                                      unmet_dependencies[i] );
                 }
+                if( missing_unmet_dependencies )
+                    mbedtls_fprintf( outcome_file, ":..." );
                 break;
             }
             switch( info->result )
@@ -499,7 +504,7 @@ int execute_tests( int argc , const char ** argv )
     const char **test_files = NULL;
     size_t testfile_count = 0;
     int option_verbose = 0;
-    int function_id = 0;
+    size_t function_id = 0;
 
     /* Other Local variables */
     int arg_index = 1;
@@ -598,7 +603,8 @@ int execute_tests( int argc , const char ** argv )
           testfile_index++ )
     {
         size_t unmet_dep_count = 0;
-        char *unmet_dependencies[20];
+        int unmet_dependencies[20];
+        int missing_unmet_dependencies = 0;
 
         test_filename = test_files[ testfile_index ];
 
@@ -621,6 +627,7 @@ int execute_tests( int argc , const char ** argv )
                 mbedtls_exit( MBEDTLS_EXIT_FAILURE );
             }
             unmet_dep_count = 0;
+            missing_unmet_dependencies = 0;
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
@@ -647,20 +654,16 @@ int execute_tests( int argc , const char ** argv )
                     int dep_id = strtol( params[i], NULL, 10 );
                     if( dep_check( dep_id ) != DEPENDENCY_SUPPORTED )
                     {
-                        if( 0 == option_verbose )
+                        if( unmet_dep_count <
+                            ARRAY_LENGTH( unmet_dependencies ) )
                         {
-                            /* Only one count is needed if not verbose */
+                            unmet_dependencies[unmet_dep_count] = dep_id;
                             unmet_dep_count++;
-                            break;
                         }
-
-                        unmet_dependencies[ unmet_dep_count ] = strdup( params[i] );
-                        if(  unmet_dependencies[ unmet_dep_count ] == NULL )
+                        else
                         {
-                            mbedtls_fprintf( stderr, "FATAL: Out of memory\n" );
-                            mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+                            missing_unmet_dependencies = 1;
                         }
-                        unmet_dep_count++;
                     }
                 }
 
@@ -692,7 +695,7 @@ int execute_tests( int argc , const char ** argv )
                 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
 
-                function_id = strtol( params[0], NULL, 10 );
+                function_id = strtoul( params[0], NULL, 10 );
                 if ( (ret = check_test( function_id )) == DISPATCH_TEST_SUCCESS )
                 {
                     ret = convert_params( cnt - 1, params + 1, int_params );
@@ -714,6 +717,7 @@ int execute_tests( int argc , const char ** argv )
 
             write_outcome_result( outcome_file,
                                   unmet_dep_count, unmet_dependencies,
+                                  missing_unmet_dependencies,
                                   ret, &test_info );
             if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )
             {
@@ -730,15 +734,17 @@ int execute_tests( int argc , const char ** argv )
                     mbedtls_fprintf( stdout, "\n   Unmet dependencies: " );
                     for( i = 0; i < unmet_dep_count; i++ )
                     {
-                        mbedtls_fprintf( stdout, "%s  ",
+                        mbedtls_fprintf( stdout, "%d ",
                                         unmet_dependencies[i] );
-                        free( unmet_dependencies[i] );
                     }
+                    if( missing_unmet_dependencies )
+                        mbedtls_fprintf( stdout, "..." );
                 }
                 mbedtls_fprintf( stdout, "\n" );
                 fflush( stdout );
 
                 unmet_dep_count = 0;
+                missing_unmet_dependencies = 0;
             }
             else if( ret == DISPATCH_TEST_SUCCESS )
             {
@@ -783,10 +789,6 @@ int execute_tests( int argc , const char ** argv )
                 total_errors++;
         }
         fclose( file );
-
-        /* In case we encounter early end of file */
-        for( i = 0; i < unmet_dep_count; i++ )
-            free( unmet_dependencies[i] );
     }
 
     if( outcome_file != NULL )

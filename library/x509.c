@@ -870,7 +870,7 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *s
         ret = mbedtls_snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
                               md_info ? mbedtls_md_get_name( md_info ) : "???",
                               mgf_md_info ? mbedtls_md_get_name( mgf_md_info ) : "???",
-                              pss_opts->expected_salt_len );
+                              (unsigned int) pss_opts->expected_salt_len );
         MBEDTLS_X509_SAFE_SNPRINTF;
     }
 #else
@@ -1064,7 +1064,7 @@ cleanup:
     mbedtls_x509_crt_free( &clicert );
 #else
     ((void) verbose);
-#endif /* MBEDTLS_CERTS_C && MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_CERTS_C && MBEDTLS_SHA256_C */
     return( ret );
 }
 

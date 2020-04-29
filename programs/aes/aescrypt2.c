@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
     ret = mbedtls_md_setup( &sha_ctx, mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ), 1 );
     if( ret != 0 )
     {
-        mbedtls_printf( "  ! mbedtls_md_setup() returned -0x%04x\n", -ret );
+        mbedtls_printf( "  ! mbedtls_md_setup() returned -0x%04x\n", (unsigned int) -ret );
         goto exit;
     }
 
@@ -298,7 +298,7 @@ int main( int argc, char *argv[] )
 
             if( fread( buffer, 1, n, fin ) != (size_t) n )
             {
-                mbedtls_fprintf( stderr, "fread(%d bytes) failed\n", n );
+                mbedtls_fprintf( stderr, "fread(%u bytes) failed\n", n );
                 goto exit;
             }
 
@@ -413,7 +413,7 @@ int main( int argc, char *argv[] )
 
             if( fwrite( buffer, 1, n, fout ) != (size_t) n )
             {
-                mbedtls_fprintf( stderr, "fwrite(%d bytes) failed\n", n );
+                mbedtls_fprintf( stderr, "fwrite(%u bytes) failed\n", n );
                 goto exit;
             }
         }

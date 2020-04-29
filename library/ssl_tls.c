@@ -1514,9 +1514,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "perform PSA-based PSK-to-MS expansion" ) );
 
-        psk = ssl->conf->psk_opaque;
-        if( handshake->psk_opaque != 0 )
-            psk = handshake->psk_opaque;
+        psk = mbedtls_ssl_get_opaque_psk( ssl );
 
         if( hash_alg == MBEDTLS_MD_SHA384 )
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
@@ -1850,14 +1848,18 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 {
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
-    const unsigned char *psk = ssl->conf->psk;
-    size_t psk_len = ssl->conf->psk_len;
+    const unsigned char *psk = NULL;
+    size_t psk_len = 0;
 
-    /* If the psk callback was called, use its result */
-    if( ssl->handshake->psk != NULL )
+    if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
+            == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
     {
-        psk = ssl->handshake->psk;
-        psk_len = ssl->handshake->psk_len;
+        /*
+         * This should never happen because the existence of a PSK is always
+         * checked before calling this function
+         */
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     /*
@@ -3673,36 +3675,51 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     /* If the buffers are too small - reallocate */
     {
         int modified = 0;
-        if( ssl->in_buf_len < MBEDTLS_SSL_IN_BUFFER_LEN )
+        size_t written_in = 0;
+        size_t written_out = 0;
+        if( ssl->in_buf != NULL )
         {
-            if( resize_buffer( &ssl->in_buf, MBEDTLS_SSL_IN_BUFFER_LEN,
-                               &ssl->in_buf_len ) != 0 )
+            written_in = ssl->in_msg - ssl->in_buf;
+            if( ssl->in_buf_len < MBEDTLS_SSL_IN_BUFFER_LEN )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "input buffer resizing failed - out of memory" ) );
-            }
-            else
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating in_buf to %d", MBEDTLS_SSL_IN_BUFFER_LEN ) );
-                modified = 1;
+                if( resize_buffer( &ssl->in_buf, MBEDTLS_SSL_IN_BUFFER_LEN,
+                                   &ssl->in_buf_len ) != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "input buffer resizing failed - out of memory" ) );
+                }
+                else
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating in_buf to %d", MBEDTLS_SSL_IN_BUFFER_LEN ) );
+                    modified = 1;
+                }
             }
         }
-        if( ssl->out_buf_len < MBEDTLS_SSL_OUT_BUFFER_LEN )
+
+        if( ssl->out_buf != NULL )
         {
-            if( resize_buffer( &ssl->out_buf, MBEDTLS_SSL_OUT_BUFFER_LEN,
-                               &ssl->out_buf_len ) != 0 )
+            written_out = ssl->out_msg - ssl->out_buf;
+            if( ssl->out_buf_len < MBEDTLS_SSL_OUT_BUFFER_LEN )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "output buffer resizing failed - out of memory" ) );
-            }
-            else
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating out_buf to %d", MBEDTLS_SSL_OUT_BUFFER_LEN ) );
-                modified = 1;
+                if( resize_buffer( &ssl->out_buf, MBEDTLS_SSL_OUT_BUFFER_LEN,
+                                   &ssl->out_buf_len ) != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "output buffer resizing failed - out of memory" ) );
+                }
+                else
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating out_buf to %d", MBEDTLS_SSL_OUT_BUFFER_LEN ) );
+                    modified = 1;
+                }
             }
         }
         if( modified )
         {
             /* Update pointers here to avoid doing it twice. */
             mbedtls_ssl_reset_in_out_pointers( ssl );
+            /* Fields below might not be properly updated with record
+            * splitting, so they are manually updated here. */
+            ssl->out_msg = ssl->out_buf + written_out;
+            ssl->in_msg = ssl->in_buf + written_in;
         }
     }
 #endif
@@ -4889,7 +4906,42 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 }
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
+size_t mbedtls_ssl_get_input_max_frag_len( const mbedtls_ssl_context *ssl )
+{
+    size_t max_len = MBEDTLS_SSL_MAX_CONTENT_LEN;
+    size_t read_mfl;
+
+    /* Use the configured MFL for the client if we're past SERVER_HELLO_DONE */
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+        ssl->state >= MBEDTLS_SSL_SERVER_HELLO_DONE )
+    {
+        return ssl_mfl_code_to_length( ssl->conf->mfl_code );
+    }
+
+    /* Check if a smaller max length was negotiated */
+    if( ssl->session_out != NULL )
+    {
+        read_mfl = ssl_mfl_code_to_length( ssl->session_out->mfl_code );
+        if( read_mfl < max_len )
+        {
+            max_len = read_mfl;
+        }
+    }
+
+    // During a handshake, use the value being negotiated
+    if( ssl->session_negotiate != NULL )
+    {
+        read_mfl = ssl_mfl_code_to_length( ssl->session_negotiate->mfl_code );
+        if( read_mfl < max_len )
+        {
+            max_len = read_mfl;
+        }
+    }
+
+    return( max_len );
+}
+
+size_t mbedtls_ssl_get_output_max_frag_len( const mbedtls_ssl_context *ssl )
 {
     size_t max_len;
 
@@ -4914,6 +4966,13 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 
     return( max_len );
 }
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
+{
+    return mbedtls_ssl_get_output_max_frag_len( ssl );
+}
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -4946,7 +5005,7 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    const size_t mfl = mbedtls_ssl_get_max_frag_len( ssl );
+    const size_t mfl = mbedtls_ssl_get_output_max_frag_len( ssl );
 
     if( max_len > mfl )
         max_len = mfl;
@@ -5892,36 +5951,41 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
         uint32_t buf_len = mbedtls_ssl_get_input_buflen( ssl );
         size_t written_in = 0;
         size_t written_out = 0;
-        if( ssl->in_buf != NULL &&
-            ssl->in_buf_len > buf_len &&
-            ssl->in_left < buf_len )
+        if( ssl->in_buf != NULL )
         {
             written_in = ssl->in_msg - ssl->in_buf;
-            if( resize_buffer( &ssl->in_buf, buf_len, &ssl->in_buf_len ) != 0 )
+            if( ssl->in_buf_len > buf_len && ssl->in_left < buf_len )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "input buffer resizing failed - out of memory" ) );
-            }
-            else
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating in_buf to %d", buf_len ) );
-                modified = 1;
+                written_in = ssl->in_msg - ssl->in_buf;
+                if( resize_buffer( &ssl->in_buf, buf_len, &ssl->in_buf_len ) != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "input buffer resizing failed - out of memory" ) );
+                }
+                else
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating in_buf to %d", buf_len ) );
+                    modified = 1;
+                }
             }
         }
 
+
         buf_len = mbedtls_ssl_get_output_buflen( ssl );
-        if( ssl->out_buf != NULL &&
-            ssl->out_buf_len > mbedtls_ssl_get_output_buflen( ssl ) &&
-            ssl->out_left < buf_len )
+        if(ssl->out_buf != NULL )
         {
             written_out = ssl->out_msg - ssl->out_buf;
-            if( resize_buffer( &ssl->out_buf, buf_len, &ssl->out_buf_len ) != 0 )
+            if( ssl->out_buf_len > mbedtls_ssl_get_output_buflen( ssl ) &&
+                ssl->out_left < buf_len )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "output buffer resizing failed - out of memory" ) );
-            }
-            else
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating out_buf to %d", buf_len ) );
-                modified = 1;
+                if( resize_buffer( &ssl->out_buf, buf_len, &ssl->out_buf_len ) != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "output buffer resizing failed - out of memory" ) );
+                }
+                else
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reallocating out_buf to %d", buf_len ) );
+                    modified = 1;
+                }
             }
         }
         if( modified )

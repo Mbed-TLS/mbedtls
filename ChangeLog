@@ -1,12 +1,22 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.22.0 branch released 2020-04-14
 
 New deprecations
    * Deprecate MBEDTLS_SSL_HW_RECORD_ACCEL that enables function hooks in the
      SSL module for hardware acceleration of individual records.
+   * Deprecate mbedtls_ssl_get_max_frag_len() in favour of
+     mbedtls_ssl_get_output_max_frag_len() and
+     mbedtls_ssl_get_input_max_frag_len() to be more precise about which max
+     fragment length is desired.
 
 Security
+   * Fix issue in DTLS handling of new associations with the same parameters
+     (RFC 6347 section 4.2.8): an attacker able to send forged UDP packets to
+     the server could cause it to drop established associations with
+     legitimate clients, resulting in a Denial of Service. This could only
+     happen when MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE was enabled in config.h
+     (which it is by default).
    * Fix side channel in ECC code that allowed an adversary with access to
      precise enough timing and memory access information (typically an
      untrusted operating system attacking a secure enclave) to fully recover
@@ -15,13 +25,27 @@ Security
    * Fix a potentially remotely exploitable buffer overread in a
      DTLS client when parsing the Hello Verify Request message.
 
+Features
+   * The new build option MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH automatically
+     resizes the I/O buffers before and after handshakes, reducing the memory
+     consumption during application data transfer.
+
 Bugfix
    * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
      MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.
+   * Remove a spurious check in ssl_parse_client_psk_identity that triggered
+     a warning with some compilers. Fix contributed by irwir in #2856.
+   * Fix a function name in a debug message. Contributed by Ercan Ozturk in
+     #3013.
 
 Changes
    * Mbed Crypto is no longer a Git submodule. The crypto part of the library
      is back directly in the present repository.
+   * Split mbedtls_ssl_get_max_frag_len() into
+     mbedtls_ssl_get_output_max_frag_len() and
+     mbedtls_ssl_get_input_max_frag_len() to ensure that a sufficient input
+     buffer is allocated by the server (if MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
+     is defined), regardless of what MFL was configured for it.
 
 = mbed TLS 2.21.0 branch released 2020-02-20
 

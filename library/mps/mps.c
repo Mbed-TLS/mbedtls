@@ -697,7 +697,8 @@ MBEDTLS_MPS_STATIC int mps_generic_failure_handler( mbedtls_mps *mps, int ret )
 
     if( is_public_error == 0 )
     {
-        TRACE( trace_error, "Invalid error at MPS boundary: -%#04x", -ret );
+        TRACE( trace_error, "Invalid error at MPS boundary: -%#04x",
+               (unsigned) -ret );
         ret = MBEDTLS_ERR_MPS_INTERNAL_ERROR;
     }
 #else
@@ -2472,7 +2473,7 @@ MBEDTLS_MPS_STATIC int mps_reassembly_feed( mbedtls_mps *mps,
     TRACE( trace_comment, "* Type:            %u", hs->type        );
     TRACE( trace_comment, "* Total length:    %u", hs->len         );
     TRACE( trace_comment, "* Fragment offset: %u", hs->frag_offset );
-    TRACE( trace_comment, "* Fragment length: %u", hs->frag_len    );
+    TRACE( trace_comment, "* Fragment length: %u", (unsigned) hs->frag_len    );
     TRACE( trace_comment, "Sequence number of next HS message: %u",
            (unsigned) mps->dtls.seq_nr );
 

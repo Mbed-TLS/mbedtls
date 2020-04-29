@@ -784,8 +784,8 @@ int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         TRACE( trace_comment, "Attempt to dispatch an empty record %u.",
                (unsigned) ctx->io.out.writer.type );
         TRACE( trace_comment, "Empty records allowed for type %u: %u",
-               (unsigned) ctx->io.out.writer.type,
-               l2_type_empty_allowed( ctx, ctx->io.out.writer.type ) );
+             (unsigned) ctx->io.out.writer.type,
+             (unsigned) l2_type_empty_allowed( ctx, ctx->io.out.writer.type ) );
     }
 
     /* Silently ignore empty records if such are not allowed
@@ -2197,7 +2197,7 @@ int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
     if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
     {
         TRACE( trace_error, "Invalid major record version %u received, expected %u",
-               (unsigned) major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 );
+               (unsigned) major_ver, (unsigned) MBEDTLS_SSL_MAJOR_VERSION_3 );
         RETURN( MBEDTLS_ERR_MPS_INVALID_RECORD );
     }
 
@@ -2471,7 +2471,7 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
     {
         TRACE( trace_error, "Invalid major record version %u received, expected %u",
-               (unsigned) major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 );
+               (unsigned) major_ver, (unsigned) MBEDTLS_SSL_MAJOR_VERSION_3 );
         RETURN( MBEDTLS_ERR_MPS_INVALID_RECORD );
     }
     if( mbedtls_mps_l2_conf_get_version( &ctx->conf ) !=
@@ -2481,7 +2481,7 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     {
         TRACE( trace_error, "Invalid minor record version %u received, expected %u",
                (unsigned) minor_ver,
-               mbedtls_mps_l2_conf_get_version( &ctx->conf ) );
+               (unsigned) mbedtls_mps_l2_conf_get_version( &ctx->conf ) );
         RETURN( MBEDTLS_ERR_MPS_INVALID_RECORD );
     }
     rec->major_ver = major_ver;

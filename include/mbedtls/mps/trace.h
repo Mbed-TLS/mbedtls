@@ -120,7 +120,7 @@ void trace_indent( int level, trace_type ty );
             break;                                                      \
         trace_indent( get_trace_depth(), type );                        \
         trace_color( trace_id );                                        \
-        printf( "[%d|L%u]: " fmt "\n", trace_id, __LINE__, ##__VA_ARGS__); \
+        printf( "[%d|L%d]: " fmt "\n", trace_id, __LINE__, ##__VA_ARGS__); \
         trace_color( 0 );                                               \
     } while( 0 )
 

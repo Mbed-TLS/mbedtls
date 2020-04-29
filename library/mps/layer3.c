@@ -799,7 +799,7 @@ MBEDTLS_MPS_STATIC int l3_parse_ccs( mbedtls_reader *rd )
     }
 
     TRACE( trace_comment, "Parsed alert message" );
-    TRACE( trace_comment, " * Value: %u", MPS_TLS_CCS_VALUE );
+    TRACE( trace_comment, " * Value: %u", (unsigned) MPS_TLS_CCS_VALUE );
     RETURN( 0 );
 }
 

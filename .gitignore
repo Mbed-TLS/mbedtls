@@ -34,6 +34,9 @@ massif-*
 # CMake generates *.dir/ folders for in-tree builds (used by MSVC projects), ignore all of those:
 *.dir/
 
+# Microsoft CMake extension for Visual Studio Code generates a build directory by default
+/build/
+
 # Visual Studio artifacts
 /visualc/VS2010/.localhistory/
 /visualc/VS2010/.vs/

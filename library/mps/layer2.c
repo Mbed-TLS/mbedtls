@@ -70,6 +70,10 @@ MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx,
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
 MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                                                             mps_rec *rec );
+
+/* TODO */__attribute__((unused))
+MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record_dtls13( mbedtls_mps_l2 *ctx,
+                                                            mps_rec *rec );
 MBEDTLS_MPS_STATIC int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -2519,6 +2523,128 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
            (unsigned) rec->ctr[0], (unsigned) rec->ctr[1] );
     RETURN( 0 );
 }
+
+int l2_in_fetch_protected_record_dtls13( mbedtls_mps_l2 *ctx,
+                                         mps_rec *rec )
+{
+    int ret;
+
+    /* Buffer to hold the DTLS record header; will be obtained from Layer 1 */
+    unsigned char *buf;
+
+    /* We need to distinguish DTLSPlaintext records (which are the same
+     * in DTLS 1.2 and DTLS 1.3) from DTLSCiphertext records specific to
+     * DTLS 1.3.
+     *
+     * Citing the draft 34 of the DTLS 1.3 standard:
+     *
+     * ```
+     * 4.1.  Determining the Header Format
+     *
+     *   Implementations can distinguish the two header formats by examining
+     *   the first byte:
+     *   -  If the first byte is alert(21), handshake(22), or ack(proposed,
+     *      25), the record MUST be interpreted as a DTLSPlaintext record.
+     *   -  If the first byte is any other value, then receivers MUST check to
+     *      see if the leading bits of the first byte are 001.  If so, the
+     *      implementation MUST process the record as DTLSCiphertext; the true
+     *      content type will be inside the protected portion.
+     *   -  Otherwise, the record MUST be rejected as if it had failed
+     *      deprotection, as described in Section 4.5.2.
+     * ```
+     *
+     * We implement this in the following way: If the three leading bits of
+     * the first byte are 001, we continue to parse the DTLS 1.3 specific
+     * record header. Otherwise, we fall back to parsing the DTLS 1.2 record
+     * header, via l2_in_fetch_protected_record_dtls12() (this function is
+     * therefore needed even in DTLS 1.3 only builds).
+     */
+
+    /* DTLSCiphertext record header structure:
+     *
+     *   0 1 2 3 4 5 6 7
+     *   +-+-+-+-+-+-+-+-+
+     *   |0|0|1|C|S|L|E E|
+     *   +-+-+-+-+-+-+-+-+
+     *   | Connection ID |   Legend:
+     *   | (if any,      |
+     *   /  length as    /   C   - Connection ID (CID) present
+     *   |  negotiated)  |   S   - Sequence number length
+     *   +-+-+-+-+-+-+-+-+   L   - Length present
+     *   |  8 or 16 bit  |   E   - Epoch
+     *   |Sequence Number|
+     *   +-+-+-+-+-+-+-+-+
+     *   | 16 bit Length |
+     *   | (if present)  |
+     *   +-+-+-+-+-+-+-+-+
+    */
+
+    size_t const dtls_13_stable_hdr_len = 1;
+
+    uint8_t const dtls_13_stable_hdr_magic_mask  =
+        7u << 5;             /* 0b11100000 */
+    uint8_t const dtls_13_stable_hdr_cid_mask    =
+        1u << 4;             /* 0b00010000 */
+    uint8_t const dtls_13_stable_hdr_seq_nr_mask =
+        1u << 3;             /* 0b00001000 */
+    uint8_t const dtls_13_stable_hdr_length_mask =
+        1u << 2;             /* 0b00000100 */
+    uint8_t const dtls_13_stable_hdr_epoch_mask  =
+        3u << 0;             /* 0x00000011 */
+    uint8_t const dtls_13_stable_hdr_magic_bits  =
+        1u << 5; /* 0b00100000 */
+
+    size_t hdr_len = 1;
+    uint8_t stable_hdr_val;
+
+    ((void) dtls_13_stable_hdr_epoch_mask); /* TODO: Implement epoch parsing. */
+
+    TRACE_INIT( "l2_in_fetch_protected_record_dtls12" );
+
+    /*
+     * Fetch DTLS record header from Layer 1
+     */
+
+    ret = mps_l1_fetch( ctx->conf.l1, &buf,
+                        dtls_13_stable_hdr_len );
+    if( ret != 0 )
+        RETURN( ret );
+
+    stable_hdr_val = *buf;
+    if( ( stable_hdr_val & dtls_13_stable_hdr_magic_mask ) !=
+        dtls_13_stable_hdr_magic_bits )
+    {
+        /* Assume a DTLS 1.2 record header. */
+        RETURN( l2_in_fetch_protected_record_dtls13( ctx, rec ) );
+    }
+
+    /* Determine total length of DTLS 1.3 header. */
+
+    /* Account for CID. */
+    if( ( stable_hdr_val & dtls_13_stable_hdr_cid_mask ) != 0 )
+    {
+#define MPS_FIXED_CID_LEN 4 /* TODO: Make configurable */
+        hdr_len += MPS_FIXED_CID_LEN;
+    }
+
+    /* Account for Sequence Number, 1 or 2 Byte long. */
+    hdr_len += 1;
+    if( ( stable_hdr_val & dtls_13_stable_hdr_seq_nr_mask ) != 0 )
+    {
+        hdr_len++;
+    }
+
+    /* Account for length */
+    if( ( stable_hdr_val & dtls_13_stable_hdr_length_mask ) != 0 )
+    {
+        hdr_len += 2;
+    }
+
+    /* TODO: Finish */
+
+    RETURN( 0 );
+}
+
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /* Record content type validation */

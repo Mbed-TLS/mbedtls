@@ -196,7 +196,7 @@ static int mps_out_flight_init( mbedtls_mps *mps, uint8_t seq_nr );
 static int mps_out_flight_free( mbedtls_mps *mps );
 static int mps_out_flight_forget( mbedtls_mps *mps );
 static int mps_out_flight_msg_start( mbedtls_mps *mps,
-                                   mps_retransmission_handle **handle );
+                                     mps_retransmission_handle **handle );
 static int mps_out_flight_msg_done( mbedtls_mps *mps );
 
 static int mps_retransmission_handle_init( mps_retransmission_handle *handle );
@@ -248,9 +248,6 @@ static int mps_reassembly_forget( mbedtls_mps *mps );
 
 #define MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS 0
 #define MPS_RETRANSMIT_FULL_FLIGHT          1
-
-#define MPS_RETRANSMISSION_DETECTION_ENABLED  0
-#define MPS_RETRANSMISSION_DETECTION_ON_HOLD  1
 
 #define MBEDTLS_MPS_ALERT_LEVEL_WARNING         1
 #define MBEDTLS_MPS_ALERT_LEVEL_FATAL           2
@@ -601,7 +598,7 @@ static int mps_retransmit_in_check( mbedtls_mps *mps,
 
     status = &mps->dtls.retransmission_detection.msg_state[match_idx];
     match_status = *status;
-    if( match_status == MPS_RETRANSMISSION_DETECTION_ENABLED )
+    if( match_status == MBEDTLS_MPS_RETRANSMISSION_DETECTION_ENABLED )
     {
         /* Observed a retransmission - move all messages to 'on hold'
          * state to omit triggering multiple retransmissions from a
@@ -610,7 +607,7 @@ static int mps_retransmit_in_check( mbedtls_mps *mps,
 
         status = &mps->dtls.retransmission_detection.msg_state[0];
         for( msg_idx=0; msg_idx < flight_len; msg_idx++, status++ )
-            *status = MPS_RETRANSMISSION_DETECTION_ON_HOLD;
+            *status = MBEDTLS_MPS_RETRANSMISSION_DETECTION_ON_HOLD;
 
         RETURN( MBEDTLS_ERR_MPS_FLIGHT_RETRANSMISSION );
     }
@@ -618,7 +615,7 @@ static int mps_retransmit_in_check( mbedtls_mps *mps,
     {
         /* Re-activate retransmission detection for message. */
         TRACE( trace_comment, "Retransmission currently put on hold for this messsage - reactivate." );
-        *status = MPS_RETRANSMISSION_DETECTION_ENABLED;
+        *status = MBEDTLS_MPS_RETRANSMISSION_DETECTION_ENABLED;
         RETURN( 0 );
     }
 }
@@ -646,7 +643,7 @@ static int mps_retransmit_in_remember( mbedtls_mps *mps,
     next_info->seq_nr = seq_nr;
 
     mps->dtls.retransmission_detection.msg_state[msg_idx] =
-        MPS_RETRANSMISSION_DETECTION_ENABLED;
+        MBEDTLS_MPS_RETRANSMISSION_DETECTION_ENABLED;
 
     mps->dtls.retransmission_detection.flight_len++;
 
@@ -1410,19 +1407,19 @@ int mbedtls_mps_init( mbedtls_mps *mps,
     mps->conf.f_set_timer = NULL;
     mps->conf.p_timer     = NULL;
 
-    mps->in_epoch  = MPS_EPOCH_NONE;
-    mps->out_epoch = MPS_EPOCH_NONE;
+    mps->in_epoch  = MBEDTLS_MPS_EPOCH_NONE;
+    mps->out_epoch = MBEDTLS_MPS_EPOCH_NONE;
 
     mps->alert_pending = 0;
     mps->state = MBEDTLS_MPS_STATE_OPEN;
-    mps->blocking_info.reason = MBEDTLS_MPS_ERROR_NONE;
+    mps->blocking_info.reason = MBEDTLS_MPS_ERROR_UNKNOWN;
 
     mps->in.state  = MBEDTLS_MPS_MSG_NONE;
     mps->in.flags  = 0;
     mps->out.state = MBEDTLS_MPS_MSG_NONE;
     mps->out.flush = 0;
 
-    mps->dtls.hs.state         = MPS_HS_NONE;
+    mps->dtls.hs.state         = MBEDTLS_MPS_HS_NONE;
     mps->dtls.state            = MBEDTLS_MPS_FLIGHT_DONE;
     mps->dtls.retransmit_state = MBEDTLS_MPS_RETRANSMIT_NONE;
 
@@ -2090,7 +2087,7 @@ static int mps_retransmission_handle_resend( mbedtls_mps *mps,
             hs.length = handle->len;
             hs.type   = handle->type;
 
-            if( mps->dtls.hs.state == MPS_HS_NONE )
+            if( mps->dtls.hs.state == MBEDTLS_MPS_HS_NONE )
             {
                 TRACE( trace_comment, "Open new outgoing handshake message." );
                 MPS_CHK( mps_dtls_frag_out_start( mps, &hs,
@@ -2147,8 +2144,11 @@ static int mps_out_flight_msg_start( mbedtls_mps *mps,
     uint8_t cur_flight_len;
     uint8_t cur_seq_nr;
     mps_retransmission_handle *hdl;
-    TRACE_INIT( "Add a new message to the current outgoing flight, seq nr %u",
-                (unsigned) mps->dtls.outgoing.seq_nr );
+    TRACE_INIT( "mps_out_flight_msg_start" );
+
+    TRACE( trace_comment,
+           "Add a new message to the current outgoing flight, seq nr %u",
+           (unsigned) mps->dtls.outgoing.seq_nr );
 
     cur_flight_len = mps->dtls.outgoing.flight_len;
     if( cur_flight_len == MBEDTLS_MPS_MAX_FLIGHT_LENGTH )
@@ -2193,7 +2193,7 @@ static int mps_dtls_frag_out_clear_queue( mbedtls_mps *mps,
     int ret;
     TRACE_INIT( "mps_dtls_frag_out_clear_queue" );
 
-    if( mps->dtls.hs.state != MPS_HS_PAUSED )
+    if( mps->dtls.hs.state != MBEDTLS_MPS_HS_PAUSED )
     {
         TRACE( trace_comment, "No handshake data queueing to be dispatched - skip." );
         RETURN( 0 );
@@ -2218,9 +2218,9 @@ static int mps_dtls_frag_out_clear_queue( mbedtls_mps *mps,
         MPS_CHK( mps_dtls_frag_out_dispatch( mps ) );
         TRACE( trace_comment, "More data queueing" );
 
-    } while( mps->dtls.hs.state == MPS_HS_PAUSED );
+    } while( mps->dtls.hs.state == MBEDTLS_MPS_HS_PAUSED );
 
-    if( mps->dtls.hs.state != MPS_HS_ACTIVE )
+    if( mps->dtls.hs.state != MBEDTLS_MPS_HS_ACTIVE )
     {
         TRACE( trace_error, "Handshake state not ACTIVE after clearing." );
         MPS_CHK( MPS_ERR_INTERNAL_ERROR );
@@ -2235,7 +2235,7 @@ static int mps_dtls_frag_out_clear_queue( mbedtls_mps *mps,
 
         mbedtls_writer_free( &mps->dtls.hs.wr );
         mbedtls_writer_free_ext( &mps->dtls.hs.wr_ext );
-        mps->dtls.hs.state = MPS_HS_NONE;
+        mps->dtls.hs.state = MBEDTLS_MPS_HS_NONE;
     }
     else
     {
@@ -2262,7 +2262,7 @@ static int mps_dtls_frag_out_get( mbedtls_mps *mps )
     l3_hs.seq_nr      = mps->dtls.hs.seq_nr;
     l3_hs.len         = mps->dtls.hs.length;
     l3_hs.frag_offset = mps->dtls.hs.offset;
-    l3_hs.frag_len    = MPS_L3_LENGTH_UNKNOWN;
+    l3_hs.frag_len    = MBEDTLS_MPS_SIZE_UNKNOWN;
     MPS_CHK( mps_l3_write_handshake( mps->conf.l3, &l3_hs ) );
     mps->dtls.hs.wr_ext_l3 = l3_hs.wr_ext;
 
@@ -2285,7 +2285,7 @@ static int mps_dtls_frag_out_track( mbedtls_mps *mps )
     }
     else
     {
-        if( mps->dtls.hs.length == MPS_L3_LENGTH_UNKNOWN )
+        if( mps->dtls.hs.length == MBEDTLS_MPS_SIZE_UNKNOWN )
             remaining = -1u;
         else
             remaining = mps->dtls.hs.length - mps->dtls.hs.offset;
@@ -2302,7 +2302,7 @@ static int mps_dtls_frag_out_track( mbedtls_mps *mps )
         }
     }
 
-    mps->dtls.hs.state = MPS_HS_ACTIVE;
+    mps->dtls.hs.state = MBEDTLS_MPS_HS_ACTIVE;
 
     MPS_INTERNAL_FAILURE_HANDLER
 }
@@ -2347,11 +2347,11 @@ static int mps_dtls_frag_out_close( mbedtls_mps *mps )
         {
             mbedtls_writer_free( &mps->dtls.hs.wr );
             mbedtls_writer_free_ext( &mps->dtls.hs.wr_ext );
-            mps->dtls.hs.state = MPS_HS_NONE;
+            mps->dtls.hs.state = MBEDTLS_MPS_HS_NONE;
         }
         else
         {
-            mps->dtls.hs.state = MPS_HS_PAUSED;
+            mps->dtls.hs.state = MBEDTLS_MPS_HS_PAUSED;
         }
     }
     else
@@ -2362,7 +2362,7 @@ static int mps_dtls_frag_out_close( mbedtls_mps *mps )
             MPS_CHK( MPS_ERR_INTERNAL_ERROR );
         }
 
-        if( mps->dtls.hs.length != MBEDTLS_MPS_LENGTH_UNKNOWN &&
+        if( mps->dtls.hs.length != MBEDTLS_MPS_SIZE_UNKNOWN &&
             (unsigned) mps->dtls.hs.length != bytes_queued )
         {
             /* This is an internal error and not a usage error,
@@ -2377,7 +2377,7 @@ static int mps_dtls_frag_out_close( mbedtls_mps *mps )
         TRACE( trace_comment, "Total handshake length: %u",
                (unsigned) bytes_queued );
         mps->dtls.hs.length = bytes_queued;
-        mps->dtls.hs.state  = MPS_HS_PAUSED;
+        mps->dtls.hs.state  = MBEDTLS_MPS_HS_PAUSED;
     }
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -2421,7 +2421,7 @@ static int mps_dtls_frag_out_start( mbedtls_mps *mps,
     TRACE_INIT( "mps_dtls_frag_out_start, type %u, length %u",
                 (unsigned) hs->type, (unsigned) hs->length );
 
-    if( mps->dtls.hs.state != MPS_HS_NONE )
+    if( mps->dtls.hs.state != MBEDTLS_MPS_HS_NONE )
     {
         TRACE( trace_comment, "Attempt to start a new outgoing handshake message while another one is still not finished." );
         RETURN( MPS_ERR_INTERNAL_ERROR );
@@ -2473,7 +2473,7 @@ static int mps_dtls_frag_out_start( mbedtls_mps *mps,
     MPS_WRITE_UINT16_LE( hs->add, &seq_nr );
     hs->addlen = sizeof( uint16_t );
 
-    mps->dtls.hs.state = MPS_HS_ACTIVE;
+    mps->dtls.hs.state = MBEDTLS_MPS_HS_ACTIVE;
 
     MPS_INTERNAL_FAILURE_HANDLER
 }
@@ -2671,6 +2671,19 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                                  mbedtls_mps_write_cb_t cb,
                                  mbedtls_mps_write_cb_ctx_t *cb_ctx )
 {
+    /* TODO:
+     * Currently, when this function returns MPS_WANT_WRITE,
+     * the user cannot know to what extend the user-facing state of MPS has
+     * changed:
+     * - If Layer 4 handshake data is pending to be flushed but the
+     *   underlying transport isn't ready, the function will return
+     *   MPS_WANT_WRITE without having changed the user-facing state of MPS.
+     * - If Layer 3 handshake data is pending to be flushed, this function
+     *   returns MPS_WANT_WRITE _after_ changing the flight state.
+     *
+     * This should be made uniform.
+     */
+
     int ret;
     TRACE_INIT( "mbedtls_mps_write_handshake, type %u, length %u",
                 (unsigned) hs->type, (unsigned) hs->length );
@@ -2741,7 +2754,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
         }
 
         /* Check if a handshake message is currently paused or not. */
-        if( mps->dtls.hs.state == MPS_HS_ACTIVE )
+        if( mps->dtls.hs.state == MBEDTLS_MPS_HS_ACTIVE )
         {
             TRACE( trace_comment, "Handshake message has been paused - continue" );
             /* Check consistency of parameters and forward to the user. */
@@ -2752,7 +2765,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 MPS_CHK( MPS_ERR_INTERNAL_ERROR );
             }
         }
-        else if( mps->dtls.hs.state == MPS_HS_NONE )
+        else if( mps->dtls.hs.state == MBEDTLS_MPS_HS_NONE )
         {
             mps_retransmission_handle *handle;
             unsigned char *queue;
@@ -2796,6 +2809,12 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
             /* Request to add a new message to the current outgoing flight.
              * If successful, this returns a handle controlling potential
              * retransmissions. */
+
+            /* TODO: There's a bug here, because the subsequent
+             * call to mps_dtls_frag_out_start() might fail with
+             * MPS_WANT_WRITE, in which case no outgoing handshake
+             * message has been opened but we have nonetheless
+             * increased the flight counter! Fix this. */
             MPS_CHK( mps_out_flight_msg_start( mps, &handle ) );
 
             /* Setup the retransmission handle. */
@@ -2818,7 +2837,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 TRACE( trace_error, "Retransmission via raw backup" );
 
                 handle->handle_type = MPS_RETRANSMISSION_HANDLE_HS_RAW;
-                if( hs->length != MBEDTLS_MPS_LENGTH_UNKNOWN )
+                if( hs->length != MBEDTLS_MPS_SIZE_UNKNOWN )
                 {
                     TRACE( trace_comment, "Total handshake length known: %u",
                            (unsigned) hs->length );
@@ -2861,7 +2880,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                  * retransmission callbacks, we need a way to set the
                  * total message length at Layer 3 after we have started
                  * a handshake write (shouldn't be difficult). */
-                if( hs->length == MBEDTLS_MPS_LENGTH_UNKNOWN )
+                if( hs->length == MBEDTLS_MPS_SIZE_UNKNOWN )
                 {
                     TRACE( trace_error, "Handshake messages with retransmission callback and unknown size not supported." );
                     RETURN( MPS_ERR_INTERNAL_ERROR );
@@ -2952,7 +2971,7 @@ int mbedtls_mps_write_pause( mbedtls_mps *mps )
     else
     {
         /* DTLS */
-        if( mps->dtls.hs.state != MPS_HS_ACTIVE )
+        if( mps->dtls.hs.state != MBEDTLS_MPS_HS_ACTIVE )
             MPS_CHK( MPS_ERR_INTERNAL_ERROR );
 
         /* Check that the handshake message is not yet fully written. */
@@ -3007,7 +3026,7 @@ int mbedtls_mps_dispatch( mbedtls_mps *mps )
         {
             /* Handshake message */
 
-            if( mps->dtls.hs.state != MPS_HS_ACTIVE )
+            if( mps->dtls.hs.state != MBEDTLS_MPS_HS_ACTIVE )
                 MPS_CHK( MPS_ERR_INTERNAL_ERROR );
 
             /* Check that the handshake message has been fully written. */

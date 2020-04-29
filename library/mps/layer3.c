@@ -113,7 +113,7 @@ static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs );
  * Init & Free API
  */
 
-int mps_l3_init( mps_l3 *l3, mps_l2 *l2, uint8_t mode )
+int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode )
 {
     TRACE_INIT( "mps_l3_init" );
     l3->conf.l2 = l2;
@@ -847,7 +847,7 @@ static int l3_check_write_hs_hdr_tls( mps_l3 *l3 )
     mps_l3_hs_out_internal *hs = &l3->out.hs;
 
     if( hs->hdr != NULL &&
-        hs->len != MPS_L3_LENGTH_UNKNOWN )
+        hs->len != MBEDTLS_MPS_SIZE_UNKNOWN )
     {
         res = l3_write_hs_header_tls( hs );
         if( res != 0 )
@@ -866,8 +866,8 @@ static int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
     mps_l3_hs_out_internal *hs = &l3->out.hs;
 
     if( hs->hdr      != NULL &&
-        hs->len      != MPS_L3_LENGTH_UNKNOWN &&
-        hs->frag_len != MPS_L3_LENGTH_UNKNOWN )
+        hs->len      != MBEDTLS_MPS_SIZE_UNKNOWN &&
+        hs->frag_len != MBEDTLS_MPS_SIZE_UNKNOWN )
     {
         res = l3_write_hs_header_dtls( hs );
         if( res != 0 )
@@ -942,16 +942,16 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             /* If the total length isn't specified, then
              * then the fragment offset must be 0, and the
              * fragment length must be unspecified, too. */
-            if( out->len == MPS_L3_LENGTH_UNKNOWN &&
+            if( out->len == MBEDTLS_MPS_SIZE_UNKNOWN &&
                 ( out->frag_offset != 0 ||
-                  out->frag_len    != MPS_L3_LENGTH_UNKNOWN ) )
+                  out->frag_len    != MBEDTLS_MPS_SIZE_UNKNOWN ) )
             {
                 RETURN( MPS_ERR_INTERNAL_ERROR );
             }
 
             /* Check that fragment doesn't exceed the total message length. */
-            if( out->len      != MPS_L3_LENGTH_UNKNOWN &&
-                out->frag_len != MPS_L3_LENGTH_UNKNOWN )
+            if( out->len      != MBEDTLS_MPS_SIZE_UNKNOWN &&
+                out->frag_len != MBEDTLS_MPS_SIZE_UNKNOWN )
             {
                 int overflow = out->frag_offset + out->frag_len < out->frag_len;
                 if( overflow || out->frag_offset + out->frag_len > out->len )
@@ -1028,7 +1028,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 
     TRACE( trace_comment, "Bind raw writer to extended writer" );
     res = mbedtls_writer_attach( &l3->out.hs.wr_ext, l3->out.raw_out,
-                                 len != MPS_L3_LENGTH_UNKNOWN
+                                 len != MBEDTLS_MPS_SIZE_UNKNOWN
                                  ? MBEDTLS_WRITER_EXT_PASS
                                  : MBEDTLS_WRITER_EXT_HOLD );
     if( res != 0 )
@@ -1123,7 +1123,7 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
      * of outgoing handshake messages is analogous. */
 
     if( l3->out.state  != MBEDTLS_MPS_MSG_HS ||
-        l3->out.hs.len == MPS_L3_LENGTH_UNKNOWN )
+        l3->out.hs.len == MBEDTLS_MPS_SIZE_UNKNOWN )
     {
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
@@ -1245,7 +1245,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
             /* Complete previously unknown length values. */
             if( l3->conf.mode == MPS_L3_MODE_STREAM )
             {
-                if( l3->out.hs.len == MPS_L3_LENGTH_UNKNOWN )
+                if( l3->out.hs.len == MBEDTLS_MPS_SIZE_UNKNOWN )
                     l3->out.hs.len = committed;
             }
             else
@@ -1254,9 +1254,9 @@ int mps_l3_dispatch( mps_l3 *l3 )
                  * that if the total length of the handshake message
                  * is unknown, then the fragment length is unknown, too,
                  * and the fragment offset is 0. */
-                if( l3->out.hs.len == MPS_L3_LENGTH_UNKNOWN )
+                if( l3->out.hs.len == MBEDTLS_MPS_SIZE_UNKNOWN )
                     l3->out.hs.len = committed;
-                if( l3->out.hs.frag_len == MPS_L3_LENGTH_UNKNOWN )
+                if( l3->out.hs.frag_len == MBEDTLS_MPS_SIZE_UNKNOWN )
                     l3->out.hs.frag_len = committed;
             }
 

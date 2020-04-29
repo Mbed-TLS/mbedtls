@@ -59,8 +59,6 @@
 /** The mode for Layer 3 contexts implementing the DTLS protocol.  */
 #define MPS_L3_MODE_DATAGRAM MBEDTLS_SSL_TRANSPORT_DATAGRAM
 
-typedef uint8_t mps_hs_type;
-
 struct mps_l3;
 struct mps_l3_handshake_in;
 struct mps_l3_handshake_out;
@@ -97,8 +95,6 @@ typedef enum mps_l3_hs_state
                                  *   message has commenced but been paused.  */
 } mps_l3_hs_state;
 
-#define MPS_L3_LENGTH_UNKNOWN (-1)
-
 /**
  * \brief    This structure represents handles to
  *           outgoing handshake messages.
@@ -128,50 +124,43 @@ typedef enum mps_l3_hs_state
  *           The handshake message length must be known
  *           in advance if pausing is needed for the message.
  *           If pausing is not needed, the length field can
- *           be set to #MPS_L3_LENGTH_UNKNOWN and will be
+ *           be set to #MBEDTLS_MPS_SIZE_UNKNOWN and will be
  *           be determined automatically on closing.
  */
 struct mps_l3_handshake_out
 {
-    mbedtls_mps_epoch_id epoch; /*!< The epoch to use to protect
-                                 *   the handshake message.
-                                 *   This must be set by the user before
-                                 *   calling mps_l3_write_handshake().       */
-    mps_hs_type type;           /*!< The handshake message type.
-                                 *   This must be set by the user before
-                                 *   calling mps_l3_write_handshake().       */
-    int32_t len;                /*!< The total length of the handshake
-                                 *   message, regardless of fragmentation,
-                                 *   or #MPS_L3_LENGTH_UNKNOWN if the length
-                                 *   will be determined at write-time.
-                                 *   In this case, pausing is not possible
-                                 *   for the handshake message (because the
-                                 *   headers for handshake fragments include
-                                 *   the total length of the handshake message).
-                                 *   This must be set by the user before
-                                 *   calling mps_l3_write_handshake().       */
+    /*! The epoch to use to protect the handshake message.
+     *  This must be set by the user before calling mps_l3_write_handshake(). */
+    mbedtls_mps_epoch_id epoch;
 
-    /* DTLS-specific fields. */
-    int32_t frag_len;           /*!< The length of the current handshake
-                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
-                                 *   if the will be determined at write-time. */
-    uint16_t frag_offset;       /*!< The offset of the current fragment from
-                                 *   the beginning of the handshake message.  */
-    uint16_t seq_nr;            /*!< The handshake sequence number.           */
+    /*! The handshake message type. This must be set by
+     *  the user before calling mps_l3_write_handshake().*/
+    mbedtls_mps_stored_hs_type type;
 
-    /* NOTE: This will need extension for DTLS:
-     *       We need two fields for the fragment offset and the fragment
-     *       length, and it should be possible for the user to leave
-     *       the fragment length unspecified.  */
+    /*! The handshake sequence number. */
+    mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
-    mbedtls_writer_ext *wr_ext; /*!< The extended writer providing buffers
-                                 *   to which the message contents can be
-                                 *   written, and keeping track of message
-                                 *   bounds.
-                                 *   This must be \c NULL when the user
-                                 *   calls mps_l3_write_handshake(), which
-                                 *   will modify it to point to a valid
-                                 *   extended writer on success.             */
+    /*! The total length of the handshake message (regardless of fragmentation),
+     *  or #MBEDTLS_MPS_SIZE_UNKNOWN if the length will be determined at
+     *  write-time. In this case, pausing is not possible for the handshake
+     *  message (because the headers for handshake fragments include the total
+     *  length of the handshake message). This must be set by the user
+     *  before calling mps_l3_write_handshake(). */
+    mbedtls_mps_stored_opt_size_t len;
+
+    /*! The length of the current handshake fragment, or
+     *  #MBEDTLS_MPS_SIZE_UNKNOWN if the will be determined at write-time. */
+    mbedtls_mps_stored_opt_size_t frag_len;
+
+     /*! The offset of the current fragment from the
+      *  beginning of the handshake message.*/
+    mbedtls_mps_stored_size_t frag_offset;
+
+    /*! The extended writer providing buffers to which the message
+     *  contents can be written, and keeping track of message bounds.
+     *  This must be \c NULL when the user calls mps_l3_write_handshake(), which
+     *  will modify it to point to a valid extended writer on success. */
+    mbedtls_writer_ext *wr_ext;
 };
 
 /**
@@ -201,23 +190,29 @@ struct mps_l3_handshake_out
  */
 struct mps_l3_handshake_in
 {
-    mbedtls_mps_epoch_id epoch; /*!< The epoch used to protect
-                                 *   the handshake message.                  */
-    mps_hs_type type;           /*!< The handshake message type.             */
-    uint16_t len;               /*!< The total length of the message
-                                 *   (regardless of fragmentation).          */
+    /*! The epoch used to protect the handshake message.*/
+    mbedtls_mps_epoch_id epoch;
 
-    /* DTLS-specific fields. */
-    int32_t frag_len;           /*!< The length of the current handshake
-                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
-                                 *   if the will be determined at write-time. */
-    uint16_t frag_offset;       /*!< The offset of the current fragment from
-                                 *   the beginning of the handshake message.  */
-    uint16_t seq_nr;            /*!< The handshake sequence number.           */
+    /*! The handshake message type. */
+    mbedtls_mps_stored_hs_type type;
 
-    mbedtls_reader_ext *rd_ext; /*!< The extended reader giving access to
-                                 *   the message contents, and keeping track
-                                 *   of message bounds.                      */
+    /*! The total length of the message (regardless of fragmentation). */
+    mbedtls_mps_stored_size_t len;
+
+    /*! The length of the current handshake fragment, or
+     *  #MBEDTLS_MPS_SIZE_UNKNOWN if the will be determined at write-time. */
+    mbedtls_mps_stored_opt_size_t frag_len;
+
+    /*! The offset of the current fragment from
+     *  the beginning of the handshake message.  */
+    mbedtls_mps_stored_size_t frag_offset;
+
+    /*! The handshake sequence number.*/
+    mbedtls_mps_stored_hs_seq_nr_t seq_nr;
+
+    /*!< The extended reader giving access to the message contents, and
+     *   keeping track of message bounds. */
+    mbedtls_reader_ext *rd_ext;
 };
 
 /**
@@ -324,17 +319,25 @@ struct mps_l3_hs_in_internal
                                  *   the handshake message.                  */
     mps_l3_hs_state state;      /*!< Indicates if the incoming message
                                  *   is currently being paused or not.       */
-    mps_hs_type type;           /*!< The handshake message type.             */
-    int32_t len;                /*!< The total length of the message
-                                 *   (regardless of fragmentation).          */
+
+    /*! The handshake message type. */
+    mbedtls_mps_stored_hs_type type;
+
+    /*! The total length of the message (regardless of fragmentation).      */
+    mbedtls_mps_stored_opt_size_t len;
 
     /* DTLS-specific fields. */
-    int32_t frag_len;           /*!< The length of the current handshake
-                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
-                                 *   if the will be determined at write-time. */
-    uint16_t frag_offset;       /*!< The offset of the current fragment from
-                                 *   the beginning of the handshake message.  */
-    uint16_t seq_nr;            /*!< The handshake sequence number.           */
+
+    /*! The length of the current handshake fragment, or
+     *  #MBEDTLS_MPS_SIZE_UNKNOWN if the will be determined at write-time. */
+    mbedtls_mps_stored_opt_size_t frag_len;
+
+    /*! The offset of the current fragment from
+     *  the beginning of f the handshake message. */
+    mbedtls_mps_stored_size_t frag_offset;
+
+    /*!< The handshake sequence number. */
+    mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
     mbedtls_reader_ext rd_ext;  /*!< The extended reader giving access to
                                  *   the message contents, but also keeping
@@ -343,33 +346,41 @@ struct mps_l3_hs_in_internal
 
 struct mps_l3_hs_out_internal
 {
-    mbedtls_mps_epoch_id epoch; /*!< The epoch used to protect
-                                 *   the handshake message.                  */
-    mps_l3_hs_state state;      /*!< Indicates if the outgoing message
-                                 *   is currently being paused or not.       */
-    mps_hs_type type;           /*!< The handshake message type.             */
-    int32_t len;                /*!< The total length of the message
-                                 *   (regardless of fragmentation),
-                                 *   or #MPS_L3_LENGTH_UNKNOWN if
-                                 *   it is not yet known.                    */
+    /*!< The epoch used to protect the handshake message. */
+    mbedtls_mps_epoch_id epoch;
 
-    unsigned char* hdr;         /*!< The buffer that should hold the
-                                 *   handshake header once the length
-                                 *   of the handshake message is known.      */
-    size_t hdr_len;             /*!< The size of the header buffer.          */
-    mbedtls_writer_ext wr_ext;  /*!< The extended writer providing buffers
-                                 *   to which the message contents can be
-                                 *   written, and keeing track of message
-                                 *   bounds.                                 */
+    /*! Indicates if the outgoing message is currently being paused or not. */
+    mps_l3_hs_state state;
+
+    /*! The handshake message type. */
+    mbedtls_mps_stored_hs_type type;
+
+    /*! The total length of the message (regardless of fragmentation),
+     *   or #MBEDTLS_MPS_SIZE_UNKNOWN if it is not yet known. */
+    mbedtls_mps_stored_opt_size_t len;
+
+    /*! The buffer that should hold the handshake header once
+     *  the length of the handshake message is known. */
+    unsigned char* hdr;
+    /*! The size of the header buffer. */
+    mbedtls_mps_stored_size_t hdr_len;
+
+    /*! The extended writer providing buffers to which the message
+     *  contents can be written, and keeing track of message bounds. */
+    mbedtls_writer_ext wr_ext;
 
     /* DTLS-specific fields. */
-    int32_t frag_len;           /*!< The length of the current handshake
-                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
-                                 *   if the will be determined at write-time. */
-    uint16_t frag_offset;       /*!< The offset of the current fragment from
-                                 *   the beginning of the handshake message.  */
-    uint16_t seq_nr;            /*!< The handshake sequence number.           */
 
+    /*! The length of the current handshake fragment, or
+     *  #MBEDTLS_MPS_SIZE_UNKNOWN if the will be determined at write-time. */
+    mbedtls_mps_stored_opt_size_t frag_len;
+
+    /*! The offset of the current fragment from
+     *  the beginning of the handshake message.  */
+    mbedtls_mps_stored_size_t frag_offset;
+
+    /*! The handshake sequence number. */
+    mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 };
 
 struct mps_l3_alert_in_internal
@@ -384,7 +395,7 @@ struct mps_l3_alert_in_internal
 typedef struct
 {
     uint8_t mode;
-    mps_l2 *l2;
+    mbedtls_mps_l2 *l2;
 } mps_l3_config;
 
 /**
@@ -535,7 +546,7 @@ struct mps_l3
   MPS_L2_INV_REQUIRES( l2 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_init( mps_l3 *l3, mps_l2 *l2, uint8_t mode );
+int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode );
 
 /**
  * \brief         Free a Layer 3 context.
@@ -618,6 +629,9 @@ int mps_l3_read_check( mps_l3 * l3 );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
+
+/* TODO: Consider making this function static inline
+ * to avoid a layer of indirection. */
 int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs );
 
 /**
@@ -641,6 +655,7 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
+
 int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app );
 
 /**

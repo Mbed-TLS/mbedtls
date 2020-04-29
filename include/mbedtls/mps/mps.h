@@ -24,6 +24,7 @@
 #ifndef MBEDTLS_MPS_H
 #define MBEDTLS_MPS_H
 
+#include "common.h"
 #include "transport.h"
 #include "transform.h"
 #include "error.h"
@@ -33,39 +34,87 @@
 
 #include "../timing.h"
 
-#define MBEDTLS_MPS_MODE_STREAM   MBEDTLS_SSL_TRANSPORT_STREAM
-#define MBEDTLS_MPS_MODE_DATAGRAM MBEDTLS_SSL_TRANSPORT_DATAGRAM
-
+/*! (DTLS only) The maximum number of messages in a flight.
+ *
+ *  This is used to allocate space for retransmission backup handles. */
 #define MBEDTLS_MPS_MAX_FLIGHT_LENGTH         5
-#define MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER 0xfeu
 
+/*!< The maximum allowed handshake sequence number.
+ *   This must not be larger than #MBEDTLS_MPS_HS_SEQ_MAX. */
+#define MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER MBEDTLS_MPS_HS_SEQ_MAX
+
+/*!< (DTLS only) The maximum number of future messages to be buffered. */
 #define MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS 4
 
 #define MBEDTLS_MPS_RETRANSMISSION_CALLBACK_SUCCESS 0
 #define MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE   1
 
-/**
- * Enumeration of alerts
+/*! The type of reassembly/buffering states handshake messages.
+ *
+ *  Possible values are:
+ *  - #MPS_REASSEMBLY_NONE
+ *    Reassembly hasn't started.
+ *  - #MPS_REASSEMBLY_NO_FRAGMENTATION
+ *    The message has been received in a single fragment
+ *    and no reassembly was necessary; a reader is available
+ *    which gives access to the contents.
+ *  - #MPS_REASSEMBLY_WINDOW
+ *    Some fragments of the message have been received
+ *    and reassembly is in progress.
+ *
+ * The state #MPS_REASSEMBLY_NO_FRAGMENTATION is only
+ * possible for the next message, as for future messages
+ * we need to make a copy of the Layer 3 data anyway.
+ *
+ * NOTE: There are more alternatives, for example
+ *       one could always wait until a new fragment
+ *       comes in which continues the initial part
+ *       of the message that has already been received;
+ *       this way, no additional buffers would be needed
+ *       (if the parsing routines make use of pausing).
+ *       However, this seems to be suitable only for very
+ *       reliable networks, or in DTLS-1.3 where a more
+ *       elaborate acknowledgement scheme is available.
+ *
  */
-typedef enum
-{
-    MBEDTLS_MPS_ALERT_NO_RENEGOTIATION
-    /* TODO: Add (D)TLS alert types here, see ssl.h.
-     * Either use the same constants as in the standard,
-     * or keep them abstract here and provide a translation
-     * function. */
-} mbedtls_mps_alert_t;
+typedef uint8_t mbedtls_mps_msg_reassembly_state;
+#define MPS_REASSEMBLY_NONE             ( (mbedtls_mps_msg_reassembly_state) 0 )
+#define MPS_REASSEMBLY_NO_FRAGMENTATION ( (mbedtls_mps_msg_reassembly_state) 1 )
+#define MPS_REASSEMBLY_WINDOW           ( (mbedtls_mps_msg_reassembly_state) 2 )
 
-/**
- * Blocking reasons
+/*! Messages of the last incoming flight are tagged with values of this type
+ *  to indicate whether a re-receipt should lead to retransmission of our
+ *  own last outgoing flight, or not. */
+typedef uint8_t mbedtls_mps_retransmission_detection_state;
+#define MBEDTLS_MPS_RETRANSMISSION_DETECTION_ENABLED  \
+    ( (mbedtls_mps_retransmission_detection_state) 0 )
+#define MBEDTLS_MPS_RETRANSMISSION_DETECTION_ON_HOLD  \
+    ( (mbedtls_mps_retransmission_detection_state) 1 )
+
+/*! The enumeration of (D)TLS alerts. */
+typedef uint8_t mbedtls_mps_alert_t;
+/* TODO: Add (D)TLS alert types here, see ssl.h.
+ * Either use the same constants as in the standard,
+ * or keep them abstract here and provide a translation
+ * function. */
+
+/*! The type of reasons for MPS being blocked.
+ *
+ *  Possible values are:
+ *  - #MBEDTLS_MPS_ERROR_NONE
+ *    No blocking reason has been recorded.
+ *  - #MBEDTLS_MPS_ERROR_ALERT_SENT
+ *    A fatal alert has been sent by the user.
+ *  - #MBEDTLS_MPS_ERROR_ALERT_RECEIVED
+ *    A fatal alert has been received from the peer.
+ *  - #MBEDTLS_MPS_ERROR_INTERNAL_ERROR
+ *    An internal error lead to blocking MPS.
  */
-typedef enum
-{
-    MBEDTLS_MPS_ERROR_NONE = 0,
-    MBEDTLS_MPS_ERROR_ALERT_SENT,
-    MBEDTLS_MPS_ERROR_ALERT_RECEIVED,
-    MBEDTLS_MPS_ERROR_INTERNAL_ERROR
-} mbedtls_mps_blocking_reason_t;
+typedef uint8_t mbedtls_mps_blocking_reason_t;
+#define MBEDTLS_MPS_ERROR_UNKNOWN        ( (mbedtls_mps_blocking_reason_t) 0 )
+#define MBEDTLS_MPS_ERROR_ALERT_SENT     ( (mbedtls_mps_blocking_reason_t) 1 )
+#define MBEDTLS_MPS_ERROR_ALERT_RECEIVED ( (mbedtls_mps_blocking_reason_t) 2 )
+#define MBEDTLS_MPS_ERROR_INTERNAL_ERROR ( (mbedtls_mps_blocking_reason_t) 3 )
 
 typedef struct
 {
@@ -90,66 +139,93 @@ typedef struct
     } info;
 } mbedtls_mps_blocking_info_t;
 
-/**
- * Connection closure state of MPS
+/*! The type of MPS connection states.
+ *
+ *  Possible values are:
+ *  - #MBEDTLS_MPS_STATE_OPEN
+ *    The connection is open.
+ *  - #MBEDTLS_MPS_STATE_WRITE_ONLY
+ *    The peer has closed its writing side, but we may still send data.
+ *  - #MBEDTLS_MPS_STATE_READ_ONLY
+ *    We have closed the writing side, but the peer may still send data.
+ *  - #MBEDTLS_MPS_STATE_CLOSED
+ *    The connection is fully closed.
+ *  - #MBEDTLS_MPS_STATE_BLOCKED
+ *    The MPS is blocked after an error.
  */
-typedef enum
-{
-    MBEDTLS_MPS_STATE_OPEN = 0,    /*!< The connection is open.               */
-    MBEDTLS_MPS_STATE_WRITE_ONLY,  /*!< The peer has closed its writing
-                                    *   side, but we may still send data.     */
-    MBEDTLS_MPS_STATE_READ_ONLY,   /*!< We have closed the writing side,
-                                    *   but the peer may still send data.     */
-    MBEDTLS_MPS_STATE_CLOSED,      /*!< The connection is fully closed.       */
-    MBEDTLS_MPS_STATE_BLOCKED      /*!< The MPS is blocked after an error.    */
-} mbedtls_mps_connection_state_t;
+typedef uint8_t mbedtls_mps_connection_state_t;
+#define MBEDTLS_MPS_STATE_OPEN       ( (mbedtls_mps_connection_state_t) 0 )
+#define MBEDTLS_MPS_STATE_WRITE_ONLY ( (mbedtls_mps_connection_state_t) 1 )
+#define MBEDTLS_MPS_STATE_READ_ONLY  ( (mbedtls_mps_connection_state_t) 2 )
+#define MBEDTLS_MPS_STATE_CLOSED     ( (mbedtls_mps_connection_state_t) 3 )
+#define MBEDTLS_MPS_STATE_BLOCKED    ( (mbedtls_mps_connection_state_t) 4 )
 
-/**
- * Flight-exchange state
+/*! The type of flight exchange states.
+ *
+ *  Possible values are:
+ *  - #MBEDTLS_MPS_FLIGHT_DONE
+ *    No flight exchange is in progress.
+ *  - #MBEDTLS_MPS_FLIGHT_AWAIT
+ *    We're waiting for the first message of the next flight from the peer.
+ *    In this state, we're not yet sure whether the peer has fully received
+ *    our last outgoing flight, and we retransmit the latter on timeout.
+ *  - #MBEDTLS_MPS_FLIGHT_RECEIVE
+ *    We're receiving the next flight from the peer. This is different
+ *    from #MBEDTLS_MPS_FLIGHT_AWAIT in that we must already have received
+ *    some part of the next incoming flight, witnessing that the peer has
+ *    received our last outgoing flight. In this mode, we're sending
+ *    retransmission requests on a timeout, but not necessarily fully
+ *    retransmit our last outgoing flight.
+ *  - #MBEDTLS_MPS_FLIGHT_SEND,
+ *    We're in the process of sending our next outgoing flight.
+ *  - #MBEDTLS_MPS_FLIGHT_FINALIZE
+ *    The flight exchange has been completed with an outgoing flight of ours,
+ *    but we're holding it back in case the peer didn't receive it.
  */
-typedef enum
-{
-    MBEDTLS_MPS_FLIGHT_DONE = 0, /*!< No flight exchange is in progress.   */
-    MBEDTLS_MPS_FLIGHT_AWAIT,    /*!< Awaiting  next incoming flight.      */
-    MBEDTLS_MPS_FLIGHT_RECEIVE,  /*!< Receiving next incoming flight.      */
-    MBEDTLS_MPS_FLIGHT_SEND,     /*!< Sending   next outgoing flight.      */
-    MBEDTLS_MPS_FLIGHT_FINALIZE, /*!< The flight exchange has been completed
-                                  *   with an outgoing flight of ours, but
-                                  *   we're holding it back for some time
-                                  *   in case the peer didn't receive it.  */
-} mbedtls_mps_flight_state_t;
+typedef uint8_t mbedtls_mps_flight_state_t;
+#define MBEDTLS_MPS_FLIGHT_DONE     ( (mbedtls_mps_flight_state_t) 0 )
+#define MBEDTLS_MPS_FLIGHT_AWAIT    ( (mbedtls_mps_flight_state_t) 1 )
+#define MBEDTLS_MPS_FLIGHT_RECEIVE  ( (mbedtls_mps_flight_state_t) 2 )
+#define MBEDTLS_MPS_FLIGHT_SEND     ( (mbedtls_mps_flight_state_t) 3 )
+#define MBEDTLS_MPS_FLIGHT_FINALIZE ( (mbedtls_mps_flight_state_t) 4 )
 
 /**
  * Retransmission state
  */
-typedef enum
-{
-    /*! No retransmission or retransmission request ongoing.       */
-    MBEDTLS_MPS_RETRANSMIT_NONE = 0,
-    /*! We are currently resending our last outgoing flight.
-        This happens in flight-exchange states
-        #MBEDTLS_MPS_FLIGHT_AWAIT or #MBEDTLS_MPS_FLIGHT_FINALIZE. */
-    MBEDTLS_MPS_RETRANSMIT_RESEND,
-    /*!< We are in flight-exchange state #MBEDTLS_MPS_FLIGHT_RECEIVE,
-     *   observed a disruption during the receipt of the next incoming flight,
-     *   and are requesting a retransmission from the peer.
-     *
-     *   In DTLS 1.0 and 1.2, this is done by retransmitting our last
-     *   outgoing flight entirely (so the handling of this state is
-     *   the same as the one for #MBEDTLS_MPS_RETRANSMIT_RESEND),
-     *   which introduces an unnecessary network load because we already
-     *   know that the peer has fully received our flight (otherwise
-     *   it wouldn't have started sending). In DTLS 1.3, this
-     *   state can be more efficiently handled by sending
-     *   ACK messages which indicate to the peer which messages
-     *   we have already received.                                 */
-    MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND
-} mbedtls_mps_retransmit_state_t;
 
-/**
- * \brief   Message options
+/*! The type of retransmission states.
  *
- * 8-bit flags indicating flight contribution of a message.
+ *  Possible values are:
+ *  - #MBEDTLS_MPS_RETRANSMIT_NONE
+ *    No retransmission or retransmission request ongoing.
+ *  - #MBEDTLS_MPS_RETRANSMIT_RESEND
+ *    We are currently resending our last outgoing flight.
+ *    This happens in flight-exchange states
+ *    #MBEDTLS_MPS_FLIGHT_AWAIT or #MBEDTLS_MPS_FLIGHT_FINALIZE.
+ *  - #MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND
+ *    We are in flight-exchange state #MBEDTLS_MPS_FLIGHT_RECEIVE,
+ *    observed a disruption during the receipt of the next incoming flight,
+ *    and are requesting a retransmission from the peer.
+ *    In DTLS 1.0 and 1.2, this is done by retransmitting our last
+ *    outgoing flight entirely (so the handling of this state is
+ *    the same as the one for #MBEDTLS_MPS_RETRANSMIT_RESEND),
+ *    which introduces an unnecessary network load because we already
+ *    know that the peer has fully received our flight (otherwise
+ *    it wouldn't have started sending). In DTLS 1.3, this
+ *    state can be more efficiently handled by sending
+ *    ACK messages which indicate to the peer which messages
+ *    we have already received.
+ */
+typedef uint8_t mbedtls_mps_retransmit_state_t;
+#define MBEDTLS_MPS_RETRANSMIT_NONE             \
+    ( (mbedtls_mps_retransmit_state_t) 0 )
+#define MBEDTLS_MPS_RETRANSMIT_RESEND           \
+    ( (mbedtls_mps_retransmit_state_t) 1 )
+#define MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND   \
+    ( (mbedtls_mps_retransmit_state_t) 2 )
+
+/*! The type of message flags indicating their contribution
+ *  to the current flight and flight exchange.
  *
  * Bit(s)   Meaning
  * 0 .. 1   Contribution to flight & handshake:
@@ -166,19 +242,26 @@ typedef enum
  *          `Options` variable in the read state.
  */
 typedef uint8_t mbedtls_mps_msg_flags;
-#define MBEDTLS_MPS_FLAGS_MASK       ( 1u << 7 )
-#define MBEDTLS_MPS_FLIGHT_MASK      ( 3u << 0 )
-#define MBEDTLS_MPS_FLIGHT_NONE      ( 0u << 0 )
-#define MBEDTLS_MPS_FLIGHT_ADD       ( 1u << 0 )
-#define MBEDTLS_MPS_FLIGHT_END       ( 2u << 0 )
-#define MBEDTLS_MPS_FLIGHT_FINISHED  ( 3u << 0 )
+#define MBEDTLS_MPS_FLAGS_MASK       ( (mbedtls_mps_msg_flags) ( 1u << 7 ) )
+#define MBEDTLS_MPS_FLIGHT_MASK      ( (mbedtls_mps_msg_flags) ( 3u << 0 ) )
+#define MBEDTLS_MPS_FLIGHT_NONE      ( (mbedtls_mps_msg_flags) ( 0u << 0 ) )
+#define MBEDTLS_MPS_FLIGHT_ADD       ( (mbedtls_mps_msg_flags) ( 1u << 0 ) )
+#define MBEDTLS_MPS_FLIGHT_END       ( (mbedtls_mps_msg_flags) ( 2u << 0 ) )
+#define MBEDTLS_MPS_FLIGHT_FINISHED  ( (mbedtls_mps_msg_flags) ( 3u << 0 ) )
 
-/**
- * Dependencies on external interfaces
+/*! Type of bitflags signaling external dependencies.
+ *
+ * Defined bits are:
+ * - #MBEDTLS_MPS_BLOCK_READ
+ *   Progress can only be made when the underlying transport
+ *   has data ready to be read.
+ * - #MBEDTLS_MPS_BLOCK_WRITE
+ *   Progress can only be made when the underlying transport
+ *   is ready to send data.
  */
 typedef uint8_t mbedtls_mps_dependencies;
-#define MBEDTLS_MPS_BLOCK_READ  ( 1u << 0 )
-#define MBEDTLS_MPS_BLOCK_WRITE ( 1u << 1 )
+#define MBEDTLS_MPS_BLOCK_READ  ( (mbedtls_mps_dependencies) ( 1u << 0 ) )
+#define MBEDTLS_MPS_BLOCK_WRITE ( (mbedtls_mps_dependencies) ( 1u << 1 ) )
 
 /*
  * Return values from parsing/writing functions
@@ -212,12 +295,10 @@ typedef int (*mbedtls_mps_write_cb_t)( mbedtls_mps_write_cb_ctx_t const *ctx,
  * Internal representation of outgoing handshake messages (DTLS only)
  */
 
-typedef enum mps_hs_state
-{
-    MPS_HS_NONE=0,
-    MPS_HS_ACTIVE,
-    MPS_HS_PAUSED
-} mps_hs_state;
+typedef uint8_t mbedtls_mps_hs_state;
+#define MBEDTLS_MPS_HS_NONE   ( (mbedtls_mps_hs_state) 0 )
+#define MBEDTLS_MPS_HS_ACTIVE ( (mbedtls_mps_hs_state) 1 )
+#define MBEDTLS_MPS_HS_PAUSED ( (mbedtls_mps_hs_state) 2 )
 
 /*
  * \brief Internal structure representing an outgoing handshake message.
@@ -227,10 +308,10 @@ typedef enum mps_hs_state
  * triggered by the retransmission state machine.
  *
  */
-typedef struct
+struct mbedtls_mps_handshake_out_internal
 {
-    mps_hs_state state;     /*!< Indicates if the handshake message is
-                             *   currently being paused or not.               */
+    mbedtls_mps_hs_state state; /*!< Indicates if the handshake message is
+                                 *   currently being paused or not.           */
 
     /*
      * Static information about the message.
@@ -240,24 +321,26 @@ typedef struct
                                  *   message is to be secured. This may be
                                  *   different from the current outgoing
                                  *   epoch in case of retransmissions.        */
-    uint16_t seq_nr;            /*!< The handshake sequence number.           */
 
-    uint8_t type;               /*!< The type of the handshake message.       */
+    /*! The handshake sequence number. */
+    mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
-    int32_t length;         /*!< The length of the handshake message to be
-                             *   written, or #MBEDTLS_MPS_LENGTH_UNKNOWN
-                             *   if the length is determined at write-time.
-                             *   In this case, pausing is not possible for
-                             *   the handshake message (because the headers
-                             *   for handshake fragments include the total
-                             *   length of the handshake message).            */
+    /*! The type of the handshake message. */
+    mbedtls_mps_stored_hs_type type;
+
+    /*! The length of the handshake message to be written, or
+     *  #MBEDTLS_MPS_LENGTH_UNKNOWN if the length is determined at write-time.
+     *  In this case, pausing is not possible for the handshake message
+     *  (because the headers for handshake fragments include the total
+     *  length of the handshake message). */
+    mbedtls_mps_stored_opt_size_t length;
 
     /*
      * Progress of writing
      */
 
-    uint32_t offset;        /*!< Indicates the offset of the fragment
-                             *   that's currently being written.              */
+    /*! Indicates the offset of the fragment that's currently being written. */
+    mbedtls_mps_stored_size_t offset;
 
     /*
      * Information about current handshake fragment
@@ -265,66 +348,84 @@ typedef struct
      * part of the handshake message.
      */
 
-    mbedtls_writer_ext *wr_ext_l3;  /*!< The writer obtained from Layer 3
-                                     *   to write the handshake fragment.     */
-    size_t frag_len;
+    /* TODO:
+     * Consider removing this; the reader can be queried
+     * from Layer 3 anytime, and there's no need to keep
+     * its address here. Moreover, the querying might be
+     * done through an inline function so that the compiler
+     * is able to optimize this into a direct structure
+     * field access.
+     * In general, care has to be taken to not have the
+     * layered structure of MPS come at the cost of information
+     * duplication and too many layers of indirections.
+     */
+    mbedtls_writer_ext *wr_ext_l3;  /*!< The writer obtained from Layer 3 to
+                                     *   write the next handshake fragment.*/
+
+    /* TODO: Document! When is this set? */
+    mbedtls_mps_stored_size_t frag_len;
 
     /*
      * User-facing writers
      */
 
-    unsigned char      *queue;
-    size_t          queue_len;
+    mbedtls_mps_stored_size_t queue_len;
+    unsigned char            *queue;
     mbedtls_writer         wr;
     mbedtls_writer_ext wr_ext; /*!< The write-handle to the handshake message
                                 *   content that's passed to the user.        */
 
-} mps_handshake_out_internal;
+};
+
+typedef struct mbedtls_mps_handshake_out_internal mbedtls_mps_handshake_out_internal;
 
 /**
  * Retransmission backup
  */
 
-#define MPS_RETRANSMISSION_HANDLE_NONE         0
-#define MPS_RETRANSMISSION_HANDLE_HS_RAW       1
-#define MPS_RETRANSMISSION_HANDLE_HS_CALLBACK  2
-#define MPS_RETRANSMISSION_HANDLE_CCS          3
+/*! The type of retransmission handle types.
+ *
+ *  Supported values are:
+ *  - #MPS_RETRANSMISSION_HANDLE_NONE
+ *    to characterize uninitialized handles.
+ *  - #MPS_RETRANSMISSION_HANDLE_HS_RAW
+ *    for a handshake message retransmission
+ *    based on a raw backup of the message.
+ *  - #MPS_RETRANSMISSION_HANDLE_HS_CALLBACK
+ *    for a handshake message retransmission
+ *    based on a callback.
+ *  - #MPS_RETRANSMISSION_HANDLE_CCS
+ *    for a CCS message retransmission.
+ */
+typedef uint8_t mps_retransmission_handle_type;
+#define MPS_RETRANSMISSION_HANDLE_NONE         ( (mps_retransmission_handle_type) 0 )
+#define MPS_RETRANSMISSION_HANDLE_HS_RAW       ( (mps_retransmission_handle_type) 1 )
+#define MPS_RETRANSMISSION_HANDLE_HS_CALLBACK  ( (mps_retransmission_handle_type) 2 )
+#define MPS_RETRANSMISSION_HANDLE_CCS          ( (mps_retransmission_handle_type) 3 )
 
 /*! A complete incoming flight has been received. */
 #define MPS_INCOMING_FLIGHT_FINISHED 0
 /*! We're currently receiving an incoming flight. */
 #define MPS_INCOMING_FLIGHT_ONGOING  1
 
-
-#define MPS_REASSEMBLY_NONE             0
-#define MPS_REASSEMBLY_NO_FRAGMENTATION 1
-#define MPS_REASSEMBLY_WINDOW           2
-
-typedef struct
+struct mps_retransmission_handle
 {
-    uint8_t handle_type; /*!< The type of the retransmission handle.
-                          *   Supported values are:
-                          *   - #MPS_RETRANSMISSION_HANDLE_NONE
-                          *     to characterize uninitialized handles.
-                          *   - #MPS_RETRANSMISSION_HANDLE_HS_RAW
-                          *     for a handshake message retransmission
-                          *     based on a raw backup of the message.
-                          *   - #MPS_RETRANSMISSION_HANDLE_HS_CALLBACK
-                          *     for a handshake message retransmission
-                          *     based on a callback.
-                          *   - #MPS_RETRANSMISSION_HANDLE_CCS
-                          *     for a CCS message retransmission.
-                          */
+    /*! The type of the retransmission handle. See the documentation
+     *  of ::mps_retransmission_handle_type for more information. */
+    mps_retransmission_handle_type handle_type;
 
-    mbedtls_mps_epoch_id epoch; /*!< The epoch used to send the message. */
+    /*! The handshake type; unused for CCS retransmissions. */
+    mbedtls_mps_stored_hs_type type;
+    /*! The handshake sequence number; unused for CCS retransmissions. */
+    mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
-    /* These fields are only relevant for handshake retransmissions.
-     * They are unused for CCS retransmissions. */
-    uint8_t    type;               /*!< The handshake type.                 */
-    uint8_t  seq_nr;               /*!< The handshake sequence number.      */
-    uint32_t    len;               /*!< The total handshake message length. */
+    /*! The epoch used to send the message. */
+    mbedtls_mps_epoch_id epoch;
 
-    /*! Union indexed by \c type containing the actual
+    /*! The total handshake message length. */
+    mbedtls_mps_stored_size_t len;
+
+    /*! Union indexed by \c handle_type containing the actual
      *  retransmission handle providing the message content. */
     union
     {
@@ -333,7 +434,8 @@ typedef struct
         struct
         {
             unsigned char *buf; /*!< The buffer holding the message backup. */
-            size_t         len; /*!< Total size of \c buf.                  */
+
+            mbedtls_mps_stored_size_t  len; /*!< Total size of \c buf.      */
         } raw;
 
         /*! The callback for retransmission. This is valid if and only if
@@ -355,7 +457,8 @@ typedef struct
 
     } handle;
 
-} mps_retransmission_handle;
+};
+typedef struct mps_retransmission_handle mps_retransmission_handle;
 
 
 typedef void mbedtls_mps_set_timer_t( void * ctx,
@@ -376,11 +479,11 @@ typedef int mbedtls_mps_get_timer_t( void * ctx );
  */
 typedef struct
 {
-    /*!< The epoch through which the handshake message was secured. */
+    /*! The epoch through which the handshake message was secured. */
     mbedtls_mps_epoch_id epoch;
 
-    /*!< The handshake sequence number. */
-    uint8_t seq_nr;
+    /*! The handshake sequence number. */
+    mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
 } mps_recognition_info;
 
@@ -410,7 +513,7 @@ typedef struct
  * MPS context
  */
 
-typedef struct
+struct mbedtls_mps
 {
     mps_config conf;
 
@@ -438,7 +541,8 @@ typedef struct
      *  - If \c state indicates a blocked MPS, a fatal alert
      *    based in the data in \c blocking_info will be sent.
      */
-    uint8_t alert_pending;
+    uint8_t alert_pending; /* TODO: Are there other binary flags
+                            *       that could be subsumed in a bitfield? */
 
     /*! The state of the connection. See the documentation of
      *  ::mbedtls_mps_connection_state_t for the possible values. */
@@ -452,6 +556,11 @@ typedef struct
     struct
     {
         mbedtls_mps_msg_type_t state;
+
+        /* DTLS only */
+        mbedtls_mps_msg_flags      flags; /*!< Indicates if and how the incoming
+                                           *   message contributes to an ongoing
+                                           *   handshake. */
 
         /* Note:
          * This is slightly memory-inefficient because the data
@@ -480,11 +589,6 @@ typedef struct
             mps_l3_handshake_in hs;
         } data;
 
-        /* DTLS only */
-        mbedtls_mps_msg_flags      flags; /*!< Indicates if and how the incoming
-                                           *   message contributes to an ongoing
-                                           *   handshake. */
-
     } in;
 
     /* Write state */
@@ -501,11 +605,6 @@ typedef struct
     /* DTLS retransmission state machine. */
     struct
     {
-        /*! This structure controls the state of outgoing handshake
-         *  messages and their fragmentation. It is used both for the
-         *  initial sending of messages as well as for retransmissions. */
-        mps_handshake_out_internal hs;
-
         /*! This indicates the state of the retransmission state machine.
          *  See the documentation of ::mbedtls_mps_flight_state_t. */
         mbedtls_mps_flight_state_t state;
@@ -514,6 +613,11 @@ typedef struct
          *  flight, or are requesting retransmission from the peer.
          *  See the documentation of ::mbedtls_mps_retransmit_state_t. */
         mbedtls_mps_retransmit_state_t retransmit_state;
+
+        /*! This structure controls the state of outgoing handshake
+         *  messages and their fragmentation. It is used both for the
+         *  initial sending of messages as well as for retransmissions. */
+        mbedtls_mps_handshake_out_internal hs;
 
         /*! This structure is used when waiting for the next incoming
          *  flight of the peer. It captures the time to wait until we
@@ -528,7 +632,7 @@ typedef struct
          *        ::mbedtls_mps_retransmit_state_t for more. */
         struct
         {
-            /*! The current retransmission timeout. Increases with
+            /*! The current retransmission timeout (ms). Increases with
              *  every retransmission until a configurable threshold
              *  is reached. */
             uint32_t retransmit_timeout;
@@ -549,7 +653,7 @@ typedef struct
             mbedtls_mps_msg_flags flags;
 
             /*! The sequence number of the next outgoing message. */
-            uint8_t seq_nr;
+            mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
             /*! The number of messages in the current/last outgoing flight. */
             uint8_t flight_len;
@@ -642,8 +746,13 @@ typedef struct
          */
         struct mps_reassembly
         {
+            /* QUESTION:
+             * Consider storing ::mps_reassembly on the heap
+             * and only allocate it when necessary.
+             */
+
             /*! The next expected handshake sequence number. */
-            uint8_t next_seq_nr;
+            mbedtls_mps_stored_hs_seq_nr_t next_seq_nr;
 
             /*! The reader and extended reader managing the contents
              *  of the current incoming handshake message. */
@@ -654,41 +763,12 @@ typedef struct
              *  partially received handshake messages. */
             struct mps_msg_reassembly
             {
-                /*! The reassembly status of the handshake message.
-                 *  Possible values are:
-                 *  - #MPS_REASSEMBLY_NONE
-                 *    Reassembly hasn't started.
-                 *  - #MPS_REASSEMBLY_NO_FRAGMENTATION
-                 *    The message has been received in a single fragment
-                 *    and no reassembly was necessary; a reader is available
-                 *    which gives access to the contents.
-                 *  - #MPS_REASSEMBLY_WINDOW
-                 *    Some fragments of the message have been received
-                 *    and reassembly is in progress.
-                 *
-                 * The state #MPS_REASSEMBLY_NO_FRAGMENTATION is only
-                 * possible for the next message, as for future messages
-                 * we need to make a copy of the Layer 3 data anyway.
-                 *
-                 * NOTE: There are more alternatives, for example
-                 *       one could always wait until a new fragment
-                 *       comes in which continues the initial part
-                 *       of the message that has already been received;
-                 *       this way, no additional buffers would be needed
-                 *       (if the parsing routines make use of pausing).
-                 *       However, this seems to be suitable only for very
-                 *       reliable networks, or in DTLS-1.3 where a more
-                 *       elaborate acknowledgement scheme is available.
-                 *
-                 */
-                uint8_t status;
+                /*! The reassembly state of the message.
+                 *  See ::mbedtls_mps_msg_reassembly_state for more. */
+                mbedtls_mps_msg_reassembly_state status;
 
-                /*! The total handshake message length. Remembered to
-                 *  check that it is consistent across fragments. */
-                uint32_t length;
-
-                /*!< The handshake message type. */
-                uint8_t type;
+                /*! The handshake message type. */
+                mbedtls_mps_stored_hs_type type;
 
                 /*! The epoch of the incoming handshake message.
                  *  This must be stored to detect a change of epoch
@@ -711,6 +791,10 @@ typedef struct
                  */
                 mbedtls_mps_epoch_id epoch;
 
+                /*! The total handshake message length. Remembered to
+                 *  check that it is consistent across fragments. */
+                mbedtls_mps_stored_size_t length;
+
                 /*!< Union indexed by \c status giving rise to the
                  *   message contents fetched so far. */
                 union
@@ -725,13 +809,13 @@ typedef struct
                      *  \c status is #MPS_REASSEMBLY_WINDOW. */
                     struct mps_msg_reassembly_window
                     {
-                        unsigned char *buf; /*!< The reassembly buffer. */
-                        size_t buf_len;     /*!< The size of \c buf.    */
-
+                        unsigned char *buf;     /*!< The reassembly buffer.   */
                         unsigned char *bitmask; /*!< The bitmask indicating
                                                  *   the state of reassembly. */
-                        size_t bitmask_len;     /*!< The length of the
-                                                 *   reassembly bitmask. */
+                        /*! The size of \c buf.                   */
+                        mbedtls_mps_stored_size_t buf_len;
+                        /*! The length of the reassembly bitmask. */
+                        mbedtls_mps_stored_size_t bitmask_len;
                     } window;
 
                 } data;
@@ -797,13 +881,19 @@ typedef struct
              *  detection; at the same time, the number of entries
              *  in \c msgs which are valid.
              *
-             * Note: We don't remember CCS messages of incoming flights.
+             *  Note: We don't remember CCS messages of incoming flights.
              */
             uint8_t flight_len;
 
             /*! This indicates which messages should currently trigger
-             *  a retransmission. */
-            uint8_t msg_state[ MBEDTLS_MPS_MAX_FLIGHT_LENGTH ];
+             *  a retransmission. See the documentation of
+             *  ::mbedtls_mps_recognition_state for more.
+             *
+             *  NOTE: Currently, ::mbedtls_mps_retransmission_detection_state
+             *        has only two values, so a bitfield would do here, but that
+             *        doesn't save many bytes. */
+            mbedtls_mps_retransmission_detection_state
+              msg_state[ MBEDTLS_MPS_MAX_FLIGHT_LENGTH ];
 
             /*! Aspects of the current or last incoming flight that
              *  we remember for the purpose of recognizing retransmissions.
@@ -824,7 +914,8 @@ typedef struct
 
     } dtls;
 
-} mbedtls_mps;
+};
+typedef struct mbedtls_mps mbedtls_mps;
 
 typedef struct mps_reassembly mps_reassembly;
 typedef struct mps_msg_reassembly mps_msg_reassembly;
@@ -1074,27 +1165,24 @@ int mbedtls_mps_get_sequence_number( mbedtls_mps *mps, uint8_t seq[8] );
  * Write interface
  */
 
-#define MBEDTLS_MPS_MAX_HS_LENGTH 1000 /* TODO: Adapt */
-#define MBEDTLS_MPS_LENGTH_UNKNOWN (-1)
-
 /* Structure representing an outgoing handshake message. */
 typedef struct
 {
-    uint8_t type;           /*!< Type of handshake message.
-                             *
-                             *   This field MUST be set by the user before
-                             *   calling mbedtls_mps_write_handshake().       */
+    /*! The type of the handshake message to be written.
+     *
+     *  This field must be set by the user before
+     *  calling mbedtls_mps_write_handshake(). */
+    mbedtls_mps_stored_hs_type type;
 
-    int32_t length;         /*!< The length of the handshake message to be
-                             *   written, or #MBEDTLS_MPS_LENGTH_UNKNOWN
-                             *   if the length is determined at write-time.
-                             *   In this case, pausing is not possible for
-                             *   the handshake message (because the headers
-                             *   for handshake fragments include the total
-                             *   length of the handshake message).
-                             *
-                             *   This field MUST be set by the user before
-                             *   calling mbedtls_mps_write_handshake().       */
+   /*! The length of the handshake message to be written, or
+    *  #MBEDTLS_MPS_LENGTH_UNKNOWN if the length is determined at write-time.
+    *  In this case, pausing is not possible for the handshake message
+    *  (because the headers for handshake fragments include the total
+    *  length of the handshake message).
+    *
+    *  This field must be set by the user before
+    *  calling mbedtls_mps_write_handshake(). */
+    mbedtls_mps_stored_opt_size_t length;
 
     mbedtls_writer_ext *handle; /*!< Write-handle to handshake message content.
                                  *

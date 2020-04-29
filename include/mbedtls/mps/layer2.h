@@ -48,7 +48,7 @@
 
 /* End of external copies to be removed later */
 
-#define MPS_L2_VERSION_UNSPECIFIED 0x3f
+#define MBEDTLS_MPS_L2_VERSION_UNSPECIFIED 0x3f
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
 #define MBEDTLS_MPS_ANTI_REPLAY_DISABLED 0

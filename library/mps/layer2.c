@@ -2104,7 +2104,7 @@ int l2_version_wire_matches_logical( uint8_t wire_version,
 {
     switch( logical_version )
     {
-        case MBEDTLS_L2_VERSION_UNSPECIFIED:
+        case MBEDTLS_MPS_L2_VERSION_UNSPECIFIED:
             return( 1 );
         case MBEDTLS_SSL_MINOR_VERSION_0:
             return( wire_version == 0 );
@@ -2475,7 +2475,7 @@ int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
         RETURN( MBEDTLS_ERR_MPS_INVALID_RECORD );
     }
     if( mbedtls_mps_l2_conf_get_version( &ctx->conf ) !=
-          MPS_L2_VERSION_UNSPECIFIED &&
+          MBEDTLS_MPS_L2_VERSION_UNSPECIFIED &&
         mbedtls_mps_l2_conf_get_version( &ctx->conf ) !=
           minor_ver )
     {

@@ -281,9 +281,13 @@ armc6_build_test()
 {
     FLAGS="$1"
 
-    msg "build: ARM Compiler 6 ($FLAGS), make"
+    msg "build: ARM Compiler 6 ($FLAGS)"
     ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
                     WARNING_CFLAGS='-xc -std=c99' make lib
+
+    msg "size: ARM Compiler 6 ($FLAGS)"
+    "$ARMC6_FROMELF" -z library/*.o
+
     make clean
 }
 
@@ -533,9 +537,12 @@ pre_check_tools () {
         *_armcc*|*_yotta*)
             ARMC5_CC="$ARMC5_BIN_DIR/armcc"
             ARMC5_AR="$ARMC5_BIN_DIR/armar"
+            ARMC5_FROMELF="$ARMC5_BIN_DIR/fromelf"
             ARMC6_CC="$ARMC6_BIN_DIR/armclang"
             ARMC6_AR="$ARMC6_BIN_DIR/armar"
-            check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR";;
+            ARMC6_FROMELF="$ARMC6_BIN_DIR/fromelf"
+            check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC5_FROMELF" \
+                        "$ARMC6_CC" "$ARMC6_AR" "$ARMC6_FROMELF";;
     esac
 
     msg "info: output_env.sh"
@@ -1088,13 +1095,16 @@ component_test_have_int64 () {
 }
 
 component_build_arm_none_eabi_gcc () {
-    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1" # ~ 10s
     scripts/config.pl baremetal
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra -O1' lib
+
+    msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1"
+    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
 }
 
 component_build_arm_none_eabi_gcc_arm5vte () {
-    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=arm5vte, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=arm5vte" # ~ 10s
     scripts/config.pl baremetal
     # Build for a target platform that's close to what Debian uses
     # for its "armel" distribution (https://wiki.debian.org/ArmEabiPort).
@@ -1102,12 +1112,18 @@ component_build_arm_none_eabi_gcc_arm5vte () {
     # It would be better to build with arm-linux-gnueabi-gcc but
     # we don't have that on our CI at this time.
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
+
+    msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=armv5te -O1"
+    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
 }
 
 component_build_arm_none_eabi_gcc_m0plus () {
     msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -mthumb -mcpu=cortex-m0plus" # ~ 10s
     scripts/config.pl baremetal
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra -mthumb -mcpu=cortex-m0plus -Os' lib
+
+    msg "size: ${ARM_NONE_EABI_GCC_PREFIX}gcc -mthumb -mcpu=cortex-m0plus -Os"
+    ${ARM_NONE_EABI_GCC_PREFIX}size library/*.o
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {
@@ -1120,10 +1136,13 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
 }
 
 component_build_armcc () {
-    msg "build: ARM Compiler 5, make"
+    msg "build: ARM Compiler 5"
     scripts/config.pl baremetal
-
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
+
+    msg "size: ARM Compiler 5"
+    "$ARMC5_FROMELF" -z library/*.o
+
     make clean
 
     # ARM Compiler 6 - Target ARMv7-A

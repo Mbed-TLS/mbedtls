@@ -21,8 +21,8 @@ jobs:
       script:
         - tests/scripts/all.sh -k 'check_*'
         - tests/scripts/all.sh -k test_default_out_of_box
-        - tests/scripts/all.sh -k build_arm_none_eabi_gcc_arm5vte # baremetal
         - tests/scripts/test-ref-configs.pl
+        - tests/scripts/all.sh -k build_arm_none_eabi_gcc_arm5vte build_arm_none_eabi_gcc_m0plus
 
     - name: full configuration
       script:

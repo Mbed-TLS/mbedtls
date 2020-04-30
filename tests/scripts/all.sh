@@ -131,7 +131,7 @@ pre_initialize_variables () {
     : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
     : ${ARMC5_BIN_DIR:=/usr/bin}
     : ${ARMC6_BIN_DIR:=/usr/bin}
-    : ${ARM_GCC_PREFIX:=arm-none-eabi-}
+    : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
 
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
@@ -193,8 +193,9 @@ General options:
   -f|--force            Force the tests to overwrite any modified files.
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
-     --arm-gcc-prefix=<string>  Prefix for gcc as a cross-compiler for arm
-                                (default: "${ARM_GCC_PREFIX}")
+     --arm-none-eabi-gcc-prefix=<string>
+                        Prefix for a cross-compiler for arm-none-eabi
+                        (default: "${ARM_NONE_EABI_GCC_PREFIX}")
      --armcc            Run ARM Compiler builds (on by default).
      --except           Exclude the COMPONENTs listed on the command line,
                         instead of running only those.
@@ -308,7 +309,7 @@ pre_parse_command_line () {
 
     while [ $# -gt 0 ]; do
         case "$1" in
-            --arm-gcc-prefix) shift; ARM_GCC_PREFIX="$1";;
+            --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
@@ -521,7 +522,7 @@ pre_check_tools () {
     esac
 
     case " $RUN_COMPONENTS " in
-        *_arm_none_eabi_gcc[_\ ]*) check_tools "${ARM_GCC_PREFIX}gcc";;
+        *_arm_none_eabi_gcc[_\ ]*) check_tools "${ARM_NONE_EABI_GCC_PREFIX}gcc";;
     esac
 
     case " $RUN_COMPONENTS " in
@@ -1087,16 +1088,16 @@ component_test_have_int64 () {
 }
 
 component_build_arm_none_eabi_gcc () {
-    msg "build: ${ARM_GCC_PREFIX}, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}, make" # ~ 10s
     scripts/config.pl baremetal
-    make CC="${ARM_GCC_PREFIX}gcc" AR="${ARM_GCC_PREFIX}ar" LD="${ARM_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {
-    msg "build: ${ARM_GCC_PREFIX} -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX} -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
     scripts/config.pl baremetal
     scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
-    make CC="${ARM_GCC_PREFIX}gcc" AR="${ARM_GCC_PREFIX}ar" LD="${ARM_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
     if_build_succeeded not grep __aeabi_uldiv library/*.o
 }

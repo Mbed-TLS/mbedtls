@@ -138,7 +138,7 @@ pre_initialize_variables () {
     : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
     : ${ARMC5_BIN_DIR:=/usr/bin}
     : ${ARMC6_BIN_DIR:=/usr/bin}
-    : ${ARM_GCC_PREFIX:=arm-none-eabi-}
+    : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
 
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
@@ -204,8 +204,9 @@ General options:
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
      --append-outcome   Append to the outcome file (if used).
-     --arm-gcc-prefix=<string>  Prefix for gcc as a cross-compiler for arm
-                                (default: "${ARM_GCC_PREFIX}")
+     --arm-none-eabi-gcc-prefix=<string>
+                        Prefix for a cross-compiler for arm-none-eabi
+                        (default: "${ARM_NONE_EABI_GCC_PREFIX}")
      --armcc            Run ARM Compiler builds (on by default).
      --except           Exclude the COMPONENTs listed on the command line,
                         instead of running only those.
@@ -338,7 +339,7 @@ pre_parse_command_line () {
     while [ $# -gt 0 ]; do
         case "$1" in
             --append-outcome) append_outcome=1;;
-            --arm-gcc-prefix) shift; ARM_GCC_PREFIX="$1";;
+            --arm-none-eabi-gcc-prefix) shift; ARM_NONE_EABI_GCC_PREFIX="$1";;
             --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
@@ -551,7 +552,7 @@ pre_check_tools () {
     esac
 
     case " $RUN_COMPONENTS " in
-        *_arm_none_eabi_gcc[_\ ]*) check_tools "${ARM_GCC_PREFIX}gcc";;
+        *_arm_none_eabi_gcc[_\ ]*) check_tools "${ARM_NONE_EABI_GCC_PREFIX}gcc";;
     esac
 
     case " $RUN_COMPONENTS " in
@@ -1576,36 +1577,36 @@ component_test_no_64bit_multiplication () {
 }
 
 component_build_arm_none_eabi_gcc () {
-    msg "build: ${ARM_GCC_PREFIX}gcc, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc, make" # ~ 10s
     scripts/config.py baremetal
-    make CC="${ARM_GCC_PREFIX}gcc" AR="${ARM_GCC_PREFIX}ar" LD="${ARM_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
 }
 
 component_build_arm_none_eabi_gcc_arm5vte () {
-    msg "build: ${ARM_GCC_PREFIX}gcc -march=arm5vte, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=arm5vte, make" # ~ 10s
     scripts/config.py baremetal
     # Build for a target platform that's close to what Debian uses
     # for its "armel" distribution (https://wiki.debian.org/ArmEabiPort).
     # See https://github.com/ARMmbed/mbedtls/pull/2169 and comments.
     # It would be better to build with arm-linux-gnueabi-gcc but
     # we don't have that on our CI at this time.
-    make CC="${ARM_GCC_PREFIX}gcc" AR="${ARM_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
 }
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {
-    msg "build: ${ARM_GCC_PREFIX}gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
     scripts/config.py baremetal
     scripts/config.py set MBEDTLS_NO_UDBL_DIVISION
-    make CC="${ARM_GCC_PREFIX}gcc" AR="${ARM_GCC_PREFIX}ar" LD="${ARM_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
     if_build_succeeded not grep __aeabi_uldiv library/*.o
 }
 
 component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
-    msg "build: ${ARM_GCC_PREFIX}gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
     scripts/config.py baremetal
     scripts/config.py set MBEDTLS_NO_64BIT_MULTIPLICATION
-    make CC="${ARM_GCC_PREFIX}gcc" AR="${ARM_GCC_PREFIX}ar" LD="${ARM_GCC_PREFIX}ld" CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
     echo "Checking that software 64-bit multiplication is not required"
     if_build_succeeded not grep __aeabi_lmul library/*.o
 }

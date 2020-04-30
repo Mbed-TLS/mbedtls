@@ -1799,7 +1799,7 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
 {
     size_t olen;
     unsigned char *p = sig;
-    unsigned char salt[MBEDTLS_MD_MAX_SIZE];
+    unsigned char *salt = NULL;
     size_t slen, min_slen, hlen, offset = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t msb;
@@ -1867,15 +1867,16 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
 
     memset( sig, 0, olen );
 
-    /* Generate salt of length slen */
-    if( ( ret = f_rng( p_rng, salt, slen ) ) != 0 )
-        return( MBEDTLS_ERR_RSA_RNG_FAILED + ret );
-
     /* Note: EMSA-PSS encoding is over the length of N - 1 bits */
     msb = mbedtls_mpi_bitlen( &ctx->N ) - 1;
     p += olen - hlen - slen - 2;
     *p++ = 0x01;
-    memcpy( p, salt, slen );
+
+    /* Generate salt of length slen in place in the encoded message */
+    salt = p;
+    if( ( ret = f_rng( p_rng, salt, slen ) ) != 0 )
+        return( MBEDTLS_ERR_RSA_RNG_FAILED + ret );
+
     p += slen;
 
     mbedtls_md_init( &md_ctx );
@@ -1908,8 +1909,6 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
 
     p += hlen;
     *p++ = 0xBC;
-
-    mbedtls_platform_zeroize( salt, sizeof( salt ) );
 
 exit:
     mbedtls_md_free( &md_ctx );

@@ -1093,6 +1093,17 @@ component_build_arm_none_eabi_gcc () {
     make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
 }
 
+component_build_arm_none_eabi_gcc_arm5vte () {
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -march=arm5vte, make" # ~ 10s
+    scripts/config.pl baremetal
+    # Build for a target platform that's close to what Debian uses
+    # for its "armel" distribution (https://wiki.debian.org/ArmEabiPort).
+    # See https://github.com/ARMmbed/mbedtls/pull/2169 and comments.
+    # It would be better to build with arm-linux-gnueabi-gcc but
+    # we don't have that on our CI at this time.
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" CFLAGS='-Werror -Wall -Wextra -march=armv5te -O1' LDFLAGS='-march=armv5te' SHELL='sh -x' lib
+}
+
 component_build_arm_none_eabi_gcc_no_udbl_division () {
     msg "build: ${ARM_NONE_EABI_GCC_PREFIX} -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
     scripts/config.pl baremetal

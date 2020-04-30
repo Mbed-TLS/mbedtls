@@ -898,6 +898,8 @@ component_test_full_cmake_clang () {
 }
 
 component_test_default_no_deprecated () {
+    # Test that removing the deprecated features from the default
+    # configuration leaves something consistent.
     msg "build: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 30s
     scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
@@ -915,7 +917,10 @@ component_test_full_no_deprecated () {
     make test
 }
 
-component_test_full_no_deprecated_warning () {
+component_test_full_no_deprecated_deprecated_warning () {
+    # Test that there is nothing deprecated in "full_no_deprecated".
+    # A deprecated feature would trigger a warning (made fatal) from
+    # MBEDTLS_DEPRECATED_WARNING.
     msg "build: make, full_no_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 30s
     scripts/config.py full_no_deprecated
     scripts/config.py unset MBEDTLS_DEPRECATED_REMOVED
@@ -926,14 +931,18 @@ component_test_full_no_deprecated_warning () {
     make test
 }
 
-component_test_deprecated () {
+component_test_full_deprecated_warning () {
+    # Test that when MBEDTLS_DEPRECATED_WARNING is enabled, the build passes
+    # with only certain whitelisted types of warnings.
     msg "build: make, full config + MBEDTLS_DEPRECATED_WARNING, expect warnings" # ~ 30s
     scripts/config.py full
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
     # Expect warnings from '#warning' directives in check_config.h.
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=cpp' lib programs
 
-    msg "build: make tests, full config + MBEDTLS_TEST_DEPRECATED, expect warnings" # ~ 30s
+    msg "build: make tests, full config + MBEDTLS_DEPRECATED_WARNING, expect warnings" # ~ 30s
+    # Set MBEDTLS_TEST_DEPRECATED to enable tests for deprecated features.
+    # By default those are disabled when MBEDTLS_DEPRECATED_WARNING is set.
     # Expect warnings from '#warning' directives in check_config.h and
     # from the use of deprecated functions in test suites.
     make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -Wno-error=cpp -DMBEDTLS_TEST_DEPRECATED' tests

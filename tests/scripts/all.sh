@@ -1237,9 +1237,9 @@ component_test_no_64bit_multiplication () {
 }
 
 component_build_arm_none_eabi_gcc () {
-    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}, make" # ~ 10s
+    msg "build: ${ARM_NONE_EABI_GCC_PREFIX}gcc -O1, make" # ~ 10s
     scripts/config.pl baremetal
-    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra' lib
+    make CC="${ARM_NONE_EABI_GCC_PREFIX}gcc" AR="${ARM_NONE_EABI_GCC_PREFIX}ar" LD="${ARM_NONE_EABI_GCC_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra -O1' lib
 }
 
 component_build_arm_none_eabi_gcc_arm5vte () {

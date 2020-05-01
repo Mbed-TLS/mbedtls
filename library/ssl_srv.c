@@ -100,7 +100,7 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
     servername_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
-    if( (size_t) servername_list_size + 2 != len )
+    if( servername_list_size + 2u != len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -262,7 +262,7 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
     sig_alg_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
-    if( (size_t) sig_alg_list_size + 2 != len ||
+    if( sig_alg_list_size + 2u != len ||
         sig_alg_list_size % 2 != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -336,7 +336,7 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
     list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
-    if( (size_t) list_size + 2 != len ||
+    if( list_size + 2u != len ||
         list_size % 2 != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -1036,7 +1036,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 {
     int ret, got_common_suite;
     unsigned int i, j;
-    size_t n;
+    uint16_t n;
     uint16_t ciph_len, sess_len, chal_len;
     unsigned char *buf, *p;
     const int *ciphersuites;
@@ -1118,7 +1118,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     ssl->handshake->update_checksum( ssl, buf + 2, n );
 
     buf = ssl->in_msg;
-    n = ssl->in_left - 5;
+    n = (uint16_t) (ssl->in_left - 5);
 
     /*
      *    0  .   1   ciphersuitelist length
@@ -1302,10 +1302,11 @@ static int ssl_parse_client_hello( mbedtls_ssl_context *ssl )
     int ret, got_common_suite;
     size_t i, j;
     size_t ciph_offset, comp_offset, ext_offset;
-    uint16_t ciph_len, ext_len;
-    size_t msg_len, sess_len, comp_len;
+    uint16_t ciph_len, ext_len, msg_len;
+    uint8_t sess_len, comp_len;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    size_t cookie_offset, cookie_len;
+    size_t cookie_offset;
+    uint8_t cookie_len;
 #endif
     unsigned char *buf, *p, *ext;
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -1432,7 +1433,7 @@ read_record_header:
     if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
     {
         /* Set by mbedtls_ssl_read_record() */
-        msg_len = ssl->in_hslen;
+        msg_len = (uint16_t) ssl->in_hslen;
     }
     else
 #endif
@@ -1493,7 +1494,7 @@ read_record_header:
 
     /* We don't support fragmentation of ClientHello (yet?) */
     if( buf[1] != 0 ||
-        msg_len != mbedtls_ssl_hs_hdr_len( ssl ) + ( ( buf[2] << 8 ) | buf[3] ) )
+        (size_t) msg_len != mbedtls_ssl_hs_hdr_len( ssl ) + ( ( buf[2] << 8 ) | buf[3] ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -1506,7 +1507,7 @@ read_record_header:
          * Copy the client's handshake message_seq on initial handshakes,
          * check sequence number on renego.
          */
-        unsigned int cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
+        uint16_t cli_msg_seq = ( ssl->in_msg[4] << 8 ) |
                                      ssl->in_msg[5];
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -1544,7 +1545,7 @@ read_record_header:
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     buf += mbedtls_ssl_hs_hdr_len( ssl );
-    msg_len -= mbedtls_ssl_hs_hdr_len( ssl );
+    msg_len -= (uint16_t) mbedtls_ssl_hs_hdr_len( ssl );
 
     /*
      * ClientHello layer:
@@ -1700,7 +1701,7 @@ read_record_header:
              | ( buf[ciph_offset + 1]      );
 
     if( ciph_len < 2 ||
-        (size_t) ciph_len + 2 + ciph_offset + 1 > msg_len || /* 1 for comp. alg. len */
+        ciph_len + 2u + ciph_offset + 1u > msg_len || /* 1 for comp. alg. len */
         ciph_len % 2 != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
@@ -2221,7 +2222,7 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
 
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CID >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CID      ) & 0xFF );
-    ext_len = (uint16_t) ssl->own_cid_len + 1;
+    ext_len = (uint16_t)( ssl->own_cid_len + 1 );
     *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
 

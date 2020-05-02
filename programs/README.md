@@ -20,7 +20,7 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 ### Generic public-key cryptography (`pk`) examples
 
-* [`pkey/gen_key.c`](pkey/gen_key.c): generates a key for any of the supported public-key algorithms (RSA or ECC) and writes it to a file that can be used by the other pk sample programs.
+* [`pkey/gen_key.c`](pkey/gen_key.c): generates a key for any of the supported public-key algorithms (RSA or ECC) and writes it to a file that can be used by the other pk and x509 sample programs.
 
 * [`pkey/key_app.c`](pkey/key_app.c): loads a PEM or DER public key or private key file and dumps its content.
 

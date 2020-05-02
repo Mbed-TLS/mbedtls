@@ -647,6 +647,9 @@ component_test_default_out_of_box () {
     msg "selftest: make, default config (out-of-box)" # ~10s
     programs/test/selftest
 
+    msg "program demos: make, default config (out-of-box)" # ~10s
+    if_build_succeeded tests/scripts/run_demos.py
+
     export MBEDTLS_TEST_OUTCOME_FILE="$SAVE_MBEDTLS_TEST_OUTCOME_FILE"
     unset SAVE_MBEDTLS_TEST_OUTCOME_FILE
 }
@@ -658,6 +661,9 @@ component_test_default_cmake_gcc_asan () {
 
     msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
     make test
+
+    msg "program demos (ASan build)" # ~10s
+    if_build_succeeded tests/scripts/run_demos.py
 
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
     if_build_succeeded tests/ssl-opt.sh
@@ -896,6 +902,9 @@ component_test_full_cmake_clang () {
     msg "test: main suites (full config, clang)" # ~ 5s
     make test
 
+    msg "program demos (full config)" # ~10s
+    if_build_succeeded tests/scripts/run_demos.py
+
     msg "test: psa_constant_names (full config, clang)" # ~ 1s
     record_status tests/scripts/test_psa_constant_names.py
 
@@ -929,6 +938,9 @@ component_build_deprecated () {
     # Build with -O -Wextra to catch a maximum of issues.
     make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
     make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+
+    msg "program demos: full config + DEPRECATED_REMOVED" # ~10s
+    if_build_succeeded tests/scripts/run_demos.py
 }
 
 # Check that the specified libraries exist and are empty.
@@ -1666,6 +1678,9 @@ component_test_memsan () {
 
     msg "test: main suites (MSan)" # ~ 10s
     make test
+
+    msg "program demos (MSan)" # ~20s
+    if_build_succeeded tests/scripts/run_demos.py
 
     msg "test: ssl-opt.sh (MSan)" # ~ 1 min
     if_build_succeeded tests/ssl-opt.sh

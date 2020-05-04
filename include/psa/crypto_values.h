@@ -1567,8 +1567,22 @@
  */
 #define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
 
+/** The persistence level of volatile keys.
+ *
+ * See ::psa_key_persistence_t for more information.
+ */
 #define PSA_KEY_PERSISTENCE_VOLATILE            ((psa_key_persistence_t)0x00)
+
+/** The default persistence level for persistent keys.
+ *
+ * See ::psa_key_persistence_t for more information.
+ */
 #define PSA_KEY_PERSISTENCE_DEFAULT             ((psa_key_persistence_t)0x01)
+
+/** A persistence level indicating that a key is never destroyed.
+ *
+ * See ::psa_key_persistence_t for more information.
+ */
 #define PSA_KEY_PERSISTENCE_READ_ONLY           ((psa_key_persistence_t)0xff)
 
 #define PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime)      \
@@ -1597,7 +1611,15 @@
     (PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime) == \
      PSA_KEY_LIFETIME_PERSISTENCE_VOLATILE)
 
+/** The local storage area for persistent keys.
+ *
+ * This storage area is available on all systems that can store persistent
+ * keys without delegating the storage to a third-party cryptoprocessor.
+ *
+ * See ::psa_key_location_t for more information.
+ */
 #define PSA_KEY_LOCATION_LOCAL_STORAGE          ((psa_key_location_t)0x000000)
+
 #define PSA_KEY_LOCATION_VENDOR_FLAG            ((psa_key_location_t)0x800000)
 
 /** The minimum value for a key identifier chosen by the application.

@@ -19,30 +19,17 @@
 #
 # The following options are disabled instead of enabled with "full".
 #
-#   MBEDTLS_TEST_NULL_ENTROPY
-#   MBEDTLS_DEPRECATED_REMOVED
-#   MBEDTLS_HAVE_SSE2
-#   MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
-#   MBEDTLS_ECP_DP_M221_ENABLED
-#   MBEDTLS_ECP_DP_M383_ENABLED
-#   MBEDTLS_ECP_DP_M511_ENABLED
-#   MBEDTLS_MEMORY_BACKTRACE
-#   MBEDTLS_MEMORY_BUFFER_ALLOC_C
-#   MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-#   MBEDTLS_NO_PLATFORM_ENTROPY
-#   MBEDTLS_REMOVE_ARC4_CIPHERSUITES
-#   MBEDTLS_REMOVE_3DES_CIPHERSUITES
-#   MBEDTLS_SSL_HW_RECORD_ACCEL
-#   MBEDTLS_RSA_NO_CRT
-#   MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
-#   MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
-#       - this could be enabled if the respective tests were adapted
-#   MBEDTLS_ZLIB_SUPPORT
-#   MBEDTLS_PKCS11_C
-#   MBEDTLS_NO_UDBL_DIVISION
-#   MBEDTLS_NO_64BIT_MULTIPLICATION
-#   and any symbol beginning _ALT
+# * Options that require additional build dependencies or unusual hardware.
+# * Options that make testing less effective.
+# * Options that are incompatible with other options, or more generally that
+#   interact with other parts of the code in such a way that a bulk enabling
+#   is not a good way to test them.
+# * Options that remove features.
 #
+# The baremetal configuration excludes options that require a library or
+# operating system feature that is typically not present on bare metal
+# systems. Features that are excluded from "full" won't be in "baremetal"
+# either.
 
 use warnings;
 use strict;
@@ -83,53 +70,54 @@ Options
 EOU
 
 my @excluded = qw(
-MBEDTLS_TEST_NULL_ENTROPY
-MBEDTLS_DEPRECATED_REMOVED
-MBEDTLS_HAVE_SSE2
-MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
 MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
-MBEDTLS_ECP_DP_M221_ENABLED
-MBEDTLS_ECP_DP_M383_ENABLED
-MBEDTLS_ECP_DP_M511_ENABLED
-MBEDTLS_MEMORY_DEBUG
+MBEDTLS_DEPRECATED_REMOVED
+MBEDTLS_DEPRECATED_WARNING
+MBEDTLS_HAVE_SSE2
 MBEDTLS_MEMORY_BACKTRACE
 MBEDTLS_MEMORY_BUFFER_ALLOC_C
+MBEDTLS_MEMORY_DEBUG
+MBEDTLS_NO_64BIT_MULTIPLICATION
 MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
 MBEDTLS_NO_PLATFORM_ENTROPY
-MBEDTLS_RSA_NO_CRT
-MBEDTLS_REMOVE_ARC4_CIPHERSUITES
+MBEDTLS_NO_UDBL_DIVISION
+MBEDTLS_PKCS11_C
+MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
 MBEDTLS_REMOVE_3DES_CIPHERSUITES
+MBEDTLS_REMOVE_ARC4_CIPHERSUITES
+MBEDTLS_RSA_NO_CRT
 MBEDTLS_SSL_HW_RECORD_ACCEL
-MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
+MBEDTLS_TEST_NULL_ENTROPY
 MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
 MBEDTLS_ZLIB_SUPPORT
-MBEDTLS_PKCS11_C
-MBEDTLS_NO_UDBL_DIVISION
-MBEDTLS_NO_64BIT_MULTIPLICATION
 _ALT\s*$
 );
 
 # Things that should be disabled in "baremetal"
 my @excluded_baremetal = qw(
-MBEDTLS_NET_C
-MBEDTLS_TIMING_C
-MBEDTLS_FS_IO
 MBEDTLS_ENTROPY_NV_SEED
+MBEDTLS_FS_IO
+MBEDTLS_HAVEGE_C
 MBEDTLS_HAVE_TIME
 MBEDTLS_HAVE_TIME_DATE
-MBEDTLS_DEPRECATED_WARNING
-MBEDTLS_HAVEGE_C
-MBEDTLS_THREADING_C
-MBEDTLS_THREADING_PTHREAD
 MBEDTLS_MEMORY_BACKTRACE
 MBEDTLS_MEMORY_BUFFER_ALLOC_C
-MBEDTLS_PLATFORM_TIME_ALT
+MBEDTLS_NET_C
 MBEDTLS_PLATFORM_FPRINTF_ALT
+MBEDTLS_PLATFORM_NV_SEED_ALT
+MBEDTLS_PLATFORM_TIME_ALT
+MBEDTLS_THREADING_C
+MBEDTLS_THREADING_PTHREAD
+MBEDTLS_TIMING_C
 );
 
-# Things that should be enabled in "full" even if they match @excluded
+# Things that should be enabled in "full" even if they match @excluded.
+# Platform ALTs enable global variables that allow configuring the behavior
+# but default to the default behavior, except for PLATFORM_SETUP_TEARDOWN_ALT
+# which requires the application to provide relevant functions like
+# non-platform ALTs.
 my @non_excluded = qw(
-PLATFORM_[A-Z0-9]+_ALT
+PLATFORM_(?!SETUP_TEARDOWN_)[A-Z_0-9]+_ALT
 );
 
 # Things that should be enabled in "baremetal"

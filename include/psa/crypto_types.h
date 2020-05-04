@@ -113,11 +113,11 @@ typedef uint32_t psa_algorithm_t;
  *   persistence level. This value indicates what device management
  *   actions can cause it to be destroyed. In particular, it indicates
  *   whether the key is _volatile_ or _persistent_.
- *   See ::psa_key_lifetime_persistence_t for more information.
+ *   See ::psa_key_persistence_t for more information.
  * - Bits 8-31 (#PSA_KEY_LIFETIME_GET_LOCATION(\c lifetime)):
  *   location indicator. This value indicates where the key is stored
  *   and where operations on the key are performed.
- *   See ::psa_key_lifetime_location_t for more information.
+ *   See ::psa_key_location_t for more information.
  *
  * Volatile keys are automatically destroyed when the application instance
  * terminates or on a power reset of the device. Persistent keys are
@@ -150,11 +150,11 @@ typedef uint32_t psa_key_lifetime_t;
  * scope of the PSA Cryptography specification.
  *
  * This specification defines the following values of persistence levels:
- * - \c 0 = #PSA_KEY_LIFETIME_PERSISTENCE_VOLATILE: volatile key.
+ * - \c 0 = #PSA_KEY_PERSISTENCE_VOLATILE: volatile key.
  *   A volatile key is automatically destroyed by the implementation when
  *   the application instance terminates. In particular, a volatile key
  *   is automatically destroyed on a power reset of the device.
- * - \c 1 = #PSA_KEY_LIFETIME_PERSISTENCE_PRIMARY:
+ * - \c 1 = #PSA_KEY_PERSISTENCE_PRIMARY:
  *   persistent key with a default lifetime.
  *   Implementations should support this value if they support persistent
  *   keys at all.
@@ -168,7 +168,7 @@ typedef uint32_t psa_key_lifetime_t;
  *   implementations may choose the meaning freely.
  *   As a guideline, higher persistence levels should cause a key to survive
  *   more management events than lower levels.
- * - \c 255 = #PSA_KEY_LIFETIME_PERSISTENCE_READ_ONLY:
+ * - \c 255 = #PSA_KEY_PERSISTENCE_READ_ONLY:
  *   read-only or write-once key.
  *   A key with this persistence level cannot be destroyed.
  *   Implementations that support such keys may either allow their creation
@@ -183,7 +183,7 @@ typedef uint32_t psa_key_lifetime_t;
  *       interfaces operate on lifetimes (type ::psa_key_lifetime_t) which
  *       encode the persistence as the lower 8 bits of a 32-bit value.
  */
-typedef uint8_t psa_key_lifetime_persistence_t;
+typedef uint8_t psa_key_persistence_t;
 
 /** Encoding of key location indicators.
  *
@@ -217,7 +217,7 @@ typedef uint8_t psa_key_lifetime_persistence_t;
  *       interfaces operate on lifetimes (type ::psa_key_lifetime_t) which
  *       encode the location as the upper 24 bits of a 32-bit value.
  */
-typedef uint32_t psa_key_lifetime_location_t;
+typedef uint32_t psa_key_location_t;
 
 /** Encoding of identifiers of persistent keys.
  *

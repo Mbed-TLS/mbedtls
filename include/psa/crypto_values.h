@@ -1552,7 +1552,7 @@
  */
 #define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000000)
 
-/** The default storage area for persistent keys.
+/** The default lifetime for persistent keys.
  *
  * A persistent key remains in storage until it is explicitly destroyed or
  * until the corresponding storage area is wiped. This specification does
@@ -1563,7 +1563,7 @@
  * This lifetime value is the default storage area for the calling
  * application. Implementations may offer other storage areas designated
  * by other lifetime values as implementation-specific extensions.
- * See ::psa_key_lifetime_location_t for more information.
+ * See ::psa_key_lifetime_t for more information.
  */
 #define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
 

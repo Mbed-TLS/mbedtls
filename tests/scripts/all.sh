@@ -770,22 +770,31 @@ component_test_full_cmake_clang () {
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL\|DES\|RC4\|ARCFOUR'
 }
 
-component_build_deprecated () {
-    msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
-    scripts/config.pl full
-    scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
-    # Build with -O -Wextra to catch a maximum of issues.
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
-
-    msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
-    # No cleanup, just tweak the configuration and rebuild
-    make clean
-    scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
+component_test_default_no_deprecated () {
+    # Test that removing the deprecated features from the default
+    # configuration leaves something consistent.
+    msg "build: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 30s
     scripts/config.pl set MBEDTLS_DEPRECATED_REMOVED
-    # Build with -O -Wextra to catch a maximum of issues.
-    make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
-    make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+
+    msg "test: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 5s
+    make test
+}
+
+component_test_full_deprecated_warning () {
+    # Test that there is nothing deprecated in the full configuraration.
+    # A deprecated feature would trigger a warning (made fatal) from
+    # MBEDTLS_DEPRECATED_WARNING.
+    msg "build: make, full + MBEDTLS_DEPRECATED_WARNING" # ~ 30s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_DEPRECATED_REMOVED
+    scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
+    # There are currently no tests for any deprecated feature.
+    # If some are added, 'make test' would trigger warnings here.
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+
+    msg "test: make, full + MBEDTLS_DEPRECATED_WARNING" # ~ 5s
+    make test
 }
 
 component_test_depends_curves () {
@@ -827,6 +836,7 @@ component_test_no_platform () {
     scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.pl unset MBEDTLS_FS_IO
     # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
@@ -841,6 +851,7 @@ component_build_no_std_function () {
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
 }
 
@@ -912,6 +923,7 @@ component_test_null_entropy () {
     scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
     scripts/config.pl set MBEDTLS_ENTROPY_C
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
     scripts/config.pl unset MBEDTLS_HAVEGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan -D UNSAFE_BUILD=ON .

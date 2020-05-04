@@ -1,6 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
+#include "mbedtls/md.h"
 
 /*
  * Number of calls made to entropy_dummy_source()
@@ -346,7 +347,7 @@ void entropy_nv_seed( char *read_seed_str )
 
     // Set the initial NV seed to read.
     // Get exactly MBEDTLS_ENTROPY_BLOCK_SIZE bytes from read_str.
-    TEST_ASSERT( strlen( read_seed ) / 2 >= MBEDTLS_ENTROPY_BLOCK_SIZE );
+    TEST_ASSERT( strlen( read_seed_str ) / 2 >= MBEDTLS_ENTROPY_BLOCK_SIZE );
     read_seed_str[MBEDTLS_ENTROPY_BLOCK_SIZE * 2] = '\0';
     unhexify( read_seed, read_seed_str );
     memcpy( buffer_seed, read_seed, MBEDTLS_ENTROPY_BLOCK_SIZE );

@@ -239,7 +239,9 @@ int main( void )
 #define USAGE_ECJPAKE ""
 #endif
 
-#define USAGE \
+/* USAGE is arbitrarily split to stay under the portable string literal
+ * length limit: 4095 bytes in C99. */
+#define USAGE1 \
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
     "    server_name=%%s      default: localhost\n"         \
@@ -260,15 +262,17 @@ int main( void )
     "    skip_close_notify=%%d default: 0 (send close_notify)\n" \
     "\n"                                                    \
     USAGE_DTLS                                              \
-    "\n"                                                    \
-    "    auth_mode=%%s        default: (library default: none)\n"      \
+    "\n"
+#define USAGE2 \
+    "    auth_mode=%%s        default: (library default: none)\n" \
     "                        options: none, optional, required\n" \
     USAGE_IO                                                \
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
-    "\n"                                                    \
-    "    allow_legacy=%%d     default: (library default: no)\n"      \
+    "\n"
+#define USAGE3 \
+    "    allow_legacy=%%d     default: (library default: no)\n"   \
     USAGE_RENEGO                                            \
     "    exchanges=%%d        default: 1\n"                 \
     "    reconnect=%%d        default: 0 (disabled)\n"      \
@@ -284,7 +288,8 @@ int main( void )
     USAGE_CURVES                                            \
     USAGE_RECSPLIT                                          \
     USAGE_DHMLEN                                            \
-    "\n"                                                    \
+    "\n"
+#define USAGE4 \
     "    arc4=%%d             default: (library default: 0)\n" \
     "    allow_sha1=%%d       default: 0\n"                             \
     "    min_version=%%s      default: (library default: tls1)\n"       \
@@ -507,7 +512,10 @@ int main( int argc, char *argv[] )
         if( ret == 0 )
             ret = 1;
 
-        mbedtls_printf( USAGE );
+        mbedtls_printf( USAGE1 );
+        mbedtls_printf( USAGE2 );
+        mbedtls_printf( USAGE3 );
+        mbedtls_printf( USAGE4 );
 
         list = mbedtls_ssl_list_ciphersuites();
         while( *list )

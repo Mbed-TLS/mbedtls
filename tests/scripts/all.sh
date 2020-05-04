@@ -927,26 +927,58 @@ component_test_full_cmake_clang () {
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
-component_build_deprecated () {
-    msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
+component_test_default_no_deprecated () {
+    # Test that removing the deprecated features from the default
+    # configuration leaves something consistent.
+    msg "build: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 30s
+    scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+
+    msg "test: make, default + MBEDTLS_DEPRECATED_REMOVED" # ~ 5s
+    make test
+}
+
+component_test_full_no_deprecated () {
+    msg "build: make, full_no_deprecated config" # ~ 30s
+    scripts/config.py full_no_deprecated
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+
+    msg "test: make, full_no_deprecated config" # ~ 5s
+    make test
+}
+
+component_test_full_no_deprecated_deprecated_warning () {
+    # Test that there is nothing deprecated in "full_no_deprecated".
+    # A deprecated feature would trigger a warning (made fatal) from
+    # MBEDTLS_DEPRECATED_WARNING.
+    msg "build: make, full_no_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 30s
+    scripts/config.py full_no_deprecated
+    scripts/config.py unset MBEDTLS_DEPRECATED_REMOVED
+    scripts/config.py set MBEDTLS_DEPRECATED_WARNING
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra'
+
+    msg "test: make, full_no_deprecated config, MBEDTLS_DEPRECATED_WARNING" # ~ 5s
+    make test
+}
+
+component_test_full_deprecated_warning () {
+    # Test that when MBEDTLS_DEPRECATED_WARNING is enabled, the build passes
+    # with only certain whitelisted types of warnings.
+    msg "build: make, full config + MBEDTLS_DEPRECATED_WARNING, expect warnings" # ~ 30s
     scripts/config.py full
     scripts/config.py set MBEDTLS_DEPRECATED_WARNING
-    # Build with -O -Wextra to catch a maximum of issues.
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+    # Expect warnings from '#warning' directives in check_config.h.
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=cpp' lib programs
 
-    msg "test: make, full config + DEPRECATED_WARNING, expect warnings" # ~ 30s
-    make -C tests clean
-    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -DMBEDTLS_TEST_DEPRECATED' tests
+    msg "build: make tests, full config + MBEDTLS_DEPRECATED_WARNING, expect warnings" # ~ 30s
+    # Set MBEDTLS_TEST_DEPRECATED to enable tests for deprecated features.
+    # By default those are disabled when MBEDTLS_DEPRECATED_WARNING is set.
+    # Expect warnings from '#warning' directives in check_config.h and
+    # from the use of deprecated functions in test suites.
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-error=deprecated-declarations -Wno-error=cpp -DMBEDTLS_TEST_DEPRECATED' tests
 
-    msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
-    # No cleanup, just tweak the configuration and rebuild
-    make clean
-    scripts/config.py unset MBEDTLS_DEPRECATED_WARNING
-    scripts/config.py set MBEDTLS_DEPRECATED_REMOVED
-    # Build with -O -Wextra to catch a maximum of issues.
-    make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
-    make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+    msg "test: full config + MBEDTLS_TEST_DEPRECATED" # ~ 30s
+    make test
 }
 
 # Check that the specified libraries exist and are empty.
@@ -1015,6 +1047,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -1053,6 +1086,7 @@ component_test_check_params_without_platform () {
     scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_FPRINTF_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_MEMORY
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_PRINTF_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
@@ -1082,6 +1116,7 @@ component_test_no_platform () {
     scripts/config.py unset MBEDTLS_PLATFORM_SNPRINTF_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_TIME_ALT
     scripts/config.py unset MBEDTLS_PLATFORM_EXIT_ALT
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.py unset MBEDTLS_FS_IO
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
@@ -1099,6 +1134,7 @@ component_build_no_std_function () {
     scripts/config.py full
     scripts/config.py set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
 }
 
@@ -1288,6 +1324,7 @@ component_test_null_entropy () {
     scripts/config.py set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
     scripts/config.py set MBEDTLS_ENTROPY_C
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
     scripts/config.py unset MBEDTLS_ENTROPY_HARDWARE_ALT
     scripts/config.py unset MBEDTLS_HAVEGE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan -D UNSAFE_BUILD=ON .
@@ -1405,16 +1442,6 @@ component_test_se_default () {
     make test
 }
 
-component_test_se_full () {
-    msg "build: full config + MBEDTLS_PSA_CRYPTO_SE_C"
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_SE_C
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS"
-
-    msg "test: full config + MBEDTLS_PSA_CRYPTO_SE_C"
-    make test
-}
-
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check
@@ -1433,7 +1460,7 @@ test_build_opt () {
     info=$1 cc=$2; shift 2
     for opt in "$@"; do
           msg "build/test: $cc $opt, $info" # ~ 30s
-          make CC="$cc" CFLAGS="$opt -Wall -Wextra -Werror"
+          make CC="$cc" CFLAGS="$opt -std=c99 -pedantic -Wall -Wextra -Werror"
           # We're confident enough in compilers to not run _all_ the tests,
           # but at least run the unit tests. In particular, runs with
           # optimizations use inline assembly whereas runs with -O0

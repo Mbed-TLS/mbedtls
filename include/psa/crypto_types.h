@@ -154,7 +154,7 @@ typedef uint32_t psa_key_lifetime_t;
  *   A volatile key is automatically destroyed by the implementation when
  *   the application instance terminates. In particular, a volatile key
  *   is automatically destroyed on a power reset of the device.
- * - \c 1 = #PSA_KEY_PERSISTENCE_PRIMARY:
+ * - \c 1 = #PSA_KEY_PERSISTENCE_DEFAULT:
  *   persistent key with a default lifetime.
  *   Implementations should support this value if they support persistent
  *   keys at all.
@@ -195,15 +195,15 @@ typedef uint8_t psa_key_persistence_t;
  * the key is stored.
  *
  * This specification defines the following values of location indicators:
- * - \c 0: default location.
+ * - \c 0: primary local storage.
  *   All implementations should support this value.
- *   The default location typically indicates that the key material is
- *   used and stored within the same security boundary as the key metadata.
+ *   The primary local storage is typically the same storage area that
+ *   contains the key metadata.
  * - \c 1: primary secure element.
  *   Implementations should support this value if there is a secure element
  *   attached to the operating environment.
  *   As a guideline, secure elements may provide higher resistance against
- *   side channel and physical attacks than the default location, but may
+ *   side channel and physical attacks than the primary local storage, but may
  *   have restrictions on supported key types, sizes, policies and operations
  *   and may have different performance characteristics.
  * - \c 2-0x7fffff: other locations defined by a PSA specification.

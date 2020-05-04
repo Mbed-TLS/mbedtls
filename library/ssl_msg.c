@@ -342,14 +342,16 @@ static void ssl_read_memory( unsigned char *p, size_t len )
  */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-/* This functions transforms a DTLS plaintext fragment and a record content
- * type into an instance of the DTLSInnerPlaintext structure:
+/* This functions transforms a (D)TLS plaintext fragment and a record content
+ * type into an instance of the (D)TLSInnerPlaintext structure. This is used
+ * in DTLS 1.2 + CID and within TLS 1.3 to allow flexible padding and to protect
+ * a record's content type.
  *
  *        struct {
  *            opaque content[DTLSPlaintext.length];
  *            ContentType real_type;
  *            uint8 zeros[length_of_padding];
- *        } DTLSInnerPlaintext;
+ *        } (D)TLSInnerPlaintext;
  *
  *  Input:
  *  - `content`: The beginning of the buffer holding the
@@ -360,18 +362,18 @@ static void ssl_read_memory( unsigned char *p, size_t len )
  *  - `rec_type`: The desired record content type.
  *
  *  Output:
- *  - `content`: The beginning of the resulting DTLSInnerPlaintext structure.
- *  - `*content_size`: The length of the resulting DTLSInnerPlaintext structure.
+ *  - `content`: The beginning of the resulting (D)TLSInnerPlaintext structure.
+ *  - `*content_size`: The length of the resulting (D)TLSInnerPlaintext structure.
  *
  *  Returns:
  *  - `0` on success.
  *  - A negative error code if `max_len` didn't offer enough space
  *    for the expansion.
  */
-static int ssl_cid_build_inner_plaintext( unsigned char *content,
-                                          size_t *content_size,
-                                          size_t remaining,
-                                          uint8_t rec_type )
+static int ssl_build_inner_plaintext( unsigned char *content,
+                                      size_t *content_size,
+                                      size_t remaining,
+                                      uint8_t rec_type )
 {
     size_t len = *content_size;
     size_t pad = ( MBEDTLS_SSL_CID_PADDING_GRANULARITY -
@@ -395,9 +397,9 @@ static int ssl_cid_build_inner_plaintext( unsigned char *content,
     return( 0 );
 }
 
-/* This function parses a DTLSInnerPlaintext structure.
- * See ssl_cid_build_inner_plaintext() for details. */
-static int ssl_cid_parse_inner_plaintext( unsigned char const *content,
+/* This function parses a (D)TLSInnerPlaintext structure.
+ * See ssl_build_inner_plaintext() for details. */
+static int ssl_parse_inner_plaintext( unsigned char const *content,
                                           size_t *content_size,
                                           uint8_t *rec_type )
 {
@@ -586,12 +588,12 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     {
         /*
          * Wrap plaintext into DTLSInnerPlaintext structure.
-         * See ssl_cid_build_inner_plaintext() for more information.
+         * See ssl_build_inner_plaintext() for more information.
          *
          * Note that this changes `rec->data_len`, and hence
          * `post_avail` needs to be recalculated afterwards.
          */
-        if( ssl_cid_build_inner_plaintext( data,
+        if( ssl_build_inner_plaintext( data,
                         &rec->data_len,
                         post_avail,
                         rec->type ) != 0 )
@@ -1552,8 +1554,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( rec->cid_len != 0 )
     {
-        ret = ssl_cid_parse_inner_plaintext( data, &rec->data_len,
-                                             &rec->type );
+        ret = ssl_parse_inner_plaintext( data, &rec->data_len,
+                                         &rec->type );
         if( ret != 0 )
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }

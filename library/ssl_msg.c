@@ -341,7 +341,8 @@ static void ssl_read_memory( unsigned char *p, size_t len )
  * Encryption/decryption functions
  */
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) ||  \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 /* This functions transforms a (D)TLS plaintext fragment and a record content
  * type into an instance of the (D)TLSInnerPlaintext structure. This is used
  * in DTLS 1.2 + CID and within TLS 1.3 to allow flexible padding and to protect
@@ -418,7 +419,8 @@ static int ssl_parse_inner_plaintext( unsigned char const *content,
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID ||
+          MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 /* `add_data` must have size 13 Bytes if the CID extension is disabled,
  * and 13 + 1 + CID-length Bytes if the CID extension is enabled. */
@@ -575,6 +577,28 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                                     MBEDTLS_SSL_OUT_CONTENT_LEN ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        /*
+         * Wrap plaintext into TLSInnerPlaintext structure.
+         * See ssl_build_inner_plaintext() for more information.
+         *
+         * Note that this changes `rec->data_len`, and hence
+         * `post_avail` needs to be recalculated afterwards.
+         */
+        if( ssl_build_inner_plaintext( data,
+                        &rec->data_len,
+                        post_avail,
+                        rec->type ) != 0 )
+        {
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        }
+
+        rec->type = MBEDTLS_SSL_MSG_APPLICATION_DATA;
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /*
@@ -1550,6 +1574,18 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        /* Remove inner padding and infer true content type. */
+        ret = ssl_parse_inner_plaintext( data, &rec->data_len,
+                                         &rec->type );
+
+        if( ret != 0 )
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( rec->cid_len != 0 )

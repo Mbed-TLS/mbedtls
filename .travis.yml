@@ -1,41 +1,64 @@
 language: c
-compiler:
-- clang
-- gcc
+compiler: gcc
 sudo: false
 cache: ccache
-script:
-- tests/scripts/recursion.pl library/*.c
-- tests/scripts/check-generated-files.sh
-- tests/scripts/check-doxy-blocks.pl
-- tests/scripts/check-names.sh
-- tests/scripts/check-files.py
-- tests/scripts/doxygen.sh
-- cmake -D CMAKE_BUILD_TYPE:String="Check" .
-- make
-- make test
-- programs/test/selftest
-- OSSL_NO_DTLS=1 tests/compat.sh
-- tests/ssl-opt.sh -e '\(DTLS\|SCSV\).*openssl'
-- tests/scripts/test-ref-configs.pl
-- tests/scripts/curves.pl
-- tests/scripts/key-exchanges.pl
+
+jobs:
+  include:
+    - name: basic checks and reference configurations
+      addons:
+        apt:
+          packages:
+          - gnutls-bin
+          - doxygen
+          - graphviz
+          - gcc-arm-none-eabi
+          - libnewlib-arm-none-eabi
+      language: python # Needed to get pip for Python 3
+      python: 3.5 # version from Ubuntu 16.04
+      install:
+        - pip install pylint==2.4.4
+      script:
+        - tests/scripts/all.sh -k 'check_*'
+        - tests/scripts/all.sh -k test_default_out_of_box
+        - tests/scripts/test-ref-configs.pl
+        - tests/scripts/all.sh -k build_arm_none_eabi_gcc_arm5vte build_arm_none_eabi_gcc_m0plus
+
+    - name: full configuration
+      script:
+        - tests/scripts/all.sh -k test_full_cmake_gcc_asan
+
+    - name: check compilation guards
+      script:
+        - tests/scripts/all.sh -k 'test_depends_*' 'build_key_exchanges'
+
+    - name: macOS
+      os: osx
+      compiler: clang
+      script:
+        - tests/scripts/all.sh -k test_default_out_of_box
+
+    - name: Windows
+      os: windows
+      script:
+        - scripts/windows_msbuild.bat v141 # Visual Studio 2017
+
 after_failure:
 - tests/scripts/travis-log-failure.sh
+
 env:
   global:
     - SEED=1
-    - secure: "barHldniAfXyoWOD/vcO+E6/Xm4fmcaUoC9BeKW+LwsHqlDMLvugaJnmLXkSpkbYhVL61Hzf3bo0KPJn88AFc5Rkf8oYHPjH4adMnVXkf3B9ghHCgznqHsAH3choo6tnPxaFgOwOYmLGb382nQxfE5lUdvnM/W/psQjWt66A1+k="
+    - secure: "FrI5d2s+ckckC17T66c8jm2jV6i2DkBPU5nyWzwbedjmEBeocREfQLd/x8yKpPzLDz7ghOvr+/GQvsPPn0dVkGlNzm3Q+hGHc/ujnASuUtGrcuMM+0ALnJ3k4rFr9xEvjJeWb4SmhJO5UCAZYvTItW4k7+bj9L+R6lt3TzQbXzg="
 
 addons:
   apt:
     packages:
-    - doxygen
-    - graphviz
+    - gnutls-bin
   coverity_scan:
     project:
       name: "ARMmbed/mbedtls"
-    notification_email: p.j.bakker@polarssl.org
+    notification_email: support-mbedtls@arm.com
     build_command_prepend:
     build_command: make
     branch_pattern: coverity_scan

@@ -1611,6 +1611,18 @@
     (PSA_KEY_LIFETIME_GET_PERSISTENCE(lifetime) == \
      PSA_KEY_LIFETIME_PERSISTENCE_VOLATILE)
 
+/** Construct a lifetime from a persistence level and a location.
+ *
+ * \param persistence   The persistence level
+ *                      (value of type ::psa_key_persistence_t).
+ * \param location      The location indicator
+ *                      (value of type ::psa_key_location_t).
+ *
+ * \return The constructed lifetime value.
+ */
+#define PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(persistence, location) \
+    ((location) << 8 | (persistence))
+
 /** The local storage area for persistent keys.
  *
  * This storage area is available on all systems that can store persistent

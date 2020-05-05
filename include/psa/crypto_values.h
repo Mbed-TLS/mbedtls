@@ -672,22 +672,24 @@
 #define PSA_ALG_IS_AEAD(alg)                                            \
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_AEAD)
 
-/** Whether the specified algorithm is a public-key signature algorithm.
+/** Whether the specified algorithm is a asymmetric signature algorithm,
+ * also known as public-key signature algorithm.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *
- * \return 1 if \p alg is a public-key signature algorithm, 0 otherwise.
+ * \return 1 if \p alg is an asymmetric signature algorithm, 0 otherwise.
  *         This macro may return either 0 or 1 if \p alg is not a supported
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_SIGN(alg)                                            \
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_SIGN)
 
-/** Whether the specified algorithm is a public-key encryption algorithm.
+/** Whether the specified algorithm is an asymmetric encryption algorithm,
+ * also known as public-key encryption algorithm.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *
- * \return 1 if \p alg is a public-key encryption algorithm, 0 otherwise.
+ * \return 1 if \p alg is an asymmetric encryption algorithm, 0 otherwise.
  *         This macro may return either 0 or 1 if \p alg is not a supported
  *         algorithm identifier.
  */
@@ -1205,9 +1207,9 @@
 
 /** Whether the specified algorithm is a hash-and-sign algorithm.
  *
- * Hash-and-sign algorithms are public-key signature algorithms structured
- * in two parts: first the calculation of a hash in a way that does not
- * depend on the key, then the calculation of a signature from the
+ * Hash-and-sign algorithms are asymmetric (public-key) signature algorithms
+ * structured in two parts: first the calculation of a hash in a way that
+ * does not depend on the key, then the calculation of a signature from the
  * hash value and the key.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).

@@ -420,6 +420,7 @@ psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid,
             *bits = 448;
             return( PSA_ECC_CURVE_MONTGOMERY );
         default:
+            *bits = 0;
             return( 0 );
     }
 }

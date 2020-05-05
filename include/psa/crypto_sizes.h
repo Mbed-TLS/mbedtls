@@ -450,9 +450,9 @@
 
 /** Sufficient output buffer size for psa_asymmetric_decrypt().
  *
- * This macro returns a sufficient buffer size for a ciphertext produced using
+ * This macro returns a sufficient buffer size for a plaintext produced using
  * a key of the specified type and size, with the specified algorithm.
- * Note that the actual size of the ciphertext may be smaller, depending
+ * Note that the actual size of the plaintext may be smaller, depending
  * on the algorithm.
  *
  * \warning This function may call its arguments multiple times or

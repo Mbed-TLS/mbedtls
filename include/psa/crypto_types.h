@@ -207,7 +207,7 @@ typedef uint8_t psa_key_persistence_t;
  *   have restrictions on supported key types, sizes, policies and operations
  *   and may have different performance characteristics.
  * - \c 2-0x7fffff: other locations defined by a PSA specification.
- *   The PSA Cryptography does not currently assign any meaning to these
+ *   The PSA Cryptography API does not currently assign any meaning to these
  *   locations, but future versions of this specification or other PSA
  *   specifications may do so.
  * - \c 0x800000-0xffffff: vendor-defined locations.

@@ -1259,7 +1259,7 @@
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true) to use
  *                      for MGF1.
  *
- * \return              The corresponding RSA OAEP signature algorithm.
+ * \return              The corresponding RSA OAEP encryption algorithm.
  * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */

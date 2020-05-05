@@ -431,7 +431,7 @@
  * \param key_type  An asymmetric key type (this may indifferently be a
  *                  key pair type or a public key type).
  * \param key_bits  The size of the key in bits.
- * \param alg       The signature algorithm.
+ * \param alg       The asymmetric encryption algorithm.
  *
  * \return If the parameters are valid and supported, return
  *         a buffer size in bytes that guarantees that
@@ -462,7 +462,7 @@
  * \param key_type  An asymmetric key type (this may indifferently be a
  *                  key pair type or a public key type).
  * \param key_bits  The size of the key in bits.
- * \param alg       The signature algorithm.
+ * \param alg       The asymmetric encryption algorithm.
  *
  * \return If the parameters are valid and supported, return
  *         a buffer size in bytes that guarantees that

@@ -1242,18 +1242,14 @@ exit:
 #endif /* MBEDTLS_RSA_C */
 
 /** Retrieve all the publicly-accessible attributes of a key.
+ *
+ * \param slot          An occupied key slot.
+ * \param attributes    A freshly initialized or reset attribute structure.
  */
-psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
-                                     psa_key_attributes_t *attributes )
+psa_status_t psa_get_key_slot_attributes( const psa_key_slot_t *slot,
+                                          psa_key_attributes_t *attributes )
 {
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    psa_reset_key_attributes( attributes );
-
-    status = psa_get_key_from_slot( handle, &slot, 0, 0 );
-    if( status != PSA_SUCCESS )
-        return( status );
+    psa_status_t status = PSA_SUCCESS;
 
     attributes->core = slot->attr;
     attributes->core.flags &= ( MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
@@ -1288,6 +1284,23 @@ psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
     if( status != PSA_SUCCESS )
         psa_reset_key_attributes( attributes );
     return( status );
+}
+
+/** Retrieve all the publicly-accessible attributes of a key.
+ */
+psa_status_t psa_get_key_attributes( psa_key_handle_t handle,
+                                     psa_key_attributes_t *attributes )
+{
+    psa_key_slot_t *slot;
+    psa_status_t status;
+
+    psa_reset_key_attributes( attributes );
+
+    status = psa_get_key_from_slot( handle, &slot, 0, 0 );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    return( psa_get_key_slot_attributes( slot, attributes ) );
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)

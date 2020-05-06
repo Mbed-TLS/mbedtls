@@ -3872,7 +3872,7 @@ handshake:
                                          != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_tls_prf returned -0x%x\n\n",
-                            -ret );
+                            (unsigned int) -ret );
             goto exit;
         }
 

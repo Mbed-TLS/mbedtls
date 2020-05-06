@@ -14,7 +14,7 @@ programs: lib
 	$(MAKE) -C programs
 
 lib:
-	$(MAKE) -C library
+	$(MAKE) -C library "PSA_DRIVERS=$(abspath $(PSA_DRIVERS))"
 
 tests: lib
 	$(MAKE) -C tests

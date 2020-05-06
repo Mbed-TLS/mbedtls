@@ -63,6 +63,8 @@ DLEXT = dylib
 endif
 endif
 
+GENERATED_SOURCES =
+
 OBJS_CRYPTO= \
 	     aes.o \
 	     aesni.o \
@@ -174,6 +176,14 @@ static: libmbedcrypto.a libmbedx509.a libmbedtls.a
 
 shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 
+# Declare the generated source unconditionally so that "make clean" always works
+GENERATED_SOURCES += psa_crypto_driver_wrappers.c
+ifneq ($(strip $(PSA_DRIVERS)), )
+psa_crypto_driver_wrappers.c: ../scripts/psa_crypto_driver_wrappers.py $(PSA_DRIVERS)
+	$(PYTHON) ../scripts/psa_crypto_driver_wrappers.py -o $@ $(PSA_DRIVERS)
+OBJS_CRYPTO += psa_crypto_driver_wrappers.o
+endif
+
 # tls
 libmbedtls.a: $(OBJS_TLS)
 	echo "  AR    $@"
@@ -262,9 +272,9 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 clean:
 ifndef WINDOWS
 	rm -f *.o libmbed*
-	rm -f $(THIRDPARTY_CRYPTO_OBJECTS)
+	rm -f $(THIRDPARTY_CRYPTO_OBJECTS) $(GENERATED_SOURCES)
 else
 	if exist *.o del /Q /F *.o
 	if exist libmbed* del /Q /F libmbed*
-	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(THIRDPARTY_CRYPTO_OBJECTS))
+	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(THIRDPARTY_CRYPTO_OBJECTS)) $(GENERATED_SOURCES)
 endif

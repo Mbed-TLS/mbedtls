@@ -40,6 +40,10 @@
  * stored keys. */
 #include "psa_crypto_storage.h"
 
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
+#include "psa_crypto_driver_wrappers.h"
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -3474,6 +3478,16 @@ psa_status_t psa_sign_hash( psa_key_handle_t handle,
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
+
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
+    status = psa_driver_wrapper_sign_hash( slot, alg,
+                                           hash, hash_length,
+                                           signature, signature_size,
+                                           signature_length );
+    if( status != PSA_ERROR_NOT_SUPPORTED )
+        return( status );
+
+#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     if( psa_get_se_driver( slot->attr.lifetime, &drv, &drv_context ) )

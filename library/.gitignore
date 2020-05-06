@@ -2,3 +2,4 @@
 libmbed*
 *.sln
 *.vcxproj
+/psa_crypto_driver_wrappers.c

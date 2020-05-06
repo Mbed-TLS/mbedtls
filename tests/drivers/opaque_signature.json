@@ -1,0 +1,9 @@
+{
+    "prefix": "test_opaque_signature",
+    "type": "opaque",
+    "capabilities": [
+        {"functions": ["import_key", "destroy_key"]},
+        {"functions": ["sign_hash"]},
+        {}
+    ]
+}

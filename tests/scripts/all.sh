@@ -1397,6 +1397,16 @@ component_test_se_full () {
     make test
 }
 
+component_test_driver_signature () {
+    msg "build: MBEDTLS_PSA_CRYPTO_DRIVERS, signature"
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    # Can't build programs because they wouldn't have the driver code.
+    make PSA_DRIVERS="tests/drivers/opaque_signature.json tests/drivers/transparent_signature.json" CC=gcc CFLAGS="$ASAN_CFLAGS -O2" LDFLAGS="$ASAN_CFLAGS" lib tests SHELL='sh -x'
+
+    msg "test: MBEDTLS_PSA_CRYPTO_DRIVERS, signature"
+    make test
+}
+
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check

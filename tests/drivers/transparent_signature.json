@@ -1,0 +1,8 @@
+{
+    "prefix": "test_transparent_signature",
+    "type": "transparent",
+    "capabilities": [
+        {"functions": ["sign_hash"]},
+        {}
+    ]
+}

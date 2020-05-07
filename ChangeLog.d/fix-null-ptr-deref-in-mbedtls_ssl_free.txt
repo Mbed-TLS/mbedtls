@@ -1,0 +1,3 @@
+Bugfix
+   * Avoid NULL pointer dereferencing if mbedtls_ssl_free() is called with a
+     NULL pointer argument. Contributed by Sander Visser in #3312.

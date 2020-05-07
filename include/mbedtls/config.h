@@ -1720,7 +1720,7 @@
  * Uncomment this macro to enable experimental and partial
  * functionality specific to TLS 1.3.
  */
-#define MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+//#define MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 
 /**
  * \def MBEDTLS_SSL_PROTO_DTLS

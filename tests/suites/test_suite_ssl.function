@@ -3178,6 +3178,26 @@ void ssl_crypt_record( int cipher_type, int hash_id,
             continue;
         }
 
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+        if( rec.cid_len != 0 )
+        {
+            /* DTLS 1.2 + CID hides the real content type and
+             * uses a special CID content type in the protected
+             * record. Double-check this. */
+            TEST_ASSERT( rec.type == MBEDTLS_SSL_MSG_CID );
+        }
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+        if( t_enc->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        {
+            /* TLS 1.3 hides the real content type and
+             * always uses Application Data as the content type
+             * for protected records. Double-check this. */
+            TEST_ASSERT( rec.type == MBEDTLS_SSL_MSG_APPLICATION_DATA );
+        }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
         /* Decrypt record with t_dec */
         ret = mbedtls_ssl_decrypt_buf( &ssl, t_dec, &rec );
         TEST_ASSERT( ret == 0 );
@@ -3320,6 +3340,26 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
 
             if( ret != 0 )
                 continue;
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+            if( rec.cid_len != 0 )
+            {
+                /* DTLS 1.2 + CID hides the real content type and
+                 * uses a special CID content type in the protected
+                 * record. Double-check this. */
+                TEST_ASSERT( rec.type == MBEDTLS_SSL_MSG_CID );
+            }
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+            if( t_enc->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+            {
+                /* TLS 1.3 hides the real content type and
+                 * always uses Application Data as the content type
+                 * for protected records. Double-check this. */
+                TEST_ASSERT( rec.type == MBEDTLS_SSL_MSG_APPLICATION_DATA );
+            }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
             /* Decrypt record with t_dec */
             TEST_ASSERT( mbedtls_ssl_decrypt_buf( &ssl, t_dec, &rec ) == 0 );

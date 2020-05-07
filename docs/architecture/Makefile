@@ -4,6 +4,7 @@ default: all
 
 all_markdown = \
 	       mbed-crypto-storage-specification.md \
+	       psa-driver-interface.md \
 	       testing/driver-interface-test-strategy.md \
 	       testing/test-framework.md \
 	       # This line is intentionally left blank

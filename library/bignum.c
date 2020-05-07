@@ -1042,9 +1042,11 @@ int mbedtls_mpi_first_nonzero(size_t *out, const mbedtls_mpi *X)
 
         /* if (X->p[iterator] == 0) imask = 1; */
         /* if (X->p[iterator] != 0) imask = 0; */
-        imask = (
+        imask = (mbedtls_mpi_sint) (
             (
-                ((mbedtls_mpi_sint) X->p[iterator]) ^ ((mbedtls_mpi_sint) X->p[iterator] - 1)
+                ((int64_t) X->p[iterator]) ^ (
+                    (int64_t) (X->p[iterator] - 1)
+                )
             ) >> (MBEDTLS_MPI_UINT_BITS - 1)
         ) & 1;
 

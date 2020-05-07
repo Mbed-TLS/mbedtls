@@ -2663,7 +2663,6 @@ int mbedtls_mpi_inv_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
         MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap(&tmp, &V2, (comp & 1)) );
     }
     while ( !mbedtls_mpi_is_zero(&TU) );
-    // while( mbedtls_mpi_cmp_int_ct( &TU, 0 ) != 0 );
 
     while( mbedtls_mpi_cmp_int_ct( &V1, 0 ) < 0 )
         MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &V1, &V1, N ) );

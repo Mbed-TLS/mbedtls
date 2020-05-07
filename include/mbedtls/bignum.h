@@ -143,7 +143,7 @@
         ( defined(__sparc__) && defined(__arch64__) ) || \
         defined(__s390x__) || defined(__mips64)       || \
         defined(__aarch64__) )
-    #if !defined(MBEDTLS_HAVE_INT64)
+        #if !defined(MBEDTLS_HAVE_INT64)
             #define MBEDTLS_HAVE_INT64
         #endif /* MBEDTLS_HAVE_INT64 */
         typedef  int64_t mbedtls_mpi_sint;

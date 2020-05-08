@@ -1502,7 +1502,8 @@ static int ssl_parse_ecjpake_kkpp( mbedtls_ssl_context *ssl,
 static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
                                const unsigned char *buf, size_t len )
 {
-    size_t list_len, name_len;
+    uint16_t list_len;
+    size_t name_len;
     const char **p;
 
     /* If we didn't send it, the server shouldn't send it */
@@ -1657,7 +1658,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 {
     int ret, i;
     size_t n;
-    size_t ext_len;
+    uint16_t ext_len;
     unsigned char *buf, *ext;
     unsigned char comp;
 #if defined(MBEDTLS_ZLIB_SUPPORT)
@@ -2794,7 +2795,8 @@ start_processing:
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_server_signature( ciphersuite_info ) )
     {
-        size_t sig_len, hashlen;
+        uint16_t sig_len;
+        size_t hashlen;
         unsigned char hash[64];
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
@@ -3806,7 +3808,7 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     uint32_t lifetime;
-    size_t ticket_len;
+    uint16_t ticket_len;
     unsigned char *ticket;
     const unsigned char *msg;
 

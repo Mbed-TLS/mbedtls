@@ -119,8 +119,10 @@ typedef struct {
  * \param[in,out] drv_context       The driver context structure.
  * \param[in,out] persistent_data   A pointer to the persistent data
  *                                  that allows writing.
- * \param lifetime                  The lifetime value for which this driver
- *                                  is registered.
+ * \param location                  The location value for which this driver
+ *                                  is registered. The driver will be invoked
+ *                                  for all keys whose lifetime is in this
+ *                                  location.
  *
  * \retval #PSA_SUCCESS
  *         The driver is operational.
@@ -132,7 +134,7 @@ typedef struct {
  */
 typedef psa_status_t (*psa_drv_se_init_t)(psa_drv_se_context_t *drv_context,
                                           void *persistent_data,
-                                          psa_key_lifetime_t lifetime);
+                                          psa_key_location_t location);
 
 #if defined(__DOXYGEN_ONLY__) || !defined(MBEDTLS_PSA_CRYPTO_SE_C)
 /* Mbed Crypto with secure element support enabled defines this type in
@@ -1341,17 +1343,19 @@ typedef struct {
  * after psa_crypto_init().
  *
  * \note Implementations store metadata about keys including the lifetime
- *       value. Therefore, from one instantiation of the PSA Cryptography
+ *       value, which contains the driver's location indicator. Therefore,
+ *       from one instantiation of the PSA Cryptography
  *       library to the next one, if there is a key in storage with a certain
  *       lifetime value, you must always register the same driver (or an
  *       updated version that communicates with the same secure element)
- *       with the same lifetime value.
+ *       with the same location value.
  *
- * \param lifetime      The lifetime value through which this driver will
+ * \param location      The location value through which this driver will
  *                      be exposed to applications.
- *                      The values #PSA_KEY_LIFETIME_VOLATILE and
- *                      #PSA_KEY_LIFETIME_PERSISTENT are reserved and
- *                      may not be used for drivers. Implementations
+ *                      This driver will be used for all keys such that
+ *                      `location == PSA_KEY_LIFETIME_LOCATION( lifetime )`.
+ *                      The value #PSA_KEY_LOCATION_LOCAL_STORAGE is reserved
+ *                      and may not be used for drivers. Implementations
  *                      may reserve other values.
  * \param[in] methods   The method table of the driver. This structure must
  *                      remain valid for as long as the cryptography

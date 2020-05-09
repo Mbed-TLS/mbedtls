@@ -1380,7 +1380,7 @@ typedef struct {
  * \return PSA_ERROR_NOT_PERMITTED
  */
 psa_status_t psa_register_se_driver(
-    psa_key_lifetime_t lifetime,
+    psa_key_location_t location,
     const psa_drv_se_t *methods);
 
 /**@}*/
